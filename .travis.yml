@@ -10,8 +10,9 @@ install:
 script:
   - go build -v ./...
 before_deploy:
-  - mkdir build
-  - cp butler butler.exe build/
+  - mkdir -p build
+  - cp butler build/ || :
+  - cp butler.exe build/ || :
 deploy:
   provider: s3
   access_key_id: AKIAJC6IFO2T5RCEHRGA
