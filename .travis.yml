@@ -12,8 +12,8 @@ env:
 install:
   - go get -d -v ./...
 script:
-  - [ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"
-  - go build -ldflags "$BUTLER_LDFLAGS" -v ./...
+  - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
+  - "go build -ldflags \"$BUTLER_LDFLAGS\" -v ./..."
 before_deploy:
   - mkdir -p build
   - "cp butler build/ || :"
