@@ -10,11 +10,11 @@ import (
 
 var version = "head"
 
-type wengerError struct {
+type butlerError struct {
 	Error string
 }
 
-type wengerDownloadStatus struct {
+type butlerDownloadStatus struct {
 	Percent int
 }
 
@@ -42,8 +42,7 @@ func send(v interface{}) {
 }
 
 func err(msg string) {
-	e := &wengerError{
-		Error: msg}
+	e := &butlerError{Error: msg}
 	send(e)
 	os.Exit(1)
 }
@@ -67,7 +66,7 @@ func dl() {
 		n, _ := io.CopyN(out, resp.Body, bufferSize)
 		bytesWritten += n
 
-		status := &wengerDownloadStatus{
+		status := &butlerDownloadStatus{
 			Percent: int(bytesWritten * 100 / resp.ContentLength)}
 		send(status)
 
