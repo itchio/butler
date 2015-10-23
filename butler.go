@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var version = "head"
+
 type wengerError struct {
 	Error string
 }
@@ -25,6 +27,8 @@ func main() {
 	cmd := os.Args[1]
 
 	switch cmd {
+	case "version":
+		fmt.Println(fmt.Sprintf("butler version %s", version))
 	case "dl":
 		dl()
 	default:
