@@ -18,9 +18,9 @@ before_deploy:
   - "cp butler build/ || :"
   - "cp butler.exe build/ || :"
   - mkdir -p dist
-  - 7za a dist/butler.7z build/*
+  - (cd dist && 7za a butler.7z ../build/*)
   - mkdir -p meta
-  - "echo $TRAVIS_TAG > meta/LATEST"
+  - echo $TRAVIS_TAG > meta/LATEST
 deploy:
   - provider: s3
     access_key_id: AKIAJC6IFO2T5RCEHRGA
