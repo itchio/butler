@@ -18,7 +18,7 @@ type butlerDownloadStatus struct {
 	Percent int
 }
 
-const bufferSize = 1024 * 1024
+const bufferSize = 128 * 1024
 
 func main() {
 	if len(os.Args) < 2 {
@@ -54,20 +54,30 @@ func dl() {
 	url := os.Args[2]
 	dest := os.Args[3]
 
-	out, _ := os.Create(dest)
+	initialBytes := int64(0)
+	stats, err := os.Lstat(dest)
+	if err == nil {
+		initialBytes = stats.Size()
+	}
+
+	bytesWritten := initialBytes
+
+	out, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	defer out.Close()
 
-	resp, _ := http.Get(url)
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Range", fmt.Sprintf("bytes=%d-", bytesWritten))
+	resp, _ := client.Do(req)
 	defer resp.Body.Close()
-
-	bytesWritten := int64(0)
 
 	for {
 		n, _ := io.CopyN(out, resp.Body, bufferSize)
 		bytesWritten += n
 
+		totalBytes := (initialBytes + resp.ContentLength)
 		status := &butlerDownloadStatus{
-			Percent: int(bytesWritten * 100 / resp.ContentLength)}
+			Percent: int(bytesWritten * 100 / totalBytes)}
 		send(status)
 
 		if n == 0 {
