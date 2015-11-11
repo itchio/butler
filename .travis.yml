@@ -3,6 +3,9 @@ language: go
 go: 1.5.1
 
 matrix:
+  exclude:
+   - os: linux
+     env: 
   include:
    - os: osx
      env: GIMMEOS=darwin GIMMEARCH=amd64
