@@ -13,8 +13,8 @@ install:
 script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
-  - "[ $TRAVIS_OS_NAME = osx ] && export OSARCH=\"darwin-amd64\""
-  - "[ $TRAVIS_OS_NAME = linux ] && export OSARCH=\"linux-386 linux-amd64 windows-386 windows-amd64\""
+  - "[ $TRAVIS_OS_NAME = osx ] && export OSARCH=\"darwin/amd64\""
+  - "[ $TRAVIS_OS_NAME = linux ] && export OSARCH=\"linux/386 linux/amd64 windows/386 windows/amd64\""
   - "gox $OSARCH -ldflags \"$BUTLER_LDFLAGS\" -cgo"
 before_deploy:
   - mkdir -p build
