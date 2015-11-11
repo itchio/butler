@@ -8,9 +8,9 @@ matrix:
      env: 
   include:
    - os: osx
-     env: GIMMEOS=darwin GIMMEARCH=amd64
+     env: GIMME_OS=darwin GIMME_ARCH=amd64
    - os: linux
-     env: GIMMEOS=linux GIMMEARCH=386
+     env: GIMME_OS=linux GIMME_ARCH=386
      addons:
        apt:
          packages:
@@ -18,13 +18,13 @@ matrix:
            - gcc-multilib
            - g++-multilib
    - os: linux
-     env: GIMMEOS=linux GIMMEARCH=amd64
+     env: GIMME_OS=linux GIMME_ARCH=amd64
      addons:
        apt:
          packages:
            - p7zip-full
    - os: linux
-     env: GIMMEOS=windows GIMMEARCH=386 TRIPLET=i686-w64-mingw32
+     env: GIMME_OS=windows GIMME_ARCH=386 TRIPLET=i686-w64-mingw32
      addons:
        apt:
          packages:
@@ -33,7 +33,7 @@ matrix:
            - g++-mingw-w64-i686
            - binutils-mingw-w64-i686
    - os: linux
-     env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
+     env: GIMME_OS=windows GIMME_ARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
      addons:
        apt:
          packages:
@@ -46,9 +46,9 @@ install:
 script:
   - if [[ -n $TRAVIS_TAG ]]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
   - go get github.com/mitchellh/gox
-  - export OSARCH=$GIMMEOS/$GIMMEARCH
+  - export OSARCH=$GIMME_OS/$GIMME_ARCH
   - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
-  - if [[ $GIMMEOS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
+  - if [[ $GIMME_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
   - mkdir -p build
@@ -56,7 +56,7 @@ before_deploy:
   - cp butler.exe build/ || true
   - if [[ -n $MINGW_LIBDIR ]]; then cp $MINGW_LIBDIR/{libgcc_s_sjlj-1,libstdc++-6}.dll build/; fi
   - mkdir -p dist
-  - if [[ $TRAVIS_OS_NAME = osx ]]; then brew install p7zip; fi
+  - if [[ $TRAVIS_OS_NAME = osx ]]; then brew update; brew install p7zip; fi
   - (cd dist && 7za a butler.7z ../build/*)
   - mkdir -p meta
   - echo $TRAVIS_TAG > meta/LATEST
