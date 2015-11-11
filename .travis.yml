@@ -33,7 +33,7 @@ matrix:
            - g++-mingw-w64-i686
            - binutils-mingw-w64-i686
    - os: linux
-     env: GIMME_OS=windows GIMME_ARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
+     env: GIMME_OS=windows GIMME_ARCH=amd64 TRIPLET=x86_64-w64-mingw32
      addons:
        apt:
          packages:
