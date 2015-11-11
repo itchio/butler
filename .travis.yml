@@ -38,7 +38,7 @@ script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
   - "export OSARCH=$GIMMEOS/$GIMMEARCH"
-  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\""
+  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\" || echo \"Not on windows.\""
   - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
 before_deploy:
   - mkdir -p build
