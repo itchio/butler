@@ -19,14 +19,14 @@ matrix:
           packages:
             - p7zip-full
     - os: linux
-      env: GIMMEOS=windows GIMMEARCH=386
+      env: GIMMEOS=windows GIMMEARCH=386 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++
       addons:
         apt:
           packages:
             - p7zip-full
             - mingw-w64
     - os: linux
-      env: GIMMEOS=windows GIMMEARCH=amd64
+      env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
       addons:
         apt:
           packages:
@@ -38,9 +38,7 @@ script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
   - "export OSARCH=$GIMMEOS/$GIMMEARCH"
-  - "[ \"$OSARCH\" = \"windows/386\" ] && export CC_FOR_TARGET=i686-w64-mingw32-gcc"
-  - "[ \"$OSARCH\" = \"windows/amd64\" ] && export CC_FOR_TARGET=x86_64-w64-mingw32-gcc"
-  - "echo $CC_FOR_TARGET"
+  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\""
   - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
 before_deploy:
   - mkdir -p build
