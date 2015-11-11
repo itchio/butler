@@ -3,7 +3,7 @@ language: go
 go: 1.5.1
 
 matrix:
-  exclude:
+  allow_failures:
    - os: linux
      env: 
   include:
@@ -47,7 +47,7 @@ script:
   - if [ -n $TRAVIS_TAG ]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
   - go get github.com/mitchellh/gox
   - export OSARCH=$GIMMEOS/$GIMMEARCH
-  - if [ -n $TRIPLET ] || export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
+  - if [ -n $TRIPLET ]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
   - if [ $GIMMEOS = windows ]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
