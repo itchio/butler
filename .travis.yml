@@ -1,54 +1,57 @@
+
 language: go
 go: 1.5.1
 
 matrix:
   include:
-    - os: osx
-      env: GIMMEOS=darwin GIMMEARCH=amd64
-    - os: linux
-      env: GIMMEOS=linux GIMMEARCH=386
-      addons:
-        apt:
-          packages:
-            - p7zip-full
-            - gcc-multilib
-            - g++-multilib
-    - os: linux
-      env: GIMMEOS=linux GIMMEARCH=amd64
-      addons:
-        apt:
-          packages:
-            - p7zip-full
-    - os: linux
-      env: GIMMEOS=windows GIMMEARCH=386 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++
-      addons:
-        apt:
-          packages:
-            - p7zip-full
-            - gcc-mingw-w64-i686
-            - g++-mingw-w64-i686
-            - binutils-mingw-w64-i686
-    - os: linux
-      env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
-      addons:
-        apt:
-          packages:
-            - p7zip-full
-            - gcc-mingw-w64-x86-64
-            - g++-mingw-w64-x86-64
-            - binutils-mingw-w64-x86-64
+   - os: osx
+     env: GIMMEOS=darwin GIMMEARCH=amd64
+   - os: linux
+     env: GIMMEOS=linux GIMMEARCH=386
+     addons:
+       apt:
+         packages:
+           - p7zip-full
+           - gcc-multilib
+           - g++-multilib
+   - os: linux
+     env: GIMMEOS=linux GIMMEARCH=amd64
+     addons:
+       apt:
+         packages:
+           - p7zip-full
+   - os: linux
+     env: GIMMEOS=windows GIMMEARCH=386 TRIPLET=i686-w64-mingw32
+     addons:
+       apt:
+         packages:
+           - p7zip-full
+           - gcc-mingw-w64-i686
+           - g++-mingw-w64-i686
+           - binutils-mingw-w64-i686
+   - os: linux
+     env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
+     addons:
+       apt:
+         packages:
+           - p7zip-full
+           - gcc-mingw-w64-x86-64
+           - g++-mingw-w64-x86-64
+           - binutils-mingw-w64-x86-64
 install:
   - go get -d -v ./...
 script:
-  - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
-  - "go get github.com/mitchellh/gox"
-  - "export OSARCH=$GIMMEOS/$GIMMEARCH"
-  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\" || :"
-  - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
+  - if [ -n $TRAVIS_TAG ]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
+  - go get github.com/mitchellh/gox
+  - export OSARCH=$GIMMEOS/$GIMMEARCH
+  - if [ -n $TRIPLET ] || export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
+  - if [ $GIMMEOS = windows ]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
+  - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
   - mkdir -p build
-  - "cp butler build/ || :"
-  - "cp butler.exe build/ || :"
+  - cp butler build/ || true
+  - cp butler.exe build/ || true
+  - if [ -n $MINGW_LIBDIR ]; then cp $MINGW_LIBDIR/{libgcc_s_sjlj-1,libstdc++-6}.dll build/
   - mkdir -p dist
   - (cd dist && 7za a butler.7z ../build/*)
   - mkdir -p meta
