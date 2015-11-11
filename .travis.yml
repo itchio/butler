@@ -15,7 +15,7 @@ script:
   - "go get github.com/mitchellh/gox"
   - "[ $TRAVIS_OS_NAME = osx ] && export OSARCH=\"darwin/amd64\""
   - "[ $TRAVIS_OS_NAME = linux ] && export OSARCH=\"linux/386 linux/amd64 windows/386 windows/amd64\""
-  - "gox $OSARCH -ldflags \"$BUTLER_LDFLAGS\" -cgo"
+  - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo"
 before_deploy:
   - mkdir -p build
   - "cp butler build/ || :"
