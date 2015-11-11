@@ -11,6 +11,7 @@ matrix:
         apt:
           packages:
             - p7zip-full
+            - gcc-multilib
     - os: linux
       env: GIMMEOS=linux GIMMEARCH=amd64
       addons:
@@ -37,6 +38,9 @@ script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
   - "export OSARCH=$GIMMEOS/$GIMMEARCH"
+  - "[ \"$OSARCH\" = \"windows/386\" ] && export CC_FOR_TARGET=i686-w64-mingw32-gcc"
+  - "[ \"$OSARCH\" = \"windows/amd64\" ] && export CC_FOR_TARGET=x86_64-w64-mingw32-gcc"
+  - "echo $CC_FOR_TARGET"
   - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
 before_deploy:
   - mkdir -p build
