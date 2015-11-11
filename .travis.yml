@@ -12,6 +12,7 @@ matrix:
           packages:
             - p7zip-full
             - gcc-multilib
+            - g++-multilib
     - os: linux
       env: GIMMEOS=linux GIMMEARCH=amd64
       addons:
