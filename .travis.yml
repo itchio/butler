@@ -26,6 +26,8 @@ matrix:
           packages:
             - p7zip-full
             - gcc-mingw-w64-i686
+            - g++-mingw-w64-i686
+            - binutils-mingw-w64-i686
     - os: linux
       env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
       addons:
@@ -33,6 +35,8 @@ matrix:
           packages:
             - p7zip-full
             - gcc-mingw-w64-x86-64
+            - g++-mingw-w64-x86-64
+            - binutils-mingw-w64-x86-64
 install:
   - go get -d -v ./...
 script:
