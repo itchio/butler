@@ -31,9 +31,6 @@ matrix:
           packages:
             - p7zip-full
             - mingw-w64
-os:
-  - osx
-  - linux
 install:
   - go get -d -v ./...
 script:
