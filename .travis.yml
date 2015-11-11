@@ -8,9 +8,9 @@ matrix:
      env: 
   include:
    - os: osx
-     env: GIMME_OS=darwin GIMME_ARCH=amd64
+     env: BUTLER_OS=darwin BUTLER_ARCH=amd64
    - os: linux
-     env: GIMME_OS=linux GIMME_ARCH=386
+     env: BUTLER_OS=linux BUTLER_ARCH=386
      addons:
        apt:
          packages:
@@ -18,13 +18,13 @@ matrix:
            - gcc-multilib
            - g++-multilib
    - os: linux
-     env: GIMME_OS=linux GIMME_ARCH=amd64
+     env: BUTLER_OS=linux BUTLER_ARCH=amd64
      addons:
        apt:
          packages:
            - p7zip-full
    - os: linux
-     env: GIMME_OS=windows GIMME_ARCH=386 TRIPLET=i686-w64-mingw32
+     env: BUTLER_OS=windows BUTLER_ARCH=386 TRIPLET=i686-w64-mingw32
      addons:
        apt:
          packages:
@@ -33,7 +33,7 @@ matrix:
            - g++-mingw-w64-i686
            - binutils-mingw-w64-i686
    - os: linux
-     env: GIMME_OS=windows GIMME_ARCH=amd64 TRIPLET=x86_64-w64-mingw32
+     env: BUTLER_OS=windows BUTLER_ARCH=amd64 TRIPLET=x86_64-w64-mingw32
      addons:
        apt:
          packages:
@@ -46,9 +46,9 @@ install:
 script:
   - if [[ -n $TRAVIS_TAG ]]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
   - go get github.com/mitchellh/gox
-  - export OSARCH=$GIMME_OS/$GIMME_ARCH
+  - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
   - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
-  - if [[ $GIMME_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
+  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
   - mkdir -p build
@@ -66,7 +66,7 @@ deploy:
     secret_access_key:
       secure: ajjDMCL07v8pdti4j7KP0XWR/Jnld/7igKlW52AlBovqj5z2xOjY8kqSylu/gTdP1XRtDzoSQrH8ZLCT4v1eGr+QWxcIiWcNKbpkCY9nkc8S0Ovdr1poUrx9wDQUU7V351Pd7+nUGjM3ZPuvBOTJxlGcr2x4pdL1ad6CmJ+NyZlY2+uNJ5r1o/OS5iqF9RMasbT9Tlr4xkcPPxCdWZ/Bn6tIiwpxSOZ9cFo1cyihC5QaWP0lB9uNdL57MWkSRH0jYGRaBmj7pol09C/GUVM0AjNbJNb04J+UG2dK3etLgvkIRZSxo8tXjBEZcCP3Uq8RJ3zCha76b38aCOPo7iylf1CfHko73EaHXRg+ShH9SThq2BSvD8hwsLEX4xe31WtRWKAH3qSXeubpYDuNfqrB1TBqO6dVy7A5aoiQdMob7Styqca+IwaDgPIRzY743oUk4S8ZFMpZgEbswaUtPVy/TOxqionBInPuFNRhb0mnLijc0p/EeXZsVfcwH4OcXaRCKSNkR9SYTmZqPeevCZ1069XR1/chRWukKieMbtCIFpubngXs+XhUfd3qXUStqOcdf0GMM5QrLv0a7Fqhim3jKQw+uTVOgvXaTIT6YpLG4+TblmAMyc/CYkCtxSLgUy9dPZ6Df4v87xh3JUjCB2l0PYZzJHQ5QtnVSuoWpNv3O8o=
     bucket: misc.amos.me
-    upload-dir: butler/$GIMME_OS-$GIMME_ARCH/$TRAVIS_TAG
+    upload-dir: butler/$BUTLER_OS-$BUTLER_ARCH/$TRAVIS_TAG
     local_dir: dist
     acl: public_read
     skip_cleanup: true
@@ -78,7 +78,7 @@ deploy:
     secret_access_key:
       secure: ajjDMCL07v8pdti4j7KP0XWR/Jnld/7igKlW52AlBovqj5z2xOjY8kqSylu/gTdP1XRtDzoSQrH8ZLCT4v1eGr+QWxcIiWcNKbpkCY9nkc8S0Ovdr1poUrx9wDQUU7V351Pd7+nUGjM3ZPuvBOTJxlGcr2x4pdL1ad6CmJ+NyZlY2+uNJ5r1o/OS5iqF9RMasbT9Tlr4xkcPPxCdWZ/Bn6tIiwpxSOZ9cFo1cyihC5QaWP0lB9uNdL57MWkSRH0jYGRaBmj7pol09C/GUVM0AjNbJNb04J+UG2dK3etLgvkIRZSxo8tXjBEZcCP3Uq8RJ3zCha76b38aCOPo7iylf1CfHko73EaHXRg+ShH9SThq2BSvD8hwsLEX4xe31WtRWKAH3qSXeubpYDuNfqrB1TBqO6dVy7A5aoiQdMob7Styqca+IwaDgPIRzY743oUk4S8ZFMpZgEbswaUtPVy/TOxqionBInPuFNRhb0mnLijc0p/EeXZsVfcwH4OcXaRCKSNkR9SYTmZqPeevCZ1069XR1/chRWukKieMbtCIFpubngXs+XhUfd3qXUStqOcdf0GMM5QrLv0a7Fqhim3jKQw+uTVOgvXaTIT6YpLG4+TblmAMyc/CYkCtxSLgUy9dPZ6Df4v87xh3JUjCB2l0PYZzJHQ5QtnVSuoWpNv3O8o=
     bucket: misc.amos.me
-    upload-dir: butler/$GIMME_OS-$GIMME_ARCH
+    upload-dir: butler/$BUTLER_OS-$BUTLER_ARCH
     local_dir: meta
     acl: public_read
     skip_cleanup: true
