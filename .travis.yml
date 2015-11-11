@@ -1,10 +1,36 @@
 language: go
 go: 1.5.1
-addons:
-  apt:
-    packages:
-      - p7zip-full
-      - mingw-w64
+
+matrix:
+  include:
+    - os: osx
+      env: GIMMEOS=darwin GIMMEARCH=amd64
+    - os: linux
+      env: GIMMEOS=linux GIMMEARCH=386
+      addons:
+        apt:
+          packages:
+            - p7zip-full
+    - os: linux
+      env: GIMMEOS=linux GIMMEARCH=amd64
+      addons:
+        apt:
+          packages:
+            - p7zip-full
+    - os: linux
+      env: GIMMEOS=windows GIMMEARCH=386
+      addons:
+        apt:
+          packages:
+            - p7zip-full
+            - mingw-w64
+    - os: linux
+      env: GIMMEOS=windows GIMMEARCH=amd64
+      addons:
+        apt:
+          packages:
+            - p7zip-full
+            - mingw-w64
 os:
   - osx
   - linux
@@ -13,9 +39,8 @@ install:
 script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
-  - "[ $TRAVIS_OS_NAME = osx ] && export OSARCH=\"darwin/amd64\""
-  - "[ $TRAVIS_OS_NAME = linux ] && export OSARCH=\"linux/386 linux/amd64 windows/386 windows/amd64\""
-  - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo"
+  - "export OSARCH=$GIMMEOS/$GIMMEARCH"
+  - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
 before_deploy:
   - mkdir -p build
   - "cp butler build/ || :"
