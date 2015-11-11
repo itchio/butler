@@ -54,7 +54,7 @@ before_deploy:
   - mkdir -p build
   - cp butler build/ || true
   - cp butler.exe build/ || true
-  - if [ -n $MINGW_LIBDIR ]; then cp $MINGW_LIBDIR/{libgcc_s_sjlj-1,libstdc++-6}.dll build/
+  - if [ -n $MINGW_LIBDIR ]; then cp $MINGW_LIBDIR/{libgcc_s_sjlj-1,libstdc++-6}.dll build/; fi
   - mkdir -p dist
   - (cd dist && 7za a butler.7z ../build/*)
   - mkdir -p meta
