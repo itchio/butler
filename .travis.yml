@@ -24,21 +24,21 @@ matrix:
         apt:
           packages:
             - p7zip-full
-            - mingw-w64
+            - gcc-mingw-w64-i686
     - os: linux
       env: GIMMEOS=windows GIMMEARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
       addons:
         apt:
           packages:
             - p7zip-full
-            - mingw-w64
+            - gcc-mingw-w64-x86-64
 install:
   - go get -d -v ./...
 script:
   - "[ -z $TRAVIS_TAG ] || export BUTLER_LDFLAGS=\"-X main.version=$TRAVIS_TAG\""
   - "go get github.com/mitchellh/gox"
   - "export OSARCH=$GIMMEOS/$GIMMEARCH"
-  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\" || echo \"Not on windows.\""
+  - "[ \"$GIMMEOS\" = \"windows\" ] && export BUTLER_LDFLAGS=\"$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition\" || :"
   - "gox -osarch \"$OSARCH\" -ldflags \"$BUTLER_LDFLAGS\" -cgo -output=\"butler\""
 before_deploy:
   - mkdir -p build
