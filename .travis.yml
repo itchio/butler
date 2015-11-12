@@ -48,7 +48,7 @@ script:
   - go get github.com/mitchellh/gox
   - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
   - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; fi
-  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=\"-Wl,--allow-multiple-definition -static\""; fi
+  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags \"-Wl,--allow-multiple-definition -static\""; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
   - mkdir -p build
