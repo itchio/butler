@@ -12,9 +12,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/itchio/brotli-go/dec"
+	"github.com/itchio/brotli-go/enc"
 	"github.com/dustin/go-humanize"
-	"github.com/kothar/brotli-go/dec"
-	"github.com/kothar/brotli-go/enc"
 	"golang.org/x/crypto/ssh"
 )
 

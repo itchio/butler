@@ -47,14 +47,13 @@ script:
   - if [[ -n $TRAVIS_TAG ]]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
   - go get github.com/mitchellh/gox
   - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
-  - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export MINGW_LIBDIR=/usr/lib/gcc/$TRIPLET/4.6; fi
-  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=-Wl,--allow-multiple-definition"; fi
+  - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; fi
+  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags=\"-Wl,--allow-multiple-definition -static\""; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
 before_deploy:
   - mkdir -p build
   - cp butler build/ || true
   - cp butler.exe build/ || true
-  - if [[ -n $MINGW_LIBDIR ]]; then cp $MINGW_LIBDIR/{libgcc_s_sjlj-1,libstdc++-6}.dll build/; fi
   - mkdir -p dist
   - if [[ $TRAVIS_OS_NAME = osx ]]; then brew update; brew install p7zip; fi
   - (cd dist && 7za a butler.7z ../build/*)
