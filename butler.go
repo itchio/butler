@@ -12,10 +12,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/itchio/brotli-go/dec"
-	"github.com/itchio/brotli-go/enc"
 	"github.com/dustin/go-humanize"
 	"golang.org/x/crypto/ssh"
+	"gopkg.in/kothar/brotli-go.v0/dec"
+	"gopkg.in/kothar/brotli-go.v0/enc"
 )
 
 var version = "head"
