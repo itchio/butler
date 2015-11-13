@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -28,11 +31,15 @@ type butlerDownloadStatus struct {
 	Percent int
 }
 
+type butlerMessage struct {
+	Message string
+}
+
 const bufferSize = 128 * 1024
 
 func main() {
 	if len(os.Args) < 2 {
-		err("Missing command")
+		die("Missing command")
 	}
 	cmd := os.Args[1]
 
@@ -46,7 +53,7 @@ func main() {
 	case "test-brotli":
 		testBrotli()
 	default:
-		err("Invalid command")
+		die("Invalid command")
 	}
 }
 
@@ -55,19 +62,41 @@ func send(v interface{}) {
 	fmt.Println(string(j))
 }
 
-func err(msg string) {
+func die(msg string) {
 	e := &butlerError{Error: msg}
 	send(e)
 	os.Exit(1)
 }
 
+func msg(msg string) {
+	e := &butlerMessage{Message: msg}
+	send(e)
+}
+
 func dl() {
 	if len(os.Args) < 4 {
-		err("Missing url or dest for dl command")
+		die("Missing url or dest for dl command")
 	}
 	url := os.Args[2]
 	dest := os.Args[3]
 
+	tries := 3
+	for tries > 0 {
+		_, err := tryDl(url, dest)
+		if err == nil {
+			break
+		}
+
+		msg(fmt.Sprintf("While downloading, got error %s", err))
+		tries--
+		if tries > 0 {
+			os.Truncate(dest, 0)
+			msg(fmt.Sprintf("Retrying... (%d tries left)", tries))
+		}
+	}
+}
+
+func tryDl(url string, dest string) (int64, error) {
 	initialBytes := int64(0)
 	stats, err := os.Lstat(dest)
 	if err == nil {
@@ -81,9 +110,26 @@ func dl() {
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Range", fmt.Sprintf("bytes=%d-", bytesWritten))
+	byteRange := fmt.Sprintf("bytes=%d-", bytesWritten)
+	msg(fmt.Sprintf("Asking for range %s", byteRange))
+	req.Header.Set("Range", byteRange)
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
+
+	hashes := make(map[string][]byte)
+
+	googHashes := resp.Header[http.CanonicalHeaderKey("x-goog-hash")]
+	for i := 0; i < len(googHashes); i++ {
+		googHash := googHashes[i]
+		tokens := strings.SplitN(googHash, "=", 2)
+		hashType := tokens[0]
+		hashValue, err := base64.StdEncoding.DecodeString(tokens[1])
+		if err != nil {
+			msg(fmt.Sprintf("Could not decode base64-encoded %s hash %s because %s, skipping", hashType, tokens[1], err))
+			continue
+		}
+		hashes[hashType] = hashValue
+	}
 
 	for {
 		n, _ := io.CopyN(out, resp.Body, bufferSize)
@@ -98,6 +144,41 @@ func dl() {
 			break
 		}
 	}
+	msg(fmt.Sprintf("done downloading"))
+
+	contentLengthHeader := resp.Header.Get("Content-Length")
+	contentLength, err := strconv.ParseInt(contentLengthHeader, 10, 64)
+	if err == nil {
+		contentLength += initialBytes
+		if contentLength != bytesWritten {
+			return 0, fmt.Errorf("corrupted downloaded: expected %d bytes, got %d", contentLength, bytesWritten)
+		}
+	}
+
+	for hashType, hashValue := range hashes {
+		if hashType == "md5" {
+			msg(fmt.Sprintf("checking %s hash", hashType))
+			fr, err := os.Open(dest)
+			if err != nil {
+				panic(err)
+			}
+			defer fr.Close()
+
+			hasher := md5.New()
+			io.Copy(hasher, fr)
+
+			hashComputed := hasher.Sum(nil)
+			msg(fmt.Sprintf("given    = %x", hashValue))
+			msg(fmt.Sprintf("computed = %x", hashComputed))
+			if !bytes.Equal(hashValue, hashComputed) {
+				return 0, fmt.Errorf("corrupted download: %s hash mismatch", hashType)
+			}
+		} else {
+			msg(fmt.Sprintf("skipping %s hash", hashType))
+		}
+	}
+
+	return bytesWritten, nil
 }
 
 func publicKeyFile(file string) ssh.AuthMethod {
