@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -101,6 +100,7 @@ func tryDl(url string, dest string) (int64, error) {
 	stats, err := os.Lstat(dest)
 	if err == nil {
 		initialBytes = stats.Size()
+		msg(fmt.Sprintf("existing file is %d bytes long", initialBytes))
 	}
 
 	bytesWritten := initialBytes
@@ -109,12 +109,35 @@ func tryDl(url string, dest string) (int64, error) {
 	defer out.Close()
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("HEAD", url, nil)
+	resp, err := client.Do(req)
+	if initialBytes > 0 && resp.ContentLength == initialBytes {
+		msg("all downloaded!")
+		googHashes := resp.Header[http.CanonicalHeaderKey("x-goog-hash")]
+		if len(googHashes) > 0 {
+			msg(fmt.Sprintf("would have %d googHahshes to check!", len(googHashes)))
+		}
+
+		return resp.ContentLength, nil
+	}
+
+	req, _ = http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", bytesWritten)
 	msg(fmt.Sprintf("Asking for range %s", byteRange))
+
 	req.Header.Set("Range", byteRange)
-	resp, _ := client.Do(req)
+	resp, err = client.Do(req)
+	if err != nil {
+		msg("error on client.Do")
+		return 0, err
+	}
+
+	if resp.Status[0:1] != "2" {
+		return 0, fmt.Errorf("server error: http %s", resp.Status)
+	}
+
 	defer resp.Body.Close()
+	msg(fmt.Sprintf("Response content length = %d", resp.ContentLength))
 
 	hashes := make(map[string][]byte)
 
@@ -131,25 +154,30 @@ func tryDl(url string, dest string) (int64, error) {
 		hashes[hashType] = hashValue
 	}
 
+	totalBytes := (initialBytes + resp.ContentLength)
 	for {
-		n, _ := io.CopyN(out, resp.Body, bufferSize)
+		n, err := io.CopyN(out, resp.Body, bufferSize)
 		bytesWritten += n
 
-		totalBytes := (initialBytes + resp.ContentLength)
 		status := &butlerDownloadStatus{
 			Percent: int(bytesWritten * 100 / totalBytes)}
 		send(status)
 
-		if n == 0 {
-			break
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, err
 		}
 	}
+
+	out.Close()
 	msg(fmt.Sprintf("done downloading"))
 
-	contentLengthHeader := resp.Header.Get("Content-Length")
-	contentLength, err := strconv.ParseInt(contentLengthHeader, 10, 64)
-	if err == nil {
-		contentLength += initialBytes
+	if resp.ContentLength != 0 {
+		contentLength := resp.ContentLength + initialBytes
+		msg(fmt.Sprintf("checking file size. should be %d, is %d", contentLength, bytesWritten))
+
 		if contentLength != bytesWritten {
 			return 0, fmt.Errorf("corrupted downloaded: expected %d bytes, got %d", contentLength, bytesWritten)
 		}
@@ -168,9 +196,9 @@ func tryDl(url string, dest string) (int64, error) {
 			io.Copy(hasher, fr)
 
 			hashComputed := hasher.Sum(nil)
-			msg(fmt.Sprintf("given    = %x", hashValue))
-			msg(fmt.Sprintf("computed = %x", hashComputed))
 			if !bytes.Equal(hashValue, hashComputed) {
+				msg(fmt.Sprintf("given    = %x", hashValue))
+				msg(fmt.Sprintf("computed = %x", hashComputed))
 				return 0, fmt.Errorf("corrupted download: %s hash mismatch", hashType)
 			}
 		} else {
