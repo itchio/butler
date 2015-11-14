@@ -34,6 +34,8 @@ func main() {
 		testSSH()
 	case "test-brotli":
 		testBrotli()
+	case "test-rsync":
+		testRSync()
 	default:
 		die("Invalid command")
 	}
