@@ -48,14 +48,14 @@ script:
   - go get github.com/mitchellh/gox
   - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
   - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; fi
-  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags \"-Wl,--allow-multiple-definition -static\""; fi
+  - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags \"-Wl,--allow-multiple-definition -static\""; export BUTLER_EXT=".exe"; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
+  - file butler${BUTLER_EXT}
 before_deploy:
   - mkdir -p build
-  - cp butler build/ || true
-  - cp butler.exe build/ || true
-  - mkdir -p dist
+  - cp butler${BUTLER_EXT} build/
   - if [[ $TRAVIS_OS_NAME = osx ]]; then brew update; brew install p7zip; fi
+  - mkdir -p dist
   - (cd dist && 7za a butler.7z ../build/*)
   - mkdir -p meta
   - echo $TRAVIS_TAG > meta/LATEST
