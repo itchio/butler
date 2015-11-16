@@ -5,7 +5,7 @@ go: 1.5.1
 matrix:
   allow_failures:
    - os: linux
-     env: 
+     env:
   include:
    - os: osx
      env: BUTLER_OS=darwin BUTLER_ARCH=amd64
@@ -49,7 +49,8 @@ script:
   - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
   - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; fi
   - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags \"-Wl,--allow-multiple-definition -static\""; export BUTLER_EXT=".exe"; fi
-  - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS -s" -cgo -output="butler"
+  - if [[ $BUTLER_OS != darwin ]]; then export EXTRA_LDFLAGS="-s"; fi
+  - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS $EXTRA_LDFLAGS" -cgo -output="butler"
   - file butler${BUTLER_EXT} && ls -lhA butler${BUTLER_EXT}
 before_deploy:
   - mkdir -p build
@@ -84,5 +85,3 @@ deploy:
     on:
       tags: true
       repo: itchio/butler
-  
-  
