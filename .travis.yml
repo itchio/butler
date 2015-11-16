@@ -10,7 +10,7 @@ matrix:
    - os: osx
      env: BUTLER_OS=darwin BUTLER_ARCH=amd64
    - os: linux
-     env: BUTLER_OS=linux BUTLER_ARCH=386
+     env: BUTLER_OS=linux BUTLER_ARCH=386 STRIP=strip
      addons:
        apt:
          packages:
@@ -18,7 +18,7 @@ matrix:
            - gcc-multilib
            - g++-multilib
    - os: linux
-     env: BUTLER_OS=linux BUTLER_ARCH=amd64
+     env: BUTLER_OS=linux BUTLER_ARCH=amd64 STRIP=strip
      addons:
        apt:
          packages:
@@ -47,10 +47,12 @@ script:
   - if [[ -n $TRAVIS_TAG ]]; then export BUTLER_LDFLAGS="-X main.version=$TRAVIS_TAG"; fi
   - go get github.com/mitchellh/gox
   - export OSARCH=$BUTLER_OS/$BUTLER_ARCH
-  - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; fi
+  - if [[ -n $TRIPLET ]]; then export CC=$TRIPLET-gcc; export CXX=$TRIPLET-g++; export STRIP=$TRIPLET-strip; fi
   - if [[ $BUTLER_OS = windows ]]; then export BUTLER_LDFLAGS="$BUTLER_LDFLAGS -extldflags \"-Wl,--allow-multiple-definition -static\""; export BUTLER_EXT=".exe"; fi
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS" -cgo -output="butler"
-  - file butler${BUTLER_EXT}
+  - file butler${BUTLER_EXT} && ls -lhA butler${BUTLER_EXT}
+  - $STRIP butler${BUTLER_EXT}
+  - file butler${BUTLER_EXT} && ls -lhA butler${BUTLER_EXT}
 before_deploy:
   - mkdir -p build
   - cp butler${BUTLER_EXT} build/
