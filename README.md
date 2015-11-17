@@ -1,5 +1,6 @@
 # butler
 
+![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 [![Build Status](https://travis-ci.org/itchio/butler.svg)](https://travis-ci.org/itchio/butler)
 
 butler is a command-line tool written in Go
