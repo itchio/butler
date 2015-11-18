@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/kardianos/rsync"
+	"gopkg.in/itchio/rsync-go.v0"
 )
 
 func testRSync() {
@@ -72,7 +72,7 @@ func testRSync() {
 	result := new(bytes.Buffer)
 	srcReader.Seek(0, os.SEEK_SET)
 
-	err = rs.ApplyDelta(result, srcReader, opsOut, nil)
+	err = rs.ApplyDelta(result, srcReader, opsOut)
 	if err != nil {
 		panic(err)
 	}
