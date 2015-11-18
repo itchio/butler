@@ -8,17 +8,18 @@ import (
 	"os"
 
 	"github.com/dustin/go-humanize"
+	"github.com/itchio/butler/bcommon"
 
 	"gopkg.in/itchio/rsync-go.v0"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 )
 
-func testRSync() {
-	if len(os.Args) < 4 {
-		die("Missing src or dst for dl command")
+func main() {
+	if len(os.Args) < 3 {
+		bcommon.Die("Missing src or dst for dl command")
 	}
-	src := os.Args[2]
-	dst := os.Args[3]
+	src := os.Args[1]
+	dst := os.Args[2]
 
 	stats, err := os.Lstat(src)
 	if err != nil {
@@ -57,12 +58,12 @@ func testRSync() {
 
 	qualities := []int{1, 4, 6, 9}
 	compressedWriters := make([]io.Writer, len(qualities))
-	compressedCounters := make([]*counterWriter, len(qualities))
+	compressedCounters := make([]*bcommon.CounterWriter, len(qualities))
 
 	for i, q := range qualities {
 		params := enc.NewBrotliParams()
 		params.SetQuality(q)
-		counter := &counterWriter{}
+		counter := bcommon.NewCounterWriter(nil)
 		writer := enc.NewBrotliWriter(params, counter)
 
 		compressedCounters[i] = counter
@@ -71,7 +72,7 @@ func testRSync() {
 
 	compressedWriter := io.MultiWriter(compressedWriters...)
 
-	uncompressedCounter := &counterWriter{writer: compressedWriter}
+	uncompressedCounter := bcommon.NewCounterWriter(compressedWriter)
 	marshal := gob.NewEncoder(uncompressedCounter)
 
 	go func() {
@@ -119,8 +120,8 @@ func testRSync() {
 		panic(err)
 	}
 
-	log.Printf("%d bytes of raw diff (%s, %.2f%% of dst)", uncompressedCounter.count, humanize.Bytes(uint64(uncompressedCounter.count)),
-		float32(uncompressedCounter.count)/float32(stats.Size())*100)
+	log.Printf("%d bytes of raw diff (%s, %.2f%% of dst)", uncompressedCounter.Count(), humanize.Bytes(uint64(uncompressedCounter.Count())),
+		float32(uncompressedCounter.Count())/float32(stats.Size())*100)
 
 	for i, q := range qualities {
 		counter := compressedCounters[i]
@@ -129,8 +130,8 @@ func testRSync() {
 			v.Close()
 		}
 
-		log.Printf("%d bytes of compressed diff (brotli at q=%d) (%s, %.2f%% of raw diff, %.2f%% of dst)", counter.count, q, humanize.Bytes(uint64(counter.count)),
-			float32(counter.count)/float32(uncompressedCounter.count)*100.0,
-			float32(counter.count)/float32(stats.Size())*100.0)
+		log.Printf("%d bytes of compressed diff (brotli at q=%d) (%s, %.2f%% of raw diff, %.2f%% of dst)", counter.Count(), q, humanize.Bytes(uint64(counter.Count())),
+			float32(counter.Count())/float32(uncompressedCounter.Count())*100.0,
+			float32(counter.Count())/float32(stats.Size())*100.0)
 	}
 }

@@ -25,7 +25,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 	return ssh.PublicKeys(key)
 }
 
-func testSSH() {
+func main() {
 	host := "butler.itch.zone"
 	port := 2222
 	serverString := fmt.Sprintf("%s:%d", host, port)

@@ -5,13 +5,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/itchio/butler/bcommon"
 )
 
 const bufferSize = 128 * 1024
 
 func dl() {
 	if len(os.Args) < 4 {
-		die("Missing url or dest for dl command")
+		bcommon.Die("Missing url or dest for dl command")
 	}
 	url := os.Args[2]
 	dest := os.Args[3]
@@ -23,13 +25,13 @@ func dl() {
 			break
 		}
 
-		msg(fmt.Sprintf("While downloading, got error %s", err))
+		bcommon.Msg(fmt.Sprintf("While downloading, got error %s", err))
 		tries--
 		if tries > 0 {
 			os.Truncate(dest, 0)
-			msg(fmt.Sprintf("Retrying... (%d tries left)", tries))
+			bcommon.Msg(fmt.Sprintf("Retrying... (%d tries left)", tries))
 		} else {
-			die(err.Error())
+			bcommon.Die(err.Error())
 		}
 	}
 }
@@ -41,13 +43,13 @@ func tryDl(url string, dest string) (int64, error) {
 		existingBytes = stats.Size()
 	}
 
-	msg(fmt.Sprintf("existing file is %d bytes long", existingBytes))
+	bcommon.Msg(fmt.Sprintf("existing file is %d bytes long", existingBytes))
 
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
-	msg(fmt.Sprintf("Asking for range %s", byteRange))
+	bcommon.Msg(fmt.Sprintf("Asking for range %s", byteRange))
 
 	req.Header.Set("Range", byteRange)
 	resp, err := client.Do(req)
@@ -78,7 +80,7 @@ func tryDl(url string, dest string) (int64, error) {
 		}
 
 		if existingBytes > resp.ContentLength {
-			msg(fmt.Sprintf("existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength))
+			bcommon.Msg(fmt.Sprintf("existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength))
 			existingBytes = resp.ContentLength
 			os.Truncate(dest, existingBytes)
 		}
@@ -88,14 +90,14 @@ func tryDl(url string, dest string) (int64, error) {
 	}
 
 	if doDownload {
-		msg(fmt.Sprintf("Response content length = %d", resp.ContentLength))
+		bcommon.Msg(fmt.Sprintf("Response content length = %d", resp.ContentLength))
 		_, err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
 			return 0, err
 		}
-		msg(fmt.Sprintf("done downloading"))
+		bcommon.Msg(fmt.Sprintf("done downloading"))
 	} else {
-		msg(fmt.Sprintf("all downloaded already"))
+		bcommon.Msg(fmt.Sprintf("all downloaded already"))
 	}
 
 	_, err = checkIntegrity(resp, totalBytes, dest)
@@ -116,8 +118,8 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 		bytesWritten += n
 
 		percent := int(bytesWritten * 100 / totalBytes)
-		status := &butlerDownloadStatus{Percent: percent}
-		send(status)
+		status := &bcommon.ButlerDownloadStatus{Percent: percent}
+		bcommon.Send(status)
 
 		if err != nil {
 			if err == io.EOF {

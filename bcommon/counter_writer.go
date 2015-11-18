@@ -1,13 +1,21 @@
-package main
+package bcommon
 
 import "io"
 
-type counterWriter struct {
+type CounterWriter struct {
 	count  int64
 	writer io.Writer
 }
 
-func (w *counterWriter) Write(buffer []byte) (int, error) {
+func NewCounterWriter(writer io.Writer) *CounterWriter {
+	return &CounterWriter{writer: writer}
+}
+
+func (w *CounterWriter) Count() int64 {
+	return w.count
+}
+
+func (w *CounterWriter) Write(buffer []byte) (int, error) {
 	if w.writer != nil {
 		written, err := w.writer.Write(buffer)
 		w.count += int64(written)
@@ -18,7 +26,7 @@ func (w *counterWriter) Write(buffer []byte) (int, error) {
 	return len(buffer), nil
 }
 
-func (w *counterWriter) Close() error {
+func (w *CounterWriter) Close() error {
 	if w.writer != nil {
 		if v, ok := w.writer.(io.Closer); ok {
 			return v.Close()
