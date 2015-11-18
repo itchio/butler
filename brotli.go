@@ -2,59 +2,100 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"crypto/md5"
+	"io"
 	"log"
 	"os"
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/kothar/brotli-go/dec"
-	"github.com/kothar/brotli-go/enc"
+	"gopkg.in/kothar/brotli-go.v0/dec"
+	"gopkg.in/kothar/brotli-go.v0/enc"
 )
+
+type counterWriter struct {
+	count  int64
+	writer io.Writer
+}
+
+func (w *counterWriter) Write(buffer []byte) (int, error) {
+	written, err := w.writer.Write(buffer)
+	w.count += int64(written)
+	return written, err
+}
+
+func (w *counterWriter) Close() error {
+	if v, ok := w.writer.(io.Closer); ok {
+		return v.Close()
+	}
+
+	return nil
+}
 
 func testBrotli() {
 	start := time.Now()
 
 	src := os.Args[2]
-	inputBuffer, err := ioutil.ReadFile(src)
+
+	stats, err := os.Lstat(src)
 	if err != nil {
 		panic(err)
 	}
 
-	log.Println("Read file in", time.Since(start))
-	log.Println("Uncompressed size is", humanize.Bytes(uint64(len(inputBuffer))))
+	log.Println("Uncompressed size is", stats.Size(), "bytes =", humanize.Bytes(uint64(stats.Size())))
+
+	srcReader, err := os.Open(src)
+	if err != nil {
+		panic(err)
+	}
+
+	h := md5.New()
+	io.Copy(h, srcReader)
+
+	originalHash := h.Sum(nil)
+	log.Printf("Uncompressed hash is %x\n", originalHash)
+
 	start = time.Now()
 
-	var decoded []byte
+	params := enc.NewBrotliParams()
 
 	for q := 0; q <= 9; q++ {
-		params := enc.NewBrotliParams()
-		params.SetQuality(q)
+		pr, pw := io.Pipe()
+		cw := &counterWriter{writer: pw}
 
-		encoded, err := enc.CompressBuffer(params, inputBuffer, make([]byte, 1))
+		var compressedSize int64
+
+		go func() {
+			params.SetQuality(q)
+			writer := enc.NewBrotliWriter(params, cw)
+			defer writer.Close()
+
+			srcReader.Seek(0, os.SEEK_SET)
+			_, err = io.Copy(writer, srcReader)
+			if err != nil {
+				panic(err)
+			}
+		}()
+
+		reader := dec.NewBrotliReader(pr)
+		h.Reset()
+
+		_, err = io.Copy(h, reader)
 		if err != nil {
 			panic(err)
 		}
 
-		log.Println("Compressed (q=", q, ") to", humanize.Bytes(uint64(len(encoded))), "in", time.Since(start))
-		start = time.Now()
+		decodedHash := h.Sum(nil)
 
-		decoded, err = dec.DecompressBuffer(encoded, make([]byte, 1))
-		if err != nil {
-			panic(err)
+		compressedSize = cw.count
+		log.Println("{,de}compressed (q=", q, ") to", humanize.Bytes(uint64(compressedSize)), "in", time.Since(start))
+
+		if !bytes.Equal(originalHash, decodedHash) {
+			log.Printf("Decoded output does not match original input: %x\n", decodedHash)
+			return
 		}
-
-		log.Println("Decompressed in", time.Since(start))
 		start = time.Now()
 	}
-
-	if !bytes.Equal(inputBuffer, decoded) {
-		log.Println("Decoded output does not match original input")
-		return
-	}
-
-	log.Println("Compared in", time.Since(start))
-	start = time.Now()
 
 	log.Println("Round-trip through brotli successful!")
 }
