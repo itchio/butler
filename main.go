@@ -32,8 +32,6 @@ func main() {
 		dl()
 	case "test-ssh":
 		testSSH()
-	case "test-brotli":
-		testBrotli()
 	case "test-rsync":
 		testRSync()
 	default:
