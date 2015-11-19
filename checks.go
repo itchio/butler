@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/butler/bcommon"
+	"github.com/itchio/butler/bio"
 )
 
 func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, error) {
@@ -22,7 +22,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 	}
 
 	if resp.ContentLength != 0 {
-		bcommon.Msg(fmt.Sprintf("checking file size. should be %d, is %d", totalBytes, diskSize))
+		bio.Logf("checking file size. should be %d, is %d", totalBytes, diskSize)
 
 		if totalBytes != diskSize {
 			return false, fmt.Errorf("corrupted downloaded: expected %d bytes, got %d", totalBytes, diskSize)
@@ -35,7 +35,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 func checkHashes(header http.Header, file string) (bool, error) {
 	googHashes := header[http.CanonicalHeaderKey("x-goog-hash")]
 	if len(googHashes) > 0 {
-		bcommon.Msg(fmt.Sprintf("got %d goog-hashes to check", len(googHashes)))
+		bio.Logf("got %d goog-hashes to check", len(googHashes))
 	}
 
 	for _, googHash := range googHashes {
@@ -43,7 +43,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		hashType := tokens[0]
 		hashValue, err := base64.StdEncoding.DecodeString(tokens[1])
 		if err != nil {
-			bcommon.Msg(fmt.Sprintf("could not verify %s hash: %s", hashType, err))
+			bio.Logf("could not verify %s hash: %s", hashType, err)
 			continue
 		}
 
@@ -57,25 +57,29 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		if !checked {
 			status = "skipped"
 		}
-		bcommon.Msg(fmt.Sprintf("%s hash: %s (in %s)", hashType, status, time.Since(start)))
+		bio.Logf("%s hash: %s (in %s)", hashType, status, time.Since(start))
 	}
 
 	return true, nil
 }
 
-func checkHash(hashType string, hashValue []byte, file string) (bool, error) {
+func checkHash(hashType string, hashValue []byte, file string) (checked bool, err error) {
+	checked = true
+
 	switch hashType {
 	case "md5":
-		return checkHashMD5(hashValue, file)
+		err = checkHashMD5(hashValue, file)
+	default:
+		checked = false
 	}
 
-	return false, nil
+	return
 }
 
-func checkHashMD5(hashValue []byte, file string) (bool, error) {
+func checkHashMD5(hashValue []byte, file string) (err error) {
 	fr, err := os.Open(file)
 	if err != nil {
-		return false, err
+		return
 	}
 	defer fr.Close()
 
@@ -84,8 +88,8 @@ func checkHashMD5(hashValue []byte, file string) (bool, error) {
 
 	hashComputed := hasher.Sum(nil)
 	if !bytes.Equal(hashValue, hashComputed) {
-		return false, fmt.Errorf("md5 hash mismatch: got %x, expected %x", hashComputed, hashValue)
+		err = fmt.Errorf("md5 hash mismatch: got %x, expected %x", hashComputed, hashValue)
 	}
 
-	return true, nil
+	return
 }
