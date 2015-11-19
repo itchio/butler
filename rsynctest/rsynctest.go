@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/dustin/go-humanize"
-	"github.com/itchio/butler/bcommon"
+	"github.com/itchio/butler/bio"
 
 	"gopkg.in/itchio/rsync-go.v0"
 	"gopkg.in/kothar/brotli-go.v0/enc"
@@ -16,7 +16,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		bcommon.Die("Missing src or dst for dl command")
+		bio.Die("Missing src or dst for dl command")
 	}
 	src := os.Args[1]
 	dst := os.Args[2]
@@ -58,12 +58,12 @@ func main() {
 
 	qualities := []int{1, 4, 6, 9}
 	compressedWriters := make([]io.Writer, len(qualities))
-	compressedCounters := make([]*bcommon.CounterWriter, len(qualities))
+	compressedCounters := make([]*bio.CounterWriter, len(qualities))
 
 	for i, q := range qualities {
 		params := enc.NewBrotliParams()
 		params.SetQuality(q)
-		counter := bcommon.NewCounterWriter(nil)
+		counter := bio.Counter(nil)
 		writer := enc.NewBrotliWriter(params, counter)
 
 		compressedCounters[i] = counter
@@ -72,7 +72,7 @@ func main() {
 
 	compressedWriter := io.MultiWriter(compressedWriters...)
 
-	uncompressedCounter := bcommon.NewCounterWriter(compressedWriter)
+	uncompressedCounter := bio.Counter(compressedWriter)
 	marshal := gob.NewEncoder(uncompressedCounter)
 
 	go func() {
