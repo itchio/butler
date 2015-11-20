@@ -1,13 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
+
+	"github.com/itchio/butler/bio"
 
 	"golang.org/x/crypto/ssh"
+	"gopkg.in/kothar/brotli-go.v0/enc"
 )
 
 func publicKeyFile(file string) ssh.AuthMethod {
@@ -26,7 +32,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 }
 
 func main() {
-	host := "butler.itch.zone"
+	host := "localhost"
 	port := 2222
 	serverString := fmt.Sprintf("%s:%d", host, port)
 	fmt.Printf("Trying to connect to %s\n", serverString)
@@ -45,15 +51,62 @@ func main() {
 		fmt.Printf("Server dial error: %s\n", err)
 		return
 	}
+	defer serverConn.Close()
 	fmt.Printf("Connected!\n")
 
-	ch, _, err := serverConn.OpenChannel("butler", []byte{})
-	if err != nil {
-		panic(err)
+	sendStuff(serverConn)
+}
+
+func sendStuff(serverConn *ssh.Client) {
+	params := enc.NewBrotliParams()
+	params.SetQuality(0)
+
+	num := 10
+	wait := make(chan bool)
+
+	for i := 0; i < num; i++ {
+		go func(i int) {
+			defer func() { wait <- true }()
+
+			payload := new(bytes.Buffer)
+			gob.NewEncoder(payload).Encode(&i)
+
+			ch, reqs, err := serverConn.OpenChannel("butler_send_file", payload.Bytes())
+			if err != nil {
+				panic(err)
+			}
+			log.Printf("channel %d's turn\n", i)
+
+			go func() {
+				for req := range reqs {
+					req.Reply(true, nil)
+				}
+			}()
+
+			bw := enc.NewBrotliWriter(params, ch)
+			genc := gob.NewEncoder(bw)
+
+			for j := 1; j <= (i * 3000); j++ {
+				err = genc.Encode(bio.Message{
+					Sub: bio.UploadParams{
+						GameId:   12498,
+						Platform: "osx",
+					},
+				})
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			time.Sleep(time.Duration(500) * time.Millisecond)
+			err = bw.Close()
+			if err != nil {
+				panic(err)
+			}
+		}(i)
 	}
 
-	ch.Write([]byte("Hi"))
-	ch.Close()
-
-	serverConn.Close()
+	for i := 0; i < num; i++ {
+		<-wait
+	}
 }
