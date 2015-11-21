@@ -62,6 +62,9 @@ before_deploy:
   - echo $TRAVIS_TAG > meta/LATEST
 deploy:
   - provider: s3
+    edge:
+      source: fasterthanlime/dpl
+      branch: patch-1
     access_key_id: AKIAJC6IFO2T5RCEHRGA
     secret_access_key:
       secure: ajjDMCL07v8pdti4j7KP0XWR/Jnld/7igKlW52AlBovqj5z2xOjY8kqSylu/gTdP1XRtDzoSQrH8ZLCT4v1eGr+QWxcIiWcNKbpkCY9nkc8S0Ovdr1poUrx9wDQUU7V351Pd7+nUGjM3ZPuvBOTJxlGcr2x4pdL1ad6CmJ+NyZlY2+uNJ5r1o/OS5iqF9RMasbT9Tlr4xkcPPxCdWZ/Bn6tIiwpxSOZ9cFo1cyihC5QaWP0lB9uNdL57MWkSRH0jYGRaBmj7pol09C/GUVM0AjNbJNb04J+UG2dK3etLgvkIRZSxo8tXjBEZcCP3Uq8RJ3zCha76b38aCOPo7iylf1CfHko73EaHXRg+ShH9SThq2BSvD8hwsLEX4xe31WtRWKAH3qSXeubpYDuNfqrB1TBqO6dVy7A5aoiQdMob7Styqca+IwaDgPIRzY743oUk4S8ZFMpZgEbswaUtPVy/TOxqionBInPuFNRhb0mnLijc0p/EeXZsVfcwH4OcXaRCKSNkR9SYTmZqPeevCZ1069XR1/chRWukKieMbtCIFpubngXs+XhUfd3qXUStqOcdf0GMM5QrLv0a7Fqhim3jKQw+uTVOgvXaTIT6YpLG4+TblmAMyc/CYkCtxSLgUy9dPZ6Df4v87xh3JUjCB2l0PYZzJHQ5QtnVSuoWpNv3O8o=
