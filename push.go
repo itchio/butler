@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"sync"
 
 	"gopkg.in/itchio/rsync-go.v0"
@@ -17,8 +18,18 @@ func push(src string, repoSpec string) {
 	}
 }
 
+var (
+	addressRe   = regexp.MustCompile("[^:]:.*")
+	defaultPort = 2222
+)
+
 func doPush(src string, repoSpec string) error {
-	conn, err := wharf.Connect(*pushAddress, *pushIdentity)
+	address := *pushAddress
+	if !addressRe.MatchString(address) {
+		address = fmt.Sprintf("%s:%d", address, defaultPort)
+	}
+
+	conn, err := wharf.Connect(address, *pushIdentity)
 	if err != nil {
 		return err
 	}
