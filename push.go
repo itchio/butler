@@ -18,20 +18,16 @@ func push(src string, repoSpec string) {
 }
 
 func doPush(src string, repoSpec string) error {
-	conn, err := wharf.Connect(*pushEndpoint, *pushIdentity)
+	conn, err := wharf.Connect(*pushAddress, *pushIdentity)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	uploadParams, err := bio.Marshal(bio.UploadParams{RepoSpec: repoSpec})
+	up := bio.UploadParams{RepoSpec: repoSpec}
+	ok, _, err := conn.SendRequest("butler/upload-params", true, up)
 	if err != nil {
-		return err
-	}
-
-	ok, _, err := conn.SendRequest("butler/upload-params", true, uploadParams)
-	if err != nil {
-		return err
+		return fmt.Errorf("could not send upload params: %s", err.Error())
 	}
 
 	if !ok {
@@ -46,16 +42,18 @@ func doPush(src string, repoSpec string) error {
 
 	for j := 0; j < 10; j++ {
 		wg.Add(1)
+		j := j
 		go func() {
 			defer wg.Done()
-			ch, err := conn.OpenCompressedChannel("butler/send-file", bio.FileAdded{Path: "/a/b/c"})
+			path := fmt.Sprintf("/test/channel/%d", j)
+			ch, err := conn.OpenCompressedChannel("butler/send-file", bio.FileAdded{Path: path})
 			if err != nil {
 				errs <- err
 				return
 			}
 			defer ch.Close()
 
-			for i := 0; i < 8000; i++ {
+			for i := 0; i < 250; i++ {
 				err := ch.Send(bio.SourceFile{
 					Path:   fmt.Sprintf(""),
 					Hashes: []rsync.BlockHash{},

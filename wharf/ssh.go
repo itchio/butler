@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"encoding/hex"
 	"io/ioutil"
+	"log"
+	"net"
 
 	"gopkg.in/kothar/brotli-go.v0/dec"
 	"gopkg.in/kothar/brotli-go.v0/enc"
@@ -12,30 +15,6 @@ import (
 	"github.com/itchio/butler/bio"
 	"golang.org/x/crypto/ssh"
 )
-
-type Conn ssh.Client
-
-func Connect(endpoint string, identityPath string) (*Conn, error) {
-	bio.Logf("Trying to connect to %s", endpoint)
-
-	identity, err := readPrivateKey(identityPath)
-	if err != nil {
-		return nil, err
-	}
-
-	sshConfig := &ssh.ClientConfig{
-		User: "butler",
-		Auth: []ssh.AuthMethod{identity},
-	}
-
-	client, err := ssh.Dial("tcp", endpoint, sshConfig)
-	if err != nil {
-		return nil, err
-	}
-	bio.Log("Connected!")
-
-	return (*Conn)(client), nil
-}
 
 type Channel struct {
 	ch *ssh.Channel
@@ -47,14 +26,90 @@ type Channel struct {
 	gdec *gob.Decoder
 }
 
-func (conn *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Channel, error) {
+type Conn struct {
+	Conn ssh.Conn
+
+	Chans <-chan ssh.NewChannel
+	Reqs  <-chan *ssh.Request
+
+	Permissions *ssh.Permissions
+
+	sessionID string
+}
+
+func Connect(address string, identityPath string) (*Conn, error) {
+	bio.Logf("Trying to connect to %s", address)
+
+	identity, err := readPrivateKey(identityPath)
+	if err != nil {
+		return nil, err
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User: "butler",
+		Auth: []ssh.AuthMethod{identity},
+	}
+
+	tcpConn, err := net.Dial("tcp", address)
+	if err != nil {
+		return nil, err
+	}
+
+	sshConn, chans, reqs, err := ssh.NewClientConn(tcpConn, "", sshConfig)
+	if err != nil {
+		return nil, err
+	}
+	bio.Logf("Connected to %s", sshConn.RemoteAddr())
+
+	return &Conn{
+		Conn:  sshConn,
+		Chans: chans,
+		Reqs:  reqs,
+	}, nil
+}
+
+func Accept(listener net.Listener, config *ssh.ServerConfig) (*Conn, error) {
+	tcpConn, err := listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+
+	sshConn, chans, reqs, err := ssh.NewServerConn(tcpConn, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Conn{
+		Conn:        sshConn.Conn,
+		Permissions: sshConn.Permissions,
+		Chans:       chans,
+		Reqs:        reqs,
+	}, nil
+}
+
+func (c *Conn) SessionID() string {
+	if c.sessionID == "" {
+		c.sessionID = hex.EncodeToString(c.Conn.SessionID())
+	}
+	return c.sessionID
+}
+
+func (c *Conn) RemoteAddr() net.Addr {
+	return c.Conn.RemoteAddr()
+}
+
+func (c *Conn) Close() error {
+	return c.Conn.Close()
+}
+
+func (c *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Channel, error) {
 	payloadBuf := new(bytes.Buffer)
 	err := gob.NewEncoder(payloadBuf).Encode(&payload)
 	if err != nil {
 		return nil, err
 	}
 
-	ch, reqs, err := conn.OpenChannel(chType, payloadBuf.Bytes())
+	ch, reqs, err := c.Conn.OpenChannel(chType, payloadBuf.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +131,6 @@ func (conn *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Ch
 	gdec := gob.NewDecoder(br)
 
 	cch := &Channel{
-		ch:   &ch,
 		br:   br,
 		bw:   bw,
 		genc: genc,
@@ -84,6 +138,35 @@ func (conn *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Ch
 	}
 
 	return cch, nil
+}
+
+func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bool, interface{}, error) {
+	var payloadBytes []byte = nil
+	if payload != nil {
+		payloadBuf := new(bytes.Buffer)
+		err := gob.NewEncoder(payloadBuf).Encode(&payload)
+		if err != nil {
+			return false, nil, err
+		}
+		payloadBytes = payloadBuf.Bytes()
+	}
+
+	status, replyBytes, err := c.Conn.SendRequest(name, wantReply, payloadBytes)
+	if err != nil {
+		log.Println("in sendrequest")
+		return false, nil, err
+	}
+
+	var reply interface{} = nil
+	if len(replyBytes) > 0 {
+		err := gob.NewDecoder(bytes.NewReader(replyBytes)).Decode(&reply)
+		if err != nil {
+			log.Println("when parsing reply")
+			return false, nil, err
+		}
+	}
+
+	return status, reply, nil
 }
 
 func (ch *Channel) Close() error {
@@ -125,6 +208,6 @@ func readPrivateKey(file string) (ssh.AuthMethod, error) {
 		return nil, err
 	}
 
-	bio.Logf("our public key is %s", base64.StdEncoding.EncodeToString(key.PublicKey().Marshal()))
+	bio.Logf("our public key is %s", base64.StdEncoding.EncodeToString(key.PublicKey().Marshal())[:25]+"...")
 	return ssh.PublicKeys(key), nil
 }
