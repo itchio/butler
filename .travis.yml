@@ -53,7 +53,6 @@ script:
   - gox -osarch "$OSARCH" -ldflags "$BUTLER_LDFLAGS $EXTRA_LDFLAGS" -cgo -output="butler"
   - file butler${BUTLER_EXT} && ls -lhA butler${BUTLER_EXT}
 before_deploy:
-  - rvm install 2.1.5
   - mkdir -p build
   - cp butler${BUTLER_EXT} build/
   - if [[ $TRAVIS_OS_NAME = osx ]]; then brew update; brew install p7zip; fi
