@@ -19,7 +19,7 @@ var (
 
 	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
 	pushSrc  = pushCmd.Arg("src", "Directory or archive to upload").Required().ExistingFileOrDir()
-	pushRepo = pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:osx32").Required().String()
+	pushRepo = pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String()
 )
 
 func main() {
