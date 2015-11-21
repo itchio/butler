@@ -12,13 +12,7 @@ import (
 
 const bufferSize = 128 * 1024
 
-func dl() {
-	if len(os.Args) < 4 {
-		bio.Die("Missing url or dest for dl command")
-	}
-	url := os.Args[2]
-	dest := os.Args[3]
-
+func dl(url string, dest string) {
 	tries := 3
 	for tries > 0 {
 		_, err := tryDl(url, dest)

@@ -3,12 +3,21 @@ package bio
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 )
 
 type jsonMessage map[string]interface{}
 
+var (
+	JsonOutput = false
+	Quiet      = false
+)
+
 func Progress(perc float64) {
+	if Quiet {
+		return
+	}
 	send("progress", jsonMessage{
 		"percentage": perc,
 	})
@@ -37,9 +46,27 @@ func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
 }
 
-// sends a JSON-encoded message to the client
+// sends a message to the client
 func send(msgType string, obj jsonMessage) {
-	obj["type"] = msgType
+	if JsonOutput {
+		obj["type"] = msgType
+		sendJSON(obj)
+	} else {
+		switch msgType {
+		case "log":
+			log.Println(obj["message"])
+		case "error":
+			log.Fatalln(obj["message"])
+		case "progress":
+			log.Printf("progress: %.2f%%\n", obj["percentage"])
+		default:
+			log.Println(msgType, obj)
+		}
+	}
+}
+
+// sends a JSON-encoded message to the client
+func sendJSON(obj jsonMessage) {
 	json, _ := json.Marshal(obj)
 	fmt.Println(string(json))
 }
