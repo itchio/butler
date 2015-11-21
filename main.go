@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/itchio/butler/bio"
@@ -17,9 +18,11 @@ var (
 	dlUrl  = dlCmd.Arg("url", "Address to download from").Required().String()
 	dlDest = dlCmd.Arg("dest", "File to write downloaded data to").Required().String()
 
-	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
-	pushSrc  = pushCmd.Arg("src", "Directory or archive to upload").Required().ExistingFileOrDir()
-	pushRepo = pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String()
+	pushCmd      = app.Command("push", "Upload a new version of something to itch.io")
+	pushIdentity = pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').ExistingFile()
+	pushEndpoint = pushCmd.Flag("endpoint", "Specify wharf endpoint (advanced)").Default("butler.itch.zone:2222").Short('e').String()
+	pushSrc      = pushCmd.Arg("src", "Directory or zip archive to upload, e.g.").Required().ExistingFileOrDir()
+	pushRepo     = pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String()
 )
 
 func main() {

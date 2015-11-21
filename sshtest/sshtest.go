@@ -2,10 +2,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/gob"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -16,21 +13,6 @@ import (
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 )
-
-func publicKeyFile(file string) ssh.AuthMethod {
-	buffer, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil
-	}
-
-	key, err := ssh.ParsePrivateKey(buffer)
-	if err != nil {
-		return nil
-	}
-
-	log.Println("Our public key is", base64.StdEncoding.EncodeToString(key.PublicKey().Marshal()))
-	return ssh.PublicKeys(key)
-}
 
 func main() {
 	if len(os.Args) < 3 {
@@ -44,49 +26,6 @@ func main() {
 		bio.Dief("sshtest failed with: %s", err.Error())
 	}
 	return
-}
-
-func run(gameId int64, platform string) error {
-	host := "localhost"
-	port := 2222
-	serverString := fmt.Sprintf("%s:%d", host, port)
-	bio.Logf("Trying to connect to %s\n", serverString)
-
-	keyPath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")
-	key := publicKeyFile(keyPath)
-	auth := []ssh.AuthMethod{key}
-
-	sshConfig := &ssh.ClientConfig{
-		User: "butler",
-		Auth: auth,
-	}
-
-	serverConn, err := ssh.Dial("tcp", serverString, sshConfig)
-	if err != nil {
-		return err
-	}
-	defer serverConn.Close()
-	bio.Log("Connected!")
-
-	rum, err := bio.Marshal(bio.UploadParams{
-		GameId:   gameId,
-		Platform: platform,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	ok, _, err := serverConn.SendRequest("butler/upload-params", true, rum)
-	if err != nil {
-		return err
-	}
-
-	if !ok {
-		bio.Dief("server couldn't find upload to replace :(")
-	}
-
-	return sendStuff(serverConn)
 }
 
 func sendStuff(serverConn *ssh.Client) error {

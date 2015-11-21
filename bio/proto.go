@@ -8,8 +8,7 @@ import (
 )
 
 type UploadParams struct {
-	GameId   int64
-	Platform string
+	RepoSpec string
 }
 
 type SourceFile struct {
@@ -41,6 +40,7 @@ func Register() {
 	gob.Register(FilePatched{})
 	gob.Register(FileAdded{})
 	gob.Register(FileRemoved{})
+	gob.Register(rsync.BlockHash{})
 }
 
 func Marshal(value interface{}) ([]byte, error) {
