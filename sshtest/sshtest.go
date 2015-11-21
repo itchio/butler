@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/itchio/butler/bio"
@@ -32,10 +33,24 @@ func publicKeyFile(file string) ssh.AuthMethod {
 }
 
 func main() {
+	if len(os.Args) < 3 {
+		bio.Dief("Usage: butler game_id platform")
+	}
+	gameId, _ := strconv.ParseInt(os.Args[1], 10, 64)
+	platform := os.Args[2]
+
+	err := run(gameId, platform)
+	if err != nil {
+		bio.Dief("sshtest failed with: %s", err.Error())
+	}
+	return
+}
+
+func run(gameId int64, platform string) error {
 	host := "localhost"
 	port := 2222
 	serverString := fmt.Sprintf("%s:%d", host, port)
-	fmt.Printf("Trying to connect to %s\n", serverString)
+	bio.Logf("Trying to connect to %s\n", serverString)
 
 	keyPath := fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")
 	key := publicKeyFile(keyPath)
@@ -48,16 +63,33 @@ func main() {
 
 	serverConn, err := ssh.Dial("tcp", serverString, sshConfig)
 	if err != nil {
-		fmt.Printf("Server dial error: %s\n", err)
-		return
+		return err
 	}
 	defer serverConn.Close()
-	fmt.Printf("Connected!\n")
+	bio.Log("Connected!")
 
-	sendStuff(serverConn)
+	rum, err := bio.Marshal(bio.UploadParams{
+		GameId:   gameId,
+		Platform: platform,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	ok, _, err := serverConn.SendRequest("butler/upload-params", true, rum)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		bio.Dief("server couldn't find upload to replace :(")
+	}
+
+	return sendStuff(serverConn)
 }
 
-func sendStuff(serverConn *ssh.Client) {
+func sendStuff(serverConn *ssh.Client) error {
 	params := enc.NewBrotliParams()
 	params.SetQuality(0)
 
@@ -71,7 +103,7 @@ func sendStuff(serverConn *ssh.Client) {
 			payload := new(bytes.Buffer)
 			gob.NewEncoder(payload).Encode(&i)
 
-			ch, reqs, err := serverConn.OpenChannel("butler_send_file", payload.Bytes())
+			ch, reqs, err := serverConn.OpenChannel("butler/send-file", payload.Bytes())
 			if err != nil {
 				panic(err)
 			}
@@ -79,7 +111,10 @@ func sendStuff(serverConn *ssh.Client) {
 
 			go func() {
 				for req := range reqs {
-					req.Reply(true, nil)
+					log.Println("got request", req)
+					if req.WantReply {
+						req.Reply(true, nil)
+					}
 				}
 			}()
 
@@ -87,12 +122,10 @@ func sendStuff(serverConn *ssh.Client) {
 			genc := gob.NewEncoder(bw)
 
 			for j := 1; j <= (i * 3000); j++ {
-				err = genc.Encode(bio.Message{
-					Sub: bio.UploadParams{
-						GameId:   12498,
-						Platform: "osx",
-					},
-				})
+				var fa interface{} = bio.FileAdded{
+					Path: "Hello",
+				}
+				err = genc.Encode(&fa)
 				if err != nil {
 					panic(err)
 				}
@@ -109,4 +142,5 @@ func sendStuff(serverConn *ssh.Client) {
 	for i := 0; i < num; i++ {
 		<-wait
 	}
+	return nil
 }

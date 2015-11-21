@@ -7,10 +7,6 @@ import (
 	"gopkg.in/itchio/rsync-go.v0"
 )
 
-type Message struct {
-	Sub interface{}
-}
-
 type UploadParams struct {
 	GameId   int64
 	Platform string
@@ -36,7 +32,10 @@ type FileRemoved struct {
 }
 
 func init() {
-	gob.Register(Message{})
+	Register()
+}
+
+func Register() {
 	gob.Register(UploadParams{})
 	gob.Register(SourceFile{})
 	gob.Register(FilePatched{})
@@ -44,14 +43,26 @@ func init() {
 	gob.Register(FileRemoved{})
 }
 
-func (msg *Message) ToBytes() ([]byte, error) {
+func Marshal(value interface{}) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	genc := gob.NewEncoder(buf)
 
-	err := genc.Encode(msg)
+	err := genc.Encode(&value)
 	if err != nil {
 		return nil, err
 	}
 
 	return buf.Bytes(), nil
+}
+
+func Unmarshal(buf []byte) (interface{}, error) {
+	gdec := gob.NewDecoder(bytes.NewReader(buf))
+
+	var value interface{}
+	err := gdec.Decode(&value)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
