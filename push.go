@@ -20,7 +20,7 @@ func push(src string, repoSpec string) {
 
 var (
 	addressRe   = regexp.MustCompile("[^:]:.*")
-	defaultPort = 2222
+	defaultPort = 22
 )
 
 func doPush(src string, repoSpec string) error {
