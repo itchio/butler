@@ -20,7 +20,7 @@ var (
 
 	pushCmd      = app.Command("push", "Upload a new version of something to itch.io")
 	pushIdentity = pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').ExistingFile()
-	pushAddress  = pushCmd.Flag("address", "Specify wharf address (advanced)").Default("butler.itch.zone").Short('a').Hidden().String()
+	pushAddress  = pushCmd.Flag("address", "Specify wharf address (advanced)").Default("wharf.itch.zone").Short('a').Hidden().String()
 	pushSrc      = pushCmd.Arg("src", "Directory or zip archive to upload, e.g.").Required().ExistingFileOrDir()
 	pushRepo     = pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String()
 )
