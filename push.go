@@ -38,11 +38,11 @@ func doPush(src string, repoSpec string) error {
 	up := bio.UploadParams{RepoSpec: repoSpec}
 	ok, _, err := conn.SendRequest("butler/upload-params", true, up)
 	if err != nil {
-		return fmt.Errorf("could not send upload params: %s", err.Error())
+		return fmt.Errorf("Could not send upload params: %s", err.Error())
 	}
 
 	if !ok {
-		return fmt.Errorf("could not find upload to replace from repo spec '%s' - be more specific ?", repoSpec)
+		return fmt.Errorf("Could not find upload to replace from '%s'", repoSpec)
 	}
 	bio.Log("upload params were accepted!")
 

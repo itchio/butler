@@ -39,7 +39,12 @@ type Conn struct {
 }
 
 func Connect(address string, identityPath string, version string) (*Conn, error) {
-	bio.Logf("Trying to connect to %s", address)
+	bio.Logf("Connecting to %s", address)
+
+	tcpConn, err := net.Dial("tcp", address)
+	if err != nil {
+		return nil, err
+	}
 
 	identity, err := readPrivateKey(identityPath)
 	if err != nil {
@@ -50,11 +55,6 @@ func Connect(address string, identityPath string, version string) (*Conn, error)
 		User:          "butler",
 		Auth:          []ssh.AuthMethod{identity},
 		ClientVersion: fmt.Sprintf("SSH-2.0-butler_%s", version),
-	}
-
-	tcpConn, err := net.Dial("tcp", address)
-	if err != nil {
-		return nil, err
 	}
 
 	sshConn, chans, reqs, err := ssh.NewClientConn(tcpConn, "", sshConfig)
@@ -210,6 +210,6 @@ func readPrivateKey(file string) (ssh.AuthMethod, error) {
 		return nil, err
 	}
 
-	bio.Logf("our public key is %s", base64.StdEncoding.EncodeToString(key.PublicKey().Marshal())[:25]+"...")
+	bio.Logf("Presenting public key %s", base64.StdEncoding.EncodeToString(key.PublicKey().Marshal())[:25]+"...")
 	return ssh.PublicKeys(key), nil
 }
