@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -37,7 +38,7 @@ type Conn struct {
 	sessionID string
 }
 
-func Connect(address string, identityPath string) (*Conn, error) {
+func Connect(address string, identityPath string, version string) (*Conn, error) {
 	bio.Logf("Trying to connect to %s", address)
 
 	identity, err := readPrivateKey(identityPath)
@@ -46,8 +47,9 @@ func Connect(address string, identityPath string) (*Conn, error) {
 	}
 
 	sshConfig := &ssh.ClientConfig{
-		User: "butler",
-		Auth: []ssh.AuthMethod{identity},
+		User:          "butler",
+		Auth:          []ssh.AuthMethod{identity},
+		ClientVersion: fmt.Sprintf("SSH-2.0-butler_%s", version),
 	}
 
 	tcpConn, err := net.Dial("tcp", address)

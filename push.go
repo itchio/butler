@@ -29,7 +29,7 @@ func doPush(src string, repoSpec string) error {
 		address = fmt.Sprintf("%s:%d", address, defaultPort)
 	}
 
-	conn, err := wharf.Connect(address, *pushIdentity)
+	conn, err := wharf.Connect(address, *pushIdentity, version)
 	if err != nil {
 		return err
 	}
