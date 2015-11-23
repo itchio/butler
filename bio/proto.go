@@ -7,6 +7,10 @@ import (
 	"gopkg.in/itchio/rsync-go.v0"
 )
 
+type RequestError struct {
+	Message string
+}
+
 type UploadParams struct {
 	RepoSpec string
 }
