@@ -171,6 +171,14 @@ func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bo
 	return status, reply, nil
 }
 
+func (c *Conn) Blog(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	_, _, err := c.SendRequest("butler/log", false, bio.LogEntry{msg})
+	if err != nil {
+		log.Println("couldn't blog :(", err.Error())
+	}
+}
+
 func GetPayload(req *ssh.Request) (res interface{}, err error) {
 	if len(req.Payload) > 0 {
 		res, err = bio.Unmarshal(req.Payload)
