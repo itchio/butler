@@ -171,6 +171,13 @@ func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bo
 	return status, reply, nil
 }
 
+func GetPayload(req *ssh.Request) (res interface{}, err error) {
+	if len(req.Payload) > 0 {
+		res, err = bio.Unmarshal(req.Payload)
+	}
+	return
+}
+
 func (ch *Channel) Close() error {
 	err := ch.bw.Close()
 	if err != nil {

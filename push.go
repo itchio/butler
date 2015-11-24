@@ -40,6 +40,28 @@ func doPush(src string, repoSpec string) error {
 	}
 	defer conn.Close()
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for req := range conn.Reqs {
+			payload, err := wharf.GetPayload(req)
+			if err != nil {
+				log.Printf("Error receiving payload: %s\n", err.Error())
+				conn.Close()
+			}
+
+			switch v := payload.(type) {
+			case bio.LogEntry:
+				log.Printf("remote: %s\n", v.Message)
+			default:
+				log.Printf("Server sent us unknown req %s\n", req.Type)
+			}
+		}
+		log.Println("Done handing reqs from server")
+	}()
+
 	up := bio.UploadParams{RepoSpec: repoSpec}
 	ok, _, err := conn.SendRequest("butler/upload-params", true, up)
 	if err != nil {
@@ -50,8 +72,6 @@ func doPush(src string, repoSpec string) error {
 		return fmt.Errorf("Could not find upload to replace from '%s'", repoSpec)
 	}
 	bio.Log("upload params were accepted!")
-
-	var wg sync.WaitGroup
 
 	done := make(chan bool)
 	errs := make(chan error)
@@ -100,7 +120,7 @@ func doPush(src string, repoSpec string) error {
 
 			for i := 0; i < 250; i++ {
 				err := ch.Send(bio.SourceFile{
-					Path:   fmt.Sprintf(""),
+					Path:   "",
 					Hashes: []rsync.BlockHash{},
 				})
 				if err != nil {
@@ -108,6 +128,7 @@ func doPush(src string, repoSpec string) error {
 					return
 				}
 			}
+			log.Printf("Done sending through channel %s\n", path)
 		}()
 	}
 

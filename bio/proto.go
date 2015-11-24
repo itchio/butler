@@ -11,6 +11,10 @@ type RequestError struct {
 	Message string
 }
 
+type LogEntry struct {
+	Message string
+}
+
 type UploadParams struct {
 	RepoSpec string
 }
@@ -39,6 +43,8 @@ func init() {
 }
 
 func Register() {
+	gob.Register(RequestError{})
+	gob.Register(LogEntry{})
 	gob.Register(UploadParams{})
 	gob.Register(SourceFile{})
 	gob.Register(FilePatched{})
