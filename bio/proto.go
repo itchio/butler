@@ -20,9 +20,8 @@ type UploadParams struct {
 }
 
 type SourceFile struct {
-	Path   string
-	Size   uint64
-	Hashes []rsync.BlockHash
+	Path string
+	Size uint64
 }
 
 type FilePatched struct {

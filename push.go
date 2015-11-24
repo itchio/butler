@@ -2,18 +2,19 @@ package main
 
 import (
 	"bytes"
-	"encoding/gob"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 
-	"gopkg.in/itchio/rsync-go.v0"
-	"gopkg.in/kothar/brotli-go.v0/enc"
+	"gopkg.in/kothar/brotli-go.v0/dec"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/bio"
@@ -61,51 +62,94 @@ func doPush(src string, repoSpec string) error {
 			switch v := payload.(type) {
 			case bio.LogEntry:
 				log.Printf("remote: %s\n", v.Message)
-			case bio.SourceFile:
-				var localSize int64 = 0
-				path := path.Join(src, v.Path)
-				stats, err := os.Lstat(path)
-				if err == nil {
-					localSize = stats.Size()
-				}
-
-				bdiff := int64(v.Size) - localSize
-
-				out := new(bytes.Buffer)
-				params := enc.NewBrotliParams()
-				params.SetQuality(1)
-				bw := enc.NewBrotliWriter(params, out)
-
-				genc := gob.NewEncoder(bw)
-				nops := 0
-
-				opWriter := func(op rsync.Operation) error {
-					nops++
-					genc.Encode(op)
-					return nil
-				}
-				rs := &rsync.RSync{}
-				fr, err := os.Open(path)
-				if err != nil {
-					log.Printf("Error opening %s: %s\n", path, err.Error())
-					return
-				}
-				defer fr.Close()
-				err = rs.CreateDelta(fr, v.Hashes, opWriter, nil)
-				if err != nil {
-					log.Printf("Error creating delta for %s: %s\n", path, err.Error())
-					return
-				}
-
-				bw.Close()
-				log.Printf("%30s | %d bytes, %d ops taking %s", path, bdiff, nops, humanize.Bytes(uint64(out.Len())))
-				totalBops += int64(out.Len())
+			// case bio.SourceFile:
+			// 	var localSize int64 = 0
+			// 	path := path.Join(src, v.Path)
+			// 	stats, err := os.Lstat(path)
+			// 	if err == nil {
+			// 		localSize = stats.Size()
+			// 	}
+			//
+			// 	bdiff := int64(v.Size) - localSize
+			//
+			// 	out := new(bytes.Buffer)
+			// 	params := enc.NewBrotliParams()
+			// 	params.SetQuality(1)
+			// 	bw := enc.NewBrotliWriter(params, out)
+			//
+			// 	genc := gob.NewEncoder(bw)
+			// 	nops := 0
+			//
+			// 	opWriter := func(op rsync.Operation) error {
+			// 		nops++
+			// 		genc.Encode(op)
+			// 		return nil
+			// 	}
+			// 	rs := &rsync.RSync{}
+			// 	fr, err := os.Open(path)
+			// 	if err != nil {
+			// 		log.Printf("Error opening %s: %s\n", path, err.Error())
+			// 		return
+			// 	}
+			// 	defer fr.Close()
+			// 	err = rs.CreateDelta(fr, v.Hashes, opWriter, nil)
+			// 	if err != nil {
+			// 		log.Printf("Error creating delta for %s: %s\n", path, err.Error())
+			// 		return
+			// 	}
+			//
+			// 	bw.Close()
+			// 	log.Printf("%30s | %d bytes, %d ops taking %s", path, bdiff, nops, humanize.Bytes(uint64(out.Len())))
+			// 	totalBops += int64(out.Len())
 			default:
 				log.Printf("Server sent us unknown req %s\n", req.Type)
 			}
 		}
 		log.Println("Done handing reqs from server")
 		log.Printf("total bops = %d bytes, %s\n", totalBops, humanize.Bytes(uint64(totalBops)))
+	}()
+
+	go func() {
+		for req := range conn.Chans {
+			payload, err := bio.Unmarshal(req.ExtraData())
+			if err != nil {
+				log.Printf("error while decoding chanreq %s payload: %s\n", req.ChannelType(), err)
+				conn.Close()
+				break
+			}
+			switch v := payload.(type) {
+			case bio.SourceFile:
+				ch, reqs, err := req.Accept()
+				if err != nil {
+					log.Printf("error while accepting chanreq %s\n", err)
+					conn.Close()
+					break
+				}
+				go ssh.DiscardRequests(reqs)
+
+				buf, err := ioutil.ReadAll(ch)
+				if err != nil {
+					log.Printf("error while readingall from chanreq %s\n", err)
+					conn.Close()
+					break
+				}
+
+				br := dec.NewBrotliReader(bytes.NewReader(buf))
+				uncompressedBuf := new(bytes.Buffer)
+				_, err = io.Copy(uncompressedBuf, br)
+				if err != nil {
+					log.Printf("error while decompressing from chanreq %s\n", err)
+					conn.Close()
+					break
+				}
+				br.Close()
+
+				log.Printf("%30s | %s compressed, %s uncompressed\n", v.Path, humanize.Bytes(uint64(len(buf))), humanize.Bytes(uint64(uncompressedBuf.Len())))
+			default:
+				log.Printf("unknown channel type req'd from remote: %s\n", req.ChannelType())
+				req.Reject(ssh.UnknownChannelType, "")
+			}
+		}
 	}()
 
 	up := bio.UploadParams{RepoSpec: repoSpec}
@@ -124,6 +168,7 @@ func doPush(src string, repoSpec string) error {
 
 	log.Printf("\n")
 	var totalSize uint64
+
 	fileList := make(map[string]os.FileInfo)
 
 	filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
@@ -143,41 +188,11 @@ func doPush(src string, repoSpec string) error {
 		return nil
 	})
 
-	for path, info := range fileList {
+	for _, info := range fileList {
 		fileSize := uint64(info.Size())
 		totalSize += fileSize
-		humanSize := humanize.Bytes(fileSize)
-		log.Printf("%8s | %s\n", humanSize, path)
 	}
-	log.Printf("---------+-------------\n")
-	log.Printf("%8s | (total)\n", humanize.Bytes(totalSize))
-
-	for j := 0; j < 0; j++ {
-		wg.Add(1)
-		j := j
-		go func() {
-			defer wg.Done()
-			path := fmt.Sprintf("/test/channel/%d", j)
-			ch, err := conn.OpenCompressedChannel("butler/send-file", bio.FileAdded{Path: path})
-			if err != nil {
-				errs <- err
-				return
-			}
-			defer ch.Close()
-
-			for i := 0; i < 250; i++ {
-				err := ch.Send(bio.SourceFile{
-					Path:   "",
-					Hashes: []rsync.BlockHash{},
-				})
-				if err != nil {
-					errs <- err
-					return
-				}
-			}
-			log.Printf("Done sending through channel %s\n", path)
-		}()
-	}
+	log.Printf("local version is %8s in %d files\n", humanize.Bytes(totalSize), len(fileList))
 
 	go func() {
 		wg.Wait()
