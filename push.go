@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 
 	"gopkg.in/itchio/rsync-go.v0"
 
+	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/bio"
 	"github.com/itchio/butler/wharf"
 )
@@ -50,6 +55,35 @@ func doPush(src string, repoSpec string) error {
 
 	done := make(chan bool)
 	errs := make(chan error)
+
+	log.Printf("\n")
+	var totalSize int64
+	fileList := make(map[string]os.FileInfo)
+
+	filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			errs <- err
+			return err
+		}
+
+		if info.IsDir() && len(path) > 1 && strings.HasPrefix(info.Name(), ".") {
+			log.Printf("Skipping %s because it starts with .\n", path)
+			return filepath.SkipDir
+		}
+
+		if !info.IsDir() {
+			fileList[path] = info
+		}
+		return nil
+	})
+
+	for path, info := range fileList {
+		totalSize += info.Size()
+		humanSize := humanize.Bytes(uint64(info.Size()))
+		log.Printf("%8s | %s\n", humanSize, path)
+	}
+	log.Printf("---------+-------------\n")
+	log.Printf("%8s | (total)\n", humanize.Bytes(uint64(totalSize)))
 
 	for j := 0; j < 10; j++ {
 		wg.Add(1)
