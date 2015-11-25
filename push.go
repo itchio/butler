@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -47,6 +48,7 @@ func doPush(src string, repoSpec string) error {
 	}
 	defer conn.Close()
 
+	closed := make(chan bool)
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -101,6 +103,7 @@ func doPush(src string, repoSpec string) error {
 				return
 			}
 		}
+		close(closed)
 	}()
 
 	up := bio.Target{RepoSpec: repoSpec}
@@ -154,6 +157,8 @@ func doPush(src string, repoSpec string) error {
 		return err
 	case <-done:
 		return nil
+	case <-closed:
+		return errors.New("remote closed the connection")
 	}
 }
 
@@ -167,7 +172,6 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	br := dec.NewBrotliReader(ch)
 	sig := make([]rsync.BlockHash, 0)
 
-	var oldMD5 []byte
 	gdec := gob.NewDecoder(br)
 	var recipient interface{}
 
@@ -184,7 +188,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		case rsync.BlockHash:
 			sig = append(sig, v)
 		case bio.MD5Hash:
-			oldMD5 = v.Hash
+			_ = v.Hash
 		default:
 			return fmt.Errorf("wat")
 		}
@@ -235,6 +239,6 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		return err
 	}
 
-	log.Printf("%8s | md5 %x => %x | %s", humanize.Bytes(uint64(out.BytesWritten())), oldMD5, newMD5, path)
+	log.Printf("%8s | %x | %s", humanize.Bytes(uint64(out.BytesWritten())), newMD5, path)
 	return
 }
