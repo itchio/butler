@@ -20,6 +20,10 @@ type SourceFile struct {
 	Size uint64
 }
 
+type MD5Hash struct {
+	Hash []byte
+}
+
 type EndOfSources struct{}
 
 type FilePatched struct {
@@ -45,6 +49,7 @@ func Register() {
 	gob.Register(Target{})
 
 	gob.Register(SourceFile{})
+	gob.Register(MD5Hash{})
 	gob.Register(EndOfSources{})
 
 	gob.Register(rsync.BlockHash{})
