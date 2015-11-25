@@ -7,15 +7,11 @@ import (
 	"gopkg.in/itchio/rsync-go.v0"
 )
 
-type RequestError struct {
-	Message string
-}
-
 type LogEntry struct {
 	Message string
 }
 
-type UploadParams struct {
+type Target struct {
 	RepoSpec string
 }
 
@@ -24,6 +20,8 @@ type SourceFile struct {
 	Size uint64
 }
 
+type EndOfSources struct{}
+
 type FilePatched struct {
 	Path    string
 	ApplyTo string
@@ -31,7 +29,6 @@ type FilePatched struct {
 
 type FileAdded struct {
 	Path string
-	Data []byte
 }
 
 type FileRemoved struct {
@@ -43,10 +40,16 @@ func init() {
 }
 
 func Register() {
-	gob.Register(RequestError{})
 	gob.Register(LogEntry{})
-	gob.Register(UploadParams{})
+
+	gob.Register(Target{})
+
 	gob.Register(SourceFile{})
+	gob.Register(EndOfSources{})
+
+	gob.Register(rsync.BlockHash{})
+	gob.Register(rsync.Operation{})
+
 	gob.Register(FilePatched{})
 	gob.Register(FileAdded{})
 	gob.Register(FileRemoved{})

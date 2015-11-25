@@ -17,11 +17,18 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const (
+	/* from 0 (fastest) to 11 (most compressed) */
+	brotliTransportQuality = 1
+)
+
 type Channel struct {
 	ch *ssh.Channel
 
 	bw *enc.BrotliWriter
 	br *dec.BrotliReader
+
+	wcounter *bio.CounterWriter
 
 	genc *gob.Encoder
 	gdec *gob.Decoder
@@ -125,21 +132,28 @@ func (c *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Chann
 	}()
 
 	params := enc.NewBrotliParams()
-	params.SetQuality(1)
-	bw := enc.NewBrotliWriter(params, ch)
+	params.SetQuality(brotliTransportQuality)
+
+	wcounter := bio.Counter(ch)
+	bw := enc.NewBrotliWriter(params, wcounter)
 	genc := gob.NewEncoder(bw)
 
 	br := dec.NewBrotliReader(ch)
 	gdec := gob.NewDecoder(br)
 
 	cch := &Channel{
-		br:   br,
-		bw:   bw,
-		genc: genc,
-		gdec: gdec,
+		wcounter: wcounter,
+		br:       br,
+		bw:       bw,
+		genc:     genc,
+		gdec:     gdec,
 	}
 
 	return cch, nil
+}
+
+func (c *Channel) BytesWritten() int64 {
+	return c.wcounter.Count()
 }
 
 func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bool, interface{}, error) {
@@ -155,7 +169,7 @@ func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bo
 
 	status, replyBytes, err := c.Conn.SendRequest(name, wantReply, payloadBytes)
 	if err != nil {
-		log.Println("in sendrequest")
+		err = fmt.Errorf("in sendrequest(%s): %s", name, err.Error())
 		return false, nil, err
 	}
 
@@ -173,7 +187,7 @@ func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bo
 
 func (c *Conn) Blog(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	_, _, err := c.SendRequest("butler/log", false, bio.LogEntry{msg})
+	_, _, err := c.SendRequest("butler/log", false, bio.LogEntry{Message: msg})
 	if err != nil {
 		log.Println("couldn't blog :(", err.Error())
 	}
