@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -23,7 +24,7 @@ const (
 )
 
 type Channel struct {
-	ch *ssh.Channel
+	ch ssh.Channel
 
 	bw *enc.BrotliWriter
 	br *dec.BrotliReader
@@ -147,6 +148,7 @@ func (c *Conn) OpenCompressedChannel(chType string, payload interface{}) (*Chann
 		bw:       bw,
 		genc:     genc,
 		gdec:     gdec,
+		ch:       ch,
 	}
 
 	return cch, nil
@@ -198,15 +200,29 @@ func GetPayload(req *ssh.Request) (res interface{}, err error) {
 	return
 }
 
-func (ch *Channel) Close() error {
+func (ch *Channel) CloseWrite() error {
+	// flush rest of brotli data
 	err := ch.bw.Close()
 	if err != nil {
 		return err
 	}
 
-	err = ch.br.Close()
+	// close write end of our channel
+	err = ch.ch.CloseWrite()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (ch *Channel) Join() error {
+	// read until EOF
+	_, err := ioutil.ReadAll(ch.br)
+	if err != nil {
+		if err != io.EOF {
+			return err
+		}
 	}
 
 	return nil

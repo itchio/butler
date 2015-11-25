@@ -88,6 +88,7 @@ func doPush(src string, repoSpec string) error {
 				go func() {
 					defer wg.Done()
 					err := handleSourceFile(src, conn, req, v)
+					log.Printf("done handling sourcefile %s\n", v.Path)
 					if err != nil {
 						panic(err)
 					}
@@ -103,6 +104,7 @@ func doPush(src string, repoSpec string) error {
 				return
 			}
 		}
+		log.Println("done handling chans, closing")
 		close(closed)
 	}()
 
@@ -154,10 +156,13 @@ func doPush(src string, repoSpec string) error {
 
 	select {
 	case err := <-errs:
+		log.Println("<-errs :(")
 		return err
 	case <-done:
+		log.Println("<-done !")
 		return nil
 	case <-closed:
+		log.Println("<-closed!")
 		return errors.New("remote closed the connection")
 	}
 }
@@ -170,6 +175,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	go ssh.DiscardRequests(reqs)
 
 	br := dec.NewBrotliReader(ch)
+	defer br.Close()
 	sig := make([]rsync.BlockHash, 0)
 
 	gdec := gob.NewDecoder(br)
@@ -215,10 +221,14 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	h := md5.New()
 	var newMD5 []byte
 
+	nops := 0
+
 	err = func() (err error) {
-		defer out.Close()
+		defer out.CloseWrite()
 
 		opWriter := func(op rsync.Operation) error {
+			nops++
+			log.Printf("sending op %d for %s\n", nops, path)
 			return out.Send(op)
 		}
 
@@ -240,5 +250,11 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	}
 
 	log.Printf("%8s | %x | %s", humanize.Bytes(uint64(out.BytesWritten())), newMD5, path)
+
+	// wait for read end to close
+	log.Println("joining....")
+	out.Join()
+	log.Println("joined!")
+
 	return
 }

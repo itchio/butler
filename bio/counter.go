@@ -41,11 +41,5 @@ func (w *CounterWriter) Write(buffer []byte) (n int, err error) {
 }
 
 func (w *CounterWriter) Close() error {
-	if w.writer != nil {
-		if v, ok := w.writer.(io.Closer); ok {
-			return v.Close()
-		}
-	}
-
 	return nil
 }

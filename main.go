@@ -35,7 +35,9 @@ func main() {
 	cmd, err := app.Parse(os.Args[1:])
 	bio.JsonOutput = *jsonOutput
 	bio.Quiet = *quiet
-	if !*timestamps {
+	if *timestamps {
+		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+	} else {
 		log.SetFlags(0)
 	}
 
