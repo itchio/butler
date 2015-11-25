@@ -185,12 +185,10 @@ func (c *Conn) SendRequest(name string, wantReply bool, payload interface{}) (bo
 	return status, reply, nil
 }
 
-func (c *Conn) Blog(format string, args ...interface{}) {
+func (c *Conn) Blog(format string, args ...interface{}) (err error) {
 	msg := fmt.Sprintf(format, args...)
-	_, _, err := c.SendRequest("butler/log", false, bio.LogEntry{Message: msg})
-	if err != nil {
-		log.Println("couldn't blog :(", err.Error())
-	}
+	_, _, err = c.SendRequest("butler/log", false, bio.LogEntry{Message: msg})
+	return
 }
 
 func GetPayload(req *ssh.Request) (res interface{}, err error) {
