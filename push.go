@@ -249,12 +249,10 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		return err
 	}
 
-	log.Printf("%8s | %x | %s", humanize.Bytes(uint64(out.BytesWritten())), newMD5, path)
-
 	// wait for read end to close
-	log.Println("joining....")
 	out.Join()
-	log.Println("joined!")
+
+	log.Printf("%8s | %x | %s", humanize.Bytes(uint64(out.BytesWritten())), newMD5, path)
 
 	return
 }
