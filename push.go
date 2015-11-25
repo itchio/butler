@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -141,7 +142,7 @@ func doPush(src string, repoSpec string) error {
 		fileSize := uint64(info.Size())
 		totalSize += fileSize
 	}
-	log.Printf("local version is %8s in %d files\n", humanize.Bytes(totalSize), len(fileList))
+	log.Printf("Have %s in %d files\n", humanize.Bytes(totalSize), len(fileList))
 
 	go func() {
 		wg.Wait()
@@ -166,8 +167,10 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	br := dec.NewBrotliReader(ch)
 	sig := make([]rsync.BlockHash, 0)
 
+	var oldMD5 []byte
 	gdec := gob.NewDecoder(br)
 	var recipient interface{}
+
 	for {
 		err := gdec.Decode(&recipient)
 		if err != nil {
@@ -180,6 +183,8 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		switch v := recipient.(type) {
 		case rsync.BlockHash:
 			sig = append(sig, v)
+		case bio.MD5Hash:
+			oldMD5 = v.Hash
 		default:
 			return fmt.Errorf("wat")
 		}
@@ -189,12 +194,22 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 
 	path := path.Join(src, sf.Path)
 
+	fr, err := os.Open(path)
+	if err != nil {
+		log.Printf("warn: could not open %s - deleted?\n", path)
+		return nil
+	}
+	defer fr.Close()
+
 	out, err := conn.OpenCompressedChannel("butler/patch-file", &bio.FilePatched{
 		Path: path,
 	})
 	if err != nil {
 		return err
 	}
+
+	h := md5.New()
+	var newMD5 []byte
 
 	err = func() (err error) {
 		defer out.Close()
@@ -203,17 +218,16 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 			return out.Send(op)
 		}
 
-		fr, err := os.Open(path)
-		if err != nil {
-			return
-		}
-		defer fr.Close()
+		tr := io.TeeReader(fr, h)
 
 		rs := &rsync.RSync{}
-		err = rs.CreateDelta(fr, sig, opWriter, nil)
+		err = rs.CreateDelta(tr, sig, opWriter)
 		if err != nil {
 			return fmt.Errorf("while creating delta for %s: %s", path, err.Error())
 		}
+
+		newMD5 = h.Sum(nil)
+		out.Send(bio.MD5Hash{Hash: newMD5})
 		return
 	}()
 
@@ -221,6 +235,6 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		return err
 	}
 
-	log.Printf("%8s | %s", humanize.Bytes(uint64(out.BytesWritten())), path)
+	log.Printf("%8s | md5 %x => %x | %s", humanize.Bytes(uint64(out.BytesWritten())), oldMD5, newMD5, path)
 	return
 }
