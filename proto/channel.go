@@ -83,13 +83,6 @@ func (ch *Channel) Abort() error {
 
 // Close write end if not closed, blocks until peer has closed their end
 func (ch *Channel) AwaitEOF() error {
-	if !ch.closed {
-		err := ch.CloseWrite()
-		if err != nil {
-			return err
-		}
-	}
-
 	// read until EOF
 	_, err := io.Copy(ioutil.Discard, ch.br)
 	return err

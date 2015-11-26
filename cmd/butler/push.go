@@ -172,6 +172,7 @@ func handleSourceFile(src string, conn *proto.Conn, req ssh.NewChannel, sf proto
 	if err != nil {
 		return
 	}
+	defer ch.Close()
 	go ssh.DiscardRequests(reqs)
 
 	br := dec.NewBrotliReader(ch)
