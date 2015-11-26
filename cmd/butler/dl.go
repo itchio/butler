@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/itchio/butler/bio"
+	"github.com/itchio/butler/counter"
 )
 
 const bufferSize = 128 * 1024
@@ -20,13 +20,13 @@ func dl(url string, dest string) {
 			break
 		}
 
-		bio.Log(fmt.Sprintf("While downloading, got error %s", err))
+		Log(fmt.Sprintf("While downloading, got error %s", err))
 		tries--
 		if tries > 0 {
 			os.Truncate(dest, 0)
-			bio.Log(fmt.Sprintf("Retrying... (%d tries left)", tries))
+			Log(fmt.Sprintf("Retrying... (%d tries left)", tries))
 		} else {
-			bio.Die(err.Error())
+			Die(err.Error())
 		}
 	}
 }
@@ -38,13 +38,13 @@ func tryDl(url string, dest string) (int64, error) {
 		existingBytes = stats.Size()
 	}
 
-	bio.Log(fmt.Sprintf("existing file is %d bytes long", existingBytes))
+	Log(fmt.Sprintf("existing file is %d bytes long", existingBytes))
 
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
-	bio.Logf("Asking for range %s", byteRange)
+	Logf("Asking for range %s", byteRange)
 
 	req.Header.Set("Range", byteRange)
 	resp, err := client.Do(req)
@@ -58,16 +58,16 @@ func tryDl(url string, dest string) (int64, error) {
 
 	switch resp.StatusCode {
 	case 200: // OK
-		bio.Logf("server 200'd, does not support byte ranges")
+		Logf("server 200'd, does not support byte ranges")
 		// will send data, but doesn't support byte ranges
 		existingBytes = 0
 		totalBytes = resp.ContentLength
 		os.Truncate(dest, 0)
 	case 206: // Partial Content
-		bio.Logf("server 206'd, supports byte ranges")
+		Logf("server 206'd, supports byte ranges")
 		// will send incremental data
 	case 416: // Requested Range not Satisfiable
-		bio.Logf("server 416'd")
+		Logf("server 416'd")
 		// already has everything
 		doDownload = false
 
@@ -78,7 +78,7 @@ func tryDl(url string, dest string) (int64, error) {
 		}
 
 		if existingBytes > resp.ContentLength {
-			bio.Logf("existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
+			Logf("existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
 			existingBytes = resp.ContentLength
 			os.Truncate(dest, existingBytes)
 		}
@@ -88,14 +88,14 @@ func tryDl(url string, dest string) (int64, error) {
 	}
 
 	if doDownload {
-		bio.Log(fmt.Sprintf("Response content length = %d", resp.ContentLength))
+		Log(fmt.Sprintf("Response content length = %d", resp.ContentLength))
 		err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
 			return 0, err
 		}
-		bio.Log("done downloading")
+		Log("done downloading")
 	} else {
-		bio.Log("all downloaded already")
+		Log("all downloaded already")
 	}
 
 	_, err = checkIntegrity(resp, totalBytes, dest)
@@ -120,9 +120,9 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 		}
 
 		prevPercent = percent
-		bio.Progress(percent)
+		Progress(percent)
 	}
-	counter := bio.ProgressCounter(onWrite, out)
+	counter := counter.NewWithCallback(onWrite, out)
 
 	_, err = io.Copy(counter, src)
 	return

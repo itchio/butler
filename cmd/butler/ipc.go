@@ -1,4 +1,4 @@
-package bio
+package main
 
 import (
 	"encoding/json"
@@ -9,13 +9,8 @@ import (
 
 type jsonMessage map[string]interface{}
 
-var (
-	JsonOutput = false
-	Quiet      = false
-)
-
 func Progress(perc float64) {
-	if Quiet {
+	if *appArgs.quiet {
 		return
 	}
 	send("progress", jsonMessage{
@@ -48,7 +43,7 @@ func Dief(format string, args ...interface{}) {
 
 // sends a message to the client
 func send(msgType string, obj jsonMessage) {
-	if JsonOutput {
+	if *appArgs.json {
 		obj["type"] = msgType
 		sendJSON(obj)
 	} else {

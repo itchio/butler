@@ -1,4 +1,4 @@
-package bio
+package proto
 
 import (
 	"bytes"
@@ -62,6 +62,10 @@ func Register() {
 }
 
 func Marshal(value interface{}) ([]byte, error) {
+	if value == nil {
+		return nil, nil
+	}
+
 	buf := new(bytes.Buffer)
 	genc := gob.NewEncoder(buf)
 
@@ -74,6 +78,10 @@ func Marshal(value interface{}) ([]byte, error) {
 }
 
 func Unmarshal(buf []byte) (interface{}, error) {
+	if len(buf) == 0 {
+		return nil, nil
+	}
+
 	gdec := gob.NewDecoder(bytes.NewReader(buf))
 
 	var value interface{}

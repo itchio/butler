@@ -20,14 +20,13 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/dustin/go-humanize"
-	"github.com/itchio/butler/bio"
-	"github.com/itchio/butler/wharf"
+	"github.com/itchio/butler/proto"
 )
 
 func push(src string, repoSpec string) {
 	err := doPush(src, repoSpec)
 	if err != nil {
-		bio.Die(err.Error())
+		Die(err.Error())
 	}
 }
 
@@ -37,16 +36,18 @@ var (
 )
 
 func doPush(src string, repoSpec string) error {
-	address := *pushAddress
+	address := *pushArgs.address
 	if !addressRe.MatchString(address) {
 		address = fmt.Sprintf("%s:%d", address, defaultPort)
 	}
 
-	conn, err := wharf.Connect(address, *pushIdentity, version)
+	Logf("Connecting to %s", address)
+	conn, err := proto.Connect(address, *pushArgs.identity, version)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
+	Logf("Connected to %s", conn.Conn.RemoteAddr())
 
 	closed := make(chan bool)
 	var wg sync.WaitGroup
@@ -54,16 +55,16 @@ func doPush(src string, repoSpec string) error {
 	wg.Add(1)
 	go func() {
 		for req := range conn.Reqs {
-			payload, err := wharf.GetPayload(req)
+			payload, err := proto.Unmarshal(req.Payload)
 			if err != nil {
 				log.Printf("Error receiving payload: %s\n", err.Error())
 				conn.Close()
 			}
 
 			switch v := payload.(type) {
-			case bio.LogEntry:
+			case proto.LogEntry:
 				log.Printf("remote: %s\n", v.Message)
-			case bio.EndOfSources:
+			case proto.EndOfSources:
 				wg.Done()
 			default:
 				log.Printf("Server sent us unknown req %s\n", req.Type)
@@ -75,7 +76,7 @@ func doPush(src string, repoSpec string) error {
 		for req := range conn.Chans {
 			req := req
 
-			payload, err := bio.Unmarshal(req.ExtraData())
+			payload, err := proto.Unmarshal(req.ExtraData())
 			if err != nil {
 				log.Printf("error while decoding chanreq %s payload: %s\n", req.ChannelType(), err)
 				conn.Close()
@@ -83,12 +84,11 @@ func doPush(src string, repoSpec string) error {
 			}
 
 			switch v := payload.(type) {
-			case bio.SourceFile:
+			case proto.SourceFile:
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
 					err := handleSourceFile(src, conn, req, v)
-					log.Printf("done handling sourcefile %s\n", v.Path)
 					if err != nil {
 						panic(err)
 					}
@@ -108,7 +108,7 @@ func doPush(src string, repoSpec string) error {
 		close(closed)
 	}()
 
-	up := bio.Target{RepoSpec: repoSpec}
+	up := proto.Target{RepoSpec: repoSpec}
 	ok, _, err := conn.SendRequest("butler/target", true, up)
 	if err != nil {
 		return fmt.Errorf("Could not send target: %s", err.Error())
@@ -117,7 +117,7 @@ func doPush(src string, repoSpec string) error {
 	if !ok {
 		return fmt.Errorf("Could not find upload to replace from '%s'", repoSpec)
 	}
-	bio.Log("Locked onto upload target")
+	Log("Locked onto upload target")
 
 	done := make(chan bool)
 	errs := make(chan error)
@@ -167,7 +167,7 @@ func doPush(src string, repoSpec string) error {
 	}
 }
 
-func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.SourceFile) (err error) {
+func handleSourceFile(src string, conn *proto.Conn, req ssh.NewChannel, sf proto.SourceFile) (err error) {
 	ch, reqs, err := req.Accept()
 	if err != nil {
 		return
@@ -193,7 +193,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		switch v := recipient.(type) {
 		case rsync.BlockHash:
 			sig = append(sig, v)
-		case bio.MD5Hash:
+		case proto.MD5Hash:
 			_ = v.Hash
 		default:
 			return fmt.Errorf("wat")
@@ -211,7 +211,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	}
 	defer fr.Close()
 
-	out, err := conn.OpenCompressedChannel("butler/patch-file", &bio.FilePatched{
+	out, err := conn.OpenChannel("butler/patch-file", &proto.FilePatched{
 		Path: path,
 	})
 	if err != nil {
@@ -221,14 +221,10 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	h := md5.New()
 	var newMD5 []byte
 
-	nops := 0
-
 	err = func() (err error) {
 		defer out.CloseWrite()
 
 		opWriter := func(op rsync.Operation) error {
-			nops++
-			log.Printf("sending op %d for %s\n", nops, path)
 			return out.Send(op)
 		}
 
@@ -241,7 +237,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 		}
 
 		newMD5 = h.Sum(nil)
-		out.Send(bio.MD5Hash{Hash: newMD5})
+		out.Send(proto.MD5Hash{Hash: newMD5})
 		return
 	}()
 
@@ -250,7 +246,7 @@ func handleSourceFile(src string, conn *wharf.Conn, req ssh.NewChannel, sf bio.S
 	}
 
 	// wait for read end to close
-	out.Join()
+	out.AwaitEOF()
 
 	log.Printf("%8s | %x | %s", humanize.Bytes(uint64(out.BytesWritten())), newMD5, path)
 

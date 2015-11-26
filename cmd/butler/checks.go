@@ -10,8 +10,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/itchio/butler/bio"
 )
 
 func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, error) {
@@ -22,7 +20,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 	}
 
 	if resp.ContentLength != 0 {
-		bio.Logf("checking file size. should be %d, is %d", totalBytes, diskSize)
+		Logf("checking file size. should be %d, is %d", totalBytes, diskSize)
 
 		if totalBytes != diskSize {
 			return false, fmt.Errorf("corrupted downloaded: expected %d bytes, got %d", totalBytes, diskSize)
@@ -35,7 +33,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 func checkHashes(header http.Header, file string) (bool, error) {
 	googHashes := header[http.CanonicalHeaderKey("x-goog-hash")]
 	if len(googHashes) > 0 {
-		bio.Logf("got %d goog-hashes to check", len(googHashes))
+		Logf("got %d goog-hashes to check", len(googHashes))
 	}
 
 	for _, googHash := range googHashes {
@@ -43,7 +41,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		hashType := tokens[0]
 		hashValue, err := base64.StdEncoding.DecodeString(tokens[1])
 		if err != nil {
-			bio.Logf("could not verify %s hash: %s", hashType, err)
+			Logf("could not verify %s hash: %s", hashType, err)
 			continue
 		}
 
@@ -57,7 +55,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		if !checked {
 			status = "skipped"
 		}
-		bio.Logf("%s hash: %s (in %s)", hashType, status, time.Since(start))
+		Logf("%s hash: %s (in %s)", hashType, status, time.Since(start))
 	}
 
 	return true, nil
