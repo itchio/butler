@@ -156,13 +156,10 @@ func doPush(src string, repoSpec string) error {
 
 	select {
 	case err := <-errs:
-		log.Println("<-errs :(")
 		return err
 	case <-done:
-		log.Println("<-done !")
 		return nil
 	case <-closed:
-		log.Println("<-closed!")
 		return errors.New("remote closed the connection")
 	}
 }
