@@ -31,7 +31,7 @@ func push(src string, repoSpec string) {
 }
 
 var (
-	addressRe   = regexp.MustCompile("[^:]:.*")
+	addressRe   = regexp.MustCompile(`[^:]:.*`)
 	defaultPort = 22
 )
 
