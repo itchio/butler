@@ -8,6 +8,9 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+// #cgo windows LDFLAGS: -Wl,--allow-multiple-definition -static
+import "C"
+
 var (
 	version = "head" // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your very own itch.io helper")
