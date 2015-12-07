@@ -13,7 +13,7 @@ import "C"
 
 var (
 	version = "head" // set by command-line on CI release builds
-	app     = kingpin.New("butler", "Your very own itch.io helper")
+	app     = kingpin.New("butler", "Your very dedicated itch.io helper")
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)")
 
@@ -52,7 +52,7 @@ var pushArgs = struct {
 
 func main() {
 	app.HelpFlag.Short('h')
-	app.Version(fmt.Sprintf("so uh branches are weird %s", version))
+	app.Version(version)
 	app.VersionFlag.Short('V')
 
 	cmd, err := app.Parse(os.Args[1:])
