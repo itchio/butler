@@ -51,9 +51,8 @@ var pushArgs = struct {
 }
 
 func main() {
-	log.Println("branch cita")
 	app.HelpFlag.Short('h')
-	app.Version(fmt.Sprintf("that log is going to be rubbish... %s", version))
+	app.Version(fmt.Sprintf("ah yes the cita branch... %s", version))
 	app.VersionFlag.Short('V')
 
 	cmd, err := app.Parse(os.Args[1:])
