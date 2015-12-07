@@ -51,6 +51,7 @@ var pushArgs = struct {
 }
 
 func main() {
+	log.Println("branch cita")
 	app.HelpFlag.Short('h')
 	app.Version(version)
 	app.VersionFlag.Short('V')
