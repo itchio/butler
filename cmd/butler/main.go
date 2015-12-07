@@ -52,7 +52,7 @@ var pushArgs = struct {
 
 func main() {
 	app.HelpFlag.Short('h')
-	app.Version(fmt.Sprintf("that log is going to be rubbish... %s", version))
+	app.Version(fmt.Sprintf("so uh branches are weird %s", version))
 	app.VersionFlag.Short('V')
 
 	cmd, err := app.Parse(os.Args[1:])
