@@ -13,7 +13,7 @@ import "C"
 
 var (
 	version = "head" // set by command-line on CI release builds
-	app     = kingpin.New("butler", "Your very dedicated itch.io helper")
+	app     = kingpin.New("butler", "Your very own itch.io helper")
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)")
 
