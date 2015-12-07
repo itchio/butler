@@ -53,7 +53,7 @@ var pushArgs = struct {
 func main() {
 	log.Println("branch cita")
 	app.HelpFlag.Short('h')
-	app.Version(version)
+	app.Version(fmt.Sprintf("that log is going to be rubbish... %s", version))
 	app.VersionFlag.Short('V')
 
 	cmd, err := app.Parse(os.Args[1:])
