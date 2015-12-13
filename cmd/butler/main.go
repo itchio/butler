@@ -9,7 +9,6 @@ import (
 )
 
 // #cgo windows LDFLAGS: -Wl,--allow-multiple-definition -static
-// #cgo linux LDFLAGS: -static
 import "C"
 
 var (
