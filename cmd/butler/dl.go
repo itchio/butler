@@ -13,21 +13,9 @@ import (
 const bufferSize = 128 * 1024
 
 func dl(url string, dest string) {
-	tries := 3
-	for tries > 0 {
-		_, err := tryDl(url, dest)
-		if err == nil {
-			break
-		}
-
-		Log(fmt.Sprintf("While downloading, got error %s", err))
-		tries--
-		if tries > 0 {
-			os.Truncate(dest, 0)
-			Log(fmt.Sprintf("Retrying... (%d tries left)", tries))
-		} else {
-			Die(err.Error())
-		}
+	_, err := tryDl(url, dest)
+	if err != nil {
+		Die(err.Error())
 	}
 }
 
@@ -100,6 +88,8 @@ func tryDl(url string, dest string) (int64, error) {
 
 	_, err = checkIntegrity(resp, totalBytes, dest)
 	if err != nil {
+		Log("integrity checks failed, truncating")
+		os.Truncate(dest, 0)
 		return 0, err
 	}
 
