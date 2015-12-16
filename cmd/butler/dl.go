@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/itchio/butler/counter"
 )
@@ -19,6 +21,25 @@ func dl(url string, dest string) {
 	}
 }
 
+func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, cTimeout)
+		if err != nil {
+			return nil, err
+		}
+		conn.SetDeadline(time.Now().Add(rwTimeout))
+		return conn, nil
+	}
+}
+
+func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: timeoutDialer(connectTimeout, readWriteTimeout),
+		},
+	}
+}
+
 func tryDl(url string, dest string) (int64, error) {
 	existingBytes := int64(0)
 	stats, err := os.Lstat(dest)
@@ -28,7 +49,7 @@ func tryDl(url string, dest string) (int64, error) {
 
 	Log(fmt.Sprintf("existing file is %d bytes long", existingBytes))
 
-	client := &http.Client{}
+	client := newTimeoutClient(10*time.Second, 15*time.Second)
 
 	req, _ := http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
