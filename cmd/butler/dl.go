@@ -68,10 +68,16 @@ func tryDl(url string, dest string) (int64, error) {
 	switch resp.StatusCode {
 	case 200: // OK
 		Logf("server 200'd, does not support byte ranges")
-		// will send data, but doesn't support byte ranges
-		existingBytes = 0
 		totalBytes = resp.ContentLength
-		os.Truncate(dest, 0)
+
+		if existingBytes == resp.ContentLength {
+			// already have the exact same number of bytes, hopefully the same ones
+			doDownload = false
+		} else {
+			// will send data, but doesn't support byte ranges
+			existingBytes = 0
+			os.Truncate(dest, 0)
+		}
 	case 206: // Partial Content
 		Logf("server 206'd, supports byte ranges")
 		// will send incremental data
