@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/getlantern/idletiming"
 	"github.com/itchio/butler/counter"
 )
 
@@ -27,8 +28,11 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 		if err != nil {
 			return nil, err
 		}
-		conn.SetDeadline(time.Now().Add(rwTimeout))
-		return conn, nil
+		idleConn := idletiming.Conn(conn, rwTimeout, func() {
+			Logf("connection was idle for too long, dropping")
+			conn.Close()
+		})
+		return idleConn, nil
 	}
 }
 
@@ -49,7 +53,7 @@ func tryDl(url string, dest string) (int64, error) {
 
 	Log(fmt.Sprintf("existing file is %d bytes long", existingBytes))
 
-	client := newTimeoutClient(10*time.Second, 15*time.Second)
+	client := newTimeoutClient(30*time.Second, 60*time.Second)
 
 	req, _ := http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
