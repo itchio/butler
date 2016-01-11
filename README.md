@@ -7,7 +7,7 @@ butler is a command-line tool written in Go
 
 The itch.io client uses it for various network operations.
 
-  * <https://github.com/itchio/itchio-app>
+  * <https://github.com/itchio/itch>
 
 ## License
 
