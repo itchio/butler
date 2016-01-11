@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/getlantern/idletiming"
-	"github.com/itchio/butler/counter"
+	"github.com/itchio/wharf.proto/counter"
 )
 
 const bufferSize = 128 * 1024

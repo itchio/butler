@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/dustin/go-humanize"
-	"github.com/itchio/butler/proto"
+	"github.com/itchio/wharf.proto"
 )
 
 func push(src string, repoSpec string) {
@@ -109,7 +109,7 @@ func doPush(src string, repoSpec string) error {
 	}()
 
 	up := proto.Target{RepoSpec: repoSpec}
-	ok, _, err := conn.SendRequest("butler/target", true, up)
+	ok, _, err := conn.SendRequest("wharf/target", true, up)
 	if err != nil {
 		return fmt.Errorf("Could not send target: %s", err.Error())
 	}
@@ -209,7 +209,7 @@ func handleSourceFile(src string, conn *proto.Conn, req ssh.NewChannel, sf proto
 	}
 	defer fr.Close()
 
-	out, err := conn.OpenChannel("butler/patch-file", &proto.FilePatched{
+	out, err := conn.OpenChannel("wharf/patch-file", &proto.FilePatched{
 		Path: path,
 	})
 	if err != nil {
