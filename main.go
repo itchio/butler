@@ -15,9 +15,9 @@ var (
 	version = "head" // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your very own itch.io helper")
 
-	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)")
-
-	pushCmd = app.Command("push", "Upload a new version of something to itch.io")
+	dlCmd    = app.Command("dl", "Download a file (resumes if can, checks hashes)")
+	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
+	untarCmd = app.Command("untar", "Extract a .tar file")
 )
 
 var appArgs = struct {
@@ -39,15 +39,23 @@ var dlArgs = struct {
 }
 
 var pushArgs = struct {
-	identity *string
-	address  *string
 	src      *string
 	repo     *string
+	identity *string
+	address  *string
 }{
-	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').ExistingFile(),
-	pushCmd.Flag("address", "Specify wharf address (advanced)").Default("wharf.itch.zone").Short('a').Hidden().String(),
 	pushCmd.Arg("src", "Directory or zip archive to upload, e.g.").Required().ExistingFileOrDir(),
 	pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String(),
+	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').ExistingFile(),
+	pushCmd.Flag("address", "Specify wharf address (advanced)").Default("wharf.itch.zone").Short('a').Hidden().String(),
+}
+
+var untarArgs = struct {
+	file *string
+	dir  *string
+}{
+	untarCmd.Arg("file", "Path of the .tar archive to extract").Required().String(),
+	untarCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
 }
 
 func main() {
@@ -68,5 +76,8 @@ func main() {
 
 	case pushCmd.FullCommand():
 		push(*pushArgs.src, *pushArgs.repo)
+
+	case untarCmd.FullCommand():
+		untar(*untarArgs.file, *untarArgs.dir)
 	}
 }
