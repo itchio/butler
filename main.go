@@ -26,10 +26,12 @@ var (
 var appArgs = struct {
 	json       *bool
 	quiet      *bool
+	verbose    *bool
 	timestamps *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
+	app.Flag("verbose", "Display as much extra info as possible").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
 }
 
@@ -81,6 +83,12 @@ var dittoArgs = struct {
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
+func must(err error) {
+	if err != nil {
+		Die(err.Error())
+	}
+}
+
 func main() {
 	app.HelpFlag.Short('h')
 	app.Version(version)
@@ -108,5 +116,8 @@ func main() {
 
 	case mkdirCmd.FullCommand():
 		mkdir(*mkdirArgs.path)
+
+	case dittoCmd.FullCommand():
+		ditto(*dittoArgs.src, *dittoArgs.dst)
 	}
 }

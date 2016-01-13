@@ -66,37 +66,21 @@ func untar(archive string, dir string) {
 }
 
 func untarDir(filename string, mode os.FileMode) {
-	err := os.MkdirAll(filename, mode)
-	if err != nil {
-		Die(err.Error())
-	}
+	must(os.MkdirAll(filename, mode))
 }
 
 func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
-	writer, err := os.Create(filename)
+	must(os.RemoveAll(filename))
 
-	if err != nil {
-		Die(err.Error())
-	}
+	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
+	must(err)
 	defer writer.Close()
 
-	io.Copy(writer, tarReader)
-
-	err = os.Chmod(filename, os.FileMode(mode))
-	if err != nil {
-		Die(err.Error())
-	}
+	_, err = io.Copy(writer, tarReader)
+	must(err)
 }
 
 func untarSymlink(linkname string, filename string) {
-	_, err := os.Lstat(filename)
-	if err == nil {
-		// already exists, overwriting
-		err = os.Remove(filename)
-	}
-
-	err = os.Symlink(linkname, filename)
-	if err != nil {
-		Die(err.Error())
-	}
+	must(os.RemoveAll(filename))
+	must(os.Symlink(linkname, filename))
 }
