@@ -11,25 +11,20 @@ const MODE_MASK = 0666
 const DIR_MODE = 0777
 
 func untar(archive string, dir string) {
-	Logf("extracting %s to %s", archive, dir)
+	if !*appArgs.quiet {
+		Logf("extracting %s to %s", archive, dir)
+	}
 
 	dirCount := 0
 	regCount := 0
 	symlinkCount := 0
 
 	file, err := os.Open(archive)
-
-	if err != nil {
-		Die(err.Error())
-	}
+	must(err)
 
 	defer file.Close()
 
-	_, err = os.Lstat(dir)
-	if err != nil {
-		Logf("destination %s does not exist, creating...", dir)
-		err = os.MkdirAll(dir, DIR_MODE)
-	}
+	dittoMkdir(dir)
 
 	tarReader := tar.NewReader(file)
 
@@ -42,12 +37,12 @@ func untar(archive string, dir string) {
 			Die(err.Error())
 		}
 
-		rel_filename := header.Name
-		filename := path.Join(dir, rel_filename)
+		rel := header.Name
+		filename := path.Join(dir, rel)
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			untarDir(filename, os.FileMode(header.Mode|MODE_MASK))
+			dittoMkdir(filename)
 			dirCount += 1
 
 		case tar.TypeReg:
@@ -62,14 +57,16 @@ func untar(archive string, dir string) {
 			Dief("Unable to untar entry of type %d", header.Typeflag)
 		}
 	}
-	Logf("extracted %d dirs, %d files, %d symlinks", dirCount, regCount, symlinkCount)
-}
 
-func untarDir(filename string, mode os.FileMode) {
-	must(os.MkdirAll(filename, mode))
+	if !*appArgs.quiet {
+		Logf("extracted %d dirs, %d files, %d symlinks", dirCount, regCount, symlinkCount)
+	}
 }
 
 func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
+	if *appArgs.verbose {
+		Logf("extract %s", filename)
+	}
 	must(os.RemoveAll(filename))
 
 	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
@@ -81,6 +78,10 @@ func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
 }
 
 func untarSymlink(linkname string, filename string) {
+	if *appArgs.verbose {
+		Logf("ln -s %s %s", linkname, filename)
+	}
+
 	must(os.RemoveAll(filename))
 	must(os.Symlink(linkname, filename))
 }
