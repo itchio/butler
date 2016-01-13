@@ -33,6 +33,18 @@ func ditto(src string, dst string) {
 		Logf("rsync -a %s %s", src, dst)
 	}
 
+	totalSize := int64(0)
+	doneSize := int64(0)
+	oldPerc := 0.0
+
+	inc := func(_ string, f os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		totalSize += f.Size()
+		return nil
+	}
+
 	onFile := func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			Logf("ignoring error %s", err.Error())
@@ -59,6 +71,15 @@ func ditto(src string, dst string) {
 		if *appArgs.verbose {
 			Logf(" - %s", rel)
 		}
+
+		doneSize += f.Size()
+
+		perc := float64(doneSize) / float64(totalSize) * 100.0
+		if perc-oldPerc > 1.0 {
+			oldPerc = perc
+			Progress(perc)
+		}
+
 		return nil
 	}
 
@@ -66,8 +87,17 @@ func ditto(src string, dst string) {
 	must(err)
 
 	if rootinfo.IsDir() {
+		totalSize = 0
+		if !*appArgs.quiet {
+			Logf("counting files in %s...", src)
+		}
+		filepath.Walk(src, inc)
+		if !*appArgs.quiet {
+			Logf("mirroring...")
+		}
 		filepath.Walk(src, onFile)
 	} else {
+		totalSize = rootinfo.Size()
 		onFile(src, rootinfo, nil)
 	}
 }
