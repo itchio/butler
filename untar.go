@@ -8,6 +8,7 @@ import (
 )
 
 const MODE_MASK = 0666
+const DIR_MODE = 0777
 
 func untar(archive string, dir string) {
 	Logf("extracting %s to %s", archive, dir)
@@ -27,7 +28,7 @@ func untar(archive string, dir string) {
 	_, err = os.Lstat(dir)
 	if err != nil {
 		Logf("destination %s does not exist, creating...", dir)
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, DIR_MODE)
 	}
 
 	tarReader := tar.NewReader(file)

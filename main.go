@@ -18,6 +18,9 @@ var (
 	dlCmd    = app.Command("dl", "Download a file (resumes if can, checks hashes)")
 	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
 	untarCmd = app.Command("untar", "Extract a .tar file")
+	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
+	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
+	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
 )
 
 var appArgs = struct {
@@ -58,6 +61,26 @@ var untarArgs = struct {
 	untarCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
 }
 
+var wipeArgs = struct {
+	path *string
+}{
+	wipeCmd.Arg("path", "Path to completely remove, including its contents").Required().String(),
+}
+
+var mkdirArgs = struct {
+	path *string
+}{
+	mkdirCmd.Arg("path", "Directory to create").Required().String(),
+}
+
+var dittoArgs = struct {
+	src *string
+	dst *string
+}{
+	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
+	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
+}
+
 func main() {
 	app.HelpFlag.Short('h')
 	app.Version(version)
@@ -79,5 +102,11 @@ func main() {
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
+
+	case wipeCmd.FullCommand():
+		wipe(*wipeArgs.path)
+
+	case mkdirCmd.FullCommand():
+		mkdir(*mkdirArgs.path)
 	}
 }
