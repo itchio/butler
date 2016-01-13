@@ -28,6 +28,7 @@ func wipe(path string) {
 	}
 }
 
+// Does not preserve users, nor permission, except the executable bit
 func ditto(src string, dst string) {
 	if *appArgs.verbose {
 		Logf("rsync -a %s %s", src, dst)
@@ -62,7 +63,7 @@ func ditto(src string, dst string) {
 			dittoMkdir(dstpath)
 
 		case mode.IsRegular():
-			dittoReg(path, dstpath, f)
+			dittoReg(path, dstpath, os.FileMode(f.Mode()&LUCKY_MODE|MODE_MASK))
 
 		case (mode&os.ModeSymlink > 0):
 			dittoSymlink(path, dstpath, f)
@@ -124,13 +125,13 @@ func dittoMkdir(dstpath string) {
 	// is already a dir, good!
 }
 
-func dittoReg(srcpath string, dstpath string, f os.FileInfo) {
+func dittoReg(srcpath string, dstpath string, mode os.FileMode) {
 	if *appArgs.verbose {
 		Logf("cp -f %s %s", srcpath, dstpath)
 	}
 	must(os.RemoveAll(dstpath))
 
-	writer, err := os.OpenFile(dstpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode()|MODE_MASK)
+	writer, err := os.OpenFile(dstpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
 	must(err)
 	defer writer.Close()
 
@@ -138,7 +139,10 @@ func dittoReg(srcpath string, dstpath string, f os.FileInfo) {
 	must(err)
 	defer reader.Close()
 
-	io.Copy(writer, reader)
+	_, err = io.Copy(writer, reader)
+	must(err)
+
+	must(os.Chmod(dstpath, mode))
 }
 
 func dittoSymlink(srcpath string, dstpath string, f os.FileInfo) {

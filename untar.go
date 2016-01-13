@@ -8,8 +8,10 @@ import (
 )
 
 const MODE_MASK = 0666
-const DIR_MODE = 0777
+const LUCKY_MODE = 0777
+const DIR_MODE = LUCKY_MODE
 
+// Does not preserve users, nor permission, except the executable bit
 func untar(archive string, dir string) {
 	if !*appArgs.quiet {
 		Logf("extracting %s to %s", archive, dir)
@@ -46,7 +48,7 @@ func untar(archive string, dir string) {
 			dirCount += 1
 
 		case tar.TypeReg:
-			untarReg(filename, os.FileMode(header.Mode|MODE_MASK), tarReader)
+			untarReg(filename, os.FileMode(header.Mode&LUCKY_MODE|MODE_MASK), tarReader)
 			regCount += 1
 
 		case tar.TypeSymlink:
@@ -75,6 +77,8 @@ func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
 
 	_, err = io.Copy(writer, tarReader)
 	must(err)
+
+	must(os.Chmod(filename, mode))
 }
 
 func untarSymlink(linkname string, filename string) {
