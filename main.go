@@ -21,7 +21,6 @@ var (
 	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
 	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
 	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
-	simonCmd = app.Command("simon", "Reproduce src into dst by symlinking as much as needed without touching existing files")
 )
 
 var appArgs = struct {
@@ -77,21 +76,11 @@ var mkdirArgs = struct {
 }
 
 var dittoArgs = struct {
-	src  *string
-	dst  *string
-	link *bool
-}{
-	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
-	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
-	dittoCmd.Flag("link", "Use symlinks instead of copying contents").Short('l').Bool(),
-}
-
-var simonArgs = struct {
 	src *string
 	dst *string
 }{
-	simonCmd.Arg("src", "Directory to mirror").Required().String(),
-	simonCmd.Arg("dst", "Path where to create a mirror").Required().String(),
+	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
+	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
 func must(err error) {
@@ -130,8 +119,5 @@ func main() {
 
 	case dittoCmd.FullCommand():
 		ditto(*dittoArgs.src, *dittoArgs.dst)
-
-	case simonCmd.FullCommand():
-		simon(*simonArgs.src, *simonArgs.dst)
 	}
 }

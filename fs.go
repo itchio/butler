@@ -63,16 +63,10 @@ func ditto(src string, dst string) {
 			dittoMkdir(dstpath)
 
 		case mode.IsRegular():
-			if *dittoArgs.link {
-				dittoSymlink(path, dstpath, f)
-			} else {
-				dittoReg(path, dstpath, os.FileMode(f.Mode()&LUCKY_MODE|MODE_MASK))
-			}
+			dittoReg(path, dstpath, os.FileMode(f.Mode()&LUCKY_MODE|MODE_MASK))
 
 		case (mode&os.ModeSymlink > 0):
-			linkname, err := os.Readlink(path)
-			must(err)
-			dittoSymlink(linkname, dstpath, f)
+			dittoSymlink(path, dstpath, f)
 		}
 
 		if *appArgs.verbose {
@@ -151,68 +145,14 @@ func dittoReg(srcpath string, dstpath string, mode os.FileMode) {
 	must(os.Chmod(dstpath, mode))
 }
 
-func dittoSymlink(linkname string, dstpath string, f os.FileInfo) {
+func dittoSymlink(srcpath string, dstpath string, f os.FileInfo) {
 	must(os.RemoveAll(dstpath))
+
+	linkname, err := os.Readlink(srcpath)
+	must(err)
 
 	if *appArgs.verbose {
 		Logf("ln -s %s %s", linkname, dstpath)
 	}
 	must(os.Symlink(linkname, dstpath))
-}
-
-func simon(src string, dst string) {
-	if *appArgs.verbose {
-		Logf("simon %s %s", src, dst)
-	}
-
-	dittoMkdir(dst)
-
-	onFile := func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			Logf("ignoring error %s", err.Error())
-			return nil
-		}
-
-		rel, err := filepath.Rel(src, path)
-		must(err)
-
-		dstpath := filepath.Join(dst, rel)
-		mode := f.Mode()
-
-		dststats, err := os.Lstat(dstpath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				// great! symlink this and skip the rest
-				if *appArgs.verbose {
-					Logf("ln -s %s %s", path, dstpath)
-				}
-				must(os.Symlink(path, dstpath))
-
-				if mode.IsDir() {
-					return filepath.SkipDir
-				}
-			} else {
-				// ugh, errors aren't good
-				if err != nil {
-					Logf("ignoring error %s", err.Error())
-					return nil
-				}
-			}
-		} else {
-			if mode.IsDir() {
-				if dststats.IsDir() {
-					// keep going!
-				} else {
-					// it became a file somehow?
-					return filepath.SkipDir
-				}
-			} else {
-				// we're a file or a symlink but already covered by dest it seem
-			}
-		}
-
-		return nil
-	}
-
-	filepath.Walk(src, onFile)
 }
