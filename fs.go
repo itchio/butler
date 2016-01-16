@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func mkdir(dir string) {
@@ -18,14 +19,61 @@ func mkdir(dir string) {
 }
 
 func wipe(path string) {
+	tries := 3
+	sleepDuration := time.Second * 3
+
+	for tries > 0 {
+		err := tryWipe(path)
+
+		if err == nil {
+			break
+		}
+
+		if *appArgs.verbose {
+			Logf("ignoring error %s", err.Error())
+			Logf("trying to brute-force permissions, who knows...")
+			err = tryWipe(path)
+			if err != nil {
+				Logf("while bruteforcing: %s", err)
+			}
+			Logf("sleeping for a bit before we retry...")
+		}
+		time.Sleep(sleepDuration)
+		sleepDuration *= 2
+	}
+}
+
+func tryWipe(path string) error {
 	if *appArgs.verbose {
 		Logf("rm -rf %s", path)
 	}
 
 	err := os.RemoveAll(path)
+
 	if err != nil {
-		Dief(err.Error())
+		Logf("got %s, but not giving up", path)
+
+		Logf("trying to wipe %s again", path)
+		err = os.RemoveAll(path)
+		return err
 	}
+
+	return err
+}
+
+func tryChmod(path string) error {
+	// oh yeah?
+	chmodAll := func(childpath string, f os.FileInfo, err error) error {
+		if err != nil {
+			// ignore walking errors
+			return nil
+		}
+
+		// don't ignore chmodding errors
+		return os.Chmod(childpath, os.FileMode(LUCKY_MODE))
+	}
+
+	return filepath.Walk(path, chmodAll)
 }
 
 // Does not preserve users, nor permission, except the executable bit
