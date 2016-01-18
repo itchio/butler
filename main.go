@@ -15,12 +15,13 @@ var (
 	version = "head" // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your very own itch.io helper")
 
-	dlCmd    = app.Command("dl", "Download a file (resumes if can, checks hashes)")
-	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
-	untarCmd = app.Command("untar", "Extract a .tar file")
-	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
-	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
-	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
+	dlCmd       = app.Command("dl", "Download a file (resumes if can, checks hashes)")
+	pushCmd     = app.Command("push", "Upload a new version of something to itch.io")
+	untarCmd    = app.Command("untar", "Extract a .tar file")
+	wipeCmd     = app.Command("wipe", "Completely remove a directory (rm -rf)")
+	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
+	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
+	megatestCmd = app.Command("megatest", "Test megafile").Hidden()
 )
 
 var appArgs = struct {
@@ -83,6 +84,12 @@ var dittoArgs = struct {
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
+var megatestArgs = struct {
+	src *string
+}{
+	megatestCmd.Arg("src", "Directory to walk").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		Die(err.Error())
@@ -119,5 +126,8 @@ func main() {
 
 	case dittoCmd.FullCommand():
 		ditto(*dittoArgs.src, *dittoArgs.dst)
+
+	case megatestCmd.FullCommand():
+		megatest(*megatestArgs.src)
 	}
 }

@@ -14,13 +14,13 @@ import (
 	"strings"
 	"sync"
 
-	"gopkg.in/itchio/rsync-go.v0"
 	"gopkg.in/kothar/brotli-go.v0/dec"
 
 	"golang.org/x/crypto/ssh"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/wharf.proto"
+	"github.com/itchio/wharf.proto/rsync"
 )
 
 func push(src string, repoSpec string) {
