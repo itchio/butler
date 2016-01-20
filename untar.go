@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 const MODE_MASK = 0666
@@ -70,6 +71,9 @@ func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
 		Logf("extract %s", filename)
 	}
 	must(os.RemoveAll(filename))
+
+	dirname := filepath.Dir(filename)
+	must(os.MkdirAll(dirname, LUCKY_MODE))
 
 	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 	must(err)
