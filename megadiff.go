@@ -3,6 +3,7 @@ package main
 import (
 	"compress/gzip"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 
@@ -25,11 +26,20 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 	for _, f := range info.Files {
 		totalSize += f.Size
 	}
-	Logf("%s in %d files, %d links, %d dirs in %s", humanize.Bytes(uint64(totalSize)), len(info.Files),
-		len(info.Symlinks), len(info.Dirs), path)
+
+	if *appArgs.csv {
+		fmt.Printf(", %d, %d, %d, %d", totalSize, len(info.Files), len(info.Symlinks), len(info.Dirs))
+	} else {
+		Logf("%s in %d files, %d links, %d dirs in %s", humanize.Bytes(uint64(totalSize)), len(info.Files),
+			len(info.Symlinks), len(info.Dirs), path)
+	}
 }
 
 func megadiff(target string, source string, patch string) {
+	if *appArgs.csv {
+		fmt.Printf("%s, %s", target, source)
+	}
+
 	blockSize := 16 * 1024
 
 	targetInfo, err := megafile.Walk(target, blockSize)
@@ -83,9 +93,12 @@ func megadiff(target string, source string, patch string) {
 	writeRepoInfo(patchWriter, targetInfo)
 	writeRepoInfo(patchWriter, sourceInfo)
 
-	bar := pb.StartNew(int(sourceInfo.NumBlocks) * blockSize)
+	bar := pb.New(int(sourceInfo.NumBlocks) * blockSize)
 	bar.SetUnits(pb.U_BYTES)
 	bar.SetMaxWidth(80)
+	if !*appArgs.csv {
+		bar.Start()
+	}
 
 	onRead := func(count int64) {
 		bar.Set64(count)
@@ -106,11 +119,17 @@ func megadiff(target string, source string, patch string) {
 	must(brotliWriter.Close())
 	must(brotliWriter9.Close())
 
-	bar.Finish()
+	if !*appArgs.csv {
+		bar.Finish()
+	}
 
-	Logf("Wrote compressed patch to %s. Sizes:", patch)
-	Logf(" - %s (raw)", humanize.Bytes(uint64(rawCounter.Count())))
-	Logf(" - %s (gzip q1)", humanize.Bytes(uint64(gzipCounter.Count())))
-	Logf(" - %s (brotli q1)", humanize.Bytes(uint64(brotliCounter.Count())))
-	Logf(" - %s (brotli q9)", humanize.Bytes(uint64(brotliCounter9.Count())))
+	if *appArgs.csv {
+		fmt.Printf(", %d, %d, %d, %d\n", rawCounter.Count(), gzipCounter.Count(), brotliCounter.Count(), brotliCounter9.Count())
+	} else {
+		Logf("Wrote compressed patch to %s. Sizes:", patch)
+		Logf(" - %s (raw)", humanize.Bytes(uint64(rawCounter.Count())))
+		Logf(" - %s (gzip q1)", humanize.Bytes(uint64(gzipCounter.Count())))
+		Logf(" - %s (brotli q1)", humanize.Bytes(uint64(brotliCounter.Count())))
+		Logf(" - %s (brotli q9)", humanize.Bytes(uint64(brotliCounter9.Count())))
+	}
 }

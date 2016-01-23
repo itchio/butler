@@ -31,11 +31,13 @@ var appArgs = struct {
 	quiet      *bool
 	verbose    *bool
 	timestamps *bool
+	csv        *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
 	app.Flag("verbose", "Display as much extra info as possible").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
+	app.Flag("csv", "Output as csv").Bool(),
 }
 
 var dlArgs = struct {
