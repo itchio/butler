@@ -15,10 +15,9 @@ import (
 	"github.com/itchio/wharf.proto/rsync"
 )
 
-const DIFF_MAGIC = uint64(0xFEF5F04A)
-
-func writeRepoInfo(w *io.Writer, info *megafile.RepoInfo) {
-  binary.Write(w, binary.LittleEndian, data interface{})
+func writeRepoInfo(w io.Writer, info *megafile.RepoInfo) {
+	binary.Write(w, binary.LittleEndian, MP_NUM_BLOCKS)
+	binary.Write(w, binary.LittleEndian, info.NumBlocks)
 }
 
 func printRepoStats(info *megafile.RepoInfo, path string) {
@@ -30,9 +29,8 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 		len(info.Symlinks), len(info.Dirs), path)
 }
 
-func megadiff(target string, source string) {
+func megadiff(target string, source string, patch string) {
 	blockSize := 16 * 1024
-	patch := "patch.dat"
 
 	targetInfo, err := megafile.Walk(target, blockSize)
 	must(err)
@@ -74,16 +72,16 @@ func megadiff(target string, source string) {
 	rawCounter := counter.NewWriter(multiWriter)
 	patchWriter := rawCounter
 
-	must(binary.Write(patchWriter, binary.LittleEndian, DIFF_MAGIC))
-	writeRepoInfo(patchWriter, targetInfo)
-	writeRepoInfo(patchWriter, sourceInfo)
-
 	sourceInfo, err := megafile.Walk(source, blockSize)
 	must(err)
 	sourceReader := sourceInfo.NewReader(source)
 	defer sourceReader.Close()
 
 	printRepoStats(sourceInfo, source)
+
+	must(binary.Write(patchWriter, binary.LittleEndian, MP_MAGIC))
+	writeRepoInfo(patchWriter, targetInfo)
+	writeRepoInfo(patchWriter, sourceInfo)
 
 	bar := pb.StartNew(int(sourceInfo.NumBlocks) * blockSize)
 	bar.SetUnits(pb.U_BYTES)

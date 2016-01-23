@@ -15,14 +15,15 @@ var (
 	version = "head" // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your very own itch.io helper")
 
-	dlCmd       = app.Command("dl", "Download a file (resumes if can, checks hashes)")
-	pushCmd     = app.Command("push", "Upload a new version of something to itch.io")
-	untarCmd    = app.Command("untar", "Extract a .tar file")
-	wipeCmd     = app.Command("wipe", "Completely remove a directory (rm -rf)")
-	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
-	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
-	megatestCmd = app.Command("megatest", "Test megafile").Hidden()
-	megadiffCmd = app.Command("megadiff", "Write a test diff between two dirs").Hidden()
+	dlCmd        = app.Command("dl", "Download a file (resumes if can, checks hashes)")
+	pushCmd      = app.Command("push", "Upload a new version of something to itch.io")
+	untarCmd     = app.Command("untar", "Extract a .tar file")
+	wipeCmd      = app.Command("wipe", "Completely remove a directory (rm -rf)")
+	dittoCmd     = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
+	mkdirCmd     = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
+	megatestCmd  = app.Command("megatest", "Test megafile").Hidden()
+	megadiffCmd  = app.Command("megadiff", "Generate a patch to turn 'target' into 'source'").Hidden()
+	megapatchCmd = app.Command("megapatch", "Applies 'patch' to 'target' and writes it to 'output'").Hidden()
 )
 
 var appArgs = struct {
@@ -94,9 +95,21 @@ var megatestArgs = struct {
 var megadiffArgs = struct {
 	target *string
 	source *string
+	patch  *string
 }{
-	megadiffCmd.Arg("target", "Old version").Required().String(),
-	megadiffCmd.Arg("source", "New version").Required().String(),
+	megadiffCmd.Arg("target", "Directory with older files").Required().String(),
+	megadiffCmd.Arg("source", "Directory with newer files").Required().String(),
+	megadiffCmd.Arg("patch", "Where to write the patch file").Default("patch.dat").String(),
+}
+
+var megapatchArgs = struct {
+	patch  *string
+	target *string
+	output *string
+}{
+	megapatchCmd.Arg("patch", "Patch file").Required().String(),
+	megapatchCmd.Arg("target", "Directory with older files").Required().String(),
+	megapatchCmd.Arg("source", "Path to create directory with newer files").Required().String(),
 }
 
 func must(err error) {
@@ -140,6 +153,9 @@ func main() {
 		megatest(*megatestArgs.src)
 
 	case megadiffCmd.FullCommand():
-		megadiff(*megadiffArgs.target, *megadiffArgs.source)
+		megadiff(*megadiffArgs.target, *megadiffArgs.source, *megadiffArgs.patch)
+
+	case megapatchCmd.FullCommand():
+		megapatch(*megapatchArgs.patch, *megapatchArgs.target, *megapatchArgs.output)
 	}
 }
