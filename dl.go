@@ -143,7 +143,7 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 		prevPercent = percent
 		Progress(percent)
 	}
-	counter := counter.NewWithCallback(onWrite, out)
+	counter := counter.NewWriterCallback(onWrite, out)
 
 	_, err = io.Copy(counter, src)
 	return

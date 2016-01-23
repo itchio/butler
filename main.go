@@ -22,6 +22,7 @@ var (
 	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
 	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
 	megatestCmd = app.Command("megatest", "Test megafile").Hidden()
+	megadiffCmd = app.Command("megadiff", "Write a test diff between two dirs").Hidden()
 )
 
 var appArgs = struct {
@@ -90,6 +91,14 @@ var megatestArgs = struct {
 	megatestCmd.Arg("src", "Directory to walk").Required().String(),
 }
 
+var megadiffArgs = struct {
+	target *string
+	source *string
+}{
+	megadiffCmd.Arg("target", "Old version").Required().String(),
+	megadiffCmd.Arg("source", "New version").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		Die(err.Error())
@@ -129,5 +138,8 @@ func main() {
 
 	case megatestCmd.FullCommand():
 		megatest(*megatestArgs.src)
+
+	case megadiffCmd.FullCommand():
+		megadiff(*megadiffArgs.target, *megadiffArgs.source)
 	}
 }
