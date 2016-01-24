@@ -37,7 +37,7 @@ var appArgs = struct {
 	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
 	app.Flag("verbose", "Display as much extra info as possible").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
-	app.Flag("csv", "Output as csv").Bool(),
+	app.Flag("csv", "Output stats in CSV format").Bool(),
 }
 
 var dlArgs = struct {
@@ -98,10 +98,12 @@ var megadiffArgs = struct {
 	target *string
 	source *string
 	patch  *string
+	verify *bool
 }{
 	megadiffCmd.Arg("target", "Directory with older files").Required().String(),
 	megadiffCmd.Arg("source", "Directory with newer files").Required().String(),
 	megadiffCmd.Arg("patch", "Where to write the patch file").Default("patch.dat").String(),
+	megadiffCmd.Flag("verify", "Verify that patch applies cleanly").Bool(),
 }
 
 var megapatchArgs = struct {
@@ -130,6 +132,10 @@ func main() {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	} else {
 		log.SetFlags(0)
+	}
+
+	if *appArgs.csv {
+		defer CsvFinish()
 	}
 
 	switch kingpin.MustParse(cmd, err) {

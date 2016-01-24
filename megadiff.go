@@ -3,7 +3,6 @@ package main
 import (
 	"compress/gzip"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"os"
 
@@ -52,12 +51,9 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 		totalSize += f.Size
 	}
 
-	if *appArgs.csv {
-		fmt.Printf(", %d, %d, %d, %d", totalSize, len(info.Files), len(info.Symlinks), len(info.Dirs))
-	} else {
-		Logf("%s in %d files, %d links, %d dirs in %s", humanize.Bytes(uint64(totalSize)), len(info.Files),
-			len(info.Symlinks), len(info.Dirs), path)
-	}
+	CsvCol(totalSize, len(info.Files), len(info.Symlinks), len(info.Dirs))
+	Logf("%s in %d files, %d links, %d dirs in %s", humanize.Bytes(uint64(totalSize)), len(info.Files),
+		len(info.Symlinks), len(info.Dirs), path)
 }
 
 func megadiff(target string, source string, patch string) {
@@ -65,9 +61,7 @@ func megadiff(target string, source string, patch string) {
 	// target, source, targetSize, targetFiles, targetSymlinks, targetDirs,
 	// sourceSize, sourceFiles, sourceSymlinks, sourceDirs, paddedSize,
 	// rawPatch, gzipPatch, brotli1Patch, brotli9Patch
-	if *appArgs.csv {
-		fmt.Printf("%s, %s", target, source)
-	}
+	CsvCol(target, source)
 
 	blockSize := 16 * 1024
 
@@ -123,9 +117,7 @@ func megadiff(target string, source string, patch string) {
 	writeRepoInfo(patchWriter, sourceInfo)
 
 	paddedBytes := sourceInfo.NumBlocks * int64(blockSize)
-	if *appArgs.csv {
-		fmt.Printf(", %d", paddedBytes)
-	}
+	CsvCol(paddedBytes)
 
 	bar := pb.New(int(paddedBytes))
 	bar.SetUnits(pb.U_BYTES)
@@ -157,13 +149,19 @@ func megadiff(target string, source string, patch string) {
 		bar.Finish()
 	}
 
-	if *appArgs.csv {
-		fmt.Printf(", %d, %d, %d, %d\n", rawCounter.Count(), gzipCounter.Count(), brotliCounter.Count(), brotliCounter9.Count())
-	} else {
-		Logf("Wrote compressed patch to %s. Sizes:", patch)
-		Logf(" - %s (raw)", humanize.Bytes(uint64(rawCounter.Count())))
-		Logf(" - %s (gzip q1)", humanize.Bytes(uint64(gzipCounter.Count())))
-		Logf(" - %s (brotli q1)", humanize.Bytes(uint64(brotliCounter.Count())))
-		Logf(" - %s (brotli q9)", humanize.Bytes(uint64(brotliCounter9.Count())))
+	CsvCol(rawCounter.Count(), gzipCounter.Count(), brotliCounter.Count(), brotliCounter9.Count())
+
+	Logf("Wrote compressed patch to %s. Sizes:", patch)
+	Logf(" - %s (raw)", humanize.Bytes(uint64(rawCounter.Count())))
+	Logf(" - %s (gzip q1)", humanize.Bytes(uint64(gzipCounter.Count())))
+	Logf(" - %s (brotli q1)", humanize.Bytes(uint64(brotliCounter.Count())))
+	Logf(" - %s (brotli q9)", humanize.Bytes(uint64(brotliCounter9.Count())))
+
+	if *megadiffArgs.verify {
+		tmpDir := os.TempDir()
+		defer os.RemoveAll(tmpDir)
+
+		Logf("Verifying patch by rebuilding source in %s", tmpDir)
+		megapatch(patch, source, tmpDir)
 	}
 }

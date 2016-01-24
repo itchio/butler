@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -41,9 +42,29 @@ func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
 }
 
+var csvCols []string
+
+func CsvCol(cols ...interface{}) {
+	if csvCols == nil {
+		csvCols = make([]string, 0)
+	}
+
+	for _, col := range cols {
+		csvCols = append(csvCols, fmt.Sprint(col))
+	}
+}
+
+func CsvFinish() {
+	csvWriter := csv.NewWriter(os.Stdout)
+	csvWriter.Write(csvCols)
+	csvWriter.Flush()
+}
+
 // sends a message to the client
 func send(msgType string, obj jsonMessage) {
-	if *appArgs.json {
+	if *appArgs.csv {
+		// don't send that
+	} else if *appArgs.json {
 		obj["type"] = msgType
 		sendJSON(obj)
 	} else {
