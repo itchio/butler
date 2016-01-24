@@ -1,12 +1,10 @@
 package main
 
 import (
-	"compress/gzip"
 	"encoding/binary"
 	"io"
 	"os"
 
-	"github.com/cheggaaa/pb"
 	"github.com/dustin/go-humanize"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
@@ -57,7 +55,7 @@ func writeRepoInfo(w io.Writer, info *megafile.RepoInfo) {
 	for _, l := range info.Symlinks {
 		must(writeString(w, l.Path))
 		binary.Write(w, binary.LittleEndian, l.Mode)
-		binary.Write(w, binary.LittleEndian, l.Dest)
+		must(writeString(w, l.Dest))
 	}
 }
 
@@ -72,11 +70,11 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 		len(info.Symlinks), len(info.Dirs), path)
 }
 
-func megadiff(target string, source string, patch string) {
+func megadiff(target string, source string, patch string, brotliQuality int) {
 	// csv columns:
 	// target, source, targetSize, targetFiles, targetSymlinks, targetDirs,
 	// sourceSize, sourceFiles, sourceSymlinks, sourceDirs, paddedSize,
-	// rawPatch, gzipPatch, brotli1Patch, brotli9Patch
+	// rawPatch, brotliPatch
 	CsvCol(target, source)
 
 	blockSize := 16 * 1024
@@ -92,33 +90,33 @@ func megadiff(target string, source string, patch string) {
 	}
 	signature := make([]rsync.BlockHash, 0)
 
+	targetPaddedBytes := targetInfo.NumBlocks * int64(blockSize)
+	onTargetRead := func(count int64) {
+		Progress(100.0 * float64(count) / float64(targetPaddedBytes))
+	}
+	targetReaderCounter := counter.NewReaderCallback(onTargetRead, targetReader)
+
+	Log("Computing source signature")
+	StartProgress()
+
 	sigWriter := func(bl rsync.BlockHash) error {
 		signature = append(signature, bl)
 		return nil
 	}
-	rs.CreateSignature(targetReader, sigWriter)
+	rs.CreateSignature(targetReaderCounter, sigWriter)
+
+	EndProgress()
 
 	compressedWriter, err := os.Create(patch)
 	must(err)
 	defer compressedWriter.Close()
 
 	brotliCounter := counter.NewWriter(compressedWriter)
-	brotliCounter9 := counter.NewWriter(nil)
-	gzipCounter := counter.NewWriter(nil)
-
 	brotliParams := enc.NewBrotliParams()
-	brotliParams.SetQuality(1)
+	brotliParams.SetQuality(brotliQuality)
 	brotliWriter := enc.NewBrotliWriter(brotliParams, brotliCounter)
 
-	brotliParams9 := enc.NewBrotliParams()
-	brotliParams9.SetQuality(9)
-	brotliWriter9 := enc.NewBrotliWriter(brotliParams9, brotliCounter9)
-
-	gzipWriter, err := gzip.NewWriterLevel(gzipCounter, 1)
-	must(err)
-
-	multiWriter := io.MultiWriter(brotliWriter, brotliWriter9, gzipWriter)
-	rawCounter := counter.NewWriter(multiWriter)
+	rawCounter := counter.NewWriter(brotliWriter)
 	patchWriter := rawCounter
 
 	sourceInfo, err := megafile.Walk(source, blockSize)
@@ -134,49 +132,54 @@ func megadiff(target string, source string, patch string) {
 
 	must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OPS))
 
-	paddedBytes := sourceInfo.NumBlocks * int64(blockSize)
-	CsvCol(paddedBytes)
+	sourcePaddedBytes := sourceInfo.NumBlocks * int64(blockSize)
+	CsvCol(sourcePaddedBytes)
 
-	bar := pb.New(int(paddedBytes))
-	bar.SetUnits(pb.U_BYTES)
-	bar.SetMaxWidth(80)
-	if !*appArgs.csv {
-		bar.Start()
-	}
+	Log("Computing target->source recipe")
+	StartProgress()
 
-	onRead := func(count int64) {
-		bar.Set64(count)
+	onSourceRead := func(count int64) {
+		Progress(100.0 * float64(count) / float64(sourcePaddedBytes))
 	}
-	sourceReaderCounter := counter.NewReaderCallback(onRead, sourceReader)
+	sourceReaderCounter := counter.NewReaderCallback(onSourceRead, sourceReader)
+
+	numOps := 0
 
 	opsWriter := func(op rsync.Operation) error {
+		numOps++
 		// Logf("Writing operation, type %d, index %d - %d, data has %d bytes", op.Type, op.BlockIndex, op.BlockIndexEnd, len(op.Data))
 		must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OP))
 		must(binary.Write(patchWriter, binary.LittleEndian, byte(op.Type)))
-		must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
-		must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndexEnd))
-		must(binary.Write(patchWriter, binary.LittleEndian, op.Data))
+
+		switch op.Type {
+		case rsync.OpBlock:
+			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
+		case rsync.OpBlockRange:
+			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
+			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndexEnd))
+		case rsync.OpData:
+			must(binary.Write(patchWriter, binary.LittleEndian, int64(len(op.Data))))
+			_, err := patchWriter.Write(op.Data)
+			must(err)
+		default:
+			Dief("unknown rsync op type: %d", op.Type)
+		}
 		return nil
 	}
 	rs.CreateDelta(sourceReaderCounter, signature, opsWriter)
 
 	must(binary.Write(patchWriter, binary.LittleEndian, MP_EOF))
-
-	must(gzipWriter.Close())
 	must(brotliWriter.Close())
-	must(brotliWriter9.Close())
 
-	if !*appArgs.csv {
-		bar.Finish()
-	}
+	Logf("Wrote %d ops", numOps)
 
-	CsvCol(rawCounter.Count(), gzipCounter.Count(), brotliCounter.Count(), brotliCounter9.Count())
+	EndProgress()
 
-	Logf("Wrote compressed patch to %s. Sizes:", patch)
-	Logf(" - %s (raw)", humanize.Bytes(uint64(rawCounter.Count())))
-	Logf(" - %s (gzip q1)", humanize.Bytes(uint64(gzipCounter.Count())))
-	Logf(" - %s (brotli q1)", humanize.Bytes(uint64(brotliCounter.Count())))
-	Logf(" - %s (brotli q9)", humanize.Bytes(uint64(brotliCounter9.Count())))
+	CsvCol(rawCounter.Count(), brotliCounter.Count())
+
+	Logf("Wrote patch to %s (%s, expands to %s)", patch,
+		humanize.Bytes(uint64(brotliCounter.Count())),
+		humanize.Bytes(uint64(rawCounter.Count())))
 
 	if *megadiffArgs.verify {
 		tmpDir := os.TempDir()

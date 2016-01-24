@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/itchio/wharf.proto/megafile"
+	"github.com/itchio/wharf.proto/rsync"
 
 	"gopkg.in/kothar/brotli-go.v0/dec"
 )
@@ -48,10 +49,8 @@ func readString(r io.Reader, s *string) error {
 }
 
 func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
-	Log("reading repo info")
 	expectMagic(reader, MP_REPO_INFO)
 
-	Log("reading num blocks")
 	expectMagic(reader, MP_NUM_BLOCKS)
 	must(binary.Read(reader, binary.LittleEndian, &info.NumBlocks))
 
@@ -60,7 +59,6 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 	var file megafile.File
 	var symlink megafile.Symlink
 
-	Log("reading dirs")
 	expectMagic(reader, MP_DIRS)
 	must(binary.Read(reader, binary.LittleEndian, &numDirs))
 	for i := int32(0); i < numDirs; i++ {
@@ -68,7 +66,6 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 		must(binary.Read(reader, binary.LittleEndian, &dir.Mode))
 	}
 
-	Log("reading files")
 	expectMagic(reader, MP_FILES)
 	must(binary.Read(reader, binary.LittleEndian, &numFiles))
 	for i := int32(0); i < numFiles; i++ {
@@ -79,13 +76,12 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 		must(binary.Read(reader, binary.LittleEndian, &file.BlockIndexEnd))
 	}
 
-	Log("reading symlinks")
 	expectMagic(reader, MP_SYMLINKS)
 	must(binary.Read(reader, binary.LittleEndian, &numSymlinks))
 	for i := int32(0); i < numSymlinks; i++ {
 		must(readString(reader, &symlink.Path))
 		must(binary.Read(reader, binary.LittleEndian, &symlink.Mode))
-		must(binary.Read(reader, binary.LittleEndian, &symlink.Dest))
+		must(readString(reader, &symlink.Dest))
 	}
 }
 
@@ -103,6 +99,49 @@ func megapatch(patch string, source string, output string) {
 	readRepoInfo(patchReader, sourceInfo)
 
 	expectMagic(patchReader, MP_RSYNC_OPS)
+
+	numOps := 0
+
+	defer (func() {
+		Logf("successfully decoded %d ops", numOps)
+	})()
+
+	var magic int32
+	reading := true
+	for reading {
+		must(binary.Read(patchReader, binary.LittleEndian, &magic))
+
+		switch magic {
+		case MP_RSYNC_OP:
+			numOps++
+			var op rsync.Operation
+			var typ byte
+			must(binary.Read(patchReader, binary.LittleEndian, &typ))
+			op.Type = rsync.OpType(typ)
+
+			switch op.Type {
+			case rsync.OpBlock:
+				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+			case rsync.OpBlockRange:
+				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndexEnd))
+			case rsync.OpData:
+				var buflen int64
+				must(binary.Read(patchReader, binary.LittleEndian, &buflen))
+				buf := make([]byte, buflen)
+				_, err := io.ReadFull(patchReader, buf)
+				must(err)
+			default:
+				Dief("corrupted patch: unknown rsync op type %d", op.Type)
+			}
+		case MP_EOF:
+			// cool!
+			Logf("cool, you did it :)")
+			reading = false
+		default:
+			Dief("corrupted patch: unknown magic %d", magic)
+		}
+	}
 
 	Die("megapatch: stub!")
 }

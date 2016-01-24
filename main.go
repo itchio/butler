@@ -97,15 +97,17 @@ var megatestArgs = struct {
 }
 
 var megadiffArgs = struct {
-	target *string
-	source *string
-	patch  *string
-	verify *bool
+	target  *string
+	source  *string
+	patch   *string
+	verify  *bool
+	quality *int
 }{
 	megadiffCmd.Arg("target", "Directory with older files").Required().String(),
 	megadiffCmd.Arg("source", "Directory with newer files").Required().String(),
 	megadiffCmd.Arg("patch", "Where to write the patch file").Default("patch.dat").String(),
 	megadiffCmd.Flag("verify", "Verify that patch applies cleanly").Bool(),
+	megadiffCmd.Flag("quality", "Brotli quality level").Hidden().Default("1").Int(),
 }
 
 var megapatchArgs = struct {
@@ -163,7 +165,7 @@ func main() {
 		megatest(*megatestArgs.src)
 
 	case megadiffCmd.FullCommand():
-		megadiff(*megadiffArgs.target, *megadiffArgs.source, *megadiffArgs.patch)
+		megadiff(*megadiffArgs.target, *megadiffArgs.source, *megadiffArgs.patch, *megadiffArgs.quality)
 
 	case megapatchCmd.FullCommand():
 		megapatch(*megapatchArgs.patch, *megapatchArgs.target, *megapatchArgs.output)
