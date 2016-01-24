@@ -19,6 +19,31 @@ import (
 func writeRepoInfo(w io.Writer, info *megafile.RepoInfo) {
 	binary.Write(w, binary.LittleEndian, MP_NUM_BLOCKS)
 	binary.Write(w, binary.LittleEndian, info.NumBlocks)
+
+	binary.Write(w, binary.LittleEndian, MP_DIRS)
+	binary.Write(w, binary.LittleEndian, len(info.Dirs))
+	for _, d := range info.Dirs {
+		binary.Write(w, binary.LittleEndian, d.Mode)
+		binary.Write(w, binary.LittleEndian, d.Path)
+	}
+
+	binary.Write(w, binary.LittleEndian, MP_FILES)
+	binary.Write(w, binary.LittleEndian, len(info.Files))
+	for _, f := range info.Files {
+		binary.Write(w, binary.LittleEndian, f.Path)
+		binary.Write(w, binary.LittleEndian, f.Mode)
+		binary.Write(w, binary.LittleEndian, f.Size)
+		binary.Write(w, binary.LittleEndian, f.BlockIndex)
+		binary.Write(w, binary.LittleEndian, f.BlockIndexEnd)
+	}
+
+	binary.Write(w, binary.LittleEndian, MP_SYMLINKS)
+	binary.Write(w, binary.LittleEndian, len(info.Dirs))
+	for _, l := range info.Symlinks {
+		binary.Write(w, binary.LittleEndian, l.Path)
+		binary.Write(w, binary.LittleEndian, l.Mode)
+		binary.Write(w, binary.LittleEndian, l.Dest)
+	}
 }
 
 func printRepoStats(info *megafile.RepoInfo, path string) {
@@ -36,6 +61,10 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 }
 
 func megadiff(target string, source string, patch string) {
+	// csv columns:
+	// target, source, targetSize, targetFiles, targetSymlinks, targetDirs,
+	// sourceSize, sourceFiles, sourceSymlinks, sourceDirs, paddedSize,
+	// rawPatch, gzipPatch, brotli1Patch, brotli9Patch
 	if *appArgs.csv {
 		fmt.Printf("%s, %s", target, source)
 	}
@@ -93,7 +122,12 @@ func megadiff(target string, source string, patch string) {
 	writeRepoInfo(patchWriter, targetInfo)
 	writeRepoInfo(patchWriter, sourceInfo)
 
-	bar := pb.New(int(sourceInfo.NumBlocks) * blockSize)
+	paddedBytes := sourceInfo.NumBlocks * int64(blockSize)
+	if *appArgs.csv {
+		fmt.Printf(", %d", paddedBytes)
+	}
+
+	bar := pb.New(int(paddedBytes))
 	bar.SetUnits(pb.U_BYTES)
 	bar.SetMaxWidth(80)
 	if !*appArgs.csv {
