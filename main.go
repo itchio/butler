@@ -117,7 +117,7 @@ var megapatchArgs = struct {
 }{
 	megapatchCmd.Arg("patch", "Patch file").Required().String(),
 	megapatchCmd.Arg("target", "Directory with older files").Required().String(),
-	megapatchCmd.Arg("source", "Path to create directory with newer files").Required().String(),
+	megapatchCmd.Arg("output", "Path to create directory with newer files").Required().String(),
 }
 
 func must(err error) {

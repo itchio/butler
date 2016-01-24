@@ -11,6 +11,8 @@ import (
 	"gopkg.in/kothar/brotli-go.v0/dec"
 )
 
+const MP_BLOCK_SIZE = 16 * 1024 // 16k
+
 const (
 	MP_MAGIC = int32(iota + 0xFEF5F00)
 	MP_REPO_INFO
@@ -48,7 +50,10 @@ func readString(r io.Reader, s *string) error {
 	return nil
 }
 
-func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
+func readRepoInfo(reader io.Reader) *megafile.RepoInfo {
+	info := &megafile.RepoInfo{
+		BlockSize: MP_BLOCK_SIZE,
+	}
 	expectMagic(reader, MP_REPO_INFO)
 
 	expectMagic(reader, MP_NUM_BLOCKS)
@@ -64,6 +69,7 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 	for i := int32(0); i < numDirs; i++ {
 		must(readString(reader, &dir.Path))
 		must(binary.Read(reader, binary.LittleEndian, &dir.Mode))
+		info.Dirs = append(info.Dirs, dir)
 	}
 
 	expectMagic(reader, MP_FILES)
@@ -74,6 +80,7 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 		must(binary.Read(reader, binary.LittleEndian, &file.Size))
 		must(binary.Read(reader, binary.LittleEndian, &file.BlockIndex))
 		must(binary.Read(reader, binary.LittleEndian, &file.BlockIndexEnd))
+		info.Files = append(info.Files, file)
 	}
 
 	expectMagic(reader, MP_SYMLINKS)
@@ -82,66 +89,95 @@ func readRepoInfo(reader io.Reader, info *megafile.RepoInfo) {
 		must(readString(reader, &symlink.Path))
 		must(binary.Read(reader, binary.LittleEndian, &symlink.Mode))
 		must(readString(reader, &symlink.Dest))
+		info.Symlinks = append(info.Symlinks, symlink)
 	}
+
+	return info
 }
 
-func megapatch(patch string, source string, output string) {
+func megapatch(patch string, target string, output string) {
 	compressedReader, err := os.Open(patch)
 	must(err)
 
 	patchReader := dec.NewBrotliReader(compressedReader)
 	expectMagic(patchReader, MP_MAGIC)
 
-	targetInfo := &megafile.RepoInfo{}
-	readRepoInfo(patchReader, targetInfo)
+	targetInfo := readRepoInfo(patchReader)
+	printRepoStats(targetInfo, target)
 
-	sourceInfo := &megafile.RepoInfo{}
-	readRepoInfo(patchReader, sourceInfo)
+	sourceInfo := readRepoInfo(patchReader)
+	printRepoStats(sourceInfo, output)
 
 	expectMagic(patchReader, MP_RSYNC_OPS)
 
-	numOps := 0
+	sourceWriter, err := sourceInfo.NewWriter(output)
+	must(err)
 
-	defer (func() {
-		Logf("successfully decoded %d ops", numOps)
-	})()
+	targetReader := targetInfo.NewReader(target)
 
-	var magic int32
-	reading := true
-	for reading {
-		must(binary.Read(patchReader, binary.LittleEndian, &magic))
-
-		switch magic {
-		case MP_RSYNC_OP:
-			numOps++
-			var op rsync.Operation
-			var typ byte
-			must(binary.Read(patchReader, binary.LittleEndian, &typ))
-			op.Type = rsync.OpType(typ)
-
-			switch op.Type {
-			case rsync.OpBlock:
-				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
-			case rsync.OpBlockRange:
-				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
-				must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndexEnd))
-			case rsync.OpData:
-				var buflen int64
-				must(binary.Read(patchReader, binary.LittleEndian, &buflen))
-				buf := make([]byte, buflen)
-				_, err := io.ReadFull(patchReader, buf)
-				must(err)
-			default:
-				Dief("corrupted patch: unknown rsync op type %d", op.Type)
-			}
-		case MP_EOF:
-			// cool!
-			Logf("cool, you did it :)")
-			reading = false
-		default:
-			Dief("corrupted patch: unknown magic %d", magic)
-		}
+	rs := &rsync.RSync{
+		BlockSize: sourceInfo.BlockSize,
 	}
 
-	Die("megapatch: stub!")
+	ops := make(chan rsync.Operation)
+
+	go (func() {
+		defer close(ops)
+		numOps := 0
+
+		var magic int32
+		reading := true
+
+		for reading {
+			must(binary.Read(patchReader, binary.LittleEndian, &magic))
+
+			switch magic {
+			case MP_RSYNC_OP:
+				numOps++
+				var op rsync.Operation
+				var typ byte
+				must(binary.Read(patchReader, binary.LittleEndian, &typ))
+				op.Type = rsync.OpType(typ)
+
+				switch op.Type {
+				case rsync.OpBlock:
+					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+				case rsync.OpBlockRange:
+					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndexEnd))
+				case rsync.OpData:
+					var buflen int64
+					must(binary.Read(patchReader, binary.LittleEndian, &buflen))
+
+					Logf("reading data of len %d", buflen)
+					buf := make([]byte, buflen)
+					_, err := io.ReadFull(patchReader, buf)
+					must(err)
+				default:
+					Dief("corrupted patch: unknown rsync op type %d", op.Type)
+				}
+
+				Logf("Applying op %+v", op)
+				ops <- op
+
+			case MP_EOF:
+				// cool!
+				Logf("Read %d ops", numOps)
+				Logf("Cool, you did it :)")
+				reading = false
+			default:
+				Dief("corrupted patch: unknown magic %d", magic)
+			}
+		}
+	})()
+
+	err = rs.ApplyDelta(sourceWriter, targetReader, ops)
+	if err != nil {
+		Dief("while applying delta: %s", err.Error())
+	}
+
+	Logf("Rebuilt source in %s", output)
+	outputInfo, err := megafile.Walk(output, sourceInfo.BlockSize)
+	must(err)
+	printRepoStats(outputInfo, output)
 }

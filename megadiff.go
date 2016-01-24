@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/dustin/go-humanize"
@@ -77,9 +78,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	// rawPatch, brotliPatch
 	CsvCol(target, source)
 
-	blockSize := 16 * 1024
-
-	targetInfo, err := megafile.Walk(target, blockSize)
+	targetInfo, err := megafile.Walk(target, MP_BLOCK_SIZE)
 	must(err)
 	targetReader := targetInfo.NewReader(target)
 	defer targetReader.Close()
@@ -90,7 +89,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	}
 	signature := make([]rsync.BlockHash, 0)
 
-	targetPaddedBytes := targetInfo.NumBlocks * int64(blockSize)
+	targetPaddedBytes := targetInfo.NumBlocks * int64(MP_BLOCK_SIZE)
 	onTargetRead := func(count int64) {
 		Progress(100.0 * float64(count) / float64(targetPaddedBytes))
 	}
@@ -119,7 +118,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	rawCounter := counter.NewWriter(brotliWriter)
 	patchWriter := rawCounter
 
-	sourceInfo, err := megafile.Walk(source, blockSize)
+	sourceInfo, err := megafile.Walk(source, MP_BLOCK_SIZE)
 	must(err)
 	sourceReader := sourceInfo.NewReader(source)
 	defer sourceReader.Close()
@@ -132,7 +131,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OPS))
 
-	sourcePaddedBytes := sourceInfo.NumBlocks * int64(blockSize)
+	sourcePaddedBytes := sourceInfo.NumBlocks * int64(MP_BLOCK_SIZE)
 	CsvCol(sourcePaddedBytes)
 
 	Log("Computing target->source recipe")
@@ -171,9 +170,8 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	must(binary.Write(patchWriter, binary.LittleEndian, MP_EOF))
 	must(brotliWriter.Close())
 
-	Logf("Wrote %d ops", numOps)
-
 	EndProgress()
+	Logf("Wrote %d ops", numOps)
 
 	CsvCol(rawCounter.Count(), brotliCounter.Count())
 
@@ -182,7 +180,8 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 		humanize.Bytes(uint64(rawCounter.Count())))
 
 	if *megadiffArgs.verify {
-		tmpDir := os.TempDir()
+		tmpDir, err := ioutil.TempDir(os.TempDir(), "megadiff")
+		must(err)
 		defer os.RemoveAll(tmpDir)
 
 		Logf("Verifying patch by rebuilding source in %s", tmpDir)
