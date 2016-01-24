@@ -6,9 +6,22 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/cheggaaa/pb"
 )
 
 type jsonMessage map[string]interface{}
+
+var bar *pb.ProgressBar
+
+func StartProgress() {
+	bar = pb.New64(10000)
+	if !*appArgs.json {
+		bar.ShowCounters = false
+		bar.SetMaxWidth(80)
+		bar.Start()
+	}
+}
 
 func Progress(perc float64) {
 	if *appArgs.quiet {
@@ -17,6 +30,14 @@ func Progress(perc float64) {
 	send("progress", jsonMessage{
 		"percentage": perc,
 	})
+}
+
+func EndProgress() {
+	if bar != nil {
+		bar.Set64(10000)
+		bar.Finish()
+		bar = nil
+	}
 }
 
 // Msg sends an informational message to the client
@@ -74,7 +95,11 @@ func send(msgType string, obj jsonMessage) {
 		case "error":
 			log.Fatalln(obj["message"])
 		case "progress":
-			log.Printf("progress: %.2f%%\n", obj["percentage"])
+			perc := obj["percentage"].(float64)
+			if bar == nil {
+				StartProgress()
+			}
+			bar.Set64(int64(perc * 100.0))
 		default:
 			log.Println(msgType, obj)
 		}

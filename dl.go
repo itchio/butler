@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/getlantern/idletiming"
 	"github.com/itchio/wharf.proto/counter"
 )
@@ -51,13 +52,10 @@ func tryDl(url string, dest string) (int64, error) {
 		existingBytes = stats.Size()
 	}
 
-	Log(fmt.Sprintf("existing file is %d bytes long", existingBytes))
-
 	client := newTimeoutClient(30*time.Second, 60*time.Second)
 
 	req, _ := http.NewRequest("GET", url, nil)
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
-	Logf("Asking for range %s", byteRange)
 
 	req.Header.Set("Range", byteRange)
 	resp, err := client.Do(req)
@@ -69,9 +67,13 @@ func tryDl(url string, dest string) (int64, error) {
 	doDownload := true
 	totalBytes := existingBytes + resp.ContentLength
 
+	hostInfo := fmt.Sprintf("%s at %s", resp.Header.Get("Server"), req.Host)
+
 	switch resp.StatusCode {
 	case 200: // OK
-		Logf("server 200'd, does not support byte ranges")
+		if *appArgs.verbose {
+			Logf("HTTP 200 OK (no byte range support)")
+		}
 		totalBytes = resp.ContentLength
 
 		if existingBytes == resp.ContentLength {
@@ -83,10 +85,14 @@ func tryDl(url string, dest string) (int64, error) {
 			os.Truncate(dest, 0)
 		}
 	case 206: // Partial Content
-		Logf("server 206'd, supports byte ranges")
+		if *appArgs.verbose {
+			Logf("HTTP 206 Partial Content")
+		}
 		// will send incremental data
 	case 416: // Requested Range not Satisfiable
-		Logf("server 416'd")
+		if *appArgs.verbose {
+			Logf("HTTP 416 Requested Range not Satisfiable")
+		}
 		// already has everything
 		doDownload = false
 
@@ -97,24 +103,29 @@ func tryDl(url string, dest string) (int64, error) {
 		}
 
 		if existingBytes > resp.ContentLength {
-			Logf("existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
+			if *appArgs.verbose {
+				Logf("Existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
+			}
 			existingBytes = resp.ContentLength
 			os.Truncate(dest, existingBytes)
 		}
 		totalBytes = existingBytes
 	default:
-		return 0, fmt.Errorf("server error: http %s", resp.Status)
+		return 0, fmt.Errorf("%s responded with HTTP %s", hostInfo, resp.Status)
 	}
 
 	if doDownload {
-		Log(fmt.Sprintf("Response content length = %d", resp.ContentLength))
+		if existingBytes > 0 {
+			Logf("Resuming (%s + %s = %s) download from %s", humanize.Bytes(uint64(existingBytes)), humanize.Bytes(uint64(resp.ContentLength)), humanize.Bytes(uint64(totalBytes)), hostInfo)
+		} else {
+			Logf("Downloading %s from %s", humanize.Bytes(uint64(resp.ContentLength)), hostInfo)
+		}
 		err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
 			return 0, err
 		}
-		Log("done downloading")
 	} else {
-		Log("all downloaded already")
+		Log("Already fully downloaded")
 	}
 
 	_, err = checkIntegrity(resp, totalBytes, dest)
@@ -146,5 +157,6 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 	counter := counter.NewWriterCallback(onWrite, out)
 
 	_, err = io.Copy(counter, src)
+	EndProgress()
 	return
 }
