@@ -30,13 +30,13 @@ func wipe(path string) {
 		}
 
 		if *appArgs.verbose {
-			Logf("ignoring error %s", err.Error())
-			Logf("trying to brute-force permissions, who knows...")
+			Logf("Ignoring error %s", err.Error())
+			Logf("Trying to brute-force permissions, who knows...")
 			err = tryWipe(path)
 			if err != nil {
-				Logf("while bruteforcing: %s", err)
+				Logf("While bruteforcing: %s", err)
 			}
-			Logf("sleeping for a bit before we retry...")
+			Logf("Sleeping for a bit before we retry...")
 		}
 		time.Sleep(sleepDuration)
 		sleepDuration *= 2
@@ -51,9 +51,8 @@ func tryWipe(path string) error {
 	err := os.RemoveAll(path)
 
 	if err != nil {
-		Logf("got %s, but not giving up", path)
-
-		Logf("trying to wipe %s again", path)
+		Logf("Got %s, but not giving up", path)
+		Logf("Trying to wipe %s again", path)
 		err = os.RemoveAll(path)
 		return err
 	}
@@ -138,17 +137,19 @@ func ditto(src string, dst string) {
 	if rootinfo.IsDir() {
 		totalSize = 0
 		if !*appArgs.quiet {
-			Logf("counting files in %s...", src)
+			Logf("Counting files in %s...", src)
 		}
 		filepath.Walk(src, inc)
 		if !*appArgs.quiet {
-			Logf("mirroring...")
+			Logf("Mirroring...")
 		}
 		filepath.Walk(src, onFile)
 	} else {
 		totalSize = rootinfo.Size()
 		onFile(src, rootinfo, nil)
 	}
+
+	EndProgress()
 }
 
 func dittoMkdir(dstpath string) {
