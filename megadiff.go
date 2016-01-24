@@ -15,21 +15,37 @@ import (
 	"github.com/itchio/wharf.proto/rsync"
 )
 
+func writeString(w io.Writer, s string) error {
+	err := binary.Write(w, binary.LittleEndian, int32(len(s)))
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write([]byte(s))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func writeRepoInfo(w io.Writer, info *megafile.RepoInfo) {
+	binary.Write(w, binary.LittleEndian, MP_REPO_INFO)
+
 	binary.Write(w, binary.LittleEndian, MP_NUM_BLOCKS)
 	binary.Write(w, binary.LittleEndian, info.NumBlocks)
 
 	binary.Write(w, binary.LittleEndian, MP_DIRS)
-	binary.Write(w, binary.LittleEndian, len(info.Dirs))
+	binary.Write(w, binary.LittleEndian, int32(len(info.Dirs)))
 	for _, d := range info.Dirs {
+		must(writeString(w, d.Path))
 		binary.Write(w, binary.LittleEndian, d.Mode)
-		binary.Write(w, binary.LittleEndian, d.Path)
 	}
 
 	binary.Write(w, binary.LittleEndian, MP_FILES)
-	binary.Write(w, binary.LittleEndian, len(info.Files))
+	binary.Write(w, binary.LittleEndian, int32(len(info.Files)))
 	for _, f := range info.Files {
-		binary.Write(w, binary.LittleEndian, f.Path)
+		must(writeString(w, f.Path))
 		binary.Write(w, binary.LittleEndian, f.Mode)
 		binary.Write(w, binary.LittleEndian, f.Size)
 		binary.Write(w, binary.LittleEndian, f.BlockIndex)
@@ -37,9 +53,9 @@ func writeRepoInfo(w io.Writer, info *megafile.RepoInfo) {
 	}
 
 	binary.Write(w, binary.LittleEndian, MP_SYMLINKS)
-	binary.Write(w, binary.LittleEndian, len(info.Dirs))
+	binary.Write(w, binary.LittleEndian, int32(len(info.Symlinks)))
 	for _, l := range info.Symlinks {
-		binary.Write(w, binary.LittleEndian, l.Path)
+		must(writeString(w, l.Path))
 		binary.Write(w, binary.LittleEndian, l.Mode)
 		binary.Write(w, binary.LittleEndian, l.Dest)
 	}
@@ -116,6 +132,8 @@ func megadiff(target string, source string, patch string) {
 	writeRepoInfo(patchWriter, targetInfo)
 	writeRepoInfo(patchWriter, sourceInfo)
 
+	must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OPS))
+
 	paddedBytes := sourceInfo.NumBlocks * int64(blockSize)
 	CsvCol(paddedBytes)
 
@@ -133,6 +151,7 @@ func megadiff(target string, source string, patch string) {
 
 	opsWriter := func(op rsync.Operation) error {
 		// Logf("Writing operation, type %d, index %d - %d, data has %d bytes", op.Type, op.BlockIndex, op.BlockIndexEnd, len(op.Data))
+		must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OP))
 		must(binary.Write(patchWriter, binary.LittleEndian, byte(op.Type)))
 		must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
 		must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndexEnd))
@@ -140,6 +159,8 @@ func megadiff(target string, source string, patch string) {
 		return nil
 	}
 	rs.CreateDelta(sourceReaderCounter, signature, opsWriter)
+
+	must(binary.Write(patchWriter, binary.LittleEndian, MP_EOF))
 
 	must(gzipWriter.Close())
 	must(brotliWriter.Close())
