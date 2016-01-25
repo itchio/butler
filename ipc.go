@@ -16,7 +16,7 @@ var bar *pb.ProgressBar
 
 func StartProgress() {
 	bar = pb.New64(10000)
-	if !*appArgs.json {
+	if !*appArgs.no_progress {
 		bar.ShowCounters = false
 		bar.SetMaxWidth(80)
 		bar.Start()
@@ -34,8 +34,10 @@ func Progress(perc float64) {
 
 func EndProgress() {
 	if bar != nil {
-		bar.Set64(10000)
-		bar.Finish()
+		if !*appArgs.no_progress {
+			bar.Set64(10000)
+			bar.Finish()
+		}
 		bar = nil
 	}
 }

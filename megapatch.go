@@ -153,11 +153,12 @@ func megapatch(patch string, target string, output string) {
 					buf := make([]byte, buflen)
 					_, err := io.ReadFull(patchReader, buf)
 					must(err)
+					op.Data = buf
 				default:
 					Dief("corrupted patch: unknown rsync op type %d", op.Type)
 				}
 
-				Logf("Applying op %+v", op)
+				Logf("Applying op of type %d", op.Type)
 				ops <- op
 
 			case MP_EOF:

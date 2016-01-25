@@ -102,9 +102,10 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 		signature = append(signature, bl)
 		return nil
 	}
-	rs.CreateSignature(targetReaderCounter, sigWriter)
+	must(rs.CreateSignature(targetReaderCounter, sigWriter))
 
 	EndProgress()
+	Logf("Signature contains %d hashes", len(signature))
 
 	compressedWriter, err := os.Create(patch)
 	must(err)
@@ -146,7 +147,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	opsWriter := func(op rsync.Operation) error {
 		numOps++
-		// Logf("Writing operation, type %d, index %d - %d, data has %d bytes", op.Type, op.BlockIndex, op.BlockIndexEnd, len(op.Data))
+		Logf("Writing operation, type %d, index %d - %d, data has %d bytes", op.Type, op.BlockIndex, op.BlockIndexEnd, len(op.Data))
 		must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OP))
 		must(binary.Write(patchWriter, binary.LittleEndian, byte(op.Type)))
 
@@ -165,7 +166,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 		}
 		return nil
 	}
-	rs.CreateDelta(sourceReaderCounter, signature, opsWriter)
+	must(rs.CreateDelta(sourceReaderCounter, signature, opsWriter))
 
 	must(binary.Write(patchWriter, binary.LittleEndian, MP_EOF))
 	must(brotliWriter.Close())

@@ -27,12 +27,13 @@ var (
 )
 
 var appArgs = struct {
-	json       *bool
-	quiet      *bool
-	verbose    *bool
-	timestamps *bool
-	csv        *bool
-	paranoid   *bool
+	json        *bool
+	quiet       *bool
+	verbose     *bool
+	timestamps  *bool
+	csv         *bool
+	paranoid    *bool
+	no_progress *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
@@ -40,6 +41,7 @@ var appArgs = struct {
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
 	app.Flag("csv", "Output stats in CSV format").Bool(),
 	app.Flag("paranoid", "Insist on checking all available hashes, not just the fastest ones").Bool(),
+	app.Flag("no-progress", "Doesn't show progress bars").Bool(),
 }
 
 var dlArgs = struct {
@@ -136,6 +138,10 @@ func main() {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	} else {
 		log.SetFlags(0)
+	}
+
+	if !*appArgs.quiet {
+		*appArgs.no_progress = true
 	}
 
 	if *appArgs.csv {
