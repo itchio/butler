@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/dustin/go-humanize"
 	"github.com/itchio/wharf.proto/megafile"
 	"github.com/itchio/wharf.proto/rsync"
 
@@ -123,7 +124,9 @@ func megapatch(patch string, target string, output string) {
 
 	go (func() {
 		defer close(ops)
-		numOps := 0
+		totalOps := 0
+		opsCount := []int{0, 0, 0}
+		opsBytes := []int64{0, 0, 0}
 
 		var magic int32
 		reading := true
@@ -133,51 +136,59 @@ func megapatch(patch string, target string, output string) {
 
 			switch magic {
 			case MP_RSYNC_OP:
-				numOps++
+				totalOps++
 				var op rsync.Operation
 				var typ byte
 				must(binary.Read(patchReader, binary.LittleEndian, &typ))
 				op.Type = rsync.OpType(typ)
+				opsCount[op.Type]++
 
 				switch op.Type {
 				case rsync.OpBlock:
 					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+					opsBytes[op.Type] += int64(sourceInfo.BlockSize)
 				case rsync.OpBlockRange:
 					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
 					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndexEnd))
+					opsBytes[op.Type] += int64(sourceInfo.BlockSize) * int64(op.BlockIndexEnd-op.BlockIndex)
 				case rsync.OpData:
 					var buflen int64
 					must(binary.Read(patchReader, binary.LittleEndian, &buflen))
+					opsBytes[op.Type] += buflen
 
-					Logf("reading data of len %d", buflen)
 					buf := make([]byte, buflen)
 					_, err := io.ReadFull(patchReader, buf)
 					must(err)
 					op.Data = buf
 				default:
-					Dief("corrupted patch: unknown rsync op type %d", op.Type)
+					Dief("Corrupt patch: unknown rsync op %d", op.Type)
 				}
-
-				Logf("Applying op of type %d", op.Type)
 				ops <- op
 
 			case MP_EOF:
 				// cool!
-				Logf("Read %d ops", numOps)
+				if *appArgs.verbose {
+					Logf("Patch had %d ops:", totalOps)
+					for i, name := range []string{"block", "block-range", "data"} {
+						Logf("%10s %s (%d ops)", name, humanize.Bytes(uint64(opsBytes[i])), opsCount[i])
+					}
+				}
 				Logf("Cool, you did it :)")
 				reading = false
 			default:
-				Dief("corrupted patch: unknown magic %d", magic)
+				Dief("Corrupt patch: unknown magic %d (expected RSYNC_OP or EOF)", magic)
 			}
 		}
 	})()
 
 	err = rs.ApplyDelta(sourceWriter, targetReader, ops)
 	if err != nil {
-		Dief("while applying delta: %s", err.Error())
+		Dief("While applying delta: %s", err.Error())
 	}
 
-	Logf("Rebuilt source in %s", output)
+	if *appArgs.verbose {
+		Logf("Rebuilt source in %s", output)
+	}
 	outputInfo, err := megafile.Walk(output, sourceInfo.BlockSize)
 	must(err)
 	printRepoStats(outputInfo, output)

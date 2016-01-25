@@ -105,7 +105,9 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	must(rs.CreateSignature(targetReaderCounter, sigWriter))
 
 	EndProgress()
-	Logf("Signature contains %d hashes", len(signature))
+	if *appArgs.verbose {
+		Logf("Signature contains %d hashes", len(signature))
+	}
 
 	compressedWriter, err := os.Create(patch)
 	must(err)
@@ -147,7 +149,6 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	opsWriter := func(op rsync.Operation) error {
 		numOps++
-		Logf("Writing operation, type %d, index %d - %d, data has %d bytes", op.Type, op.BlockIndex, op.BlockIndexEnd, len(op.Data))
 		must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OP))
 		must(binary.Write(patchWriter, binary.LittleEndian, byte(op.Type)))
 
@@ -172,11 +173,13 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	must(brotliWriter.Close())
 
 	EndProgress()
-	Logf("Wrote %d ops", numOps)
+	if *appArgs.verbose {
+		Logf("Created recipe with %d ops", numOps)
+	}
 
 	CsvCol(rawCounter.Count(), brotliCounter.Count())
 
-	Logf("Wrote patch to %s (%s, expands to %s)", patch,
+	Logf("Wrote %s (%s, expands to %s)", patch,
 		humanize.Bytes(uint64(brotliCounter.Count())),
 		humanize.Bytes(uint64(rawCounter.Count())))
 
