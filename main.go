@@ -140,7 +140,7 @@ func main() {
 		log.SetFlags(0)
 	}
 
-	if !*appArgs.quiet {
+	if *appArgs.quiet {
 		*appArgs.no_progress = true
 	}
 
