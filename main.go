@@ -15,15 +15,15 @@ var (
 	version = "head" // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your very own itch.io helper")
 
-	dlCmd        = app.Command("dl", "Download a file (resumes if can, checks hashes)")
-	pushCmd      = app.Command("push", "Upload a new version of something to itch.io")
-	untarCmd     = app.Command("untar", "Extract a .tar file")
-	wipeCmd      = app.Command("wipe", "Completely remove a directory (rm -rf)")
-	dittoCmd     = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
-	mkdirCmd     = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
-	megatestCmd  = app.Command("megatest", "Test megafile").Hidden()
-	megadiffCmd  = app.Command("megadiff", "Generate a patch to turn 'target' into 'source'").Hidden()
-	megapatchCmd = app.Command("megapatch", "Applies 'patch' to 'target' and writes it to 'output'").Hidden()
+	dlCmd    = app.Command("dl", "Download a file (resumes if can, checks hashes)")
+	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
+	untarCmd = app.Command("untar", "Extract a .tar file")
+	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
+	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
+	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
+	walkCmd  = app.Command("walk", "Walk a directory structure & output megafile metadata as JSON").Hidden()
+	diffCmd  = app.Command("diff", "Invent a recipe to turn 'target' into 'source'").Hidden()
+	applyCmd = app.Command("apply", "Use a recipe on 'target' to generate 'source' again").Hidden()
 )
 
 var appArgs = struct {
@@ -92,34 +92,34 @@ var dittoArgs = struct {
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
-var megatestArgs = struct {
+var walkArgs = struct {
 	src *string
 }{
-	megatestCmd.Arg("src", "Directory to walk").Required().String(),
+	walkCmd.Arg("src", "Directory to walk").Required().String(),
 }
 
-var megadiffArgs = struct {
+var diffArgs = struct {
 	target  *string
 	source  *string
-	patch   *string
+	recipe  *string
 	verify  *bool
 	quality *int
 }{
-	megadiffCmd.Arg("target", "Directory with older files").Required().String(),
-	megadiffCmd.Arg("source", "Directory with newer files").Required().String(),
-	megadiffCmd.Arg("patch", "Where to write the patch file").Default("patch.dat").String(),
-	megadiffCmd.Flag("verify", "Verify that patch applies cleanly").Bool(),
-	megadiffCmd.Flag("quality", "Brotli quality level").Hidden().Default("1").Int(),
+	diffCmd.Arg("target", "Directory with older files").Required().String(),
+	diffCmd.Arg("source", "Directory with newer files").Required().String(),
+	diffCmd.Arg("recipe", "Where to write the recipe file").Default("recipe.pwr").String(),
+	diffCmd.Flag("verify", "Verify that patch applies cleanly").Bool(),
+	diffCmd.Flag("quality", "Brotli quality level").Hidden().Default("1").Int(),
 }
 
-var megapatchArgs = struct {
-	patch  *string
+var applyArgs = struct {
+	recipe *string
 	target *string
 	output *string
 }{
-	megapatchCmd.Arg("patch", "Patch file").Required().String(),
-	megapatchCmd.Arg("target", "Directory with older files").Required().String(),
-	megapatchCmd.Arg("output", "Path to create directory with newer files").Required().String(),
+	applyCmd.Arg("recipe", "Recipe file").Required().String(),
+	applyCmd.Arg("target", "Directory with older files").Required().String(),
+	applyCmd.Arg("output", "Path to create directory with newer files").Required().String(),
 }
 
 func must(err error) {
@@ -167,13 +167,13 @@ func main() {
 	case dittoCmd.FullCommand():
 		ditto(*dittoArgs.src, *dittoArgs.dst)
 
-	case megatestCmd.FullCommand():
-		megatest(*megatestArgs.src)
+	case walkCmd.FullCommand():
+		walk(*walkArgs.src)
 
-	case megadiffCmd.FullCommand():
-		megadiff(*megadiffArgs.target, *megadiffArgs.source, *megadiffArgs.patch, *megadiffArgs.quality)
+	case diffCmd.FullCommand():
+		diff(*diffArgs.target, *diffArgs.source, *diffArgs.recipe, *diffArgs.quality)
 
-	case megapatchCmd.FullCommand():
-		megapatch(*megapatchArgs.patch, *megapatchArgs.target, *megapatchArgs.output)
+	case applyCmd.FullCommand():
+		apply(*applyArgs.recipe, *applyArgs.target, *applyArgs.output)
 	}
 }

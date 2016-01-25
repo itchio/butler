@@ -26,25 +26,19 @@ func dirHash(info *megafile.RepoInfo, path string) []byte {
 	return h.Sum(nil)
 }
 
-func Test_Mega(t *testing.T) {
-	megafile.MEGAFILE_DEBUG = true
-	*appArgs.no_progress = true
-
-	target := "./fixtures/a"
-	source := "./fixtures/b"
-
+func fullCircle(t *testing.T, target string, source string) {
 	sourceInfo, err := megafile.Walk(source, MP_BLOCK_SIZE)
 	must(err)
 
-	patch, err := ioutil.TempFile(os.TempDir(), "megatest")
-	patch.Close()
+	patch, err := ioutil.TempFile(os.TempDir(), "pwrtest")
 	must(err)
+	must(patch.Close())
 
-	megadiff(target, source, patch.Name(), 1)
+	diff(target, source, patch.Name(), 1)
 
-	tmpDir, err := ioutil.TempDir(os.TempDir(), "megatest")
+	tmpDir, err := ioutil.TempDir(os.TempDir(), "pwrtest")
 	must(err)
-	megapatch(patch.Name(), target, tmpDir)
+	apply(patch.Name(), target, tmpDir)
 
 	outputInfo, err := megafile.Walk(tmpDir, MP_BLOCK_SIZE)
 	must(err)
@@ -54,4 +48,12 @@ func Test_Mega(t *testing.T) {
 	b1 := contents(sourceInfo, source)
 	b2 := contents(sourceInfo, tmpDir)
 	assert.Equal(t, b1, b2, "must have the same contents")
+}
+
+func Test_Mega(t *testing.T) {
+	*appArgs.no_progress = true
+	fullCircle(t, "./fixtures/a", "./fixtures/b")
+	fullCircle(t, "./fixtures/b", "./fixtures/a")
+	fullCircle(t, ".", "./fixtures")
+	fullCircle(t, "./fixtures", ".")
 }

@@ -71,11 +71,11 @@ func printRepoStats(info *megafile.RepoInfo, path string) {
 		len(info.Symlinks), len(info.Dirs), path)
 }
 
-func megadiff(target string, source string, patch string, brotliQuality int) {
+func diff(target string, source string, recipe string, brotliQuality int) {
 	// csv columns:
 	// target, source, targetSize, targetFiles, targetSymlinks, targetDirs,
 	// sourceSize, sourceFiles, sourceSymlinks, sourceDirs, paddedSize,
-	// rawPatch, brotliPatch
+	// rawRecipe, brotliRecipe
 	CsvCol(target, source)
 
 	targetInfo, err := megafile.Walk(target, MP_BLOCK_SIZE)
@@ -109,7 +109,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 		Logf("Signature contains %d hashes", len(signature))
 	}
 
-	compressedWriter, err := os.Create(patch)
+	compressedWriter, err := os.Create(recipe)
 	must(err)
 	defer compressedWriter.Close()
 
@@ -119,7 +119,7 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 	brotliWriter := enc.NewBrotliWriter(brotliParams, brotliCounter)
 
 	rawCounter := counter.NewWriter(brotliWriter)
-	patchWriter := rawCounter
+	recipeWriter := rawCounter
 
 	sourceInfo, err := megafile.Walk(source, MP_BLOCK_SIZE)
 	must(err)
@@ -128,11 +128,11 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	printRepoStats(sourceInfo, source)
 
-	must(binary.Write(patchWriter, binary.LittleEndian, MP_MAGIC))
-	writeRepoInfo(patchWriter, targetInfo)
-	writeRepoInfo(patchWriter, sourceInfo)
+	must(binary.Write(recipeWriter, binary.LittleEndian, MP_MAGIC))
+	writeRepoInfo(recipeWriter, targetInfo)
+	writeRepoInfo(recipeWriter, sourceInfo)
 
-	must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OPS))
+	must(binary.Write(recipeWriter, binary.LittleEndian, MP_RSYNC_OPS))
 
 	sourcePaddedBytes := sourceInfo.NumBlocks * int64(MP_BLOCK_SIZE)
 	CsvCol(sourcePaddedBytes)
@@ -149,27 +149,27 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	opsWriter := func(op rsync.Operation) error {
 		numOps++
-		must(binary.Write(patchWriter, binary.LittleEndian, MP_RSYNC_OP))
-		must(binary.Write(patchWriter, binary.LittleEndian, byte(op.Type)))
+		must(binary.Write(recipeWriter, binary.LittleEndian, MP_RSYNC_OP))
+		must(binary.Write(recipeWriter, binary.LittleEndian, byte(op.Type)))
 
 		switch op.Type {
 		case rsync.OpBlock:
-			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
+			must(binary.Write(recipeWriter, binary.LittleEndian, op.BlockIndex))
 		case rsync.OpBlockRange:
-			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndex))
-			must(binary.Write(patchWriter, binary.LittleEndian, op.BlockIndexEnd))
+			must(binary.Write(recipeWriter, binary.LittleEndian, op.BlockIndex))
+			must(binary.Write(recipeWriter, binary.LittleEndian, op.BlockIndexEnd))
 		case rsync.OpData:
-			must(binary.Write(patchWriter, binary.LittleEndian, int64(len(op.Data))))
-			_, err := patchWriter.Write(op.Data)
+			must(binary.Write(recipeWriter, binary.LittleEndian, int64(len(op.Data))))
+			_, err := recipeWriter.Write(op.Data)
 			must(err)
 		default:
 			Dief("unknown rsync op type: %d", op.Type)
 		}
 		return nil
 	}
-	must(rs.CreateDelta(sourceReaderCounter, signature, opsWriter))
+	must(rs.InventRecipe(sourceReaderCounter, signature, opsWriter))
 
-	must(binary.Write(patchWriter, binary.LittleEndian, MP_EOF))
+	must(binary.Write(recipeWriter, binary.LittleEndian, MP_EOF))
 	must(brotliWriter.Close())
 
 	EndProgress()
@@ -179,16 +179,16 @@ func megadiff(target string, source string, patch string, brotliQuality int) {
 
 	CsvCol(rawCounter.Count(), brotliCounter.Count())
 
-	Logf("Wrote %s (%s, expands to %s)", patch,
+	Logf("Wrote %s (%s, expands to %s)", recipe,
 		humanize.Bytes(uint64(brotliCounter.Count())),
 		humanize.Bytes(uint64(rawCounter.Count())))
 
-	if *megadiffArgs.verify {
+	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "megadiff")
 		must(err)
 		defer os.RemoveAll(tmpDir)
 
-		Logf("Verifying patch by rebuilding source in %s", tmpDir)
-		megapatch(patch, source, tmpDir)
+		Logf("Verifying recipe by rebuilding source in %s", tmpDir)
+		apply(recipe, source, tmpDir)
 	}
 }

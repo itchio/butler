@@ -30,7 +30,7 @@ func expectMagic(reader io.Reader, expected int32) {
 	var magic int32
 	must(binary.Read(reader, binary.LittleEndian, &magic))
 	if magic != expected {
-		Dief("corrupted megapatch (expected magic %#x)", expected)
+		Dief("corrupted megarecipe (expected magic %#x)", expected)
 	}
 }
 
@@ -96,20 +96,20 @@ func readRepoInfo(reader io.Reader) *megafile.RepoInfo {
 	return info
 }
 
-func megapatch(patch string, target string, output string) {
-	compressedReader, err := os.Open(patch)
+func apply(recipe string, target string, output string) {
+	compressedReader, err := os.Open(recipe)
 	must(err)
 
-	patchReader := dec.NewBrotliReader(compressedReader)
-	expectMagic(patchReader, MP_MAGIC)
+	recipeReader := dec.NewBrotliReader(compressedReader)
+	expectMagic(recipeReader, MP_MAGIC)
 
-	targetInfo := readRepoInfo(patchReader)
+	targetInfo := readRepoInfo(recipeReader)
 	printRepoStats(targetInfo, target)
 
-	sourceInfo := readRepoInfo(patchReader)
+	sourceInfo := readRepoInfo(recipeReader)
 	printRepoStats(sourceInfo, output)
 
-	expectMagic(patchReader, MP_RSYNC_OPS)
+	expectMagic(recipeReader, MP_RSYNC_OPS)
 
 	sourceWriter, err := sourceInfo.NewWriter(output)
 	must(err)
@@ -132,43 +132,43 @@ func megapatch(patch string, target string, output string) {
 		reading := true
 
 		for reading {
-			must(binary.Read(patchReader, binary.LittleEndian, &magic))
+			must(binary.Read(recipeReader, binary.LittleEndian, &magic))
 
 			switch magic {
 			case MP_RSYNC_OP:
 				totalOps++
 				var op rsync.Operation
 				var typ byte
-				must(binary.Read(patchReader, binary.LittleEndian, &typ))
+				must(binary.Read(recipeReader, binary.LittleEndian, &typ))
 				op.Type = rsync.OpType(typ)
 				opsCount[op.Type]++
 
 				switch op.Type {
 				case rsync.OpBlock:
-					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
+					must(binary.Read(recipeReader, binary.LittleEndian, &op.BlockIndex))
 					opsBytes[op.Type] += int64(sourceInfo.BlockSize)
 				case rsync.OpBlockRange:
-					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndex))
-					must(binary.Read(patchReader, binary.LittleEndian, &op.BlockIndexEnd))
+					must(binary.Read(recipeReader, binary.LittleEndian, &op.BlockIndex))
+					must(binary.Read(recipeReader, binary.LittleEndian, &op.BlockIndexEnd))
 					opsBytes[op.Type] += int64(sourceInfo.BlockSize) * int64(op.BlockIndexEnd-op.BlockIndex)
 				case rsync.OpData:
 					var buflen int64
-					must(binary.Read(patchReader, binary.LittleEndian, &buflen))
+					must(binary.Read(recipeReader, binary.LittleEndian, &buflen))
 					opsBytes[op.Type] += buflen
 
 					buf := make([]byte, buflen)
-					_, err := io.ReadFull(patchReader, buf)
+					_, err := io.ReadFull(recipeReader, buf)
 					must(err)
 					op.Data = buf
 				default:
-					Dief("Corrupt patch: unknown rsync op %d", op.Type)
+					Dief("Corrupt recipe: unknown rsync op %d", op.Type)
 				}
 				ops <- op
 
 			case MP_EOF:
 				// cool!
 				if *appArgs.verbose {
-					Logf("Patch had %d ops:", totalOps)
+					Logf("recipe had %d ops:", totalOps)
 					for i, name := range []string{"block", "block-range", "data"} {
 						Logf("%10s %s (%d ops)", name, humanize.Bytes(uint64(opsBytes[i])), opsCount[i])
 					}
@@ -176,12 +176,12 @@ func megapatch(patch string, target string, output string) {
 				Logf("Cool, you did it :)")
 				reading = false
 			default:
-				Dief("Corrupt patch: unknown magic %d (expected RSYNC_OP or EOF)", magic)
+				Dief("Corrupt recipe: unknown magic %d (expected RSYNC_OP or EOF)", magic)
 			}
 		}
 	})()
 
-	err = rs.ApplyDelta(sourceWriter, targetReader, ops)
+	err = rs.ApplyRecipe(sourceWriter, targetReader, ops)
 	if err != nil {
 		Dief("While applying delta: %s", err.Error())
 	}

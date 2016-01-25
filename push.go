@@ -229,7 +229,7 @@ func handleSourceFile(src string, conn *proto.Conn, req ssh.NewChannel, sf proto
 		tr := io.TeeReader(fr, h)
 
 		rs := &rsync.RSync{}
-		err = rs.CreateDelta(tr, sig, opWriter)
+		err = rs.InventRecipe(tr, sig, opWriter)
 		if err != nil {
 			return fmt.Errorf("while creating delta for %s: %s", path, err.Error())
 		}

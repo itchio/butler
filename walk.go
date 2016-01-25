@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/wharf.proto/megafile"
 )
 
-func megatest(src string) {
+func walk(src string) {
 	blockSize := 16 * 1024
 	info, err := megafile.Walk(src, blockSize)
 	if err != nil {
