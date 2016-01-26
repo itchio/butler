@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/itchio/wharf.proto/megafile"
+	"github.com/itchio/wharf/megafile"
 )
 
 func walk(src string) {

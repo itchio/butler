@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/itchio/wharf.proto/megafile"
+	"github.com/itchio/wharf/megafile"
 	"github.com/stretchr/testify/assert"
 )
 

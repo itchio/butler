@@ -11,7 +11,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/getlantern/idletiming"
-	"github.com/itchio/wharf.proto/counter"
+	"github.com/itchio/wharf/counter"
 )
 
 const bufferSize = 128 * 1024

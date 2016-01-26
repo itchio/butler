@@ -19,8 +19,8 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/dustin/go-humanize"
-	"github.com/itchio/wharf.proto"
-	"github.com/itchio/wharf.proto/rsync"
+	"github.com/itchio/wharf"
+	"github.com/itchio/wharf/rsync"
 )
 
 func push(src string, repoSpec string) {

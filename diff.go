@@ -9,9 +9,9 @@ import (
 	"github.com/dustin/go-humanize"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
-	"github.com/itchio/wharf.proto/counter"
-	"github.com/itchio/wharf.proto/megafile"
-	"github.com/itchio/wharf.proto/rsync"
+	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/megafile"
+	"github.com/itchio/wharf/rsync"
 )
 
 func writeString(w io.Writer, s string) error {

@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/dustin/go-humanize"
-	"github.com/itchio/wharf.proto/megafile"
-	"github.com/itchio/wharf.proto/rsync"
+	"github.com/itchio/wharf/megafile"
+	"github.com/itchio/wharf/rsync"
 
 	"gopkg.in/kothar/brotli-go.v0/dec"
 )
