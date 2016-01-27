@@ -21,7 +21,7 @@ var (
 	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
 	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
 	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
-	walkCmd  = app.Command("walk", "Walk a directory structure & output megafile metadata as JSON").Hidden()
+	walkCmd  = app.Command("walk", "Walk a directory structure & output tlc metadata as JSON").Hidden()
 	diffCmd  = app.Command("diff", "Invent a recipe to turn 'target' into 'source'").Hidden()
 	applyCmd = app.Command("apply", "Use a recipe on 'target' to generate 'source' again").Hidden()
 )

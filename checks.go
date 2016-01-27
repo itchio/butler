@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/itchio/wharf/crc32c"
 )
 
 func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, error) {
@@ -100,8 +102,6 @@ func checkHashMD5(hashValue []byte, file string) (err error) {
 	return
 }
 
-var crc32cTable = crc32.MakeTable(crc32.Castagnoli)
-
 func checkHashCRC32C(hashValue []byte, file string) (err error) {
 	fr, err := os.Open(file)
 	if err != nil {
@@ -109,7 +109,7 @@ func checkHashCRC32C(hashValue []byte, file string) (err error) {
 	}
 	defer fr.Close()
 
-	hasher := crc32.New(crc32cTable)
+	hasher := crc32.New(crc32c.Table)
 	io.Copy(hasher, fr)
 
 	hashComputed := hasher.Sum(nil)

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/itchio/wharf/megafile"
+	"github.com/itchio/wharf/tlc"
 )
 
 func walk(src string) {
 	blockSize := 16 * 1024
-	info, err := megafile.Walk(src, blockSize)
+	info, err := tlc.Walk(src, blockSize)
 	if err != nil {
 		Die(err.Error())
 	}
