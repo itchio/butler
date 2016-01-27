@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -53,6 +54,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		defer os.RemoveAll(tmpDir)
 
 		Logf("Verifying recipe by rebuilding source in %s", tmpDir)
-		apply(recipe, source, tmpDir)
+		apply(recipe, target, tmpDir)
+
+		tmpInfo, err := tlc.Walk(tmpDir, pwr.BLOCK_SIZE)
+		must(err)
+		fmt.Printf("tmpInfo: %+v", tmpInfo)
 	}
 }
