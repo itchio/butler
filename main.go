@@ -41,7 +41,7 @@ var appArgs = struct {
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
 	app.Flag("csv", "Output stats in CSV format").Bool(),
 	app.Flag("paranoid", "Insist on checking all available hashes, not just the fastest ones").Bool(),
-	app.Flag("no-progress", "Doesn't show progress bars").Bool(),
+	app.Flag("noprogress", "Doesn't show progress bars").Bool(),
 }
 
 var dlArgs = struct {
