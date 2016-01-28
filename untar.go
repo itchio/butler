@@ -8,10 +8,6 @@ import (
 	"path/filepath"
 )
 
-const MODE_MASK = 0666
-const LUCKY_MODE = 0777
-const DIR_MODE = LUCKY_MODE
-
 // Does not preserve users, nor permission, except the executable bit
 func untar(archive string, dir string) {
 	if !*appArgs.quiet {

@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+const (
+	MODE_MASK  = 0666
+	LUCKY_MODE = 0777
+	DIR_MODE   = LUCKY_MODE
+)
+
 func mkdir(dir string) {
 	if *appArgs.verbose {
 		Logf("mkdir -p %s", dir)
