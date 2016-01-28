@@ -124,7 +124,7 @@ var applyArgs = struct {
 
 func must(err error) {
 	if err != nil {
-		Die(err.Error())
+		panic(err.Error())
 	}
 }
 

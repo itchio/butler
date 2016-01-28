@@ -17,10 +17,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Logf("Computing TLC signature of %s", target)
 	}
 
-	targetInfo, err := tlc.Walk(target, pwr.BLOCK_SIZE)
+	targetInfo, err := tlc.Walk(target, pwr.BlockSize)
 	must(err)
 
-	sourceInfo, err := tlc.Walk(source, pwr.BLOCK_SIZE)
+	sourceInfo, err := tlc.Walk(source, pwr.BlockSize)
 	must(err)
 
 	sourceReader := sourceInfo.NewReader(source)
@@ -56,7 +56,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Logf("Verifying recipe by rebuilding source in %s", tmpDir)
 		apply(recipe, target, tmpDir)
 
-		tmpInfo, err := tlc.Walk(tmpDir, pwr.BLOCK_SIZE)
+		tmpInfo, err := tlc.Walk(tmpDir, pwr.BlockSize)
 		must(err)
 		fmt.Printf("tmpInfo: %+v", tmpInfo)
 	}
