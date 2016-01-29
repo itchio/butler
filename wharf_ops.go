@@ -24,7 +24,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	StartProgress()
-	signature, err := pwr.ComputeDiffSignature(targetContainer, Progress)
+	signature, err := pwr.ComputeDiffSignature(targetContainer, target, Progress)
 	EndProgress()
 	must(err)
 
@@ -41,9 +41,11 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	StartProgress()
-	err = pwr.WriteRecipe(patchWriter, sourceContainer, targetContainer, signature, Progress, brotliParams)
+	err = pwr.WriteRecipe(patchWriter, sourceContainer, source, targetContainer, signature, Progress, brotliParams)
 	must(err)
 	EndProgress()
+
+	patchWriter.Close()
 
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "megadiff")
