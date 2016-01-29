@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/dustin/go-humanize"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
-	"github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 )
@@ -17,17 +17,14 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Logf("Computing TLC signature of %s", target)
 	}
 
-	targetInfo, err := tlc.Walk(target, pwr.BlockSize)
+	targetContainer, err := tlc.Walk(target, pwr.BlockSize)
 	must(err)
 
-	sourceInfo, err := tlc.Walk(source, pwr.BlockSize)
+	sourceContainer, err := tlc.Walk(source, pwr.BlockSize)
 	must(err)
-
-	sourceReader := sourceInfo.NewReader(source)
-	defer sourceReader.Close()
 
 	StartProgress()
-	signature, err := pwr.ComputeSignature(target, targetInfo, Progress)
+	signature, err := pwr.ComputeDiffSignature(targetContainer, Progress)
 	EndProgress()
 	must(err)
 
@@ -44,7 +41,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	StartProgress()
-	err = pwr.WriteRecipe(patchWriter, sourceInfo, sourceReader, targetInfo, signature, Progress, brotliParams)
+	err = pwr.WriteRecipe(patchWriter, sourceContainer, targetContainer, signature, Progress, brotliParams)
 	must(err)
 	EndProgress()
 
@@ -59,5 +56,19 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		tmpInfo, err := tlc.Walk(tmpDir, pwr.BlockSize)
 		must(err)
 		fmt.Printf("tmpInfo: %+v", tmpInfo)
+	}
+}
+
+func apply(recipe string, target string, output string) {
+	recipeReader, err := os.Open(recipe)
+	must(err)
+
+	StartProgress()
+	err = pwr.ApplyRecipe(recipeReader, target, output, Progress)
+	EndProgress()
+	must(err)
+
+	if *appArgs.verbose {
+		Logf("Rebuilt source in %s", output)
 	}
 }
