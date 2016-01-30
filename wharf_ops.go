@@ -24,12 +24,12 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	StartProgress()
-	signature, err := pwr.ComputeDiffSignature(targetContainer, target, Progress)
+	targetSignature, err := pwr.ComputeDiffSignature(targetContainer, target, Progress)
 	EndProgress()
 	must(err)
 
 	// index + weak + strong
-	sigBytes := len(signature) * (4 + 16)
+	sigBytes := len(targetSignature) * (4 + 16)
 	if *appArgs.verbose {
 		Logf("Signature size: %s", humanize.Bytes(uint64(sigBytes)))
 	}
@@ -41,9 +41,15 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	StartProgress()
-	err = pwr.WriteRecipe(patchWriter, sourceContainer, source, targetContainer, signature, Progress, brotliParams)
+	sourceSignature, err := pwr.WriteRecipe(patchWriter, sourceContainer, source, targetContainer, targetSignature, Progress, brotliParams)
 	must(err)
 	EndProgress()
+
+	bh := pwr.Hash{}
+	for _, h := range sourceSignature {
+		bh.Reset()
+		bh.Contents = h.StrongHash
+	}
 
 	patchWriter.Close()
 
