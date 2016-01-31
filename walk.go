@@ -8,8 +8,7 @@ import (
 )
 
 func walk(src string) {
-	blockSize := 16 * 1024
-	info, err := tlc.Walk(src, blockSize)
+	info, err := tlc.Walk(src, filterDirs)
 	if err != nil {
 		Die(err.Error())
 	}

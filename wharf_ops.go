@@ -4,23 +4,44 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/dustin/go-humanize"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wire"
 )
+
+// TODO: make this customizable
+var ignoredDirs = []string{
+	".git",
+	".cvs",
+	".svn",
+}
+
+func filterDirs(fileInfo os.FileInfo) bool {
+	name := fileInfo.Name()
+	for _, dir := range ignoredDirs {
+		if strings.HasPrefix(name, dir) {
+			return false
+		}
+	}
+
+	return true
+}
 
 func diff(target string, source string, recipe string, brotliQuality int) {
 	if *appArgs.verbose {
 		Logf("Computing TLC signature of %s", target)
 	}
 
-	targetContainer, err := tlc.Walk(target, pwr.BlockSize)
+	targetContainer, err := tlc.Walk(target, filterDirs)
 	must(err)
 
-	sourceContainer, err := tlc.Walk(source, pwr.BlockSize)
+	sourceContainer, err := tlc.Walk(source, filterDirs)
 	must(err)
 
 	StartProgress()
@@ -31,7 +52,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	// index + weak + strong
 	sigBytes := len(targetSignature) * (4 + 16)
 	if *appArgs.verbose {
-		Logf("Signature size: %s", humanize.Bytes(uint64(sigBytes)))
+		Logf("Target signature size: %s", humanize.Bytes(uint64(sigBytes)))
 	}
 
 	brotliParams := enc.NewBrotliParams()
@@ -40,18 +61,44 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	patchWriter, err := os.Create(recipe)
 	must(err)
 
+	signatureWriter, err := os.Create(recipe + ".sig")
+	must(err)
+
+	dctx := &pwr.DiffContext{
+		SourceContainer: sourceContainer,
+		SourcePath:      source,
+
+		TargetContainer: targetContainer,
+		TargetSignature: targetSignature,
+	}
+
+	swc := wire.NewWriteContext(signatureWriter)
+	err = swc.WriteMessage(&pwr.SignatureHeader{
+		Compression: &pwr.CompressionSettings{
+			Algorithm: pwr.CompressionAlgorithm_BROTLI,
+			Quality:   1,
+		},
+	})
+	must(err)
+
+	bw := enc.NewBrotliWriter(brotliParams, signatureWriter)
+	bswc := wire.NewWriteContext(bw)
+
+	sourceSignatureWriter := func(bl sync.BlockHash) error {
+		bswc.WriteMessage(&pwr.BlockHash{
+			WeakHash:   bl.WeakHash,
+			StrongHash: bl.StrongHash,
+		})
+		return nil
+	}
+
 	StartProgress()
-	sourceSignature, err := pwr.WriteRecipe(patchWriter, sourceContainer, source, targetContainer, targetSignature, Progress, brotliParams)
+	err = dctx.WriteRecipe(patchWriter, Progress, brotliParams, sourceSignatureWriter)
 	must(err)
 	EndProgress()
 
-	bh := pwr.Hash{}
-	for _, h := range sourceSignature {
-		bh.Reset()
-		bh.Contents = h.StrongHash
-	}
-
 	patchWriter.Close()
+	signatureWriter.Close()
 
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "megadiff")
@@ -61,7 +108,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Logf("Verifying recipe by rebuilding source in %s", tmpDir)
 		apply(recipe, target, tmpDir)
 
-		tmpInfo, err := tlc.Walk(tmpDir, pwr.BlockSize)
+		tmpInfo, err := tlc.Walk(tmpDir, filterDirs)
 		must(err)
 		fmt.Printf("tmpInfo: %+v", tmpInfo)
 	}
