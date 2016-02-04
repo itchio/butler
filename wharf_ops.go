@@ -6,8 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dustin/go-humanize"
 	"gopkg.in/kothar/brotli-go.v0/enc"
+
+	"github.com/dustin/go-humanize"
 
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
@@ -58,10 +59,12 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	brotliParams := enc.NewBrotliParams()
 	brotliParams.SetQuality(brotliQuality)
 
-	patchWriter, err := os.Create(recipe)
+	rawRecipeWriter, err := os.Create(recipe + ".br")
 	must(err)
 
-	signatureWriter, err := os.Create(recipe + ".sig")
+	recipeWriter := enc.NewBrotliWriter(brotliParams, rawRecipeWriter)
+
+	rawSignatureWriter, err := os.Create(recipe + ".sig.br")
 	must(err)
 
 	dctx := &pwr.DiffContext{
@@ -72,20 +75,14 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		TargetSignature: targetSignature,
 	}
 
+	signatureWriter := enc.NewBrotliWriter(brotliParams, rawSignatureWriter)
 	swc := wire.NewWriteContext(signatureWriter)
-	err = swc.WriteMessage(&pwr.SignatureHeader{
-		Compression: &pwr.CompressionSettings{
-			Algorithm: pwr.CompressionAlgorithm_BROTLI,
-			Quality:   1,
-		},
-	})
+
+	err = swc.WriteMessage(&pwr.SignatureHeader{})
 	must(err)
 
-	bw := enc.NewBrotliWriter(brotliParams, signatureWriter)
-	bswc := wire.NewWriteContext(bw)
-
 	sourceSignatureWriter := func(bl sync.BlockHash) error {
-		bswc.WriteMessage(&pwr.BlockHash{
+		swc.WriteMessage(&pwr.BlockHash{
 			WeakHash:   bl.WeakHash,
 			StrongHash: bl.StrongHash,
 		})
@@ -93,11 +90,11 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	}
 
 	StartProgress()
-	err = dctx.WriteRecipe(patchWriter, Progress, brotliParams, sourceSignatureWriter)
+	err = dctx.WriteRecipe(recipeWriter, Progress, brotliParams, sourceSignatureWriter)
 	must(err)
 	EndProgress()
 
-	patchWriter.Close()
+	recipeWriter.Close()
 	signatureWriter.Close()
 
 	if *diffArgs.verify {
