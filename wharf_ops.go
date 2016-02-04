@@ -82,10 +82,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 
 	sourceSignatureWriter := func(bl sync.BlockHash) error {
-		swc.WriteMessage(&pwr.BlockHash{
-			WeakHash:   bl.WeakHash,
-			StrongHash: bl.StrongHash,
-		})
+		// swc.WriteMessage(&pwr.BlockHash{
+		// 	WeakHash:   bl.WeakHash,
+		// 	StrongHash: bl.StrongHash,
+		// })
 		return nil
 	}
 
@@ -94,8 +94,11 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 	EndProgress()
 
-	recipeWriter.Close()
-	signatureWriter.Close()
+	err = recipeWriter.Close()
+	must(err)
+
+	err = signatureWriter.Close()
+	must(err)
 
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "megadiff")
