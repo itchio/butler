@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/kothar/brotli-go.v0/dec"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
 	"github.com/dustin/go-humanize"
@@ -119,12 +118,8 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 }
 
 func apply(recipe string, target string, output string) {
-	rawRecipeReader, err := os.Open(recipe)
+	recipeReader, err := os.Open(recipe)
 	must(err)
-
-	recipeReader := dec.NewBrotliReader(rawRecipeReader)
-	must(err)
-	// recipeReader := rawRecipeReader
 
 	StartProgress()
 	err = pwr.ApplyRecipe(recipeReader, target, output, Progress)
