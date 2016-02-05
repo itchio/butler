@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"gopkg.in/kothar/brotli-go.v0/dec"
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
 	"github.com/dustin/go-humanize"
@@ -56,15 +57,13 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Logf("Target signature size: %s", humanize.Bytes(uint64(sigBytes)))
 	}
 
-	brotliParams := enc.NewBrotliParams()
-	brotliParams.SetQuality(brotliQuality)
-
-	rawRecipeWriter, err := os.Create(recipe + ".br")
+	rawRecipeWriter, err := os.Create(recipe)
 	must(err)
 
-	recipeWriter := enc.NewBrotliWriter(brotliParams, rawRecipeWriter)
+	// recipeWriter := enc.NewBrotliWriter(brotliParams, rawRecipeWriter)
+	recipeWriter := rawRecipeWriter
 
-	rawSignatureWriter, err := os.Create(recipe + ".sig.br")
+	signatureWriter, err := os.Create(recipe + ".sig")
 	must(err)
 
 	dctx := &pwr.DiffContext{
@@ -75,22 +74,27 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		TargetSignature: targetSignature,
 	}
 
-	signatureWriter := enc.NewBrotliWriter(brotliParams, rawSignatureWriter)
-	swc := wire.NewWriteContext(signatureWriter)
+	hswc := wire.NewWriteContext(signatureWriter)
 
-	err = swc.WriteMessage(&pwr.SignatureHeader{})
+	err = hswc.WriteMessage(&pwr.SignatureHeader{})
 	must(err)
 
+	brotliParams := enc.NewBrotliParams()
+	brotliParams.SetQuality(1)
+
+	signatureCompressedWriter := enc.NewBrotliWriter(brotliParams, signatureWriter)
+	swc := wire.NewWriteContext(signatureCompressedWriter)
+
 	sourceSignatureWriter := func(bl sync.BlockHash) error {
-		// swc.WriteMessage(&pwr.BlockHash{
-		// 	WeakHash:   bl.WeakHash,
-		// 	StrongHash: bl.StrongHash,
-		// })
+		swc.WriteMessage(&pwr.BlockHash{
+			WeakHash:   bl.WeakHash,
+			StrongHash: bl.StrongHash,
+		})
 		return nil
 	}
 
 	StartProgress()
-	err = dctx.WriteRecipe(recipeWriter, Progress, brotliParams, sourceSignatureWriter)
+	err = dctx.WriteRecipe(recipeWriter, Progress, sourceSignatureWriter)
 	must(err)
 	EndProgress()
 
@@ -115,8 +119,12 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 }
 
 func apply(recipe string, target string, output string) {
-	recipeReader, err := os.Open(recipe)
+	rawRecipeReader, err := os.Open(recipe)
 	must(err)
+
+	recipeReader := dec.NewBrotliReader(rawRecipeReader)
+	must(err)
+	// recipeReader := rawRecipeReader
 
 	StartProgress()
 	err = pwr.ApplyRecipe(recipeReader, target, output, Progress)
