@@ -97,9 +97,6 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 	EndProgress()
 
-	err = recipeWriter.Close()
-	must(err)
-
 	err = signatureWriter.Close()
 	must(err)
 
