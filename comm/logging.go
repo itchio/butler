@@ -99,6 +99,7 @@ func send(msgType string, obj jsonMessage) {
 				log.Printf("%s: %s\n", obj["level"], obj["message"])
 			}
 		case "error":
+			EndProgress()
 			log.Panicln(obj["message"])
 		case "progress":
 			setBarProgress(obj["percentage"].(float64))

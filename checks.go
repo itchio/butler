@@ -55,7 +55,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		if checked {
 			comm.Debugf("%10s pass (took %s)", hashType, time.Since(start))
 		} else {
-			comm.Debugf("%10s skip (use --paranoid to force check)", hashType)
+			comm.Debugf("%10s skip (use --thorough to force check)", hashType)
 		}
 	}
 
@@ -67,7 +67,7 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 
 	switch hashType {
 	case "md5":
-		if *appArgs.paranoid {
+		if *dlArgs.thorough {
 			err = checkHashMD5(hashValue, file)
 		} else {
 			checked = false

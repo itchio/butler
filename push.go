@@ -11,7 +11,7 @@ var (
 	defaultPort = 22
 )
 
-func doPush(src string, repoSpec string) error {
+func doPush(build string, repoSpec string) error {
 	// 	address := *pushArgs.address
 	// 	if !addressRe.MatchString(address) {
 	// 		address = fmt.Sprintf("%s:%d", address, defaultPort)

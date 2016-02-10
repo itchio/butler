@@ -15,17 +15,23 @@ import "C"
 
 var (
 	version = "head" // set by command-line on CI release builds
-	app     = kingpin.New("butler", "Your very own itch.io helper")
+	app     = kingpin.New("butler", "Your happy little itch.io helper")
 
-	dlCmd    = app.Command("dl", "Download a file (resumes if can, checks hashes)")
-	pushCmd  = app.Command("push", "Upload a new version of something to itch.io")
-	untarCmd = app.Command("untar", "Extract a .tar file")
-	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)")
-	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)")
-	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)")
-	walkCmd  = app.Command("walk", "Walk a directory structure & output tlc metadata as JSON").Hidden()
-	diffCmd  = app.Command("diff", "Invent a recipe to turn 'target' into 'source'").Hidden()
-	applyCmd = app.Command("apply", "Use a recipe on 'target' to generate 'source' again").Hidden()
+	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
+
+	untarCmd = app.Command("untar", "Extract a .tar file").Hidden()
+	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
+	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
+	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
+
+	walkCmd = app.Command("walk", "Print TLC tree for given directory as JSON").Hidden()
+
+	pushCmd = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
+
+	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
+	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
+	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the recipe in `recipe.pwr`, and a signature in `recipe.pwr.sig` for integrity checks and further diff.")
+	applyCmd  = app.Command("apply", "(Advanced) Use a recipe to patch a directory to a new version")
 )
 
 var appArgs = struct {
@@ -33,35 +39,39 @@ var appArgs = struct {
 	quiet       *bool
 	verbose     *bool
 	timestamps  *bool
-	paranoid    *bool
 	no_progress *bool
 }{
-	app.Flag("json", "Enable machine-readable JSON-lines output").Short('j').Bool(),
-	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
-	app.Flag("verbose", "Display as much extra info as possible").Short('v').Bool(),
-	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
-	app.Flag("paranoid", "Insist on checking all available hashes, not just the fastest ones").Bool(),
-	app.Flag("noprogress", "Doesn't show progress bars").Bool(),
+	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
+	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Short('q').Bool(),
+	app.Flag("verbose", "Be very chatty about what's happening").Short('v').Bool(),
+	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Hidden().Bool(),
+	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
 }
 
 var dlArgs = struct {
 	url  *string
 	dest *string
+
+	thorough *bool
 }{
 	dlCmd.Arg("url", "Address to download from").Required().String(),
 	dlCmd.Arg("dest", "File to write downloaded data to").Required().String(),
+
+	dlCmd.Flag("thorough", "Check all available hashes").Bool(),
 }
 
 var pushArgs = struct {
-	src      *string
-	repo     *string
+	src    *string
+	target *string
+
 	identity *string
 	address  *string
 }{
-	pushCmd.Arg("src", "Directory or zip archive to upload, e.g.").Required().ExistingFileOrDir(),
-	pushCmd.Arg("repo", "Repository to push to, e.g. leafo/xmoon:win64").Required().String(),
+	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().ExistingFileOrDir(),
+	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win64'. Targets are of the form project:channel, where project is username/game or game_id, and channel follows ").Required().String(),
+
 	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').ExistingFile(),
-	pushCmd.Flag("address", "Specify wharf address (advanced)").Default("wharf.itch.zone").Short('a').Hidden().String(),
+	pushCmd.Flag("address", "Wharf server to talk to").Default("wharf.itch.zone").Short('a').Hidden().String(),
 }
 
 var untarArgs = struct {
@@ -88,38 +98,64 @@ var dittoArgs = struct {
 	src *string
 	dst *string
 }{
-	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
+	dittoCmd.Arg("src", "Directory to mirror").Required().ExistingFileOrDir(),
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
 var walkArgs = struct {
 	src *string
 }{
-	walkCmd.Arg("src", "Directory to walk").Required().String(),
+	walkCmd.Arg("src", "Directory to walk").Required().ExistingFileOrDir(),
 }
 
 var diffArgs = struct {
-	target  *string
-	source  *string
-	recipe  *string
-	verify  *bool
+	old    *string
+	new    *string
+	recipe *string
+
+	verify *bool
+
 	quality *int
 }{
-	diffCmd.Arg("target", "Directory with older files").Required().String(),
-	diffCmd.Arg("source", "Directory with newer files").Required().String(),
-	diffCmd.Arg("recipe", "Where to write the recipe file").Default("recipe.pwr").String(),
-	diffCmd.Flag("verify", "Verify that patch applies cleanly").Bool(),
-	diffCmd.Flag("quality", "Brotli quality level").Hidden().Default("1").Int(),
+	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().ExistingFileOrDir(),
+	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().ExistingFileOrDir(),
+	diffCmd.Arg("recipe", "Path to write the recipe file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("recipe.pwr").String(),
+
+	diffCmd.Flag("verify", "Make sure generated recipe applies cleanly by applying it (slower)").Bool(),
+
+	diffCmd.Flag("quality", "Compression quality").Hidden().Default("1").Int(),
 }
 
 var applyArgs = struct {
 	recipe *string
-	target *string
-	output *string
+	old    *string
+
+	dir     *string
+	verify  *string
+	reverse *string
 }{
-	applyCmd.Arg("recipe", "Recipe file").Required().String(),
-	applyCmd.Arg("target", "Directory with older files").Required().String(),
-	applyCmd.Arg("output", "Path to create directory with newer files").Required().String(),
+	applyCmd.Arg("recipe", "Recipe file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
+	applyCmd.Arg("old", "Directory to patch").Required().ExistingFileOrDir(),
+
+	applyCmd.Flag("dir", "Optional directory to recreate newer files in, instead of working in-place").Short('d').String(),
+	applyCmd.Flag("verify", "When given, verifies recipe application on-the-fly, and abort if any integrity check fails").String(),
+	applyCmd.Flag("reverse", "When given, generates a reverse recipe to allow rolling back later, along with its signature").String(),
+}
+
+var verifyArgs = struct {
+	signature *string
+	output    *string
+}{
+	verifyCmd.Arg("signature", "Path to read signature file from").Required().String(),
+	verifyCmd.Arg("dir", "Path of directory to verify").Required().String(),
+}
+
+var signArgs = struct {
+	signature **os.File
+	output    *string
+}{
+	signCmd.Arg("signature", "Path to write signature to").Required().OpenFile(os.O_CREATE|os.O_TRUNC|os.O_WRONLY, MODE_MASK),
+	signCmd.Arg("dir", "Path of directory to sign").Required().String(),
 }
 
 func must(err error) {
@@ -144,13 +180,14 @@ func main() {
 		*appArgs.no_progress = true
 		*appArgs.verbose = false
 	}
+	comm.Configure(*appArgs.no_progress, *appArgs.quiet, *appArgs.verbose, *appArgs.json)
 
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
 		dl(*dlArgs.url, *dlArgs.dest)
 
 	case pushCmd.FullCommand():
-		push(*pushArgs.src, *pushArgs.repo)
+		push(*pushArgs.src, *pushArgs.target)
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
@@ -168,9 +205,9 @@ func main() {
 		walk(*walkArgs.src)
 
 	case diffCmd.FullCommand():
-		diff(*diffArgs.target, *diffArgs.source, *diffArgs.recipe, *diffArgs.quality)
+		diff(*diffArgs.old, *diffArgs.new, *diffArgs.recipe, *diffArgs.quality)
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.recipe, *applyArgs.target, *applyArgs.output)
+		apply(*applyArgs.recipe, *applyArgs.old, *applyArgs.dir)
 	}
 }

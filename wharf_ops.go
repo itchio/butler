@@ -5,15 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/kothar/brotli-go.v0/enc"
-
-	"github.com/dustin/go-humanize"
-
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
-	"github.com/itchio/wharf/wire"
 )
 
 // TODO: make this customizable
@@ -35,29 +30,35 @@ func filterDirs(fileInfo os.FileInfo) bool {
 }
 
 func diff(target string, source string, recipe string, brotliQuality int) {
-	if *appArgs.verbose {
-		comm.Logf("Computing TLC signature of %s", target)
-	}
-
-	targetContainer, err := tlc.Walk(target, filterDirs)
+	targetInfo, err := os.Lstat(target)
 	must(err)
+
+	var targetSignature []sync.BlockHash
+	var targetContainer *tlc.Container
+
+	if targetInfo.IsDir() {
+		comm.Logf("Computing signature of %s", target)
+		targetContainer, err = tlc.Walk(target, filterDirs)
+		must(err)
+
+		comm.StartProgress()
+		targetSignature, err = pwr.ComputeSignature(targetContainer, target, comm.NewStateConsumer())
+		comm.EndProgress()
+		must(err)
+	} else {
+		comm.Logf("Reading signature from file %s", target)
+		signatureReader, err := os.Open(target)
+		must(err)
+		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
+		must(err)
+		must(signatureReader.Close())
+	}
 
 	sourceContainer, err := tlc.Walk(source, filterDirs)
 	must(err)
 
-	comm.StartProgress()
-	targetSignature, err := pwr.ComputeDiffSignature(targetContainer, target, comm.NewStateConsumer())
-	comm.EndProgress()
+	recipeWriter, err := os.Create(recipe)
 	must(err)
-
-	// index + weak + strong
-	sigBytes := len(targetSignature) * (4 + 16)
-	comm.Debugf("Target signature size: %s", humanize.Bytes(uint64(sigBytes)))
-
-	rawRecipeWriter, err := os.Create(recipe)
-	must(err)
-
-	recipeWriter := rawRecipeWriter
 
 	signaturePath := recipe + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
@@ -73,32 +74,9 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		Consumer: comm.NewStateConsumer(),
 	}
 
-	hswc := wire.NewWriteContext(signatureWriter)
-
-	err = hswc.WriteMessage(&pwr.SignatureHeader{})
-	must(err)
-
-	brotliParams := enc.NewBrotliParams()
-	brotliParams.SetQuality(1)
-
-	signatureCompressedWriter := enc.NewBrotliWriter(brotliParams, signatureWriter)
-	swc := wire.NewWriteContext(signatureCompressedWriter)
-
-	sourceSignatureWriter := func(bl sync.BlockHash) error {
-		swc.WriteMessage(&pwr.BlockHash{
-			WeakHash:   bl.WeakHash,
-			StrongHash: bl.StrongHash,
-		})
-		return nil
-	}
-
 	comm.StartProgress()
-	err = dctx.WriteRecipe(recipeWriter, sourceSignatureWriter)
-	must(err)
+	must(dctx.WriteRecipe(recipeWriter, signatureWriter))
 	comm.EndProgress()
-
-	err = signatureWriter.Close()
-	must(err)
 
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "pwr")
@@ -124,13 +102,16 @@ func apply(recipe string, target string, output string) {
 	}
 
 	comm.StartProgress()
-	err = actx.ApplyRecipe(recipeReader)
+	must(actx.ApplyRecipe(recipeReader))
 	comm.EndProgress()
-	must(err)
 
 	comm.Debugf("Rebuilt source in %s", output)
 }
 
+func sign() {
+
+}
+
 func verify(signature string, output string) {
-	comm.Logf("Verify: stub")
+	comm.Dief("Verify: stub")
 }
