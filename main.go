@@ -31,7 +31,6 @@ var appArgs = struct {
 	quiet       *bool
 	verbose     *bool
 	timestamps  *bool
-	csv         *bool
 	paranoid    *bool
 	no_progress *bool
 }{
@@ -39,7 +38,6 @@ var appArgs = struct {
 	app.Flag("quiet", "Hide progress indicators & other extra info").Short('q').Bool(),
 	app.Flag("verbose", "Display as much extra info as possible").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Bool(),
-	app.Flag("csv", "Output stats in CSV format").Bool(),
 	app.Flag("paranoid", "Insist on checking all available hashes, not just the fastest ones").Bool(),
 	app.Flag("noprogress", "Doesn't show progress bars").Bool(),
 }
@@ -142,10 +140,6 @@ func main() {
 
 	if *appArgs.quiet {
 		*appArgs.no_progress = true
-	}
-
-	if *appArgs.csv {
-		defer CsvFinish()
 	}
 
 	switch kingpin.MustParse(cmd, err) {
