@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/itchio/butler/comm"
 )
 
 const (
@@ -14,56 +16,42 @@ const (
 )
 
 func mkdir(dir string) {
-	if *appArgs.verbose {
-		Logf("mkdir -p %s", dir)
-	}
+	comm.Debugf("mkdir -p %s", dir)
 
 	err := os.MkdirAll(dir, DIR_MODE)
 	if err != nil {
-		Dief(err.Error())
+		comm.Dief(err.Error())
 	}
 }
 
 func wipe(path string) {
 	tries := 3
-	sleepDuration := time.Second * 3
+	sleepDuration := time.Second * 2
 
 	for tries > 0 {
 		err := tryWipe(path)
-
 		if err == nil {
 			break
 		}
 
-		if *appArgs.verbose {
-			Logf("Ignoring error %s", err.Error())
-			Logf("Trying to brute-force permissions, who knows...")
-			err = tryWipe(path)
-			if err != nil {
-				Logf("While bruteforcing: %s", err)
-			}
-			Logf("Sleeping for a bit before we retry...")
+		comm.Logf("While removing: %s", err.Error())
+
+		comm.Logf("Trying to brute-force permissions, who knows...")
+		err = tryChmod(path)
+		if err != nil {
+			comm.Logf("While bruteforcing: %s", err.Error())
 		}
+
+		comm.Logf("Sleeping for a bit before we retry...")
+
 		time.Sleep(sleepDuration)
 		sleepDuration *= 2
 	}
 }
 
 func tryWipe(path string) error {
-	if *appArgs.verbose {
-		Logf("rm -rf %s", path)
-	}
-
-	err := os.RemoveAll(path)
-
-	if err != nil {
-		Logf("Got %s, but not giving up", path)
-		Logf("Trying to wipe %s again", path)
-		err = os.RemoveAll(path)
-		return err
-	}
-
-	return err
+	comm.Debugf("rm -rf %s", path)
+	return os.RemoveAll(path)
 }
 
 func tryChmod(path string) error {
@@ -83,9 +71,7 @@ func tryChmod(path string) error {
 
 // Does not preserve users, nor permission, except the executable bit
 func ditto(src string, dst string) {
-	if *appArgs.verbose {
-		Logf("rsync -a %s %s", src, dst)
-	}
+	comm.Debugf("rsync -a %s %s", src, dst)
 
 	totalSize := int64(0)
 	doneSize := int64(0)
@@ -101,7 +87,7 @@ func ditto(src string, dst string) {
 
 	onFile := func(path string, f os.FileInfo, err error) error {
 		if err != nil {
-			Logf("ignoring error %s", err.Error())
+			comm.Logf("ignoring error %s", err.Error())
 			return nil
 		}
 
@@ -122,16 +108,14 @@ func ditto(src string, dst string) {
 			dittoSymlink(path, dstpath, f)
 		}
 
-		if *appArgs.verbose {
-			Logf(" - %s", rel)
-		}
+		comm.Debug(rel)
 
 		doneSize += f.Size()
 
 		perc := float64(doneSize) / float64(totalSize) * 100.0
 		if perc-oldPerc > 1.0 {
 			oldPerc = perc
-			Progress(perc)
+			comm.Progress(perc)
 		}
 
 		return nil
@@ -142,26 +126,21 @@ func ditto(src string, dst string) {
 
 	if rootinfo.IsDir() {
 		totalSize = 0
-		if !*appArgs.quiet {
-			Logf("Counting files in %s...", src)
-		}
+		comm.Logf("Counting files in %s...", src)
 		filepath.Walk(src, inc)
-		if !*appArgs.quiet {
-			Logf("Mirroring...")
-		}
+
+		comm.Logf("Mirroring...")
 		filepath.Walk(src, onFile)
 	} else {
 		totalSize = rootinfo.Size()
 		onFile(src, rootinfo, nil)
 	}
 
-	EndProgress()
+	comm.EndProgress()
 }
 
 func dittoMkdir(dstpath string) {
-	if *appArgs.verbose {
-		Logf("mkdir %s", dstpath)
-	}
+	comm.Debugf("mkdir %s", dstpath)
 
 	dirstat, err := os.Lstat(dstpath)
 	if err != nil {
@@ -170,20 +149,17 @@ func dittoMkdir(dstpath string) {
 		return
 	}
 
-	if !dirstat.IsDir() {
+	if dirstat.IsDir() {
+		// is already a dir, good!
+	} else {
 		// is a file or symlink for example, turn into a dir
 		must(os.Remove(dstpath))
 		must(os.MkdirAll(dstpath, DIR_MODE))
-		return
 	}
-
-	// is already a dir, good!
 }
 
 func dittoReg(srcpath string, dstpath string, mode os.FileMode) {
-	if *appArgs.verbose {
-		Logf("cp -f %s %s", srcpath, dstpath)
-	}
+	comm.Debugf("cp -f %s %s", srcpath, dstpath)
 	must(os.RemoveAll(dstpath))
 
 	writer, err := os.OpenFile(dstpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
@@ -206,8 +182,6 @@ func dittoSymlink(srcpath string, dstpath string, f os.FileInfo) {
 	linkname, err := os.Readlink(srcpath)
 	must(err)
 
-	if *appArgs.verbose {
-		Logf("ln -s %s %s", linkname, dstpath)
-	}
+	comm.Debugf("ln -s %s %s", linkname, dstpath)
 	must(os.Symlink(linkname, dstpath))
 }

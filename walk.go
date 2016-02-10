@@ -9,9 +9,7 @@ import (
 
 func walk(src string) {
 	info, err := tlc.Walk(src, filterDirs)
-	if err != nil {
-		Die(err.Error())
-	}
+	must(err)
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.Encode(info)

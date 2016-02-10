@@ -6,13 +6,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/itchio/butler/comm"
 )
 
 // Does not preserve users, nor permission, except the executable bit
 func untar(archive string, dir string) {
-	if !*appArgs.quiet {
-		Logf("extracting %s to %s", archive, dir)
-	}
+	comm.Logf("Extracting %s to %s", archive, dir)
 
 	dirCount := 0
 	regCount := 0
@@ -33,7 +33,7 @@ func untar(archive string, dir string) {
 			if err == io.EOF {
 				break
 			}
-			Die(err.Error())
+			must(err)
 		}
 
 		rel := header.Name
@@ -53,19 +53,15 @@ func untar(archive string, dir string) {
 			symlinkCount += 1
 
 		default:
-			Dief("Unable to untar entry of type %d", header.Typeflag)
+			comm.Dief("Unable to untar entry of type %d", header.Typeflag)
 		}
 	}
 
-	if !*appArgs.quiet {
-		Logf("extracted %d dirs, %d files, %d symlinks", dirCount, regCount, symlinkCount)
-	}
+	comm.Logf("Extracted %d dirs, %d files, %d symlinks", dirCount, regCount, symlinkCount)
 }
 
 func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
-	if *appArgs.verbose {
-		Logf("extract %s", filename)
-	}
+	comm.Debugf("extract %s", filename)
 	must(os.RemoveAll(filename))
 
 	dirname := filepath.Dir(filename)
@@ -82,9 +78,7 @@ func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
 }
 
 func untarSymlink(linkname string, filename string) {
-	if *appArgs.verbose {
-		Logf("ln -s %s %s", linkname, filename)
-	}
+	comm.Debugf("ln -s %s %s", linkname, filename)
 
 	must(os.RemoveAll(filename))
 	must(os.Symlink(linkname, filename))

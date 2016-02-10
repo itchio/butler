@@ -11,6 +11,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/getlantern/idletiming"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
 )
 
@@ -19,7 +20,7 @@ const bufferSize = 128 * 1024
 func dl(url string, dest string) {
 	_, err := tryDl(url, dest)
 	if err != nil {
-		Die(err.Error())
+		comm.Die(err.Error())
 	}
 }
 
@@ -30,7 +31,7 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 			return nil, err
 		}
 		idleConn := idletiming.Conn(conn, rwTimeout, func() {
-			Logf("connection was idle for too long, dropping")
+			comm.Logf("connection was idle for too long, dropping")
 			conn.Close()
 		})
 		return idleConn, nil
@@ -71,9 +72,7 @@ func tryDl(url string, dest string) (int64, error) {
 
 	switch resp.StatusCode {
 	case 200: // OK
-		if *appArgs.verbose {
-			Logf("HTTP 200 OK (no byte range support)")
-		}
+		comm.Debugf("HTTP 200 OK (no byte range support)")
 		totalBytes = resp.ContentLength
 
 		if existingBytes == resp.ContentLength {
@@ -85,14 +84,10 @@ func tryDl(url string, dest string) (int64, error) {
 			os.Truncate(dest, 0)
 		}
 	case 206: // Partial Content
-		if *appArgs.verbose {
-			Logf("HTTP 206 Partial Content")
-		}
+		comm.Debugf("HTTP 206 Partial Content")
 		// will send incremental data
 	case 416: // Requested Range not Satisfiable
-		if *appArgs.verbose {
-			Logf("HTTP 416 Requested Range not Satisfiable")
-		}
+		comm.Debugf("HTTP 416 Requested Range not Satisfiable")
 		// already has everything
 		doDownload = false
 
@@ -103,9 +98,7 @@ func tryDl(url string, dest string) (int64, error) {
 		}
 
 		if existingBytes > resp.ContentLength {
-			if *appArgs.verbose {
-				Logf("Existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
-			}
+			comm.Debugf("Existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
 			existingBytes = resp.ContentLength
 			os.Truncate(dest, existingBytes)
 		}
@@ -116,21 +109,21 @@ func tryDl(url string, dest string) (int64, error) {
 
 	if doDownload {
 		if existingBytes > 0 {
-			Logf("Resuming (%s + %s = %s) download from %s", humanize.Bytes(uint64(existingBytes)), humanize.Bytes(uint64(resp.ContentLength)), humanize.Bytes(uint64(totalBytes)), hostInfo)
+			comm.Logf("Resuming (%s + %s = %s) download from %s", humanize.Bytes(uint64(existingBytes)), humanize.Bytes(uint64(resp.ContentLength)), humanize.Bytes(uint64(totalBytes)), hostInfo)
 		} else {
-			Logf("Downloading %s from %s", humanize.Bytes(uint64(resp.ContentLength)), hostInfo)
+			comm.Logf("Downloading %s from %s", humanize.Bytes(uint64(resp.ContentLength)), hostInfo)
 		}
 		err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
 			return 0, err
 		}
 	} else {
-		Log("Already fully downloaded")
+		comm.Log("Already fully downloaded")
 	}
 
 	_, err = checkIntegrity(resp, totalBytes, dest)
 	if err != nil {
-		Log("integrity checks failed, truncating")
+		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)
 		return 0, err
 	}
@@ -152,11 +145,11 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 		}
 
 		prevPercent = percent
-		Progress(percent)
+		comm.Progress(percent)
 	}
 	counter := counter.NewWriterCallback(onWrite, out)
 
 	_, err = io.Copy(counter, src)
-	EndProgress()
+	comm.EndProgress()
 	return
 }

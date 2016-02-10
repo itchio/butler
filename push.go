@@ -3,10 +3,7 @@ package main
 import "regexp"
 
 func push(src string, repoSpec string) {
-	err := doPush(src, repoSpec)
-	if err != nil {
-		Die(err.Error())
-	}
+	must(doPush(src, repoSpec))
 }
 
 var (

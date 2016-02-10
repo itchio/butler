@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/crc32c"
 )
 
@@ -27,9 +28,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 			return false, fmt.Errorf("Corrupt download: expected %d bytes, got %d", totalBytes, diskSize)
 		}
 
-		if *appArgs.verbose {
-			Logf("%10s pass (%d bytes)", "size", totalBytes)
-		}
+		comm.Debugf("%10s pass (%d bytes)", "size", totalBytes)
 	}
 
 	return checkHashes(resp.Header, file)
@@ -43,7 +42,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		hashType := tokens[0]
 		hashValue, err := base64.StdEncoding.DecodeString(tokens[1])
 		if err != nil {
-			Logf("Could not verify %s hash: %s", hashType, err)
+			comm.Logf("Could not verify %s hash: %s", hashType, err)
 			continue
 		}
 
@@ -53,12 +52,10 @@ func checkHashes(header http.Header, file string) (bool, error) {
 			return false, err
 		}
 
-		if *appArgs.verbose {
-			if checked {
-				Logf("%10s pass (took %s)", hashType, time.Since(start))
-			} else {
-				Logf("%10s skip (use --paranoid to force check)", hashType)
-			}
+		if checked {
+			comm.Debugf("%10s pass (took %s)", hashType, time.Since(start))
+		} else {
+			comm.Debugf("%10s skip (use --paranoid to force check)", hashType)
 		}
 	}
 

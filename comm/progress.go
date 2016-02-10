@@ -1,4 +1,4 @@
-package main
+package comm
 
 import "github.com/cheggaaa/pb"
 
@@ -10,13 +10,13 @@ func StartProgress() {
 	bar.ShowCounters = false
 	bar.SetMaxWidth(80)
 
-	if !*appArgs.no_progress {
+	if !settings.no_progress {
 		bar.Start()
 	}
 }
 
 func Progress(perc float64) {
-	if *appArgs.quiet {
+	if settings.quiet {
 		return
 	}
 
@@ -36,7 +36,7 @@ func EndProgress() {
 	if bar != nil {
 		bar.Set64(10000)
 
-		if !*appArgs.no_progress {
+		if !settings.no_progress {
 			bar.Finish()
 		}
 		bar = nil

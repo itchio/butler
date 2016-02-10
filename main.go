@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/itchio/butler/comm"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -122,7 +124,7 @@ var applyArgs = struct {
 
 func must(err error) {
 	if err != nil {
-		panic(err.Error())
+		comm.Die(err.Error())
 	}
 }
 
@@ -140,6 +142,7 @@ func main() {
 
 	if *appArgs.quiet {
 		*appArgs.no_progress = true
+		*appArgs.verbose = false
 	}
 
 	switch kingpin.MustParse(cmd, err) {
