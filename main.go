@@ -151,11 +151,11 @@ var verifyArgs = struct {
 }
 
 var signArgs = struct {
-	signature **os.File
 	output    *string
+	signature *string
 }{
-	signCmd.Arg("signature", "Path to write signature to").Required().OpenFile(os.O_CREATE|os.O_TRUNC|os.O_WRONLY, MODE_MASK),
 	signCmd.Arg("dir", "Path of directory to sign").Required().String(),
+	signCmd.Arg("signature", "Path to write signature to").Required().String(),
 }
 
 func must(err error) {
@@ -209,5 +209,11 @@ func main() {
 
 	case applyCmd.FullCommand():
 		apply(*applyArgs.recipe, *applyArgs.old, *applyArgs.dir)
+
+	case verifyCmd.FullCommand():
+		verify(*verifyArgs.signature, *verifyArgs.output)
+
+	case signCmd.FullCommand():
+		sign(*signArgs.output, *signArgs.signature)
 	}
 }
