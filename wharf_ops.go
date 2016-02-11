@@ -30,28 +30,33 @@ func filterDirs(fileInfo os.FileInfo) bool {
 }
 
 func diff(target string, source string, recipe string, brotliQuality int) {
-	targetInfo, err := os.Lstat(target)
-	must(err)
-
 	var targetSignature []sync.BlockHash
 	var targetContainer *tlc.Container
 
-	if targetInfo.IsDir() {
-		comm.Logf("Computing signature of %s", target)
-		targetContainer, err = tlc.Walk(target, filterDirs)
+	if target == "/dev/null" {
+		targetContainer = &tlc.Container{}
+	} else {
+		targetInfo, err := os.Lstat(target)
 		must(err)
 
-		comm.StartProgress()
-		targetSignature, err = pwr.ComputeSignature(targetContainer, target, comm.NewStateConsumer())
-		comm.EndProgress()
-		must(err)
-	} else {
-		comm.Logf("Reading signature from file %s", target)
-		signatureReader, err := os.Open(target)
-		must(err)
-		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
-		must(err)
-		must(signatureReader.Close())
+		if targetInfo.IsDir() {
+			comm.Logf("Computing signature of %s", target)
+			targetContainer, err = tlc.Walk(target, filterDirs)
+			must(err)
+
+			comm.StartProgress()
+			targetSignature, err = pwr.ComputeSignature(targetContainer, target, comm.NewStateConsumer())
+			comm.EndProgress()
+			must(err)
+		} else {
+			comm.Logf("Reading signature from file %s", target)
+			signatureReader, err := os.Open(target)
+			must(err)
+			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
+			must(err)
+			must(signatureReader.Close())
+		}
+
 	}
 
 	sourceContainer, err := tlc.Walk(source, filterDirs)
@@ -59,10 +64,12 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 
 	recipeWriter, err := os.Create(recipe)
 	must(err)
+	defer recipeWriter.Close()
 
 	signaturePath := recipe + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
 	must(err)
+	defer signatureWriter.Close()
 
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
@@ -72,6 +79,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		TargetSignature: targetSignature,
 
 		Consumer: comm.NewStateConsumer(),
+		Compression: &pwr.CompressionSettings{
+			Algorithm: pwr.CompressionAlgorithm_BROTLI,
+			Quality:   int32(*diffArgs.quality),
+		},
 	}
 
 	comm.StartProgress()

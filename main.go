@@ -117,7 +117,7 @@ var diffArgs = struct {
 
 	quality *int
 }{
-	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().ExistingFileOrDir(),
+	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String(),
 	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().ExistingFileOrDir(),
 	diffCmd.Arg("recipe", "Path to write the recipe file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("recipe.pwr").String(),
 
