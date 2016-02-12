@@ -1,11 +1,13 @@
 package comm
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
-	"github.com/cheggaaa/pb"
+	"github.com/itchio/butler/pb"
 )
 
 var bar *pb.ProgressBar
@@ -46,11 +48,23 @@ func getCharset() string {
 	return "ascii"
 }
 
+const maxLabelLength = 40
+
+func ProgressLabel(label string) {
+	if len(label) > maxLabelLength {
+		label = fmt.Sprintf("...%s", label[len(label)-(maxLabelLength-3):])
+	}
+	bar.Postfix(label)
+}
+
 func StartProgress() {
 	// percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
+	bar.RefreshRate = 50 * time.Millisecond
 	bar.ShowCounters = false
 	bar.ShowFinalTime = false
+	bar.TimeBoxWidth = 8
+	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
 
 	themes[getCharset()].apply(bar)
@@ -82,6 +96,7 @@ func EndProgress() {
 		bar.Set64(10000)
 
 		if !settings.no_progress {
+			bar.Postfix("")
 			bar.Finish()
 		}
 		bar = nil

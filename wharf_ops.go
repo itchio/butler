@@ -35,6 +35,11 @@ func filterDirs(fileInfo os.FileInfo) bool {
 	return true
 }
 
+func tlcStats(container *tlc.Container) string {
+	return fmt.Sprintf("%d files, %d dirs, %d symlinks",
+		len(container.Files), len(container.Dirs), len(container.Symlinks))
+}
+
 func diff(target string, source string, recipe string, brotliQuality int) {
 	startTime := time.Now()
 
@@ -48,7 +53,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		must(err)
 
 		if targetInfo.IsDir() {
-			comm.Logf("Computing signature of %s", target)
+			comm.Logf("> Computing signature of %s", target)
 			targetContainer, err = tlc.Walk(target, filterDirs)
 			must(err)
 
@@ -60,10 +65,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 			{
 				prettySize := humanize.Bytes(uint64(targetContainer.Size))
 				perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-				comm.Logf("Signed %s @ %s/s", prettySize, perSecond)
+				comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(targetContainer), perSecond)
 			}
 		} else {
-			comm.Logf("Reading signature from file %s", target)
+			comm.Logf("> Reading signature from file %s", target)
 			signatureReader, err := os.Open(target)
 			must(err)
 			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
@@ -104,23 +109,15 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		},
 	}
 
-	comm.Logf("Computing differences with %s", source)
+	comm.Logf("> Computing recipe from %s", source)
 	comm.StartProgress()
 	must(dctx.WriteRecipe(recipeCounter, signatureCounter))
 	comm.EndProgress()
 
 	{
 		prettySize := humanize.Bytes(uint64(sourceContainer.Size))
-		prettyRecipeSize := humanize.Bytes(uint64(recipeCounter.Count()))
 		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / time.Since(startTime).Seconds()))
-
-		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
-		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
-		percOfNew := float64(sourceContainer.Size) / float64(recipeCounter.Count())
-
-		comm.Logf("Processed %s @ %s/s", prettySize, perSecond)
-		comm.Logf("%s recipe (%.1fx smaller than new)", prettyRecipeSize, percOfNew)
-		comm.Logf("%.2f%% re-used, %s fresh, compression: %s", percReused, prettyFreshSize, dctx.Compression.ToString())
+		comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(sourceContainer), perSecond)
 	}
 
 	if *diffArgs.verify {
@@ -132,10 +129,20 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 
 		verify(signaturePath, tmpDir)
 	}
+
+	{
+		prettyRecipeSize := humanize.Bytes(uint64(recipeCounter.Count()))
+		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
+		percOfNew := float64(sourceContainer.Size) / float64(recipeCounter.Count())
+		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+
+		comm.Logf("%.2f%% similar to old, %s fresh data", percReused, prettyFreshSize)
+		comm.Logf("Recipe is %s (%.1fx smaller than new)", prettyRecipeSize, percOfNew)
+	}
 }
 
 func apply(recipe string, target string, output string) {
-	comm.Logf("Recreating new version into %s", output)
+	comm.Logf("> Applying recipe into %s", output)
 	startTime := time.Now()
 
 	recipeReader, err := os.Open(recipe)
@@ -155,11 +162,11 @@ func apply(recipe string, target string, output string) {
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Logf("Rebuilt %s @ %s", prettySize, perSecond)
+	comm.Logf("%s (%s) @ %s\n", prettySize, tlcStats(container), perSecond)
 }
 
 func sign(output string, signature string) {
-	comm.Logf("Creating signature for %s", output)
+	comm.Logf("> Creating signature for %s", output)
 	startTime := time.Now()
 
 	container, err := tlc.Walk(output, nil)
@@ -193,14 +200,13 @@ func sign(output string, signature string) {
 
 	must(sigWire.Close())
 
-	elapsedTime := time.Since(startTime)
 	prettySize := humanize.Bytes(uint64(container.Size))
-	perSecond := humanize.Bytes(uint64(float64(container.Size) / elapsedTime.Seconds()))
-	comm.Logf("Hashed %s in %s (%s/s)", prettySize, elapsedTime.String(), perSecond)
+	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
+	comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(container), perSecond)
 }
 
 func verify(signature string, output string) {
-	comm.Logf("Verifying %s using %s", output, signature)
+	comm.Logf("> Verifying %s", output)
 	startTime := time.Now()
 
 	signatureReader, err := os.Open(signature)
@@ -231,8 +237,7 @@ func verify(signature string, output string) {
 		}
 	}
 
-	elapsedTime := time.Since(startTime)
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
-	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / elapsedTime.Seconds()))
-	comm.Logf("Verified %s in %s (%s/s)", prettySize, elapsedTime.String(), perSecond)
+	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
+	comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(refContainer), perSecond)
 }
