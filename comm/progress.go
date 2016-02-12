@@ -7,8 +7,17 @@ var bar *pb.ProgressBar
 func StartProgress() {
 	// percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
+	bar.ShowPercent = false
 	bar.ShowCounters = false
 	bar.SetMaxWidth(80)
+
+	bar.BarStart = "|"
+	bar.BarEnd = "|"
+	bar.Current = "#"
+	bar.CurrentN = "#"
+	bar.Empty = "-"
+
+	bar.ShowFinalTime = false
 
 	if !settings.no_progress {
 		bar.Start()
