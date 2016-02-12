@@ -133,11 +133,11 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	{
 		prettyRecipeSize := humanize.Bytes(uint64(recipeCounter.Count()))
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
-		percOfNew := float64(sourceContainer.Size) / float64(recipeCounter.Count())
+		relToNew := 100.0 * float64(recipeCounter.Count()) / float64(sourceContainer.Size)
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
 
-		comm.Logf("%.2f%% similar to old, %s fresh data", percReused, prettyFreshSize)
-		comm.Logf("Recipe is %s (%.1fx smaller than new)", prettyRecipeSize, percOfNew)
+		comm.Logf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
+		comm.Logf("%s recipe (%.2f%% of the full size)", prettyRecipeSize, relToNew)
 	}
 }
 
