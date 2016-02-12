@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -34,6 +36,8 @@ func filterDirs(fileInfo os.FileInfo) bool {
 }
 
 func diff(target string, source string, recipe string, brotliQuality int) {
+	startTime := time.Now()
+
 	var targetSignature []sync.BlockHash
 	var targetContainer *tlc.Container
 
@@ -75,6 +79,9 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	must(err)
 	defer signatureWriter.Close()
 
+	recipeCounter := counter.NewWriter(recipeWriter)
+	signatureCounter := counter.NewWriter(signatureWriter)
+
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
 		SourcePath:      source,
@@ -89,9 +96,20 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		},
 	}
 
+	comm.Logf("Computing differences with %s", source)
 	comm.StartProgress()
-	must(dctx.WriteRecipe(recipeWriter, signatureWriter))
+	must(dctx.WriteRecipe(recipeCounter, signatureCounter))
 	comm.EndProgress()
+
+	elapsedTime := time.Since(startTime)
+	prettySize := humanize.Bytes(uint64(sourceContainer.Size))
+	prettyRecipeSize := humanize.Bytes(uint64(recipeCounter.Count()))
+	prettySignatureSize := humanize.Bytes(uint64(signatureCounter.Count()))
+	prettyReusedSize := humanize.Bytes(uint64(dctx.ReusedBytes))
+	prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+	perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / elapsedTime.Seconds()))
+	comm.Logf("Processed %s in %s (%s/s)", prettySize, elapsedTime.String(), perSecond)
+	comm.Logf("Recipe is %s (%s reused, %s fresh), signature is %s", prettyRecipeSize, prettyReusedSize, prettyFreshSize, prettySignatureSize)
 
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir(os.TempDir(), "pwr")
@@ -124,6 +142,8 @@ func apply(recipe string, target string, output string) {
 }
 
 func sign(output string, signature string) {
+	startTime := time.Now()
+
 	container, err := tlc.Walk(output, nil)
 	must(err)
 
@@ -154,9 +174,16 @@ func sign(output string, signature string) {
 	must(err)
 
 	must(sigWire.Close())
+
+	elapsedTime := time.Since(startTime)
+	prettySize := humanize.Bytes(uint64(container.Size))
+	perSecond := humanize.Bytes(uint64(float64(container.Size) / elapsedTime.Seconds()))
+	comm.Logf("Hashed %s in %s (%s/s)", prettySize, elapsedTime.String(), perSecond)
 }
 
 func verify(signature string, output string) {
+	startTime := time.Now()
+
 	signatureReader, err := os.Open(signature)
 	must(err)
 	defer signatureReader.Close()
@@ -185,5 +212,8 @@ func verify(signature string, output string) {
 		}
 	}
 
-	comm.Logf("All checks passed, verified %s", humanize.Bytes(uint64(refContainer.Size)))
+	elapsedTime := time.Since(startTime)
+	prettySize := humanize.Bytes(uint64(refContainer.Size))
+	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / elapsedTime.Seconds()))
+	comm.Logf("Verified %s in %s (%s/s)", prettySize, elapsedTime.String(), perSecond)
 }
