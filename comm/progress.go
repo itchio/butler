@@ -17,12 +17,14 @@ type progressTheme struct {
 	BarEnd   string
 	Current  string
 	Empty    string
+	OpSign   string
+	StatSign string
 }
 
 var themes = map[string]*progressTheme{
-	"unicode": {"▐", "▌", "▓", "░"},
-	"ascii":   {"|", "|", "#", "-"},
-	"cp437":   {"▐", "▌", "█", "░"},
+	"unicode": {"▐", "▌", "▓", "░", "•", "✓"},
+	"ascii":   {"|", "|", "#", "-", ">", "<"},
+	"cp437":   {"▐", "▌", "█", "░", "•", "√"},
 }
 
 func (th *progressTheme) apply(bar *pb.ProgressBar) {
@@ -47,6 +49,8 @@ func getCharset() string {
 
 	return "ascii"
 }
+
+var theme = themes[getCharset()]
 
 const maxLabelLength = 40
 

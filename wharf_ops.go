@@ -53,7 +53,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		must(err)
 
 		if targetInfo.IsDir() {
-			comm.Logf("> Hashing %s", target)
+			comm.Opf("Hashing %s", target)
 			targetContainer, err = tlc.Walk(target, filterDirs)
 			must(err)
 
@@ -65,10 +65,10 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 			{
 				prettySize := humanize.Bytes(uint64(targetContainer.Size))
 				perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-				comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(targetContainer), perSecond)
+				comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(targetContainer), perSecond)
 			}
 		} else {
-			comm.Logf("> Reading signature from %s", target)
+			comm.Opf("Reading signature from %s", target)
 			signatureReader, err := os.Open(target)
 			must(err)
 			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
@@ -109,7 +109,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		},
 	}
 
-	comm.Logf("> Diffing %s", source)
+	comm.Opf("Diffing %s", source)
 	comm.StartProgress()
 	must(dctx.WriteRecipe(recipeCounter, signatureCounter))
 	comm.EndProgress()
@@ -117,7 +117,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	{
 		prettySize := humanize.Bytes(uint64(sourceContainer.Size))
 		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / time.Since(startTime).Seconds()))
-		comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(sourceContainer), perSecond)
+		comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(sourceContainer), perSecond)
 	}
 
 	if *diffArgs.verify {
@@ -136,13 +136,13 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		relToNew := 100.0 * float64(recipeCounter.Count()) / float64(sourceContainer.Size)
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
 
-		comm.Logf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-		comm.Logf("%s recipe (%.2f%% of the full size)", prettyRecipeSize, relToNew)
+		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
+		comm.Statf("%s recipe (%.2f%% of the full size)", prettyRecipeSize, relToNew)
 	}
 }
 
 func apply(recipe string, target string, output string) {
-	comm.Logf("> Patching %s", output)
+	comm.Opf("Patching %s", output)
 	startTime := time.Now()
 
 	recipeReader, err := os.Open(recipe)
@@ -162,11 +162,11 @@ func apply(recipe string, target string, output string) {
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Logf("%s (%s) @ %s\n", prettySize, tlcStats(container), perSecond)
+	comm.Statf("%s (%s) @ %s\n", prettySize, tlcStats(container), perSecond)
 }
 
 func sign(output string, signature string) {
-	comm.Logf("> Creating signature for %s", output)
+	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
 	container, err := tlc.Walk(output, nil)
@@ -202,11 +202,11 @@ func sign(output string, signature string) {
 
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(container), perSecond)
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(container), perSecond)
 }
 
 func verify(signature string, output string) {
-	comm.Logf("> Verifying %s", output)
+	comm.Opf("Verifying %s", output)
 	startTime := time.Now()
 
 	signatureReader, err := os.Open(signature)
@@ -239,5 +239,5 @@ func verify(signature string, output string) {
 
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
 	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(refContainer), perSecond)
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(refContainer), perSecond)
 }

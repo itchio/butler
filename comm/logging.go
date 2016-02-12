@@ -28,6 +28,14 @@ func Configure(no_progress, quiet, verbose, json bool) {
 
 type jsonMessage map[string]interface{}
 
+func Opf(format string, args ...interface{}) {
+	Logf("%s %s", theme.OpSign, fmt.Sprintf(format, args...))
+}
+
+func Statf(format string, args ...interface{}) {
+	Logf("%s %s", theme.StatSign, fmt.Sprintf(format, args...))
+}
+
 // Log sends an informational message to the client
 func Log(msg string) {
 	Logl("info", msg)
