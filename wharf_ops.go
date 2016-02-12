@@ -53,7 +53,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		must(err)
 
 		if targetInfo.IsDir() {
-			comm.Logf("> Computing signature of %s", target)
+			comm.Logf("> Hashing %s", target)
 			targetContainer, err = tlc.Walk(target, filterDirs)
 			must(err)
 
@@ -68,7 +68,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 				comm.Logf("%s (%s) @ %s/s\n", prettySize, tlcStats(targetContainer), perSecond)
 			}
 		} else {
-			comm.Logf("> Reading signature from file %s", target)
+			comm.Logf("> Reading signature from %s", target)
 			signatureReader, err := os.Open(target)
 			must(err)
 			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
@@ -109,7 +109,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		},
 	}
 
-	comm.Logf("> Computing recipe from %s", source)
+	comm.Logf("> Diffing %s", source)
 	comm.StartProgress()
 	must(dctx.WriteRecipe(recipeCounter, signatureCounter))
 	comm.EndProgress()
@@ -142,7 +142,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 }
 
 func apply(recipe string, target string, output string) {
-	comm.Logf("> Applying recipe into %s", output)
+	comm.Logf("> Patching %s", output)
 	startTime := time.Now()
 
 	recipeReader, err := os.Open(recipe)
