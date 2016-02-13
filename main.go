@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"syscall"
-
-	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/itchio/butler/comm"
 
@@ -184,7 +181,7 @@ func main() {
 		*appArgs.verbose = false
 	}
 
-	if !terminal.IsTerminal(syscall.Stdout) {
+	if !isTerminal() {
 		*appArgs.no_progress = true
 	}
 	comm.Configure(*appArgs.no_progress, *appArgs.quiet, *appArgs.verbose, *appArgs.json)
