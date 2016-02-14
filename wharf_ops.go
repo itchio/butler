@@ -232,12 +232,12 @@ func verify(signature string, output string) {
 
 		if refHash.WeakHash != hash.WeakHash {
 			success = false
-			comm.Logf("At block %d, expected weak hash %x, got %x", i, refHash.WeakHash, hash.WeakHash)
+			comm.Logf("At block %d / %d, expected weak hash %x, got %x", i, len(refHashes), refHash.WeakHash, hash.WeakHash)
 		}
 
 		if !bytes.Equal(refHash.StrongHash, hash.StrongHash) {
 			success = false
-			comm.Logf("At block %d, expected strong hash %x, got %x", i, refHash.StrongHash, hash.StrongHash)
+			comm.Logf("At block %d / %d, expected strong hash %x, got %x", i, len(refHashes), refHash.WeakHash, hash.WeakHash)
 		}
 	}
 
