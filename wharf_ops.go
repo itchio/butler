@@ -221,6 +221,8 @@ func verify(signature string, output string) {
 	comm.EndProgress()
 	must(err)
 
+	success := true
+
 	if len(hashes) != len(refHashes) {
 		must(fmt.Errorf("Expected %d blocks, got %d.", len(refHashes), len(hashes)))
 	}
@@ -229,12 +231,18 @@ func verify(signature string, output string) {
 		hash := hashes[i]
 
 		if refHash.WeakHash != hash.WeakHash {
-			comm.Dief("At block %d, expected weak hash %x, got %x", i, refHash.WeakHash, hash.WeakHash)
+			success = false
+			comm.Logf("At block %d, expected weak hash %x, got %x", i, refHash.WeakHash, hash.WeakHash)
 		}
 
 		if !bytes.Equal(refHash.StrongHash, hash.StrongHash) {
-			comm.Dief("At block %d, expected weak hash %x, got %x", i, refHash.StrongHash, hash.StrongHash)
+			success = false
+			comm.Logf("At block %d, expected strong hash %x, got %x", i, refHash.StrongHash, hash.StrongHash)
 		}
+	}
+
+	if !success {
+		comm.Dief("Some checks failed after checking %d block.", len(refHashes))
 	}
 
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
