@@ -2,17 +2,6 @@ package pb
 
 import "testing"
 
-func Test_IncrementAddsOne(t *testing.T) {
-	count := 5000
-	bar := New(count)
-	expected := 1
-	actual := bar.Increment()
-
-	if actual != expected {
-		t.Errorf("Expected {%d} was {%d}", expected, actual)
-	}
-}
-
 func Test_Width(t *testing.T) {
 	count := 5000
 	bar := New(count)
@@ -23,20 +12,20 @@ func Test_Width(t *testing.T) {
 		}
 	}
 	bar.Start()
-	bar.Increment()
+	bar.Set64(1)
 	bar.Finish()
 }
 
 func Test_MultipleFinish(t *testing.T) {
 	bar := New(5000)
-	bar.Add(2000)
+	bar.Set64(7000)
 	bar.Finish()
 	bar.Finish()
 }
 
 func Test_Format(t *testing.T) {
 	bar := New(5000).Format("[ooo]")
-	bar.Add(2000)
+	bar.Set64(7000)
 	bar.Finish()
 	bar.Finish()
 }

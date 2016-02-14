@@ -78,8 +78,9 @@ type ProgressBar struct {
 	TimeBoxWidth int
 	BarWidth     int
 
-	finish   chan struct{}
-	isFinish bool
+	finishOnce sync.Once // Guards isFinish
+	finish     chan struct{}
+	isFinish   bool
 
 	startTime    time.Time
 	startValue   int64
@@ -182,12 +183,15 @@ func (pb *ProgressBar) SetWidth(width int) *ProgressBar {
 
 // End print
 func (pb *ProgressBar) Finish() {
-	close(pb.finish)
-	pb.write(atomic.LoadInt64(&pb.current))
-	if !pb.NotPrint {
-		fmt.Printf("\r%s\r", strings.Repeat(" ", pb.Width))
-	}
-	pb.isFinish = true
+	// Protect multiple calls
+	pb.finishOnce.Do(func() {
+		close(pb.finish)
+		pb.write(atomic.LoadInt64(&pb.current))
+		if !pb.NotPrint {
+			fmt.Printf("\r%s\r", strings.Repeat(" ", pb.Width))
+		}
+		pb.isFinish = true
+	})
 }
 
 func (pb *ProgressBar) write(current int64) {
