@@ -205,7 +205,7 @@ func doPush(build string, repoSpec string) error {
 	// 		tr := io.TeeReader(fr, h)
 	//
 	// 		rs := &rsync.RSync{}
-	// 		err = rs.InventRecipe(tr, sig, opWriter)
+	// 		err = rs.InventPatch(tr, sig, opWriter)
 	// 		if err != nil {
 	// 			return fmt.Errorf("while creating delta for %s: %s", path, err.Error())
 	// 		}

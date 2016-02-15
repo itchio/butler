@@ -40,7 +40,7 @@ func tlcStats(container *tlc.Container) string {
 		len(container.Files), len(container.Dirs), len(container.Symlinks))
 }
 
-func diff(target string, source string, recipe string, brotliQuality int) {
+func diff(target string, source string, patch string, brotliQuality int) {
 	startTime := time.Now()
 
 	var targetSignature []sync.BlockHash
@@ -83,16 +83,16 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 	sourceContainer, err := tlc.Walk(source, filterDirs)
 	must(err)
 
-	recipeWriter, err := os.Create(recipe)
+	patchWriter, err := os.Create(patch)
 	must(err)
-	defer recipeWriter.Close()
+	defer patchWriter.Close()
 
-	signaturePath := recipe + ".sig"
+	signaturePath := patch + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
 	must(err)
 	defer signatureWriter.Close()
 
-	recipeCounter := counter.NewWriter(recipeWriter)
+	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
 
 	dctx := &pwr.DiffContext{
@@ -111,7 +111,7 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 
 	comm.Opf("Diffing %s", source)
 	comm.StartProgress()
-	must(dctx.WriteRecipe(recipeCounter, signatureCounter))
+	must(dctx.WritePatch(patchCounter, signatureCounter))
 	comm.EndProgress()
 
 	{
@@ -125,27 +125,27 @@ func diff(target string, source string, recipe string, brotliQuality int) {
 		must(err)
 		defer os.RemoveAll(tmpDir)
 
-		apply(recipe, target, tmpDir)
+		apply(patch, target, tmpDir)
 
 		verify(signaturePath, tmpDir)
 	}
 
 	{
-		prettyRecipeSize := humanize.Bytes(uint64(recipeCounter.Count()))
+		prettyPatchSize := humanize.Bytes(uint64(patchCounter.Count()))
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
-		relToNew := 100.0 * float64(recipeCounter.Count()) / float64(sourceContainer.Size)
+		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-		comm.Statf("%s recipe (%.2f%% of the full size)", prettyRecipeSize, relToNew)
+		comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
 	}
 }
 
-func apply(recipe string, target string, output string) {
+func apply(patch string, target string, output string) {
 	comm.Opf("Patching %s", output)
 	startTime := time.Now()
 
-	recipeReader, err := os.Open(recipe)
+	patchReader, err := os.Open(patch)
 	must(err)
 
 	actx := &pwr.ApplyContext{
@@ -156,7 +156,7 @@ func apply(recipe string, target string, output string) {
 	}
 
 	comm.StartProgress()
-	must(actx.ApplyRecipe(recipeReader))
+	must(actx.ApplyPatch(patchReader))
 	comm.EndProgress()
 
 	container := actx.SourceContainer

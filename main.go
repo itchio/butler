@@ -30,8 +30,8 @@ var (
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
-	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the recipe in `recipe.pwr`, and a signature in `recipe.pwr.sig` for integrity checks and further diff.")
-	applyCmd  = app.Command("apply", "(Advanced) Use a recipe to patch a directory to a new version")
+	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
+	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 )
 
 var appArgs = struct {
@@ -109,9 +109,9 @@ var walkArgs = struct {
 }
 
 var diffArgs = struct {
-	old    *string
-	new    *string
-	recipe *string
+	old   *string
+	new   *string
+	patch *string
 
 	verify *bool
 
@@ -119,27 +119,27 @@ var diffArgs = struct {
 }{
 	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String(),
 	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().ExistingFileOrDir(),
-	diffCmd.Arg("recipe", "Path to write the recipe file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("recipe.pwr").String(),
+	diffCmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").String(),
 
-	diffCmd.Flag("verify", "Make sure generated recipe applies cleanly by applying it (slower)").Bool(),
+	diffCmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").Bool(),
 
 	diffCmd.Flag("quality", "Compression quality").Hidden().Default("1").Int(),
 }
 
 var applyArgs = struct {
-	recipe *string
-	old    *string
+	patch *string
+	old   *string
 
 	dir     *string
 	verify  *string
 	reverse *string
 }{
-	applyCmd.Arg("recipe", "Recipe file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
+	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
 	applyCmd.Arg("old", "Directory to patch").Required().ExistingFileOrDir(),
 
 	applyCmd.Flag("dir", "Optional directory to recreate newer files in, instead of working in-place").Short('d').String(),
-	applyCmd.Flag("verify", "When given, verifies recipe application on-the-fly, and abort if any integrity check fails").String(),
-	applyCmd.Flag("reverse", "When given, generates a reverse recipe to allow rolling back later, along with its signature").String(),
+	applyCmd.Flag("verify", "When given, verifies patch application on-the-fly, and abort if any integrity check fails").String(),
+	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").String(),
 }
 
 var verifyArgs = struct {
@@ -209,10 +209,10 @@ func main() {
 		walk(*walkArgs.src)
 
 	case diffCmd.FullCommand():
-		diff(*diffArgs.old, *diffArgs.new, *diffArgs.recipe, *diffArgs.quality)
+		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, *diffArgs.quality)
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.recipe, *applyArgs.old, *applyArgs.dir)
+		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir)
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.output)
