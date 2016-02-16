@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -62,7 +63,10 @@ func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 
 	for key, val := range uploadParams {
 		comm.Debugf("Writing param %s=%s", key, val)
-		multiWriter.WriteField(key, val)
+		err := multiWriter.WriteField(key, val)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	comm.Debugf("Creating form file %s", fileName)
@@ -89,7 +93,8 @@ func doReq(req *http.Request, done chan bool, errs chan error) {
 	}
 
 	if res.StatusCode/100 != 2 {
-		errs <- fmt.Errorf("Server responded with HTTP %s", res.Status)
+		responseBytes, _ := ioutil.ReadAll(res.Body)
+		errs <- fmt.Errorf("Server responded with HTTP %s to %s %s: %s", res.Status, res.Request.Method, res.Request.URL.String(), string(responseBytes))
 	}
 
 	done <- true
