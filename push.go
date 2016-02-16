@@ -40,7 +40,6 @@ func doPush(buildPath string, spec string) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	comm.Logf("Connected to %s", conn.Conn.RemoteAddr())
 
 	go ssh.DiscardRequests(conn.Reqs)
@@ -51,6 +50,11 @@ func doPush(buildPath string, spec string) error {
 	err = conn.SendRequest("authenticate", req, res)
 	if err != nil {
 		return fmt.Errorf("Authentication error; %s", err.Error())
+	}
+
+	err = conn.Close()
+	if err != nil {
+		return err
 	}
 
 	// TODO: if buildPath is an archive, warn and unpack it
