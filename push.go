@@ -145,79 +145,57 @@ func doPush(buildPath string, spec string) error {
 	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
 
-	go func() {
-		defer patchWriter.Close()
-		defer signatureWriter.Close()
+	// we started walking the source container in the beginning,
+	// we actually need it now.
+	// note that we could actually start diffing before all the file
+	// creation & upload setup is done
 
-		// we started walking the source container in the beginning,
-		// we actually need it now.
-		// note that we could actually start diffing before all the file
-		// creation & upload setup is done
+	var sourceContainer *tlc.Container
 
-		var sourceContainer *tlc.Container
+	comm.Debugf("Waiting for source container")
+	select {
+	case err := <-walkErrs:
+		return err
+	case sourceContainer = <-sourceContainerChan:
+		break
+	}
 
-		comm.Debugf("Waiting for source container")
-		select {
-		case err := <-walkErrs:
-			errs <- err
-			return
-		case sourceContainer = <-sourceContainerChan:
-			break
-		}
+	comm.Debugf("Building diff context")
+	dctx := &pwr.DiffContext{
+		Compression: &pwr.CompressionSettings{
+			Algorithm: pwr.CompressionAlgorithm_BROTLI,
+			Quality:   1,
+		},
 
-		comm.Debugf("Building diff context")
-		dctx := &pwr.DiffContext{
-			Compression: &pwr.CompressionSettings{
-				Algorithm: pwr.CompressionAlgorithm_BROTLI,
-				Quality:   1,
-			},
+		SourceContainer: sourceContainer,
+		SourcePath:      buildPath,
 
-			SourceContainer: sourceContainer,
-			SourcePath:      buildPath,
+		TargetContainer: targetContainer,
+		TargetSignature: targetSignature,
 
-			TargetContainer: targetContainer,
-			TargetSignature: targetSignature,
+		Consumer: comm.NewStateConsumer(),
+	}
 
-			Consumer: comm.NewStateConsumer(),
-		}
+	comm.Logf("Sending patch and signature computed on-the-fly...")
+	comm.StartProgress()
+	err = dctx.WritePatch(patchCounter, signatureCounter)
+	if err != nil {
+		return err
+	}
+	comm.EndProgress()
 
-		comm.Logf("Sending patch and signature computed on-the-fly...")
-		comm.StartProgress()
-		err := dctx.WritePatch(patchCounter, signatureCounter)
-		comm.EndProgress()
+	comm.Logf("Done computing patch, waiting for the rest")
+	err = patchWriter.Close()
+	if err != nil {
+		return err
+	}
 
-		if err != nil {
-			errs <- err
-			return
-		}
+	err = signatureWriter.Close()
+	if err != nil {
+		return err
+	}
 
-		{
-			prettyPatchSize := humanize.Bytes(uint64(patchCounter.Count()))
-			percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
-			relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-			prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
-
-			comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-			comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
-		}
-
-		_, err = client.FinalizeBuildFile(buildID, newPatchRes.File.ID, patchCounter.Count())
-		if err != nil {
-			errs <- err
-			return
-		}
-
-		_, err = client.FinalizeBuildFile(buildID, newSignatureRes.File.ID, signatureCounter.Count())
-		if err != nil {
-			errs <- err
-			return
-		}
-
-		done <- true
-	}()
-
-	// wait for all goroutines to complete
-	for c := 0; c < 3; c++ {
+	for c := 0; c < 2; c++ {
 		select {
 		case err := <-errs:
 			return err
@@ -226,12 +204,33 @@ func doPush(buildPath string, spec string) error {
 	}
 	comm.Logf("Everything sent off!")
 
+	{
+		prettyPatchSize := humanize.Bytes(uint64(patchCounter.Count()))
+		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
+		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
+		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+
+		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
+		comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
+	}
+
+	comm.Logf("Finalizing patch file (%d bytes total)", patchCounter.Count())
+	_, err = client.FinalizeBuildFile(buildID, newPatchRes.File.ID, patchCounter.Count())
+	if err != nil {
+		return err
+	}
+
+	comm.Logf("Finalizing signature file (%d bytes total)", signatureCounter.Count())
+	_, err = client.FinalizeBuildFile(buildID, newSignatureRes.File.ID, signatureCounter.Count())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func doWalk(path string, result chan *tlc.Container, errs chan error) {
-	// TODO: allow custom filter function
-	container, err := tlc.Walk(path, nil)
+	container, err := tlc.Walk(path, filterDirs)
 	if err != nil {
 		errs <- err
 	}

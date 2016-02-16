@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -10,14 +11,20 @@ import (
 )
 
 type MultipartUpload struct {
-	request     *http.Request
-	multiWriter io.Closer
-	pipeWriter  io.Closer
-	partWriter  io.Writer
+	request        *http.Request
+	bufferedWriter *bufio.Writer
+	multiWriter    io.Closer
+	pipeWriter     io.Closer
+	partWriter     io.Writer
 }
 
 func (mu *MultipartUpload) Close() error {
-	err := mu.multiWriter.Close()
+	err := mu.bufferedWriter.Flush()
+	if err != nil {
+		return err
+	}
+
+	err = mu.multiWriter.Close()
 	if err != nil {
 		return err
 	}
@@ -49,7 +56,9 @@ func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 	go doReq(req, done, errs)
 
 	comm.Debugf("Creating multiwriter")
-	multiWriter := multipart.NewWriter(pipeW)
+	const bufferSize = 16 * 1024 * 1024 // 16MB
+	bufferedPipeW := bufio.NewWriterSize(pipeW, bufferSize)
+	multiWriter := multipart.NewWriter(bufferedPipeW)
 
 	for key, val := range uploadParams {
 		comm.Debugf("Writing param %s=%s", key, val)
@@ -63,9 +72,10 @@ func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 	}
 
 	mu := &MultipartUpload{
-		multiWriter: multiWriter,
-		partWriter:  partWriter,
-		pipeWriter:  pipeW,
+		multiWriter:    multiWriter,
+		bufferedWriter: bufferedPipeW,
+		partWriter:     partWriter,
+		pipeWriter:     pipeW,
 	}
 	return mu, nil
 }
@@ -79,7 +89,7 @@ func doReq(req *http.Request, done chan bool, errs chan error) {
 	}
 
 	if res.StatusCode/100 != 2 {
-		errs <- fmt.Errorf("Server responded with HTTP %d %s", res.StatusCode, res.Status)
+		errs <- fmt.Errorf("Server responded with HTTP %s", res.Status)
 	}
 
 	done <- true
