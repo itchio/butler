@@ -20,12 +20,12 @@ type MultipartUpload struct {
 }
 
 func (mu *MultipartUpload) Close() error {
-	err := mu.bufferedWriter.Flush()
+	err := mu.multiWriter.Close()
 	if err != nil {
 		return err
 	}
 
-	err = mu.multiWriter.Close()
+	err = mu.bufferedWriter.Flush()
 	if err != nil {
 		return err
 	}
@@ -48,18 +48,19 @@ func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 	comm.Debugf("Creating pipe")
 	pipeR, pipeW := io.Pipe()
 
+	comm.Debugf("Creating multiwriter")
+	const bufferSize = 16 * 1024 * 1024 // 16MB
+	bufferedPipeW := bufio.NewWriterSize(pipeW, bufferSize)
+	multiWriter := multipart.NewWriter(bufferedPipeW)
+
 	comm.Debugf("Creating new HTTP request")
 	req, err := http.NewRequest("POST", uploadURL, pipeR)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", multiWriter.FormDataContentType())
 
 	go doReq(req, done, errs)
-
-	comm.Debugf("Creating multiwriter")
-	const bufferSize = 16 * 1024 * 1024 // 16MB
-	bufferedPipeW := bufio.NewWriterSize(pipeW, bufferSize)
-	multiWriter := multipart.NewWriter(bufferedPipeW)
 
 	for key, val := range uploadParams {
 		comm.Debugf("Writing param %s=%s", key, val)
