@@ -72,8 +72,8 @@ func doPush(buildPath string, spec string) error {
 		return err
 	}
 
-	buildID := newBuildRes.ID
-	parentID := newBuildRes.ParentID
+	buildID := newBuildRes.Build.ID
+	parentID := newBuildRes.Build.ParentBuild.ID
 
 	var targetSignature []sync.BlockHash
 	var targetContainer *tlc.Container
@@ -109,12 +109,19 @@ func doPush(buildPath string, spec string) error {
 		}
 	}
 
+	done := make(chan bool)
+	errs := make(chan error)
+
 	newPatchRes, err := client.CreateBuildFile(buildID, itchio.BuildFileType_PATCH)
 	if err != nil {
 		return err
 	}
+	comm.Debugf("Created patch build file: %+v", newPatchRes.File)
 
-	uploadPatchReq, patchWriter, err := newMultipartUpload(newPatchRes.UploadURL, fmt.Sprintf("%d-%d.pwr", parentID, buildID))
+	patchWriter, err := newMultipartUpload(newPatchRes.File.UploadURL,
+		newPatchRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
+		done, errs)
+
 	if err != nil {
 		return err
 	}
@@ -123,17 +130,17 @@ func doPush(buildPath string, spec string) error {
 	if err != nil {
 		return err
 	}
+	comm.Debugf("Created signature build file: %+v", newPatchRes.File)
 
-	uploadSignatureReq, signatureWriter, err := newMultipartUpload(newSignatureRes.UploadURL, fmt.Sprintf("%d-%d.pwr", parentID, buildID))
+	signatureWriter, err := newMultipartUpload(newSignatureRes.File.UploadURL,
+		newSignatureRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
+		done, errs)
+
 	if err != nil {
 		return err
 	}
 
-	done := make(chan bool)
-	errs := make(chan error)
-
-	go doReq(uploadPatchReq, done, errs)
-	go doReq(uploadSignatureReq, done, errs)
+	comm.Logf("Launching patch & signature channels")
 
 	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
@@ -149,6 +156,7 @@ func doPush(buildPath string, spec string) error {
 
 		var sourceContainer *tlc.Container
 
+		comm.Debugf("Waiting for source container")
 		select {
 		case err := <-walkErrs:
 			errs <- err
@@ -157,6 +165,7 @@ func doPush(buildPath string, spec string) error {
 			break
 		}
 
+		comm.Debugf("Building diff context")
 		dctx := &pwr.DiffContext{
 			Compression: &pwr.CompressionSettings{
 				Algorithm: pwr.CompressionAlgorithm_BROTLI,
@@ -192,13 +201,13 @@ func doPush(buildPath string, spec string) error {
 			comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
 		}
 
-		_, err = client.FinalizeBuildFile(buildID, newPatchRes.ID, patchCounter.Count())
+		_, err = client.FinalizeBuildFile(buildID, newPatchRes.File.ID, patchCounter.Count())
 		if err != nil {
 			errs <- err
 			return
 		}
 
-		_, err = client.FinalizeBuildFile(buildID, newSignatureRes.ID, signatureCounter.Count())
+		_, err = client.FinalizeBuildFile(buildID, newSignatureRes.File.ID, signatureCounter.Count())
 		if err != nil {
 			errs <- err
 			return

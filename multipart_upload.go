@@ -5,6 +5,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/itchio/butler/comm"
 )
 
 type MultipartUpload struct {
@@ -32,28 +34,40 @@ func (mu *MultipartUpload) Write(p []byte) (int, error) {
 	return mu.partWriter.Write(p)
 }
 
-func newMultipartUpload(uploadURL string, fileName string) (*http.Request, io.WriteCloser, error) {
+func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileName string,
+	done chan bool, errs chan error) (io.WriteCloser, error) {
+
+	comm.Debugf("Creating pipe")
 	pipeR, pipeW := io.Pipe()
 
-	multiWriter := multipart.NewWriter(pipeW)
-	partWriter, err := multiWriter.CreateFormFile("file", fileName)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	comm.Debugf("Creating new HTTP request")
 	req, err := http.NewRequest("POST", uploadURL, pipeR)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	req.ContentLength = -1
+	go doReq(req, done, errs)
+
+	comm.Debugf("Creating multiwriter")
+	multiWriter := multipart.NewWriter(pipeW)
+
+	for key, val := range uploadParams {
+		comm.Debugf("Writing param %s=%s", key, val)
+		multiWriter.WriteField(key, val)
+	}
+
+	comm.Debugf("Creating form file %s", fileName)
+	partWriter, err := multiWriter.CreateFormFile("file", fileName)
+	if err != nil {
+		return nil, err
+	}
 
 	mu := &MultipartUpload{
 		multiWriter: multiWriter,
 		partWriter:  partWriter,
 		pipeWriter:  pipeW,
 	}
-	return req, mu, nil
+	return mu, nil
 }
 
 func doReq(req *http.Request, done chan bool, errs chan error) {
