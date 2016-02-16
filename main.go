@@ -40,12 +40,14 @@ var appArgs = struct {
 	verbose     *bool
 	timestamps  *bool
 	no_progress *bool
+	panic       *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Short('q').Bool(),
 	app.Flag("verbose", "Be very chatty about what's happening").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Hidden().Bool(),
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
+	app.Flag("panic", "Panic on error").Hidden().Bool(),
 }
 
 var dlArgs = struct {
@@ -184,7 +186,7 @@ func main() {
 	if !isTerminal() {
 		*appArgs.no_progress = true
 	}
-	comm.Configure(*appArgs.no_progress, *appArgs.quiet, *appArgs.verbose, *appArgs.json)
+	comm.Configure(*appArgs.no_progress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic)
 
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():

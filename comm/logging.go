@@ -12,18 +12,21 @@ var settings = &struct {
 	quiet       bool
 	verbose     bool
 	json        bool
+	panic       bool
 }{
+	false,
 	false,
 	false,
 	false,
 	false,
 }
 
-func Configure(no_progress, quiet, verbose, json bool) {
+func Configure(no_progress, quiet, verbose, json, panic bool) {
 	settings.no_progress = no_progress
 	settings.quiet = quiet
 	settings.verbose = verbose
 	settings.json = json
+	settings.panic = panic
 }
 
 type jsonMessage map[string]interface{}
@@ -108,7 +111,12 @@ func send(msgType string, obj jsonMessage) {
 			}
 		case "error":
 			EndProgress()
-			log.Panicln(obj["message"])
+			if settings.panic {
+				log.Panicln(obj["message"])
+			} else {
+				log.Println(obj["message"])
+				os.Exit(1)
+			}
 		case "progress":
 			setBarProgress(obj["percentage"].(float64))
 		default:
