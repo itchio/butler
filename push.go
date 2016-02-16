@@ -60,6 +60,7 @@ func doPush(buildPath string, spec string) error {
 	// TODO: if buildPath is an archive, warn and unpack it
 
 	client := itchio.ClientWithKey(res.Key)
+	client.BaseURL = res.ItchioBaseUrl
 
 	target, channel, err := parseSpec(spec)
 	if err != nil {
