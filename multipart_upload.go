@@ -9,14 +9,25 @@ import (
 	"net/http"
 
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/counter"
 )
 
 type MultipartUpload struct {
-	request        *http.Request
+	TotalBytes    int64
+	UploadedBytes int64
+	OnProgress    func()
+
+	// underlying writer
+	partWriter io.Writer
+
+	// owns partWriter, need to close to write boundary
+	multiWriter io.Closer
+
+	// need to flush to squeeze all the data out
 	bufferedWriter *bufio.Writer
-	multiWriter    io.Closer
-	pipeWriter     io.Closer
-	partWriter     io.Writer
+
+	// need to close so reader end of pipe gets EOF
+	pipeWriter io.Closer
 }
 
 func (mu *MultipartUpload) Close() error {
@@ -43,18 +54,41 @@ func (mu *MultipartUpload) Write(p []byte) (int, error) {
 }
 
 func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileName string,
-	done chan bool, errs chan error) (io.WriteCloser, error) {
+	done chan bool, errs chan error) (*MultipartUpload, error) {
 
-	comm.Debugf("Creating pipe")
+	mu := &MultipartUpload{}
+
 	pipeR, pipeW := io.Pipe()
 
-	comm.Debugf("Creating multiwriter")
-	const bufferSize = 16 * 1024 * 1024 // 16MB
-	bufferedPipeW := bufio.NewWriterSize(pipeW, bufferSize)
-	multiWriter := multipart.NewWriter(bufferedPipeW)
+	mu.pipeWriter = pipeW
+
+	// TODO: make configurable?
+	const bufferSize = 32 * 1024 * 1024
+
+	bufferedWriter := bufio.NewWriterSize(pipeW, bufferSize)
+	mu.bufferedWriter = bufferedWriter
+
+	onWrite := func(count int64) {
+		mu.TotalBytes = count
+		if mu.OnProgress != nil {
+			mu.OnProgress()
+		}
+	}
+	writeCounter := counter.NewWriterCallback(onWrite, bufferedWriter)
+
+	multiWriter := multipart.NewWriter(writeCounter)
+	mu.multiWriter = multiWriter
+
+	onRead := func(count int64) {
+		mu.UploadedBytes = count
+		if mu.OnProgress != nil {
+			mu.OnProgress()
+		}
+	}
+	readCounter := counter.NewReaderCallback(onRead, pipeR)
 
 	comm.Debugf("Creating new HTTP request")
-	req, err := http.NewRequest("POST", uploadURL, pipeR)
+	req, err := http.NewRequest("POST", uploadURL, readCounter)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +109,8 @@ func newMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 	if err != nil {
 		return nil, err
 	}
+	mu.partWriter = partWriter
 
-	mu := &MultipartUpload{
-		multiWriter:    multiWriter,
-		bufferedWriter: bufferedPipeW,
-		partWriter:     partWriter,
-		pipeWriter:     pipeW,
-	}
 	return mu, nil
 }
 

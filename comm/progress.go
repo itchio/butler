@@ -55,6 +55,10 @@ var theme = themes[getCharset()]
 const maxLabelLength = 40
 
 func ProgressLabel(label string) {
+	if bar == nil {
+		return
+	}
+
 	if len(label) > maxLabelLength {
 		label = fmt.Sprintf("...%s", label[len(label)-(maxLabelLength-3):])
 	}
@@ -62,9 +66,15 @@ func ProgressLabel(label string) {
 }
 
 func StartProgress() {
+	if bar != nil {
+		// Already in-progress
+		return
+	}
+
 	// percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
-	bar.RefreshRate = 50 * time.Millisecond
+	bar.AlwaysUpdate = true
+	bar.RefreshRate = 250 * time.Millisecond
 	bar.ShowCounters = false
 	bar.ShowFinalTime = false
 	bar.TimeBoxWidth = 8
@@ -89,10 +99,9 @@ func Progress(perc float64) {
 }
 
 func setBarProgress(perc float64) {
-	if bar == nil {
-		StartProgress()
+	if bar != nil {
+		bar.Set64(int64(perc * 100.0))
 	}
-	bar.Set64(int64(perc * 100.0))
 }
 
 func EndProgress() {
