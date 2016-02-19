@@ -118,7 +118,7 @@ func send(msgType string, obj jsonMessage) {
 				os.Exit(1)
 			}
 		case "progress":
-			setBarProgress(obj["percentage"].(float64))
+			setBarProgress(obj["percentage"].(float64) * 0.01)
 		default:
 			log.Println(msgType, obj)
 		}

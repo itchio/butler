@@ -71,7 +71,7 @@ func StartProgress() {
 		return
 	}
 
-	// percentages, to the 1/100th
+	// shows percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
 	bar.AlwaysUpdate = true
 	bar.RefreshRate = 250 * time.Millisecond
@@ -94,13 +94,13 @@ func Progress(perc float64) {
 	}
 
 	send("progress", jsonMessage{
-		"percentage": perc,
+		"percentage": perc * 100.0,
 	})
 }
 
 func setBarProgress(perc float64) {
 	if bar != nil {
-		bar.Set64(int64(perc * 100.0))
+		bar.Set64(int64(perc * 10000.0))
 	}
 }
 

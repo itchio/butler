@@ -172,15 +172,15 @@ func doPush(buildPath string, spec string) error {
 			comm.ProgressLabel(fmt.Sprintf("almost there"))
 		}
 
-		conservativeProgress := 100.0 * float64(uploadedBytes) / float64(conservativeTotalBytes)
-		conservativeProgress = min(100.0, conservativeProgress)
+		conservativeProgress := float64(uploadedBytes) / float64(conservativeTotalBytes)
+		conservativeProgress = min(1.0, conservativeProgress)
 		comm.Progress(conservativeProgress)
 	}
 	patchWriter.OnProgress = updateProgress
 
 	stateConsumer := &pwr.StateConsumer{
 		OnProgress: func(progress float64) {
-			readBytes = int64(float64(sourceContainer.Size) / 100.0 * progress)
+			readBytes = int64(float64(sourceContainer.Size) * progress)
 			updateProgress()
 		},
 	}

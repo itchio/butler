@@ -75,7 +75,7 @@ func ditto(src string, dst string) {
 
 	totalSize := int64(0)
 	doneSize := int64(0)
-	oldPerc := 0.0
+	oldProgress := 0.0
 
 	inc := func(_ string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -112,10 +112,10 @@ func ditto(src string, dst string) {
 
 		doneSize += f.Size()
 
-		perc := float64(doneSize) / float64(totalSize) * 100.0
-		if perc-oldPerc > 1.0 {
-			oldPerc = perc
-			comm.Progress(perc)
+		progress := float64(doneSize) / float64(totalSize)
+		if progress-oldProgress > 0.01 {
+			oldProgress = progress
+			comm.Progress(progress)
 		}
 
 		return nil
