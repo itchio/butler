@@ -62,6 +62,15 @@ var dlArgs = struct {
 	dlCmd.Flag("thorough", "Check all available hashes").Bool(),
 }
 
+func defaultKeyPath() string {
+	home := os.Getenv("HOME")
+	if home == "" {
+		home = os.Getenv("USERPROFILE")
+	}
+
+	return fmt.Sprintf("%s/%s", home, ".ssh/id_rsa")
+}
+
 var pushArgs = struct {
 	src    *string
 	target *string
@@ -72,7 +81,7 @@ var pushArgs = struct {
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().ExistingFileOrDir(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win64'. Targets are of the form project:channel, where project is username/game or game_id, and channel follows ").Required().String(),
 
-	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".ssh/id_rsa")).Short('i').String(),
+	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(defaultKeyPath()).Short('i').String(),
 	pushCmd.Flag("address", "Wharf server to talk to").Default("wharf.itch.zone").Short('a').Hidden().String(),
 }
 
