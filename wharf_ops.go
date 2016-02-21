@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -125,7 +126,7 @@ func diff(target string, source string, patch string, brotliQuality int) {
 		must(err)
 		defer os.RemoveAll(tmpDir)
 
-		apply(patch, target, tmpDir)
+		apply(patch, target, tmpDir, false)
 
 		verify(signaturePath, tmpDir)
 	}
@@ -141,7 +142,19 @@ func diff(target string, source string, patch string, brotliQuality int) {
 	}
 }
 
-func apply(patch string, target string, output string) {
+func apply(patch string, target string, output string, inplace bool) {
+	if output == "" {
+		output = target
+	}
+
+	target = path.Clean(target)
+	output = path.Clean(output)
+	if output == target {
+		if !inplace {
+			comm.Dief("Refusing to destructively patch %s without --inplace", output)
+		}
+	}
+
 	comm.Opf("Patching %s", output)
 	startTime := time.Now()
 
@@ -151,6 +164,7 @@ func apply(patch string, target string, output string) {
 	actx := &pwr.ApplyContext{
 		TargetPath: target,
 		OutputPath: output,
+		InPlace:    inplace,
 
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -162,7 +176,7 @@ func apply(patch string, target string, output string) {
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s\n", prettySize, tlcStats(container), perSecond)
+	comm.Statf("%s (%s) @ %s/s (touched %d files)\n", prettySize, tlcStats(container), perSecond, actx.TouchedFiles)
 }
 
 func sign(output string, signature string) {

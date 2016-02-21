@@ -81,8 +81,8 @@ var pushArgs = struct {
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().ExistingFileOrDir(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win64'. Targets are of the form project:channel, where project is username/game or game_id, and channel follows ").Required().String(),
 
-	pushCmd.Flag("identity", "Path to the private key used for public key authentication.").Default(defaultKeyPath()).Short('i').String(),
-	pushCmd.Flag("address", "Wharf server to talk to").Default("wharf.itch.zone").Short('a').Hidden().String(),
+	pushCmd.Flag("identity", "Path to your private key").Default(defaultKeyPath()).Short('i').String(),
+	pushCmd.Flag("address", "Wharf server to talk to").Default("wharf.itch.ovh").Short('a').Hidden().String(),
 }
 
 var untarArgs = struct {
@@ -144,13 +144,15 @@ var applyArgs = struct {
 	dir     *string
 	verify  *string
 	reverse *string
+	inplace *bool
 }{
 	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
 	applyCmd.Arg("old", "Directory to patch").Required().ExistingFileOrDir(),
 
-	applyCmd.Flag("dir", "Optional directory to recreate newer files in, instead of working in-place").Short('d').String(),
+	applyCmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String(),
 	applyCmd.Flag("verify", "When given, verifies patch application on-the-fly, and abort if any integrity check fails").String(),
 	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").String(),
+	applyCmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool(),
 }
 
 var verifyArgs = struct {
@@ -223,7 +225,7 @@ func main() {
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, *diffArgs.quality)
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir)
+		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace)
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.output)
