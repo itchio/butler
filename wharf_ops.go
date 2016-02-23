@@ -19,10 +19,14 @@ import (
 )
 
 // TODO: make this customizable
+// TODO: use filepath.Match
 var ignoredDirs = []string{
 	".git",
-	".cvs",
+	".hg",
 	".svn",
+	".DS_Store",
+	"._*",
+	"Thumbs.db",
 }
 
 func filterDirs(fileInfo os.FileInfo) bool {
