@@ -1,7 +1,4 @@
 
-before_script:
-  - go get -v -x -d -t ./...
-
 stages:
   - test
 
@@ -14,6 +11,7 @@ test_linux:
     - export GOPATH=$CURRENT_BUILD_PATH
     - mkdir github.com/itchio/butler
     - rsync -az . github.com/itchio/butler
+    - go get -v -x -d -t github.com/itchio/butler
     - go test -v -x github.com/itchio/butler
 
 test_win32:
@@ -25,4 +23,5 @@ test_win32:
     - export GOPATH=$CURRENT_BUILD_PATH
     - mkdir github.com/itchio/butler
     - rsync -az . github.com/itchio/butler
+    - go get -v -x -d -t github.com/itchio/butler
     - go test -v -x github.com/itchio/butler
