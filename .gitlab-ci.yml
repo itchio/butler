@@ -1,0 +1,23 @@
+
+stages:
+  - build
+  - test
+
+grab_deps:
+  stage: build
+  script:
+    - go get -v -x -d -t ./...
+
+test_linux:
+  stage: test
+  tags:
+    - linux
+  script:
+    - go test -v -x ./...
+
+test_win32:
+  stage: test
+  tags:
+    - win32
+  script:
+    - go test -v -x ./...
