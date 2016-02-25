@@ -1,12 +1,9 @@
 
-stages:
-  - build
-  - test
+before_script:
+  - go get -v -x -d -t ./...
 
-grab_deps:
-  stage: build
-  script:
-    - go get -v -x -d -t ./...
+stages:
+  - test
 
 test_linux:
   stage: test
