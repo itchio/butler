@@ -10,11 +10,19 @@ test_linux:
   tags:
     - linux
   script:
-    - go test -v -x ./...
+    - export CURRENT_BUILD_PATH=$(pwd)
+    - export GOPATH=$CURRENT_BUILD_PATH
+    - mkdir github.com/itchio/butler
+    - rsync -az . github.com/itchio/butler
+    - go test -v -x github.com/itchio/butler
 
 test_win32:
   stage: test
   tags:
     - win32
   script:
-    - go test -v -x ./...
+    - export CURRENT_BUILD_PATH=$(pwd)
+    - export GOPATH=$CURRENT_BUILD_PATH
+    - mkdir github.com/itchio/butler
+    - rsync -az . github.com/itchio/butler
+    - go test -v -x github.com/itchio/butler
