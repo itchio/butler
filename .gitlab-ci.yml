@@ -2,7 +2,7 @@
 stages:
   - test
 
-test_linux:
+test:linux:
   stage: test
   tags:
     - linux
@@ -14,7 +14,7 @@ test_linux:
     - go get -v -x -d -t github.com/itchio/butler
     - go test -v -x github.com/itchio/butler
 
-test_win32:
+test:win32:
   stage: test
   tags:
     - win32
