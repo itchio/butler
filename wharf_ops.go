@@ -187,7 +187,7 @@ func sign(output string, signature string) {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.Walk(output, nil)
+	container, err := tlc.Walk(output, filterDirs)
 	must(err)
 
 	signatureWriter, err := os.Create(signature)
