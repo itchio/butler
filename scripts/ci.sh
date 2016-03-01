@@ -8,5 +8,5 @@ export PKG=github.com/itchio/butler
 
 mkdir -p $PKG
 rsync -az . $PKG
-go get -v -x -d -t $PKG
-go test -v -x $PKG
+go get -v -d -t $PKG
+go test -v $PKG
