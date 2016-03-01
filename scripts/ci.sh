@@ -4,7 +4,7 @@ go version
 
 export CURRENT_BUILD_PATH=$(pwd)
 export GOPATH=$CURRENT_BUILD_PATH
-export IMPORT_PATH=github.com/itchio/butler
+export PKG=github.com/itchio/butler
 
 mkdir -p $PKG
 rsync -az . $PKG
