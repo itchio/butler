@@ -7,21 +7,11 @@ test:linux:
   tags:
     - linux
   script:
-    - export CURRENT_BUILD_PATH=$(pwd)
-    - export GOPATH=$CURRENT_BUILD_PATH
-    - mkdir -p github.com/itchio/butler
-    - rsync -az . github.com/itchio/butler
-    - go get -v -x -d -t github.com/itchio/butler
-    - go test -v -x github.com/itchio/butler
+    - scripts/ci.sh
 
-test:win32:
+test:windows:
   stage: test
   tags:
-    - win32
+    - windows
   script:
-    - export CURRENT_BUILD_PATH=$(pwd)
-    - export GOPATH=$CURRENT_BUILD_PATH
-    - mkdir -p github.com/itchio/butler
-    - rsync -az . github.com/itchio/butler
-    - go get -v -x -d -t github.com/itchio/butler
-    - go test -v -x github.com/itchio/butler
+    - scripts/ci.sh
