@@ -71,6 +71,10 @@ func StartProgress() {
 		return
 	}
 
+	if settings.no_progress || settings.json {
+		// Don't want a bar, ever.
+	}
+
 	// shows percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
 	bar.AlwaysUpdate = true
@@ -82,10 +86,6 @@ func StartProgress() {
 	bar.SetMaxWidth(80)
 
 	themes[getCharset()].apply(bar)
-
-	if !(settings.no_progress || settings.json) {
-		bar.Start()
-	}
 }
 
 func Progress(perc float64) {
