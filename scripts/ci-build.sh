@@ -89,7 +89,7 @@ mv butler.7z $BINARIES_DIR/$CI_VERSION
 
 (cd $BINARIES_DIR/$CI_VERSION && sha1sum * > SHA1SUMS)
 
-if [ -n "$CI_BUILD_TAG" ]
+if [ -n "$CI_BUILD_TAG" ]; then
   echo $CI_VERSION > $BINARIES_DIR/LATEST
-else
+fi
 
