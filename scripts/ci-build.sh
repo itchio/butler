@@ -26,7 +26,7 @@ export CC="${TRIPLET}gcc"
 export CXX="${TRIPLET}g++"
 
 export CI_VERSION="head"
-if [ "$CI_DEPLOY" = "1" ]; then
+if [ -n "$CI_BUILD_TAG" ]; then
   export CI_VERSION=$CI_BUILD_TAG
 fi
 export CI_LDFLAGS="-X main.version=$CI_VERSION"
@@ -73,7 +73,23 @@ file $TARGET
 
 7za a butler.7z $TARGET
 
+# set up a file hierarchy that ibrew can consume, ie:
+#
+# - dl.itch.ovh
+#   - butler
+#     - windows-amd64
+#       - LATEST
+#       - v0.11.0
+#         - butler.7z
+#         - SHA1SUMS
+
 BINARIES_DIR="binaries/$CI_OS-$CI_ARCH"
 mkdir -p $BINARIES_DIR/$CI_VERSION
 mv butler.7z $BINARIES_DIR/$CI_VERSION
-echo $CI_VERSION > $BINARIES_DIR/LATEST
+
+(cd $BINARIES_DIR/$CI_VERSION && sha1sum * > SHA1SUMS)
+
+if [ -n "$CI_BUILD_TAG" ]
+  echo $CI_VERSION > $BINARIES_DIR/LATEST
+else
+
