@@ -2,8 +2,16 @@
 
 echo "Should build for $CI_OS-$CI_ARCH"
 
-if [ "$CI_OS" = "windows" ]; then
-  echo "$CI_OS-$CI_ARCH" > butler.exe
-else
-  echo "$CI_OS-$CI_ARCH" > butler
-fi
+go version
+
+export CURRENT_BUILD_PATH=$(pwd)
+export GOPATH=$CURRENT_BUILD_PATH
+export PKG=github.com/itchio/butler
+
+mkdir -p $PKG
+rsync -az . $PKG
+go get -v -d -t $PKG
+
+export GOOS=$CI_OS
+export GOARCH=$CI_ARCH
+go build -v -x $PKG
