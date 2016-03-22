@@ -44,6 +44,10 @@ rsync -az . $PKG
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
 gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
 
+if [ "$CI_OS" = "windows" ]; then
+  signtool.exe sign //v //s MY //n "Open Source Developer, Amos Wenger" //t http://timestamp.verisign.com/scripts/timstamp.dll $TARGET
+fi
+
 file $TARGET
 ./$TARGET -V
 
