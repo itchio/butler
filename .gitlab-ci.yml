@@ -28,7 +28,7 @@ build:linux:386:
     - dropsy
   artifacts:
     paths:
-      - butler    
+      - binaries
 
 build:linux:amd64:
   stage: build
@@ -40,7 +40,7 @@ build:linux:amd64:
     - dropsy
   artifacts:
     paths:
-      - butler    
+      - binaries
 
 build:darwin:amd64:
   stage: build
@@ -52,7 +52,7 @@ build:darwin:amd64:
     - darwin
   artifacts:
     paths:
-      - butler    
+      - binaries
 
 build:windows:386:
   stage: build
@@ -64,7 +64,7 @@ build:windows:386:
     - windows
   artifacts:
     paths:
-      - butler.exe
+      - binaries
 
 build:windows:amd64:
   stage: build
@@ -76,7 +76,7 @@ build:windows:amd64:
     - windows
   artifacts:
     paths:
-      - butler.exe
+      - binaries
 
 deploy:
   stage: deploy

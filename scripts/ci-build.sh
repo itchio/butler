@@ -11,8 +11,6 @@ export CGO_ENABLED=1
 
 go get github.com/mitchellh/gox
 
-export CI_BUILD_TAG
-
 if [ "$CI_OS" = "windows" ]; then
   if [ "$CI_ARCH" = "386" ]; then
     TRIPLET="i686-w64-mingw32-"
@@ -47,6 +45,11 @@ GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
 gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
 
 file $TARGET
-./$TARGET -v
+./$TARGET -V
 
 7za a butler.7z $TARGET
+
+BINARIES_DIR="binaries/$CI_OS-$CI_ARCH"
+mkdir -p $BINARIES_DIR/$CI_VERSION
+mv butler.7z $BINARIES_DIR/$CI_VERSION
+echo $CI_VERSION > $BINARIES_DIR/LATEST
