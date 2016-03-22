@@ -58,7 +58,8 @@ if [ "$CI_OS" = "windows" ]; then
 fi
 
 # sign (osx)
-if [ "$CI_OS" = "darwin" ]; then
+# restore when https://github.com/golang/go/issues/11887 is fixed
+if [ "$CI_OS-disabled" = "darwin" ]; then
   OSX_SIGN_KEY="Developer ID Application: Amos Wenger (B2N6FSRTPV)"
 
   codesign --deep --force --verbose --sign "$OSX_SIGN_KEY" $TARGET
