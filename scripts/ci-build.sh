@@ -1,6 +1,6 @@
 #!/bin/sh -xe
 
-echo "Should build for $CI_OS-$CI_ARCH"
+echo "Building for $CI_OS-$CI_ARCH"
 
 go version
 
@@ -9,6 +9,7 @@ export GOPATH=$CURRENT_BUILD_PATH
 export PATH="$PATH:$GOPATH/bin"
 export CGO_ENABLED=1
 
+# set up go cross-compile
 go get github.com/mitchellh/gox
 
 if [ "$CI_OS" = "windows" ]; then
@@ -41,13 +42,31 @@ export PKG=github.com/itchio/butler
 
 mkdir -p $PKG
 rsync -az . $PKG
+
+# grab deps
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
+
+# compile
 gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
 
+# sign (win)
 if [ "$CI_OS" = "windows" ]; then
-  signtool.exe sign //v //s MY //n "Open Source Developer, Amos Wenger" //t http://timestamp.verisign.com/scripts/timstamp.dll $TARGET
+  WIN_SIGN_KEY="Open Source Developer, Amos Wenger"
+  WIN_SIGN_URL="http://timestamp.verisign.com/scripts/timstamp.dll"
+
+  signtool.exe sign //v //s MY //n "$WIN_SIGN_KEY" //t "$WIN_SIGN_URL" $TARGET
 fi
 
+# sign (osx)
+if [ "$CI_OS" = "darwin" ]; then
+  OSX_SIGN_KEY="Developer ID Application: Amos Wenger (B2N6FSRTPV)"
+
+  codesign --deep --force --verbose --sign "$OSX_SIGN_KEY" $TARGET
+  codesign --verify -vvvv $TARGET
+  spctl -a -vvvv $TARGET
+fi
+
+# verify
 file $TARGET
 ./$TARGET -V
 

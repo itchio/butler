@@ -2,7 +2,6 @@
 stages:
   - test
   - build
-  - deploy
 
 test:linux:
   stage: test
@@ -79,9 +78,16 @@ build:windows:amd64:
       - binaries
 
 deploy:
-  stage: deploy
+  stage: build
   tags:
     - dropsy
   script:
     - scripts/ci-deploy.sh
+  dependencies:
+    - build:linux:386
+    - build:linux:amd64
+    - build:darwin:amd64
+    - build:windows:386
+    - build:windows:amd64
+
   
