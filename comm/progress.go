@@ -83,7 +83,7 @@ func StartProgress() {
 
 	themes[getCharset()].apply(bar)
 
-	if !settings.no_progress {
+	if !(settings.no_progress || settings.json) {
 		bar.Start()
 	}
 }
