@@ -18,7 +18,7 @@ test:windows:
   script:
     - scripts/ci-test.sh
 
-build:linux:386
+build:linux:386:
   stage: build
   script:
     - export CI_OS=linux
@@ -30,7 +30,7 @@ build:linux:386
     paths:
       - butler    
 
-build:linux:amd64
+build:linux:amd64:
   stage: build
   script:
     - export CI_OS=linux
@@ -42,7 +42,7 @@ build:linux:amd64
     paths:
       - butler    
 
-build:darwin:amd64
+build:darwin:amd64:
   stage: build
   script:
     - export CI_OS=darwin
@@ -54,7 +54,7 @@ build:darwin:amd64
     paths:
       - butler    
 
-build:windows:386
+build:windows:386:
   stage: build
   script:
     - export CI_OS=windows
@@ -66,7 +66,7 @@ build:windows:386
     paths:
       - butler.exe
 
-build:windows:amd64
+build:windows:amd64:
   stage: build
   script:
     - export CI_OS=windows
