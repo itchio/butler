@@ -1,17 +1,87 @@
 
 stages:
   - test
+  - build
+  - deploy
 
 test:linux:
   stage: test
   tags:
     - linux
   script:
-    - scripts/ci.sh
+    - scripts/ci-test.sh
 
 test:windows:
   stage: test
   tags:
     - windows
   script:
-    - scripts/ci.sh
+    - scripts/ci-test.sh
+
+build:linux:386
+  stage: build
+  script:
+    - export CI_OS=linux
+    - export CI_ARCH=386
+    - scripts/ci-build.sh
+  tags:
+    - dropsy
+  artifacts:
+    paths:
+      - butler    
+
+build:linux:amd64
+  stage: build
+  script:
+    - export CI_OS=linux
+    - export CI_ARCH=amd64
+    - scripts/ci-build.sh
+  tags:
+    - dropsy
+  artifacts:
+    paths:
+      - butler    
+
+build:darwin:amd64
+  stage: build
+  script:
+    - export CI_OS=darwin
+    - export CI_ARCH=amd64
+    - scripts/ci-build.sh
+  tags:
+    - darwin
+  artifacts:
+    paths:
+      - butler    
+
+build:windows:386
+  stage: build
+  script:
+    - export CI_OS=windows
+    - export CI_ARCH=386
+    - scripts/ci-build.sh
+  tags:
+    - windows
+  artifacts:
+    paths:
+      - butler.exe
+
+build:windows:amd64
+  stage: build
+  script:
+    - export CI_OS=windows
+    - export CI_ARCH=amd64
+    - scripts/ci-build.sh
+  tags:
+    - windows
+  artifacts:
+    paths:
+      - butler.exe
+
+deploy:
+  stage: deploy
+  tags:
+    - dropsy
+  script:
+    - scripts/ci-deploy.sh
+  
