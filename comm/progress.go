@@ -73,6 +73,7 @@ func StartProgress() {
 
 	if settings.no_progress || settings.json {
 		// Don't want a bar, ever.
+		return
 	}
 
 	// shows percentages, to the 1/100th
