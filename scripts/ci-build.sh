@@ -44,7 +44,7 @@ export PKG=github.com/itchio/butler
 mkdir -p $PKG
 rsync -az . $PKG
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
-gox -osarch = "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
+gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
 
 file $TARGET
 ./$TARGET -v
