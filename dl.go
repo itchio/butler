@@ -136,6 +136,7 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 	defer out.Close()
 
 	prevPercent := 0.0
+	comm.StartProgress()
 
 	onWrite := func(bytesDownloaded int64) {
 		bytesWritten := existingBytes + bytesDownloaded
