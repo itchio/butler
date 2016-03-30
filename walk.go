@@ -8,7 +8,7 @@ import (
 )
 
 func walk(src string) {
-	info, err := tlc.Walk(src, filterDirs)
+	info, err := tlc.Walk(src, filterPaths)
 	must(err)
 
 	enc := json.NewEncoder(os.Stdout)

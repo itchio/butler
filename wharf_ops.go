@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
+	"path/filepath"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -20,7 +20,7 @@ import (
 
 // TODO: make this customizable
 // TODO: use filepath.Match
-var ignoredDirs = []string{
+var ignoredPaths = []string{
 	".git",
 	".hg",
 	".svn",
@@ -29,10 +29,17 @@ var ignoredDirs = []string{
 	"Thumbs.db",
 }
 
-func filterDirs(fileInfo os.FileInfo) bool {
+func filterPaths(fileInfo os.FileInfo) bool {
 	name := fileInfo.Name()
-	for _, dir := range ignoredDirs {
-		if strings.HasPrefix(name, dir) {
+	for _, pattern := range ignoredPaths {
+		match, err := filepath.Match(pattern, name)
+		if err != nil {
+			panic(fmt.Sprintf("Malformed ignore pattern '%s': %s", pattern, err.Error()))
+		}
+		if match {
+			if *appArgs.verbose {
+				fmt.Printf("Ignoring '%s' because of pattern '%s'\n", fileInfo.Name(), pattern)
+			}
 			return false
 		}
 	}
@@ -59,7 +66,7 @@ func diff(target string, source string, patch string, brotliQuality int) {
 
 		if targetInfo.IsDir() {
 			comm.Opf("Hashing %s", target)
-			targetContainer, err = tlc.Walk(target, filterDirs)
+			targetContainer, err = tlc.Walk(target, filterPaths)
 			must(err)
 
 			comm.StartProgress()
@@ -85,7 +92,7 @@ func diff(target string, source string, patch string, brotliQuality int) {
 
 	startTime = time.Now()
 
-	sourceContainer, err := tlc.Walk(source, filterDirs)
+	sourceContainer, err := tlc.Walk(source, filterPaths)
 	must(err)
 
 	patchWriter, err := os.Create(patch)
@@ -187,7 +194,7 @@ func sign(output string, signature string) {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.Walk(output, filterDirs)
+	container, err := tlc.Walk(output, filterPaths)
 	must(err)
 
 	signatureWriter, err := os.Create(signature)

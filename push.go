@@ -301,7 +301,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 }
 
 func doWalk(path string, result chan *tlc.Container, errs chan error) {
-	container, err := tlc.Walk(path, filterDirs)
+	container, err := tlc.Walk(path, filterPaths)
 	if err != nil {
 		errs <- err
 	}
