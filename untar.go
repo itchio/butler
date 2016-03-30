@@ -42,15 +42,15 @@ func untar(archive string, dir string) {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			dittoMkdir(filename)
-			dirCount += 1
+			dirCount++
 
 		case tar.TypeReg:
-			untarReg(filename, os.FileMode(header.Mode&LUCKY_MODE|MODE_MASK), tarReader)
-			regCount += 1
+			untarReg(filename, os.FileMode(header.Mode&LuckyMode|ModeMask), tarReader)
+			regCount++
 
 		case tar.TypeSymlink:
 			untarSymlink(header.Linkname, filename)
-			symlinkCount += 1
+			symlinkCount++
 
 		default:
 			comm.Dief("Unable to untar entry of type %d", header.Typeflag)
@@ -65,7 +65,7 @@ func untarReg(filename string, mode os.FileMode, tarReader io.Reader) {
 	must(os.RemoveAll(filename))
 
 	dirname := filepath.Dir(filename)
-	must(os.MkdirAll(dirname, LUCKY_MODE))
+	must(os.MkdirAll(dirname, LuckyMode))
 
 	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 	must(err)

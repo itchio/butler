@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -84,12 +85,13 @@ func doPush(buildPath string, spec string) error {
 		targetContainer = &tlc.Container{}
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", channel, parentID)
-		buildFiles, err := client.ListBuildFiles(parentID)
+		var buildFiles itchio.ListBuildFilesResponse
+		buildFiles, err = client.ListBuildFiles(parentID)
 		if err != nil {
 			return err
 		}
 
-		var signatureFileID int64 = 0
+		var signatureFileID int64
 		for _, f := range buildFiles.Files {
 			if f.Type == itchio.BuildFileType_SIGNATURE {
 				signatureFileID = f.ID
@@ -101,7 +103,8 @@ func doPush(buildPath string, spec string) error {
 			comm.Dief("Could not find signature for parent build %d, aborting", parentID)
 		}
 
-		signatureReader, err := client.DownloadBuildFile(parentID, signatureFileID)
+		var signatureReader io.Reader
+		signatureReader, err = client.DownloadBuildFile(parentID, signatureFileID)
 
 		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
 		if err != nil {
@@ -153,7 +156,7 @@ func doPush(buildPath string, spec string) error {
 	comm.Opf("Pushing %s (%s)", humanize.Bytes(uint64(sourceContainer.Size)), tlcStats(sourceContainer))
 
 	comm.Debugf("Building diff context")
-	var readBytes int64 = 0
+	var readBytes int64
 
 	updateProgress := func() {
 		uploadedBytes := int64(float64(patchWriter.UploadedBytes) * 0.97)
@@ -269,7 +272,8 @@ type fileSlot struct {
 
 func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuildFileResponse, signature itchio.NewBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
-		res, err := client.CreateBuildFile(buildID, buildType)
+		var res itchio.NewBuildFileResponse
+		res, err = client.CreateBuildFile(buildID, buildType)
 		if err != nil {
 			errs <- err
 		}
@@ -324,9 +328,9 @@ func parseSpec(spec string) (string, string, error) {
 func parseAddress(address string) string {
 	if strings.Contains(address, ":") {
 		return address
-	} else {
-		return fmt.Sprintf("%s:%d", address, defaultPort)
 	}
+
+	return fmt.Sprintf("%s:%d", address, defaultPort)
 }
 
 func min(a, b float64) float64 {

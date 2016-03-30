@@ -8,11 +8,11 @@ import (
 )
 
 var settings = &struct {
-	no_progress bool
-	quiet       bool
-	verbose     bool
-	json        bool
-	panic       bool
+	noProgress bool
+	quiet      bool
+	verbose    bool
+	json       bool
+	panic      bool
 }{
 	false,
 	false,
@@ -21,8 +21,9 @@ var settings = &struct {
 	false,
 }
 
-func Configure(no_progress, quiet, verbose, json, panic bool) {
-	settings.no_progress = no_progress
+// Configure sets all logging options in one go
+func Configure(noProgress, quiet, verbose, json, panic bool) {
+	settings.noProgress = noProgress
 	settings.quiet = quiet
 	settings.verbose = verbose
 	settings.json = json
@@ -31,10 +32,12 @@ func Configure(no_progress, quiet, verbose, json, panic bool) {
 
 type jsonMessage map[string]interface{}
 
+// Opf prints a formatted string informing the user on what operation we're doing
 func Opf(format string, args ...interface{}) {
 	Logf("%s %s", theme.OpSign, fmt.Sprintf(format, args...))
 }
 
+// Statf prints a formatted string informing the user how fast the operation went
 func Statf(format string, args ...interface{}) {
 	Logf("%s %s", theme.StatSign, fmt.Sprintf(format, args...))
 }
@@ -44,14 +47,17 @@ func Log(msg string) {
 	Logl("info", msg)
 }
 
+// Logf sends a formatted informational message to the client
 func Logf(format string, args ...interface{}) {
 	Loglf("info", format, args...)
 }
 
+// Warn lets the user know about a problem that's non-critical
 func Warn(msg string) {
 	Logl("warn", msg)
 }
 
+// Warnf is a formatted variant of Warn
 func Warnf(format string, args ...interface{}) {
 	Loglf("warning", format, args...)
 }
@@ -61,10 +67,12 @@ func Debug(msg string) {
 	Logl("debug", msg)
 }
 
+// Debugf is a formatted variant of Debug
 func Debugf(format string, args ...interface{}) {
 	Loglf("debug", format, args...)
 }
 
+// Logl logs a message of a given level
 func Logl(level string, msg string) {
 	send("log", jsonMessage{
 		"message": msg,
@@ -72,6 +80,7 @@ func Logl(level string, msg string) {
 	})
 }
 
+// Loglf logs a formatted message of a given level
 func Loglf(level string, format string, args ...interface{}) {
 	Logl(level, fmt.Sprintf(format, args...))
 }
@@ -83,6 +92,7 @@ func Die(msg string) {
 	})
 }
 
+// Dief is a formatted variant of Die
 func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
 }

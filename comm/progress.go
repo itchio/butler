@@ -54,6 +54,7 @@ var theme = themes[getCharset()]
 
 const maxLabelLength = 40
 
+// ProgressLabel sets the string printed next to the progress indicator
 func ProgressLabel(label string) {
 	if bar == nil {
 		return
@@ -65,13 +66,14 @@ func ProgressLabel(label string) {
 	bar.Postfix(label)
 }
 
+// StartProgress begins a period in which progress is regularly printed
 func StartProgress() {
 	if bar != nil {
 		// Already in-progress
 		return
 	}
 
-	if settings.no_progress || settings.json {
+	if settings.noProgress || settings.json {
 		// Don't want a bar, ever.
 		return
 	}
@@ -89,6 +91,8 @@ func StartProgress() {
 	themes[getCharset()].apply(bar)
 }
 
+// Progress sets the completion of a task whose progress is being printed
+// It only has an effect if StartProgress was already called.
 func Progress(perc float64) {
 	if settings.quiet {
 		return
@@ -105,11 +109,12 @@ func setBarProgress(perc float64) {
 	}
 }
 
+// EndProgress stops refreshing the progress bar and erases it.
 func EndProgress() {
 	if bar != nil {
 		bar.Set64(10000)
 
-		if !settings.no_progress {
+		if !settings.noProgress {
 			bar.Postfix("")
 			bar.Finish()
 		}

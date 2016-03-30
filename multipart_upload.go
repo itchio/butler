@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/wharf/counter"
 )
 
+// MultipartUpload keeps track of an upload and reports back on its progress
 type MultipartUpload struct {
 	TotalBytes    int64
 	UploadedBytes int64
@@ -30,6 +31,7 @@ type MultipartUpload struct {
 	pipeWriter io.Closer
 }
 
+// Close flushes all intermediary buffers and closes the connection
 func (mu *MultipartUpload) Close() error {
 	err := mu.multiWriter.Close()
 	if err != nil {
@@ -49,6 +51,7 @@ func (mu *MultipartUpload) Close() error {
 	return nil
 }
 
+// Write is our implementation of io.Writer
 func (mu *MultipartUpload) Write(p []byte) (int, error) {
 	return mu.partWriter.Write(p)
 }
