@@ -19,7 +19,6 @@ import (
 )
 
 // TODO: make this customizable
-// TODO: use filepath.Match
 var ignoredPaths = []string{
 	".git",
 	".hg",
