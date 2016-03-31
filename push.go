@@ -153,7 +153,7 @@ func doPush(buildPath string, spec string) error {
 	}
 
 	comm.Logf("")
-	comm.Opf("Pushing %s (%s)", humanize.Bytes(uint64(sourceContainer.Size)), tlcStats(sourceContainer))
+	comm.Opf("Pushing %s (%s)", humanize.Bytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
 
 	comm.Debugf("Building diff context")
 	var readBytes int64

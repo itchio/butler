@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -46,11 +45,6 @@ func filterPaths(fileInfo os.FileInfo) bool {
 	return true
 }
 
-func tlcStats(container *tlc.Container) string {
-	return fmt.Sprintf("%d files, %d dirs, %d symlinks",
-		len(container.Files), len(container.Dirs), len(container.Symlinks))
-}
-
 func diff(target string, source string, patch string, brotliQuality int) {
 	startTime := time.Now()
 
@@ -76,7 +70,7 @@ func diff(target string, source string, patch string, brotliQuality int) {
 			{
 				prettySize := humanize.Bytes(uint64(targetContainer.Size))
 				perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-				comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(targetContainer), perSecond)
+				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetContainer.Stats(), perSecond)
 			}
 		} else {
 			comm.Opf("Reading signature from %s", target)
@@ -128,7 +122,7 @@ func diff(target string, source string, patch string, brotliQuality int) {
 	{
 		prettySize := humanize.Bytes(uint64(sourceContainer.Size))
 		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / time.Since(startTime).Seconds()))
-		comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(sourceContainer), perSecond)
+		comm.Statf("%s (%s) @ %s/s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
 	if *diffArgs.verify {
@@ -186,7 +180,7 @@ func apply(patch string, target string, output string, inplace bool) {
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s (touched %d files)\n", prettySize, tlcStats(container), perSecond, actx.TouchedFiles)
+	comm.Statf("%s (%s) @ %s/s (touched %d files)\n", prettySize, container.Stats(), perSecond, actx.TouchedFiles)
 }
 
 func sign(output string, signature string) {
@@ -226,7 +220,7 @@ func sign(output string, signature string) {
 
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(container), perSecond)
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 }
 
 func verify(signature string, output string) {
@@ -245,31 +239,13 @@ func verify(signature string, output string) {
 	comm.EndProgress()
 	must(err)
 
-	success := true
-
-	if len(hashes) != len(refHashes) {
-		must(fmt.Errorf("Expected %d blocks, got %d.", len(refHashes), len(hashes)))
-	}
-
-	for i, refHash := range refHashes {
-		hash := hashes[i]
-
-		if refHash.WeakHash != hash.WeakHash {
-			success = false
-			comm.Logf("At block %d / %d, expected weak hash %x, got %x", i, len(refHashes), refHash.WeakHash, hash.WeakHash)
-		}
-
-		if !bytes.Equal(refHash.StrongHash, hash.StrongHash) {
-			success = false
-			comm.Logf("At block %d / %d, expected strong hash %x, got %x", i, len(refHashes), refHash.WeakHash, hash.WeakHash)
-		}
-	}
-
-	if !success {
+	err = pwr.CompareHashes(refHashes, hashes)
+	if err != nil {
+		comm.Logf(err.Error())
 		comm.Dief("Some checks failed after checking %d block.", len(refHashes))
 	}
 
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
 	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s\n", prettySize, tlcStats(refContainer), perSecond)
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
 }
