@@ -261,7 +261,7 @@ func doPush(buildPath string, spec string) error {
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-		comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
+		comm.Statf("%s patch (%.2f%% savings)", prettyPatchSize, 100.0-relToNew)
 	}
 	return nil
 }
