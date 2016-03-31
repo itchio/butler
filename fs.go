@@ -7,26 +7,13 @@ import (
 	"time"
 
 	"github.com/itchio/butler/comm"
-)
-
-const (
-	// ModeMask is or'd with files walked by butler
-	ModeMask = 0666
-
-	// LuckyMode is used when wiping in last-chance mode
-	LuckyMode = 0777
-
-	// DirMode is the default mode for directories created by butler
-	DirMode = LuckyMode
+	"github.com/itchio/wharf/archiver"
 )
 
 func mkdir(dir string) {
 	comm.Debugf("mkdir -p %s", dir)
 
-	err := os.MkdirAll(dir, DirMode)
-	if err != nil {
-		comm.Dief(err.Error())
-	}
+	must(os.MkdirAll(dir, archiver.DirMode))
 }
 
 func wipe(path string) {
@@ -68,7 +55,7 @@ func tryChmod(path string) error {
 		}
 
 		// don't ignore chmodding errors
-		return os.Chmod(childpath, os.FileMode(LuckyMode))
+		return os.Chmod(childpath, os.FileMode(archiver.LuckyMode))
 	}
 
 	return filepath.Walk(path, chmodAll)
@@ -107,7 +94,7 @@ func ditto(src string, dst string) {
 			dittoMkdir(dstpath)
 
 		case mode.IsRegular():
-			dittoReg(path, dstpath, os.FileMode(f.Mode()&LuckyMode|ModeMask))
+			dittoReg(path, dstpath, os.FileMode(f.Mode()&archiver.LuckyMode|archiver.ModeMask))
 
 		case (mode&os.ModeSymlink > 0):
 			dittoSymlink(path, dstpath, f)
@@ -146,21 +133,7 @@ func ditto(src string, dst string) {
 
 func dittoMkdir(dstpath string) {
 	comm.Debugf("mkdir %s", dstpath)
-
-	dirstat, err := os.Lstat(dstpath)
-	if err != nil {
-		// main case - dir doesn't exist yet
-		must(os.MkdirAll(dstpath, DirMode))
-		return
-	}
-
-	if dirstat.IsDir() {
-		// is already a dir, good!
-	} else {
-		// is a file or symlink for example, turn into a dir
-		must(os.Remove(dstpath))
-		must(os.MkdirAll(dstpath, DirMode))
-	}
+	must(archiver.Mkdir(dstpath))
 }
 
 func dittoReg(srcpath string, dstpath string, mode os.FileMode) {
