@@ -15,6 +15,7 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/uploader"
 )
 
 func push(buildPath string, spec string) {
@@ -117,16 +118,16 @@ func doPush(buildPath string, spec string) error {
 	uploadDone := make(chan bool)
 	uploadErrs := make(chan error)
 
-	patchWriter, err := newMultipartUpload(newPatchRes.File.UploadURL,
+	patchWriter, err := uploader.NewMultipartUpload(newPatchRes.File.UploadURL,
 		newPatchRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
-		uploadDone, uploadErrs)
+		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
 		return err
 	}
 
-	signatureWriter, err := newMultipartUpload(newSignatureRes.File.UploadURL,
+	signatureWriter, err := uploader.NewMultipartUpload(newSignatureRes.File.UploadURL,
 		newSignatureRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
-		uploadDone, uploadErrs)
+		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
 		return err
 	}
