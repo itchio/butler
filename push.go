@@ -72,6 +72,9 @@ func doPush(buildPath string, spec string) error {
 
 		var signatureReader io.Reader
 		signatureReader, err = client.DownloadBuildFile(parentID, signatureFileID)
+		if err != nil {
+			return err
+		}
 
 		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
 		if err != nil {
