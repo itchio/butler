@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"time"
 
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
-	"github.com/itchio/wharf"
-	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -17,37 +19,58 @@ const (
 func authenticateViaWharf() (*itchio.Client, error) {
 	var identity = *appArgs.identity
 
-	var address = *appArgs.address
-	if !strings.Contains(address, ":") {
-		address = fmt.Sprintf("%s:%d", address, defaultPort)
-	}
-
-	comm.Debugf("Authenticating via %s", address)
-	conn, err := wharf.Connect(address, identity, "butler", version)
+	key, err := ioutil.ReadFile(identity)
 	if err != nil {
-		return nil, err
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		log.Println("\n" +
+			"      ..........................\n" +
+			"    ':cccclooooolcccccloooooocccc:,.\n" +
+			"  ':cccccooooooolccccccooooooolccccc,.\n" +
+			" ,;;;;;;cllllllc:;;;;;;clllllll:;;;;;;.\n" +
+			" ,,,,,,,;cccccc;,,,,,,,,cccccc:,,,,,,,.\n" +
+			" .',,,'..':cc:,...,,,'...;cc:,...',,'.\n" +
+			"   .,;:dxl;,;;cxdc,,,;okl;,,,:odc,,,.\n" +
+			"   ,kkkkkx:'..'okkkkkkxxo'...;oxxxxx,\n" +
+			"   ,kkkk:       ...''...       ,dxxx,\n" +
+			"   ,kkk:          .:c'          'xxx;\n" +
+			"   ,kko         .,ccc:;.         :xx;\n" +
+			"   ,kx.         .,;;,,'..         cl'\n" +
+			"   ,kc           .''''.           'l'\n" +
+			"   ,x.       ..............       .l'\n" +
+			"   ,x'      ,oddddddddoolcc,      .l'\n" +
+			"   'xo,...;ldxxxxxxxdollllllc;...'cl'\n" +
+			"   .:ccc:ccccccccc:;;;;;;;;;;;;;;;;,.")
+
+		log.Println("\nWelcome to the itch.io command-line tools!\n")
+		log.Println("Open the following link in your browser to authenticate:\n")
+
+		form := url.Values{}
+		form.Add("client_id", "butler")
+		form.Add("scope", "wharf")
+		form.Add("response_type", "token")
+		form.Add("redirect_uri", "http://localhost:8120/oauth/callback")
+		query := form.Encode()
+
+		uri := fmt.Sprintf("%s/user/oauth?%s", *appArgs.address, query)
+		log.Println(uri)
+		log.Println("\nI'll wait...")
+
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, "Woo!")
+		}
+
+		http.HandleFunc("/", handler)
+		http.ListenAndServe("localhost:", nil)
+
+		time.Sleep(time.Second * 60)
+		key = []byte("nope")
 	}
-	comm.Debugf("Connected to %s", conn.Conn.RemoteAddr())
 
-	go ssh.DiscardRequests(conn.Reqs)
-
-	req := &wharf.AuthenticationRequest{}
-	res := &wharf.AuthenticationResponse{}
-
-	err = conn.SendRequest("authenticate", req, res)
-	if err != nil {
-		return nil, fmt.Errorf("Authentication error; %s", err.Error())
-	}
-
-	err = conn.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: if buildPath is an archive, warn and unpack it
-
-	client := itchio.ClientWithKey(res.Key)
-	client.BaseURL = res.ItchioBaseUrl
+	client := itchio.ClientWithKey(string(key))
+	client.BaseURL = fmt.Sprintf("%s/api/1", *appArgs.address)
 
 	return client, err
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/itchio/butler/comm"
 
@@ -54,8 +54,8 @@ var appArgs = struct {
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
 	app.Flag("panic", "Panic on error").Hidden().Bool(),
 
-	app.Flag("identity", "Path to your private key").Default(defaultKeyPath()).Short('i').String(),
-	app.Flag("address", "Wharf server to talk to").Default("wharf.itch.ovh").Short('a').Hidden().String(),
+	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
+	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
 }
 
 var dlArgs = struct {
@@ -76,7 +76,7 @@ func defaultKeyPath() string {
 		home = os.Getenv("USERPROFILE")
 	}
 
-	return fmt.Sprintf("%s/%s", home, ".ssh/id_rsa")
+	return path.Join(home, ".itch", "wharf_creds")
 }
 
 var pushArgs = struct {
