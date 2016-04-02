@@ -26,7 +26,9 @@ var (
 
 	walkCmd = app.Command("walk", "Print TLC tree for given directory as JSON").Hidden()
 
-	pushCmd = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
+	pushCmd   = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
+	fetchCmd  = app.Command("fetch", "Fetch the latest build of a channel from itch.io")
+	statusCmd = app.Command("status", "Show status of channels for given target")
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -41,6 +43,9 @@ var appArgs = struct {
 	timestamps *bool
 	noProgress *bool
 	panic      *bool
+
+	identity *string
+	address  *string
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Short('q').Bool(),
@@ -48,6 +53,9 @@ var appArgs = struct {
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Hidden().Bool(),
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
 	app.Flag("panic", "Panic on error").Hidden().Bool(),
+
+	app.Flag("identity", "Path to your private key").Default(defaultKeyPath()).Short('i').String(),
+	app.Flag("address", "Wharf server to talk to").Default("wharf.itch.ovh").Short('a').Hidden().String(),
 }
 
 var dlArgs = struct {
@@ -74,15 +82,23 @@ func defaultKeyPath() string {
 var pushArgs = struct {
 	src    *string
 	target *string
-
-	identity *string
-	address  *string
 }{
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().ExistingFileOrDir(),
-	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win64'. Targets are of the form project:channel, where project is username/game or game_id, and channel follows ").Required().String(),
+	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
+}
 
-	pushCmd.Flag("identity", "Path to your private key").Default(defaultKeyPath()).Short('i').String(),
-	pushCmd.Flag("address", "Wharf server to talk to").Default("wharf.itch.ovh").Short('a').Hidden().String(),
+var fetchArgs = struct {
+	target *string
+	out    *string
+}{
+	fetchCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
+	fetchCmd.Arg("out", "Directory to fetch and extract build to").Required().String(),
+}
+
+var statusArgs = struct {
+	target *string
+}{
+	statusCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
 }
 
 var untarArgs = struct {
@@ -205,6 +221,12 @@ func main() {
 
 	case pushCmd.FullCommand():
 		push(*pushArgs.src, *pushArgs.target)
+
+	case fetchCmd.FullCommand():
+		fetch(*fetchArgs.target, *fetchArgs.out)
+
+	case statusCmd.FullCommand():
+		status(*statusArgs.target)
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)

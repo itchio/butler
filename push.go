@@ -5,12 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
-
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
-	"github.com/itchio/wharf"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
@@ -22,49 +19,18 @@ func push(buildPath string, spec string) {
 	must(doPush(buildPath, spec))
 }
 
-const (
-	defaultPort = 22
-)
-
 func doPush(buildPath string, spec string) error {
+	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan *tlc.Container)
 	walkErrs := make(chan error)
 	go doWalk(buildPath, sourceContainerChan, walkErrs)
 
-	address := *pushArgs.address
-
-	if !strings.Contains(address, ":") {
-		address = fmt.Sprintf("%s:%d", address, defaultPort)
-	}
-
-	comm.Opf("Authenticating via %s", address)
-	conn, err := wharf.Connect(address, *pushArgs.identity, "butler", version)
-	if err != nil {
-		return err
-	}
-	comm.Debugf("Connected to %s", conn.Conn.RemoteAddr())
-
-	go ssh.DiscardRequests(conn.Reqs)
-
-	req := &wharf.AuthenticationRequest{}
-	res := &wharf.AuthenticationResponse{}
-
-	err = conn.SendRequest("authenticate", req, res)
-	if err != nil {
-		return fmt.Errorf("Authentication error; %s", err.Error())
-	}
-
-	err = conn.Close()
-	if err != nil {
-		return err
-	}
-
-	// TODO: if buildPath is an archive, warn and unpack it
-
-	client := itchio.ClientWithKey(res.Key)
-	client.BaseURL = res.ItchioBaseUrl
-
 	target, channel, err := parseSpec(spec)
+	if err != nil {
+		return err
+	}
+
+	client, err := authenticateViaWharf()
 	if err != nil {
 		return err
 	}
