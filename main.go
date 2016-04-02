@@ -83,7 +83,7 @@ func defaultKeyPath() string {
 		dir = "itch"
 	}
 
-	return path.Join(home, dir, "wharf_creds")
+	return path.Join(home, dir, "butler_creds")
 }
 
 var pushArgs = struct {
