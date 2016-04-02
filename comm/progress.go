@@ -52,6 +52,10 @@ func getCharset() string {
 
 var theme = themes[getCharset()]
 
+func GetTheme() *progressTheme {
+	return theme
+}
+
 const maxLabelLength = 40
 
 // ProgressLabel sets the string printed next to the progress indicator
