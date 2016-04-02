@@ -30,7 +30,7 @@ func doPush(buildPath string, spec string) error {
 		return err
 	}
 
-	client, err := authenticateViaWharf()
+	client, err := authenticateViaOauth()
 	if err != nil {
 		return err
 	}

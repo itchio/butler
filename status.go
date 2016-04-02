@@ -15,7 +15,7 @@ func status(target string) {
 }
 
 func doStatus(target string) error {
-	client, err := authenticateViaWharf()
+	client, err := authenticateViaOauth()
 	if err != nil {
 		return err
 	}

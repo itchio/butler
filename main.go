@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
 
 	"github.com/itchio/butler/comm"
 
@@ -71,12 +72,18 @@ var dlArgs = struct {
 }
 
 func defaultKeyPath() string {
+	dir := ".itch"
 	home := os.Getenv("HOME")
 	if home == "" {
 		home = os.Getenv("USERPROFILE")
 	}
 
-	return path.Join(home, ".itch", "wharf_creds")
+	if runtime.GOOS == "darwin" {
+		home = path.Join(home, "Library", "Application Support")
+		dir = "itch"
+	}
+
+	return path.Join(home, dir, "wharf_creds")
 }
 
 var pushArgs = struct {
