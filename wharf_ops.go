@@ -85,8 +85,14 @@ func diff(target string, source string, patch string, brotliQuality int) {
 
 	startTime = time.Now()
 
-	sourceContainer, err := tlc.Walk(source, filterPaths)
-	must(err)
+	var sourceContainer *tlc.Container
+	if source == "/dev/null" {
+		sourceContainer = &tlc.Container{}
+	} else {
+		var err error
+		sourceContainer, err = tlc.Walk(source, filterPaths)
+		must(err)
+	}
 
 	patchWriter, err := os.Create(patch)
 	must(err)

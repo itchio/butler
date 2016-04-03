@@ -93,7 +93,7 @@ var pushArgs = struct {
 	src    *string
 	target *string
 }{
-	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().ExistingFileOrDir(),
+	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
 }
 
@@ -155,7 +155,7 @@ var diffArgs = struct {
 	quality *int
 }{
 	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String(),
-	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().ExistingFileOrDir(),
+	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().String(),
 	diffCmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").String(),
 
 	diffCmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").Bool(),
