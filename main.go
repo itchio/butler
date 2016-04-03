@@ -221,6 +221,7 @@ func main() {
 	}
 
 	if !isTerminal() {
+		log.Println("Not a terminal, disabling progress indicator")
 		*appArgs.noProgress = true
 	}
 	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic)

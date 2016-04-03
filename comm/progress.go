@@ -52,6 +52,7 @@ func getCharset() string {
 
 var theme = themes[getCharset()]
 
+// GetTheme returns the theme used to show progress
 func GetTheme() *progressTheme {
 	return theme
 }
@@ -92,7 +93,8 @@ func StartProgress() {
 	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
 
-	themes[getCharset()].apply(bar)
+	theme.apply(bar)
+	bar.Start()
 }
 
 // Progress sets the completion of a task whose progress is being printed

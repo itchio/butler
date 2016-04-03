@@ -66,9 +66,8 @@ func buildState(build *itchio.BuildInfo) string {
 func buildParent(build *itchio.BuildInfo) string {
 	if build.ParentBuildID == -1 {
 		return ""
-	} else {
-		return fmt.Sprintf("#%d", build.ParentBuildID)
 	}
+	return fmt.Sprintf("#%d", build.ParentBuildID)
 }
 
 func fileState(patch *itchio.BuildFileInfo, archive *itchio.BuildFileInfo) string {
@@ -77,14 +76,12 @@ func fileState(patch *itchio.BuildFileInfo, archive *itchio.BuildFileInfo) strin
 	if archive.State == itchio.BuildFileState_UPLOADED {
 		if patch.State == itchio.BuildFileState_UPLOADED {
 			return fmt.Sprintf("%s %s archive, %s patch", theme.StatSign, humanize.Bytes(uint64(archive.Size)), humanize.Bytes(uint64(patch.Size)))
-		} else {
-			return fmt.Sprintf("%s %s archive, processing patch", theme.OpSign, humanize.Bytes(uint64(archive.Size)))
 		}
-	} else {
-		if patch.State == itchio.BuildFileState_UPLOADED {
-			return fmt.Sprintf("%s %s patch, processing archive", theme.OpSign, humanize.Bytes(uint64(patch.Size)))
-		} else {
-			return fmt.Sprintf("uploading...", theme.OpSign)
-		}
+		return fmt.Sprintf("%s %s archive, processing patch", theme.OpSign, humanize.Bytes(uint64(archive.Size)))
 	}
+
+	if patch.State == itchio.BuildFileState_UPLOADED {
+		return fmt.Sprintf("%s %s patch, processing archive", theme.OpSign, humanize.Bytes(uint64(patch.Size)))
+	}
+	return fmt.Sprintf("uploading...", theme.OpSign)
 }
