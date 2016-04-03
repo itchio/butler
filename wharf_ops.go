@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -17,35 +15,11 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-// TODO: make this customizable
-var ignoredPaths = []string{
-	".git",
-	".hg",
-	".svn",
-	".DS_Store",
-	"._*",
-	"Thumbs.db",
-}
-
-func filterPaths(fileInfo os.FileInfo) bool {
-	name := fileInfo.Name()
-	for _, pattern := range ignoredPaths {
-		match, err := filepath.Match(pattern, name)
-		if err != nil {
-			panic(fmt.Sprintf("Malformed ignore pattern '%s': %s", pattern, err.Error()))
-		}
-		if match {
-			if *appArgs.verbose {
-				fmt.Printf("Ignoring '%s' because of pattern '%s'\n", fileInfo.Name(), pattern)
-			}
-			return false
-		}
-	}
-
-	return true
-}
-
 func diff(target string, source string, patch string, brotliQuality int) {
+	must(doDiff(target, source, patch, brotliQuality))
+}
+
+func doDiff(target string, source string, patch string, brotliQuality int) error {
 	startTime := time.Now()
 
 	var targetSignature []sync.BlockHash
@@ -55,17 +29,23 @@ func diff(target string, source string, patch string, brotliQuality int) {
 		targetContainer = &tlc.Container{}
 	} else {
 		targetInfo, err := os.Lstat(target)
-		must(err)
+		if err != nil {
+			return err
+		}
 
 		if targetInfo.IsDir() {
 			comm.Opf("Hashing %s", target)
 			targetContainer, err = tlc.Walk(target, filterPaths)
-			must(err)
+			if err != nil {
+				return err
+			}
 
 			comm.StartProgress()
 			targetSignature, err = pwr.ComputeSignature(targetContainer, target, comm.NewStateConsumer())
 			comm.EndProgress()
-			must(err)
+			if err != nil {
+				return err
+			}
 
 			{
 				prettySize := humanize.Bytes(uint64(targetContainer.Size))
@@ -75,10 +55,17 @@ func diff(target string, source string, patch string, brotliQuality int) {
 		} else {
 			comm.Opf("Reading signature from %s", target)
 			signatureReader, err := os.Open(target)
-			must(err)
+			if err != nil {
+				return err
+			}
 			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
-			must(err)
-			must(signatureReader.Close())
+			if err != nil {
+				return err
+			}
+			err = signatureReader.Close()
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -91,16 +78,22 @@ func diff(target string, source string, patch string, brotliQuality int) {
 	} else {
 		var err error
 		sourceContainer, err = tlc.Walk(source, filterPaths)
-		must(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	patchWriter, err := os.Create(patch)
-	must(err)
+	if err != nil {
+		return err
+	}
 	defer patchWriter.Close()
 
 	signaturePath := patch + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
-	must(err)
+	if err != nil {
+		return err
+	}
 	defer signatureWriter.Close()
 
 	patchCounter := counter.NewWriter(patchWriter)
@@ -122,7 +115,10 @@ func diff(target string, source string, patch string, brotliQuality int) {
 
 	comm.Opf("Diffing %s", source)
 	comm.StartProgress()
-	must(dctx.WritePatch(patchCounter, signatureCounter))
+	err = dctx.WritePatch(patchCounter, signatureCounter)
+	if err != nil {
+		return err
+	}
 	comm.EndProgress()
 
 	{
@@ -132,8 +128,10 @@ func diff(target string, source string, patch string, brotliQuality int) {
 	}
 
 	if *diffArgs.verify {
-		tmpDir, err := ioutil.TempDir(os.TempDir(), "pwr")
-		must(err)
+		tmpDir, err := ioutil.TempDir("", "pwr")
+		if err != nil {
+			return err
+		}
 		defer os.RemoveAll(tmpDir)
 
 		apply(patch, target, tmpDir, false)
@@ -150,9 +148,15 @@ func diff(target string, source string, patch string, brotliQuality int) {
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
 		comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
 	}
+
+	return nil
 }
 
 func apply(patch string, target string, output string, inplace bool) {
+	must(doApply(patch, target, output, inplace))
+}
+
+func doApply(patch string, target string, output string, inplace bool) error {
 	if output == "" {
 		output = target
 	}
@@ -169,7 +173,9 @@ func apply(patch string, target string, output string, inplace bool) {
 	startTime := time.Now()
 
 	patchReader, err := os.Open(patch)
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	actx := &pwr.ApplyContext{
 		TargetPath: target,
@@ -180,24 +186,37 @@ func apply(patch string, target string, output string, inplace bool) {
 	}
 
 	comm.StartProgress()
-	must(actx.ApplyPatch(patchReader))
+	err = actx.ApplyPatch(patchReader)
+	if err != nil {
+		return err
+	}
 	comm.EndProgress()
 
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s (touched %d files)\n", prettySize, container.Stats(), perSecond, actx.TouchedFiles)
+
+	return nil
 }
 
 func sign(output string, signature string) {
+	must(doSign(output, signature))
+}
+
+func doSign(output string, signature string) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
 	container, err := tlc.Walk(output, filterPaths)
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	signatureWriter, err := os.Create(signature)
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	compression := pwr.CompressionDefault()
 
@@ -209,7 +228,9 @@ func sign(output string, signature string) {
 	})
 
 	sigWire, err := pwr.CompressWire(rawSigWire, compression)
-	must(err)
+	if err != nil {
+		return err
+	}
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
@@ -220,30 +241,47 @@ func sign(output string, signature string) {
 		})
 	})
 	comm.EndProgress()
-	must(err)
+	if err != nil {
+		return err
+	}
 
-	must(sigWire.Close())
+	err = sigWire.Close()
+	if err != nil {
+		return err
+	}
 
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
+
+	return nil
 }
 
 func verify(signature string, output string) {
+	must(doVerify(signature, output))
+}
+
+func doVerify(signature string, output string) error {
 	comm.Opf("Verifying %s", output)
 	startTime := time.Now()
 
 	signatureReader, err := os.Open(signature)
-	must(err)
+	if err != nil {
+		return err
+	}
 	defer signatureReader.Close()
 
 	refContainer, refHashes, err := pwr.ReadSignature(signatureReader)
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	comm.StartProgress()
 	hashes, err := pwr.ComputeSignature(refContainer, output, comm.NewStateConsumer())
 	comm.EndProgress()
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	err = pwr.CompareHashes(refHashes, hashes)
 	if err != nil {
@@ -254,4 +292,6 @@ func verify(signature string, output string) {
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
 	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
+
+	return nil
 }
