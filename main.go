@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 
 	"github.com/itchio/butler/comm"
@@ -27,14 +28,16 @@ var (
 
 	walkCmd = app.Command("walk", "Print TLC tree for given directory as JSON").Hidden()
 
+	loginCmd  = app.Command("login", "Connect butler to your itch.io account and save credentials locally.")
+	logoutCmd = app.Command("logout", "Remove saved itch.io credentials.")
 	pushCmd   = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
-	fetchCmd  = app.Command("fetch", "Fetch the latest build of a channel from itch.io")
-	statusCmd = app.Command("status", "Show status of channels for given target")
+	fetchCmd  = app.Command("fetch", "Download and extract the latest build of a channel from itch.io")
+	statusCmd = app.Command("status", "Show a list of channels and the status of their latest and pending builds.")
 
-	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
-	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
-	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
-	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
+	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.").Hidden()
+	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory").Hidden()
+	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.").Hidden()
+	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version").Hidden()
 )
 
 var appArgs = struct {
@@ -83,7 +86,7 @@ func defaultKeyPath() string {
 		dir = "itch"
 	}
 
-	return path.Join(home, dir, "butler_creds")
+	return filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 }
 
 var pushArgs = struct {
@@ -225,6 +228,12 @@ func main() {
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
 		dl(*dlArgs.url, *dlArgs.dest)
+
+	case loginCmd.FullCommand():
+		login()
+
+	case logoutCmd.FullCommand():
+		logout()
 
 	case pushCmd.FullCommand():
 		push(*pushArgs.src, *pushArgs.target)

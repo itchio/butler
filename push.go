@@ -295,14 +295,6 @@ func parseSpec(spec string) (string, string, error) {
 	return tokens[0], tokens[1], nil
 }
 
-func parseAddress(address string) string {
-	if strings.Contains(address, ":") {
-		return address
-	}
-
-	return fmt.Sprintf("%s:%d", address, defaultPort)
-}
-
 func min(a, b float64) float64 {
 	if a < b {
 		return a

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,14 +9,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"regexp"
+	"strings"
 
 	"github.com/itchio/go-itchio"
+	"github.com/olekukonko/tablewriter"
 )
 
 const (
-	defaultPort = 22
-	asciiArt    = "      ..........................\n" +
+	asciiArt = "      ..........................\n" +
 		"    ':cccclooooolcccccloooooocccc:,.\n" +
 		"  ':cccccooooooolccccccooooooolccccc,.\n" +
 		" ,;;;;;;cllllllc:;;;;;;clllllll:;;;;;;.\n" +
@@ -35,6 +38,84 @@ const (
 )
 
 var callbackRe = regexp.MustCompile(`^\/oauth\/callback\/(.*)$`)
+
+func login() {
+	must(doLogin())
+}
+
+func doLogin() error {
+	var identity = *appArgs.identity
+	_, err := os.Lstat(identity)
+	hasSavedCredentials := !os.IsNotExist(err)
+
+	if hasSavedCredentials {
+		client, err := authenticateViaOauth()
+		if err != nil {
+			return err
+		}
+
+		_, err = client.WharfStatus()
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Your local credentials are valid!\n")
+		fmt.Println("If you want to log in as another account, use the `butler logout` command first,")
+		fmt.Println("or specify a different credentials path with the `-i` flag.")
+	} else {
+		// this does the full login flow + saves
+		_, err := authenticateViaOauth()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	return nil
+}
+
+func logout() {
+	must(doLogout())
+}
+
+func doLogout() error {
+	var identity = *appArgs.identity
+
+	_, err := os.Lstat(identity)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("No saved credentials at", identity)
+			fmt.Println("Nothing to do.")
+			return nil
+		}
+	}
+
+	fmt.Printf(":: Do you want to erase your saved API key? [y/N] ")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	answer := strings.ToLower(scanner.Text())
+	if answer != "y" {
+		fmt.Println("Okay, not erasing credentials. Bye!")
+		return nil
+	}
+
+	err = os.Remove(identity)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("You've successfully erased the API key that was saved on your computer.\n")
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetColWidth(50)
+	table.SetHeader([]string{"Important note"})
+	table.Append([]string{"Note: this command does not invalidate the API key itself. If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:\n"})
+	table.Append([]string{""})
+	table.Append([]string{fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address)})
+	table.Render()
+
+	return nil
+}
 
 func authenticateViaOauth() (*itchio.Client, error) {
 	var err error
@@ -175,15 +256,22 @@ func authenticateViaOauth() (*itchio.Client, error) {
 			err = nil
 
 			client := makeClient(keyString)
-			_, err := client.WharfStatus()
+			_, err = client.WharfStatus()
 			if err != nil {
 				return nil, err
 			}
-			log.Printf("\nAuthenticated successfully! Saving key in %s...\n\n", identity)
+			log.Printf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
-			err = ioutil.WriteFile(identity, key, os.FileMode(0644))
+			err = os.MkdirAll(path.Dir(identity), os.FileMode(0777))
 			if err != nil {
-				log.Printf("\nCould not save key: %s\n\n", err.Error())
+				log.Printf("\nCould not create directory for storing API key: %s\n\n", err.Error())
+				err = nil
+			} else {
+				err = ioutil.WriteFile(identity, key, os.FileMode(0644))
+				if err != nil {
+					log.Printf("\nCould not save API key: %s\n\n", err.Error())
+					err = nil
+				}
 			}
 		}
 	}
