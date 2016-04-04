@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -233,9 +234,19 @@ func doPush(buildPath string, spec string) error {
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+		savings := 100.0 - relToNew
 
-		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-		comm.Statf("%s patch (%.2f%% savings)", prettyPatchSize, 100.0-relToNew)
+		if dctx.ReusedBytes > 0 {
+			comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
+		} else {
+			comm.Statf("Added %s fresh data", percReused, prettyFreshSize)
+		}
+
+		if savings > 0 && !math.IsNaN(savings) {
+			comm.Statf("%s patch (%.2f%% savings)", prettyPatchSize, 100.0-relToNew)
+		} else {
+			comm.Statf("%s patch (no savings)", prettyPatchSize)
+		}
 	}
 	return nil
 }
