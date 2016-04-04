@@ -239,7 +239,7 @@ func doPush(buildPath string, spec string) error {
 		if dctx.ReusedBytes > 0 {
 			comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
 		} else {
-			comm.Statf("Added %s fresh data", percReused, prettyFreshSize)
+			comm.Statf("Added %s fresh data", prettyFreshSize)
 		}
 
 		if savings > 0 && !math.IsNaN(savings) {
