@@ -179,17 +179,21 @@ func doPush(buildPath string, spec string) error {
 		return err
 	}
 
-	err = patchWriter.Close()
-	if err != nil {
-		return err
+	// close in a goroutine to avoid deadlocking
+	doClose := func(c io.Closer, done chan bool, errs chan error) {
+		err := c.Close()
+		if err != nil {
+			errs <- err
+			return
+		}
+
+		done <- true
 	}
 
-	err = signatureWriter.Close()
-	if err != nil {
-		return err
-	}
+	go doClose(patchWriter, uploadDone, uploadErrs)
+	go doClose(signatureWriter, uploadDone, uploadErrs)
 
-	for c := 0; c < 2; c++ {
+	for c := 0; c < 4; c++ {
 		select {
 		case err := <-uploadErrs:
 			return err
@@ -205,6 +209,7 @@ func doPush(buildPath string, spec string) error {
 		_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
 		if err != nil {
 			errs <- err
+			return
 		}
 
 		done <- true
