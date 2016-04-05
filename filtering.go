@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -18,8 +17,6 @@ var ignoredPaths = []string{
 }
 
 func filterPaths(fileInfo os.FileInfo) bool {
-	log.Printf("Got %d ignored paths\n", len(ignoredPaths))
-
 	name := fileInfo.Name()
 	for _, pattern := range ignoredPaths {
 		match, err := filepath.Match(pattern, name)
