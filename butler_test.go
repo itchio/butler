@@ -12,6 +12,10 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/sync"
+	"github.com/itchio/wharf/tlc"
+	"github.com/stretchr/testify/assert"
 )
 
 // reverse must
@@ -27,6 +31,16 @@ func putfile(t *testing.T, basePath string, i int, data []byte) {
 	mist(t, ioutil.WriteFile(samplePath, data, perm))
 }
 
+func shortSizeCount(hashes []sync.BlockHash) string {
+	count := 0
+	for _, hash := range hashes {
+		if hash.ShortSize != 0 {
+			count++
+		}
+	}
+	return fmt.Sprintf("%d/%d", count, len(hashes))
+}
+
 func TestAllTheThings(t *testing.T) {
 	perm := os.FileMode(0777)
 	workingDir, err := ioutil.TempDir("", "butler-tests")
@@ -39,8 +53,13 @@ func TestAllTheThings(t *testing.T) {
 
 	sample2 := path.Join(workingDir, "sample2")
 	mist(t, os.MkdirAll(sample2, perm))
-	for i := 0; i < 80; i++ {
-		putfile(t, sample2, i, bytes.Repeat([]byte{0x42, 0x69}, i*200+1))
+	for i := 0; i < 5; i++ {
+		if i == 3 {
+			// e.g. .gitkeep
+			putfile(t, sample2, i, []byte{})
+		} else {
+			putfile(t, sample2, i, bytes.Repeat([]byte{0x42, 0x69}, i*200+1))
+		}
 	}
 
 	sample3 := path.Join(workingDir, "sample3")
@@ -68,27 +87,59 @@ func TestAllTheThings(t *testing.T) {
 	}
 
 	files := map[string]string{
-		"hello":     sample,
-		"80-fixed":  sample2,
-		"60-fixed":  sample3,
-		"120-fixed": sample4,
-		"random":    sample5,
-		"null":      "/dev/null",
+		// "hello":     sample,
+		"80-fixed": sample2,
+		// "60-fixed":  sample3,
+		// "120-fixed": sample4,
+		// "random":    sample5,
+		// "null":      "/dev/null",
 	}
 
 	patch := path.Join(workingDir, "patch.pwr")
 
 	comm.Configure(true, true, false, false, false)
 
-	for _, q := range []int{1, 9} {
-		t.Logf("============ Quality %d ============", q)
-		for lhs := range files {
-			for rhs := range files {
-				mist(t, doDiff(files[lhs], files[rhs], patch, q))
-				stat, err := os.Lstat(patch)
-				mist(t, err)
-				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
+	if false {
+		for _, q := range []int{1, 9} {
+			t.Logf("============ Quality %d ============", q)
+			for lhs := range files {
+				for rhs := range files {
+					mist(t, doDiff(files[lhs], files[rhs], patch, q))
+					stat, err := os.Lstat(patch)
+					mist(t, err)
+					t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
+				}
 			}
 		}
+	}
+
+	for _, filepath := range files {
+		t.Logf("Signing %s\n", filepath)
+		sigpath := path.Join(workingDir, "signature.pwr.sig")
+		mist(t, doSign(filepath, sigpath))
+
+		sigr, err := os.Open(sigpath)
+		mist(t, err)
+		defer sigr.Close()
+
+		readcontainer, readsig, err := pwr.ReadSignature(sigr)
+		mist(t, err)
+
+		computedcontainer, err := tlc.Walk(filepath, filterPaths)
+		mist(t, err)
+
+		computedsig, err := pwr.ComputeSignature(computedcontainer, filepath, &pwr.StateConsumer{})
+		mist(t, err)
+
+		t.Logf("shortSizeCount: %s vs %s", shortSizeCount(readsig), shortSizeCount(computedsig))
+
+		assert.Equal(t, len(readcontainer.Files), len(computedcontainer.Files))
+		for i, rf := range readcontainer.Files {
+			cf := computedcontainer.Files[i]
+			assert.Equal(t, *rf, *cf)
+		}
+
+		assert.Equal(t, readsig, computedsig)
+		mist(t, pwr.CompareHashes(readsig, computedsig, computedcontainer))
 	}
 }

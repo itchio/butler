@@ -166,7 +166,7 @@ func doPush(buildPath string, spec string) error {
 		},
 
 		SourceContainer: sourceContainer,
-		SourcePath:      buildPath,
+		FilePool:        sourceContainer.NewFilePool(buildPath),
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,

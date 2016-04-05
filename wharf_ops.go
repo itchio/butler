@@ -15,11 +15,11 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-func diff(target string, source string, patch string, brotliQuality int) {
-	must(doDiff(target, source, patch, brotliQuality))
+func diff(target string, source string, patch string, compression pwr.CompressionSettings) {
+	must(doDiff(target, source, patch, compression))
 }
 
-func doDiff(target string, source string, patch string, brotliQuality int) error {
+func doDiff(target string, source string, patch string, compression pwr.CompressionSettings) error {
 	startTime := time.Now()
 
 	var targetSignature []sync.BlockHash
@@ -101,16 +101,13 @@ func doDiff(target string, source string, patch string, brotliQuality int) error
 
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
-		SourcePath:      source,
+		FilePool:        sourceContainer.NewFilePool(source),
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,
 
-		Consumer: comm.NewStateConsumer(),
-		Compression: &pwr.CompressionSettings{
-			Algorithm: pwr.CompressionAlgorithm_BROTLI,
-			Quality:   int32(*diffArgs.quality),
-		},
+		Consumer:    comm.NewStateConsumer(),
+		Compression: &compression,
 	}
 
 	comm.Opf("Diffing %s", source)
@@ -200,11 +197,11 @@ func doApply(patch string, target string, output string, inplace bool) error {
 	return nil
 }
 
-func sign(output string, signature string) {
-	must(doSign(output, signature))
+func sign(output string, signature string, compression pwr.CompressionSettings) {
+	must(doSign(output, signature, compression))
 }
 
-func doSign(output string, signature string) error {
+func doSign(output string, signature string, compression pwr.CompressionSettings) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
@@ -218,16 +215,14 @@ func doSign(output string, signature string) error {
 		return err
 	}
 
-	compression := pwr.CompressionDefault()
-
 	rawSigWire := wire.NewWriteContext(signatureWriter)
 	rawSigWire.WriteMagic(pwr.SignatureMagic)
 
 	rawSigWire.WriteMessage(&pwr.SignatureHeader{
-		Compression: compression,
+		Compression: &compression,
 	})
 
-	sigWire, err := pwr.CompressWire(rawSigWire, compression)
+	sigWire, err := pwr.CompressWire(rawSigWire, &compression)
 	if err != nil {
 		return err
 	}
@@ -283,7 +278,7 @@ func doVerify(signature string, output string) error {
 		return err
 	}
 
-	err = pwr.CompareHashes(refHashes, hashes)
+	err = pwr.CompareHashes(refHashes, hashes, refContainer)
 	if err != nil {
 		comm.Logf(err.Error())
 		comm.Dief("Some checks failed after checking %d block.", len(refHashes))

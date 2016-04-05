@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -8,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pwr"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -48,11 +50,13 @@ var appArgs = struct {
 	noProgress *bool
 	panic      *bool
 
-	identity *string
-	address  *string
+	identity             *string
+	address              *string
+	compressionAlgorithm *string
+	compressionQuality   *int
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
-	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Short('q').Bool(),
+	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
 	app.Flag("verbose", "Be very chatty about what's happening").Short('v').Bool(),
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Hidden().Bool(),
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
@@ -60,6 +64,9 @@ var appArgs = struct {
 
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
+
+	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Enum("none", "brotli", "gzip"),
+	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Int(),
 }
 
 var dlArgs = struct {
@@ -151,16 +158,12 @@ var diffArgs = struct {
 	patch *string
 
 	verify *bool
-
-	quality *int
 }{
 	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String(),
 	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().String(),
 	diffCmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").String(),
 
 	diffCmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").Bool(),
-
-	diffCmd.Flag("quality", "Compression quality").Hidden().Default("1").Int(),
 }
 
 var applyArgs = struct {
@@ -203,7 +206,29 @@ func must(err error) {
 	}
 }
 
+func butlerCompressionSettings() pwr.CompressionSettings {
+	var algo pwr.CompressionAlgorithm
+
+	switch *appArgs.compressionAlgorithm {
+	case "none":
+		algo = pwr.CompressionAlgorithm_NONE
+	case "brotli":
+		algo = pwr.CompressionAlgorithm_BROTLI
+	case "gzip":
+		algo = pwr.CompressionAlgorithm_GZIP
+	default:
+		panic(fmt.Errorf("Unknown compression algorithm: %s", algo))
+	}
+
+	return pwr.CompressionSettings{
+		Algorithm: algo,
+		Quality:   int32(*appArgs.compressionQuality),
+	}
+}
+
 func main() {
+	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
+
 	app.HelpFlag.Short('h')
 	app.Version(version)
 	app.VersionFlag.Short('V')
@@ -221,10 +246,12 @@ func main() {
 	}
 
 	if !isTerminal() {
-		log.Println("Not a terminal, disabling progress indicator")
 		*appArgs.noProgress = true
 	}
 	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic)
+	if !isTerminal() {
+		comm.Debug("Not a terminal, disabling progress indicator")
+	}
 
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
@@ -261,7 +288,7 @@ func main() {
 		walk(*walkArgs.src)
 
 	case diffCmd.FullCommand():
-		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, *diffArgs.quality)
+		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
 	case applyCmd.FullCommand():
 		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace)
@@ -270,6 +297,6 @@ func main() {
 		verify(*verifyArgs.signature, *verifyArgs.output)
 
 	case signCmd.FullCommand():
-		sign(*signArgs.output, *signArgs.signature)
+		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings())
 	}
 }
