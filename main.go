@@ -230,16 +230,6 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
-	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
-
-	if debugPort != "" {
-		addr := fmt.Sprintf("localhost:%s", debugPort)
-		go func() {
-			log.Println(http.ListenAndServe(addr, nil))
-		}()
-		log.Println("serving pprof debug interface on", addr)
-	}
-
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
 
 	app.HelpFlag.Short('h')
@@ -264,6 +254,16 @@ func main() {
 	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic)
 	if !isTerminal() {
 		comm.Debug("Not a terminal, disabling progress indicator")
+	}
+
+	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
+
+	if debugPort != "" {
+		addr := fmt.Sprintf("localhost:%s", debugPort)
+		go func() {
+			comm.Logf(http.ListenAndServe(addr, nil))
+		}()
+		comm.Logf("serving pprof debug interface on", addr)
 	}
 
 	switch kingpin.MustParse(cmd, err) {
