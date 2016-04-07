@@ -21,7 +21,7 @@ import (
 // reverse must
 func mist(t *testing.T, err error) {
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 }
 
@@ -87,12 +87,12 @@ func TestAllTheThings(t *testing.T) {
 	}
 
 	files := map[string]string{
-		// "hello":     sample,
-		"80-fixed": sample2,
-		// "60-fixed":  sample3,
-		// "120-fixed": sample4,
-		// "random":    sample5,
-		// "null":      "/dev/null",
+		"hello":     sample,
+		"80-fixed":  sample2,
+		"60-fixed":  sample3,
+		"120-fixed": sample4,
+		"random":    sample5,
+		"null":      "/dev/null",
 	}
 
 	patch := path.Join(workingDir, "patch.pwr")
@@ -102,9 +102,14 @@ func TestAllTheThings(t *testing.T) {
 	if false {
 		for _, q := range []int{1, 9} {
 			t.Logf("============ Quality %d ============", q)
+			compression := pwr.CompressionSettings{
+				Algorithm: pwr.CompressionAlgorithm_BROTLI,
+				Quality:   int32(q),
+			}
+
 			for lhs := range files {
 				for rhs := range files {
-					mist(t, doDiff(files[lhs], files[rhs], patch, q))
+					mist(t, doDiff(files[lhs], files[rhs], patch, compression))
 					stat, err := os.Lstat(patch)
 					mist(t, err)
 					t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
@@ -113,25 +118,30 @@ func TestAllTheThings(t *testing.T) {
 		}
 	}
 
+	compression := pwr.CompressionSettings{
+		Algorithm: pwr.CompressionAlgorithm_BROTLI,
+		Quality:   1,
+	}
+
 	for _, filepath := range files {
 		t.Logf("Signing %s\n", filepath)
+
 		sigpath := path.Join(workingDir, "signature.pwr.sig")
-		mist(t, doSign(filepath, sigpath))
+		mist(t, doSign(filepath, sigpath, compression))
 
 		sigr, err := os.Open(sigpath)
 		mist(t, err)
-		defer sigr.Close()
 
 		readcontainer, readsig, err := pwr.ReadSignature(sigr)
 		mist(t, err)
+
+		mist(t, sigr.Close())
 
 		computedcontainer, err := tlc.Walk(filepath, filterPaths)
 		mist(t, err)
 
 		computedsig, err := pwr.ComputeSignature(computedcontainer, filepath, &pwr.StateConsumer{})
 		mist(t, err)
-
-		t.Logf("shortSizeCount: %s vs %s", shortSizeCount(readsig), shortSizeCount(computedsig))
 
 		assert.Equal(t, len(readcontainer.Files), len(computedcontainer.Files))
 		for i, rf := range readcontainer.Files {

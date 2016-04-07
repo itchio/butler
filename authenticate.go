@@ -90,7 +90,15 @@ func doLogout() error {
 		}
 	}
 
-	fmt.Printf(":: Do you want to erase your saved API key? [y/N] ")
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetColWidth(50)
+	table.SetHeader([]string{"Important note"})
+	table.Append([]string{"Note: this command will not invalidate the API key itself. If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:\n"})
+	table.Append([]string{""})
+	table.Append([]string{fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address)})
+	table.Render()
+
+	fmt.Printf("\n:: Do you want to erase your saved API key? [y/N] ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	answer := strings.ToLower(scanner.Text())
@@ -105,14 +113,6 @@ func doLogout() error {
 	}
 
 	fmt.Println("You've successfully erased the API key that was saved on your computer.\n")
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetColWidth(50)
-	table.SetHeader([]string{"Important note"})
-	table.Append([]string{"Note: this command does not invalidate the API key itself. If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:\n"})
-	table.Append([]string{""})
-	table.Append([]string{fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address)})
-	table.Render()
 
 	return nil
 }
