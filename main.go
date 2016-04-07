@@ -256,15 +256,7 @@ func main() {
 		comm.Debug("Not a terminal, disabling progress indicator")
 	}
 
-	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
-
-	if debugPort != "" {
-		addr := fmt.Sprintf("localhost:%s", debugPort)
-		go func() {
-			comm.Logf(http.ListenAndServe(addr, nil))
-		}()
-		comm.Logf("serving pprof debug interface on", addr)
-	}
+	setupHttpDebug()
 
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
@@ -312,4 +304,21 @@ func main() {
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings())
 	}
+}
+
+func setupHttpDebug() {
+	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
+
+	if debugPort == "" {
+		return
+	}
+
+	addr := fmt.Sprintf("localhost:%s", debugPort)
+	go func() {
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			comm.Logf("http debug error: %s", err.Error())
+		}
+	}()
+	comm.Logf("serving pprof debug interface on", addr)
 }
