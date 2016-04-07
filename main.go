@@ -11,6 +11,9 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pwr"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -227,6 +230,16 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
+	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
+
+	if debugPort != "" {
+		addr := fmt.Sprintf("localhost:%s", debugPort)
+		go func() {
+			log.Println(http.ListenAndServe(addr, nil))
+		}()
+		log.Println("serving pprof debug interface on", addr)
+	}
+
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
 
 	app.HelpFlag.Short('h')
