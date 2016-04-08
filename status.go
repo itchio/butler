@@ -31,7 +31,7 @@ func doStatus(target string) error {
 	for _, ch := range listChannelsResp.Channels {
 		if ch.Head != nil {
 			files := ch.Head.Files
-			line := []string{ch.Name, buildState(ch.Head), buildParent(ch.Head), fileState(files.Patch, files.Archive)}
+			line := []string{ch.Name, buildState(ch.Head), buildParent(ch.Head), filesState(files)}
 			table.Append(line)
 		} else {
 			line := []string{ch.Name, "No builds yet"}
@@ -40,7 +40,7 @@ func doStatus(target string) error {
 
 		if ch.Pending != nil {
 			files := ch.Pending.Files
-			line := []string{"", buildState(ch.Pending), buildParent(ch.Pending), fileState(files.Patch, files.Archive)}
+			line := []string{"", buildState(ch.Pending), buildParent(ch.Pending), filesState(files)}
 			table.Append(line)
 		}
 	}
@@ -70,18 +70,36 @@ func buildParent(build *itchio.BuildInfo) string {
 	return fmt.Sprintf("#%d", build.ParentBuildID)
 }
 
-func fileState(patch *itchio.BuildFileInfo, archive *itchio.BuildFileInfo) string {
+func filesState(files []*itchio.BuildFileInfo) string {
+	if len(files) == 0 {
+		return "(no files)"
+	}
+
+	s := ""
+	for _, file := range files {
+		if s != "" {
+			s += ", "
+		}
+		s += fileState(file)
+	}
+
+	return s
+}
+
+func fileState(file *itchio.BuildFileInfo) string {
 	theme := comm.GetTheme()
 
-	if archive.State == itchio.BuildFileState_UPLOADED {
-		if patch.State == itchio.BuildFileState_UPLOADED {
-			return fmt.Sprintf("%s %s archive, %s patch", theme.StatSign, humanize.Bytes(uint64(archive.Size)), humanize.Bytes(uint64(patch.Size)))
-		}
-		return fmt.Sprintf("%s %s archive, processing patch", theme.OpSign, humanize.Bytes(uint64(archive.Size)))
+	fType := string(file.Type)
+	if file.SubType != itchio.BuildFileType_ARCHIVE {
+		fType += fmt.Sprintf(" (%s)", file.SubType)
 	}
 
-	if patch.State == itchio.BuildFileState_UPLOADED {
-		return fmt.Sprintf("%s %s patch, processing archive", theme.OpSign, humanize.Bytes(uint64(patch.Size)))
+	sign := theme.StatSign
+	if file.State != itchio.BuildFileState_UPLOADED {
+		sign = theme.OpSign
 	}
-	return fmt.Sprintf("uploading...", theme.OpSign)
+
+	fSize := humanize.Bytes(uint64(file.Size))
+
+	return fmt.Sprintf("%s %s %s", sign, fSize, fType)
 }

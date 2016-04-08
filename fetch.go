@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
 )
 
@@ -53,11 +54,20 @@ func doFetch(spec string, outPath string) error {
 	}
 
 	head := *channelResponse.Channel.Head
-	if head.Files.Archive == nil {
+	var headArchive *itchio.BuildFileInfo
+
+	for _, file := range head.Files {
+		if file.Type == itchio.BuildFileType_ARCHIVE && file.SubType == itchio.BuildFileSubType_DEFAULT && file.State == itchio.BuildFileState_UPLOADED {
+			headArchive = file
+			break
+		}
+	}
+
+	if headArchive == nil {
 		return fmt.Errorf("Channel %s's latest build is still processing", channel)
 	}
 
-	dlReader, err := client.DownloadBuildFile(head.ID, head.Files.Archive.ID)
+	dlReader, err := client.DownloadBuildFile(head.ID, headArchive.ID)
 	if err != nil {
 		return err
 	}
