@@ -84,6 +84,9 @@ func doPush(buildPath string, spec string) error {
 	}
 
 	newPatchRes, newSignatureRes, err := createBothFiles(client, buildID)
+	if err != nil {
+		return err
+	}
 
 	uploadDone := make(chan bool)
 	uploadErrs := make(chan error)
