@@ -7,6 +7,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"time"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pwr"
@@ -22,6 +24,7 @@ import "C"
 
 var (
 	version = "head" // set by command-line on CI release builds
+	builtAt = ""     // set by command-line on CI release builds
 	app     = kingpin.New("butler", "Your happy little itch.io helper")
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
@@ -233,7 +236,13 @@ func main() {
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
 
 	app.HelpFlag.Short('h')
-	app.Version(version)
+	if builtAt != "" {
+		epoch, err := strconv.ParseInt(builtAt, 10, 64)
+		must(err)
+		app.Version(fmt.Sprintf("%s, built on %s", version, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05")))
+	} else {
+		app.Version(fmt.Sprintf("%s, no build date", version))
+	}
 	app.VersionFlag.Short('V')
 
 	cmd, err := app.Parse(os.Args[1:])
