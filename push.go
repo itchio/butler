@@ -16,11 +16,11 @@ import (
 	"github.com/itchio/wharf/uploader"
 )
 
-func push(buildPath string, spec string) {
-	must(doPush(buildPath, spec))
+func push(buildPath string, spec string, userVersion string) {
+	must(doPush(buildPath, spec, userVersion))
 }
 
-func doPush(buildPath string, spec string) error {
+func doPush(buildPath string, spec string, userVersion string) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan *tlc.Container)
 	walkErrs := make(chan error)
@@ -36,7 +36,7 @@ func doPush(buildPath string, spec string) error {
 		return err
 	}
 
-	newBuildRes, err := client.CreateBuild(target, channel)
+	newBuildRes, err := client.CreateBuild(target, channel, userVersion)
 	if err != nil {
 		return err
 	}

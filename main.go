@@ -106,11 +106,13 @@ func defaultKeyPath() string {
 }
 
 var pushArgs = struct {
-	src    *string
-	target *string
+	src         *string
+	target      *string
+	userVersion *string
 }{
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
+	pushCmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String(),
 }
 
 var fetchArgs = struct {
@@ -281,7 +283,7 @@ func main() {
 		logout()
 
 	case pushCmd.FullCommand():
-		push(*pushArgs.src, *pushArgs.target)
+		push(*pushArgs.src, *pushArgs.target, *pushArgs.userVersion)
 
 	case fetchCmd.FullCommand():
 		fetch(*fetchArgs.target, *fetchArgs.out)
