@@ -88,18 +88,21 @@ var dlArgs = struct {
 }
 
 func defaultKeyPath() string {
-	dir := ".itch"
-	home := os.Getenv("HOME")
-	if home == "" {
-		home = os.Getenv("USERPROFILE")
-	}
+	configPath := os.Getenv("XDG_CONFIG_PATH")
+	if configPath == "" {
+		dir := ".config/itch"
+		home := os.Getenv("HOME")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
 
-	if runtime.GOOS == "darwin" {
-		home = path.Join(home, "Library", "Application Support")
-		dir = "itch"
+		if runtime.GOOS == "darwin" {
+			home = path.Join(home, "Library", "Application Support")
+			dir = "itch"
+		}
+		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
-
-	return filepath.FromSlash(path.Join(home, dir, "butler_creds"))
+	return configPath
 }
 
 var pushArgs = struct {
