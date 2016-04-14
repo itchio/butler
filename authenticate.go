@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -262,7 +262,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 			}
 			log.Printf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
-			err = os.MkdirAll(path.Dir(identity), os.FileMode(0777))
+			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0777))
 			if err != nil {
 				log.Printf("\nCould not create directory for storing API key: %s\n\n", err.Error())
 				err = nil
