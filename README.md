@@ -13,7 +13,7 @@ itch (the itch.io app) uses it for some network, filesystem and patching operati
 butler's diffing & patching hasn't been officially released yet, but
 Amos published a small write-up on the [itch community](https://itch.io/post/16715).
 
-Early testers are welcome, especially for the `sign`, `verify`, `diff`, and `patch`
+Early testers are welcome, especially for the `sign`, `verify`, `diff`, and `apply`
 commands, which are detailed within the program's inline help.
 
 ## License
