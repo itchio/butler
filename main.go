@@ -334,5 +334,5 @@ func setupHttpDebug() {
 			comm.Logf("http debug error: %s", err.Error())
 		}
 	}()
-	comm.Logf("serving pprof debug interface on", addr)
+	comm.Logf("serving pprof debug interface on %s", addr)
 }

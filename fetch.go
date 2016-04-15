@@ -57,6 +57,7 @@ func doFetch(spec string, outPath string) error {
 	var headArchive *itchio.BuildFileInfo
 
 	for _, file := range head.Files {
+		comm.Debugf("found file %v", file)
 		if file.Type == itchio.BuildFileType_ARCHIVE && file.SubType == itchio.BuildFileSubType_DEFAULT && file.State == itchio.BuildFileState_UPLOADED {
 			headArchive = file
 			break

@@ -91,15 +91,13 @@ func doPush(buildPath string, spec string, userVersion string) error {
 	uploadDone := make(chan bool)
 	uploadErrs := make(chan error)
 
-	patchWriter, err := uploader.NewMultipartUpload(newPatchRes.File.UploadURL,
-		newPatchRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
+	patchWriter, err := uploader.NewResumableUpload(newPatchRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
 		return err
 	}
 
-	signatureWriter, err := uploader.NewMultipartUpload(newSignatureRes.File.UploadURL,
-		newSignatureRes.File.UploadParams, fmt.Sprintf("%d-%d.pwr", parentID, buildID),
+	signatureWriter, err := uploader.NewResumableUpload(newSignatureRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
 		return err
@@ -202,6 +200,7 @@ func doPush(buildPath string, spec string, userVersion string) error {
 		case err := <-uploadErrs:
 			return err
 		case <-uploadDone:
+			comm.Debugf(">>>>>>>>>>> woo, got a done")
 		}
 	}
 	comm.ProgressLabel("finalizing build")
@@ -262,7 +261,7 @@ type fileSlot struct {
 func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuildFileResponse, signature itchio.NewBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
 		var res itchio.NewBuildFileResponse
-		res, err = client.CreateBuildFile(buildID, buildType)
+		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubType_DEFAULT, itchio.UploadType_RESUMABLE)
 		if err != nil {
 			errs <- err
 		}
