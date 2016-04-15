@@ -2,7 +2,7 @@
 
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
-butler is a command-line tool written in Go
+butler is a command-line tool written in Go.
 
 itch (the itch.io app) uses it for some network, filesystem and patching operations:
 
