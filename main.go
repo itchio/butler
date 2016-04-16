@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/itchio/butler/comm"
@@ -106,13 +108,15 @@ func defaultKeyPath() string {
 }
 
 var pushArgs = struct {
-	src         *string
-	target      *string
-	userVersion *string
+	src             *string
+	target          *string
+	userVersion     *string
+	userVersionFile *string
 }{
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
 	pushCmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String(),
+	pushCmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String(),
 }
 
 var fetchArgs = struct {
@@ -283,7 +287,18 @@ func main() {
 		logout()
 
 	case pushCmd.FullCommand():
-		push(*pushArgs.src, *pushArgs.target, *pushArgs.userVersion)
+		{
+			userVersion := *pushArgs.userVersion
+			if userVersion == "" && *pushArgs.userVersionFile != "" {
+				buf, err := ioutil.ReadFile(*pushArgs.userVersionFile)
+				must(err)
+				userVersion = strings.TrimSpace(string(buf))
+				if strings.ContainsAny(userVersion, "\r\n") {
+					must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", *pushArgs.userVersionFile))
+				}
+			}
+			push(*pushArgs.src, *pushArgs.target, userVersion)
+		}
 
 	case fetchCmd.FullCommand():
 		fetch(*fetchArgs.target, *fetchArgs.out)
