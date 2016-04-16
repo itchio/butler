@@ -194,7 +194,7 @@ func doApply(patch string, target string, output string, inplace bool) error {
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 
 	if actx.InPlace {
-		comm.Statf("patched %d, kept %d, deleted %d", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles)
+		comm.Statf("patched %d, kept %d, deleted %d (%s stage)", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles, humanize.Bytes(uint64(actx.StageSize)))
 	}
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
