@@ -181,18 +181,18 @@ var applyArgs = struct {
 	patch *string
 	old   *string
 
-	dir     *string
-	verify  *string
-	reverse *string
-	inplace *bool
+	dir       *string
+	reverse   *string
+	inplace   *bool
+	signature *string
 }{
 	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
 	applyCmd.Arg("old", "Directory to patch").Required().ExistingFileOrDir(),
 
 	applyCmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String(),
-	applyCmd.Flag("verify", "When given, verifies patch application on-the-fly, and abort if any integrity check fails").String(),
-	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").String(),
+	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").Hidden().String(),
 	applyCmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool(),
+	applyCmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String(),
 }
 
 var verifyArgs = struct {
@@ -270,7 +270,7 @@ func main() {
 		comm.Debug("Not a terminal, disabling progress indicator")
 	}
 
-	setupHttpDebug()
+	setupHTTPDebug()
 
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
@@ -310,7 +310,7 @@ func main() {
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace)
+		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature)
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.output)
@@ -320,7 +320,7 @@ func main() {
 	}
 }
 
-func setupHttpDebug() {
+func setupHTTPDebug() {
 	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
 
 	if debugPort == "" {

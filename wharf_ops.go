@@ -131,9 +131,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		}
 		defer os.RemoveAll(tmpDir)
 
-		apply(patch, target, tmpDir, false)
-
-		verify(signaturePath, tmpDir)
+		apply(patch, target, tmpDir, false, signaturePath)
 	}
 
 	{
@@ -149,11 +147,11 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	return nil
 }
 
-func apply(patch string, target string, output string, inplace bool) {
-	must(doApply(patch, target, output, inplace))
+func apply(patch string, target string, output string, inplace bool, sigpath string) {
+	must(doApply(patch, target, output, inplace, sigpath))
 }
 
-func doApply(patch string, target string, output string, inplace bool) error {
+func doApply(patch string, target string, output string, inplace bool, sigpath string) error {
 	if output == "" {
 		output = target
 	}
@@ -175,9 +173,10 @@ func doApply(patch string, target string, output string, inplace bool) error {
 	}
 
 	actx := &pwr.ApplyContext{
-		TargetPath: target,
-		OutputPath: output,
-		InPlace:    inplace,
+		TargetPath:        target,
+		OutputPath:        output,
+		InPlace:           inplace,
+		SignatureFilePath: sigpath,
 
 		Consumer: comm.NewStateConsumer(),
 	}
