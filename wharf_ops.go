@@ -192,7 +192,11 @@ func doApply(patch string, target string, output string, inplace bool) error {
 	container := actx.SourceContainer
 	prettySize := humanize.Bytes(uint64(container.Size))
 	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s (touched %d files)\n", prettySize, container.Stats(), perSecond, actx.TouchedFiles)
+
+	if actx.InPlace {
+		comm.Statf("patched %d, kept %d, deleted %d", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles)
+	}
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
 	return nil
 }
