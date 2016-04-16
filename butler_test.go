@@ -140,7 +140,7 @@ func TestAllTheThings(t *testing.T) {
 		computedcontainer, err := tlc.Walk(filepath, filterPaths)
 		mist(t, err)
 
-		computedsig, err := pwr.ComputeSignature(computedcontainer, filepath, &pwr.StateConsumer{})
+		computedsig, err := pwr.ComputeSignature(computedcontainer, computedcontainer.NewFilePool(filepath), &pwr.StateConsumer{})
 		mist(t, err)
 
 		assert.Equal(t, len(readcontainer.Files), len(computedcontainer.Files))
