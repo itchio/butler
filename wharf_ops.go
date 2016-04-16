@@ -114,13 +114,40 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
+	var sourcePool sync.FilePool
 	if source == "/dev/null" {
 		sourceContainer = &tlc.Container{}
+		sourcePool = sourceContainer.NewFilePool(source)
 	} else {
 		var err error
-		sourceContainer, err = tlc.Walk(source, filterPaths)
+		stats, err := os.Lstat(source)
 		if err != nil {
 			return err
+		}
+
+		if stats.IsDir() {
+			sourceContainer, err = tlc.Walk(source, filterPaths)
+			if err != nil {
+				return err
+			}
+			sourcePool = sourceContainer.NewFilePool(source)
+		} else {
+			sourceReader, err := os.Open(source)
+			if err != nil {
+				return err
+			}
+			defer sourceReader.Close()
+
+			zr, err := zip.NewReader(sourceReader, stats.Size())
+			if err != nil {
+				return err
+			}
+			sourceContainer, err = tlc.WalkZip(zr, filterPaths)
+			if err != nil {
+				return err
+			}
+
+			sourcePool = sourceContainer.NewZipPool(zr)
 		}
 	}
 
@@ -142,7 +169,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
-		FilePool:        sourceContainer.NewFilePool(source),
+		FilePool:        sourcePool,
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,
