@@ -86,10 +86,8 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 				}
 				comm.Opf("Walking archive (%s)", targetContainer.Stats())
 
-				// targetContainer.NewZipFilePool(zr)
-
 				comm.StartProgress()
-				targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewFilePool(target), comm.NewStateConsumer())
+				targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewZipPool(zr), comm.NewStateConsumer())
 				comm.EndProgress()
 				if err != nil {
 					return err
