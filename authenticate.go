@@ -200,6 +200,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
           <script>
           'use strict'
           var key = location.hash.replace(/^#/, '')
+          location.hash = 'ok'
           var xhr = new XMLHttpRequest()
           var $message = document.querySelector("#message")
           var $art = document.querySelector("#art")
