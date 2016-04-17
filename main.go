@@ -25,9 +25,10 @@ import (
 import "C"
 
 var (
-	version = "head" // set by command-line on CI release builds
-	builtAt = ""     // set by command-line on CI release builds
-	app     = kingpin.New("butler", "Your happy little itch.io helper")
+	version       = "head" // set by command-line on CI release builds
+	builtAt       = ""     // set by command-line on CI release builds
+	versionString = ""     // formatted on boot from 'version' and 'builtAt'
+	app           = kingpin.New("butler", "Your happy little itch.io helper")
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 
@@ -48,6 +49,8 @@ var (
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory").Hidden()
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.").Hidden()
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version").Hidden()
+
+	whichCmd = app.Command("which", "Prints the path to this binary")
 )
 
 var appArgs = struct {
@@ -248,11 +251,13 @@ func main() {
 	if builtAt != "" {
 		epoch, err := strconv.ParseInt(builtAt, 10, 64)
 		must(err)
-		app.Version(fmt.Sprintf("%s, built on %s", version, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05")))
+		versionString = fmt.Sprintf("%s, built on %s", version, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
 	} else {
-		app.Version(fmt.Sprintf("%s, no build date", version))
+		versionString = fmt.Sprintf("%s, no build date", version)
 	}
+	app.Version(versionString)
 	app.VersionFlag.Short('V')
+	app.Author("Amos Wenger <amos@itch.io>")
 
 	cmd, err := app.Parse(os.Args[1:])
 	if *appArgs.timestamps {
@@ -332,6 +337,9 @@ func main() {
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings())
+
+	case whichCmd.FullCommand():
+		which()
 	}
 }
 
