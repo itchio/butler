@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
@@ -18,6 +20,8 @@ import (
 	"github.com/itchio/wharf/wire"
 	"github.com/kardianos/osext"
 )
+
+var updateBaseURL = fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s", runtime.GOOS, runtime.GOARCH)
 
 func which() {
 	p, err := osext.Executable()
@@ -196,12 +200,16 @@ func ls(path string) {
 }
 
 func versionCheck() {
-	latestVer, err := queryLatestVersion()
+	currentVer, latestVer, err := queryLatestVersion()
 	if err != nil {
 		comm.Logf("Version check failed: %s", err.Error())
 	}
 
-	if latestVer != version {
+	if currentVer == nil || latestVer == nil {
+		return
+	}
+
+	if latestVer.GT(*currentVer) {
 		comm.Notice("New version available",
 			[]string{
 				fmt.Sprintf("Current version: %s", version),
@@ -212,40 +220,110 @@ func versionCheck() {
 	}
 }
 
-func queryLatestVersion() (string, error) {
+func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 	if *appArgs.quiet {
-		return "", nil
+		return nil, nil, nil
+	}
+
+	currentVer, err := semver.Make(version)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if version == "head" {
 		comm.Logf("Bleeding-edge, skipping version check")
-		return "", nil
+		return nil, nil, nil
 	}
 
 	c := itchio.ClientWithKey("x")
 
-	latestURL := fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s/LATEST", runtime.GOOS, runtime.GOARCH)
+	latestURL := fmt.Sprintf("%s/LATEST", updateBaseURL)
 	req, err := http.NewRequest("GET", latestURL, nil)
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 
 	res, err := c.Do(req)
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 
 	if res.StatusCode != 200 {
 		err := fmt.Errorf("HTTP %d: %s", res.StatusCode, latestURL)
-		return "", err
+		return nil, nil, err
 	}
 
 	buf, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 
-	latestVer := strings.TrimSpace(string(buf))
-	latestVer = strings.TrimLeft(string(buf), "v")
-	return latestVer, nil
+	latestVersion := strings.TrimLeft(strings.Trim(string(buf), " \r\n"), "v")
+
+	latestVer, err := semver.Make(latestVersion)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &currentVer, &latestVer, nil
+}
+
+func upgrade(assumeYes bool) {
+	must(doUpgrade(assumeYes))
+}
+
+func doUpgrade(assumeYes bool) error {
+	comm.Opf("Looking for upgrades...")
+
+	currentVer, latestVer, err := queryLatestVersion()
+	if err != nil {
+		return fmt.Errorf("Version check failed: %s", err.Error())
+	}
+
+	if latestVer == nil || currentVer.GTE(*latestVer) {
+		comm.Logf("butler is up-to-date")
+		return nil
+	}
+
+	comm.Statf("Current version: %s", currentVer.String())
+	comm.Statf("Latest version : %s", latestVer.String())
+
+	if !assumeYes {
+		fmt.Printf("\n:: Do you want to upgrade now? [y/N] ")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		answer := strings.ToLower(scanner.Text())
+
+		if answer != "y" {
+			fmt.Println("Okay, not upgrading. Bye!")
+			return nil
+		}
+	}
+
+	execPath, err := osext.Executable()
+	must(err)
+
+	oldPath := execPath + ".old"
+	newPath := execPath + ".new"
+
+	ext := ""
+	if runtime.GOOS == "windows" {
+		ext = ".exe"
+	}
+
+	execURL := fmt.Sprintf("%s/v%s/butler%s", updateBaseURL, latestVer.String(), ext)
+	comm.Opf("%s", execURL)
+
+	dl(execURL, newPath)
+	must(os.Chmod(newPath, os.FileMode(0755)))
+
+	comm.Logf("Backing up current version to %s just in case...", oldPath)
+	must(os.Rename(execPath, oldPath))
+
+	must(os.Rename(newPath, execPath))
+	must(os.Remove(oldPath))
+
+	comm.Logf("Upgraded butler from %s to %s", version, latestVer)
+	comm.Logf("Have a nice day!")
+	return nil
 }

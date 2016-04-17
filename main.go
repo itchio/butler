@@ -37,22 +37,22 @@ var (
 	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
 	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 
-	walkCmd = app.Command("walk", "Print TLC tree for given directory as JSON").Hidden()
-
 	loginCmd  = app.Command("login", "Connect butler to your itch.io account and save credentials locally.")
 	logoutCmd = app.Command("logout", "Remove saved itch.io credentials.")
 	pushCmd   = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
 	fetchCmd  = app.Command("fetch", "Download and extract the latest build of a channel from itch.io")
 	statusCmd = app.Command("status", "Show a list of channels and the status of their latest and pending builds.")
 
-	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.").Hidden()
-	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory").Hidden()
-	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories (fast) or .zip archives (slow). Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.").Hidden()
-	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version").Hidden()
+	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
+	lsCmd   = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 
-	whichCmd = app.Command("which", "Prints the path to this binary")
-	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
-	lsCmd    = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
+	whichCmd   = app.Command("which", "Prints the path to this binary")
+	upgradeCmd = app.Command("upgrade", "Upgrades butler to the latest version")
+
+	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
+	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
+	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
+	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 )
 
 var appArgs = struct {
@@ -166,12 +166,6 @@ var dittoArgs = struct {
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
-var walkArgs = struct {
-	src *string
-}{
-	walkCmd.Arg("src", "Directory to walk").Required().ExistingFileOrDir(),
-}
-
 var diffArgs = struct {
 	old   *string
 	new   *string
@@ -230,6 +224,12 @@ var lsArgs = struct {
 	file *string
 }{
 	lsCmd.Arg("file", "A file you'd like to list the contents of").Required().String(),
+}
+
+var upgradeArgs = struct {
+	assumeYes *bool
+}{
+	upgradeCmd.Flag("assume-yes", "Don't ask questions, just proceed").Bool(),
 }
 
 func must(err error) {
@@ -341,9 +341,6 @@ func main() {
 	case dittoCmd.FullCommand():
 		ditto(*dittoArgs.src, *dittoArgs.dst)
 
-	case walkCmd.FullCommand():
-		walk(*walkArgs.src)
-
 	case diffCmd.FullCommand():
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
@@ -364,6 +361,9 @@ func main() {
 
 	case lsCmd.FullCommand():
 		ls(*lsArgs.file)
+
+	case upgradeCmd.FullCommand():
+		upgrade(*upgradeArgs.assumeYes)
 	}
 }
 
