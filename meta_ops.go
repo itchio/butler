@@ -196,46 +196,10 @@ func ls(path string) {
 }
 
 func versionCheck() {
-	err := doVersionCheck()
+	latestVer, err := queryLatestVersion()
 	if err != nil {
 		comm.Logf("Version check failed: %s", err.Error())
 	}
-}
-
-func doVersionCheck() error {
-	if *appArgs.quiet {
-		return nil
-	}
-
-	if version == "head" {
-		comm.Logf("Bleeding-edge, skipping version check")
-		return nil
-	}
-
-	c := itchio.ClientWithKey("x")
-
-	latestURL := fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s/LATEST", runtime.GOOS, runtime.GOARCH)
-	req, err := http.NewRequest("GET", latestURL, nil)
-	if err != nil {
-		return err
-	}
-
-	res, err := c.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if res.StatusCode != 200 {
-		return fmt.Errorf("HTTP %d: %s", res.StatusCode, latestURL)
-	}
-
-	buf, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	latestVer := strings.TrimSpace(string(buf))
-	latestVer = strings.TrimLeft(string(buf), "v")
 
 	if latestVer != version {
 		comm.Notice("New version available",
@@ -246,5 +210,42 @@ func doVersionCheck() error {
 				"Run `butler upgrade` to get it.",
 			})
 	}
-	return nil
+}
+
+func queryLatestVersion() (string, error) {
+	if *appArgs.quiet {
+		return "", nil
+	}
+
+	if version == "head" {
+		comm.Logf("Bleeding-edge, skipping version check")
+		return "", nil
+	}
+
+	c := itchio.ClientWithKey("x")
+
+	latestURL := fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s/LATEST", runtime.GOOS, runtime.GOARCH)
+	req, err := http.NewRequest("GET", latestURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	res, err := c.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode != 200 {
+		err := fmt.Errorf("HTTP %d: %s", res.StatusCode, latestURL)
+		return "", err
+	}
+
+	buf, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	latestVer := strings.TrimSpace(string(buf))
+	latestVer = strings.TrimLeft(string(buf), "v")
+	return latestVer, nil
 }
