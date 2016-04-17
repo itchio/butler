@@ -63,6 +63,7 @@ var appArgs = struct {
 	noProgress *bool
 	panic      *bool
 	assumeYes  *bool
+	beeps4Life *bool
 
 	identity             *string
 	address              *string
@@ -76,6 +77,7 @@ var appArgs = struct {
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
 	app.Flag("panic", "Panic on error").Hidden().Bool(),
 	app.Flag("assume-yes", "Don't ask questions, just proceed (at your own risk!)").Bool(),
+	app.Flag("beeps4life", "Restore historical robot bug.").Hidden().Bool(),
 
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
@@ -294,7 +296,7 @@ func main() {
 	if !isTerminal() {
 		*appArgs.noProgress = true
 	}
-	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic, *appArgs.assumeYes)
+	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic, *appArgs.assumeYes, *appArgs.beeps4Life)
 	if !isTerminal() {
 		comm.Debug("Not a terminal, disabling progress indicator")
 	}

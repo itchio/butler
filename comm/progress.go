@@ -12,7 +12,8 @@ import (
 
 var bar *pb.ProgressBar
 
-type progressTheme struct {
+// ProgressTheme contains all the characters we need to show progress
+type ProgressTheme struct {
 	BarStart string
 	BarEnd   string
 	Current  string
@@ -21,13 +22,13 @@ type progressTheme struct {
 	StatSign string
 }
 
-var themes = map[string]*progressTheme{
+var themes = map[string]*ProgressTheme{
 	"unicode": {"▐", "▌", "▓", "░", "•", "✓"},
 	"ascii":   {"|", "|", "#", "-", ">", "<"},
-	"cp437":   {"▐", "▌", "█", "░", "•", "√"},
+	"cp437":   {"▐", "▌", "█", "░", "∙", "√"},
 }
 
-func (th *progressTheme) apply(bar *pb.ProgressBar) {
+func (th *ProgressTheme) apply(bar *pb.ProgressBar) {
 	bar.BarStart = th.BarStart
 	bar.BarEnd = th.BarEnd
 	bar.Current = th.Current
@@ -53,7 +54,7 @@ func getCharset() string {
 var theme = themes[getCharset()]
 
 // GetTheme returns the theme used to show progress
-func GetTheme() *progressTheme {
+func GetTheme() *ProgressTheme {
 	return theme
 }
 

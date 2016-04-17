@@ -12,13 +12,15 @@ import (
 )
 
 var settings = &struct {
-	noProgress bool
-	quiet      bool
-	verbose    bool
-	json       bool
-	panic      bool
-	assumeYes  bool
+	noProgress     bool
+	quiet          bool
+	verbose        bool
+	json           bool
+	panic          bool
+	assumeYes      bool
+	adamLovesBeeps bool
 }{
+	false,
 	false,
 	false,
 	false,
@@ -28,13 +30,18 @@ var settings = &struct {
 }
 
 // Configure sets all logging options in one go
-func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool) {
+func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool, adamLovesBeeps bool) {
 	settings.noProgress = noProgress
 	settings.quiet = quiet
 	settings.verbose = verbose
 	settings.json = json
 	settings.panic = panic
 	settings.assumeYes = assumeYes
+
+	// NOW it's a feature, not a bug <3
+	if adamLovesBeeps {
+		themes["cp437"].OpSign = "•"
+	}
 }
 
 type jsonMessage map[string]interface{}
