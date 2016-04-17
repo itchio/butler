@@ -18,7 +18,7 @@ func fetch(spec string, outPath string) {
 func doFetch(spec string, outPath string) error {
 	var err error
 
-	err = os.MkdirAll(outPath, os.FileMode(0777))
+	err = os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
 		return err
 	}
