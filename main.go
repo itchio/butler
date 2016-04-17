@@ -62,6 +62,7 @@ var appArgs = struct {
 	timestamps *bool
 	noProgress *bool
 	panic      *bool
+	assumeYes  *bool
 
 	identity             *string
 	address              *string
@@ -74,6 +75,7 @@ var appArgs = struct {
 	app.Flag("timestamps", "Prefix all output by timestamps (for logging purposes)").Hidden().Bool(),
 	app.Flag("noprogress", "Doesn't show progress bars").Hidden().Bool(),
 	app.Flag("panic", "Panic on error").Hidden().Bool(),
+	app.Flag("assume-yes", "Don't ask questions, just proceed (at your own risk!)").Bool(),
 
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
@@ -227,9 +229,9 @@ var lsArgs = struct {
 }
 
 var upgradeArgs = struct {
-	assumeYes *bool
+	head *bool
 }{
-	upgradeCmd.Flag("assume-yes", "Don't ask questions, just proceed").Bool(),
+	upgradeCmd.Flag("head", "Install bleeding-edge version").Bool(),
 }
 
 func must(err error) {
@@ -292,7 +294,7 @@ func main() {
 	if !isTerminal() {
 		*appArgs.noProgress = true
 	}
-	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic)
+	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic, *appArgs.assumeYes)
 	if !isTerminal() {
 		comm.Debug("Not a terminal, disabling progress indicator")
 	}
@@ -363,7 +365,7 @@ func main() {
 		ls(*lsArgs.file)
 
 	case upgradeCmd.FullCommand():
-		upgrade(*upgradeArgs.assumeYes)
+		upgrade(*upgradeArgs.head)
 	}
 }
 

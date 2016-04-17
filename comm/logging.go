@@ -1,10 +1,12 @@
 package comm
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 )
@@ -15,7 +17,9 @@ var settings = &struct {
 	verbose    bool
 	json       bool
 	panic      bool
+	assumeYes  bool
 }{
+	false,
 	false,
 	false,
 	false,
@@ -24,15 +28,36 @@ var settings = &struct {
 }
 
 // Configure sets all logging options in one go
-func Configure(noProgress, quiet, verbose, json, panic bool) {
+func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool) {
 	settings.noProgress = noProgress
 	settings.quiet = quiet
 	settings.verbose = verbose
 	settings.json = json
 	settings.panic = panic
+	settings.assumeYes = assumeYes
 }
 
 type jsonMessage map[string]interface{}
+
+// YesNo asks the user whether to proceed or not
+// won't work in json mode for now.
+func YesNo(question string) bool {
+	if settings.json {
+		Dief("json output mode doesn't suport yes-no prompts")
+	}
+
+	fmt.Printf(":: %s [y/N] ", question)
+
+	if settings.assumeYes {
+		fmt.Printf("y (--assume-yes)\n")
+		return true
+	}
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	answer := strings.ToLower(scanner.Text())
+
+	return answer == "y"
+}
 
 // Opf prints a formatted string informing the user on what operation we're doing
 func Opf(format string, args ...interface{}) {
@@ -54,6 +79,8 @@ func Logf(format string, args ...interface{}) {
 	Loglf("info", format, args...)
 }
 
+// Notice prints a box with important info in it.
+// UX style guide: don't abuse it or people will stop reading it.
 func Notice(header string, lines []string) {
 	if settings.json {
 		Logf("notice: %s", header)

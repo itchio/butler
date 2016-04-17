@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"bufio"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
@@ -268,11 +267,26 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 	return &currentVer, &latestVer, nil
 }
 
-func upgrade(assumeYes bool) {
-	must(doUpgrade(assumeYes))
+func upgrade(head bool) {
+	must(doUpgrade(head))
 }
 
-func doUpgrade(assumeYes bool) error {
+func doUpgrade(head bool) error {
+	if head {
+		if !comm.YesNo("Do you want to upgrade to the bleeding-edge version? Things may break!") {
+			comm.Logf("Okay, not upgrading. Bye!")
+			return nil
+		}
+
+		return applyUpgrade("head", "head")
+	}
+
+	if version == "head" {
+		comm.Statf("Bleeding-edge, not upgrading to stable unless told to.")
+		comm.Logf("(Use `--head` if you want to upgrade to the latest bleeding-edge version)")
+		return nil
+	}
+
 	comm.Opf("Looking for upgrades...")
 
 	currentVer, latestVer, err := queryLatestVersion()
@@ -288,20 +302,20 @@ func doUpgrade(assumeYes bool) error {
 	comm.Statf("Current version: %s", currentVer.String())
 	comm.Statf("Latest version : %s", latestVer.String())
 
-	if !assumeYes {
-		fmt.Printf("\n:: Do you want to upgrade now? [y/N] ")
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		answer := strings.ToLower(scanner.Text())
-
-		if answer != "y" {
-			fmt.Println("Okay, not upgrading. Bye!")
-			return nil
-		}
+	if !comm.YesNo("Do you want to upgrade now?") {
+		comm.Logf("Okay, not upgrading. Bye!")
+		return nil
 	}
 
+	must(applyUpgrade(currentVer.String(), latestVer.String()))
+	return nil
+}
+
+func applyUpgrade(before string, after string) error {
 	execPath, err := osext.Executable()
-	must(err)
+	if err != nil {
+		return err
+	}
 
 	oldPath := execPath + ".old"
 	newPath := execPath + ".new"
@@ -311,18 +325,40 @@ func doUpgrade(assumeYes bool) error {
 		ext = ".exe"
 	}
 
-	execURL := fmt.Sprintf("%s/v%s/butler%s", updateBaseURL, latestVer.String(), ext)
+	fragment := fmt.Sprintf("v%s", after)
+	if after == "head" {
+		fragment = "head"
+	}
+	execURL := fmt.Sprintf("%s/%s/butler%s", updateBaseURL, fragment, ext)
 	comm.Opf("%s", execURL)
 
+	err = os.RemoveAll(newPath)
+	if err != nil {
+		return err
+	}
+
 	dl(execURL, newPath)
-	must(os.Chmod(newPath, os.FileMode(0755)))
+	err = os.Chmod(newPath, os.FileMode(0755))
+	if err != nil {
+		return err
+	}
 
 	comm.Opf("Backing up current version to %s just in case...", oldPath)
-	must(os.Rename(execPath, oldPath))
+	err = os.Rename(execPath, oldPath)
+	if err != nil {
+		return err
+	}
 
-	must(os.Rename(newPath, execPath))
-	must(os.Remove(oldPath))
+	err = os.Rename(newPath, execPath)
+	if err != nil {
+		return err
+	}
 
-	comm.Statf("Upgraded butler from %s to %s. Have a nice day!", version, latestVer)
+	err = os.Remove(oldPath)
+	if err != nil {
+		return err
+	}
+
+	comm.Statf("Upgraded butler from %s to %s. Have a nice day!", before, after)
 	return nil
 }

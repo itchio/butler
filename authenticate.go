@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
+	"runtime"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
@@ -59,9 +58,8 @@ func doLogin() error {
 			return err
 		}
 
-		fmt.Println("Your local credentials are valid!\n")
-		fmt.Println("If you want to log in as another account, use the `butler logout` command first,")
-		fmt.Println("or specify a different credentials path with the `-i` flag.")
+		comm.Logf("Your local credentials are valid!\n")
+		comm.Logf("If you want to log in as another account, use the `butler logout` command first, or specify a different credentials path with the `-i` flag.")
 	} else {
 		// this does the full login flow + saves
 		_, err := authenticateViaOauth()
@@ -97,11 +95,9 @@ func doLogout() error {
 		fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address),
 	})
 
-	fmt.Printf("\n:: Do you want to erase your saved API key? [y/N] ")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	answer := strings.ToLower(scanner.Text())
-	if answer != "y" {
+	comm.Logf("")
+
+	if !comm.YesNo("Do you want to erase your saved API key?") {
 		fmt.Println("Okay, not erasing credentials. Bye!")
 		return nil
 	}
@@ -248,6 +244,10 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		uri := fmt.Sprintf("%s/user/oauth?%s", *appArgs.address, query)
 		log.Println(uri)
 		log.Println("\nI'll wait...")
+
+		if runtime.GOOS == "windows" {
+			log.Println("\n(To copy text in cmd.exe: Alt+Space, Edit->Mark, select text, press Enter)")
+		}
 
 		select {
 		case err = <-errs:

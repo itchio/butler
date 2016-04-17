@@ -97,7 +97,7 @@ func TestAllTheThings(t *testing.T) {
 
 	patch := path.Join(workingDir, "patch.pwr")
 
-	comm.Configure(true, true, false, false, false)
+	comm.Configure(true, true, false, false, false, false)
 
 	if false {
 		for _, q := range []int{1, 9} {
