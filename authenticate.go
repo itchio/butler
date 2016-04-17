@@ -125,6 +125,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 	makeClient := func(key string) *itchio.Client {
 		client := itchio.ClientWithKey(key)
 		client.BaseURL = fmt.Sprintf("%s/api/1", *appArgs.address)
+		client.UserAgent = userAgent()
 		return client
 	}
 
