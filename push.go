@@ -137,7 +137,7 @@ func doPush(buildPath string, spec string, userVersion string) error {
 	var readBytes int64
 
 	updateProgress := func() {
-		uploadedBytes := int64(float64(patchWriter.UploadedBytes) * 0.97)
+		uploadedBytes := int64(float64(patchWriter.UploadedBytes))
 
 		// input bytes that aren't in output, for esxample:
 		//  - bytes that have been compressed away
@@ -184,6 +184,7 @@ func doPush(buildPath string, spec string, userVersion string) error {
 	}
 
 	comm.StartProgress()
+	comm.ProgressScale(0.0)
 	err = dctx.WritePatch(patchCounter, signatureCounter)
 	if err != nil {
 		return err

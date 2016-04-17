@@ -274,7 +274,7 @@ func (pb *ProgressBar) write(current int64) {
 	if pb.ShowBar {
 		fullSize := min(pb.BarWidth, width-barWidth)
 		size := int(math.Ceil(float64(fullSize) * pb.scale))
-		padSize := int(math.Ceil(float64(fullSize) * (1 - pb.scale)))
+		padSize := fullSize - size
 		if size > 0 {
 			if pb.Total > 0 {
 				curCount := int(math.Ceil((float64(current) / float64(pb.Total)) * float64(size)))
@@ -303,11 +303,13 @@ func (pb *ProgressBar) write(current int64) {
 					barBox += strings.Repeat(pb.Empty, size-pos-1)
 				}
 			}
+			if padSize > 0 {
+				barBox += strings.Repeat(" ", padSize-1)
+			}
+			barBox += pb.BarEnd
+		} else if padSize > 0 {
+			barBox += pb.BarStart + strings.Repeat(" ", padSize-1) + pb.BarEnd
 		}
-		if padSize > 0 {
-			barBox += strings.Repeat(" ", padSize-1)
-		}
-		barBox += pb.BarEnd
 	}
 
 	// check len
