@@ -2,8 +2,10 @@ package main
 
 import (
 	"archive/zip"
+	"compress/gzip"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -319,6 +321,17 @@ func applyUpgrade(before string, after string) error {
 
 	oldPath := execPath + ".old"
 	newPath := execPath + ".new"
+	gzPath := newPath + ".gz"
+
+	err = os.RemoveAll(newPath)
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(gzPath)
+	if err != nil {
+		return err
+	}
 
 	ext := ""
 	if runtime.GOOS == "windows" {
@@ -330,14 +343,47 @@ func applyUpgrade(before string, after string) error {
 		fragment = "head"
 	}
 	execURL := fmt.Sprintf("%s/%s/butler%s", updateBaseURL, fragment, ext)
-	comm.Opf("%s", execURL)
 
-	err = os.RemoveAll(newPath)
+	gzURL := fmt.Sprintf("%s/%s/butler.gz", updateBaseURL, fragment)
+	comm.Opf("%s", gzURL)
+
+	err = func() error {
+		_, err := tryDl(gzURL, gzPath)
+		if err != nil {
+			return err
+		}
+
+		fr, err := os.Open(gzPath)
+		if err != nil {
+			return err
+		}
+		defer fr.Close()
+
+		gr, err := gzip.NewReader(fr)
+		if err != nil {
+			return err
+		}
+
+		fw, err := os.Create(newPath)
+		if err != nil {
+			return err
+		}
+		defer fw.Close()
+
+		_, err = io.Copy(fw, gr)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
 	if err != nil {
-		return err
+		comm.Opf("Falling back to %s", execURL)
+		_, err = tryDl(execURL, newPath)
+		must(err)
 	}
 
-	dl(execURL, newPath)
 	err = os.Chmod(newPath, os.FileMode(0755))
 	if err != nil {
 		return err
