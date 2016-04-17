@@ -14,18 +14,19 @@ var bar *pb.ProgressBar
 
 // ProgressTheme contains all the characters we need to show progress
 type ProgressTheme struct {
-	BarStart string
-	BarEnd   string
-	Current  string
-	Empty    string
-	OpSign   string
-	StatSign string
+	BarStart        string
+	BarEnd          string
+	Current         string
+	CurrentHalfTone string
+	Empty           string
+	OpSign          string
+	StatSign        string
 }
 
 var themes = map[string]*ProgressTheme{
-	"unicode": {"▐", "▌", "▓", "░", "•", "✓"},
-	"ascii":   {"|", "|", "#", "-", ">", "<"},
-	"cp437":   {"▐", "▌", "█", "░", "∙", "√"},
+	"unicode": {"▐", "▌", "▓", "▒", "░", "•", "✓"},
+	"ascii":   {"|", "|", "#", "=", "-", ">", "<"},
+	"cp437":   {"▐", "▌", "█", "▒", "░", "∙", "√"},
 }
 
 func (th *ProgressTheme) apply(bar *pb.ProgressBar) {
