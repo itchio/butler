@@ -74,6 +74,7 @@ file $TARGET
 ./$TARGET -V
 
 7za a butler.7z $TARGET
+7za a butler.gz $TARGET
 
 # set up a file hierarchy that ibrew can consume, ie:
 #
@@ -83,11 +84,14 @@ file $TARGET
 #       - LATEST
 #       - v0.11.0
 #         - butler.7z
+#         - butler.gz
+#         - butler.exe
 #         - SHA1SUMS
 
 BINARIES_DIR="binaries/$CI_OS-$CI_ARCH"
 mkdir -p $BINARIES_DIR/$CI_VERSION
 mv butler.7z $BINARIES_DIR/$CI_VERSION
+mv butler.gz $BINARIES_DIR/$CI_VERSION
 mv $TARGET $BINARIES_DIR/$CI_VERSION
 
 (cd $BINARIES_DIR/$CI_VERSION && sha1sum * > SHA1SUMS)
