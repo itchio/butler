@@ -225,14 +225,14 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 		return nil, nil, nil
 	}
 
+	if version == "head" {
+		comm.Opf("Bleeding-edge, skipping version check")
+		return nil, nil, nil
+	}
+
 	currentVer, err := semver.Make(version)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if version == "head" {
-		comm.Logf("Bleeding-edge, skipping version check")
-		return nil, nil, nil
 	}
 
 	c := itchio.ClientWithKey("x")
@@ -281,7 +281,7 @@ func doUpgrade(assumeYes bool) error {
 	}
 
 	if latestVer == nil || currentVer.GTE(*latestVer) {
-		comm.Logf("butler is up-to-date")
+		comm.Statf("Your butler is up-to-date. Have a nice day!")
 		return nil
 	}
 
@@ -317,13 +317,12 @@ func doUpgrade(assumeYes bool) error {
 	dl(execURL, newPath)
 	must(os.Chmod(newPath, os.FileMode(0755)))
 
-	comm.Logf("Backing up current version to %s just in case...", oldPath)
+	comm.Opf("Backing up current version to %s just in case...", oldPath)
 	must(os.Rename(execPath, oldPath))
 
 	must(os.Rename(newPath, execPath))
 	must(os.Remove(oldPath))
 
-	comm.Logf("Upgraded butler from %s to %s", version, latestVer)
-	comm.Logf("Have a nice day!")
+	comm.Statf("Upgraded butler from %s to %s. Have a nice day!", version, latestVer)
 	return nil
 }
