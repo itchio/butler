@@ -238,6 +238,10 @@ func must(err error) {
 	}
 }
 
+func userAgent() string {
+	return fmt.Sprintf("butler/%s", versionString)
+}
+
 func butlerCompressionSettings() pwr.CompressionSettings {
 	var algo pwr.CompressionAlgorithm
 

@@ -56,6 +56,7 @@ func tryDl(url string, dest string) (int64, error) {
 	client := newTimeoutClient(30*time.Second, 60*time.Second)
 
 	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", userAgent())
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
 
 	req.Header.Set("Range", byteRange)
@@ -92,6 +93,7 @@ func tryDl(url string, dest string) (int64, error) {
 		doDownload = false
 
 		req, _ := http.NewRequest("HEAD", url, nil)
+		req.Header.Set("User-Agent", userAgent())
 		resp, err = client.Do(req)
 		if err != nil {
 			return 0, err
