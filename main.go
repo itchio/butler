@@ -51,6 +51,8 @@ var (
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version").Hidden()
 
 	whichCmd = app.Command("which", "Prints the path to this binary")
+	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
+	lsCmd    = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 )
 
 var appArgs = struct {
@@ -218,6 +220,18 @@ var signArgs = struct {
 	signCmd.Arg("signature", "Path to write signature to").Required().String(),
 }
 
+var fileArgs = struct {
+	file *string
+}{
+	fileCmd.Arg("file", "A file you'd like to identify").Required().String(),
+}
+
+var lsArgs = struct {
+	file *string
+}{
+	lsCmd.Arg("file", "A file you'd like to list the contents of").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		comm.Die(err.Error())
@@ -340,6 +354,12 @@ func main() {
 
 	case whichCmd.FullCommand():
 		which()
+
+	case fileCmd.FullCommand():
+		file(*fileArgs.file)
+
+	case lsCmd.FullCommand():
+		ls(*lsArgs.file)
 	}
 }
 
