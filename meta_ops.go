@@ -356,7 +356,12 @@ func applyUpgrade(before string, after string) error {
 
 	err = os.Remove(oldPath)
 	if err != nil {
-		return err
+		if os.IsPermission(err) && runtime.GOOS == "windows" {
+			// poor windows doesn't like us removing executables from under it
+			// I vote we move on and let butler.exe.old hang around.
+		} else {
+			return err
+		}
 	}
 
 	comm.Statf("Upgraded butler from %s to %s. Have a nice day!", before, after)
