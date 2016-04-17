@@ -98,7 +98,6 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 					perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 					comm.Statf("%s (%s) @ %s/s\n", prettySize, targetContainer.Stats(), perSecond)
 				}
-				comm.Opf("Read signature from %s", target)
 			} else {
 				comm.Opf("Read signature from %s", target)
 			}
