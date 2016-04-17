@@ -7,8 +7,8 @@ func Test_Width(t *testing.T) {
 	bar := New(count)
 	width := 100
 	bar.SetWidth(100).Callback = func(out string) {
-		if len(out) != width {
-			t.Errorf("Bar width expected {%d} was {%d}", len(out), width)
+		if len(out) != width-1 {
+			t.Errorf("Bar width expected {%d} was {%d}", len(out), width-1)
 		}
 	}
 	bar.Start()
