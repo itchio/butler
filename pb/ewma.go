@@ -1,5 +1,7 @@
 package pb
 
+import "fmt"
+
 const (
 	// AverageMetricAge average over a one-minute period, which means the average
 	// age of the metrics is in the period of 30 seconds
@@ -8,6 +10,10 @@ const (
 	// Decay formula for computing the decay factor for average metric age
 	Decay float64 = 2 / (float64(AverageMetricAge) + 1)
 )
+
+func init() {
+	fmt.Println("ewma decay = ", Decay)
+}
 
 // EWMA represents the exponentially weighted moving average of a series of numbers.
 type EWMA struct {

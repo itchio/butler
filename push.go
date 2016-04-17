@@ -7,9 +7,11 @@ import (
 	"math"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/pb"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
@@ -136,6 +138,24 @@ func doPush(buildPath string, spec string, userVersion string) error {
 	comm.Debugf("Building diff context")
 	var readBytes int64
 
+	start := time.Now()
+	bytesPerSec := float64(0)
+	stopTicking := make(chan struct{})
+	uploadEwma := &pb.EWMA{}
+
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				bytesPerSec = float64(patchWriter.UploadedBytes) / time.Since(start).Seconds()
+				uploadEwma.Add(bytesPerSec)
+			case <-stopTicking:
+				break
+			}
+		}
+	}()
+
 	updateProgress := func() {
 		uploadedBytes := int64(float64(patchWriter.UploadedBytes))
 
@@ -148,9 +168,14 @@ func doPush(buildPath string, spec string, userVersion string) error {
 
 		leftBytes := conservativeTotalBytes - uploadedBytes
 		if leftBytes > 10*1024 {
-			comm.ProgressLabel(fmt.Sprintf("%s left", humanize.Bytes(uint64(leftBytes))))
+			netStatus := "- network idle"
+			ewmaBPS := uploadEwma.Value()
+			if ewmaBPS > 1 {
+				netStatus = fmt.Sprintf("@ %s/s", humanize.Bytes(uint64(bytesPerSec)))
+			}
+			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, humanize.Bytes(uint64(leftBytes))))
 		} else {
-			comm.ProgressLabel(fmt.Sprintf("almost there"))
+			comm.ProgressLabel(fmt.Sprintf("- almost there"))
 		}
 
 		conservativeProgress := float64(uploadedBytes) / float64(conservativeTotalBytes)
@@ -212,6 +237,8 @@ func doPush(buildPath string, spec string, userVersion string) error {
 			comm.Debugf(">>>>>>>>>>> woo, got a done")
 		}
 	}
+
+	close(stopTicking)
 	comm.ProgressLabel("finalizing build")
 
 	finalDone := make(chan bool)
