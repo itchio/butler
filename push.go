@@ -1,9 +1,11 @@
 package main
 
 import (
+	"archive/zip"
 	"fmt"
 	"io"
 	"math"
+	"os"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -22,7 +24,7 @@ func push(buildPath string, spec string, userVersion string) {
 
 func doPush(buildPath string, spec string, userVersion string) error {
 	// start walking source container while waiting on auth flow
-	sourceContainerChan := make(chan *tlc.Container)
+	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
 	go doWalk(buildPath, sourceContainerChan, walkErrs)
 
@@ -114,13 +116,16 @@ func doPush(buildPath string, spec string, userVersion string) error {
 	// creation & upload setup is done
 
 	var sourceContainer *tlc.Container
+	var sourcePool sync.FilePool
 
 	comm.Debugf("Waiting for source container")
 	select {
 	case err := <-walkErrs:
 		return err
-	case sourceContainer = <-sourceContainerChan:
+	case walkies := <-sourceContainerChan:
 		comm.Debugf("Got sourceContainer!")
+		sourceContainer = walkies.container
+		sourcePool = walkies.pool
 		break
 	}
 
@@ -167,7 +172,7 @@ func doPush(buildPath string, spec string, userVersion string) error {
 		},
 
 		SourceContainer: sourceContainer,
-		FilePool:        sourceContainer.NewFilePool(buildPath),
+		FilePool:        sourcePool,
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,
@@ -292,13 +297,52 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 	return
 }
 
-func doWalk(path string, result chan *tlc.Container, errs chan error) {
-	container, err := tlc.Walk(path, filterPaths)
+type walkResult struct {
+	container *tlc.Container
+	pool      sync.FilePool
+}
+
+func doWalk(path string, result chan walkResult, errs chan error) {
+	stats, err := os.Lstat(path)
 	if err != nil {
 		errs <- err
+		return
 	}
 
-	result <- container
+	if stats.IsDir() {
+		container, err := tlc.Walk(path, filterPaths)
+		if err != nil {
+			errs <- err
+			return
+		}
+		result <- walkResult{
+			container: container,
+			pool:      container.NewFilePool(path),
+		}
+	} else {
+		sourceReader, err := os.Open(path)
+		if err != nil {
+			errs <- err
+			return
+		}
+
+		zr, err := zip.NewReader(sourceReader, stats.Size())
+		if err != nil {
+			errs <- err
+			return
+		}
+
+		container, err := tlc.WalkZip(zr, filterPaths)
+		if err != nil {
+			errs <- err
+			return
+		}
+
+		result <- walkResult{
+			container: container,
+			pool:      container.NewZipPool(zr),
+		}
+	}
 }
 
 func parseSpec(spec string) (string, string, error) {
