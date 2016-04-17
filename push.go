@@ -156,6 +156,8 @@ func doPush(buildPath string, spec string, userVersion string) error {
 		conservativeProgress := float64(uploadedBytes) / float64(conservativeTotalBytes)
 		conservativeProgress = min(1.0, conservativeProgress)
 		comm.Progress(conservativeProgress)
+
+		comm.ProgressScale(float64(readBytes) / float64(sourceContainer.Size))
 	}
 	patchWriter.OnProgress = updateProgress
 

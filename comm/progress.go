@@ -111,6 +111,16 @@ func Progress(perc float64) {
 	})
 }
 
+func ProgressScale(scale float64) {
+	if settings.quiet {
+		return
+	}
+
+	if bar != nil {
+		bar.SetScale(scale)
+	}
+}
+
 func setBarProgress(perc float64) {
 	if bar != nil {
 		bar.Set64(int64(perc * 10000.0))

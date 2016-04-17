@@ -38,6 +38,7 @@ func New64(total int64) *ProgressBar {
 
 		finish:       make(chan struct{}),
 		currentValue: -1,
+		scale:        1.0,
 		ewma:         &EWMA{},
 		mu:           new(sync.Mutex),
 	}
@@ -85,6 +86,7 @@ type ProgressBar struct {
 	startTime    time.Time
 	startValue   int64
 	currentValue int64
+	scale        float64
 
 	prefix, postfix string
 
@@ -118,6 +120,11 @@ func (pb *ProgressBar) Start() *ProgressBar {
 // Set64 sets the current value as int64
 func (pb *ProgressBar) Set64(current int64) *ProgressBar {
 	pb.current = current
+	return pb
+}
+
+func (pb *ProgressBar) SetScale(scale float64) *ProgressBar {
+	pb.scale = scale
 	return pb
 }
 
@@ -265,7 +272,9 @@ func (pb *ProgressBar) write(current int64) {
 	barWidth := escapeAwareRuneCountInString(countersBox + pb.BarStart + pb.BarEnd + percentBox + timeLeftBox + speedBox + pb.prefix + pb.postfix)
 	// bar
 	if pb.ShowBar {
-		size := min(pb.BarWidth, width-barWidth)
+		fullSize := min(pb.BarWidth, width-barWidth)
+		size := int(math.Ceil(float64(fullSize) * pb.scale))
+		padSize := int(math.Ceil(float64(fullSize) * (1 - pb.scale)))
 		if size > 0 {
 			if pb.Total > 0 {
 				curCount := int(math.Ceil((float64(current) / float64(pb.Total)) * float64(size)))
@@ -282,7 +291,7 @@ func (pb *ProgressBar) write(current int64) {
 				} else if curCount > 0 {
 					barBox += strings.Repeat(pb.Current, curCount-1) + pb.CurrentN
 				}
-				barBox += strings.Repeat(pb.Empty, emptCount) + pb.BarEnd
+				barBox += strings.Repeat(pb.Empty, emptCount)
 			} else {
 				barBox = pb.BarStart
 				pos := size - int(current)%int(size)
@@ -293,9 +302,12 @@ func (pb *ProgressBar) write(current int64) {
 				if size-pos-1 > 0 {
 					barBox += strings.Repeat(pb.Empty, size-pos-1)
 				}
-				barBox += pb.BarEnd
 			}
 		}
+		if padSize > 0 {
+			barBox += strings.Repeat(" ", padSize-1)
+		}
+		barBox += pb.BarEnd
 	}
 
 	// check len
