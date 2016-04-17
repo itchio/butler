@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 var settings = &struct {
@@ -50,6 +52,23 @@ func Log(msg string) {
 // Logf sends a formatted informational message to the client
 func Logf(format string, args ...interface{}) {
 	Loglf("info", format, args...)
+}
+
+func Notice(header string, lines []string) {
+	if settings.json {
+		Logf("notice: %s", header)
+		for _, line := range lines {
+			Logf("notice: %s", line)
+		}
+	} else {
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetColWidth(60)
+		table.SetHeader([]string{header})
+		for _, line := range lines {
+			table.Append([]string{line})
+		}
+		table.Render()
+	}
 }
 
 // Warn lets the user know about a problem that's non-critical

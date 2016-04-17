@@ -11,6 +11,7 @@ import (
 )
 
 func status(target string) {
+	go versionCheck()
 	must(doStatus(target))
 }
 

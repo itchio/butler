@@ -13,8 +13,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
-	"github.com/olekukonko/tablewriter"
 )
 
 const (
@@ -90,13 +90,12 @@ func doLogout() error {
 		}
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetColWidth(50)
-	table.SetHeader([]string{"Important note"})
-	table.Append([]string{"Note: this command will not invalidate the API key itself. If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:\n"})
-	table.Append([]string{""})
-	table.Append([]string{fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address)})
-	table.Render()
+	comm.Notice("Important note", []string{
+		"Note: this command will not invalidate the API key itself.",
+		"If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:",
+		"",
+		fmt.Sprintf("  %s/user/settings\n\n", *appArgs.address),
+	})
 
 	fmt.Printf("\n:: Do you want to erase your saved API key? [y/N] ")
 	scanner := bufio.NewScanner(os.Stdin)

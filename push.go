@@ -19,6 +19,7 @@ import (
 )
 
 func push(buildPath string, spec string, userVersion string) {
+	go versionCheck()
 	must(doPush(buildPath, spec, userVersion))
 }
 
