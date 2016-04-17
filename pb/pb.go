@@ -195,7 +195,7 @@ func (pb *ProgressBar) Finish() {
 }
 
 func (pb *ProgressBar) write(current int64) {
-	width := pb.GetWidth()
+	width := pb.GetWidth() - 1
 
 	var percentBox, countersBox, timeLeftBox, speedBox, barBox, end, out string
 
