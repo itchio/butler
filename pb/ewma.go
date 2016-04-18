@@ -11,10 +11,6 @@ const (
 	Decay float64 = 2 / (float64(AverageMetricAge) + 1)
 )
 
-func init() {
-	fmt.Println("ewma decay = ", Decay)
-}
-
 // EWMA represents the exponentially weighted moving average of a series of numbers.
 type EWMA struct {
 	value float64 // The current value of the average.
