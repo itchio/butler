@@ -1,0 +1,74 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/dsnet/compress/brotli",
+			"repository": "https://github.com/dsnet/compress",
+			"vcs": "git",
+			"revision": "b9b32020345bd4915e650ff55212cbb0d82bc7bd",
+			"branch": "master",
+			"path": "/brotli",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/dustin/go-humanize",
+			"repository": "https://github.com/dustin/go-humanize",
+			"vcs": "git",
+			"revision": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/golang/protobuf/proto",
+			"repository": "https://github.com/golang/protobuf",
+			"vcs": "git",
+			"revision": "f0a097ddac24fb00e07d2ac17f8671423f3ea47c",
+			"branch": "master",
+			"path": "/proto",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/go-itchio",
+			"repository": "https://github.com/itchio/go-itchio",
+			"vcs": "git",
+			"revision": "59c0a5fbed21c1f95a05a38e2787a961452e5e23",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/wharf",
+			"repository": "https://github.com/itchio/wharf",
+			"vcs": "git",
+			"revision": "ba655315b66e216e6539d47aebc9b8dd222b9d90",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/kothar/brotli-go.v0/dec",
+			"repository": "https://gopkg.in/kothar/brotli-go.v0",
+			"vcs": "git",
+			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
+			"branch": "master",
+			"path": "/dec",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/kothar/brotli-go.v0/enc",
+			"repository": "https://gopkg.in/kothar/brotli-go.v0",
+			"vcs": "git",
+			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
+			"branch": "master",
+			"path": "/enc",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/kothar/brotli-go.v0/shared",
+			"repository": "https://gopkg.in/kothar/brotli-go.v0",
+			"vcs": "git",
+			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
+			"branch": "master",
+			"path": "/shared",
+			"notests": true
+		}
+	]
+}
