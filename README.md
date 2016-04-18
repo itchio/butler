@@ -16,6 +16,8 @@ Amos published a small write-up on the [itch community](https://itch.io/post/167
 Early testers are welcome, especially for the `sign`, `verify`, `diff`, and `apply`
 commands, which are detailed within the program's inline help.
 
+The `push` command now works, but be warned: the backend is in flux.
+
 ## License
 
 Licensed under MIT License, see `LICENSE` for details.
