@@ -2,21 +2,26 @@
 
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
-butler is a command-line tool written in Go.
+butler is *the itch.io command-line tools*, by itself.
 
-itch (the itch.io app) uses it for some network, filesystem and patching operations:
+It's used by:
 
-  * <https://github.com/itchio/itch>
+  * Content creators on [itch.io](https://itch.io) to push builds quickly & reliably
+  * [the itch app](https://github.com/itchio/itch) some network, filesystem and patching operations.
 
-## Usage & rationale
+Documentation for butler is available as a Gitbook:
 
-butler's diffing & patching hasn't been officially released yet, but
-Amos published a small write-up on the [itch community](https://itch.io/post/16715).
+  * <https://docs.itch.ovh/butler>
 
-Early testers are welcome, especially for the `sign`, `verify`, `diff`, and `apply`
-commands, which are detailed within the program's inline help.
+Questions about butler are best directed at its [Issue tracker](https://github.com/itchio/butler/issues),
+or, if the matter is private, [itch.io support](https://itch.io/support).
 
-The `push` command now works, but be warned: the backend is in flux!
+## Authors
+
+butler was mostly written by [Amos Wenger](https://github.com/faster), but wouldn't have
+been possible without the work of many software giants before him.
+
+Amos would like to thank in particular Leaf Corcoran, Jesús Higueras and Tomáš Duda.
 
 ## License
 

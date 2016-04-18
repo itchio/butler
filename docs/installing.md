@@ -14,6 +14,10 @@ you already have a stable build of butler on your system, in:
   * `~/.config/itch/bin` on Linux
   * `~/Library/Application Support/itch/bin` on Mac OS
 
+The itch app will update its version of butler to the latest stable
+on start-up. If you upgrade it to the bleeding-edge version, the itch
+app will stop checking for upgrades.
+
 ## Adding butler to your path
 
 Adding an executable to your path allows you to launch it from anywhere,
