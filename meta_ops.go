@@ -227,7 +227,6 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 	}
 
 	if version == "head" {
-		comm.Opf("Bleeding-edge, skipping version check")
 		return nil, nil, nil
 	}
 
