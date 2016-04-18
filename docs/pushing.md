@@ -14,7 +14,7 @@ Where:
     * for example: `finji/overland` for https://finji.itch.io/overland — all lower-case
   * `channel` is which slot you're uploading it to
     * for example: `windows-beta`, `osx-bonus`, `linux-universal`, or `soundtrack`
-    
+
 *Channel names will determine the initial set of tags of a slot, but you can always fix them later.*
 
 ## Okay, show me
@@ -91,6 +91,50 @@ version or build number.*
 User-provided version numbers don't have any particular format -
 the ordering itch.io uses is the one builds are uploaded in.
 
+## Looking for updates
+
+Players who prefer downloading directly rather than using [the itch app](https://itch.io/app)
+don't get automatic updates. You can use the following API endpoint to query the latest version
+of a game and notify your players from within the game, that a new version is available:
+
+```
+GET https://itch.io/api/1/x/wharf/latest
+```
+
+*Parameters*:
+
+  * `channel_name`: the name of the channel to query
+  * either of these:
+    * `game_id`: (numeric) identifier of the game (find it in *Edit game*)
+    * `target`: user/game, just like the `butler push` command
+
+*Response*: a JSON object with the latest user-version for the given channel:
+
+```json
+{
+  latest: "106"
+}
+```
+
+If the latest build doesn't have a user-version, the `latest` field will not be present.
+
+*Example requests*:
+
+```
+https://itch.io/api/1/x/wharf/latest?target=user/game&channel_name=win32-beta
+```
+
+or
+
+```
+https://itch.io/api/1/x/wharf/latest?game_id=123&channel_name=osx-final
+```
+
+(You can find the `game_id` from the *Edit game* page's address)
+
+*Note: if the game's visibility level is set to `Private`, this endpoint will return
+the error 'invalid game', to avoid potentially leaking information about unreleased games.*
+
 ## Appendix A: Understanding the progress bar
 
 `butler push` does a lot of work, most of it in parallel:
@@ -140,4 +184,3 @@ restored by using the `--beeps4life` option.
 
 [^1]: It still isn't really, but you get the idea.
 [^2]: Historically, from your computer's [PC speaker](https://en.wikipedia.org/wiki/PC_speaker). Now, probably whatever sound Microsoft bundles with your version of Windows.
-
