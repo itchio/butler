@@ -1,7 +1,5 @@
 package pb
 
-import "fmt"
-
 const (
 	// AverageMetricAge average over a one-minute period, which means the average
 	// age of the metrics is in the period of 30 seconds
