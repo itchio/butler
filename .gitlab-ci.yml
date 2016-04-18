@@ -4,6 +4,13 @@ stages:
   - build
   - deploy
 
+book:
+  stage: test
+  tags:
+    - dropsy
+  script:
+    - scripts/ci-book.sh
+
 test:linux:
   stage: test
   tags:
