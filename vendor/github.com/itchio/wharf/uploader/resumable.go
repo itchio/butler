@@ -89,7 +89,7 @@ func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consu
 	ru.bufferedWriter = bufferedWriter
 
 	onWrite := func(count int64) {
-		ru.Debugf("onwrite %d", count)
+		// ru.Debugf("onwrite %d", count)
 		ru.TotalBytes = count
 		if ru.OnProgress != nil {
 			ru.OnProgress()
@@ -106,14 +106,30 @@ func (ru *ResumableUpload) Debugf(f string, args ...interface{}) {
 	ru.consumer.Debugf("[upload %d] %s", ru.id, fmt.Sprintf(f, args...))
 }
 
-const minBlockSize = 256 * 1024 // 256KB
+const minChunkSize = 256 * 1024 // 256KB
+const maxChunkGroup = 64
+const maxSendBuf = maxChunkGroup * minChunkSize // 16MB
+
+type blockItem struct {
+	buf    []byte
+	isLast bool
+}
 
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
 	var offset int64 = 0
 
-	sendBytes := func(buf []byte, isEnd bool) error {
-		buflen := int64(len(buf))
-		ru.Debugf("received %d bytes", buflen)
+	sendBuf := make([]byte, 0, maxSendBuf)
+	reqBlocks := make(chan blockItem, maxChunkGroup)
+
+	canceller := make(chan bool)
+
+	sendBytes := func(buf []byte, isLast bool) {
+		reqBlocks <- blockItem{buf: append([]byte{}, buf...), isLast: isLast}
+	}
+
+	doSendBytes := func(buf []byte, isLast bool) error {
+		buflen := int64(len(sendBuf))
+		ru.Debugf("uploading chunk of %d bytes", buflen)
 
 		body := bytes.NewReader(buf)
 		countingReader := counter.NewReaderCallback(func(count int64) {
@@ -132,7 +148,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		end := start + buflen - 1
 		contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
 
-		if isEnd {
+		if isLast {
 			contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
 		}
 
@@ -155,41 +171,114 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		return nil
 	}
 
-	splitSize := 4 * minBlockSize
-
 	s := bufio.NewScanner(reader)
-	s.Buffer(make([]byte, splitSize), 0)
-	s.Split(splitfunc.New(splitSize))
+	s.Buffer(make([]byte, minChunkSize), 0)
+	s.Split(splitfunc.New(minChunkSize))
 
-	buf1 := make([]byte, 0, splitSize)
-	buf2 := make([]byte, 0, splitSize)
+	// we need two buffers to know when we're at EOF,
+	// for sizes that are an exact multiple of minChunkSize
+	buf1 := make([]byte, 0, minChunkSize)
+	buf2 := make([]byte, 0, minChunkSize)
 
-	for s.Scan() {
-		buf2 = append(buf2[:0], buf1...)
-		buf1 = append(buf1[:0], s.Bytes()...)
+	subDone := make(chan bool)
+	subErrs := make(chan error)
 
-		if len(buf2) > 0 {
-			ru.Debugf("sending %d block", len(buf2))
-			err := sendBytes(buf2, false)
-			if err != nil {
-				errs <- err
-				return
+	ru.Debugf("kicking off sender")
+
+	go func() {
+		isLast := false
+
+		for !isLast {
+			sendBuf = sendBuf[:0]
+
+			for len(sendBuf) < maxSendBuf && !isLast {
+				var item blockItem
+				if len(sendBuf) == 0 {
+					ru.Debugf("sender blocking receive")
+					select {
+					case item = <-reqBlocks:
+						// cool
+					case <-canceller:
+						ru.Debugf("send cancelled")
+						return
+					}
+				} else {
+					ru.Debugf("sender non-blocking receive")
+					select {
+					case item = <-reqBlocks:
+						// cool
+					case <-canceller:
+						ru.Debugf("send cancelled")
+						return
+					default:
+						ru.Debugf("sent faster than scanned, uploading smaller chunk")
+						break
+					}
+				}
+
+				if item.isLast {
+					isLast = true
+				}
+
+				sendBuf = append(sendBuf, item.buf...)
+			}
+
+			if len(sendBuf) > 0 {
+				err := doSendBytes(sendBuf, isLast)
+				if err != nil {
+					ru.Debugf("send error, bailing out")
+					subErrs <- err
+					return
+				}
 			}
 		}
-	}
 
-	err := s.Err()
-	if err != nil {
-		ru.Debugf("scanner error :(")
-		errs <- err
-		return
-	}
+		subDone <- true
+		ru.Debugf("sender done")
+	}()
 
-	ru.Debugf("sending last block, %d bytes", len(buf1))
-	err = sendBytes(buf1, true)
-	if err != nil {
-		errs <- err
-		return
+	// break patch into chunks of minChunkSize, signal last block
+	go func() {
+		for s.Scan() {
+			buf2 = append(buf2[:0], buf1...)
+			buf1 = append(buf1[:0], s.Bytes()...)
+
+			if len(buf2) > 0 {
+				sendBytes(buf2, false)
+			}
+
+			select {
+			case <-canceller:
+				ru.Debugf("scan cancelled")
+				return
+			default:
+				// okay cool let's go c'mon
+			}
+		}
+
+		err := s.Err()
+		if err != nil {
+			ru.Debugf("scanner error :(")
+			subErrs <- err
+			return
+		}
+
+		sendBytes(buf1, true)
+
+		subDone <- true
+		ru.Debugf("scanner done")
+	}()
+
+	for i := 0; i < 2; i++ {
+		select {
+		case <-subDone:
+			// woo!
+		case err := <-subErrs:
+			ru.Debugf("got sub error: %s, bailing", err.Error())
+			close(canceller)
+			errs <- err
+			return
+		}
 	}
 
 	done <- true
