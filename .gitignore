@@ -1,3 +1,4 @@
 /butler
 /butler.exe
 *.pwr*
+.DS_Store
