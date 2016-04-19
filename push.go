@@ -25,6 +25,8 @@ func push(buildPath string, spec string, userVersion string) {
 }
 
 func doPush(buildPath string, spec string, userVersion string) error {
+	spec = strings.ToLower(spec)
+
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
