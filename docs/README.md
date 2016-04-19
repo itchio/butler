@@ -5,7 +5,7 @@ butler is a small command-line tool that lets you:
 
   * [Upload builds](pushing.md) of your games quickly & reliably to [itch.io](https://itch.io)
   * Generate patches and apply them [offline](offline.md)
-  * Many other [miscellaneous things](utilies.md)
+  * Run a few other [utility commands](utilities.md)
 
 When someone refers to **the itch.io command-line tools**, they're talking about butler.
 
