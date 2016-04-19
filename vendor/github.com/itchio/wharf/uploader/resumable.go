@@ -173,6 +173,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		start := offset
 		end := start + buflen - 1
 		contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
+		ru.Debugf("uploading %d-%d", start, end)
 
 		if isLast {
 			contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
@@ -182,6 +183,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 
 		res, err := ru.c.Do(req)
 		if err != nil {
+			ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
 			return &netError{err}
 		}
 
@@ -300,14 +302,17 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				// woo
 			case <-canceller:
 				ru.Debugf("scan cancelled (1)")
+				break
 			}
 			select {
 			case <-usedBufs:
 				// woo
 			case <-canceller:
 				ru.Debugf("scan cancelled (2)")
+				break
 			}
 		}
+		close(scannedBufs)
 	}()
 
 	// break patch into chunks of minChunkSize, signal last block
