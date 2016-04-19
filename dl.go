@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"net"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/getlantern/idletiming"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/timeout"
 )
 
 const bufferSize = 128 * 1024
@@ -24,28 +22,6 @@ func dl(url string, dest string) {
 	}
 }
 
-func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
-	return func(netw, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(netw, addr, cTimeout)
-		if err != nil {
-			return nil, err
-		}
-		idleConn := idletiming.Conn(conn, rwTimeout, func() {
-			comm.Logf("connection was idle for too long, dropping")
-			conn.Close()
-		})
-		return idleConn, nil
-	}
-}
-
-func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			Dial: timeoutDialer(connectTimeout, readWriteTimeout),
-		},
-	}
-}
-
 func tryDl(url string, dest string) (int64, error) {
 	existingBytes := int64(0)
 	stats, err := os.Lstat(dest)
@@ -53,7 +29,7 @@ func tryDl(url string, dest string) (int64, error) {
 		existingBytes = stats.Size()
 	}
 
-	client := newTimeoutClient(30*time.Second, 60*time.Second)
+	client := timeout.NewDefaultClient()
 
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", userAgent())
