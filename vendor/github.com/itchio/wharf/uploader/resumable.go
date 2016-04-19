@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -18,6 +21,22 @@ import (
 )
 
 var seed = 0
+
+func fromEnv(envName string, defaultValue int) int {
+	v := os.Getenv(envName)
+	if v != "" {
+		iv, err := strconv.Atoi(v)
+		if err == nil {
+			log.Printf("Override set: %s = %d", envName, iv)
+			return iv
+		}
+	}
+	return defaultValue
+}
+
+var resumableMaxRetries = fromEnv("WHARF_MAX_RETRIES", 20)
+var resumableConnectTimeout = time.Duration(fromEnv("WHARF_CONNECT_TIMEOUT", 10)) * time.Second
+var resumableIdleTimeout = time.Duration(fromEnv("WHARF_IDLE_TIMEOUT", 15)) * time.Second
 
 // ResumableUpload keeps track of an upload and reports back on its progress
 type ResumableUpload struct {
@@ -79,7 +98,7 @@ func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consu
 	seed++
 	ru.consumer = consumer
 	ru.c = itchio.ClientWithKey("x")
-	ru.c.HTTPClient = timeout.NewDefaultClient()
+	ru.c.HTTPClient = timeout.NewClient(resumableConnectTimeout, resumableIdleTimeout)
 
 	pipeR, pipeW := io.Pipe()
 
@@ -134,10 +153,6 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 
 	canceller := make(chan bool)
 
-	sendBytes := func(buf []byte, isLast bool) {
-		reqBlocks <- blockItem{buf: append([]byte{}, buf...), isLast: isLast}
-	}
-
 	doSendBytesOnce := func(buf []byte, isLast bool) error {
 		buflen := int64(len(sendBuf))
 		ru.Debugf("uploading chunk of %d bytes", buflen)
@@ -185,7 +200,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	doSendBytes := func(buf []byte, isLast bool) error {
 		tries := 1
 
-		for tries < 20 {
+		for tries < resumableMaxRetries {
 			err := doSendBytesOnce(buf, isLast)
 			if err != nil {
 				if ne, ok := err.(*netError); ok {
@@ -275,22 +290,42 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		ru.Debugf("sender done")
 	}()
 
-	// break patch into chunks of minChunkSize, signal last block
+	scannedBufs := make(chan []byte)
+	usedBufs := make(chan bool)
+
 	go func() {
 		for s.Scan() {
-			buf2 = append(buf2[:0], buf1...)
-			buf1 = append(buf1[:0], s.Bytes()...)
-
-			if len(buf2) > 0 {
-				sendBytes(buf2, false)
-			}
-
 			select {
+			case scannedBufs <- s.Bytes():
+				// woo
 			case <-canceller:
-				ru.Debugf("scan cancelled")
-				return
-			default:
-				// okay cool let's go c'mon
+				ru.Debugf("scan cancelled (1)")
+			}
+			select {
+			case <-usedBufs:
+				// woo
+			case <-canceller:
+				ru.Debugf("scan cancelled (2)")
+			}
+		}
+	}()
+
+	// break patch into chunks of minChunkSize, signal last block
+	go func() {
+		for scannedBuf := range scannedBufs {
+			buf2 = append(buf2[:0], buf1...)
+			buf1 = append(buf1[:0], scannedBuf...)
+			usedBufs <- true
+
+			// all but first iteration
+			if len(buf2) > 0 {
+				select {
+				case reqBlocks <- blockItem{buf: append([]byte{}, buf2...), isLast: false}:
+					// okay cool let's go c'mon
+				case <-canceller:
+					ru.Debugf("scan cancelled (3)")
+					return
+				}
 			}
 		}
 
@@ -301,7 +336,12 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			return
 		}
 
-		sendBytes(buf1, true)
+		select {
+		case reqBlocks <- blockItem{buf: append([]byte{}, buf1...), isLast: true}:
+		case <-canceller:
+			ru.Debugf("scan cancelled (right near the finish line)")
+			return
+		}
 
 		subDone <- true
 		ru.Debugf("scanner done")
