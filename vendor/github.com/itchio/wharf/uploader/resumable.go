@@ -34,9 +34,9 @@ func fromEnv(envName string, defaultValue int) int {
 	return defaultValue
 }
 
-var resumableMaxRetries = fromEnv("WHARF_MAX_RETRIES", 20)
-var resumableConnectTimeout = time.Duration(fromEnv("WHARF_CONNECT_TIMEOUT", 10)) * time.Second
-var resumableIdleTimeout = time.Duration(fromEnv("WHARF_IDLE_TIMEOUT", 15)) * time.Second
+var resumableMaxRetries = fromEnv("WHARF_MAX_RETRIES", 15)
+var resumableConnectTimeout = time.Duration(fromEnv("WHARF_CONNECT_TIMEOUT", 30)) * time.Second
+var resumableIdleTimeout = time.Duration(fromEnv("WHARF_IDLE_TIMEOUT", 60)) * time.Second
 
 // ResumableUpload keeps track of an upload and reports back on its progress
 type ResumableUpload struct {
@@ -173,7 +173,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		start := offset
 		end := start + buflen - 1
 		contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
-		ru.Debugf("uploading %d-%d", start, end)
+		ru.Debugf("uploading %d-%d, last? %v", start, end, isLast)
 
 		if isLast {
 			contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
