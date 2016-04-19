@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
@@ -16,6 +17,8 @@ func status(target string) {
 }
 
 func doStatus(target string) error {
+	target = strings.ToLower(target)
+
 	client, err := authenticateViaOauth()
 	if err != nil {
 		return err
