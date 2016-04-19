@@ -99,6 +99,18 @@ func StartProgress() {
 	bar.Start()
 }
 
+func PauseProgress() {
+	if bar != nil {
+		bar.AlwaysUpdate = false
+	}
+}
+
+func ResumeProgress() {
+	if bar != nil {
+		bar.AlwaysUpdate = true
+	}
+}
+
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
 func Progress(perc float64) {

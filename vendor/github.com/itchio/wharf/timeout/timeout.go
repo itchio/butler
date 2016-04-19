@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/getlantern/idletiming"
-	"github.com/itchio/butler/comm"
 )
 
 const (
@@ -21,7 +20,6 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 			return nil, err
 		}
 		idleConn := idletiming.Conn(conn, rwTimeout, func() {
-			comm.Logf("connection was idle for too long, dropping")
 			conn.Close()
 		})
 		return idleConn, nil

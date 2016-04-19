@@ -6,8 +6,10 @@ import "github.com/itchio/wharf/pwr"
 // directly to the console via butler's logging functions.
 func NewStateConsumer() *pwr.StateConsumer {
 	return &pwr.StateConsumer{
-		OnProgress:      Progress,
-		OnProgressLabel: ProgressLabel,
-		OnMessage:       Logl,
+		OnProgress:       Progress,
+		OnProgressLabel:  ProgressLabel,
+		OnPauseProgress:  PauseProgress,
+		OnResumeProgress: ResumeProgress,
+		OnMessage:        Logl,
 	}
 }

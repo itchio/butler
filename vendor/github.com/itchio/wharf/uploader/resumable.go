@@ -7,12 +7,14 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
+	"github.com/itchio/wharf/timeout"
 )
 
 var seed = 0
@@ -77,6 +79,7 @@ func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consu
 	seed++
 	ru.consumer = consumer
 	ru.c = itchio.ClientWithKey("x")
+	ru.c.HTTPClient = timeout.NewDefaultClient()
 
 	pipeR, pipeW := io.Pipe()
 
@@ -115,6 +118,14 @@ type blockItem struct {
 	isLast bool
 }
 
+type netError struct {
+	err error
+}
+
+func (ne *netError) Error() string {
+	return fmt.Sprintf("network error: %s", ne.err.Error())
+}
+
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
 	var offset int64 = 0
 
@@ -127,7 +138,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		reqBlocks <- blockItem{buf: append([]byte{}, buf...), isLast: isLast}
 	}
 
-	doSendBytes := func(buf []byte, isLast bool) error {
+	doSendBytesOnce := func(buf []byte, isLast bool) error {
 		buflen := int64(len(sendBuf))
 		ru.Debugf("uploading chunk of %d bytes", buflen)
 
@@ -156,7 +167,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 
 		res, err := ru.c.Do(req)
 		if err != nil {
-			return err
+			return &netError{err}
 		}
 
 		if res.StatusCode != 200 && res.StatusCode != 308 {
@@ -169,6 +180,33 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		offset += buflen
 		ru.Debugf("%s uploaded, at %s", humanize.Bytes(uint64(offset)), res.Status)
 		return nil
+	}
+
+	doSendBytes := func(buf []byte, isLast bool) error {
+		tries := 1
+
+		for tries < 20 {
+			err := doSendBytesOnce(buf, isLast)
+			if err != nil {
+				if ne, ok := err.(*netError); ok {
+					delay := tries * tries
+					ru.consumer.PauseProgress()
+					ru.consumer.Infof("")
+					ru.consumer.Infof("%s", ne.Error())
+					ru.consumer.Infof("Sleeping %d seconds then retrying", delay)
+					time.Sleep(time.Second * time.Duration(delay))
+					ru.consumer.ResumeProgress()
+					tries++
+					continue
+				} else {
+					return err
+				}
+			} else {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("Too many network errors, giving up.")
 	}
 
 	s := bufio.NewScanner(reader)
