@@ -48,6 +48,7 @@ var (
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
 	upgradeCmd = app.Command("upgrade", "Upgrades butler to the latest version")
+	ugpradeCmd = app.Command("ugprade", "Upgrades butler to the latest version (alias of upgrade for Adam)").Hidden()
 	updateCmd  = app.Command("update", "Upgrades butler to the latest version (alias of upgrade)")
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
@@ -237,6 +238,12 @@ var upgradeArgs = struct {
 	upgradeCmd.Flag("head", "Install bleeding-edge version").Bool(),
 }
 
+var ugpradeArgs = struct {
+	head *bool
+}{
+	ugpradeCmd.Flag("head", "Install bleeding-edge version").Bool(),
+}
+
 var updateArgs = struct {
 	head *bool
 }{
@@ -374,6 +381,9 @@ func main() {
 		ls(*lsArgs.file)
 
 	case upgradeCmd.FullCommand():
+		upgrade(*upgradeArgs.head)
+
+	case ugpradeCmd.FullCommand():
 		upgrade(*upgradeArgs.head)
 
 	case updateCmd.FullCommand():
