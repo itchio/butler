@@ -301,6 +301,7 @@ func main() {
 	} else {
 		log.SetFlags(0)
 	}
+	log.SetOutput(os.Stdout)
 
 	if *appArgs.quiet {
 		*appArgs.noProgress = true
