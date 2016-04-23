@@ -134,7 +134,7 @@ func TestAllTheThings(t *testing.T) {
 		t.Logf("Signing %s\n", filepath)
 
 		sigpath := path.Join(workingDir, "signature.pwr.sig")
-		mist(t, doSign(filepath, sigpath, compression))
+		mist(t, doSign(filepath, sigpath, compression, false))
 
 		sigr, err := os.Open(sigpath)
 		mist(t, err)
