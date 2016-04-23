@@ -47,6 +47,7 @@ var (
 	lsCmd   = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
+	versionCmd = app.Command("version", "Prints the current version of butler")
 	upgradeCmd = app.Command("upgrade", "Upgrades butler to the latest version")
 	ugpradeCmd = app.Command("ugprade", "Upgrades butler to the latest version (alias of upgrade for Adam)").Hidden()
 	updateCmd  = app.Command("update", "Upgrades butler to the latest version (alias of upgrade)")
@@ -374,6 +375,10 @@ func main() {
 
 	case whichCmd.FullCommand():
 		which()
+
+	case versionCmd.FullCommand():
+		log.Println(versionString)
+		os.Exit(0)
 
 	case fileCmd.FullCommand():
 		file(*fileArgs.file)
