@@ -26,7 +26,7 @@ func (c *Container) FixPermissions(fp sync.FilePool) error {
 		}
 
 		if isExecutable(buf) {
-			f.Mode |= 0x111
+			f.Mode |= 0111
 		}
 	}
 
