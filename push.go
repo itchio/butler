@@ -19,18 +19,18 @@ import (
 	"github.com/itchio/wharf/uploader"
 )
 
-func push(buildPath string, spec string, userVersion string) {
+func push(buildPath string, spec string, userVersion string, fixPerms bool) {
 	go versionCheck()
-	must(doPush(buildPath, spec, userVersion))
+	must(doPush(buildPath, spec, userVersion, fixPerms))
 }
 
-func doPush(buildPath string, spec string, userVersion string) error {
+func doPush(buildPath string, spec string, userVersion string, fixPerms bool) error {
 	spec = strings.ToLower(spec)
 
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
-	go doWalk(buildPath, sourceContainerChan, walkErrs)
+	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms)
 
 	target, channel, err := parseSpec(spec)
 	if err != nil {
@@ -334,7 +334,9 @@ type walkResult struct {
 	pool      sync.FilePool
 }
 
-func doWalk(path string, result chan walkResult, errs chan error) {
+func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
+	var result walkResult
+
 	stats, err := os.Lstat(path)
 	if err != nil {
 		errs <- err
@@ -347,7 +349,8 @@ func doWalk(path string, result chan walkResult, errs chan error) {
 			errs <- err
 			return
 		}
-		result <- walkResult{
+
+		result = walkResult{
 			container: container,
 			pool:      container.NewFilePool(path),
 		}
@@ -370,11 +373,16 @@ func doWalk(path string, result chan walkResult, errs chan error) {
 			return
 		}
 
-		result <- walkResult{
+		result = walkResult{
 			container: container,
 			pool:      container.NewZipPool(zr),
 		}
 	}
+
+	if fixPerms {
+		result.container.FixPermissions(result.pool)
+	}
+	out <- result
 }
 
 func parseSpec(spec string) (string, string, error) {

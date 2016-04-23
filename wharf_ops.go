@@ -267,17 +267,21 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 	return nil
 }
 
-func sign(output string, signature string, compression pwr.CompressionSettings) {
-	must(doSign(output, signature, compression))
+func sign(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) {
+	must(doSign(output, signature, compression, fixPerms))
 }
 
-func doSign(output string, signature string, compression pwr.CompressionSettings) error {
+func doSign(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
 	container, err := tlc.Walk(output, filterPaths)
 	if err != nil {
 		return err
+	}
+
+	if fixPerms {
+		container.FixPermissions(container.NewFilePool(output))
 	}
 
 	signatureWriter, err := os.Create(signature)

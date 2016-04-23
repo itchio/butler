@@ -124,11 +124,13 @@ var pushArgs = struct {
 	target          *string
 	userVersion     *string
 	userVersionFile *string
+	fixPerms        *bool
 }{
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
 	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
 	pushCmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String(),
 	pushCmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String(),
+	pushCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
 }
 
 var fetchArgs = struct {
@@ -216,9 +218,11 @@ var verifyArgs = struct {
 var signArgs = struct {
 	output    *string
 	signature *string
+	fixPerms  *bool
 }{
 	signCmd.Arg("dir", "Path of directory to sign").Required().String(),
 	signCmd.Arg("signature", "Path to write signature to").Required().String(),
+	signCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
 }
 
 var fileArgs = struct {
@@ -340,7 +344,7 @@ func main() {
 					must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", *pushArgs.userVersionFile))
 				}
 			}
-			push(*pushArgs.src, *pushArgs.target, userVersion)
+			push(*pushArgs.src, *pushArgs.target, userVersion, *pushArgs.fixPerms)
 		}
 
 	case fetchCmd.FullCommand():
@@ -371,7 +375,7 @@ func main() {
 		verify(*verifyArgs.signature, *verifyArgs.output)
 
 	case signCmd.FullCommand():
-		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings())
+		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
 
 	case whichCmd.FullCommand():
 		which()
