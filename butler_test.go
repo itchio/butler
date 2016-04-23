@@ -80,6 +80,13 @@ func TestAllTheThings(t *testing.T) {
 
 	for i := 0; i < 25; i++ {
 		l := 1024 * (i + 2)
+		// our own little twist on fizzbuzz to look out for 1-off errors
+		if i%5 == 0 {
+			l = pwr.BlockSize
+		} else if i%3 == 0 {
+			l = 0
+		}
+
 		buf := make([]byte, l)
 		_, err := io.CopyN(bytes.NewBuffer(buf), rg, int64(l))
 		mist(t, err)

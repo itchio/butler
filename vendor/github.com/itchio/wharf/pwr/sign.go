@@ -120,7 +120,7 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 		sizeDiff := container.Files[fileIndex].Size - byteOffset
 		shortSize := int32(0)
 
-		if sizeDiff < 0 {
+		if sizeDiff <= 0 {
 			byteOffset = 0
 			blockIndex = 0
 			fileIndex++
