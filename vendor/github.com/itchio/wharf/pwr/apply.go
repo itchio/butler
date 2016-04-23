@@ -10,6 +10,7 @@ import (
 	"sort"
 	osync "sync"
 
+	"github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -129,7 +130,10 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	}
 
 	if actx.SignatureFilePath != "" {
-		actx.checkHashes(ss)
+		err := actx.checkHashes(ss)
+		if err != nil {
+			return err
+		}
 	}
 
 	if actx.InPlace {
@@ -180,8 +184,8 @@ func (actx *ApplyContext) checkHashes(ss signatureSet) error {
 		}
 
 		if bh.FileIndex != check {
-			if check > 0 && checkOffset != len(checkSig)-1 {
-				return fmt.Errorf("in %s, expected %d blocks, got %d", container.Files[check].Path, checkOffset+1, len(checkSig))
+			if check > 0 && checkOffset != len(checkSig) {
+				return fmt.Errorf("In %s, expected %d blocks, got %d", container.Files[check].Path, checkOffset, len(checkSig))
 			}
 
 			checkOffset = 0
@@ -196,10 +200,16 @@ func (actx *ApplyContext) checkHashes(ss signatureSet) error {
 		if bh.FileIndex == check {
 			ah := checkSig[checkOffset]
 			if ah.WeakHash != bh.WeakHash {
-				return fmt.Errorf("in %s, block %d failed weak hash test", container.Files[bh.FileIndex].Path, checkOffset)
+				return fmt.Errorf("%s: weak hash mismatch @ block %d (%s into the file)",
+					container.Files[bh.FileIndex].Path,
+					checkOffset,
+					humanize.Bytes(uint64(BlockSize*checkOffset)))
 			}
 			if !bytes.Equal(ah.StrongHash, bh.StrongHash) {
-				return fmt.Errorf("in %s, block %d failed strong hash test", container.Files[bh.FileIndex].Path, checkOffset)
+				return fmt.Errorf("%s: strong hash mismatch @ block %d (%s into the file)",
+					container.Files[bh.FileIndex].Path,
+					checkOffset,
+					humanize.Bytes(uint64(BlockSize*checkOffset)))
 			}
 			checkOffset++
 		}
