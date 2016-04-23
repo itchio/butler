@@ -221,6 +221,10 @@ func versionCheck() {
 	}
 }
 
+func parseSemver(s string) (semver.Version, error) {
+	return semver.Make(strings.TrimLeft(s, "v"))
+}
+
 func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 	if *appArgs.quiet {
 		return nil, nil, nil
@@ -230,7 +234,7 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 		return nil, nil, nil
 	}
 
-	currentVer, err := semver.Make(version)
+	currentVer, err := parseSemver(version)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -258,9 +262,8 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 		return nil, nil, err
 	}
 
-	latestVersion := strings.TrimLeft(strings.Trim(string(buf), " \r\n"), "v")
-
-	latestVer, err := semver.Make(latestVersion)
+	latestVersion := strings.Trim(string(buf), " \r\n")
+	latestVer, err := parseSemver(latestVersion)
 	if err != nil {
 		return nil, nil, err
 	}
