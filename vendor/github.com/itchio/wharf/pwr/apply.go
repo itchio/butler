@@ -124,7 +124,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		select {
 		case <-done:
 			// woo
-		case <-errs:
+		case err := <-errs:
 			return err
 		}
 	}
@@ -549,7 +549,14 @@ func lazilyPatchFile(sctx *sync.Context, targetPool *tlc.ContainerFilePool, outp
 		}
 
 		if !noop {
-			realops <- op
+			select {
+			case err := <-errs:
+				if err != nil {
+					return 0, false, err
+				}
+			case realops <- op:
+				// muffin
+			}
 		}
 	}
 
