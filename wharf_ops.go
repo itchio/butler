@@ -2,12 +2,9 @@ package main
 
 import (
 	"archive/zip"
-	"crypto/sha256"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -169,38 +166,6 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
 
-	h256 := sha256.New()
-	hbuf := make([]byte, 32)
-
-	dataLookup := func(buf []byte) (string, error) {
-		h256.Reset()
-		_, err := h256.Write(buf)
-		if err != nil {
-			return "", err
-		}
-		sum := h256.Sum(hbuf[:0])
-
-		key := fmt.Sprintf("%d/%x", len(buf), sum)
-		p := filepath.Join(".block-cache", key)
-
-		_, err = os.Lstat(p)
-		if err == nil {
-			return key, nil
-		}
-
-		err = os.MkdirAll(filepath.Dir(p), os.FileMode(0755))
-		if err != nil {
-			return "", nil
-		}
-
-		err = ioutil.WriteFile(p, []byte{}, os.FileMode(0644))
-		if err != nil {
-			return "", err
-		}
-
-		return "", nil
-	}
-
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
 		FilePool:        sourcePool,
@@ -210,10 +175,6 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 		Consumer:    comm.NewStateConsumer(),
 		Compression: &compression,
-	}
-
-	if os.Getenv("BUTLER_BLOCK_CACHE") == "1" {
-		dctx.DataLookup = dataLookup
 	}
 
 	comm.Opf("Diffing %s", source)
