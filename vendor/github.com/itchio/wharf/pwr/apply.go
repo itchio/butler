@@ -1,6 +1,7 @@
 package pwr
 
 import (
+	"archive/zip"
 	"bytes"
 	"errors"
 	"fmt"
@@ -35,6 +36,7 @@ type ApplyContext struct {
 	InPlace    bool
 
 	TargetContainer *tlc.Container
+	TargetPool      sync.FilePool
 	SourceContainer *tlc.Container
 
 	SignatureFilePath string
@@ -284,7 +286,29 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 		outputPool := sourceContainer.NewFilePool(actx.OutputPath)
 
 		targetContainer := actx.TargetContainer
-		targetPool := targetContainer.NewFilePool(actx.TargetPath)
+		targetPool := actx.TargetPool
+		if targetPool == nil {
+			targetInfo, err := os.Lstat(actx.TargetPath)
+			if err != nil {
+				return err
+			}
+
+			if targetInfo.IsDir() {
+				targetPool = targetContainer.NewFilePool(actx.TargetPath)
+			} else {
+				fr, err := os.Open(actx.TargetPath)
+				if err != nil {
+					return err
+				}
+
+				zr, err := zip.NewReader(fr, targetInfo.Size())
+				if err != nil {
+					return err
+				}
+
+				targetPool = targetContainer.NewZipPool(zr)
+			}
+		}
 
 		fileOffset := int64(0)
 		sourceBytes := sourceContainer.Size
@@ -325,7 +349,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 
 			go readOps(patchWire, ops, errc)
 
-			bytesWritten, noop, err := lazilyPatchFile(sctx, targetPool, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
+			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 			if err != nil {
 				return err
 			}
@@ -481,7 +505,7 @@ func deleteFiles(outPath string, deletedFiles []string) error {
 	return nil
 }
 
-func lazilyPatchFile(sctx *sync.Context, targetPool *tlc.ContainerFilePool, outputPool *tlc.ContainerFilePool,
+func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetPool sync.FilePool, outputContainer *tlc.Container, outputPool *tlc.ContainerFilePool,
 	fileIndex int64, onSourceWrite counter.CountCallback, ops chan sync.Operation, inplace bool) (written int64, noop bool, err error) {
 
 	var realops chan sync.Operation
@@ -497,13 +521,14 @@ func lazilyPatchFile(sctx *sync.Context, targetPool *tlc.ContainerFilePool, outp
 			// entire file from target into a file from source that has
 			// the same name and size, then it's a no-op!
 			if op.Type == sync.OpBlockRange && op.BlockIndex == 0 {
-				outputSize := outputPool.GetSize(fileIndex)
-				numOutputBlocks := numBlocks(outputSize)
+				outputFile := outputContainer.Files[fileIndex]
+				targetFile := targetContainer.Files[op.FileIndex]
+				numOutputBlocks := numBlocks(outputFile.Size)
 
 				if inplace &&
 					op.BlockSpan == numOutputBlocks &&
-					outputSize == targetPool.GetSize(op.FileIndex) &&
-					outputPool.GetRelativePath(fileIndex) == targetPool.GetRelativePath(op.FileIndex) {
+					outputFile.Size == targetFile.Size &&
+					outputFile.Path == targetFile.Path {
 					noop = true
 				}
 			}

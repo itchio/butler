@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/itchio/wharf/sync"
 )
@@ -36,7 +37,8 @@ func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
 		} else if (info.Mode() & os.ModeSymlink) > 0 {
 			// muffin ether
 		} else {
-			fmap[f.Name] = f
+			key := filepath.Clean(filepath.ToSlash(f.Name))
+			fmap[key] = f
 		}
 	}
 
@@ -110,7 +112,8 @@ func (cfp *ContainerZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, erro
 			cfp.seekFileIndex = -1
 		}
 
-		f := cfp.fmap[cfp.GetRelativePath(fileIndex)]
+		key := cfp.GetRelativePath(fileIndex)
+		f := cfp.fmap[key]
 		if f == nil {
 			return nil, os.ErrNotExist
 		}
