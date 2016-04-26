@@ -27,6 +27,8 @@ var (
 	ErrIncompatiblePatch = errors.New("unsupported patch")
 )
 
+type DataFetchFunction func([]byte, string) ([]byte, error)
+
 // ApplyContext holds the state while applying a patch
 type ApplyContext struct {
 	Consumer *StateConsumer
@@ -45,6 +47,8 @@ type ApplyContext struct {
 	NoopFiles    int
 	DeletedFiles int
 	StageSize    int64
+
+	DataFetch DataFetchFunction
 }
 
 type signature []sync.BlockHash
@@ -347,7 +351,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			ops := make(chan sync.Operation)
 			errc := make(chan error, 1)
 
-			go readOps(patchWire, ops, errc)
+			go readOps(patchWire, ops, errc, actx.DataFetch)
 
 			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 			if err != nil {
@@ -597,8 +601,9 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 	return
 }
 
-func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error) {
+func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dataFetch DataFetchFunction) {
 	defer close(ops)
+	var buf []byte
 
 	rop := &SyncOp{}
 
@@ -624,6 +629,27 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error) {
 			ops <- sync.Operation{
 				Type: sync.OpData,
 				Data: rop.Data,
+			}
+
+		case SyncOp_REMOTE_DATA:
+			if dataFetch == nil {
+				errc <- fmt.Errorf("encountered remote data but no datafetch")
+				return
+			}
+			buf, err = dataFetch(buf[:0], rop.RemotePath)
+			if err != nil {
+				errc <- err
+				return
+			}
+
+			if int64(len(buf)) != rop.RemoteSize {
+				errc <- fmt.Errorf("remote data size mismatch: expected %d got %d", rop.RemoteSize, len(buf))
+				return
+			}
+
+			ops <- sync.Operation{
+				Type: sync.OpData,
+				Data: buf,
 			}
 
 		default:
