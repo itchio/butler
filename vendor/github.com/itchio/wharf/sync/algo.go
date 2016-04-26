@@ -129,8 +129,6 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 			}
 			prevOp = &op
 		case OpData:
-			// log.Printf("Sending off %s of data\n", humanize.Bytes(uint64(len(op.Data))))
-
 			// Never save a data operation, as it would corrupt the buffer.
 			if prevOp != nil {
 				err = ops(*prevOp)

@@ -2,9 +2,12 @@ package main
 
 import (
 	"archive/zip"
+	"crypto/sha256"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -166,6 +169,38 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
 
+	h256 := sha256.New()
+	hbuf := make([]byte, 32)
+
+	dataLookup := func(buf []byte) (string, error) {
+		h256.Reset()
+		_, err := h256.Write(buf)
+		if err != nil {
+			return "", err
+		}
+		sum := h256.Sum(hbuf[:0])
+
+		key := fmt.Sprintf("%d/%x", len(buf), sum)
+		p := filepath.Join(".block-cache", key)
+
+		_, err = os.Lstat(p)
+		if err == nil {
+			return key, nil
+		}
+
+		err = os.MkdirAll(filepath.Dir(p), os.FileMode(0755))
+		if err != nil {
+			return "", nil
+		}
+
+		err = ioutil.WriteFile(p, []byte{}, os.FileMode(0644))
+		if err != nil {
+			return "", err
+		}
+
+		return "", nil
+	}
+
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
 		FilePool:        sourcePool,
@@ -177,6 +212,10 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		Compression: &compression,
 	}
 
+	if os.Getenv("BUTLER_BLOCK_CACHE") == "1" {
+		dctx.DataLookup = dataLookup
+	}
+
 	comm.Opf("Diffing %s", source)
 	comm.StartProgress()
 	err = dctx.WritePatch(patchCounter, signatureCounter)
@@ -185,9 +224,10 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	}
 	comm.EndProgress()
 
+	totalDuration := time.Since(startTime)
 	{
 		prettySize := humanize.Bytes(uint64(sourceContainer.Size))
-		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / time.Since(startTime).Seconds()))
+		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / totalDuration.Seconds()))
 		comm.Statf("%s (%s) @ %s/s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
@@ -208,7 +248,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
-		comm.Statf("%s patch (%.2f%% of the full size)", prettyPatchSize, relToNew)
+		comm.Statf("%s patch (%.2f%% of the full size) in %s", prettyPatchSize, relToNew, totalDuration)
 	}
 
 	return nil
