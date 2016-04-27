@@ -428,6 +428,28 @@ func (c *Client) CreateBuildEvent(buildID int64, eventType BuildEventType, messa
 	return
 }
 
+type CreateBuildFailureResponse struct {
+	Response
+}
+
+func (c *Client) CreateBuildFailure(buildID int64, message string, fatal bool) (r CreateBuildFailureResponse, err error) {
+	path := c.MakePath("wharf/builds/%d/failures", buildID)
+
+	form := url.Values{}
+	form.Add("message", message)
+	if fatal {
+		form.Add("fatal", fmt.Sprintf("%v", fatal))
+	}
+
+	resp, err := c.PostForm(path, form)
+	if err != nil {
+		return
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	return
+}
+
 type BuildEvent struct {
 	Type    BuildEventType
 	Message string
@@ -485,6 +507,10 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	for _, sleepTime := range retryPatterns {
 		res, err = c.HTTPClient.Do(req)
 		if err != nil {
+			if strings.Contains(err.Error(), "TLS handshake timeout") {
+				time.Sleep(sleepTime + time.Duration(rand.Int()%1000)*time.Millisecond)
+				continue
+			}
 			return nil, err
 		}
 
@@ -493,9 +519,10 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 			// following https://cloud.google.com/storage/docs/json_api/v1/how-tos/upload#exp-backoff to the letter
 			res.Body.Close()
 			time.Sleep(sleepTime + time.Duration(rand.Int()%1000)*time.Millisecond)
-		} else {
-			break
+			continue
 		}
+
+		break
 	}
 
 	return res, err
