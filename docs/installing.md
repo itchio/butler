@@ -11,8 +11,8 @@ Alternatively, if you have the [itch app](https://itch.io/app) installed, then
 you already have a stable build of butler on your system, in:
 
   * `%APPDATA%\Roaming\itch\bin\butler.exe` on Windows
-  * `~/.config/itch/bin` on Linux
-  * `~/Library/Application Support/itch/bin` on Mac OS
+  * `~/.config/itch/bin/butler` on Linux
+  * `~/Library/Application Support/itch/bin/butler` on Mac OS
 
 The itch app will update its version of butler to the latest stable
 on start-up. If you upgrade it to the bleeding-edge version, the itch
