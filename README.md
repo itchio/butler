@@ -2,7 +2,7 @@
 
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
-butler is *the itch.io command-line tools*, all by itself.
+butler is *the itch.io command-line tools* — all by itself.
 
 It's used by:
 
