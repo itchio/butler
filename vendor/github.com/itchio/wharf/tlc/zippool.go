@@ -48,6 +48,9 @@ func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
 
 		fileIndex: int64(-1),
 		reader:    nil,
+
+		seekFileIndex: int64(-1),
+		readSeeker:    nil,
 	}
 }
 

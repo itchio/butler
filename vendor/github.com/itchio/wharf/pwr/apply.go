@@ -28,6 +28,7 @@ var (
 )
 
 type DataFetchFunction func([]byte, string) ([]byte, error)
+type DataStoreFunction func([]byte) error
 
 // ApplyContext holds the state while applying a patch
 type ApplyContext struct {
@@ -49,6 +50,7 @@ type ApplyContext struct {
 	StageSize    int64
 
 	DataFetch DataFetchFunction
+	DataStore DataStoreFunction
 }
 
 type signature []sync.BlockHash
@@ -68,6 +70,11 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		// we might be copying new bytes instead of old bytes into later files
 		// so, we rebuild 'touched' files in a staging area
 		stagePath := actualOutputPath + "-stage"
+		err := os.MkdirAll(stagePath, os.FileMode(0755))
+		if err != nil {
+			return err
+		}
+
 		defer os.RemoveAll(stagePath)
 		actx.OutputPath = stagePath
 	}
@@ -351,7 +358,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			ops := make(chan sync.Operation)
 			errc := make(chan error, 1)
 
-			go readOps(patchWire, ops, errc, actx.DataFetch)
+			go readOps(patchWire, ops, errc, actx.DataFetch, actx.DataStore)
 
 			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 			if err != nil {
@@ -601,7 +608,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 	return
 }
 
-func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dataFetch DataFetchFunction) {
+func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dataFetch DataFetchFunction, dataStore DataStoreFunction) {
 	defer close(ops)
 	var buf []byte
 
@@ -629,6 +636,14 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 			ops <- sync.Operation{
 				Type: sync.OpData,
 				Data: rop.Data,
+			}
+
+			if dataStore != nil {
+				err := dataStore(rop.Data)
+				if err != nil {
+					errc <- err
+					return
+				}
 			}
 
 		case SyncOp_REMOTE_DATA:
