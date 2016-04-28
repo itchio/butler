@@ -139,6 +139,11 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		info := file.FileInfo()
 		mode := info.Mode() | ModeMask
 
+		if !filter(info) {
+			// ignore
+			continue
+		}
+
 		if info.IsDir() {
 			dirMap[dir] = mode
 		} else if mode&os.ModeSymlink > 0 {
