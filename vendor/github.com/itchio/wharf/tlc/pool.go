@@ -97,6 +97,7 @@ func (cfp *ContainerFilePool) Close() error {
 		}
 
 		cfp.reader = nil
+		cfp.fileIndex = -1
 	}
 
 	return nil

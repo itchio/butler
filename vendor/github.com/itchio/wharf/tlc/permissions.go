@@ -9,6 +9,8 @@ import (
 const minScannedFileSize = 4
 
 func (c *Container) FixPermissions(fp sync.FilePool) error {
+	defer fp.Close()
+
 	buf := make([]byte, minScannedFileSize)
 	for index, f := range c.Files {
 		if f.Size < minScannedFileSize {
