@@ -199,7 +199,7 @@ var applyArgs = struct {
 	signature *string
 }{
 	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
-	applyCmd.Arg("old", "Directory to patch").Required().ExistingFileOrDir(),
+	applyCmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String(),
 
 	applyCmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String(),
 	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").Hidden().String(),
