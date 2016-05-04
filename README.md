@@ -9,9 +9,11 @@ It is used by:
   * Content creators on [itch.io](https://itch.io) to push builds quickly & reliably
   * [the itch app](https://github.com/itchio/itch) some network, filesystem and patching operations
 
+## Documentation
+
 Documentation for butler is available as a Gitbook:
 
-  * <https://docs.itch.ovh/butler>
+  * :memo: <https://docs.itch.ovh/butler>
 
 Questions about butler are welcome on its [Issue tracker](https://github.com/itchio/butler/issues),
 or, if the matter is private, [itch.io support](https://itch.io/support).
