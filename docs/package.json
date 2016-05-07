@@ -1,14 +1,13 @@
 {
   "name": "butler-docs",
   "version": "1.0.0",
-  "description": "butler is a small command-line tool that lets you:",
+  "description": "butler is the itch.io command-line tool",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "dependencies": {
-    "gitbook-plugin-algolia": "^1.0.5",
     "gitbook-plugin-anchors": "^0.5.0"
   }
 }
