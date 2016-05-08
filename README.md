@@ -1,6 +1,7 @@
 # butler
 
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
+[![Build Status](https://git.itch.ovh/itchio/butler/badges/master/build.svg)](https://git.itch.ovh/itchio/butler)
 
 butler is *the itch.io command-line tools* - all by itself.
 
