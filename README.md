@@ -14,10 +14,17 @@ It is used by:
 
 Documentation for butler is available as a Gitbook:
 
-  * :memo: <https://docs.itch.ovh/butler>
+  * :memo: <https://itch.io/docs/butler>
 
 Questions about butler are welcome on its [Issue tracker](https://github.com/itchio/butler/issues),
 or, if the matter is private, [itch.io support](https://itch.io/support).
+
+## Integrations
+
+The following projects integrate butler as part of their workflow:
+
+  * [itchy-electron](https://github.com/erbridge/itchy-electron) lets you package your Electron games for itch.io and upload them there
+  * [gradle-butler-plugin](https://github.com/mini2Dx/gradle-butler-plugin) is a Gradle plugin for automatically installing, updating, and running butler as part of your build.
 
 ## Authors
 
