@@ -28,7 +28,7 @@ The following projects integrate butler as part of their workflow:
 
 ## Authors
 
-butler was mostly written by [Amos Wenger](https://github.com/faster), but wouldn't have
+butler was mostly written by [Amos Wenger](https://github.com/fasterthanlime), but wouldn't have
 been possible without the work of many before him.
 
 Amos would like to thank in particular Leaf Corcoran, Jesús Higueras and Tomáš Duda.
