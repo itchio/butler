@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -173,7 +174,8 @@ func TestAllTheThings(t *testing.T) {
 		mist(t, pwr.CompareHashes(readsig, computedsig, computedcontainer))
 	}
 
-	{
+	// K windows you just sit this one out we'll catch you on the flip side
+	if runtime.GOOS != "windows" {
 		// In-place preserve permissions tests
 		t.Logf("In-place patching should preserve permissions")
 
