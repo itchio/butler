@@ -26,7 +26,10 @@ func mist(t *testing.T, err error) {
 }
 
 func putfile(t *testing.T, basePath string, i int, data []byte) {
-	perm := os.FileMode(0777)
+	putfileEx(t, basePath, i, data, os.FileMode(0777))
+}
+
+func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMode) {
 	samplePath := path.Join(basePath, fmt.Sprintf("dummy%d.dat", i))
 	mist(t, ioutil.WriteFile(samplePath, data, perm))
 }
@@ -106,21 +109,19 @@ func TestAllTheThings(t *testing.T) {
 
 	comm.Configure(true, true, false, false, false, false, false)
 
-	if false {
-		for _, q := range []int{1, 9} {
-			t.Logf("============ Quality %d ============", q)
-			compression := pwr.CompressionSettings{
-				Algorithm: pwr.CompressionAlgorithm_BROTLI,
-				Quality:   int32(q),
-			}
+	for _, q := range []int{1, 9} {
+		t.Logf("============ Quality %d ============", q)
+		compression := pwr.CompressionSettings{
+			Algorithm: pwr.CompressionAlgorithm_BROTLI,
+			Quality:   int32(q),
+		}
 
-			for lhs := range files {
-				for rhs := range files {
-					mist(t, doDiff(files[lhs], files[rhs], patch, compression))
-					stat, err := os.Lstat(patch)
-					mist(t, err)
-					t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
-				}
+		for lhs := range files {
+			for rhs := range files {
+				mist(t, doDiff(files[lhs], files[rhs], patch, compression))
+				stat, err := os.Lstat(patch)
+				mist(t, err)
+				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
 			}
 		}
 	}
