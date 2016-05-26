@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"strconv"
 	"testing"
 
 	"github.com/dustin/go-humanize"
@@ -23,6 +24,17 @@ func mist(t *testing.T, err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func octal(perm os.FileMode) string {
+	return strconv.FormatInt(int64(perm), 8)
+}
+
+func permFor(t *testing.T, path string) os.FileMode {
+	t.Logf("Getting perm of %s", path)
+	stat, err := os.Lstat(path)
+	mist(t, err)
+	return stat.Mode()
 }
 
 func putfile(t *testing.T, basePath string, i int, data []byte) {
@@ -159,5 +171,34 @@ func TestAllTheThings(t *testing.T) {
 
 		assert.Equal(t, readsig, computedsig)
 		mist(t, pwr.CompareHashes(readsig, computedsig, computedcontainer))
+	}
+
+	{
+		// In-place preserve permissions tests
+		t.Logf("In-place patching should preserve permissions")
+
+		eperm := os.FileMode(0750)
+
+		samplePerm1 := path.Join(workingDir, "samplePerm1")
+		mist(t, os.MkdirAll(samplePerm1, perm))
+		putfileEx(t, samplePerm1, 1, bytes.Repeat([]byte{0x42, 0x69}, 8192), eperm)
+
+		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm1, "dummy1.dat"))))
+
+		samplePerm2 := path.Join(workingDir, "samplePerm2")
+		mist(t, os.MkdirAll(samplePerm2, perm))
+		putfileEx(t, samplePerm2, 1, bytes.Repeat([]byte{0x69, 0x42}, 16384), eperm)
+
+		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm2, "dummy1.dat"))))
+
+		mist(t, doDiff(samplePerm1, samplePerm2, patch, compression))
+		_, err := os.Lstat(patch)
+		mist(t, err)
+
+		cave := path.Join(workingDir, "cave")
+		ditto(samplePerm1, cave)
+
+		mist(t, doApply(patch, cave, cave, true, ""))
+		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
 	}
 }

@@ -555,6 +555,8 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 			} else {
 				realops = make(chan sync.Operation)
 
+				outputFile := outputContainer.Files[fileIndex]
+
 				outputPath := outputPool.GetPath(fileIndex)
 				err = os.MkdirAll(filepath.Dir(outputPath), os.FileMode(0755))
 				if err != nil {
@@ -562,7 +564,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 				}
 
 				var writer io.WriteCloser
-				writer, err = os.Create(outputPath)
+				writer, err = os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
 				if err != nil {
 					return 0, false, err
 				}

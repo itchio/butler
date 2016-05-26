@@ -17,6 +17,9 @@ const (
 	SignatureMagic
 )
 
+// ModeMask is or'd with files being applied/created
+const ModeMask = 0644
+
 // BlockSize is the standard block size files are broken into when ran through wharf's diff
 var BlockSize = 64 * 1024 // 64k
 
