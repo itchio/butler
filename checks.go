@@ -23,7 +23,7 @@ func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, e
 		diskSize = stats.Size()
 	}
 
-	if resp.ContentLength != 0 {
+	if resp.ContentLength > 0 {
 		if totalBytes != diskSize {
 			return false, fmt.Errorf("Corrupt download: expected %d bytes, got %d", totalBytes, diskSize)
 		}
