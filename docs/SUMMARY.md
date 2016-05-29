@@ -12,6 +12,7 @@
 * [Third-party integrations](integration.md)
   * [unity-build](integration.md#unity-build)
   * [itchy-electron](integration.md#itchy-electron)
+  * [gradle-butler-plugin](integration.md#gradle-butler-plugin)
   * [Other resources](integration.md#other-resources)
 * [Offline usage (diffing/patching)](offline.md)
 * [Utility commands](utilities.md)
