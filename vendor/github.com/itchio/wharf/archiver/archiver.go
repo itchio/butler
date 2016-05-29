@@ -94,6 +94,12 @@ func Symlink(linkname string, filename string, consumer *pwr.StateConsumer) erro
 		return err
 	}
 
+	dirname := filepath.Dir(filename)
+	err = os.MkdirAll(dirname, LuckyMode)
+	if err != nil {
+		return err
+	}
+
 	err = os.Symlink(linkname, filename)
 	if err != nil {
 		return err
