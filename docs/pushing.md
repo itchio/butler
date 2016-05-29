@@ -57,10 +57,6 @@ The name of a channel has meaning:
 
 *Limits: there is no way to tag channels with architecture (32-bit vs 64-bit) yet.*
 
-**Hint: tagging a channel as 'HTML5 / Playable in browser' needs to be done from the
-itch.io Edit game page, once the first build is pushed. The page also needs to be set
-to 'HTML' rather than the default 'Downloadable'.**
-
 The general convention for channel names is: lower-case characters, separated
 by dashes (aka. `kebab-case`).
 
@@ -71,6 +67,10 @@ by using the checkboxes.
 ![](images/edit-game.png)
 
 *Don't forget to `Save` the game's page to apply your changes.*
+
+Tagging a channel as 'HTML5 / Playable in browser' needs to be done from the
+itch.io Edit game page, once the first build is pushed. The page also needs to be set
+to 'HTML' rather than the default 'Downloadable'.
 
 Clicking on the green channel button will show a list of builds and their
 current status.
