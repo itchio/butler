@@ -10,7 +10,7 @@
   * [Update check API](pushing.md#looking-for-updates)
   * [Progress bar design](pushing.md#appendix-a-understanding-the-progress-bar)
 * [Third-party integrations](integration.md)
-  * [unity-build](integration.md#unity-buidl)
+  * [unity-build](integration.md#unity-build)
   * [itchy-electron](integration.md#itchy-electron)
   * [Other resources](integration.md#other-resources)
 * [Offline usage (diffing/patching)](offline.md)
