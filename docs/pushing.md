@@ -52,6 +52,8 @@ The name of a channel has meaning:
   * If it contains `win` or `windows`, it'll be tagged as a Windows executable
   * If it contains `linux`, it'll be tagged as a Linux executable
   * If it contains `osx`, it'll be tagged as a Mac executable
+  * Channel names may contain multiple platforms (for example, a Java game could be pushed
+    to `win-linux-mac-stable`)
 
 *Limits: there is no way to tag channels with architecture (32-bit vs 64-bit) yet.*
 
@@ -59,12 +61,16 @@ The general convention for channel names is: lower-case characters, separated
 by dashes (aka. `kebab-case`).
 
 Naming your channel correctly will ensure your build is probably tagged
-from the get-go. However, you can always amend it from the *Edit game* page,
+from the get-go. However, you can always change it later from the *Edit game* page,
 by using the checkboxes.
 
 ![](images/edit-game.png)
 
 *Don't forget to `Save` the game's page to apply your changes.*
+
+Tagging a channel as 'HTML5 / Playable in browser' needs to be done from the
+itch.io Edit game page, once the first build is pushed. The page also needs to be set
+to 'HTML' rather than the default 'Downloadable'.
 
 Clicking on the green channel button will show a list of builds and their
 current status.
