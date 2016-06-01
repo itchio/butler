@@ -302,6 +302,11 @@ func main() {
 	app.Author("Amos Wenger <amos@itch.io>")
 
 	cmd, err := app.Parse(os.Args[1:])
+	if err != nil {
+		ctx, _ := app.ParseContext(os.Args[1:])
+		app.FatalUsageContext(ctx, "%s\n", err.Error())
+	}
+
 	if *appArgs.timestamps {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	} else {
