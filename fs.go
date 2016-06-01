@@ -17,16 +17,27 @@ func mkdir(dir string) {
 }
 
 func wipe(path string) {
-	tries := 3
-	sleepDuration := time.Second * 2
+	// why have retry logic built into wipe? sometimes when uninstalling
+	// games on windows, the os will randomly return error
+	attempt := 0
+	sleepPatterns := []time.Duration{
+		time.Millisecond * 200,
+		time.Millisecond * 800,
+		time.Millisecond * 1600,
+		time.Millisecond * 3200,
+	}
 
-	for tries > 0 {
+	for attempt <= len(sleepPatterns) {
 		err := tryWipe(path)
 		if err == nil {
 			break
 		}
 
-		comm.Logf("While removing: %s", err.Error())
+		if attempt == len(sleepPatterns) {
+			comm.Dief("Could not wipe %s: %s", path, err.Error())
+		}
+
+		comm.Logf("While wiping %s: %s", path, err.Error())
 
 		comm.Logf("Trying to brute-force permissions, who knows...")
 		err = tryChmod(path)
@@ -35,9 +46,9 @@ func wipe(path string) {
 		}
 
 		comm.Logf("Sleeping for a bit before we retry...")
-
+		sleepDuration := sleepPatterns[attempt]
 		time.Sleep(sleepDuration)
-		sleepDuration *= 2
+		attempt++
 	}
 }
 
