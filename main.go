@@ -85,8 +85,8 @@ var appArgs = struct {
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
 
-	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Enum("none", "brotli", "gzip"),
-	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Int(),
+	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip"),
+	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 }
 
 var dlArgs = struct {
@@ -286,6 +286,7 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
+	app.UsageTemplate(kingpin.CompactUsageTemplate)
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
 
 	app.HelpFlag.Short('h')
