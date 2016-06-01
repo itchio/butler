@@ -11,10 +11,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 )
+
+// read+write for owner, no permissions for others
+const keyFileMode = 0600
 
 const (
 	asciiArt = "      ..........................\n" +
@@ -112,10 +116,38 @@ func doLogout() error {
 	return nil
 }
 
+func readKeyFile(path string) (string, error) {
+	stats, err := os.Lstat(path)
+
+	if err != nil && os.IsNotExist(err) {
+		// no key file
+		return "", nil
+	}
+
+	if stats.Mode()&077 > 0 {
+		log.Printf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
+		err = os.Chmod(path, keyFileMode)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	buf, err := ioutil.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(buf)), nil
+}
+
+func writeKeyFile(path string, key string) error {
+	return ioutil.WriteFile(path, []byte(key), os.FileMode(keyFileMode))
+}
+
 func authenticateViaOauth() (*itchio.Client, error) {
 	var err error
 	var identity = *appArgs.identity
-	var key []byte
+	var key string
 
 	makeClient := func(key string) *itchio.Client {
 		client := itchio.ClientWithKey(key)
@@ -124,12 +156,12 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		return client
 	}
 
-	key, err = ioutil.ReadFile(identity)
+	key, err = readKeyFile(identity)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, err
-		}
+		return nil, err
+	}
 
+	if key == "" {
 		done := make(chan string)
 		errs := make(chan error)
 
@@ -252,11 +284,10 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		select {
 		case err = <-errs:
 			return nil, err
-		case keyString := <-done:
-			key = []byte(keyString)
+		case key = <-done:
 			err = nil
 
-			client := makeClient(keyString)
+			client := makeClient(key)
 			_, err = client.WharfStatus()
 			if err != nil {
 				return nil, err
@@ -268,7 +299,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 				log.Printf("\nCould not create directory for storing API key: %s\n\n", err.Error())
 				err = nil
 			} else {
-				err = ioutil.WriteFile(identity, key, os.FileMode(0644))
+				err = writeKeyFile(identity, key)
 				if err != nil {
 					log.Printf("\nCould not save API key: %s\n\n", err.Error())
 					err = nil
@@ -277,5 +308,5 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		}
 	}
 
-	return makeClient(string(key)), err
+	return makeClient(key), err
 }
