@@ -2,7 +2,7 @@
 # Upgrading butler
 
 Since butler is a single executable file, you can always upgrade it at any
-time by downloading a newer version (from the links given in the [Install page](install.md))
+time by downloading a newer version (from the links given in the [Install page](installing.md))
 and replacing your current version with it.
 
 However, the `butler upgrade` command provides an easier way to upgrade
