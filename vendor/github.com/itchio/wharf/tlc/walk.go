@@ -56,6 +56,10 @@ func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 		}
 
 		Path = filepath.ToSlash(Path)
+		if Path == "." {
+			// Don't store a single folder named "."
+			return nil
+		}
 
 		// don't end up with files we (the patcher) can't modify
 		Mode := fileInfo.Mode() | ModeMask
