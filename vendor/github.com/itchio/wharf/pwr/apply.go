@@ -77,6 +77,8 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 
 		defer os.RemoveAll(stagePath)
 		actx.OutputPath = stagePath
+	} else {
+		os.MkdirAll(actx.OutputPath, os.FileMode(0755))
 	}
 
 	rawPatchWire := wire.NewReadContext(patchReader)
