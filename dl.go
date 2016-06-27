@@ -119,7 +119,7 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 	onWrite := func(bytesDownloaded int64) {
 		bytesWritten := existingBytes + bytesDownloaded
 		percent := float64(bytesWritten) / float64(totalBytes)
-		if math.Abs(percent-prevPercent) < 0.01 {
+		if math.Abs(percent-prevPercent) < 0.0001 {
 			return
 		}
 
