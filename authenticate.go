@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 )
@@ -54,12 +55,12 @@ func doLogin() error {
 	if hasSavedCredentials {
 		client, err := authenticateViaOauth()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		_, err = client.WharfStatus()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		comm.Logf("Your local credentials are valid!\n")
@@ -68,7 +69,7 @@ func doLogin() error {
 		// this does the full login flow + saves
 		_, err := authenticateViaOauth()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 		return nil
 	}
@@ -108,7 +109,7 @@ func doLogout() error {
 
 	err = os.Remove(identity)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	fmt.Println("You've successfully erased the API key that was saved on your computer.\n")
@@ -125,16 +126,23 @@ func readKeyFile(path string) (string, error) {
 	}
 
 	if stats.Mode()&077 > 0 {
-		log.Printf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
-		err = os.Chmod(path, keyFileMode)
-		if err != nil {
-			return "", err
+		if runtime.GOOS == "windows" {
+			// windows won't let you 0600, because it's ACL-based
+			// we can make it 0644, and go will report 0666, but
+			// it doesn't matter since other users can't access it anyway.
+			// empirical evidence: https://github.com/itchio/butler/issues/65
+		} else {
+			log.Printf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
+			err = os.Chmod(path, keyFileMode)
+			if err != nil {
+				return "", errors.Wrap(err, 1)
+			}
 		}
 	}
 
 	buf, err := ioutil.ReadFile(path)
 	if err != nil && !os.IsNotExist(err) {
-		return "", err
+		return "", errors.Wrap(err, 1)
 	}
 
 	return strings.TrimSpace(string(buf)), nil
@@ -158,7 +166,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 
 	key, err = readKeyFile(identity)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	if key == "" {
@@ -251,13 +259,13 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		var listener net.Listener
 		listener, err = net.Listen("tcp", "localhost:0")
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		go func() {
 			err = http.Serve(listener, nil)
 			if err != nil {
-				errs <- err
+				errs <- errors.Wrap(err, 1)
 			}
 		}()
 
@@ -283,30 +291,33 @@ func authenticateViaOauth() (*itchio.Client, error) {
 
 		select {
 		case err = <-errs:
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		case key = <-done:
 			err = nil
 
 			client := makeClient(key)
 			_, err = client.WharfStatus()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			log.Printf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
 			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0755))
 			if err != nil {
-				log.Printf("\nCould not create directory for storing API key: %s\n\n", err.Error())
+				log.Printf("\nCould not create directory for storing API key: %s\n\n", errors.Wrap(err, 1).Error())
 				err = nil
 			} else {
 				err = writeKeyFile(identity, key)
 				if err != nil {
-					log.Printf("\nCould not save API key: %s\n\n", err.Error())
+					log.Printf("\nCould not save API key: %s\n\n", errors.Wrap(err, 1).Error())
 					err = nil
 				}
 			}
 		}
 	}
 
-	return makeClient(key), err
+	if err != nil {
+		err = errors.Wrap(err, 1)
+	}
+	return makeClient(key), nil
 }

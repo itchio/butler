@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
@@ -31,21 +32,21 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	} else {
 		targetInfo, err := os.Lstat(target)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		if targetInfo.IsDir() {
 			comm.Opf("Hashing %s", target)
 			targetContainer, err = tlc.Walk(target, filterPaths)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			comm.StartProgress()
 			targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewFilePool(target), comm.NewStateConsumer())
 			comm.EndProgress()
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			{
@@ -56,33 +57,33 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		} else {
 			signatureReader, err := os.Open(target)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
 			if err != nil {
 				if err != wire.ErrFormat {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				_, err = signatureReader.Seek(0, os.SEEK_SET)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				stats, err := os.Lstat(target)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				zr, err := zip.NewReader(signatureReader, stats.Size())
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				targetContainer, err = tlc.WalkZip(zr, filterPaths)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				comm.Opf("Walking archive (%s)", targetContainer.Stats())
 
@@ -90,7 +91,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 				targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewZipPool(zr), comm.NewStateConsumer())
 				comm.EndProgress()
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				{
@@ -104,7 +105,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 			err = signatureReader.Close()
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 		}
 
@@ -121,29 +122,29 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		var err error
 		stats, err := os.Lstat(source)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		if stats.IsDir() {
 			sourceContainer, err = tlc.Walk(source, filterPaths)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			sourcePool = sourceContainer.NewFilePool(source)
 		} else {
 			sourceReader, err := os.Open(source)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			defer sourceReader.Close()
 
 			zr, err := zip.NewReader(sourceReader, stats.Size())
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			sourceContainer, err = tlc.WalkZip(zr, filterPaths)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			sourcePool = sourceContainer.NewZipPool(zr)
@@ -152,14 +153,14 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	patchWriter, err := os.Create(patch)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer patchWriter.Close()
 
 	signaturePath := patch + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer signatureWriter.Close()
 
@@ -181,7 +182,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	comm.StartProgress()
 	err = dctx.WritePatch(patchCounter, signatureCounter)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	comm.EndProgress()
 
@@ -195,7 +196,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	if *diffArgs.verify {
 		tmpDir, err := ioutil.TempDir("", "pwr")
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 		defer os.RemoveAll(tmpDir)
 
@@ -237,7 +238,7 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 
 	patchReader, err := os.Open(patch)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	actx := &pwr.ApplyContext{
@@ -252,7 +253,7 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 	comm.StartProgress()
 	err = actx.ApplyPatch(patchReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	comm.EndProgress()
 
@@ -278,7 +279,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 
 	container, err := tlc.Walk(output, filterPaths)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	if fixPerms {
@@ -287,7 +288,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 
 	signatureWriter, err := os.Create(signature)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	rawSigWire := wire.NewWriteContext(signatureWriter)
@@ -299,7 +300,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 
 	sigWire, err := pwr.CompressWire(rawSigWire, &compression)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	sigWire.WriteMessage(container)
 
@@ -312,12 +313,12 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	})
 	comm.EndProgress()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = sigWire.Close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	prettySize := humanize.Bytes(uint64(container.Size))
@@ -337,20 +338,20 @@ func doVerify(signature string, output string) error {
 
 	signatureReader, err := os.Open(signature)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer signatureReader.Close()
 
 	refContainer, refHashes, err := pwr.ReadSignature(signatureReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.StartProgress()
 	hashes, err := pwr.ComputeSignature(refContainer, refContainer.NewFilePool(output), comm.NewStateConsumer())
 	comm.EndProgress()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = pwr.CompareHashes(refHashes, hashes, refContainer)
