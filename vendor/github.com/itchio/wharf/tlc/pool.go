@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/sync"
 )
 
@@ -71,7 +72,7 @@ func (cfp *ContainerFilePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, err
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			cfp.reader = nil
 		}
@@ -79,7 +80,7 @@ func (cfp *ContainerFilePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, err
 		reader, err := os.Open(cfp.GetPath(fileIndex))
 
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 		cfp.reader = reader
 		cfp.fileIndex = fileIndex
@@ -93,7 +94,7 @@ func (cfp *ContainerFilePool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		cfp.reader = nil

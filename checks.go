@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/crc32c"
 )
@@ -49,7 +50,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		start := time.Now()
 		checked, err := checkHash(hashType, hashValue, file)
 		if err != nil {
-			return false, err
+			return false, errors.Wrap(err, 1)
 		}
 
 		if checked {
@@ -78,13 +79,16 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 		checked = false
 	}
 
+	if err != nil {
+		err = errors.Wrap(err, 1)
+	}
 	return
 }
 
-func checkHashMD5(hashValue []byte, file string) (err error) {
+func checkHashMD5(hashValue []byte, file string) error {
 	fr, err := os.Open(file)
 	if err != nil {
-		return
+		return errors.Wrap(err, 1)
 	}
 	defer fr.Close()
 
@@ -96,13 +100,13 @@ func checkHashMD5(hashValue []byte, file string) (err error) {
 		err = fmt.Errorf("md5 hash mismatch: got %x, expected %x", hashComputed, hashValue)
 	}
 
-	return
+	return err
 }
 
-func checkHashCRC32C(hashValue []byte, file string) (err error) {
+func checkHashCRC32C(hashValue []byte, file string) error {
 	fr, err := os.Open(file)
 	if err != nil {
-		return
+		return errors.Wrap(err, 1)
 	}
 	defer fr.Close()
 
@@ -114,5 +118,5 @@ func checkHashCRC32C(hashValue []byte, file string) (err error) {
 		err = fmt.Errorf("crc32c hash mismatch: got %x, expected %x", hashComputed, hashValue)
 	}
 
-	return
+	return err
 }

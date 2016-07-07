@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
@@ -44,17 +45,17 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 	target, channel, err := parseSpec(spec)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	client, err := authenticateViaOauth()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	newBuildRes, err := client.CreateBuild(target, channel, userVersion)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	buildID := newBuildRes.Build.ID
@@ -72,7 +73,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		var buildFiles itchio.ListBuildFilesResponse
 		buildFiles, err = client.ListBuildFiles(parentID)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		var signatureFileID int64
@@ -90,18 +91,18 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		var signatureReader io.Reader
 		signatureReader, err = client.DownloadBuildFile(parentID, signatureFileID)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
 	newPatchRes, newSignatureRes, err := createBothFiles(client, buildID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	uploadDone := make(chan bool)
@@ -110,13 +111,13 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	patchWriter, err := uploader.NewResumableUpload(newPatchRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	signatureWriter, err := uploader.NewResumableUpload(newSignatureRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.Debugf("Launching patch & signature channels")
@@ -135,7 +136,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	comm.Debugf("Waiting for source container")
 	select {
 	case err := <-walkErrs:
-		return err
+		return errors.Wrap(err, 1)
 	case walkies := <-sourceContainerChan:
 		comm.Debugf("Got sourceContainer!")
 		sourceContainer = walkies.container
@@ -230,7 +231,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			h256.Reset()
 			_, err := h256.Write(buf)
 			if err != nil {
-				return "", err
+				return "", errors.Wrap(err, 1)
 			}
 			sum := h256.Sum(hbuf[:0])
 
@@ -241,7 +242,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			req, err := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
 			fmt.Fprintf(os.Stderr, "lookup %s\n", req.RequestURI)
 			if err != nil {
-				return "", err
+				return "", errors.Wrap(err, 1)
 			}
 
 			res, err := client.Do(req)
@@ -252,7 +253,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 			err = res.Body.Close()
 			if err != nil {
-				return "", err
+				return "", errors.Wrap(err, 1)
 			}
 
 			if res.StatusCode != 200 {
@@ -269,14 +270,14 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	comm.ProgressScale(0.0)
 	err = dctx.WritePatch(patchCounter, signatureCounter)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	// close in a goroutine to avoid deadlocking
 	doClose := func(c io.Closer, done chan bool, errs chan error) {
 		err := c.Close()
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -289,7 +290,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	for c := 0; c < 4; c++ {
 		select {
 		case err := <-uploadErrs:
-			return err
+			return errors.Wrap(err, 1)
 		case <-uploadDone:
 			comm.Debugf(">>>>>>>>>>> woo, got a done")
 		}
@@ -304,7 +305,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	doFinalize := func(fileID int64, fileSize int64, done chan bool, errs chan error) {
 		_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -317,7 +318,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	for i := 0; i < 2; i++ {
 		select {
 		case err := <-finalErrs:
-			return err
+			return errors.Wrap(err, 1)
 		case <-finalDone:
 		}
 	}
@@ -356,7 +357,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 		var res itchio.NewBuildFileResponse
 		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubType_DEFAULT, itchio.UploadType_RESUMABLE)
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 		}
 		comm.Debugf("Created %s build file: %+v", buildType, res.File)
 		done <- fileSlot{buildType, res}
@@ -371,6 +372,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 	for i := 0; i < 2; i++ {
 		select {
 		case err = <-errs:
+			err = errors.Wrap(err, 1)
 			return
 		case slot := <-done:
 			switch slot.Type {
@@ -395,14 +397,14 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 
 	stats, err := os.Lstat(path)
 	if err != nil {
-		errs <- err
+		errs <- errors.Wrap(err, 1)
 		return
 	}
 
 	if stats.IsDir() {
 		container, err := tlc.Walk(path, filterPaths)
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -413,19 +415,19 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 	} else {
 		sourceReader, err := os.Open(path)
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 
 		zr, err := zip.NewReader(sourceReader, stats.Size())
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 
 		container, err := tlc.WalkZip(zr, filterPaths)
 		if err != nil {
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 

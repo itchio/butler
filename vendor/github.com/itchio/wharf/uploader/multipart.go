@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
@@ -36,17 +37,17 @@ type MultipartUpload struct {
 func (mu *MultipartUpload) Close() error {
 	err := mu.multiWriter.Close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = mu.bufferedWriter.Flush()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = mu.pipeWriter.Close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	return nil
@@ -94,7 +95,7 @@ func NewMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 	consumer.Debug("Creating new HTTP request")
 	req, err := http.NewRequest("POST", uploadURL, readCounter)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 	req.Header.Set("Content-Type", multiWriter.FormDataContentType())
 
@@ -104,14 +105,14 @@ func NewMultipartUpload(uploadURL string, uploadParams map[string]string, fileNa
 		consumer.Debugf("Writing param %s=%s", key, val)
 		err := multiWriter.WriteField(key, val)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 	}
 
 	consumer.Debugf("Creating form file %s", fileName)
 	partWriter, err := multiWriter.CreateFormFile("file", fileName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 	mu.partWriter = partWriter
 
@@ -123,13 +124,13 @@ func doReq(req *http.Request, done chan bool, errs chan error) {
 
 	res, err := c.Do(req)
 	if err != nil {
-		errs <- err
+		errs <- errors.Wrap(err, 1)
 		return
 	}
 
 	if res.StatusCode/100 != 2 {
 		responseBytes, _ := ioutil.ReadAll(res.Body)
-		errs <- fmt.Errorf("Server responded with HTTP %s to %s %s: %s", res.Status, res.Request.Method, res.Request.URL.String(), string(responseBytes))
+		errs <- errors.Wrap(fmt.Errorf("Server responded with HTTP %s to %s %s: %s", res.Status, res.Request.Method, res.Request.URL.String(), string(responseBytes)), 1)
 	}
 
 	done <- true

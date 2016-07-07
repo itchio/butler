@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pwr"
 
@@ -257,7 +258,12 @@ var updateArgs = struct {
 
 func must(err error) {
 	if err != nil {
-		comm.Die(err.Error())
+		switch err := err.(type) {
+		case *errors.Error:
+			comm.Die(err.ErrorStack())
+		default:
+			comm.Die(err.Error())
+		}
 	}
 }
 

@@ -3,6 +3,7 @@ package tlc
 import (
 	"io"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/sync"
 )
 
@@ -19,12 +20,12 @@ func (c *Container) FixPermissions(fp sync.FilePool) error {
 
 		r, err := fp.GetReader(int64(index))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		_, err = io.ReadFull(r, buf)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		if isExecutable(buf) {

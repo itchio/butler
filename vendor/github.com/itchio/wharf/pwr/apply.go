@@ -3,7 +3,6 @@ package pwr
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -12,6 +11,7 @@ import (
 	osync "sync"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -72,7 +72,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		stagePath := actualOutputPath + "-stage"
 		err := os.MkdirAll(stagePath, os.FileMode(0755))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		defer os.RemoveAll(stagePath)
@@ -84,31 +84,31 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	rawPatchWire := wire.NewReadContext(patchReader)
 	err := rawPatchWire.ExpectMagic(PatchMagic)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	header := &PatchHeader{}
 	err = rawPatchWire.ReadMessage(header)
 	if err != nil {
-		return fmt.Errorf("while reading message: %s", err)
+		return errors.Wrap(err, 1)
 	}
 
 	patchWire, err := DecompressWire(rawPatchWire, header.Compression)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	targetContainer := &tlc.Container{}
 	err = patchWire.ReadMessage(targetContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	actx.TargetContainer = targetContainer
 
 	sourceContainer := &tlc.Container{}
 	err = patchWire.ReadMessage(sourceContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	actx.SourceContainer = sourceContainer
 
@@ -123,7 +123,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		// deleted files, because they won't even exist in the first place.
 		err = sourceContainer.Prepare(actx.OutputPath)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
@@ -140,14 +140,14 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		case <-done:
 			// woo
 		case err := <-errs:
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
 	if actx.SignatureFilePath != "" {
 		err := actx.checkHashes(ss)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
@@ -156,12 +156,12 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 
 		actx.StageSize, err = mergeFolders(actualOutputPath, actx.OutputPath)
 		if err != nil {
-			return fmt.Errorf("in mergeFolders: %s", err.Error())
+			return errors.Wrap(err, 1)
 		}
 
 		err = deleteFiles(actualOutputPath, deletedFiles)
 		if err != nil {
-			return fmt.Errorf("in deleteFiles: %s", err.Error())
+			return errors.Wrap(err, 1)
 		}
 		actx.OutputPath = actualOutputPath
 	}
@@ -179,13 +179,13 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 func (actx *ApplyContext) checkHashes(ss signatureSet) error {
 	reader, err := os.Open(actx.SignatureFilePath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer reader.Close()
 
 	container, allSigs, err := ReadSignature(reader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	skip := int64(-1)
@@ -254,13 +254,13 @@ func (actx *ApplyContext) hashThings(ss signatureSet, hashPaths chan string, don
 					fullPath := filepath.Join(actx.OutputPath, hashPath)
 					reader, err := os.Open(fullPath)
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(err, 1)
 					}
 					defer reader.Close()
 
 					err = sctx.CreateSignature(0, reader, onWrite)
 					if err != nil {
-						return nil, err
+						return nil, errors.Wrap(err, 1)
 					}
 
 					return sig, nil
@@ -284,7 +284,7 @@ func (actx *ApplyContext) hashThings(ss signatureSet, hashPaths chan string, don
 
 	for r := range c {
 		if r.err != nil {
-			errOut <- r.err
+			errOut <- errors.Wrap(r.err, 1)
 			close(done)
 		}
 		ss[r.path] = r.sig
@@ -306,7 +306,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			} else {
 				targetInfo, err := os.Lstat(actx.TargetPath)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				if targetInfo.IsDir() {
@@ -314,12 +314,12 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 				} else {
 					fr, err := os.Open(actx.TargetPath)
 					if err != nil {
-						return err
+						return errors.Wrap(err, 1)
 					}
 
 					zr, err := zip.NewReader(fr, targetInfo.Size())
 					if err != nil {
-						return err
+						return errors.Wrap(err, 1)
 					}
 
 					targetPool = targetContainer.NewZipPool(zr)
@@ -353,12 +353,12 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			sh.Reset()
 			err := patchWire.ReadMessage(sh)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			if sh.FileIndex != int64(fileIndex) {
 				fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
-				return ErrMalformedPatch
+				return errors.Wrap(ErrMalformedPatch, 1)
 			}
 
 			ops := make(chan sync.Operation)
@@ -368,7 +368,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 
 			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			if noop {
@@ -385,14 +385,14 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			// done channel. not sure if there's any upside to either
 			err = <-errc
 			if err != nil {
-				return fmt.Errorf("while reading patch: %s", err.Error())
+				return errors.Wrap(err, 1)
 			}
 
 		}
 
 		err := targetPool.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		return nil
@@ -447,7 +447,7 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 
 	stageContainer, err := tlc.Walk(stagePath, filter)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, 1)
 	}
 
 	move := func(path string) error {
@@ -458,18 +458,18 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 		err := os.Remove(op)
 		if err != nil {
 			if !os.IsNotExist(err) {
-				return err
+				return errors.Wrap(err, 1)
 			}
 		}
 
 		err = os.MkdirAll(filepath.Dir(op), os.FileMode(0755))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		err = os.Rename(sp, op)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 		return nil
 	}
@@ -477,14 +477,14 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 	for _, f := range stageContainer.Files {
 		err := move(f.Path)
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, 1)
 		}
 	}
 
 	for _, s := range stageContainer.Symlinks {
 		err := move(s.Path)
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, 1)
 		}
 	}
 
@@ -514,7 +514,7 @@ func deleteFiles(outPath string, deletedFiles []string) error {
 		err := os.Remove(op)
 		if err != nil {
 			if !os.IsNotExist(err) {
-				return err
+				return errors.Wrap(err, 1)
 			}
 		}
 	}
@@ -562,13 +562,13 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 				outputPath := outputPool.GetPath(fileIndex)
 				err = os.MkdirAll(filepath.Dir(outputPath), os.FileMode(0755))
 				if err != nil {
-					return 0, false, err
+					return 0, false, errors.Wrap(err, 1)
 				}
 
 				var writer io.WriteCloser
 				writer, err = os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
 				if err != nil {
-					return 0, false, err
+					return 0, false, errors.Wrap(err, 1)
 				}
 
 				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
@@ -576,13 +576,13 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 				go func() {
 					err := sctx.ApplyPatch(writeCounter, targetPool, realops)
 					if err != nil {
-						errs <- err
+						errs <- errors.Wrap(err, 1)
 						return
 					}
 
 					err = writer.Close()
 					if err != nil {
-						errs <- err
+						errs <- errors.Wrap(err, 1)
 						return
 					}
 
@@ -596,7 +596,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 			select {
 			case err := <-errs:
 				if err != nil {
-					return 0, false, err
+					return 0, false, errors.Wrap(err, 1)
 				}
 			case realops <- op:
 				// muffin
@@ -610,7 +610,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 
 	err = <-errs
 	if err != nil {
-		return 0, false, err
+		return 0, false, errors.Wrap(err, 1)
 	}
 
 	return
@@ -627,7 +627,7 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 		rop.Reset()
 		err := rc.ReadMessage(rop)
 		if err != nil {
-			errc <- fmt.Errorf("while reading op message: %s", err)
+			errc <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -649,7 +649,7 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 			if dataStore != nil {
 				err := dataStore(rop.Data)
 				if err != nil {
-					errc <- err
+					errc <- errors.Wrap(err, 1)
 					return
 				}
 			}
@@ -661,7 +661,7 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 			}
 			buf, err = dataFetch(buf[:0], rop.RemotePath)
 			if err != nil {
-				errc <- err
+				errc <- errors.Wrap(err, 1)
 				return
 			}
 
@@ -688,7 +688,7 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 				// with you to know why & discuss adding it to the spec so other
 				// people can share it: amos@itch.io
 				fmt.Printf("unrecognized rop type %d\n", rop.Type)
-				errc <- ErrMalformedPatch
+				errc <- errors.Wrap(ErrMalformedPatch, 1)
 				return
 			}
 		}

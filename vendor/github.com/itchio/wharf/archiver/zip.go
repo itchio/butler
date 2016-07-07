@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
@@ -23,7 +24,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 
 	reader, err := zip.NewReader(readerAt, size)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	for _, file := range reader.File {
@@ -36,27 +37,27 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 
 			fileReader, err := file.Open()
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			defer fileReader.Close()
 
 			if info.IsDir() {
 				err = Mkdir(filename)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				dirCount++
 			} else if mode&os.ModeSymlink > 0 {
 				linkname, err := ioutil.ReadAll(fileReader)
 				err = Symlink(string(linkname), filename, consumer)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				symlinkCount++
 			} else {
 				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), fileReader, consumer)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				regCount++
 			}
@@ -64,7 +65,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 			return nil
 		}()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 	}
 
@@ -87,7 +88,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Fi
 	defer func() {
 		if zipWriter != nil {
 			if zErr := zipWriter.Close(); err == nil && zErr != nil {
-				err = zErr
+				err = errors.Wrap(zErr, 1)
 			}
 		}
 	}()
@@ -100,7 +101,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Fi
 
 		_, err := zipWriter.CreateHeader(&fh)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 	}
 
@@ -114,17 +115,17 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Fi
 
 		entryWriter, err := zipWriter.CreateHeader(&fh)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		entryReader, err := pool.GetReader(int64(fileIndex))
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		copiedBytes, err := io.Copy(entryWriter, entryReader)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		uncompressedSize += copiedBytes
@@ -138,7 +139,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Fi
 
 		entryWriter, err := zipWriter.CreateHeader(&fh)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		entryWriter.Write([]byte(symlink.Dest))
@@ -146,7 +147,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Fi
 
 	err = zipWriter.Close()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 	zipWriter = nil
 

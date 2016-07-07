@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/go-errors/errors"
 )
 
 // MaxDataOp is the maximum number of 'fresh bytes' that can be contained
@@ -46,12 +48,12 @@ func (ctx *Context) ApplyPatch(output io.Writer, pool FilePool, ops chan Operati
 		case OpBlockRange:
 			target, err := pool.GetReadSeeker(op.FileIndex)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			_, err = target.Seek(blockSize*op.BlockIndex, os.SEEK_SET)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			_, err = io.CopyN(output, target, blockSize*op.BlockSpan)
@@ -59,13 +61,13 @@ func (ctx *Context) ApplyPatch(output io.Writer, pool FilePool, ops chan Operati
 				// EOF is actually expected, since we want to copy short
 				// blocks at the end of files. Other errors aren't expected.
 				if err != io.EOF {
-					return fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error())
+					return errors.Wrap(fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error()), 1)
 				}
 			}
 		case OpData:
 			_, err := output.Write(op.Data)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 		}
 	}
@@ -110,19 +112,19 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 
 	// Combine OpBlockRanges together. To achieve this, we store the previous
 	// non-data operation and determine if it can be extended.
-	enqueue := func(op Operation) (err error) {
+	enqueue := func(op Operation) error {
 		switch op.Type {
 		case OpBlockRange:
 			if prevOp != nil {
 				if prevOp.Type == OpBlockRange && prevOp.FileIndex == op.FileIndex && prevOp.BlockIndex+prevOp.BlockSpan == op.BlockIndex {
 					// combine [prevOp][op] into [ prevOp ]
 					prevOp.BlockSpan += op.BlockSpan
-					return
+					return nil
 				}
 
-				err = ops(*prevOp)
+				err := ops(*prevOp)
 				if err != nil {
-					return
+					return errors.Wrap(err, 1)
 				}
 				// prevOp has been completely sent off, can no longer be combined with anything
 				prevOp = nil
@@ -131,18 +133,18 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 		case OpData:
 			// Never save a data operation, as it would corrupt the buffer.
 			if prevOp != nil {
-				err = ops(*prevOp)
+				err := ops(*prevOp)
 				if err != nil {
-					return
+					return errors.Wrap(err, 1)
 				}
 			}
-			err = ops(op)
+			err := ops(op)
 			if err != nil {
-				return
+				return errors.Wrap(err, 1)
 			}
 			prevOp = nil
 		}
-		return
+		return nil
 	}
 
 	for !lastRun {
@@ -154,7 +156,7 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 				if data.tail < data.head {
 					err = enqueue(Operation{Type: OpData, Data: buffer[data.tail:data.head]})
 					if err != nil {
-						return err
+						return errors.Wrap(err, 1)
 					}
 				}
 				// Wrap the buffer.
@@ -171,8 +173,8 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 			n, err = io.ReadAtLeast(source, buffer[validTo:validTo+ctx.blockSize], ctx.blockSize)
 			validTo += n
 			if err != nil {
-				if err != io.EOF && err != io.ErrUnexpectedEOF {
-					return err
+				if !errors.Is(err, io.EOF) && !errors.Is(err, io.ErrUnexpectedEOF) {
+					return errors.Wrap(err, 1)
 				}
 				lastRun = true
 
@@ -207,7 +209,7 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 		if data.tail < data.head && (blockHash != nil || data.head-data.tail >= MaxDataOp) {
 			err = enqueue(Operation{Type: OpData, Data: buffer[data.tail:data.head]})
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			data.tail = data.head
 		}
@@ -215,7 +217,7 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 		if blockHash != nil {
 			err = enqueue(Operation{Type: OpBlockRange, FileIndex: blockHash.FileIndex, BlockIndex: blockHash.BlockIndex, BlockSpan: 1})
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 			rolling = false
 			sum.tail += ctx.blockSize
@@ -230,7 +232,7 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 			if lastRun {
 				err = enqueue(Operation{Type: OpData, Data: buffer[data.tail:validTo]})
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 			} else {
 				// The following is for the next loop iteration, so don't try to calculate if last.

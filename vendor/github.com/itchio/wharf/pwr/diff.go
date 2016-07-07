@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -36,38 +37,38 @@ type DiffContext struct {
 // WritePatch outputs a pwr patch to patchWriter
 func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Writer) error {
 	if dctx.Compression == nil {
-		return fmt.Errorf("No compression settings specified, bailing out")
+		return errors.Wrap(fmt.Errorf("No compression settings specified, bailing out"), 1)
 	}
 
 	// signature header
 	rawSigWire := wire.NewWriteContext(signatureWriter)
 	err := rawSigWire.WriteMagic(SignatureMagic)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = rawSigWire.WriteMessage(&SignatureHeader{
 		Compression: dctx.Compression,
 	})
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	sigWire, err := CompressWire(rawSigWire, dctx.Compression)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = sigWire.WriteMessage(dctx.SourceContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	// patch header
 	rawPatchWire := wire.NewWriteContext(patchWriter)
 	err = rawPatchWire.WriteMagic(PatchMagic)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	header := &PatchHeader{
@@ -76,22 +77,22 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 
 	err = rawPatchWire.WriteMessage(header)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	patchWire, err := CompressWire(rawPatchWire, dctx.Compression)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = patchWire.WriteMessage(dctx.TargetContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = patchWire.WriteMessage(dctx.SourceContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	sourceBytes := dctx.SourceContainer.Size
@@ -122,7 +123,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 	filePool := dctx.FilePool
 	defer func() {
 		if fErr := filePool.Close(); fErr != nil && err == nil {
-			err = fErr
+			err = errors.Wrap(fErr, 1)
 		}
 	}()
 
@@ -135,13 +136,13 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		syncHeader.FileIndex = int64(fileIndex)
 		err = patchWire.WriteMessage(syncHeader)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		var sourceReader io.Reader
 		sourceReader, err = filePool.GetReader(int64(fileIndex))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		//             / differ
@@ -164,12 +165,12 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		go func() {
 			defer func() {
 				if dErr := diffWriter.Close(); dErr != nil {
-					errs <- dErr
+					errs <- errors.Wrap(dErr, 1)
 				}
 			}()
 			defer func() {
 				if sErr := signWriter.Close(); sErr != nil {
-					errs <- sErr
+					errs <- errors.Wrap(sErr, 1)
 				}
 			}()
 
@@ -178,7 +179,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 			sourceReadCounter := counter.NewReaderCallback(onSourceRead, sourceReader)
 			_, cErr := io.Copy(mw, sourceReadCounter)
 			if cErr != nil {
-				errs <- cErr
+				errs <- errors.Wrap(cErr, 1)
 			}
 		}()
 
@@ -187,24 +188,27 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		for c := 0; c < 2; c++ {
 			select {
 			case err := <-errs:
-				return err
+				return errors.Wrap(err, 1)
 			case <-done:
 			}
 		}
 
 		err = patchWire.WriteMessage(syncDelimiter)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
 	err = patchWire.Close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	err = sigWire.Close()
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 
-	return err
+	return nil
 }
 
 func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLibrary, reader io.Reader, opsWriter sync.OperationWriter, preferredFileIndex int64, errs chan error, done chan bool) {
@@ -213,7 +217,7 @@ func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLib
 			if dctx.DataLookup != nil {
 				key, err := dctx.DataLookup(op.Data)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 
 				if key == "" {
@@ -230,7 +234,7 @@ func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLib
 
 	err := sctx.ComputeDiff(reader, blockLibrary, writeOp, preferredFileIndex)
 	if err != nil {
-		errs <- err
+		errs <- errors.Wrap(err, 1)
 	}
 
 	done <- true
@@ -239,7 +243,7 @@ func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLib
 func signFile(sctx *sync.Context, fileIndex int, reader io.Reader, writeHash sync.SignatureWriter, errs chan error, done chan bool) {
 	err := sctx.CreateSignature(int64(fileIndex), reader, writeHash)
 	if err != nil {
-		errs <- err
+		errs <- errors.Wrap(err, 1)
 	}
 
 	done <- true
@@ -302,12 +306,12 @@ func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) sync.OperationWrite
 			dctx.FreshBytes += int64(op.RemoteSize)
 
 		default:
-			return fmt.Errorf("unknown rsync op type: %d", op.Type)
+			return errors.Wrap(fmt.Errorf("unknown rsync op type: %d", op.Type), 1)
 		}
 
 		err := wc.WriteMessage(wop)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		return nil

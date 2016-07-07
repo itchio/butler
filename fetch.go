@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
@@ -20,12 +21,12 @@ func doFetch(spec string, outPath string) error {
 
 	err = os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	outFiles, err := ioutil.ReadDir(outPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	if len(outFiles) > 0 {
@@ -34,19 +35,19 @@ func doFetch(spec string, outPath string) error {
 
 	target, channel, err := parseSpec(spec)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	client, err := authenticateViaOauth()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.Opf("Getting last build of channel %s", channel)
 
 	channelResponse, err := client.GetChannel(target, channel)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	if channelResponse.Channel.Head == nil {
@@ -70,12 +71,12 @@ func doFetch(spec string, outPath string) error {
 
 	dlReader, err := client.DownloadBuildFile(head.ID, headArchive.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	tmpFile, err := ioutil.TempFile("", "butler-fetch")
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	defer func() {
@@ -88,20 +89,24 @@ func doFetch(spec string, outPath string) error {
 
 	archiveSize, err := io.Copy(tmpFile, dlReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	_, err = tmpFile.Seek(0, os.SEEK_SET)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.Opf("Extracting into %s", outPath)
 	result, err := archiver.Extract(tmpFile, archiveSize, outPath, comm.NewStateConsumer())
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.Statf("Extracted %d dirs, %d files, %d links into %s", result.Dirs, result.Files, result.Symlinks, outPath)
-	return err
+
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+	return nil
 }

@@ -2,11 +2,11 @@ package wire
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"reflect"
 
+	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 )
 

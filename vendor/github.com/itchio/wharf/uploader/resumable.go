@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
@@ -70,14 +71,14 @@ func (ru *ResumableUpload) Close() error {
 
 	err = ru.bufferedWriter.Flush()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	ru.Debugf("closing pipe writer")
 
 	err = ru.pipeWriter.Close()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	ru.Debugf("closed pipe writer")
@@ -167,7 +168,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 
 		req, err := http.NewRequest("PUT", ru.uploadURL, countingReader)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		start := offset
@@ -216,7 +217,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 					tries++
 					continue
 				} else {
-					return err
+					return errors.Wrap(err, 1)
 				}
 			} else {
 				return nil
@@ -282,7 +283,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				err := doSendBytes(sendBuf, isLast)
 				if err != nil {
 					ru.Debugf("send error, bailing out")
-					subErrs <- err
+					subErrs <- errors.Wrap(err, 1)
 					return
 				}
 			}
@@ -337,7 +338,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		err := s.Err()
 		if err != nil {
 			ru.Debugf("scanner error :(")
-			subErrs <- err
+			subErrs <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -359,7 +360,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		case err := <-subErrs:
 			ru.Debugf("got sub error: %s, bailing", err.Error())
 			close(canceller)
-			errs <- err
+			errs <- errors.Wrap(err, 1)
 			return
 		}
 	}

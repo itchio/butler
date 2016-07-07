@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/go-errors/errors"
 )
 
 const (
@@ -46,13 +48,13 @@ func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 				// ...except permission errors, those are fine
 				log.Printf("Permission error: %s\n", err.Error())
 			} else {
-				return err
+				return errors.Wrap(err, 1)
 			}
 		}
 
 		Path, err := filepath.Rel(BasePath, FullPath)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		Path = filepath.ToSlash(Path)
@@ -83,7 +85,7 @@ func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 		} else if Mode&os.ModeSymlink > 0 {
 			Dest, err := os.Readlink(FullPath)
 			if err != nil {
-				return err
+				return errors.Wrap(err, 1)
 			}
 
 			Dest = filepath.ToSlash(Dest)
@@ -98,16 +100,16 @@ func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 	} else {
 		fi, err := os.Lstat(BasePath)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		if !fi.IsDir() {
-			return nil, fmt.Errorf("tlc: can't walk non-directory %s", BasePath)
+			return nil, errors.Wrap(fmt.Errorf("tlc: can't walk non-directory %s", BasePath), 1)
 		}
 
 		err = filepath.Walk(BasePath, onEntry)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 	}
 
@@ -151,19 +153,19 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 			err := func() error {
 				reader, err := file.Open()
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				defer reader.Close()
 
 				linkname, err = ioutil.ReadAll(reader)
 				if err != nil {
-					return err
+					return errors.Wrap(err, 1)
 				}
 				return nil
 			}()
 
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 
 			Symlinks = append(Symlinks, &Symlink{

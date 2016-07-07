@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -36,26 +37,34 @@ func ExtractPath(archive string, destPath string, consumer *pwr.StateConsumer) (
 
 	stat, err := os.Lstat(archive)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	file, err := os.Open(archive)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	defer func() {
 		if cErr := file.Close(); cErr != nil && err == nil {
-			err = cErr
+			err = errors.Wrap(cErr, 1)
 		}
 	}()
 
 	result, err = Extract(file, stat.Size(), destPath, consumer)
-	return result, err
+
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+	return result, nil
 }
 
 func Extract(readerAt io.ReaderAt, size int64, destPath string, consumer *pwr.StateConsumer) (*ExtractResult, error) {
-	return ExtractZip(readerAt, size, destPath, consumer)
+	result, err := ExtractZip(readerAt, size, destPath, consumer)
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+	return result, nil
 }
 
 func Mkdir(dstpath string) error {
@@ -64,7 +73,7 @@ func Mkdir(dstpath string) error {
 		// main case - dir doesn't exist yet
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 		return nil
 	}
@@ -75,11 +84,11 @@ func Mkdir(dstpath string) error {
 		// is a file or symlink for example, turn into a dir
 		err = os.Remove(dstpath)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
@@ -91,18 +100,18 @@ func Symlink(linkname string, filename string, consumer *pwr.StateConsumer) erro
 
 	err := os.RemoveAll(filename)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	dirname := filepath.Dir(filename)
 	err = os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = os.Symlink(linkname, filename)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	return nil
 }
@@ -111,29 +120,29 @@ func CopyFile(filename string, mode os.FileMode, fileReader io.Reader, consumer 
 	consumer.Debugf("extract %s", filename)
 	err := os.RemoveAll(filename)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	dirname := filepath.Dir(filename)
 	err = os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer writer.Close()
 
 	_, err = io.Copy(writer, fileReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	err = os.Chmod(filename, mode)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	return nil
 }

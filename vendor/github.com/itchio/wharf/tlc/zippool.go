@@ -3,11 +3,13 @@ package tlc
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/sync"
 )
 
@@ -37,7 +39,7 @@ func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
 		} else if (info.Mode() & os.ModeSymlink) > 0 {
 			// muffin ether
 		} else {
-			key := filepath.Clean(filepath.ToSlash(f.Name))
+			key := filepath.ToSlash(filepath.Clean(f.Name))
 			fmap[key] = f
 		}
 	}
@@ -80,21 +82,29 @@ func (cfp *ContainerZipPool) GetReader(fileIndex int64) (io.Reader, error) {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			cfp.reader = nil
 			cfp.fileIndex = -1
 		}
 
-		f := cfp.fmap[cfp.GetRelativePath(fileIndex)]
+		relPath := cfp.GetRelativePath(fileIndex)
+		f := cfp.fmap[relPath]
 		if f == nil {
-			return nil, os.ErrNotExist
+			if os.Getenv("VERBOSE_ZIP_POOL") != "" {
+				fmt.Printf("\nzip contents:\n")
+				for k := range cfp.fmap {
+					fmt.Printf("\n- %s", k)
+				}
+				fmt.Println()
+			}
+			return nil, errors.WrapPrefix(os.ErrNotExist, relPath, 1)
 		}
 
 		reader, err := f.Open()
 
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 		cfp.reader = reader
 		cfp.fileIndex = fileIndex
@@ -109,7 +119,7 @@ func (cfp *ContainerZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, erro
 		if cfp.readSeeker != nil {
 			err := cfp.readSeeker.Close()
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			cfp.readSeeker = nil
 			cfp.seekFileIndex = -1
@@ -118,18 +128,18 @@ func (cfp *ContainerZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, erro
 		key := cfp.GetRelativePath(fileIndex)
 		f := cfp.fmap[key]
 		if f == nil {
-			return nil, os.ErrNotExist
+			return nil, errors.Wrap(os.ErrNotExist, 1)
 		}
 
 		reader, err := f.Open()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 		defer reader.Close()
 
 		buf, err := ioutil.ReadAll(reader)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		cfp.readSeeker = &closableBuf{bytes.NewReader(buf)}
@@ -144,7 +154,7 @@ func (cfp *ContainerZipPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		cfp.reader = nil
@@ -154,7 +164,7 @@ func (cfp *ContainerZipPool) Close() error {
 	if cfp.readSeeker != nil {
 		err := cfp.readSeeker.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		cfp.readSeeker = nil

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/olekukonko/tablewriter"
@@ -21,12 +22,12 @@ func doStatus(target string) error {
 
 	client, err := authenticateViaOauth()
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	listChannelsResp, err := client.ListChannels(target)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)

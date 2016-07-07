@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/timeout"
@@ -38,7 +39,7 @@ func tryDl(url string, dest string) (int64, error) {
 	req.Header.Set("Range", byteRange)
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, 1)
 	}
 	defer resp.Body.Close()
 
@@ -72,7 +73,7 @@ func tryDl(url string, dest string) (int64, error) {
 		req.Header.Set("User-Agent", userAgent())
 		resp, err = client.Do(req)
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, 1)
 		}
 
 		if existingBytes > resp.ContentLength {
@@ -93,7 +94,7 @@ func tryDl(url string, dest string) (int64, error) {
 		}
 		err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, 1)
 		}
 	} else {
 		comm.Log("Already fully downloaded")
@@ -103,13 +104,13 @@ func tryDl(url string, dest string) (int64, error) {
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)
-		return 0, err
+		return 0, errors.Wrap(err, 1)
 	}
 
 	return totalBytes, nil
 }
 
-func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes int64) (err error) {
+func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes int64) error {
 	out, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	defer out.Close()
 
@@ -128,7 +129,11 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 	}
 	counter := counter.NewWriterCallback(onWrite, out)
 
-	_, err = io.Copy(counter, src)
+	_, err := io.Copy(counter, src)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
 	comm.EndProgress()
-	return
+	return nil
 }

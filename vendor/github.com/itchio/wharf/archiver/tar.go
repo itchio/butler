@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -21,14 +22,14 @@ func ExtractTar(archive string, dir string, consumer *pwr.StateConsumer) (*Extra
 
 	file, err := os.Open(archive)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	defer file.Close()
 
 	err = Mkdir(dir)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	tarReader := tar.NewReader(file)
@@ -36,10 +37,10 @@ func ExtractTar(archive string, dir string, consumer *pwr.StateConsumer) (*Extra
 	for {
 		header, err := tarReader.Next()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 
 		rel := header.Name
@@ -49,21 +50,21 @@ func ExtractTar(archive string, dir string, consumer *pwr.StateConsumer) (*Extra
 		case tar.TypeDir:
 			err = Mkdir(filename)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			dirCount++
 
 		case tar.TypeReg:
 			err = CopyFile(filename, os.FileMode(header.Mode&LuckyMode|ModeMask), tarReader, consumer)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			regCount++
 
 		case tar.TypeSymlink:
 			err = Symlink(header.Linkname, filename, consumer)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, 1)
 			}
 			symlinkCount++
 

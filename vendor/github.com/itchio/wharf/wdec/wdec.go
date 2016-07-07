@@ -5,6 +5,8 @@ package wdec
 import (
 	"io"
 
+	"github.com/go-errors/errors"
+
 	"gopkg.in/kothar/brotli-go.v0/dec"
 )
 
@@ -23,8 +25,13 @@ func NewBrotliReader(reader io.Reader) io.Reader {
 
 func (fbr *fixedBrotliReader) Read(buffer []byte) (int, error) {
 	n, err := fbr.reader.Read(buffer)
-	if err == io.EOF && n > 0 {
-		return n, nil
+
+	if err != nil {
+		if errors.Is(err, io.EOF) && n > 0 {
+			return n, nil
+		}
+		return n, errors.Wrap(err, 1)
 	}
-	return n, err
+
+	return n, nil
 }

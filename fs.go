@@ -18,7 +18,8 @@ func mkdir(dir string) {
 
 func wipe(path string) {
 	// why have retry logic built into wipe? sometimes when uninstalling
-	// games on windows, the os will randomly return error
+	// games on windows, the os will randomly return I/O errors, retrying
+	// usually helps.
 	attempt := 0
 	sleepPatterns := []time.Duration{
 		time.Millisecond * 200,

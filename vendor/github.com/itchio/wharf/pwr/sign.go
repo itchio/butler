@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -22,7 +23,7 @@ func ComputeSignature(container *tlc.Container, pool sync.FilePool, consumer *St
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	return signature, nil
@@ -35,7 +36,7 @@ func ComputeSignatureToWriter(container *tlc.Container, pool sync.FilePool, cons
 
 	defer func() {
 		if pErr := pool.Close(); pErr != nil && err == nil {
-			err = pErr
+			err = errors.Wrap(pErr, 1)
 		}
 	}()
 
@@ -55,17 +56,20 @@ func ComputeSignatureToWriter(container *tlc.Container, pool sync.FilePool, cons
 		var reader io.Reader
 		reader, err = pool.GetReader(int64(fileIndex))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 
 		cr := counter.NewReaderCallback(onRead, reader)
 		err = sctx.CreateSignature(int64(fileIndex), cr, sigWriter)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 
-	return err
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+	return nil
 }
 
 // ReadSignature reads the hashes from all files of a given container, from a
@@ -74,27 +78,27 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 	rawSigWire := wire.NewReadContext(signatureReader)
 	err := rawSigWire.ExpectMagic(SignatureMagic)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, 1)
 	}
 
 	header := &SignatureHeader{}
 	err = rawSigWire.ReadMessage(header)
 	if err != nil {
-		return nil, nil, fmt.Errorf("While reading signature header: %s", err.Error())
+		return nil, nil, errors.Wrap(err, 1)
 	}
 
 	sigWire, err := DecompressWire(rawSigWire, header.Compression)
 	if err != nil {
-		return nil, nil, fmt.Errorf("While decompressing signature wire: %s", err.Error())
+		return nil, nil, errors.Wrap(err, 1)
 	}
 
 	container := &tlc.Container{}
 	err = sigWire.ReadMessage(container)
 	if err != nil {
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			// ok
 		} else {
-			return nil, nil, fmt.Errorf("While reading signature container: %s", err.Error())
+			return nil, nil, errors.Wrap(err, 1)
 		}
 	}
 
@@ -111,10 +115,10 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 		err = sigWire.ReadMessage(hash)
 
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
-			return nil, nil, err
+			return nil, nil, errors.Wrap(err, 1)
 		}
 
 		sizeDiff := container.Files[fileIndex].Size - byteOffset

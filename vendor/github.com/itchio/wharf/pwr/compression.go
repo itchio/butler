@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/wire"
 )
 
@@ -51,7 +52,7 @@ func (cs *CompressionSettings) ToString() string {
 // so that any messages written through the returned WriteContext will first be compressed.
 func CompressWire(ctx *wire.WriteContext, compression *CompressionSettings) (*wire.WriteContext, error) {
 	if compression == nil {
-		return nil, fmt.Errorf("CompressWire: no compression specified")
+		return nil, errors.Wrap(fmt.Errorf("no compression specified"), 1)
 	}
 
 	if compression.Algorithm == CompressionAlgorithm_NONE {
@@ -60,12 +61,12 @@ func CompressWire(ctx *wire.WriteContext, compression *CompressionSettings) (*wi
 
 	compressor := compressors[compression.Algorithm]
 	if compressor == nil {
-		return nil, fmt.Errorf("CompressWire: no compressor registered for %s", compression.Algorithm.String())
+		return nil, errors.Wrap(fmt.Errorf("no compressor registered for %s", compression.Algorithm.String()), 1)
 	}
 
 	compressedWriter, err := compressor.Apply(ctx.Writer(), compression.Quality)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	return wire.NewWriteContext(compressedWriter), nil
@@ -75,7 +76,7 @@ func CompressWire(ctx *wire.WriteContext, compression *CompressionSettings) (*wi
 // so that any messages read through the returned ReadContext will first be decompressed.
 func DecompressWire(ctx *wire.ReadContext, compression *CompressionSettings) (*wire.ReadContext, error) {
 	if compression == nil {
-		return nil, fmt.Errorf("DecompressWire: no compression specified")
+		return nil, errors.Wrap(fmt.Errorf("no compression specified"), 1)
 	}
 
 	if compression.Algorithm == CompressionAlgorithm_NONE {
@@ -84,12 +85,12 @@ func DecompressWire(ctx *wire.ReadContext, compression *CompressionSettings) (*w
 
 	decompressor := decompressors[compression.Algorithm]
 	if decompressor == nil {
-		return nil, fmt.Errorf("DecompressWire: no compressor registered for %s", compression.Algorithm.String())
+		return nil, errors.Wrap(fmt.Errorf("no compressor registered for %s", compression.Algorithm.String()), 1)
 	}
 
 	compressedReader, err := decompressor.Apply(ctx.Reader())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 1)
 	}
 
 	return wire.NewReadContext(compressedReader), nil

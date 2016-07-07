@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/getlantern/idletiming"
+	"github.com/go-errors/errors"
 )
 
 const (
@@ -13,11 +14,11 @@ const (
 	DefaultIdleTimeout                  = 60 * time.Second
 )
 
-func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (net.Conn, error) {
 	return func(netw, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, 1)
 		}
 		idleConn := idletiming.Conn(conn, rwTimeout, func() {
 			conn.Close()
