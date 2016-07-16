@@ -344,6 +344,8 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			comm.Statf("%s patch (no savings)", prettyPatchSize)
 		}
 	}
+	comm.Opf("Build is now processing, should be up in a bit (see `butler status`)")
+
 	return nil
 }
 
