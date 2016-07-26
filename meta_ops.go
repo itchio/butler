@@ -286,7 +286,7 @@ func doUpgrade(head bool) error {
 	}
 
 	if version == "head" {
-		comm.Statf("Bleeding-edge, not upgrading to stable unless told to.")
+		comm.Statf("Bleeding-edge, not upgrading unless told to.")
 		comm.Logf("(Use `--head` if you want to upgrade to the latest bleeding-edge version)")
 		return nil
 	}
