@@ -237,7 +237,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 			key := fmt.Sprintf("%d/%x", len(buf), sum)
 			// return key, nil
-			fmt.Sprintf("Should look up %s", key)
+			fmt.Printf("Should look up %s\n", key)
 
 			req, err := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
 			fmt.Fprintf(os.Stderr, "lookup %s\n", req.RequestURI)
@@ -292,7 +292,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		case err := <-uploadErrs:
 			return errors.Wrap(err, 1)
 		case <-uploadDone:
-			comm.Debugf(">>>>>>>>>>> woo, got a done")
+			comm.Debugf("upload done")
 		}
 	}
 
