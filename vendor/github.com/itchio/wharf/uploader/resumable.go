@@ -192,6 +192,17 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			ru.Debugf("uh oh, got HTTP %s", res.Status)
 			resb, _ := ioutil.ReadAll(res.Body)
 			ru.Debugf("server said %s", string(resb))
+
+			// retry requests that return these, see full list
+			// at https://cloud.google.com/storage/docs/xml-api/resumable-upload
+			// see also https://github.com/itchio/butler/issues/71
+			if res.StatusCode == 408 /* Request Timeout */ ||
+				res.StatusCode == 500 /* Internal Server Error */ ||
+				res.StatusCode == 502 /* Bad Gateway */ ||
+				res.StatusCode == 503 /* Service Unavailable */ ||
+				res.StatusCode == 504 /* Gateway Timeout */ {
+				return &netError{err}
+			}
 			return fmt.Errorf("HTTP %d while uploading", res.StatusCode)
 		}
 
