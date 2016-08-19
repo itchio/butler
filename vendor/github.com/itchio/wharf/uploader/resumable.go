@@ -192,6 +192,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			ru.Debugf("uh oh, got HTTP %s", res.Status)
 			resb, _ := ioutil.ReadAll(res.Body)
 			ru.Debugf("server said %s", string(resb))
+			err = fmt.Errorf("HTTP %d while uploading", res.StatusCode)
 
 			// retry requests that return these, see full list
 			// at https://cloud.google.com/storage/docs/xml-api/resumable-upload
@@ -203,7 +204,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				res.StatusCode == 504 /* Gateway Timeout */ {
 				return &netError{err}
 			}
-			return fmt.Errorf("HTTP %d while uploading", res.StatusCode)
+			return err
 		}
 
 		offset += buflen
