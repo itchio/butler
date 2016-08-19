@@ -182,10 +182,17 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 
 		req.Header.Set("content-range", contentRange)
 
+		startTime := time.Now()
+
 		res, err := ru.c.Do(req)
 		if err != nil {
 			ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
 			return &netError{err}
+		}
+
+		ru.Debugf("server replied in %s, with status %s", time.Since(startTime), res.Status)
+		for k, v := range res.Header {
+			ru.Debugf("[Reply header] %s: %s", k, v)
 		}
 
 		if res.StatusCode != 200 && res.StatusCode != 308 {
@@ -205,6 +212,12 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				return &netError{err}
 			}
 			return err
+		}
+
+		if res.StatusCode == 308 && isLast {
+			ru.Debugf("Got 308 on last, retrying...")
+			err = fmt.Errorf("HTTP %d while sending last block, that's no good.", res.StatusCode)
+			return &netError{err}
 		}
 
 		offset += buflen
