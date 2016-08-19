@@ -112,7 +112,7 @@ func doLogout() error {
 		return errors.Wrap(err, 1)
 	}
 
-	fmt.Println("You've successfully erased the API key that was saved on your computer.\n")
+	fmt.Println("You've successfully erased the API key that was saved on your computer.")
 
 	return nil
 }
@@ -135,7 +135,7 @@ func readKeyFile(path string) (string, error) {
 			log.Printf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
 			err = os.Chmod(path, keyFileMode)
 			if err != nil {
-				return "", errors.Wrap(err, 1)
+				log.Printf("[Warning] Couldn't chmod keyfile: %s\n", err.Error())
 			}
 		}
 	}
@@ -271,8 +271,8 @@ func authenticateViaOauth() (*itchio.Client, error) {
 
 		log.Println("\n" + asciiArt)
 
-		log.Println("\nWelcome to the itch.io command-line tools!\n")
-		log.Println("Open the following link in your browser to authenticate:\n")
+		log.Println("\nWelcome to the itch.io command-line tools!")
+		log.Println("Open the following link in your browser to authenticate:")
 
 		form := url.Values{}
 		form.Add("client_id", "butler")
