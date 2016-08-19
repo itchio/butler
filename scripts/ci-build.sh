@@ -43,7 +43,7 @@ fi
 export PKG=github.com/itchio/butler
 
 mkdir -p $PKG
-cp -a . $PKG
+rsync -az . $PKG
 
 # grab deps
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
