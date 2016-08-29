@@ -5,14 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
-	"strconv"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
@@ -23,21 +18,10 @@ import (
 
 var seed = 0
 
-func fromEnv(envName string, defaultValue int) int {
-	v := os.Getenv(envName)
-	if v != "" {
-		iv, err := strconv.Atoi(v)
-		if err == nil {
-			log.Printf("Override set: %s = %d", envName, iv)
-			return iv
-		}
-	}
-	return defaultValue
-}
-
 var resumableMaxRetries = fromEnv("WHARF_MAX_RETRIES", 15)
 var resumableConnectTimeout = time.Duration(fromEnv("WHARF_CONNECT_TIMEOUT", 30)) * time.Second
 var resumableIdleTimeout = time.Duration(fromEnv("WHARF_IDLE_TIMEOUT", 60)) * time.Second
+var resumableVerboseDebug = fromEnv("WHARF_VERBOSE_DEBUG", 0)
 
 // ResumableUpload keeps track of an upload and reports back on its progress
 type ResumableUpload struct {
@@ -74,15 +58,14 @@ func (ru *ResumableUpload) Close() error {
 		return errors.Wrap(err, 1)
 	}
 
-	ru.Debugf("closing pipe writer")
+	ru.Debugf("closing write end of pipe")
 
 	err = ru.pipeWriter.Close()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	ru.Debugf("closed pipe writer")
-	ru.Debugf("everything closed! uploadedbytes = %d, totalbytes = %d", ru.UploadedBytes, ru.TotalBytes)
+	ru.Debugf("all closed. uploaded / total = %d / %d", ru.UploadedBytes, ru.TotalBytes)
 
 	return nil
 }
@@ -129,6 +112,12 @@ func (ru *ResumableUpload) Debugf(f string, args ...interface{}) {
 	ru.consumer.Debugf("[upload %d] %s", ru.id, fmt.Sprintf(f, args...))
 }
 
+func (ru *ResumableUpload) VerboseDebugf(f string, args ...interface{}) {
+	if resumableVerboseDebug > 0 {
+		ru.consumer.Debugf("[upload %d] %s", ru.id, fmt.Sprintf(f, args...))
+	}
+}
+
 const minChunkSize = 256 * 1024 // 256KB
 const maxChunkGroup = 64
 const maxSendBuf = maxChunkGroup * minChunkSize // 16MB
@@ -138,12 +127,156 @@ type blockItem struct {
 	isLast bool
 }
 
-type netError struct {
-	err error
+func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
+	ru.Debugf("querying upload status...")
+
+	req, err := http.NewRequest("PUT", ru.uploadURL, nil)
+	if err != nil {
+		// does not include HTTP errors, more like golang API usage errors
+		return nil, errors.Wrap(err, 1)
+	}
+
+	// for resumable uploads of unknown size, the length is unknown,
+	// see https://github.com/itchio/butler/issues/71#issuecomment-242938495
+	req.Header.Set("content-range", "*/*")
+
+	retryCtx := NewRetryContext(ru.consumer)
+	for retryCtx.ShouldTry() {
+		res, err := ru.c.Do(req)
+		if err != nil {
+			ru.Debugf("while querying status of upload: %s", err.Error())
+			retryCtx.Retry(err.Error())
+			continue
+		}
+
+		status := interpretGcsStatusCode(res.StatusCode)
+		if status == GcsResume {
+			// got what we wanted (Range header, etc.)
+			return res, nil
+		}
+
+		if status == GcsNeedQuery {
+			retryCtx.Retry(fmt.Sprintf("got HTTP %s (%s)", res.StatusCode, status))
+			continue
+		}
+
+		return nil, fmt.Errorf("while querying status, got HTTP %s (%s)", res.Status, status)
+	}
+
+	return nil, fmt.Errorf("gave up on trying to get upload status")
 }
 
-func (ne *netError) Error() string {
-	return fmt.Sprintf("network error: %s", ne.err.Error())
+func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) error {
+	buflen := int64(len(buf))
+	ru.Debugf("uploading chunk of %d bytes", buflen)
+
+	body := bytes.NewReader(buf)
+	countingReader := counter.NewReaderCallback(func(count int64) {
+		ru.UploadedBytes = offset + count
+		if ru.OnProgress != nil {
+			ru.OnProgress()
+		}
+	}, body)
+
+	req, err := http.NewRequest("PUT", ru.uploadURL, countingReader)
+	if err != nil {
+		// does not include HTTP errors, more like golang API usage errors
+		return errors.Wrap(err, 1)
+	}
+
+	start := offset
+	end := start + buflen - 1
+	contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
+	ru.Debugf("uploading %d-%d, last? %v", start, end, isLast)
+
+	if isLast {
+		contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
+	}
+
+	req.Header.Set("content-range", contentRange)
+
+	startTime := time.Now()
+
+	res, err := ru.c.Do(req)
+	if err != nil {
+		ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
+		return &netError{err, GcsUnknown}
+	}
+
+	ru.Debugf("server replied in %s, with status %s", time.Since(startTime), res.Status)
+	for k, v := range res.Header {
+		ru.Debugf("[Reply header] %s: %s", k, v)
+	}
+
+	if buflen != int64(len(buf)) {
+		// see https://github.com/itchio/butler/issues/71#issuecomment-243081797
+		return &netError{fmt.Errorf("send buffer size changed while we were uploading"), GcsResume}
+	}
+
+	status := interpretGcsStatusCode(res.StatusCode)
+	if status == GcsUploadComplete && isLast {
+		ru.Debugf("upload complete!")
+		return nil
+	}
+
+	if status == GcsNeedQuery {
+		ru.Debugf("need to query upload status (HTTP %s)", res.Status)
+		statusRes, err := ru.queryStatus()
+		if err != nil {
+			// this happens after we retry the query a few times
+			return err
+		}
+
+		if statusRes.StatusCode == 308 {
+			ru.Debugf("got upload status, trying to resume")
+			res = statusRes
+			status = GcsResume
+		} else {
+			status = interpretGcsStatusCode(statusRes.StatusCode)
+			err = fmt.Errorf("expected upload status, got HTTP %s (%s) instead", statusRes.Status, status)
+			ru.Debugf(err.Error())
+			return err
+		}
+	}
+
+	if status == GcsResume {
+		expectedOffset := offset + buflen
+		rangeHeader := res.Header.Get("Range")
+		if rangeHeader == "" {
+			ru.Debugf("commit failed (null range), retrying")
+			return &retryError{committedBytes: 0}
+		}
+
+		committedRange, err := parseRangeHeader(rangeHeader)
+		if err != nil {
+			return err
+		}
+
+		ru.Debugf("got resume, expectedOffset: %d, committedRange: %s", expectedOffset, committedRange)
+		if committedRange.start != 0 {
+			return fmt.Errorf("upload failed: beginning not committed somehow (committed range: %s)", committedRange)
+		}
+
+		if committedRange.end == expectedOffset {
+			ru.Debugf("commit succeeded (%d blocks stored)", buflen/minChunkSize)
+			return nil
+		} else {
+			committedBytes := committedRange.end - offset
+			if committedBytes < 0 {
+				return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %s)", committedRange, expectedOffset)
+			}
+
+			if committedBytes > 0 {
+				ru.Debugf("commit partially succeeded (committed %d / %d byte, %d blocks)", committedBytes, buflen, committedBytes/minChunkSize)
+				return &retryError{committedBytes}
+			} else {
+				ru.Debugf("commit failed (retrying %d blocks)", buflen/minChunkSize)
+				return &retryError{committedBytes}
+			}
+		}
+	}
+
+	return fmt.Errorf("got HTTP %s (%s)", res.StatusCode, status)
 }
 
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
@@ -152,151 +285,76 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	sendBuf := make([]byte, 0, maxSendBuf)
 	reqBlocks := make(chan blockItem, maxChunkGroup)
 
+	// when closed, all subtasks should abort
 	canceller := make(chan bool)
 
-	doSendBytesOnce := func(buf []byte, isLast bool) error {
-		buflen := int64(len(sendBuf))
-		ru.Debugf("uploading chunk of %d bytes", buflen)
+	sendBytes := func(buf []byte, isLast bool) error {
+		retryCtx := NewRetryContext(ru.consumer)
 
-		body := bytes.NewReader(buf)
-		countingReader := counter.NewReaderCallback(func(count int64) {
-			ru.UploadedBytes = offset + count
-			if ru.OnProgress != nil {
-				ru.OnProgress()
-			}
-		}, body)
-
-		req, err := http.NewRequest("PUT", ru.uploadURL, countingReader)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		start := offset
-		end := start + buflen - 1
-		contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
-		ru.Debugf("uploading %d-%d, last? %v", start, end, isLast)
-
-		if isLast {
-			contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
-		}
-
-		req.Header.Set("content-range", contentRange)
-
-		startTime := time.Now()
-
-		res, err := ru.c.Do(req)
-		if err != nil {
-			ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
-			return &netError{err}
-		}
-
-		ru.Debugf("server replied in %s, with status %s", time.Since(startTime), res.Status)
-		for k, v := range res.Header {
-			ru.Debugf("[Reply header] %s: %s", k, v)
-		}
-
-		if res.StatusCode != 200 && res.StatusCode != 308 {
-			ru.Debugf("uh oh, got HTTP %s", res.Status)
-			resb, _ := ioutil.ReadAll(res.Body)
-			ru.Debugf("server said %s", string(resb))
-			err = fmt.Errorf("HTTP %d while uploading", res.StatusCode)
-
-			// retry requests that return these, see full list
-			// at https://cloud.google.com/storage/docs/xml-api/resumable-upload
-			// see also https://github.com/itchio/butler/issues/71
-			if res.StatusCode == 408 /* Request Timeout */ ||
-				res.StatusCode == 500 /* Internal Server Error */ ||
-				res.StatusCode == 502 /* Bad Gateway */ ||
-				res.StatusCode == 503 /* Service Unavailable */ ||
-				res.StatusCode == 504 /* Gateway Timeout */ {
-				return &netError{err}
-			}
-			return err
-		}
-
-		if res.StatusCode == 308 && isLast {
-			ru.Debugf("Got 308 on last, retrying...")
-			err = fmt.Errorf("HTTP %d while sending last block, that's no good.", res.StatusCode)
-			return &netError{err}
-		}
-
-		offset += buflen
-		ru.Debugf("%s uploaded, at %s", humanize.Bytes(uint64(offset)), res.Status)
-		return nil
-	}
-
-	doSendBytes := func(buf []byte, isLast bool) error {
-		tries := 1
-
-		for tries < resumableMaxRetries {
-			err := doSendBytesOnce(buf, isLast)
+		for retryCtx.ShouldTry() {
+			err := ru.trySendBytes(buf, offset, isLast)
 			if err != nil {
 				if ne, ok := err.(*netError); ok {
-					delay := tries * tries
-					ru.consumer.PauseProgress()
-					ru.consumer.Infof("")
-					ru.consumer.Infof("%s", ne.Error())
-					ru.consumer.Infof("Sleeping %d seconds then retrying", delay)
-					time.Sleep(time.Second * time.Duration(delay))
-					ru.consumer.ResumeProgress()
-					tries++
+					retryCtx.Retry(ne.Error())
+					continue
+				} else if re, ok := err.(*retryError); ok {
+					offset += re.committedBytes
+					buf = buf[re.committedBytes:]
+					retryCtx.Retry("Having troubles uploading some blocks")
 					continue
 				} else {
 					return errors.Wrap(err, 1)
 				}
 			} else {
+				offset += int64(len(buf))
 				return nil
 			}
 		}
 
-		return fmt.Errorf("Too many network errors, giving up.")
+		return fmt.Errorf("Too many errors, giving up.")
 	}
-
-	s := bufio.NewScanner(reader)
-	s.Buffer(make([]byte, minChunkSize), 0)
-	s.Split(splitfunc.New(minChunkSize))
-
-	// we need two buffers to know when we're at EOF,
-	// for sizes that are an exact multiple of minChunkSize
-	buf1 := make([]byte, 0, minChunkSize)
-	buf2 := make([]byte, 0, minChunkSize)
 
 	subDone := make(chan bool)
 	subErrs := make(chan error)
 
-	ru.Debugf("kicking off sender")
+	ru.Debugf("sender: starting up, upload URL: %s", ru.uploadURL)
 
 	go func() {
 		isLast := false
 
+		// last block needs special treatment (different headers, etc.)
 		for !isLast {
 			sendBuf = sendBuf[:0]
 
+			// fill send buffer with as many blocks as are
+			// available. if none are available, wait for one.
 			for len(sendBuf) < maxSendBuf && !isLast {
 				var item blockItem
 				if len(sendBuf) == 0 {
-					ru.Debugf("sender blocking receive")
+					ru.VerboseDebugf("sender: doing blocking receive")
 					select {
 					case item = <-reqBlocks:
-						// cool
+						// done waiting, got one, can resume upload now
 					case <-canceller:
-						ru.Debugf("send cancelled")
+						ru.Debugf("sender: cancelled (from blocking receive)")
 						return
 					}
 				} else {
-					ru.Debugf("sender non-blocking receive")
+					ru.VerboseDebugf("sender: doing non-blocking receive")
 					select {
 					case item = <-reqBlocks:
 						// cool
 					case <-canceller:
-						ru.Debugf("send cancelled")
+						ru.Debugf("sender: cancelled (from non-blocking receive)")
 						return
 					default:
-						ru.Debugf("sent faster than scanned, uploading smaller chunk")
+						ru.VerboseDebugf("sent faster than scanned, uploading smaller chunk")
 						break
 					}
 				}
 
+				// if the last item is in sendBuf, sendBuf is the last upload we'll
+				// do (save for retries)
 				if item.isLast {
 					isLast = true
 				}
@@ -305,9 +363,9 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			}
 
 			if len(sendBuf) > 0 {
-				err := doSendBytes(sendBuf, isLast)
+				err := sendBytes(sendBuf, isLast)
 				if err != nil {
-					ru.Debugf("send error, bailing out")
+					ru.Debugf("sender: send error, bailing out")
 					subErrs <- errors.Wrap(err, 1)
 					return
 				}
@@ -315,8 +373,14 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		}
 
 		subDone <- true
-		ru.Debugf("sender done")
+		ru.Debugf("sender: all done")
 	}()
+
+	// use a bufio.Scanner to break input into blocks of minChunkSize
+	// at most. last block might be smaller. see splitfunc.go
+	s := bufio.NewScanner(reader)
+	s.Buffer(make([]byte, minChunkSize), 0)
+	s.Split(splitfunc.New(minChunkSize))
 
 	scannedBufs := make(chan []byte)
 	usedBufs := make(chan bool)
@@ -341,18 +405,23 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		close(scannedBufs)
 	}()
 
-	// break patch into chunks of minChunkSize, signal last block
+	// using two buffers lets us detect EOF even when the last block
+	// is an exact multiple of minChunkSize - the `for := range` will
+	// end and we'll have the last block left in buf1
+	buf1 := make([]byte, 0, minChunkSize)
+	buf2 := make([]byte, 0, minChunkSize)
+
 	go func() {
 		for scannedBuf := range scannedBufs {
 			buf2 = append(buf2[:0], buf1...)
 			buf1 = append(buf1[:0], scannedBuf...)
 			usedBufs <- true
 
-			// all but first iteration
+			// on first iteration, buf2 is still empty.
 			if len(buf2) > 0 {
 				select {
 				case reqBlocks <- blockItem{buf: append([]byte{}, buf2...), isLast: false}:
-					// okay cool let's go c'mon
+					// sender received the block, we can keep going
 				case <-canceller:
 					ru.Debugf("scan cancelled (3)")
 					return
@@ -384,6 +453,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			// woo!
 		case err := <-subErrs:
 			ru.Debugf("got sub error: %s, bailing", err.Error())
+			// any error that travels this far up cancels the whole upload
 			close(canceller)
 			errs <- errors.Wrap(err, 1)
 			return
