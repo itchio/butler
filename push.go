@@ -137,8 +137,8 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 	comm.Debugf("Waiting for source container")
 	select {
-	case err := <-walkErrs:
-		return errors.Wrap(err, 1)
+	case walkErr := <-walkErrs:
+		return errors.Wrap(walkErr, 1)
 	case walkies := <-sourceContainerChan:
 		comm.Debugf("Got sourceContainer!")
 		sourceContainer = walkies.container
@@ -231,9 +231,9 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 		dataLookup := func(buf []byte) (string, error) {
 			h256.Reset()
-			_, err := h256.Write(buf)
-			if err != nil {
-				return "", errors.Wrap(err, 1)
+			_, hashErr := h256.Write(buf)
+			if hashErr != nil {
+				return "", errors.Wrap(hashErr, 1)
 			}
 			sum := h256.Sum(hbuf[:0])
 
@@ -241,15 +241,16 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			// return key, nil
 			fmt.Printf("Should look up %s\n", key)
 
-			req, err := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
+			req, reqErr := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
 			fmt.Fprintf(os.Stderr, "lookup %s\n", req.RequestURI)
-			if err != nil {
-				return "", errors.Wrap(err, 1)
+			if reqErr != nil {
+				return "", errors.Wrap(reqErr, 1)
 			}
 
-			res, err := client.Do(req)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "lookup error: %s", err.Error())
+			res, clientErr := client.Do(req)
+			if clientErr != nil {
+				fmt.Fprintf(os.Stderr, "lookup error: %s", clientErr.Error())
+				// ignore error - we'll jsut upload more
 				return "", nil
 			}
 
@@ -277,9 +278,9 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 	// close in a goroutine to avoid deadlocking
 	doClose := func(c io.Closer, done chan bool, errs chan error) {
-		err := c.Close()
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
+		closeErr := c.Close()
+		if closeErr != nil {
+			errs <- errors.Wrap(closeErr, 1)
 			return
 		}
 
@@ -291,8 +292,8 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 	for c := 0; c < 4; c++ {
 		select {
-		case err := <-uploadErrs:
-			return errors.Wrap(err, 1)
+		case uploadErr := <-uploadErrs:
+			return errors.Wrap(uploadErr, 1)
 		case <-uploadDone:
 			comm.Debugf("upload done")
 		}
@@ -359,11 +360,37 @@ type fileSlot struct {
 func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuildFileResponse, signature itchio.NewBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
 		var res itchio.NewBuildFileResponse
-		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubType_DEFAULT, itchio.UploadType_RESUMABLE)
+		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubType_DEFAULT, itchio.UploadType_DEFERRED_RESUMABLE)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 		}
 		comm.Debugf("Created %s build file: %+v", buildType, res.File)
+
+		req, reqErr := http.NewRequest("POST", res.File.UploadURL, nil)
+		if reqErr != nil {
+			errs <- errors.Wrap(reqErr, 1)
+		}
+
+		req.ContentLength = 0
+
+		for k, v := range res.File.UploadHeaders {
+			req.Header.Add(k, v)
+		}
+
+		gcsRes, gcsErr := client.HTTPClient.Do(req)
+		if gcsErr != nil {
+			errs <- errors.Wrap(gcsErr, 1)
+		}
+
+		if gcsRes.StatusCode != 201 {
+			errs <- errors.Wrap(fmt.Errorf("could not create resumable upload session (got HTTP %d)", gcsRes.StatusCode), 1)
+		}
+
+		comm.Debugf("Started resumable upload session %s", gcsRes.Header.Get("Location"))
+
+		res.File.UploadHeaders = nil
+		res.File.UploadURL = gcsRes.Header.Get("Location")
+
 		done <- fileSlot{buildType, res}
 	}
 
