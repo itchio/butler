@@ -12,6 +12,8 @@ const (
 	GcsUnknown
 )
 
+const gcsChunkSize = 256 * 1024 // 256KB
+
 func interpretGcsStatusCode(status int) gcsStatus {
 	switch status / 100 {
 	case 2:

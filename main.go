@@ -73,6 +73,8 @@ var appArgs = struct {
 	address              *string
 	compressionAlgorithm *string
 	compressionQuality   *int
+
+	maxChunkGroup *int
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -88,6 +90,8 @@ var appArgs = struct {
 
 	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip"),
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
+
+	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
 }
 
 var dlArgs = struct {

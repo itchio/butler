@@ -110,12 +110,14 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 	patchWriter, err := uploader.NewResumableUpload(newPatchRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
+	patchWriter.MaxChunkGroup = *appArgs.maxChunkGroup
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
 	signatureWriter, err := uploader.NewResumableUpload(newSignatureRes.File.UploadURL,
 		uploadDone, uploadErrs, comm.NewStateConsumer())
+	signatureWriter.MaxChunkGroup = *appArgs.maxChunkGroup
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
