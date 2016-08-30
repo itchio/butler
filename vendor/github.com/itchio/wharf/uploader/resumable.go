@@ -138,11 +138,11 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 
 	// for resumable uploads of unknown size, the length is unknown,
 	// see https://github.com/itchio/butler/issues/71#issuecomment-242938495
-	req.Header.Set("content-range", "*/*")
+	req.Header.Set("content-range", "bytes */*")
 
 	retryCtx := NewRetryContext(ru.consumer)
 	for retryCtx.ShouldTry() {
-		res, err := ru.c.Do(req)
+		res, err := ru.c.HTTPClient.Do(req)
 		if err != nil {
 			ru.Debugf("while querying status of upload: %s", err.Error())
 			retryCtx.Retry(err.Error())
@@ -156,7 +156,7 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 		}
 
 		if status == GcsNeedQuery {
-			retryCtx.Retry(fmt.Sprintf("got HTTP %s (%s)", res.StatusCode, status))
+			retryCtx.Retry(fmt.Sprintf("while querying status, got HTTP %s (%s)", res.Status, status))
 			continue
 		}
 
@@ -187,17 +187,18 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 	start := offset
 	end := start + buflen - 1
 	contentRange := fmt.Sprintf("bytes %d-%d/*", offset, end)
-	ru.Debugf("uploading %d-%d, last? %v", start, end, isLast)
 
 	if isLast {
 		contentRange = fmt.Sprintf("bytes %d-%d/%d", offset, end, offset+buflen)
 	}
 
 	req.Header.Set("content-range", contentRange)
+	req.ContentLength = buflen
+	ru.Debugf("uploading %d-%d, last? %v, content-length set to %d", start, end, isLast, req.ContentLength)
 
 	startTime := time.Now()
 
-	res, err := ru.c.Do(req)
+	res, err := ru.c.HTTPClient.Do(req)
 	if err != nil {
 		ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
 		return &netError{err, GcsUnknown}

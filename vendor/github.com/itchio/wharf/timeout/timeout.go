@@ -30,7 +30,8 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 func NewClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
-			Dial: timeoutDialer(connectTimeout, readWriteTimeout),
+			Proxy: http.ProxyFromEnvironment,
+			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
 		},
 	}
 }
