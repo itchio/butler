@@ -45,6 +45,8 @@ type ResumableUpload struct {
 
 	id       int
 	consumer *pwr.StateConsumer
+
+	MaxChunkGroup int
 }
 
 // Close flushes all intermediary buffers and closes the connection
@@ -77,6 +79,7 @@ func (ru *ResumableUpload) Write(p []byte) (int, error) {
 
 func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consumer *pwr.StateConsumer) (*ResumableUpload, error) {
 	ru := &ResumableUpload{}
+	ru.MaxChunkGroup = 64
 	ru.uploadURL = uploadURL
 	ru.id = seed
 	seed++
@@ -118,9 +121,7 @@ func (ru *ResumableUpload) VerboseDebugf(f string, args ...interface{}) {
 	}
 }
 
-const minChunkSize = 256 * 1024 // 256KB
-const maxChunkGroup = 64
-const maxSendBuf = maxChunkGroup * minChunkSize // 16MB
+const gcsChunkSize = 256 * 1024 // 256KB
 
 type blockItem struct {
 	buf    []byte
@@ -259,7 +260,7 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 		}
 
 		if committedRange.end == expectedOffset {
-			ru.Debugf("commit succeeded (%d blocks stored)", buflen/minChunkSize)
+			ru.Debugf("commit succeeded (%d blocks stored)", buflen/gcsChunkSize)
 			return nil
 		} else {
 			committedBytes := committedRange.end - offset
@@ -268,10 +269,10 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 			}
 
 			if committedBytes > 0 {
-				ru.Debugf("commit partially succeeded (committed %d / %d byte, %d blocks)", committedBytes, buflen, committedBytes/minChunkSize)
+				ru.Debugf("commit partially succeeded (committed %d / %d byte, %d blocks)", committedBytes, buflen, committedBytes/gcsChunkSize)
 				return &retryError{committedBytes}
 			} else {
-				ru.Debugf("commit failed (retrying %d blocks)", buflen/minChunkSize)
+				ru.Debugf("commit failed (retrying %d blocks)", buflen/gcsChunkSize)
 				return &retryError{committedBytes}
 			}
 		}
@@ -283,8 +284,9 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
 	var offset int64 = 0
 
+	var maxSendBuf = ru.MaxChunkGroup * gcsChunkSize // 16MB
 	sendBuf := make([]byte, 0, maxSendBuf)
-	reqBlocks := make(chan blockItem, maxChunkGroup)
+	reqBlocks := make(chan blockItem, ru.MaxChunkGroup)
 
 	// when closed, all subtasks should abort
 	canceller := make(chan bool)
@@ -377,11 +379,11 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		ru.Debugf("sender: all done")
 	}()
 
-	// use a bufio.Scanner to break input into blocks of minChunkSize
+	// use a bufio.Scanner to break input into blocks of gcsChunkSize
 	// at most. last block might be smaller. see splitfunc.go
 	s := bufio.NewScanner(reader)
-	s.Buffer(make([]byte, minChunkSize), 0)
-	s.Split(splitfunc.New(minChunkSize))
+	s.Buffer(make([]byte, gcsChunkSize), 0)
+	s.Split(splitfunc.New(gcsChunkSize))
 
 	scannedBufs := make(chan []byte)
 	usedBufs := make(chan bool)
@@ -407,10 +409,10 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	}()
 
 	// using two buffers lets us detect EOF even when the last block
-	// is an exact multiple of minChunkSize - the `for := range` will
+	// is an exact multiple of gcsChunkSize - the `for := range` will
 	// end and we'll have the last block left in buf1
-	buf1 := make([]byte, 0, minChunkSize)
-	buf2 := make([]byte, 0, minChunkSize)
+	buf1 := make([]byte, 0, gcsChunkSize)
+	buf2 := make([]byte, 0, gcsChunkSize)
 
 	go func() {
 		for scannedBuf := range scannedBufs {
