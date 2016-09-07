@@ -34,6 +34,7 @@ var (
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 
 	untarCmd = app.Command("untar", "Extract a .tar file").Hidden()
+	unzipCmd = app.Command("unzip", "Extract a .zip file").Hidden()
 	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
 	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
 	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
@@ -158,6 +159,14 @@ var untarArgs = struct {
 }{
 	untarCmd.Arg("file", "Path of the .tar archive to extract").Required().String(),
 	untarCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
+}
+
+var unzipArgs = struct {
+	file *string
+	dir  *string
+}{
+	unzipCmd.Arg("file", "Path of the .zip archive to extract").Required().String(),
+	unzipCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
 }
 
 var wipeArgs = struct {
@@ -371,6 +380,9 @@ func main() {
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
+
+	case unzipCmd.FullCommand():
+		unzip(*unzipArgs.file, *unzipArgs.dir)
 
 	case wipeCmd.FullCommand():
 		wipe(*wipeArgs.path)

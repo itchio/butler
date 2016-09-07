@@ -27,6 +27,13 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 		return nil, errors.Wrap(err, 1)
 	}
 
+	totalSize := uint64(0)
+	for _, file := range reader.File {
+		totalSize += file.UncompressedSize64
+	}
+
+	doneSize := uint64(0)
+
 	for _, file := range reader.File {
 		err = func() error {
 			rel := file.Name
@@ -67,6 +74,9 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
 		}
+
+		doneSize += file.UncompressedSize64
+		consumer.Progress(float64(doneSize) / float64(totalSize))
 	}
 
 	return &ExtractResult{

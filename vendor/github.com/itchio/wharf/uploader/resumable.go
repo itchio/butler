@@ -45,9 +45,6 @@ type ResumableUpload struct {
 
 	id       int
 	consumer *pwr.StateConsumer
-
-	// how many 256KB chunks we'll try to upload in a single HTTP request
-	MaxChunkGroup int
 }
 
 // Close flushes all intermediary buffers and closes the connection
@@ -78,10 +75,6 @@ func (ru *ResumableUpload) Write(p []byte) (int, error) {
 	return ru.writeCounter.Write(p)
 }
 
-// NewResumableUpload creates a new pipeline for sending
-// data to Google Cloud Storage via its resumable API
-// it communicates completeness and errors via channels,
-// and keeps a detailed log via a *pwr.StateConsumer
 func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consumer *pwr.StateConsumer) (*ResumableUpload, error) {
 	ru := &ResumableUpload{}
 	ru.uploadURL = uploadURL
@@ -124,6 +117,10 @@ func (ru *ResumableUpload) VerboseDebugf(f string, args ...interface{}) {
 		ru.consumer.Debugf("[upload %d] %s", ru.id, fmt.Sprintf(f, args...))
 	}
 }
+
+const minChunkSize = 256 * 1024 // 256KB
+const maxChunkGroup = 64
+const maxSendBuf = maxChunkGroup * minChunkSize // 16MB
 
 type blockItem struct {
 	buf    []byte
@@ -262,33 +259,32 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 		}
 
 		if committedRange.end == expectedOffset {
-			ru.Debugf("commit succeeded (%d blocks stored)", buflen/gcsChunkSize)
+			ru.Debugf("commit succeeded (%d blocks stored)", buflen/minChunkSize)
 			return nil
-		}
+		} else {
+			committedBytes := committedRange.end - offset
+			if committedBytes < 0 {
+				return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %s)", committedRange, expectedOffset)
+			}
 
-		committedBytes := committedRange.end - offset
-		if committedBytes < 0 {
-			return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %s)", committedRange, expectedOffset)
+			if committedBytes > 0 {
+				ru.Debugf("commit partially succeeded (committed %d / %d byte, %d blocks)", committedBytes, buflen, committedBytes/minChunkSize)
+				return &retryError{committedBytes}
+			} else {
+				ru.Debugf("commit failed (retrying %d blocks)", buflen/minChunkSize)
+				return &retryError{committedBytes}
+			}
 		}
-
-		if committedBytes > 0 {
-			ru.Debugf("commit partially succeeded (committed %d / %d byte, %d blocks)", committedBytes, buflen, committedBytes/gcsChunkSize)
-			return &retryError{committedBytes}
-		}
-
-		ru.Debugf("commit failed (retrying %d blocks)", buflen/gcsChunkSize)
-		return &retryError{committedBytes}
 	}
 
 	return fmt.Errorf("got HTTP %s (%s)", res.StatusCode, status)
 }
 
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
-	var offset int64
+	var offset int64 = 0
 
-	maxSendBuf := ru.MaxChunkGroup * gcsChunkSize
 	sendBuf := make([]byte, 0, maxSendBuf)
-	reqBlocks := make(chan blockItem, ru.MaxChunkGroup)
+	reqBlocks := make(chan blockItem, maxChunkGroup)
 
 	// when closed, all subtasks should abort
 	canceller := make(chan bool)
@@ -384,8 +380,8 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	// use a bufio.Scanner to break input into blocks of minChunkSize
 	// at most. last block might be smaller. see splitfunc.go
 	s := bufio.NewScanner(reader)
-	s.Buffer(make([]byte, gcsChunkSize), 0)
-	s.Split(splitfunc.New(gcsChunkSize))
+	s.Buffer(make([]byte, minChunkSize), 0)
+	s.Split(splitfunc.New(minChunkSize))
 
 	scannedBufs := make(chan []byte)
 	usedBufs := make(chan bool)
@@ -411,10 +407,10 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	}()
 
 	// using two buffers lets us detect EOF even when the last block
-	// is an exact multiple of gcsChunkSize - the `for := range` will
+	// is an exact multiple of minChunkSize - the `for := range` will
 	// end and we'll have the last block left in buf1
-	buf1 := make([]byte, 0, gcsChunkSize)
-	buf2 := make([]byte, 0, gcsChunkSize)
+	buf1 := make([]byte, 0, minChunkSize)
+	buf2 := make([]byte, 0, minChunkSize)
 
 	go func() {
 		for scannedBuf := range scannedBufs {
