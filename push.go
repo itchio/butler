@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/sha3"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -223,26 +224,32 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	}
 
 	if useBlockCache {
-		h256 := sha256.New()
+		shake128 := sha3.NewShake128()
 		hbuf := make([]byte, 32)
 		client := &http.Client{
 			Transport: makeTransport(),
 		}
 
 		dataLookup := func(buf []byte) (string, error) {
-			h256.Reset()
-			_, hashErr := h256.Write(buf)
+			shake128.Reset()
+			_, hashErr := shake128.Write(buf)
 			if hashErr != nil {
 				return "", errors.Wrap(hashErr, 1)
 			}
-			sum := h256.Sum(hbuf[:0])
 
-			key := fmt.Sprintf("%d/%x", len(buf), sum)
+			_, readErr := io.ReadFull(shake128, hbuf)
+			if readErr != nil {
+				return "", errors.Wrap(readErr, 1)
+			}
+
+			sum := hbuf
+
+			key := fmt.Sprintf("%s/%d/%x", "shake128-32", len(buf), sum)
 			// return key, nil
-			fmt.Printf("Should look up %s\n", key)
+			fmt.Printf("Should look up %s-block %s\n", humanize.Bytes(uint64(len(buf))), key)
 
 			req, reqErr := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
-			fmt.Fprintf(os.Stderr, "lookup %s\n", req.RequestURI)
+			fmt.Fprintf(os.Stderr, "lookup %s\n", req.URL)
 			if reqErr != nil {
 				return "", errors.Wrap(reqErr, 1)
 			}
@@ -250,7 +257,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			res, clientErr := client.Do(req)
 			if clientErr != nil {
 				fmt.Fprintf(os.Stderr, "lookup error: %s", clientErr.Error())
-				// ignore error - we'll jsut upload more
+				// ignore error - we'll just upload more
 				return "", nil
 			}
 
@@ -548,6 +555,37 @@ fY0v7gjVB+ud6M4CzotDPzeOy5iBzW+5YDvmk7rPD2+wo3cc7kCsYiQHXw7dNyPi
 -----END CERTIFICATE-----`
 
 	ok = roots.AppendCertsFromPEM([]byte(localPEM))
+	if !ok {
+		panic("failed to parse root certificate")
+	}
+
+	testPEM := `-----BEGIN CERTIFICATE-----
+MIIESzCCAzOgAwIBAgIJAI/jr4Vk4N23MA0GCSqGSIb3DQEBBQUAMHYxCzAJBgNV
+BAYTAkZSMRMwEQYDVQQIEwpTb21lLVN0YXRlMSEwHwYDVQQKExhJbnRlcm5ldCBX
+aWRnaXRzIFB0eSBMdGQxEjAQBgNVBAMTCWxvY2FsaG9zdDEbMBkGCSqGSIb3DQEJ
+ARYMYW1vc0BpdGNoLmlvMB4XDTE2MDkwODE5MDU0MloXDTE3MDkwODE5MDU0Mlow
+djELMAkGA1UEBhMCRlIxEzARBgNVBAgTClNvbWUtU3RhdGUxITAfBgNVBAoTGElu
+dGVybmV0IFdpZGdpdHMgUHR5IEx0ZDESMBAGA1UEAxMJbG9jYWxob3N0MRswGQYJ
+KoZIhvcNAQkBFgxhbW9zQGl0Y2guaW8wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+ggEKAoIBAQC52sojiLggRtuW9op3EVcqSY9JlJtKmyyF9W9DVwMvAkPDtDKqXK4g
+KDyagr10vI4ZJkSbv4Kp3kuYVt5l9BDdVHqVP6Dnf4wVv9WqBF7CAzLgRIr1xaaX
+fcF37Sxxfx42gkKF7Z2wDszqDXTAGsw75lP+Dx3afeWfZr36s9mhc/X4O6y8LWs2
+n9tKYkiXdfXpnQq6FwyKO3/L+Sk58zIHwyiEjM8NNOb18S4UYccOxAHwazGmjpI3
+6euqL08tE0swRjer23qGdJBPFRul9JSJL9j2fsf2Pv8htRuvRa2/2PRrM55ooSrt
+mFho/M7YT9nl/RT80qQXxM5QZ6xI/dF7AgMBAAGjgdswgdgwHQYDVR0OBBYEFIHH
+Sgr0Dou4GqjpoAy+eyoMu0KsMIGoBgNVHSMEgaAwgZ2AFIHHSgr0Dou4GqjpoAy+
+eyoMu0KsoXqkeDB2MQswCQYDVQQGEwJGUjETMBEGA1UECBMKU29tZS1TdGF0ZTEh
+MB8GA1UEChMYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMRIwEAYDVQQDEwlsb2Nh
+bGhvc3QxGzAZBgkqhkiG9w0BCQEWDGFtb3NAaXRjaC5pb4IJAI/jr4Vk4N23MAwG
+A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADggEBAFEp3uaNDX5WrhSfLXKXYRXs
+uBXjizNcekbQ92zzkoYmVrKcng+vJgjcPv1zyeXU/mF/t5pE0wgJp62FvsmrmUCI
+7dcawYOpbhSol9UzVpYz/sCGwxgD9JkZtgqAbvpy1DM8wg4886mCVBzShqCy5iqa
+NrXeaiGNq+2xAvc20YyJSYNIN3GgTEXNLEkGZ7qkGWHJcsOvYANgJvWlE8juUaLk
+QSzgQVS0hqhIb/7XFCZX8WSe3i0DTsWlY4uRyr8dNK0UD9xVOO2L9hfzVu5zyAac
+L+M7u9F7fDbM2/DRzClXDnURXrKjRWFFQub+plTSK3uIxnEMI4G09e+VDP8kNkg=
+-----END CERTIFICATE-----`
+
+	ok = roots.AppendCertsFromPEM([]byte(testPEM))
 	if !ok {
 		panic("failed to parse root certificate")
 	}
