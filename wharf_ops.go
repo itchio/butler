@@ -3,10 +3,14 @@ package main
 import (
 	"archive/zip"
 	"bufio"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
+
+	"golang.org/x/crypto/sha3"
 
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
@@ -387,9 +391,17 @@ func doProbe(target string) error {
 	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
 
 	params := enc.NewBrotliParams()
-	params.SetQuality(1)
+	params.SetQuality(*appArgs.compressionQuality)
 
+	processedSize := int64(0)
 	totalCompressedSize := int64(0)
+	shake128 := sha3.NewShake128()
+
+	seenBlocks := make(map[string]bool)
+	duplicateBlocks := int64(0)
+	hbuf := make([]byte, 32)
+
+	comm.StartProgress()
 
 	for i := 0; i < len(targetContainer.Files); i++ {
 		r, err := pool.GetReader(int64(i))
@@ -402,22 +414,41 @@ func doProbe(target string) error {
 		s.Split(splitfunc.New(bigBlockSize))
 
 		for s.Scan() {
-			cw := counter.NewWriter(nil)
+			shake128.Reset()
+			cw := counter.NewWriter(shake128)
 			bw := enc.NewBrotliWriter(params, cw)
 
 			block := s.Bytes()
 			bw.Write(block)
 			bw.Close()
 
-			comm.Debugf("%s block compressed to %s bytes", humanize.Bytes(uint64(len(block))), humanize.Bytes(uint64(cw.Count())))
-			totalCompressedSize += cw.Count()
+			_, err := io.ReadFull(shake128, hbuf)
+			if err != nil {
+				return err
+			}
+			key := fmt.Sprintf("shake128-32/%d/%x", len(block), hbuf)
+			if seenBlocks[key] {
+				duplicateBlocks++
+				comm.Debugf("%s block: duplicate", humanize.Bytes(uint64(len(block))))
+			} else {
+				seenBlocks[key] = true
+				comm.Debugf("%s block compressed to %s bytes", humanize.Bytes(uint64(len(block))), humanize.Bytes(uint64(cw.Count())))
+				totalCompressedSize += cw.Count()
+			}
+
+			processedSize += int64(len(block))
+			comm.Progress(float64(processedSize) / float64(targetContainer.Size))
 		}
 	}
 
-	comm.Statf("%s container compressed to %s via %s blocks",
+	comm.EndProgress()
+
+	comm.Statf("%s => %s via %s blocks (%d duplicates), brotli-q%d",
 		humanize.Bytes(uint64(targetContainer.Size)),
 		humanize.Bytes(uint64(totalCompressedSize)),
-		humanize.Bytes(uint64(bigBlockSize)))
+		humanize.Bytes(uint64(bigBlockSize)),
+		duplicateBlocks,
+		*appArgs.compressionQuality)
 
 	return nil
 }
