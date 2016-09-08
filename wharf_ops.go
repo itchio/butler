@@ -2,16 +2,20 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
+
+	"gopkg.in/kothar/brotli-go.v0/enc"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -363,6 +367,57 @@ func doVerify(signature string, output string) error {
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
 	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
+
+	return nil
+}
+
+func probe(target string) {
+	must(doProbe(target))
+}
+
+func doProbe(target string) error {
+	targetContainer, err := tlc.Walk(target, filterPaths)
+	if err != nil {
+		return err
+	}
+
+	comm.Statf("container stats: %s", targetContainer.Stats())
+	pool := targetContainer.NewFilePool(target)
+
+	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
+
+	params := enc.NewBrotliParams()
+	params.SetQuality(1)
+
+	totalCompressedSize := int64(0)
+
+	for i := 0; i < len(targetContainer.Files); i++ {
+		r, err := pool.GetReader(int64(i))
+		if err != nil {
+			return err
+		}
+
+		s := bufio.NewScanner(r)
+		s.Buffer(make([]byte, bigBlockSize), 0)
+		s.Split(splitfunc.New(bigBlockSize))
+
+		for s.Scan() {
+			cw := counter.NewWriter(nil)
+			bw := enc.NewBrotliWriter(params, cw)
+
+			block := s.Bytes()
+			bw.Write(block)
+			bw.Close()
+
+			comm.Debugf("%s block compressed to %s bytes", humanize.Bytes(uint64(len(block))), humanize.Bytes(uint64(cw.Count())))
+			totalCompressedSize += cw.Count()
+		}
+	}
+
+	comm.Statf("%s container compressed to %s via %s blocks",
+		humanize.Bytes(uint64(targetContainer.Size)),
+		humanize.Bytes(uint64(totalCompressedSize)),
+		humanize.Bytes(uint64(bigBlockSize)))
 
 	return nil
 }

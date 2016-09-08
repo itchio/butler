@@ -58,6 +58,8 @@ var (
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
+
+	probeCmd = app.Command("probe", "(Advanced) Probe a folder").Hidden()
 )
 
 var appArgs = struct {
@@ -239,6 +241,12 @@ var signArgs = struct {
 	signCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
 }
 
+var probeArgs = struct {
+	target *string
+}{
+	probeCmd.Arg("dir", "Path of directory to probe").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -404,6 +412,9 @@ func main() {
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
+
+	case probeCmd.FullCommand():
+		probe(*probeArgs.target)
 
 	case whichCmd.FullCommand():
 		which()
