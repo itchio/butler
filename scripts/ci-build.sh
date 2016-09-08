@@ -42,10 +42,10 @@ fi
 
 export PKG=github.com/itchio/butler
 
-mkdir -p $PKG
+mkdir -p src/$PKG
 
 # rsync will complain about vanishing files sometimes, who knows where they come from
-rsync -a . $PKG || echo "rsync complained (code $?)"
+rsync -a . src/$PKG || echo "rsync complained (code $?)"
 
 # grab deps
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
