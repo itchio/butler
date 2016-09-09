@@ -458,9 +458,10 @@ func doProbe(target string) error {
 	comm.EndProgress()
 
 	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s => %s via %s blocks (%d duplicates), %s-q%d @ %s/s",
+	comm.Statf("%s => %s (%.3f) via %s blocks (%d duplicates), %s-q%d @ %s/s",
 		humanize.Bytes(uint64(targetContainer.Size)),
 		humanize.Bytes(uint64(totalCompressedSize)),
+		float64(totalCompressedSize)/float64(targetContainer.Size),
 		humanize.Bytes(uint64(bigBlockSize)),
 		duplicateBlocks,
 		*probeArgs.algo,
@@ -501,9 +502,10 @@ func doProbe(target string) error {
 	comm.EndProgress()
 
 	perSecond = humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s => %s as single archive, %s-q%d @ %s/s",
+	comm.Statf("%s => %s (%.3f) as single archive, %s-q%d @ %s/s",
 		humanize.Bytes(uint64(targetContainer.Size)),
 		humanize.Bytes(uint64(totalCompressedSize)),
+		float64(totalCompressedSize)/float64(targetContainer.Size),
 		*probeArgs.algo,
 		*appArgs.compressionQuality,
 		perSecond)
