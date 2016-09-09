@@ -2,25 +2,16 @@ package main
 
 import (
 	"archive/zip"
-	"bufio"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
 
-	"golang.org/x/crypto/sha3"
-
-	"gopkg.in/kothar/brotli-go.v0/enc"
-
-	"github.com/Datadog/zstd"
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -372,145 +363,6 @@ func doVerify(signature string, output string) error {
 	prettySize := humanize.Bytes(uint64(refContainer.Size))
 	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
-
-	return nil
-}
-
-func probe(target string) {
-	must(doProbe(target))
-}
-
-func doProbe(target string) error {
-	targetContainer, err := tlc.Walk(target, filterPaths)
-	if err != nil {
-		return err
-	}
-
-	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
-	comm.Opf("Compressing %s as %s blocks", targetContainer.Stats(), humanize.Bytes(uint64(bigBlockSize)))
-
-	pool := targetContainer.NewFilePool(target)
-
-	brotliParams := enc.NewBrotliParams()
-	brotliParams.SetQuality(*appArgs.compressionQuality)
-
-	processedSize := int64(0)
-	totalCompressedSize := int64(0)
-	shake128 := sha3.NewShake128()
-
-	seenBlocks := make(map[string]bool)
-	duplicateBlocks := int64(0)
-	hbuf := make([]byte, 32)
-
-	comm.StartProgress()
-
-	makeCompressedWriter := func(w io.Writer) io.WriteCloser {
-		switch *probeArgs.algo {
-		case "brotli":
-			return enc.NewBrotliWriter(brotliParams, w)
-		case "zstd":
-			return zstd.NewWriterLevel(w, *appArgs.compressionQuality)
-		default:
-			panic(fmt.Sprintf("unknown compression algo %s", *probeArgs.algo))
-		}
-	}
-
-	startTime := time.Now()
-
-	for i := 0; i < len(targetContainer.Files); i++ {
-		r, err := pool.GetReader(int64(i))
-		if err != nil {
-			return err
-		}
-
-		s := bufio.NewScanner(r)
-		s.Buffer(make([]byte, bigBlockSize), 0)
-		s.Split(splitfunc.New(bigBlockSize))
-
-		for s.Scan() {
-			shake128.Reset()
-			cw := counter.NewWriter(shake128)
-			bw := makeCompressedWriter(cw)
-
-			block := s.Bytes()
-			bw.Write(block)
-			bw.Close()
-
-			_, err := io.ReadFull(shake128, hbuf)
-			if err != nil {
-				return err
-			}
-			key := fmt.Sprintf("shake128-32/%d/%x", len(block), hbuf)
-			if seenBlocks[key] {
-				duplicateBlocks++
-				comm.Debugf("%s block: duplicate", humanize.Bytes(uint64(len(block))))
-			} else {
-				seenBlocks[key] = true
-				comm.Debugf("%s block compressed to %s bytes", humanize.Bytes(uint64(len(block))), humanize.Bytes(uint64(cw.Count())))
-				totalCompressedSize += cw.Count()
-			}
-
-			processedSize += int64(len(block))
-			comm.Progress(float64(processedSize) / float64(targetContainer.Size))
-		}
-	}
-
-	comm.EndProgress()
-
-	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s => %s (%.3f) via %s blocks (%d duplicates), %s-q%d @ %s/s",
-		humanize.Bytes(uint64(targetContainer.Size)),
-		humanize.Bytes(uint64(totalCompressedSize)),
-		float64(totalCompressedSize)/float64(targetContainer.Size),
-		humanize.Bytes(uint64(bigBlockSize)),
-		duplicateBlocks,
-		*probeArgs.algo,
-		*appArgs.compressionQuality,
-		perSecond)
-
-	comm.Opf("Now as a single archive...")
-
-	startTime = time.Now()
-	comm.StartProgress()
-
-	cw := counter.NewWriter(nil)
-	bw := makeCompressedWriter(cw)
-
-	offset := int64(0)
-
-	for i := 0; i < len(targetContainer.Files); i++ {
-		r, err := pool.GetReader(int64(i))
-		if err != nil {
-			return err
-		}
-
-		cr := counter.NewReaderCallback(func(count int64) {
-			comm.Progress(float64(offset+count) / float64(targetContainer.Size))
-		}, r)
-
-		_, err = io.Copy(bw, cr)
-		if err != nil {
-			return err
-		}
-
-		offset += targetContainer.Files[i].Size
-	}
-
-	bw.Close()
-	totalCompressedSize = cw.Count()
-
-	comm.EndProgress()
-
-	perSecond = humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s => %s (%.3f) as single archive, %s-q%d @ %s/s",
-		humanize.Bytes(uint64(targetContainer.Size)),
-		humanize.Bytes(uint64(totalCompressedSize)),
-		float64(totalCompressedSize)/float64(targetContainer.Size),
-		*probeArgs.algo,
-		*appArgs.compressionQuality,
-		perSecond)
-
-	comm.Statf("(note: single-archive doesn't compute any hashes, so it's faster)")
 
 	return nil
 }
