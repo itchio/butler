@@ -104,7 +104,6 @@ func doProbe(target string) error {
 				data:      data,
 				blockpath: blockpath,
 			}
-			totalHashedBlocks++
 		}
 
 		hashOk <- true
@@ -112,6 +111,7 @@ func doProbe(target string) error {
 
 	lookupWorker := func() {
 		for hashedBlock := range hashedBlocks {
+			totalHashedBlocks++
 			comm.Debugf("in lookup, got %s", hashedBlock.blockpath)
 
 			if seenBlocks[hashedBlock.blockpath] {
