@@ -243,8 +243,10 @@ var signArgs = struct {
 
 var probeArgs = struct {
 	target *string
+	algo   *string
 }{
 	probeCmd.Arg("dir", "Path of directory to probe").Required().String(),
+	probeCmd.Flag("algo", "Compression algorithm to use").Default("brotli").String(),
 }
 
 var fileArgs = struct {

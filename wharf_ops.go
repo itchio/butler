@@ -14,6 +14,7 @@ import (
 
 	"gopkg.in/kothar/brotli-go.v0/enc"
 
+	"github.com/Datadog/zstd"
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -390,8 +391,8 @@ func doProbe(target string) error {
 
 	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
 
-	params := enc.NewBrotliParams()
-	params.SetQuality(*appArgs.compressionQuality)
+	brotliParams := enc.NewBrotliParams()
+	brotliParams.SetQuality(*appArgs.compressionQuality)
 
 	processedSize := int64(0)
 	totalCompressedSize := int64(0)
@@ -402,6 +403,19 @@ func doProbe(target string) error {
 	hbuf := make([]byte, 32)
 
 	comm.StartProgress()
+
+	makeCompressedWriter := func(w io.Writer) io.WriteCloser {
+		switch *probeArgs.algo {
+		case "brotli":
+			return enc.NewBrotliWriter(brotliParams, w)
+		case "zstd":
+			return zstd.NewWriterLevel(w, *appArgs.compressionQuality)
+		default:
+			panic(fmt.Sprintf("unknown compression algo %s", *probeArgs.algo))
+		}
+	}
+
+	startTime := time.Now()
 
 	for i := 0; i < len(targetContainer.Files); i++ {
 		r, err := pool.GetReader(int64(i))
@@ -416,7 +430,7 @@ func doProbe(target string) error {
 		for s.Scan() {
 			shake128.Reset()
 			cw := counter.NewWriter(shake128)
-			bw := enc.NewBrotliWriter(params, cw)
+			bw := makeCompressedWriter(cw)
 
 			block := s.Bytes()
 			bw.Write(block)
@@ -443,12 +457,16 @@ func doProbe(target string) error {
 
 	comm.EndProgress()
 
-	comm.Statf("%s => %s via %s blocks (%d duplicates), brotli-q%d",
+	comm.Statf("%s => %s via %s blocks (%d duplicates), %s-q%d",
 		humanize.Bytes(uint64(targetContainer.Size)),
 		humanize.Bytes(uint64(totalCompressedSize)),
 		humanize.Bytes(uint64(bigBlockSize)),
 		duplicateBlocks,
+		*probeArgs.algo,
 		*appArgs.compressionQuality)
+
+	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+	comm.Statf("processed @ %s/s\n", perSecond)
 
 	return nil
 }
