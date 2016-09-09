@@ -79,11 +79,15 @@ func doProbe(target string) error {
 
 	errs := make(chan error)
 
+	var totalHashTime time.Duration
+
 	hashWorker := func() {
 		shake128 := sha3.NewShake128()
 		hbuf := make([]byte, 32)
 
 		for data := range readBlocks {
+			startHashTime := time.Now()
+
 			shake128.Reset()
 			shake128.Write(data)
 
@@ -92,6 +96,8 @@ func doProbe(target string) error {
 				errs <- err
 				return
 			}
+
+			totalHashTime += time.Since(startHashTime)
 
 			blockpath := fmt.Sprintf("shake128-32/%d/%x", len(data), hbuf)
 			hashedBlocks <- hashedBlock{
@@ -123,12 +129,18 @@ func doProbe(target string) error {
 		close(uniqueBlocks)
 	}
 
+	var totalCompressTime time.Duration
+
 	compressWorker := func() {
 		for uniqueBlock := range uniqueBlocks {
+			startCompressTime := time.Now()
+
 			cw := counter.NewWriter(nil)
 			bw := makeCompressedWriter(cw)
 			bw.Write(uniqueBlock.data)
 			bw.Close()
+
+			totalCompressTime += time.Since(startCompressTime)
 
 			compressedBlocks <- cw.Count()
 		}
@@ -167,7 +179,7 @@ func doProbe(target string) error {
 		s.Split(splitfunc.New(bigBlockSize))
 
 		for s.Scan() {
-			readBlocks <- s.Bytes()[0:]
+			readBlocks <- append([]byte{}, s.Bytes()...)
 		}
 	}
 	close(readBlocks)
@@ -189,6 +201,7 @@ func doProbe(target string) error {
 	comm.EndProgress()
 
 	comm.Statf("total hashed blocks: %d, compressed blocks: %d", totalHashedBlocks, totalCompressedBlocks)
+	comm.Statf("spent %v hashing, %v compressing", totalHashTime, totalCompressTime)
 
 	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s => %s (%.3f) via %s blocks (%d duplicates), %s-q%d @ %s/s",
@@ -200,6 +213,10 @@ func doProbe(target string) error {
 		*probeArgs.algo,
 		*appArgs.compressionQuality,
 		perSecond)
+
+	if !*probeArgs.single {
+		return nil
+	}
 
 	comm.Opf("Now as a single archive... (no concurrency, but no hashing either)")
 

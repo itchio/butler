@@ -244,9 +244,11 @@ var signArgs = struct {
 var probeArgs = struct {
 	target *string
 	algo   *string
+	single *bool
 }{
 	probeCmd.Arg("dir", "Path of directory to probe").Required().String(),
 	probeCmd.Flag("algo", "Compression algorithm to use").Default("brotli").String(),
+	probeCmd.Flag("single", "Also try compressing as a single archive").Default("false").Bool(),
 }
 
 var fileArgs = struct {
