@@ -386,10 +386,10 @@ func doProbe(target string) error {
 		return err
 	}
 
-	comm.Statf("container stats: %s", targetContainer.Stats())
-	pool := targetContainer.NewFilePool(target)
-
 	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
+	comm.Opf("Compressing %s as %s blocks", targetContainer.Stats(), humanize.Bytes(uint64(bigBlockSize)))
+
+	pool := targetContainer.NewFilePool(target)
 
 	brotliParams := enc.NewBrotliParams()
 	brotliParams.SetQuality(*appArgs.compressionQuality)
@@ -457,16 +457,58 @@ func doProbe(target string) error {
 
 	comm.EndProgress()
 
-	comm.Statf("%s => %s via %s blocks (%d duplicates), %s-q%d",
+	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+	comm.Statf("%s => %s via %s blocks (%d duplicates), %s-q%d @ %s/s",
 		humanize.Bytes(uint64(targetContainer.Size)),
 		humanize.Bytes(uint64(totalCompressedSize)),
 		humanize.Bytes(uint64(bigBlockSize)),
 		duplicateBlocks,
 		*probeArgs.algo,
-		*appArgs.compressionQuality)
+		*appArgs.compressionQuality,
+		perSecond)
 
-	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("processed @ %s/s\n", perSecond)
+	comm.Opf("Now as a single archive...")
+
+	startTime = time.Now()
+	comm.StartProgress()
+
+	cw := counter.NewWriter(nil)
+	bw := makeCompressedWriter(cw)
+
+	offset := int64(0)
+
+	for i := 0; i < len(targetContainer.Files); i++ {
+		r, err := pool.GetReader(int64(i))
+		if err != nil {
+			return err
+		}
+
+		cr := counter.NewReaderCallback(func(count int64) {
+			comm.Progress(float64(offset+count) / float64(targetContainer.Size))
+		}, r)
+
+		_, err = io.Copy(bw, cr)
+		if err != nil {
+			return err
+		}
+
+		offset += targetContainer.Files[i].Size
+	}
+
+	bw.Close()
+	totalCompressedSize = cw.Count()
+
+	comm.EndProgress()
+
+	perSecond = humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+	comm.Statf("%s => %s as single archive, %s-q%d @ %s/s",
+		humanize.Bytes(uint64(targetContainer.Size)),
+		humanize.Bytes(uint64(totalCompressedSize)),
+		*probeArgs.algo,
+		*appArgs.compressionQuality,
+		perSecond)
+
+	comm.Statf("(note: single-archive doesn't compute any hashes, so it's faster)")
 
 	return nil
 }
