@@ -27,9 +27,6 @@ var (
 	ErrIncompatiblePatch = errors.New("unsupported patch")
 )
 
-type DataFetchFunction func([]byte, string) ([]byte, error)
-type DataStoreFunction func([]byte) error
-
 // ApplyContext holds the state while applying a patch
 type ApplyContext struct {
 	Consumer *StateConsumer
@@ -48,9 +45,6 @@ type ApplyContext struct {
 	NoopFiles    int
 	DeletedFiles int
 	StageSize    int64
-
-	DataFetch DataFetchFunction
-	DataStore DataStoreFunction
 }
 
 type signature []sync.BlockHash
@@ -139,15 +133,15 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		select {
 		case <-done:
 			// woo
-		case err := <-errs:
-			return errors.Wrap(err, 1)
+		case sErr := <-errs:
+			return errors.Wrap(sErr, 1)
 		}
 	}
 
 	if actx.SignatureFilePath != "" {
-		err := actx.checkHashes(ss)
-		if err != nil {
-			return errors.Wrap(err, 1)
+		hErr := actx.checkHashes(ss)
+		if hErr != nil {
+			return errors.Wrap(hErr, 1)
 		}
 	}
 
@@ -364,7 +358,7 @@ func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths cha
 			ops := make(chan sync.Operation)
 			errc := make(chan error, 1)
 
-			go readOps(patchWire, ops, errc, actx.DataFetch, actx.DataStore)
+			go readOps(patchWire, ops, errc)
 
 			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 			if err != nil {
@@ -574,15 +568,15 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
 
 				go func() {
-					err := sctx.ApplyPatch(writeCounter, targetPool, realops)
-					if err != nil {
-						errs <- errors.Wrap(err, 1)
+					rErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
+					if rErr != nil {
+						errs <- errors.Wrap(rErr, 1)
 						return
 					}
 
-					err = writer.Close()
-					if err != nil {
-						errs <- errors.Wrap(err, 1)
+					rErr = writer.Close()
+					if rErr != nil {
+						errs <- errors.Wrap(rErr, 1)
 						return
 					}
 
@@ -594,9 +588,9 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 
 		if !noop {
 			select {
-			case err := <-errs:
-				if err != nil {
-					return 0, false, errors.Wrap(err, 1)
+			case cErr := <-errs:
+				if cErr != nil {
+					return 0, false, errors.Wrap(cErr, 1)
 				}
 			case realops <- op:
 				// muffin
@@ -616,10 +610,8 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 	return
 }
 
-func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dataFetch DataFetchFunction, dataStore DataStoreFunction) {
+func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error) {
 	defer close(ops)
-	var buf []byte
-
 	rop := &SyncOp{}
 
 	readingOps := true
@@ -644,35 +636,6 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error, dat
 			ops <- sync.Operation{
 				Type: sync.OpData,
 				Data: rop.Data,
-			}
-
-			if dataStore != nil {
-				err := dataStore(rop.Data)
-				if err != nil {
-					errc <- errors.Wrap(err, 1)
-					return
-				}
-			}
-
-		case SyncOp_REMOTE_DATA:
-			if dataFetch == nil {
-				errc <- fmt.Errorf("encountered remote data but no datafetch")
-				return
-			}
-			buf, err = dataFetch(buf[:0], rop.RemotePath)
-			if err != nil {
-				errc <- errors.Wrap(err, 1)
-				return
-			}
-
-			if int64(len(buf)) != rop.RemoteSize {
-				errc <- fmt.Errorf("remote data size mismatch: expected %d got %d", rop.RemoteSize, len(buf))
-				return
-			}
-
-			ops <- sync.Operation{
-				Type: sync.OpData,
-				Data: buf,
 			}
 
 		default:

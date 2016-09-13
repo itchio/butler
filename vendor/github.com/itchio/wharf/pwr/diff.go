@@ -298,13 +298,6 @@ func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) sync.OperationWrite
 
 			dctx.FreshBytes += int64(len(op.Data))
 
-		case sync.OpRemoteData:
-			wop.Type = SyncOp_REMOTE_DATA
-			wop.RemoteSize = op.RemoteSize
-			wop.RemotePath = op.RemotePath
-
-			dctx.FreshBytes += int64(op.RemoteSize)
-
 		default:
 			return errors.Wrap(fmt.Errorf("unknown rsync op type: %d", op.Type), 1)
 		}

@@ -20,8 +20,6 @@ const (
 	// the file we're reconstructing, because we weren't able to re-use
 	// data from the old files set
 	OpData
-
-	OpRemoteData
 )
 
 // Operation describes a step required to mutate target to align to source.
@@ -31,8 +29,6 @@ type Operation struct {
 	BlockIndex int64
 	BlockSpan  int64
 	Data       []byte
-	RemoteSize int64
-	RemotePath string
 }
 
 // An OperationWriter consumes sync operations and does whatever it wants with them
