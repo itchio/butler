@@ -212,13 +212,13 @@ func (actx *ApplyContext) checkHashes(ss signatureSet) error {
 				return fmt.Errorf("%s: weak hash mismatch @ block %d (%s into the file)",
 					container.Files[bh.FileIndex].Path,
 					checkOffset,
-					humanize.Bytes(uint64(BlockSize*checkOffset)))
+					humanize.IBytes(uint64(BlockSize*checkOffset)))
 			}
 			if !bytes.Equal(ah.StrongHash, bh.StrongHash) {
 				return fmt.Errorf("%s: strong hash mismatch @ block %d (%s into the file)",
 					container.Files[bh.FileIndex].Path,
 					checkOffset,
-					humanize.Bytes(uint64(BlockSize*checkOffset)))
+					humanize.IBytes(uint64(BlockSize*checkOffset)))
 			}
 			checkOffset++
 		}

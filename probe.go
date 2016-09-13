@@ -32,7 +32,7 @@ func doProbe(target string) error {
 	}
 
 	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
-	comm.Opf("Compressing %s as %s blocks", targetContainer.Stats(), humanize.Bytes(uint64(bigBlockSize)))
+	comm.Opf("Compressing %s as %s blocks", targetContainer.Stats(), humanize.IBytes(uint64(bigBlockSize)))
 
 	pool := targetContainer.NewFilePool(target)
 
@@ -203,12 +203,12 @@ func doProbe(target string) error {
 	comm.Statf("total hashed blocks: %d, compressed blocks: %d", totalHashedBlocks, totalCompressedBlocks)
 	comm.Statf("spent %v hashing, %v compressing", totalHashTime, totalCompressTime)
 
-	perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+	perSecond := humanize.IBytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s => %s (%.3f) via %s blocks (%d duplicates), %s-q%d @ %s/s",
-		humanize.Bytes(uint64(targetContainer.Size)),
-		humanize.Bytes(uint64(totalCompressedSize)),
+		humanize.IBytes(uint64(targetContainer.Size)),
+		humanize.IBytes(uint64(totalCompressedSize)),
 		float64(totalCompressedSize)/float64(targetContainer.Size),
-		humanize.Bytes(uint64(bigBlockSize)),
+		humanize.IBytes(uint64(bigBlockSize)),
 		duplicateBlocks,
 		*probeArgs.algo,
 		*appArgs.compressionQuality,
@@ -251,10 +251,10 @@ func doProbe(target string) error {
 
 	comm.EndProgress()
 
-	perSecond = humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+	perSecond = humanize.IBytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s => %s (%.3f) as single archive, %s-q%d @ %s/s",
-		humanize.Bytes(uint64(targetContainer.Size)),
-		humanize.Bytes(uint64(totalCompressedSize)),
+		humanize.IBytes(uint64(targetContainer.Size)),
+		humanize.IBytes(uint64(totalCompressedSize)),
 		float64(totalCompressedSize)/float64(targetContainer.Size),
 		*probeArgs.algo,
 		*appArgs.compressionQuality,

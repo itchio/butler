@@ -50,8 +50,8 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 			}
 
 			{
-				prettySize := humanize.Bytes(uint64(targetContainer.Size))
-				perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+				prettySize := humanize.IBytes(uint64(targetContainer.Size))
+				perSecond := humanize.IBytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetContainer.Stats(), perSecond)
 			}
 		} else {
@@ -95,8 +95,8 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 				}
 
 				{
-					prettySize := humanize.Bytes(uint64(targetContainer.Size))
-					perSecond := humanize.Bytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
+					prettySize := humanize.IBytes(uint64(targetContainer.Size))
+					perSecond := humanize.IBytes(uint64(float64(targetContainer.Size) / time.Since(startTime).Seconds()))
 					comm.Statf("%s (%s) @ %s/s\n", prettySize, targetContainer.Stats(), perSecond)
 				}
 			} else {
@@ -188,8 +188,8 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	totalDuration := time.Since(startTime)
 	{
-		prettySize := humanize.Bytes(uint64(sourceContainer.Size))
-		perSecond := humanize.Bytes(uint64(float64(sourceContainer.Size) / totalDuration.Seconds()))
+		prettySize := humanize.IBytes(uint64(sourceContainer.Size))
+		perSecond := humanize.IBytes(uint64(float64(sourceContainer.Size) / totalDuration.Seconds()))
 		comm.Statf("%s (%s) @ %s/s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
@@ -204,10 +204,10 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	}
 
 	{
-		prettyPatchSize := humanize.Bytes(uint64(patchCounter.Count()))
+		prettyPatchSize := humanize.IBytes(uint64(patchCounter.Count()))
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+		prettyFreshSize := humanize.IBytes(uint64(dctx.FreshBytes))
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
 		comm.Statf("%s patch (%.2f%% of the full size) in %s", prettyPatchSize, relToNew, totalDuration)
@@ -258,11 +258,11 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 	comm.EndProgress()
 
 	container := actx.SourceContainer
-	prettySize := humanize.Bytes(uint64(container.Size))
-	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
+	prettySize := humanize.IBytes(uint64(container.Size))
+	perSecond := humanize.IBytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 
 	if actx.InPlace {
-		comm.Statf("patched %d, kept %d, deleted %d (%s stage)", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles, humanize.Bytes(uint64(actx.StageSize)))
+		comm.Statf("patched %d, kept %d, deleted %d (%s stage)", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles, humanize.IBytes(uint64(actx.StageSize)))
 	}
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
@@ -321,8 +321,8 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 		return errors.Wrap(err, 1)
 	}
 
-	prettySize := humanize.Bytes(uint64(container.Size))
-	perSecond := humanize.Bytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
+	prettySize := humanize.IBytes(uint64(container.Size))
+	perSecond := humanize.IBytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
 	return nil
@@ -360,8 +360,8 @@ func doVerify(signature string, output string) error {
 		comm.Dief("Some checks failed after checking %d block.", len(refHashes))
 	}
 
-	prettySize := humanize.Bytes(uint64(refContainer.Size))
-	perSecond := humanize.Bytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
+	prettySize := humanize.IBytes(uint64(refContainer.Size))
+	perSecond := humanize.IBytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
 
 	return nil

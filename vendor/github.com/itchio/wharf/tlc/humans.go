@@ -8,7 +8,7 @@ import (
 )
 
 func (f *File) ToString() string {
-	return fmt.Sprintf("%s %10s %s", os.FileMode(f.Mode), humanize.Bytes(uint64(f.Size)), f.Path)
+	return fmt.Sprintf("%s %10s %s", os.FileMode(f.Mode), humanize.IBytes(uint64(f.Size)), f.Path)
 }
 
 func (f *Dir) ToString() string {

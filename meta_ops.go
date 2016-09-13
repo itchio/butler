@@ -49,7 +49,7 @@ func file(path string) {
 		return
 	}
 
-	prettySize := humanize.Bytes(uint64(stats.Size()))
+	prettySize := humanize.IBytes(uint64(stats.Size()))
 
 	reader, err := os.Open(path)
 	must(err)

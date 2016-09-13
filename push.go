@@ -148,7 +148,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	}
 
 	comm.Logf("")
-	comm.Opf("Pushing %s (%s)", humanize.Bytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
+	comm.Opf("Pushing %s (%s)", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
 
 	comm.Debugf("Building diff context")
 	var readBytes int64
@@ -171,9 +171,9 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		if leftBytes > 10*1024 {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
-				netStatus = fmt.Sprintf("@ %s/s", humanize.Bytes(uint64(bytesPerSec)))
+				netStatus = fmt.Sprintf("@ %s/s", humanize.IBytes(uint64(bytesPerSec)))
 			}
-			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, humanize.Bytes(uint64(leftBytes))))
+			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, humanize.IBytes(uint64(leftBytes))))
 		} else {
 			comm.ProgressLabel(fmt.Sprintf("- almost there"))
 		}
@@ -246,7 +246,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 
 			key := fmt.Sprintf("%s/%d/%x", "shake128-32", len(buf), sum)
 			// return key, nil
-			fmt.Printf("Should look up %s-block %s\n", humanize.Bytes(uint64(len(buf))), key)
+			fmt.Printf("Should look up %s-block %s\n", humanize.IBytes(uint64(len(buf))), key)
 
 			req, reqErr := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
 			fmt.Fprintf(os.Stderr, "lookup %s\n", req.URL)
@@ -336,10 +336,10 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	comm.EndProgress()
 
 	{
-		prettyPatchSize := humanize.Bytes(uint64(patchCounter.Count()))
+		prettyPatchSize := humanize.IBytes(uint64(patchCounter.Count()))
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := humanize.Bytes(uint64(dctx.FreshBytes))
+		prettyFreshSize := humanize.IBytes(uint64(dctx.FreshBytes))
 		savings := 100.0 - relToNew
 
 		if dctx.ReusedBytes > 0 {

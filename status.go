@@ -104,7 +104,7 @@ func fileState(file *itchio.BuildFileInfo) string {
 		sign = theme.OpSign
 	}
 
-	fSize := humanize.Bytes(uint64(file.Size))
+	fSize := humanize.IBytes(uint64(file.Size))
 
 	return fmt.Sprintf("%s %s %s", sign, fSize, fType)
 }

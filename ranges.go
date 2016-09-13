@@ -57,15 +57,15 @@ func doRanges(patch string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	comm.Opf("Showing ranges for %s patch", humanize.Bytes(uint64(patchStats.Size())))
-	comm.Statf("Old version: %s in %s", humanize.Bytes(uint64(targetContainer.Size)), targetContainer.Stats())
-	comm.Statf("New version: %s in %s", humanize.Bytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
+	comm.Opf("Showing ranges for %s patch", humanize.IBytes(uint64(patchStats.Size())))
+	comm.Statf("Old version: %s in %s", humanize.IBytes(uint64(targetContainer.Size)), targetContainer.Stats())
+	comm.Statf("New version: %s in %s", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
 	deltaOp := "+"
 	if sourceContainer.Size < targetContainer.Size {
 		deltaOp = "-"
 	}
 	delta := math.Abs(float64(sourceContainer.Size - targetContainer.Size))
-	comm.Statf("Delta: %s%s (%s%.2f%%)", deltaOp, humanize.Bytes(uint64(delta)), deltaOp, delta/float64(targetContainer.Size)*100.0)
+	comm.Statf("Delta: %s%s (%s%.2f%%)", deltaOp, humanize.IBytes(uint64(delta)), deltaOp, delta/float64(targetContainer.Size)*100.0)
 	comm.Log("")
 
 	numDatas := 0
@@ -138,9 +138,9 @@ func doRanges(patch string) error {
 	}
 
 	comm.Statf("%d BlockRange ops, %d Data ops", numBlockRanges, numDatas)
-	comm.Statf("Unchanged bytes: %s", humanize.Bytes(uint64(unchangedBytes)))
-	comm.Statf("Moved bytes    : %s", humanize.Bytes(uint64(movedBytes)))
-	comm.Statf("Fresh bytes    : %s", humanize.Bytes(uint64(freshBytes)))
+	comm.Statf("Unchanged bytes: %s", humanize.IBytes(uint64(unchangedBytes)))
+	comm.Statf("Moved bytes    : %s", humanize.IBytes(uint64(movedBytes)))
+	comm.Statf("Fresh bytes    : %s", humanize.IBytes(uint64(freshBytes)))
 
 	return nil
 }

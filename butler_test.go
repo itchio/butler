@@ -134,7 +134,7 @@ func TestAllTheThings(t *testing.T) {
 				mist(t, doDiff(files[lhs], files[rhs], patch, compression))
 				stat, err := os.Lstat(patch)
 				mist(t, err)
-				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.Bytes(uint64(stat.Size())))
+				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.IBytes(uint64(stat.Size())))
 			}
 		}
 	}
