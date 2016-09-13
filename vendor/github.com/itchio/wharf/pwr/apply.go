@@ -126,7 +126,16 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	errs := make(chan error)
 	ss := make(signatureSet)
 
-	go actx.hashThings(ss, hashPaths, done, errs)
+	if actx.SignatureFilePath == "" {
+		go func() {
+			// throw away hashpaths
+			for _ = range hashPaths {
+			}
+			done <- true
+		}()
+	} else {
+		go actx.hashThings(ss, hashPaths, done, errs)
+	}
 	go actx.patchThings(patchWire, hashPaths, done, errs)
 
 	for i := 0; i < 2; i++ {
