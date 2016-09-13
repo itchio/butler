@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"math"
 	"os"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
@@ -16,6 +19,25 @@ import (
 func ranges(patch string) {
 	must(doRanges(patch))
 }
+
+type FakePool struct {
+	container *tlc.Container
+}
+
+func (fp *FakePool) GetReader(fileIndex int64) (io.Reader, error) {
+	return fp.GetReadSeeker(fileIndex)
+}
+
+func (fp *FakePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
+	buf := make([]byte, fp.container.Files[fileIndex].Size)
+	return bytes.NewReader(buf), nil
+}
+
+func (fp *FakePool) Close() error {
+	return nil
+}
+
+var _ sync.FilePool = (*FakePool)(nil)
 
 func doRanges(patch string) error {
 	patchStats, err := os.Lstat(patch)
@@ -71,9 +93,16 @@ func doRanges(patch string) error {
 	numDatas := 0
 	numBlockRanges := 0
 	blockSize := int64(pwr.BlockSize)
+	bigBlockSize := int64(4 * 1024 * 1024) // 4MB
+
 	unchangedBytes := int64(0)
 	movedBytes := int64(0)
 	freshBytes := int64(0)
+
+	requiredOldBlocks := make([]map[int64]bool, len(targetContainer.Files))
+	for i := 0; i < len(targetContainer.Files); i++ {
+		requiredOldBlocks[i] = make(map[int64]bool)
+	}
 
 	sh := &pwr.SyncHeader{}
 	for fileIndex, sourceFile := range sourceContainer.Files {
@@ -92,6 +121,9 @@ func doRanges(patch string) error {
 
 		err = (func() error {
 			sourceOffset := int64(0)
+			numMoved := 0
+			numUnchanged := 0
+			numFresh := 0
 
 			for {
 				rop.Reset()
@@ -108,6 +140,7 @@ func doRanges(patch string) error {
 					size := blockSize * rop.BlockSpan
 
 					alignedSize := blockSize * (rop.BlockIndex + rop.BlockSpan)
+					// op includes last block which is smaller than blockSize
 					if alignedSize > targetFile.Size {
 						size -= blockSize
 						size += targetFile.Size % blockSize
@@ -116,8 +149,17 @@ func doRanges(patch string) error {
 					if targetFile.Path == sourceFile.Path && targetOffset == sourceOffset {
 						// comm.Statf("%d unchanged blocks %d bytes into %s", rop.BlockSpan, sourceOffset, targetFile.Path)
 						unchangedBytes += size
+						numUnchanged++
 					} else {
 						movedBytes += size
+						numMoved++
+
+						bigBlockStart := int64(math.Floor(float64(rop.BlockIndex*blockSize) / float64(bigBlockSize)))
+						bigBlockEnd := int64(math.Ceil(float64(rop.BlockIndex*blockSize+size) / float64(bigBlockSize)))
+
+						for i := bigBlockStart; i < bigBlockEnd; i++ {
+							requiredOldBlocks[rop.FileIndex][i] = true
+						}
 					}
 
 					numBlockRanges++
@@ -127,7 +169,13 @@ func doRanges(patch string) error {
 					sourceOffset += size
 					freshBytes += size
 					numDatas++
+					numFresh++
 				case pwr.SyncOp_HEY_YOU_DID_IT:
+					if numFresh == 0 && numUnchanged == 0 && numMoved == 1 {
+						comm.Statf("Found rename!")
+					} else {
+						// comm.Statf("Fresh %d, unchanged %d, moved %d", numFresh, numUnchanged, numMoved)
+					}
 					return nil
 				}
 			}
@@ -141,6 +189,54 @@ func doRanges(patch string) error {
 	comm.Statf("Unchanged bytes: %s", humanize.IBytes(uint64(unchangedBytes)))
 	comm.Statf("Moved bytes    : %s", humanize.IBytes(uint64(movedBytes)))
 	comm.Statf("Fresh bytes    : %s", humanize.IBytes(uint64(freshBytes)))
+
+	comm.Log("")
+
+	totalBlocks := 0
+	partialBlocks := 0
+	neededBlocks := 0
+	neededBlockSize := int64(0)
+
+	for i, blockMap := range requiredOldBlocks {
+		f := targetContainer.Files[i]
+		fileNumBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
+		for j := int64(0); j < fileNumBlocks; j++ {
+			totalBlocks++
+			if blockMap[j] {
+				size := bigBlockSize
+				if (j+1)*bigBlockSize > f.Size {
+					partialBlocks++
+					size = f.Size % bigBlockSize
+				}
+				neededBlockSize += size
+				neededBlocks++
+			}
+		}
+	}
+	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
+	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
+
+	outputPath := "out"
+
+	fakePool := &FakePool{
+		container: targetContainer,
+	}
+
+	actx := &pwr.ApplyContext{
+		Consumer:   comm.NewStateConsumer(),
+		OutputPath: outputPath,
+		TargetPool: fakePool,
+	}
+
+	_, err = patchReader.Seek(0, os.SEEK_SET)
+	if err != nil {
+		return err
+	}
+
+	err = actx.ApplyPatch(patchReader)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
