@@ -59,7 +59,8 @@ var (
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 
-	probeCmd = app.Command("probe", "(Advanced) Probe a folder").Hidden()
+	probeCmd  = app.Command("probe", "(Advanced) Probe a folder").Hidden()
+	rangesCmd = app.Command("ranges", "(Advanced) Print touched ranges for a patch").Hidden()
 )
 
 var appArgs = struct {
@@ -251,6 +252,12 @@ var probeArgs = struct {
 	probeCmd.Flag("single", "Also try compressing as a single archive").Default("false").Bool(),
 }
 
+var rangesArgs = struct {
+	patch *string
+}{
+	rangesCmd.Arg("patch", "Path of the patch to examine").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -419,6 +426,9 @@ func main() {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.target)
+
+	case rangesCmd.FullCommand():
+		ranges(*rangesArgs.patch)
 
 	case whichCmd.FullCommand():
 		which()
