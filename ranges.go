@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"math"
 	"os"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -29,8 +29,42 @@ func (fp *FakePool) GetReader(fileIndex int64) (io.Reader, error) {
 }
 
 func (fp *FakePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
-	buf := make([]byte, fp.container.Files[fileIndex].Size)
-	return bytes.NewReader(buf), nil
+	return &NullReader{
+		size: fp.container.Files[fileIndex].Size,
+	}, nil
+}
+
+type NullReader struct {
+	offset int64
+	size   int64
+}
+
+func (nr *NullReader) Read(buf []byte) (int, error) {
+	newOffset := nr.offset + int64(len(buf))
+	if newOffset >= nr.size {
+		newOffset = nr.size
+	}
+
+	readSize := int(newOffset - nr.offset)
+	nr.offset = newOffset
+
+	if readSize == 0 {
+		return 0, io.EOF
+	} else {
+		return readSize, nil
+	}
+}
+
+func (nr *NullReader) Seek(offset int64, whence int) (int64, error) {
+	switch whence {
+	case os.SEEK_END:
+		nr.offset = nr.size + offset
+	case os.SEEK_CUR:
+		nr.offset += offset
+	case os.SEEK_SET:
+		nr.offset = offset
+	}
+	return nr.offset, nil
 }
 
 func (fp *FakePool) Close() error {
@@ -233,10 +267,17 @@ func doRanges(patch string) error {
 		return err
 	}
 
+	startTime := time.Now()
+
+	comm.StartProgress()
 	err = actx.ApplyPatch(patchReader)
 	if err != nil {
 		return err
 	}
+	comm.EndProgress()
+
+	totalTime := time.Since(startTime)
+	comm.Statf("Processed in %s (%s/s)", totalTime, humanize.IBytes(uint64(float64(targetContainer.Size)/totalTime.Seconds())))
 
 	return nil
 }
