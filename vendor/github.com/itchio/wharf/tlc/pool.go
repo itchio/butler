@@ -26,6 +26,7 @@ type ContainerFilePool struct {
 }
 
 var _ sync.FilePool = (*ContainerFilePool)(nil)
+var _ sync.WritableFilePool = (*ContainerFilePool)(nil)
 
 // NewFilePool creates a new ContainerFilePool from the given Container
 // metadata and a base path on-disk to allow reading from files.
@@ -102,4 +103,16 @@ func (cfp *ContainerFilePool) Close() error {
 	}
 
 	return nil
+}
+
+func (cfp *ContainerFilePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
+	path := cfp.GetPath(fileIndex)
+
+	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+
+	outputFile := cfp.container.Files[fileIndex]
+	return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
 }

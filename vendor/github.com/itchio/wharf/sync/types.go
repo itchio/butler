@@ -63,6 +63,12 @@ type FilePool interface {
 	Close() error
 }
 
+type WritableFilePool interface {
+	FilePool
+
+	GetWriter(fileIndex int64) (io.WriteCloser, error)
+}
+
 // A BlockLibrary contains a collection of weak+strong block hashes, indexed
 // by their weak-hashes for fast lookup.
 type BlockLibrary struct {

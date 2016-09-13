@@ -38,6 +38,7 @@ type ApplyContext struct {
 	TargetContainer *tlc.Container
 	TargetPool      sync.FilePool
 	SourceContainer *tlc.Container
+	OutputPool      sync.WritableFilePool
 
 	SignatureFilePath string
 
@@ -299,7 +300,10 @@ func (actx *ApplyContext) hashThings(ss signatureSet, hashPaths chan string, don
 func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths chan string, done chan bool, errs chan error) {
 	err := func() error {
 		sourceContainer := actx.SourceContainer
-		outputPool := sourceContainer.NewFilePool(actx.OutputPath)
+		outputPool := actx.OutputPool
+		if outputPool == nil {
+			outputPool = sourceContainer.NewFilePool(actx.OutputPath)
+		}
 
 		targetContainer := actx.TargetContainer
 		targetPool := actx.TargetPool
@@ -525,7 +529,7 @@ func deleteFiles(outPath string, deletedFiles []string) error {
 	return nil
 }
 
-func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetPool sync.FilePool, outputContainer *tlc.Container, outputPool *tlc.ContainerFilePool,
+func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetPool sync.FilePool, outputContainer *tlc.Container, outputPool sync.WritableFilePool,
 	fileIndex int64, onSourceWrite counter.CountCallback, ops chan sync.Operation, inplace bool) (written int64, noop bool, err error) {
 
 	var realops chan sync.Operation
@@ -560,16 +564,8 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 			} else {
 				realops = make(chan sync.Operation)
 
-				outputFile := outputContainer.Files[fileIndex]
-
-				outputPath := outputPool.GetPath(fileIndex)
-				err = os.MkdirAll(filepath.Dir(outputPath), os.FileMode(0755))
-				if err != nil {
-					return 0, false, errors.Wrap(err, 1)
-				}
-
 				var writer io.WriteCloser
-				writer, err = os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
+				writer, err = outputPool.GetWriter(fileIndex)
 				if err != nil {
 					return 0, false, errors.Wrap(err, 1)
 				}
