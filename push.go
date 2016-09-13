@@ -2,8 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
 	"math"
@@ -11,8 +9,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"golang.org/x/crypto/sha3"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -31,12 +27,6 @@ func push(buildPath string, spec string, userVersion string, fixPerms bool) {
 }
 
 func doPush(buildPath string, spec string, userVersion string, fixPerms bool) error {
-	butlerBlockCache := os.Getenv("BUTLER_BLOCK_CACHE")
-	useBlockCache := len(butlerBlockCache) > 0
-	if useBlockCache {
-		comm.Logf("Using block cache (experimental!) @ %s", butlerBlockCache)
-	}
-
 	spec = strings.ToLower(spec)
 
 	// start walking source container while waiting on auth flow
@@ -221,59 +211,6 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		TargetSignature: targetSignature,
 
 		Consumer: stateConsumer,
-	}
-
-	if useBlockCache {
-		shake128 := sha3.NewShake128()
-		hbuf := make([]byte, 32)
-		client := &http.Client{
-			Transport: makeTransport(),
-		}
-
-		dataLookup := func(buf []byte) (string, error) {
-			shake128.Reset()
-			_, hashErr := shake128.Write(buf)
-			if hashErr != nil {
-				return "", errors.Wrap(hashErr, 1)
-			}
-
-			_, readErr := io.ReadFull(shake128, hbuf)
-			if readErr != nil {
-				return "", errors.Wrap(readErr, 1)
-			}
-
-			sum := hbuf
-
-			key := fmt.Sprintf("%s/%d/%x", "shake128-32", len(buf), sum)
-			// return key, nil
-			fmt.Printf("Should look up %s-block %s\n", humanize.IBytes(uint64(len(buf))), key)
-
-			req, reqErr := http.NewRequest("HEAD", fmt.Sprintf("%s/%s", butlerBlockCache, key), nil)
-			fmt.Fprintf(os.Stderr, "lookup %s\n", req.URL)
-			if reqErr != nil {
-				return "", errors.Wrap(reqErr, 1)
-			}
-
-			res, clientErr := client.Do(req)
-			if clientErr != nil {
-				fmt.Fprintf(os.Stderr, "lookup error: %s", clientErr.Error())
-				// ignore error - we'll just upload more
-				return "", nil
-			}
-
-			err = res.Body.Close()
-			if err != nil {
-				return "", errors.Wrap(err, 1)
-			}
-
-			if res.StatusCode != 200 {
-				return "", nil
-			}
-
-			return key, nil
-		}
-
-		dctx.DataLookup = dataLookup
 	}
 
 	comm.StartProgress()
@@ -498,99 +435,4 @@ func min(a, b float64) float64 {
 		return a
 	}
 	return b
-}
-
-func makeTransport() *http.Transport {
-	rootPEM := `-----BEGIN CERTIFICATE-----
-MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/
-MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
-DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow
-SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT
-GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF
-q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8
-SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0
-Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA
-a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj
-/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T
-AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG
-CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv
-bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k
-c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw
-VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC
-ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz
-MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu
-Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF
-AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo
-uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/
-wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu
-X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG
-PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6
-KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==
------END CERTIFICATE-----`
-
-	roots := x509.NewCertPool()
-	ok := roots.AppendCertsFromPEM([]byte(rootPEM))
-	if !ok {
-		panic("failed to parse root certificate")
-	}
-
-	localPEM := `-----BEGIN CERTIFICATE-----
-MIIC/DCCAeSgAwIBAgIQE+edX+67bADw3M3wsd8mmjANBgkqhkiG9w0BAQsFADAS
-MRAwDgYDVQQKEwdBY21lIENvMB4XDTE2MDQyNjIyMTc0NloXDTE3MDQyNjIyMTc0
-NlowEjEQMA4GA1UEChMHQWNtZSBDbzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
-AQoCggEBALXwW6U4LFzQ0Q46gBMRU/lVHKCpbDw1vQ23EbpLvbVgWbWFMek9OBl3
-hW13S44EVjqufcUWpo9XN32VZBcn3f4NPJEpEwajxwdkRIvEwCoRgftKnkhq23Iq
-JzD9YST6iUft0MhODtx9614QeEFnZofMI0im+z11jZcH7pDx88EQeVh0GM2Hc+gd
-mT0J4th3sUWJ/KLnErLlBTRcQReKUYY2oU3UTLlg86jtj1RJEcMMyBZkXfVZEKvu
-9noa8dDi/u1HjQQiQZKFnHfGv7nTx/sgXobMCszLACDR3oS9xtG6etUx5qhGG6GT
-WrwVMC+XaDkELQ29vRDoVIqiIRp6wZcCAwEAAaNOMEwwDgYDVR0PAQH/BAQDAgKk
-MBMGA1UdJQQMMAoGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wFAYDVR0RBA0w
-C4IJbG9jYWxob3N0MA0GCSqGSIb3DQEBCwUAA4IBAQAwrMPgE9ESkjD+x0AqkyxJ
-1ARs0Mhb6mc2qKffas8PbZJDV1Oi+DlZFDVHVRlOIi3x+8gk/WfXyfgjyded/CJa
-YgGFNEKzVkWXieTyczksRtRd6uILbGJy4ZUyONN+cQ+H05kg52Nylt8867dEfAtd
-4R/0J4ER/huzyRUgCgs1WuTWuYfsrSyeahjECSEO6Lm1rdKtLiJen0nmno8fG8Pi
-GBEZ1z8Co3xui85HQXxtCy3VCaUQ+p3I3ZD/r4gkn3jUX/fTUiIjtvbt0vloU72v
-fY0v7gjVB+ud6M4CzotDPzeOy5iBzW+5YDvmk7rPD2+wo3cc7kCsYiQHXw7dNyPi
------END CERTIFICATE-----`
-
-	ok = roots.AppendCertsFromPEM([]byte(localPEM))
-	if !ok {
-		panic("failed to parse root certificate")
-	}
-
-	testPEM := `-----BEGIN CERTIFICATE-----
-MIIESzCCAzOgAwIBAgIJAI/jr4Vk4N23MA0GCSqGSIb3DQEBBQUAMHYxCzAJBgNV
-BAYTAkZSMRMwEQYDVQQIEwpTb21lLVN0YXRlMSEwHwYDVQQKExhJbnRlcm5ldCBX
-aWRnaXRzIFB0eSBMdGQxEjAQBgNVBAMTCWxvY2FsaG9zdDEbMBkGCSqGSIb3DQEJ
-ARYMYW1vc0BpdGNoLmlvMB4XDTE2MDkwODE5MDU0MloXDTE3MDkwODE5MDU0Mlow
-djELMAkGA1UEBhMCRlIxEzARBgNVBAgTClNvbWUtU3RhdGUxITAfBgNVBAoTGElu
-dGVybmV0IFdpZGdpdHMgUHR5IEx0ZDESMBAGA1UEAxMJbG9jYWxob3N0MRswGQYJ
-KoZIhvcNAQkBFgxhbW9zQGl0Y2guaW8wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
-ggEKAoIBAQC52sojiLggRtuW9op3EVcqSY9JlJtKmyyF9W9DVwMvAkPDtDKqXK4g
-KDyagr10vI4ZJkSbv4Kp3kuYVt5l9BDdVHqVP6Dnf4wVv9WqBF7CAzLgRIr1xaaX
-fcF37Sxxfx42gkKF7Z2wDszqDXTAGsw75lP+Dx3afeWfZr36s9mhc/X4O6y8LWs2
-n9tKYkiXdfXpnQq6FwyKO3/L+Sk58zIHwyiEjM8NNOb18S4UYccOxAHwazGmjpI3
-6euqL08tE0swRjer23qGdJBPFRul9JSJL9j2fsf2Pv8htRuvRa2/2PRrM55ooSrt
-mFho/M7YT9nl/RT80qQXxM5QZ6xI/dF7AgMBAAGjgdswgdgwHQYDVR0OBBYEFIHH
-Sgr0Dou4GqjpoAy+eyoMu0KsMIGoBgNVHSMEgaAwgZ2AFIHHSgr0Dou4GqjpoAy+
-eyoMu0KsoXqkeDB2MQswCQYDVQQGEwJGUjETMBEGA1UECBMKU29tZS1TdGF0ZTEh
-MB8GA1UEChMYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMRIwEAYDVQQDEwlsb2Nh
-bGhvc3QxGzAZBgkqhkiG9w0BCQEWDGFtb3NAaXRjaC5pb4IJAI/jr4Vk4N23MAwG
-A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADggEBAFEp3uaNDX5WrhSfLXKXYRXs
-uBXjizNcekbQ92zzkoYmVrKcng+vJgjcPv1zyeXU/mF/t5pE0wgJp62FvsmrmUCI
-7dcawYOpbhSol9UzVpYz/sCGwxgD9JkZtgqAbvpy1DM8wg4886mCVBzShqCy5iqa
-NrXeaiGNq+2xAvc20YyJSYNIN3GgTEXNLEkGZ7qkGWHJcsOvYANgJvWlE8juUaLk
-QSzgQVS0hqhIb/7XFCZX8WSe3i0DTsWlY4uRyr8dNK0UD9xVOO2L9hfzVu5zyAac
-L+M7u9F7fDbM2/DRzClXDnURXrKjRWFFQub+plTSK3uIxnEMI4G09e+VDP8kNkg=
------END CERTIFICATE-----`
-
-	ok = roots.AppendCertsFromPEM([]byte(testPEM))
-	if !ok {
-		panic("failed to parse root certificate")
-	}
-
-	tlsConf := &tls.Config{RootCAs: roots}
-	tlsConf.BuildNameToCertificate()
-	return &http.Transport{TLSClientConfig: tlsConf}
 }
