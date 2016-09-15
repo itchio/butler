@@ -5,12 +5,14 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/netpool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -24,6 +26,9 @@ func ranges(patch string) {
 type FakePool struct {
 	container *tlc.Container
 }
+
+var _ sync.FilePool = (*FakePool)(nil)
+var _ sync.WritableFilePool = (*FakePool)(nil)
 
 func (fp *FakePool) GetReader(fileIndex int64) (io.Reader, error) {
 	return fp.GetReadSeeker(fileIndex)
@@ -87,9 +92,6 @@ func (nwc *NopWriteCloser) Close() error {
 func (fp *FakePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	return &NopWriteCloser{ioutil.Discard}, nil
 }
-
-var _ sync.FilePool = (*FakePool)(nil)
-var _ sync.WritableFilePool = (*FakePool)(nil)
 
 func doRanges(patch string) error {
 	patchStats, err := os.Lstat(patch)
@@ -249,6 +251,9 @@ func doRanges(patch string) error {
 	neededBlocks := 0
 	neededBlockSize := int64(0)
 
+	httpSourcePort := 23004
+	blockAddresses := make(netpool.BlockAddressMap)
+
 	for i, blockMap := range requiredOldBlocks {
 		f := targetContainer.Files[i]
 		fileNumBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
@@ -262,20 +267,42 @@ func doRanges(patch string) error {
 				}
 				neededBlockSize += size
 				neededBlocks++
+				address := fmt.Sprintf("shake128-32/fakehash-%d-%d/%d", i, j, size)
+				blockAddresses.Set(int64(i), j, address)
 			}
 		}
 	}
 	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
 	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
 
-	fakePool := &FakePool{
-		container: targetContainer,
+	mux := http.NewServeMux()
+	mux.HandleFunc("/blocks/", func(w http.ResponseWriter, r *http.Request) {
+		comm.Logf("Serving %s", r.URL.String())
+		io.WriteString(w, "Hello world!")
+	})
+	go func() {
+		httpErr := http.ListenAndServe(fmt.Sprintf(":%d", httpSourcePort), mux)
+		if httpErr != nil {
+			panic(httpErr)
+		}
+	}()
+
+	targetPool := &netpool.NetPool{
+		Container:      targetContainer,
+		BlockSize:      bigBlockSize,
+		BlockAddresses: blockAddresses,
+
+		Upstream: &netpool.HttpSource{
+			BaseURL: fmt.Sprintf("http://localhost:%d/blocks", httpSourcePort),
+		},
+
+		Consumer: comm.NewStateConsumer(),
 	}
 
 	actx := &pwr.ApplyContext{
 		Consumer:   comm.NewStateConsumer(),
 		OutputPool: &FakePool{sourceContainer},
-		TargetPool: fakePool,
+		TargetPool: targetPool,
 	}
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)
