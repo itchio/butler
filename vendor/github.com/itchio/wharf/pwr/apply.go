@@ -109,16 +109,19 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 
 	var deletedFiles []string
 
-	if actx.InPlace {
-		// when working in-place, we have to keep track of which files were deleted
-		// from one version to the other, so that we too may delete them in the end.
-		deletedFiles = detectRemovedFiles(actx.SourceContainer, actx.TargetContainer)
-	} else {
-		// when rebuilding in a fresh directory, there's no need to worry about
-		// deleted files, because they won't even exist in the first place.
-		err = sourceContainer.Prepare(actx.OutputPath)
-		if err != nil {
-			return errors.Wrap(err, 1)
+	// when not working with a custom output pool
+	if actx.OutputPool == nil {
+		if actx.InPlace {
+			// when working in-place, we have to keep track of which files were deleted
+			// from one version to the other, so that we too may delete them in the end.
+			deletedFiles = detectRemovedFiles(actx.SourceContainer, actx.TargetContainer)
+		} else {
+			// when rebuilding in a fresh directory, there's no need to worry about
+			// deleted files, because they won't even exist in the first place.
+			err = sourceContainer.Prepare(actx.OutputPath)
+			if err != nil {
+				return errors.Wrap(err, 1)
+			}
 		}
 	}
 
