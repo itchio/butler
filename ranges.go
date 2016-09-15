@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"time"
@@ -71,7 +72,24 @@ func (fp *FakePool) Close() error {
 	return nil
 }
 
+type NopWriteCloser struct {
+	writer io.Writer
+}
+
+func (nwc *NopWriteCloser) Write(buf []byte) (int, error) {
+	return nwc.writer.Write(buf)
+}
+
+func (nwc *NopWriteCloser) Close() error {
+	return nil
+}
+
+func (fp *FakePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
+	return &NopWriteCloser{ioutil.Discard}, nil
+}
+
 var _ sync.FilePool = (*FakePool)(nil)
+var _ sync.WritableFilePool = (*FakePool)(nil)
 
 func doRanges(patch string) error {
 	patchStats, err := os.Lstat(patch)
@@ -250,15 +268,13 @@ func doRanges(patch string) error {
 	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
 	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
 
-	outputPath := "out"
-
 	fakePool := &FakePool{
 		container: targetContainer,
 	}
 
 	actx := &pwr.ApplyContext{
 		Consumer:   comm.NewStateConsumer(),
-		OutputPath: outputPath,
+		OutputPool: &FakePool{sourceContainer},
 		TargetPool: fakePool,
 	}
 
