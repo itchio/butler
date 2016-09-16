@@ -15,6 +15,9 @@ const (
 
 	// SignatureMagic is the magic number for wharf signature files (.pws)
 	SignatureMagic
+
+	// ManifestMagic is the magic number for wharf manifest files (.pwm)
+	ManifestMagic
 )
 
 // ModeMask is or'd with files being applied/created

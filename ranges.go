@@ -149,7 +149,7 @@ func doRanges(patch string) error {
 	numDatas := 0
 	numBlockRanges := 0
 	blockSize := int64(pwr.BlockSize)
-	bigBlockSize := int64(4 * 1024 * 1024) // 4MB
+	bigBlockSize := *appArgs.bigBlockSize
 
 	unchangedBytes := int64(0)
 	movedBytes := int64(0)
@@ -320,8 +320,13 @@ func doRanges(patch string) error {
 
 	actx := &pwr.ApplyContext{
 		Consumer:   comm.NewStateConsumer(),
-		OutputPool: &FakePool{sourceContainer},
 		TargetPool: targetPool,
+	}
+
+	if *rangesArgs.writeToDisk {
+		actx.OutputPath = "out"
+	} else {
+		actx.OutputPool = &FakePool{sourceContainer}
 	}
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)

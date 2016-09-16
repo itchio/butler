@@ -61,6 +61,7 @@ var (
 
 	probeCmd  = app.Command("probe", "(Advanced) Probe a folder").Hidden()
 	rangesCmd = app.Command("ranges", "(Advanced) Print touched ranges for a patch").Hidden()
+	splitCmd  = app.Command("split", "(Advanced) Split a container into blocks").Hidden()
 )
 
 var appArgs = struct {
@@ -79,6 +80,8 @@ var appArgs = struct {
 	compressionQuality   *int
 
 	maxChunkGroup *int
+
+	bigBlockSize *int64
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -96,6 +99,8 @@ var appArgs = struct {
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 
 	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
+
+	app.Flag("bigblocksize", "Size of big blocks").Default(fmt.Sprintf("%d", 4*1024*1024)).Hidden().Int64(),
 }
 
 var dlArgs = struct {
@@ -253,11 +258,21 @@ var probeArgs = struct {
 }
 
 var rangesArgs = struct {
-	patch   *string
-	latency *int
+	patch       *string
+	latency     *int
+	writeToDisk *bool
 }{
 	rangesCmd.Arg("patch", "Path of the patch to examine").Required().String(),
 	rangesCmd.Flag("latency", "Simulated latency to blockd, in milliseconds").Default("200").Int(),
+	rangesCmd.Flag("writetodisk", "Write to disk instead of in memory").Default("false").Bool(),
+}
+
+var splitArgs = struct {
+	target   *string
+	manifest *string
+}{
+	splitCmd.Arg("dir", "Directory to split").Required().String(),
+	splitCmd.Arg("manifest", "Path of the manifest to be written").Required().String(),
 }
 
 var fileArgs = struct {
@@ -431,6 +446,9 @@ func main() {
 
 	case rangesCmd.FullCommand():
 		ranges(*rangesArgs.patch)
+
+	case splitCmd.FullCommand():
+		split(*splitArgs.target, *splitArgs.manifest)
 
 	case whichCmd.FullCommand():
 		which()
