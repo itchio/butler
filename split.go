@@ -47,7 +47,7 @@ func doSplit(target string, manifest string) error {
 		return err
 	}
 
-	comm.Statf("splitting %s in %s", humanize.IBytes(uint64(container.Size)), container.Stats())
+	comm.Statf("Splitting %s in %s", humanize.IBytes(uint64(container.Size)), container.Stats())
 
 	startTime := time.Now()
 
@@ -61,6 +61,9 @@ func doSplit(target string, manifest string) error {
 		numBlocks := int(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
 		hashes[i] = make([][]byte, numBlocks)
 	}
+
+	comm.StartProgress()
+	comm.Progress(1.0)
 
 	for i := range container.Files {
 		go func(fileIndex int64) {
@@ -96,13 +99,10 @@ func doSplit(target string, manifest string) error {
 					return
 				}
 
-				comm.Logf("len(hashes) = %d", len(hashes))
-				comm.Logf("fileIndex = %d", fileIndex)
-				comm.Logf("len(hashes[fileIndex]) = %d", len(hashes[fileIndex]))
 				hashes[fileIndex][blockIndex] = append([]byte{}, hashBuf...)
 
 				blockPath := filepath.Join(blockDir, "shake128-32", fmt.Sprintf("%x", hashBuf), fmt.Sprintf("%d", len(buf)))
-				comm.Logf("%s", blockPath)
+				comm.ProgressLabel(blockPath)
 
 				err = os.MkdirAll(filepath.Dir(blockPath), 0755)
 				if err != nil {
@@ -151,10 +151,12 @@ func doSplit(target string, manifest string) error {
 		}
 	}
 
+	comm.EndProgress()
+
 	duration := time.Since(startTime)
 	perSec := humanize.IBytes(uint64(float64(container.Size) / duration.Seconds()))
 
-	comm.Statf("Read everything in %s (%s/s)", duration, perSec)
+	comm.Statf("Processed %s in %s (%s/s)", humanize.IBytes(uint64(container.Size)), duration, perSec)
 
 	// write manifest
 	manifestWriter, err := os.Create(*splitArgs.manifest)

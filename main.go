@@ -258,11 +258,13 @@ var probeArgs = struct {
 }
 
 var rangesArgs = struct {
+	manifest    *string
 	patch       *string
 	latency     *int
 	writeToDisk *bool
 }{
-	rangesCmd.Arg("patch", "Path of the patch to examine").Required().String(),
+	rangesCmd.Arg("manifest", "Path of the manifest of the previous build").Required().String(),
+	rangesCmd.Arg("patch", "Path of the patch to apply").Required().String(),
 	rangesCmd.Flag("latency", "Simulated latency to blockd, in milliseconds").Default("200").Int(),
 	rangesCmd.Flag("writetodisk", "Write to disk instead of in memory").Default("false").Bool(),
 }
@@ -445,7 +447,7 @@ func main() {
 		probe(*probeArgs.target)
 
 	case rangesCmd.FullCommand():
-		ranges(*rangesArgs.patch)
+		ranges(*rangesArgs.manifest, *rangesArgs.patch)
 
 	case splitCmd.FullCommand():
 		split(*splitArgs.target, *splitArgs.manifest)

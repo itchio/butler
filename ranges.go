@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -21,8 +22,8 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-func ranges(patch string) {
-	must(doRanges(patch))
+func ranges(manifest string, patch string) {
+	must(doRanges(manifest, patch))
 }
 
 type FakePool struct {
@@ -95,7 +96,7 @@ func (fp *FakePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	return &NopWriteCloser{ioutil.Discard}, nil
 }
 
-func doRanges(patch string) error {
+func doRanges(manifest string, patch string) error {
 	patchStats, err := os.Lstat(patch)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -269,20 +270,89 @@ func doRanges(patch string) error {
 				}
 				neededBlockSize += size
 				neededBlocks++
-				address := fmt.Sprintf("shake128-32/fakehash-%d-%d/%d", i, j, size)
-				blockAddresses.Set(int64(i), j, address)
+				// address := fmt.Sprintf("shake128-32/fakehash-%d-%d/%d", i, j, size)
+				// blockAddresses.Set(int64(i), j, address)
 			}
 		}
 	}
 	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
 	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
 
-	fullZeroBlock := make([]byte, bigBlockSize)
+	pathToFileIndex := make(map[string]int)
+	for i, f := range targetContainer.Files {
+		pathToFileIndex[f.Path] = i
+	}
+
+	manifestReader, err := os.Open(manifest)
+	if err != nil {
+		return err
+	}
+
+	rawManWire := wire.NewReadContext(manifestReader)
+	err = rawManWire.ExpectMagic(pwr.ManifestMagic)
+	if err != nil {
+		return err
+	}
+
+	mh := &pwr.ManifestHeader{}
+	err = rawManWire.ReadMessage(mh)
+	if err != nil {
+		return err
+	}
+
+	if mh.Algorithm != pwr.HashAlgorithm_SHAKE128_32 {
+		return fmt.Errorf("Manifest has unsupported hash algorithm %d, expected %d", mh.Algorithm, pwr.HashAlgorithm_SHAKE128_32)
+	}
+
+	manWire, err := pwr.DecompressWire(rawManWire, mh.GetCompression())
+	if err != nil {
+		return err
+	}
+
+	manContainer := &tlc.Container{}
+	err = manWire.ReadMessage(manContainer)
+	if err != nil {
+		return err
+	}
+
+	sh = &pwr.SyncHeader{}
+	mbh := &pwr.ManifestBlockHash{}
+
+	for i, f := range manContainer.Files {
+		sh.Reset()
+		err = manWire.ReadMessage(sh)
+		if err != nil {
+			return err
+		}
+
+		if int64(i) != sh.FileIndex {
+			return fmt.Errorf("manifest format error: expected file %d, got %d", i, sh.FileIndex)
+		}
+
+		fileIndex := pathToFileIndex[f.Path]
+		numBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
+		for j := int64(0); j < numBlocks; j++ {
+			mbh.Reset()
+			err = manWire.ReadMessage(mbh)
+			if err != nil {
+				return err
+			}
+
+			size := bigBlockSize
+			if (j+1)*bigBlockSize > f.Size {
+				size = f.Size % bigBlockSize
+			}
+
+			address := fmt.Sprintf("shake128-32/%x/%d", mbh.Hash, size)
+			blockAddresses.Set(int64(fileIndex), j, address)
+		}
+	}
+
 	simulatedLatency := time.Duration(*rangesArgs.latency) * time.Millisecond
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/blocks/", func(w http.ResponseWriter, r *http.Request) {
-		tokens := strings.Split(strings.TrimLeft(r.URL.String(), "/blocks/"), "/")
+		tokens := strings.Split(strings.TrimPrefix(r.URL.String(), "/blocks/"), "/")
 		last := tokens[len(tokens)-1]
 		size, pErr := strconv.ParseInt(last, 10, 64)
 		if pErr != nil {
@@ -292,11 +362,28 @@ func doRanges(patch string) error {
 		}
 
 		time.Sleep(simulatedLatency)
-		// comm.Logf("Serving %s", r.URL.String())
 
-		_, hErr := w.Write(fullZeroBlock[0:size])
-		if hErr != nil {
-			panic(hErr)
+		path := filepath.FromSlash(strings.TrimPrefix(r.URL.String(), "/"))
+
+		comm.ProgressLabel(r.URL.String())
+
+		f, pErr := os.Open(path)
+		if pErr != nil {
+			http.Error(w, "Block not found", 404)
+			return
+		}
+
+		defer f.Close()
+
+		bytesWritten, pErr := io.Copy(w, f)
+		if pErr != nil {
+			comm.Logf("Error when writing block to http: %s", pErr.Error())
+			return
+		}
+
+		if bytesWritten != size {
+			comm.Logf("Expected block to be %d, but got %d", size, bytesWritten)
+			return
 		}
 	})
 	go func() {

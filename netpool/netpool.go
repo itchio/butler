@@ -37,6 +37,10 @@ func (hs *HttpSource) Open(key string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("Upstream returned HTTP %d", res.StatusCode)
+	}
+
 	return res.Body, nil
 }
 
@@ -76,6 +80,9 @@ func (np *NetPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 
 		offset: 0,
 		size:   np.Container.Files[fileIndex].Size,
+
+		blockIndex: -1,
+		blockBuf:   make([]byte, np.BlockSize),
 	}
 	return np.reader, nil
 }
@@ -99,6 +106,7 @@ type NetPoolReader struct {
 	offset     int64
 	size       int64
 	blockIndex int64
+	blockBuf   []byte
 }
 
 var _ io.ReadSeeker = (*NetPoolReader)(nil)
@@ -113,16 +121,24 @@ func (npr *NetPoolReader) Read(buf []byte) (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			io.ReadFull(r, buf)
+			io.ReadFull(r, npr.blockBuf)
 		}
 	}
 
 	newOffset := npr.offset + int64(len(buf))
-	if newOffset >= npr.size {
+	if newOffset > npr.size {
 		newOffset = npr.size
 	}
 
+	blockEnd := (npr.blockIndex + 1) * npr.Pool.BlockSize
+	if newOffset > blockEnd {
+		newOffset = blockEnd
+	}
+
 	readSize := int(newOffset - npr.offset)
+	blockStart := npr.blockIndex * npr.Pool.BlockSize
+	blockOffset := npr.offset - blockStart
+	copy(buf, npr.blockBuf[blockOffset:])
 	npr.offset = newOffset
 
 	if readSize == 0 {
