@@ -88,6 +88,20 @@ func file(path string) {
 			comm.Logf("%s: %s wharf signature file (%s) with %s", path, prettySize, sh.GetCompression().ToString(), container.Stats())
 		}
 
+	case pwr.ManifestMagic:
+		{
+			mh := &pwr.ManifestHeader{}
+			rctx := wire.NewReadContext(reader)
+			must(rctx.ReadMessage(mh))
+
+			rctx, err = pwr.DecompressWire(rctx, mh.GetCompression())
+			must(err)
+			container := &tlc.Container{}
+			must(rctx.ReadMessage(container))
+
+			comm.Logf("%s: %s wharf manifest file (%s) with %s", path, prettySize, mh.GetCompression().ToString(), container.Stats())
+		}
+
 	default:
 		_, err := reader.Seek(0, os.SEEK_SET)
 		must(err)
@@ -165,6 +179,19 @@ func ls(path string) {
 	case pwr.SignatureMagic:
 		{
 			h := &pwr.SignatureHeader{}
+			rctx := wire.NewReadContext(reader)
+			must(rctx.ReadMessage(h))
+
+			rctx, err = pwr.DecompressWire(rctx, h.GetCompression())
+			must(err)
+			container := &tlc.Container{}
+			must(rctx.ReadMessage(container))
+			container.Print(log)
+		}
+
+	case pwr.ManifestMagic:
+		{
+			h := &pwr.ManifestHeader{}
 			rctx := wire.NewReadContext(reader)
 			must(rctx.ReadMessage(h))
 
