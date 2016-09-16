@@ -3,7 +3,6 @@ package netpool
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -114,7 +113,7 @@ func (npr *NetPoolReader) Read(buf []byte) (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			io.Copy(ioutil.Discard, r)
+			io.ReadFull(r, buf)
 		}
 	}
 

@@ -253,9 +253,11 @@ var probeArgs = struct {
 }
 
 var rangesArgs = struct {
-	patch *string
+	patch   *string
+	latency *int
 }{
 	rangesCmd.Arg("patch", "Path of the patch to examine").Required().String(),
+	rangesCmd.Flag("latency", "Simulated latency to blockd, in milliseconds").Default("200").Int(),
 }
 
 var fileArgs = struct {

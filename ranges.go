@@ -7,6 +7,8 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -275,10 +277,27 @@ func doRanges(patch string) error {
 	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
 	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
 
+	fullZeroBlock := make([]byte, bigBlockSize)
+	simulatedLatency := time.Duration(*rangesArgs.latency) * time.Millisecond
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/blocks/", func(w http.ResponseWriter, r *http.Request) {
-		comm.Logf("Serving %s", r.URL.String())
-		io.WriteString(w, "Hello world!")
+		tokens := strings.Split(strings.TrimLeft(r.URL.String(), "/blocks/"), "/")
+		last := tokens[len(tokens)-1]
+		size, pErr := strconv.ParseInt(last, 10, 64)
+		if pErr != nil {
+			comm.Warnf("Invalid URL requested", r.URL.String())
+			http.Error(w, "Invalid size", 400)
+			return
+		}
+
+		time.Sleep(simulatedLatency)
+		// comm.Logf("Serving %s", r.URL.String())
+
+		_, hErr := w.Write(fullZeroBlock[0:size])
+		if hErr != nil {
+			panic(hErr)
+		}
 	})
 	go func() {
 		httpErr := http.ListenAndServe(fmt.Sprintf(":%d", httpSourcePort), mux)
