@@ -275,6 +275,13 @@ func doRanges(manifest string, patch string) error {
 	}
 	sbs.Latency = time.Duration(*rangesArgs.latency) * time.Millisecond
 
+	go func() {
+		hErr := sbs.ListenAndServe()
+		if hErr != nil {
+			panic(hErr)
+		}
+	}()
+
 	targetPool := &netpool.NetPool{
 		Container:      targetContainer,
 		BlockSize:      bigBlockSize,
