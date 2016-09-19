@@ -40,7 +40,7 @@ func NewContext(BlockSize int) *Context {
 }
 
 // ApplyPatch applies the difference to the target.
-func (ctx *Context) ApplyPatch(output io.Writer, pool FilePool, ops chan Operation) error {
+func (ctx *Context) ApplyPatch(output io.Writer, pool Pool, ops chan Operation) error {
 	blockSize := int64(ctx.blockSize)
 
 	for op := range ops {

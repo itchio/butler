@@ -1,4 +1,4 @@
-package tlc
+package zippool
 
 import (
 	"archive/zip"
@@ -11,11 +11,12 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/sync"
+	"github.com/itchio/wharf/tlc"
 )
 
-// ContainerZipPool implements the sync.ZipPool interface based on a Container
-type ContainerZipPool struct {
-	container *Container
+// ZipPool implements the sync.ZipPool interface based on a Container
+type ZipPool struct {
+	container *tlc.Container
 	fmap      map[string]*zip.File
 
 	fileIndex int64
@@ -25,11 +26,18 @@ type ContainerZipPool struct {
 	readSeeker    ReadCloseSeeker
 }
 
-var _ sync.FilePool = (*ContainerZipPool)(nil)
+var _ sync.Pool = (*ZipPool)(nil)
 
-// NewZipPool creates a new ContainerZipPool from the given Container
+// ReadCloseSeeker unifies io.Reader, io.Seeker, and io.Closer
+type ReadCloseSeeker interface {
+	io.Reader
+	io.Seeker
+	io.Closer
+}
+
+// NewZipPool creates a new ZipPool from the given Container
 // metadata and a base path on-disk to allow reading from files.
-func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
+func New(c *tlc.Container, zipReader *zip.Reader) *ZipPool {
 	fmap := make(map[string]*zip.File)
 	for _, f := range zipReader.File {
 		info := f.FileInfo()
@@ -44,7 +52,7 @@ func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
 		}
 	}
 
-	return &ContainerZipPool{
+	return &ZipPool{
 		container: c,
 		fmap:      fmap,
 
@@ -57,27 +65,27 @@ func (c *Container) NewZipPool(zipReader *zip.Reader) *ContainerZipPool {
 }
 
 // GetSize returns the size of the file at index fileIndex
-func (cfp *ContainerZipPool) GetSize(fileIndex int64) int64 {
+func (cfp *ZipPool) GetSize(fileIndex int64) int64 {
 	return cfp.container.Files[fileIndex].Size
 }
 
 // GetRelativePath returns the slashed path of a file, relative to
 // the container's root.
-func (cfp *ContainerZipPool) GetRelativePath(fileIndex int64) string {
+func (cfp *ZipPool) GetRelativePath(fileIndex int64) string {
 	return cfp.container.Files[fileIndex].Path
 }
 
 // GetPath returns the native path of a file (with slashes or backslashes)
-// on-disk, based on the ContainerZipPool's base path
-func (cfp *ContainerZipPool) GetPath(fileIndex int64) string {
-	panic("ContainerZipPool does not support GetPath")
+// on-disk, based on the ZipPool's base path
+func (cfp *ZipPool) GetPath(fileIndex int64) string {
+	panic("ZipPool does not support GetPath")
 }
 
 // GetReader returns an io.Reader for the file at index fileIndex
 // Successive calls to `GetReader` will attempt to re-use the last
 // returned reader if the file index is similar. The cache size is 1, so
 // reading in parallel from different files is not supported.
-func (cfp *ContainerZipPool) GetReader(fileIndex int64) (io.Reader, error) {
+func (cfp *ZipPool) GetReader(fileIndex int64) (io.Reader, error) {
 	if cfp.fileIndex != fileIndex {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
@@ -114,7 +122,7 @@ func (cfp *ContainerZipPool) GetReader(fileIndex int64) (io.Reader, error) {
 }
 
 // GetReadSeeker is like GetReader but the returned object allows seeking
-func (cfp *ContainerZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
+func (cfp *ZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	if cfp.seekFileIndex != fileIndex {
 		if cfp.readSeeker != nil {
 			err := cfp.readSeeker.Close()
@@ -149,8 +157,8 @@ func (cfp *ContainerZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, erro
 	return cfp.readSeeker, nil
 }
 
-// Close closes all reader belonging to this ContainerZipPool
-func (cfp *ContainerZipPool) Close() error {
+// Close closes all reader belonging to this ZipPool
+func (cfp *ZipPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {

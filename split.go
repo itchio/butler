@@ -14,6 +14,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/tlc"
@@ -67,7 +68,7 @@ func doSplit(target string, manifest string) error {
 
 	for i := range container.Files {
 		go func(fileIndex int64) {
-			pool := container.NewZipPool(zr)
+			pool := zippool.New(container, zr)
 			r, err := pool.GetReader(int64(fileIndex))
 			if err != nil {
 				errs <- err

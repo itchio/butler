@@ -56,15 +56,16 @@ type Context struct {
 	uniqueHasher hash.Hash
 }
 
-// A FilePool gives read+seek access to an ordered list of files, by index
-type FilePool interface {
+// A Pool gives read+seek access to an ordered list of files, by index
+type Pool interface {
 	GetReader(fileIndex int64) (io.Reader, error)
 	GetReadSeeker(fileIndex int64) (io.ReadSeeker, error)
 	Close() error
 }
 
-type WritableFilePool interface {
-	FilePool
+// A WritablePool adds writing access to the Pool type
+type WritablePool interface {
+	Pool
 
 	GetWriter(fileIndex int64) (io.WriteCloser, error)
 }

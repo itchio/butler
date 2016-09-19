@@ -10,6 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/tlc"
 	"golang.org/x/crypto/sha3"
@@ -34,7 +35,7 @@ func doProbe(target string) error {
 	bigBlockSize := 4 * 1024 * 1024 // 4MB blocks
 	comm.Opf("Compressing %s as %s blocks", targetContainer.Stats(), humanize.IBytes(uint64(bigBlockSize)))
 
-	pool := targetContainer.NewFilePool(target)
+	pool := fspool.New(targetContainer, target)
 
 	brotliParams := enc.NewBrotliParams()
 	brotliParams.SetQuality(*appArgs.compressionQuality)

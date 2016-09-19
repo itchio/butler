@@ -9,8 +9,8 @@ import (
 
 const minScannedFileSize = 4
 
-func (c *Container) FixPermissions(fp sync.FilePool) error {
-	defer fp.Close()
+func (c *Container) FixPermissions(pool sync.Pool) error {
+	defer pool.Close()
 
 	buf := make([]byte, minScannedFileSize)
 	for index, f := range c.Files {
@@ -18,7 +18,7 @@ func (c *Container) FixPermissions(fp sync.FilePool) error {
 			continue
 		}
 
-		r, err := fp.GetReader(int64(index))
+		r, err := pool.GetReader(int64(index))
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}

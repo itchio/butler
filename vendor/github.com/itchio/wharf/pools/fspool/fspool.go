@@ -1,4 +1,4 @@
-package tlc
+package fspool
 
 import (
 	"io"
@@ -7,7 +7,25 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/sync"
+	"github.com/itchio/wharf/tlc"
 )
+
+const (
+	// ModeMask is or'd with the permission files being opened
+	ModeMask = 0644
+)
+
+// FsPool is a filesystem-backed Pool+WritablePool
+type FsPool struct {
+	container *tlc.Container
+	basePath  string
+
+	fileIndex int64
+	reader    ReadCloseSeeker
+}
+
+var _ sync.Pool = (*FsPool)(nil)
+var _ sync.WritablePool = (*FsPool)(nil)
 
 // ReadCloseSeeker unifies io.Reader, io.Seeker, and io.Closer
 type ReadCloseSeeker interface {
@@ -16,22 +34,10 @@ type ReadCloseSeeker interface {
 	io.Closer
 }
 
-// ContainerFilePool implements the sync.FilePool interface based on a Container
-type ContainerFilePool struct {
-	container *Container
-	basePath  string
-
-	fileIndex int64
-	reader    ReadCloseSeeker
-}
-
-var _ sync.FilePool = (*ContainerFilePool)(nil)
-var _ sync.WritableFilePool = (*ContainerFilePool)(nil)
-
-// NewFilePool creates a new ContainerFilePool from the given Container
+// NewFsPool creates a new FsPool from the given Container
 // metadata and a base path on-disk to allow reading from files.
-func (c *Container) NewFilePool(basePath string) *ContainerFilePool {
-	return &ContainerFilePool{
+func New(c *tlc.Container, basePath string) *FsPool {
+	return &FsPool{
 		container: c,
 		basePath:  basePath,
 
@@ -41,19 +47,19 @@ func (c *Container) NewFilePool(basePath string) *ContainerFilePool {
 }
 
 // GetSize returns the size of the file at index fileIndex
-func (cfp *ContainerFilePool) GetSize(fileIndex int64) int64 {
+func (cfp *FsPool) GetSize(fileIndex int64) int64 {
 	return cfp.container.Files[fileIndex].Size
 }
 
 // GetRelativePath returns the slashed path of a file, relative to
 // the container's root.
-func (cfp *ContainerFilePool) GetRelativePath(fileIndex int64) string {
+func (cfp *FsPool) GetRelativePath(fileIndex int64) string {
 	return cfp.container.Files[fileIndex].Path
 }
 
 // GetPath returns the native path of a file (with slashes or backslashes)
-// on-disk, based on the ContainerFilePool's base path
-func (cfp *ContainerFilePool) GetPath(fileIndex int64) string {
+// on-disk, based on the FsPool's base path
+func (cfp *FsPool) GetPath(fileIndex int64) string {
 	path := filepath.FromSlash(cfp.container.Files[fileIndex].Path)
 	fullPath := filepath.Join(cfp.basePath, path)
 	return fullPath
@@ -63,12 +69,12 @@ func (cfp *ContainerFilePool) GetPath(fileIndex int64) string {
 // Successive calls to `GetReader` will attempt to re-use the last
 // returned reader if the file index is similar. The cache size is 1, so
 // reading in parallel from different files is not supported.
-func (cfp *ContainerFilePool) GetReader(fileIndex int64) (io.Reader, error) {
+func (cfp *FsPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return cfp.GetReadSeeker(fileIndex)
 }
 
 // GetReadSeeker is like GetReader but the returned object allows seeking
-func (cfp *ContainerFilePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
+func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	if cfp.fileIndex != fileIndex {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
@@ -90,8 +96,8 @@ func (cfp *ContainerFilePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, err
 	return cfp.reader, nil
 }
 
-// Close closes all reader belonging to this ContainerFilePool
-func (cfp *ContainerFilePool) Close() error {
+// Close closes all reader belonging to this FsPool
+func (cfp *FsPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
@@ -105,7 +111,7 @@ func (cfp *ContainerFilePool) Close() error {
 	return nil
 }
 
-func (cfp *ContainerFilePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
+func (cfp *FsPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	path := cfp.GetPath(fileIndex)
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))

@@ -86,7 +86,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 	}, nil
 }
 
-func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.FilePool, consumer *pwr.StateConsumer) (*CompressResult, error) {
+func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Pool, consumer *pwr.StateConsumer) (*CompressResult, error) {
 	var err error
 	var uncompressedSize int64
 	var compressedSize int64

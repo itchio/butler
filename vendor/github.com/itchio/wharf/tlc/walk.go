@@ -104,7 +104,7 @@ func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 		}
 
 		if !fi.IsDir() {
-			return nil, errors.Wrap(fmt.Errorf("tlc: can't walk non-directory %s", BasePath), 1)
+			return nil, errors.Wrap(fmt.Errorf("can't walk non-directory %s", BasePath), 1)
 		}
 
 		err = filepath.Walk(BasePath, onEntry)
@@ -194,7 +194,12 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		})
 	}
 
-	container := &Container{Size: TotalOffset, Dirs: Dirs, Symlinks: Symlinks, Files: Files}
+	container := &Container{
+		Size:     TotalOffset,
+		Dirs:     Dirs,
+		Symlinks: Symlinks,
+		Files:    Files,
+	}
 	return container, nil
 }
 

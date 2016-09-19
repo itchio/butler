@@ -1,9 +1,7 @@
 package netpool
 
 import (
-	"fmt"
 	"io"
-	"net/http"
 	"os"
 
 	"github.com/itchio/wharf/pwr"
@@ -24,26 +22,7 @@ type Source interface {
 	Open(key string) (io.ReadCloser, error)
 }
 
-type HttpSource struct {
-	BaseURL string
-}
-
-var _ Source = (*HttpSource)(nil)
-
-func (hs *HttpSource) Open(key string) (io.ReadCloser, error) {
-	url := fmt.Sprintf("%s/%s", hs.BaseURL, key)
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("Upstream returned HTTP %d", res.StatusCode)
-	}
-
-	return res.Body, nil
-}
-
+// A NetPool implements a pool that requests required blocks from network
 type NetPool struct {
 	Container      *tlc.Container
 	BlockSize      int64
@@ -55,7 +34,7 @@ type NetPool struct {
 	reader *NetPoolReader
 }
 
-var _ sync.FilePool = (*NetPool)(nil)
+var _ sync.Pool = (*NetPool)(nil)
 
 func (np *NetPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return np.GetReadSeeker(fileIndex)

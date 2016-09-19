@@ -2,98 +2,22 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
 	"math"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/netpool"
+	"github.com/itchio/wharf/pools/netpool"
+	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
 
 func ranges(manifest string, patch string) {
 	must(doRanges(manifest, patch))
-}
-
-type FakePool struct {
-	container *tlc.Container
-}
-
-var _ sync.FilePool = (*FakePool)(nil)
-var _ sync.WritableFilePool = (*FakePool)(nil)
-
-func (fp *FakePool) GetReader(fileIndex int64) (io.Reader, error) {
-	return fp.GetReadSeeker(fileIndex)
-}
-
-func (fp *FakePool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
-	return &NullReader{
-		size: fp.container.Files[fileIndex].Size,
-	}, nil
-}
-
-type NullReader struct {
-	offset int64
-	size   int64
-}
-
-func (nr *NullReader) Read(buf []byte) (int, error) {
-	newOffset := nr.offset + int64(len(buf))
-	if newOffset >= nr.size {
-		newOffset = nr.size
-	}
-
-	readSize := int(newOffset - nr.offset)
-	nr.offset = newOffset
-
-	if readSize == 0 {
-		return 0, io.EOF
-	} else {
-		return readSize, nil
-	}
-}
-
-func (nr *NullReader) Seek(offset int64, whence int) (int64, error) {
-	switch whence {
-	case os.SEEK_END:
-		nr.offset = nr.size + offset
-	case os.SEEK_CUR:
-		nr.offset += offset
-	case os.SEEK_SET:
-		nr.offset = offset
-	}
-	return nr.offset, nil
-}
-
-func (fp *FakePool) Close() error {
-	return nil
-}
-
-type NopWriteCloser struct {
-	writer io.Writer
-}
-
-func (nwc *NopWriteCloser) Write(buf []byte) (int, error) {
-	return nwc.writer.Write(buf)
-}
-
-func (nwc *NopWriteCloser) Close() error {
-	return nil
-}
-
-func (fp *FakePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
-	return &NopWriteCloser{ioutil.Discard}, nil
 }
 
 func doRanges(manifest string, patch string) error {
@@ -254,7 +178,6 @@ func doRanges(manifest string, patch string) error {
 	neededBlocks := 0
 	neededBlockSize := int64(0)
 
-	httpSourcePort := 23004
 	blockAddresses := make(netpool.BlockAddressMap)
 
 	for i, blockMap := range requiredOldBlocks {
@@ -270,8 +193,6 @@ func doRanges(manifest string, patch string) error {
 				}
 				neededBlockSize += size
 				neededBlocks++
-				// address := fmt.Sprintf("shake128-32/fakehash-%d-%d/%d", i, j, size)
-				// blockAddresses.Set(int64(i), j, address)
 			}
 		}
 	}
@@ -348,59 +269,18 @@ func doRanges(manifest string, patch string) error {
 		}
 	}
 
-	simulatedLatency := time.Duration(*rangesArgs.latency) * time.Millisecond
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/blocks/", func(w http.ResponseWriter, r *http.Request) {
-		tokens := strings.Split(strings.TrimPrefix(r.URL.String(), "/blocks/"), "/")
-		last := tokens[len(tokens)-1]
-		size, pErr := strconv.ParseInt(last, 10, 64)
-		if pErr != nil {
-			comm.Warnf("Invalid URL requested", r.URL.String())
-			http.Error(w, "Invalid size", 400)
-			return
-		}
-
-		time.Sleep(simulatedLatency)
-
-		path := filepath.FromSlash(strings.TrimPrefix(r.URL.String(), "/"))
-
-		comm.ProgressLabel(r.URL.String())
-
-		f, pErr := os.Open(path)
-		if pErr != nil {
-			http.Error(w, "Block not found", 404)
-			return
-		}
-
-		defer f.Close()
-
-		bytesWritten, pErr := io.Copy(w, f)
-		if pErr != nil {
-			comm.Logf("Error when writing block to http: %s", pErr.Error())
-			return
-		}
-
-		if bytesWritten != size {
-			comm.Logf("Expected block to be %d, but got %d", size, bytesWritten)
-			return
-		}
-	})
-	go func() {
-		httpErr := http.ListenAndServe(fmt.Sprintf(":%d", httpSourcePort), mux)
-		if httpErr != nil {
-			panic(httpErr)
-		}
-	}()
+	sbs, err := netpool.NewSimpleBlockServer("./blocks", 23004)
+	if err != nil {
+		return err
+	}
+	sbs.Latency = time.Duration(*rangesArgs.latency) * time.Millisecond
 
 	targetPool := &netpool.NetPool{
 		Container:      targetContainer,
 		BlockSize:      bigBlockSize,
 		BlockAddresses: blockAddresses,
 
-		Upstream: &netpool.HttpSource{
-			BaseURL: fmt.Sprintf("http://localhost:%d/blocks", httpSourcePort),
-		},
+		Upstream: sbs.Source(),
 
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -413,7 +293,7 @@ func doRanges(manifest string, patch string) error {
 	if *rangesArgs.writeToDisk {
 		actx.OutputPath = "out"
 	} else {
-		actx.OutputPool = &FakePool{sourceContainer}
+		actx.OutputPool = nullpool.New(sourceContainer)
 	}
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)

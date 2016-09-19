@@ -20,7 +20,7 @@ type DiffContext struct {
 	Consumer    *StateConsumer
 
 	SourceContainer *tlc.Container
-	FilePool        sync.FilePool
+	Pool            sync.Pool
 
 	TargetContainer *tlc.Container
 	TargetSignature []sync.BlockHash
@@ -120,9 +120,9 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		Type: SyncOp_HEY_YOU_DID_IT,
 	}
 
-	filePool := dctx.FilePool
+	pool := dctx.Pool
 	defer func() {
-		if fErr := filePool.Close(); fErr != nil && err == nil {
+		if fErr := pool.Close(); fErr != nil && err == nil {
 			err = errors.Wrap(fErr, 1)
 		}
 	}()
@@ -140,7 +140,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		}
 
 		var sourceReader io.Reader
-		sourceReader, err = filePool.GetReader(int64(fileIndex))
+		sourceReader, err = pool.GetReader(int64(fileIndex))
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}

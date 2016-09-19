@@ -15,6 +15,8 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -124,7 +126,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	// creation & upload setup is done
 
 	var sourceContainer *tlc.Container
-	var sourcePool sync.FilePool
+	var sourcePool sync.Pool
 
 	comm.Debugf("Waiting for source container")
 	select {
@@ -205,7 +207,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		},
 
 		SourceContainer: sourceContainer,
-		FilePool:        sourcePool,
+		Pool:            sourcePool,
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,
@@ -364,7 +366,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 
 type walkResult struct {
 	container *tlc.Container
-	pool      sync.FilePool
+	pool      sync.Pool
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
@@ -385,7 +387,7 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 
 		result = walkResult{
 			container: container,
-			pool:      container.NewFilePool(path),
+			pool:      fspool.New(container, path),
 		}
 	} else {
 		sourceReader, err := os.Open(path)
@@ -408,7 +410,7 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 
 		result = walkResult{
 			container: container,
-			pool:      container.NewZipPool(zr),
+			pool:      zippool.New(container, zr),
 		}
 	}
 

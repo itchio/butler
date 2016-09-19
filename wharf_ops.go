@@ -11,6 +11,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -43,7 +45,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 			}
 
 			comm.StartProgress()
-			targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewFilePool(target), comm.NewStateConsumer())
+			targetSignature, err = pwr.ComputeSignature(targetContainer, fspool.New(targetContainer, target), comm.NewStateConsumer())
 			comm.EndProgress()
 			if err != nil {
 				return errors.Wrap(err, 1)
@@ -88,7 +90,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 				comm.Opf("Walking archive (%s)", targetContainer.Stats())
 
 				comm.StartProgress()
-				targetSignature, err = pwr.ComputeSignature(targetContainer, targetContainer.NewZipPool(zr), comm.NewStateConsumer())
+				targetSignature, err = pwr.ComputeSignature(targetContainer, zippool.New(targetContainer, zr), comm.NewStateConsumer())
 				comm.EndProgress()
 				if err != nil {
 					return errors.Wrap(err, 1)
@@ -114,10 +116,10 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	var sourcePool sync.FilePool
+	var sourcePool sync.Pool
 	if source == "/dev/null" {
 		sourceContainer = &tlc.Container{}
-		sourcePool = sourceContainer.NewFilePool(source)
+		sourcePool = fspool.New(sourceContainer, source)
 	} else {
 		var err error
 		stats, err := os.Lstat(source)
@@ -130,7 +132,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 			if err != nil {
 				return errors.Wrap(err, 1)
 			}
-			sourcePool = sourceContainer.NewFilePool(source)
+			sourcePool = fspool.New(sourceContainer, source)
 		} else {
 			sourceReader, err := os.Open(source)
 			if err != nil {
@@ -147,7 +149,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 				return errors.Wrap(err, 1)
 			}
 
-			sourcePool = sourceContainer.NewZipPool(zr)
+			sourcePool = zippool.New(sourceContainer, zr)
 		}
 	}
 
@@ -169,7 +171,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	dctx := &pwr.DiffContext{
 		SourceContainer: sourceContainer,
-		FilePool:        sourcePool,
+		Pool:            sourcePool,
 
 		TargetContainer: targetContainer,
 		TargetSignature: targetSignature,
@@ -283,7 +285,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	}
 
 	if fixPerms {
-		container.FixPermissions(container.NewFilePool(output))
+		container.FixPermissions(fspool.New(container, output))
 	}
 
 	signatureWriter, err := os.Create(signature)
@@ -305,7 +307,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
-	err = pwr.ComputeSignatureToWriter(container, container.NewFilePool(output), comm.NewStateConsumer(), func(hash sync.BlockHash) error {
+	err = pwr.ComputeSignatureToWriter(container, fspool.New(container, output), comm.NewStateConsumer(), func(hash sync.BlockHash) error {
 		return sigWire.WriteMessage(&pwr.BlockHash{
 			WeakHash:   hash.WeakHash,
 			StrongHash: hash.StrongHash,
@@ -348,7 +350,7 @@ func doVerify(signature string, output string) error {
 	}
 
 	comm.StartProgress()
-	hashes, err := pwr.ComputeSignature(refContainer, refContainer.NewFilePool(output), comm.NewStateConsumer())
+	hashes, err := pwr.ComputeSignature(refContainer, fspool.New(refContainer, output), comm.NewStateConsumer())
 	comm.EndProgress()
 	if err != nil {
 		return errors.Wrap(err, 1)
