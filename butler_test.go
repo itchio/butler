@@ -14,6 +14,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -161,7 +162,7 @@ func TestAllTheThings(t *testing.T) {
 		computedcontainer, err := tlc.Walk(filepath, filterPaths)
 		mist(t, err)
 
-		computedsig, err := pwr.ComputeSignature(computedcontainer, computedcontainer.NewFilePool(filepath), &pwr.StateConsumer{})
+		computedsig, err := pwr.ComputeSignature(computedcontainer, fspool.New(computedcontainer, filepath), &pwr.StateConsumer{})
 		mist(t, err)
 
 		assert.Equal(t, len(readcontainer.Files), len(computedcontainer.Files))
