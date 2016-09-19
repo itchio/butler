@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/wharf/pools/netpool"
 	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/pwr/genie"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
@@ -31,34 +32,18 @@ func doRanges(manifest string, patch string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	rawPatchWire := wire.NewReadContext(patchReader)
-	err = rawPatchWire.ExpectMagic(pwr.PatchMagic)
+	bigBlockSize := *appArgs.bigBlockSize
+
+	g := &genie.Genie{
+		BlockSize: bigBlockSize,
+	}
+	err = g.ParseHeader(patchReader)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	header := &pwr.PatchHeader{}
-	err = rawPatchWire.ReadMessage(header)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	patchWire, err := pwr.DecompressWire(rawPatchWire, header.Compression)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	targetContainer := &tlc.Container{}
-	err = patchWire.ReadMessage(targetContainer)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	sourceContainer := &tlc.Container{}
-	err = patchWire.ReadMessage(sourceContainer)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
+	targetContainer := g.TargetContainer
+	sourceContainer := g.SourceContainer
 
 	comm.Opf("Showing ranges for %s patch", humanize.IBytes(uint64(patchStats.Size())))
 	comm.Statf("Old version: %s in %s", humanize.IBytes(uint64(targetContainer.Size)), targetContainer.Stats())
@@ -71,107 +56,23 @@ func doRanges(manifest string, patch string) error {
 	comm.Statf("Delta: %s%s (%s%.2f%%)", deltaOp, humanize.IBytes(uint64(delta)), deltaOp, delta/float64(targetContainer.Size)*100.0)
 	comm.Log("")
 
-	numDatas := 0
-	numBlockRanges := 0
-	blockSize := int64(pwr.BlockSize)
-	bigBlockSize := *appArgs.bigBlockSize
-
-	unchangedBytes := int64(0)
-	movedBytes := int64(0)
-	freshBytes := int64(0)
-
 	requiredOldBlocks := make([]map[int64]bool, len(targetContainer.Files))
 	for i := 0; i < len(targetContainer.Files); i++ {
 		requiredOldBlocks[i] = make(map[int64]bool)
 	}
 
-	sh := &pwr.SyncHeader{}
-	for fileIndex, sourceFile := range sourceContainer.Files {
-		sh.Reset()
-		err := patchWire.ReadMessage(sh)
-		if err != nil {
-			return errors.Wrap(err, 1)
+	comps := make(chan *genie.Composition)
+
+	go func() {
+		for comp := range comps {
+			comm.Logf("got comp %s", comp)
 		}
+	}()
 
-		if sh.FileIndex != int64(fileIndex) {
-			fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
-			return errors.Wrap(pwr.ErrMalformedPatch, 1)
-		}
-
-		rop := &pwr.SyncOp{}
-
-		err = (func() error {
-			sourceOffset := int64(0)
-			numMoved := 0
-			numUnchanged := 0
-			numFresh := 0
-
-			for {
-				rop.Reset()
-				pErr := patchWire.ReadMessage(rop)
-				if pErr != nil {
-					return errors.Wrap(pErr, 1)
-				}
-
-				switch rop.Type {
-				case pwr.SyncOp_BLOCK_RANGE:
-					targetOffset := blockSize * rop.BlockIndex
-					targetFile := targetContainer.Files[rop.FileIndex]
-
-					size := blockSize * rop.BlockSpan
-
-					alignedSize := blockSize * (rop.BlockIndex + rop.BlockSpan)
-					// op includes last block which is smaller than blockSize
-					if alignedSize > targetFile.Size {
-						size -= blockSize
-						size += targetFile.Size % blockSize
-					}
-
-					if targetFile.Path == sourceFile.Path && targetOffset == sourceOffset {
-						// comm.Statf("%d unchanged blocks %d bytes into %s", rop.BlockSpan, sourceOffset, targetFile.Path)
-						unchangedBytes += size
-						numUnchanged++
-					} else {
-						movedBytes += size
-						numMoved++
-
-						bigBlockStart := int64(math.Floor(float64(rop.BlockIndex*blockSize) / float64(bigBlockSize)))
-						bigBlockEnd := int64(math.Ceil(float64(rop.BlockIndex*blockSize+size) / float64(bigBlockSize)))
-
-						for i := bigBlockStart; i < bigBlockEnd; i++ {
-							requiredOldBlocks[rop.FileIndex][i] = true
-						}
-					}
-
-					numBlockRanges++
-					sourceOffset += size
-				case pwr.SyncOp_DATA:
-					size := int64(len(rop.Data))
-					sourceOffset += size
-					freshBytes += size
-					numDatas++
-					numFresh++
-				case pwr.SyncOp_HEY_YOU_DID_IT:
-					if numFresh == 0 && numUnchanged == 0 && numMoved == 1 {
-						comm.Statf("Found rename!")
-					} else {
-						// comm.Statf("Fresh %d, unchanged %d, moved %d", numFresh, numUnchanged, numMoved)
-					}
-					return nil
-				}
-			}
-		})()
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
+	err = g.ParseContents(comps)
+	if err != nil {
+		return err
 	}
-
-	comm.Statf("%d BlockRange ops, %d Data ops", numBlockRanges, numDatas)
-	comm.Statf("Unchanged bytes: %s", humanize.IBytes(uint64(unchangedBytes)))
-	comm.Statf("Moved bytes    : %s", humanize.IBytes(uint64(movedBytes)))
-	comm.Statf("Fresh bytes    : %s", humanize.IBytes(uint64(freshBytes)))
-
-	comm.Log("")
 
 	totalBlocks := 0
 	partialBlocks := 0
@@ -236,7 +137,7 @@ func doRanges(manifest string, patch string) error {
 		return err
 	}
 
-	sh = &pwr.SyncHeader{}
+	sh := &pwr.SyncHeader{}
 	mbh := &pwr.ManifestBlockHash{}
 
 	for i, f := range manContainer.Files {
