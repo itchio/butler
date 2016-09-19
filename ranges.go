@@ -65,7 +65,32 @@ func doRanges(manifest string, patch string) error {
 
 	go func() {
 		for comp := range comps {
-			comm.Logf("got comp %s", comp)
+			reuse := false
+
+			if len(comp.Origins) == 1 {
+				switch origin := comp.Origins[0].(type) {
+				case *genie.BlockOrigin:
+					if origin.Offset%bigBlockSize == 0 {
+						reuse = true
+					}
+				}
+			}
+
+			if reuse {
+				comm.Logf("file %d, block %d is a re-use", comp.FileIndex, comp.BlockIndex)
+			} else {
+				comm.Logf("%s", comp.String())
+				for _, anyOrigin := range comp.Origins {
+					switch origin := anyOrigin.(type) {
+					case *genie.BlockOrigin:
+						blockStart := origin.Offset / bigBlockSize
+						blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
+						for j := blockStart; j < blockEnd; j++ {
+							requiredOldBlocks[origin.FileIndex][j] = true
+						}
+					}
+				}
+			}
 		}
 	}()
 
