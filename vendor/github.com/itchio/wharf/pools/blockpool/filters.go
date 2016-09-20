@@ -3,6 +3,7 @@ package blockpool
 import (
 	"fmt"
 
+	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
 )
@@ -27,6 +28,38 @@ func (bf BlockFilter) Has(location BlockLocation) bool {
 		return false
 	}
 	return row[location.BlockIndex]
+}
+
+func (bf BlockFilter) Stats(container *tlc.Container, blockSize int64) string {
+	totalBlocks := int64(0)
+	totalSize := int64(0)
+
+	usedBlocks := int64(0)
+	usedSize := int64(0)
+
+	for i, f := range container.Files {
+		numBlocks := f.Size / blockSize
+		for j := int64(0); j < numBlocks; j++ {
+			totalBlocks++
+			size := blockSize
+			alignedSize := (j + 1) * blockSize
+			if alignedSize > f.Size {
+				size = f.Size % blockSize
+			}
+
+			totalBlocks += 1
+			totalSize += size
+
+			if bf.Has(BlockLocation{FileIndex: int64(i), BlockIndex: j}) {
+				usedBlocks += 1
+				usedSize += size
+			}
+		}
+	}
+
+	return fmt.Sprintf("%d / %d blocks, %s / %s (%.2f%%)", usedBlocks, totalBlocks,
+		humanize.IBytes(uint64(usedSize)), humanize.IBytes(uint64(totalSize)),
+		float64(usedSize)/float64(totalSize)*100.0)
 }
 
 ////////////////

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/go-errors/errors"
@@ -45,6 +46,11 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 
 	addr := fmt.Sprintf("shake128-32/%x/%d", ds.hashBuf, len(data))
 	path := filepath.Join(ds.BasePath, addr)
+
+	err = os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 
 	err = ioutil.WriteFile(path, data, 0644)
 	if err != nil {

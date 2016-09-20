@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"time"
@@ -13,7 +12,6 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/pwr/genie"
 	"github.com/itchio/wharf/tlc"
-	"github.com/itchio/wharf/wire"
 )
 
 type loggingSink struct {
@@ -129,8 +127,6 @@ func doRanges(manifest string, patch string) error {
 	neededBlocks := 0
 	neededBlockSize := int64(0)
 
-	blockAddresses := make(blockpool.BlockAddressMap)
-
 	for i, blockMap := range requiredOldBlocks {
 		f := targetContainer.Files[i]
 		fileNumBlocks := (f.Size + bigBlockSize - 1) / bigBlockSize
@@ -170,74 +166,19 @@ func doRanges(manifest string, patch string) error {
 	comm.Statf("Fresh blocks: %d, %s total", freshBlocks, humanize.IBytes(uint64(freshBlocksSize)))
 	comm.Statf("Required old blocks order: %v", requiredOldBlocksList)
 
-	pathToFileIndex := make(map[string]int)
-	for i, f := range targetContainer.Files {
-		pathToFileIndex[f.Path] = i
-	}
-
 	manifestReader, err := os.Open(manifest)
 	if err != nil {
 		return err
 	}
 
-	rawManWire := wire.NewReadContext(manifestReader)
-	err = rawManWire.ExpectMagic(pwr.ManifestMagic)
+	manContainer, blockAddresses, err := blockpool.ReadManifest(manifestReader)
 	if err != nil {
 		return err
 	}
 
-	mh := &pwr.ManifestHeader{}
-	err = rawManWire.ReadMessage(mh)
+	blockAddresses, err = blockAddresses.TranslateFileIndices(manContainer, targetContainer)
 	if err != nil {
 		return err
-	}
-
-	if mh.Algorithm != pwr.HashAlgorithm_SHAKE128_32 {
-		return fmt.Errorf("Manifest has unsupported hash algorithm %d, expected %d", mh.Algorithm, pwr.HashAlgorithm_SHAKE128_32)
-	}
-
-	manWire, err := pwr.DecompressWire(rawManWire, mh.GetCompression())
-	if err != nil {
-		return err
-	}
-
-	manContainer := &tlc.Container{}
-	err = manWire.ReadMessage(manContainer)
-	if err != nil {
-		return err
-	}
-
-	sh := &pwr.SyncHeader{}
-	mbh := &pwr.ManifestBlockHash{}
-
-	for i, f := range manContainer.Files {
-		sh.Reset()
-		err = manWire.ReadMessage(sh)
-		if err != nil {
-			return err
-		}
-
-		if int64(i) != sh.FileIndex {
-			return fmt.Errorf("manifest format error: expected file %d, got %d", i, sh.FileIndex)
-		}
-
-		fileIndex := int64(pathToFileIndex[f.Path])
-		numBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
-		for j := int64(0); j < numBlocks; j++ {
-			mbh.Reset()
-			err = manWire.ReadMessage(mbh)
-			if err != nil {
-				return err
-			}
-
-			size := bigBlockSize
-			if (j+1)*bigBlockSize > f.Size {
-				size = f.Size % bigBlockSize
-			}
-
-			address := fmt.Sprintf("shake128-32/%x/%d", mbh.Hash, size)
-			blockAddresses.Set(blockpool.BlockLocation{FileIndex: fileIndex, BlockIndex: j}, address)
-		}
 	}
 
 	var source blockpool.Source
@@ -270,11 +211,19 @@ func doRanges(manifest string, patch string) error {
 		TargetPool: targetPool,
 	}
 
+	var sink blockpool.Sink
+
+	sink = &blockpool.DiskSink{
+		BasePath: "./outblocks",
+
+		Container: sourceContainer,
+	}
+
 	actx.OutputPool = &blockpool.BlockPool{
 		Container: sourceContainer,
 		BlockSize: bigBlockSize,
 
-		Downstream: &loggingSink{},
+		Downstream: sink,
 
 		Consumer: comm.NewStateConsumer(),
 	}
