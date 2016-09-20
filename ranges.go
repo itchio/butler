@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"time"
@@ -10,12 +11,27 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pools/netpool"
-	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/pwr/genie"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
+
+type loggingSink struct {
+	// muffin
+}
+
+func (ls *loggingSink) Put(key string, reader io.Reader) error {
+	comm.Logf("putting %s", key)
+	return nil
+}
+
+var _ netpool.Sink = (*loggingSink)(nil)
+
+type BlockPlace struct {
+	FileIndex  int64
+	BlockIndex int64
+}
 
 func ranges(manifest string, patch string) {
 	must(doRanges(manifest, patch))
@@ -61,6 +77,13 @@ func doRanges(manifest string, patch string) error {
 		requiredOldBlocks[i] = make(map[int64]bool)
 	}
 
+	requiredOldBlocksList := []BlockPlace{}
+
+	freshNewBlocks := make([]map[int64]bool, len(sourceContainer.Files))
+	for i := 0; i < len(sourceContainer.Files); i++ {
+		freshNewBlocks[i] = make(map[int64]bool)
+	}
+
 	comps := make(chan *genie.Composition)
 
 	go func() {
@@ -77,15 +100,19 @@ func doRanges(manifest string, patch string) error {
 			}
 
 			if reuse {
-				comm.Logf("file %d, block %d is a re-use", comp.FileIndex, comp.BlockIndex)
+				// comm.Logf("file %d, block %d is a re-use", comp.FileIndex, comp.BlockIndex)
 			} else {
 				comm.Logf("%s", comp.String())
+				freshNewBlocks[comp.FileIndex][comp.BlockIndex] = true
 				for _, anyOrigin := range comp.Origins {
 					switch origin := anyOrigin.(type) {
 					case *genie.BlockOrigin:
 						blockStart := origin.Offset / bigBlockSize
 						blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
 						for j := blockStart; j < blockEnd; j++ {
+							if !requiredOldBlocks[origin.FileIndex][j] {
+								requiredOldBlocksList = append(requiredOldBlocksList, BlockPlace{origin.FileIndex, j})
+							}
 							requiredOldBlocks[origin.FileIndex][j] = true
 						}
 					}
@@ -108,7 +135,7 @@ func doRanges(manifest string, patch string) error {
 
 	for i, blockMap := range requiredOldBlocks {
 		f := targetContainer.Files[i]
-		fileNumBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
+		fileNumBlocks := (f.Size + bigBlockSize - 1) / bigBlockSize
 		for j := int64(0); j < fileNumBlocks; j++ {
 			totalBlocks++
 			if blockMap[j] {
@@ -124,6 +151,26 @@ func doRanges(manifest string, patch string) error {
 	}
 	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
 	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
+
+	freshBlocks := 0
+	freshBlocksSize := int64(0)
+
+	for i, blockMap := range freshNewBlocks {
+		f := sourceContainer.Files[i]
+		fileNumBlocks := (f.Size + bigBlockSize - 1) / bigBlockSize
+		for j := int64(0); j < fileNumBlocks; j++ {
+			if blockMap[j] {
+				size := bigBlockSize
+				if (j+1)*bigBlockSize > f.Size {
+					size = f.Size % bigBlockSize
+				}
+				freshBlocksSize += size
+				freshBlocks++
+			}
+		}
+	}
+	comm.Statf("Fresh blocks: %d, %s total", freshBlocks, humanize.IBytes(uint64(freshBlocksSize)))
+	comm.Statf("Required old blocks order: %v", requiredOldBlocksList)
 
 	pathToFileIndex := make(map[string]int)
 	for i, f := range targetContainer.Files {
@@ -223,10 +270,13 @@ func doRanges(manifest string, patch string) error {
 		TargetPool: targetPool,
 	}
 
-	if *rangesArgs.writeToDisk {
-		actx.OutputPath = "out"
-	} else {
-		actx.OutputPool = nullpool.New(sourceContainer)
+	actx.OutputPool = &netpool.NetPool{
+		Container: sourceContainer,
+		BlockSize: bigBlockSize,
+
+		Downstream: &loggingSink{},
+
+		Consumer: comm.NewStateConsumer(),
 	}
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)

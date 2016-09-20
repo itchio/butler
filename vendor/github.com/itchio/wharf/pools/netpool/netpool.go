@@ -1,9 +1,14 @@
 package netpool
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"os"
 
+	"golang.org/x/crypto/sha3"
+
+	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
@@ -22,25 +27,37 @@ type Source interface {
 	Open(key string) (io.ReadCloser, error)
 }
 
+type Sink interface {
+	Put(key string, reader io.Reader) error
+}
+
+type BlockFilter map[int64]map[int64]bool
+
 // A NetPool implements a pool that requests required blocks from network
 type NetPool struct {
 	Container      *tlc.Container
 	BlockSize      int64
 	BlockAddresses BlockAddressMap
 
-	Upstream Source
-	Consumer *pwr.StateConsumer
+	Upstream   Source
+	Downstream Sink
+	Consumer   *pwr.StateConsumer
 
 	reader *NetPoolReader
 }
 
 var _ sync.Pool = (*NetPool)(nil)
+var _ sync.WritablePool = (*NetPool)(nil)
 
 func (np *NetPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return np.GetReadSeeker(fileIndex)
 }
 
 func (np *NetPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
+	if np.Upstream == nil {
+		return nil, errors.Wrap(fmt.Errorf("netpool: no upstream"), 1)
+	}
+
 	if np.reader != nil {
 		if np.reader.FileIndex == fileIndex {
 			return np.reader, nil
@@ -66,6 +83,25 @@ func (np *NetPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	return np.reader, nil
 }
 
+func (np *NetPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
+	if np.Downstream == nil {
+		return nil, errors.Wrap(fmt.Errorf("netpool: no downstream"), 1)
+	}
+
+	npw := &NetPoolWriter{
+		Pool:      np,
+		FileIndex: fileIndex,
+
+		offset:   0,
+		size:     np.Container.Files[fileIndex].Size,
+		blockBuf: make([]byte, np.BlockSize),
+		hashBuf:  make([]byte, 32),
+
+		shake128: sha3.NewShake128(),
+	}
+	return npw, nil
+}
+
 func (np *NetPool) Close() error {
 	if np.reader != nil {
 		err := np.reader.Close()
@@ -73,6 +109,106 @@ func (np *NetPool) Close() error {
 			return err
 		}
 		np.reader = nil
+	}
+
+	return nil
+}
+
+type NetPoolWriter struct {
+	Pool      *NetPool
+	FileIndex int64
+
+	offset   int64
+	size     int64
+	blockBuf []byte
+	hashBuf  []byte
+
+	shake128 sha3.ShakeHash
+	closed   bool
+}
+
+var _ io.WriteCloser = (*NetPoolWriter)(nil)
+
+func (npw *NetPoolWriter) Write(buf []byte) (int, error) {
+	if npw.closed {
+		return 0, fmt.Errorf("write to closed NetPoolWriter")
+	}
+
+	bufOffset := int64(0)
+	bytesLeft := int64(len(buf))
+	blockSize := npw.Pool.BlockSize
+
+	for bytesLeft > 0 {
+		blockIndex := npw.offset / blockSize
+		blockEnd := (blockIndex + 1) * blockSize
+
+		writeEnd := npw.offset + bytesLeft
+		if writeEnd > blockEnd {
+			writeEnd = blockEnd
+		}
+
+		bytesWritten := writeEnd - npw.offset
+		blockBufOffset := npw.offset % blockSize
+		copy(npw.blockBuf[blockBufOffset:], buf[bufOffset:bufOffset+bytesWritten])
+
+		if writeEnd == blockSize {
+			npw.shake128.Reset()
+			_, err := npw.shake128.Write(npw.blockBuf)
+			if err != nil {
+				return 0, err
+			}
+
+			_, err = io.ReadFull(npw.shake128, npw.hashBuf)
+			if err != nil {
+				return 0, err
+			}
+
+			key := fmt.Sprintf("shake128-32/%x/%d", npw.hashBuf, blockSize)
+
+			r := bytes.NewReader(append([]byte{}, npw.blockBuf...))
+			err = npw.Pool.Downstream.Put(key, r)
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		bufOffset += bytesWritten
+		npw.offset += bytesWritten
+		bytesLeft -= bytesWritten
+	}
+
+	return len(buf), nil
+}
+
+func (npw *NetPoolWriter) Close() error {
+	if npw.closed {
+		return nil
+	}
+
+	npw.closed = true
+
+	blockSize := npw.Pool.BlockSize
+	blockBufOffset := npw.offset % blockSize
+
+	if blockBufOffset > 0 {
+		npw.shake128.Reset()
+		_, err := npw.shake128.Write(npw.blockBuf[:blockBufOffset])
+		if err != nil {
+			return err
+		}
+
+		_, err = io.ReadFull(npw.shake128, npw.hashBuf)
+		if err != nil {
+			return err
+		}
+
+		key := fmt.Sprintf("shake128-32/%x/%d", npw.hashBuf, blockBufOffset)
+
+		r := bytes.NewReader(npw.blockBuf)
+		err = npw.Pool.Downstream.Put(key, r)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
