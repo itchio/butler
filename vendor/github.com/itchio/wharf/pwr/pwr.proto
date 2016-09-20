@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package io.itch.wharf.pwr;
+option go_package = "pwr";
+
+// Patch file format
+
+message PatchHeader {
+  CompressionSettings compression = 1;
+}
+
+message SyncHeader {
+  int64 fileIndex = 16;
+}
+
+message SyncOp {
+  enum Type {
+    BLOCK_RANGE = 0;
+    DATA = 1;
+    // REMOTE_DATA used to be 2 - shouldn't be in the wild, but better not re-use it?
+    HEY_YOU_DID_IT = 2049; // <3 @GranPC & @tomasduda
+  }
+  Type type = 1;
+
+  int64 fileIndex = 2;
+  int64 blockIndex = 3;
+  int64 blockSpan = 4;
+  bytes data = 5;
+  // remoteSize was 6, remotePath was 7 - maybe don't re-use them
+}
+
+// Signature file format
+
+message SignatureHeader {
+  CompressionSettings compression = 1;
+}
+
+message BlockHash {
+  uint32 weakHash = 1;
+  bytes strongHash = 2;
+}
+
+// Compression
+
+enum CompressionAlgorithm {
+  NONE = 0;
+  BROTLI = 1;
+  GZIP = 2;
+}
+
+message CompressionSettings {
+  CompressionAlgorithm algorithm = 1;
+  int32 quality = 2;
+}
+
+// Manifest file format
+
+message ManifestHeader {
+  CompressionSettings compression = 1;
+  HashAlgorithm algorithm = 2;
+}
+
+enum HashAlgorithm {
+  SHAKE128_32 = 0;
+}
+
+message ManifestBlockHash {
+  bytes hash = 1;
+}

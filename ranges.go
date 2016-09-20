@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"math"
 	"os"
 	"time"
@@ -10,7 +9,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/wharf/pools/netpool"
+	"github.com/itchio/wharf/pools/blockpool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/pwr/genie"
 	"github.com/itchio/wharf/tlc"
@@ -18,20 +17,19 @@ import (
 )
 
 type loggingSink struct {
-	// muffin
+	Container *tlc.Container
 }
 
-func (ls *loggingSink) Put(key string, reader io.Reader) error {
-	comm.Logf("putting %s", key)
+func (ls *loggingSink) Store(loc blockpool.BlockLocation, data []byte) error {
+	comm.Logf("storing %v", loc)
 	return nil
 }
 
-var _ netpool.Sink = (*loggingSink)(nil)
-
-type BlockPlace struct {
-	FileIndex  int64
-	BlockIndex int64
+func (ls *loggingSink) GetContainer() *tlc.Container {
+	return ls.Container
 }
+
+var _ blockpool.Sink = (*loggingSink)(nil)
 
 func ranges(manifest string, patch string) {
 	must(doRanges(manifest, patch))
@@ -77,7 +75,7 @@ func doRanges(manifest string, patch string) error {
 		requiredOldBlocks[i] = make(map[int64]bool)
 	}
 
-	requiredOldBlocksList := []BlockPlace{}
+	requiredOldBlocksList := []blockpool.BlockLocation{}
 
 	freshNewBlocks := make([]map[int64]bool, len(sourceContainer.Files))
 	for i := 0; i < len(sourceContainer.Files); i++ {
@@ -111,7 +109,7 @@ func doRanges(manifest string, patch string) error {
 						blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
 						for j := blockStart; j < blockEnd; j++ {
 							if !requiredOldBlocks[origin.FileIndex][j] {
-								requiredOldBlocksList = append(requiredOldBlocksList, BlockPlace{origin.FileIndex, j})
+								requiredOldBlocksList = append(requiredOldBlocksList, blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j})
 							}
 							requiredOldBlocks[origin.FileIndex][j] = true
 						}
@@ -131,7 +129,7 @@ func doRanges(manifest string, patch string) error {
 	neededBlocks := 0
 	neededBlockSize := int64(0)
 
-	blockAddresses := make(netpool.BlockAddressMap)
+	blockAddresses := make(blockpool.BlockAddressMap)
 
 	for i, blockMap := range requiredOldBlocks {
 		f := targetContainer.Files[i]
@@ -223,7 +221,7 @@ func doRanges(manifest string, patch string) error {
 			return fmt.Errorf("manifest format error: expected file %d, got %d", i, sh.FileIndex)
 		}
 
-		fileIndex := pathToFileIndex[f.Path]
+		fileIndex := int64(pathToFileIndex[f.Path])
 		numBlocks := int64(math.Ceil(float64(f.Size) / float64(bigBlockSize)))
 		for j := int64(0); j < numBlocks; j++ {
 			mbh.Reset()
@@ -238,29 +236,31 @@ func doRanges(manifest string, patch string) error {
 			}
 
 			address := fmt.Sprintf("shake128-32/%x/%d", mbh.Hash, size)
-			blockAddresses.Set(int64(fileIndex), j, address)
+			blockAddresses.Set(blockpool.BlockLocation{FileIndex: fileIndex, BlockIndex: j}, address)
 		}
 	}
 
-	sbs, err := netpool.NewSimpleBlockServer("./blocks", 23004)
-	if err != nil {
-		return err
-	}
-	sbs.Latency = time.Duration(*rangesArgs.latency) * time.Millisecond
+	var source blockpool.Source
 
-	go func() {
-		hErr := sbs.ListenAndServe()
-		if hErr != nil {
-			panic(hErr)
-		}
-	}()
-
-	targetPool := &netpool.NetPool{
-		Container:      targetContainer,
-		BlockSize:      bigBlockSize,
+	source = &blockpool.DiskSource{
+		BasePath:       "./blocks",
 		BlockAddresses: blockAddresses,
 
-		Upstream: sbs.Source(),
+		Container: targetContainer,
+	}
+
+	if *rangesArgs.latency > 0 {
+		source = &blockpool.DelayedSource{
+			Latency: time.Duration(*rangesArgs.latency) * time.Millisecond,
+			Source:  source,
+		}
+	}
+
+	targetPool := &blockpool.BlockPool{
+		Container: targetContainer,
+		BlockSize: bigBlockSize,
+
+		Upstream: source,
 
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -270,7 +270,7 @@ func doRanges(manifest string, patch string) error {
 		TargetPool: targetPool,
 	}
 
-	actx.OutputPool = &netpool.NetPool{
+	actx.OutputPool = &blockpool.BlockPool{
 		Container: sourceContainer,
 		BlockSize: bigBlockSize,
 
