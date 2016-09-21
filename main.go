@@ -258,15 +258,25 @@ var probeArgs = struct {
 }
 
 var rangesArgs = struct {
-	manifest    *string
-	patch       *string
-	latency     *int
+	manifest *string
+	patch    *string
+
+	inlatency  *int
+	outlatency *int
+
 	writeToDisk *bool
+
+	fanout *int
 }{
 	rangesCmd.Arg("manifest", "Path of the manifest of the previous build").Required().String(),
 	rangesCmd.Arg("patch", "Path of the patch to apply").Required().String(),
-	rangesCmd.Flag("latency", "Simulated latency to blockd, in milliseconds").Default("200").Int(),
+
+	rangesCmd.Flag("inlatency", "Simulated latency when fetching blocks, in milliseconds").Default("200").Int(),
+	rangesCmd.Flag("outlatency", "Simulated latency when storing blocks, in milliseconds").Default("200").Int(),
+
 	rangesCmd.Flag("writetodisk", "Write files instead of blocks").Default("false").Bool(),
+
+	rangesCmd.Flag("fanout", "Concurrency value for fan-out").Default("4").Int(),
 }
 
 var splitArgs = struct {

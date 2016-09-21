@@ -95,10 +95,8 @@ func doRanges(manifest string, patch string) error {
 				}
 			}
 
-			if reuse {
-				// comm.Logf("file %d, block %d is a re-use", comp.FileIndex, comp.BlockIndex)
-			} else {
-				comm.Logf("%s", comp.String())
+			if !reuse {
+				// comm.Logf("%s", comp.String())
 				freshNewBlocks[comp.FileIndex][comp.BlockIndex] = true
 				for _, anyOrigin := range comp.Origins {
 					switch origin := anyOrigin.(type) {
@@ -164,7 +162,7 @@ func doRanges(manifest string, patch string) error {
 		}
 	}
 	comm.Statf("Fresh blocks: %d, %s total", freshBlocks, humanize.IBytes(uint64(freshBlocksSize)))
-	comm.Statf("Required old blocks order: %v", requiredOldBlocksList)
+	// comm.Statf("Required old blocks order: %v", requiredOldBlocksList)
 
 	manifestReader, err := os.Open(manifest)
 	if err != nil {
@@ -190,9 +188,9 @@ func doRanges(manifest string, patch string) error {
 		Container: targetContainer,
 	}
 
-	if *rangesArgs.latency > 0 {
+	if *rangesArgs.inlatency > 0 {
 		source = &blockpool.DelayedSource{
-			Latency: time.Duration(*rangesArgs.latency) * time.Millisecond,
+			Latency: time.Duration(*rangesArgs.inlatency) * time.Millisecond,
 			Source:  source,
 		}
 	}
@@ -211,22 +209,47 @@ func doRanges(manifest string, patch string) error {
 		TargetPool: targetPool,
 	}
 
+	var fanOutSink *blockpool.FanOutSink
+
 	if *rangesArgs.writeToDisk {
 		actx.OutputPath = "./out"
 	} else {
-		var sink blockpool.Sink
+		sinks := []blockpool.Sink{}
 
-		sink = &blockpool.DiskSink{
-			BasePath: "./outblocks",
+		for i := 0; i < *rangesArgs.fanout; i++ {
+			var subSink blockpool.Sink
 
-			Container: sourceContainer,
+			subSink = &blockpool.DiskSink{
+				BasePath: "./outblocks",
+
+				Container: sourceContainer,
+			}
+
+			if *rangesArgs.outlatency > 0 {
+				subSink = &blockpool.DelayedSink{
+					Latency: time.Duration(*rangesArgs.outlatency) * time.Millisecond,
+					Sink:    subSink,
+				}
+			}
+
+			sinks = append(sinks, subSink)
 		}
+
+		errs := make(chan error)
+		go func() {
+			for sErr := range errs {
+				comm.Dief("Fan out sink error: %s", sErr.Error())
+			}
+		}()
+
+		fanOutSink = blockpool.NewFanOutSink(sinks)
+		fanOutSink.Start()
 
 		actx.OutputPool = &blockpool.BlockPool{
 			Container: sourceContainer,
 			BlockSize: bigBlockSize,
 
-			Downstream: sink,
+			Downstream: fanOutSink,
 
 			Consumer: comm.NewStateConsumer(),
 		}
@@ -245,6 +268,13 @@ func doRanges(manifest string, patch string) error {
 		return err
 	}
 	comm.EndProgress()
+
+	if fanOutSink != nil {
+		err = fanOutSink.Close()
+		if err != nil {
+			return err
+		}
+	}
 
 	totalTime := time.Since(startTime)
 	comm.Statf("Processed in %s (%s/s)", totalTime, humanize.IBytes(uint64(float64(targetContainer.Size)/totalTime.Seconds())))
