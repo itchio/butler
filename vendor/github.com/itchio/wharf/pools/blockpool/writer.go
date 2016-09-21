@@ -42,7 +42,7 @@ func (npw *BlockPoolWriter) Write(buf []byte) (int, error) {
 		blockBufOffset := npw.offset % blockSize
 		copy(npw.blockBuf[blockBufOffset:], buf[bufOffset:bufOffset+bytesWritten])
 
-		if writeEnd == blockSize {
+		if writeEnd%blockSize == 0 {
 			err := npw.Pool.Downstream.Store(BlockLocation{FileIndex: npw.FileIndex, BlockIndex: blockIndex}, npw.blockBuf)
 			if err != nil {
 				return 0, errors.Wrap(err, 1)

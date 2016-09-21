@@ -266,7 +266,7 @@ var rangesArgs = struct {
 	rangesCmd.Arg("manifest", "Path of the manifest of the previous build").Required().String(),
 	rangesCmd.Arg("patch", "Path of the patch to apply").Required().String(),
 	rangesCmd.Flag("latency", "Simulated latency to blockd, in milliseconds").Default("200").Int(),
-	rangesCmd.Flag("writetodisk", "Write to disk instead of in memory").Default("false").Bool(),
+	rangesCmd.Flag("writetodisk", "Write files instead of blocks").Default("false").Bool(),
 }
 
 var splitArgs = struct {

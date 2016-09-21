@@ -21,7 +21,7 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 	blockIndex := npr.offset / npr.Pool.BlockSize
 	if npr.blockIndex != blockIndex {
 		npr.blockIndex = blockIndex
-		blockBuf, err := npr.Pool.Upstream.Fetch(BlockLocation{npr.FileIndex, blockIndex})
+		blockBuf, err := npr.Pool.Upstream.Fetch(BlockLocation{FileIndex: npr.FileIndex, BlockIndex: blockIndex})
 		if err != nil {
 			return 0, err
 		}

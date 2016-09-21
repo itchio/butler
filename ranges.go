@@ -211,21 +211,25 @@ func doRanges(manifest string, patch string) error {
 		TargetPool: targetPool,
 	}
 
-	var sink blockpool.Sink
+	if *rangesArgs.writeToDisk {
+		actx.OutputPath = "./out"
+	} else {
+		var sink blockpool.Sink
 
-	sink = &blockpool.DiskSink{
-		BasePath: "./outblocks",
+		sink = &blockpool.DiskSink{
+			BasePath: "./outblocks",
 
-		Container: sourceContainer,
-	}
+			Container: sourceContainer,
+		}
 
-	actx.OutputPool = &blockpool.BlockPool{
-		Container: sourceContainer,
-		BlockSize: bigBlockSize,
+		actx.OutputPool = &blockpool.BlockPool{
+			Container: sourceContainer,
+			BlockSize: bigBlockSize,
 
-		Downstream: sink,
+			Downstream: sink,
 
-		Consumer: comm.NewStateConsumer(),
+			Consumer: comm.NewStateConsumer(),
+		}
 	}
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)
