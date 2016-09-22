@@ -255,11 +255,15 @@ var probeArgs = struct {
 }
 
 var rangesArgs = struct {
-	manifest *string
-	patch    *string
+	manifest    *string
+	patch       *string
+	newManifest *string
 
 	inlatency  *int
 	outlatency *int
+
+	infilter  *bool
+	outfilter *bool
 
 	writeToDisk *bool
 
@@ -267,9 +271,13 @@ var rangesArgs = struct {
 }{
 	rangesCmd.Arg("manifest", "Path of the manifest of the previous build").Required().String(),
 	rangesCmd.Arg("patch", "Path of the patch to apply").Required().String(),
+	rangesCmd.Arg("newManiest", "Path of the maniest to write").Required().String(),
 
 	rangesCmd.Flag("inlatency", "Simulated latency when fetching blocks, in milliseconds").Default("200").Int(),
 	rangesCmd.Flag("outlatency", "Simulated latency when storing blocks, in milliseconds").Default("200").Int(),
+
+	rangesCmd.Flag("infilter", "Only read required old blocks").Default("false").Bool(),
+	rangesCmd.Flag("outfilter", "Only store fresh new blocks").Default("false").Bool(),
 
 	rangesCmd.Flag("writetodisk", "Write files instead of blocks").Default("false").Bool(),
 
@@ -462,7 +470,7 @@ func main() {
 		probe(*probeArgs.target)
 
 	case rangesCmd.FullCommand():
-		ranges(*rangesArgs.manifest, *rangesArgs.patch)
+		ranges(*rangesArgs.manifest, *rangesArgs.patch, *rangesArgs.newManifest)
 
 	case splitCmd.FullCommand():
 		split(*splitArgs.target, *splitArgs.manifest)

@@ -13,11 +13,11 @@ import (
 	"github.com/itchio/wharf/pwr/genie"
 )
 
-func ranges(manifest string, patch string) {
-	must(doRanges(manifest, patch))
+func ranges(manifest string, patch string, newManifest string) {
+	must(doRanges(manifest, patch, newManifest))
 }
 
-func doRanges(manifest string, patch string) error {
+func doRanges(manifest string, patch string, newManifest string) error {
 	patchStats, err := os.Lstat(patch)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -58,6 +58,22 @@ func doRanges(manifest string, patch string) error {
 	freshNewBlocks := make(blockpool.BlockFilter)
 	comps := make(chan *genie.Composition)
 
+	newBlockHashes := blockpool.NewBlockHashMap()
+
+	// read the old build's manifest
+	manifestReader, err := os.Open(manifest)
+	if err != nil {
+		return err
+	}
+	defer manifestReader.Close()
+
+	manContainer, blockHashes, err := blockpool.ReadManifest(manifestReader)
+	if err != nil {
+		return err
+	}
+
+	blockAddresses, err := blockHashes.ToAddressMap(manContainer, pwr.HashAlgorithm_SHAKE128_32)
+
 	go func() {
 		for comp := range comps {
 			reuse := false
@@ -66,6 +82,10 @@ func doRanges(manifest string, patch string) error {
 				switch origin := comp.Origins[0].(type) {
 				case *genie.BlockOrigin:
 					if origin.Offset%bigBlockSize == 0 {
+						newLoc := blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex}
+						blockIndex := origin.Offset / bigBlockSize
+						oldLoc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: blockIndex}
+						newBlockHashes.Set(newLoc, blockHashes.Get(oldLoc))
 						reuse = true
 					}
 				}
@@ -101,18 +121,6 @@ func doRanges(manifest string, patch string) error {
 	comm.Statf("Old req'd blocks: %s", requiredOldBlocks.Stats(targetContainer))
 	comm.Statf("Fresh new blocks: %s", freshNewBlocks.Stats(sourceContainer))
 
-	manifestReader, err := os.Open(manifest)
-	if err != nil {
-		return err
-	}
-	defer manifestReader.Close()
-
-	manContainer, blockHashes, err := blockpool.ReadManifest(manifestReader)
-	if err != nil {
-		return err
-	}
-
-	blockAddresses, err := blockHashes.ToAddressMap(manContainer, pwr.HashAlgorithm_SHAKE128_32)
 	blockAddresses, err = blockAddresses.TranslateFileIndices(manContainer, targetContainer)
 	if err != nil {
 		return err
@@ -131,6 +139,13 @@ func doRanges(manifest string, patch string) error {
 		source = &blockpool.DelayedSource{
 			Latency: time.Duration(*rangesArgs.inlatency) * time.Millisecond,
 			Source:  source,
+		}
+	}
+
+	if *rangesArgs.infilter {
+		source = &blockpool.FilteringSource{
+			Filter: requiredOldBlocks,
+			Source: source,
 		}
 	}
 
@@ -154,14 +169,22 @@ func doRanges(manifest string, patch string) error {
 		var subSink blockpool.Sink
 
 		subSink = &blockpool.DiskSink{
-			BasePath:  "./outblocks",
-			Container: sourceContainer,
+			BasePath:    "./outblocks",
+			Container:   sourceContainer,
+			BlockHashes: newBlockHashes,
 		}
 
 		if *rangesArgs.outlatency > 0 {
 			subSink = &blockpool.DelayedSink{
 				Latency: time.Duration(*rangesArgs.outlatency) * time.Millisecond,
 				Sink:    subSink,
+			}
+		}
+
+		if *rangesArgs.outfilter {
+			subSink = &blockpool.FilteringSink{
+				Filter: freshNewBlocks,
+				Sink:   subSink,
 			}
 		}
 
@@ -176,11 +199,9 @@ func doRanges(manifest string, patch string) error {
 		fanOutSink.Start()
 
 		actx.OutputPool = &blockpool.BlockPool{
-			Container: sourceContainer,
-
+			Container:  sourceContainer,
 			Downstream: fanOutSink,
-
-			Consumer: comm.NewStateConsumer(),
+			Consumer:   comm.NewStateConsumer(),
 		}
 	}
 
@@ -207,6 +228,19 @@ func doRanges(manifest string, patch string) error {
 
 	totalTime := time.Since(startTime)
 	comm.Statf("Processed in %s (%s/s)", totalTime, humanize.IBytes(uint64(float64(targetContainer.Size)/totalTime.Seconds())))
+
+	comm.Opf("Writing manifest...")
+
+	manifestWriter, err := os.Create(newManifest)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	compression := butlerCompressionSettings()
+	err = blockpool.WriteManifest(manifestWriter, &compression, sourceContainer, newBlockHashes)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 
 	return nil
 }
