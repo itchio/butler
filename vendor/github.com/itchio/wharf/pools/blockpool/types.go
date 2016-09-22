@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 )
 
@@ -23,6 +24,49 @@ type Sink interface {
 	Store(location BlockLocation, data []byte) error
 
 	GetContainer() *tlc.Container
+}
+
+// A BlockHashMap translates a location ({fileIndex, blockIndex}) to a hash
+// it's usually read from a manifest file.
+type BlockHashMap map[int64]map[int64][]byte
+
+func (bhm BlockHashMap) Set(loc BlockLocation, data []byte) {
+	if bhm[loc.FileIndex] == nil {
+		bhm[loc.FileIndex] = make(map[int64][]byte)
+	}
+	bhm[loc.FileIndex][loc.BlockIndex] = data
+}
+
+func (bhm BlockHashMap) Get(loc BlockLocation) []byte {
+	if bhm[loc.FileIndex] == nil {
+		return nil
+	}
+	return bhm[loc.FileIndex][loc.BlockIndex]
+}
+
+// ToAddressMap translates block hashes to block addresses. It needs a container
+// to compute blocks sizes (which is part of their address)
+func (bhm BlockHashMap) ToAddressMap(container *tlc.Container, algorithm pwr.HashAlgorithm) (BlockAddressMap, error) {
+	if algorithm != pwr.HashAlgorithm_SHAKE128_32 {
+		return nil, errors.Wrap(fmt.Errorf("unsuported hash algorithm, want shake128-32, got %d", algorithm), 1)
+	}
+
+	bam := make(BlockAddressMap)
+	for fileIndex, blocks := range bhm {
+		f := container.Files[fileIndex]
+
+		for blockIndex, hash := range blocks {
+			size := BigBlockSize
+			alignedSize := BigBlockSize * blockIndex
+			if alignedSize > f.Size {
+				size = f.Size % BigBlockSize
+			}
+			addr := fmt.Sprintf("shake128-32/%x/%d", hash, size)
+			bam.Set(BlockLocation{FileIndex: fileIndex, BlockIndex: blockIndex}, addr)
+		}
+	}
+
+	return bam, nil
 }
 
 // A BlockAddressMap translates a location ({fileIndex, blockIndex}) to an address (":algo/:hash/:size")

@@ -12,10 +12,15 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// DiskSink stores blocks on disk by their hash and length. It's hard-coded to
+// use shake128-32 as a hashing algorithm.
+// If `BlockHashes` is set, will store block hashes there.
 type DiskSink struct {
 	BasePath string
 
-	Container *tlc.Container
+	Container      *tlc.Container
+	BlockAddresses BlockAddressMap
+	BlockHashes    BlockHashMap
 
 	hashBuf []byte
 	shake   sha3.ShakeHash
@@ -23,7 +28,7 @@ type DiskSink struct {
 
 var _ Sink = (*DiskSink)(nil)
 
-// Concurrent calls to DiskSink.Store will resulted in corrupted hashes
+// Store should not be called concurrently, as it will result in corrupted hashes
 func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 	if ds.hashBuf == nil {
 		ds.hashBuf = make([]byte, 32)
@@ -44,7 +49,15 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 		return errors.Wrap(err, 1)
 	}
 
+	if ds.BlockHashes != nil {
+		ds.BlockHashes.Set(loc, append([]byte{}, ds.hashBuf...))
+	}
+
 	addr := fmt.Sprintf("shake128-32/%x/%d", ds.hashBuf, len(data))
+	if ds.BlockAddresses != nil {
+		ds.BlockAddresses.Set(loc, addr)
+	}
+
 	path := filepath.Join(ds.BasePath, addr)
 
 	err = os.MkdirAll(filepath.Dir(path), 0755)

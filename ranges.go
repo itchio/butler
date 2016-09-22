@@ -44,7 +44,7 @@ func doRanges(manifest string, patch string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	bigBlockSize := *appArgs.bigBlockSize
+	bigBlockSize := blockpool.BigBlockSize
 
 	g := &genie.Genie{
 		BlockSize: bigBlockSize,
@@ -197,7 +197,6 @@ func doRanges(manifest string, patch string) error {
 
 	targetPool := &blockpool.BlockPool{
 		Container: targetContainer,
-		BlockSize: bigBlockSize,
 
 		Upstream: source,
 
@@ -247,7 +246,6 @@ func doRanges(manifest string, patch string) error {
 
 		actx.OutputPool = &blockpool.BlockPool{
 			Container: sourceContainer,
-			BlockSize: bigBlockSize,
 
 			Downstream: fanOutSink,
 

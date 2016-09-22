@@ -13,7 +13,6 @@ import (
 // A BlockPool implements a pool that maps reads, seeks, and writes to blocks
 type BlockPool struct {
 	Container *tlc.Container
-	BlockSize int64
 
 	Upstream   Source
 	Downstream Sink
@@ -54,7 +53,7 @@ func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		size:   np.Container.Files[fileIndex].Size,
 
 		blockIndex: -1,
-		blockBuf:   make([]byte, np.BlockSize),
+		blockBuf:   make([]byte, BigBlockSize),
 	}
 	return np.reader, nil
 }
@@ -70,7 +69,7 @@ func (np *BlockPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 
 		offset:   0,
 		size:     np.Container.Files[fileIndex].Size,
-		blockBuf: make([]byte, np.BlockSize),
+		blockBuf: make([]byte, BigBlockSize),
 	}
 	return npw, nil
 }

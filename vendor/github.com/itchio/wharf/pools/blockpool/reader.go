@@ -18,7 +18,7 @@ type BlockPoolReader struct {
 var _ io.ReadSeeker = (*BlockPoolReader)(nil)
 
 func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
-	blockIndex := npr.offset / npr.Pool.BlockSize
+	blockIndex := npr.offset / BigBlockSize
 	if npr.blockIndex != blockIndex {
 		npr.blockIndex = blockIndex
 		blockBuf, err := npr.Pool.Upstream.Fetch(BlockLocation{FileIndex: npr.FileIndex, BlockIndex: blockIndex})
@@ -33,13 +33,13 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 		newOffset = npr.size
 	}
 
-	blockEnd := (npr.blockIndex + 1) * npr.Pool.BlockSize
+	blockEnd := (npr.blockIndex + 1) * BigBlockSize
 	if newOffset > blockEnd {
 		newOffset = blockEnd
 	}
 
 	readSize := int(newOffset - npr.offset)
-	blockStart := npr.blockIndex * npr.Pool.BlockSize
+	blockStart := npr.blockIndex * BigBlockSize
 	blockOffset := npr.offset - blockStart
 	copy(buf, npr.blockBuf[blockOffset:])
 	npr.offset = newOffset

@@ -80,8 +80,6 @@ var appArgs = struct {
 	compressionQuality   *int
 
 	maxChunkGroup *int
-
-	bigBlockSize *int64
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -99,8 +97,6 @@ var appArgs = struct {
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 
 	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
-
-	app.Flag("bigblocksize", "Size of big blocks").Default(fmt.Sprintf("%d", 4*1024*1024)).Hidden().Int64(),
 }
 
 var dlArgs = struct {

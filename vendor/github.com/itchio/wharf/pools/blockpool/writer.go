@@ -27,11 +27,10 @@ func (npw *BlockPoolWriter) Write(buf []byte) (int, error) {
 
 	bufOffset := int64(0)
 	bytesLeft := int64(len(buf))
-	blockSize := npw.Pool.BlockSize
 
 	for bytesLeft > 0 {
-		blockIndex := npw.offset / blockSize
-		blockEnd := (blockIndex + 1) * blockSize
+		blockIndex := npw.offset / BigBlockSize
+		blockEnd := (blockIndex + 1) * BigBlockSize
 
 		writeEnd := npw.offset + bytesLeft
 		if writeEnd > blockEnd {
@@ -39,10 +38,10 @@ func (npw *BlockPoolWriter) Write(buf []byte) (int, error) {
 		}
 
 		bytesWritten := writeEnd - npw.offset
-		blockBufOffset := npw.offset % blockSize
+		blockBufOffset := npw.offset % BigBlockSize
 		copy(npw.blockBuf[blockBufOffset:], buf[bufOffset:bufOffset+bytesWritten])
 
-		if writeEnd%blockSize == 0 {
+		if writeEnd%BigBlockSize == 0 {
 			err := npw.Pool.Downstream.Store(BlockLocation{FileIndex: npw.FileIndex, BlockIndex: blockIndex}, npw.blockBuf)
 			if err != nil {
 				return 0, errors.Wrap(err, 1)
@@ -64,11 +63,10 @@ func (npw *BlockPoolWriter) Close() error {
 
 	npw.closed = true
 
-	blockSize := npw.Pool.BlockSize
-	blockBufOffset := npw.offset % blockSize
+	blockBufOffset := npw.offset % BigBlockSize
 
 	if blockBufOffset > 0 {
-		blockIndex := npw.offset / blockSize
+		blockIndex := npw.offset / BigBlockSize
 		err := npw.Pool.Downstream.Store(BlockLocation{FileIndex: npw.FileIndex, BlockIndex: blockIndex}, npw.blockBuf[:blockBufOffset])
 		if err != nil {
 			return errors.Wrap(err, 1)

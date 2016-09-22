@@ -29,6 +29,36 @@ var DefaultFilter FilterFunc = func(fileInfo os.FileInfo) bool {
 	return true
 }
 
+// WalkDirOrArchive walks a directory of .zip file and returns all container info
+func WalkDirOrArchive(BasePath string, filter FilterFunc) (*Container, error) {
+	if BasePath == NullPath {
+		// /dev/null is the empty container
+		return &Container{}, nil
+	}
+
+	stat, err := os.Lstat(BasePath)
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+
+	if stat.IsDir() {
+		return Walk(BasePath, filter)
+	}
+
+	file, err := os.Open(BasePath)
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+
+	zr, err := zip.NewReader(file, stat.Size())
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+
+	defer file.Close()
+	return WalkZip(zr, filter)
+}
+
 // Walk goes through every file in a director
 func Walk(BasePath string, filter FilterFunc) (*Container, error) {
 	if filter == nil {
