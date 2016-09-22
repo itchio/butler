@@ -4,58 +4,14 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
 
-type BlockOrigin struct {
-	FileIndex int64
-	Offset    int64
-	Size      int64
-}
-
-func (bo *BlockOrigin) GetSize() int64 {
-	return bo.Size
-}
-
-type FreshOrigin struct {
-	Size int64
-}
-
-func (fo *FreshOrigin) GetSize() int64 {
-	return fo.Size
-}
-
-type Origin interface {
-	GetSize() int64
-}
-
-type Composition struct {
-	FileIndex  int64
-	BlockIndex int64
-	Origins    []Origin
-	Size       int64
-}
-
-func (comp *Composition) Append(origin Origin) {
-	comp.Origins = append(comp.Origins, origin)
-	comp.Size += origin.GetSize()
-}
-
-func (comp *Composition) String() string {
-	res := fmt.Sprintf("file %d, block %d (%s) is composed of: ", comp.FileIndex, comp.BlockIndex, humanize.IBytes(uint64(comp.Size)))
-	for i, origin := range comp.Origins {
-		if i > 0 {
-			res += ", "
-		}
-		res += fmt.Sprintf("%+v", origin)
-	}
-	return res
-}
-
+// A Genie analyzes a patch to figure out which parts of the target container
+// are used to build individual blocks of the source container.
 type Genie struct {
 	BlockSize int64
 
@@ -65,6 +21,9 @@ type Genie struct {
 	SourceContainer *tlc.Container
 }
 
+// ParseHeader is the first step of the genie's operation - it reads both
+// containers, leaving the caller a chance to use them later, when parsing
+// the contents
 func (g *Genie) ParseHeader(patchReader io.Reader) error {
 	rawPatchWire := wire.NewReadContext(patchReader)
 	err := rawPatchWire.ExpectMagic(pwr.PatchMagic)
@@ -99,14 +58,14 @@ func (g *Genie) ParseHeader(patchReader io.Reader) error {
 	return nil
 }
 
+// ParseContents sends a Composition for each block of the source container
 func (g *Genie) ParseContents(comps chan *Composition) error {
 	patchWire := g.PatchWire
 
-	smallBlockSize := int64(pwr.BlockSize)
-	bigBlockSize := g.BlockSize
-
+	// for each file, the patch contains a SyncHeader followed by a series of
+	// operations, always ending in HEY_YOU_DID_IT
 	sh := &pwr.SyncHeader{}
-	for fileIndex, _ := range g.SourceContainer.Files {
+	for fileIndex := range g.SourceContainer.Files {
 		sh.Reset()
 		err := patchWire.ReadMessage(sh)
 		if err != nil {
@@ -118,87 +77,117 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 			return errors.Wrap(pwr.ErrMalformedPatch, 1)
 		}
 
-		rop := &pwr.SyncOp{}
-
-		err = (func() error {
-			comp := &Composition{
-				FileIndex: int64(fileIndex),
-			}
-
-			for {
-				rop.Reset()
-				pErr := patchWire.ReadMessage(rop)
-				if pErr != nil {
-					return errors.Wrap(pErr, 1)
-				}
-
-				switch rop.Type {
-				case pwr.SyncOp_BLOCK_RANGE:
-					bo := &BlockOrigin{
-						FileIndex: rop.FileIndex,
-						Offset:    rop.BlockIndex * smallBlockSize,
-						Size:      rop.BlockSpan * smallBlockSize,
-					}
-
-					for comp.Size+bo.Size > bigBlockSize {
-						truncatedSize := bigBlockSize - comp.Size
-
-						if truncatedSize > 0 {
-							comp.Append(&BlockOrigin{
-								FileIndex: rop.FileIndex,
-								Offset:    bo.Offset,
-								Size:      truncatedSize,
-							})
-							bo.Offset += truncatedSize
-							bo.Size -= truncatedSize
-						}
-
-						comps <- comp
-						comp = &Composition{
-							FileIndex:  int64(fileIndex),
-							BlockIndex: comp.BlockIndex + 1,
-						}
-					}
-
-					if bo.Size > 0 {
-						comp.Append(bo)
-					}
-				case pwr.SyncOp_DATA:
-					fo := &FreshOrigin{
-						Size: int64(len(rop.Data)),
-					}
-
-					for comp.Size+fo.Size > bigBlockSize {
-						truncatedSize := bigBlockSize - comp.Size
-						if truncatedSize > 0 {
-							comp.Append(&FreshOrigin{
-								Size: truncatedSize,
-							})
-							fo.Size -= truncatedSize
-						}
-
-						comps <- comp
-						comp = &Composition{
-							FileIndex:  int64(fileIndex),
-							BlockIndex: comp.BlockIndex + 1,
-						}
-					}
-
-					if fo.Size > 0 {
-						comp.Append(fo)
-					}
-				case pwr.SyncOp_HEY_YOU_DID_IT:
-					if comp.Size > 0 {
-						comps <- comp
-					}
-					return nil
-				}
-			}
-		})()
+		err = g.analyzeFile(patchWire, int64(fileIndex), comps)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
 	}
 
 	return nil
+}
+
+func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, comps chan *Composition) error {
+	rop := &pwr.SyncOp{}
+
+	smallBlockSize := int64(pwr.BlockSize)
+	bigBlockSize := g.BlockSize
+
+	comp := &Composition{
+		FileIndex: int64(fileIndex),
+	}
+
+	// infinite loop, explicity "break"'d out of
+	for {
+		rop.Reset()
+		pErr := patchWire.ReadMessage(rop)
+		if pErr != nil {
+			return errors.Wrap(pErr, 1)
+		}
+
+		switch rop.Type {
+		case pwr.SyncOp_BLOCK_RANGE:
+			// SyncOps operate in terms of small blocks, we want byte offsets
+			bo := &BlockOrigin{
+				FileIndex: rop.FileIndex,
+				Offset:    rop.BlockIndex * smallBlockSize,
+				Size:      rop.BlockSpan * smallBlockSize,
+			}
+
+			// As long as the block origin would span beyond the end of the
+			// big block we're currently analyzing, split it into {A, B},
+			// where A fits into the current big block, and B is the rest
+			for comp.Size+bo.Size > bigBlockSize {
+				truncatedSize := bigBlockSize - comp.Size
+
+				// truncatedSize may be 0 if `comp.Size == bigBlockSize`, ie. comp already
+				// explains all the contents of the current big block - in this case,
+				// we keep this BlockOrigin intact for the next iteration of the loop
+				// (during which comp.Size will == 0)
+				if truncatedSize > 0 {
+					// this is A
+					comp.Append(&BlockOrigin{
+						FileIndex: rop.FileIndex,
+						Offset:    bo.Offset,
+						Size:      truncatedSize,
+					})
+
+					// and bo becomes B
+					bo.Offset += truncatedSize
+					bo.Size -= truncatedSize
+				}
+
+				comps <- comp
+
+				// after sending over the composition, we allocate a new one - same file, next block
+				// (sent comps should not be modified afterwards)
+				comp = &Composition{
+					FileIndex:  int64(fileIndex),
+					BlockIndex: comp.BlockIndex + 1,
+				}
+			}
+
+			// after all the splitting, there might still be some data left over
+			// (that's smaller than bigBlockSize)
+			if bo.Size > 0 {
+				comp.Append(bo)
+			}
+		case pwr.SyncOp_DATA:
+			// Data SyncOps are not aligned either in target or source. Since genie
+			// works in byte offsets, this suits us just fine.
+			fo := &FreshOrigin{
+				Size: int64(len(rop.Data)),
+			}
+
+			for comp.Size+fo.Size > bigBlockSize {
+				truncatedSize := bigBlockSize - comp.Size
+
+				// only if we can fit some of the data in this block, otherwise, clear
+				// the current comp, wait for next loop iteration where comp.Size will be 0
+				if truncatedSize > 0 {
+					comp.Append(&FreshOrigin{
+						Size: truncatedSize,
+					})
+
+					fo.Size -= truncatedSize
+				}
+
+				comps <- comp
+
+				// allocate a new comp after sending, so we don't write to the previous one
+				comp = &Composition{
+					FileIndex:  int64(fileIndex),
+					BlockIndex: comp.BlockIndex + 1,
+				}
+			}
+
+			if fo.Size > 0 {
+				comp.Append(fo)
+			}
+		case pwr.SyncOp_HEY_YOU_DID_IT:
+			if comp.Size > 0 {
+				comps <- comp
+			}
+			return nil
+		}
+	}
 }

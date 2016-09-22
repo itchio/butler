@@ -272,7 +272,7 @@ var rangesArgs = struct {
 
 	rangesCmd.Flag("writetodisk", "Write files instead of blocks").Default("false").Bool(),
 
-	rangesCmd.Flag("fanout", "Concurrency value for fan-out").Default("4").Int(),
+	rangesCmd.Flag("fanout", "Concurrency value for fan-out").Default(fmt.Sprintf("%d", runtime.NumCPU()*2+1)).Int(),
 }
 
 var splitArgs = struct {

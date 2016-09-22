@@ -11,23 +11,7 @@ import (
 	"github.com/itchio/wharf/pools/blockpool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/pwr/genie"
-	"github.com/itchio/wharf/tlc"
 )
-
-type loggingSink struct {
-	Container *tlc.Container
-}
-
-func (ls *loggingSink) Store(loc blockpool.BlockLocation, data []byte) error {
-	comm.Logf("storing %v", loc)
-	return nil
-}
-
-func (ls *loggingSink) GetContainer() *tlc.Container {
-	return ls.Container
-}
-
-var _ blockpool.Sink = (*loggingSink)(nil)
 
 func ranges(manifest string, patch string) {
 	must(doRanges(manifest, patch))
@@ -68,18 +52,10 @@ func doRanges(manifest string, patch string) error {
 	comm.Statf("Delta: %s%s (%s%.2f%%)", deltaOp, humanize.IBytes(uint64(delta)), deltaOp, delta/float64(targetContainer.Size)*100.0)
 	comm.Log("")
 
-	requiredOldBlocks := make([]map[int64]bool, len(targetContainer.Files))
-	for i := 0; i < len(targetContainer.Files); i++ {
-		requiredOldBlocks[i] = make(map[int64]bool)
-	}
-
+	requiredOldBlocks := make(blockpool.BlockFilter)
 	requiredOldBlocksList := []blockpool.BlockLocation{}
 
-	freshNewBlocks := make([]map[int64]bool, len(sourceContainer.Files))
-	for i := 0; i < len(sourceContainer.Files); i++ {
-		freshNewBlocks[i] = make(map[int64]bool)
-	}
-
+	freshNewBlocks := make(blockpool.BlockFilter)
 	comps := make(chan *genie.Composition)
 
 	go func() {
@@ -95,20 +71,22 @@ func doRanges(manifest string, patch string) error {
 				}
 			}
 
-			if !reuse {
-				// comm.Logf("%s", comp.String())
-				freshNewBlocks[comp.FileIndex][comp.BlockIndex] = true
-				for _, anyOrigin := range comp.Origins {
-					switch origin := anyOrigin.(type) {
-					case *genie.BlockOrigin:
-						blockStart := origin.Offset / bigBlockSize
-						blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
-						for j := blockStart; j < blockEnd; j++ {
-							if !requiredOldBlocks[origin.FileIndex][j] {
-								requiredOldBlocksList = append(requiredOldBlocksList, blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j})
-							}
-							requiredOldBlocks[origin.FileIndex][j] = true
+			if reuse {
+				continue
+			}
+
+			freshNewBlocks.Set(blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex})
+			for _, anyOrigin := range comp.Origins {
+				switch origin := anyOrigin.(type) {
+				case *genie.BlockOrigin:
+					blockStart := origin.Offset / bigBlockSize
+					blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
+					for j := blockStart; j < blockEnd; j++ {
+						loc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j}
+						if !requiredOldBlocks.Has(loc) {
+							requiredOldBlocksList = append(requiredOldBlocksList, blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j})
 						}
+						requiredOldBlocks.Set(loc)
 					}
 				}
 			}
@@ -120,60 +98,21 @@ func doRanges(manifest string, patch string) error {
 		return err
 	}
 
-	totalBlocks := 0
-	partialBlocks := 0
-	neededBlocks := 0
-	neededBlockSize := int64(0)
-
-	for i, blockMap := range requiredOldBlocks {
-		f := targetContainer.Files[i]
-		fileNumBlocks := (f.Size + bigBlockSize - 1) / bigBlockSize
-		for j := int64(0); j < fileNumBlocks; j++ {
-			totalBlocks++
-			if blockMap[j] {
-				size := bigBlockSize
-				if (j+1)*bigBlockSize > f.Size {
-					partialBlocks++
-					size = f.Size % bigBlockSize
-				}
-				neededBlockSize += size
-				neededBlocks++
-			}
-		}
-	}
-	comm.Statf("Total old blocks: %d, needed: %d (of which %d are smaller than %s)", totalBlocks, neededBlocks, partialBlocks, humanize.IBytes(uint64(bigBlockSize)))
-	comm.Statf("Needed block size: %s (%.2f%% of full old build size)", humanize.IBytes(uint64(neededBlockSize)), float64(neededBlockSize)/float64(targetContainer.Size)*100.0)
-
-	freshBlocks := 0
-	freshBlocksSize := int64(0)
-
-	for i, blockMap := range freshNewBlocks {
-		f := sourceContainer.Files[i]
-		fileNumBlocks := (f.Size + bigBlockSize - 1) / bigBlockSize
-		for j := int64(0); j < fileNumBlocks; j++ {
-			if blockMap[j] {
-				size := bigBlockSize
-				if (j+1)*bigBlockSize > f.Size {
-					size = f.Size % bigBlockSize
-				}
-				freshBlocksSize += size
-				freshBlocks++
-			}
-		}
-	}
-	comm.Statf("Fresh blocks: %d, %s total", freshBlocks, humanize.IBytes(uint64(freshBlocksSize)))
-	// comm.Statf("Required old blocks order: %v", requiredOldBlocksList)
+	comm.Statf("Old req'd blocks: %s", requiredOldBlocks.Stats(targetContainer))
+	comm.Statf("Fresh new blocks: %s", freshNewBlocks.Stats(sourceContainer))
 
 	manifestReader, err := os.Open(manifest)
 	if err != nil {
 		return err
 	}
+	defer manifestReader.Close()
 
-	manContainer, blockAddresses, err := blockpool.ReadManifest(manifestReader)
+	manContainer, blockHashes, err := blockpool.ReadManifest(manifestReader)
 	if err != nil {
 		return err
 	}
 
+	blockAddresses, err := blockHashes.ToAddressMap(manContainer, pwr.HashAlgorithm_SHAKE128_32)
 	blockAddresses, err = blockAddresses.TranslateFileIndices(manContainer, targetContainer)
 	if err != nil {
 		return err
@@ -197,8 +136,7 @@ func doRanges(manifest string, patch string) error {
 
 	targetPool := &blockpool.BlockPool{
 		Container: targetContainer,
-
-		Upstream: source,
+		Upstream:  source,
 
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -213,25 +151,18 @@ func doRanges(manifest string, patch string) error {
 	if *rangesArgs.writeToDisk {
 		actx.OutputPath = "./out"
 	} else {
-		sinks := []blockpool.Sink{}
+		var subSink blockpool.Sink
 
-		for i := 0; i < *rangesArgs.fanout; i++ {
-			var subSink blockpool.Sink
+		subSink = &blockpool.DiskSink{
+			BasePath:  "./outblocks",
+			Container: sourceContainer,
+		}
 
-			subSink = &blockpool.DiskSink{
-				BasePath: "./outblocks",
-
-				Container: sourceContainer,
+		if *rangesArgs.outlatency > 0 {
+			subSink = &blockpool.DelayedSink{
+				Latency: time.Duration(*rangesArgs.outlatency) * time.Millisecond,
+				Sink:    subSink,
 			}
-
-			if *rangesArgs.outlatency > 0 {
-				subSink = &blockpool.DelayedSink{
-					Latency: time.Duration(*rangesArgs.outlatency) * time.Millisecond,
-					Sink:    subSink,
-				}
-			}
-
-			sinks = append(sinks, subSink)
 		}
 
 		errs := make(chan error)
@@ -241,7 +172,7 @@ func doRanges(manifest string, patch string) error {
 			}
 		}()
 
-		fanOutSink = blockpool.NewFanOutSink(sinks)
+		fanOutSink = blockpool.NewFanOutSink(subSink, *rangesArgs.fanout)
 		fanOutSink.Start()
 
 		actx.OutputPool = &blockpool.BlockPool{

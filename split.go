@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -32,12 +33,19 @@ func doSplit(target string, manifest string) error {
 
 	blockDir := "blocks"
 
-	sink := &blockpool.DiskSink{
+	var sink blockpool.Sink
+
+	blockHashes := blockpool.NewBlockHashMap()
+	sink = &blockpool.DiskSink{
 		BasePath: blockDir,
 
 		Container:   container,
-		BlockHashes: make(blockpool.BlockHashMap),
+		BlockHashes: blockHashes,
 	}
+	fanOutSink := blockpool.NewFanOutSink(sink, runtime.NumCPU()*2+1)
+	fanOutSink.Start()
+
+	sink = fanOutSink
 
 	outPool := &blockpool.BlockPool{
 		Container:  container,
@@ -49,6 +57,11 @@ func doSplit(target string, manifest string) error {
 	comm.StartProgress()
 
 	err = pwr.CopyContainer(container, outPool, inPool, comm.NewStateConsumer())
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	err = fanOutSink.Close()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -69,7 +82,7 @@ func doSplit(target string, manifest string) error {
 	defer manifestWriter.Close()
 
 	compression := butlerCompressionSettings()
-	err = blockpool.WriteManifest(manifestWriter, &compression, container, sink.BlockHashes)
+	err = blockpool.WriteManifest(manifestWriter, &compression, container, blockHashes)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

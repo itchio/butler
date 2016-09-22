@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
 )
 
@@ -15,6 +14,7 @@ import (
 // A BlockFilter is a whitelist of blocks one may filter by when fetching or storing
 type BlockFilter map[int64]map[int64]bool
 
+// Set adds a block to the whitelist
 func (bf BlockFilter) Set(location BlockLocation) {
 	if bf[location.FileIndex] == nil {
 		bf[location.FileIndex] = make(map[int64]bool)
@@ -22,6 +22,7 @@ func (bf BlockFilter) Set(location BlockLocation) {
 	bf[location.FileIndex][location.BlockIndex] = true
 }
 
+// Has queries whether a block or not is in the whitelist
 func (bf BlockFilter) Has(location BlockLocation) bool {
 	row := bf[location.FileIndex]
 	if row == nil {
@@ -30,7 +31,8 @@ func (bf BlockFilter) Has(location BlockLocation) bool {
 	return row[location.BlockIndex]
 }
 
-func (bf BlockFilter) Stats(container *tlc.Container, blockSize int64) string {
+// Stats returns a human-readable string containing size information for this filter
+func (bf BlockFilter) Stats(container *tlc.Container) string {
 	totalBlocks := int64(0)
 	totalSize := int64(0)
 
@@ -38,20 +40,20 @@ func (bf BlockFilter) Stats(container *tlc.Container, blockSize int64) string {
 	usedSize := int64(0)
 
 	for i, f := range container.Files {
-		numBlocks := f.Size / blockSize
+		numBlocks := (f.Size + BigBlockSize - 1) / BigBlockSize
 		for j := int64(0); j < numBlocks; j++ {
 			totalBlocks++
-			size := blockSize
-			alignedSize := (j + 1) * blockSize
+			size := BigBlockSize
+			alignedSize := (j + 1) * BigBlockSize
 			if alignedSize > f.Size {
-				size = f.Size % blockSize
+				size = f.Size % BigBlockSize
 			}
 
-			totalBlocks += 1
+			totalBlocks++
 			totalSize += size
 
 			if bf.Has(BlockLocation{FileIndex: int64(i), BlockIndex: j}) {
-				usedBlocks += 1
+				usedBlocks++
 				usedSize += size
 			}
 		}
@@ -66,10 +68,11 @@ func (bf BlockFilter) Stats(container *tlc.Container, blockSize int64) string {
 // Source
 ////////////////
 
+// A FilteringSource only passes Fetch calls to the underling Source that pass through
+// the given Filter, and returns a 0-filled
 type FilteringSource struct {
-	Source    Source
-	Filter    BlockFilter
-	BlockSize int64
+	Source Source
+	Filter BlockFilter
 
 	zeroBuf   []byte
 	container *tlc.Container
@@ -77,6 +80,16 @@ type FilteringSource struct {
 
 var _ Source = (*FilteringSource)(nil)
 
+// Clone returns a copy of this filtering source. It also clones the underlying source.
+func (fs *FilteringSource) Clone() Source {
+	return &FilteringSource{
+		Source: fs.Source.Clone(),
+		Filter: fs.Filter,
+	}
+}
+
+// Fetch returns the underlying source's result if the given location is in the
+// filter, or a buffer filled with null bytes (of the correct size) otherwise
 func (fs *FilteringSource) Fetch(location BlockLocation) ([]byte, error) {
 	if fs.Filter.Has(location) {
 		return fs.Source.Fetch(location)
@@ -84,21 +97,19 @@ func (fs *FilteringSource) Fetch(location BlockLocation) ([]byte, error) {
 
 	// when filtered, return null bytes (from a single buffer)
 	if fs.zeroBuf == nil {
-		if fs.BlockSize == 0 {
-			return nil, errors.Wrap(fmt.Errorf("expected non-zero BlockSize"), 1)
-		}
-		fs.zeroBuf = make([]byte, fs.BlockSize)
+		fs.zeroBuf = make([]byte, BigBlockSize)
 	}
 
-	blockLen := fs.BlockSize
-	alignedSize := (location.BlockIndex + 1) * fs.BlockSize
+	blockLen := BigBlockSize
+	alignedSize := (location.BlockIndex + 1) * BigBlockSize
 	fileSize := fs.GetContainer().Files[location.FileIndex].Size
 	if alignedSize > fileSize {
-		blockLen = fileSize % fs.BlockSize
+		blockLen = fileSize % BigBlockSize
 	}
 	return fs.zeroBuf[:blockLen], nil
 }
 
+// GetContainer returns the tlc container associated with the underlying source
 func (fs *FilteringSource) GetContainer() *tlc.Container {
 	return fs.Source.GetContainer()
 }
@@ -107,6 +118,8 @@ func (fs *FilteringSource) GetContainer() *tlc.Container {
 // Sink
 ////////////////
 
+// A FilteringSink only relays Store calls to the underlying Sink if they pass
+// through the given Filter, otherwise it just ignores them.
 type FilteringSink struct {
 	Sink   Sink
 	Filter BlockFilter
@@ -114,6 +127,15 @@ type FilteringSink struct {
 
 var _ Sink = (*FilteringSink)(nil)
 
+// Clone returns a copy of this filtering sink, that stores into a copy of the underlying sink
+func (fs *FilteringSink) Clone() Sink {
+	return &FilteringSink{
+		Sink:   fs.Sink.Clone(),
+		Filter: fs.Filter,
+	}
+}
+
+// Store stores a block, if it passes the Filter, otherwise it does nothing.
 func (fs *FilteringSink) Store(location BlockLocation, data []byte) error {
 	if fs.Filter.Has(location) {
 		return fs.Sink.Store(location, data)
@@ -123,6 +145,7 @@ func (fs *FilteringSink) Store(location BlockLocation, data []byte) error {
 	return nil
 }
 
+// GetContainer returns the tlc container associated with the underlying sink
 func (fs *FilteringSink) GetContainer() *tlc.Container {
 	return fs.Sink.GetContainer()
 }

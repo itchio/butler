@@ -12,7 +12,7 @@ import (
 
 // WriteManifest writes container info and block addresses in wharf's manifest format
 // Does not close manifestWriter.
-func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSettings, container *tlc.Container, blockHashes BlockHashMap) error {
+func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSettings, container *tlc.Container, blockHashes *BlockHashMap) error {
 	rawWire := wire.NewWriteContext(manifestWriter)
 	err := rawWire.WriteMagic(pwr.ManifestMagic)
 	if err != nil {
@@ -77,9 +77,9 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 
 // ReadManifest reads container info and block addresses from a wharf manifest file.
 // Does not close manifestReader.
-func ReadManifest(manifestReader io.Reader) (*tlc.Container, BlockAddressMap, error) {
+func ReadManifest(manifestReader io.Reader) (*tlc.Container, *BlockHashMap, error) {
 	container := &tlc.Container{}
-	blockAddresses := make(BlockAddressMap)
+	blockHashes := NewBlockHashMap()
 
 	rawWire := wire.NewReadContext(manifestReader)
 	err := rawWire.ExpectMagic(pwr.ManifestMagic)
@@ -131,15 +131,10 @@ func ReadManifest(manifestReader io.Reader) (*tlc.Container, BlockAddressMap, er
 				return nil, nil, errors.Wrap(err, 1)
 			}
 
-			size := BigBlockSize
-			if (blockIndex+1)*BigBlockSize > f.Size {
-				size = f.Size % BigBlockSize
-			}
-
-			address := fmt.Sprintf("shake128-32/%x/%d", mbh.Hash, size)
-			blockAddresses.Set(BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}, address)
+			loc := BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}
+			blockHashes.Set(loc, append([]byte{}, mbh.Hash...))
 		}
 	}
 
-	return container, blockAddresses, nil
+	return container, blockHashes, nil
 }
