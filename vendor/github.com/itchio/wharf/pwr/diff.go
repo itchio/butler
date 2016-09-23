@@ -12,8 +12,6 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-type DataLookupFunction func([]byte) (string, error)
-
 // DiffContext holds the state during a diff operation
 type DiffContext struct {
 	Compression *CompressionSettings
@@ -30,8 +28,6 @@ type DiffContext struct {
 
 	AddedBytes int64
 	SavedBytes int64
-
-	DataLookup DataLookupFunction
 }
 
 // WritePatch outputs a pwr patch to patchWriter
@@ -212,27 +208,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 }
 
 func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLibrary, reader io.Reader, opsWriter sync.OperationWriter, preferredFileIndex int64, errs chan error, done chan bool) {
-	writeOp := func(op sync.Operation) error {
-		if op.Type == sync.OpData {
-			if dctx.DataLookup != nil {
-				key, err := dctx.DataLookup(op.Data)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-
-				if key == "" {
-					dctx.AddedBytes += int64(len(op.Data))
-				} else {
-					// TODO: new op type
-					dctx.SavedBytes += int64(len(op.Data))
-					return nil
-				}
-			}
-		}
-		return opsWriter(op)
-	}
-
-	err := sctx.ComputeDiff(reader, blockLibrary, writeOp, preferredFileIndex)
+	err := sctx.ComputeDiff(reader, blockLibrary, opsWriter, preferredFileIndex)
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
 	}

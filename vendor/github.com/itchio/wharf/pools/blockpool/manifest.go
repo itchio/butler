@@ -49,6 +49,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 		}
 
 		numBlocks := ComputeNumBlocks(f.Size)
+
 		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
 			loc := BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}
 			hash := blockHashes.Get(loc)

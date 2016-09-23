@@ -105,53 +105,61 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 	var signature []sync.BlockHash
 	hash := &BlockHash{}
 
-	blockIndex := int64(0)
-	fileIndex := int64(0)
-	byteOffset := int64(0)
 	blockSize64 := int64(BlockSize)
 
-	for {
-		hash.Reset()
-		err = sigWire.ReadMessage(hash)
+	for fileIndex, f := range container.Files {
+		numBlocks := (f.Size + blockSize64 - 1) / blockSize64
+		if numBlocks == 0 {
+			hash.Reset()
+			err = sigWire.ReadMessage(hash)
 
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				return nil, nil, errors.Wrap(err, 1)
 			}
-			return nil, nil, errors.Wrap(err, 1)
+
+			// empty files have a 0-length shortblock for historical reasons.
+			blockHash := sync.BlockHash{
+				FileIndex:  int64(fileIndex),
+				BlockIndex: 0,
+
+				WeakHash:   hash.WeakHash,
+				StrongHash: hash.StrongHash,
+
+				ShortSize: 0,
+			}
+			signature = append(signature, blockHash)
 		}
 
-		sizeDiff := container.Files[fileIndex].Size - byteOffset
-		shortSize := int32(0)
+		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
+			hash.Reset()
+			err = sigWire.ReadMessage(hash)
 
-		if sizeDiff <= 0 {
-			byteOffset = 0
-			blockIndex = 0
-			fileIndex++
-			sizeDiff = container.Files[fileIndex].Size
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				return nil, nil, errors.Wrap(err, 1)
+			}
+
+			shortSize := int32(0)
+			if (blockIndex+1)*blockSize64 > f.Size {
+				shortSize = int32(f.Size % blockSize64)
+			}
+
+			blockHash := sync.BlockHash{
+				FileIndex:  int64(fileIndex),
+				BlockIndex: blockIndex,
+
+				WeakHash:   hash.WeakHash,
+				StrongHash: hash.StrongHash,
+
+				ShortSize: shortSize,
+			}
+			signature = append(signature, blockHash)
 		}
-
-		// last block
-		if sizeDiff < blockSize64 {
-			shortSize = int32(sizeDiff)
-		} else {
-			shortSize = 0
-		}
-
-		blockHash := sync.BlockHash{
-			FileIndex:  fileIndex,
-			BlockIndex: blockIndex,
-
-			WeakHash:   hash.WeakHash,
-			StrongHash: hash.StrongHash,
-
-			ShortSize: shortSize,
-		}
-		signature = append(signature, blockHash)
-
-		// still in same file
-		byteOffset += blockSize64
-		blockIndex++
 	}
 
 	return container, signature, nil

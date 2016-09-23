@@ -65,7 +65,7 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 	// for each file, the patch contains a SyncHeader followed by a series of
 	// operations, always ending in HEY_YOU_DID_IT
 	sh := &pwr.SyncHeader{}
-	for fileIndex := range g.SourceContainer.Files {
+	for fileIndex, f := range g.SourceContainer.Files {
 		sh.Reset()
 		err := patchWire.ReadMessage(sh)
 		if err != nil {
@@ -77,7 +77,7 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 			return errors.Wrap(pwr.ErrMalformedPatch, 1)
 		}
 
-		err = g.analyzeFile(patchWire, int64(fileIndex), comps)
+		err = g.analyzeFile(patchWire, int64(fileIndex), f.Size, comps)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
@@ -86,7 +86,7 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 	return nil
 }
 
-func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, comps chan *Composition) error {
+func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSize int64, comps chan *Composition) error {
 	rop := &pwr.SyncOp{}
 
 	smallBlockSize := int64(pwr.BlockSize)
@@ -184,7 +184,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, comps 
 				comp.Append(fo)
 			}
 		case pwr.SyncOp_HEY_YOU_DID_IT:
-			if comp.Size > 0 {
+			if comp.Size > 0 && fileSize > 0 {
 				comps <- comp
 			}
 			return nil
