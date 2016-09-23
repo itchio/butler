@@ -2,7 +2,6 @@ package blockpool
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
@@ -61,8 +60,6 @@ func NewFanOutSink(templateSink Sink, numSinks int) (*FanOutSink, error) {
 // Start processing store requests
 func (fos *FanOutSink) Start() {
 	fos.errs = make(chan error)
-
-	log.Printf("Starting FanOutSink with %d sinks", len(fos.sinks))
 
 	for _, sink := range fos.sinks {
 		go func(sink Sink) {
