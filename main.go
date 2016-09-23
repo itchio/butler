@@ -59,10 +59,11 @@ var (
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 
-	probeCmd   = app.Command("probe", "(Advanced) Probe a folder").Hidden()
-	rangesCmd  = app.Command("ranges", "(Advanced) Print touched ranges for a patch").Hidden()
-	splitCmd   = app.Command("split", "(Advanced) Split a container into blocks").Hidden()
-	unsplitCmd = app.Command("unsplit", "(Advanced) Unsplit a container from blocks").Hidden()
+	probeCmd    = app.Command("probe", "(Advanced) Probe a folder").Hidden()
+	rangesCmd   = app.Command("ranges", "(Advanced) Print touched ranges for a patch").Hidden()
+	splitCmd    = app.Command("split", "(Advanced) Split a container into blocks").Hidden()
+	unsplitCmd  = app.Command("unsplit", "(Advanced) Unsplit a container from blocks").Hidden()
+	bedazzleCmd = app.Command("bedazzle", "(Advanced) Download patch, signature, old build archive, and create new fresh blocks then verify against signature").Hidden()
 )
 
 var appArgs = struct {
@@ -300,6 +301,12 @@ var unsplitArgs = struct {
 	unsplitCmd.Arg("manifest", "Path of the manifest to be written").Required().String(),
 }
 
+var bedazzleArgs = struct {
+	spec *string
+}{
+	bedazzleCmd.Arg("spec", "game/channel to bedazzle").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -477,6 +484,9 @@ func main() {
 
 	case unsplitCmd.FullCommand():
 		unsplit(*unsplitArgs.source, *unsplitArgs.manifest)
+
+	case bedazzleCmd.FullCommand():
+		bedazzle(*bedazzleArgs.spec)
 
 	case whichCmd.FullCommand():
 		which()

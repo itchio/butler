@@ -40,14 +40,9 @@ func (bf BlockFilter) Stats(container *tlc.Container) string {
 	usedSize := int64(0)
 
 	for i, f := range container.Files {
-		numBlocks := (f.Size + BigBlockSize - 1) / BigBlockSize
+		numBlocks := ComputeNumBlocks(f.Size)
 		for j := int64(0); j < numBlocks; j++ {
-			totalBlocks++
-			size := BigBlockSize
-			alignedSize := (j + 1) * BigBlockSize
-			if alignedSize > f.Size {
-				size = f.Size % BigBlockSize
-			}
+			size := ComputeBlockSize(f.Size, j)
 
 			totalBlocks++
 			totalSize += size
@@ -76,6 +71,9 @@ type FilteringSource struct {
 
 	zeroBuf   []byte
 	container *tlc.Container
+
+	totalReqs   int64
+	allowedReqs int64
 }
 
 var _ Source = (*FilteringSource)(nil)
@@ -91,7 +89,10 @@ func (fs *FilteringSource) Clone() Source {
 // Fetch returns the underlying source's result if the given location is in the
 // filter, or a buffer filled with null bytes (of the correct size) otherwise
 func (fs *FilteringSource) Fetch(location BlockLocation) ([]byte, error) {
+	fs.totalReqs++
+
 	if fs.Filter.Has(location) {
+		fs.allowedReqs++
 		return fs.Source.Fetch(location)
 	}
 
@@ -100,18 +101,20 @@ func (fs *FilteringSource) Fetch(location BlockLocation) ([]byte, error) {
 		fs.zeroBuf = make([]byte, BigBlockSize)
 	}
 
-	blockLen := BigBlockSize
-	alignedSize := (location.BlockIndex + 1) * BigBlockSize
 	fileSize := fs.GetContainer().Files[location.FileIndex].Size
-	if alignedSize > fileSize {
-		blockLen = fileSize % BigBlockSize
-	}
-	return fs.zeroBuf[:blockLen], nil
+	blockSize := ComputeBlockSize(fileSize, location.BlockIndex)
+	return fs.zeroBuf[:blockSize], nil
 }
 
 // GetContainer returns the tlc container associated with the underlying source
 func (fs *FilteringSource) GetContainer() *tlc.Container {
 	return fs.Source.GetContainer()
+}
+
+// Stats returns a human-readable string containing information on the filter rate of this source
+func (fs *FilteringSource) Stats() string {
+	return fmt.Sprintf("%d / %d fetches allowed (%.2f%% filter rate)",
+		fs.allowedReqs, fs.totalReqs, (1.0-float64(fs.allowedReqs)/float64(fs.totalReqs))*100.0)
 }
 
 ////////////////
@@ -123,6 +126,9 @@ func (fs *FilteringSource) GetContainer() *tlc.Container {
 type FilteringSink struct {
 	Sink   Sink
 	Filter BlockFilter
+
+	totalReqs   int64
+	allowedReqs int64
 }
 
 var _ Sink = (*FilteringSink)(nil)
@@ -137,7 +143,10 @@ func (fs *FilteringSink) Clone() Sink {
 
 // Store stores a block, if it passes the Filter, otherwise it does nothing.
 func (fs *FilteringSink) Store(location BlockLocation, data []byte) error {
+	fs.totalReqs++
+
 	if fs.Filter.Has(location) {
+		fs.allowedReqs++
 		return fs.Sink.Store(location, data)
 	}
 
@@ -148,4 +157,10 @@ func (fs *FilteringSink) Store(location BlockLocation, data []byte) error {
 // GetContainer returns the tlc container associated with the underlying sink
 func (fs *FilteringSink) GetContainer() *tlc.Container {
 	return fs.Sink.GetContainer()
+}
+
+// Stats returns a human-readable string containing information on the filter rate of this source
+func (fs *FilteringSink) Stats() string {
+	return fmt.Sprintf("%d / %d stores allowed (%.2f%% filter rate)",
+		fs.allowedReqs, fs.totalReqs, (1.0-float64(fs.allowedReqs)/float64(fs.totalReqs))*100.0)
 }

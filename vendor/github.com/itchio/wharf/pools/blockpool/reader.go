@@ -6,11 +6,12 @@ import (
 )
 
 type BlockPoolReader struct {
-	Pool      *BlockPool
-	FileIndex int64
+	pool      *BlockPool
+	fileIndex int64
 
 	offset     int64
 	size       int64
+	numBlocks  int64
 	blockIndex int64
 	blockBuf   []byte
 }
@@ -20,8 +21,12 @@ var _ io.ReadSeeker = (*BlockPoolReader)(nil)
 func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 	blockIndex := npr.offset / BigBlockSize
 	if npr.blockIndex != blockIndex {
+		if blockIndex >= npr.numBlocks {
+			return 0, io.EOF
+		}
+
 		npr.blockIndex = blockIndex
-		blockBuf, err := npr.Pool.Upstream.Fetch(BlockLocation{FileIndex: npr.FileIndex, BlockIndex: blockIndex})
+		blockBuf, err := npr.pool.Upstream.Fetch(BlockLocation{FileIndex: npr.fileIndex, BlockIndex: blockIndex})
 		if err != nil {
 			return 0, err
 		}
@@ -46,13 +51,13 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 
 	if readSize == 0 {
 		return 0, io.EOF
-	} else {
-		return readSize, nil
 	}
+
+	return readSize, nil
 }
 
 func (npr *BlockPoolReader) Seek(offset int64, whence int) (int64, error) {
-	npr.Pool.Consumer.Debugf("seek(%d, %d)", offset, whence)
+	npr.pool.Consumer.Debugf("seek(%d, %d)", offset, whence)
 	switch whence {
 	case os.SEEK_END:
 		npr.offset = npr.size + offset

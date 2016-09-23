@@ -10,6 +10,11 @@ import (
 // Prepare creates all directories, files, and symlinks.
 // It also applies the proper permissions if the files already exist
 func (c *Container) Prepare(basePath string) error {
+	err := os.MkdirAll(basePath, 0755)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
 	for _, dirEntry := range c.Dirs {
 		err := c.prepareDir(basePath, dirEntry)
 		if err != nil {

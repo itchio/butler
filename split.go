@@ -42,7 +42,10 @@ func doSplit(target string, manifest string) error {
 		Container:   container,
 		BlockHashes: blockHashes,
 	}
-	fanOutSink := blockpool.NewFanOutSink(sink, runtime.NumCPU()*2+1)
+	fanOutSink, err := blockpool.NewFanOutSink(sink, runtime.NumCPU()*2+1)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 	fanOutSink.Start()
 
 	sink = fanOutSink
@@ -74,7 +77,7 @@ func doSplit(target string, manifest string) error {
 	comm.Statf("Processed %s in %s (%s/s)", humanize.IBytes(uint64(container.Size)), duration, perSec)
 
 	// write manifest
-	manifestWriter, err := os.Create(*splitArgs.manifest)
+	manifestWriter, err := os.Create(manifest)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

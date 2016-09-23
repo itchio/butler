@@ -39,7 +39,11 @@ func (fos *FanOutSink) Clone() Sink {
 }
 
 // NewFanOutSink returns a newly initialized FanOutSink
-func NewFanOutSink(templateSink Sink, numSinks int) *FanOutSink {
+func NewFanOutSink(templateSink Sink, numSinks int) (*FanOutSink, error) {
+	if numSinks <= 0 {
+		return nil, errors.Wrap(fmt.Errorf("numSinks must > 0, was %d", numSinks), 1)
+	}
+
 	stores := make(chan storeOp)
 	sinks := make([]Sink, numSinks)
 
@@ -47,10 +51,11 @@ func NewFanOutSink(templateSink Sink, numSinks int) *FanOutSink {
 		sinks[i] = templateSink.Clone()
 	}
 
-	return &FanOutSink{
+	fos := &FanOutSink{
 		sinks:  sinks,
 		stores: stores,
 	}
+	return fos, nil
 }
 
 // Start processing store requests

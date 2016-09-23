@@ -34,7 +34,7 @@ func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	}
 
 	if np.reader != nil {
-		if np.reader.FileIndex == fileIndex {
+		if np.reader.fileIndex == fileIndex {
 			return np.reader, nil
 		}
 
@@ -45,12 +45,15 @@ func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		np.reader = nil
 	}
 
-	np.reader = &BlockPoolReader{
-		Pool:      np,
-		FileIndex: fileIndex,
+	fileSize := np.Container.Files[fileIndex].Size
 
-		offset: 0,
-		size:   np.Container.Files[fileIndex].Size,
+	np.reader = &BlockPoolReader{
+		pool:      np,
+		fileIndex: fileIndex,
+
+		offset:    0,
+		size:      fileSize,
+		numBlocks: ComputeNumBlocks(fileSize),
 
 		blockIndex: -1,
 		blockBuf:   make([]byte, BigBlockSize),

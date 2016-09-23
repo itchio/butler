@@ -48,7 +48,7 @@ func (bam BlockAddressMap) TranslateFileIndices(currentContainer *tlc.Container,
 
 	for _, f := range currentContainer.Files {
 		fileIndex := pathToIndex[f.Path]
-		numBlocks := (f.Size + BigBlockSize - 1) / BigBlockSize
+		numBlocks := ComputeNumBlocks(f.Size)
 		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
 			loc := BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}
 			addr := bam.Get(loc)

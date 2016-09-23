@@ -48,7 +48,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 			return errors.Wrap(err, 1)
 		}
 
-		numBlocks := (f.Size + BigBlockSize - 1) / BigBlockSize
+		numBlocks := ComputeNumBlocks(f.Size)
 		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
 			loc := BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}
 			hash := blockHashes.Get(loc)
@@ -123,7 +123,7 @@ func ReadManifest(manifestReader io.Reader) (*tlc.Container, *BlockHashMap, erro
 			return nil, nil, errors.Wrap(err, 1)
 		}
 
-		numBlocks := (f.Size + BigBlockSize - 1) / BigBlockSize
+		numBlocks := ComputeNumBlocks(f.Size)
 		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
 			mbh.Reset()
 			err = wire.ReadMessage(mbh)

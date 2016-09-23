@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
 	"os"
 	"time"
 
@@ -18,11 +17,6 @@ func ranges(manifest string, patch string, newManifest string) {
 }
 
 func doRanges(manifest string, patch string, newManifest string) error {
-	patchStats, err := os.Lstat(patch)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
 	patchReader, err := os.Open(patch)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -41,17 +35,6 @@ func doRanges(manifest string, patch string, newManifest string) error {
 	targetContainer := g.TargetContainer
 	sourceContainer := g.SourceContainer
 
-	comm.Opf("Showing ranges for %s patch", humanize.IBytes(uint64(patchStats.Size())))
-	comm.Statf("Old version: %s in %s", humanize.IBytes(uint64(targetContainer.Size)), targetContainer.Stats())
-	comm.Statf("New version: %s in %s", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
-	deltaOp := "+"
-	if sourceContainer.Size < targetContainer.Size {
-		deltaOp = "-"
-	}
-	delta := math.Abs(float64(sourceContainer.Size - targetContainer.Size))
-	comm.Statf("Delta: %s%s (%s%.2f%%)", deltaOp, humanize.IBytes(uint64(delta)), deltaOp, delta/float64(targetContainer.Size)*100.0)
-	comm.Log("")
-
 	requiredOldBlocks := make(blockpool.BlockFilter)
 	requiredOldBlocksList := []blockpool.BlockLocation{}
 
@@ -63,13 +46,13 @@ func doRanges(manifest string, patch string, newManifest string) error {
 	// read the old build's manifest
 	manifestReader, err := os.Open(manifest)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	defer manifestReader.Close()
 
 	manContainer, blockHashes, err := blockpool.ReadManifest(manifestReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	blockAddresses, err := blockHashes.ToAddressMap(manContainer, pwr.HashAlgorithm_SHAKE128_32)
@@ -115,7 +98,7 @@ func doRanges(manifest string, patch string, newManifest string) error {
 
 	err = g.ParseContents(comps)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	comm.Statf("Old req'd blocks: %s", requiredOldBlocks.Stats(targetContainer))
@@ -123,7 +106,7 @@ func doRanges(manifest string, patch string, newManifest string) error {
 
 	blockAddresses, err = blockAddresses.TranslateFileIndices(manContainer, targetContainer)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	var source blockpool.Source
@@ -195,7 +178,10 @@ func doRanges(manifest string, patch string, newManifest string) error {
 			}
 		}()
 
-		fanOutSink = blockpool.NewFanOutSink(subSink, *rangesArgs.fanout)
+		fanOutSink, err = blockpool.NewFanOutSink(subSink, *rangesArgs.fanout)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
 		fanOutSink.Start()
 
 		actx.OutputPool = &blockpool.BlockPool{
@@ -207,7 +193,7 @@ func doRanges(manifest string, patch string, newManifest string) error {
 
 	_, err = patchReader.Seek(0, os.SEEK_SET)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	startTime := time.Now()
@@ -215,14 +201,14 @@ func doRanges(manifest string, patch string, newManifest string) error {
 	comm.StartProgress()
 	err = actx.ApplyPatch(patchReader)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 	comm.EndProgress()
 
 	if fanOutSink != nil {
 		err = fanOutSink.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, 1)
 		}
 	}
 

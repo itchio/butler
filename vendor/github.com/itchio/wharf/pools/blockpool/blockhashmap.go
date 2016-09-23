@@ -61,11 +61,7 @@ func (bhm *BlockHashMap) ToAddressMap(container *tlc.Container, algorithm pwr.Ha
 		f := container.Files[fileIndex]
 
 		for blockIndex, hash := range blocks {
-			size := BigBlockSize
-			alignedSize := (blockIndex + 1) * BigBlockSize
-			if alignedSize > f.Size {
-				size = f.Size % BigBlockSize
-			}
+			size := ComputeBlockSize(f.Size, blockIndex)
 			addr := fmt.Sprintf("shake128-32/%x/%d", hash, size)
 			bam.Set(BlockLocation{FileIndex: fileIndex, BlockIndex: blockIndex}, addr)
 		}
