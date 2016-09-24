@@ -79,7 +79,7 @@ func doSplit(target string, manifest string) error {
 	duration := time.Since(startTime)
 	perSec := humanize.IBytes(uint64(float64(container.Size) / duration.Seconds()))
 
-	comm.Statf("Processed %s in %s (%s/s)", humanize.IBytes(uint64(container.Size)), duration, perSec)
+	comm.Statf("Split %s in %s (%s/s)", humanize.IBytes(uint64(container.Size)), duration, perSec)
 
 	// write manifest
 	manifestWriter, err := os.Create(manifest)

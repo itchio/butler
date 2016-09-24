@@ -6,7 +6,9 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
@@ -63,13 +65,19 @@ func doBedazzle(spec string) error {
 	done := make(chan bool)
 	errs := make(chan error)
 
-	comm.Opf("Downloading patch and signature...")
+	comm.Logf("")
+	comm.Opf("Downloading patch and signature for build #%d...", head.ID)
 	comm.StartProgress()
+
+	startTime := time.Now()
+	dlSize := int64(0)
 
 	for _, f := range head.Files {
 		writer := writers[f.Type]
 		if writer != nil {
 			go func(f *itchio.BuildFileInfo) {
+				dlSize += f.Size
+
 				reader, err := client.DownloadBuildFile(head.ID, f.ID)
 				if err != nil {
 					errs <- err
@@ -108,6 +116,10 @@ func doBedazzle(spec string) error {
 
 	comm.EndProgress()
 
+	patchDlDuration := time.Since(startTime)
+	perSec := float64(dlSize) / patchDlDuration.Seconds()
+	comm.Statf("Downloaded %s in %s (%s/s)", humanize.IBytes(uint64(dlSize)), patchDlDuration, humanize.IBytes(uint64(perSec)))
+
 	parent, err := client.ListBuildFiles(head.ParentBuildID)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -118,14 +130,19 @@ func doBedazzle(spec string) error {
 
 	foundArchive := false
 
-	comm.Opf("Downloading archive...")
+	comm.Logf("")
+	comm.Opf("Downloading archive for build #%d...", head.ParentBuildID)
 	comm.StartProgress()
+
+	startTime = time.Now()
+	dlSize = 0
 
 	for _, f := range parent.Files {
 		writer := archiveWriter
 
 		if f.Type == itchio.BuildFileType_ARCHIVE {
 			foundArchive = true
+			dlSize = f.Size
 
 			go func(f itchio.BuildFileInfo) {
 				reader, err := client.DownloadBuildFile(head.ParentBuildID, f.ID)
@@ -168,6 +185,11 @@ func doBedazzle(spec string) error {
 
 	comm.EndProgress()
 
+	archiveDlDuration := time.Since(startTime)
+	perSec = float64(dlSize) / archiveDlDuration.Seconds()
+	comm.Statf("Downloaded %s in %s (at %s/s)", humanize.IBytes(uint64(dlSize)), archiveDlDuration, humanize.IBytes(uint64(perSec)))
+
+	comm.Logf("")
 	comm.Opf("Wiping existing block store")
 	wipe("blocks")
 	wipe("outblocks")
@@ -179,11 +201,13 @@ func doBedazzle(spec string) error {
 
 	manifestPath := "bedazzle-old.pwm"
 
+	comm.Logf("")
 	comm.Opf("Splitting old archive")
 	split(archivePath, manifestPath)
 
 	newManifestPath := "bedazzle-new.pwm"
 
+	comm.Logf("")
 	comm.Opf("Applying patch with filters & 0 latency")
 	*rangesArgs.infilter = true
 	*rangesArgs.outfilter = true
@@ -192,14 +216,17 @@ func doBedazzle(spec string) error {
 	*rangesArgs.fanout = runtime.NumCPU() + 1
 	ranges(manifestPath, patchPath, newManifestPath)
 
+	comm.Logf("")
 	comm.Opf("Merging outblocks with blocks")
 	ditto("outblocks", "blocks")
 
 	outPath := "bedazzle-out"
 
+	comm.Logf("")
 	comm.Opf("Unsplitting with new manifest")
 	unsplit(outPath, newManifestPath)
 
+	comm.Logf("")
 	comm.Opf("Checking against signature")
 	verify(sigPath, outPath)
 

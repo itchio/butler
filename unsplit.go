@@ -2,7 +2,9 @@ package main
 
 import (
 	"os"
+	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pools/blockpool"
@@ -53,6 +55,10 @@ func doUnsplit(sourcePath string, manifest string) error {
 		return errors.Wrap(err, 1)
 	}
 
+	startTime := time.Now()
+
+	comm.Opf("Unsplitting %s in %s", humanize.IBytes(uint64(container.Size)), container.Stats())
+
 	comm.StartProgress()
 
 	err = pwr.CopyContainer(container, outPool, inPool, comm.NewStateConsumer())
@@ -61,6 +67,11 @@ func doUnsplit(sourcePath string, manifest string) error {
 	}
 
 	comm.EndProgress()
+
+	duration := time.Since(startTime)
+	perSec := humanize.IBytes(uint64(float64(container.Size) / duration.Seconds()))
+
+	comm.Statf("Unsplit %s in %s (%s/s)", humanize.IBytes(uint64(container.Size)), duration, perSec)
 
 	return nil
 }
