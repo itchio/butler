@@ -10,11 +10,11 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func unsplit(source string, manifest string) {
-	must(doUnsplit(source, manifest))
+func unsplit(sourcePath string, manifest string) {
+	must(doUnsplit(sourcePath, manifest))
 }
 
-func doUnsplit(source string, manifest string) error {
+func doUnsplit(sourcePath string, manifest string) error {
 	manifestReader, err := os.Open(manifest)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -30,20 +30,25 @@ func doUnsplit(source string, manifest string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	ds := &blockpool.DiskSource{
+	var source blockpool.Source
+	source = &blockpool.DiskSource{
 		BasePath:       "blocks",
 		BlockAddresses: blockAddresses,
 		Container:      container,
 	}
 
-	inPool := &blockpool.BlockPool{
-		Container: container,
-		Upstream:  ds,
+	source = &blockpool.DecompressingSource{
+		Source: source,
 	}
 
-	outPool := fspool.New(container, source)
+	inPool := &blockpool.BlockPool{
+		Container: container,
+		Upstream:  source,
+	}
 
-	err = container.Prepare(source)
+	outPool := fspool.New(container, sourcePath)
+
+	err = container.Prepare(sourcePath)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

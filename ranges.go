@@ -118,6 +118,10 @@ func doRanges(manifest string, patch string, newManifest string) error {
 		}
 	}
 
+	source = &blockpool.DecompressingSource{
+		Source: source,
+	}
+
 	if *rangesArgs.infilter {
 		source = &blockpool.FilteringSource{
 			Filter: requiredOldBlocks,
@@ -155,6 +159,10 @@ func doRanges(manifest string, patch string, newManifest string) error {
 				Latency: time.Duration(*rangesArgs.outlatency) * time.Millisecond,
 				Sink:    subSink,
 			}
+		}
+
+		subSink = &blockpool.CompressingSink{
+			Sink: subSink,
 		}
 
 		if *rangesArgs.outfilter {

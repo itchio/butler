@@ -42,6 +42,11 @@ func doSplit(target string, manifest string) error {
 		Container:   container,
 		BlockHashes: blockHashes,
 	}
+
+	sink = &blockpool.CompressingSink{
+		Sink: sink,
+	}
+
 	fanOutSink, err := blockpool.NewFanOutSink(sink, runtime.NumCPU()*2+1)
 	if err != nil {
 		return errors.Wrap(err, 1)
