@@ -173,7 +173,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		}
 
 		info := file.FileInfo()
-		mode := info.Mode() | ModeMask
+		mode := file.Mode() | ModeMask
 
 		if info.IsDir() {
 			dirMap[dir] = mode
@@ -204,7 +204,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 				Mode: uint32(mode),
 			})
 		} else {
-			Size := info.Size()
+			Size := int64(file.UncompressedSize64)
 
 			Files = append(Files, &File{
 				Path:   file.Name,
