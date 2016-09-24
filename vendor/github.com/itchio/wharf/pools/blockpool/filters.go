@@ -69,7 +69,6 @@ type FilteringSource struct {
 	Source Source
 	Filter BlockFilter
 
-	zeroBuf   []byte
 	container *tlc.Container
 
 	totalReqs   int64
@@ -88,22 +87,16 @@ func (fs *FilteringSource) Clone() Source {
 
 // Fetch returns the underlying source's result if the given location is in the
 // filter, or a buffer filled with null bytes (of the correct size) otherwise
-func (fs *FilteringSource) Fetch(location BlockLocation) ([]byte, error) {
+func (fs *FilteringSource) Fetch(location BlockLocation, data []byte) error {
 	fs.totalReqs++
 
 	if fs.Filter.Has(location) {
 		fs.allowedReqs++
-		return fs.Source.Fetch(location)
+		return fs.Source.Fetch(location, data)
 	}
 
-	// when filtered, return null bytes (from a single buffer)
-	if fs.zeroBuf == nil {
-		fs.zeroBuf = make([]byte, BigBlockSize)
-	}
-
-	fileSize := fs.GetContainer().Files[location.FileIndex].Size
-	blockSize := ComputeBlockSize(fileSize, location.BlockIndex)
-	return fs.zeroBuf[:blockSize], nil
+	// when filtered, don't touch output buffer
+	return nil
 }
 
 // GetContainer returns the tlc container associated with the underlying source

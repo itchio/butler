@@ -26,11 +26,13 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 		}
 
 		npr.blockIndex = blockIndex
-		blockBuf, err := npr.pool.Upstream.Fetch(BlockLocation{FileIndex: npr.fileIndex, BlockIndex: blockIndex})
+		loc := BlockLocation{FileIndex: npr.fileIndex, BlockIndex: blockIndex}
+		blockSize := ComputeBlockSize(npr.size, npr.blockIndex)
+
+		err := npr.pool.Upstream.Fetch(loc, npr.blockBuf[:blockSize])
 		if err != nil {
 			return 0, err
 		}
-		npr.blockBuf = blockBuf
 	}
 
 	newOffset := npr.offset + int64(len(buf))

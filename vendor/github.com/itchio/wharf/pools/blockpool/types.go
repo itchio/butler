@@ -6,7 +6,7 @@ import "github.com/itchio/wharf/tlc"
 type Source interface {
 	// Fetch retrieves a certain block, given its location. The returned buffer
 	// must not be modified by the callee (ie. it must be a copy)
-	Fetch(location BlockLocation) ([]byte, error)
+	Fetch(location BlockLocation, data []byte) error
 
 	// GetContainer retrieves the container associated with this source, which
 	// contains information such as paths, sizes, modes, symlinks and dirs

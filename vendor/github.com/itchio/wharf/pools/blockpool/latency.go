@@ -60,9 +60,9 @@ func (ds *DelayedSource) Clone() Source {
 }
 
 // Fetch behaves just like the underlying source, with a delay
-func (ds *DelayedSource) Fetch(loc BlockLocation) ([]byte, error) {
+func (ds *DelayedSource) Fetch(loc BlockLocation, data []byte) error {
 	time.Sleep(ds.Latency)
-	return ds.Source.Fetch(loc)
+	return ds.Source.Fetch(loc, data)
 }
 
 // GetContainer returns the underlying source's containre
