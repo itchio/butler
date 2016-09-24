@@ -18,7 +18,7 @@ type BlockPool struct {
 	Downstream Sink
 	Consumer   *pwr.StateConsumer
 
-	reader *BlockPoolReader
+	reader *Reader
 }
 
 var _ sync.Pool = (*BlockPool)(nil)
@@ -47,7 +47,7 @@ func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 
 	fileSize := np.Container.Files[fileIndex].Size
 
-	np.reader = &BlockPoolReader{
+	np.reader = &Reader{
 		pool:      np,
 		fileIndex: fileIndex,
 
@@ -66,7 +66,7 @@ func (np *BlockPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		return nil, errors.Wrap(fmt.Errorf("BlockPool: no downstream"), 1)
 	}
 
-	npw := &BlockPoolWriter{
+	npw := &Writer{
 		Pool:      np,
 		FileIndex: fileIndex,
 

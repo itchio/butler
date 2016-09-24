@@ -7,7 +7,9 @@ import (
 	"github.com/go-errors/errors"
 )
 
-type BlockPoolWriter struct {
+// A Writer provides an io.Writer on top of a blockpool, storing data until
+// it has enough to store a block downstream.
+type Writer struct {
 	Pool      *BlockPool
 	FileIndex int64
 
@@ -18,11 +20,12 @@ type BlockPoolWriter struct {
 	closed bool
 }
 
-var _ io.WriteCloser = (*BlockPoolWriter)(nil)
+var _ io.WriteCloser = (*Writer)(nil)
 
-func (npw *BlockPoolWriter) Write(buf []byte) (int, error) {
+// Write is an io.Writer-compliant implementation
+func (npw *Writer) Write(buf []byte) (int, error) {
 	if npw.closed {
-		return 0, fmt.Errorf("write to closed BlockPoolWriter")
+		return 0, fmt.Errorf("write to closed Writer")
 	}
 
 	bufOffset := int64(0)
@@ -56,7 +59,9 @@ func (npw *BlockPoolWriter) Write(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
-func (npw *BlockPoolWriter) Close() error {
+// Close is essential, since it writes the last block in all cases except
+// when it's an exact multiple of BigBlockSize
+func (npw *Writer) Close() error {
 	if npw.closed {
 		return nil
 	}

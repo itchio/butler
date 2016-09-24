@@ -10,6 +10,8 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
+type CompositionListener func(comp *Composition)
+
 // A Genie analyzes a patch to figure out which parts of the target container
 // are used to build individual blocks of the source container.
 type Genie struct {
@@ -59,7 +61,7 @@ func (g *Genie) ParseHeader(patchReader io.Reader) error {
 }
 
 // ParseContents sends a Composition for each block of the source container
-func (g *Genie) ParseContents(comps chan *Composition) error {
+func (g *Genie) ParseContents(onComp CompositionListener) error {
 	patchWire := g.PatchWire
 
 	// for each file, the patch contains a SyncHeader followed by a series of
@@ -77,7 +79,7 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 			return errors.Wrap(pwr.ErrMalformedPatch, 1)
 		}
 
-		err = g.analyzeFile(patchWire, int64(fileIndex), f.Size, comps)
+		err = g.analyzeFile(patchWire, int64(fileIndex), f.Size, onComp)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
@@ -86,7 +88,7 @@ func (g *Genie) ParseContents(comps chan *Composition) error {
 	return nil
 }
 
-func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSize int64, comps chan *Composition) error {
+func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSize int64, onComp CompositionListener) error {
 	rop := &pwr.SyncOp{}
 
 	smallBlockSize := int64(pwr.BlockSize)
@@ -136,7 +138,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSi
 					bo.Size -= truncatedSize
 				}
 
-				comps <- comp
+				onComp(comp)
 
 				// after sending over the composition, we allocate a new one - same file, next block
 				// (sent comps should not be modified afterwards)
@@ -171,7 +173,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSi
 					fo.Size -= truncatedSize
 				}
 
-				comps <- comp
+				onComp(comp)
 
 				// allocate a new comp after sending, so we don't write to the previous one
 				comp = &Composition{
@@ -185,7 +187,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSi
 			}
 		case pwr.SyncOp_HEY_YOU_DID_IT:
 			if comp.Size > 0 && fileSize > 0 {
-				comps <- comp
+				onComp(comp)
 			}
 			return nil
 		}

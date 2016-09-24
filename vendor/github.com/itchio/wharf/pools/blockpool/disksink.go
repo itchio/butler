@@ -62,7 +62,9 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 		ds.BlockHashes.Set(loc, append([]byte{}, ds.hashBuf...))
 	}
 
-	addr := fmt.Sprintf("shake128-32/%x/%d", ds.hashBuf, len(data))
+	fileSize := ds.Container.Files[int(loc.FileIndex)].Size
+	blockSize := ComputeBlockSize(fileSize, loc.BlockIndex)
+	addr := fmt.Sprintf("shake128-32/%x/%d", ds.hashBuf, blockSize)
 	path := filepath.Join(ds.BasePath, addr)
 
 	err = os.MkdirAll(filepath.Dir(path), 0755)

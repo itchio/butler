@@ -39,7 +39,6 @@ func doRanges(manifest string, patch string, newManifest string) error {
 	requiredOldBlocksList := []blockpool.BlockLocation{}
 
 	freshNewBlocks := make(blockpool.BlockFilter)
-	comps := make(chan *genie.Composition)
 
 	newBlockHashes := blockpool.NewBlockHashMap()
 
@@ -57,46 +56,40 @@ func doRanges(manifest string, patch string, newManifest string) error {
 
 	blockAddresses, err := blockHashes.ToAddressMap(manContainer, pwr.HashAlgorithm_SHAKE128_32)
 
-	go func() {
-		for comp := range comps {
-			reuse := false
-
-			if len(comp.Origins) == 1 {
-				switch origin := comp.Origins[0].(type) {
-				case *genie.BlockOrigin:
-					if origin.Offset%bigBlockSize == 0 {
-						newLoc := blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex}
-						blockIndex := origin.Offset / bigBlockSize
-						oldLoc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: blockIndex}
-						newBlockHashes.Set(newLoc, blockHashes.Get(oldLoc))
-						reuse = true
-					}
-				}
-			}
-
-			if reuse {
-				continue
-			}
-
-			freshNewBlocks.Set(blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex})
-			for _, anyOrigin := range comp.Origins {
-				switch origin := anyOrigin.(type) {
-				case *genie.BlockOrigin:
-					blockStart := origin.Offset / bigBlockSize
-					blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
-					for j := blockStart; j < blockEnd; j++ {
-						loc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j}
-						if !requiredOldBlocks.Has(loc) {
-							requiredOldBlocksList = append(requiredOldBlocksList, blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j})
-						}
-						requiredOldBlocks.Set(loc)
-					}
+	onComp := func(comp *genie.Composition) {
+		if len(comp.Origins) == 1 {
+			switch origin := comp.Origins[0].(type) {
+			case *genie.BlockOrigin:
+				if origin.Offset%bigBlockSize == 0 {
+					newLoc := blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex}
+					blockIndex := origin.Offset / bigBlockSize
+					oldLoc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: blockIndex}
+					// 4MB block is re-used as-is, remember old hash for manifest and
+					// fake input / throw away output
+					newBlockHashes.Set(newLoc, blockHashes.Get(oldLoc))
+					return
 				}
 			}
 		}
-	}()
 
-	err = g.ParseContents(comps)
+		freshNewBlocks.Set(blockpool.BlockLocation{FileIndex: comp.FileIndex, BlockIndex: comp.BlockIndex})
+		for _, anyOrigin := range comp.Origins {
+			switch origin := anyOrigin.(type) {
+			case *genie.BlockOrigin:
+				blockStart := origin.Offset / bigBlockSize
+				blockEnd := (origin.Offset + origin.Size + bigBlockSize - 1) / bigBlockSize
+				for j := blockStart; j < blockEnd; j++ {
+					loc := blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j}
+					if !requiredOldBlocks.Has(loc) {
+						requiredOldBlocksList = append(requiredOldBlocksList, blockpool.BlockLocation{FileIndex: origin.FileIndex, BlockIndex: j})
+					}
+					requiredOldBlocks.Set(loc)
+				}
+			}
+		}
+	}
+
+	err = g.ParseContents(onComp)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

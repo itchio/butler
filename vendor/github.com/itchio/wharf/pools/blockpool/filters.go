@@ -87,7 +87,7 @@ func (fs *FilteringSource) Clone() Source {
 
 // Fetch returns the underlying source's result if the given location is in the
 // filter, or a buffer filled with null bytes (of the correct size) otherwise
-func (fs *FilteringSource) Fetch(location BlockLocation, data []byte) error {
+func (fs *FilteringSource) Fetch(location BlockLocation, data []byte) (int, error) {
 	fs.totalReqs++
 
 	if fs.Filter.Has(location) {
@@ -96,7 +96,7 @@ func (fs *FilteringSource) Fetch(location BlockLocation, data []byte) error {
 	}
 
 	// when filtered, don't touch output buffer
-	return nil
+	return 0, nil
 }
 
 // GetContainer returns the tlc container associated with the underlying source

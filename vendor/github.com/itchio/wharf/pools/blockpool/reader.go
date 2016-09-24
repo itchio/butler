@@ -5,7 +5,9 @@ import (
 	"os"
 )
 
-type BlockPoolReader struct {
+// A Reader provides an io.ReadSeeker on top of a blockpool, knowing
+// which block to fetch for which read requests.
+type Reader struct {
 	pool      *BlockPool
 	fileIndex int64
 
@@ -16,9 +18,9 @@ type BlockPoolReader struct {
 	blockBuf   []byte
 }
 
-var _ io.ReadSeeker = (*BlockPoolReader)(nil)
+var _ io.ReadSeeker = (*Reader)(nil)
 
-func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
+func (npr *Reader) Read(buf []byte) (int, error) {
 	blockIndex := npr.offset / BigBlockSize
 	if npr.blockIndex != blockIndex {
 		if blockIndex >= npr.numBlocks {
@@ -29,7 +31,8 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 		loc := BlockLocation{FileIndex: npr.fileIndex, BlockIndex: blockIndex}
 		blockSize := ComputeBlockSize(npr.size, npr.blockIndex)
 
-		err := npr.pool.Upstream.Fetch(loc, npr.blockBuf[:blockSize])
+		// FIXME: should we check readBytes here? it would break filtering sources though.
+		_, err := npr.pool.Upstream.Fetch(loc, npr.blockBuf[:blockSize])
 		if err != nil {
 			return 0, err
 		}
@@ -58,7 +61,8 @@ func (npr *BlockPoolReader) Read(buf []byte) (int, error) {
 	return readSize, nil
 }
 
-func (npr *BlockPoolReader) Seek(offset int64, whence int) (int64, error) {
+// Seek moves the read head as specified by (offset, whence), see io.Seeker's doc
+func (npr *Reader) Seek(offset int64, whence int) (int64, error) {
 	npr.pool.Consumer.Debugf("seek(%d, %d)", offset, whence)
 	switch whence {
 	case os.SEEK_END:
@@ -71,6 +75,7 @@ func (npr *BlockPoolReader) Seek(offset int64, whence int) (int64, error) {
 	return npr.offset, nil
 }
 
-func (npr *BlockPoolReader) Close() error {
+// Close is actually a no-op
+func (npr *Reader) Close() error {
 	return nil
 }

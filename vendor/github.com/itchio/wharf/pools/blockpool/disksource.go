@@ -32,31 +32,30 @@ func (ds *DiskSource) Clone() Source {
 }
 
 // Fetch reads a block from disk
-func (ds *DiskSource) Fetch(loc BlockLocation, data []byte) error {
+func (ds *DiskSource) Fetch(loc BlockLocation, data []byte) (int, error) {
 	addr := ds.BlockAddresses.Get(loc)
 	if addr == "" {
-		return errors.Wrap(fmt.Errorf("no address for block %+v", loc), 1)
+		return 0, errors.Wrap(fmt.Errorf("no address for block %+v", loc), 1)
 	}
 	path := filepath.Join(ds.BasePath, addr)
 
 	fr, err := os.Open(path)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return 0, errors.Wrap(err, 1)
 	}
 
 	defer fr.Close()
 
-	readBytes, err := io.ReadFull(fr, data)
+	bytesRead, err := io.ReadFull(fr, data)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		if err == io.ErrUnexpectedEOF {
+			// all good
+		} else {
+			return 0, errors.Wrap(err, 1)
+		}
 	}
 
-	if readBytes != len(data) {
-		err = fmt.Errorf("short read! expected %d bytes, read %d bytes from disk", len(data), readBytes)
-		return errors.Wrap(err, 1)
-	}
-
-	return nil
+	return bytesRead, nil
 }
 
 // GetContainer returns the tlc container this disk source is paired with
