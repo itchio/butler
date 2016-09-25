@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/blockpool"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 )
 
@@ -31,6 +32,10 @@ func doSplit(target string, manifest string) error {
 		return errors.Wrap(err, 1)
 	}
 
+	return doSplitCustom(inPool, container, manifest)
+}
+
+func doSplitCustom(inPool sync.Pool, container *tlc.Container, manifest string) error {
 	blockDir := "blocks"
 
 	var sink blockpool.Sink

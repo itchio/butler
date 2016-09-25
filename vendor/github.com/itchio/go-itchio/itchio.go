@@ -33,13 +33,19 @@ func defaultRetryPatterns() []time.Duration {
 }
 
 func ClientWithKey(key string) *Client {
-	return &Client{
+	c := &Client{
 		Key:           key,
 		HTTPClient:    http.DefaultClient,
-		BaseURL:       "https://itch.io/api/1",
 		RetryPatterns: defaultRetryPatterns(),
 		UserAgent:     "go-itchio",
 	}
+	c.SetServer("https://itch.io")
+	return c
+}
+
+func (c *Client) SetServer(itchioServer string) *Client {
+	c.BaseURL = fmt.Sprintf("%s/api/1", itchioServer)
+	return c
 }
 
 type Response struct {
@@ -250,6 +256,7 @@ const (
 	BuildFileType_PATCH     BuildFileType = "patch"
 	BuildFileType_ARCHIVE                 = "archive"
 	BuildFileType_SIGNATURE               = "signature"
+	BuildFileType_MANIFEST                = "manifest"
 )
 
 type BuildFileSubType string
@@ -364,6 +371,22 @@ type DownloadBuildFileResponse struct {
 var (
 	BuildFileNotFound = errors.New("build file not found in storage")
 )
+
+func (c *Client) GetBuildFileDownloadURL(buildID int64, fileID int64) (r DownloadBuildFileResponse, err error) {
+	path := c.MakePath("wharf/builds/%d/files/%d/download", buildID, fileID)
+
+	resp, err := c.Get(path)
+	if err != nil {
+		return
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	if err != nil {
+		return
+	}
+
+	return
+}
 
 func (c *Client) DownloadBuildFile(buildID int64, fileID int64) (reader io.ReadCloser, err error) {
 	path := c.MakePath("wharf/builds/%d/files/%d/download", buildID, fileID)

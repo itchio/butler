@@ -1,8 +1,10 @@
 package main
 
 import (
+	"archive/zip"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
@@ -11,8 +13,11 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/httpfile"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/pools/zippool"
+	"github.com/itchio/wharf/tlc"
 )
 
 func bedazzle(spec string) {
@@ -125,69 +130,7 @@ func doBedazzle(spec string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	archivePath := "bedazzle.zip"
-	archiveWriter, err := os.Create(archivePath)
-
-	foundArchive := false
-
-	comm.Logf("")
-	comm.Opf("Downloading archive for build #%d...", head.ParentBuildID)
-	comm.StartProgress()
-
-	startTime = time.Now()
-	dlSize = 0
-
-	for _, f := range parent.Files {
-		writer := archiveWriter
-
-		if f.Type == itchio.BuildFileType_ARCHIVE {
-			foundArchive = true
-			dlSize = f.Size
-
-			go func(f itchio.BuildFileInfo) {
-				reader, err := client.DownloadBuildFile(head.ParentBuildID, f.ID)
-				if err != nil {
-					errs <- err
-					return
-				}
-
-				cw := counter.NewWriterCallback(func(count int64) {
-					comm.Progress(float64(count) / float64(f.Size))
-				}, archiveWriter)
-
-				_, err = io.Copy(cw, reader)
-				if err != nil {
-					errs <- err
-					return
-				}
-
-				err = writer.Close()
-				if err != nil {
-					errs <- err
-					return
-				}
-
-				done <- true
-			}(f)
-		}
-	}
-
-	if !foundArchive {
-		return fmt.Errorf("no archive found in parent build %d", head.ParentBuildID)
-	}
-
-	select {
-	case err = <-errs:
-		return errors.Wrap(err, 1)
-	case <-done:
-		// all good!
-	}
-
-	comm.EndProgress()
-
-	archiveDlDuration := time.Since(startTime)
-	perSec = float64(dlSize) / archiveDlDuration.Seconds()
-	comm.Statf("Downloaded %s in %s (at %s/s)", humanize.IBytes(uint64(dlSize)), archiveDlDuration, humanize.IBytes(uint64(perSec)))
+	var archiveID int64 = -1
 
 	comm.Logf("")
 	comm.Opf("Wiping existing block store")
@@ -199,11 +142,57 @@ func doBedazzle(spec string) error {
 		return errors.Wrap(err, 1)
 	}
 
+	comm.Logf("")
+	comm.Opf("Splitting archive for build #%d...", head.ParentBuildID)
+
+	for _, f := range parent.Files {
+		if f.Type == itchio.BuildFileType_ARCHIVE {
+			archiveID = f.ID
+		}
+	}
+
+	if archiveID == -1 {
+		return fmt.Errorf("no archive found in parent build %d", head.ParentBuildID)
+	}
+
+	getArchiveURL := func() (string, error) {
+		r, apiErr := client.GetBuildFileDownloadURL(head.ParentBuildID, archiveID)
+		if apiErr != nil {
+			return "", errors.Wrap(apiErr, 1)
+		}
+
+		return r.URL, nil
+	}
+
+	// now comes the real fun part
+	hf, err := httpfile.New(getArchiveURL, http.DefaultClient)
+	if err != nil {
+		return err
+	}
+
+	if *bedazzleArgs.debughttpfile {
+		hf.Consumer = comm.NewStateConsumer()
+	}
+
+	zr, err := zip.NewReader(hf, hf.Size())
+	if err != nil {
+		return err
+	}
+
+	container, err := tlc.WalkZip(zr, filterPaths)
+	if err != nil {
+		return err
+	}
+
+	comm.Statf("Working from remote zip, containing %s in %s", humanize.IBytes(uint64(container.Size)), container.Stats())
+
+	inPool := zippool.New(container, zr)
 	manifestPath := "bedazzle-old.pwm"
 
-	comm.Logf("")
-	comm.Opf("Splitting old archive")
-	split(archivePath, manifestPath)
+	err = doSplitCustom(inPool, container, manifestPath)
+	if err != nil {
+		return err
+	}
 
 	newManifestPath := "bedazzle-new.pwm"
 

@@ -302,9 +302,11 @@ var unsplitArgs = struct {
 }
 
 var bedazzleArgs = struct {
-	spec *string
+	spec          *string
+	debughttpfile *bool
 }{
 	bedazzleCmd.Arg("spec", "game/channel to bedazzle").Required().String(),
+	bedazzleCmd.Flag("debughttpfile", "Be noisy about httpfile").Default("false").Bool(),
 }
 
 var fileArgs = struct {
