@@ -16,7 +16,9 @@ import (
 	"github.com/itchio/butler/httpfile"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/pools/blockpool"
 	"github.com/itchio/wharf/pools/zippool"
+	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 )
 
@@ -135,9 +137,8 @@ func doBedazzle(spec string) error {
 	comm.Logf("")
 	comm.Opf("Wiping existing block store")
 	wipe("blocks")
-	wipe("outblocks")
 
-	err = os.MkdirAll("outblocks", 0755)
+	err = os.MkdirAll("blocks", 0755)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -197,27 +198,37 @@ func doBedazzle(spec string) error {
 	newManifestPath := "bedazzle-new.pwm"
 
 	comm.Logf("")
-	comm.Opf("Applying patch with filters & 0 latency")
+	comm.Opf("Parsing signature...")
+	// verify
+
+	sigReader, err := os.Open(sigPath)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	sigContainer, sigHashes, err := pwr.ReadSignature(sigReader)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	sigInfo := &blockpool.SignatureInfo{
+		Container: sigContainer,
+		Hashes:    sigHashes,
+	}
+
+	comm.Logf("")
+	comm.Opf("Applying patch with filters, 0 latency, and validating")
+
 	*rangesArgs.infilter = true
 	*rangesArgs.outfilter = true
+	*rangesArgs.fanout = runtime.NumCPU() + 1
+
 	*rangesArgs.inlatency = 0
 	*rangesArgs.outlatency = 0
-	*rangesArgs.fanout = runtime.NumCPU() + 1
-	ranges(manifestPath, patchPath, newManifestPath)
-
-	comm.Logf("")
-	comm.Opf("Merging outblocks with blocks")
-	ditto("outblocks", "blocks")
-
-	outPath := "bedazzle-out"
-
-	comm.Logf("")
-	comm.Opf("Unsplitting with new manifest")
-	unsplit(outPath, newManifestPath)
-
-	comm.Logf("")
-	comm.Opf("Checking against signature")
-	verify(sigPath, outPath)
+	err = doRanges(manifestPath, patchPath, newManifestPath, sigInfo)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 
 	comm.Statf("Success!")
 

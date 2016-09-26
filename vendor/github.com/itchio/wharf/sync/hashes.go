@@ -63,11 +63,18 @@ func (ctx *Context) CreateSignature(fileIndex int64, fileReader io.Reader, write
 	return nil
 }
 
+func (ctx *Context) HashBlock(block []byte) (weakHash uint32, strongHash []byte) {
+	weakHash, _, _ = βhash(block)
+	strongHash = ctx.uniqueHash(block)
+	return
+}
+
 // Use a more unique way to identify a set of bytes.
 func (ctx *Context) uniqueHash(v []byte) []byte {
 	ctx.uniqueHasher.Reset()
 	_, err := ctx.uniqueHasher.Write(v)
 	if err != nil {
+		// FIXME: libs shouldn't panic
 		panic(err)
 	}
 	return ctx.uniqueHasher.Sum(nil)

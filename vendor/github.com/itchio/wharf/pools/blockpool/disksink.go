@@ -23,6 +23,7 @@ type DiskSink struct {
 
 	hashBuf []byte
 	shake   sha3.ShakeHash
+	writing bool
 }
 
 // Clone returns a copy of this disk sink, suitable for fan-out
@@ -39,6 +40,15 @@ var _ Sink = (*DiskSink)(nil)
 
 // Store should not be called concurrently, as it will result in corrupted hashes
 func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
+	if ds.writing {
+		return fmt.Errorf("concurrent write to disksink is unsupported")
+	}
+
+	ds.writing = true
+	defer func() {
+		ds.writing = false
+	}()
+
 	if ds.hashBuf == nil {
 		ds.hashBuf = make([]byte, 32)
 	}

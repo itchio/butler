@@ -13,10 +13,10 @@ import (
 )
 
 func ranges(manifest string, patch string, newManifest string) {
-	must(doRanges(manifest, patch, newManifest))
+	must(doRanges(manifest, patch, newManifest, nil))
 }
 
-func doRanges(manifest string, patch string, newManifest string) error {
+func doRanges(manifest string, patch string, newManifest string, signatureInfo *blockpool.SignatureInfo) error {
 	patchReader, err := os.Open(patch)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -149,7 +149,7 @@ func doRanges(manifest string, patch string, newManifest string) error {
 		var subSink blockpool.Sink
 
 		subSink = &blockpool.DiskSink{
-			BasePath:    "./outblocks",
+			BasePath:    "./blocks",
 			Container:   sourceContainer,
 			BlockHashes: newBlockHashes,
 		}
@@ -165,10 +165,11 @@ func doRanges(manifest string, patch string, newManifest string) error {
 			Sink: subSink,
 		}
 
-		if *rangesArgs.outfilter {
-			subSink = &blockpool.FilteringSink{
-				Filter: freshNewBlocks,
-				Sink:   subSink,
+		if signatureInfo != nil {
+			subSink = &blockpool.ValidatingSink{
+				Sink:      subSink,
+				Signature: signatureInfo,
+				Consumer:  comm.NewStateConsumer(),
 			}
 		}
 
@@ -179,15 +180,30 @@ func doRanges(manifest string, patch string, newManifest string) error {
 			}
 		}()
 
-		fanOutSink, err = blockpool.NewFanOutSink(subSink, *rangesArgs.fanout)
-		if err != nil {
-			return errors.Wrap(err, 1)
+		var sink blockpool.Sink
+
+		if *rangesArgs.fanout > 1 {
+			fanOutSink, err = blockpool.NewFanOutSink(subSink, *rangesArgs.fanout)
+			if err != nil {
+				return errors.Wrap(err, 1)
+			}
+			fanOutSink.Start()
+
+			sink = fanOutSink
+		} else {
+			sink = subSink
 		}
-		fanOutSink.Start()
+
+		if *rangesArgs.outfilter {
+			sink = &blockpool.FilteringSink{
+				Filter: freshNewBlocks,
+				Sink:   sink,
+			}
+		}
 
 		actx.OutputPool = &blockpool.BlockPool{
 			Container:  sourceContainer,
-			Downstream: fanOutSink,
+			Downstream: sink,
 			Consumer:   comm.NewStateConsumer(),
 		}
 	}
