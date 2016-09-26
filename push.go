@@ -36,7 +36,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	walkErrs := make(chan error)
 	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms)
 
-	target, channel, err := parseSpec(spec)
+	target, channel, err := itchio.ParseSpec(spec)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -418,18 +418,6 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 		result.container.FixPermissions(result.pool)
 	}
 	out <- result
-}
-
-func parseSpec(spec string) (string, string, error) {
-	tokens := strings.Split(spec, ":")
-
-	if len(tokens) == 1 {
-		return "", "", fmt.Errorf("invalid spec: %s, missing channel (examples: %s:windows-32-beta, %s:linux-64)", spec, spec, spec)
-	} else if len(tokens) != 2 {
-		return "", "", fmt.Errorf("invalid spec: %s, expected something of the form user/page:channel", spec)
-	}
-
-	return tokens[0], tokens[1], nil
 }
 
 func min(a, b float64) float64 {

@@ -58,12 +58,6 @@ var (
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
-
-	probeCmd    = app.Command("probe", "(Advanced) Probe a folder").Hidden()
-	rangesCmd   = app.Command("ranges", "(Advanced) Print touched ranges for a patch").Hidden()
-	splitCmd    = app.Command("split", "(Advanced) Split a container into blocks").Hidden()
-	unsplitCmd  = app.Command("unsplit", "(Advanced) Unsplit a container from blocks").Hidden()
-	bedazzleCmd = app.Command("bedazzle", "(Advanced) Download patch, signature, old build archive, and create new fresh blocks then verify against signature").Hidden()
 )
 
 var appArgs = struct {
@@ -245,70 +239,6 @@ var signArgs = struct {
 	signCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
 }
 
-var probeArgs = struct {
-	target *string
-	algo   *string
-	single *bool
-}{
-	probeCmd.Arg("dir", "Path of directory to probe").Required().String(),
-	probeCmd.Flag("algo", "Compression algorithm to use").Default("brotli").String(),
-	probeCmd.Flag("single", "Also try compressing as a single archive").Default("false").Bool(),
-}
-
-var rangesArgs = struct {
-	manifest    *string
-	patch       *string
-	newManifest *string
-
-	inlatency  *int
-	outlatency *int
-
-	infilter  *bool
-	outfilter *bool
-
-	writeToDisk *bool
-
-	fanout *int
-}{
-	rangesCmd.Arg("manifest", "Path of the manifest of the previous build").Required().String(),
-	rangesCmd.Arg("patch", "Path of the patch to apply").Required().String(),
-	rangesCmd.Arg("newManiest", "Path of the maniest to write").Required().String(),
-
-	rangesCmd.Flag("inlatency", "Simulated latency when fetching blocks, in milliseconds").Default("200").Int(),
-	rangesCmd.Flag("outlatency", "Simulated latency when storing blocks, in milliseconds").Default("200").Int(),
-
-	rangesCmd.Flag("infilter", "Only read required old blocks").Default("false").Bool(),
-	rangesCmd.Flag("outfilter", "Only store fresh new blocks").Default("false").Bool(),
-
-	rangesCmd.Flag("writetodisk", "Write files instead of blocks").Default("false").Bool(),
-
-	rangesCmd.Flag("fanout", "Concurrency value for fan-out").Default(fmt.Sprintf("%d", runtime.NumCPU()*2+1)).Int(),
-}
-
-var splitArgs = struct {
-	target   *string
-	manifest *string
-}{
-	splitCmd.Arg("dir", "Directory to split").Required().String(),
-	splitCmd.Arg("manifest", "Path of the manifest to be written").Required().String(),
-}
-
-var unsplitArgs = struct {
-	source   *string
-	manifest *string
-}{
-	unsplitCmd.Arg("dir", "Directory to split").Required().String(),
-	unsplitCmd.Arg("manifest", "Path of the manifest to be written").Required().String(),
-}
-
-var bedazzleArgs = struct {
-	spec          *string
-	debughttpfile *bool
-}{
-	bedazzleCmd.Arg("spec", "game/channel to bedazzle").Required().String(),
-	bedazzleCmd.Flag("debughttpfile", "Be noisy about httpfile").Default("false").Bool(),
-}
-
 var fileArgs = struct {
 	file *string
 }{
@@ -474,21 +404,6 @@ func main() {
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
-
-	case probeCmd.FullCommand():
-		probe(*probeArgs.target)
-
-	case rangesCmd.FullCommand():
-		ranges(*rangesArgs.manifest, *rangesArgs.patch, *rangesArgs.newManifest)
-
-	case splitCmd.FullCommand():
-		split(*splitArgs.target, *splitArgs.manifest)
-
-	case unsplitCmd.FullCommand():
-		unsplit(*unsplitArgs.source, *unsplitArgs.manifest)
-
-	case bedazzleCmd.FullCommand():
-		bedazzle(*bedazzleArgs.spec)
 
 	case whichCmd.FullCommand():
 		which()

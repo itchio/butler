@@ -33,7 +33,7 @@ func doFetch(spec string, outPath string) error {
 		return fmt.Errorf("Destination directory %s exists and is not empty", outPath)
 	}
 
-	target, channel, err := parseSpec(spec)
+	target, channel, err := itchio.ParseSpec(spec)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
