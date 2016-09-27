@@ -296,7 +296,7 @@ const (
 type ListBuildFilesResponse struct {
 	Response
 
-	Files []BuildFileInfo
+	Files []*BuildFileInfo
 }
 
 func (c *Client) ListBuildFiles(buildID int64) (r ListBuildFilesResponse, err error) {
@@ -598,6 +598,16 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 	if errs.Len() > 0 {
 		// TODO: handle other errors too
 		return fmt.Errorf("itch.io API error: %s", errs.Index(0).String())
+	}
+
+	return nil
+}
+
+func FindBuildFile(fileType BuildFileType, files []*BuildFileInfo) *BuildFileInfo {
+	for _, f := range files {
+		if f.Type == fileType {
+			return f
+		}
 	}
 
 	return nil

@@ -70,20 +70,13 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			return errors.Wrap(err, 1)
 		}
 
-		var signatureFileID int64
-		for _, f := range buildFiles.Files {
-			if f.Type == itchio.BuildFileType_SIGNATURE {
-				signatureFileID = f.ID
-				break
-			}
-		}
-
-		if signatureFileID == 0 {
+		signatureFile := itchio.FindBuildFile(itchio.BuildFileType_SIGNATURE, buildFiles.Files)
+		if signatureFile == nil {
 			comm.Dief("Could not find signature for parent build %d, aborting", parentID)
 		}
 
 		var signatureReader io.Reader
-		signatureReader, err = client.DownloadBuildFile(parentID, signatureFileID)
+		signatureReader, err = client.DownloadBuildFile(parentID, signatureFile.ID)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
