@@ -1,15 +1,12 @@
 package pwr
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
-	osync "sync"
 
-	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
@@ -41,7 +38,7 @@ type ApplyContext struct {
 	SourceContainer *tlc.Container
 	OutputPool      sync.WritablePool
 
-	SignatureFilePath string
+	Signature *SignatureInfo
 
 	TouchedFiles int
 	NoopFiles    int
@@ -126,37 +123,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		}
 	}
 
-	hashPaths := make(chan string, 16)
-	done := make(chan bool)
-	errs := make(chan error)
-	ss := make(signatureSet)
-
-	if actx.SignatureFilePath == "" {
-		go func() {
-			// throw away hashpaths
-			for _ = range hashPaths {
-			}
-			done <- true
-		}()
-	} else {
-		go actx.hashThings(ss, hashPaths, done, errs)
-	}
-	go actx.patchThings(patchWire, hashPaths, done, errs)
-
-	for i := 0; i < 2; i++ {
-		select {
-		case <-done:
-			// woo
-		case sErr := <-errs:
-			return errors.Wrap(sErr, 1)
-		}
-	}
-
-	if actx.SignatureFilePath != "" {
-		hErr := actx.checkHashes(ss)
-		if hErr != nil {
-			return errors.Wrap(hErr, 1)
-		}
+	err = actx.patchAll(patchWire, actx.Signature)
+	if err != nil {
+		return errors.Wrap(err, 1)
 	}
 
 	if actx.InPlace {
@@ -177,224 +146,103 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	return nil
 }
 
-func (actx *ApplyContext) hashThings(ss signatureSet, hashPaths chan string, doneOut chan bool, errOut chan error) {
-	c := make(chan signatureResult)
-	done := make(chan struct{})
-	var wg osync.WaitGroup
+func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) error {
+	sourceContainer := actx.SourceContainer
 
-	const numWorkers = 4
-	wg.Add(numWorkers)
-	for i := 0; i < numWorkers; i++ {
-		sctx := sync.NewContext(BlockSize)
-		go func() {
-			for hashPath := range hashPaths {
-				sig, err := func() (signature, error) {
-					var sig signature
-					onWrite := func(h sync.BlockHash) error {
-						sig = append(sig, h)
-						return nil
-					}
-
-					fullPath := filepath.Join(actx.OutputPath, hashPath)
-					reader, err := os.Open(fullPath)
-					if err != nil {
-						return nil, errors.Wrap(err, 1)
-					}
-					defer reader.Close()
-
-					err = sctx.CreateSignature(0, reader, onWrite)
-					if err != nil {
-						return nil, errors.Wrap(err, 1)
-					}
-
-					return sig, nil
-				}()
-
-				select {
-				case <-done:
-					return
-				case c <- signatureResult{path: hashPath, sig: sig, err: err}:
-					// muffin
-				}
-			}
-			wg.Done()
-		}()
+	outputPool := actx.OutputPool
+	if outputPool == nil {
+		outputPool = fspool.New(sourceContainer, actx.OutputPath)
 	}
 
-	go func() {
-		wg.Wait()
-		close(c)
-	}()
-
-	for r := range c {
-		if r.err != nil {
-			errOut <- errors.Wrap(r.err, 1)
-			close(done)
-		}
-		ss[r.path] = r.sig
-	}
-
-	doneOut <- true
-}
-
-// computing hashes is done with several workers, in parallel,
-// but checking is done linearly
-func (actx *ApplyContext) checkHashes(ss signatureSet) error {
-	reader, err := os.Open(actx.SignatureFilePath)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-	defer reader.Close()
-
-	container, allSigs, err := ReadSignature(reader)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	skip := int64(-1)
-	check := int64(-1)
-	var checkSig signature
-	checkOffset := 0
-
-	for _, bh := range allSigs {
-		if bh.FileIndex == skip {
-			continue
-		}
-
-		if bh.FileIndex != check {
-			if check > 0 && checkOffset != len(checkSig) {
-				return fmt.Errorf("In %s, expected %d blocks, got %d", container.Files[check].Path, checkOffset, len(checkSig))
-			}
-
-			checkOffset = 0
-			checkSig = ss[container.Files[bh.FileIndex].Path]
-			if checkSig != nil {
-				check = bh.FileIndex
-			} else {
-				skip = bh.FileIndex
-			}
-		}
-
-		if bh.FileIndex == check {
-			ah := checkSig[checkOffset]
-			if ah.WeakHash != bh.WeakHash {
-				return fmt.Errorf("%s: weak hash mismatch @ block %d (%s into the file)",
-					container.Files[bh.FileIndex].Path,
-					checkOffset,
-					humanize.IBytes(uint64(BlockSize*checkOffset)))
-			}
-			if !bytes.Equal(ah.StrongHash, bh.StrongHash) {
-				return fmt.Errorf("%s: strong hash mismatch @ block %d (%s into the file)",
-					container.Files[bh.FileIndex].Path,
-					checkOffset,
-					humanize.IBytes(uint64(BlockSize*checkOffset)))
-			}
-			checkOffset++
+	if signature != nil {
+		outputPool = &ValidatingPool{
+			Pool:      outputPool,
+			Container: sourceContainer,
+			Signature: signature,
 		}
 	}
 
-	return nil
-}
-
-func (actx *ApplyContext) patchThings(patchWire *wire.ReadContext, hashPaths chan string, done chan bool, errs chan error) {
-	err := func() error {
-		sourceContainer := actx.SourceContainer
-		outputPool := actx.OutputPool
-		if outputPool == nil {
-			outputPool = fspool.New(sourceContainer, actx.OutputPath)
+	targetContainer := actx.TargetContainer
+	targetPool := actx.TargetPool
+	if targetPool == nil {
+		if actx.TargetPath == "" {
+			return fmt.Errorf("apply: need either TargetPool or TargetPath")
 		}
-
-		targetContainer := actx.TargetContainer
-		targetPool := actx.TargetPool
-		if targetPool == nil {
-			if actx.TargetPath == "" {
-				return fmt.Errorf("apply: need either TargetPool or TargetPath")
-			}
-			var cErr error
-			targetPool, cErr = pools.New(targetContainer, actx.TargetPath)
-			if cErr != nil {
-				return cErr
-			}
+		var cErr error
+		targetPool, cErr = pools.New(targetContainer, actx.TargetPath)
+		if cErr != nil {
+			return cErr
 		}
+	}
 
-		fileOffset := int64(0)
-		sourceBytes := sourceContainer.Size
-		onSourceWrite := func(count int64) {
-			// we measure patching progress as the number of total bytes written
-			// to the source container. no-ops (untouched files) count too, so the
-			// progress bar may jump ahead a bit at times, but that's a good surprise
-			// measuring progress by bytes of the patch read would just be a different
-			// kind of inaccuracy (due to decompression buffers, etc.)
-			actx.Consumer.Progress(float64(fileOffset+count) / float64(sourceBytes))
-		}
+	fileOffset := int64(0)
+	sourceBytes := sourceContainer.Size
+	onSourceWrite := func(count int64) {
+		// we measure patching progress as the number of total bytes written
+		// to the source container. no-ops (untouched files) count too, so the
+		// progress bar may jump ahead a bit at times, but that's a good surprise
+		// measuring progress by bytes of the patch read would just be a different
+		// kind of inaccuracy (due to decompression buffers, etc.)
+		actx.Consumer.Progress(float64(fileOffset+count) / float64(sourceBytes))
+	}
 
-		sctx := mksync()
-		sh := &SyncHeader{}
+	sctx := mksync()
+	sh := &SyncHeader{}
 
-		for fileIndex, f := range sourceContainer.Files {
-			actx.Consumer.ProgressLabel(f.Path)
-			actx.Consumer.Debug(f.Path)
-			fileOffset = f.Offset
+	for fileIndex, f := range sourceContainer.Files {
+		actx.Consumer.ProgressLabel(f.Path)
+		actx.Consumer.Debug(f.Path)
+		fileOffset = f.Offset
 
-			// each series of patch operations is preceded by a SyncHeader giving
-			// us the file index - it's a super basic measure to make sure the
-			// patch file we're reading and the patching algorithm somewhat agree
-			// on what's happening.
-			sh.Reset()
-			err := patchWire.ReadMessage(sh)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			if sh.FileIndex != int64(fileIndex) {
-				fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
-				return errors.Wrap(ErrMalformedPatch, 1)
-			}
-
-			ops := make(chan sync.Operation)
-			errc := make(chan error, 1)
-
-			go readOps(patchWire, ops, errc)
-
-			bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			if noop {
-				actx.NoopFiles++
-			} else {
-				actx.TouchedFiles++
-				if bytesWritten != f.Size {
-					return fmt.Errorf("%s: expected to write %d bytes, wrote %d bytes", f.Path, f.Size, bytesWritten)
-				}
-				hashPaths <- f.Path
-			}
-
-			// using errc to signal the end of processing, rather than having a separate
-			// done channel. not sure if there's any upside to either
-			err = <-errc
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-		}
-
-		err := targetPool.Close()
+		// each series of patch operations is preceded by a SyncHeader giving
+		// us the file index - it's a super basic measure to make sure the
+		// patch file we're reading and the patching algorithm somewhat agree
+		// on what's happening.
+		sh.Reset()
+		err := patchWire.ReadMessage(sh)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
 
-		return nil
-	}()
+		if sh.FileIndex != int64(fileIndex) {
+			fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
+			return errors.Wrap(ErrMalformedPatch, 1)
+		}
 
-	if err != nil {
-		errs <- err
-		return
+		ops := make(chan sync.Operation)
+		errc := make(chan error, 1)
+
+		go readOps(patchWire, ops, errc)
+
+		bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+
+		if noop {
+			actx.NoopFiles++
+		} else {
+			actx.TouchedFiles++
+			if bytesWritten != f.Size {
+				return fmt.Errorf("%s: expected to write %d bytes, wrote %d bytes", f.Path, f.Size, bytesWritten)
+			}
+		}
+
+		// using errc to signal the end of processing, rather than having a separate
+		// done channel. not sure if there's any upside to either
+		err = <-errc
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+
 	}
 
-	close(hashPaths)
-	done <- true
+	err := targetPool.Close()
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	return nil
 }
 
 func detectRemovedFiles(sourceContainer *tlc.Container, targetContainer *tlc.Container) []string {

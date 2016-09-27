@@ -12,6 +12,12 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
+// A SignatureInfo contains all the hashes for small-blocks of a given container
+type SignatureInfo struct {
+	Container *tlc.Container
+	Hashes    []sync.BlockHash
+}
+
 // ComputeSignature compute the signature of all blocks of all files in a given container,
 // by reading them from disk, relative to `basePath`, and notifying `consumer` of its
 // progress
@@ -74,22 +80,22 @@ func ComputeSignatureToWriter(container *tlc.Container, pool sync.Pool, consumer
 
 // ReadSignature reads the hashes from all files of a given container, from a
 // wharf signature file.
-func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash, error) {
+func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 	rawSigWire := wire.NewReadContext(signatureReader)
 	err := rawSigWire.ExpectMagic(SignatureMagic)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 1)
 	}
 
 	header := &SignatureHeader{}
 	err = rawSigWire.ReadMessage(header)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 1)
 	}
 
 	sigWire, err := DecompressWire(rawSigWire, header.Compression)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 1)
 	}
 
 	container := &tlc.Container{}
@@ -98,11 +104,11 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 		if errors.Is(err, io.EOF) {
 			// ok
 		} else {
-			return nil, nil, errors.Wrap(err, 1)
+			return nil, errors.Wrap(err, 1)
 		}
 	}
 
-	var signature []sync.BlockHash
+	var hashes []sync.BlockHash
 	hash := &BlockHash{}
 
 	blockSize64 := int64(BlockSize)
@@ -117,7 +123,7 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return nil, nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 1)
 			}
 
 			// empty files have a 0-length shortblock for historical reasons.
@@ -130,7 +136,7 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 
 				ShortSize: 0,
 			}
-			signature = append(signature, blockHash)
+			hashes = append(hashes, blockHash)
 		}
 
 		for blockIndex := int64(0); blockIndex < numBlocks; blockIndex++ {
@@ -141,9 +147,10 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return nil, nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 1)
 			}
 
+			// full blocks have a shortSize of 0, for more compact storage
 			shortSize := int32(0)
 			if (blockIndex+1)*blockSize64 > f.Size {
 				shortSize = int32(f.Size % blockSize64)
@@ -158,11 +165,15 @@ func ReadSignature(signatureReader io.Reader) (*tlc.Container, []sync.BlockHash,
 
 				ShortSize: shortSize,
 			}
-			signature = append(signature, blockHash)
+			hashes = append(hashes, blockHash)
 		}
 	}
 
-	return container, signature, nil
+	signature := &SignatureInfo{
+		Container: container,
+		Hashes:    hashes,
+	}
+	return signature, nil
 }
 
 // CompareHashes returns an error if the signatures aren't exactly the same

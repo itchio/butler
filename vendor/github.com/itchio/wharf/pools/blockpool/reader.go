@@ -63,7 +63,6 @@ func (npr *Reader) Read(buf []byte) (int, error) {
 
 // Seek moves the read head as specified by (offset, whence), see io.Seeker's doc
 func (npr *Reader) Seek(offset int64, whence int) (int64, error) {
-	npr.pool.Consumer.Debugf("seek(%d, %d)", offset, whence)
 	switch whence {
 	case os.SEEK_END:
 		npr.offset = npr.size + offset

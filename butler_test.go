@@ -154,8 +154,11 @@ func TestAllTheThings(t *testing.T) {
 		sigr, err := os.Open(sigpath)
 		mist(t, err)
 
-		readcontainer, readsig, err := pwr.ReadSignature(sigr)
+		readinfo, err := pwr.ReadSignature(sigr)
 		mist(t, err)
+
+		readcontainer := readinfo.Container
+		readsig := readinfo.Hashes
 
 		mist(t, sigr.Close())
 

@@ -183,8 +183,8 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 		// or an error occurs
 		for c := 0; c < 2; c++ {
 			select {
-			case err := <-errs:
-				return errors.Wrap(err, 1)
+			case wErr := <-errs:
+				return errors.Wrap(wErr, 1)
 			case <-done:
 			}
 		}

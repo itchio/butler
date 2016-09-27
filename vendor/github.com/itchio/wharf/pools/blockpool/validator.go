@@ -12,18 +12,12 @@ import (
 	"github.com/itchio/wharf/tlc"
 )
 
-// A SignatureInfo contains all the hashes for small-blocks of a given container
-type SignatureInfo struct {
-	Container *tlc.Container
-	Hashes    []sync.BlockHash
-}
-
 // A ValidatingSink only stores blocks if they match the signature provided
 // in Signature
 type ValidatingSink struct {
 	// required
 	Sink      Sink
-	Signature *SignatureInfo
+	Signature *pwr.SignatureInfo
 
 	// optional
 	Consumer *pwr.StateConsumer

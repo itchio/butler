@@ -54,13 +54,14 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	buildID := newBuildRes.Build.ID
 	parentID := newBuildRes.Build.ParentBuild.ID
 
-	var targetSignature []sync.BlockHash
-	var targetContainer *tlc.Container
+	var targetSignature *pwr.SignatureInfo
 
 	if parentID == 0 {
 		comm.Opf("For channel `%s`: pushing first build", channel)
-		targetSignature = make([]sync.BlockHash, 0)
-		targetContainer = &tlc.Container{}
+		targetSignature = &pwr.SignatureInfo{
+			Container: &tlc.Container{},
+			Hashes:    make([]sync.BlockHash, 0),
+		}
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", channel, parentID)
 		var buildFiles itchio.ListBuildFilesResponse
@@ -87,7 +88,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 			return errors.Wrap(err, 1)
 		}
 
-		targetContainer, targetSignature, err = pwr.ReadSignature(signatureReader)
+		targetSignature, err = pwr.ReadSignature(signatureReader)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
@@ -209,8 +210,8 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		SourceContainer: sourceContainer,
 		Pool:            sourcePool,
 
-		TargetContainer: targetContainer,
-		TargetSignature: targetSignature,
+		TargetContainer: targetSignature.Container,
+		TargetSignature: targetSignature.Hashes,
 
 		Consumer: stateConsumer,
 	}
