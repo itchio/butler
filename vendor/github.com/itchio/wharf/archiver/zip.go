@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
@@ -122,6 +123,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Po
 			Method:             zip.Deflate,
 		}
 		fh.SetMode(os.FileMode(file.Mode))
+		fh.SetModTime(time.Now())
 
 		entryWriter, err := zipWriter.CreateHeader(&fh)
 		if err != nil {

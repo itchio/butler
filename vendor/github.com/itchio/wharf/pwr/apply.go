@@ -25,6 +25,13 @@ var (
 	ErrIncompatiblePatch = errors.New("unsupported patch")
 )
 
+// VetApplyFunc gives a chance to the caller to abort the application
+// before any ops are read/applied - it's the right place to check for
+// limits on container size, or number of files, for example.
+// By the time it's called, TargetContainer and SourceContainer are
+// valid. A VetApplyFunc should only read data from actx, not write to it.
+type VetApplyFunc func(actx *ApplyContext) error
+
 // ApplyContext holds the state while applying a patch
 type ApplyContext struct {
 	Consumer *StateConsumer
@@ -37,6 +44,8 @@ type ApplyContext struct {
 	TargetPool      sync.Pool
 	SourceContainer *tlc.Container
 	OutputPool      sync.WritablePool
+
+	VetApply VetApplyFunc
 
 	Signature *SignatureInfo
 
@@ -57,21 +66,27 @@ type signatureResult struct {
 // ApplyPatch reads a patch, parses it, and generates the new file tree
 func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	actualOutputPath := actx.OutputPath
-	if actx.InPlace {
-		// applying in-place is a bit tricky: we can't overwrite files in the
-		// target directory (old) while we're reading the patch otherwise
-		// we might be copying new bytes instead of old bytes into later files
-		// so, we rebuild 'touched' files in a staging area
-		stagePath := actualOutputPath + "-stage"
-		err := os.MkdirAll(stagePath, os.FileMode(0755))
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
+	if actx.OutputPool == nil {
+		if actx.InPlace {
+			// applying in-place is a bit tricky: we can't overwrite files in the
+			// target directory (old) while we're reading the patch otherwise
+			// we might be copying new bytes instead of old bytes into later files
+			// so, we rebuild 'touched' files in a staging area
+			stagePath := actualOutputPath + "-stage"
+			err := os.MkdirAll(stagePath, os.FileMode(0755))
+			if err != nil {
+				return errors.Wrap(err, 1)
+			}
 
-		defer os.RemoveAll(stagePath)
-		actx.OutputPath = stagePath
+			defer os.RemoveAll(stagePath)
+			actx.OutputPath = stagePath
+		} else {
+			os.MkdirAll(actx.OutputPath, os.FileMode(0755))
+		}
 	} else {
-		os.MkdirAll(actx.OutputPath, os.FileMode(0755))
+		if actualOutputPath != "" {
+			return fmt.Errorf("cannot specify both OutputPath and OutputPool")
+		}
 	}
 
 	rawPatchWire := wire.NewReadContext(patchReader)
@@ -104,6 +119,13 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		return errors.Wrap(err, 1)
 	}
 	actx.SourceContainer = sourceContainer
+
+	if actx.VetApply != nil {
+		err = actx.VetApply(actx)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+	}
 
 	var deletedFiles []string
 
@@ -238,6 +260,11 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 	}
 
 	err := targetPool.Close()
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	err = outputPool.Close()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
