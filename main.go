@@ -150,7 +150,7 @@ var fetchArgs = struct {
 var statusArgs = struct {
 	target *string
 }{
-	statusCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
+	statusCmd.Arg("target", "Which user/project to show the status of, for example 'leafo/xmoon'").Required().String(),
 }
 
 var untarArgs = struct {
