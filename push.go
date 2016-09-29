@@ -1,12 +1,10 @@
 package main
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -15,13 +13,16 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/pools/fspool"
-	"github.com/itchio/wharf/pools/zippool"
+	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/uploader"
 	"github.com/itchio/wharf/wsync"
 )
+
+// when < 10KB of data is left, the progress indicator isn't indicative anymore
+// at this point, we're basically waiting for build files to be finalized
+const AlmostThereThreshold int64 = 10 * 1024
 
 func push(buildPath string, spec string, userVersion string, fixPerms bool) {
 	go versionCheck()
@@ -146,7 +147,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	updateProgress := func() {
 		uploadedBytes := int64(float64(patchWriter.UploadedBytes))
 
-		// input bytes that aren't in output, for esxample:
+		// input bytes that aren't in output, for example:
 		//  - bytes that have been compressed away
 		//  - bytes that were in old build and were simply reused
 		goneBytes := readBytes - patchWriter.TotalBytes
@@ -154,7 +155,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		conservativeTotalBytes := sourceContainer.Size - goneBytes
 
 		leftBytes := conservativeTotalBytes - uploadedBytes
-		if leftBytes > 10*1024 {
+		if leftBytes > AlmostThereThreshold {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
 				netStatus = fmt.Sprintf("@ %s/s", humanize.IBytes(uint64(bytesPerSec)))
@@ -306,6 +307,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 		}
 		comm.Debugf("Created %s build file: %+v", buildType, res.File)
 
+		// TODO: resumable upload session creation sounds like it belongs in an external lib, go-itchio maybe?
 		req, reqErr := http.NewRequest("POST", res.File.UploadURL, nil)
 		if reqErr != nil {
 			errs <- errors.Wrap(reqErr, 1)
@@ -364,48 +366,21 @@ type walkResult struct {
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
-	var result walkResult
-
-	stats, err := os.Lstat(path)
+	container, err := tlc.WalkDirOrArchive(path, filterPaths)
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
 		return
 	}
 
-	if stats.IsDir() {
-		container, err := tlc.Walk(path, filterPaths)
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
-			return
-		}
+	pool, err := pools.New(container, path)
+	if err != nil {
+		errs <- errors.Wrap(err, 1)
+		return
+	}
 
-		result = walkResult{
-			container: container,
-			pool:      fspool.New(container, path),
-		}
-	} else {
-		sourceReader, err := os.Open(path)
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
-			return
-		}
-
-		zr, err := zip.NewReader(sourceReader, stats.Size())
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
-			return
-		}
-
-		container, err := tlc.WalkZip(zr, filterPaths)
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
-			return
-		}
-
-		result = walkResult{
-			container: container,
-			pool:      zippool.New(container, zr),
-		}
+	result := walkResult{
+		container: container,
+		pool:      pool,
 	}
 
 	if fixPerms {
