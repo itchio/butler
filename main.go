@@ -58,6 +58,7 @@ var (
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
+	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a source")
 )
 
 var appArgs = struct {
@@ -239,6 +240,16 @@ var signArgs = struct {
 	signCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
 }
 
+var healArgs = struct {
+	dir    *string
+	wounds *string
+	source *string
+}{
+	healCmd.Arg("dir", "Path of directory to heal").Required().String(),
+	healCmd.Arg("wounds", "Path of wounds file").Required().String(),
+	healCmd.Arg("source", "Path of source to heal with").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -404,6 +415,9 @@ func main() {
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
+
+	case healCmd.FullCommand():
+		heal(*healArgs.dir, *healArgs.wounds, *healArgs.source)
 
 	case whichCmd.FullCommand():
 		which()
