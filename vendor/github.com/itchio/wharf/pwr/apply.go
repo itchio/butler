@@ -310,7 +310,7 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 		return true
 	}
 
-	stageContainer, err := tlc.Walk(stagePath, filter)
+	stageContainer, err := tlc.WalkDir(stagePath, filter)
 	if err != nil {
 		return 0, errors.Wrap(err, 1)
 	}

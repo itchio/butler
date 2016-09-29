@@ -162,7 +162,7 @@ func TestAllTheThings(t *testing.T) {
 
 		mist(t, sigr.Close())
 
-		computedcontainer, err := tlc.Walk(filepath, filterPaths)
+		computedcontainer, err := tlc.WalkDir(filepath, filterPaths)
 		mist(t, err)
 
 		computedsig, err := pwr.ComputeSignature(computedcontainer, fspool.New(computedcontainer, filepath), &pwr.StateConsumer{})

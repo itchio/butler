@@ -29,7 +29,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	targetSignature := &pwr.SignatureInfo{}
 
-	targetSignature.Container, err = tlc.WalkDirOrArchive(target, filterPaths)
+	targetSignature.Container, err = tlc.WalkAny(target, filterPaths)
 	if err != nil {
 		// Signature file perhaps?
 		var signatureReader io.ReadCloser
@@ -76,7 +76,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkDirOrArchive(source, filterPaths)
+	sourceContainer, err = tlc.WalkAny(source, filterPaths)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

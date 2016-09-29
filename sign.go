@@ -7,7 +7,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -22,13 +22,18 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.Walk(output, filterPaths)
+	container, err := tlc.WalkAny(output, filterPaths)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	pool, err := pools.New(container, output)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
 	if fixPerms {
-		container.FixPermissions(fspool.New(container, output))
+		container.FixPermissions(pool)
 	}
 
 	signatureWriter, err := os.Create(signature)
@@ -50,7 +55,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
-	err = pwr.ComputeSignatureToWriter(container, fspool.New(container, output), comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
+	err = pwr.ComputeSignatureToWriter(container, pool, comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
 		return sigWire.WriteMessage(&pwr.BlockHash{
 			WeakHash:   hash.WeakHash,
 			StrongHash: hash.StrongHash,

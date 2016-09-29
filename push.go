@@ -366,7 +366,7 @@ type walkResult struct {
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
-	container, err := tlc.WalkDirOrArchive(path, filterPaths)
+	container, err := tlc.WalkAny(path, filterPaths)
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
 		return
