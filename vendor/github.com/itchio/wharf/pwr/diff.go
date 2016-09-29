@@ -7,9 +7,9 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wharf/wsync"
 )
 
 // DiffContext holds the state during a diff operation
@@ -18,10 +18,10 @@ type DiffContext struct {
 	Consumer    *StateConsumer
 
 	SourceContainer *tlc.Container
-	Pool            sync.Pool
+	Pool            wsync.Pool
 
 	TargetContainer *tlc.Container
-	TargetSignature []sync.BlockHash
+	TargetSignature []wsync.BlockHash
 
 	ReusedBytes int64
 	FreshBytes  int64
@@ -103,7 +103,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 
 	diffContext := mksync()
 	signContext := mksync()
-	blockLibrary := sync.NewBlockLibrary(dctx.TargetSignature)
+	blockLibrary := wsync.NewBlockLibrary(dctx.TargetSignature)
 
 	targetContainerPathToIndex := make(map[string]int64)
 	for index, f := range dctx.TargetContainer.Files {
@@ -207,7 +207,7 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 	return nil
 }
 
-func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLibrary, reader io.Reader, opsWriter sync.OperationWriter, preferredFileIndex int64, errs chan error, done chan bool) {
+func diffFile(sctx *wsync.Context, dctx *DiffContext, blockLibrary *wsync.BlockLibrary, reader io.Reader, opsWriter wsync.OperationWriter, preferredFileIndex int64, errs chan error, done chan bool) {
 	err := sctx.ComputeDiff(reader, blockLibrary, opsWriter, preferredFileIndex)
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
@@ -216,7 +216,7 @@ func diffFile(sctx *sync.Context, dctx *DiffContext, blockLibrary *sync.BlockLib
 	done <- true
 }
 
-func signFile(sctx *sync.Context, fileIndex int, reader io.Reader, writeHash sync.SignatureWriter, errs chan error, done chan bool) {
+func signFile(sctx *wsync.Context, fileIndex int, reader io.Reader, writeHash wsync.SignatureWriter, errs chan error, done chan bool) {
 	err := sctx.CreateSignature(int64(fileIndex), reader, writeHash)
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
@@ -225,8 +225,8 @@ func signFile(sctx *sync.Context, fileIndex int, reader io.Reader, writeHash syn
 	done <- true
 }
 
-func makeSigWriter(wc *wire.WriteContext) sync.SignatureWriter {
-	return func(bl sync.BlockHash) error {
+func makeSigWriter(wc *wire.WriteContext) wsync.SignatureWriter {
+	return func(bl wsync.BlockHash) error {
 		return wc.WriteMessage(&BlockHash{
 			WeakHash:   bl.WeakHash,
 			StrongHash: bl.StrongHash,
@@ -242,19 +242,19 @@ func lastBlockSize(fileSize int64) int64 {
 	return 1 + (fileSize-1)%int64(BlockSize)
 }
 
-func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) sync.OperationWriter {
+func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) wsync.OperationWriter {
 	numOps := 0
 	wop := &SyncOp{}
 
 	blockSize64 := int64(BlockSize)
 	files := dctx.TargetContainer.Files
 
-	return func(op sync.Operation) error {
+	return func(op wsync.Operation) error {
 		numOps++
 		wop.Reset()
 
 		switch op.Type {
-		case sync.OpBlockRange:
+		case wsync.OpBlockRange:
 			wop.Type = SyncOp_BLOCK_RANGE
 			wop.FileIndex = op.FileIndex
 			wop.BlockIndex = op.BlockIndex
@@ -268,7 +268,7 @@ func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) sync.OperationWrite
 			}
 			dctx.ReusedBytes += blockSize64*(op.BlockSpan-1) + tailSize
 
-		case sync.OpData:
+		case wsync.OpData:
 			wop.Type = SyncOp_DATA
 			wop.Data = op.Data
 

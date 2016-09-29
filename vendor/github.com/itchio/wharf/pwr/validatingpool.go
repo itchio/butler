@@ -6,25 +6,25 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 type ValidatingPool struct {
 	// required //
 
-	Pool sync.WritablePool
+	Pool wsync.WritablePool
 	// Container must match Pool - may have different file indices than Signature.Container
 	Container *tlc.Container
 	Signature *SignatureInfo
 
 	// private //
 
-	hashGroups map[int64][]sync.BlockHash
-	sctx       *sync.Context
+	hashGroups map[int64][]wsync.BlockHash
+	sctx       *wsync.Context
 }
 
-var _ sync.WritablePool = (*ValidatingPool)(nil)
+var _ wsync.WritablePool = (*ValidatingPool)(nil)
 
 func (vp *ValidatingPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return vp.GetReadSeeker(fileIndex)
@@ -40,7 +40,7 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
 		}
-		vp.sctx = sync.NewContext(BlockSize)
+		vp.sctx = wsync.NewContext(BlockSize)
 	}
 
 	w, err := vp.Pool.GetWriter(fileIndex)
@@ -86,7 +86,7 @@ func (vp *ValidatingPool) makeHashGroups() error {
 		pathToFileIndex[f.Path] = int64(fileIndex)
 	}
 
-	vp.hashGroups = make(map[int64][]sync.BlockHash)
+	vp.hashGroups = make(map[int64][]wsync.BlockHash)
 	hashIndex := int64(0)
 	blockSize64 := int64(BlockSize)
 

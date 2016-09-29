@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
-// ZipPool implements the sync.ZipPool interface based on a Container
+// ZipPool implements the wsync.ZipPool interface based on a Container
 type ZipPool struct {
 	container *tlc.Container
 	fmap      map[string]*zip.File
@@ -26,7 +26,7 @@ type ZipPool struct {
 	readSeeker    ReadCloseSeeker
 }
 
-var _ sync.Pool = (*ZipPool)(nil)
+var _ wsync.Pool = (*ZipPool)(nil)
 
 // ReadCloseSeeker unifies io.Reader, io.Seeker, and io.Closer
 type ReadCloseSeeker interface {

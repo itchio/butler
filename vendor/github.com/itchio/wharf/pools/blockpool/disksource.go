@@ -16,6 +16,8 @@ type DiskSource struct {
 	BasePath       string
 	BlockAddresses BlockAddressMap
 
+	Decompressor *Decompressor
+
 	Container *tlc.Container
 }
 
@@ -23,12 +25,18 @@ var _ Source = (*DiskSource)(nil)
 
 // Clone returns a copy of this disk source, suitable for fan-in
 func (ds *DiskSource) Clone() Source {
-	return &DiskSource{
+	dsc := &DiskSource{
 		BasePath:       ds.BasePath,
 		BlockAddresses: ds.BlockAddresses,
 
 		Container: ds.Container,
 	}
+
+	if ds.Decompressor != nil {
+		dsc.Decompressor = ds.Decompressor.Clone()
+	}
+
+	return dsc
 }
 
 // Fetch reads a block from disk
@@ -46,16 +54,20 @@ func (ds *DiskSource) Fetch(loc BlockLocation, data []byte) (int, error) {
 
 	defer fr.Close()
 
-	bytesRead, err := io.ReadFull(fr, data)
-	if err != nil {
-		if err == io.ErrUnexpectedEOF {
-			// all good
-		} else {
-			return 0, errors.Wrap(err, 1)
+	if ds.Decompressor == nil {
+		bytesRead, err := io.ReadFull(fr, data)
+		if err != nil {
+			if err == io.ErrUnexpectedEOF {
+				// all good
+			} else {
+				return 0, errors.Wrap(err, 1)
+			}
 		}
+
+		return bytesRead, nil
 	}
 
-	return bytesRead, nil
+	return ds.Decompressor.Decompress(data, fr)
 }
 
 // GetContainer returns the tlc container this disk source is paired with

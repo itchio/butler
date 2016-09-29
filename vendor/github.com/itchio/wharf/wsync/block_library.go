@@ -1,4 +1,4 @@
-package sync
+package wsync
 
 // NewBlockLibrary returns a new block library containing
 // all the given hashes, for fast lookup later.

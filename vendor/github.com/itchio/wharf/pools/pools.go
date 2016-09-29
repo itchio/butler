@@ -7,11 +7,11 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
-func New(c *tlc.Container, basePath string) (sync.Pool, error) {
+func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 	if basePath == "/dev/null" {
 		return fspool.New(c, basePath), nil
 	}

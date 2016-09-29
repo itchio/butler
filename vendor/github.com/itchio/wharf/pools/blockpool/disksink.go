@@ -1,9 +1,9 @@
 package blockpool
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -21,6 +21,8 @@ type DiskSink struct {
 	Container   *tlc.Container
 	BlockHashes *BlockHashMap
 
+	Compressor *Compressor
+
 	hashBuf []byte
 	shake   sha3.ShakeHash
 	writing bool
@@ -28,12 +30,18 @@ type DiskSink struct {
 
 // Clone returns a copy of this disk sink, suitable for fan-out
 func (ds *DiskSink) Clone() Sink {
-	return &DiskSink{
+	dsc := &DiskSink{
 		BasePath: ds.BasePath,
 
 		Container:   ds.Container,
 		BlockHashes: ds.BlockHashes,
 	}
+
+	if ds.Compressor != nil {
+		dsc.Compressor = ds.Compressor.Clone()
+	}
+
+	return dsc
 }
 
 var _ Sink = (*DiskSink)(nil)
@@ -75,6 +83,7 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 	fileSize := ds.Container.Files[int(loc.FileIndex)].Size
 	blockSize := ComputeBlockSize(fileSize, loc.BlockIndex)
 	addr := fmt.Sprintf("shake128-32/%x/%d", ds.hashBuf, blockSize)
+
 	path := filepath.Join(ds.BasePath, addr)
 
 	err = os.MkdirAll(filepath.Dir(path), 0755)
@@ -82,9 +91,28 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 		return errors.Wrap(err, 1)
 	}
 
-	err = ioutil.WriteFile(path, data, 0644)
+	// create file only if it doesn't exist yet
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
+		if os.IsExist(err) {
+			// block's already there!
+			return nil
+		}
 		return errors.Wrap(err, 1)
+	}
+
+	defer file.Close()
+
+	if ds.Compressor == nil {
+		_, err = io.Copy(file, bytes.NewReader(data))
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+	} else {
+		err = ds.Compressor.Compress(file, data)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
 	}
 
 	return nil

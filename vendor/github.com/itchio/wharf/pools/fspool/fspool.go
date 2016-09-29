@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 const (
@@ -24,8 +24,8 @@ type FsPool struct {
 	reader    ReadCloseSeeker
 }
 
-var _ sync.Pool = (*FsPool)(nil)
-var _ sync.WritablePool = (*FsPool)(nil)
+var _ wsync.Pool = (*FsPool)(nil)
+var _ wsync.WritablePool = (*FsPool)(nil)
 
 // ReadCloseSeeker unifies io.Reader, io.Seeker, and io.Closer
 type ReadCloseSeeker interface {

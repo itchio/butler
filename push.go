@@ -18,9 +18,9 @@ import (
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/uploader"
+	"github.com/itchio/wharf/wsync"
 )
 
 func push(buildPath string, spec string, userVersion string, fixPerms bool) {
@@ -60,7 +60,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		comm.Opf("For channel `%s`: pushing first build", channel)
 		targetSignature = &pwr.SignatureInfo{
 			Container: &tlc.Container{},
-			Hashes:    make([]sync.BlockHash, 0),
+			Hashes:    make([]wsync.BlockHash, 0),
 		}
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", channel, parentID)
@@ -120,7 +120,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	// creation & upload setup is done
 
 	var sourceContainer *tlc.Container
-	var sourcePool sync.Pool
+	var sourcePool wsync.Pool
 
 	comm.Debugf("Waiting for source container")
 	select {
@@ -360,7 +360,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 
 type walkResult struct {
 	container *tlc.Container
-	pool      sync.Pool
+	pool      wsync.Pool
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {

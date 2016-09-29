@@ -11,9 +11,9 @@ import (
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/fspool"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wharf/wsync"
 )
 
 var (
@@ -41,9 +41,9 @@ type ApplyContext struct {
 	InPlace    bool
 
 	TargetContainer *tlc.Container
-	TargetPool      sync.Pool
+	TargetPool      wsync.Pool
 	SourceContainer *tlc.Container
-	OutputPool      sync.WritablePool
+	OutputPool      wsync.WritablePool
 
 	VetApply VetApplyFunc
 
@@ -55,7 +55,7 @@ type ApplyContext struct {
 	StageSize    int64
 }
 
-type signature []sync.BlockHash
+type signature []wsync.BlockHash
 type signatureSet map[string]signature
 type signatureResult struct {
 	path string
@@ -231,7 +231,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			return errors.Wrap(ErrMalformedPatch, 1)
 		}
 
-		ops := make(chan sync.Operation)
+		ops := make(chan wsync.Operation)
 		errc := make(chan error, 1)
 
 		go readOps(patchWire, ops, errc)
@@ -387,10 +387,10 @@ func deleteFiles(outPath string, deletedFiles []string) error {
 	return nil
 }
 
-func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetPool sync.Pool, outputContainer *tlc.Container, outputPool sync.WritablePool,
-	fileIndex int64, onSourceWrite counter.CountCallback, ops chan sync.Operation, inplace bool) (written int64, noop bool, err error) {
+func lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, targetPool wsync.Pool, outputContainer *tlc.Container, outputPool wsync.WritablePool,
+	fileIndex int64, onSourceWrite counter.CountCallback, ops chan wsync.Operation, inplace bool) (written int64, noop bool, err error) {
 
-	var realops chan sync.Operation
+	var realops chan wsync.Operation
 
 	errs := make(chan error)
 	first := true
@@ -402,7 +402,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 			// if the first operation is a blockrange that copies an
 			// entire file from target into a file from source that has
 			// the same name and size, then it's a no-op!
-			if op.Type == sync.OpBlockRange && op.BlockIndex == 0 {
+			if op.Type == wsync.OpBlockRange && op.BlockIndex == 0 {
 				outputFile := outputContainer.Files[fileIndex]
 				targetFile := targetContainer.Files[op.FileIndex]
 				numOutputBlocks := numBlocks(outputFile.Size)
@@ -420,7 +420,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 					errs <- nil
 				}()
 			} else {
-				realops = make(chan sync.Operation)
+				realops = make(chan wsync.Operation)
 
 				var writer io.WriteCloser
 				writer, err = outputPool.GetWriter(fileIndex)
@@ -473,7 +473,7 @@ func lazilyPatchFile(sctx *sync.Context, targetContainer *tlc.Container, targetP
 	return
 }
 
-func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error) {
+func readOps(rc *wire.ReadContext, ops chan wsync.Operation, errc chan error) {
 	defer close(ops)
 	rop := &SyncOp{}
 
@@ -488,16 +488,16 @@ func readOps(rc *wire.ReadContext, ops chan sync.Operation, errc chan error) {
 
 		switch rop.Type {
 		case SyncOp_BLOCK_RANGE:
-			ops <- sync.Operation{
-				Type:       sync.OpBlockRange,
+			ops <- wsync.Operation{
+				Type:       wsync.OpBlockRange,
 				FileIndex:  rop.FileIndex,
 				BlockIndex: rop.BlockIndex,
 				BlockSpan:  rop.BlockSpan,
 			}
 
 		case SyncOp_DATA:
-			ops <- sync.Operation{
-				Type: sync.OpData,
+			ops <- wsync.Operation{
+				Type: wsync.OpData,
 				Data: rop.Data,
 			}
 

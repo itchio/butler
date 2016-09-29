@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 // A BlockPool implements a pool that maps reads, seeks, and writes to blocks
@@ -21,8 +21,8 @@ type BlockPool struct {
 	reader *Reader
 }
 
-var _ sync.Pool = (*BlockPool)(nil)
-var _ sync.WritablePool = (*BlockPool)(nil)
+var _ wsync.Pool = (*BlockPool)(nil)
+var _ wsync.WritablePool = (*BlockPool)(nil)
 
 func (np *BlockPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return np.GetReadSeeker(fileIndex)

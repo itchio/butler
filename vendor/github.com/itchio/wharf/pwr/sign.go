@@ -7,24 +7,24 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wharf/wsync"
 )
 
 // A SignatureInfo contains all the hashes for small-blocks of a given container
 type SignatureInfo struct {
 	Container *tlc.Container
-	Hashes    []sync.BlockHash
+	Hashes    []wsync.BlockHash
 }
 
 // ComputeSignature compute the signature of all blocks of all files in a given container,
 // by reading them from disk, relative to `basePath`, and notifying `consumer` of its
 // progress
-func ComputeSignature(container *tlc.Container, pool sync.Pool, consumer *StateConsumer) ([]sync.BlockHash, error) {
-	var signature []sync.BlockHash
+func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *StateConsumer) ([]wsync.BlockHash, error) {
+	var signature []wsync.BlockHash
 
-	err := ComputeSignatureToWriter(container, pool, consumer, func(bl sync.BlockHash) error {
+	err := ComputeSignatureToWriter(container, pool, consumer, func(bl wsync.BlockHash) error {
 		signature = append(signature, bl)
 		return nil
 	})
@@ -37,7 +37,7 @@ func ComputeSignature(container *tlc.Container, pool sync.Pool, consumer *StateC
 
 // ComputeSignatureToWriter is a variant of ComputeSignature that writes hashes
 // to a callback
-func ComputeSignatureToWriter(container *tlc.Container, pool sync.Pool, consumer *StateConsumer, sigWriter sync.SignatureWriter) error {
+func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consumer *StateConsumer, sigWriter wsync.SignatureWriter) error {
 	var err error
 
 	defer func() {
@@ -108,7 +108,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 		}
 	}
 
-	var hashes []sync.BlockHash
+	var hashes []wsync.BlockHash
 	hash := &BlockHash{}
 
 	blockSize64 := int64(BlockSize)
@@ -127,7 +127,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 			}
 
 			// empty files have a 0-length shortblock for historical reasons.
-			blockHash := sync.BlockHash{
+			blockHash := wsync.BlockHash{
 				FileIndex:  int64(fileIndex),
 				BlockIndex: 0,
 
@@ -156,7 +156,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 				shortSize = int32(f.Size % blockSize64)
 			}
 
-			blockHash := sync.BlockHash{
+			blockHash := wsync.BlockHash{
 				FileIndex:  int64(fileIndex),
 				BlockIndex: blockIndex,
 
@@ -177,7 +177,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 }
 
 // CompareHashes returns an error if the signatures aren't exactly the same
-func CompareHashes(refHashes []sync.BlockHash, actualHashes []sync.BlockHash, refContainer *tlc.Container) error {
+func CompareHashes(refHashes []wsync.BlockHash, actualHashes []wsync.BlockHash, refContainer *tlc.Container) error {
 	if len(actualHashes) != len(refHashes) {
 		return fmt.Errorf("Expected %d blocks, got %d.", len(refHashes), len(actualHashes))
 	}

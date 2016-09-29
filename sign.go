@@ -9,9 +9,9 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wharf/wsync"
 )
 
 func sign(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) {
@@ -50,7 +50,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
-	err = pwr.ComputeSignatureToWriter(container, fspool.New(container, output), comm.NewStateConsumer(), func(hash sync.BlockHash) error {
+	err = pwr.ComputeSignatureToWriter(container, fspool.New(container, output), comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
 		return sigWire.WriteMessage(&pwr.BlockHash{
 			WeakHash:   hash.WeakHash,
 			StrongHash: hash.StrongHash,

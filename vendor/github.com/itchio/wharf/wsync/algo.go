@@ -14,7 +14,7 @@
 //   Source: The final content.
 //   Target: The content to be made into final content.
 //   Signature: The sequence of hashes used to identify the content.
-package sync
+package wsync
 
 import (
 	"crypto/md5"

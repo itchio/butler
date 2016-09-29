@@ -3,7 +3,7 @@ package pwr
 import (
 	"encoding/binary"
 
-	"github.com/itchio/wharf/sync"
+	"github.com/itchio/wharf/wsync"
 )
 
 // Endianness defines the byte order of all fixed-size integers written or read by wharf
@@ -26,6 +26,6 @@ const ModeMask = 0644
 // BlockSize is the standard block size files are broken into when ran through wharf's diff
 var BlockSize = 64 * 1024 // 64k
 
-func mksync() *sync.Context {
-	return sync.NewContext(BlockSize)
+func mksync() *wsync.Context {
+	return wsync.NewContext(BlockSize)
 }

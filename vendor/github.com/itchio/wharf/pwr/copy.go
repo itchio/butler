@@ -4,14 +4,14 @@ import (
 	"io"
 
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 // CopyContainer copies from one container to the other. Combined with fspool
 // and blockpool, it can be used to split a container into blocks or join it back
 // into regular files.
-func CopyContainer(container *tlc.Container, outPool sync.WritablePool, inPool sync.Pool, consumer *StateConsumer) error {
+func CopyContainer(container *tlc.Container, outPool wsync.WritablePool, inPool wsync.Pool, consumer *StateConsumer) error {
 	copyFile := func(byteOffset int64, fileIndex int64) error {
 		r, err := inPool.GetReader(fileIndex)
 		if err != nil {

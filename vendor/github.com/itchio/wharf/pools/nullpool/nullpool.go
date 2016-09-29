@@ -5,16 +5,16 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 type NullPool struct {
 	container *tlc.Container
 }
 
-var _ sync.Pool = (*NullPool)(nil)
-var _ sync.WritablePool = (*NullPool)(nil)
+var _ wsync.Pool = (*NullPool)(nil)
+var _ wsync.WritablePool = (*NullPool)(nil)
 
 func New(container *tlc.Container) *NullPool {
 	return &NullPool{container}

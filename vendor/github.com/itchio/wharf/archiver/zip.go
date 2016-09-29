@@ -12,8 +12,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.StateConsumer) (*ExtractResult, error) {
@@ -87,7 +87,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 	}, nil
 }
 
-func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool sync.Pool, consumer *pwr.StateConsumer) (*CompressResult, error) {
+func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.Pool, consumer *pwr.StateConsumer) (*CompressResult, error) {
 	var err error
 	var uncompressedSize int64
 	var compressedSize int64

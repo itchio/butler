@@ -8,8 +8,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 // A ValidatingSink only stores blocks if they match the signature provided
@@ -23,10 +23,10 @@ type ValidatingSink struct {
 	Consumer *pwr.StateConsumer
 
 	// internal
-	hashGroups map[BlockLocation][]sync.BlockHash
+	hashGroups map[BlockLocation][]wsync.BlockHash
 	blockBuf   []byte
 	split      bufio.SplitFunc
-	sctx       *sync.Context
+	sctx       *wsync.Context
 }
 
 var _ Sink = (*ValidatingSink)(nil)
@@ -43,12 +43,12 @@ func (vs *ValidatingSink) Store(loc BlockLocation, data []byte) error {
 
 		vs.blockBuf = make([]byte, pwr.BlockSize)
 		vs.split = splitfunc.New(pwr.BlockSize)
-		vs.sctx = sync.NewContext(pwr.BlockSize)
+		vs.sctx = wsync.NewContext(pwr.BlockSize)
 	}
 
 	hashGroup := vs.hashGroups[loc]
 
-	// see also sync.CreateSignature
+	// see also wsync.CreateSignature
 	s := bufio.NewScanner(bytes.NewReader(data))
 	s.Buffer(vs.blockBuf, 0)
 	s.Split(vs.split)
@@ -95,7 +95,7 @@ func (vs *ValidatingSink) makeHashGroups() error {
 		pathToFileIndex[f.Path] = int64(fileIndex)
 	}
 
-	vs.hashGroups = make(map[BlockLocation][]sync.BlockHash)
+	vs.hashGroups = make(map[BlockLocation][]wsync.BlockHash)
 	hashIndex := int64(0)
 
 	for _, f := range vs.Signature.Container.Files {

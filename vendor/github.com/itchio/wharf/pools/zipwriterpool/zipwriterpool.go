@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 type ZipWriterPool struct {
@@ -17,7 +17,7 @@ type ZipWriterPool struct {
 	zw        *zip.Writer
 }
 
-var _ sync.WritablePool = (*ZipWriterPool)(nil)
+var _ wsync.WritablePool = (*ZipWriterPool)(nil)
 
 func New(container *tlc.Container, zw *zip.Writer) *ZipWriterPool {
 	return &ZipWriterPool{

@@ -4,12 +4,12 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/sync"
+	"github.com/itchio/wharf/wsync"
 )
 
 const minScannedFileSize = 4
 
-func (c *Container) FixPermissions(pool sync.Pool) error {
+func (c *Container) FixPermissions(pool wsync.Pool) error {
 	defer pool.Close()
 
 	buf := make([]byte, minScannedFileSize)

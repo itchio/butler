@@ -16,8 +16,8 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +48,7 @@ func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMo
 	mist(t, ioutil.WriteFile(samplePath, data, perm))
 }
 
-func shortSizeCount(hashes []sync.BlockHash) string {
+func shortSizeCount(hashes []wsync.BlockHash) string {
 	count := 0
 	for _, hash := range hashes {
 		if hash.ShortSize != 0 {

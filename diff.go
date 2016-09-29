@@ -13,9 +13,9 @@ import (
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/sync"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wharf/wsync"
 )
 
 func diff(target string, source string, patch string, compression pwr.CompressionSettings) {
@@ -24,9 +24,6 @@ func diff(target string, source string, patch string, compression pwr.Compressio
 
 func doDiff(target string, source string, patch string, compression pwr.CompressionSettings) error {
 	startTime := time.Now()
-
-	// var targetSignature []sync.BlockHash
-	// var targetContainer *tlc.Container
 
 	targetSignature := &pwr.SignatureInfo{}
 
@@ -121,7 +118,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	var sourcePool sync.Pool
+	var sourcePool wsync.Pool
 	if source == "/dev/null" {
 		sourceContainer = &tlc.Container{}
 		sourcePool = fspool.New(sourceContainer, source)
