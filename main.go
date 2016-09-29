@@ -224,7 +224,7 @@ var applyArgs = struct {
 
 var verifyArgs = struct {
 	signature *string
-	output    *string
+	dir       *string
 }{
 	verifyCmd.Arg("signature", "Path to read signature file from").Required().String(),
 	verifyCmd.Arg("dir", "Path of directory to verify").Required().String(),
@@ -411,7 +411,7 @@ func main() {
 		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature)
 
 	case verifyCmd.FullCommand():
-		verify(*verifyArgs.signature, *verifyArgs.output)
+		verify(*verifyArgs.signature, *verifyArgs.dir)
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)

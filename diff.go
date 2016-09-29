@@ -1,7 +1,8 @@
 package main
 
 import (
-	"archive/zip"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"time"
@@ -10,8 +11,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/pools/fspool"
-	"github.com/itchio/wharf/pools/zippool"
+	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -23,136 +23,68 @@ func diff(target string, source string, patch string, compression pwr.Compressio
 }
 
 func doDiff(target string, source string, patch string, compression pwr.CompressionSettings) error {
+	var err error
+
 	startTime := time.Now()
 
 	targetSignature := &pwr.SignatureInfo{}
 
-	if target == "/dev/null" {
-		targetSignature.Container = &tlc.Container{}
+	targetSignature.Container, err = tlc.WalkDirOrArchive(target, filterPaths)
+	if err != nil {
+		// Signature file perhaps?
+		var signatureReader io.ReadCloser
+
+		signatureReader, err = os.Open(target)
+		if err != nil {
+			if errors.Is(err, wire.ErrFormat) {
+				return fmt.Errorf("unrecognized target %s (not a container, not a signature file)", target)
+			}
+			return errors.Wrap(err, 1)
+		}
+
+		targetSignature, err = pwr.ReadSignature(signatureReader)
+		comm.Opf("Read signature from %s", target)
+
+		err = signatureReader.Close()
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
 	} else {
-		targetInfo, err := os.Lstat(target)
+		// Container (dir, archive, etc.)
+		comm.Opf("Hashing %s", target)
+
+		comm.StartProgress()
+		var targetPool wsync.Pool
+		targetPool, err = pools.New(targetSignature.Container, target)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
 
-		if targetInfo.IsDir() {
-			comm.Opf("Hashing %s", target)
-			targetSignature.Container, err = tlc.Walk(target, filterPaths)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			comm.StartProgress()
-			targetPool := fspool.New(targetSignature.Container, target)
-			targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
-			comm.EndProgress()
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			{
-				prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
-				perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
-				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
-			}
-		} else {
-			signatureReader, err := os.Open(target)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			targetSignature, err = pwr.ReadSignature(signatureReader)
-			if err != nil {
-				if err != wire.ErrFormat {
-					return errors.Wrap(err, 1)
-				}
-
-				_, err = signatureReader.Seek(0, os.SEEK_SET)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-
-				var stats os.FileInfo
-				stats, err = os.Lstat(target)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-
-				var zr *zip.Reader
-				zr, err = zip.NewReader(signatureReader, stats.Size())
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-
-				targetSignature.Container, err = tlc.WalkZip(zr, filterPaths)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-				comm.Opf("Walking archive (%s)", targetSignature.Container.Stats())
-
-				comm.StartProgress()
-				targetPool := zippool.New(targetSignature.Container, zr)
-				targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
-				comm.EndProgress()
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-
-				{
-					prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
-					perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
-					comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
-				}
-			} else {
-				comm.Opf("Read signature from %s", target)
-			}
-
-			err = signatureReader.Close()
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
+		targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
+		comm.EndProgress()
+		if err != nil {
+			return errors.Wrap(err, 1)
 		}
 
+		{
+			prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
+			perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
+			comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
+		}
 	}
 
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
+	sourceContainer, err = tlc.WalkDirOrArchive(source, filterPaths)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
 	var sourcePool wsync.Pool
-	if source == "/dev/null" {
-		sourceContainer = &tlc.Container{}
-		sourcePool = fspool.New(sourceContainer, source)
-	} else {
-		var err error
-		stats, err := os.Lstat(source)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		if stats.IsDir() {
-			sourceContainer, err = tlc.Walk(source, filterPaths)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-			sourcePool = fspool.New(sourceContainer, source)
-		} else {
-			sourceReader, err := os.Open(source)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-			defer sourceReader.Close()
-
-			zr, err := zip.NewReader(sourceReader, stats.Size())
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-			sourceContainer, err = tlc.WalkZip(zr, filterPaths)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			sourcePool = zippool.New(sourceContainer, zr)
-		}
+	sourcePool, err = pools.New(sourceContainer, source)
+	if err != nil {
+		return errors.Wrap(err, 1)
 	}
 
 	patchWriter, err := os.Create(patch)
