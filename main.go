@@ -188,7 +188,7 @@ var dittoArgs = struct {
 	src *string
 	dst *string
 }{
-	dittoCmd.Arg("src", "Directory to mirror").Required().ExistingFileOrDir(),
+	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
 	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
@@ -215,7 +215,7 @@ var applyArgs = struct {
 	inplace   *bool
 	signature *string
 }{
-	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().ExistingFileOrDir(),
+	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String(),
 	applyCmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String(),
 
 	applyCmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String(),
