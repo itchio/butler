@@ -14,6 +14,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -151,7 +152,7 @@ func TestAllTheThings(t *testing.T) {
 		sigpath := path.Join(workingDir, "signature.pwr.sig")
 		mist(t, doSign(filepath, sigpath, compression, false))
 
-		sigr, err := os.Open(sigpath)
+		sigr, err := eos.Open(sigpath)
 		mist(t, err)
 
 		readinfo, err := pwr.ReadSignature(sigr)

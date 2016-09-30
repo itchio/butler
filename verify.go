@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 )
@@ -19,7 +19,7 @@ func doVerify(signature string, dir string) error {
 	comm.Opf("Verifying %s", dir)
 	startTime := time.Now()
 
-	signatureReader, err := os.Open(signature)
+	signatureReader, err := eos.Open(signature)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

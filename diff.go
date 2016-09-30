@@ -11,6 +11,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -34,7 +35,12 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		// Signature file perhaps?
 		var signatureReader io.ReadCloser
 
-		signatureReader, err = os.Open(target)
+		signatureReader, err = eos.Open(target)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+
+		targetSignature, err = pwr.ReadSignature(signatureReader)
 		if err != nil {
 			if errors.Is(err, wire.ErrFormat) {
 				return fmt.Errorf("unrecognized target %s (not a container, not a signature file)", target)
@@ -42,7 +48,6 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 			return errors.Wrap(err, 1)
 		}
 
-		targetSignature, err = pwr.ReadSignature(signatureReader)
 		comm.Opf("Read signature from %s", target)
 
 		err = signatureReader.Close()

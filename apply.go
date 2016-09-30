@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
 	"path"
 	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -36,14 +36,14 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 
 	startTime := time.Now()
 
-	patchReader, err := os.Open(patch)
+	patchReader, err := eos.Open(patch)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
 	var signature *pwr.SignatureInfo
 	if sigpath != "" {
-		sigReader, sigErr := os.Open(sigpath)
+		sigReader, sigErr := eos.Open(sigpath)
 		if sigErr != nil {
 			return errors.Wrap(sigErr, 1)
 		}
