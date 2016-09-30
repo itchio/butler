@@ -32,10 +32,10 @@ type Source struct {
 }
 
 var patterns = map[string]SourceType{
-	"/upload/*/download":                  SourceType_DownloadUpload,
-	"/upload/*/download/builds/*":         SourceType_DownloadBuild,
-	"/download-key/*/download/*/builds/*": SourceType_KeyDownloadBuild,
-	"/wharf/builds/*/files/*/download":    SourceType_WharfDownloadBuild,
+	"/upload/*/download":                    SourceType_DownloadUpload,
+	"/upload/*/download/builds/*/*":         SourceType_DownloadBuild,
+	"/download-key/*/download/*/builds/*/*": SourceType_KeyDownloadBuild,
+	"/wharf/builds/*/files/*/download":      SourceType_WharfDownloadBuild,
 }
 
 func ObtainSource(itchClient *itchio.Client, itchPath string) (*Source, error) {
@@ -60,6 +60,21 @@ func ObtainSource(itchClient *itchio.Client, itchPath string) (*Source, error) {
 	return nil, fmt.Errorf("unrecognized itchfs pattern: %s", itchPath)
 }
 
+func serveBuildFile(r itchio.DownloadUploadBuildResponse, fileType string) (string, error) {
+	switch fileType {
+	case "archive":
+		return r.Archive.URL, nil
+	case "patch":
+		return r.Patch.URL, nil
+	case "signature":
+		return r.Signature.URL, nil
+	case "manifest":
+		return r.Manifest.URL, nil
+	}
+
+	return "", fmt.Errorf("unknown file type %s", fileType)
+}
+
 func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 	tokens := strings.Split(s.Path, "/")
 
@@ -77,13 +92,15 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
+		fileType := tokens[6]
+
 		getter = func() (string, error) {
 			r, err := s.ItchClient.DownloadUploadBuild(uploadID, buildID)
 			if err != nil {
 				return "", err
 			}
 
-			return r.Archive.URL, nil
+			return serveBuildFile(r, fileType)
 		}
 	case SourceType_KeyDownloadBuild:
 		downloadKey := tokens[2]
@@ -98,13 +115,15 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
+		fileType := tokens[7]
+
 		getter = func() (string, error) {
 			r, err := s.ItchClient.DownloadUploadBuildWithKey(downloadKey, uploadID, buildID)
 			if err != nil {
 				return "", err
 			}
 
-			return r.Archive.URL, nil
+			return serveBuildFile(r, fileType)
 		}
 	case SourceType_WharfDownloadBuild:
 		buildID, err := strconv.ParseInt(tokens[3], 10, 64)
