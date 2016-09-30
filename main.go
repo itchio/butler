@@ -14,6 +14,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/go-itchio/itchfs"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 
 	"net/http"
@@ -343,6 +345,8 @@ func main() {
 		log.SetFlags(0)
 	}
 	log.SetOutput(os.Stdout)
+
+	eos.RegisterHandler(&itchfs.ItchFS{*appArgs.address})
 
 	if *appArgs.quiet {
 		*appArgs.noProgress = true

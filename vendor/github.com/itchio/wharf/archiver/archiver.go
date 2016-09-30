@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -35,12 +36,12 @@ func ExtractPath(archive string, destPath string, consumer *pwr.StateConsumer) (
 	var result *ExtractResult
 	var err error
 
-	stat, err := os.Lstat(archive)
+	file, err := eos.Open(archive)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
 	}
 
-	file, err := os.Open(archive)
+	stat, err := file.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
 	}

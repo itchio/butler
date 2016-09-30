@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/eos"
 )
 
 const (
@@ -37,19 +38,25 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 		return &Container{}, nil
 	}
 
-	stat, err := os.Lstat(containerPath)
+	file, err := eos.Open(containerPath)
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+
+	defer file.Close()
+
+	stat, err := file.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
 	}
 
 	if stat.IsDir() {
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+
 		// local directory case
 		return WalkDir(containerPath, filter)
-	}
-
-	file, err := os.Open(containerPath)
-	if err != nil {
-		return nil, errors.Wrap(err, 1)
 	}
 
 	// zip archive case
@@ -58,7 +65,6 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 		return nil, errors.Wrap(err, 1)
 	}
 
-	defer file.Close()
 	return WalkZip(zr, filter)
 }
 

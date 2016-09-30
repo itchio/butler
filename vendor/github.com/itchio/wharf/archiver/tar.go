@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -20,7 +21,7 @@ func ExtractTar(archive string, dir string, consumer *pwr.StateConsumer) (*Extra
 	regCount := 0
 	symlinkCount := 0
 
-	file, err := os.Open(archive)
+	file, err := eos.Open(archive)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
 	}
