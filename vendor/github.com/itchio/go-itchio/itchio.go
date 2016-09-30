@@ -132,7 +132,7 @@ func (c *Client) GameUploads(gameID int64) (r GameUploadsResponse, err error) {
 type UploadDownloadResponse struct {
 	Response
 
-	Url string
+	URL string
 }
 
 func (c *Client) UploadDownload(uploadID int64) (r UploadDownloadResponse, err error) {

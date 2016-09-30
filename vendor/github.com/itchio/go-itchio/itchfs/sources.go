@@ -22,6 +22,7 @@ const (
 	SourceType_DownloadBuild SourceType = 691 + iota
 	SourceType_KeyDownloadBuild
 	SourceType_WharfDownloadBuild
+	SourceType_DownloadUpload
 )
 
 type Source struct {
@@ -31,6 +32,7 @@ type Source struct {
 }
 
 var patterns = map[string]SourceType{
+	"/upload/*/download":                  SourceType_DownloadUpload,
 	"/upload/*/download/builds/*":         SourceType_DownloadBuild,
 	"/download-key/*/download/*/builds/*": SourceType_KeyDownloadBuild,
 	"/wharf/builds/*/files/*/download":    SourceType_WharfDownloadBuild,
@@ -117,6 +119,20 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 
 		getter = func() (string, error) {
 			r, err := s.ItchClient.GetBuildFileDownloadURL(buildID, buildFileID)
+			if err != nil {
+				return "", err
+			}
+
+			return r.URL, nil
+		}
+	case SourceType_DownloadUpload:
+		uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+
+		getter = func() (string, error) {
+			r, err := s.ItchClient.UploadDownload(uploadID)
 			if err != nil {
 				return "", err
 			}
