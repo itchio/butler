@@ -69,15 +69,13 @@ func Open(name string, opts ...option.Option) (File, error) {
 	}
 
 	switch u.Scheme {
-	case "":
-		return os.Open(name)
 	case "http", "https":
 		res := &simpleHTTPResource{name}
 		return httpfile.New(res.GetURL, res.NeedsRenewal, settings.HTTPClient)
 	default:
 		handler := handlers[u.Scheme]
 		if handler == nil {
-			return nil, fmt.Errorf("unsupported scheme: %s", u.Scheme)
+			return os.Open(name)
 		}
 
 		getURL, needsRenewal, err := handler.MakeResource(u)
