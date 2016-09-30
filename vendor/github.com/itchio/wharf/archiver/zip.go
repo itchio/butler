@@ -17,8 +17,6 @@ import (
 )
 
 func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.StateConsumer) (*ExtractResult, error) {
-	consumer.Infof("Extracting a zip archive to %s", dir)
-
 	dirCount := 0
 	regCount := 0
 	symlinkCount := 0
@@ -43,9 +41,9 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 			info := file.FileInfo()
 			mode := info.Mode()
 
-			fileReader, err := file.Open()
-			if err != nil {
-				return errors.Wrap(err, 1)
+			fileReader, fErr := file.Open()
+			if fErr != nil {
+				return errors.Wrap(fErr, 1)
 			}
 			defer fileReader.Close()
 
@@ -56,14 +54,19 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *pwr.Stat
 				}
 				dirCount++
 			} else if mode&os.ModeSymlink > 0 {
-				linkname, err := ioutil.ReadAll(fileReader)
-				err = Symlink(string(linkname), filename, consumer)
-				if err != nil {
+				linkname, lErr := ioutil.ReadAll(fileReader)
+				lErr = Symlink(string(linkname), filename, consumer)
+				if lErr != nil {
 					return errors.Wrap(err, 1)
 				}
 				symlinkCount++
 			} else {
-				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), fileReader, consumer)
+				countingReader := counter.NewReaderCallback(func(offset int64) {
+					currentSize := int64(doneSize) + offset
+					consumer.Progress(float64(currentSize) / float64(totalSize))
+				}, fileReader)
+
+				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader, consumer)
 				if err != nil {
 					return errors.Wrap(err, 1)
 				}
@@ -109,10 +112,11 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 			Name: dir.Path + "/",
 		}
 		fh.SetMode(os.FileMode(dir.Mode))
+		fh.SetModTime(time.Now())
 
-		_, err := zipWriter.CreateHeader(&fh)
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
+		_, hErr := zipWriter.CreateHeader(&fh)
+		if hErr != nil {
+			return nil, errors.Wrap(hErr, 1)
 		}
 	}
 
@@ -125,19 +129,19 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 		fh.SetMode(os.FileMode(file.Mode))
 		fh.SetModTime(time.Now())
 
-		entryWriter, err := zipWriter.CreateHeader(&fh)
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
+		entryWriter, eErr := zipWriter.CreateHeader(&fh)
+		if eErr != nil {
+			return nil, errors.Wrap(eErr, 1)
 		}
 
-		entryReader, err := pool.GetReader(int64(fileIndex))
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
+		entryReader, eErr := pool.GetReader(int64(fileIndex))
+		if eErr != nil {
+			return nil, errors.Wrap(eErr, 1)
 		}
 
-		copiedBytes, err := io.Copy(entryWriter, entryReader)
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
+		copiedBytes, eErr := io.Copy(entryWriter, entryReader)
+		if eErr != nil {
+			return nil, errors.Wrap(eErr, 1)
 		}
 
 		uncompressedSize += copiedBytes
@@ -149,9 +153,9 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 		}
 		fh.SetMode(os.FileMode(symlink.Mode))
 
-		entryWriter, err := zipWriter.CreateHeader(&fh)
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
+		entryWriter, eErr := zipWriter.CreateHeader(&fh)
+		if eErr != nil {
+			return nil, errors.Wrap(eErr, 1)
 		}
 
 		entryWriter.Write([]byte(symlink.Dest))
