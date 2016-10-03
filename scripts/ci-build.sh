@@ -4,13 +4,13 @@ echo "Building for $CI_OS-$CI_ARCH"
 
 go version
 
-# set up go cross-compile
-go get github.com/mitchellh/gox
-
 export CURRENT_BUILD_PATH=$(pwd)
 export GOPATH=$CURRENT_BUILD_PATH
 export PATH="$PATH:$GOPATH/bin"
 export CGO_ENABLED=1
+
+# set up go cross-compile
+go get github.com/mitchellh/gox
 
 if [ "$CI_OS" = "windows" ]; then
   if [ "$CI_ARCH" = "386" ]; then
