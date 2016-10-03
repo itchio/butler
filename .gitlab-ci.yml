@@ -18,6 +18,13 @@ test:linux:
   script:
     - scripts/ci-test.sh
 
+test:macos:
+  stage: test
+  tags:
+    - darwin
+  script:
+    - scripts/ci-test.sh
+
 test:windows:
   stage: test
   tags:
