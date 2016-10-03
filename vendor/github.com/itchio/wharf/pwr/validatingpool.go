@@ -51,7 +51,8 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	}
 
 	hashGroup := vp.hashGroups[fileIndex]
-	hashIndex := 0
+	hashIndex := int64(0)
+	blockSize64 := int64(BlockSize)
 
 	validate := func(data []byte) error {
 		bh := hashGroup[hashIndex]
@@ -64,9 +65,9 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 				return errors.Wrap(err, 1)
 			} else {
 				vp.Wounds <- &Wound{
-					FileIndex:  fileIndex,
-					BlockIndex: int64(hashIndex),
-					BlockSpan:  1,
+					FileIndex: fileIndex,
+					Start:     hashIndex * blockSize64,
+					End:       (hashIndex + 1) * blockSize64,
 				}
 			}
 		} else if !bytes.Equal(bh.StrongHash, strongHash) {
@@ -75,9 +76,9 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 				return errors.Wrap(err, 1)
 			} else {
 				vp.Wounds <- &Wound{
-					FileIndex:  fileIndex,
-					BlockIndex: int64(hashIndex),
-					BlockSpan:  1,
+					FileIndex: fileIndex,
+					Start:     hashIndex * blockSize64,
+					End:       (hashIndex + 1) * blockSize64,
 				}
 			}
 		}

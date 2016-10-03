@@ -11,7 +11,7 @@ type WoundsWriter struct {
 	Wounds chan *Wound
 }
 
-func (ww *WoundsWriter) Go(signature *SignatureInfo, woundsPath string) error {
+func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
 	var fw *os.File
 	var wc *wire.WriteContext
 
@@ -69,8 +69,8 @@ func (ww *WoundsWriter) Go(signature *SignatureInfo, woundsPath string) error {
 		if lastWound == nil {
 			lastWound = wound
 		} else {
-			if lastWound.FileIndex == wound.FileIndex && lastWound.BlockIndex+lastWound.BlockSpan == wound.BlockIndex {
-				lastWound.BlockSpan += wound.BlockSpan
+			if lastWound.End <= wound.Start && wound.Start >= lastWound.Start {
+				lastWound.End = wound.End
 			} else {
 				err := writeWound(lastWound)
 				if err != nil {
