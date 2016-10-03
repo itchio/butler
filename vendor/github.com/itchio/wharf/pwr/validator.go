@@ -1,6 +1,7 @@
 package pwr
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"runtime"
@@ -17,6 +18,9 @@ type ValidatorContext struct {
 
 	Consumer *StateConsumer
 
+	// FailFast makes Validate return Wounds as errors and stop checking
+	FailFast bool
+
 	// internal
 	TargetPool wsync.Pool
 	Wounds     chan *Wound
@@ -28,7 +32,18 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	errs := make(chan error)
 	done := make(chan bool)
 
-	if vctx.WoundsPath == "" {
+	if vctx.FailFast {
+		if vctx.WoundsPath != "" {
+			return fmt.Errorf("Validate: FailFast is not compatibel with WoundsPath")
+		}
+
+		go func() {
+			for w := range vctx.Wounds {
+				errs <- fmt.Errorf(w.PrettyString(signature.Container))
+			}
+			done <- true
+		}()
+	} else if vctx.WoundsPath == "" {
 		woundsPrinter := &WoundsPrinter{
 			Wounds: vctx.Wounds,
 		}

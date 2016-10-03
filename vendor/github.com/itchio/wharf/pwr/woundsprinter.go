@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/wharf/tlc"
 )
 
 type WoundsPrinter struct {
@@ -16,11 +17,15 @@ func (wp *WoundsPrinter) Do(signature *SignatureInfo, consumer *StateConsumer) e
 	}
 
 	for wound := range wp.Wounds {
-		file := signature.Container.Files[wound.FileIndex]
-		woundSize := humanize.IBytes(uint64(wound.End - wound.Start))
-		offset := humanize.IBytes(uint64(wound.Start))
-		consumer.Infof("~%s wound %s into %s", woundSize, offset, file.Path)
+		consumer.Infof(wound.PrettyString(signature.Container))
 	}
 
 	return nil
+}
+
+func (w *Wound) PrettyString(container *tlc.Container) string {
+	file := container.Files[w.FileIndex]
+	woundSize := humanize.IBytes(uint64(w.End - w.Start))
+	offset := humanize.IBytes(uint64(w.Start))
+	return fmt.Sprintf("~%s wound %s into %s", woundSize, offset, file.Path)
 }

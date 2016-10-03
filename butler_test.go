@@ -15,9 +15,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 	"github.com/stretchr/testify/assert"
 )
@@ -149,34 +147,22 @@ func TestAllTheThings(t *testing.T) {
 	for _, filepath := range files {
 		t.Logf("Signing %s\n", filepath)
 
-		sigpath := path.Join(workingDir, "signature.pwr.sig")
-		mist(t, doSign(filepath, sigpath, compression, false))
+		sigPath := path.Join(workingDir, "signature.pwr.sig")
+		mist(t, doSign(filepath, sigPath, compression, false))
 
-		sigr, err := eos.Open(sigpath)
+		sigReader, err := eos.Open(sigPath)
 		mist(t, err)
 
-		readinfo, err := pwr.ReadSignature(sigr)
+		signature, err := pwr.ReadSignature(sigReader)
 		mist(t, err)
 
-		readcontainer := readinfo.Container
-		readsig := readinfo.Hashes
+		mist(t, sigReader.Close())
 
-		mist(t, sigr.Close())
-
-		computedcontainer, err := tlc.WalkDir(filepath, filterPaths)
-		mist(t, err)
-
-		computedsig, err := pwr.ComputeSignature(computedcontainer, fspool.New(computedcontainer, filepath), &pwr.StateConsumer{})
-		mist(t, err)
-
-		assert.Equal(t, len(readcontainer.Files), len(computedcontainer.Files))
-		for i, rf := range readcontainer.Files {
-			cf := computedcontainer.Files[i]
-			assert.Equal(t, *rf, *cf)
+		validator := &pwr.ValidatorContext{
+			FailFast: true,
 		}
 
-		assert.Equal(t, readsig, computedsig)
-		mist(t, pwr.CompareHashes(readsig, computedsig, computedcontainer))
+		mist(t, validator.Validate(filepath, signature))
 	}
 
 	// K windows you just sit this one out we'll catch you on the flip side
