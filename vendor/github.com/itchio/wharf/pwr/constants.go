@@ -18,6 +18,9 @@ const (
 
 	// ManifestMagic is the magic number for wharf manifest files (.pwm)
 	ManifestMagic
+
+	// WoundsMagic is the magic number for wharf wounds file (.pww)
+	WoundsMagic
 )
 
 // ModeMask is or'd with files being applied/created

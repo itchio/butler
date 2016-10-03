@@ -18,6 +18,8 @@ type ValidatingPool struct {
 	Container *tlc.Container
 	Signature *SignatureInfo
 
+	Wounds chan *Wound
+
 	// private //
 
 	hashGroups map[int64][]wsync.BlockHash
@@ -57,13 +59,27 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		weakHash, strongHash := vp.sctx.HashBlock(data)
 
 		if bh.WeakHash != weakHash {
-			err := fmt.Errorf("at %d/%d, expected weak hash %x, got %x", fileIndex, hashIndex, bh.WeakHash, weakHash)
-			return errors.Wrap(err, 1)
-		}
-
-		if !bytes.Equal(bh.StrongHash, strongHash) {
-			err := fmt.Errorf("at %d/%d, expected strong hash %x, got %x", fileIndex, hashIndex, bh.StrongHash, strongHash)
-			return errors.Wrap(err, 1)
+			if vp.Wounds == nil {
+				err := fmt.Errorf("at %d/%d, expected weak hash %x, got %x", fileIndex, hashIndex, bh.WeakHash, weakHash)
+				return errors.Wrap(err, 1)
+			} else {
+				vp.Wounds <- &Wound{
+					FileIndex:  fileIndex,
+					BlockIndex: int64(hashIndex),
+					BlockSpan:  1,
+				}
+			}
+		} else if !bytes.Equal(bh.StrongHash, strongHash) {
+			if vp.Wounds == nil {
+				err := fmt.Errorf("at %d/%d, expected strong hash %x, got %x", fileIndex, hashIndex, bh.StrongHash, strongHash)
+				return errors.Wrap(err, 1)
+			} else {
+				vp.Wounds <- &Wound{
+					FileIndex:  fileIndex,
+					BlockIndex: int64(hashIndex),
+					BlockSpan:  1,
+				}
+			}
 		}
 
 		hashIndex++

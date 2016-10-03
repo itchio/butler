@@ -85,9 +85,8 @@ func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		}
 
 		reader, err := os.Open(cfp.GetPath(fileIndex))
-
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, err
 		}
 		cfp.reader = reader
 		cfp.fileIndex = fileIndex

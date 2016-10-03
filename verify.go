@@ -7,7 +7,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -15,45 +14,33 @@ func verify(signature string, dir string) {
 	must(doVerify(signature, dir))
 }
 
-func doVerify(signature string, dir string) error {
+func doVerify(signaturePath string, dir string) error {
 	comm.Opf("Verifying %s", dir)
 	startTime := time.Now()
 
-	signatureReader, err := eos.Open(signature)
+	signatureReader, err := eos.Open(signaturePath)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 	defer signatureReader.Close()
 
-	refSignature, err := pwr.ReadSignature(signatureReader)
+	signature, err := pwr.ReadSignature(signatureReader)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	refContainer := refSignature.Container
-	refHashes := refSignature.Hashes
+	vc := &pwr.ValidatorContext{
+		Consumer: comm.NewStateConsumer(),
+	}
 
-	dirPool, err := pools.New(refContainer, dir)
+	err = vc.Validate(dir, signature)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	comm.StartProgress()
-	hashes, err := pwr.ComputeSignature(refContainer, dirPool, comm.NewStateConsumer())
-	comm.EndProgress()
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	err = pwr.CompareHashes(refHashes, hashes, refContainer)
-	if err != nil {
-		comm.Logf(err.Error())
-		comm.Dief("Some checks failed after checking %d blocks.", len(refHashes))
-	}
-
-	prettySize := humanize.IBytes(uint64(refContainer.Size))
-	perSecond := humanize.IBytes(uint64(float64(refContainer.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s\n", prettySize, refContainer.Stats(), perSecond)
+	prettySize := humanize.IBytes(uint64(signature.Container.Size))
+	perSecond := humanize.IBytes(uint64(float64(signature.Container.Size) / time.Since(startTime).Seconds()))
+	comm.Statf("%s (%s) @ %s/s\n", prettySize, signature.Container.Stats(), perSecond)
 
 	return nil
 }

@@ -22,7 +22,7 @@
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
-			"revision": "f0a097ddac24fb00e07d2ac17f8671423f3ea47c",
+			"revision": "df1d3ca07d2d07bba352d5b73c4313b4e2a6203e",
 			"branch": "master",
 			"path": "/proto",
 			"notests": true
@@ -39,7 +39,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "bad48726e230ce9b09c24b99d70175171c6dbb2f",
+			"revision": "6ac9e8b4d36cb7452e0ef4b917906fb471e42f91",
 			"branch": "master",
 			"notests": true
 		},
