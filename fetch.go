@@ -12,11 +12,11 @@ import (
 	"github.com/itchio/wharf/archiver"
 )
 
-func fetch(spec string, outPath string) {
-	must(doFetch(spec, outPath))
+func fetch(specStr string, outPath string) {
+	must(doFetch(specStr, outPath))
 }
 
-func doFetch(spec string, outPath string) error {
+func doFetch(specStr string, outPath string) error {
 	var err error
 
 	err = os.MkdirAll(outPath, os.FileMode(0755))
@@ -33,7 +33,12 @@ func doFetch(spec string, outPath string) error {
 		return fmt.Errorf("Destination directory %s exists and is not empty", outPath)
 	}
 
-	target, channel, err := itchio.ParseSpec(spec)
+	spec, err := itchio.ParseSpec(specStr)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	err = spec.EnsureChannel()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -43,15 +48,15 @@ func doFetch(spec string, outPath string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	comm.Opf("Getting last build of channel %s", channel)
+	comm.Opf("Getting last build of channel %s", spec.Channel)
 
-	channelResponse, err := client.GetChannel(target, channel)
+	channelResponse, err := client.GetChannel(spec.Target, spec.Channel)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
 	if channelResponse.Channel.Head == nil {
-		return fmt.Errorf("Channel %s doesn't have any builds yet", channel)
+		return fmt.Errorf("Channel %s doesn't have any builds yet", spec.Channel)
 	}
 
 	head := *channelResponse.Channel.Head
@@ -66,7 +71,7 @@ func doFetch(spec string, outPath string) error {
 	}
 
 	if headArchive == nil {
-		return fmt.Errorf("Channel %s's latest build is still processing", channel)
+		return fmt.Errorf("Channel %s's latest build is still processing", spec.Channel)
 	}
 
 	dlReader, err := client.DownloadBuildFile(head.ID, headArchive.ID)

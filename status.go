@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -12,60 +11,81 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func status(target string) {
+func status(specStr string) {
 	go versionCheck()
-	must(doStatus(target))
+	must(doStatus(specStr))
 }
 
-func doStatus(target string) error {
-	target = strings.ToLower(target)
+func doStatus(specStr string) error {
+	spec, err := itchio.ParseSpec(specStr)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
 
 	client, err := authenticateViaOauth()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	listChannelsResp, err := client.ListChannels(target)
+	listChannelsResp, err := client.ListChannels(spec.Target)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Channel", "Build", "Parent", "State"})
+	table.SetHeader([]string{"Channel", "Upload", "Build", "State"})
+
+	found := false
 
 	for _, ch := range listChannelsResp.Channels {
+		if spec.Channel != "" && ch.Name != spec.Channel {
+			continue
+		}
+		found = true
+
 		if ch.Head != nil {
 			files := ch.Head.Files
-			line := []string{ch.Name, buildState(ch.Head), buildParent(ch.Head), filesState(files)}
+			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), buildState(ch.Head), filesState(files)}
 			table.Append(line)
 		} else {
-			line := []string{ch.Name, "No builds yet"}
+			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), "No builds yet"}
 			table.Append(line)
 		}
 
 		if ch.Pending != nil {
 			files := ch.Pending.Files
-			line := []string{"", buildState(ch.Pending), buildParent(ch.Pending), filesState(files)}
+			line := []string{"", "", buildState(ch.Pending), filesState(files)}
 			table.Append(line)
 		}
 	}
 
-	table.Render()
+	if found {
+		table.Render()
+	} else {
+		comm.Logf("No channel %s found for %s", spec.Channel, spec.Target)
+	}
 
 	return nil
 }
 
 func buildState(build *itchio.BuildInfo) string {
 	theme := comm.GetTheme()
+	var s string
 
 	switch build.State {
 	case itchio.BuildState_COMPLETED:
-		return fmt.Sprintf("%s #%d", theme.StatSign, build.ID)
+		s = fmt.Sprintf("%s #%d", theme.StatSign, build.ID)
 	case itchio.BuildState_PROCESSING:
-		return fmt.Sprintf("%s #%d", theme.OpSign, build.ID)
+		s = fmt.Sprintf("%s #%d", theme.OpSign, build.ID)
 	default:
-		return fmt.Sprintf("  #%d (%s)", build.ID, build.State)
+		s = fmt.Sprintf("  #%d (%s)", build.ID, build.State)
 	}
+
+	if build.ParentBuildID != -1 {
+		s += fmt.Sprintf(" (from #%d)", build.ParentBuildID)
+	}
+
+	return s
 }
 
 func buildParent(build *itchio.BuildInfo) string {
@@ -95,7 +115,7 @@ func fileState(file *itchio.BuildFileInfo) string {
 	theme := comm.GetTheme()
 
 	fType := string(file.Type)
-	if file.SubType != itchio.BuildFileType_ARCHIVE {
+	if file.SubType != itchio.BuildFileSubType_DEFAULT {
 		fType += fmt.Sprintf(" (%s)", file.SubType)
 	}
 

@@ -136,7 +136,7 @@ var pushArgs = struct {
 	fixPerms        *bool
 }{
 	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
-	pushCmd.Arg("target", "Where to push, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
+	pushCmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
 	pushCmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String(),
 	pushCmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String(),
 	pushCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
@@ -146,14 +146,14 @@ var fetchArgs = struct {
 	target *string
 	out    *string
 }{
-	fetchCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/xmoon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
+	fetchCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
 	fetchCmd.Arg("out", "Directory to fetch and extract build to").Required().String(),
 }
 
 var statusArgs = struct {
 	target *string
 }{
-	statusCmd.Arg("target", "Which user/project to show the status of, for example 'leafo/xmoon'").Required().String(),
+	statusCmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon'").Required().String(),
 }
 
 var untarArgs = struct {

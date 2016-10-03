@@ -5,7 +5,6 @@ import (
 	"io"
 	"math"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -24,20 +23,23 @@ import (
 // at this point, we're basically waiting for build files to be finalized
 const AlmostThereThreshold int64 = 10 * 1024
 
-func push(buildPath string, spec string, userVersion string, fixPerms bool) {
+func push(buildPath string, specStr string, userVersion string, fixPerms bool) {
 	go versionCheck()
-	must(doPush(buildPath, spec, userVersion, fixPerms))
+	must(doPush(buildPath, specStr, userVersion, fixPerms))
 }
 
-func doPush(buildPath string, spec string, userVersion string, fixPerms bool) error {
-	spec = strings.ToLower(spec)
-
+func doPush(buildPath string, specStr string, userVersion string, fixPerms bool) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
 	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms)
 
-	target, channel, err := itchio.ParseSpec(spec)
+	spec, err := itchio.ParseSpec(specStr)
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	err = spec.EnsureChannel()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -47,7 +49,7 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 		return errors.Wrap(err, 1)
 	}
 
-	newBuildRes, err := client.CreateBuild(target, channel, userVersion)
+	newBuildRes, err := client.CreateBuild(spec.Target, spec.Channel, userVersion)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -58,13 +60,13 @@ func doPush(buildPath string, spec string, userVersion string, fixPerms bool) er
 	var targetSignature *pwr.SignatureInfo
 
 	if parentID == 0 {
-		comm.Opf("For channel `%s`: pushing first build", channel)
+		comm.Opf("For channel `%s`: pushing first build", spec.Channel)
 		targetSignature = &pwr.SignatureInfo{
 			Container: &tlc.Container{},
 			Hashes:    make([]wsync.BlockHash, 0),
 		}
 	} else {
-		comm.Opf("For channel `%s`: last build is %d, downloading its signature", channel, parentID)
+		comm.Opf("For channel `%s`: last build is %d, downloading its signature", spec.Channel, parentID)
 		var buildFiles itchio.ListBuildFilesResponse
 		buildFiles, err = client.ListBuildFiles(parentID)
 		if err != nil {
