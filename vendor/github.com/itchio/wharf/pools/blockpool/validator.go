@@ -42,8 +42,8 @@ func (vs *ValidatingSink) Store(loc BlockLocation, data []byte) error {
 		}
 
 		vs.blockBuf = make([]byte, pwr.BlockSize)
-		vs.split = splitfunc.New(pwr.BlockSize)
-		vs.sctx = wsync.NewContext(pwr.BlockSize)
+		vs.split = splitfunc.New(int(pwr.BlockSize))
+		vs.sctx = wsync.NewContext(int(pwr.BlockSize))
 	}
 
 	hashGroup := vs.hashGroups[loc]

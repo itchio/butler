@@ -27,8 +27,8 @@ const (
 const ModeMask = 0644
 
 // BlockSize is the standard block size files are broken into when ran through wharf's diff
-var BlockSize = 64 * 1024 // 64k
+const BlockSize int64 = 64 * 1024 // 64k
 
 func mksync() *wsync.Context {
-	return wsync.NewContext(BlockSize)
+	return wsync.NewContext(int(BlockSize))
 }

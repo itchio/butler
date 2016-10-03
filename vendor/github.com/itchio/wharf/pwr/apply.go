@@ -405,7 +405,7 @@ func lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, target
 			if op.Type == wsync.OpBlockRange && op.BlockIndex == 0 {
 				outputFile := outputContainer.Files[fileIndex]
 				targetFile := targetContainer.Files[op.FileIndex]
-				numOutputBlocks := numBlocks(outputFile.Size)
+				numOutputBlocks := ComputeNumBlocks(outputFile.Size)
 
 				if inplace &&
 					op.BlockSpan == numOutputBlocks &&

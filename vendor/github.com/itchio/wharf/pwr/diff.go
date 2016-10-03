@@ -234,19 +234,21 @@ func makeSigWriter(wc *wire.WriteContext) wsync.SignatureWriter {
 	}
 }
 
-func numBlocks(fileSize int64) int64 {
-	return 1 + (fileSize-1)/int64(BlockSize)
+func ComputeNumBlocks(fileSize int64) int64 {
+	return (fileSize + BlockSize - 1) / BlockSize
 }
 
-func lastBlockSize(fileSize int64) int64 {
-	return 1 + (fileSize-1)%int64(BlockSize)
+func ComputeBlockSize(fileSize int64, blockIndex int64) int64 {
+	if BlockSize*(blockIndex+1) > fileSize {
+		return fileSize % BlockSize
+	}
+	return BlockSize
 }
 
 func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) wsync.OperationWriter {
 	numOps := 0
 	wop := &SyncOp{}
 
-	blockSize64 := int64(BlockSize)
 	files := dctx.TargetContainer.Files
 
 	return func(op wsync.Operation) error {
@@ -260,13 +262,10 @@ func makeOpsWriter(wc *wire.WriteContext, dctx *DiffContext) wsync.OperationWrit
 			wop.BlockIndex = op.BlockIndex
 			wop.BlockSpan = op.BlockSpan
 
-			tailSize := blockSize64
 			fileSize := files[op.FileIndex].Size
-
-			if (op.BlockIndex + op.BlockSpan) >= numBlocks(fileSize) {
-				tailSize = lastBlockSize(fileSize)
-			}
-			dctx.ReusedBytes += blockSize64*(op.BlockSpan-1) + tailSize
+			lastBlockIndex := op.BlockIndex + op.BlockSpan - 1
+			tailSize := ComputeBlockSize(fileSize, lastBlockIndex)
+			dctx.ReusedBytes += BlockSize*(op.BlockSpan-1) + tailSize
 
 		case wsync.OpData:
 			wop.Type = SyncOp_DATA

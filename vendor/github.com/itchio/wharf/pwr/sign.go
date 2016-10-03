@@ -109,10 +109,8 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 	var hashes []wsync.BlockHash
 	hash := &BlockHash{}
 
-	blockSize64 := int64(BlockSize)
-
 	for fileIndex, f := range container.Files {
-		numBlocks := (f.Size + blockSize64 - 1) / blockSize64
+		numBlocks := ComputeNumBlocks(f.Size)
 		if numBlocks == 0 {
 			hash.Reset()
 			err = sigWire.ReadMessage(hash)
@@ -150,8 +148,8 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 
 			// full blocks have a shortSize of 0, for more compact storage
 			shortSize := int32(0)
-			if (blockIndex+1)*blockSize64 > f.Size {
-				shortSize = int32(f.Size % blockSize64)
+			if (blockIndex+1)*BlockSize > f.Size {
+				shortSize = int32(f.Size % BlockSize)
 			}
 
 			blockHash := wsync.BlockHash{
