@@ -9,6 +9,8 @@ export GOPATH=$CURRENT_BUILD_PATH
 export PATH="$PATH:$GOPATH/bin"
 export CGO_ENABLED=1
 
+mkdir -p $GOPATH
+
 # set up go cross-compile
 go get github.com/mitchellh/gox
 
