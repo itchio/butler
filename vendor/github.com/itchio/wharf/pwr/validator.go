@@ -12,6 +12,8 @@ import (
 	"github.com/itchio/wharf/wsync"
 )
 
+const MaxWoundSize int64 = 4 * 1024 * 1024 // 4MB
+
 type ValidatorContext struct {
 	WoundsPath string
 	NumWorkers int
@@ -118,22 +120,25 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		return
 	}
 
+	wounds := AggregateWounds(vctx.Wounds, MaxWoundSize)
+
 	validatingPool := &ValidatingPool{
 		Pool:      nullpool.New(signature.Container),
 		Container: signature.Container,
 		Signature: signature,
 
-		Wounds: vctx.Wounds,
+		Wounds: wounds,
 	}
 
 	for fileIndex := range fileIndices {
 		file := signature.Container.Files[fileIndex]
 
-		reader, err := targetPool.GetReader(fileIndex)
+		var reader io.Reader
+		reader, err = targetPool.GetReader(fileIndex)
 		if err != nil {
 			if os.IsNotExist(err) {
 				// that's one big wound
-				vctx.Wounds <- &Wound{
+				wounds <- &Wound{
 					FileIndex: fileIndex,
 					Start:     0,
 					End:       file.Size,
@@ -152,25 +157,25 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 			return
 		}
 
-		writtenBytes, err := io.Copy(writer, reader)
+		var writtenBytes int64
+		writtenBytes, err = io.Copy(writer, reader)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 			return
-		}
-
-		if writtenBytes != file.Size {
-			vctx.Wounds <- &Wound{
-				FileIndex: fileIndex,
-				Start:     writtenBytes,
-				End:       file.Size,
-			}
-			vctx.Consumer.Infof("short file: expected %d, got %d", writtenBytes, file.Size)
 		}
 
 		err = writer.Close()
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 			return
+		}
+
+		if writtenBytes != file.Size {
+			wounds <- &Wound{
+				FileIndex: fileIndex,
+				Start:     writtenBytes,
+				End:       file.Size,
+			}
 		}
 	}
 
