@@ -23,6 +23,9 @@ type ValidatorContext struct {
 	// FailFast makes Validate return Wounds as errors and stop checking
 	FailFast bool
 
+	// Result
+	TotalCorrupted int64
+
 	// internal
 	TargetPool wsync.Pool
 	Wounds     chan *Wound
@@ -34,20 +37,22 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	errs := make(chan error)
 	done := make(chan bool)
 
+	countedWounds := vctx.countWounds(vctx.Wounds)
+
 	if vctx.FailFast {
 		if vctx.WoundsPath != "" {
 			return fmt.Errorf("Validate: FailFast is not compatibel with WoundsPath")
 		}
 
 		go func() {
-			for w := range vctx.Wounds {
+			for w := range countedWounds {
 				errs <- fmt.Errorf(w.PrettyString(signature.Container))
 			}
 			done <- true
 		}()
 	} else if vctx.WoundsPath == "" {
 		woundsPrinter := &WoundsPrinter{
-			Wounds: vctx.Wounds,
+			Wounds: countedWounds,
 		}
 
 		go func() {
@@ -60,7 +65,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		}()
 	} else {
 		woundsWriter = &WoundsWriter{
-			Wounds: vctx.Wounds,
+			Wounds: countedWounds,
 		}
 
 		go func() {
@@ -111,6 +116,21 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	}
 
 	return nil
+}
+
+func (vctx *ValidatorContext) countWounds(inWounds chan *Wound) chan *Wound {
+	outWounds := make(chan *Wound)
+
+	go func() {
+		for wound := range inWounds {
+			vctx.TotalCorrupted += (wound.End - wound.Start)
+			outWounds <- wound
+		}
+
+		close(outWounds)
+	}()
+
+	return outWounds
 }
 
 func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, fileIndices chan int64, done chan bool, errs chan error) {

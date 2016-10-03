@@ -42,5 +42,9 @@ func doVerify(signaturePath string, dir string) error {
 	perSecond := humanize.IBytes(uint64(float64(signature.Container.Size) / time.Since(startTime).Seconds()))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, signature.Container.Stats(), perSecond)
 
+	if vc.TotalCorrupted > 0 {
+		comm.Dief("%s corrupted data found", humanize.IBytes(uint64(vc.TotalCorrupted)))
+	}
+
 	return nil
 }
