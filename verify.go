@@ -33,10 +33,14 @@ func doVerify(signaturePath string, dir string) error {
 		Consumer: comm.NewStateConsumer(),
 	}
 
+	comm.StartProgress()
+
 	err = vc.Validate(dir, signature)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
+
+	comm.EndProgress()
 
 	prettySize := humanize.IBytes(uint64(signature.Container.Size))
 	perSecond := humanize.IBytes(uint64(float64(signature.Container.Size) / time.Since(startTime).Seconds()))

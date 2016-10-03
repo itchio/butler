@@ -131,6 +131,8 @@ func AggregateWounds(outWounds chan *Wound, maxSize int64) chan *Wound {
 		if lastWound != nil {
 			outWounds <- lastWound
 		}
+
+		close(outWounds)
 	}()
 
 	return inWounds

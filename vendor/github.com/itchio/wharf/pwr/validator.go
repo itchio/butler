@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/wsync"
@@ -41,7 +42,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 
 	if vctx.FailFast {
 		if vctx.WoundsPath != "" {
-			return fmt.Errorf("Validate: FailFast is not compatibel with WoundsPath")
+			return fmt.Errorf("Validate: FailFast is not compatible with WoundsPath")
 		}
 
 		go func() {
@@ -78,6 +79,17 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		}()
 	}
 
+	doneBytes := make(chan int64)
+
+	go func() {
+		done := int64(0)
+
+		for chunkSize := range doneBytes {
+			done += chunkSize
+			vctx.Consumer.Progress(float64(done) / float64(signature.Container.Size))
+		}
+	}()
+
 	numWorkers := vctx.NumWorkers
 	if numWorkers == 0 {
 		numWorkers = runtime.NumCPU() + 1
@@ -86,7 +98,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	fileIndices := make(chan int64)
 
 	for i := 0; i < numWorkers; i++ {
-		go vctx.validate(target, signature, fileIndices, done, errs)
+		go vctx.validate(target, signature, fileIndices, done, errs, doneBytes)
 	}
 
 	for fileIndex := range signature.Container.Files {
@@ -104,6 +116,9 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 			// good!
 		}
 	}
+
+	close(doneBytes)
+	vctx.Consumer.Progress(1.0)
 
 	close(vctx.Wounds)
 
@@ -133,14 +148,23 @@ func (vctx *ValidatorContext) countWounds(inWounds chan *Wound) chan *Wound {
 	return outWounds
 }
 
-func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, fileIndices chan int64, done chan bool, errs chan error) {
+func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, fileIndices chan int64, done chan bool, errs chan error, doneBytes chan int64) {
 	targetPool, err := pools.New(signature.Container, target)
 	if err != nil {
 		errs <- err
 		return
 	}
 
-	wounds := AggregateWounds(vctx.Wounds, MaxWoundSize)
+	aggregateOut := make(chan *Wound)
+	relayDone := make(chan bool)
+	go func() {
+		for w := range aggregateOut {
+			vctx.Wounds <- w
+		}
+		relayDone <- true
+	}()
+
+	wounds := AggregateWounds(aggregateOut, MaxWoundSize)
 
 	validatingPool := &ValidatingPool{
 		Pool:      nullpool.New(signature.Container),
@@ -157,6 +181,8 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		reader, err = targetPool.GetReader(fileIndex)
 		if err != nil {
 			if os.IsNotExist(err) {
+				doneBytes <- file.Size
+
 				// that's one big wound
 				wounds <- &Wound{
 					FileIndex: fileIndex,
@@ -177,8 +203,15 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 			return
 		}
 
+		lastCount := int64(0)
+		countingWriter := counter.NewWriterCallback(func(count int64) {
+			diff := count - lastCount
+			doneBytes <- diff
+			lastCount = count
+		}, writer)
+
 		var writtenBytes int64
-		writtenBytes, err = io.Copy(writer, reader)
+		writtenBytes, err = io.Copy(countingWriter, reader)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 			return
@@ -191,6 +224,7 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		}
 
 		if writtenBytes != file.Size {
+			doneBytes <- (file.Size - writtenBytes)
 			wounds <- &Wound{
 				FileIndex: fileIndex,
 				Start:     writtenBytes,
@@ -204,6 +238,9 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		errs <- errors.Wrap(err, 1)
 		return
 	}
+
+	close(wounds)
+	<-relayDone
 
 	done <- true
 }
