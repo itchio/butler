@@ -98,7 +98,7 @@ func TestAllTheThings(t *testing.T) {
 		l := 1024 * (i + 2)
 		// our own little twist on fizzbuzz to look out for 1-off errors
 		if i%5 == 0 {
-			l = pwr.BlockSize
+			l = int(pwr.BlockSize)
 		} else if i%3 == 0 {
 			l = 0
 		}
