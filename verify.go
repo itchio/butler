@@ -10,12 +10,16 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func verify(signature string, dir string) {
-	must(doVerify(signature, dir))
+func verify(signaturePath string, dir string, woundsPath string) {
+	must(doVerify(signaturePath, dir, woundsPath))
 }
 
-func doVerify(signaturePath string, dir string) error {
-	comm.Opf("Verifying %s", dir)
+func doVerify(signaturePath string, dir string, woundsPath string) error {
+	if woundsPath == "" {
+		comm.Opf("Verifying %s", dir)
+	} else {
+		comm.Opf("Verifying %s, writing wounds to %s", dir, woundsPath)
+	}
 	startTime := time.Now()
 
 	signatureReader, err := eos.Open(signaturePath)
@@ -30,7 +34,8 @@ func doVerify(signaturePath string, dir string) error {
 	}
 
 	vc := &pwr.ValidatorContext{
-		Consumer: comm.NewStateConsumer(),
+		Consumer:   comm.NewStateConsumer(),
+		WoundsPath: woundsPath,
 	}
 
 	comm.StartProgress()

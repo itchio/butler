@@ -94,7 +94,7 @@ func (wp *WoundsPrinter) Do(signature *SignatureInfo, consumer *StateConsumer) e
 	}
 
 	for wound := range wp.Wounds {
-		consumer.Infof(wound.PrettyString(signature.Container))
+		consumer.Debugf(wound.PrettyString(signature.Container))
 	}
 
 	return nil

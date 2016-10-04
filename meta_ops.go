@@ -14,6 +14,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/pwr"
@@ -100,6 +101,36 @@ func file(path string) {
 			must(rctx.ReadMessage(container))
 
 			comm.Logf("%s: %s wharf manifest file (%s) with %s", path, prettySize, mh.GetCompression().ToString(), container.Stats())
+		}
+
+	case pwr.WoundsMagic:
+		{
+			wh := &pwr.WoundsHeader{}
+			rctx := wire.NewReadContext(reader)
+			must(rctx.ReadMessage(wh))
+
+			container := &tlc.Container{}
+			must(rctx.ReadMessage(container))
+
+			files := make(map[int64]bool)
+			totalWounds := int64(0)
+
+			for {
+				wound := &pwr.Wound{}
+				err = rctx.ReadMessage(wound)
+				if err != nil {
+					if errors.Is(err, io.EOF) {
+						break
+					} else {
+						must(err)
+					}
+				}
+				totalWounds += (wound.End - wound.Start)
+				files[wound.FileIndex] = true
+			}
+
+			comm.Logf("%s: %s wharf wounds file with %s, %s wounds in %d files", path, prettySize, container.Stats(),
+				humanize.IBytes(uint64(totalWounds)), len(files))
 		}
 
 	default:
