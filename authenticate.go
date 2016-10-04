@@ -39,6 +39,73 @@ const (
 		"   ,x'      ,oddddddddoolcc,      .l'\n" +
 		"   'xo,...;ldxxxxxxxdollllllc;...'cl'\n" +
 		"   .:ccc:ccccccccc:;;;;;;;;;;;;;;;;,.\n"
+
+	authHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet" type="text/css">
+          <style>
+            body {
+              text-align: center;
+              margin: 50px 0;
+            }
+
+            p {
+              line-height: 1.6;
+              font-size: 18px;
+              font-family: Lato, sans-serif;
+            }
+
+            a, a:active, a:visited, a:hover {
+              color: #FA5B5B;
+            }
+
+            /* A a pastel rainbow palette */
+            @keyframes rainbow {
+              from { color: #FFB3BA; }
+              25%  { color: #FFDFBA; }
+              50%  { color: #FFFFBA; }
+              75%  { color: #BAFFC9; }
+              to   { color: #BAE1FF; }
+            }
+
+            pre {
+              animation: rainbow alternate 5s infinite linear;
+              background: #1C1C1D;
+              padding: 2em 0;
+              line-height: 1.3;
+              font-size: 16px;
+              color: #FFB3BA;
+              text-shadow: 0 0 20px;
+              color: white;
+            }
+          </style>
+        </head>
+        <body>
+          <pre id="art"></pre>
+          <p id="message">
+            Authenticating...
+          </p>
+          <script>
+          'use strict'
+          var key = location.hash.replace(/^#/, '')
+          location.hash = 'ok'
+          var xhr = new XMLHttpRequest()
+          var $message = document.querySelector("#message")
+          var $art = document.querySelector("#art")
+          xhr.onload = function () {
+            $art.innerHTML = xhr.responseText
+            $message.innerHTML = "You're successfully authenticated! You can close this page and go back to your terminal."
+          }
+          xhr.onerror = function () {
+            $message.innerHTML = "Copy the following code back in your terminal: " + key
+          }
+          xhr.open("POST", "/oauth/callback/" + key)
+          xhr.send()
+          </script>
+        </body>
+      </html>`
 )
 
 var callbackRe = regexp.MustCompile(`^\/oauth\/callback\/(.*)$`)
@@ -186,72 +253,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 			}
 
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet" type="text/css">
-          <style>
-            body {
-              text-align: center;
-              margin: 50px 0;
-            }
-
-            p {
-              line-height: 1.6;
-              font-size: 18px;
-              font-family: Lato, sans-serif;
-            }
-
-            a, a:active, a:visited, a:hover {
-              color: #FA5B5B;
-            }
-
-            /* A a pastel rainbow palette */
-            @keyframes rainbow {
-              from { color: #FFB3BA; }
-              25%  { color: #FFDFBA; }
-              50%  { color: #FFFFBA; }
-              75%  { color: #BAFFC9; }
-              to   { color: #BAE1FF; }
-            }
-
-            pre {
-              animation: rainbow alternate 5s infinite linear;
-              background: #1C1C1D;
-              padding: 2em 0;
-              line-height: 1.3;
-              font-size: 16px;
-              color: #FFB3BA;
-              text-shadow: 0 0 20px;
-              color: white;
-            }
-          </style>
-        </head>
-        <body>
-          <pre id="art"></pre>
-          <p id="message">
-            Authenticating...
-          </p>
-          <script>
-          'use strict'
-          var key = location.hash.replace(/^#/, '')
-          location.hash = 'ok'
-          var xhr = new XMLHttpRequest()
-          var $message = document.querySelector("#message")
-          var $art = document.querySelector("#art")
-          xhr.onload = function () {
-            $art.innerHTML = xhr.responseText
-            $message.innerHTML = "You're successfully authenticated! You can close this page and go back to your terminal."
-          }
-          xhr.onerror = function () {
-            $message.innerHTML = "Copy the following code back in your terminal: " + key
-          }
-          xhr.open("POST", "/oauth/callback/" + key)
-          xhr.send()
-          </script>
-        </body>
-      </html>`)
+			fmt.Fprintf(w, "%s", authHTML)
 		}
 
 		http.HandleFunc("/", handler)

@@ -45,7 +45,8 @@ type ApplyContext struct {
 	SourceContainer *tlc.Container
 	OutputPool      wsync.WritablePool
 
-	WoundsPath string
+	WoundsPath     string
+	WoundsConsumer WoundsConsumer
 
 	VetApply VetApplyFunc
 
@@ -190,20 +191,18 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			Signature: signature,
 		}
 
-		var woundsConsumer WoundsConsumer
-
 		if actx.WoundsPath != "" {
 			validatingPool.Wounds = make(chan *Wound)
 
-			woundsConsumer = &WoundsWriter{
+			actx.WoundsConsumer = &WoundsWriter{
 				WoundsPath: actx.WoundsPath,
 			}
 			numTasks++
 		}
 
-		if woundsConsumer != nil {
+		if actx.WoundsConsumer != nil {
 			go func() {
-				err := woundsConsumer.Do(signature.Container, validatingPool.Wounds)
+				err := actx.WoundsConsumer.Do(signature.Container, validatingPool.Wounds)
 				if err != nil {
 					errs <- err
 					return

@@ -335,7 +335,7 @@ func queryLatestVersion() (*semver.Version, *semver.Version, error) {
 	}
 
 	if res.StatusCode != 200 {
-		err := fmt.Errorf("HTTP %d: %s", res.StatusCode, latestURL)
+		err = fmt.Errorf("HTTP %d: %s", res.StatusCode, latestURL)
 		return nil, nil, err
 	}
 
@@ -432,31 +432,31 @@ func applyUpgrade(before string, after string) error {
 	comm.Opf("%s", gzURL)
 
 	err = func() error {
-		_, err := tryDl(gzURL, gzPath)
-		if err != nil {
-			return err
+		_, gErr := tryDl(gzURL, gzPath)
+		if gErr != nil {
+			return gErr
 		}
 
-		fr, err := os.Open(gzPath)
-		if err != nil {
-			return err
+		fr, gErr := os.Open(gzPath)
+		if gErr != nil {
+			return gErr
 		}
 		defer fr.Close()
 
-		gr, err := gzip.NewReader(fr)
-		if err != nil {
-			return err
+		gr, gErr := gzip.NewReader(fr)
+		if gErr != nil {
+			return gErr
 		}
 
-		fw, err := os.Create(newPath)
-		if err != nil {
-			return err
+		fw, gErr := os.Create(newPath)
+		if gErr != nil {
+			return gErr
 		}
 		defer fw.Close()
 
-		_, err = io.Copy(fw, gr)
-		if err != nil {
-			return err
+		_, gErr = io.Copy(fw, gr)
+		if gErr != nil {
+			return gErr
 		}
 
 		return nil

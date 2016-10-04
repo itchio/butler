@@ -92,7 +92,7 @@ func tryDl(url string, dest string) (int64, error) {
 		} else {
 			comm.Logf("Downloading %s from %s", humanize.IBytes(uint64(resp.ContentLength)), hostInfo)
 		}
-		err := appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
+		err = appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
 			return 0, errors.Wrap(err, 1)
 		}

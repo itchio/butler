@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"path"
 	"time"
 
@@ -80,6 +81,16 @@ func doApply(patch string, target string, output string, inplace bool, signature
 		comm.Statf("patched %d, kept %d, deleted %d (%s stage)", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles, humanize.IBytes(uint64(actx.StageSize)))
 	}
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
+
+	if actx.WoundsConsumer != nil && actx.WoundsConsumer.TotalCorrupted() > 0 {
+		extra := ""
+		if actx.WoundsPath != "" {
+			extra = fmt.Sprintf(" (written to %s)", actx.WoundsPath)
+		}
+
+		totalCorrupted := actx.WoundsConsumer.TotalCorrupted()
+		comm.Logf("Result has %s corrupted data%s", humanize.IBytes(uint64(totalCorrupted)), extra)
+	}
 
 	return nil
 }
