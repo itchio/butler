@@ -18,8 +18,9 @@ type FanOutSink struct {
 	sinks  []Sink
 	stores chan storeOp
 
-	closed bool
-	errs   chan error
+	closed    bool
+	cancelled chan struct{}
+	errs      chan error
 }
 
 var _ Sink = (*FanOutSink)(nil)
@@ -60,17 +61,34 @@ func NewFanOutSink(templateSink Sink, numSinks int) (*FanOutSink, error) {
 // Start processing store requests
 func (fos *FanOutSink) Start() {
 	fos.errs = make(chan error)
+	fos.cancelled = make(chan struct{})
 
 	for _, sink := range fos.sinks {
 		go func(sink Sink) {
-			for store := range fos.stores {
-				err := sink.Store(store.loc, store.data)
-				if err != nil {
-					fos.errs <- err
+			for {
+				select {
+				case <-fos.cancelled:
+					// stop handling requests!
 					return
+				case store, ok := <-fos.stores:
+					if !ok {
+						// no more requests to handle
+						return
+					}
+
+					err := sink.Store(store.loc, store.data)
+					if err != nil {
+						select {
+						case <-fos.cancelled:
+							// another error happened first
+							return
+						case fos.errs <- err:
+							// we were able to send the error
+						}
+						return
+					}
 				}
 			}
-			fos.errs <- nil
 		}(sink)
 	}
 }
@@ -78,19 +96,22 @@ func (fos *FanOutSink) Start() {
 // Close is the only way to retrieve errors from a fan-out sink,
 // since individual Store calls will never fail.
 func (fos *FanOutSink) Close() error {
+	if fos.closed {
+		return nil
+	}
+
 	fos.closed = true
 	close(fos.stores)
 
-	var rErr error
-
+	// wait for all workers to finish
 	for i := 0; i < len(fos.sinks); i++ {
 		err := <-fos.errs
 		if err != nil {
-			rErr = err
+			return err
 		}
 	}
 
-	return rErr
+	return nil
 }
 
 // Store has slightly different semantics compared to typical sinks -
@@ -101,9 +122,24 @@ func (fos *FanOutSink) Store(loc BlockLocation, data []byte) error {
 		return errors.Wrap(fmt.Errorf("writing to closed FanOutSink"), 1)
 	}
 
-	fos.stores <- storeOp{
+	op := storeOp{
 		loc:  loc,
 		data: append([]byte{}, data...),
+	}
+
+	select {
+	case err := <-fos.errs:
+		// cancel all workers
+		close(fos.cancelled)
+
+		// stop sending stores
+		close(fos.stores)
+		fos.closed = true
+
+		// immediately return error
+		return err
+	case fos.stores <- op:
+		// we managed to send the store!
 	}
 
 	return nil
