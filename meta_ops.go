@@ -233,6 +233,30 @@ func ls(path string) {
 			container.Print(log)
 		}
 
+	case pwr.WoundsMagic:
+		{
+			wh := &pwr.WoundsHeader{}
+			rctx := wire.NewReadContext(reader)
+			must(rctx.ReadMessage(wh))
+
+			container := &tlc.Container{}
+			must(rctx.ReadMessage(container))
+			container.Print(log)
+
+			for {
+				wound := &pwr.Wound{}
+				err = rctx.ReadMessage(wound)
+				if err != nil {
+					if errors.Is(err, io.EOF) {
+						break
+					} else {
+						must(err)
+					}
+				}
+				comm.Logf(wound.PrettyString(container))
+			}
+		}
+
 	default:
 		_, err := reader.Seek(0, os.SEEK_SET)
 		must(err)
