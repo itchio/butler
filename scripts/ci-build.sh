@@ -28,9 +28,9 @@ export CXX="${TRIPLET}g++"
 export CI_VERSION="head"
 export CI_BUILT_AT="$(date +%s)"
 if [ -n "$CI_BUILD_TAG" ]; then
-  export CI_VERSION=$CI_BUILD_TAG
-elif [ "master" -ne "$CI_BUILD_REF" ]; then
-  export CI_VERSION=$CI_BUILD_REF
+  export CI_VERSION="$CI_BUILD_TAG"
+elif [ "master" -ne "$CI_BUILD_REF_NAME" ]; then
+  export CI_VERSION="$CI_BUILD_REF_NAME"
 fi
 
 export CI_LDFLAGS="-X main.version=$CI_VERSION -X main.builtAt=$CI_BUILT_AT"
