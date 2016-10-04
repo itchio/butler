@@ -29,6 +29,8 @@ export CI_VERSION="head"
 export CI_BUILT_AT="$(date +%s)"
 if [ -n "$CI_BUILD_TAG" ]; then
   export CI_VERSION=$CI_BUILD_TAG
+elif [ "master" -ne "$CI_BUILD_REF" ]; then
+  export CI_VERSION=$CI_BUILD_REF
 fi
 
 export CI_LDFLAGS="-X main.version=$CI_VERSION -X main.builtAt=$CI_BUILT_AT"
