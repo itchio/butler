@@ -33,51 +33,36 @@ type ValidatorContext struct {
 }
 
 func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) error {
-	var woundsWriter *WoundsWriter
+	var woundsConsumer WoundsConsumer
+
 	vctx.Wounds = make(chan *Wound)
 	errs := make(chan error)
 	done := make(chan bool)
-
-	countedWounds := vctx.countWounds(vctx.Wounds)
 
 	if vctx.FailFast {
 		if vctx.WoundsPath != "" {
 			return fmt.Errorf("Validate: FailFast is not compatible with WoundsPath")
 		}
 
-		go func() {
-			for w := range countedWounds {
-				errs <- fmt.Errorf(w.PrettyString(signature.Container))
-			}
-			done <- true
-		}()
+		woundsConsumer = &WoundsGuardian{}
 	} else if vctx.WoundsPath == "" {
-		woundsPrinter := &WoundsPrinter{
-			Wounds: countedWounds,
+		woundsConsumer = &WoundsPrinter{
+			Consumer: vctx.Consumer,
 		}
-
-		go func() {
-			err := woundsPrinter.Do(signature, vctx.Consumer)
-			if err != nil {
-				errs <- err
-				return
-			}
-			done <- true
-		}()
 	} else {
-		woundsWriter = &WoundsWriter{
-			Wounds: countedWounds,
+		woundsConsumer = &WoundsWriter{
+			WoundsPath: vctx.WoundsPath,
 		}
-
-		go func() {
-			err := woundsWriter.Do(signature, vctx.WoundsPath)
-			if err != nil {
-				errs <- err
-				return
-			}
-			done <- true
-		}()
 	}
+
+	go func() {
+		err := woundsConsumer.Do(signature.Container, vctx.Wounds)
+		if err != nil {
+			errs <- err
+			return
+		}
+		done <- true
+	}()
 
 	doneBytes := make(chan int64)
 
@@ -86,7 +71,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 
 		for chunkSize := range doneBytes {
 			done += chunkSize
-			if vctx.Consumer != nil && vctx.Consumer.Progress != nil {
+			if vctx.Consumer != nil {
 				vctx.Consumer.Progress(float64(done) / float64(signature.Container.Size))
 			}
 		}
@@ -131,21 +116,6 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	}
 
 	return nil
-}
-
-func (vctx *ValidatorContext) countWounds(inWounds chan *Wound) chan *Wound {
-	outWounds := make(chan *Wound)
-
-	go func() {
-		for wound := range inWounds {
-			vctx.TotalCorrupted += (wound.End - wound.Start)
-			outWounds <- wound
-		}
-
-		close(outWounds)
-	}()
-
-	return outWounds
 }
 
 func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, fileIndices chan int64, done chan bool, errs chan error, doneBytes chan int64) {

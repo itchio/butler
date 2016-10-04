@@ -214,6 +214,7 @@ var applyArgs = struct {
 	reverse   *string
 	inplace   *bool
 	signature *string
+	wounds    *string
 }{
 	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String(),
 	applyCmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String(),
@@ -222,6 +223,7 @@ var applyArgs = struct {
 	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").Hidden().String(),
 	applyCmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool(),
 	applyCmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String(),
+	applyCmd.Flag("wounds", "When given, write wounds to this path instead of failing").String(),
 }
 
 var verifyArgs = struct {
@@ -348,7 +350,9 @@ func main() {
 	}
 	log.SetOutput(os.Stdout)
 
-	eos.RegisterHandler(&itchfs.ItchFS{*appArgs.address})
+	eos.RegisterHandler(&itchfs.ItchFS{
+		ItchServer: *appArgs.address,
+	})
 
 	if *appArgs.quiet {
 		*appArgs.noProgress = true
@@ -414,7 +418,7 @@ func main() {
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature)
+		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds)
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds)

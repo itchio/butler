@@ -11,11 +11,11 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func apply(patch string, target string, output string, inplace bool, sigpath string) {
-	must(doApply(patch, target, output, inplace, sigpath))
+func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string) {
+	must(doApply(patch, target, output, inplace, signaturePath, woundsPath))
 }
 
-func doApply(patch string, target string, output string, inplace bool, sigpath string) error {
+func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string) error {
 	if output == "" {
 		output = target
 	}
@@ -28,7 +28,7 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 		}
 	}
 
-	if sigpath == "" {
+	if signaturePath == "" {
 		comm.Opf("Patching %s", output)
 	} else {
 		comm.Opf("Patching %s with validation", output)
@@ -42,8 +42,8 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 	}
 
 	var signature *pwr.SignatureInfo
-	if sigpath != "" {
-		sigReader, sigErr := eos.Open(sigpath)
+	if signaturePath != "" {
+		sigReader, sigErr := eos.Open(signaturePath)
 		if sigErr != nil {
 			return errors.Wrap(sigErr, 1)
 		}
@@ -60,6 +60,7 @@ func doApply(patch string, target string, output string, inplace bool, sigpath s
 		OutputPath: output,
 		InPlace:    inplace,
 		Signature:  signature,
+		WoundsPath: woundsPath,
 
 		Consumer: comm.NewStateConsumer(),
 	}

@@ -45,6 +45,8 @@ type ApplyContext struct {
 	SourceContainer *tlc.Container
 	OutputPool      wsync.WritablePool
 
+	WoundsPath string
+
 	VetApply VetApplyFunc
 
 	Signature *SignatureInfo
@@ -171,17 +173,46 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) error {
 	sourceContainer := actx.SourceContainer
 
+	var validatingPool *ValidatingPool
+	errs := make(chan error)
+	done := make(chan bool)
+	numTasks := 0
+
 	outputPool := actx.OutputPool
 	if outputPool == nil {
 		outputPool = fspool.New(sourceContainer, actx.OutputPath)
 	}
 
 	if signature != nil {
-		outputPool = &ValidatingPool{
+		validatingPool = &ValidatingPool{
 			Pool:      outputPool,
 			Container: sourceContainer,
 			Signature: signature,
 		}
+
+		var woundsConsumer WoundsConsumer
+
+		if actx.WoundsPath != "" {
+			validatingPool.Wounds = make(chan *Wound)
+
+			woundsConsumer = &WoundsWriter{
+				WoundsPath: actx.WoundsPath,
+			}
+			numTasks++
+		}
+
+		if woundsConsumer != nil {
+			go func() {
+				err := woundsConsumer.Do(signature.Container, validatingPool.Wounds)
+				if err != nil {
+					errs <- err
+					return
+				}
+				done <- true
+			}()
+		}
+
+		outputPool = validatingPool
 	}
 
 	targetContainer := actx.TargetContainer
@@ -267,6 +298,21 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 	err = outputPool.Close()
 	if err != nil {
 		return errors.Wrap(err, 1)
+	}
+
+	if validatingPool != nil {
+		if validatingPool.Wounds != nil {
+			close(validatingPool.Wounds)
+		}
+	}
+
+	for i := 0; i < numTasks; i++ {
+		select {
+		case err = <-errs:
+			return errors.Wrap(err, 1)
+		case <-done:
+			// good!
+		}
 	}
 
 	return nil

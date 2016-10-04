@@ -10,15 +10,47 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
+type WoundsConsumer interface {
+	Do(*tlc.Container, chan *Wound) error
+	TotalCorrupted() int64
+}
+
+///////////////////////////////
+// Writer
+///////////////////////////////
+
+type WoundsGuardian struct {
+	totalCorrupted int64
+}
+
+var _ WoundsConsumer = (*WoundsGuardian)(nil)
+
+func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error {
+	for wound := range wounds {
+		wg.totalCorrupted += wound.Size()
+		return fmt.Errorf(wound.PrettyString(container))
+	}
+
+	return nil
+}
+
+func (wg *WoundsGuardian) TotalCorrupted() int64 {
+	return wg.totalCorrupted
+}
+
 ///////////////////////////////
 // Writer
 ///////////////////////////////
 
 type WoundsWriter struct {
-	Wounds chan *Wound
+	WoundsPath string
+
+	totalCorrupted int64
 }
 
-func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
+var _ WoundsConsumer = (*WoundsWriter)(nil)
+
+func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 	var fw *os.File
 	var wc *wire.WriteContext
 
@@ -33,9 +65,11 @@ func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
 	}()
 
 	writeWound := func(wound *Wound) error {
+		ww.totalCorrupted += wound.Size()
+
 		if wc == nil {
 			var err error
-			fw, err = os.Create(woundsPath)
+			fw, err = os.Create(ww.WoundsPath)
 			if err != nil {
 				return errors.Wrap(err, 1)
 			}
@@ -55,7 +89,7 @@ func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
 				return errors.Wrap(err, 1)
 			}
 
-			err = wc.WriteMessage(signature.Container)
+			err = wc.WriteMessage(container)
 			if err != nil {
 				return errors.Wrap(err, 1)
 			}
@@ -69,8 +103,7 @@ func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
 		return nil
 	}
 
-	for wound := range ww.Wounds {
-		// try to aggregate input wounds into fewer, wider wounds
+	for wound := range wounds {
 		err := writeWound(wound)
 		if err != nil {
 			return err
@@ -80,24 +113,37 @@ func (ww *WoundsWriter) Do(signature *SignatureInfo, woundsPath string) error {
 	return nil
 }
 
+func (ww *WoundsWriter) TotalCorrupted() int64 {
+	return ww.totalCorrupted
+}
+
 ///////////////////////////////
 // Writer
 ///////////////////////////////
 
 type WoundsPrinter struct {
-	Wounds chan *Wound
+	Consumer *StateConsumer
+
+	totalCorrupted int64
 }
 
-func (wp *WoundsPrinter) Do(signature *SignatureInfo, consumer *StateConsumer) error {
-	if consumer == nil {
+var _ WoundsConsumer = (*WoundsPrinter)(nil)
+
+func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error {
+	if wp.Consumer == nil {
 		return fmt.Errorf("Missing Consumer in WoundsPrinter")
 	}
 
-	for wound := range wp.Wounds {
-		consumer.Debugf(wound.PrettyString(signature.Container))
+	for wound := range wounds {
+		wp.totalCorrupted += wound.Size()
+		wp.Consumer.Debugf(wound.PrettyString(container))
 	}
 
 	return nil
+}
+
+func (wp *WoundsPrinter) TotalCorrupted() int64 {
+	return wp.totalCorrupted
 }
 
 ///////////////////////////////
@@ -143,4 +189,8 @@ func (w *Wound) PrettyString(container *tlc.Container) string {
 	woundSize := humanize.IBytes(uint64(w.End - w.Start))
 	offset := humanize.IBytes(uint64(w.Start))
 	return fmt.Sprintf("~%s wound %s into %s", woundSize, offset, file.Path)
+}
+
+func (w *Wound) Size() int64 {
+	return w.End - w.Start
 }

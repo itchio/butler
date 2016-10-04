@@ -141,7 +141,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 		}
 		defer os.RemoveAll(tmpDir)
 
-		apply(patch, target, tmpDir, false, signaturePath)
+		apply(patch, target, tmpDir, false, signaturePath, "")
 	}
 
 	{
