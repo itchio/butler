@@ -13,7 +13,7 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *state.Consumer) (*ExtractResult, error) {
+func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSettings) (*ExtractResult, error) {
 	dirCount := 0
 	regCount := 0
 	symlinkCount := 0
@@ -38,12 +38,6 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *state.Co
 			info := file.FileInfo()
 			mode := info.Mode()
 
-			fileReader, fErr := file.Open()
-			if fErr != nil {
-				return errors.Wrap(fErr, 1)
-			}
-			defer fileReader.Close()
-
 			if info.IsDir() {
 				err = Mkdir(filename)
 				if err != nil {
@@ -51,23 +45,44 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *state.Co
 				}
 				dirCount++
 			} else if mode&os.ModeSymlink > 0 {
+				fileReader, fErr := file.Open()
+				if fErr != nil {
+					return errors.Wrap(fErr, 1)
+				}
+				defer fileReader.Close()
+
 				linkname, lErr := ioutil.ReadAll(fileReader)
-				lErr = Symlink(string(linkname), filename, consumer)
+				lErr = Symlink(string(linkname), filename, settings.Consumer)
 				if lErr != nil {
 					return errors.Wrap(err, 1)
 				}
 				symlinkCount++
 			} else {
+				regCount++
+
+				if settings.Resume {
+					stats, sErr := os.Lstat(filename)
+					if sErr == nil && stats.Size() == int64(file.UncompressedSize64) {
+						return nil
+					}
+				}
+
+				fileReader, fErr := file.Open()
+				if fErr != nil {
+					return errors.Wrap(fErr, 1)
+				}
+				defer fileReader.Close()
+
+				settings.Consumer.Debugf("extract %s", filename)
 				countingReader := counter.NewReaderCallback(func(offset int64) {
 					currentSize := int64(doneSize) + offset
-					consumer.Progress(float64(currentSize) / float64(totalSize))
+					settings.Consumer.Progress(float64(currentSize) / float64(totalSize))
 				}, fileReader)
 
-				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader, consumer)
+				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader)
 				if err != nil {
 					return errors.Wrap(err, 1)
 				}
-				regCount++
 			}
 
 			return nil
@@ -77,7 +92,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, consumer *state.Co
 		}
 
 		doneSize += file.UncompressedSize64
-		consumer.Progress(float64(doneSize) / float64(totalSize))
+		settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
 	}
 
 	return &ExtractResult{

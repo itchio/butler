@@ -32,7 +32,12 @@ type CompressResult struct {
 	CompressedSize   int64
 }
 
-func ExtractPath(archive string, destPath string, consumer *state.Consumer) (*ExtractResult, error) {
+type ExtractSettings struct {
+	Consumer *state.Consumer
+	Resume   bool
+}
+
+func ExtractPath(archive string, destPath string, settings ExtractSettings) (*ExtractResult, error) {
 	var result *ExtractResult
 	var err error
 
@@ -52,7 +57,7 @@ func ExtractPath(archive string, destPath string, consumer *state.Consumer) (*Ex
 		}
 	}()
 
-	result, err = Extract(file, stat.Size(), destPath, consumer)
+	result, err = Extract(file, stat.Size(), destPath, settings)
 
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
@@ -60,8 +65,8 @@ func ExtractPath(archive string, destPath string, consumer *state.Consumer) (*Ex
 	return result, nil
 }
 
-func Extract(readerAt io.ReaderAt, size int64, destPath string, consumer *state.Consumer) (*ExtractResult, error) {
-	result, err := ExtractZip(readerAt, size, destPath, consumer)
+func Extract(readerAt io.ReaderAt, size int64, destPath string, settings ExtractSettings) (*ExtractResult, error) {
+	result, err := ExtractZip(readerAt, size, destPath, settings)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
 	}
@@ -117,8 +122,7 @@ func Symlink(linkname string, filename string, consumer *state.Consumer) error {
 	return nil
 }
 
-func CopyFile(filename string, mode os.FileMode, fileReader io.Reader, consumer *state.Consumer) error {
-	consumer.Debugf("extract %s", filename)
+func CopyFile(filename string, mode os.FileMode, fileReader io.Reader) error {
 	err := os.RemoveAll(filename)
 	if err != nil {
 		return errors.Wrap(err, 1)

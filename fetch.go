@@ -102,8 +102,12 @@ func doFetch(specStr string, outPath string) error {
 		return errors.Wrap(err, 1)
 	}
 
+	settings := archiver.ExtractSettings{
+		Consumer: comm.NewStateConsumer(),
+	}
+
 	comm.Opf("Extracting into %s", outPath)
-	result, err := archiver.Extract(tmpFile, archiveSize, outPath, comm.NewStateConsumer())
+	result, err := archiver.Extract(tmpFile, archiveSize, outPath, settings)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

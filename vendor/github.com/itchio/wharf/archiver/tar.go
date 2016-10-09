@@ -15,8 +15,8 @@ import (
 )
 
 // Does not preserve users, nor permission, except the executable bit
-func ExtractTar(archive string, dir string, consumer *state.Consumer) (*ExtractResult, error) {
-	consumer.Infof("Extracting %s to %s", archive, dir)
+func ExtractTar(archive string, dir string, settings ExtractSettings) (*ExtractResult, error) {
+	settings.Consumer.Infof("Extracting %s to %s", archive, dir)
 
 	dirCount := 0
 	regCount := 0
@@ -57,14 +57,15 @@ func ExtractTar(archive string, dir string, consumer *state.Consumer) (*ExtractR
 			dirCount++
 
 		case tar.TypeReg:
-			err = CopyFile(filename, os.FileMode(header.Mode&LuckyMode|ModeMask), tarReader, consumer)
+			settings.Consumer.Debugf("extract %s", filename)
+			err = CopyFile(filename, os.FileMode(header.Mode&LuckyMode|ModeMask), tarReader)
 			if err != nil {
 				return nil, errors.Wrap(err, 1)
 			}
 			regCount++
 
 		case tar.TypeSymlink:
-			err = Symlink(header.Linkname, filename, consumer)
+			err = Symlink(header.Linkname, filename, settings.Consumer)
 			if err != nil {
 				return nil, errors.Wrap(err, 1)
 			}

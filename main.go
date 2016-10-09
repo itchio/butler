@@ -165,11 +165,13 @@ var untarArgs = struct {
 }
 
 var unzipArgs = struct {
-	file *string
-	dir  *string
+	file   *string
+	dir    *string
+	resume *bool
 }{
 	unzipCmd.Arg("file", "Path of the .zip archive to extract").Required().String(),
 	unzipCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
+	unzipCmd.Flag("resume", "Don't extract files if they already exist with exactly the right size").Bool(),
 }
 
 var wipeArgs = struct {
@@ -403,7 +405,7 @@ func main() {
 		untar(*untarArgs.file, *untarArgs.dir)
 
 	case unzipCmd.FullCommand():
-		unzip(*unzipArgs.file, *unzipArgs.dir)
+		unzip(*unzipArgs.file, *unzipArgs.dir, *unzipArgs.resume)
 
 	case wipeCmd.FullCommand():
 		wipe(*wipeArgs.path)

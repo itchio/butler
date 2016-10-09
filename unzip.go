@@ -3,11 +3,16 @@ package main
 import "github.com/itchio/butler/comm"
 import "github.com/itchio/wharf/archiver"
 
-func unzip(file string, dir string) {
+func unzip(file string, dir string, resume bool) {
 	comm.Opf("Extracting zip %s to %s", file, dir)
 
+	settings := archiver.ExtractSettings{
+		Consumer: comm.NewStateConsumer(),
+		Resume:   resume,
+	}
+
 	comm.StartProgress()
-	res, err := archiver.ExtractPath(file, dir, comm.NewStateConsumer())
+	res, err := archiver.ExtractPath(file, dir, settings)
 	comm.EndProgress()
 
 	must(err)
