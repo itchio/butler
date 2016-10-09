@@ -6,12 +6,15 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/pwr/drip"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
 
+// A ValidatingPool will check files against their hashes, but doesn't
+// check directories or symlinks
 type ValidatingPool struct {
-	// required //
+	// required
 
 	Pool wsync.WritablePool
 	// Container must match Pool - may have different file indices than Signature.Container
@@ -67,9 +70,10 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 				size := ComputeBlockSize(fileSize, blockIndex)
 				start := blockIndex * BlockSize
 				vp.Wounds <- &Wound{
-					FileIndex: fileIndex,
-					Start:     start,
-					End:       start + size,
+					Kind:  WoundKind_FILE,
+					Index: fileIndex,
+					Start: start,
+					End:   start + size,
 				}
 			}
 		} else if !bytes.Equal(bh.StrongHash, strongHash) {
@@ -80,9 +84,10 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 				size := ComputeBlockSize(fileSize, blockIndex)
 				start := blockIndex * BlockSize
 				vp.Wounds <- &Wound{
-					FileIndex: fileIndex,
-					Start:     start,
-					End:       start + size,
+					Kind:  WoundKind_FILE,
+					Index: fileIndex,
+					Start: start,
+					End:   start + size,
 				}
 			}
 		}
@@ -91,7 +96,7 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		return nil
 	}
 
-	dw := &DripWriter{
+	dw := &drip.Writer{
 		Writer:   w,
 		Buffer:   make([]byte, BlockSize),
 		Validate: validate,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
@@ -19,7 +20,7 @@ type SignatureInfo struct {
 // ComputeSignature compute the signature of all blocks of all files in a given container,
 // by reading them from disk, relative to `basePath`, and notifying `consumer` of its
 // progress
-func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *StateConsumer) ([]wsync.BlockHash, error) {
+func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *state.Consumer) ([]wsync.BlockHash, error) {
 	var signature []wsync.BlockHash
 
 	err := ComputeSignatureToWriter(container, pool, consumer, func(bl wsync.BlockHash) error {
@@ -35,7 +36,7 @@ func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *State
 
 // ComputeSignatureToWriter is a variant of ComputeSignature that writes hashes
 // to a callback
-func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consumer *StateConsumer, sigWriter wsync.SignatureWriter) error {
+func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consumer *state.Consumer, sigWriter wsync.SignatureWriter) error {
 	var err error
 
 	defer func() {

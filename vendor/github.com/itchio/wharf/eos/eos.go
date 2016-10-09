@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/httpfile"
+	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos/option"
 )
 
@@ -52,7 +52,7 @@ func (shr *simpleHTTPResource) GetURL() (string, error) {
 	return shr.url, nil
 }
 
-func (shr *simpleHTTPResource) NeedsRenewal(req *http.Request) bool {
+func (shr *simpleHTTPResource) NeedsRenewal(res *http.Response, body []byte) bool {
 	return false
 }
 
@@ -63,6 +63,10 @@ func Open(name string, opts ...option.Option) (File, error) {
 		opt.Apply(settings)
 	}
 
+	if name == "/dev/null" {
+		return &emptyFile{}, nil
+	}
+
 	u, err := url.Parse(name)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
@@ -71,7 +75,9 @@ func Open(name string, opts ...option.Option) (File, error) {
 	switch u.Scheme {
 	case "http", "https":
 		res := &simpleHTTPResource{name}
-		return httpfile.New(res.GetURL, res.NeedsRenewal, settings.HTTPClient)
+		return httpfile.New(res.GetURL, res.NeedsRenewal, &httpfile.Settings{
+			Client: settings.HTTPClient,
+		})
 	default:
 		handler := handlers[u.Scheme]
 		if handler == nil {
@@ -83,6 +89,8 @@ func Open(name string, opts ...option.Option) (File, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
-		return httpfile.New(getURL, needsRenewal, settings.HTTPClient)
+		return httpfile.New(getURL, needsRenewal, &httpfile.Settings{
+			Client: settings.HTTPClient,
+		})
 	}
 }

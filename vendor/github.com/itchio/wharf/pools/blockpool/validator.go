@@ -8,6 +8,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
@@ -20,7 +21,7 @@ type ValidatingSink struct {
 	Signature *pwr.SignatureInfo
 
 	// optional
-	Consumer *pwr.StateConsumer
+	Consumer *state.Consumer
 
 	// internal
 	hashGroups map[BlockLocation][]wsync.BlockHash

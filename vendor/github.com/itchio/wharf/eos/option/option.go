@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/itchio/wharf/timeout"
+	"github.com/itchio/httpkit/timeout"
 )
 
 type EOSSettings struct {
@@ -18,7 +18,7 @@ func DefaultSettings() *EOSSettings {
 }
 
 func defaultHTTPClient() *http.Client {
-	client := timeout.NewClient(time.Second*time.Duration(5), time.Second*time.Duration(5))
+	client := timeout.NewClient(time.Second*time.Duration(30), time.Second*time.Duration(15))
 	return client
 }
 

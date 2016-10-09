@@ -1,3 +1,5 @@
+// The timeout package provides an http.Client that closes a connection if it takes
+// too long to establish, or stays idle for too long.
 package timeout
 
 import (

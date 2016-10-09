@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpfile"
+	"github.com/itchio/httpkit/httpfile"
 )
 
 // over-engineering follows

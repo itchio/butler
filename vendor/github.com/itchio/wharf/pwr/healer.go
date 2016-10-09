@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -65,6 +67,7 @@ type ArchiveHealer struct {
 	// internal
 	totalCorrupted int64
 	totalHealed    int64
+	hasWounds      bool
 }
 
 var _ Healer = (*ArchiveHealer)(nil)
@@ -118,24 +121,64 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 		go ah.heal(container, zipReader, stat.Size(), targetPool, fileIndices, errs, done, cancelled, healed)
 	}
 
-	for wound := range wounds {
+	processWound := func(wound *Wound) error {
 		ah.totalCorrupted += wound.Size()
 
-		if files[wound.FileIndex] {
-			// already queued
-			continue
+		switch wound.Kind {
+		case WoundKind_DIR:
+			dirEntry := container.Dirs[wound.Index]
+			path := filepath.Join(ah.Target, filepath.FromSlash(dirEntry.Path))
+
+			pErr := os.MkdirAll(path, 0755)
+			if pErr != nil {
+				return pErr
+			}
+
+		case WoundKind_SYMLINK:
+			symlinkEntry := container.Symlinks[wound.Index]
+			path := filepath.Join(ah.Target, filepath.FromSlash(symlinkEntry.Path))
+
+			dir := filepath.Dir(path)
+			pErr := os.MkdirAll(dir, 0755)
+			if pErr != nil {
+				return pErr
+			}
+
+			pErr = os.Symlink(symlinkEntry.Dest, path)
+			if pErr != nil {
+				return pErr
+			}
+
+		case WoundKind_FILE:
+			if files[wound.Index] {
+				// already queued
+				return nil
+			}
+
+			files[wound.Index] = true
+
+			select {
+			case pErr := <-errs:
+				return pErr
+			case fileIndices <- wound.Index:
+				// queued for work!
+			}
+
+		default:
+			return fmt.Errorf("unknown wound kind: %d", wound.Kind)
 		}
 
-		files[wound.FileIndex] = true
+		return nil
+	}
 
-		select {
-		case err = <-errs:
-			// got an early error, cancel the rest
+	for wound := range wounds {
+		ah.hasWounds = true
+
+		err = processWound(wound)
+		if err != nil {
 			close(fileIndices)
 			close(cancelled)
 			return errors.Wrap(err, 1)
-		case fileIndices <- wound.FileIndex:
-			// queued for work!
 		}
 	}
 
@@ -223,6 +266,10 @@ func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.Writabl
 	}
 
 	return healedBytes, err
+}
+
+func (ah *ArchiveHealer) HasWounds() bool {
+	return ah.hasWounds
 }
 
 func (ah *ArchiveHealer) TotalCorrupted() int64 {

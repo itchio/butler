@@ -11,11 +11,12 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/uploader"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
-	"github.com/itchio/wharf/uploader"
 	"github.com/itchio/wharf/wsync"
 )
 
@@ -190,7 +191,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 
 	patchWriter.OnProgress = updateProgress
 
-	stateConsumer := &pwr.StateConsumer{
+	stateConsumer := &state.Consumer{
 		OnProgress: func(progress float64) {
 			readBytes = int64(float64(sourceContainer.Size) * progress)
 			updateProgress()

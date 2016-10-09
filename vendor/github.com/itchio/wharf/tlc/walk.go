@@ -177,7 +177,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		// don't trust zip files to have directory entries for
 		// all directories. it's a miracle anything works.
 		dir := path.Dir(file.Name)
-		if dir != "" && dirMap[dir] == 0 {
+		if dir != "" && dir != "." && dirMap[dir] == 0 {
 			dirMap[dir] = os.FileMode(0755)
 		}
 
@@ -185,7 +185,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		mode := file.Mode() | ModeMask
 
 		if info.IsDir() {
-			dirMap[dir] = mode
+			dirMap[file.Name] = mode
 		} else if mode&os.ModeSymlink > 0 {
 			var linkname []byte
 

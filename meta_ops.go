@@ -117,6 +117,7 @@ func file(path string) {
 
 			for {
 				wound := &pwr.Wound{}
+
 				err = rctx.ReadMessage(wound)
 				if err != nil {
 					if errors.Is(err, io.EOF) {
@@ -125,8 +126,11 @@ func file(path string) {
 						must(err)
 					}
 				}
-				totalWounds += (wound.End - wound.Start)
-				files[wound.FileIndex] = true
+
+				if wound.Kind == pwr.WoundKind_FILE {
+					totalWounds += (wound.End - wound.Start)
+					files[wound.Index] = true
+				}
 			}
 
 			comm.Logf("%s: %s wharf wounds file with %s, %s wounds in %d files", path, prettySize, container.Stats(),

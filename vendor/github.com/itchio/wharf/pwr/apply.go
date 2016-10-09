@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
@@ -32,9 +33,27 @@ var (
 // valid. A VetApplyFunc should only read data from actx, not write to it.
 type VetApplyFunc func(actx *ApplyContext) error
 
+type ApplyStats struct {
+	// files that were touched as a result of applying the patch
+	TouchedFiles int
+	// files that were not touched at all as a result of applying the patch in-place
+	NoopFiles int
+	// files that were moved as a result of applying the patch in-place
+	MovedFiles int
+	// files that were deleted as a result of applying the patch in-place
+	DeletedFiles int
+	// symlinks that were deleted as a result of applying the patch in-place
+	DeletedSymlinks int
+	// directories that were deleted as a result of applying the patch in-place
+	DeletedDirs int
+	// directories that could not be deleted as a result of applying the patch
+	LeftDirs  int
+	StageSize int64
+}
+
 // ApplyContext holds the state while applying a patch
 type ApplyContext struct {
-	Consumer *StateConsumer
+	Consumer *state.Consumer
 
 	TargetPath string
 	OutputPath string
@@ -52,10 +71,14 @@ type ApplyContext struct {
 
 	Signature *SignatureInfo
 
-	TouchedFiles int
-	NoopFiles    int
-	DeletedFiles int
-	StageSize    int64
+	Stats ApplyStats
+
+	// internal
+	actualOutputPath string
+	transpositions   map[string][]*Transposition
+
+	// debug
+	debugBrokenRename bool
 }
 
 type signature []wsync.BlockHash
@@ -66,16 +89,29 @@ type signatureResult struct {
 	err  error
 }
 
+type GhostKind int
+
+const (
+	GhostKind_Dir GhostKind = iota + 0xfaf0
+	GhostKind_File
+	GhostKind_Symlink
+)
+
+type Ghost struct {
+	Kind GhostKind
+	Path string
+}
+
 // ApplyPatch reads a patch, parses it, and generates the new file tree
 func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
-	actualOutputPath := actx.OutputPath
+	actx.actualOutputPath = actx.OutputPath
 	if actx.OutputPool == nil {
 		if actx.InPlace {
 			// applying in-place is a bit tricky: we can't overwrite files in the
 			// target directory (old) while we're reading the patch otherwise
 			// we might be copying new bytes instead of old bytes into later files
 			// so, we rebuild 'touched' files in a staging area
-			stagePath := actualOutputPath + "-stage"
+			stagePath := actx.actualOutputPath + "-stage"
 			err := os.MkdirAll(stagePath, os.FileMode(0755))
 			if err != nil {
 				return errors.Wrap(err, 1)
@@ -87,7 +123,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 			os.MkdirAll(actx.OutputPath, os.FileMode(0755))
 		}
 	} else {
-		if actualOutputPath != "" {
+		if actx.actualOutputPath != "" {
 			return fmt.Errorf("cannot specify both OutputPath and OutputPool")
 		}
 	}
@@ -130,14 +166,14 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		}
 	}
 
-	var deletedFiles []string
+	var ghosts []Ghost
 
 	// when not working with a custom output pool
 	if actx.OutputPool == nil {
 		if actx.InPlace {
 			// when working in-place, we have to keep track of which files were deleted
 			// from one version to the other, so that we too may delete them in the end.
-			deletedFiles = detectRemovedFiles(actx.SourceContainer, actx.TargetContainer)
+			ghosts = detectGhosts(actx.SourceContainer, actx.TargetContainer)
 		} else {
 			// when rebuilding in a fresh directory, there's no need to worry about
 			// deleted files, because they won't even exist in the first place.
@@ -154,30 +190,31 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	}
 
 	if actx.InPlace {
-		actx.DeletedFiles = len(deletedFiles)
-
-		actx.StageSize, err = mergeFolders(actualOutputPath, actx.OutputPath)
+		err = actx.ensureDirsAndSymlinks(actx.actualOutputPath)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
 
-		err = deleteFiles(actualOutputPath, deletedFiles)
+		actx.Stats.StageSize, err = actx.mergeFolders(actx.actualOutputPath, actx.OutputPath)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
-		actx.OutputPath = actualOutputPath
+
+		err = actx.deleteGhosts(actx.actualOutputPath, ghosts)
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+		actx.OutputPath = actx.actualOutputPath
 	}
 
 	return nil
 }
 
-func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) error {
+func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
 	sourceContainer := actx.SourceContainer
 
 	var validatingPool *ValidatingPool
-	errs := make(chan error)
-	done := make(chan bool)
-	numTasks := 0
+	consumerErrs := make(chan error, 1)
 
 	outputPool := actx.OutputPool
 	if outputPool == nil {
@@ -197,17 +234,11 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			actx.WoundsConsumer = &WoundsWriter{
 				WoundsPath: actx.WoundsPath,
 			}
-			numTasks++
 		}
 
 		if actx.WoundsConsumer != nil {
 			go func() {
-				err := actx.WoundsConsumer.Do(signature.Container, validatingPool.Wounds)
-				if err != nil {
-					errs <- err
-					return
-				}
-				done <- true
+				consumerErrs <- actx.WoundsConsumer.Do(signature.Container, validatingPool.Wounds)
 			}()
 		}
 
@@ -241,6 +272,42 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 	sctx := mksync()
 	sh := &SyncHeader{}
 
+	// transpositions, indexed by TargetPath
+	transpositions := make(map[string][]*Transposition)
+	actx.transpositions = transpositions
+
+	defer func() {
+		var closeErr error
+		closeErr = targetPool.Close()
+		if closeErr != nil {
+			if retErr == nil {
+				retErr = errors.Wrap(closeErr, 1)
+			}
+		}
+
+		closeErr = outputPool.Close()
+		if closeErr != nil {
+			if retErr == nil {
+				retErr = errors.Wrap(closeErr, 1)
+			}
+		}
+
+		if validatingPool != nil {
+			if validatingPool.Wounds != nil {
+				close(validatingPool.Wounds)
+			}
+		}
+
+		if actx.WoundsConsumer != nil {
+			taskErr := <-consumerErrs
+			if taskErr != nil {
+				if retErr == nil {
+					retErr = errors.Wrap(taskErr, 1)
+				}
+			}
+		}
+	}()
+
 	for fileIndex, f := range sourceContainer.Files {
 		actx.Consumer.ProgressLabel(f.Path)
 		actx.Consumer.Debug(f.Path)
@@ -253,12 +320,14 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 		sh.Reset()
 		err := patchWire.ReadMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			retErr = errors.Wrap(err, 1)
+			return
 		}
 
 		if sh.FileIndex != int64(fileIndex) {
 			fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
-			return errors.Wrap(ErrMalformedPatch, 1)
+			retErr = errors.Wrap(ErrMalformedPatch, 1)
+			return
 		}
 
 		ops := make(chan wsync.Operation)
@@ -266,17 +335,19 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 		go readOps(patchWire, ops, errc)
 
-		bytesWritten, noop, err := lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
+		bytesWritten, transposition, err := actx.lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			retErr = errors.Wrap(err, 1)
+			return
 		}
 
-		if noop {
-			actx.NoopFiles++
+		if transposition != nil {
+			transpositions[transposition.TargetPath] = append(transpositions[transposition.TargetPath], transposition)
 		} else {
-			actx.TouchedFiles++
+			actx.Stats.TouchedFiles++
 			if bytesWritten != f.Size {
-				return fmt.Errorf("%s: expected to write %d bytes, wrote %d bytes", f.Path, f.Size, bytesWritten)
+				retErr = fmt.Errorf("%s: expected to write %d bytes, wrote %d bytes", f.Path, f.Size, bytesWritten)
+				return
 			}
 		}
 
@@ -284,40 +355,170 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 		// done channel. not sure if there's any upside to either
 		err = <-errc
 		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-	}
-
-	err := targetPool.Close()
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	err = outputPool.Close()
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	if validatingPool != nil {
-		if validatingPool.Wounds != nil {
-			close(validatingPool.Wounds)
+			retErr = err
+			return
 		}
 	}
 
-	for i := 0; i < numTasks; i++ {
-		select {
-		case err = <-errs:
-			return errors.Wrap(err, 1)
-		case <-done:
-			// good!
+	err := actx.applyTranspositions(transpositions)
+	if err != nil {
+		retErr = err
+		return
+	}
+
+	return
+}
+
+func (actx *ApplyContext) applyTranspositions(transpositions map[string][]*Transposition) error {
+	if len(transpositions) == 0 {
+		return nil
+	}
+
+	if !actx.InPlace {
+		return fmt.Errorf("internal error: found transpositions but not applying in-place")
+	}
+
+	for _, group := range transpositions {
+		if len(group) == 1 {
+			transpo := group[0]
+			if transpo.TargetPath == transpo.OutputPath {
+				// file wasn't touched at all
+				actx.Stats.NoopFiles++
+			} else {
+				// file was renamed
+				oldAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.TargetPath))
+				newAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.OutputPath))
+				err := actx.move(oldAbsolutePath, newAbsolutePath)
+				if err != nil {
+					return err
+				}
+				actx.Stats.MovedFiles++
+			}
+		} else {
+			// a file got duplicated!
+			var noop *Transposition
+			for _, transpo := range group {
+				if transpo.TargetPath == transpo.OutputPath {
+					noop = transpo
+					break
+				}
+			}
+
+			for i, transpo := range group {
+				if noop == nil {
+					if i == 0 {
+						// arbitrary pick first transposition as being the rename - do
+						// all the others as copies first
+						continue
+					}
+				} else if transpo == noop {
+					// no need to copy for the noop
+					continue
+				}
+
+				oldAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.TargetPath))
+				newAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.OutputPath))
+				err := actx.copy(oldAbsolutePath, newAbsolutePath, MkdirBehavior_IfNeeded)
+				if err != nil {
+					return err
+				}
+				actx.Stats.TouchedFiles++
+			}
+
+			if noop == nil {
+				// we treated the first transpo as being the rename, gotta do it now
+				transpo := group[0]
+				oldAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.TargetPath))
+				newAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.OutputPath))
+				err := actx.move(oldAbsolutePath, newAbsolutePath)
+				if err != nil {
+					return err
+				}
+				actx.Stats.MovedFiles++
+			} else {
+				actx.Stats.NoopFiles++
+			}
 		}
 	}
 
 	return nil
 }
 
-func detectRemovedFiles(sourceContainer *tlc.Container, targetContainer *tlc.Container) []string {
+func (actx *ApplyContext) move(oldAbsolutePath string, newAbsolutePath string) error {
+	err := os.Remove(newAbsolutePath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return errors.Wrap(err, 1)
+		}
+	}
+
+	err = os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
+	if err != nil {
+		return errors.Wrap(err, 1)
+	}
+
+	if actx.debugBrokenRename {
+		err = &os.PathError{}
+	} else {
+		err = os.Rename(oldAbsolutePath, newAbsolutePath)
+	}
+	if err != nil {
+		cErr := actx.copy(oldAbsolutePath, newAbsolutePath, MkdirBehavior_Never)
+		if cErr != nil {
+			return cErr
+		}
+
+		cErr = os.Remove(oldAbsolutePath)
+		if cErr != nil {
+			return cErr
+		}
+	}
+
+	return nil
+}
+
+type MkdirBehavior int
+
+const (
+	MkdirBehavior_Never MkdirBehavior = 0xf8792 + iota
+	MkdirBehavior_IfNeeded
+)
+
+func (actx *ApplyContext) copy(oldAbsolutePath string, newAbsolutePath string, mkdirBehavior MkdirBehavior) error {
+	if mkdirBehavior == MkdirBehavior_IfNeeded {
+		err := os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
+		if err != nil {
+			return errors.Wrap(err, 1)
+		}
+	}
+
+	// fall back to copy + remove
+	reader, err := os.Open(oldAbsolutePath)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	stats, err := reader.Stat()
+	if err != nil {
+		return err
+	}
+
+	writer, err := os.OpenFile(newAbsolutePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, stats.Mode()|tlc.ModeMask)
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func detectGhosts(sourceContainer *tlc.Container, targetContainer *tlc.Container) []Ghost {
 	// first make a map of all the file paths in source, for later lookup
 	sourceFileMap := make(map[string]bool)
 	for _, f := range sourceContainer.Files {
@@ -331,26 +532,35 @@ func detectRemovedFiles(sourceContainer *tlc.Container, targetContainer *tlc.Con
 	}
 
 	// then walk through target container paths, if they're not in source, they were deleted
-	var deletedFiles []string
+	var ghosts []Ghost
 	for _, f := range targetContainer.Files {
 		if !sourceFileMap[f.Path] {
-			deletedFiles = append(deletedFiles, f.Path)
+			ghosts = append(ghosts, Ghost{
+				Kind: GhostKind_File,
+				Path: f.Path,
+			})
 		}
 	}
 	for _, s := range targetContainer.Symlinks {
 		if !sourceFileMap[s.Path] {
-			deletedFiles = append(deletedFiles, s.Path)
+			ghosts = append(ghosts, Ghost{
+				Kind: GhostKind_Symlink,
+				Path: s.Path,
+			})
 		}
 	}
 	for _, d := range targetContainer.Dirs {
 		if !sourceFileMap[d.Path] {
-			deletedFiles = append(deletedFiles, d.Path)
+			ghosts = append(ghosts, Ghost{
+				Kind: GhostKind_Dir,
+				Path: d.Path,
+			})
 		}
 	}
-	return deletedFiles
+	return ghosts
 }
 
-func mergeFolders(outPath string, stagePath string) (int64, error) {
+func (actx *ApplyContext) mergeFolders(outPath string, stagePath string) (int64, error) {
 	var filter tlc.FilterFunc = func(fi os.FileInfo) bool {
 		return true
 	}
@@ -360,39 +570,12 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 		return 0, errors.Wrap(err, 1)
 	}
 
-	move := func(path string) error {
-		p := filepath.FromSlash(path)
+	for _, f := range stageContainer.Files {
+		p := filepath.FromSlash(f.Path)
 		op := filepath.Join(outPath, p)
 		sp := filepath.Join(stagePath, p)
 
-		err := os.Remove(op)
-		if err != nil {
-			if !os.IsNotExist(err) {
-				return errors.Wrap(err, 1)
-			}
-		}
-
-		err = os.MkdirAll(filepath.Dir(op), os.FileMode(0755))
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		err = os.Rename(sp, op)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-		return nil
-	}
-
-	for _, f := range stageContainer.Files {
-		err := move(f.Path)
-		if err != nil {
-			return 0, errors.Wrap(err, 1)
-		}
-	}
-
-	for _, s := range stageContainer.Symlinks {
-		err := move(s.Path)
+		err := actx.move(sp, op)
 		if err != nil {
 			return 0, errors.Wrap(err, 1)
 		}
@@ -401,7 +584,7 @@ func mergeFolders(outPath string, stagePath string) (int64, error) {
 	return stageContainer.Size, nil
 }
 
-type byDecreasingLength []string
+type byDecreasingLength []Ghost
 
 func (s byDecreasingLength) Len() int {
 	return len(s)
@@ -412,18 +595,36 @@ func (s byDecreasingLength) Swap(i, j int) {
 }
 
 func (s byDecreasingLength) Less(i, j int) bool {
-	return len(s[j]) < len(s[i])
+	return len(s[j].Path) < len(s[i].Path)
 }
 
-func deleteFiles(outPath string, deletedFiles []string) error {
-	sort.Sort(byDecreasingLength(deletedFiles))
+func (actx *ApplyContext) deleteGhosts(outPath string, ghosts []Ghost) error {
+	sort.Sort(byDecreasingLength(ghosts))
 
-	for _, f := range deletedFiles {
-		p := filepath.FromSlash(f)
-		op := filepath.Join(outPath, p)
+	for _, ghost := range ghosts {
+		if len(actx.transpositions[ghost.Path]) > 0 {
+			// been renamed
+			continue
+		}
+
+		op := filepath.Join(outPath, filepath.FromSlash(ghost.Path))
+
 		err := os.Remove(op)
-		if err != nil {
-			if !os.IsNotExist(err) {
+		if err == nil || os.IsNotExist(err) {
+			// removed or already removed, good
+			switch ghost.Kind {
+			case GhostKind_Dir:
+				actx.Stats.DeletedDirs++
+			case GhostKind_File:
+				actx.Stats.DeletedFiles++
+			case GhostKind_Symlink:
+				actx.Stats.DeletedSymlinks++
+			}
+		} else {
+			if ghost.Kind == GhostKind_Dir {
+				// sometimes we can't delete directories, it's okay
+				actx.Stats.LeftDirs++
+			} else {
 				return errors.Wrap(err, 1)
 			}
 		}
@@ -432,8 +633,28 @@ func deleteFiles(outPath string, deletedFiles []string) error {
 	return nil
 }
 
-func lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, targetPool wsync.Pool, outputContainer *tlc.Container, outputPool wsync.WritablePool,
-	fileIndex int64, onSourceWrite counter.CountCallback, ops chan wsync.Operation, inplace bool) (written int64, noop bool, err error) {
+// A Transposition is when a file's contents are found wholesale in another
+// file - it could be that the file wasn't changed at all, or that it has
+// been moved to another folder, or even that a file has been duplicated
+// in other locations
+type Transposition struct {
+	TargetPath string
+	OutputPath string
+}
+
+func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, targetPool wsync.Pool, outputContainer *tlc.Container, outputPool wsync.WritablePool,
+	fileIndex int64, onSourceWrite counter.CountCallback, ops chan wsync.Operation, inplace bool) (written int64, transposition *Transposition, err error) {
+
+	var writer io.WriteCloser
+
+	defer func() {
+		if writer != nil {
+			cErr := writer.Close()
+			if cErr != nil && err == nil {
+				err = cErr
+			}
+		}
+	}()
 
 	var realops chan wsync.Operation
 
@@ -447,58 +668,54 @@ func lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, target
 			// if the first operation is a blockrange that copies an
 			// entire file from target into a file from source that has
 			// the same name and size, then it's a no-op!
-			if op.Type == wsync.OpBlockRange && op.BlockIndex == 0 {
+			if inplace && op.Type == wsync.OpBlockRange && op.BlockIndex == 0 {
 				outputFile := outputContainer.Files[fileIndex]
 				targetFile := targetContainer.Files[op.FileIndex]
 				numOutputBlocks := ComputeNumBlocks(outputFile.Size)
 
-				if inplace &&
-					op.BlockSpan == numOutputBlocks &&
-					outputFile.Size == targetFile.Size &&
-					outputFile.Path == targetFile.Path {
-					noop = true
+				if op.BlockSpan == numOutputBlocks &&
+					outputFile.Size == targetFile.Size {
+					transposition = &Transposition{
+						TargetPath: targetFile.Path,
+						OutputPath: outputFile.Path,
+					}
 				}
 			}
 
-			if noop {
+			if transposition != nil {
 				go func() {
 					errs <- nil
 				}()
 			} else {
 				realops = make(chan wsync.Operation)
 
-				var writer io.WriteCloser
 				writer, err = outputPool.GetWriter(fileIndex)
 				if err != nil {
-					return 0, false, errors.Wrap(err, 1)
+					errs <- errors.Wrap(err, 1)
+				} else {
+					writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
+
+					go func() {
+						applyErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
+						if applyErr != nil {
+							errs <- applyErr
+							return
+						}
+
+						written = writeCounter.Count()
+						errs <- nil
+					}()
 				}
-
-				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
-
-				go func() {
-					rErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
-					if rErr != nil {
-						errs <- errors.Wrap(rErr, 1)
-						return
-					}
-
-					rErr = writer.Close()
-					if rErr != nil {
-						errs <- errors.Wrap(rErr, 1)
-						return
-					}
-
-					written = writeCounter.Count()
-					errs <- nil
-				}()
 			}
 		}
 
-		if !noop {
+		// if not a transposition, relay errors
+		if transposition == nil {
 			select {
 			case cErr := <-errs:
+				// if we get an error here, ApplyPatch failed so we no longer need to close realops
 				if cErr != nil {
-					return 0, false, errors.Wrap(cErr, 1)
+					return 0, nil, errors.Wrap(cErr, 1)
 				}
 			case realops <- op:
 				// muffin
@@ -506,13 +723,13 @@ func lazilyPatchFile(sctx *wsync.Context, targetContainer *tlc.Container, target
 		}
 	}
 
-	if !noop {
+	if transposition == nil {
 		close(realops)
 	}
 
 	err = <-errs
 	if err != nil {
-		return 0, false, errors.Wrap(err, 1)
+		return 0, nil, errors.Wrap(err, 1)
 	}
 
 	return
@@ -554,11 +771,6 @@ func readOps(rc *wire.ReadContext, ops chan wsync.Operation, errc chan error) {
 				// safety measures are cheap and reassuring.
 				readingOps = false
 			default:
-				// if you get this, then you're probably implementing an extension
-				// to the wharf patch format in which case, I'd love to get in touch
-				// with you to know why & discuss adding it to the spec so other
-				// people can share it: amos@itch.io
-				fmt.Printf("unrecognized rop type %d\n", rop.Type)
 				errc <- errors.Wrap(ErrMalformedPatch, 1)
 				return
 			}
@@ -566,4 +778,53 @@ func readOps(rc *wire.ReadContext, ops chan wsync.Operation, errc chan error) {
 	}
 
 	errc <- nil
+}
+
+func (actx *ApplyContext) ensureDirsAndSymlinks(actualOutputPath string) error {
+	for _, dir := range actx.SourceContainer.Dirs {
+		path := filepath.Join(actualOutputPath, filepath.FromSlash(dir.Path))
+
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			// If path is already a directory, MkdirAll does nothing and returns nil.
+			// so if we get a non-nil error, we know it's serious business (permissions, etc.)
+			return err
+		}
+	}
+
+	for _, symlink := range actx.SourceContainer.Symlinks {
+		path := filepath.Join(actualOutputPath, filepath.FromSlash(symlink.Path))
+		dest, err := os.Readlink(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// symlink was missing
+				err = os.Symlink(filepath.FromSlash(symlink.Dest), path)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			} else {
+				return err
+			}
+		}
+
+		// symlink is there
+		if dest != filepath.FromSlash(symlink.Dest) {
+			// wrong dest, fixing that
+			err = os.Remove(path)
+			if err != nil {
+				return err
+			}
+
+			err = os.Symlink(filepath.FromSlash(symlink.Dest), path)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
+
+	return nil
 }

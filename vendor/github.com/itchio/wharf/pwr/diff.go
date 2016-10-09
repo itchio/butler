@@ -7,6 +7,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
@@ -15,7 +16,7 @@ import (
 // DiffContext holds the state during a diff operation
 type DiffContext struct {
 	Compression *CompressionSettings
-	Consumer    *StateConsumer
+	Consumer    *state.Consumer
 
 	SourceContainer *tlc.Container
 	Pool            wsync.Pool

@@ -6,6 +6,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
@@ -13,6 +14,7 @@ import (
 type WoundsConsumer interface {
 	Do(*tlc.Container, chan *Wound) error
 	TotalCorrupted() int64
+	HasWounds() bool
 }
 
 ///////////////////////////////
@@ -21,12 +23,14 @@ type WoundsConsumer interface {
 
 type WoundsGuardian struct {
 	totalCorrupted int64
+	hasWounds      bool
 }
 
 var _ WoundsConsumer = (*WoundsGuardian)(nil)
 
 func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error {
 	for wound := range wounds {
+		wg.hasWounds = true
 		wg.totalCorrupted += wound.Size()
 		return fmt.Errorf(wound.PrettyString(container))
 	}
@@ -38,6 +42,10 @@ func (wg *WoundsGuardian) TotalCorrupted() int64 {
 	return wg.totalCorrupted
 }
 
+func (wg *WoundsGuardian) HasWounds() bool {
+	return wg.hasWounds
+}
+
 ///////////////////////////////
 // Writer
 ///////////////////////////////
@@ -46,6 +54,7 @@ type WoundsWriter struct {
 	WoundsPath string
 
 	totalCorrupted int64
+	hasWounds      bool
 }
 
 var _ WoundsConsumer = (*WoundsWriter)(nil)
@@ -104,6 +113,7 @@ func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 	}
 
 	for wound := range wounds {
+		ww.hasWounds = true
 		err := writeWound(wound)
 		if err != nil {
 			return err
@@ -117,14 +127,19 @@ func (ww *WoundsWriter) TotalCorrupted() int64 {
 	return ww.totalCorrupted
 }
 
+func (ww *WoundsWriter) HasWounds() bool {
+	return ww.hasWounds
+}
+
 ///////////////////////////////
 // Writer
 ///////////////////////////////
 
 type WoundsPrinter struct {
-	Consumer *StateConsumer
+	Consumer *state.Consumer
 
 	totalCorrupted int64
+	hasWounds      bool
 }
 
 var _ WoundsConsumer = (*WoundsPrinter)(nil)
@@ -136,6 +151,7 @@ func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error 
 
 	for wound := range wounds {
 		wp.totalCorrupted += wound.Size()
+		wp.hasWounds = true
 		wp.Consumer.Debugf(wound.PrettyString(container))
 	}
 
@@ -144,6 +160,10 @@ func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error 
 
 func (wp *WoundsPrinter) TotalCorrupted() int64 {
 	return wp.totalCorrupted
+}
+
+func (wp *WoundsPrinter) HasWounds() bool {
+	return wp.hasWounds
 }
 
 ///////////////////////////////
@@ -156,21 +176,25 @@ func AggregateWounds(outWounds chan *Wound, maxSize int64) chan *Wound {
 
 	go func() {
 		for wound := range inWounds {
-			// try to aggregate input wounds into fewer, wider wounds
-			if lastWound == nil {
-				lastWound = wound
-			} else {
-				if lastWound.End <= wound.Start && wound.Start >= lastWound.Start {
-					lastWound.End = wound.End
-
-					if lastWound.End-lastWound.Start >= maxSize {
-						outWounds <- lastWound
-						lastWound = nil
-					}
-				} else {
-					outWounds <- lastWound
+			if wound.Kind == WoundKind_FILE {
+				// try to aggregate input file wounds into fewer, wider wounds
+				if lastWound == nil {
 					lastWound = wound
+				} else {
+					if lastWound.End <= wound.Start && wound.Start >= lastWound.Start {
+						lastWound.End = wound.End
+
+						if lastWound.End-lastWound.Start >= maxSize {
+							outWounds <- lastWound
+							lastWound = nil
+						}
+					} else {
+						outWounds <- lastWound
+						lastWound = wound
+					}
 				}
+			} else {
+				outWounds <- wound
 			}
 		}
 
@@ -185,10 +209,21 @@ func AggregateWounds(outWounds chan *Wound, maxSize int64) chan *Wound {
 }
 
 func (w *Wound) PrettyString(container *tlc.Container) string {
-	file := container.Files[w.FileIndex]
-	woundSize := humanize.IBytes(uint64(w.End - w.Start))
-	offset := humanize.IBytes(uint64(w.Start))
-	return fmt.Sprintf("~%s wound %s into %s", woundSize, offset, file.Path)
+	switch w.Kind {
+	case WoundKind_DIR:
+		dir := container.Dirs[w.Index]
+		return fmt.Sprintf("directory wound (%s should exist)", dir.Path)
+	case WoundKind_SYMLINK:
+		symlink := container.Symlinks[w.Index]
+		return fmt.Sprintf("symlink wound (%s should point to %s)", symlink.Path, symlink.Dest)
+	case WoundKind_FILE:
+		file := container.Files[w.Index]
+		woundSize := humanize.IBytes(uint64(w.End - w.Start))
+		offset := humanize.IBytes(uint64(w.Start))
+		return fmt.Sprintf("~%s wound %s into %s", woundSize, offset, file.Path)
+	default:
+		return fmt.Sprintf("unknown wound (%d)", w.Kind)
+	}
 }
 
 func (w *Wound) Size() int64 {

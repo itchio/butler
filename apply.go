@@ -78,18 +78,29 @@ func doApply(patch string, target string, output string, inplace bool, signature
 	perSecond := humanize.IBytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 
 	if actx.InPlace {
-		comm.Statf("patched %d, kept %d, deleted %d (%s stage)", actx.TouchedFiles, actx.NoopFiles, actx.DeletedFiles, humanize.IBytes(uint64(actx.StageSize)))
+		statStr := ""
+		if actx.Stats.TouchedFiles > 0 {
+			statStr += fmt.Sprintf("patched %d, ", actx.Stats.TouchedFiles)
+		}
+		if actx.Stats.MovedFiles > 0 {
+			statStr += fmt.Sprintf("renamed %d, ", actx.Stats.MovedFiles)
+		}
+		if actx.Stats.DeletedFiles > 0 {
+			statStr += fmt.Sprintf("deleted %d, ", actx.Stats.DeletedFiles)
+		}
+
+		comm.Statf("%s (%s stage)", statStr, humanize.IBytes(uint64(actx.Stats.StageSize)))
 	}
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
-	if actx.WoundsConsumer != nil && actx.WoundsConsumer.TotalCorrupted() > 0 {
+	if actx.WoundsConsumer != nil && actx.WoundsConsumer.HasWounds() {
 		extra := ""
 		if actx.WoundsPath != "" {
 			extra = fmt.Sprintf(" (written to %s)", actx.WoundsPath)
 		}
 
 		totalCorrupted := actx.WoundsConsumer.TotalCorrupted()
-		comm.Logf("Result has %s corrupted data%s", humanize.IBytes(uint64(totalCorrupted)), extra)
+		comm.Logf("Result has wounds, %s corrupted data%s", humanize.IBytes(uint64(totalCorrupted)), extra)
 	}
 
 	return nil

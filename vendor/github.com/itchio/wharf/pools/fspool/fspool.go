@@ -21,7 +21,7 @@ type FsPool struct {
 	basePath  string
 
 	fileIndex int64
-	reader    ReadCloseSeeker
+	reader    *os.File
 }
 
 var _ wsync.Pool = (*FsPool)(nil)
@@ -119,5 +119,10 @@ func (cfp *FsPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	}
 
 	outputFile := cfp.container.Files[fileIndex]
-	return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
+	f, oErr := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(outputFile.Mode)|ModeMask)
+	if oErr != nil {
+		return nil, oErr
+	}
+
+	return f, nil
 }

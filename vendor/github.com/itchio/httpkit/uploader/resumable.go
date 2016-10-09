@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/retrycontext"
+	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
-	"github.com/itchio/wharf/timeout"
+	"github.com/itchio/wharf/state"
 )
 
 var seed = 0
@@ -25,7 +25,7 @@ var resumableVerboseDebug = fromEnv("WHARF_VERBOSE_DEBUG", 0)
 
 // ResumableUpload keeps track of an upload and reports back on its progress
 type ResumableUpload struct {
-	c *itchio.Client
+	httpClient *http.Client
 
 	TotalBytes    int64
 	UploadedBytes int64
@@ -44,9 +44,42 @@ type ResumableUpload struct {
 	pipeWriter io.Closer
 
 	id       int
-	consumer *pwr.StateConsumer
+	consumer *state.Consumer
 
 	MaxChunkGroup int
+}
+
+func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consumer *state.Consumer) (*ResumableUpload, error) {
+	ru := &ResumableUpload{}
+	ru.MaxChunkGroup = 64
+	ru.uploadURL = uploadURL
+	ru.id = seed
+	seed++
+	ru.consumer = consumer
+	ru.httpClient = timeout.NewClient(resumableConnectTimeout, resumableIdleTimeout)
+
+	pipeR, pipeW := io.Pipe()
+
+	ru.pipeWriter = pipeW
+
+	// TODO: make configurable?
+	const bufferSize = 32 * 1024 * 1024
+
+	bufferedWriter := bufio.NewWriterSize(pipeW, bufferSize)
+	ru.bufferedWriter = bufferedWriter
+
+	onWrite := func(count int64) {
+		// ru.Debugf("onwrite %d", count)
+		ru.TotalBytes = count
+		if ru.OnProgress != nil {
+			ru.OnProgress()
+		}
+	}
+	ru.writeCounter = counter.NewWriterCallback(onWrite, bufferedWriter)
+
+	go ru.uploadChunks(pipeR, done, errs)
+
+	return ru, nil
 }
 
 // Close flushes all intermediary buffers and closes the connection
@@ -75,40 +108,6 @@ func (ru *ResumableUpload) Close() error {
 // Write is our implementation of io.Writer
 func (ru *ResumableUpload) Write(p []byte) (int, error) {
 	return ru.writeCounter.Write(p)
-}
-
-func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consumer *pwr.StateConsumer) (*ResumableUpload, error) {
-	ru := &ResumableUpload{}
-	ru.MaxChunkGroup = 64
-	ru.uploadURL = uploadURL
-	ru.id = seed
-	seed++
-	ru.consumer = consumer
-	ru.c = itchio.ClientWithKey("x")
-	ru.c.HTTPClient = timeout.NewClient(resumableConnectTimeout, resumableIdleTimeout)
-
-	pipeR, pipeW := io.Pipe()
-
-	ru.pipeWriter = pipeW
-
-	// TODO: make configurable?
-	const bufferSize = 32 * 1024 * 1024
-
-	bufferedWriter := bufio.NewWriterSize(pipeW, bufferSize)
-	ru.bufferedWriter = bufferedWriter
-
-	onWrite := func(count int64) {
-		// ru.Debugf("onwrite %d", count)
-		ru.TotalBytes = count
-		if ru.OnProgress != nil {
-			ru.OnProgress()
-		}
-	}
-	ru.writeCounter = counter.NewWriterCallback(onWrite, bufferedWriter)
-
-	go ru.uploadChunks(pipeR, done, errs)
-
-	return ru, nil
 }
 
 func (ru *ResumableUpload) Debugf(f string, args ...interface{}) {
@@ -141,9 +140,9 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 	// see https://github.com/itchio/butler/issues/71#issuecomment-242938495
 	req.Header.Set("content-range", "bytes */*")
 
-	retryCtx := NewRetryContext(ru.consumer)
+	retryCtx := ru.newRetryContext()
 	for retryCtx.ShouldTry() {
-		res, err := ru.c.HTTPClient.Do(req)
+		res, err := ru.httpClient.Do(req)
 		if err != nil {
 			ru.Debugf("while querying status of upload: %s", err.Error())
 			retryCtx.Retry(err.Error())
@@ -199,7 +198,7 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 
 	startTime := time.Now()
 
-	res, err := ru.c.HTTPClient.Do(req)
+	res, err := ru.httpClient.Do(req)
 	if err != nil {
 		ru.Debugf("while uploading %d-%d: \n%s", start, end, err.Error())
 		return &netError{err, GcsUnknown}
@@ -265,7 +264,7 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 		} else {
 			committedBytes := committedRange.end - offset
 			if committedBytes < 0 {
-				return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %s)", committedRange, expectedOffset)
+				return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %d)", committedRange, expectedOffset)
 			}
 
 			if committedBytes > 0 {
@@ -278,7 +277,14 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 		}
 	}
 
-	return fmt.Errorf("got HTTP %s (%s)", res.StatusCode, status)
+	return fmt.Errorf("got HTTP %d (%s)", res.StatusCode, status)
+}
+
+func (ru *ResumableUpload) newRetryContext() *retrycontext.Context {
+	return retrycontext.New(retrycontext.Settings{
+		MaxTries: resumableMaxRetries,
+		Consumer: ru.consumer,
+	})
 }
 
 func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
@@ -292,7 +298,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 	canceller := make(chan bool)
 
 	sendBytes := func(buf []byte, isLast bool) error {
-		retryCtx := NewRetryContext(ru.consumer)
+		retryCtx := ru.newRetryContext()
 
 		for retryCtx.ShouldTry() {
 			err := ru.trySendBytes(buf, offset, isLast)

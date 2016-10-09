@@ -20,6 +20,8 @@ type ZipWriterPool struct {
 var _ wsync.WritablePool = (*ZipWriterPool)(nil)
 
 func New(container *tlc.Container, zw *zip.Writer) *ZipWriterPool {
+	// TODO: write dirs and symlinks here
+
 	return &ZipWriterPool{
 		container: container,
 		zw:        zw,

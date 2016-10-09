@@ -122,9 +122,9 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 					return nil
 				}
 
-				err := ops(*prevOp)
-				if err != nil {
-					return errors.Wrap(err, 1)
+				opErr := ops(*prevOp)
+				if opErr != nil {
+					return errors.Wrap(opErr, 1)
 				}
 				// prevOp has been completely sent off, can no longer be combined with anything
 				prevOp = nil
@@ -133,14 +133,14 @@ func (ctx *Context) ComputeDiff(source io.Reader, library *BlockLibrary, ops Ope
 		case OpData:
 			// Never save a data operation, as it would corrupt the buffer.
 			if prevOp != nil {
-				err := ops(*prevOp)
-				if err != nil {
-					return errors.Wrap(err, 1)
+				opErr := ops(*prevOp)
+				if opErr != nil {
+					return errors.Wrap(opErr, 1)
 				}
 			}
-			err := ops(op)
-			if err != nil {
-				return errors.Wrap(err, 1)
+			opErr := ops(op)
+			if opErr != nil {
+				return errors.Wrap(opErr, 1)
 			}
 			prevOp = nil
 		}

@@ -10,8 +10,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/timeout"
 )
 
 const bufferSize = 128 * 1024

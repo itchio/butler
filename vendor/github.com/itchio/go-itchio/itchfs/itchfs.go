@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpfile"
+	"github.com/itchio/httpkit/httpfile"
 )
 
 type ItchFS struct {
@@ -17,9 +17,13 @@ func (ifs *ItchFS) Scheme() string {
 	return "itchfs"
 }
 
-func needsRenewal(req *http.Request) bool {
-	// FIXME: stub
-	return true
+func needsRenewal(res *http.Response, body []byte) bool {
+	if res.StatusCode == 400 {
+		// XXX: could parse XML / make sure it's expired URL and not something else,
+		// but 400 is a good enough indicator for GCS
+		return true
+	}
+	return false
 }
 
 func (ifs *ItchFS) MakeResource(u *url.URL) (httpfile.GetURLFunc, httpfile.NeedsRenewalFunc, error) {

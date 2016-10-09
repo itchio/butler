@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/state"
 )
 
 const (
@@ -32,7 +32,7 @@ type CompressResult struct {
 	CompressedSize   int64
 }
 
-func ExtractPath(archive string, destPath string, consumer *pwr.StateConsumer) (*ExtractResult, error) {
+func ExtractPath(archive string, destPath string, consumer *state.Consumer) (*ExtractResult, error) {
 	var result *ExtractResult
 	var err error
 
@@ -60,7 +60,7 @@ func ExtractPath(archive string, destPath string, consumer *pwr.StateConsumer) (
 	return result, nil
 }
 
-func Extract(readerAt io.ReaderAt, size int64, destPath string, consumer *pwr.StateConsumer) (*ExtractResult, error) {
+func Extract(readerAt io.ReaderAt, size int64, destPath string, consumer *state.Consumer) (*ExtractResult, error) {
 	result, err := ExtractZip(readerAt, size, destPath, consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
@@ -96,7 +96,7 @@ func Mkdir(dstpath string) error {
 	return nil
 }
 
-func Symlink(linkname string, filename string, consumer *pwr.StateConsumer) error {
+func Symlink(linkname string, filename string, consumer *state.Consumer) error {
 	consumer.Debugf("ln -s %s %s", linkname, filename)
 
 	err := os.RemoveAll(filename)
@@ -117,7 +117,7 @@ func Symlink(linkname string, filename string, consumer *pwr.StateConsumer) erro
 	return nil
 }
 
-func CopyFile(filename string, mode os.FileMode, fileReader io.Reader, consumer *pwr.StateConsumer) error {
+func CopyFile(filename string, mode os.FileMode, fileReader io.Reader, consumer *state.Consumer) error {
 	consumer.Debugf("extract %s", filename)
 	err := os.RemoveAll(filename)
 	if err != nil {

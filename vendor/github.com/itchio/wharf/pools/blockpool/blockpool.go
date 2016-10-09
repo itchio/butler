@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
@@ -16,7 +16,7 @@ type BlockPool struct {
 
 	Upstream   Source
 	Downstream Sink
-	Consumer   *pwr.StateConsumer
+	Consumer   *state.Consumer
 
 	reader *Reader
 }
