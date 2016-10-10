@@ -23,6 +23,7 @@ const (
 	SourceType_KeyDownloadBuild
 	SourceType_WharfDownloadBuild
 	SourceType_DownloadUpload
+	SourceType_KeyDownloadUpload
 )
 
 type Source struct {
@@ -33,6 +34,7 @@ type Source struct {
 
 var patterns = map[string]SourceType{
 	"/upload/*/download":                    SourceType_DownloadUpload,
+	"/download-key/*/download/*":            SourceType_KeyDownloadUpload,
 	"/upload/*/download/builds/*/*":         SourceType_DownloadBuild,
 	"/download-key/*/download/*/builds/*/*": SourceType_KeyDownloadBuild,
 	"/wharf/builds/*/files/*/download":      SourceType_WharfDownloadBuild,
@@ -144,6 +146,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 
 			return r.URL, nil
 		}
+
 	case SourceType_DownloadUpload:
 		uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
 		if err != nil {
@@ -158,6 +161,24 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 
 			return r.URL, nil
 		}
+
+	case SourceType_KeyDownloadUpload:
+		downloadKey := tokens[2]
+
+		uploadID, err := strconv.ParseInt(tokens[4], 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+
+		getter = func() (string, error) {
+			r, err := s.ItchClient.UploadDownloadWithKey(downloadKey, uploadID)
+			if err != nil {
+				return "", err
+			}
+
+			return r.URL, nil
+		}
+
 	default:
 		return nil, fmt.Errorf("unsupported source type: %d", s.Type)
 	}

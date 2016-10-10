@@ -147,6 +147,18 @@ func (c *Client) UploadDownload(uploadID int64) (r UploadDownloadResponse, err e
 	return r, err
 }
 
+func (c *Client) UploadDownloadWithKey(downloadKey string, uploadID int64) (r UploadDownloadResponse, err error) {
+	path := c.MakePath("download-key/%s/download/%d", downloadKey, uploadID)
+
+	resp, err := c.Get(path)
+	if err != nil {
+		return
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	return r, err
+}
+
 type NewBuildResponse struct {
 	Response
 
@@ -442,7 +454,7 @@ type DownloadUploadBuildResponse struct {
 }
 
 func (c *Client) DownloadUploadBuild(uploadID int64, buildID int64) (r DownloadUploadBuildResponse, err error) {
-	path := c.MakePath("/upload/%d/download/builds/%d", uploadID, buildID)
+	path := c.MakePath("upload/%d/download/builds/%d", uploadID, buildID)
 
 	resp, err := c.Get(path)
 	if err != nil {
@@ -458,7 +470,7 @@ func (c *Client) DownloadUploadBuild(uploadID int64, buildID int64) (r DownloadU
 }
 
 func (c *Client) DownloadUploadBuildWithKey(downloadKey string, uploadID int64, buildID int64) (r DownloadUploadBuildResponse, err error) {
-	path := c.MakePath("/download-key/%s/download/%d/builds/%d", downloadKey, uploadID, buildID)
+	path := c.MakePath("download-key/%s/download/%d/builds/%d", downloadKey, uploadID, buildID)
 
 	resp, err := c.Get(path)
 	if err != nil {
