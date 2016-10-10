@@ -18,6 +18,7 @@ type File interface {
 	io.Reader
 	io.Closer
 	io.ReaderAt
+	io.Seeker
 
 	Stat() (os.FileInfo, error)
 }

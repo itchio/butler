@@ -1,6 +1,7 @@
 package eos
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -12,6 +13,13 @@ var _ File = (*emptyFile)(nil)
 
 func (ef *emptyFile) Close() error {
 	return nil
+}
+
+func (ef *emptyFile) Seek(offset int64, mode int) (int64, error) {
+	if offset != 0 {
+		return 0, fmt.Errorf("cannot seek into /dev/null")
+	}
+	return 0, nil
 }
 
 func (ef *emptyFile) Read(buf []byte) (int, error) {

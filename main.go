@@ -34,6 +34,7 @@ var (
 	app           = kingpin.New("butler", "Your happy little itch.io helper")
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
+	cpCmd = app.Command("cp", "Copy src to dest").Hidden()
 
 	untarCmd = app.Command("untar", "Extract a .tar file").Hidden()
 	unzipCmd = app.Command("unzip", "Extract a .zip file").Hidden()
@@ -108,6 +109,16 @@ var dlArgs = struct {
 	dlCmd.Arg("dest", "File to write downloaded data to").Required().String(),
 
 	dlCmd.Flag("thorough", "Check all available hashes").Bool(),
+}
+
+var cpArgs = struct {
+	src    *string
+	dest   *string
+	resume *bool
+}{
+	cpCmd.Arg("src", "File to read from").Required().String(),
+	cpCmd.Arg("dest", "File to write to").Required().String(),
+	cpCmd.Flag("resume", "Try to resume if dest is partially written (doesn't check existing data)").Required().Bool(),
 }
 
 func defaultKeyPath() string {
@@ -374,6 +385,9 @@ func main() {
 	switch kingpin.MustParse(cmd, err) {
 	case dlCmd.FullCommand():
 		dl(*dlArgs.url, *dlArgs.dest)
+
+	case cpCmd.FullCommand():
+		cp(*cpArgs.src, *cpArgs.dest, *cpArgs.resume)
 
 	case loginCmd.FullCommand():
 		login()
