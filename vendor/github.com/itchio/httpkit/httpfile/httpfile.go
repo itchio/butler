@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math"
 	"net"
 	"net/http"
@@ -313,7 +312,16 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 			// XXX: not int64-clean
 			_, err := reader.Discard(int(bestDiff))
 			if err != nil {
-				return nil, err
+				if shouldRetry(err) {
+					hf.log("borrow: for %d, discard failed because of retriable error, reconnecting", offset)
+					reader.offset = offset
+					err = reader.Connect()
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					return nil, err
+				}
 			}
 		}
 
@@ -400,26 +408,17 @@ func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
 
 func (hf *HTTPFile) Read(data []byte) (int, error) {
 	hf.log("Read(%d)", len(data))
-
-	reader, err := hf.borrowReader(hf.offset)
-	if err != nil {
-		return 0, err
-	}
-
-	defer hf.returnReader(reader)
-
-	bytesRead, err := reader.Read(data)
+	bytesRead, err := hf.readAt(data, hf.offset)
 	hf.offset += int64(bytesRead)
-
-	if err != nil {
-		return bytesRead, err
-	}
-	return bytesRead, nil
+	return bytesRead, err
 }
 
 func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
 	hf.log("ReadAt(%d, %d)", len(data), offset)
+	return hf.readAt(data, offset)
+}
 
+func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 	reader, err := hf.borrowReader(offset)
 	if err != nil {
 		return 0, err
@@ -436,19 +435,10 @@ func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
 		totalBytesRead += bytesRead
 
 		if err != nil {
-			if errors.Is(err, io.ErrUnexpectedEOF) {
-				log.Printf("\n\nGot unexpected eof, retrying\n\n")
+			if shouldRetry(err) {
+				hf.log("Got %s, retrying", err.Error())
 				err = reader.Connect()
 				if err != nil {
-					return totalBytesRead, err
-				}
-			} else if opError, ok := err.(*net.OpError); ok {
-				if opError.Timeout() || opError.Temporary() {
-					err = reader.Connect()
-					if err != nil {
-						return totalBytesRead, err
-					}
-				} else {
 					return totalBytesRead, err
 				}
 			} else {
@@ -458,6 +448,20 @@ func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
 	}
 
 	return totalBytesRead, nil
+}
+
+func shouldRetry(err error) bool {
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		return true
+	} else if opError, ok := err.(*net.OpError); ok {
+		if opError.Timeout() || opError.Temporary() {
+			return true
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
 }
 
 func (hf *HTTPFile) closeAllReaders() error {
