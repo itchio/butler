@@ -11,6 +11,7 @@ import (
 )
 
 var bar *pb.ProgressBar
+var lastProgressValue int64
 
 // ProgressTheme contains all the characters we need to show progress
 type ProgressTheme struct {
@@ -80,11 +81,6 @@ func StartProgress() {
 		return
 	}
 
-	if settings.noProgress || settings.json {
-		// Don't want a bar, ever.
-		return
-	}
-
 	// shows percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
 	bar.AlwaysUpdate = true
@@ -94,6 +90,12 @@ func StartProgress() {
 	bar.TimeBoxWidth = 8
 	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
+	bar.Set64(lastProgressValue)
+
+	if settings.noProgress || settings.json {
+		// use bar for ETA, but don't print
+		bar.NotPrint = true
+	}
 
 	theme.apply(bar)
 	bar.Start()
@@ -118,9 +120,15 @@ func Progress(perc float64) {
 		return
 	}
 
-	send("progress", jsonMessage{
+	msg := jsonMessage{
 		"percentage": perc * 100.0,
-	})
+	}
+
+	if bar != nil {
+		msg["eta_seconds"] = bar.TimeLeft.Seconds()
+	}
+
+	send("progress", msg)
 }
 
 func ProgressScale(scale float64) {
@@ -134,13 +142,18 @@ func ProgressScale(scale float64) {
 }
 
 func setBarProgress(perc float64) {
+	val := int64(perc * 10000.0)
+	lastProgressValue = val
+
 	if bar != nil {
-		bar.Set64(int64(perc * 10000.0))
+		bar.Set64(val)
 	}
 }
 
 // EndProgress stops refreshing the progress bar and erases it.
 func EndProgress() {
+	lastProgressValue = 0
+
 	if bar != nil {
 		bar.Set64(10000)
 
