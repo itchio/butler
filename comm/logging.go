@@ -152,10 +152,6 @@ func Dief(format string, args ...interface{}) {
 
 // sends a message to the client
 func send(msgType string, obj jsonMessage) {
-	if msgType == "progress" {
-		setBarProgress(obj["percentage"].(float64) * 0.01)
-	}
-
 	if settings.json {
 		obj["type"] = msgType
 		sendJSON(obj)

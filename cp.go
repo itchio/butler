@@ -75,7 +75,7 @@ func doCp(srcPath string, destPath string, resume bool) error {
 	start := time.Now()
 
 	comm.Progress(float64(startOffset) / float64(totalBytes))
-	comm.StartProgress()
+	comm.StartProgressWithTotalBytes(totalBytes)
 
 	cw := counter.NewWriterCallback(func(count int64) {
 		alpha := float64(startOffset+count) / float64(totalBytes)

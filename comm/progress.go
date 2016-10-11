@@ -76,6 +76,10 @@ func ProgressLabel(label string) {
 
 // StartProgress begins a period in which progress is regularly printed
 func StartProgress() {
+	StartProgressWithTotalBytes(0)
+}
+
+func StartProgressWithTotalBytes(totalBytes int64) {
 	if bar != nil {
 		// Already in-progress
 		return
@@ -91,6 +95,7 @@ func StartProgress() {
 	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
 	bar.Set64(lastProgressValue)
+	bar.TotalBytes = totalBytes
 
 	if settings.noProgress || settings.json {
 		// use bar for ETA, but don't print
@@ -99,6 +104,14 @@ func StartProgress() {
 
 	theme.apply(bar)
 	bar.Start()
+}
+
+func alphaToValue(alpha float64) int64 {
+	return int64(alpha * 10000.0)
+}
+
+func valueToAlpha(val int64) float64 {
+	return float64(val) / 10000.0
 }
 
 func PauseProgress() {
@@ -113,21 +126,43 @@ func ResumeProgress() {
 	}
 }
 
+var maxBucketDuration = 2 * time.Second
+var lastBandwidthUpdate time.Time
+var bandwidthBucket float64
+var bps float64
+
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
-func Progress(perc float64) {
-	if settings.quiet {
-		return
-	}
-
+func Progress(alpha float64) {
 	msg := jsonMessage{
-		"percentage": perc * 100.0,
+		"percentage": alpha * 100.0,
 	}
 
 	if bar != nil {
 		msg["eta_seconds"] = bar.TimeLeft.Seconds()
+
+		if bar.TotalBytes != 0 {
+			if lastBandwidthUpdate.IsZero() {
+				lastBandwidthUpdate = time.Now()
+			}
+
+			lastAlpha := valueToAlpha(lastProgressValue)
+			bytesDelta := float64(bar.TotalBytes) * float64(alpha-lastAlpha)
+			fmt.Fprintf(os.Stderr, "bytesDelta: %.0f\n", bytesDelta)
+			bandwidthBucket += bytesDelta
+			bucketDuration := time.Since(lastBandwidthUpdate)
+
+			if bucketDuration > maxBucketDuration {
+				bps = bandwidthBucket / bucketDuration.Seconds()
+				bandwidthBucket = 0
+				lastBandwidthUpdate = time.Now()
+			}
+
+			msg["bps"] = bps
+		}
 	}
 
+	setBarProgress(alpha)
 	send("progress", msg)
 }
 
@@ -141,8 +176,8 @@ func ProgressScale(scale float64) {
 	}
 }
 
-func setBarProgress(perc float64) {
-	val := int64(perc * 10000.0)
+func setBarProgress(alpha float64) {
+	val := alphaToValue(alpha)
 	lastProgressValue = val
 
 	if bar != nil {
@@ -153,6 +188,9 @@ func setBarProgress(perc float64) {
 // EndProgress stops refreshing the progress bar and erases it.
 func EndProgress() {
 	lastProgressValue = 0
+	bps = 0
+	bandwidthBucket = 0
+	lastBandwidthUpdate = time.Time{}
 
 	if bar != nil {
 		bar.Set64(10000)

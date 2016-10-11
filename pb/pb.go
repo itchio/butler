@@ -4,7 +4,6 @@ package pb
 import (
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"strings"
 	"sync"
@@ -75,7 +74,8 @@ type ProgressBar struct {
 	ForceWidth                       bool
 	ManualUpdate                     bool
 
-	TimeLeft time.Duration
+	TimeLeft   time.Duration
+	TotalBytes int64
 
 	// default width for unit numbers and time box
 	UnitsWidth   int
@@ -257,7 +257,6 @@ func (pb *ProgressBar) write(current int64) {
 				left = time.Duration(currentFromStart) * perEntry
 				left = (left / time.Second) * time.Second
 			}
-			log.Printf("left = %s\n", left.String())
 			pb.TimeLeft = left
 			timeLeftBox = FormatDuration(left)
 		}
@@ -377,6 +376,10 @@ func (pb *ProgressBar) writer() {
 			pb.Update()
 		}
 	}
+}
+
+func (pb *ProgressBar) CurrentValue() int64 {
+	return pb.currentValue
 }
 
 type window struct {
