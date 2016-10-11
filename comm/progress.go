@@ -135,6 +135,7 @@ var bps float64
 // It only has an effect if StartProgress was already called.
 func Progress(alpha float64) {
 	msg := jsonMessage{
+		"progress":   alpha,
 		"percentage": alpha * 100.0,
 	}
 
