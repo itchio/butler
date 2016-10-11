@@ -431,7 +431,6 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 
 	for totalBytesRead < bytesToRead {
 		bytesRead, err := reader.Read(data[totalBytesRead:])
-		hf.offset += int64(bytesRead)
 		totalBytesRead += bytesRead
 
 		if err != nil {

@@ -5,6 +5,7 @@ package eos
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,6 +14,8 @@ import (
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos/option"
 )
+
+var debugHTTPFile = os.Getenv("EOS_DEBUG_HTTPFILE") == "1"
 
 type File interface {
 	io.Reader
@@ -90,8 +93,19 @@ func Open(name string, opts ...option.Option) (File, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
-		return httpfile.New(getURL, needsRenewal, &httpfile.Settings{
+		hf, err := httpfile.New(getURL, needsRenewal, &httpfile.Settings{
 			Client: settings.HTTPClient,
 		})
+		if err != nil {
+			return nil, err
+		}
+
+		if debugHTTPFile {
+			hf.Log = func(msg string) {
+				log.Println(msg)
+			}
+		}
+
+		return hf, err
 	}
 }

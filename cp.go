@@ -37,6 +37,8 @@ func doCp(srcPath string, destPath string, resume bool) error {
 		return err
 	}
 
+	defer dest.Close()
+
 	stats, err := src.Stat()
 	if err != nil {
 		return err
@@ -80,16 +82,17 @@ func doCp(srcPath string, destPath string, resume bool) error {
 		comm.Progress(alpha)
 	}, dest)
 
-	_, err = io.Copy(cw, src)
+	copiedBytes, err := io.Copy(cw, src)
 	if err != nil {
 		return err
 	}
 	comm.EndProgress()
 
 	totalDuration := time.Since(start)
-	prettySize := humanize.IBytes(uint64(totalBytes - startOffset))
+	prettyStartOffset := humanize.IBytes(uint64(startOffset))
+	prettySize := humanize.IBytes(uint64(copiedBytes))
 	perSecond := humanize.IBytes(uint64(float64(totalBytes-startOffset) / totalDuration.Seconds()))
-	comm.Statf("%s copied @ %s/s\n", prettySize, perSecond)
+	comm.Statf("%s + %s copied @ %s/s\n", prettyStartOffset, prettySize, perSecond)
 
 	return nil
 }
