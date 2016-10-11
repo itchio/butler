@@ -140,7 +140,7 @@ func Progress(alpha float64) {
 	}
 
 	if bar != nil {
-		msg["eta_seconds"] = bar.TimeLeft.Seconds()
+		msg["eta"] = bar.TimeLeft.Seconds()
 
 		if bar.TotalBytes != 0 {
 			if lastBandwidthUpdate.IsZero() {
