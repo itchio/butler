@@ -10,15 +10,23 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func verify(signaturePath string, dir string, woundsPath string) {
-	must(doVerify(signaturePath, dir, woundsPath))
+func verify(signaturePath string, dir string, woundsPath string, healPath string) {
+	must(doVerify(signaturePath, dir, woundsPath, healPath))
 }
 
-func doVerify(signaturePath string, dir string, woundsPath string) error {
+func doVerify(signaturePath string, dir string, woundsPath string, healPath string) error {
 	if woundsPath == "" {
-		comm.Opf("Verifying %s", dir)
+		if healPath == "" {
+			comm.Opf("Verifying %s", dir)
+		} else {
+			comm.Opf("Verifying %s, healing as we go", dir)
+		}
 	} else {
-		comm.Opf("Verifying %s, writing wounds to %s", dir, woundsPath)
+		if healPath == "" {
+			comm.Opf("Verifying %s, writing wounds to %s", dir, woundsPath)
+		} else {
+			comm.Dief("Options --wounds and --heal cannot be used at the same time")
+		}
 	}
 	startTime := time.Now()
 
@@ -36,6 +44,7 @@ func doVerify(signaturePath string, dir string, woundsPath string) error {
 	vc := &pwr.ValidatorContext{
 		Consumer:   comm.NewStateConsumer(),
 		WoundsPath: woundsPath,
+		HealPath:   healPath,
 	}
 
 	comm.StartProgress()

@@ -20,8 +20,8 @@ import (
 	"github.com/itchio/wharf/wsync"
 )
 
-// when < 10KB of data is left, the progress indicator isn't indicative anymore
-// at this point, we're basically waiting for build files to be finalized
+// AlmostThereThreshold is the amount of data left where the progress indicator isn't indicative anymore.
+// At this point, we're basically waiting for build files to be finalized.
 const AlmostThereThreshold int64 = 10 * 1024
 
 func push(buildPath string, specStr string, userVersion string, fixPerms bool) {

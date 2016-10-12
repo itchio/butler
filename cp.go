@@ -60,13 +60,13 @@ func doCp(srcPath string, destPath string, resume bool) error {
 		} else if startOffset == totalBytes {
 			comm.Logf("All %s already there", humanize.IBytes(uint64(totalBytes)))
 			return nil
-		} else {
-			comm.Logf("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+		}
 
-			_, err = src.Seek(startOffset, os.SEEK_SET)
-			if err != nil {
-				return err
-			}
+		comm.Logf("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+
+		_, err = src.Seek(startOffset, os.SEEK_SET)
+		if err != nil {
+			return err
 		}
 	} else {
 		comm.Logf("Downloading %s", humanize.IBytes(uint64(totalBytes)))

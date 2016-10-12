@@ -17,6 +17,8 @@ import (
 	"github.com/itchio/wharf/wsync"
 )
 
+// A Healer consumes wounds and tries to repair them by creating
+// directories, symbolic links, and writing the correct data into files.
 type Healer interface {
 	WoundsConsumer
 
@@ -24,6 +26,8 @@ type Healer interface {
 	TotalHealed() int64
 }
 
+// NewHealer takes a spec of the form "type,url", and a target folder
+// and returns a healer that knows how to repair target from spec.
 func NewHealer(spec string, target string) (Healer, error) {
 	tokens := strings.SplitN(spec, ",", 2)
 	if len(tokens) != 2 {
@@ -52,8 +56,7 @@ func NewHealer(spec string, target string) (Healer, error) {
 	return nil, fmt.Errorf("Unknown healer type %s", healerType)
 }
 
-// ArchiveHealer
-
+// An ArchiveHealer can repair from a .zip file (remote or local)
 type ArchiveHealer struct {
 	// the directory we should heal
 	Target string
@@ -72,6 +75,7 @@ type ArchiveHealer struct {
 
 var _ Healer = (*ArchiveHealer)(nil)
 
+// Do starts receiving from the wounds channel and healing
 func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 	files := make(map[int64]bool)
 	fileIndices := make(chan int64)
@@ -88,11 +92,6 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	}
 
 	zipReader, err := zip.NewReader(ah.File, stat.Size())
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	err = container.Prepare(ah.Target)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -268,18 +267,29 @@ func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.Writabl
 	return healedBytes, err
 }
 
+// HasWounds returns true if the healer ever received wounds
 func (ah *ArchiveHealer) HasWounds() bool {
 	return ah.hasWounds
 }
 
+// TotalCorrupted returns the total amount of corrupted data
+// contained in the wounds this healer has received. Dirs
+// and symlink wounds have 0-size, use HasWounds to know
+// if there were any wounds at all.
 func (ah *ArchiveHealer) TotalCorrupted() int64 {
 	return ah.totalCorrupted
 }
 
+// TotalHealed returns the total amount of data written to disk
+// to repair the wounds. This might be more than TotalCorrupted,
+// since ArchiveHealer always redownloads whole files, even if
+// they're just partly corrupted
 func (ah *ArchiveHealer) TotalHealed() int64 {
 	return ah.totalHealed
 }
 
+// SetNumWorkers may be called before Do to adjust the concurrency
+// of ArchiveHealer (how many files it'll try to heal in parallel)
 func (ah *ArchiveHealer) SetNumWorkers(numWorkers int) {
 	ah.NumWorkers = numWorkers
 }

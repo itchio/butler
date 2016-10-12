@@ -33,6 +33,8 @@ var (
 // valid. A VetApplyFunc should only read data from actx, not write to it.
 type VetApplyFunc func(actx *ApplyContext) error
 
+// ApplyStats keeps track of various metrics while applying a patch, such as
+// operations applied on files, directories, etc.
 type ApplyStats struct {
 	// files that were touched as a result of applying the patch
 	TouchedFiles int

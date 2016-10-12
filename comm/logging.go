@@ -180,6 +180,8 @@ func send(msgType string, obj jsonMessage) {
 				log.Println(obj["message"])
 				os.Exit(1)
 			}
+		case "progress":
+			// already handled by pb
 		default:
 			log.Println(msgType, obj)
 		}

@@ -79,6 +79,8 @@ func StartProgress() {
 	StartProgressWithTotalBytes(0)
 }
 
+// StartProgressWithTotalBytes begins a period in which progress is regularly printed,
+// and bps (bytes per second) is estimated from the total size given
 func StartProgressWithTotalBytes(totalBytes int64) {
 	if bar != nil {
 		// Already in-progress
@@ -114,12 +116,14 @@ func valueToAlpha(val int64) float64 {
 	return float64(val) / 10000.0
 }
 
+// PauseProgress temporarily stops printing the progress bar
 func PauseProgress() {
 	if bar != nil {
 		bar.AlwaysUpdate = false
 	}
 }
 
+// ResumeProgress resumes printing the progress bar after PauseProgress was called
 func ResumeProgress() {
 	if bar != nil {
 		bar.AlwaysUpdate = true
@@ -149,7 +153,6 @@ func Progress(alpha float64) {
 
 			lastAlpha := valueToAlpha(lastProgressValue)
 			bytesDelta := float64(bar.TotalBytes) * float64(alpha-lastAlpha)
-			fmt.Fprintf(os.Stderr, "bytesDelta: %.0f\n", bytesDelta)
 			bandwidthBucket += bytesDelta
 			bucketDuration := time.Since(lastBandwidthUpdate)
 
@@ -167,6 +170,8 @@ func Progress(alpha float64) {
 	send("progress", msg)
 }
 
+// ProgressScale sets the scale on which the progress bar is displayed. This can be useful
+// when the progress value evolves in another interval than [0, 1]
 func ProgressScale(scale float64) {
 	if settings.quiet {
 		return

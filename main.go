@@ -243,10 +243,12 @@ var verifyArgs = struct {
 	signature *string
 	dir       *string
 	wounds    *string
+	heal      *string
 }{
 	verifyCmd.Arg("signature", "Path to read signature file from").Required().String(),
 	verifyCmd.Arg("dir", "Path of directory to verify").Required().String(),
 	verifyCmd.Flag("wounds", "When given, writes wounds to this path").String(),
+	verifyCmd.Flag("heal", "When given, heal wounds using this path").String(),
 }
 
 var signArgs = struct {
@@ -437,7 +439,7 @@ func main() {
 		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds)
 
 	case verifyCmd.FullCommand():
-		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds)
+		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds, *verifyArgs.heal)
 
 	case signCmd.FullCommand():
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)

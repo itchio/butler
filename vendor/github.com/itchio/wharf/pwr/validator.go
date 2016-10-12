@@ -15,10 +15,20 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
+// MaxWoundSize is how large AggregateWounds will let an aggregat
+// wound get before passing it along to its consumer. The idea is, when
+// we're verifying a large file, we can start healing it before it's done
+// verifying. In practice, this would require sharing file descriptors,
+// and so it isn't done yet.
 const MaxWoundSize int64 = 4 * 1024 * 1024 // 4MB
 
+// ValidatorContext holds both input and output parameters to the validation
+// process (checking that a container corresponds to its signature: that all
+// directories exist, symlinks exist and point to the right destinations, files
+// exist and have the right content)
 type ValidatorContext struct {
 	WoundsPath string
+	HealPath   string
 	NumWorkers int
 
 	Consumer *state.Consumer
@@ -51,17 +61,27 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 
 	if vctx.FailFast {
 		if vctx.WoundsPath != "" {
-			return fmt.Errorf("Validate: FailFast is not compatible with WoundsPath")
+			return fmt.Errorf("ValidatorContext: FailFast is not compatible with WoundsPath")
+		}
+		if vctx.HealPath != "" {
+			return fmt.Errorf("ValidatorContext: FailFast is not compatible with HealPath")
 		}
 
 		vctx.WoundsConsumer = &WoundsGuardian{}
-	} else if vctx.WoundsPath == "" {
-		vctx.WoundsConsumer = &WoundsPrinter{
-			Consumer: vctx.Consumer,
-		}
-	} else {
+	} else if vctx.WoundsPath != "" {
 		vctx.WoundsConsumer = &WoundsWriter{
 			WoundsPath: vctx.WoundsPath,
+		}
+	} else if vctx.HealPath != "" {
+		woundsConsumer, err := NewHealer(vctx.HealPath, target)
+		if err != nil {
+			return err
+		}
+
+		vctx.WoundsConsumer = woundsConsumer
+	} else {
+		vctx.WoundsConsumer = &WoundsPrinter{
+			Consumer: vctx.Consumer,
 		}
 	}
 
