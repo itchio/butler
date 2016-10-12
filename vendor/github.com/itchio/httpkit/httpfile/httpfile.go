@@ -31,8 +31,11 @@ type LogFunc func(msg string)
 // amount we're willing to download and throw away
 const maxDiscard int64 = 1 * 1024 * 1024 // 1MB
 
+// ErrNotFound is returned when the HTTP server returns 404 - it's not considered a temporary error
 var ErrNotFound = errors.New("HTTP file not found on server")
 
+// HTTPFile allows accessing a file served by an HTTP server as if it was local
+// (for random-access reading purposes, not writing)
 type HTTPFile struct {
 	getURL        GetURLFunc
 	needsRenewal  NeedsRenewalFunc
@@ -65,6 +68,8 @@ type httpReader struct {
 	reader    *bufio.Reader
 }
 
+// DefaultReaderStaleThreshold is the duration after which HTTPFile's readers
+// are considered stale, and are closed instead of reused. It's set to 10 seconds.
 const DefaultReaderStaleThreshold = time.Second * time.Duration(10)
 
 func (hr *httpReader) Stale() bool {
@@ -104,7 +109,7 @@ func (hr *httpReader) Connect() error {
 		hr.reader = nil
 	}
 
-	tryUrl := func(urlStr string) (bool, error) {
+	tryURL := func(urlStr string) (bool, error) {
 		req, err := http.NewRequest("GET", urlStr, nil)
 		if err != nil {
 			return false, err
@@ -115,9 +120,13 @@ func (hr *httpReader) Connect() error {
 
 		res, err := hr.file.client.Do(req)
 		if err != nil {
+			if shouldRetry(err) {
+				hr.file.log("Connect: got Do() error %s, retrying", err.Error())
+				return true, nil
+			}
 			return false, err
 		}
-		hr.file.log("did request, status %d", res.StatusCode)
+		hr.file.log("Connect: HTTP %d", res.StatusCode)
 
 		if res.StatusCode == 200 && hr.offset > 0 {
 			defer res.Body.Close()
@@ -149,7 +158,7 @@ func (hr *httpReader) Connect() error {
 	}
 
 	urlStr := hr.file.getCurrentURL()
-	shouldRenew, err := tryUrl(urlStr)
+	shouldRenew, err := tryURL(urlStr)
 	if err != nil {
 		return err
 	}
@@ -160,7 +169,7 @@ func (hr *httpReader) Connect() error {
 			return err
 		}
 
-		shouldRenew, err = tryUrl(urlStr)
+		shouldRenew, err = tryURL(urlStr)
 		if err != nil {
 			return err
 		}
@@ -187,11 +196,14 @@ var _ io.Reader = (*HTTPFile)(nil)
 var _ io.ReaderAt = (*HTTPFile)(nil)
 var _ io.Closer = (*HTTPFile)(nil)
 
+// Settings allows passing additional settings to an HTTPFile
 type Settings struct {
 	Client        *http.Client
 	RetrySettings *retrycontext.Settings
 }
 
+// New returns a new HTTPFile. Note that it differs from os.Open in that it does a first request
+// to determine the remote file's size. If that fails (after retries), an error will be returned.
 func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (*HTTPFile, error) {
 	client := settings.Client
 	if client == nil {
@@ -210,7 +222,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			return nil, err
 		}
 
-		parsedUrl, err := url.Parse(urlStr)
+		parsedURL, err := url.Parse(urlStr)
 		if err != nil {
 			// can't recover from a bad url
 			return nil, err
@@ -257,7 +269,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			needsRenewal:  needsRenewal,
 			client:        client,
 
-			name:    parsedUrl.Path,
+			name:    parsedURL.Path,
 			size:    res.ContentLength,
 			readers: make(map[string]*httpReader),
 
@@ -269,6 +281,8 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 	return nil, fmt.Errorf("Could not access remote file. Last error: %s", retryCtx.LastMessage)
 }
 
+// NumReaders returns the number of connections currently used by the httpfile
+// to serve ReadAt calls
 func (hf *HTTPFile) NumReaders() int {
 	return len(hf.readers)
 }
@@ -376,10 +390,16 @@ func (hf *HTTPFile) renewURL() (string, error) {
 	return hf.currentURL, nil
 }
 
+// Stat returns an os.FileInfo for this particular file. Only the Size()
+// method is useful, the rest is default values.
 func (hf *HTTPFile) Stat() (os.FileInfo, error) {
 	return &httpFileInfo{hf}, nil
 }
 
+// Seek the read head within the file - it's instant and never returns an
+// error, except if whence is one of os.SEEK_SET, os.SEEK_END, or os.SEEK_CUR.
+// If an invalid offset is given, it will be truncated to a valid one, between
+// [0,size).
 func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
 	var newOffset int64
 
@@ -413,6 +433,10 @@ func (hf *HTTPFile) Read(data []byte) (int, error) {
 	return bytesRead, err
 }
 
+// ReadAt reads len(data) byte from the remote file at offset.
+// It returns the number of bytes read, and an error. In case of temporary
+// network errors or timeouts, it will retry with truncated exponential backoff
+// according to RetrySettings
 func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
 	hf.log("ReadAt(%d, %d)", len(data), offset)
 	return hf.readAt(data, offset)
@@ -455,12 +479,15 @@ func shouldRetry(err error) bool {
 	} else if opError, ok := err.(*net.OpError); ok {
 		if opError.Timeout() || opError.Temporary() {
 			return true
-		} else {
-			return false
+		}
+	} else if urlError, ok := err.(*url.Error); ok {
+		if urlError.Timeout() || urlError.Temporary() || errors.Is(urlError.Err, io.EOF) {
+			return true
 		}
 	} else {
 		return false
 	}
+	return false
 }
 
 func (hf *HTTPFile) closeAllReaders() error {
@@ -479,6 +506,7 @@ func (hf *HTTPFile) closeAllReaders() error {
 	return nil
 }
 
+// Close closes all connections to the distant http server used by this HTTPFile
 func (hf *HTTPFile) Close() error {
 	if hf.closed {
 		return nil
