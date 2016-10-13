@@ -99,11 +99,13 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 			}
 		}
 
-		vp.Wounds <- &Wound{
-			Kind:  WoundKind_CLOSED_FILE,
-			Index: fileIndex,
-			Start: start,
-			End:   start + size,
+		if vp.Wounds != nil {
+			vp.Wounds <- &Wound{
+				Kind:  WoundKind_CLOSED_FILE,
+				Index: fileIndex,
+				Start: start,
+				End:   start + size,
+			}
 		}
 
 		blockIndex++

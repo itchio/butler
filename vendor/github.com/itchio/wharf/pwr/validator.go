@@ -56,25 +56,32 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		numWorkers = runtime.NumCPU() + 1
 	}
 
-	vctx.Wounds = make(chan *Wound)
+	vctx.Wounds = make(chan *Wound, 1024)
 	workerErrs := make(chan error, numWorkers)
 	consumerErrs := make(chan error, 1)
 	cancelled := make(chan struct{})
 
 	var woundsStateConsumer *state.Consumer
+	var healerProgress float64
+	var bytesDone int64
 
-	bytesDone := int64(0)
+	updateProgress := func() {
+		currentBytesDone := atomic.LoadInt64(&bytesDone)
+		scanProgress := float64(currentBytesDone) / float64(signature.Container.Size)
+
+		if woundsStateConsumer == nil {
+			vctx.Consumer.Progress(scanProgress)
+		} else {
+			// Progress bar design 101: never jump back, progress regularly.
+			// As it turns out, healerProgress can pause for a while (ArchiveHealer will
+			// wait for a file to be fully checked before marking it 'healthy').
+			vctx.Consumer.Progress(0.5 * (healerProgress + scanProgress))
+		}
+	}
 
 	onProgress := func(delta int64) {
-		if woundsStateConsumer != nil {
-			return
-		}
-
 		atomic.AddInt64(&bytesDone, delta)
-
-		currentBytesDone := atomic.LoadInt64(&bytesDone)
-		progress := float64(currentBytesDone) / float64(signature.Container.Size)
-		vctx.Consumer.Progress(progress)
+		updateProgress()
 	}
 
 	if vctx.FailFast {
@@ -98,7 +105,11 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 
 		woundsStateConsumer = &state.Consumer{
 			OnProgress: func(progress float64) {
-				vctx.Consumer.Progress(progress)
+				healerProgress = progress
+				updateProgress()
+			},
+			OnProgressLabel: func(label string) {
+				vctx.Consumer.ProgressLabel(label)
 			},
 		}
 		healer.SetConsumer(woundsStateConsumer)

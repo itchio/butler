@@ -122,7 +122,12 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 				return nil
 			}
 
-			atomic.AddInt64(&ah.totalHealing, container.Files[wound.Index].Size)
+			file := container.Files[wound.Index]
+			if ah.Consumer != nil {
+				ah.Consumer.ProgressLabel(file.Path)
+			}
+
+			atomic.AddInt64(&ah.totalHealing, file.Size)
 			ah.updateProgress()
 			files[wound.Index] = true
 
