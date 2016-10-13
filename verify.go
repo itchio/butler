@@ -61,7 +61,11 @@ func doVerify(signaturePath string, dir string, woundsPath string, healPath stri
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, signature.Container.Stats(), perSecond)
 
 	if vc.WoundsConsumer.HasWounds() {
-		comm.Dief("%s corrupted data found", humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())))
+		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
+			comm.Statf("%s corrupted data found, %s healed", humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())), humanize.IBytes(uint64(healer.TotalHealed())))
+		} else {
+			comm.Dief("%s corrupted data found", humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())))
+		}
 	}
 
 	return nil
