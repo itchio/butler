@@ -235,10 +235,15 @@ func makeSigWriter(wc *wire.WriteContext) wsync.SignatureWriter {
 	}
 }
 
+// ComputeNumBlocks returns the number of small blocks a file is made up of.
+// It returns a correct result even when the file's size is not a multiple of BlockSize
 func ComputeNumBlocks(fileSize int64) int64 {
 	return (fileSize + BlockSize - 1) / BlockSize
 }
 
+// ComputeBlockSize returns the size of one of the file's blocks, given the size of the file
+// and the position of the block in the file. It'll return BlockSize for all blocks except
+// the last one, if the file size is not a multiple of BlockSize
 func ComputeBlockSize(fileSize int64, blockIndex int64) int64 {
 	if BlockSize*(blockIndex+1) > fileSize {
 		return fileSize % BlockSize

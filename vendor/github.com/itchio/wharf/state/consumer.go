@@ -24,10 +24,10 @@ type Consumer struct {
 	OnMessage        MessageCallback
 }
 
-// Progress announces the degree of completion of a task
-func (c *Consumer) Progress(percent float64) {
+// Progress announces the degree of completion of a task, in the [0,1] interval
+func (c *Consumer) Progress(progress float64) {
 	if c.OnProgress != nil {
-		c.OnProgress(percent)
+		c.OnProgress(progress)
 	}
 }
 

@@ -91,14 +91,20 @@ type signatureResult struct {
 	err  error
 }
 
+// GhostKind determines what went missing: a file, a directory, or a symlink
 type GhostKind int
 
 const (
-	GhostKind_Dir GhostKind = iota + 0xfaf0
-	GhostKind_File
-	GhostKind_Symlink
+	// GhostKindDir indicates that a directory has disappeared between two containers
+	GhostKindDir GhostKind = iota + 0xfaf0
+	// GhostKindFile indicates that a file has disappeared between two containers
+	GhostKindFile
+	// GhostKindSymlink indicates that a symbolic link has disappeared between two containers
+	GhostKindSymlink
 )
 
+// A Ghost is a file, directory, or symlink, that has disappeared from one
+// container (target) to the next (source)
 type Ghost struct {
 	Kind GhostKind
 	Path string
@@ -420,7 +426,7 @@ func (actx *ApplyContext) applyTranspositions(transpositions map[string][]*Trans
 
 				oldAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.TargetPath))
 				newAbsolutePath := filepath.Join(actx.actualOutputPath, filepath.FromSlash(transpo.OutputPath))
-				err := actx.copy(oldAbsolutePath, newAbsolutePath, MkdirBehavior_IfNeeded)
+				err := actx.copy(oldAbsolutePath, newAbsolutePath, mkdirBehaviorIfNeeded)
 				if err != nil {
 					return err
 				}
@@ -465,7 +471,7 @@ func (actx *ApplyContext) move(oldAbsolutePath string, newAbsolutePath string) e
 		err = os.Rename(oldAbsolutePath, newAbsolutePath)
 	}
 	if err != nil {
-		cErr := actx.copy(oldAbsolutePath, newAbsolutePath, MkdirBehavior_Never)
+		cErr := actx.copy(oldAbsolutePath, newAbsolutePath, mkdirBehaviorNever)
 		if cErr != nil {
 			return cErr
 		}
@@ -479,15 +485,15 @@ func (actx *ApplyContext) move(oldAbsolutePath string, newAbsolutePath string) e
 	return nil
 }
 
-type MkdirBehavior int
+type mkdirBehavior int
 
 const (
-	MkdirBehavior_Never MkdirBehavior = 0xf8792 + iota
-	MkdirBehavior_IfNeeded
+	mkdirBehaviorNever mkdirBehavior = 0xf8792 + iota
+	mkdirBehaviorIfNeeded
 )
 
-func (actx *ApplyContext) copy(oldAbsolutePath string, newAbsolutePath string, mkdirBehavior MkdirBehavior) error {
-	if mkdirBehavior == MkdirBehavior_IfNeeded {
+func (actx *ApplyContext) copy(oldAbsolutePath string, newAbsolutePath string, mkdirBehavior mkdirBehavior) error {
+	if mkdirBehavior == mkdirBehaviorIfNeeded {
 		err := os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
 		if err != nil {
 			return errors.Wrap(err, 1)
@@ -538,7 +544,7 @@ func detectGhosts(sourceContainer *tlc.Container, targetContainer *tlc.Container
 	for _, f := range targetContainer.Files {
 		if !sourceFileMap[f.Path] {
 			ghosts = append(ghosts, Ghost{
-				Kind: GhostKind_File,
+				Kind: GhostKindFile,
 				Path: f.Path,
 			})
 		}
@@ -546,7 +552,7 @@ func detectGhosts(sourceContainer *tlc.Container, targetContainer *tlc.Container
 	for _, s := range targetContainer.Symlinks {
 		if !sourceFileMap[s.Path] {
 			ghosts = append(ghosts, Ghost{
-				Kind: GhostKind_Symlink,
+				Kind: GhostKindSymlink,
 				Path: s.Path,
 			})
 		}
@@ -554,7 +560,7 @@ func detectGhosts(sourceContainer *tlc.Container, targetContainer *tlc.Container
 	for _, d := range targetContainer.Dirs {
 		if !sourceFileMap[d.Path] {
 			ghosts = append(ghosts, Ghost{
-				Kind: GhostKind_Dir,
+				Kind: GhostKindDir,
 				Path: d.Path,
 			})
 		}
@@ -615,15 +621,15 @@ func (actx *ApplyContext) deleteGhosts(outPath string, ghosts []Ghost) error {
 		if err == nil || os.IsNotExist(err) {
 			// removed or already removed, good
 			switch ghost.Kind {
-			case GhostKind_Dir:
+			case GhostKindDir:
 				actx.Stats.DeletedDirs++
-			case GhostKind_File:
+			case GhostKindFile:
 				actx.Stats.DeletedFiles++
-			case GhostKind_Symlink:
+			case GhostKindSymlink:
 				actx.Stats.DeletedSymlinks++
 			}
 		} else {
-			if ghost.Kind == GhostKind_Dir {
+			if ghost.Kind == GhostKindDir {
 				// sometimes we can't delete directories, it's okay
 				actx.Stats.LeftDirs++
 			} else {
@@ -804,8 +810,6 @@ func (actx *ApplyContext) ensureDirsAndSymlinks(actualOutputPath string) error {
 				if err != nil {
 					return err
 				}
-
-				return nil
 			} else {
 				return err
 			}

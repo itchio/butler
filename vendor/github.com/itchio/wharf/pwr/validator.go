@@ -37,13 +37,15 @@ type ValidatorContext struct {
 	FailFast bool
 
 	// Result
-	TotalCorrupted int64
 
 	// internal
 	Wounds         chan *Wound
 	WoundsConsumer WoundsConsumer
 }
 
+// Validate checks the directory at target using the container info and hashes
+// contained in signature. FailFast mode returns an error on the first corruption
+// seen, other modes write wounds to a file or for a wounds consumer, like a healer.
 func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) error {
 	if vctx.Consumer == nil {
 		vctx.Consumer = &state.Consumer{}
@@ -59,6 +61,22 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	consumerErrs := make(chan error, 1)
 	cancelled := make(chan struct{})
 
+	var woundsStateConsumer *state.Consumer
+
+	bytesDone := int64(0)
+
+	onProgress := func(delta int64) {
+		if woundsStateConsumer != nil {
+			return
+		}
+
+		atomic.AddInt64(&bytesDone, delta)
+
+		currentBytesDone := atomic.LoadInt64(&bytesDone)
+		progress := float64(currentBytesDone) / float64(signature.Container.Size)
+		vctx.Consumer.Progress(progress)
+	}
+
 	if vctx.FailFast {
 		if vctx.WoundsPath != "" {
 			return fmt.Errorf("ValidatorContext: FailFast is not compatible with WoundsPath")
@@ -73,12 +91,19 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 			WoundsPath: vctx.WoundsPath,
 		}
 	} else if vctx.HealPath != "" {
-		woundsConsumer, err := NewHealer(vctx.HealPath, target)
+		healer, err := NewHealer(vctx.HealPath, target)
 		if err != nil {
 			return err
 		}
 
-		vctx.WoundsConsumer = woundsConsumer
+		woundsStateConsumer = &state.Consumer{
+			OnProgress: func(progress float64) {
+				vctx.Consumer.Progress(progress)
+			},
+		}
+		healer.SetConsumer(woundsStateConsumer)
+
+		vctx.WoundsConsumer = healer
 	} else {
 		vctx.WoundsConsumer = &WoundsPrinter{
 			Consumer: vctx.Consumer,
@@ -98,12 +123,6 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 			}
 		}
 	}()
-
-	bytesDone := int64(0)
-	onProgress := func(delta int64) {
-		atomic.AddInt64(&bytesDone, delta)
-		vctx.Consumer.Progress(float64(atomic.LoadInt64(&bytesDone)) / float64(signature.Container.Size))
-	}
 
 	// validate dirs and symlinks first
 	for dirIndex, dir := range signature.Container.Dirs {
@@ -346,6 +365,8 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 	}
 }
 
+// AssertValid validates target in FailFast mode - it's a shorthand
+// so that setting up ValidatorContext isn't needed
 func AssertValid(target string, signature *SignatureInfo) error {
 	vctx := &ValidatorContext{
 		FailFast: true,

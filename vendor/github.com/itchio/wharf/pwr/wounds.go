@@ -11,9 +11,20 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
+// A WoundsConsumer takes file corruption information as input,
+// and does something with it: print it, write it to a file, heal
+// the corrupted files.
 type WoundsConsumer interface {
-	Do(*tlc.Container, chan *Wound) error
+	// Do starts receiving wounds from the given channel, and returns
+	// on error or when wound processing is done.
+	Do(container *tlc.Container, wounds chan *Wound) error
+
+	// TotalCorrupted returns the total size of corrupted data seen by this consumer.
+	// If the only wounds are dir and symlink wounds, this may be 0, but HasWounds might
+	// still be true
 	TotalCorrupted() int64
+
+	// HasWounds returns true if any wounds were received by this consumer
 	HasWounds() bool
 }
 
@@ -21,6 +32,7 @@ type WoundsConsumer interface {
 // Writer
 ///////////////////////////////
 
+// WoundsGuardian is a wounds consumer that returns an error on the first wound received.
 type WoundsGuardian struct {
 	totalCorrupted int64
 	hasWounds      bool
@@ -28,8 +40,14 @@ type WoundsGuardian struct {
 
 var _ WoundsConsumer = (*WoundsGuardian)(nil)
 
+// Do returns an error on the first wound received. If no wounds are ever received,
+// it returns nil (no error)
 func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error {
 	for wound := range wounds {
+		if wound.Healthy() {
+			continue
+		}
+
 		wg.hasWounds = true
 		wg.totalCorrupted += wound.Size()
 		return fmt.Errorf(wound.PrettyString(container))
@@ -38,10 +56,13 @@ func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error
 	return nil
 }
 
+// TotalCorrupted is only ever 0 or the size of the first wound, since a guardian
+// doesn't keep track of any wounds beyond that
 func (wg *WoundsGuardian) TotalCorrupted() int64 {
 	return wg.totalCorrupted
 }
 
+// HasWounds returns true if the guardian has seen a wound
 func (wg *WoundsGuardian) HasWounds() bool {
 	return wg.hasWounds
 }
@@ -50,6 +71,7 @@ func (wg *WoundsGuardian) HasWounds() bool {
 // Writer
 ///////////////////////////////
 
+// WoundsWriter writes wounds to a .pww (wharf wounds file format) file
 type WoundsWriter struct {
 	WoundsPath string
 
@@ -59,6 +81,8 @@ type WoundsWriter struct {
 
 var _ WoundsConsumer = (*WoundsWriter)(nil)
 
+// Do only create a file at WoundsPath when it receives the first wound.
+// If no wounds are ever received, Do will effectively be a no-op.
 func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 	var fw *os.File
 	var wc *wire.WriteContext
@@ -113,6 +137,10 @@ func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 	}
 
 	for wound := range wounds {
+		if wound.Healthy() {
+			continue
+		}
+
 		ww.hasWounds = true
 		err := writeWound(wound)
 		if err != nil {
@@ -123,10 +151,12 @@ func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 	return nil
 }
 
+// TotalCorrupted returns the total size of wounds received by this wounds writer
 func (ww *WoundsWriter) TotalCorrupted() int64 {
 	return ww.totalCorrupted
 }
 
+// HasWounds returns true if this wounds writer has received any wounds at all
 func (ww *WoundsWriter) HasWounds() bool {
 	return ww.hasWounds
 }
@@ -135,6 +165,7 @@ func (ww *WoundsWriter) HasWounds() bool {
 // Writer
 ///////////////////////////////
 
+// WoundsPrinter prints all received wounds as a Debug message to the given consumer.
 type WoundsPrinter struct {
 	Consumer *state.Consumer
 
@@ -144,12 +175,17 @@ type WoundsPrinter struct {
 
 var _ WoundsConsumer = (*WoundsPrinter)(nil)
 
+// Do starts printing wounds. It will return an error if a Consumer is not given
 func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error {
 	if wp.Consumer == nil {
 		return fmt.Errorf("Missing Consumer in WoundsPrinter")
 	}
 
 	for wound := range wounds {
+		if wound.Healthy() {
+			continue
+		}
+
 		wp.totalCorrupted += wound.Size()
 		wp.hasWounds = true
 		wp.Consumer.Debugf(wound.PrettyString(container))
@@ -158,10 +194,12 @@ func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error 
 	return nil
 }
 
+// TotalCorrupted returns the total size of wounds received by this wounds printer
 func (wp *WoundsPrinter) TotalCorrupted() int64 {
 	return wp.totalCorrupted
 }
 
+// HasWounds returns true if this wounds printer has received any wounds at all
 func (wp *WoundsPrinter) HasWounds() bool {
 	return wp.hasWounds
 }
@@ -170,6 +208,11 @@ func (wp *WoundsPrinter) HasWounds() bool {
 // Utils
 ///////////////////////////////
 
+// AggregateWounds returns a channel that it'll receive wounds from,
+// try to aggregate them into bigger wounds (for example: 250 contiguous 16KB wounds = one 4MB wound),
+// and send to outWounds. It may return wounds bigger than maxSize, since it
+// doesn't do any wound splitting, and it may return wounds smaller than maxSize,
+// since it should relay all input wounds, no matter what size.
 func AggregateWounds(outWounds chan *Wound, maxSize int64) chan *Wound {
 	var lastWound *Wound
 	inWounds := make(chan *Wound)
@@ -208,6 +251,7 @@ func AggregateWounds(outWounds chan *Wound, maxSize int64) chan *Wound {
 	return inWounds
 }
 
+// PrettyString returns a human-readable English string for a given wound
 func (w *Wound) PrettyString(container *tlc.Container) string {
 	switch w.Kind {
 	case WoundKind_DIR:
@@ -226,6 +270,13 @@ func (w *Wound) PrettyString(container *tlc.Container) string {
 	}
 }
 
+// Size returns the size of the wound, ie. how many bytes are corrupted
 func (w *Wound) Size() int64 {
 	return w.End - w.Start
+}
+
+// Healthy returns true if the wound is not a wound, but simply a progress
+// indicator used when validating files. It should not count towards HasWounds()
+func (w *Wound) Healthy() bool {
+	return w.Kind == WoundKind_CLOSED_FILE
 }
