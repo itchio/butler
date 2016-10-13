@@ -32,9 +32,12 @@ type CompressResult struct {
 	CompressedSize   int64
 }
 
+type UncompressedSizeKnownFunc func(uncompressedSize int64)
+
 type ExtractSettings struct {
-	Consumer *state.Consumer
-	Resume   bool
+	Consumer                *state.Consumer
+	Resume                  bool
+	OnUncompressedSizeKnown UncompressedSizeKnownFunc
 }
 
 func ExtractPath(archive string, destPath string, settings ExtractSettings) (*ExtractResult, error) {

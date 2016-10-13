@@ -23,9 +23,13 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 		return nil, errors.Wrap(err, 1)
 	}
 
-	totalSize := uint64(0)
+	var totalSize int64
 	for _, file := range reader.File {
-		totalSize += file.UncompressedSize64
+		totalSize += int64(file.UncompressedSize64)
+	}
+
+	if settings.OnUncompressedSizeKnown != nil {
+		settings.OnUncompressedSizeKnown(totalSize)
 	}
 
 	doneSize := uint64(0)

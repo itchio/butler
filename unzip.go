@@ -9,9 +9,11 @@ func unzip(file string, dir string, resume bool) {
 	settings := archiver.ExtractSettings{
 		Consumer: comm.NewStateConsumer(),
 		Resume:   resume,
+		OnUncompressedSizeKnown: func(uncompressedSize int64) {
+			comm.StartProgressWithTotalBytes(uncompressedSize)
+		},
 	}
 
-	comm.StartProgress()
 	res, err := archiver.ExtractPath(file, dir, settings)
 	comm.EndProgress()
 
