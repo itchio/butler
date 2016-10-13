@@ -47,7 +47,7 @@ func doVerify(signaturePath string, dir string, woundsPath string, healPath stri
 		HealPath:   healPath,
 	}
 
-	comm.StartProgress()
+	comm.StartProgressWithTotalBytes(signature.Container.Size)
 
 	err = vc.Validate(dir, signature)
 	if err != nil {
