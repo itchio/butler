@@ -72,10 +72,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		if woundsStateConsumer == nil {
 			vctx.Consumer.Progress(scanProgress)
 		} else {
-			// Progress bar design 101: never jump back, progress regularly.
-			// As it turns out, healerProgress can pause for a while (ArchiveHealer will
-			// wait for a file to be fully checked before marking it 'healthy').
-			vctx.Consumer.Progress(0.5 * (healerProgress + scanProgress))
+			vctx.Consumer.Progress(healerProgress)
 		}
 	}
 
@@ -98,6 +95,12 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 			WoundsPath: vctx.WoundsPath,
 		}
 	} else if vctx.HealPath != "" {
+		// healers can deal with "everything missing"
+		err := os.MkdirAll(target, 0755)
+		if err != nil {
+			return err
+		}
+
 		healer, err := NewHealer(vctx.HealPath, target)
 		if err != nil {
 			return err
@@ -222,7 +225,6 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	for i := 0; i < numWorkers; i++ {
 		err := <-workerErrs
 		if err != nil {
-			close(cancelled)
 			if retErr == nil {
 				retErr = err
 			}

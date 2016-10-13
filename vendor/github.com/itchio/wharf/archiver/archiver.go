@@ -36,7 +36,7 @@ type UncompressedSizeKnownFunc func(uncompressedSize int64)
 
 type ExtractSettings struct {
 	Consumer                *state.Consumer
-	Resume                  bool
+	ResumeFrom              string
 	OnUncompressedSizeKnown UncompressedSizeKnownFunc
 }
 
