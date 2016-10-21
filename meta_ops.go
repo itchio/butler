@@ -17,6 +17,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -34,9 +35,14 @@ func which() {
 }
 
 func file(path string) {
-	stats, err := os.Lstat(path)
+	reader, err := eos.Open(path)
+	must(err)
+
+	defer reader.Close()
+
+	stats, err := reader.Stat()
 	if os.IsNotExist(err) {
-		comm.Dief("%s: no such file or directory")
+		comm.Dief("%s: no such file or directory", path)
 	}
 	must(err)
 
@@ -51,9 +57,6 @@ func file(path string) {
 	}
 
 	prettySize := humanize.IBytes(uint64(stats.Size()))
-
-	reader, err := os.Open(path)
-	must(err)
 
 	var magic int32
 	must(binary.Read(reader, wire.Endianness, &magic))
@@ -164,9 +167,14 @@ func file(path string) {
 }
 
 func ls(path string) {
-	stats, err := os.Lstat(path)
+	reader, err := eos.Open(path)
+	must(err)
+
+	defer reader.Close()
+
+	stats, err := reader.Stat()
 	if os.IsNotExist(err) {
-		comm.Dief("%s: no such file or directory")
+		comm.Dief("%s: no such file or directory", path)
 	}
 	must(err)
 
@@ -183,9 +191,6 @@ func ls(path string) {
 	log := func(line string) {
 		comm.Logf(line)
 	}
-
-	reader, err := os.Open(path)
-	must(err)
 
 	var magic int32
 	must(binary.Read(reader, wire.Endianness, &magic))
