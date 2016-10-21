@@ -118,7 +118,7 @@ var cpArgs = struct {
 }{
 	cpCmd.Arg("src", "File to read from").Required().String(),
 	cpCmd.Arg("dest", "File to write to").Required().String(),
-	cpCmd.Flag("resume", "Try to resume if dest is partially written (doesn't check existing data)").Required().Bool(),
+	cpCmd.Flag("resume", "Try to resume if dest is partially written (doesn't check existing data)").Bool(),
 }
 
 func defaultKeyPath() string {
