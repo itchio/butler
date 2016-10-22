@@ -30,6 +30,7 @@ import "C"
 var (
 	version       = "head" // set by command-line on CI release builds
 	builtAt       = ""     // set by command-line on CI release builds
+	commit        = ""     // set by command-line on CI release builds
 	versionString = ""     // formatted on boot from 'version' and 'builtAt'
 	app           = kingpin.New("butler", "Your happy little itch.io helper")
 
@@ -347,6 +348,9 @@ func main() {
 		versionString = fmt.Sprintf("%s, built on %s", version, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
 	} else {
 		versionString = fmt.Sprintf("%s, no build date", version)
+	}
+	if commit != "" {
+		versionString = fmt.Sprintf("%s, ref %s", versionString, commit)
 	}
 	app.Version(versionString)
 	app.VersionFlag.Short('V')
