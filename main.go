@@ -63,6 +63,8 @@ var (
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a source")
+
+	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 )
 
 var appArgs = struct {
@@ -272,6 +274,12 @@ var healArgs = struct {
 	healCmd.Arg("source", "Path of source to heal with").Required().String(),
 }
 
+var probeArgs = struct {
+	patch *string
+}{
+	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -450,6 +458,9 @@ func main() {
 
 	case healCmd.FullCommand():
 		heal(*healArgs.dir, *healArgs.wounds, *healArgs.source)
+
+	case probeCmd.FullCommand():
+		probe(*probeArgs.patch)
 
 	case whichCmd.FullCommand():
 		which()
