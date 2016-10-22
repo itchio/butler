@@ -9,7 +9,7 @@ butler is *the itch.io command-line tools* - all by itself.
 It is used by:
 
   * Content creators on [itch.io](https://itch.io) to push builds quickly & reliably
-  * [the itch app](https://github.com/itchio/itch) some network, filesystem and patching operations
+  * [the itch app](https://github.com/itchio/itch) for some network, filesystem and patching operations
 
 ## Documentation
 
