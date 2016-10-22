@@ -98,7 +98,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSi
 		FileIndex: int64(fileIndex),
 	}
 
-	// infinite loop, explicity "break"'d out of
+	// infinite loop, explicitly "break"'d out of
 	for {
 		rop.Reset()
 		pErr := patchWire.ReadMessage(rop)

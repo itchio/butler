@@ -23,6 +23,10 @@ func needsRenewal(res *http.Response, body []byte) bool {
 		// but 400 is a good enough indicator for GCS
 		return true
 	}
+	if res.StatusCode == 403 {
+		// 403 is a good indicator for Highwinds - additionally, we could parse the URL
+		// and compare the expires timestamp ourselves
+	}
 	return false
 }
 
