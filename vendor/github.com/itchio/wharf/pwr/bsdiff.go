@@ -183,7 +183,7 @@ func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
 
 // BSDiff computes the difference between old and new, according to the bsdiff
 // algorithm, and writes the result to patch.
-func BSDiff(old, new io.Reader, patch wire.WriteContext) error {
+func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {
 		return err
@@ -339,7 +339,7 @@ var ErrCorrupt = errors.New("corrupt patch")
 
 // BSPatch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
-func BSPatch(old io.Reader, new io.Writer, newSize int64, patch wire.ReadContext) error {
+func BSPatch(old io.Reader, new io.Writer, newSize int64, patch *wire.ReadContext) error {
 	var ctrlOps []BsdiffControl
 
 	ctrlOp := &BsdiffControl{}

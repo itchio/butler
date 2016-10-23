@@ -65,6 +65,8 @@ var (
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a source")
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
+
+	bsdiffCmd = app.Command("bsdiff", "(Advanced) Diff two files using bsdiff").Hidden()
 )
 
 var appArgs = struct {
@@ -280,6 +282,16 @@ var probeArgs = struct {
 	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
 }
 
+var bsdiffArgs = struct {
+	target *string
+	source *string
+	patch  *string
+}{
+	bsdiffCmd.Arg("target", "Old file").Required().String(),
+	bsdiffCmd.Arg("source", "New file").Required().String(),
+	bsdiffCmd.Arg("patch", "Patch file to write").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -461,6 +473,9 @@ func main() {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
+
+	case bsdiffCmd.FullCommand():
+		bsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch)
 
 	case whichCmd.FullCommand():
 		which()
