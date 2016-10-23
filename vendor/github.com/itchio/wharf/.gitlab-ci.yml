@@ -1,0 +1,17 @@
+
+stages:
+  - test
+
+test:linux:
+  stage: test
+  tags:
+    - linux
+  script:
+    - scripts/ci.sh
+
+test:windows:
+  stage: test
+  tags:
+    - windows
+  script:
+    - scripts/ci.sh
