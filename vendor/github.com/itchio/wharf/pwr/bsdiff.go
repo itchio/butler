@@ -3,6 +3,7 @@ package pwr
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -96,7 +97,7 @@ func split(I, V []int, start, length, h int) {
 
 // Faster Suffix Sorting, see: http://www.larsson.dogma.net/ssrev-tr.pdf
 // Output `I` is a sorted suffix array.
-func qsufsort(obuf []byte) []int {
+func qsufsort(obuf []byte, consumer *state.Consumer) []int {
 	var buckets [256]int
 	var i, h int
 	I := make([]int, len(obuf)+1)
@@ -129,9 +130,21 @@ func qsufsort(obuf []byte) []int {
 	}
 	I[0] = -1
 
+	const progressInterval = 64 * 1024
+
 	for h = 1; I[0] != -(len(obuf) + 1); h += h {
+		consumer.ProgressLabel(fmt.Sprintf("Suffix sorting (%d-order)", h))
+
+		lastI := 0
+
 		var n int
 		for i = 0; i < len(obuf)+1; {
+			if i-lastI > progressInterval {
+				progress := float64(i) / float64(len(obuf))
+				consumer.Progress(progress)
+				lastI = i
+			}
+
 			if I[i] < 0 {
 				n -= I[i]
 				i -= I[i]
@@ -195,10 +208,8 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 		return err
 	}
 
-	consumer.ProgressLabel("Suffix sorting...")
-
 	var lenf int
-	I := qsufsort(obuf)
+	I := qsufsort(obuf, consumer)
 	db := make([]byte, len(nbuf))
 	eb := make([]byte, len(nbuf))
 
