@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wire"
 )
 
@@ -183,7 +184,7 @@ func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
 
 // BSDiff computes the difference between old and new, according to the bsdiff
 // algorithm, and writes the result to patch.
-func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
+func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consumer) error {
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {
 		return err
@@ -194,6 +195,8 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 		return err
 	}
 
+	consumer.ProgressLabel("Suffix sorting...")
+
 	var lenf int
 	I := qsufsort(obuf)
 	db := make([]byte, len(nbuf))
@@ -201,12 +204,18 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 
 	bsdc := &BsdiffControl{}
 
+	consumer.ProgressLabel("Scanning...")
+
 	// Compute the differences, writing ctrl as we go
 	var scan, pos, length int
 	var lastscan, lastpos, lastoffset int
 	for scan < len(nbuf) {
 		var oldscore int
 		scan += length
+
+		progress := float64(scan) / float64(len(nbuf))
+		consumer.Progress(progress)
+
 		for scsc := scan; scan < len(nbuf); scan++ {
 			pos, length = search(I, obuf, nbuf[scan:], 0, len(obuf))
 

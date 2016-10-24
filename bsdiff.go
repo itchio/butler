@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
@@ -106,10 +107,16 @@ func doBsdiff(target string, source string, patch string) error {
 		return err
 	}
 
-	err = pwr.BSDiff(targetReader, sourceReader, wctx)
+	startTime := time.Now()
+
+	comm.StartProgress()
+
+	err = pwr.BSDiff(targetReader, sourceReader, wctx, comm.NewStateConsumer())
 	if err != nil {
 		return err
 	}
+
+	comm.EndProgress()
 
 	err = wctx.WriteMessage(&pwr.SyncOp{
 		Type: pwr.SyncOp_HEY_YOU_DID_IT,
@@ -128,6 +135,10 @@ func doBsdiff(target string, source string, patch string) error {
 		return err
 	}
 
+	duration := time.Since(startTime)
+	perSec := float64(sourceStats.Size()) / duration.Seconds()
+
+	comm.Statf("Processed %s @ %s / s, total %s", humanize.IBytes(uint64(sourceStats.Size())), humanize.IBytes(uint64(perSec)), duration)
 	comm.Statf("Wrote %s patch to %s", humanize.IBytes(uint64(patchStats.Size())), patch)
 
 	return nil
