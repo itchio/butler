@@ -92,16 +92,7 @@ message Wound {
 
 // bsdiff messages
 message BsdiffControl {
-  int64 add = 1; // for the last dummy BsdiffControl, it's set to -1
-  int64 copy = 2;
-  int64 seek = 3;
+  bytes add = 1;
+  bytes copy = 2;
+  int64 seek = 3; // for the last dummy BsdiffControl, it's set to -1
 }
-
-message BsdiffDiff {
-  bytes data = 1;
-}
-
-message BsdiffExtra {
-  bytes data = 1;
-}
-

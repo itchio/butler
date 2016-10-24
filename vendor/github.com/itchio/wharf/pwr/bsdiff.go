@@ -198,7 +198,6 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 	I := qsufsort(obuf)
 	db := make([]byte, len(nbuf))
 	eb := make([]byte, len(nbuf))
-	var dblen, eblen int
 
 	bsdc := &BsdiffControl{}
 
@@ -278,17 +277,14 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 			}
 
 			for i := 0; i < lenf; i++ {
-				db[dblen+i] = nbuf[lastscan+i] - obuf[lastpos+i]
+				db[i] = nbuf[lastscan+i] - obuf[lastpos+i]
 			}
 			for i := 0; i < (scan-lenb)-(lastscan+lenf); i++ {
-				eb[eblen+i] = nbuf[lastscan+lenf+i]
+				eb[i] = nbuf[lastscan+lenf+i]
 			}
 
-			dblen += lenf
-			eblen += (scan - lenb) - (lastscan + lenf)
-
-			bsdc.Add = int64(lenf)
-			bsdc.Copy = int64((scan - lenb) - (lastscan + lenf))
+			bsdc.Add = db[:lenf]
+			bsdc.Copy = eb[:(scan-lenb)-(lastscan+lenf)]
 			bsdc.Seek = int64((pos - lenb) - (lastpos + lenf))
 
 			err := patch.WriteMessage(bsdc)
@@ -304,28 +300,8 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext) error {
 
 	// Write sentinel control message
 	bsdc.Reset()
-	bsdc.Add = -1
+	bsdc.Seek = -1
 	err = patch.WriteMessage(bsdc)
-	if err != nil {
-		return err
-	}
-
-	// Write diff data
-	bsdd := &BsdiffDiff{
-		Data: db[:dblen],
-	}
-
-	err = patch.WriteMessage(bsdd)
-	if err != nil {
-		return err
-	}
-
-	// Write extra data
-	bsed := &BsdiffExtra{
-		Data: eb[:eblen],
-	}
-
-	err = patch.WriteMessage(bsed)
 	if err != nil {
 		return err
 	}
@@ -340,46 +316,6 @@ var ErrCorrupt = errors.New("corrupt patch")
 // BSPatch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
 func BSPatch(old io.Reader, new io.Writer, newSize int64, patch *wire.ReadContext) error {
-	var ctrlOps []BsdiffControl
-
-	ctrlOp := &BsdiffControl{}
-
-	for {
-		ctrlOp.Reset()
-		err := patch.ReadMessage(ctrlOp)
-		if err != nil {
-			return err
-		}
-
-		if ctrlOp.Add == -1 {
-			break
-		}
-
-		ctrlOps = append(ctrlOps, BsdiffControl{
-			Add:  ctrlOp.Add,
-			Seek: ctrlOp.Seek,
-			Copy: ctrlOp.Copy,
-		})
-	}
-
-	diffMessage := &BsdiffDiff{}
-	err := patch.ReadMessage(diffMessage)
-	if err != nil {
-		return err
-	}
-	diff := diffMessage.Data
-
-	var diffOffset int64
-
-	extraMessage := &BsdiffExtra{}
-	err = patch.ReadMessage(extraMessage)
-	if err != nil {
-		return err
-	}
-	extra := extraMessage.Data
-
-	var extraOffset int64
-
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {
 		return err
@@ -389,36 +325,44 @@ func BSPatch(old io.Reader, new io.Writer, newSize int64, patch *wire.ReadContex
 
 	var oldpos, newpos int64
 
-	for _, ctrl := range ctrlOps {
+	ctrl := &BsdiffControl{}
+
+	for {
+		ctrl.Reset()
+
+		err = patch.ReadMessage(ctrl)
+		if err != nil {
+			return err
+		}
+
+		if ctrl.Seek == -1 {
+			break
+		}
+
 		// Sanity-check
-		if newpos+ctrl.Add > newSize {
+		if newpos+int64(len(ctrl.Add)) > newSize {
 			return ErrCorrupt
 		}
 
-		// Read diff string
-		copy(nbuf[newpos:newpos+ctrl.Add], diff[diffOffset:diffOffset+ctrl.Add])
-		diffOffset += ctrl.Add
-
 		// Add old data to diff string
-		for i := int64(0); i < ctrl.Add; i++ {
-			nbuf[newpos+i] += obuf[oldpos+i]
+		for i := int64(0); i < int64(len(ctrl.Add)); i++ {
+			nbuf[newpos+i] = ctrl.Add[i] + obuf[oldpos+i]
 		}
 
 		// Adjust pointers
-		newpos += ctrl.Add
-		oldpos += ctrl.Add
+		newpos += int64(len(ctrl.Add))
+		oldpos += int64(len(ctrl.Add))
 
 		// Sanity-check
-		if newpos+ctrl.Copy > newSize {
+		if newpos+int64(len(ctrl.Copy)) > newSize {
 			return ErrCorrupt
 		}
 
 		// Read extra string
-		copy(nbuf[newpos:newpos+ctrl.Copy], extra[extraOffset:extraOffset+ctrl.Copy])
-		extraOffset += ctrl.Copy
+		copy(nbuf[newpos:], ctrl.Copy)
 
 		// Adjust pointers
-		newpos += ctrl.Copy
+		newpos += int64(len(ctrl.Copy))
 		oldpos += ctrl.Seek
 	}
 
