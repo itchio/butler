@@ -66,7 +66,8 @@ var (
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
-	bsdiffCmd = app.Command("bsdiff", "(Advanced) Diff two files using bsdiff").Hidden()
+	bsdiffCmd  = app.Command("bsdiff", "(Advanced) Diff two files using bsdiff").Hidden()
+	bspatchCmd = app.Command("bspatch", "(Advanced) Apply a bsdiff patch").Hidden()
 )
 
 var appArgs = struct {
@@ -292,6 +293,16 @@ var bsdiffArgs = struct {
 	bsdiffCmd.Arg("patch", "Patch file to write").Required().String(),
 }
 
+var bspatchArgs = struct {
+	patch  *string
+	target *string
+	output *string
+}{
+	bspatchCmd.Arg("patch", "Patch file").Required().String(),
+	bspatchCmd.Arg("target", "Old file").Required().String(),
+	bspatchCmd.Arg("output", "Output file").Required().String(),
+}
+
 var fileArgs = struct {
 	file *string
 }{
@@ -476,6 +487,9 @@ func main() {
 
 	case bsdiffCmd.FullCommand():
 		bsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch)
+
+	case bspatchCmd.FullCommand():
+		bspatch(*bspatchArgs.patch, *bspatchArgs.target, *bspatchArgs.output)
 
 	case whichCmd.FullCommand():
 		which()

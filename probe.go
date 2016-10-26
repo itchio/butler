@@ -86,6 +86,8 @@ func doProbe(patch string) error {
 
 		readingOps := true
 
+		var pos int64
+
 		for readingOps {
 			rop.Reset()
 
@@ -99,7 +101,16 @@ func doProbe(patch string) error {
 				fixedSize := (rop.BlockSpan - 1) * pwr.BlockSize
 				lastIndex := rop.BlockIndex + (rop.BlockSpan - 1)
 				lastSize := pwr.ComputeBlockSize(f.Size, lastIndex)
-				stat.freshData -= (fixedSize + lastSize)
+				totalSize := (fixedSize + lastSize)
+				stat.freshData -= totalSize
+				pos += totalSize
+			case pwr.SyncOp_DATA:
+				totalSize := int64(len(rop.Data))
+				if *appArgs.verbose {
+					comm.Debugf("%s fresh data at %s (%d-%d)", humanize.IBytes(uint64(totalSize)), humanize.IBytes(uint64(pos)),
+						pos, pos+totalSize)
+				}
+				pos += totalSize
 			case pwr.SyncOp_HEY_YOU_DID_IT:
 				readingOps = false
 			}

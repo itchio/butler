@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wire"
 )
@@ -320,7 +321,7 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 
 	// Write sentinel control message
 	bsdc.Reset()
-	bsdc.Seek = -1
+	bsdc.Eof = true
 	err = patch.WriteMessage(bsdc)
 	if err != nil {
 		return err
@@ -355,7 +356,7 @@ func BSPatch(old io.Reader, new io.Writer, newSize int64, patch *wire.ReadContex
 			return err
 		}
 
-		if ctrl.Seek == -1 {
+		if ctrl.Eof {
 			break
 		}
 
@@ -386,13 +387,14 @@ func BSPatch(old io.Reader, new io.Writer, newSize int64, patch *wire.ReadContex
 		oldpos += ctrl.Seek
 	}
 
+	if newpos != newSize {
+		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, newpos, humanize.IBytes(uint64(newSize-newpos)))
+	}
+
 	// Write the new file
-	for len(nbuf) > 0 {
-		n, err := new.Write(nbuf)
-		if err != nil {
-			return err
-		}
-		nbuf = nbuf[n:]
+	_, err = new.Write(nbuf)
+	if err != nil {
+		return err
 	}
 
 	return nil

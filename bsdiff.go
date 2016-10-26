@@ -16,6 +16,8 @@ func bsdiff(target string, source string, patch string) {
 }
 
 func doBsdiff(target string, source string, patch string) error {
+	comm.Opf("Diffing %s and %s...", target, source)
+
 	targetReader, err := os.Open(target)
 	if err != nil {
 		return err
@@ -138,8 +140,10 @@ func doBsdiff(target string, source string, patch string) error {
 	duration := time.Since(startTime)
 	perSec := float64(sourceStats.Size()) / duration.Seconds()
 
+	relToNew := 100.0 * float64(patchStats.Size()) / float64(sourceStats.Size())
+
 	comm.Statf("Processed %s @ %s / s, total %s", humanize.IBytes(uint64(sourceStats.Size())), humanize.IBytes(uint64(perSec)), duration)
-	comm.Statf("Wrote %s patch to %s", humanize.IBytes(uint64(patchStats.Size())), patch)
+	comm.Statf("Wrote %s patch (%.2f%% of total size) to %s", humanize.IBytes(uint64(patchStats.Size())), relToNew, patch)
 
 	return nil
 }
