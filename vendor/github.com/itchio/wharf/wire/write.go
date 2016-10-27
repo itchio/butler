@@ -19,7 +19,7 @@ type WriteContext struct {
 
 // NewWriteContext builds a new WriteContext that writes to a given writer
 func NewWriteContext(writer io.Writer) *WriteContext {
-	return &WriteContext{writer, make([]byte, 4)}
+	return &WriteContext{writer, make([]byte, 8)}
 }
 
 // Writer returns writer a WriteContext writes to

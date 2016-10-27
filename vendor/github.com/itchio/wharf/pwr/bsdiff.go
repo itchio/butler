@@ -245,6 +245,8 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 
 	consumer.ProgressLabel("Scanning...")
 
+	var maxTotalLen int64
+
 	// Compute the differences, writing ctrl as we go
 	var scan, pos, length int32
 	var lastscan, lastpos, lastoffset int32
@@ -334,6 +336,12 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 			bsdc.Add = db[:lenf]
 			bsdc.Copy = eb[:(scan-lenb)-(lastscan+lenf)]
 			bsdc.Seek = int64((pos - lenb) - (lastpos + lenf))
+
+			totalLen := int64(lenf) + int64((scan-lenb)-(lastscan+lenf))
+			if totalLen > maxTotalLen {
+				maxTotalLen = totalLen
+				consumer.Debugf("Total data size of message: %s (%d bytes)", humanize.IBytes(uint64(totalLen)), totalLen)
+			}
 
 			err := patch.WriteMessage(bsdc)
 			if err != nil {
