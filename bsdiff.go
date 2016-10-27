@@ -16,8 +16,6 @@ func bsdiff(target string, source string, patch string) {
 }
 
 func doBsdiff(target string, source string, patch string) error {
-	comm.Opf("Diffing %s and %s...", target, source)
-
 	targetReader, err := os.Open(target)
 	if err != nil {
 		return err
@@ -41,6 +39,9 @@ func doBsdiff(target string, source string, patch string) error {
 	if err != nil {
 		return err
 	}
+
+	comm.Opf("Diffing %s (%s) and %s (%s)...", target, humanize.IBytes(uint64(targetStats.Size())), source,
+		humanize.IBytes(uint64(sourceStats.Size())))
 
 	patchWriter, err := os.Create(patch)
 	if err != nil {

@@ -6,15 +6,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
+	"runtime"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wire"
 )
 
+// MaxBsdiffSize is the largest size bsdiff will diff (for both old and new file)
+const MaxBsdiffSize = int64(math.MaxInt32 - 1)
+
 // Ternary-Split Quicksort, cf. http://www.larsson.dogma.net/ssrev-tr.pdf
-func split(I, V []int, start, length, h int) {
-	var i, j, k, x, jj, kk int
+func split(I, V []int32, start, length, h int32) {
+	var i, j, k, x, jj, kk int32
 
 	if length < 16 {
 		for k = start; k < start+length; k += j {
@@ -96,11 +101,13 @@ func split(I, V []int, start, length, h int) {
 
 // Faster Suffix Sorting, see: http://www.larsson.dogma.net/ssrev-tr.pdf
 // Output `I` is a sorted suffix array.
-func qsufsort(obuf []byte, consumer *state.Consumer) []int {
-	var buckets [256]int
-	var i, h int
-	I := make([]int, len(obuf)+1)
-	V := make([]int, len(obuf)+1)
+func qsufsort(obuf []byte, consumer *state.Consumer) []int32 {
+	var buckets [256]int32
+	var i, h int32
+	var obuflen = int32(len(obuf))
+
+	I := make([]int32, obuflen+1)
+	V := make([]int32, obuflen+1)
 
 	for _, c := range obuf {
 		buckets[c]++
@@ -113,15 +120,15 @@ func qsufsort(obuf []byte, consumer *state.Consumer) []int {
 
 	for i, c := range obuf {
 		buckets[c]++
-		I[buckets[c]] = i
+		I[buckets[c]] = int32(i)
 	}
 
-	I[0] = len(obuf)
+	I[0] = obuflen
 	for i, c := range obuf {
 		V[i] = buckets[c]
 	}
 
-	V[len(obuf)] = 0
+	V[obuflen] = 0
 	for i = 1; i < 256; i++ {
 		if buckets[i] == buckets[i-1]+1 {
 			I[buckets[i]] = -1
@@ -131,15 +138,15 @@ func qsufsort(obuf []byte, consumer *state.Consumer) []int {
 
 	const progressInterval = 64 * 1024
 
-	for h = 1; I[0] != -(len(obuf) + 1); h += h {
+	for h = 1; I[0] != -(obuflen + 1); h += h {
 		consumer.ProgressLabel(fmt.Sprintf("Suffix sorting (%d-order)", h))
 
-		lastI := 0
+		var lastI int32
+		var n int32
 
-		var n int
-		for i = 0; i < len(obuf)+1; {
+		for i = 0; i < obuflen+1; {
 			if i-lastI > progressInterval {
-				progress := float64(i) / float64(len(obuf))
+				progress := float64(i) / float64(obuflen)
 				consumer.Progress(progress)
 				lastI = i
 			}
@@ -162,21 +169,23 @@ func qsufsort(obuf []byte, consumer *state.Consumer) []int {
 		}
 	}
 
-	for i = 0; i < len(obuf)+1; i++ {
+	for i = 0; i < obuflen+1; i++ {
 		I[V[i]] = i
 	}
 	return I
 }
 
 // Returns the number of bytes common to a and b
-func matchlen(a, b []byte) (i int) {
-	for i < len(a) && i < len(b) && a[i] == b[i] {
+func matchlen(a, b []byte) (i int32) {
+	alen := int32(len(a))
+	blen := int32(len(b))
+	for i < alen && i < blen && a[i] == b[i] {
 		i++
 	}
 	return i
 }
 
-func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
+func search(I []int32, obuf, nbuf []byte, st, en int32) (pos, n int32) {
 	if en-st < 2 {
 		x := matchlen(obuf[I[st]:], nbuf)
 		y := matchlen(obuf[I[en]:], nbuf)
@@ -197,18 +206,38 @@ func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
 // BSDiff computes the difference between old and new, according to the bsdiff
 // algorithm, and writes the result to patch.
 func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consumer) error {
+	var memstats runtime.MemStats
+	runtime.ReadMemStats(&memstats)
+	consumer.Debugf("Allocated bytes at start of bsdiff: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {
 		return err
 	}
+	if int64(len(obuf)) > MaxBsdiffSize {
+		return fmt.Errorf("bsdiff: old file too large (%s > %s)", humanize.IBytes(uint64(len(obuf))), humanize.IBytes(uint64(MaxBsdiffSize)))
+	}
+	obuflen := int32(len(obuf))
 
 	nbuf, err := ioutil.ReadAll(new)
 	if err != nil {
 		return err
 	}
+	if int64(len(nbuf)) > MaxBsdiffSize {
+		return fmt.Errorf("bsdiff: new file too large (%s > %s)", humanize.IBytes(uint64(len(nbuf))), humanize.IBytes(uint64(MaxBsdiffSize)))
+	}
+	nbuflen := int32(len(nbuf))
 
-	var lenf int
+	runtime.ReadMemStats(&memstats)
+	consumer.Debugf("Allocated bytes after ReadAll: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+
+	var lenf int32
 	I := qsufsort(obuf, consumer)
+
+	runtime.ReadMemStats(&memstats)
+	consumer.Debugf("Allocated bytes after qsufsort: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+
+	// FIXME: the streaming format allows us to allocate less than that
 	db := make([]byte, len(nbuf))
 	eb := make([]byte, len(nbuf))
 
@@ -217,20 +246,20 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 	consumer.ProgressLabel("Scanning...")
 
 	// Compute the differences, writing ctrl as we go
-	var scan, pos, length int
-	var lastscan, lastpos, lastoffset int
-	for scan < len(nbuf) {
-		var oldscore int
+	var scan, pos, length int32
+	var lastscan, lastpos, lastoffset int32
+	for scan < nbuflen {
+		var oldscore int32
 		scan += length
 
-		progress := float64(scan) / float64(len(nbuf))
+		progress := float64(scan) / float64(nbuflen)
 		consumer.Progress(progress)
 
-		for scsc := scan; scan < len(nbuf); scan++ {
-			pos, length = search(I, obuf, nbuf[scan:], 0, len(obuf))
+		for scsc := scan; scan < nbuflen; scan++ {
+			pos, length = search(I, obuf, nbuf[scan:], 0, obuflen)
 
 			for ; scsc < scan+length; scsc++ {
-				if scsc+lastoffset < len(obuf) &&
+				if scsc+lastoffset < obuflen &&
 					obuf[scsc+lastoffset] == nbuf[scsc] {
 					oldscore++
 				}
@@ -240,15 +269,15 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 				break
 			}
 
-			if scan+lastoffset < len(obuf) && obuf[scan+lastoffset] == nbuf[scan] {
+			if scan+lastoffset < obuflen && obuf[scan+lastoffset] == nbuf[scan] {
 				oldscore--
 			}
 		}
 
-		if length != oldscore || scan == len(nbuf) {
-			var s, Sf int
+		if length != oldscore || scan == nbuflen {
+			var s, Sf int32
 			lenf = 0
-			for i := 0; lastscan+i < scan && lastpos+i < len(obuf); {
+			for i := int32(0); lastscan+i < scan && lastpos+i < obuflen; {
 				if obuf[lastpos+i] == nbuf[lastscan+i] {
 					s++
 				}
@@ -259,10 +288,10 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 				}
 			}
 
-			lenb := 0
-			if scan < len(nbuf) {
-				var s, Sb int
-				for i := 1; (scan >= lastscan+i) && (pos >= i); i++ {
+			lenb := int32(0)
+			if scan < nbuflen {
+				var s, Sb int32
+				for i := int32(1); (scan >= lastscan+i) && (pos >= i); i++ {
 					if obuf[pos-i] == nbuf[scan-i] {
 						s++
 					}
@@ -275,10 +304,10 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 
 			if lastscan+lenf > scan-lenb {
 				overlap := (lastscan + lenf) - (scan - lenb)
-				s := 0
-				Ss := 0
-				lens := 0
-				for i := 0; i < overlap; i++ {
+				s := int32(0)
+				Ss := int32(0)
+				lens := int32(0)
+				for i := int32(0); i < overlap; i++ {
 					if nbuf[lastscan+lenf-overlap+i] == obuf[lastpos+lenf-overlap+i] {
 						s++
 					}
@@ -295,10 +324,10 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 				lenb -= lens
 			}
 
-			for i := 0; i < lenf; i++ {
+			for i := int32(0); i < lenf; i++ {
 				db[i] = nbuf[lastscan+i] - obuf[lastpos+i]
 			}
-			for i := 0; i < (scan-lenb)-(lastscan+lenf); i++ {
+			for i := int32(0); i < (scan-lenb)-(lastscan+lenf); i++ {
 				eb[i] = nbuf[lastscan+lenf+i]
 			}
 
@@ -316,6 +345,9 @@ func BSDiff(old, new io.Reader, patch *wire.WriteContext, consumer *state.Consum
 			lastoffset = pos - scan
 		}
 	}
+
+	runtime.ReadMemStats(&memstats)
+	consumer.Debugf("Allocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 
 	// Write sentinel control message
 	bsdc.Reset()
