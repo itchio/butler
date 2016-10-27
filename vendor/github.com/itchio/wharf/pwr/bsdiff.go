@@ -12,8 +12,6 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-func swap(a []int, i, j int) { a[i], a[j] = a[j], a[i] }
-
 // Ternary-Split Quicksort, cf. http://www.larsson.dogma.net/ssrev-tr.pdf
 func split(I, V []int, start, length, h int) {
 	var i, j, k, x, jj, kk int
@@ -28,7 +26,7 @@ func split(I, V []int, start, length, h int) {
 					j = 0
 				}
 				if V[I[k+i]+h] == x {
-					swap(I, k+i, k+j)
+					I[k+i], I[k+j] = I[k+j], I[k+i]
 					j++
 				}
 			}
@@ -63,10 +61,10 @@ func split(I, V []int, start, length, h int) {
 		if V[I[i]+h] < x {
 			i++
 		} else if V[I[i]+h] == x {
-			swap(I, i, jj+j)
+			I[i], I[jj+j] = I[jj+j], I[i]
 			j++
 		} else {
-			swap(I, i, kk+k)
+			I[i], I[kk+k] = I[kk+k], I[i]
 			k++
 		}
 	}
@@ -75,7 +73,7 @@ func split(I, V []int, start, length, h int) {
 		if V[I[jj+j]+h] == x {
 			j++
 		} else {
-			swap(I, jj+j, kk+k)
+			I[jj+j], I[kk+k] = I[kk+k], I[jj+j]
 			k++
 		}
 	}
