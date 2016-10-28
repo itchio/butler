@@ -117,6 +117,10 @@ func doCmdBsdiff(target string, source string, patch string) error {
 
 	dc := bsdiff.DiffContext{}
 
+	if *appArgs.memstats {
+		dc.DebugMem = true
+	}
+
 	err = dc.Do(targetReader, sourceReader, wctx.WriteMessage, comm.NewStateConsumer())
 	if err != nil {
 		return err

@@ -89,6 +89,7 @@ var appArgs = struct {
 	maxChunkGroup *int
 
 	cpuprofile *string
+	memstats   *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -108,6 +109,7 @@ var appArgs = struct {
 	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
 
 	app.Flag("cpuprofile", "Write CPU profile to given file").Hidden().String(),
+	app.Flag("memstats", "Print memory stats for some operations").Hidden().Bool(),
 }
 
 var dlArgs = struct {
