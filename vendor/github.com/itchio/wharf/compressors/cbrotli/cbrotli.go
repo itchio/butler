@@ -10,7 +10,7 @@ import (
 
 type brotliCompressor struct{}
 
-func (gc *brotliCompressor) Apply(writer io.Writer, quality int32) (io.Writer, error) {
+func (bc *brotliCompressor) Apply(writer io.Writer, quality int32) (io.Writer, error) {
 	params := enc.NewBrotliParams()
 	params.SetQuality(int(quality))
 	return enc.NewBrotliWriter(params, writer), nil

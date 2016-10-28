@@ -6,16 +6,17 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
 
-func bsdiff(target string, source string, patch string) {
-	must(doBsdiff(target, source, patch))
+func cmdBsdiff(target string, source string, patch string) {
+	must(doCmdBsdiff(target, source, patch))
 }
 
-func doBsdiff(target string, source string, patch string) error {
+func doCmdBsdiff(target string, source string, patch string) error {
 	targetReader, err := os.Open(target)
 	if err != nil {
 		return err
@@ -114,7 +115,9 @@ func doBsdiff(target string, source string, patch string) error {
 
 	comm.StartProgress()
 
-	err = pwr.BSDiff(targetReader, sourceReader, wctx, comm.NewStateConsumer())
+	dc := bsdiff.DiffContext{}
+
+	err = dc.Do(targetReader, sourceReader, wctx.WriteMessage, comm.NewStateConsumer())
 	if err != nil {
 		return err
 	}

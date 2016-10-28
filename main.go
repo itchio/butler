@@ -500,7 +500,7 @@ func main() {
 		probe(*probeArgs.patch)
 
 	case bsdiffCmd.FullCommand():
-		bsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch)
+		cmdBsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch)
 
 	case bspatchCmd.FullCommand():
 		bspatch(*bspatchArgs.patch, *bspatchArgs.target, *bspatchArgs.output)

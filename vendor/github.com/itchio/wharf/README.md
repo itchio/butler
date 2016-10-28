@@ -45,6 +45,8 @@ protoc --go_out=. pwr/*.proto
 
 protobuf v3 is required, as we use the 'proto3' syntax.
 
+The `tlc` (containers) and `bsdiff` packages work similarly.
+
 ## License
 
 Licensed under MIT License, see `LICENSE` for details.
@@ -52,4 +54,5 @@ Licensed under MIT License, see `LICENSE` for details.
 Contains modified code from the following projects:
 
   * [kardianos/rsync](https://bitbucket.org/kardianos/rsync/) (BSD) - golang implementation of the rsync algorithm
+  * [kr/binarydist](https://github.com/kr/binarydist) (MIT) - golang implementation of the bsdiff algorithm
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -108,7 +109,7 @@ func doBspatch(patch string, target string, output string) error {
 
 	outputSize := sourceContainer.Files[op.FileIndex].Size
 
-	err = pwr.BSPatch(targetReader, outputWriter, outputSize, rctx)
+	err = bsdiff.Patch(targetReader, outputWriter, outputSize, rctx.ReadMessage)
 	if err != nil {
 		return err
 	}

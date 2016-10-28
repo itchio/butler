@@ -89,11 +89,3 @@ message Wound {
   int64 end = 3;
   WoundKind kind = 4;
 }
-
-// bsdiff messages
-message BsdiffControl {
-  bytes add = 1;
-  bytes copy = 2;
-  int64 seek = 3;
-  bool eof = 4; // when true, don't apply and stop reading bsdiff control
-}
