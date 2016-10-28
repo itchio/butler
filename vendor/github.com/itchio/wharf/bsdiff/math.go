@@ -3,38 +3,45 @@ package bsdiff
 import (
 	"bytes"
 	"fmt"
+	"os"
 
 	"github.com/itchio/wharf/state"
 )
 
+var parallel = os.Getenv("PARALLEL_BSDIFF") == "1"
+
 // Ternary-Split Quicksort, cf. http://www.larsson.dogma.net/ssrev-tr.pdf
-func split(I, V []int32, start, length, h int32) {
+func split(I, V, V2 []int32, start, length, h int32, consumer *state.Consumer) {
+	// fmt.Fprintf(os.Stderr, "split(%d, %d)\n", start, length)
+
 	var i, j, k, x, jj, kk int32
 
-	if length < 16 {
-		for k = start; k < start+length; k += j {
-			j = 1
-			x = V[I[k]+h]
-			for i = 1; k+i < start+length; i++ {
-				if V[I[k+i]+h] < x {
-					x = V[I[k+i]+h]
-					j = 0
-				}
-				if V[I[k+i]+h] == x {
-					I[k+i], I[k+j] = I[k+j], I[k+i]
-					j++
-				}
-			}
-			for i = 0; i < j; i++ {
-				V[I[k+i]] = k + j - 1
-			}
-			if j == 1 {
-				I[k] = -1
-			}
-		}
-		return
-	}
+	// if length < 16 {
+	// 	for k = start; k < start+length; k += j {
+	// 		j = 1
+	// 		x = V[I[k]+h]
+	// 		for i = 1; k+i < start+length; i++ {
+	// 			if V[I[k+i]+h] < x {
+	// 				x = V[I[k+i]+h]
+	// 				j = 0
+	// 			}
+	// 			if V[I[k+i]+h] == x {
+	// 				I[k+i], I[k+j] = I[k+j], I[k+i]
+	// 				j++
+	// 			}
+	// 		}
+	// 		for i = 0; i < j; i++ {
+	// 			V[I[k+i]] = k + j - 1
+	// 		}
+	// 		if j == 1 {
+	// 			I[k] = -1
+	// 		}
+	// 	}
+	// 	return
+	// }
 
+	// fmt.Fprintf(os.Stderr, "start+length/2 = %d, len(I) = %d\n", start+length/2, len(I))
+	// fmt.Fprintf(os.Stderr, "V[%d] (read)\n", I[start+length/2]+h)
 	x = V[I[start+length/2]+h]
 	jj = 0
 	kk = 0
@@ -74,19 +81,28 @@ func split(I, V []int32, start, length, h int32) {
 	}
 
 	if jj > start {
-		split(I, V, start, jj-start, h)
+		// fmt.Fprintf(os.Stderr, "lsplit I[%d-%d]\n", start, jj)
+		split(I, V, V2, start, jj-start, h, consumer)
 	}
 
 	for i = 0; i < kk-jj; i++ {
-		V[I[jj+i]] = kk - 1
+		// fmt.Fprintf(os.Stderr, "V[%d] = %d\n", I[jj+i], kk-1)
+		V2[I[jj+i]] = kk - 1
 	}
 	if jj == kk-1 {
+		// fmt.Fprintf(os.Stderr, "I[%d] = %d\n", I[jj], -1)
 		I[jj] = -1
 	}
 
 	if start+length > kk {
-		split(I, V, kk, start+length-kk, h)
+		// fmt.Fprintf(os.Stderr, "rsplit I[%d-%d]\n", kk, start+length)
+		split(I, V, V2, kk, start+length-kk, h, consumer)
 	}
+}
+
+type mark struct {
+	index int32
+	value int32
 }
 
 // Faster Suffix Sorting, see: http://www.larsson.dogma.net/ssrev-tr.pdf
@@ -130,11 +146,19 @@ func qsufsort(obuf []byte, consumer *state.Consumer) []int32 {
 
 	const progressInterval = 64 * 1024
 
+	V2 := append([]int32{}, V...)
+	marks := make([]mark, 0)
+
 	for h = 1; I[0] != -(obuflen + 1); h += h {
 		consumer.ProgressLabel(fmt.Sprintf("Suffix sorting (%d-order)", h))
+		// consumer.Debugf("\n>> Pass %d", h)
 
 		var lastI int32
 		var n int32
+		var doneI int32
+
+		done := make(chan bool)
+		var numTasks = 0
 
 		for i = 0; i < obuflen+1; {
 			if i-lastI > progressInterval {
@@ -144,21 +168,48 @@ func qsufsort(obuf []byte, consumer *state.Consumer) []int32 {
 			}
 
 			if I[i] < 0 {
+				// consumer.Debugf("Found %d combined-sorted", -I[i])
+				doneI -= I[i]
 				n -= I[i]
 				i -= I[i]
 			} else {
 				if n != 0 {
-					I[i-n] = -n
+					marks = append(marks, mark{index: i - n, value: -n})
+					// I[i-n] = -n
 				}
 				n = V[I[i]] + 1 - i
-				split(I, V, i, n, h)
+				// consumer.Debugf("\n> Splitting %d-%d array", i, i+n)
+				go func(i, n, h int32) {
+					split(I, V, V2, i, n, h, consumer)
+					done <- true
+				}(i, n, h)
+				if parallel {
+					numTasks++
+				} else {
+					<-done
+				}
 				i += n
 				n = 0
 			}
 		}
+
+		for i := 0; i < numTasks; i++ {
+			<-done
+		}
+
+		for _, mark := range marks {
+			// consumer.Debugf("Setting I[%d] to %d", I[i-n], -n)
+			I[mark.index] = mark.value
+		}
+
 		if n != 0 {
 			I[i-n] = -n
 		}
+
+		// consumer.Debugf("%d/%d was already done (%.2f%%)", doneI, (obuflen + 1),
+		// 	100.0*float64(doneI)/float64(obuflen+1))
+
+		copy(V, V2)
 	}
 
 	for i = 0; i < obuflen+1; i++ {

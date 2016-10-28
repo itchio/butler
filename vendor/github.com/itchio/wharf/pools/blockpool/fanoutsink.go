@@ -60,7 +60,7 @@ func NewFanOutSink(templateSink Sink, numSinks int) (*FanOutSink, error) {
 
 // Start processing store requests
 func (fos *FanOutSink) Start() {
-	fos.errs = make(chan error)
+	fos.errs = make(chan error, len(fos.sinks))
 	fos.cancelled = make(chan struct{})
 
 	for _, sink := range fos.sinks {
@@ -69,22 +69,18 @@ func (fos *FanOutSink) Start() {
 				select {
 				case <-fos.cancelled:
 					// stop handling requests!
+					fos.errs <- nil
 					return
 				case store, ok := <-fos.stores:
 					if !ok {
 						// no more requests to handle
+						fos.errs <- nil
 						return
 					}
 
 					err := sink.Store(store.loc, store.data)
 					if err != nil {
-						select {
-						case <-fos.cancelled:
-							// another error happened first
-							return
-						case fos.errs <- err:
-							// we were able to send the error
-						}
+						fos.errs <- err
 						return
 					}
 				}
@@ -129,12 +125,11 @@ func (fos *FanOutSink) Store(loc BlockLocation, data []byte) error {
 
 	select {
 	case err := <-fos.errs:
+		// stop accepting stores
+		fos.closed = true
+
 		// cancel all workers
 		close(fos.cancelled)
-
-		// stop sending stores
-		close(fos.stores)
-		fos.closed = true
 
 		// immediately return error
 		return err

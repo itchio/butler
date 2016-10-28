@@ -16,11 +16,11 @@ export PKGS="$(go list -f '{{if not (eq .Name "cbrotli")}}{{.ImportPath}}{{end}}
 
 go get -v -d -t $PKG/...
 
-go list -f '{{if gt (len .TestGoFiles) 0}}"go test -race -covermode count -coverprofile {{.Name}}.coverprofile -coverpkg $PKGS {{.ImportPath}}"{{end}}' $PKG/... | xargs -I {} bash -c {}
+go list -f '{{if gt (len .TestGoFiles) 0}}"go test -race -covermode atomic -coverprofile {{.Name}}.coverprofile -coverpkg $PKGS {{.ImportPath}}"{{end}}' $PKG/... | xargs -I {} bash -c {}
 
 go get -v github.com/wadey/gocovmerge
 
 gocovmerge `ls *.coverprofile` > coverage.txt
 go tool cover -func=coverage.txt
 
-bash <(curl -s https://codecov.io/bash)
+curl -s https://codecov.io/bash | bash

@@ -1,6 +1,10 @@
 package state
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/itchio/wharf/counter"
+)
 
 // ProgressCallback is called periodically to announce the degree of completeness of an operation
 type ProgressCallback func(percent float64)
@@ -89,5 +93,13 @@ func (c *Consumer) Warn(msg string) {
 func (c *Consumer) Warnf(msg string, args ...interface{}) {
 	if c.OnMessage != nil {
 		c.OnMessage("warning", fmt.Sprintf(msg, args...))
+	}
+}
+
+// CountCallback returns a function suitable for counter.NewWriterCallback
+// or counter.NewReaderCallback
+func (c *Consumer) CountCallback(totalSize int64) counter.CountCallback {
+	return func(count int64) {
+		c.Progress(float64(count) / float64(totalSize))
 	}
 }

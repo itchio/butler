@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"runtime"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
@@ -79,7 +80,12 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 	}
 
 	var lenf int32
+	startTime := time.Now()
+
 	I := qsufsort(obuf, consumer)
+
+	duration := time.Since(startTime)
+	consumer.Debugf("Suffix sorting done in %s", duration)
 
 	if ctx.DebugMem {
 		runtime.ReadMemStats(memstats)
