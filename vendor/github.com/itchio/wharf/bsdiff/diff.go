@@ -13,7 +13,10 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-// MaxFileSize is the largest size bsdiff will diff (for both old and new file)
+// MaxFileSize is the largest size bsdiff will diff (for both old and new file): 2GB - 1 bytes
+// a different codepath could be used for larger files, at the cost of unreasonable memory usage
+// (even in 2016). If a big corporate user is willing to sponsor that part of the code, get in touch!
+// Fair warning though: it won't be covered, our CI workers don't have that much RAM :)
 const MaxFileSize = int64(math.MaxInt32 - 1)
 
 // MaxMessageSize is the maximum amount of bytes that will be stored
@@ -28,9 +31,18 @@ type DiffContext struct {
 	db []byte // diff bytes
 	eb []byte // extra bytes
 
-	// DebugMem enables printing memory usage statistics at various points in the
+	// SuffixSortConcurrency specifies the number of workers to use for suffix sorting.
+	// Exceeding the number of cores will only slow it down. A 0 value (default) uses
+	// sequential suffix sorting, which uses less RAM and has less overhead (might be faster
+	// in some scenarios). A negative value means (number of cores - value).
+	SuffixSortConcurrency int
+
+	// MeasureMem enables printing memory usage statistics at various points in the
 	// diffing process.
-	DebugMem bool
+	MeasureMem bool
+
+	// MeasureParallelOverhead prints some stats on the overhead of parallel suffix sorting
+	MeasureParallelOverhead bool
 }
 
 // WriteMessageFunc should write a given protobuf message and relay any errors
@@ -43,7 +55,7 @@ type WriteMessageFunc func(msg proto.Message) (err error)
 func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, consumer *state.Consumer) error {
 	var memstats *runtime.MemStats
 
-	if ctx.DebugMem {
+	if ctx.MeasureMem {
 		memstats = &runtime.MemStats{}
 		runtime.ReadMemStats(memstats)
 		consumer.Debugf("Allocated bytes at start of bsdiff: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
@@ -70,11 +82,12 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 		return err
 	}
 	if int64(len(nbuf)) > MaxFileSize {
+		// TODO: provide a different (int64) codepath for >=2GB files
 		return fmt.Errorf("bsdiff: new file too large (%s > %s)", humanize.IBytes(uint64(len(nbuf))), humanize.IBytes(uint64(MaxFileSize)))
 	}
 	nbuflen := int32(len(nbuf))
 
-	if ctx.DebugMem {
+	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
 		consumer.Debugf("Allocated bytes after ReadAll: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
@@ -82,12 +95,12 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 	var lenf int32
 	startTime := time.Now()
 
-	I := qsufsort(obuf, consumer)
+	I := qsufsort(obuf, ctx, consumer)
 
 	duration := time.Since(startTime)
 	consumer.Debugf("Suffix sorting done in %s", duration)
 
-	if ctx.DebugMem {
+	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
 		consumer.Debugf("Allocated bytes after qsufsort: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
@@ -201,12 +214,11 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 		}
 	}
 
-	if ctx.DebugMem {
+	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
 		consumer.Debugf("Allocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
 
-	// Write sentinel control message
 	bsdc.Reset()
 	bsdc.Eof = true
 	err = writeMessage(bsdc)

@@ -12,11 +12,11 @@ import (
 	"github.com/itchio/wharf/wire"
 )
 
-func cmdBsdiff(target string, source string, patch string) {
-	must(doCmdBsdiff(target, source, patch))
+func cmdBsdiff(target string, source string, patch string, concurrency int, measureOverhead bool) {
+	must(doCmdBsdiff(target, source, patch, concurrency, measureOverhead))
 }
 
-func doCmdBsdiff(target string, source string, patch string) error {
+func doCmdBsdiff(target string, source string, patch string, concurrency int, measureOverhead bool) error {
 	targetReader, err := os.Open(target)
 	if err != nil {
 		return err
@@ -115,10 +115,10 @@ func doCmdBsdiff(target string, source string, patch string) error {
 
 	comm.StartProgress()
 
-	dc := bsdiff.DiffContext{}
-
-	if *appArgs.memstats {
-		dc.DebugMem = true
+	dc := bsdiff.DiffContext{
+		MeasureMem:              *appArgs.memstats,
+		MeasureParallelOverhead: measureOverhead,
+		SuffixSortConcurrency:   concurrency,
 	}
 
 	err = dc.Do(targetReader, sourceReader, wctx.WriteMessage, comm.NewStateConsumer())

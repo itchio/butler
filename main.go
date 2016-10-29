@@ -294,10 +294,16 @@ var bsdiffArgs = struct {
 	target *string
 	source *string
 	patch  *string
+
+	concurrency     *int
+	measureOverhead *bool
 }{
 	bsdiffCmd.Arg("target", "Old file").Required().String(),
 	bsdiffCmd.Arg("source", "New file").Required().String(),
 	bsdiffCmd.Arg("patch", "Patch file to write").Required().String(),
+
+	bsdiffCmd.Flag("concurrency", "Concurrency of bsdiff algorithm").Default("0").Int(),
+	bsdiffCmd.Flag("measure-overhead", "Measure parallel bsdiff overhead").Bool(),
 }
 
 var bspatchArgs = struct {
@@ -502,7 +508,7 @@ func main() {
 		probe(*probeArgs.patch)
 
 	case bsdiffCmd.FullCommand():
-		cmdBsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch)
+		cmdBsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch, *bsdiffArgs.concurrency, *bsdiffArgs.measureOverhead)
 
 	case bspatchCmd.FullCommand():
 		bspatch(*bspatchArgs.patch, *bspatchArgs.target, *bspatchArgs.output)
