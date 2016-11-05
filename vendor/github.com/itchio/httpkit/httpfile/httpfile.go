@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -228,11 +230,16 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			return nil, err
 		}
 
-		req, err := http.NewRequest("HEAD", urlStr, nil)
+		// This used to be `HEAD`, but some servers (looking at you Amazon S3)
+		// didn't like it.
+
+		req, err := http.NewRequest("GET", urlStr, nil)
 		if err != nil {
 			// internal error
 			return nil, err
 		}
+
+		req.Header.Set("Range", "bytes=0-0")
 
 		res, err := client.Do(req)
 		if err != nil {
@@ -242,7 +249,12 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			continue
 		}
 
-		if res.StatusCode != 200 {
+		err = res.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		if res.StatusCode != 206 {
 			if res.StatusCode == 404 {
 				// no need to retry - it's not coming back
 				return nil, errors.Wrap(ErrNotFound, 1)
@@ -259,7 +271,15 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 				continue
 			}
 
-			return nil, fmt.Errorf("Expected HTTP 200, got HTTP %d, not retrying", res.StatusCode)
+			return nil, fmt.Errorf("Expected HTTP 206, got HTTP %d, not retrying", res.StatusCode)
+		}
+
+		rangeHeader := res.Header.Get("content-range")
+		rangeTokens := strings.Split(rangeHeader, "/")
+		totalBytesStr := rangeTokens[len(rangeTokens)-1]
+		totalBytes, err := strconv.ParseInt(totalBytesStr, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("Could not parse file size: %s", err.Error())
 		}
 
 		hf := &HTTPFile{
@@ -270,7 +290,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			client:        client,
 
 			name:    parsedURL.Path,
-			size:    res.ContentLength,
+			size:    totalBytes,
 			readers: make(map[string]*httpReader),
 
 			ReaderStaleThreshold: DefaultReaderStaleThreshold,
