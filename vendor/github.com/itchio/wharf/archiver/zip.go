@@ -31,7 +31,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 	}
 
 	var doneSize uint64
-	var lastDoneIndex int
+	var lastDoneIndex int = -1
 
 	func() {
 		if settings.ResumeFrom == "" {
