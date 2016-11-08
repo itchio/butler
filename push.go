@@ -137,7 +137,6 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		break
 	}
 
-	comm.Logf("")
 	comm.Opf("Pushing %s (%s)", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
 
 	comm.Debugf("Building diff context")
@@ -292,6 +291,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		}
 	}
 	comm.Opf("Build is now processing, should be up in a bit (see `butler status`)")
+	comm.Logf("")
 
 	return nil
 }
