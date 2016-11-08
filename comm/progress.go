@@ -99,6 +99,8 @@ func StartProgressWithTotalBytes(totalBytes int64) {
 	bar.Set64(lastProgressValue)
 	bar.TotalBytes = totalBytes
 
+	lastBandwidthAlpha = valueToAlpha(lastProgressValue)
+
 	if settings.noProgress || settings.json {
 		// use bar for ETA, but don't print
 		bar.NotPrint = true
@@ -130,9 +132,9 @@ func ResumeProgress() {
 	}
 }
 
-var maxBucketDuration = 2 * time.Second
+var maxBucketDuration = 1 * time.Second
 var lastBandwidthUpdate time.Time
-var bandwidthBucket float64
+var lastBandwidthAlpha = 0.0
 var bps float64
 
 // Progress sets the completion of a task whose progress is being printed
@@ -150,16 +152,13 @@ func Progress(alpha float64) {
 			if lastBandwidthUpdate.IsZero() {
 				lastBandwidthUpdate = time.Now()
 			}
-
-			lastAlpha := valueToAlpha(lastProgressValue)
-			bytesDelta := float64(bar.TotalBytes) * float64(alpha-lastAlpha)
-			bandwidthBucket += bytesDelta
 			bucketDuration := time.Since(lastBandwidthUpdate)
 
 			if bucketDuration > maxBucketDuration {
-				bps = bandwidthBucket / bucketDuration.Seconds()
-				bandwidthBucket = 0
+				bytesSinceLastUpdate := float64(bar.TotalBytes) * (alpha - lastBandwidthAlpha)
+				bps = bytesSinceLastUpdate / bucketDuration.Seconds()
 				lastBandwidthUpdate = time.Now()
+				lastBandwidthAlpha = alpha
 			}
 
 			msg["bps"] = bps
@@ -195,7 +194,7 @@ func setBarProgress(alpha float64) {
 func EndProgress() {
 	lastProgressValue = 0
 	bps = 0
-	bandwidthBucket = 0
+	lastBandwidthAlpha = 0.0
 	lastBandwidthUpdate = time.Time{}
 
 	if bar != nil {
