@@ -732,7 +732,10 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 	}
 
 	if transposition == nil {
-		close(realops)
+		// realops may be nil if the file was empty (0 ops)
+		if realops != nil {
+			close(realops)
+		}
 	}
 
 	err = <-errs
