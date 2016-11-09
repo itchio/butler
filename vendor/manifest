@@ -103,7 +103,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "849e4cc5e2bf54b7f920345d7a6b33712506294c",
+			"revision": "5de813b1f90b66971229c818443d690f05367816",
 			"branch": "master",
 			"notests": true
 		},
@@ -111,7 +111,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "fbf2aa1194a2f79c4ddbed779a8db3e62f01dd71",
+			"revision": "6f6e23fba77ab08d3e6f4b8d6cd7ef51d1615aba",
 			"branch": "master",
 			"notests": true
 		},
@@ -119,7 +119,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "783a79b9d751cae4394d02c4fd37e66cf7df1c44",
+			"revision": "352d572030c77354e00445185901b1275b8d621d",
 			"branch": "master",
 			"notests": true
 		},

@@ -123,14 +123,15 @@ func (hr *httpReader) Connect() error {
 		res, err := hr.file.client.Do(req)
 		if err != nil {
 			if shouldRetry(err) {
-				hr.file.log("Connect: got Do() error %s, retrying", err.Error())
+				hr.file.log("Connect.tryURL: got Do() error %s, retrying", err.Error())
 				return true, nil
 			}
 			return false, err
 		}
-		hr.file.log("Connect: HTTP %d", res.StatusCode)
+		hr.file.log("Connect.tryURL: HTTP %d", res.StatusCode)
 
 		if res.StatusCode == 200 && hr.offset > 0 {
+			hr.file.log("Connect.tryURL: HTTP range header not supported")
 			defer res.Body.Close()
 
 			err = fmt.Errorf("HTTP Range header not supported by %s, bailing out", req.Host)
@@ -138,6 +139,7 @@ func (hr *httpReader) Connect() error {
 		}
 
 		if res.StatusCode/100 != 2 {
+			hr.file.log("Connect.tryURL: HTTP non-200, reading error")
 			defer res.Body.Close()
 
 			body, err := ioutil.ReadAll(res.Body)
@@ -147,8 +149,11 @@ func (hr *httpReader) Connect() error {
 			}
 
 			if hr.file.needsRenewal(res, body) {
+				hr.file.log("Connect.tryURL: needs renewal")
 				return true, nil
 			}
+
+			hr.file.log("Connect.tryURL: no renewal")
 
 			err = fmt.Errorf("HTTP %d returned by %s (%s), bailing out", res.StatusCode, req.Host, string(body))
 			return false, err
@@ -162,21 +167,28 @@ func (hr *httpReader) Connect() error {
 	urlStr := hr.file.getCurrentURL()
 	shouldRenew, err := tryURL(urlStr)
 	if err != nil {
+		hr.file.log("Connect: tryURL gave error: %s", err.Error())
 		return err
 	}
 
 	if shouldRenew {
+		hr.file.log("Connect: should renew")
 		urlStr, err = hr.file.renewURL()
 		if err != nil {
+			hr.file.log("Connect: renewal error: %s", err.Error())
 			return err
 		}
 
+		hr.file.log("Connect: got fresh url: %s", urlStr)
+
 		shouldRenew, err = tryURL(urlStr)
 		if err != nil {
+			hr.file.log("Connect: second tryURL gave error: %s", err.Error())
 			return err
 		}
 
 		if shouldRenew {
+			hr.file.log("Connect: second tryURL asked for renew, give it up")
 			return fmt.Errorf("getting expired URLs from URL source (timezone issue?)")
 		}
 	}
@@ -456,6 +468,7 @@ func (hf *HTTPFile) Read(data []byte) (int, error) {
 	hf.log("Read(%d)", len(data))
 	bytesRead, err := hf.readAt(data, hf.offset)
 	hf.offset += int64(bytesRead)
+	hf.log("Read(%d) = %d, %+v", len(data), bytesRead, err != nil)
 	return bytesRead, err
 }
 
@@ -465,7 +478,9 @@ func (hf *HTTPFile) Read(data []byte) (int, error) {
 // according to RetrySettings
 func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
 	hf.log("ReadAt(%d, %d)", len(data), offset)
-	return hf.readAt(data, offset)
+	n, err := hf.readAt(data, offset)
+	hf.log("ReadAt(%d, %d) = %d, %+v", len(data), offset, n, err != nil)
+	return n, err
 }
 
 func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {

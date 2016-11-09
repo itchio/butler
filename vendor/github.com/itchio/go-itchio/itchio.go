@@ -488,9 +488,7 @@ func (c *Client) DownloadUploadBuildWithKey(downloadKey string, uploadID int64, 
 type BuildEventType string
 
 const (
-	BuildEvent_JOB_STARTED   BuildEventType = "job_started"
-	BuildEvent_JOB_FAILED                   = "job_failed"
-	BuildEvent_JOB_COMPLETED                = "job_completed"
+	BuildEvent_LOG BuildEventType = "log"
 )
 
 type BuildEventData map[string]interface{}
@@ -660,6 +658,8 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 	return nil
 }
 
+// FindBuildFile looks for an uploaded file of the right type
+// in a list of file. Returns nil if it can't find one.
 func FindBuildFile(fileType BuildFileType, files []*BuildFileInfo) *BuildFileInfo {
 	for _, f := range files {
 		if f.Type == fileType && f.State == BuildFileState_UPLOADED {
@@ -668,4 +668,19 @@ func FindBuildFile(fileType BuildFileType, files []*BuildFileInfo) *BuildFileInf
 	}
 
 	return nil
+}
+
+// ItchfsURL returns the itchfs:/// url usable to download a given file
+// from a given build
+func (build BuildInfo) ItchfsURL(file *BuildFileInfo, apiKey string) string {
+	return ItchfsURL(build.ID, file.ID, apiKey)
+}
+
+// ItchfsURL returns the itchfs:/// url usable to download a given file
+// from a given build
+func ItchfsURL(buildID int64, fileID int64, apiKey string) string {
+	values := url.Values{}
+	values.Set("api_key", apiKey)
+	return fmt.Sprintf("itchfs:///wharf/builds/%d/files/%d/download?%s",
+		buildID, fileID, values.Encode())
 }

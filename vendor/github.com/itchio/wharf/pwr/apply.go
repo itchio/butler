@@ -345,6 +345,13 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 		bytesWritten, transposition, err := actx.lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
 		if err != nil {
+			select {
+			case nestedErr := <-errc:
+				if nestedErr != nil {
+					actx.Consumer.Debugf("Had an error while reading ops: %s", nestedErr.Error())
+				}
+			}
+
 			retErr = errors.Wrap(err, 1)
 			return
 		}
@@ -756,6 +763,7 @@ func readOps(rc *wire.ReadContext, ops chan wsync.Operation, errc chan error) {
 		rop.Reset()
 		err := rc.ReadMessage(rop)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "readOps error: %s", err.Error())
 			errc <- errors.Wrap(err, 1)
 			return
 		}

@@ -26,6 +26,7 @@ func needsRenewal(res *http.Response, body []byte) bool {
 	if res.StatusCode == 403 {
 		// 403 is a good indicator for Highwinds - additionally, we could parse the URL
 		// and compare the expires timestamp ourselves
+		return true
 	}
 	return false
 }

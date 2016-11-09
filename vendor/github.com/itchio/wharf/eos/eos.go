@@ -14,6 +14,8 @@ import (
 	"github.com/itchio/wharf/eos/option"
 )
 
+var debugHttpFile = os.Getenv("HTTPFILE_DEBUG") == "1"
+
 type File interface {
 	io.Reader
 	io.Closer
@@ -76,9 +78,21 @@ func Open(name string, opts ...option.Option) (File, error) {
 	switch u.Scheme {
 	case "http", "https":
 		res := &simpleHTTPResource{name}
-		return httpfile.New(res.GetURL, res.NeedsRenewal, &httpfile.Settings{
+		hf, err := httpfile.New(res.GetURL, res.NeedsRenewal, &httpfile.Settings{
 			Client: settings.HTTPClient,
 		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		if debugHttpFile {
+			hf.Log = func(msg string) {
+				fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
+			}
+		}
+
+		return hf, nil
 	default:
 		handler := handlers[u.Scheme]
 		if handler == nil {
@@ -90,8 +104,20 @@ func Open(name string, opts ...option.Option) (File, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
-		return httpfile.New(getURL, needsRenewal, &httpfile.Settings{
+		hf, err := httpfile.New(getURL, needsRenewal, &httpfile.Settings{
 			Client: settings.HTTPClient,
 		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		if debugHttpFile {
+			hf.Log = func(msg string) {
+				fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
+			}
+		}
+
+		return hf, nil
 	}
 }
