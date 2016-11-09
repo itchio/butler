@@ -666,7 +666,7 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 
 	var realops chan wsync.Operation
 
-	errs := make(chan error)
+	errs := make(chan error, 1)
 	first := true
 
 	for op := range ops {
@@ -691,15 +691,13 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 			}
 
 			if transposition != nil {
-				go func() {
-					errs <- nil
-				}()
+				errs <- nil
 			} else {
 				realops = make(chan wsync.Operation)
 
 				writer, err = outputPool.GetWriter(fileIndex)
 				if err != nil {
-					errs <- errors.Wrap(err, 1)
+					return 0, nil, errors.Wrap(err, 1)
 				} else {
 					writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
 
@@ -735,6 +733,9 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 		// realops may be nil if the file was empty (0 ops)
 		if realops != nil {
 			close(realops)
+		} else {
+			// if we had 0 ops, signal no errors occured
+			errs <- nil
 		}
 	}
 
