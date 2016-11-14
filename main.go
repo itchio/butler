@@ -69,6 +69,8 @@ var (
 
 	bsdiffCmd  = app.Command("bsdiff", "(Advanced) Diff two files using bsdiff").Hidden()
 	bspatchCmd = app.Command("bspatch", "(Advanced) Apply a bsdiff patch").Hidden()
+
+	lookupCmd = app.Command("lookup", "(Advanced) Look up where a specific block is").Hidden()
 )
 
 var appArgs = struct {

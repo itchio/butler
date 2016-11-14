@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -316,6 +318,8 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 			errs <- errors.Wrap(reqErr, 1)
 		}
 
+		comm.Debugf("Upload URL: %s", res.File.UploadURL)
+
 		req.ContentLength = 0
 
 		for k, v := range res.File.UploadHeaders {
@@ -328,6 +332,11 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 		}
 
 		if gcsRes.StatusCode != 201 {
+			log.Printf("Request debug:")
+			b, _ := httputil.DumpRequestOut(req, false)
+			fmt.Println(string(b))
+			b, _ = httputil.DumpResponse(gcsRes, true)
+			fmt.Println(string(b))
 			errs <- errors.Wrap(fmt.Errorf("could not create resumable upload session (got HTTP %d)", gcsRes.StatusCode), 1)
 		}
 
