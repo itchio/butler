@@ -47,23 +47,40 @@ type ResumableUpload struct {
 	consumer *state.Consumer
 
 	MaxChunkGroup int
+	BufferSize    int
 }
 
-func NewResumableUpload(uploadURL string, done chan bool, errs chan error, consumer *state.Consumer) (*ResumableUpload, error) {
+type ResumableUploadSettings struct {
+	/** Consumer gets progress info, debug messages, etc. */
+	Consumer *state.Consumer
+
+	/* MaxChunkGroup is how many 256KB chunks we'll try to upload in a single request to GCS. Defaults to 64 (16MiB) */
+	MaxChunkGroup int
+
+	/* BufferSize is how much data we'll accept from the writer before blocking. Defaults to 32MiB. */
+	BufferSize int
+}
+
+func NewResumableUpload(uploadURL string, done chan bool, errs chan error, settings ResumableUploadSettings) (*ResumableUpload, error) {
 	ru := &ResumableUpload{}
-	ru.MaxChunkGroup = 64
+	ru.MaxChunkGroup = settings.MaxChunkGroup
+	if ru.MaxChunkGroup == 0 {
+		ru.MaxChunkGroup = 64
+	}
 	ru.uploadURL = uploadURL
 	ru.id = seed
 	seed++
-	ru.consumer = consumer
+	ru.consumer = settings.Consumer
 	ru.httpClient = timeout.NewClient(resumableConnectTimeout, resumableIdleTimeout)
 
 	pipeR, pipeW := io.Pipe()
 
 	ru.pipeWriter = pipeW
 
-	// TODO: make configurable?
-	const bufferSize = 32 * 1024 * 1024
+	bufferSize := settings.BufferSize
+	if bufferSize == 0 {
+		bufferSize = 32 * 1024 * 1024
+	}
 
 	bufferedWriter := bufio.NewWriterSize(pipeW, bufferSize)
 	ru.bufferedWriter = bufferedWriter
