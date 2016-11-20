@@ -68,12 +68,15 @@ by using the checkboxes.
 
 *Don't forget to `Save` the game's page to apply your changes.*
 
-Tagging a channel as 'HTML5 / Playable in browser' needs to be done from the
-itch.io Edit game page, once the first build is pushed. The page also needs to be set
-to 'HTML' rather than the default 'Downloadable'.
-
 Clicking on the green channel button will show a list of builds and their
 current status.
+
+## HTML / Playable in browser games
+
+Tagging a channel as 'HTML5 / Playable in browser' needs to be done from the
+itch.io Edit game page, once the first build is pushed.
+
+The page also needs to be set to 'HTML' rather than the default 'Downloadable'.
 
 ## Specifying your own version number
 
