@@ -350,6 +350,8 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				if nestedErr != nil {
 					actx.Consumer.Debugf("Had an error while reading ops: %s", nestedErr.Error())
 				}
+			default:
+				// no nested error
 			}
 
 			retErr = errors.Wrap(err, 1)
