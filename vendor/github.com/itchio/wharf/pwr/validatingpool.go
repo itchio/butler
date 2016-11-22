@@ -64,18 +64,18 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 
 	hashGroup := vp.hashGroups[fileIndex]
 	blockIndex := int64(0)
-	fileSize := vp.Container.Files[fileIndex].Size
+	file := vp.Container.Files[fileIndex]
+	fileSize := file.Size
 
 	validate := func(data []byte) error {
-		bh := hashGroup[blockIndex]
-
 		weakHash, strongHash := vp.sctx.HashBlock(data)
 		start := blockIndex * BlockSize
 		size := ComputeBlockSize(fileSize, blockIndex)
 
-		if bh.WeakHash != weakHash {
+		if blockIndex >= int64(len(hashGroup)) {
 			if vp.Wounds == nil {
-				err := fmt.Errorf("at %d/%d, expected weak hash %x, got %x", fileIndex, blockIndex, bh.WeakHash, weakHash)
+				err := fmt.Errorf("%s: too large (%d blocks, tried to look up hash %d)",
+					file.Path, len(hashGroup), blockIndex)
 				return errors.Wrap(err, 1)
 			}
 
@@ -85,26 +85,42 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 				Start: start,
 				End:   start + size,
 			}
-		} else if !bytes.Equal(bh.StrongHash, strongHash) {
-			if vp.Wounds == nil {
-				err := fmt.Errorf("at %d/%d, expected strong hash %x, got %x", fileIndex, blockIndex, bh.StrongHash, strongHash)
-				return errors.Wrap(err, 1)
+		} else {
+			bh := hashGroup[blockIndex]
+
+			if bh.WeakHash != weakHash {
+				if vp.Wounds == nil {
+					err := fmt.Errorf("%s: at block %d, expected weak hash %x, got %x", file.Path, blockIndex, bh.WeakHash, weakHash)
+					return errors.Wrap(err, 1)
+				}
+
+				vp.Wounds <- &Wound{
+					Kind:  WoundKind_FILE,
+					Index: fileIndex,
+					Start: start,
+					End:   start + size,
+				}
+			} else if !bytes.Equal(bh.StrongHash, strongHash) {
+				if vp.Wounds == nil {
+					err := fmt.Errorf("%s: at block %d, expected strong hash %x, got %x", file.Path, blockIndex, bh.StrongHash, strongHash)
+					return errors.Wrap(err, 1)
+				}
+
+				vp.Wounds <- &Wound{
+					Kind:  WoundKind_FILE,
+					Index: fileIndex,
+					Start: start,
+					End:   start + size,
+				}
 			}
 
-			vp.Wounds <- &Wound{
-				Kind:  WoundKind_FILE,
-				Index: fileIndex,
-				Start: start,
-				End:   start + size,
-			}
-		}
-
-		if vp.Wounds != nil {
-			vp.Wounds <- &Wound{
-				Kind:  WoundKind_CLOSED_FILE,
-				Index: fileIndex,
-				Start: start,
-				End:   start + size,
+			if vp.Wounds != nil {
+				vp.Wounds <- &Wound{
+					Kind:  WoundKind_CLOSED_FILE,
+					Index: fileIndex,
+					Start: start,
+					End:   start + size,
+				}
 			}
 		}
 
