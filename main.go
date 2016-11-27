@@ -38,11 +38,12 @@ var (
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 	cpCmd = app.Command("cp", "Copy src to dest").Hidden()
 
-	untarCmd = app.Command("untar", "Extract a .tar file").Hidden()
-	unzipCmd = app.Command("unzip", "Extract a .zip file").Hidden()
-	wipeCmd  = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
-	dittoCmd = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
-	mkdirCmd = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
+	untarCmd  = app.Command("untar", "Extract a .tar file").Hidden()
+	unzipCmd  = app.Command("unzip", "Extract a .zip file").Hidden()
+	wipeCmd   = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
+	dittoCmd  = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
+	mkdirCmd  = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
+	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
 	loginCmd  = app.Command("login", "Connect butler to your itch.io account and save credentials locally.")
 	logoutCmd = app.Command("logout", "Remove saved itch.io credentials.")
@@ -208,6 +209,12 @@ var mkdirArgs = struct {
 	path *string
 }{
 	mkdirCmd.Arg("path", "Directory to create").Required().String(),
+}
+
+var sizeofArgs = struct {
+	path *string
+}{
+	sizeofCmd.Arg("path", "Directory to compute the size of").Required().String(),
 }
 
 var dittoArgs = struct {
@@ -488,6 +495,9 @@ func main() {
 
 	case dittoCmd.FullCommand():
 		ditto(*dittoArgs.src, *dittoArgs.dst)
+
+	case sizeofCmd.FullCommand():
+		sizeof(*sizeofArgs.path)
 
 	case diffCmd.FullCommand():
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())

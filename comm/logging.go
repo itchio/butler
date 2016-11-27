@@ -145,6 +145,13 @@ func Die(msg string) {
 	})
 }
 
+// Resultf sends a result
+func Resultf(value interface{}) {
+	send("result", jsonMessage{
+		"value": value,
+	})
+}
+
 // Dief is a formatted variant of Die
 func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
@@ -180,6 +187,8 @@ func send(msgType string, obj jsonMessage) {
 				log.Println(obj["message"])
 				os.Exit(1)
 			}
+		case "result":
+			log.Printf("Result: %v", obj["value"])
 		case "progress":
 			// already handled by pb
 		default:

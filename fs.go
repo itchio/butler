@@ -143,6 +143,21 @@ func ditto(src string, dst string) {
 	comm.EndProgress()
 }
 
+func sizeof(path string) {
+	totalSize := int64(0)
+
+	inc := func(_ string, f os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		totalSize += f.Size()
+		return nil
+	}
+
+	filepath.Walk(path, inc)
+	comm.Resultf(totalSize)
+}
+
 func dittoMkdir(dstpath string) {
 	comm.Debugf("mkdir %s", dstpath)
 	must(archiver.Mkdir(dstpath))
