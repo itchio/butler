@@ -707,20 +707,19 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 				writer, err = outputPool.GetWriter(fileIndex)
 				if err != nil {
 					return 0, nil, errors.Wrap(err, 1)
-				} else {
-					writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
-
-					go func() {
-						applyErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
-						if applyErr != nil {
-							errs <- applyErr
-							return
-						}
-
-						written = writeCounter.Count()
-						errs <- nil
-					}()
 				}
+				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
+
+				go func() {
+					applyErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
+					if applyErr != nil {
+						errs <- applyErr
+						return
+					}
+
+					written = writeCounter.Count()
+					errs <- nil
+				}()
 			}
 		}
 
