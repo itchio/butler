@@ -2,6 +2,7 @@ package itchfs
 
 import (
 	"fmt"
+	"net/url"
 	"path"
 	"strconv"
 	"strings"
@@ -27,9 +28,10 @@ const (
 )
 
 type Source struct {
-	Type       SourceType
-	ItchClient *itchio.Client
-	Path       string
+	Type        SourceType
+	ItchClient  *itchio.Client
+	Path        string
+	QueryValues url.Values
 }
 
 var patterns = map[string]SourceType{
@@ -40,7 +42,7 @@ var patterns = map[string]SourceType{
 	"/wharf/builds/*/files/*/download":      SourceType_WharfDownloadBuild,
 }
 
-func ObtainSource(itchClient *itchio.Client, itchPath string) (*Source, error) {
+func ObtainSource(itchClient *itchio.Client, itchPath string, queryValues url.Values) (*Source, error) {
 	var matches bool
 	var err error
 
@@ -52,9 +54,10 @@ func ObtainSource(itchClient *itchio.Client, itchPath string) (*Source, error) {
 
 		if matches {
 			return &Source{
-				Type:       sourceType,
-				ItchClient: itchClient,
-				Path:       itchPath,
+				Type:        sourceType,
+				ItchClient:  itchClient,
+				Path:        itchPath,
+				QueryValues: queryValues,
 			}, nil
 		}
 	}
@@ -94,16 +97,19 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
+		downloadKey := s.QueryValues.Get("download_key_id")
+
 		fileType := tokens[6]
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.DownloadUploadBuild(uploadID, buildID)
+			r, err := s.ItchClient.DownloadUploadBuildWithKey(downloadKey, uploadID, buildID)
 			if err != nil {
 				return "", err
 			}
 
 			return serveBuildFile(r, fileType)
 		}
+	// deprecated
 	case SourceType_KeyDownloadBuild:
 		downloadKey := tokens[2]
 
@@ -153,8 +159,10 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 			return nil, errors.Wrap(err, 1)
 		}
 
+		downloadKey := s.QueryValues.Get("download_key_id")
+
 		getter = func() (string, error) {
-			r, err := s.ItchClient.UploadDownload(uploadID)
+			r, err := s.ItchClient.UploadDownloadWithKey(downloadKey, uploadID)
 			if err != nil {
 				return "", err
 			}
@@ -162,6 +170,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 			return r.URL, nil
 		}
 
+	// deprecated
 	case SourceType_KeyDownloadUpload:
 		downloadKey := tokens[2]
 

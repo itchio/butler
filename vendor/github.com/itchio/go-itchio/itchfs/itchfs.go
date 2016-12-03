@@ -43,12 +43,14 @@ func (ifs *ItchFS) MakeResource(u *url.URL) (httpfile.GetURLFunc, httpfile.Needs
 		return nil, nil, fmt.Errorf("missing API key")
 	}
 
+	vals.Del("api_key")
+
 	itchClient := itchio.ClientWithKey(apiKey)
 	if ifs.ItchServer != "" {
 		itchClient.SetServer(ifs.ItchServer)
 	}
 
-	source, err := ObtainSource(itchClient, u.Path)
+	source, err := ObtainSource(itchClient, u.Path, vals)
 	if err != nil {
 		return nil, nil, err
 	}
