@@ -1,7 +1,7 @@
 package tlc
 
 import (
-	"archive/zip"
+	"github.com/itchio/arkive/zip"
 	"fmt"
 	"io/ioutil"
 	"log"

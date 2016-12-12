@@ -100,6 +100,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/arkive",
+			"repository": "https://github.com/itchio/arkive",
+			"vcs": "git",
+			"revision": "7dd15456cb7d0e24c26bf4f632fcd31cda4d3903",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
@@ -119,7 +127,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "a4e0db9560e16ba6c674c678863f47b953540828",
+			"revision": "a54a1bef0bf3745a817214ef97e403e79a227e9c",
 			"branch": "master",
 			"notests": true
 		},

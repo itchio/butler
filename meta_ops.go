@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/zip"
 	"compress/gzip"
 	"encoding/binary"
 	"fmt"
@@ -11,6 +10,8 @@ import (
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/itchio/arkive/zip"
 
 	"github.com/blang/semver"
 	"github.com/dustin/go-humanize"

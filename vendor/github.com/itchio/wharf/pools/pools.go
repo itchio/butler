@@ -1,7 +1,7 @@
 package pools
 
 import (
-	"archive/zip"
+	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"

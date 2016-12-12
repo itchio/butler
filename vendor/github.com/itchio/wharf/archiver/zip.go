@@ -1,7 +1,6 @@
 package archiver
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +9,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+
+	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"

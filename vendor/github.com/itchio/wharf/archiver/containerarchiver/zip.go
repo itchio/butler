@@ -1,7 +1,7 @@
 package containerarchiver
 
 import (
-	"archive/zip"
+	"github.com/itchio/arkive/zip"
 	"io"
 	"os"
 	"time"
