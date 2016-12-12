@@ -28,10 +28,10 @@ import (
 // A ContainerResult is sent in json mode by the file command
 type ContainerResult struct {
 	Type             string `json:"type"`
-	NumFiles         int    `json:"num_files"`
-	NumDirs          int    `json:"num_dirs"`
-	NumSymlinks      int    `json:"num_symlinks"`
-	UncompressedSize int64  `json:"uncompressed_size"`
+	NumFiles         int    `json:"numFiles"`
+	NumDirs          int    `json:"numDirs"`
+	NumSymlinks      int    `json:"numSymlinks"`
+	UncompressedSize int64  `json:"uncompressedSize"`
 }
 
 var updateBaseURL = fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s", runtime.GOOS, runtime.GOARCH)
