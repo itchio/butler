@@ -145,8 +145,8 @@ func Die(msg string) {
 	})
 }
 
-// Resultf sends a result
-func Resultf(value interface{}) {
+// Result sends a result
+func Result(value interface{}) {
 	send("result", jsonMessage{
 		"value": value,
 	})
@@ -188,7 +188,7 @@ func send(msgType string, obj jsonMessage) {
 				os.Exit(1)
 			}
 		case "result":
-			log.Printf("Result: %v", obj["value"])
+			// don't show outside json mode
 		case "progress":
 			// already handled by pb
 		default:

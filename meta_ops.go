@@ -25,6 +25,15 @@ import (
 	"github.com/kardianos/osext"
 )
 
+// A ContainerResult is sent in json mode by the file command
+type ContainerResult struct {
+	Type             string `json:"type"`
+	NumFiles         int    `json:"num_files"`
+	NumDirs          int    `json:"num_dirs"`
+	NumSymlinks      int    `json:"num_symlinks"`
+	UncompressedSize int64  `json:"uncompressed_size"`
+}
+
 var updateBaseURL = fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s", runtime.GOOS, runtime.GOARCH)
 
 func which() {
@@ -77,6 +86,13 @@ func file(path string) {
 			must(rctx.ReadMessage(container)) // source container
 
 			comm.Logf("%s: %s wharf patch file (%s) with %s", path, prettySize, ph.GetCompression().ToString(), container.Stats())
+			comm.Result(ContainerResult{
+				Type:             "wharf/patch",
+				NumFiles:         len(container.Files),
+				NumDirs:          len(container.Dirs),
+				NumSymlinks:      len(container.Symlinks),
+				UncompressedSize: container.Size,
+			})
 		}
 
 	case pwr.SignatureMagic:
@@ -91,6 +107,13 @@ func file(path string) {
 			must(rctx.ReadMessage(container))
 
 			comm.Logf("%s: %s wharf signature file (%s) with %s", path, prettySize, sh.GetCompression().ToString(), container.Stats())
+			comm.Result(ContainerResult{
+				Type:             "wharf/signature",
+				NumFiles:         len(container.Files),
+				NumDirs:          len(container.Dirs),
+				NumSymlinks:      len(container.Symlinks),
+				UncompressedSize: container.Size,
+			})
 		}
 
 	case pwr.ManifestMagic:
@@ -105,6 +128,13 @@ func file(path string) {
 			must(rctx.ReadMessage(container))
 
 			comm.Logf("%s: %s wharf manifest file (%s) with %s", path, prettySize, mh.GetCompression().ToString(), container.Stats())
+			comm.Result(ContainerResult{
+				Type:             "wharf/manifest",
+				NumFiles:         len(container.Files),
+				NumDirs:          len(container.Dirs),
+				NumSymlinks:      len(container.Symlinks),
+				UncompressedSize: container.Size,
+			})
 		}
 
 	case pwr.WoundsMagic:
@@ -139,6 +169,9 @@ func file(path string) {
 
 			comm.Logf("%s: %s wharf wounds file with %s, %s wounds in %d files", path, prettySize, container.Stats(),
 				humanize.IBytes(uint64(totalWounds)), len(files))
+			comm.Result(ContainerResult{
+				Type: "wharf/wounds",
+			})
 		}
 
 	default:
@@ -158,6 +191,13 @@ func file(path string) {
 			must(err)
 
 			comm.Logf("%s: %s zip file with %s", path, prettySize, container.Stats())
+			comm.Result(ContainerResult{
+				Type:             "zip",
+				NumFiles:         len(container.Files),
+				NumDirs:          len(container.Dirs),
+				NumSymlinks:      len(container.Symlinks),
+				UncompressedSize: container.Size,
+			})
 			return true
 		}()
 

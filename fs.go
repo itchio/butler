@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/archiver"
 )
@@ -155,7 +156,8 @@ func sizeof(path string) {
 	}
 
 	filepath.Walk(path, inc)
-	comm.Resultf(totalSize)
+	comm.Logf("Total size of %s: %s", path, humanize.IBytes(uint64(totalSize)))
+	comm.Result(totalSize)
 }
 
 func dittoMkdir(dstpath string) {
