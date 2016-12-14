@@ -64,7 +64,7 @@ var (
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
-	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a source")
+	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
@@ -284,11 +284,11 @@ var signArgs = struct {
 var healArgs = struct {
 	dir    *string
 	wounds *string
-	source *string
+	spec   *string
 }{
 	healCmd.Arg("dir", "Path of directory to heal").Required().String(),
 	healCmd.Arg("wounds", "Path of wounds file").Required().String(),
-	healCmd.Arg("source", "Path of source to heal with").Required().String(),
+	healCmd.Arg("spec", "Path of spec to heal with").Required().String(),
 }
 
 var probeArgs = struct {
@@ -512,7 +512,7 @@ func main() {
 		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
 
 	case healCmd.FullCommand():
-		heal(*healArgs.dir, *healArgs.wounds, *healArgs.source)
+		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
