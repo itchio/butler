@@ -1,11 +1,12 @@
 package zipwriterpool
 
 import (
-	"github.com/itchio/arkive/zip"
 	"fmt"
 	"io"
 	"os"
 	"time"
+
+	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
@@ -20,8 +21,6 @@ type ZipWriterPool struct {
 var _ wsync.WritablePool = (*ZipWriterPool)(nil)
 
 func New(container *tlc.Container, zw *zip.Writer) *ZipWriterPool {
-	// TODO: write dirs and symlinks here
-
 	return &ZipWriterPool{
 		container: container,
 		zw:        zw,
@@ -55,7 +54,36 @@ func (zwp *ZipWriterPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	return &nopWriteCloser{w}, nil
 }
 
+// Close writes symlinks and dirs of the container, then closes
+// the zip writer.
 func (zwp *ZipWriterPool) Close() error {
+	for _, symlink := range zwp.container.Symlinks {
+		fh := zip.FileHeader{
+			Name: symlink.Path,
+		}
+		fh.SetMode(os.FileMode(symlink.Mode))
+
+		entryWriter, eErr := zwp.zw.CreateHeader(&fh)
+		if eErr != nil {
+			return errors.Wrap(eErr, 1)
+		}
+
+		entryWriter.Write([]byte(symlink.Dest))
+	}
+
+	for _, dir := range zwp.container.Dirs {
+		fh := zip.FileHeader{
+			Name: dir.Path + "/",
+		}
+		fh.SetMode(os.FileMode(dir.Mode))
+		fh.SetModTime(time.Now())
+
+		_, hErr := zwp.zw.CreateHeader(&fh)
+		if hErr != nil {
+			return errors.Wrap(hErr, 1)
+		}
+	}
+
 	err := zwp.zw.Close()
 	if err != nil {
 		return errors.Wrap(err, 1)

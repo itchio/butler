@@ -20,6 +20,10 @@ func New(container *tlc.Container) *NullPool {
 	return &NullPool{container}
 }
 
+func (fp *NullPool) GetSize(fileIndex int64) int64 {
+	return 0
+}
+
 func (fp *NullPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return fp.GetReadSeeker(fileIndex)
 }

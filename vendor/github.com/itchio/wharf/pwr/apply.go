@@ -711,7 +711,12 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
 
 				go func() {
-					applyErr := sctx.ApplyPatch(writeCounter, targetPool, realops)
+					failFast := true
+					if actx.WoundsConsumer != nil {
+						failFast = false
+					}
+
+					applyErr := sctx.ApplyPatchFull(writeCounter, targetPool, realops, failFast)
 					if applyErr != nil {
 						errs <- applyErr
 						return

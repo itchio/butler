@@ -35,6 +35,11 @@ type ValidatingPool struct {
 
 var _ wsync.WritablePool = (*ValidatingPool)(nil)
 
+// GetSize is a pass-through to the underlying Pool
+func (vp *ValidatingPool) GetSize(fileIndex int64) int64 {
+	return vp.Pool.GetSize(fileIndex)
+}
+
 // GetReader is a pass-through to the underlying Pool, it doesn't validate
 func (vp *ValidatingPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return vp.GetReadSeeker(fileIndex)

@@ -39,30 +39,69 @@ func NewContext(BlockSize int) *Context {
 	}
 }
 
+type devNullReader struct{}
+
+var _ io.Reader = (*devNullReader)(nil)
+
+func (dvr *devNullReader) Read(buf []byte) (int, error) {
+	for i := range buf {
+		buf[i] = 0
+	}
+	return len(buf), nil
+}
+
 // ApplyPatch applies the difference to the target.
 func (ctx *Context) ApplyPatch(output io.Writer, pool Pool, ops chan Operation) error {
+	return ctx.ApplyPatchFull(output, pool, ops, true)
+}
+
+// ApplyPatchFull is like ApplyPatch but accepts an ApplyWound channel
+func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operation, failFast bool) error {
 	blockSize := int64(ctx.blockSize)
+	pos := int64(0)
 
 	for op := range ops {
 		switch op.Type {
 		case OpBlockRange:
+			fileSize := pool.GetSize(op.FileIndex)
+			fixedSize := (op.BlockSpan - 1) * blockSize
+			lastIndex := op.BlockIndex + (op.BlockSpan - 1)
+			lastSize := blockSize
+			if blockSize*(lastIndex+1) > fileSize {
+				lastSize = fileSize % blockSize
+			}
+			opSize := (fixedSize + lastSize)
+
 			target, err := pool.GetReadSeeker(op.FileIndex)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				if failFast {
+					return errors.Wrap(err, 1)
+				}
+				io.CopyN(output, &devNullReader{}, opSize)
+				pos += opSize
+				continue
 			}
 
 			_, err = target.Seek(blockSize*op.BlockIndex, os.SEEK_SET)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				if failFast {
+					return errors.Wrap(err, 1)
+				}
+				io.CopyN(output, &devNullReader{}, opSize)
+				pos += opSize
+				continue
 			}
 
-			_, err = io.CopyN(output, target, blockSize*op.BlockSpan)
+			copied, err := io.CopyN(output, target, opSize)
 			if err != nil {
-				// EOF is actually expected, since we want to copy short
-				// blocks at the end of files. Other errors aren't expected.
-				if err != io.EOF {
+				if failFast {
 					return errors.Wrap(fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error()), 1)
 				}
+
+				remaining := opSize - copied
+				io.CopyN(output, &devNullReader{}, remaining)
+				pos += opSize
+				continue
 			}
 		case OpData:
 			_, err := output.Write(op.Data)
