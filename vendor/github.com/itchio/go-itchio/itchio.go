@@ -5,7 +5,9 @@ import (
 	"github.com/go-errors/errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"bytes"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -640,9 +642,15 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		return fmt.Errorf("Server returned %s for %s", res.Status, res.Request.URL.String())
 	}
 
-	err := json.NewDecoder(bodyReader).Decode(dst)
-	if err != nil {
+    body, err := ioutil.ReadAll(bodyReader)
+    if err != nil {
 		return errors.Wrap(err, 1)
+    }
+
+	err = json.NewDecoder(bytes.NewReader(body)).Decode(dst)
+	if err != nil {
+        msg := fmt.Sprintf("JSON decode error: %s\n\nBody: %s\n\n", err.Error(), string(body))
+        return errors.Wrap(errors.New(msg), 1)
 	}
 
 	errs := reflect.Indirect(reflect.ValueOf(dst)).FieldByName("Errors")
