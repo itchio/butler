@@ -2,7 +2,7 @@ package itchio
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/go-errors/errors"
 	"fmt"
 	"io"
 	"log"
@@ -642,7 +642,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 
 	err := json.NewDecoder(bodyReader).Decode(dst)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 1)
 	}
 
 	errs := reflect.Indirect(reflect.ValueOf(dst)).FieldByName("Errors")
