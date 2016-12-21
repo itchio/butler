@@ -102,7 +102,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 		fileType := tokens[6]
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.DownloadUploadBuildWithKey(downloadKey, uploadID, buildID)
+			r, err := s.ItchClient.DownloadUploadBuildWithKeyAndValues(downloadKey, uploadID, buildID, stripDownloadKey(s.QueryValues))
 			if err != nil {
 				return "", err
 			}
@@ -126,7 +126,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 		fileType := tokens[7]
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.DownloadUploadBuildWithKey(downloadKey, uploadID, buildID)
+			r, err := s.ItchClient.DownloadUploadBuildWithKeyAndValues(downloadKey, uploadID, buildID, stripDownloadKey(s.QueryValues))
 			if err != nil {
 				return "", err
 			}
@@ -145,7 +145,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 		}
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.GetBuildFileDownloadURL(buildID, buildFileID)
+			r, err := s.ItchClient.GetBuildFileDownloadURLWithValues(buildID, buildFileID, stripDownloadKey(s.QueryValues))
 			if err != nil {
 				return "", err
 			}
@@ -162,7 +162,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 		downloadKey := s.QueryValues.Get("download_key_id")
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.UploadDownloadWithKey(downloadKey, uploadID)
+			r, err := s.ItchClient.UploadDownloadWithKeyAndValues(downloadKey, uploadID, stripDownloadKey(s.QueryValues))
 			if err != nil {
 				return "", err
 			}
@@ -180,7 +180,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 		}
 
 		getter = func() (string, error) {
-			r, err := s.ItchClient.UploadDownloadWithKey(downloadKey, uploadID)
+			r, err := s.ItchClient.UploadDownloadWithKeyAndValues(downloadKey, uploadID, stripDownloadKey(s.QueryValues))
 			if err != nil {
 				return "", err
 			}
@@ -193,4 +193,17 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 	}
 
 	return getter, nil
+}
+
+func stripDownloadKey(in url.Values) url.Values {
+	res := url.Values{}
+	for k, vv := range in {
+		if k == "download_key_id" {
+			continue
+		}
+		for _, v := range vv {
+			res.Add(k, v)
+		}
+	}
+	return res
 }

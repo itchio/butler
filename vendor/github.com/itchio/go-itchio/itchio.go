@@ -1,19 +1,20 @@
 package itchio
 
 import (
+	"bytes"
 	"encoding/json"
-	"github.com/go-errors/errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
-	"bytes"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/go-errors/errors"
 )
 
 type Client struct {
@@ -66,9 +67,11 @@ type Game struct {
 }
 
 type Upload struct {
-	ID       int64
-	Filename string
-	Size     int64
+	ID          int64
+	Filename    string
+	Size        int64
+	ChannelName string `json:"channel_name"`
+	Build       *BuildInfo
 
 	OSX     bool `json:"p_osx"`
 	Linux   bool `json:"p_linux"`
@@ -116,7 +119,7 @@ func (c *Client) MyGames() (r MyGamesResponse, err error) {
 type GameUploadsResponse struct {
 	Response
 
-	Uploads []Upload `json:"uploads"`
+	Uploads []*Upload `json:"uploads"`
 }
 
 func (c *Client) GameUploads(gameID int64) (r GameUploadsResponse, err error) {
@@ -142,7 +145,14 @@ func (c *Client) UploadDownload(uploadID int64) (r UploadDownloadResponse, err e
 }
 
 func (c *Client) UploadDownloadWithKey(downloadKey string, uploadID int64) (r UploadDownloadResponse, err error) {
-	values := url.Values{}
+	return c.UploadDownloadWithKeyAndValues(downloadKey, uploadID, nil)
+}
+
+func (c *Client) UploadDownloadWithKeyAndValues(downloadKey string, uploadID int64, values url.Values) (r UploadDownloadResponse, err error) {
+	if values == nil {
+		values = url.Values{}
+	}
+
 	if downloadKey != "" {
 		values.Add("download_key_id", downloadKey)
 	}
@@ -207,6 +217,9 @@ type BuildInfo struct {
 	ID            int64
 	ParentBuildID int64 `json:"parent_build_id"`
 	State         BuildState
+
+	Version     int64
+	UserVersion string `json:"user_version"`
 
 	Files []*BuildFileInfo
 
@@ -387,7 +400,14 @@ var (
 )
 
 func (c *Client) GetBuildFileDownloadURL(buildID int64, fileID int64) (r DownloadBuildFileResponse, err error) {
+	return c.GetBuildFileDownloadURLWithValues(buildID, fileID, nil)
+}
+
+func (c *Client) GetBuildFileDownloadURLWithValues(buildID int64, fileID int64, values url.Values) (r DownloadBuildFileResponse, err error) {
 	path := c.MakePath("wharf/builds/%d/files/%d/download", buildID, fileID)
+	if values != nil {
+		path = path + "?" + values.Encode()
+	}
 
 	resp, err := c.Get(path)
 	if err != nil {
@@ -460,7 +480,14 @@ func (c *Client) DownloadUploadBuild(uploadID int64, buildID int64) (r DownloadU
 }
 
 func (c *Client) DownloadUploadBuildWithKey(downloadKey string, uploadID int64, buildID int64) (r DownloadUploadBuildResponse, err error) {
-	values := url.Values{}
+	return c.DownloadUploadBuildWithKeyAndValues("", uploadID, buildID, nil)
+}
+
+func (c *Client) DownloadUploadBuildWithKeyAndValues(downloadKey string, uploadID int64, buildID int64, values url.Values) (r DownloadUploadBuildResponse, err error) {
+	if values == nil {
+		values = url.Values{}
+	}
+
 	if downloadKey != "" {
 		values.Add("download_key_id", downloadKey)
 	}
@@ -642,15 +669,15 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		return fmt.Errorf("Server returned %s for %s", res.Status, res.Request.URL.String())
 	}
 
-    body, err := ioutil.ReadAll(bodyReader)
-    if err != nil {
+	body, err := ioutil.ReadAll(bodyReader)
+	if err != nil {
 		return errors.Wrap(err, 1)
-    }
+	}
 
 	err = json.NewDecoder(bytes.NewReader(body)).Decode(dst)
 	if err != nil {
-        msg := fmt.Sprintf("JSON decode error: %s\n\nBody: %s\n\n", err.Error(), string(body))
-        return errors.Wrap(errors.New(msg), 1)
+		msg := fmt.Sprintf("JSON decode error: %s\n\nBody: %s\n\n", err.Error(), string(body))
+		return errors.Wrap(errors.New(msg), 1)
 	}
 
 	errs := reflect.Indirect(reflect.ValueOf(dst)).FieldByName("Errors")
