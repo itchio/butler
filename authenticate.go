@@ -114,12 +114,27 @@ func login() {
 	must(doLogin())
 }
 
-func doLogin() error {
+const EnvironmentApiKey = "BUTLER_API_KEY"
+
+func hasSavedCredentials() bool {
+	// environment has priority
+	if os.Getenv(EnvironmentApiKey) != "" {
+		return true
+	}
+
+	// then file at usual or specified path
 	var identity = *appArgs.identity
 	_, err := os.Lstat(identity)
-	hasSavedCredentials := !os.IsNotExist(err)
+	if !os.IsNotExist(err) {
+		return true
+	}
 
-	if hasSavedCredentials {
+	// no key, we need login
+	return false
+}
+
+func doLogin() error {
+	if hasSavedCredentials() {
 		client, err := authenticateViaOauth()
 		if err != nil {
 			return errors.Wrap(err, 1)
@@ -229,6 +244,11 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		client.SetServer(*appArgs.address)
 		client.UserAgent = userAgent()
 		return client
+	}
+
+	envKey := os.Getenv(EnvironmentApiKey)
+	if envKey != "" {
+		return makeClient(envKey), nil
 	}
 
 	key, err = readKeyFile(identity)
