@@ -24,6 +24,10 @@ type BlockPool struct {
 var _ wsync.Pool = (*BlockPool)(nil)
 var _ wsync.WritablePool = (*BlockPool)(nil)
 
+func (np *BlockPool) GetSize(fileIndex int64) int64 {
+	return np.Container.Files[fileIndex].Size
+}
+
 func (np *BlockPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return np.GetReadSeeker(fileIndex)
 }

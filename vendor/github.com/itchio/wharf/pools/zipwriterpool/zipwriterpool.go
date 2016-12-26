@@ -27,6 +27,10 @@ func New(container *tlc.Container, zw *zip.Writer) *ZipWriterPool {
 	}
 }
 
+func (zwp *ZipWriterPool) GetSize(fileIndex int64) int64 {
+	return 0
+}
+
 func (zwp *ZipWriterPool) GetReader(fileIndex int64) (io.Reader, error) {
 	return nil, fmt.Errorf("zipwriterpool is not readable")
 }
