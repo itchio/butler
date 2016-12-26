@@ -98,7 +98,7 @@ butler push mygame user/mygame:win32-final --userversion-file buildnumber.txt
 ```
 
 *The `buildnumber.txt` file should contain a single line with the
-version or build number.*
+version or build number, in UTF-8 without BOM.*
 
 User-provided version numbers don't have any particular format -
 the ordering itch.io uses is the one builds are uploaded in.
