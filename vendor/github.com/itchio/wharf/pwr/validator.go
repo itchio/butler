@@ -267,29 +267,15 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		errs <- retErr
 	}()
 
-	aggregateOut := make(chan *Wound)
-	relayDone := make(chan bool)
-	go func() {
-		for w := range aggregateOut {
-			vctx.Wounds <- w
-		}
-		relayDone <- true
-	}()
-
-	wounds := AggregateWounds(aggregateOut, MaxWoundSize)
-	defer func() {
-		// signal no more wounds are going to be sent
-		close(wounds)
-		// wait for all of them to be relayed
-		<-relayDone
-	}()
-
 	validatingPool := &ValidatingPool{
 		Pool:      nullpool.New(signature.Container),
 		Container: signature.Container,
 		Signature: signature,
 
-		Wounds: wounds,
+		Wounds: vctx.Wounds,
+		WoundsFilter: func(wounds chan *Wound) chan *Wound {
+			return AggregateWounds(wounds, MaxWoundSize)
+		},
 	}
 
 	doOne := func(fileIndex int64) error {
@@ -309,7 +295,7 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 				onProgress(file.Size)
 
 				select {
-				case wounds <- wound:
+				case vctx.Wounds <- wound:
 				case <-cancelled:
 				}
 				return nil
@@ -348,7 +334,7 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 			}
 
 			select {
-			case wounds <- wound:
+			case vctx.Wounds <- wound:
 			case <-cancelled:
 			}
 		}

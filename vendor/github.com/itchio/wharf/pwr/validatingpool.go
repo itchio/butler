@@ -13,6 +13,8 @@ import (
 
 type OnFileValidatedFunc func(fileIndex int64)
 
+type WoundsFilterFunc func(wounds chan *Wound) chan *Wound
+
 // A ValidatingPool will check files against their hashes, but doesn't
 // check directories or symlinks
 type ValidatingPool struct {
@@ -23,7 +25,8 @@ type ValidatingPool struct {
 	Container *tlc.Container
 	Signature *SignatureInfo
 
-	Wounds chan *Wound
+	Wounds       chan *Wound
+	WoundsFilter WoundsFilterFunc
 
 	OnFileValidated OnFileValidatedFunc
 
@@ -50,10 +53,58 @@ func (vp *ValidatingPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) 
 	return vp.Pool.GetReadSeeker(fileIndex)
 }
 
+type onCloseFunc func() error
+
+type onCloseWriter struct {
+	Writer  io.Writer
+	OnClose onCloseFunc
+}
+
+var _ io.Writer = (*onCloseWriter)(nil)
+var _ io.Closer = (*onCloseWriter)(nil)
+
+func (ocw *onCloseWriter) Write(buf []byte) (int, error) {
+	return ocw.Writer.Write(buf)
+}
+
+func (ocw *onCloseWriter) Close() error {
+	err := ocw.OnClose()
+	if err != nil {
+		return err
+	}
+
+	if closer, ok := ocw.Writer.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
 // GetWriter returns a writer that checks hashes before writing to the underlying
 // pool's writer. It tries really hard to be transparent, but does buffer some data,
 // which means some writing is only done when the returned writer is closed.
 func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
+	var wounds chan *Wound
+	var woundsDone chan bool
+
+	if vp.Wounds != nil {
+		wounds = make(chan *Wound)
+		originalWounds := wounds
+		if vp.WoundsFilter != nil {
+			wounds = vp.WoundsFilter(wounds)
+		}
+
+		woundsDone = make(chan bool)
+
+		go func() {
+			for wound := range originalWounds {
+				if vp.Wounds != nil {
+					vp.Wounds <- wound
+				}
+			}
+			woundsDone <- true
+		}()
+	}
+
 	if vp.hashGroups == nil {
 		err := vp.makeHashGroups()
 		if err != nil {
@@ -78,13 +129,13 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		size := ComputeBlockSize(fileSize, blockIndex)
 
 		if blockIndex >= int64(len(hashGroup)) {
-			if vp.Wounds == nil {
+			if wounds == nil {
 				err := fmt.Errorf("%s: too large (%d blocks, tried to look up hash %d)",
 					file.Path, len(hashGroup), blockIndex)
 				return errors.Wrap(err, 1)
 			}
 
-			vp.Wounds <- &Wound{
+			wounds <- &Wound{
 				Kind:  WoundKind_FILE,
 				Index: fileIndex,
 				Start: start,
@@ -94,37 +145,37 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 			bh := hashGroup[blockIndex]
 
 			if bh.WeakHash != weakHash {
-				if vp.Wounds == nil {
+				if wounds == nil {
 					err := fmt.Errorf("%s: at block %d, expected weak hash %x, got %x", file.Path, blockIndex, bh.WeakHash, weakHash)
 					return errors.Wrap(err, 1)
 				}
 
-				vp.Wounds <- &Wound{
+				wounds <- &Wound{
 					Kind:  WoundKind_FILE,
 					Index: fileIndex,
 					Start: start,
 					End:   start + size,
 				}
 			} else if !bytes.Equal(bh.StrongHash, strongHash) {
-				if vp.Wounds == nil {
+				if wounds == nil {
 					err := fmt.Errorf("%s: at block %d, expected strong hash %x, got %x", file.Path, blockIndex, bh.StrongHash, strongHash)
 					return errors.Wrap(err, 1)
 				}
 
-				vp.Wounds <- &Wound{
+				wounds <- &Wound{
 					Kind:  WoundKind_FILE,
 					Index: fileIndex,
 					Start: start,
 					End:   start + size,
 				}
-			}
-
-			if vp.Wounds != nil {
-				vp.Wounds <- &Wound{
-					Kind:  WoundKind_CLOSED_FILE,
-					Index: fileIndex,
-					Start: start,
-					End:   start + size,
+			} else {
+				if wounds != nil {
+					wounds <- &Wound{
+						Kind:  WoundKind_CLOSED_FILE,
+						Index: fileIndex,
+						Start: start,
+						End:   start + size,
+					}
 				}
 			}
 		}
@@ -133,8 +184,19 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		return nil
 	}
 
+	ocw := &onCloseWriter{
+		Writer: w,
+		OnClose: func() error {
+			if wounds != nil {
+				close(wounds)
+				<-woundsDone
+			}
+			return nil
+		},
+	}
+
 	dw := &drip.Writer{
-		Writer:   w,
+		Writer:   ocw,
 		Buffer:   make([]byte, BlockSize),
 		Validate: validate,
 	}

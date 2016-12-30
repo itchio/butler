@@ -148,6 +148,7 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 				// whole file was healthy
 				if wound.End == fileSize {
 					atomic.AddInt64(&ah.totalHealthy, fileSize)
+					ah.updateProgress()
 				}
 			}
 

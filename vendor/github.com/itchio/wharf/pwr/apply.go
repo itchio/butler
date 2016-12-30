@@ -222,6 +222,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
 	sourceContainer := actx.SourceContainer
 
+	relayWoundsProgress := false
+	initialHealerProgress := float64(0.0)
+
 	var validatingPool *ValidatingPool
 	consumerErrs := make(chan error, 1)
 
@@ -255,6 +258,16 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				return err
 			}
 			actx.WoundsConsumer = healer
+
+			healer.SetConsumer(&state.Consumer{
+				OnProgress: func(progress float64) {
+					if relayWoundsProgress {
+						actx.Consumer.OnProgress(progress)
+					} else {
+						initialHealerProgress = progress
+					}
+				},
+			})
 		}
 
 		if actx.WoundsConsumer != nil {
@@ -320,6 +333,12 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 		}
 
 		if actx.WoundsConsumer != nil {
+			relayWoundsProgress = true
+			actx.Consumer.PauseProgress()
+			actx.Consumer.Progress(initialHealerProgress)
+			actx.Consumer.ProgressLabel("Healing...")
+			actx.Consumer.ResumeProgress()
+
 			taskErr := <-consumerErrs
 			if taskErr != nil {
 				if retErr == nil {
