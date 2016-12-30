@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/art"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
 )
@@ -22,24 +22,6 @@ import (
 const keyFileMode = 0600
 
 const (
-	asciiArt = "      ..........................\n" +
-		"    ':cccclooooolcccccloooooocccc:,.\n" +
-		"  ':cccccooooooolccccccooooooolccccc,.\n" +
-		" ,;;;;;;cllllllc:;;;;;;clllllll:;;;;;;.\n" +
-		" ,,,,,,,;cccccc;,,,,,,,,cccccc:,,,,,,,.\n" +
-		" .',,,'..':cc:,...,,,'...;cc:,...',,'.\n" +
-		"   .,;:dxl;,;;cxdc,,,;okl;,,,:odc,,,.\n" +
-		"   ,kkkkkx:'..'okkkkkkxxo'...;oxxxxx,\n" +
-		"   ,kkkk:       ...''...       ,dxxx,\n" +
-		"   ,kkk:          .:c'          'xxx;\n" +
-		"   ,kko         .,ccc:;.         :xx;\n" +
-		"   ,kx.         .,;;,,'..         cl'\n" +
-		"   ,kc           .''''.           'l'\n" +
-		"   ,x.       ..............       .l'\n" +
-		"   ,x'      ,oddddddddoolcc,      .l'\n" +
-		"   'xo,...;ldxxxxxxxdollllllc;...'cl'\n" +
-		"   .:ccc:ccccccccc:;;;;;;;;;;;;;;;;,.\n"
-
 	authHTML = `
         <!DOCTYPE html>
         <html>
@@ -96,7 +78,7 @@ const (
           var $art = document.querySelector("#art")
           xhr.onload = function () {
             $art.innerHTML = xhr.responseText
-            $message.innerHTML = "You're successfully authenticated! You can close this page and go back to your terminal."
+            $message.innerHTML = "You're successfully authenticated! You can close this page."
           }
           xhr.onerror = function () {
             $message.innerHTML = "Copy the following code back in your terminal: " + key
@@ -147,12 +129,14 @@ func doLogin() error {
 
 		comm.Logf("Your local credentials are valid!\n")
 		comm.Logf("If you want to log in as another account, use the `butler logout` command first, or specify a different credentials path with the `-i` flag.")
+		comm.Result(map[string]string{"status": "success"})
 	} else {
 		// this does the full login flow + saves
 		_, err := authenticateViaOauth()
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
+		comm.Result(map[string]string{"status": "success"})
 		return nil
 	}
 
@@ -169,8 +153,8 @@ func doLogout() error {
 	_, err := os.Lstat(identity)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println("No saved credentials at", identity)
-			fmt.Println("Nothing to do.")
+			comm.Logf("No saved credentials at %s", identity)
+			comm.Log("Nothing to do.")
 			return nil
 		}
 	}
@@ -185,7 +169,7 @@ func doLogout() error {
 	comm.Logf("")
 
 	if !comm.YesNo("Do you want to erase your saved API key?") {
-		fmt.Println("Okay, not erasing credentials. Bye!")
+		comm.Log("Okay, not erasing credentials. Bye!")
 		return nil
 	}
 
@@ -194,7 +178,7 @@ func doLogout() error {
 		return errors.Wrap(err, 1)
 	}
 
-	fmt.Println("You've successfully erased the API key that was saved on your computer.")
+	comm.Log("You've successfully erased the API key that was saved on your computer.")
 
 	return nil
 }
@@ -214,10 +198,10 @@ func readKeyFile(path string) (string, error) {
 			// it doesn't matter since other users can't access it anyway.
 			// empirical evidence: https://github.com/itchio/butler/issues/65
 		} else {
-			log.Printf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
+			comm.Logf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
 			err = os.Chmod(path, keyFileMode)
 			if err != nil {
-				log.Printf("[Warning] Couldn't chmod keyfile: %s\n", err.Error())
+				comm.Logf("[Warning] Couldn't chmod keyfile: %s\n", err.Error())
 			}
 		}
 	}
@@ -267,7 +251,7 @@ func authenticateViaOauth() (*itchio.Client, error) {
 				client.WharfStatus()
 
 				w.Header().Set("Content-Type", "text/plain")
-				fmt.Fprintf(w, asciiArt)
+				fmt.Fprintf(w, art.ItchLogo)
 				done <- matches[1]
 				return
 			}
@@ -291,11 +275,6 @@ func authenticateViaOauth() (*itchio.Client, error) {
 			}
 		}()
 
-		log.Println("\n" + asciiArt)
-
-		log.Println("\nWelcome to the itch.io command-line tools!")
-		log.Println("Open the following link in your browser to authenticate:")
-
 		form := url.Values{}
 		form.Add("client_id", "butler")
 		form.Add("scope", "wharf")
@@ -304,12 +283,8 @@ func authenticateViaOauth() (*itchio.Client, error) {
 		query := form.Encode()
 
 		uri := fmt.Sprintf("%s/user/oauth?%s", *appArgs.address, query)
-		log.Println(uri)
-		log.Println("\nI'll wait...")
 
-		if runtime.GOOS == "windows" {
-			log.Println("\n(To copy text in cmd.exe: Alt+Space, Edit->Mark, select text, press Enter)")
-		}
+		comm.Login(uri)
 
 		select {
 		case err = <-errs:
@@ -322,16 +297,17 @@ func authenticateViaOauth() (*itchio.Client, error) {
 			if err != nil {
 				return nil, errors.Wrap(err, 1)
 			}
-			log.Printf("\nAuthenticated successfully! Saving key in %s...\n", identity)
+
+			comm.Logf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
 			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0755))
 			if err != nil {
-				log.Printf("\nCould not create directory for storing API key: %s\n\n", errors.Wrap(err, 1).Error())
+				comm.Logf("\nCould not create directory for storing API key: %s\n\n", errors.Wrap(err, 1).Error())
 				err = nil
 			} else {
 				err = writeKeyFile(identity, key)
 				if err != nil {
-					log.Printf("\nCould not save API key: %s\n\n", errors.Wrap(err, 1).Error())
+					comm.Logf("\nCould not save API key: %s\n\n", errors.Wrap(err, 1).Error())
 					err = nil
 				}
 			}

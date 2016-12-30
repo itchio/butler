@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 
+	"github.com/itchio/butler/art"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -46,11 +48,32 @@ func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool, ada
 
 type jsonMessage map[string]interface{}
 
+type yesNoResponse struct {
+	Response bool
+}
+
 // YesNo asks the user whether to proceed or not
 // won't work in json mode for now.
 func YesNo(question string) bool {
 	if settings.json {
-		Dief("json output mode doesn't suport yes-no prompts")
+		if settings.assumeYes {
+			return true
+		}
+
+		send("yesno", jsonMessage{"question": question})
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		input := scanner.Text()
+
+		res := yesNoResponse{}
+		err := json.Unmarshal([]byte(input), &res)
+		if err != nil {
+			Logf("Couldn't unmarshal response %s", input)
+			Logf("...assuming no")
+			return false
+		}
+
+		return res.Response
 	}
 
 	fmt.Printf(":: %s [y/N] ", question)
@@ -157,6 +180,12 @@ func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
 }
 
+func Login(uri string) {
+	send("login", jsonMessage{
+		"uri": uri,
+	})
+}
+
 // sends a message to the client
 func send(msgType string, obj jsonMessage) {
 	if settings.json {
@@ -189,11 +218,27 @@ func send(msgType string, obj jsonMessage) {
 			}
 		case "result":
 			// don't show outside json mode
+		case "login":
+			uri, _ := (obj["uri"]).(string)
+			showLogin(uri)
 		case "progress":
 			// already handled by pb
 		default:
 			log.Println(msgType, obj)
 		}
+	}
+}
+
+func showLogin(uri string) {
+	log.Println("\n" + art.ItchLogo)
+	log.Println("\nWelcome to the itch.io command-line tools!")
+	log.Println("Open the following link in your browser to authenticate:")
+
+	log.Println(uri)
+	log.Println("\nI'll wait...")
+
+	if runtime.GOOS == "windows" {
+		log.Println("\n(To copy text in cmd.exe: Alt+Space, Edit->Mark, select text, press Enter)")
 	}
 }
 
