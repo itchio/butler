@@ -262,7 +262,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			healer.SetConsumer(&state.Consumer{
 				OnProgress: func(progress float64) {
 					if relayWoundsProgress {
-						actx.Consumer.OnProgress(progress)
+						actx.Consumer.Progress(progress)
 					} else {
 						initialHealerProgress = progress
 					}

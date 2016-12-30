@@ -191,7 +191,7 @@ func TestAllTheThings(t *testing.T) {
 		cave := path.Join(workingDir, "cave")
 		ditto(samplePerm1, cave)
 
-		mist(t, doApply(patch, cave, cave, true, "", ""))
+		mist(t, doApply(patch, cave, cave, true, "", "", ""))
 		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
 	}
 }
