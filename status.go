@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -37,7 +38,14 @@ func doStatus(specStr string) error {
 
 	found := false
 
-	for _, ch := range listChannelsResp.Channels {
+	sortedChannelNames := []string{}
+	for name := range listChannelsResp.Channels {
+		sortedChannelNames = append(sortedChannelNames, name)
+	}
+	sort.Strings(sortedChannelNames)
+
+	for _, channelName := range sortedChannelNames {
+		ch := listChannelsResp.Channels[channelName]
 		if spec.Channel != "" && ch.Name != spec.Channel {
 			continue
 		}
