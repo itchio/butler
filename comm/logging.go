@@ -11,6 +11,7 @@ import (
 
 	"github.com/itchio/butler/art"
 	"github.com/olekukonko/tablewriter"
+	"github.com/skratchdot/open-golang/open"
 )
 
 var settings = &struct {
@@ -232,7 +233,8 @@ func send(msgType string, obj jsonMessage) {
 func showLogin(uri string) {
 	log.Println("\n" + art.ItchLogo)
 	log.Println("\nWelcome to the itch.io command-line tools!")
-	log.Println("Open the following link in your browser to authenticate:")
+	open.Start(uri) // disregard error
+	log.Println("If it hasn't already, open the following link in your browser to authenticate:")
 
 	log.Println(uri)
 	log.Println("\nI'll wait...")
