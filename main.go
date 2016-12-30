@@ -260,6 +260,7 @@ var applyArgs = struct {
 	inplace   *bool
 	signature *string
 	wounds    *string
+	heal      *string
 }{
 	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String(),
 	applyCmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String(),
@@ -268,7 +269,8 @@ var applyArgs = struct {
 	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").Hidden().String(),
 	applyCmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool(),
 	applyCmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String(),
-	applyCmd.Flag("wounds", "When given, write wounds to this path instead of failing").String(),
+	applyCmd.Flag("wounds", "When given, write wounds to this path instead of failing (exclusive with --heal)").String(),
+	applyCmd.Flag("heal", "When given, heal using specified source instead of failing (exclusive with --wounds)").String(),
 }
 
 var verifyArgs = struct {
@@ -522,7 +524,7 @@ func doMain(args []string) {
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
 	case applyCmd.FullCommand():
-		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds)
+		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds, *applyArgs.heal)
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds, *verifyArgs.heal)

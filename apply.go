@@ -12,11 +12,11 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string) {
-	must(doApply(patch, target, output, inplace, signaturePath, woundsPath))
+func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string) {
+	must(doApply(patch, target, output, inplace, signaturePath, woundsPath, healSpec))
 }
 
-func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string) error {
+func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string) error {
 	if output == "" {
 		output = target
 	}
@@ -62,6 +62,7 @@ func doApply(patch string, target string, output string, inplace bool, signature
 		InPlace:    inplace,
 		Signature:  signature,
 		WoundsPath: woundsPath,
+		HealPath:   healSpec,
 
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -100,7 +101,15 @@ func doApply(patch string, target string, output string, inplace bool, signature
 		}
 
 		totalCorrupted := actx.WoundsConsumer.TotalCorrupted()
-		comm.Logf("Result has wounds, %s corrupted data%s", humanize.IBytes(uint64(totalCorrupted)), extra)
+
+		verb := "has"
+		totalHealed := int64(0)
+		if healer, ok := actx.WoundsConsumer.(pwr.Healer); ok {
+			verb = "had"
+			totalHealed = healer.TotalHealed()
+		}
+
+		comm.Logf("Result %s wounds, %s corrupted data, %s healed%s", verb, humanize.IBytes(uint64(totalCorrupted)), humanize.IBytes(uint64(totalHealed)), extra)
 	}
 
 	return nil
