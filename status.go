@@ -12,12 +12,12 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func status(specStr string) {
+func status(specStr string, showAllFiles bool) {
 	go versionCheck()
-	must(doStatus(specStr))
+	must(doStatus(specStr, showAllFiles))
 }
 
-func doStatus(specStr string) error {
+func doStatus(specStr string, showAllFiles bool) error {
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -34,7 +34,7 @@ func doStatus(specStr string) error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Channel", "Upload", "Build", "State"})
+	table.SetHeader([]string{"Channel", "Upload", "Build", "Version", "State"})
 
 	found := false
 
@@ -53,7 +53,7 @@ func doStatus(specStr string) error {
 
 		if ch.Head != nil {
 			files := ch.Head.Files
-			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), buildState(ch.Head), filesState(files)}
+			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), buildState(ch.Head), versionState(ch.Head), filesState(files, showAllFiles)}
 			table.Append(line)
 		} else {
 			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), "No builds yet"}
@@ -62,7 +62,7 @@ func doStatus(specStr string) error {
 
 		if ch.Pending != nil {
 			files := ch.Pending.Files
-			line := []string{"", "", buildState(ch.Pending), filesState(files)}
+			line := []string{"", "", buildState(ch.Pending), versionState(ch.Pending), filesState(files, showAllFiles)}
 			table.Append(line)
 		}
 	}
@@ -96,6 +96,19 @@ func buildState(build *itchio.BuildInfo) string {
 	return s
 }
 
+func versionState(build *itchio.BuildInfo) string {
+	switch build.State {
+	case itchio.BuildState_COMPLETED:
+		if build.UserVersion != "" {
+			return build.UserVersion
+		}
+
+		return fmt.Sprintf("%d", build.Version)
+	default:
+		return ""
+	}
+}
+
 func buildParent(build *itchio.BuildInfo) string {
 	if build.ParentBuildID == -1 {
 		return ""
@@ -103,13 +116,17 @@ func buildParent(build *itchio.BuildInfo) string {
 	return fmt.Sprintf("#%d", build.ParentBuildID)
 }
 
-func filesState(files []*itchio.BuildFileInfo) string {
+func filesState(files []*itchio.BuildFileInfo, showAllFiles bool) string {
 	if len(files) == 0 {
 		return "(no files)"
 	}
 
 	s := ""
 	for _, file := range files {
+		if !(showAllFiles || file.Type == itchio.BuildFileType_ARCHIVE) {
+			continue
+		}
+
 		if s != "" {
 			s += ", "
 		}

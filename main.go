@@ -176,9 +176,11 @@ var fetchArgs = struct {
 }
 
 var statusArgs = struct {
-	target *string
+	target       *string
+	showAllFiles *bool
 }{
 	statusCmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon'").Required().String(),
+	statusCmd.Flag("show-all-files", "Show status of all files, not just archive").Bool(),
 }
 
 var untarArgs = struct {
@@ -479,7 +481,7 @@ func main() {
 		fetch(*fetchArgs.target, *fetchArgs.out)
 
 	case statusCmd.FullCommand():
-		status(*statusArgs.target)
+		status(*statusArgs.target, *statusArgs.showAllFiles)
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
