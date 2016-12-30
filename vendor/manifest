@@ -132,6 +132,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/kballard/go-shellquote",
+			"repository": "https://github.com/kballard/go-shellquote",
+			"vcs": "git",
+			"revision": "d8ec1a69a250a17bb0e419c386eac1f3711dc142",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/oxtoacart/bpool",
 			"repository": "https://github.com/oxtoacart/bpool",
 			"vcs": "git",

@@ -32,7 +32,11 @@ func tryDl(url string, dest string) (int64, error) {
 
 	client := timeout.NewDefaultClient()
 
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, err
+	}
+
 	req.Header.Set("User-Agent", userAgent())
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
 

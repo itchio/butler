@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,6 +19,7 @@ import (
 	"github.com/itchio/go-itchio/itchfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
+	shellquote "github.com/kballard/go-shellquote"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -34,6 +36,8 @@ var (
 	commit        = ""     // set by command-line on CI release builds
 	versionString = ""     // formatted on boot from 'version' and 'builtAt'
 	app           = kingpin.New("butler", "Your happy little itch.io helper")
+
+	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
 	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 	cpCmd = app.Command("cp", "Copy src to dest").Hidden()
@@ -111,6 +115,12 @@ var appArgs = struct {
 
 	app.Flag("cpuprofile", "Write CPU profile to given file").Hidden().String(),
 	app.Flag("memstats", "Print memory stats for some operations").Hidden().Bool(),
+}
+
+var scriptArgs = struct {
+	file *string
+}{
+	scriptCmd.Arg("file", "File containing a list of butler commands, one per line, with 'butler' omitted").Required().String(),
 }
 
 var dlArgs = struct {
@@ -391,6 +401,10 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
+	doMain(os.Args[1:])
+}
+
+func doMain(args []string) {
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
 
@@ -409,7 +423,7 @@ func main() {
 	app.VersionFlag.Short('V')
 	app.Author("Amos Wenger <amos@itch.io>")
 
-	cmd, err := app.Parse(os.Args[1:])
+	cmd, err := app.Parse(args)
 	if err != nil {
 		ctx, _ := app.ParseContext(os.Args[1:])
 		app.FatalUsageContext(ctx, "%s\n", err.Error())
@@ -451,6 +465,9 @@ func main() {
 	}
 
 	switch kingpin.MustParse(cmd, err) {
+	case scriptCmd.FullCommand():
+		script(*scriptArgs.file)
+
 	case dlCmd.FullCommand():
 		dl(*dlArgs.url, *dlArgs.dest)
 
@@ -530,7 +547,6 @@ func main() {
 
 	case versionCmd.FullCommand():
 		log.Println(versionString)
-		os.Exit(0)
 
 	case fileCmd.FullCommand():
 		file(*fileArgs.file)
@@ -564,4 +580,30 @@ func setupHTTPDebug() {
 		}
 	}()
 	comm.Logf("serving pprof debug interface on %s", addr)
+}
+
+func script(scriptPath string) {
+	must(doScript(scriptPath))
+}
+
+func doScript(scriptPath string) error {
+	scriptReader, err := os.Open(scriptPath)
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(scriptReader)
+	comm.Logf("Running commands in script %s", scriptPath)
+
+	for scanner.Scan() {
+		argsString := scanner.Text()
+		comm.Opf("butler %s", argsString)
+
+		args, err := shellquote.Split(argsString)
+		if err != nil {
+			return fmt.Errorf("While parsing `%s`: %s", argsString, err.Error())
+		}
+		doMain(args)
+	}
+	return nil
 }
