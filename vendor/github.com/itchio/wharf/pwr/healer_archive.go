@@ -1,13 +1,14 @@
 package pwr
 
 import (
-	"github.com/itchio/arkive/zip"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync/atomic"
+
+	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
