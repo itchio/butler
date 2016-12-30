@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync/atomic"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
@@ -222,8 +223,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
 	sourceContainer := actx.SourceContainer
 
-	relayWoundsProgress := false
-	initialHealerProgress := float64(0.0)
+	relayWoundsProgress := int64(0)
+	initialHealerProgress := int64(0)
+	const initialHealerFactor = float64(100 * 1000)
 
 	var validatingPool *ValidatingPool
 	consumerErrs := make(chan error, 1)
@@ -261,10 +263,10 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 			healer.SetConsumer(&state.Consumer{
 				OnProgress: func(progress float64) {
-					if relayWoundsProgress {
+					if atomic.LoadInt64(&relayWoundsProgress) == 1 {
 						actx.Consumer.Progress(progress)
 					} else {
-						initialHealerProgress = progress
+						atomic.StoreInt64(&initialHealerProgress, int64(progress*initialHealerFactor))
 					}
 				},
 			})
@@ -333,11 +335,11 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 		}
 
 		if actx.WoundsConsumer != nil {
-			relayWoundsProgress = true
 			actx.Consumer.PauseProgress()
-			actx.Consumer.Progress(initialHealerProgress)
+			actx.Consumer.Progress(float64(atomic.LoadInt64(&initialHealerProgress)) / initialHealerFactor)
 			actx.Consumer.ProgressLabel("Healing...")
 			actx.Consumer.ResumeProgress()
+			atomic.StoreInt64(&relayWoundsProgress, 1)
 
 			taskErr := <-consumerErrs
 			if taskErr != nil {
