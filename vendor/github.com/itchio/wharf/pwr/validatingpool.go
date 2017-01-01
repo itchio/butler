@@ -7,11 +7,12 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr/drip"
+	"github.com/itchio/wharf/pwr/onclose"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
 
-type OnFileValidatedFunc func(fileIndex int64)
+type OnCloseFunc func(fileIndex int64)
 
 type WoundsFilterFunc func(wounds chan *Wound) chan *Wound
 
@@ -28,7 +29,7 @@ type ValidatingPool struct {
 	Wounds       chan *Wound
 	WoundsFilter WoundsFilterFunc
 
-	OnFileValidated OnFileValidatedFunc
+	OnClose OnCloseFunc
 
 	// private //
 
@@ -51,32 +52,6 @@ func (vp *ValidatingPool) GetReader(fileIndex int64) (io.Reader, error) {
 // GetReadSeeker is a pass-through to the underlying Pool, it doesn't validate
 func (vp *ValidatingPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	return vp.Pool.GetReadSeeker(fileIndex)
-}
-
-type onCloseFunc func() error
-
-type onCloseWriter struct {
-	Writer  io.Writer
-	OnClose onCloseFunc
-}
-
-var _ io.Writer = (*onCloseWriter)(nil)
-var _ io.Closer = (*onCloseWriter)(nil)
-
-func (ocw *onCloseWriter) Write(buf []byte) (int, error) {
-	return ocw.Writer.Write(buf)
-}
-
-func (ocw *onCloseWriter) Close() error {
-	err := ocw.OnClose()
-	if err != nil {
-		return err
-	}
-
-	if closer, ok := ocw.Writer.(io.Closer); ok {
-		return closer.Close()
-	}
-	return nil
 }
 
 // GetWriter returns a writer that checks hashes before writing to the underlying
@@ -184,14 +159,18 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 		return nil
 	}
 
-	ocw := &onCloseWriter{
+	ocw := &onclose.Writer{
 		Writer: w,
-		OnClose: func() error {
+		BeforeClose: func() {
 			if wounds != nil {
 				close(wounds)
 				<-woundsDone
 			}
-			return nil
+		},
+		AfterClose: func() {
+			if vp.OnClose != nil {
+				vp.OnClose(fileIndex)
+			}
 		},
 	}
 

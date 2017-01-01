@@ -7,7 +7,23 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/itchio/wharf/tlc"
 )
+
+// A LockMap is an array of channels, corresponding to file indices
+// of a container. If set, a healer must attempt to receive from the
+// corresponding channel before starting to heal a file. Users of healers
+// should generally pass an array of fresh channels and close them once
+// the file becomes available for healing.
+type LockMap []chan interface{}
+
+func NewLockMap(container *tlc.Container) LockMap {
+	lockMap := make([]chan interface{}, len(container.Files))
+	for i := range lockMap {
+		lockMap[i] = make(chan interface{})
+	}
+	return lockMap
+}
 
 // A Healer consumes wounds and tries to repair them by creating
 // directories, symbolic links, and writing the correct data into files.
@@ -16,6 +32,7 @@ type Healer interface {
 
 	SetNumWorkers(numWorkers int)
 	SetConsumer(consumer *state.Consumer)
+	SetLockMap(lockmap LockMap)
 	TotalHealed() int64
 }
 
