@@ -563,6 +563,8 @@ func shouldRetry(err error) bool {
 			return true
 		}
 	} else if urlError, ok := err.(*url.Error); ok {
+		// examples: "dial tcp: [...] on port 53: server misbehaving"
+		// examples: "dial tcp: [...] on port 53: timed out"
 		if urlError.Timeout() ||
 			urlError.Temporary() ||
 			errors.Is(urlError.Err, io.EOF) ||
@@ -570,6 +572,10 @@ func shouldRetry(err error) bool {
 			return true
 		}
 	} else {
+		// examples (win): "read tcp [...]: wsarecv: An established connection was aborted by the software in your host machine"
+		if strings.HasPrefix(err.Error(), "read tcp") {
+			return true
+		}
 		return false
 	}
 	return false
