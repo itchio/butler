@@ -194,7 +194,7 @@ func (hr *httpReader) Connect() error {
 				for renewRetryCtx.ShouldTry() {
 					urlStr, err = hf.renewURL()
 					if err != nil {
-						if shouldRetry(err) {
+						if hf.shouldRetry(err) {
 							hf.log("Connect.renew: got retriable error: %s", err.Error())
 							renewRetryCtx.Retry(err.Error())
 							continue
@@ -206,7 +206,7 @@ func (hr *httpReader) Connect() error {
 					break
 				}
 				continue
-			} else if shouldRetry(err) {
+			} else if hf.shouldRetry(err) {
 				hf.log("Connect: got retriable error: %s", err.Error())
 				retryCtx.Retry(err.Error())
 				continue
@@ -259,6 +259,18 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		retryCtx.Settings = *settings.RetrySettings
 	}
 
+	hf := &HTTPFile{
+		getURL:        getURL,
+		retrySettings: &retryCtx.Settings,
+		needsRenewal:  needsRenewal,
+		client:        client,
+
+		readers: make(map[string]*httpReader),
+
+		ReaderStaleThreshold: DefaultReaderStaleThreshold,
+		LogLevel:             DefaultLogLevel,
+	}
+
 	for retryCtx.ShouldTry() {
 		urlStr, err := getURL()
 		if err != nil {
@@ -285,10 +297,14 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		res, err := client.Do(req)
 		if err != nil {
-			// we can recover from some client errors
-			// (example: temporarily offline, DNS failure, etc.)
-			retryCtx.Retry(err.Error())
-			continue
+			if hf.shouldRetry(err) {
+				// we can recover from some client errors
+				// (example: temporarily offline, DNS failure, etc.)
+				retryCtx.Retry(err.Error())
+				continue
+			} else {
+				return nil, err
+			}
 		}
 
 		err = res.Body.Close()
@@ -304,7 +320,8 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 			body, _ := ioutil.ReadAll(res.Body)
 			if needsRenewal(res, body) {
-				retryCtx.Retry(fmt.Sprintf("HTTP %d (needs renewal)", res.StatusCode))
+				// don't sleep for renewal
+				hf.log("Initial request needs renewal (HTTP %d). Good start, good start.", res.StatusCode)
 				continue
 			}
 
@@ -330,20 +347,9 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			totalBytes = res.ContentLength
 		}
 
-		hf := &HTTPFile{
-			currentURL:    urlStr,
-			getURL:        getURL,
-			retrySettings: &retryCtx.Settings,
-			needsRenewal:  needsRenewal,
-			client:        client,
-
-			name:    parsedURL.Path,
-			size:    totalBytes,
-			readers: make(map[string]*httpReader),
-
-			ReaderStaleThreshold: DefaultReaderStaleThreshold,
-			LogLevel:             DefaultLogLevel,
-		}
+		hf.currentURL = urlStr
+		hf.name = parsedURL.Path
+		hf.size = totalBytes
 		return hf, nil
 	}
 
@@ -403,7 +409,7 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 			// XXX: not int64-clean
 			_, err := reader.Discard(int(bestDiff))
 			if err != nil {
-				if shouldRetry(err) {
+				if hf.shouldRetry(err) {
 					hf.log2("borrow: for %d, discard failed because of retriable error, reconnecting", offset)
 					reader.offset = offset
 					err = reader.Connect()
@@ -538,7 +544,7 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 		totalBytesRead += bytesRead
 
 		if err != nil {
-			if shouldRetry(err) {
+			if hf.shouldRetry(err) {
 				hf.log("Got %s, retrying", err.Error())
 				err = reader.Connect()
 				if err != nil {
@@ -553,14 +559,20 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 	return totalBytesRead, nil
 }
 
-func shouldRetry(err error) bool {
+func (hf *HTTPFile) shouldRetry(err error) bool {
 	if errors.Is(err, io.ErrUnexpectedEOF) {
+		hf.log("shouldRetry: retrying unexpected EOF")
 		return true
 	} else if opError, ok := err.(*net.OpError); ok {
+		// examples (win): "read tcp [...]: wsarecv: An established connection was aborted by the software in your host machine"
 		if opError.Timeout() ||
 			opError.Temporary() ||
-			opError.Err.Error() == syscall.ECONNRESET.Error() {
+			opError.Err.Error() == syscall.ECONNRESET.Error() ||
+			strings.HasPrefix(opError.Err.Error(), "read tcp") {
+			hf.log("shouldRetry: retrying net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
 			return true
+		} else {
+			hf.log("shouldRetry: bailing on net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
 		}
 	} else if urlError, ok := err.(*url.Error); ok {
 		// examples: "dial tcp: [...] on port 53: server misbehaving"
@@ -569,15 +581,15 @@ func shouldRetry(err error) bool {
 			urlError.Temporary() ||
 			errors.Is(urlError.Err, io.EOF) ||
 			strings.HasPrefix(urlError.Err.Error(), "dial tcp") {
+			hf.log("shouldRetry: retrying url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 			return true
+		} else {
+			hf.log("shouldRetry: bailing on url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 		}
 	} else {
-		// examples (win): "read tcp [...]: wsarecv: An established connection was aborted by the software in your host machine"
-		if strings.HasPrefix(err.Error(), "read tcp") {
-			return true
-		}
-		return false
+		hf.log("shouldRetry: bailing on unknown error %s", err.Error())
 	}
+
 	return false
 }
 
