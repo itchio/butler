@@ -119,7 +119,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "e30579360ed6e26cc076797e0d43d42d5555ed47",
+			"revision": "80d30c13228746c60ffa0d1ced5ba0b2e1bc5194",
 			"branch": "master",
 			"notests": true
 		},
