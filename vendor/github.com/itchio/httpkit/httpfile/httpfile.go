@@ -283,8 +283,6 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		req.Header.Set("Range", "bytes=0-0")
 
-		beforeRequest := time.Now()
-
 		res, err := client.Do(req)
 		if err != nil {
 			// we can recover from some client errors
