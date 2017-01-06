@@ -85,7 +85,7 @@ func DecompressWire(ctx *wire.ReadContext, compression *CompressionSettings) (*w
 
 	decompressor := decompressors[compression.Algorithm]
 	if decompressor == nil {
-		return nil, errors.Wrap(fmt.Errorf("no compressor registered for %s", compression.Algorithm.String()), 1)
+		return nil, errors.Wrap(fmt.Errorf("no decompressor registered for %s", compression.Algorithm.String()), 1)
 	}
 
 	compressedReader, err := decompressor.Apply(ctx.Reader())

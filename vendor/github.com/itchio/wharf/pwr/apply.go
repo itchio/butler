@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/fspool"
@@ -379,38 +380,80 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			return
 		}
 
-		ops := make(chan wsync.Operation)
-		errc := make(chan error, 1)
-
-		go readOps(patchWire, ops, errc)
-
-		transposition, err := actx.lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
-		if err != nil {
-			select {
-			case nestedErr := <-errc:
-				if nestedErr != nil {
-					actx.Consumer.Debugf("Had an error while reading ops: %s", nestedErr.Error())
-				}
-			default:
-				// no nested error
+		if sh.Type == SyncHeader_BSDIFF {
+			bh := &BsdiffHeader{}
+			err := patchWire.ReadMessage(bh)
+			if err != nil {
+				retErr = errors.Wrap(err, 1)
+				return
 			}
 
-			retErr = errors.Wrap(err, 1)
-			return
-		}
+			targetReader, err := targetPool.GetReader(bh.TargetIndex)
+			if err != nil {
+				retErr = errors.Wrap(err, 1)
+				return
+			}
 
-		if transposition != nil {
-			transpositions[transposition.TargetPath] = append(transpositions[transposition.TargetPath], transposition)
-		} else {
-			actx.Stats.TouchedFiles++
-		}
+			sourceWriter, err := outputPool.GetWriter(sh.FileIndex)
+			if err != nil {
+				retErr = errors.Wrap(err, 1)
+				return
+			}
 
-		// using errc to signal the end of processing, rather than having a separate
-		// done channel. not sure if there's any upside to either
-		err = <-errc
-		if err != nil {
-			retErr = err
-			return
+			newSize := actx.SourceContainer.Files[sh.FileIndex].Size
+
+			err = bsdiff.Patch(targetReader, sourceWriter, newSize, patchWire.ReadMessage)
+			if err != nil {
+				retErr = errors.Wrap(err, 1)
+				return
+			}
+
+			rop := &SyncOp{}
+			err = patchWire.ReadMessage(rop)
+			if err != nil {
+				retErr = errors.Wrap(err, 1)
+				return
+			}
+
+			if rop.Type != SyncOp_HEY_YOU_DID_IT {
+				fmt.Printf("expected HEY_YOU_DID_IT, got %d\n", rop.Type)
+				retErr = errors.Wrap(ErrMalformedPatch, 1)
+				return
+			}
+		} else if sh.Type == SyncHeader_RSYNC {
+			errc := make(chan error, 1)
+			ops := make(chan wsync.Operation)
+
+			go readOps(patchWire, ops, errc)
+
+			transposition, err := actx.lazilyPatchFile(sctx, targetContainer, targetPool, sourceContainer, outputPool, sh.FileIndex, onSourceWrite, ops, actx.InPlace)
+			if err != nil {
+				select {
+				case nestedErr := <-errc:
+					if nestedErr != nil {
+						actx.Consumer.Debugf("Had an error while reading ops: %s", nestedErr.Error())
+					}
+				default:
+					// no nested error
+				}
+
+				retErr = errors.Wrap(err, 1)
+				return
+			}
+
+			if transposition != nil {
+				transpositions[transposition.TargetPath] = append(transpositions[transposition.TargetPath], transposition)
+			} else {
+				actx.Stats.TouchedFiles++
+			}
+
+			// using errc to signal the end of processing, rather than having a separate
+			// done channel. not sure if there's any upside to either
+			err = <-errc
+			if err != nil {
+				retErr = err
+				return
+			}
 		}
 	}
 
