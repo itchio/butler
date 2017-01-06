@@ -71,9 +71,6 @@ var (
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
-
-	bsdiffCmd  = app.Command("bsdiff", "(Advanced) Diff two files using bsdiff").Hidden()
-	bspatchCmd = app.Command("bspatch", "(Advanced) Apply a bsdiff patch").Hidden()
 )
 
 var appArgs = struct {
@@ -311,32 +308,6 @@ var probeArgs = struct {
 	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
 }
 
-var bsdiffArgs = struct {
-	target *string
-	source *string
-	patch  *string
-
-	concurrency     *int
-	measureOverhead *bool
-}{
-	bsdiffCmd.Arg("target", "Old file").Required().String(),
-	bsdiffCmd.Arg("source", "New file").Required().String(),
-	bsdiffCmd.Arg("patch", "Patch file to write").Required().String(),
-
-	bsdiffCmd.Flag("concurrency", "Concurrency of bsdiff algorithm").Default("0").Int(),
-	bsdiffCmd.Flag("measure-overhead", "Measure parallel bsdiff overhead").Bool(),
-}
-
-var bspatchArgs = struct {
-	patch  *string
-	target *string
-	output *string
-}{
-	bspatchCmd.Arg("patch", "Patch file").Required().String(),
-	bspatchCmd.Arg("target", "Old file").Required().String(),
-	bspatchCmd.Arg("output", "Output file").Required().String(),
-}
-
 var fileArgs = struct {
 	file *string
 }{
@@ -537,12 +508,6 @@ func doMain(args []string) {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
-
-	case bsdiffCmd.FullCommand():
-		cmdBsdiff(*bsdiffArgs.target, *bsdiffArgs.source, *bsdiffArgs.patch, *bsdiffArgs.concurrency, *bsdiffArgs.measureOverhead)
-
-	case bspatchCmd.FullCommand():
-		bspatch(*bspatchArgs.patch, *bspatchArgs.target, *bspatchArgs.output)
 
 	case whichCmd.FullCommand():
 		which()
