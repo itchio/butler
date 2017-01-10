@@ -140,6 +140,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/natefinch/npipe",
+			"repository": "https://github.com/natefinch/npipe",
+			"vcs": "git",
+			"revision": "c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6",
+			"branch": "v2",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/oxtoacart/bpool",
 			"repository": "https://github.com/oxtoacart/bpool",
 			"vcs": "git",

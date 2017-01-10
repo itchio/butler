@@ -342,8 +342,10 @@ var updateArgs = struct {
 
 var installPrereqsArgs = struct {
 	plan *string
+	pipe *string
 }{
-	installPrereqsCmd.Arg("plan", "The plan to follow").String(),
+	installPrereqsCmd.Arg("plan", "The plan to follow").Required().String(),
+	installPrereqsCmd.Flag("pipe", "Named pipe where to write status updates").String(),
 }
 
 func must(err error) {
@@ -539,7 +541,7 @@ func doMain(args []string) {
 		upgrade(*updateArgs.head)
 
 	case installPrereqsCmd.FullCommand():
-		installPrereqs(*installPrereqsArgs.plan)
+		installPrereqs(*installPrereqsArgs.plan, *installPrereqsArgs.pipe)
 	}
 }
 
