@@ -71,6 +71,8 @@ var (
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
+
+	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
 )
 
 var appArgs = struct {
@@ -338,6 +340,12 @@ var updateArgs = struct {
 	updateCmd.Flag("head", "Install bleeding-edge version").Bool(),
 }
 
+var installPrereqsArgs = struct {
+	plan *string
+}{
+	installPrereqsCmd.Arg("plan", "The plan to follow").String(),
+}
+
 func must(err error) {
 	if err != nil {
 		switch err := err.(type) {
@@ -529,6 +537,9 @@ func doMain(args []string) {
 
 	case updateCmd.FullCommand():
 		upgrade(*updateArgs.head)
+
+	case installPrereqsCmd.FullCommand():
+		installPrereqs(*installPrereqsArgs.plan)
 	}
 }
 

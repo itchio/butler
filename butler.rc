@@ -1,0 +1,30 @@
+#include "winver.h"
+#define IDI_ICON_S 101
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "itch corp."
+      VALUE "FileDescription", "Helper program for the itch app"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "butler"
+      VALUE "LegalCopyright", "itch corp."
+      VALUE "OriginalFilename", "butler.exe"
+      VALUE "ProductName", "butler"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
+
+IDI_ICON_S       ICON      "butler.ico"
+
