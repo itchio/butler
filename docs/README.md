@@ -22,5 +22,5 @@ of compatible tools:
 
 And is used by [the itch app](https://itch.io/app) for various operations.
 
-Keep reading to learn how to use it! First you'll want to [install butler](install.md).
+Keep reading to learn how to use it! First you'll want to [install butler](installing.md).
 
