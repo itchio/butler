@@ -14,17 +14,17 @@ go get github.com/mitchellh/gox
 
 if [ "$CI_OS" = "windows" ]; then
   if [ "$CI_ARCH" = "386" ]; then
-    TRIPLET="i686-w64-mingw32-"
+    export PATH="/mingw32/bin:$PATH"
   else
-    TRIPLET="x86_64-w64-mingw32-"
+    export PATH="/mingw64/bin:$PATH"
   fi
 else
   TRIPLET=""
 fi
 
-export CC="${TRIPLET}gcc"
-export CXX="${TRIPLET}g++"
-export WINDRES="${TRIPLET}windres"
+export CC="gcc"
+export CXX="g++"
+export WINDRES="windres"
 
 export CI_VERSION="head"
 export CI_BUILT_AT="$(date +%s)"
