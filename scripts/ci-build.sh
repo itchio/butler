@@ -47,16 +47,16 @@ export PKG=github.com/itchio/butler
 
 mkdir -p src/$PKG
 
+# compile manifest before rsync'ing
+if [ "$CI_OS" = "windows" ]; then
+    ${WINDRES} -o butler.syso butler.rc
+fi
+
 # rsync will complain about vanishing files sometimes, who knows where they come from
 rsync -a --exclude 'src' . src/$PKG || echo "rsync complained (code $?)"
 
 # grab deps
 GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
-
-# compile maniest
-if [ "$CI_OS" = "windows" ]; then
-    ${WINDRES} -o butler.syso butler.rc
-fi
 
 # compile
 gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
