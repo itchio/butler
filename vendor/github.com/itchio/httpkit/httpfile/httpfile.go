@@ -34,8 +34,12 @@ type LogFunc func(msg string)
 // amount we're willing to download and throw away
 const maxDiscard int64 = 1 * 1024 * 1024 // 1MB
 
+const maxRenewals = 5
+
 // ErrNotFound is returned when the HTTP server returns 404 - it's not considered a temporary error
 var ErrNotFound = errors.New("HTTP file not found on server")
+
+var ErrTooManyRenewals = errors.New("Giving up, getting too many renewals. Try again later or contact support.")
 
 // HTTPFile allows accessing a file served by an HTTP server as if it was local
 // (for random-access reading purposes, not writing)
@@ -182,12 +186,19 @@ func (hr *httpReader) Connect() error {
 	urlStr := hf.getCurrentURL()
 
 	retryCtx := hf.newRetryContext()
+	renewalTries := 0
 
 	for retryCtx.ShouldTry() {
+		fmt.Printf("Trying url...\n")
 		hf.log("Connect: trying url...")
 		err := tryURL(urlStr)
 		if err != nil {
 			if _, ok := err.(*NeedsRenewalError); ok {
+				renewalTries++
+				if renewalTries >= maxRenewals {
+					return ErrTooManyRenewals
+				}
+
 				hf.log("Connect: got renew: %s", err.Error())
 				renewRetryCtx := hf.newRetryContext()
 
@@ -271,6 +282,8 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		LogLevel:             DefaultLogLevel,
 	}
 
+	renewalTries := 0
+
 	for retryCtx.ShouldTry() {
 		urlStr, err := getURL()
 		if err != nil {
@@ -322,6 +335,11 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			if needsRenewal(res, body) {
 				// don't sleep for renewal
 				hf.log("Initial request needs renewal (HTTP %d). Good start, good start.", res.StatusCode)
+
+				renewalTries++
+				if renewalTries >= maxRenewals {
+					return nil, ErrTooManyRenewals
+				}
 				continue
 			}
 
