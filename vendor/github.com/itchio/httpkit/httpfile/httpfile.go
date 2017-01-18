@@ -189,7 +189,6 @@ func (hr *httpReader) Connect() error {
 	renewalTries := 0
 
 	for retryCtx.ShouldTry() {
-		fmt.Printf("Trying url...\n")
 		hf.log("Connect: trying url...")
 		err := tryURL(urlStr)
 		if err != nil {
