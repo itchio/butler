@@ -9,28 +9,30 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
+const SelectionSortThreshold = 16
+
 // Ternary-Split Quicksort, cf. http://www.larsson.dogma.net/ssrev-tr.pdf
 // Does: [  < x  ][  = x  ][  > x  ]
 // V is read-only, V2 is written to — this allows parallelism.
-func split(I, V, V2 []int32, start, length, h int32) {
-	var i, j, k, x, jj, kk int32
+func split(I, V, V2 []int, start, length, h int) {
+	var i, j, k, x, jj, kk int
 
 	// selection sort, for small buckets (don't split any further)
-	if length < 16 {
+	if false && length < SelectionSortThreshold {
 		for k = start; k < start+length; k += j {
 			// the subarray [start:k] is already sorted
 			j = 1
 			// using the doubling technique from Karp, Miller, and Rosenberg,
 			// V[I[i]+h] is our sorting key. See section 2.1 of
 			// http://www.larsson.dogma.net/ssrev-tr.pdf
-			x = V2[I[k]+h]
+			x = V[I[k]+h]
 			for i = 1; k+i < start+length; i++ {
-				if V2[I[k+i]+h] < x {
+				if V[I[k+i]+h] < x {
 					// found a smaller value, x is the new smallest value
-					x = V2[I[k+i]+h]
+					x = V[I[k+i]+h]
 					j = 0
 				}
-				if V2[I[k+i]+h] == x {
+				if V[I[k+i]+h] == x {
 					// since x is the smallest value we've seen so far, swap
 					// the (k+i)th element next to it
 					I[k+i], I[k+j] = I[k+j], I[k+i]
@@ -139,33 +141,33 @@ func split(I, V, V2 []int32, start, length, h int32) {
 }
 
 type mark struct {
-	index int32
-	value int32
+	index int
+	value int
 }
 
 type sortTask struct {
-	start  int32
-	length int32
-	h      int32
+	start  int
+	length int
+	h      int
 }
 
 // Faster Suffix Sorting, see: http://www.larsson.dogma.net/ssrev-tr.pdf
 // Output `I` is a sorted suffix array.
 // TODO: implement parallel sorting as a faster alternative for high-RAM environments
 // see http://www.zbh.uni-hamburg.de/pubs/pdf/FutAluKur2001.pdf
-func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int32 {
+func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int {
 	parallel := ctx.SuffixSortConcurrency != 0
 	numWorkers := ctx.SuffixSortConcurrency
 	if numWorkers < 1 {
 		numWorkers += runtime.NumCPU()
 	}
 
-	var buckets [256]int32
-	var i, h int32
-	var obuflen = int32(len(obuf))
+	var buckets [256]int
+	var i, h int
+	var obuflen = int(len(obuf))
 
-	I := make([]int32, obuflen+1)
-	V := make([]int32, obuflen+1)
+	I := make([]int, obuflen+1)
+	V := make([]int, obuflen+1)
 
 	for _, c := range obuf {
 		buckets[c]++
@@ -178,7 +180,7 @@ func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int32 {
 
 	for i, c := range obuf {
 		buckets[c]++
-		I[buckets[c]] = int32(i)
+		I[buckets[c]] = int(i)
 	}
 
 	I[0] = obuflen
@@ -194,14 +196,14 @@ func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int32 {
 	}
 	I[0] = -1
 
-	const progressInterval = 64 * 1024
+	const progressInterval = 1024 * 1024
 
-	var V2 []int32
+	var V2 []int
 	var marks []mark
 
 	if parallel {
 		consumer.Debugf("parallel suffix sorting (%d workers)", numWorkers)
-		V2 = append([]int32{}, V...)
+		V2 = append([]int{}, V...)
 		marks = make([]mark, 0)
 	} else {
 		consumer.Debugf("single-core suffix sorting")
@@ -241,13 +243,13 @@ func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int32 {
 
 		// used to combine adjacent sorted groups into a single, bigger sorted group
 		// eventually we'll be left with a single sorted group of size len(obuf)+1
-		var n int32
+		var n int
 
 		// total number of suffixes sorted at the end of this pass
-		var nTotal int32
+		var nTotal int
 
 		// last index at which we emitted progress info
-		var lastI int32
+		var lastI int
 
 		for i = 0; i < obuflen+1; {
 			if i-lastI > progressInterval {
@@ -366,9 +368,9 @@ func qsufsort(obuf []byte, ctx *DiffContext, consumer *state.Consumer) []int32 {
 }
 
 // Returns the number of bytes common to a and b
-func matchlen(a, b []byte) (i int32) {
-	alen := int32(len(a))
-	blen := int32(len(b))
+func matchlen(a, b []byte) (i int) {
+	alen := len(a)
+	blen := len(b)
 	for i < alen && i < blen && a[i] == b[i] {
 		i++
 	}
@@ -376,8 +378,12 @@ func matchlen(a, b []byte) (i int32) {
 }
 
 // Do a binary search in our (sorted) suffix array to find the closest suffix
-func search(I []int32, obuf, nbuf []byte, st, en int32) (pos, n int32) {
+func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
 	if en-st < 2 {
+		if en >= len(obuf) {
+			return I[st], 1
+		}
+
 		x := matchlen(obuf[I[st]:], nbuf)
 		y := matchlen(obuf[I[en]:], nbuf)
 

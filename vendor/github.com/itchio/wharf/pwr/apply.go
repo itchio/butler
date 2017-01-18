@@ -78,6 +78,9 @@ type ApplyContext struct {
 
 	Stats ApplyStats
 
+	// optional, for checking
+	SourceIndexWhiteList map[int64]bool
+
 	// internal
 	actualOutputPath string
 	transpositions   map[string][]*Transposition
@@ -380,7 +383,17 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			return
 		}
 
+		skip := false
+		if actx.SourceIndexWhiteList != nil && !actx.SourceIndexWhiteList[int64(fileIndex)] {
+			skip = true
+		}
+
 		if sh.Type == SyncHeader_BSDIFF {
+			if skip {
+				retErr = errors.Wrap(fmt.Errorf("don't know how to skip bsdiff entry"), 0)
+				return
+			}
+
 			bh := &BsdiffHeader{}
 			err := patchWire.ReadMessage(bh)
 			if err != nil {
@@ -388,7 +401,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				return
 			}
 
-			targetReader, err := targetPool.GetReader(bh.TargetIndex)
+			targetReader, err := targetPool.GetReadSeeker(bh.TargetIndex)
 			if err != nil {
 				retErr = errors.Wrap(err, 1)
 				return
@@ -420,7 +433,27 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				retErr = errors.Wrap(ErrMalformedPatch, 1)
 				return
 			}
+
+			actx.Stats.TouchedFiles++
 		} else if sh.Type == SyncHeader_RSYNC {
+			if skip {
+				rop := &SyncOp{}
+
+				for {
+					err = patchWire.ReadMessage(rop)
+					if err != nil {
+						retErr = errors.Wrap(err, 0)
+						return
+					}
+
+					if rop.Type == SyncOp_HEY_YOU_DID_IT {
+						break
+					}
+				}
+
+				continue
+			}
+
 			errc := make(chan error, 1)
 			ops := make(chan wsync.Operation)
 

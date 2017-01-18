@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+
+	"os"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
@@ -20,18 +21,9 @@ type ReadMessageFunc func(msg proto.Message) error
 
 // Patch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
-func Patch(old io.Reader, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
-	// TODO: still debating whether we should take an io.ReadSeeker instead... probably?
-	// the consumer can still do `ReadAll` themselves and pass a bytes.NewBuffer()
-	obuf, err := ioutil.ReadAll(old)
-	if err != nil {
-		return err
-	}
-
-	// TODO: write directly to new instead of using a buffer
-	nbuf := make([]byte, newSize)
-
+func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
 	var oldpos, newpos int64
+	var err error
 
 	ctrl := &Control{}
 
@@ -53,8 +45,14 @@ func Patch(old io.Reader, new io.Writer, newSize int64, readMessage ReadMessageF
 		}
 
 		// Add old data to diff string
-		for i := int64(0); i < int64(len(ctrl.Add)); i++ {
-			nbuf[newpos+i] = ctrl.Add[i] + obuf[oldpos+i]
+		ar := &AdderReader{
+			Buffer: ctrl.Add,
+			Reader: old,
+		}
+
+		_, err := io.CopyN(new, ar, int64(len(ctrl.Add)))
+		if err != nil {
+			return err
 		}
 
 		// Adjust pointers
@@ -67,21 +65,22 @@ func Patch(old io.Reader, new io.Writer, newSize int64, readMessage ReadMessageF
 		}
 
 		// Read extra string
-		copy(nbuf[newpos:], ctrl.Copy)
+		_, err = new.Write(ctrl.Copy)
+		if err != nil {
+			return err
+		}
 
 		// Adjust pointers
 		newpos += int64(len(ctrl.Copy))
-		oldpos += ctrl.Seek
+
+		oldpos, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
+		if err != nil {
+			return err
+		}
 	}
 
 	if newpos != newSize {
 		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, newpos, humanize.IBytes(uint64(newSize-newpos)))
-	}
-
-	// Write the new file
-	_, err = new.Write(nbuf)
-	if err != nil {
-		return err
 	}
 
 	return nil

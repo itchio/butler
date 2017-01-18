@@ -44,8 +44,10 @@ type RediffContext struct {
 
 	// optional
 	SuffixSortConcurrency int
+	Partitions            int
 	Compression           *CompressionSettings
 	Consumer              *state.Consumer
+	BsdiffStats           *bsdiff.DiffStats
 
 	// set on Analyze
 	TargetContainer *tlc.Container
@@ -53,6 +55,7 @@ type RediffContext struct {
 
 	// internal
 	DiffMappings DiffMappings
+	MeasureMem   bool
 }
 
 func (rc *RediffContext) AnalyzePatch(patchReader io.Reader) error {
@@ -173,9 +176,14 @@ func (rc *RediffContext) AnalyzePatch(patchReader io.Reader) error {
 				// even without any common blocks, bsdiff might still be worth it
 				// if the file is named the same
 				if samePathTargetFileIndex, ok := targetPathsToIndex[sourceFile.Path]; ok {
-					diffMapping = &DiffMapping{
-						TargetIndex: samePathTargetFileIndex,
-						NumBytes:    0,
+					targetFile := targetContainer.Files[samePathTargetFileIndex]
+
+					// don't take into account files that were 0 bytes (it happens). bsdiff won't like that.
+					if targetFile.Size > 0 {
+						diffMapping = &DiffMapping{
+							TargetIndex: samePathTargetFileIndex,
+							NumBytes:    0,
+						}
 					}
 				}
 			}
@@ -274,6 +282,13 @@ func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Wri
 	bh := &BsdiffHeader{}
 	rop := &SyncOp{}
 
+	bdc := &bsdiff.DiffContext{
+		SuffixSortConcurrency: rc.SuffixSortConcurrency,
+		Partitions:            rc.Partitions,
+		Stats:                 rc.BsdiffStats,
+		MeasureMem:            rc.MeasureMem,
+	}
+
 	for sourceFileIndex, sourceFile := range sourceContainer.Files {
 		sh.Reset()
 		err = rctx.ReadMessage(sh)
@@ -339,11 +354,17 @@ func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Wri
 				}
 			}
 
-			// then bsdiff
-			dc := &bsdiff.DiffContext{
-				SuffixSortConcurrency: rc.SuffixSortConcurrency,
+			err = rc.SourcePool.Close()
+			if err != nil {
+				return errors.Wrap(err, 0)
 			}
 
+			err = rc.TargetPool.Close()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			// then bsdiff
 			sourceFileReader, err := rc.SourcePool.GetReader(int64(sourceFileIndex))
 			if err != nil {
 				return errors.Wrap(err, 1)
@@ -356,7 +377,7 @@ func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Wri
 
 			rc.Consumer.ProgressLabel(sourceFile.Path)
 
-			err = dc.Do(targetFileReader, sourceFileReader, wctx.WriteMessage, rc.Consumer)
+			err = bdc.Do(targetFileReader, sourceFileReader, wctx.WriteMessage, rc.Consumer)
 			if err != nil {
 				return errors.Wrap(err, 1)
 			}
