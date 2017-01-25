@@ -73,6 +73,8 @@ var (
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
 	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
+
+	rediffCmd = app.Command("rediff", "(Advanced) Simulate a rediff between two files").Hidden()
 )
 
 var appArgs = struct {
@@ -348,6 +350,14 @@ var installPrereqsArgs = struct {
 	installPrereqsCmd.Flag("pipe", "Named pipe where to write status updates").String(),
 }
 
+var rediffArgs = struct {
+	target *string
+	source *string
+}{
+	rediffCmd.Arg("target", "Target file").Required().String(),
+	rediffCmd.Arg("source", "Source file").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		switch err := err.(type) {
@@ -542,6 +552,9 @@ func doMain(args []string) {
 
 	case installPrereqsCmd.FullCommand():
 		installPrereqs(*installPrereqsArgs.plan, *installPrereqsArgs.pipe)
+
+	case rediffCmd.FullCommand():
+		rediff(*rediffArgs.target, *rediffArgs.source)
 	}
 }
 

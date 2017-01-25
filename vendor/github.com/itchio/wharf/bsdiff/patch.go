@@ -27,6 +27,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 	ctrl := &Control{}
 
+	messageNum := 0
 	for {
 		ctrl.Reset()
 
@@ -73,10 +74,13 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 		// Adjust pointers
 		newpos += int64(len(ctrl.Copy))
 
+		// fmt.Fprintf(os.Stderr, "Seeking %d, oldpos = %d (message %d)\n", ctrl.Seek, oldpos, messageNum)
 		oldpos, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
+
+		messageNum++
 	}
 
 	if newpos != newSize {
