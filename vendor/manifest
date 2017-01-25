@@ -127,7 +127,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "7b26ecc20f1c0e8d17209f82e8dad09f30eb5d9d",
+			"revision": "b3bf7ee033ede4ec6144176806eec7aeec02bb2b",
 			"branch": "master",
 			"notests": true
 		},

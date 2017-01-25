@@ -1,13 +1,13 @@
 package bsdiff
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -32,7 +32,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 		err = readMessage(ctrl)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 
 		if ctrl.Eof {
@@ -41,7 +41,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 		// Sanity-check
 		if newpos+int64(len(ctrl.Add)) > newSize {
-			return ErrCorrupt
+			return errors.Wrap(ErrCorrupt, 0)
 		}
 
 		// Add old data to diff string
@@ -52,7 +52,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 		_, err := io.CopyN(new, ar, int64(len(ctrl.Add)))
 		if err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 
 		// Adjust pointers
@@ -61,13 +61,13 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 		// Sanity-check
 		if newpos+int64(len(ctrl.Copy)) > newSize {
-			return ErrCorrupt
+			return errors.Wrap(ErrCorrupt, 0)
 		}
 
 		// Read extra string
 		_, err = new.Write(ctrl.Copy)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 
 		// Adjust pointers
@@ -75,7 +75,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 
 		oldpos, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
 		if err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 	}
 

@@ -128,7 +128,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 			stagePath := actx.actualOutputPath + "-stage"
 			err := os.MkdirAll(stagePath, os.FileMode(0755))
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.Wrap(err, 0)
 			}
 
 			defer os.RemoveAll(stagePath)
@@ -145,38 +145,38 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	rawPatchWire := wire.NewReadContext(patchReader)
 	err := rawPatchWire.ExpectMagic(PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	header := &PatchHeader{}
 	err = rawPatchWire.ReadMessage(header)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	patchWire, err := DecompressWire(rawPatchWire, header.Compression)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	targetContainer := &tlc.Container{}
 	err = patchWire.ReadMessage(targetContainer)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 	actx.TargetContainer = targetContainer
 
 	sourceContainer := &tlc.Container{}
 	err = patchWire.ReadMessage(sourceContainer)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 	actx.SourceContainer = sourceContainer
 
 	if actx.VetApply != nil {
 		err = actx.VetApply(actx)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -193,30 +193,30 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 			// deleted files, because they won't even exist in the first place.
 			err = sourceContainer.Prepare(actx.OutputPath)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.Wrap(err, 0)
 			}
 		}
 	}
 
 	err = actx.patchAll(patchWire, actx.Signature)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	if actx.InPlace {
 		err = actx.ensureDirsAndSymlinks(actx.actualOutputPath)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 
 		actx.Stats.StageSize, err = actx.mergeFolders(actx.actualOutputPath, actx.OutputPath)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 
 		err = actx.deleteGhosts(actx.actualOutputPath, ghosts)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 		actx.OutputPath = actx.actualOutputPath
 	}
@@ -373,7 +373,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 		sh.Reset()
 		err := patchWire.ReadMessage(sh)
 		if err != nil {
-			retErr = errors.Wrap(err, 1)
+			retErr = errors.Wrap(err, 0)
 			return
 		}
 
@@ -397,19 +397,25 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 			bh := &BsdiffHeader{}
 			err := patchWire.ReadMessage(bh)
 			if err != nil {
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
 			targetReader, err := targetPool.GetReadSeeker(bh.TargetIndex)
 			if err != nil {
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
+				return
+			}
+
+			_, err = targetReader.Seek(0, os.SEEK_SET)
+			if err != nil {
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
 			sourceWriter, err := outputPool.GetWriter(sh.FileIndex)
 			if err != nil {
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
@@ -417,14 +423,14 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 			err = bsdiff.Patch(targetReader, sourceWriter, newSize, patchWire.ReadMessage)
 			if err != nil {
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
 			rop := &SyncOp{}
 			err = patchWire.ReadMessage(rop)
 			if err != nil {
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
@@ -470,7 +476,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 					// no nested error
 				}
 
-				retErr = errors.Wrap(err, 1)
+				retErr = errors.Wrap(err, 0)
 				return
 			}
 
@@ -626,13 +632,13 @@ func (actx *ApplyContext) move(oldAbsolutePath string, newAbsolutePath string) e
 	err := os.Remove(newAbsolutePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 	}
 
 	err = os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	if actx.debugBrokenRename {
@@ -666,7 +672,7 @@ func (actx *ApplyContext) copy(oldAbsolutePath string, newAbsolutePath string, m
 	if mkdirBehavior == mkdirBehaviorIfNeeded {
 		err := os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -745,7 +751,7 @@ func (actx *ApplyContext) mergeFolders(outPath string, stagePath string) (int64,
 
 	stageContainer, err := tlc.WalkDir(stagePath, filter)
 	if err != nil {
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.Wrap(err, 0)
 	}
 
 	for _, f := range stageContainer.Files {
@@ -755,7 +761,7 @@ func (actx *ApplyContext) mergeFolders(outPath string, stagePath string) (int64,
 
 		err := actx.move(sp, op)
 		if err != nil {
-			return 0, errors.Wrap(err, 1)
+			return 0, errors.Wrap(err, 0)
 		}
 	}
 
@@ -803,7 +809,7 @@ func (actx *ApplyContext) deleteGhosts(outPath string, ghosts []Ghost) error {
 				// sometimes we can't delete directories, it's okay
 				actx.Stats.LeftDirs++
 			} else {
-				return errors.Wrap(err, 1)
+				return errors.Wrap(err, 0)
 			}
 		}
 	}
@@ -867,7 +873,7 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 
 				writer, err = outputPool.GetWriter(fileIndex)
 				if err != nil {
-					return nil, errors.Wrap(err, 1)
+					return nil, errors.Wrap(err, 0)
 				}
 				writeCounter := counter.NewWriterCallback(onSourceWrite, writer)
 
@@ -914,7 +920,7 @@ func (actx *ApplyContext) lazilyPatchFile(sctx *wsync.Context, targetContainer *
 
 	err = <-errs
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	return
@@ -930,7 +936,7 @@ func readOps(rc *wire.ReadContext, ops chan wsync.Operation, errc chan error) {
 		err := rc.ReadMessage(rop)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "readOps error: %s", err.Error())
-			errc <- errors.Wrap(err, 1)
+			errc <- errors.Wrap(err, 0)
 			return
 		}
 

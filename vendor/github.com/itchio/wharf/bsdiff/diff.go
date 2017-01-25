@@ -10,10 +10,31 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/itchio/wharf/state"
 	"github.com/jgallagher/gosaca"
 )
+
+// A Match is a pair of two regions from the old and new file that have been
+// selected by the bsdiff algorithm for subtraction.
+type Match struct {
+	addOldStart int
+	addNewStart int
+	addLength   int
+	copyEnd     int
+	eoc         bool
+}
+
+type blockWorkerState struct {
+	consumed chan bool
+	work     chan int
+	matches  chan Match
+}
+
+func (m Match) copyStart() int {
+	return m.addNewStart + m.addLength
+}
 
 // MaxFileSize is the largest size bsdiff will diff (for both old and new file): 2GB - 1 bytes
 // a different codepath could be used for larger files, at the cost of unreasonable memory usage
@@ -62,7 +83,6 @@ type DiffContext struct {
 type DiffStats struct {
 	TimeSpentSorting  time.Duration
 	TimeSpentScanning time.Duration
-	TimeSpentWriting  time.Duration
 	BiggestAdd        int64
 }
 
@@ -70,6 +90,59 @@ type DiffStats struct {
 // No reference to the given message can be kept, as its content may be modified
 // after WriteMessageFunc returns. See the `wire` package for an example implementation.
 type WriteMessageFunc func(msg proto.Message) (err error)
+
+func (ctx *DiffContext) writeMessages(obuf []byte, nbuf []byte, matches chan Match, writeMessage WriteMessageFunc) error {
+	var err error
+
+	bsdc := &Control{}
+
+	var prevMatch Match
+	first := true
+
+	for match := range matches {
+		if first {
+			first = false
+		} else {
+			bsdc.Seek = int64(match.addOldStart - (prevMatch.addOldStart + prevMatch.addLength))
+
+			err := writeMessage(bsdc)
+			if err != nil {
+				return err
+			}
+		}
+
+		ctx.db.Reset()
+		ctx.db.Grow(match.addLength)
+
+		for i := 0; i < match.addLength; i++ {
+			ctx.db.WriteByte(nbuf[match.addNewStart+i] - obuf[match.addOldStart+i])
+		}
+
+		bsdc.Add = ctx.db.Bytes()
+		bsdc.Copy = nbuf[match.copyStart():match.copyEnd]
+
+		if ctx.Stats != nil && ctx.Stats.BiggestAdd < int64(len(bsdc.Add)) {
+			ctx.Stats.BiggestAdd = int64(len(bsdc.Add))
+		}
+
+		prevMatch = match
+	}
+
+	bsdc.Seek = 0
+	err = writeMessage(bsdc)
+	if err != nil {
+		return err
+	}
+
+	bsdc.Reset()
+	bsdc.Eof = true
+	err = writeMessage(bsdc)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Do computes the difference between old and new, according to the bsdiff
 // algorithm, and writes the result to patch.
@@ -101,29 +174,28 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 	nbuf := ctx.nbuf.Bytes()
 	nbuflen := ctx.nbuf.Len()
 
+	matches := make(chan Match, 256)
+
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
 		fmt.Fprintf(os.Stderr, "\nAllocated bytes after ReadAll: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
 
-	if ctx.Partitions > 0 {
-		return ctx.doPartitioned(obuf, obuflen, nbuf, nbuflen, memstats, writeMessage, consumer)
+	partitions := ctx.Partitions
+	if partitions == 0 || partitions >= len(obuf)-1 {
+		partitions = 1
 	}
 
 	consumer.ProgressLabel(fmt.Sprintf("Sorting %s...", humanize.IBytes(uint64(obuflen))))
 	consumer.Progress(0.0)
 
-	var lenf int
 	startTime := time.Now()
 
-	I := make([]int, obuflen+1)
-	if ctx.ws == nil {
-		ctx.ws = &gosaca.WorkSpace{}
+	if ctx.I == nil || len(ctx.I) < len(obuf) {
+		ctx.I = make([]int, len(obuf))
 	}
 
-	if obuflen > 0 {
-		ctx.ws.ComputeSuffixArray(obuf, I[:obuflen])
-	}
+	psa := NewPSA(partitions, obuf, ctx.I)
 
 	if ctx.Stats != nil {
 		ctx.Stats.TimeSpentSorting += time.Since(startTime)
@@ -134,123 +206,200 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 		fmt.Fprintf(os.Stderr, "\nAllocated bytes after qsufsort: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
 
-	bsdc := &Control{}
-
-	consumer.ProgressLabel(fmt.Sprintf("Scanning %s...", humanize.IBytes(uint64(nbuflen))))
-
-	var lastProgressUpdate int
-	var updateEvery = 64 * 1024 * 1046 // 64MB
+	consumer.ProgressLabel(fmt.Sprintf("Preparing to scan %s...", humanize.IBytes(uint64(nbuflen))))
+	consumer.Progress(0.0)
 
 	startTime = time.Now()
 
-	// Compute the differences, writing ctrl as we go
-	var scan, pos, length int
-	var lastscan, lastpos, lastoffset int
-	for scan < nbuflen {
-		var oldscore int
-		scan += length
+	analyzeBlock := func(nbuflen int, nbuf []byte, offset int, blockMatches chan Match) {
+		var lenf int
 
-		if scan-lastProgressUpdate > updateEvery {
-			lastProgressUpdate = scan
-			progress := float64(scan) / float64(nbuflen)
-			consumer.Progress(progress)
-		}
+		// Compute the differences, writing ctrl as we go
+		var scan, pos, length int
+		var lastscan, lastpos, lastoffset int
 
-		for scsc := scan; scan < nbuflen; scan++ {
-			pos, length = search(I, obuf, nbuf[scan:], 0, obuflen)
+		for scan < nbuflen {
+			var oldscore int
+			scan += length
 
-			for ; scsc < scan+length; scsc++ {
-				if scsc+lastoffset < obuflen &&
-					obuf[scsc+lastoffset] == nbuf[scsc] {
-					oldscore++
+			for scsc := scan; scan < nbuflen; scan++ {
+				pos, length = psa.search(nbuf[scan:])
+
+				for ; scsc < scan+length; scsc++ {
+					if scsc+lastoffset < obuflen &&
+						obuf[scsc+lastoffset] == nbuf[scsc] {
+						oldscore++
+					}
+				}
+
+				if (length == oldscore && length != 0) || length > oldscore+8 {
+					break
+				}
+
+				if scan+lastoffset < obuflen && obuf[scan+lastoffset] == nbuf[scan] {
+					oldscore--
 				}
 			}
 
-			if (length == oldscore && length != 0) || length > oldscore+8 {
-				break
-			}
-
-			if scan+lastoffset < obuflen && obuf[scan+lastoffset] == nbuf[scan] {
-				oldscore--
-			}
-		}
-
-		if length != oldscore || scan == nbuflen {
-			var s, Sf int
-			lenf = 0
-			for i := int(0); lastscan+i < scan && lastpos+i < obuflen; {
-				if obuf[lastpos+i] == nbuf[lastscan+i] {
-					s++
-				}
-				i++
-				if s*2-i > Sf*2-lenf {
-					Sf = s
-					lenf = i
-				}
-			}
-
-			lenb := 0
-			if scan < nbuflen {
-				var s, Sb int
-				for i := int(1); (scan >= lastscan+i) && (pos >= i); i++ {
-					if obuf[pos-i] == nbuf[scan-i] {
+			if length != oldscore || scan == nbuflen {
+				var s, Sf int
+				lenf = 0
+				for i := int(0); lastscan+i < scan && lastpos+i < obuflen; {
+					if obuf[lastpos+i] == nbuf[lastscan+i] {
 						s++
 					}
-					if s*2-i > Sb*2-lenb {
-						Sb = s
-						lenb = i
-					}
-				}
-			}
-
-			if lastscan+lenf > scan-lenb {
-				overlap := (lastscan + lenf) - (scan - lenb)
-				s := int(0)
-				Ss := int(0)
-				lens := int(0)
-				for i := int(0); i < overlap; i++ {
-					if nbuf[lastscan+lenf-overlap+i] == obuf[lastpos+lenf-overlap+i] {
-						s++
-					}
-					if nbuf[scan-lenb+i] == obuf[pos-lenb+i] {
-						s--
-					}
-					if s > Ss {
-						Ss = s
-						lens = i + 1
+					i++
+					if s*2-i > Sf*2-lenf {
+						Sf = s
+						lenf = i
 					}
 				}
 
-				lenf += lens - overlap
-				lenb -= lens
+				lenb := 0
+				if scan < nbuflen {
+					var s, Sb int
+					for i := int(1); (scan >= lastscan+i) && (pos >= i); i++ {
+						if obuf[pos-i] == nbuf[scan-i] {
+							s++
+						}
+						if s*2-i > Sb*2-lenb {
+							Sb = s
+							lenb = i
+						}
+					}
+				}
+
+				if lastscan+lenf > scan-lenb {
+					overlap := (lastscan + lenf) - (scan - lenb)
+					s := int(0)
+					Ss := int(0)
+					lens := int(0)
+					for i := int(0); i < overlap; i++ {
+						if nbuf[lastscan+lenf-overlap+i] == obuf[lastpos+lenf-overlap+i] {
+							s++
+						}
+						if nbuf[scan-lenb+i] == obuf[pos-lenb+i] {
+							s--
+						}
+						if s > Ss {
+							Ss = s
+							lens = i + 1
+						}
+					}
+
+					lenf += lens - overlap
+					lenb -= lens
+				}
+
+				m := Match{
+					addOldStart: lastpos,
+					addNewStart: lastscan + offset,
+					addLength:   lenf,
+					copyEnd:     scan - lenb + offset,
+				}
+
+				if m.addLength > 0 || (m.copyEnd != m.copyStart()) {
+					// if not a no-op, send
+					blockMatches <- m
+				}
+
+				lastscan = scan - lenb
+				lastpos = pos - lenb
+				lastoffset = pos - scan
 			}
-
-			ctx.db.Reset()
-			ctx.db.Grow(int(lenf))
-
-			for i := int(0); i < lenf; i++ {
-				ctx.db.WriteByte(nbuf[lastscan+i] - obuf[lastpos+i])
-			}
-
-			bsdc.Add = ctx.db.Bytes()
-			bsdc.Copy = nbuf[(lastscan + lenf):(scan - lenb)]
-			bsdc.Seek = int64((pos - lenb) - (lastpos + lenf))
-
-			// fmt.Fprintf(os.Stderr, "[s] add %d, copy %d\n", len(bsdc.Add), len(bsdc.Copy))
-
-			err := writeMessage(bsdc)
-			if err != nil {
-				return err
-			}
-
-			if ctx.Stats != nil && ctx.Stats.BiggestAdd < int64(lenf) {
-				ctx.Stats.BiggestAdd = int64(lenf)
-			}
-
-			lastscan = scan - lenb
-			lastpos = pos - lenb
-			lastoffset = pos - scan
 		}
+
+		blockMatches <- Match{eoc: true}
+	}
+
+	blockSize := 128 * 1024
+	numBlocks := (nbuflen + blockSize - 1) / blockSize
+
+	if numBlocks < partitions {
+		blockSize = nbuflen / partitions
+		numBlocks = (nbuflen + blockSize - 1) / blockSize
+	}
+
+	// TODO: figure out exactly how much overkill that is
+	numWorkers := partitions * 12
+	if numWorkers > numBlocks {
+		numWorkers = numBlocks
+	}
+
+	blockWorkersState := make([]blockWorkerState, numWorkers)
+
+	// initialize all channels
+	for i := 0; i < numWorkers; i++ {
+		blockWorkersState[i].work = make(chan int, 1)
+		blockWorkersState[i].matches = make(chan Match, 256)
+		blockWorkersState[i].consumed = make(chan bool, 1)
+		blockWorkersState[i].consumed <- true
+	}
+
+	// spin up workers
+	for i := 0; i < numWorkers; i++ {
+		go func(workerState blockWorkerState, workerIndex int) {
+			for blockIndex := range workerState.work {
+				boundary := blockSize * blockIndex
+				realBlockSize := blockSize
+				if blockIndex == numBlocks-1 {
+					realBlockSize = nbuflen - boundary
+				}
+
+				analyzeBlock(realBlockSize, nbuf[boundary:boundary+realBlockSize], boundary, workerState.matches)
+			}
+		}(blockWorkersState[i], i)
+	}
+
+	// dispatch work to workers
+	go func() {
+		workerIndex := 0
+
+		for i := 0; i < numBlocks; i++ {
+			<-blockWorkersState[workerIndex].consumed
+			blockWorkersState[workerIndex].work <- i
+
+			workerIndex = (workerIndex + 1) % numWorkers
+		}
+
+		for workerIndex := 0; workerIndex < numWorkers; workerIndex++ {
+			close(blockWorkersState[workerIndex].work)
+		}
+		// fmt.Fprintf(os.Stderr, "Sent all blockworks\n")
+	}()
+
+	if ctx.MeasureMem {
+		runtime.ReadMemStats(memstats)
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan-prepare: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+	}
+
+	consumer.ProgressLabel(fmt.Sprintf("Scanning %s (%d blocks of %s)...", humanize.IBytes(uint64(nbuflen)), numBlocks, humanize.IBytes(uint64(blockSize))))
+
+	// collect workers' results, forward them to consumer
+	go func() {
+		workerIndex := 0
+		for blockIndex := 0; blockIndex < numBlocks; blockIndex++ {
+			consumer.Progress(float64(blockIndex) / float64(numBlocks))
+			state := blockWorkersState[workerIndex]
+
+			for match := range state.matches {
+				if match.eoc {
+					break
+				}
+
+				matches <- match
+			}
+
+			state.consumed <- true
+			workerIndex = (workerIndex + 1) % numWorkers
+		}
+
+		close(matches)
+	}()
+
+	err = ctx.writeMessages(obuf, nbuf, matches, writeMessage)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	if ctx.Stats != nil {
@@ -259,15 +408,10 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
+		consumer.Debugf("\nAllocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
 	}
 
-	bsdc.Reset()
-	bsdc.Eof = true
-	err = writeMessage(bsdc)
-	if err != nil {
-		return err
-	}
-
 	return nil
+
 }
