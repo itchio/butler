@@ -73,6 +73,8 @@ var (
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
 	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
+
+	exePropsCmd = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 )
 
 var appArgs = struct {
@@ -348,6 +350,12 @@ var installPrereqsArgs = struct {
 	installPrereqsCmd.Flag("pipe", "Named pipe where to write status updates").String(),
 }
 
+var exePropsArgs = struct {
+	path *string
+}{
+	exePropsCmd.Arg("path", "The exe to analyze").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		switch err := err.(type) {
@@ -542,6 +550,9 @@ func doMain(args []string) {
 
 	case installPrereqsCmd.FullCommand():
 		installPrereqs(*installPrereqsArgs.plan, *installPrereqsArgs.pipe)
+
+	case exePropsCmd.FullCommand():
+		exeProps(*exePropsArgs.path)
 	}
 }
 
