@@ -10,7 +10,7 @@ You can download the latest, bleeding-edge version of butler from here:
 Alternatively, if you have the [itch app](https://itch.io/app) installed, then
 you already have a stable build of butler on your system, in:
 
-  * `%APPDATA%\Roaming\itch\bin\butler.exe` on Windows
+  * `%APPDATA%\itch\bin\butler.exe` on Windows
   * `~/.config/itch/bin/butler` on Linux
   * `~/Library/Application Support/itch/bin/butler` on Mac OS
 
