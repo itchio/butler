@@ -12,7 +12,8 @@ func elfProps(path string) {
 
 // ElfProps is the result the exeprops command gives
 type ElfProps struct {
-	Arch string `json:"arch"`
+	Arch      string   `json:"arch"`
+	Libraries []string `json:"libraries"`
 }
 
 func doElfProps(path string) error {
@@ -30,6 +31,8 @@ func doElfProps(path string) error {
 	case elf.EM_X86_64:
 		props.Arch = "amd64"
 	}
+
+	props.Libraries, err = f.ImportedLibraries()
 
 	comm.Result(props)
 
