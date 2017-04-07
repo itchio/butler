@@ -1,11 +1,16 @@
 package main
 
 import (
+	"debug/elf"
+	"debug/pe"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
 
+	"strings"
+
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 )
 
@@ -29,20 +34,119 @@ const (
 
 // SniffResult indicates what's interesting about a file
 type SniffResult struct {
-	Flavor ExecFlavor
-	Arch   string
+	Flavor            ExecFlavor
+	Arch              string
+	Size              int64
+	ImportedLibraries []string
+}
+
+func sniffPE(path string, f *os.File) (*SniffResult, error) {
+	pf, err := pe.NewFile(f)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			// yeah not an exe
+			return nil, nil
+		}
+		// something else went wrong
+		return nil, errors.Wrap(err, 0)
+	}
+
+	result := &SniffResult{
+		Flavor: ExecPe,
+	}
+
+	switch pf.Machine {
+	case pe.IMAGE_FILE_MACHINE_I386:
+		result.Arch = "386"
+	case pe.IMAGE_FILE_MACHINE_AMD64:
+		result.Arch = "amd64"
+	}
+
+	if oh32, ok := pf.OptionalHeader.(*pe.OptionalHeader32); ok {
+		comm.Logf("%s: found optional header 32", path)
+		comm.Logf("%s: loader flags = %d", path, oh32.LoaderFlags)
+		comm.Logf("%s: subsystem = %d", path, oh32.Subsystem)
+	} else {
+		comm.Logf("%s: no optional header 32")
+		if oh64, ok := pf.OptionalHeader.(*pe.OptionalHeader64); ok {
+			comm.Logf("%s: found optional header 64", path)
+			comm.Logf("%s: loader flags = %d", path, oh64.LoaderFlags)
+			comm.Logf("%s: subsystem = %d", path, oh64.Subsystem)
+		}
+	}
+
+	libs, err := pf.ImportedLibraries()
+	if err != nil {
+		comm.Logf("Could not get imported libraries for %s", path)
+	} else {
+		result.ImportedLibraries = libs
+	}
+
+	return result, nil
+}
+
+func sniffELF(path string, f *os.File) (*SniffResult, error) {
+	base := strings.ToLower(filepath.Base(path))
+	if strings.HasSuffix(base, ".so") || strings.Contains(base, ".so.") {
+		// shared library, not an executable, ignore
+		return nil, nil
+	}
+
+	ef, err := elf.Open(path)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	result := &SniffResult{
+		Flavor: ExecElf,
+	}
+
+	switch ef.Machine {
+	case elf.EM_386:
+		result.Arch = "386"
+	case elf.EM_X86_64:
+		result.Arch = "amd64"
+	}
+
+	libs, err := ef.ImportedLibraries()
+	if err != nil {
+		comm.Logf("Could not get imported libraries for %s", path)
+	} else {
+		result.ImportedLibraries = libs
+	}
+
+	return result, nil
 }
 
 func sniff(path string) (*SniffResult, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, 0)
 	}
+
+	defer f.Close()
 
 	buf := make([]byte, 8)
 	_, err = io.ReadFull(f, buf)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, io.EOF) {
+			// too short to be an exec
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, 0)
+	}
+
+	// if it ends in .exe, it's probably an .exe
+	if strings.HasSuffix(strings.ToLower(path), ".exe") {
+		subRes, subErr := sniffPE(path, f)
+		if subErr != nil {
+			return nil, errors.Wrap(subErr, 0)
+		}
+		if subRes != nil {
+			// it was an exe!
+			return subRes, nil
+		}
+		// it wasn't an exe, carry on...
 	}
 
 	// intel Mach-O executables start with 0xCEFAEDFE or 0xCFFAEDFE
@@ -64,9 +168,7 @@ func sniff(path string) (*SniffResult, error) {
 	// ELF executables start with 0x7F454C46
 	// (e.g. 0x7F + 'ELF' in ASCII)
 	if buf[0] == 0x7F && buf[1] == 0x45 && buf[2] == 0x4C && buf[3] == 0x46 {
-		return &SniffResult{
-			Flavor: ExecElf,
-		}, nil
+		return sniffELF(path, f)
 	}
 
 	// Shell scripts start with a shebang (#!)
@@ -97,16 +199,24 @@ func configure(root string) {
 		if err != nil {
 			return nil
 		}
-		fullpath := filepath.Join(root, path)
 
 		if !f.IsDir() {
-			sRes, sErr := sniff(fullpath)
+			sRes, sErr := sniff(path)
 			if sErr != nil {
-				comm.Logf("Could not sniff %s: %s", fullpath, sErr.Error())
+				switch sErr := sErr.(type) {
+				case *errors.Error:
+					comm.Logf("Could not sniff %s: %s", path, sErr.ErrorStack())
+				default:
+					comm.Logf("Could not sniff %s: %s", path, sErr.Error())
+				}
 			}
 
 			if sRes != nil {
-				comm.Logf("%s: %+v", fullpath, *sRes)
+				sRes.Size = f.Size()
+				if sRes.Arch == "" {
+					sRes.Arch = "any"
+				}
+				comm.Logf("%s %v", path, *sRes)
 			}
 		}
 
