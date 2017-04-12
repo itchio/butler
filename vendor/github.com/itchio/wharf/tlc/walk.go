@@ -1,13 +1,14 @@
 package tlc
 
 import (
-	"github.com/itchio/arkive/zip"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
@@ -174,9 +175,11 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 	TotalOffset := int64(0)
 
 	for _, file := range zr.File {
+		fileName := filepath.ToSlash(filepath.Clean(filepath.ToSlash(file.Name)))
+
 		// don't trust zip files to have directory entries for
 		// all directories. it's a miracle anything works.
-		dir := path.Dir(file.Name)
+		dir := path.Dir(fileName)
 		if dir != "" && dir != "." && dirMap[dir] == 0 {
 			dirMap[dir] = os.FileMode(0755)
 		}
@@ -185,7 +188,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 		mode := file.Mode() | ModeMask
 
 		if info.IsDir() {
-			dirMap[file.Name] = mode
+			dirMap[fileName] = mode
 		} else if mode&os.ModeSymlink > 0 {
 			var linkname []byte
 
@@ -208,7 +211,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 			}
 
 			Symlinks = append(Symlinks, &Symlink{
-				Path: file.Name,
+				Path: fileName,
 				Dest: string(linkname),
 				Mode: uint32(mode),
 			})
@@ -216,7 +219,7 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 			Size := int64(file.UncompressedSize64)
 
 			Files = append(Files, &File{
-				Path:   file.Name,
+				Path:   fileName,
 				Mode:   uint32(mode),
 				Size:   Size,
 				Offset: TotalOffset,

@@ -10,6 +10,8 @@ import (
 	"io"
 	"io/ioutil"
 	"sync"
+
+	"github.com/itchio/lzma"
 )
 
 // A Compressor returns a new compressing writer, writing to w.
@@ -24,7 +26,7 @@ type Compressor func(w io.Writer) (io.WriteCloser, error)
 // The Decompressor itself must be safe to invoke from multiple goroutines
 // simultaneously, but each returned reader will be used only by
 // one goroutine at a time.
-type Decompressor func(r io.Reader) io.ReadCloser
+type Decompressor func(r io.Reader, f *File) io.ReadCloser
 
 var flateWriterPool sync.Pool
 
@@ -66,7 +68,7 @@ func (w *pooledFlateWriter) Close() error {
 
 var flateReaderPool sync.Pool
 
-func newFlateReader(r io.Reader) io.ReadCloser {
+func newFlateReader(r io.Reader, f *File) io.ReadCloser {
 	fr, ok := flateReaderPool.Get().(io.ReadCloser)
 	if ok {
 		fr.(flate.Resetter).Reset(r, nil)
@@ -102,6 +104,14 @@ func (r *pooledFlateReader) Close() error {
 	return err
 }
 
+func newLZMAReader(r io.Reader, f *File) io.ReadCloser {
+	// Skip version information & properties size
+	io.CopyN(ioutil.Discard, r, 4)
+
+	var lzr = lzma.NewReader(r, f.UncompressedSize64)
+	return lzr
+}
+
 var (
 	mu sync.RWMutex // guards compressor and decompressor maps
 
@@ -111,8 +121,9 @@ var (
 	}
 
 	decompressors = map[uint16]Decompressor{
-		Store:   ioutil.NopCloser,
+		Store:   func(r io.Reader, f *File) io.ReadCloser { return ioutil.NopCloser(r) },
 		Deflate: newFlateReader,
+		LZMA:    newLZMAReader,
 	}
 )
 

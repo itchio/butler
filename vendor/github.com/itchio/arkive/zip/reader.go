@@ -166,7 +166,7 @@ func (f *File) Open() (io.ReadCloser, error) {
 	if dcomp == nil {
 		return nil, ErrAlgorithm
 	}
-	var rc io.ReadCloser = dcomp(r)
+	var rc io.ReadCloser = dcomp(r, f)
 	var desr io.Reader
 	if f.hasDataDescriptor() {
 		desr = io.NewSectionReader(f.zipr, f.headerOffset+bodyOffset+size, dataDescriptorLen)

@@ -103,7 +103,7 @@
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
-			"revision": "7dd15456cb7d0e24c26bf4f632fcd31cda4d3903",
+			"revision": "18615795db6c2f98ccf02334c24bdcc6266ff2ad",
 			"branch": "master",
 			"notests": true
 		},
@@ -120,6 +120,14 @@
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
 			"revision": "bade0806340d770867fd91d92085a7ec7141e58a",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/lzma",
+			"repository": "https://github.com/itchio/lzma",
+			"vcs": "git",
+			"revision": "db17c464ee1d8a5e870644e0e0f02855829b5aa8",
 			"branch": "master",
 			"notests": true
 		},

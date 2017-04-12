@@ -29,6 +29,7 @@ import (
 const (
 	Store   uint16 = 0
 	Deflate uint16 = 8
+	LZMA    uint16 = 14
 )
 
 const (
