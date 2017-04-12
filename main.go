@@ -74,8 +74,9 @@ var (
 
 	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
 
-	exePropsCmd = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
-	elfPropsCmd = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
+	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
+	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
+	configureCmd = app.Command("configure", "(Advanced) Look for launchables in a directory").Hidden()
 )
 
 var appArgs = struct {
@@ -367,6 +368,12 @@ var elfPropsArgs = struct {
 	elfPropsCmd.Arg("path", "The ELF binary to analyze").Required().String(),
 }
 
+var configureArgs = struct {
+	path *string
+}{
+	configureCmd.Arg("path", "The directory to configure").Required().String(),
+}
+
 func must(err error) {
 	if err != nil {
 		switch err := err.(type) {
@@ -567,6 +574,9 @@ func doMain(args []string) {
 
 	case elfPropsCmd.FullCommand():
 		elfProps(*elfPropsArgs.path)
+
+	case configureCmd.FullCommand():
+		configure(*configureArgs.path)
 	}
 }
 
