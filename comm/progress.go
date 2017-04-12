@@ -90,7 +90,7 @@ func StartProgressWithTotalBytes(totalBytes int64) {
 	// shows percentages, to the 1/100th
 	bar = pb.New64(100 * 100)
 	bar.AlwaysUpdate = true
-	bar.RefreshRate = 250 * time.Millisecond
+	bar.RefreshRate = 125 * time.Millisecond
 	bar.ShowCounters = false
 	bar.ShowFinalTime = false
 	bar.TimeBoxWidth = 8
