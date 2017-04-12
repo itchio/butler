@@ -94,70 +94,131 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 
 	windows := runtime.GOOS == "windows"
 
-	for fileIndex, file := range reader.File {
-		if fileIndex <= lastDoneIndex {
-			settings.Consumer.Debugf("Skipping file %d")
-			doneSize += file.UncompressedSize64
-			settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
-			continue
-		}
+	numWorkers := settings.Concurrency
+	if numWorkers < 0 {
+		numWorkers = runtime.NumCPU() - 1
+	}
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	settings.Consumer.Infof("Using %d workers", numWorkers)
 
-		err = func() error {
-			rel := file.Name
-			filename := path.Join(dir, filepath.FromSlash(rel))
+	fileIndices := make(chan int)
+	errs := make(chan error, numWorkers)
 
-			info := file.FileInfo()
-			mode := info.Mode()
-
-			if info.IsDir() {
-				err = Mkdir(filename)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
-				dirCount++
-			} else if mode&os.ModeSymlink > 0 && !windows {
-				fileReader, fErr := file.Open()
-				if fErr != nil {
-					return errors.Wrap(fErr, 1)
-				}
-				defer fileReader.Close()
-
-				linkname, lErr := ioutil.ReadAll(fileReader)
-				lErr = Symlink(string(linkname), filename, settings.Consumer)
-				if lErr != nil {
-					return errors.Wrap(lErr, 1)
-				}
-				symlinkCount++
-			} else {
-				regCount++
-
-				fileReader, fErr := file.Open()
-				if fErr != nil {
-					return errors.Wrap(fErr, 1)
-				}
-				defer fileReader.Close()
-
-				settings.Consumer.Debugf("extract %s", filename)
-				countingReader := counter.NewReaderCallback(func(offset int64) {
-					currentSize := int64(doneSize) + offset
-					settings.Consumer.Progress(float64(currentSize) / float64(totalSize))
-				}, fileReader)
-
-				err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader)
-				if err != nil {
-					return errors.Wrap(err, 1)
-				}
+	for i := 0; i < numWorkers; i++ {
+		go func() {
+			reader, err := zip.NewReader(readerAt, size)
+			if err != nil {
+				errs <- errors.Wrap(err, 1)
+				return
 			}
 
-			return nil
-		}()
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
-		}
+			for fileIndex := range fileIndices {
+				file := reader.File[fileIndex]
 
-		doneSize += file.UncompressedSize64
-		settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
-		writeProgress(fileIndex)
+				if fileIndex <= lastDoneIndex {
+					settings.Consumer.Debugf("Skipping file %d")
+					doneSize += file.UncompressedSize64
+					settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
+					continue
+				}
+
+				err = func() error {
+					rel := file.Name
+					filename := path.Join(dir, filepath.FromSlash(rel))
+
+					info := file.FileInfo()
+					mode := info.Mode()
+
+					if info.IsDir() {
+						if settings.DryRun {
+							// muffin
+						} else {
+							err = Mkdir(filename)
+							if err != nil {
+								return errors.Wrap(err, 1)
+							}
+						}
+						dirCount++
+					} else if mode&os.ModeSymlink > 0 && !windows {
+						fileReader, fErr := file.Open()
+						if fErr != nil {
+							return errors.Wrap(fErr, 1)
+						}
+						defer fileReader.Close()
+
+						linkname, lErr := ioutil.ReadAll(fileReader)
+						if settings.DryRun {
+							// muffin
+						} else {
+							lErr = Symlink(string(linkname), filename, settings.Consumer)
+							if lErr != nil {
+								return errors.Wrap(lErr, 1)
+							}
+						}
+						symlinkCount++
+					} else {
+						regCount++
+
+						fileReader, fErr := file.Open()
+						if fErr != nil {
+							return errors.Wrap(fErr, 1)
+						}
+						defer fileReader.Close()
+
+						settings.Consumer.Debugf("extract %s", filename)
+						countingReader := counter.NewReaderCallback(func(offset int64) {
+							currentSize := int64(doneSize) + offset
+							settings.Consumer.Progress(float64(currentSize) / float64(totalSize))
+						}, fileReader)
+
+						if settings.DryRun {
+							_, err = io.Copy(ioutil.Discard, countingReader)
+							if err != nil {
+								return errors.Wrap(err, 1)
+							}
+						} else {
+							err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader)
+							if err != nil {
+								return errors.Wrap(err, 1)
+							}
+						}
+					}
+
+					return nil
+				}()
+				if err != nil {
+					errs <- errors.Wrap(err, 1)
+					return
+				}
+
+				doneSize += file.UncompressedSize64
+				settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
+				writeProgress(fileIndex)
+			}
+
+			errs <- nil
+		}()
+	}
+
+	for fileIndex := range reader.File {
+		select {
+		case fileIndices <- fileIndex:
+			// sent work, yay!
+		case err := <-errs:
+			// abort everything
+			close(fileIndices)
+			return nil, err
+		}
+	}
+
+	close(fileIndices)
+	for i := 0; i < numWorkers; i++ {
+		err := <-errs
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &ExtractResult{

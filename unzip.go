@@ -8,7 +8,7 @@ import (
 	"github.com/itchio/wharf/archiver"
 )
 
-func unzip(file string, dir string, resumeFile string) {
+func unzip(file string, dir string, resumeFile string, dryRun bool, concurrency int) {
 	comm.Opf("Extracting zip %s to %s", file, dir)
 
 	var zipUncompressedSize int64
@@ -20,6 +20,8 @@ func unzip(file string, dir string, resumeFile string) {
 			zipUncompressedSize = uncompressedSize
 			comm.StartProgressWithTotalBytes(uncompressedSize)
 		},
+		DryRun:      dryRun,
+		Concurrency: concurrency,
 	}
 
 	startTime := time.Now()

@@ -81,6 +81,7 @@ type RediffContext struct {
 	Consumer              *state.Consumer
 	BsdiffStats           *bsdiff.DiffStats
 	Timeline              *Timeline
+	ForceMapAll           bool
 
 	// set on Analyze
 	TargetContainer *tlc.Container
@@ -191,7 +192,7 @@ func (rc *RediffContext) AnalyzePatch(patchReader io.Reader) error {
 			}
 		}
 
-		if numBlockRange == 1 && numData == 0 {
+		if numBlockRange == 1 && numData == 0 && !rc.ForceMapAll {
 			// transpositions (renames, etc.) don't need bsdiff'ing :)
 		} else {
 			var diffMapping *DiffMapping

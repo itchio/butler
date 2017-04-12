@@ -204,13 +204,17 @@ var untarArgs = struct {
 }
 
 var unzipArgs = struct {
-	file       *string
-	dir        *string
-	resumeFile *string
+	file        *string
+	dir         *string
+	resumeFile  *string
+	dryRun      *bool
+	concurrency *int
 }{
 	unzipCmd.Arg("file", "Path of the .zip archive to extract").Required().String(),
 	unzipCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
 	unzipCmd.Flag("resume-file", "When given, write current progress to this file, resume from last location if it exists.").Short('f').String(),
+	unzipCmd.Flag("dry-run", "Do not write anything to disk").Short('n').Bool(),
+	unzipCmd.Flag("concurrency", "Number of workers to use (negative for numbers of CPUs - j)").Default("-1").Int(),
 }
 
 var wipeArgs = struct {
@@ -502,7 +506,7 @@ func doMain(args []string) {
 		untar(*untarArgs.file, *untarArgs.dir)
 
 	case unzipCmd.FullCommand():
-		unzip(*unzipArgs.file, *unzipArgs.dir, *unzipArgs.resumeFile)
+		unzip(*unzipArgs.file, *unzipArgs.dir, *unzipArgs.resumeFile, *unzipArgs.dryRun, *unzipArgs.concurrency)
 
 	case wipeCmd.FullCommand():
 		wipe(*wipeArgs.path)

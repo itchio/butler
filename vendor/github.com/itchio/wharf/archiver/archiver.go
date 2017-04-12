@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
@@ -38,6 +39,8 @@ type ExtractSettings struct {
 	Consumer                *state.Consumer
 	ResumeFrom              string
 	OnUncompressedSizeKnown UncompressedSizeKnownFunc
+	DryRun                  bool
+	Concurrency             int
 }
 
 func ExtractPath(archive string, destPath string, settings ExtractSettings) (*ExtractResult, error) {
@@ -47,6 +50,11 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 	file, err := eos.Open(archive)
 	if err != nil {
 		return nil, errors.Wrap(err, 1)
+	}
+
+	if _, ok := file.(*httpfile.HTTPFile); ok {
+		settings.Consumer.Infof("Extracting remote file, forcing concurrency to 1")
+		settings.Concurrency = 1
 	}
 
 	stat, err := file.Stat()

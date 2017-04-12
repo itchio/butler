@@ -298,10 +298,8 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 					copyEnd:     scan - lenb + offset,
 				}
 
-				if m.addLength > 0 || (m.copyEnd != m.copyStart()) {
-					// if not a no-op, send
-					blockMatches <- m
-				}
+				// if not a no-op, send
+				blockMatches <- m
 
 				lastscan = scan - lenb
 				lastpos = pos - lenb
