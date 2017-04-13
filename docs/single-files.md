@@ -121,9 +121,9 @@ Besides, installers bring a host of other problems:
   * Some installers require the Administrator password to proceed
 
 > Your players may not have administrative rights on their
-gaming computer! They shouldn't be needed to play your a game.
+gaming computer! They shouldn't be needed to play your game.
 
-  * Some installers have an interface that cannot be hidden (ie. the have no silent mode)
+  * Some installers have an interface that cannot be hidden (ie. they have no silent mode)
   * Some installers do not let users pick the install location
 
 And finally, all installers have various failure conditions that
