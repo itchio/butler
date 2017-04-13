@@ -4,14 +4,19 @@ import (
 	"debug/elf"
 	"debug/pe"
 	"io"
-	"os"
-	"path/filepath"
 	"time"
 
 	"strings"
 
+	"os"
+
+	"encoding/json"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pools"
+	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/wsync"
 )
 
 // ExecFlavor describes the flavor of an executable
@@ -30,18 +35,25 @@ const (
 	ExecJar = "jar"
 	// ExecMsi denotes a microsoft installer package
 	ExecMsi = "msi"
+	// ExecHTML denotes an index html file
+	ExecHTML = "html"
 )
 
 // SniffResult indicates what's interesting about a file
 type SniffResult struct {
-	Flavor            ExecFlavor
-	Arch              string
-	Size              int64
-	ImportedLibraries []string
+	Path              string     `json:"path"`
+	Flavor            ExecFlavor `json:"flavor"`
+	Arch              string     `json:"arch,omitempty"`
+	Size              int64      `json:"size"`
+	ImportedLibraries []string   `json:"importedLibraries,omitempty"`
 }
 
-func sniffPE(path string, f *os.File) (*SniffResult, error) {
-	pf, err := pe.NewFile(f)
+type Verdict struct {
+	Candidates []*SniffResult `json:"candidates"`
+}
+
+func sniffPE(r io.ReaderAt) (*SniffResult, error) {
+	pf, err := pe.NewFile(r)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// yeah not an exe
@@ -62,37 +74,17 @@ func sniffPE(path string, f *os.File) (*SniffResult, error) {
 		result.Arch = "amd64"
 	}
 
-	if oh32, ok := pf.OptionalHeader.(*pe.OptionalHeader32); ok {
-		comm.Logf("%s: found optional header 32", path)
-		comm.Logf("%s: loader flags = %d", path, oh32.LoaderFlags)
-		comm.Logf("%s: subsystem = %d", path, oh32.Subsystem)
-	} else {
-		comm.Logf("%s: no optional header 32")
-		if oh64, ok := pf.OptionalHeader.(*pe.OptionalHeader64); ok {
-			comm.Logf("%s: found optional header 64", path)
-			comm.Logf("%s: loader flags = %d", path, oh64.LoaderFlags)
-			comm.Logf("%s: subsystem = %d", path, oh64.Subsystem)
-		}
-	}
-
-	libs, err := pf.ImportedLibraries()
-	if err != nil {
-		comm.Logf("Could not get imported libraries for %s", path)
-	} else {
-		result.ImportedLibraries = libs
-	}
-
 	return result, nil
 }
 
-func sniffELF(path string, f *os.File) (*SniffResult, error) {
-	base := strings.ToLower(filepath.Base(path))
-	if strings.HasSuffix(base, ".so") || strings.Contains(base, ".so.") {
-		// shared library, not an executable, ignore
-		return nil, nil
-	}
+func sniffELF(r io.ReaderAt) (*SniffResult, error) {
+	// base := strings.ToLower(filepath.Base(path))
+	// if strings.HasSuffix(base, ".so") || strings.Contains(base, ".so.") {
+	// 	// shared library, not an executable, ignore
+	// 	return nil, nil
+	// }
 
-	ef, err := elf.Open(path)
+	ef, err := elf.NewFile(r)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -110,7 +102,7 @@ func sniffELF(path string, f *os.File) (*SniffResult, error) {
 
 	libs, err := ef.ImportedLibraries()
 	if err != nil {
-		comm.Logf("Could not get imported libraries for %s", path)
+		comm.Logf("Could not get imported libraries for ELF")
 	} else {
 		result.ImportedLibraries = libs
 	}
@@ -118,16 +110,20 @@ func sniffELF(path string, f *os.File) (*SniffResult, error) {
 	return result, nil
 }
 
-func sniff(path string) (*SniffResult, error) {
-	f, err := os.Open(path)
+func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*SniffResult, error) {
+	if strings.ToLower(file.Path) == "index.html" {
+		return &SniffResult{
+			Flavor: ExecHTML,
+		}, nil
+	}
+
+	r, err := pool.GetReadSeeker(fileIndex)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	defer f.Close()
-
 	buf := make([]byte, 8)
-	_, err = io.ReadFull(f, buf)
+	_, err = io.ReadFull(r, buf)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// too short to be an exec
@@ -136,9 +132,11 @@ func sniff(path string) (*SniffResult, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
+	ra := &readerAtFromSeeker{r}
+
 	// if it ends in .exe, it's probably an .exe
-	if strings.HasSuffix(strings.ToLower(path), ".exe") {
-		subRes, subErr := sniffPE(path, f)
+	if strings.HasSuffix(strings.ToLower(file.Path), ".exe") {
+		subRes, subErr := sniffPE(ra)
 		if subErr != nil {
 			return nil, errors.Wrap(subErr, 0)
 		}
@@ -168,7 +166,7 @@ func sniff(path string) (*SniffResult, error) {
 	// ELF executables start with 0x7F454C46
 	// (e.g. 0x7F + 'ELF' in ASCII)
 	if buf[0] == 0x7F && buf[1] == 0x45 && buf[2] == 0x4C && buf[3] == 0x46 {
-		return sniffELF(path, f)
+		return sniffELF(ra)
 	}
 
 	// Shell scripts start with a shebang (#!)
@@ -193,37 +191,80 @@ func sniff(path string) (*SniffResult, error) {
 }
 
 func configure(root string) {
+	must(doConfigure(root))
+}
+
+func doConfigure(root string) error {
 	startTime := time.Now()
 
-	walker := func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
+	comm.Opf("Walking container...")
 
-		if !f.IsDir() {
-			sRes, sErr := sniff(path)
-			if sErr != nil {
-				switch sErr := sErr.(type) {
-				case *errors.Error:
-					comm.Logf("Could not sniff %s: %s", path, sErr.ErrorStack())
-				default:
-					comm.Logf("Could not sniff %s: %s", path, sErr.Error())
-				}
-			}
-
-			if sRes != nil {
-				sRes.Size = f.Size()
-				if sRes.Arch == "" {
-					sRes.Arch = "any"
-				}
-				comm.Logf("%s %v", path, *sRes)
-			}
-		}
-
-		return nil
+	container, err := tlc.WalkAny(root, filterPaths)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
-	filepath.Walk(root, walker)
+	pool, err := pools.New(container, root)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
-	comm.Logf("Configured in %s", time.Since(startTime))
+	defer pool.Close()
+
+	var candidates []*SniffResult
+
+	comm.StartProgress()
+
+	for fileIndex, f := range container.Files {
+		res, err := sniff(pool, int64(fileIndex), f)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if res != nil {
+			res.Size = f.Size
+			if res.Arch == "" {
+				res.Arch = "any"
+			}
+			res.Path = f.Path
+
+			candidates = append(candidates, res)
+		}
+
+		comm.Progress(float64(fileIndex) / float64(len(container.Files)))
+	}
+
+	comm.EndProgress()
+
+	comm.Statf("Configured in %s", time.Since(startTime))
+
+	verdict := &Verdict{
+		Candidates: candidates,
+	}
+
+	marshalled, err := json.MarshalIndent(verdict, "", "  ")
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	comm.Logf("%s", string(marshalled))
+
+	return nil
+}
+
+// Adapt an io.ReadSeeker into an io.ReaderAt in the dumbest possible fashion
+
+type readerAtFromSeeker struct {
+	rs io.ReadSeeker
+}
+
+var _ io.ReaderAt = (*readerAtFromSeeker)(nil)
+
+func (r *readerAtFromSeeker) ReadAt(b []byte, off int64) (int, error) {
+	_, err := r.rs.Seek(off, os.SEEK_SET)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.rs.Read(b)
 }
