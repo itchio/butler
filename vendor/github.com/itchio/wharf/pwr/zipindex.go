@@ -28,7 +28,7 @@ type ZipIndexerContext struct {
 
 type Segment struct {
 	c    *flate.Checkpoint
-	hash []byte
+	hash uint32
 }
 
 func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Writer) error {
@@ -51,7 +51,6 @@ func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Wri
 
 	zih := &ZipIndexHeader{
 		Compression: compression,
-		Algorithm:   HashAlgorithm_CRC32C,
 	}
 
 	err = wctx.WriteMessage(zih)
@@ -136,7 +135,7 @@ func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Wri
 						return errors.Wrap(err, 0)
 					}
 
-					hash := hasher.Sum(nil)
+					hash := hasher.Sum32()
 
 					segments = append(segments, Segment{
 						c:    lastCheckpoint,
@@ -169,7 +168,7 @@ func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Wri
 
 		// add last checkpoint (can be the only one)
 		if lastROffset < int64(file.CompressedSize64) {
-			hash := hasher.Sum(nil)
+			hash := hasher.Sum32()
 			segments = append(segments, Segment{
 				c:    lastCheckpoint,
 				hash: hash,
@@ -202,7 +201,7 @@ func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Wri
 						ROffset: c.Roffset,
 						WOffset: c.Woffset,
 						Hist:    c.Hist,
-						Nb:      uint64(c.Nb),
+						Nb:      uint32(c.Nb),
 						B:       c.B,
 						Hash:    s.hash,
 					})
