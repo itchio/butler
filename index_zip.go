@@ -9,6 +9,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -21,7 +22,7 @@ func doIndexZip(file string) error {
 		Consumer: comm.NewStateConsumer(),
 	}
 
-	r, err := os.Open(file)
+	r, err := eos.Open(file)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
