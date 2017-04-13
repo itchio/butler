@@ -16,7 +16,7 @@ import (
 
 // Does not preserve users, nor permission, except the executable bit
 func ExtractTar(archive string, dir string, settings ExtractSettings) (*ExtractResult, error) {
-	settings.Consumer.Infof("Extracting %s to %s", archive, dir)
+	settings.Consumer.Infof("Extracting %s to %s", eos.Redact(archive), dir)
 
 	dirCount := 0
 	regCount := 0

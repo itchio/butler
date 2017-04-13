@@ -6,10 +6,11 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/archiver"
+	"github.com/itchio/wharf/eos"
 )
 
 func unzip(file string, dir string, resumeFile string, dryRun bool, concurrency int) {
-	comm.Opf("Extracting zip %s to %s", file, dir)
+	comm.Opf("Extracting zip %s to %s", eos.Redact(file), dir)
 
 	var zipUncompressedSize int64
 
