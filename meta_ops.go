@@ -44,9 +44,11 @@ func which() {
 	comm.Logf("%s", p)
 }
 
-func file(path string) {
-	reader, err := eos.Open(path)
+func file(inPath string) {
+	reader, err := eos.Open(inPath)
 	must(err)
+
+	path := eos.Redact(inPath)
 
 	defer reader.Close()
 
@@ -207,9 +209,11 @@ func file(path string) {
 	}
 }
 
-func ls(path string) {
-	reader, err := eos.Open(path)
+func ls(inPath string) {
+	reader, err := eos.Open(inPath)
 	must(err)
+
+	path := eos.Redact(inPath)
 
 	defer reader.Close()
 
