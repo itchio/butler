@@ -120,6 +120,7 @@ func Notice(header string, lines []string) {
 		}
 	} else {
 		table := tablewriter.NewWriter(os.Stdout)
+		table.SetAutoFormatHeaders(false)
 		table.SetColWidth(60)
 		table.SetHeader([]string{header})
 		for _, line := range lines {

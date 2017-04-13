@@ -80,6 +80,16 @@ var (
 	configureCmd = app.Command("configure", "(Advanced) Look for launchables in a directory").Hidden()
 )
 
+var (
+	// DirectorySingular is whatever people call 'directories' or 'folders'
+	// on their platforms. linuxers tend to prefer 'directories', so this global
+	// is their punishment.
+	DirectorySingular = "folder"
+
+	// DirectoryPlural is the plural of DirectorySingular (duh)
+	DirectoryPlural = "folders"
+)
+
 var appArgs = struct {
 	json       *bool
 	quiet      *bool
@@ -419,6 +429,12 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
+	if runtime.GOOS == "linux" {
+		// *long sigh*
+		DirectorySingular = "directory"
+		DirectoryPlural = "directories"
+	}
+
 	doMain(os.Args[1:])
 }
 

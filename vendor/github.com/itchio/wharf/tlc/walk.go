@@ -22,6 +22,10 @@ const (
 	NullPath = "/dev/null"
 )
 
+var (
+	ErrUnrecognizedContainer = errors.New("Unrecognized container: should either be a directory, or a .zip archive")
+)
+
 // A FilterFunc allows ignoring certain files or directories when walking the filesystem
 // When a directory is ignored by a FilterFunc, all its children are, too!
 type FilterFunc func(fileInfo os.FileInfo) bool
@@ -63,7 +67,10 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 	// zip archive case
 	zr, err := zip.NewReader(file, stat.Size())
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		if err == zip.ErrFormat {
+			return nil, errors.Wrap(ErrUnrecognizedContainer, 0)
+		}
+		return nil, errors.Wrap(err, 0)
 	}
 
 	return WalkZip(zr, filter)
