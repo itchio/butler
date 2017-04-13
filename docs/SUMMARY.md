@@ -17,4 +17,5 @@
   * [Other resources](integration.md#other-resources)
 * [Offline usage (diffing/patching)](offline.md)
 * [Utility commands](utilities.md)
+* [Single files](single-files.md)
 
