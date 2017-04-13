@@ -124,6 +124,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/kompress",
+			"repository": "https://github.com/itchio/kompress",
+			"vcs": "git",
+			"revision": "8a57ddd66f9db96ef07b204c15257906845ecd8a",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/lzma",
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
@@ -135,7 +143,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "80664f442af76e4dec3d3df2d995b0238bdc12da",
+			"revision": "9c6beacbf9fb6575c2c023345bb865a62e448fa5",
 			"branch": "master",
 			"notests": true
 		},

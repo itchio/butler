@@ -21,6 +21,9 @@ const (
 
 	// WoundsMagic is the magic number for wharf wounds file (.pww)
 	WoundsMagic
+
+	// ZipIndexMagic is the magic number for wharf zip index files (.pzi)
+	ZipIndexMagic
 )
 
 // ModeMask is or'd with files being applied/created
