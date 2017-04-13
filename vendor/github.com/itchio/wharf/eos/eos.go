@@ -121,3 +121,12 @@ func Open(name string, opts ...option.Option) (File, error) {
 		return hf, nil
 	}
 }
+
+func Redact(name string) string {
+	u, err := url.Parse(name)
+	if err != nil {
+		return name
+	}
+
+	return u.Path
+}

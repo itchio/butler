@@ -220,9 +220,11 @@ var unzipArgs = struct {
 }
 
 var indexZipArgs = struct {
-	file *string
+	file   *string
+	output *string
 }{
 	indexZipCmd.Arg("file", "Path of the .zip archive to index").Required().String(),
+	indexZipCmd.Flag("output", "Path to write the .pzi file to").Short('o').Default("index.pzi").String(),
 }
 
 var wipeArgs = struct {
@@ -523,7 +525,7 @@ func doMain(args []string) {
 		unzip(*unzipArgs.file, *unzipArgs.dir, *unzipArgs.resumeFile, *unzipArgs.dryRun, *unzipArgs.concurrency)
 
 	case indexZipCmd.FullCommand():
-		indexZip(*indexZipArgs.file)
+		indexZip(*indexZipArgs.file, *indexZipArgs.output)
 
 	case wipeCmd.FullCommand():
 		wipe(*wipeArgs.path)

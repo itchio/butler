@@ -4,8 +4,6 @@ import (
 	"os"
 	"time"
 
-	"path/filepath"
-
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -13,11 +11,11 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func indexZip(file string) {
-	must(doIndexZip(file))
+func indexZip(file string, output string) {
+	must(doIndexZip(file, output))
 }
 
-func doIndexZip(file string) error {
+func doIndexZip(file string, output string) error {
 	ic := &pwr.ZipIndexerContext{
 		Consumer: comm.NewStateConsumer(),
 	}
@@ -33,19 +31,15 @@ func doIndexZip(file string) error {
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Opf("Creating index for %s", file)
+	comm.Opf("Creating index for %s", eos.Redact(file))
 
-	ext := filepath.Ext(file)
-	withoutExt := file[:len(file)-len(ext)]
-	targetFile := withoutExt + ".pzi"
-
-	w, err := os.Create(targetFile)
+	w, err := os.Create(output)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 	defer w.Close()
 
-	comm.Opf("Writing index to %s", targetFile)
+	comm.Opf("Writing index to %s", output)
 
 	startTime := time.Now()
 
