@@ -388,11 +388,15 @@ var elfPropsArgs = struct {
 }
 
 var configureArgs = struct {
-	path      *string
-	showSpell *bool
+	path       *string
+	showSpell  *bool
+	osFilter   *string
+	archFilter *string
 }{
 	configureCmd.Arg("path", "The directory to configure").Required().String(),
 	configureCmd.Flag("show-spell", "Show spell for all targets").Bool(),
+	configureCmd.Flag("os-filter", "OS filter").Default(runtime.GOOS).String(),
+	configureCmd.Flag("arch-filter", "Architecture filter").Default(runtime.GOARCH).String(),
 }
 
 func must(err error) {
@@ -606,7 +610,7 @@ func doMain(args []string) {
 		elfProps(*elfPropsArgs.path)
 
 	case configureCmd.FullCommand():
-		configure(*configureArgs.path, *configureArgs.showSpell)
+		configure(*configureArgs.path, *configureArgs.showSpell, *configureArgs.osFilter, *configureArgs.archFilter)
 	}
 }
 
