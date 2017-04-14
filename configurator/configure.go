@@ -98,6 +98,7 @@ type JarInfo struct {
 
 type Verdict struct {
 	BasePath   string       `json:"base_path"`
+	TotalSize  int64        `json:"total_size"`
 	Candidates []*Candidate `json:"candidates"`
 }
 
@@ -391,9 +392,15 @@ func Configure(root string, showSpell bool, filterPaths tlc.FilterFunc) (*Verdic
 
 	defer pool.Close()
 
+	verdict := &Verdict{
+		BasePath: root,
+	}
+
 	var candidates = make([]*Candidate, 0)
 
 	for fileIndex, f := range container.Files {
+		verdict.TotalSize += f.Size
+
 		res, err := sniff(pool, int64(fileIndex), f)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
@@ -412,15 +419,12 @@ func Configure(root string, showSpell bool, filterPaths tlc.FilterFunc) (*Verdic
 		}
 	}
 
+	verdict.Candidates = candidates
+
 	if !showSpell {
 		for _, c := range candidates {
 			c.Spell = nil
 		}
-	}
-
-	verdict := &Verdict{
-		BasePath:   root,
-		Candidates: candidates,
 	}
 
 	return verdict, nil
