@@ -388,9 +388,11 @@ var elfPropsArgs = struct {
 }
 
 var configureArgs = struct {
-	path *string
+	path      *string
+	showSpell *bool
 }{
 	configureCmd.Arg("path", "The directory to configure").Required().String(),
+	configureCmd.Flag("show-spell", "Show spell for all targets").Bool(),
 }
 
 func must(err error) {
@@ -604,7 +606,7 @@ func doMain(args []string) {
 		elfProps(*elfPropsArgs.path)
 
 	case configureCmd.FullCommand():
-		configure(*configureArgs.path)
+		configure(*configureArgs.path, *configureArgs.showSpell)
 	}
 }
 

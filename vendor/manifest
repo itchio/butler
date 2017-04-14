@@ -19,6 +19,23 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/fasterthanlime/spellbook",
+			"repository": "https://github.com/fasterthanlime/spellbook",
+			"vcs": "git",
+			"revision": "ce95d2938c6db0c8c8dd5e124d2f7f7818798d62",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/fasterthanlime/wizardry/wizardry",
+			"repository": "https://github.com/fasterthanlime/wizardry",
+			"vcs": "git",
+			"revision": "f417886254cab5c1771d60b06de0b1b248518d81",
+			"branch": "master",
+			"path": "/wizardry",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/getlantern/context",
 			"repository": "https://github.com/getlantern/context",
 			"vcs": "git",
