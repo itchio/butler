@@ -114,16 +114,16 @@ Since the installer file is not the "final form" of the game
 (it's not playable), it's useless trying to patch it from one
 version to the next.
 
-> In fact, the installer is removed by the itch app after installation, so even there was a way to patch it efficiently, it couldn't.
+> In fact, the installer is removed by [the itch app][] after installation, so even there was a way to patch it efficiently, it wouldn't.
 
 Besides, installers bring a host of other problems:
 
   * Some installers require the Administrator password to proceed
 
 > Your players may not have administrative rights on their
-gaming computer! They shouldn't be needed to play your a game.
+gaming computer! They shouldn't be needed to play your game.
 
-  * Some installers have an interface that cannot be hidden (ie. the have no silent mode)
+  * Some installers have an interface that cannot be hidden (ie. they have no silent mode)
   * Some installers do not let users pick the install location
 
 And finally, all installers have various failure conditions that
@@ -144,7 +144,7 @@ That said, there are actual reasons to distribute your game or application as an
 
 These problems are addressed in part by [the itch app][]:
 
-  * You can include [app manifest][], listing prerequisites that [the itch app][] should install before first launching your game
+  * You can include an [app manifest][], listing prerequisites that [the itch app][] should install before first launching your game
   * Automatic shortcut creation is on its way
   * File associations and registry entries could also be handled by the app, via entries in the manifest
 
@@ -152,7 +152,7 @@ These problems are addressed in part by [the itch app][]:
 [app manifest]: https://itch.io/docs/itch/integrating/manifest.html
 
 However, the app should be optional - there should be a good way
-for users to download and run your game even without using [the itch app][]
+for users to download and run your game even without using [the itch app][].
 
 For now, *install instructions* can be added to your itch.io page
 to help get your users up and running.
