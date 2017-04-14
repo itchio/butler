@@ -97,7 +97,7 @@ type JarInfo struct {
 }
 
 type Verdict struct {
-	BasePath   string
+	BasePath   string       `json:"base_path"`
 	Candidates []*Candidate `json:"candidates"`
 }
 
