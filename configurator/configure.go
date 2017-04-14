@@ -47,26 +47,25 @@ const (
 
 // Candidate indicates what's interesting about a file
 type Candidate struct {
-	Path              string       `json:"path"`
-	Mode              uint32       `json:"mode,omitempty"`
-	Depth             int          `json:"depth"`
-	Flavor            Flavor       `json:"flavor"`
-	Arch              Arch         `json:"arch,omitempty"`
-	Size              int64        `json:"size"`
-	ImportedLibraries []string     `json:"importedLibraries,omitempty"`
-	Spell             []string     `json:"spell,omitempty"`
-	WindowsInfo       *WindowsInfo `json:"windows_info,omitempty"`
-	LinuxInfo         *LinuxInfo   `json:"linux_info,omitempty"`
-	MacosInfo         *MacosInfo   `json:"macos_info,omitempty"`
-	LoveInfo          *LoveInfo    `json:"love_info,omitempty"`
-	ScriptInfo        *ScriptInfo  `json:"script_info,omitempty"`
-	JarInfo           *JarInfo     `json:"jar_info,omitempty"`
+	Path        string       `json:"path"`
+	Mode        uint32       `json:"mode,omitempty"`
+	Depth       int          `json:"depth"`
+	Flavor      Flavor       `json:"flavor"`
+	Arch        Arch         `json:"arch,omitempty"`
+	Size        int64        `json:"size"`
+	Spell       []string     `json:"spell,omitempty"`
+	WindowsInfo *WindowsInfo `json:"windowsInfo,omitempty"`
+	LinuxInfo   *LinuxInfo   `json:"linuxInfo,omitempty"`
+	MacosInfo   *MacosInfo   `json:"macosInfo,omitempty"`
+	LoveInfo    *LoveInfo    `json:"loveInfo,omitempty"`
+	ScriptInfo  *ScriptInfo  `json:"scriptInfo,omitempty"`
+	JarInfo     *JarInfo     `json:"jarInfo,omitempty"`
 }
 
 type WindowsInfo struct {
-	InstallerType WindowsInstallerType `json:"installer_type,omitempty"`
+	InstallerType WindowsInstallerType `json:"installerType,omitempty"`
 	Gui           bool                 `json:"gui,omitempty"`
-	DotNet        bool                 `json:"dotnet,omitempty"`
+	DotNet        bool                 `json:"dotNet,omitempty"`
 }
 
 type WindowsInstallerType string
@@ -81,7 +80,6 @@ type MacosInfo struct {
 }
 
 type LinuxInfo struct {
-	RequiredLibraries []string `json:"required_libraries,omitempty"`
 }
 
 type LoveInfo struct {
@@ -93,12 +91,12 @@ type ScriptInfo struct {
 }
 
 type JarInfo struct {
-	MainClass string `json:"main_class,omitempty"`
+	MainClass string `json:"mainClass,omitempty"`
 }
 
 type Verdict struct {
-	BasePath   string       `json:"base_path"`
-	TotalSize  int64        `json:"total_size"`
+	BasePath   string       `json:"basePath"`
+	TotalSize  int64        `json:"totalSize"`
 	Candidates []*Candidate `json:"candidates"`
 }
 
