@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/go-itchio/itchfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -446,7 +447,7 @@ func main() {
 
 func doMain(args []string) {
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
-	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&ignoredPaths)
+	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&filtering.IgnoredPaths)
 
 	app.HelpFlag.Short('h')
 	if builtAt != "" {

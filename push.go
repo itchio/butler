@@ -11,6 +11,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/uploader"
 	"github.com/itchio/wharf/counter"
@@ -374,7 +375,7 @@ type walkResult struct {
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
-	container, err := tlc.WalkAny(path, filterPaths)
+	container, err := tlc.WalkAny(path, filtering.FilterPaths)
 	if err != nil {
 		if errors.Is(err, tlc.ErrUnrecognizedContainer) {
 			comm.Notice("Woops, can't push that!", []string{

@@ -7,6 +7,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -22,7 +23,7 @@ func doSign(output string, signature string, compression pwr.CompressionSettings
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.WalkAny(output, filterPaths)
+	container, err := tlc.WalkAny(output, filtering.FilterPaths)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

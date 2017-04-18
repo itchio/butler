@@ -12,15 +12,24 @@ func configure(root string, showSpell bool, osFilter string, archFilter string) 
 
 	comm.Opf("Collecting initial candidates")
 
-	verdict, err := configurator.Configure(root, showSpell, filterPaths)
+	verdict, err := configurator.Configure(root, showSpell)
 	must(err)
 
 	comm.Statf("Initial candidates are:\n%s", verdict)
 
-	err = verdict.FilterPlatform(osFilter, archFilter)
+	fixedExecs, err := verdict.FixPermissions(false /* not dry run */)
 	must(err)
 
+	if len(fixedExecs) > 0 {
+		comm.Statf("Fixed permissions of %d executables:", len(fixedExecs))
+		for _, fixedExec := range fixedExecs {
+			comm.Logf("  - %s", fixedExec)
+		}
+	}
+
 	comm.Opf("Filtering for os %s, arch %s", osFilter, archFilter)
+
+	verdict.FilterPlatform(osFilter, archFilter)
 
 	comm.Statf("After platform filter, candidates are:\n%s", verdict)
 

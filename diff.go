@@ -10,6 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools"
@@ -30,7 +31,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 
 	targetSignature := &pwr.SignatureInfo{}
 
-	targetSignature.Container, err = tlc.WalkAny(target, filterPaths)
+	targetSignature.Container, err = tlc.WalkAny(target, filtering.FilterPaths)
 	if err != nil {
 		// Signature file perhaps?
 		var signatureReader io.ReadCloser
@@ -81,7 +82,7 @@ func doDiff(target string, source string, patch string, compression pwr.Compress
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(source, filterPaths)
+	sourceContainer, err = tlc.WalkAny(source, filtering.FilterPaths)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

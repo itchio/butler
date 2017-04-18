@@ -13,6 +13,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
@@ -28,8 +29,12 @@ const (
 	FlavorNativeMacos = "macos"
 	// FlavorPe denotes native windows executables
 	FlavorNativeWindows = "windows"
+	// FlavorAppMacos denotes a macOS app bundle
+	FlavorAppMacos = "app-macos"
 	// FlavorScript denotes scripts starting with a shebang (#!)
 	FlavorScript = "script"
+	// FlavorScriptWindows denotes windows scripts (.bat or .cmd)
+	FlavorScriptWindows = "windows-script"
 	// FlavorJar denotes a .jar archive with a Main-Class
 	FlavorJar = "jar"
 	// FlavorHTML denotes an index html file
@@ -182,10 +187,10 @@ func sniffELF(r io.ReadSeeker, size int64) (*Candidate, error) {
 	return result, nil
 }
 
-func sniffLove(r io.ReadSeeker, size int64) (*Candidate, error) {
+func sniffLove(r io.ReadSeeker, size int64, path string) (*Candidate, error) {
 	res := &Candidate{
 		Flavor:   FlavorLove,
-		Path:     ".",
+		Path:     path,
 		LoveInfo: &LoveInfo{},
 	}
 
@@ -300,24 +305,20 @@ func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error)
 
 	size := pool.GetSize(fileIndex)
 
-	switch lowerPath {
+	lowerBase := filepath.Base(lowerPath)
+	dir := filepath.Dir(file.Path)
+	switch lowerBase {
 	case "index.html":
 		return &Candidate{
 			Flavor: FlavorHTML,
+			Path:   file.Path,
 		}, nil
 	case "conf.lua":
-		return sniffLove(r, size)
-	}
-
-	buf := make([]byte, 8)
-	n, _ := io.ReadFull(r, buf)
-	if n < len(buf) {
-		// too short to be an exec or unreadable
-		return nil, nil
+		return sniffLove(r, size, dir)
 	}
 
 	// if it ends in .exe, it's probably an .exe
-	if strings.HasSuffix(strings.ToLower(file.Path), ".exe") {
+	if strings.HasSuffix(lowerPath, ".exe") {
 		subRes, subErr := sniffPE(r, size)
 		if subErr != nil {
 			return nil, errors.Wrap(subErr, 0)
@@ -327,6 +328,20 @@ func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error)
 			return subRes, nil
 		}
 		// it wasn't an exe, carry on...
+	}
+
+	// if it ends in .bat or .cmd, it's a windows script
+	if strings.HasSuffix(lowerPath, ".bat") || strings.HasSuffix(lowerPath, ".cmd") {
+		return &Candidate{
+			Flavor: FlavorScriptWindows,
+		}, nil
+	}
+
+	buf := make([]byte, 8)
+	n, _ := io.ReadFull(r, buf)
+	if n < len(buf) {
+		// too short to be an exec or unreadable
+		return nil, nil
 	}
 
 	// intel Mach-O executables start with 0xCEFAEDFE or 0xCFFAEDFE
@@ -377,10 +392,19 @@ func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error)
 	return nil, nil
 }
 
-func Configure(root string, showSpell bool, filterPaths tlc.FilterFunc) (*Verdict, error) {
-	container, err := tlc.WalkAny(root, filterPaths)
+func pathToDepth(path string) int {
+	return len(strings.Split(path, "/"))
+}
+
+func Configure(root string, showSpell bool) (*Verdict, error) {
+	verdict := &Verdict{
+		BasePath: root,
+	}
+
+	container, err := tlc.WalkAny(root, filtering.FilterPaths)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		comm.Logf("Could not walk %s: %s", root, err.Error())
+		return verdict, nil
 	}
 
 	pool, err := pools.New(container, root)
@@ -390,11 +414,21 @@ func Configure(root string, showSpell bool, filterPaths tlc.FilterFunc) (*Verdic
 
 	defer pool.Close()
 
-	verdict := &Verdict{
-		BasePath: root,
-	}
-
 	var candidates = make([]*Candidate, 0)
+
+	for _, d := range container.Dirs {
+		lowerPath := strings.ToLower(d.Path)
+		if strings.HasSuffix(lowerPath, ".app") {
+			res := &Candidate{
+				Flavor: FlavorAppMacos,
+				Size:   0,
+				Path:   d.Path,
+				Mode:   d.Mode,
+			}
+			res.Depth = pathToDepth(res.Path)
+			candidates = append(candidates, res)
+		}
+	}
 
 	for fileIndex, f := range container.Files {
 		verdict.TotalSize += f.Size
@@ -411,7 +445,7 @@ func Configure(root string, showSpell bool, filterPaths tlc.FilterFunc) (*Verdic
 			}
 			res.Mode = f.Mode
 
-			res.Depth = len(strings.Split(f.Path, "/"))
+			res.Depth = pathToDepth(res.Path)
 
 			candidates = append(candidates, res)
 		}
@@ -477,8 +511,8 @@ func SelectByFunc(candidates []*Candidate, f CandidateFilter) []*Candidate {
 	return res
 }
 
-func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
-	compatibleCandidates := make([]*Candidate, 0)
+func (v *Verdict) FixPermissions(dryrun bool) ([]string, error) {
+	var fixed []string
 
 	// if we have any linux executables or scripts, make sure
 	// we can execute them
@@ -490,15 +524,24 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 			if c.Mode&0100 == 0 {
 				comm.Logf("Fixing permissions for %s", c.Path)
 
-				err := os.Chmod(fullPath, 0755)
-				if err != nil {
-					return err
+				fixed = append(fixed, c.Path)
+				if !dryrun {
+					err := os.Chmod(fullPath, 0755)
+					if err != nil {
+						return nil, err
+					}
 				}
 			}
 		}
 
 		c.Mode = 0
 	}
+
+	return fixed, nil
+}
+
+func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
+	compatibleCandidates := make([]*Candidate, 0)
 
 	// exclude things we can't run at all
 	for _, c := range v.Candidates {
@@ -532,7 +575,7 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 	if len(bestCandidates) == 1 {
 		v.Candidates = bestCandidates
-		return nil
+		return
 	}
 
 	// now keep all candidates of the lowest depth
@@ -549,7 +592,7 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 	if len(bestCandidates) == 1 {
 		v.Candidates = bestCandidates
-		return nil
+		return
 	}
 
 	// love always wins, in the end
@@ -558,7 +601,26 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 		if len(loveCandidates) == 1 {
 			v.Candidates = loveCandidates
-			return nil
+			return
+		}
+	}
+
+	// on macOS, app bundles win
+	if osFilter == "darwin" {
+		appCandidates := SelectByFlavor(bestCandidates, FlavorAppMacos)
+
+		if len(appCandidates) > 0 {
+			bestCandidates = appCandidates
+		}
+	}
+
+	// on windows, scripts win
+	if osFilter == "windows" {
+		scriptCandidates := SelectByFlavor(bestCandidates, FlavorScriptWindows)
+
+		if len(scriptCandidates) == 1 {
+			v.Candidates = scriptCandidates
+			return
 		}
 	}
 
@@ -568,7 +630,7 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 		if len(scriptCandidates) == 1 {
 			v.Candidates = scriptCandidates
-			return nil
+			return
 		}
 	}
 
@@ -584,13 +646,13 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 			jarCandidates := SelectByFlavor(bestCandidates, FlavorJar)
 			if len(jarCandidates) > 0 {
 				v.Candidates = jarCandidates
-				return nil
+				return
 			}
 		}
 
 		if len(bestCandidates) == 1 {
 			v.Candidates = bestCandidates
-			return nil
+			return
 		}
 	}
 
@@ -607,7 +669,7 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 		if len(bestCandidates) == 1 {
 			v.Candidates = bestCandidates
-			return nil
+			return
 		}
 	}
 
@@ -624,10 +686,29 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) error {
 
 		if len(bestCandidates) == 1 {
 			v.Candidates = bestCandidates
-			return nil
+			return
+		}
+	}
+
+	// everywhere, HTMLs lose if there's anything else good
+	{
+		htmlCandidates := SelectByFlavor(bestCandidates, FlavorHTML)
+		if len(htmlCandidates) > 0 && len(htmlCandidates) < len(bestCandidates) {
+			bestCandidates = SelectByFunc(bestCandidates, func(c *Candidate) bool {
+				return c.Flavor != FlavorHTML
+			})
+		}
+	}
+
+	// everywhere, jars lose if there's anything else good
+	{
+		jarCandidates := SelectByFlavor(bestCandidates, FlavorJar)
+		if len(jarCandidates) > 0 && len(jarCandidates) < len(bestCandidates) {
+			bestCandidates = SelectByFunc(bestCandidates, func(c *Candidate) bool {
+				return c.Flavor != FlavorJar
+			})
 		}
 	}
 
 	v.Candidates = bestCandidates
-	return nil
 }
