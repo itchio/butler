@@ -306,11 +306,11 @@ func (z *decoder) doDecode() {
 	//}
 }
 
-func (z *decoder) decoder(r io.Reader, w io.Writer, uncompressedSize uint64) (err error) {
+func (z *decoder) decoder(r io.Reader, w io.Writer, uncompressedSize uint64, sizeKnown bool) (err error) {
 	defer handlePanics(&err)
 
 	var headerSize = lzmaPropSize
-	if (uncompressedSize == 0) {
+	if !sizeKnown {
 		headerSize = lzmaPropSize + lzmaLengthSize
 	}
 
@@ -326,9 +326,9 @@ func (z *decoder) decoder(r io.Reader, w io.Writer, uncompressedSize uint64) (er
 	z.prop = &props{}
 	z.prop.decodeProps(header)
 
-	z.unpackSize = uncompressedSize
-
-	if (z.unpackSize == 0) {
+	if sizeKnown {
+		z.unpackSize = uncompressedSize
+	} else {
 		for i := 0; i < 8; i++ {
 			b := header[lzmaPropSize+i]
 			z.unpackSize = z.unpackSize | uint64(b)<<uint64(8*i)
@@ -365,12 +365,22 @@ func (z *decoder) decoder(r io.Reader, w io.Writer, uncompressedSize uint64) (er
 // NewReader returns a new ReadCloser that can be used to read the uncompressed
 // version of r. It is the caller's responsibility to call Close on the ReadCloser
 // when finished reading.
-//
-func NewReader(r io.Reader, uncompressedSize uint64) io.ReadCloser {
+func NewReader(r io.Reader) io.ReadCloser {
+	return newReaderInternal(r, 0, false)
+}
+
+// NewReaderWithSize returns a new ReadCloser that can be used to read the uncompressed
+// version of r. It is the caller's responsibility to call Close on the ReadCloser
+// when finished reading.
+func NewReaderWithSize(r io.Reader, uncompressedSize uint64) io.ReadCloser {
+	return newReaderInternal(r, uncompressedSize, true)
+}
+
+func newReaderInternal(r io.Reader, uncompressedSize uint64, sizeKnown bool) io.ReadCloser {
 	var z decoder
 	pr, pw := io.Pipe()
 	go func() {
-		err := z.decoder(r, pw, uncompressedSize)
+		err := z.decoder(r, pw, uncompressedSize, sizeKnown)
 		pw.CloseWithError(err)
 	}()
 	return pr

@@ -120,7 +120,7 @@
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
-			"revision": "18615795db6c2f98ccf02334c24bdcc6266ff2ad",
+			"revision": "3bdb2647d9d52b75160deefc7e454f8f77e74b53",
 			"branch": "master",
 			"notests": true
 		},
@@ -152,7 +152,7 @@
 			"importpath": "github.com/itchio/lzma",
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
-			"revision": "db17c464ee1d8a5e870644e0e0f02855829b5aa8",
+			"revision": "46216af2bcb43df19386a220717502b8e56020ca",
 			"branch": "master",
 			"notests": true
 		},

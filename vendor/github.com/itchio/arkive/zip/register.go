@@ -108,7 +108,7 @@ func newLZMAReader(r io.Reader, f *File) io.ReadCloser {
 	// Skip version information & properties size
 	io.CopyN(ioutil.Discard, r, 4)
 
-	var lzr = lzma.NewReader(r, f.UncompressedSize64)
+	var lzr = lzma.NewReaderWithSize(r, f.UncompressedSize64)
 	return lzr
 }
 
