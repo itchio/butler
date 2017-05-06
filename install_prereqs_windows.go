@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"encoding/json"
@@ -89,8 +90,20 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 		}
 
 		commandPath := filepath.Join(task.WorkDir, task.Info.Command)
+		args := task.Info.Args
 
-		cmd := exec.Command(commandPath, task.Info.Args...)
+		// MSI packages get special treatment for reasons.
+		if strings.HasSuffix(strings.ToLower(task.Info.Command), ".msi") {
+			commandPath = "msiexec.exe"
+			args = []string{
+				"/quiet",
+				"/norestart",
+				"/i",
+				filepath.Join(task.WorkDir, task.Info.Command),
+			}
+		}
+
+		cmd := exec.Command(commandPath, args...)
 		cmd.Dir = task.WorkDir
 
 		err = cmd.Run()
