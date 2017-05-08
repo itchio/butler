@@ -175,4 +175,5 @@ into a folder, like so:
 
 ...and push the folder with butler.
 
-[Soon](https://github.com/itchio/butler/issues/58#issuecomment-284766521), players who download directly from the itch.io website (without using [the itch app][]) will get just the single file. In the meantime, they get a .zip containing a single file.
+Players who download directly from the itch.io website will get just the single file. Users of [the itch app][] will
+get fast automatic updates as usual.
