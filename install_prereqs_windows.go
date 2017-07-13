@@ -295,7 +295,7 @@ func doTestPrereqs(prereqs []string) error {
 		table.SetColWidth(60)
 		table.SetHeader([]string{"Name", "Arch", "Description", "Version"})
 		for name, info := range registry.Entries {
-			table.Append([]string{name, info.FullName, info.Version, info.Arch})
+			table.Append([]string{name, info.Arch, info.FullName, info.Version})
 		}
 		table.Render()
 		return nil
