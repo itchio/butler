@@ -244,14 +244,14 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 		logf("(Spent %s)", time.Since(taskStartTime))
 	}
 
+	logf("")
 	if len(failed) > 0 {
-		logf("")
 		errMsg := fmt.Sprintf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
 		logf(errMsg)
 		return errors.Wrap(errors.New(errMsg), 0)
-	} else {
-		logf("All done! Took %s", time.Since(startTime))
 	}
+
+	logf("All done! (Spent %s total)", time.Since(startTime))
 
 	return nil
 }
