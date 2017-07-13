@@ -155,15 +155,15 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 		taskStartTime := time.Now()
 		writeState(task.Name, "installing")
 
-		logf("Installing %s", task.Name)
+		logf("")
+		logf("# Installing %s", task.Name)
+		logf("")
 
 		commandPath := filepath.Join(task.WorkDir, task.Info.Command)
 		args := task.Info.Args
 
 		// MSI packages get special treatment for reasons.
 		if strings.HasSuffix(strings.ToLower(task.Info.Command), ".msi") {
-			logf("It's an MSI package")
-
 			tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -174,7 +174,6 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 			}()
 
 			logPath := filepath.Join(tempDir, "msi-install-log.txt")
-			logf("Writing MSI install log to %s", logPath)
 
 			err = doMsiInstall(commandPath, logPath, "")
 			if err != nil {
@@ -207,25 +206,20 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 			cmd := exec.Command(commandPath, args...)
 			cmd.Dir = task.WorkDir
 
-			logf("It's an installer, launching %s", commandPath)
-			logf("...with args %s", strings.Join(args, " "))
-			logf("...in dir %s", cmd.Dir)
+			logf("Launching %s %s", task.Info.Command, strings.Join(args, " "))
 
 			err = cmd.Run()
 			if err != nil {
 				if exitError, ok := err.(*exec.ExitError); ok {
 					if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
 						code := status.ExitStatus()
-						logf("Prereq %s has exited with code %d", task.Name, code)
-
 						known := false
 						for _, exitCode := range task.Info.ExitCodes {
 							if code == exitCode.Code {
-								logf("That code means: %s", exitCode.Message)
 								if exitCode.Success {
-									logf("...and it's harmless! Continuing...")
+									logf("%s, continuing", exitCode.Message)
 								} else {
-									logf("...and it's fatal! We'll error out.")
+									logf("%s, we'll error out eventually", exitCode.Message)
 									failed = append(failed, task.Name)
 								}
 								known = true
@@ -234,8 +228,7 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 						}
 
 						if !known {
-							logf("We don't know what code %d means for %s", code, task.Name)
-							logf("We'll error out eventually")
+							logf("Got unknown exit code %d, will error out", code)
 							failed = append(failed, task.Name)
 						}
 					} else {
@@ -248,11 +241,14 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 		}
 
 		writeState(task.Name, "done")
-		logf("Done installing %s - took %s", task.Name, time.Since(taskStartTime))
+		logf("(Spent %s)", time.Since(taskStartTime))
 	}
 
 	if len(failed) > 0 {
-		logf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
+		logf("")
+		errMsg := fmt.Sprintf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
+		logf(errMsg)
+		return errors.Wrap(errors.New(errMsg), 0)
 	} else {
 		logf("All done! Took %s", time.Since(startTime))
 	}
@@ -269,7 +265,8 @@ func doTestPrereqs(prereqs []string) error {
 
 	baseURL := "https://dl.itch.ovh/itch-redists"
 
-	res, err := http.Get(baseURL + "/info.json")
+	infoURL := fmt.Sprintf("%s/info.json?t=%d", baseURL, time.Now().Unix())
+	res, err := http.Get(infoURL)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

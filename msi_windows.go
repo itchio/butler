@@ -41,14 +41,14 @@ func doMsiInfo(msiPath string) error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	comm.Logf("Product code for %s: %s", msiPath, productCode)
+	comm.Debugf("Product code for %s: %s", msiPath, productCode)
 
 	state := gowin32.GetInstalledProductState(productCode)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Logf("Installed product state: %s", installStateToString(state))
+	comm.Debugf("Installed product state: %s", installStateToString(state))
 
 	if *appArgs.json {
 		comm.Result(&MSIInfoResult{
@@ -95,20 +95,28 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Opf("Assessing state of %s", msiPath)
+	comm.Debugf("Assessing state of %s", msiPath)
 
-	pkg, err := gowin32.OpenInstallerPackage(msiPath)
+	var productCode string
+
+	err = func() error {
+		pkg, err := gowin32.OpenInstallerPackage(msiPath)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		defer pkg.Close()
+
+		productCode, err = pkg.GetProductProperty("ProductCode")
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		comm.Debugf("Product code for %s: %s", msiPath, productCode)
+		return nil
+	}()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return err
 	}
-
-	defer pkg.Close()
-
-	productCode, err := pkg.GetProductProperty("ProductCode")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	comm.Logf("Product code for %s: %s", msiPath, productCode)
 
 	state := gowin32.GetInstalledProductState(productCode)
 	if err != nil {
@@ -135,7 +143,7 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 			gowin32.DisableInstallerLog()
 		}()
 
-		comm.Logf("...will write log to %s", logPath)
+		comm.Debugf("...will write log to %s", logPath)
 	}
 
 	// s = Recreate all shortcuts
@@ -152,10 +160,10 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 		// throw everything we got to try and get a local install
 		commandLine += " ALLUSERS=2 MSIINSTALLPERUSER=1"
 		commandLine += fmt.Sprintf(" TARGETDIR=\"%s\" INSTALLDIR=\"%s\" APPDIR=\"%s\"", target, target, target)
-		comm.Logf("...will install in folder %s", target)
+		comm.Debugf("...will install in folder %s", target)
 	}
 
-	comm.Logf("Final command line: %s", commandLine)
+	comm.Debugf("Final command line: %s", commandLine)
 
 	if repair {
 		ilvl := gowin32.InstallLevelDefault
@@ -175,7 +183,7 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 		comm.Opf("Installed in %s", time.Since(startTime))
 	}
 
-	return doMsiInfo(msiPath)
+	return nil
 }
 
 func msiUninstall(productCode string) {
