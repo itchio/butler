@@ -2,6 +2,8 @@
 
 package main
 
+import "fmt"
+
 func msiInfo(msiPath string) {
 	must(fmt.Errorf("msi-info is a windows-only command"))
 }
