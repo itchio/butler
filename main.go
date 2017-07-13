@@ -75,6 +75,11 @@ var (
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
 	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
+	testPrereqsCmd    = app.Command("test-prereqs", "Download and install a bunch of prerequisites from their names").Hidden()
+	msiInfoCmd        = app.Command("msi-info", "Show information about an MSI file").Hidden()
+	msiProductInfoCmd = app.Command("msi-product-info", "Show information an installed product").Hidden()
+	msiInstallCmd     = app.Command("msi-install", "Install or repair an MSI package").Hidden()
+	msiUninstallCmd   = app.Command("msi-uninstall", "Uninstall an MSI package").Hidden()
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -376,6 +381,40 @@ var installPrereqsArgs = struct {
 	installPrereqsCmd.Flag("pipe", "Named pipe where to write status updates").String(),
 }
 
+var testPrereqsArgs = struct {
+	prereqs *[]string
+}{
+	testPrereqsCmd.Arg("prereqs", "Which prereqs to install (space-separated). Leave empty to get a list").Strings(),
+}
+
+var msiInfoArgs = struct {
+	msiPath *string
+}{
+	msiInfoCmd.Arg("msiPath", "Path to the MSI file").Required().String(),
+}
+
+var msiProductInfoArgs = struct {
+	productCode *string
+}{
+	msiProductInfoCmd.Arg("productCode", "The product code to print info for").Required().String(),
+}
+
+var msiInstallArgs = struct {
+	msiPath *string
+	logPath *string
+	target  *string
+}{
+	msiInstallCmd.Arg("msiPath", "Path to the MSI file").Required().String(),
+	msiInstallCmd.Flag("logPath", "Where to write a (very verbose) install log").String(),
+	msiInstallCmd.Flag("target", "Where to install the MSI (does not work with all packages)").String(),
+}
+
+var msiUninstallArgs = struct {
+	productCode *string
+}{
+	msiUninstallCmd.Arg("productCode", "Product code to uninstall").Required().String(),
+}
+
 var exePropsArgs = struct {
 	path *string
 }{
@@ -467,7 +506,11 @@ func doMain(args []string) {
 	cmd, err := app.Parse(args)
 	if err != nil {
 		ctx, _ := app.ParseContext(os.Args[1:])
-		app.FatalUsageContext(ctx, "%s\n", err.Error())
+		if ctx != nil {
+			app.FatalUsageContext(ctx, "%s\n", err.Error())
+		} else {
+			app.FatalUsage("%s\n", err.Error())
+		}
 	}
 
 	if *appArgs.timestamps {
@@ -603,6 +646,21 @@ func doMain(args []string) {
 
 	case installPrereqsCmd.FullCommand():
 		installPrereqs(*installPrereqsArgs.plan, *installPrereqsArgs.pipe)
+
+	case testPrereqsCmd.FullCommand():
+		testPrereqs(*testPrereqsArgs.prereqs)
+
+	case msiInfoCmd.FullCommand():
+		msiInfo(*msiInfoArgs.msiPath)
+
+	case msiProductInfoCmd.FullCommand():
+		msiProductInfo(*msiProductInfoArgs.productCode)
+
+	case msiInstallCmd.FullCommand():
+		msiInstall(*msiInstallArgs.msiPath, *msiInstallArgs.logPath, *msiInstallArgs.target)
+
+	case msiUninstallCmd.FullCommand():
+		msiUninstall(*msiUninstallArgs.productCode)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)

@@ -30,7 +30,7 @@ type ExitCode struct {
 	// Code is the process's exit code
 	Code int `json:"code"`
 	// Success is true if that non-zero exit code means success
-	Success bool `json:"code"`
+	Success bool `json:"success"`
 	// Message is a human-readable message (in english) for what the exit code means
 	Message string `json:"message"`
 }

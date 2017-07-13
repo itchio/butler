@@ -205,6 +205,131 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/winlabs/gowin32",
+			"repository": "https://github.com/winlabs/gowin32",
+			"vcs": "git",
+			"revision": "5ad1626a4409935a6178476042dd2083de3b30b6",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/cases",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "cases",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/collate",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "collate",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/encoding",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "encoding",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/internal",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "internal",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/language",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "language",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/runes",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "runes",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/secure/bidirule",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "secure/bidirule",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/transform",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "transform",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/bidi",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "unicode/bidi",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/cldr",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "unicode/cldr",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/norm",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "unicode/norm",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/rangetable",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "unicode/rangetable",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/width",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
+			"branch": "master",
+			"path": "width",
+			"notests": true
+		},
+		{
 			"importpath": "gopkg.in/kothar/brotli-go.v0/dec",
 			"repository": "https://gopkg.in/kothar/brotli-go.v0",
 			"vcs": "git",
