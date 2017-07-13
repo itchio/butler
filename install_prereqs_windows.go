@@ -217,9 +217,9 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 						for _, exitCode := range task.Info.ExitCodes {
 							if code == exitCode.Code {
 								if exitCode.Success {
-									logf("%s, continuing", exitCode.Message)
+									logf("%s (Code %d), continuing", exitCode.Message, exitCode.Code)
 								} else {
-									logf("%s, we'll error out eventually", exitCode.Message)
+									logf("%s (Code %d), we'll error out eventually", exitCode.Message, exitCode.Code)
 									failed = append(failed, task.Name)
 								}
 								known = true
