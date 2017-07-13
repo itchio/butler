@@ -75,7 +75,8 @@ if [ "$CI_OS" = "darwin" ]; then
 
   codesign --deep --force --verbose --sign "$OSX_SIGN_KEY" $TARGET
   codesign --verify -vvvv $TARGET
-  spctl -a -vvvv $TARGET
+  # Ignore that for now, see https://stackoverflow.com/questions/39811791/mac-os-gatekeeper-blocking-signed-command-line-tool
+  # spctl -a -vvvv $TARGET
 fi
 
 # verify
