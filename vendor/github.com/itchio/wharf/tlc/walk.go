@@ -68,12 +68,37 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 	zr, err := zip.NewReader(file, stat.Size())
 	if err != nil {
 		if err == zip.ErrFormat {
-			return nil, errors.Wrap(ErrUnrecognizedContainer, 0)
+			return WalkSingle(containerPath)
 		}
 		return nil, errors.Wrap(err, 0)
 	}
 
 	return WalkZip(zr, filter)
+}
+
+// WalkSingle returns a container with a single file
+func WalkSingle(Path string) (*Container, error) {
+	stats, err := os.Stat(Path)
+	if err != nil {
+		return nil, err
+	}
+
+	if !stats.Mode().IsRegular() {
+		return nil, errors.Wrap(fmt.Errorf("%s: not a regular file, can only WalkSingle regular files", Path), 0)
+	}
+
+	container := &Container{
+		Files: []*File{
+			&File{
+				Mode:   uint32(stats.Mode()),
+				Size:   int64(stats.Size()),
+				Offset: 0,
+				Path:   Path,
+			},
+		},
+		Size: stats.Size(),
+	}
+	return container, nil
 }
 
 // WalkDir retrieves information on all files, directories, and symlinks in a directory

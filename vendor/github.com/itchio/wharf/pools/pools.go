@@ -3,6 +3,8 @@ package pools
 import (
 	"github.com/itchio/arkive/zip"
 
+	"path/filepath"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools/fspool"
@@ -33,12 +35,16 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 		}
 
 		return fspool.New(c, basePath), nil
-	} else {
-		zr, err := zip.NewReader(fr, targetInfo.Size())
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
-		}
-
-		return zippool.New(c, zr), nil
 	}
+
+	zr, err := zip.NewReader(fr, targetInfo.Size())
+	if err != nil {
+		if errors.Is(err, zip.ErrFormat) {
+			// assume single-file container
+			return fspool.New(c, filepath.Dir(basePath)), nil
+		}
+		return nil, errors.Wrap(err, 1)
+	}
+
+	return zippool.New(c, zr), nil
 }
