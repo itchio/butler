@@ -69,6 +69,7 @@ type Candidate struct {
 
 type WindowsInfo struct {
 	InstallerType WindowsInstallerType `json:"installerType,omitempty"`
+	Uninstaller   bool                 `json:"uninstaller,omitempty"`
 	Gui           bool                 `json:"gui,omitempty"`
 	DotNet        bool                 `json:"dotNet,omitempty"`
 }
@@ -145,6 +146,9 @@ func sniffPE(r io.ReadSeeker, size int64) (*Candidate, error) {
 
 	if spellHas(spell, "\\b, InnoSetup installer") {
 		result.WindowsInfo.InstallerType = WindowsInstallerTypeInno
+	} else if spellHas(spell, "\\b, InnoSetup uninstaller") {
+		result.WindowsInfo.InstallerType = WindowsInstallerTypeInno
+		result.WindowsInfo.Uninstaller = true
 	} else if spellHas(spell, "\\b, Nullsoft Installer self-extracting archive") {
 		result.WindowsInfo.InstallerType = WindowsInstallerTypeNullsoft
 	}
@@ -401,15 +405,19 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 		BasePath: root,
 	}
 
+	var pool wsync.Pool
+
 	container, err := tlc.WalkAny(root, filtering.FilterPaths)
 	if err != nil {
 		comm.Logf("Could not walk %s: %s", root, err.Error())
 		return verdict, nil
 	}
 
-	pool, err := pools.New(container, root)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
+	if pool == nil {
+		pool, err = pools.New(container, root)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
 	}
 
 	defer pool.Close()

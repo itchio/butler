@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/butler/configurator"
 )
 
-func configure(root string, showSpell bool, osFilter string, archFilter string) {
+func configure(root string, showSpell bool, osFilter string, archFilter string, noFilter bool) {
 	startTime := time.Now()
 
 	comm.Opf("Collecting initial candidates")
@@ -27,11 +27,15 @@ func configure(root string, showSpell bool, osFilter string, archFilter string) 
 		}
 	}
 
-	comm.Opf("Filtering for os %s, arch %s", osFilter, archFilter)
+	if noFilter {
+		comm.Opf("Not filtering, by request")
+	} else {
+		comm.Opf("Filtering for os %s, arch %s", osFilter, archFilter)
 
-	verdict.FilterPlatform(osFilter, archFilter)
+		verdict.FilterPlatform(osFilter, archFilter)
 
-	comm.Statf("After platform filter, candidates are:\n%s", verdict)
+		comm.Statf("After platform filter, candidates are:\n%s", verdict)
+	}
 
 	comm.Statf("Configured in %s", time.Since(startTime))
 
