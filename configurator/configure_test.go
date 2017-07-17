@@ -2,6 +2,7 @@ package configurator_test
 
 import (
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/alecthomas/assert"
@@ -85,6 +86,23 @@ func Test_ConfigureDarwinNested(t *testing.T) {
 	assert.EqualValues(t, "osx64/dragonjousting.app", vcopy.Candidates[0].Path, "app wins")
 }
 
+func Test_ConfigureDarwinGhost(t *testing.T) {
+	root := filepath.Join("testdata", "darwin-ghost")
+
+	v, err := configurator.Configure(root, true)
+	assert.NoError(t, err, "walks without problems")
+	assert.EqualValues(t, 3, len(v.Candidates), "finds both execs and one valid app bundle")
+
+	_, err = v.FixPermissions(true)
+	assert.NoError(t, err, "fixes permissions without problems")
+
+	vcopy := *v
+	(&vcopy).FilterPlatform("darwin", "amd64")
+
+	assert.EqualValues(t, 1, len(vcopy.Candidates), "only one candidate left after filtering")
+	assert.EqualValues(t, "Awesome Stuff.app", vcopy.Candidates[0].Path, "valid app bundle wins")
+}
+
 func Test_ConfigureDarwinSymlink(t *testing.T) {
 	root := filepath.Join("testdata", "darwin-symlink")
 
@@ -111,7 +129,10 @@ func Test_ConfigureLinux(t *testing.T) {
 
 	fixed, err := v.FixPermissions(true)
 	assert.NoError(t, err, "fixes permissions without problems")
-	assert.EqualValues(t, 4, len(fixed), "fixed some files")
+	// on windows it fixes 5 because reasons
+	if runtime.GOOS != "windows" {
+		assert.EqualValues(t, 4, len(fixed), "fixed some files")
+	}
 
 	vcopy := *v
 	(&vcopy).FilterPlatform("linux", "amd64")

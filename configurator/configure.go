@@ -419,6 +419,21 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 	for _, d := range container.Dirs {
 		lowerPath := strings.ToLower(d.Path)
 		if strings.HasSuffix(lowerPath, ".app") {
+			plistPath := lowerPath + "/contents/info.plist"
+
+			plistFound := false
+			for _, f := range container.Files {
+				if strings.ToLower(f.Path) == plistPath {
+					plistFound = true
+					break
+				}
+			}
+
+			if !plistFound {
+				comm.Logf("Found app bundle without an Info.plist: %s", d.Path)
+				continue
+			}
+
 			res := &Candidate{
 				Flavor: FlavorAppMacos,
 				Size:   0,
