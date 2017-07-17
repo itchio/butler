@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/fasterthanlime/spellbook"
+	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
 	"github.com/itchio/arkive/zip"
 
 	"github.com/blang/semver"
@@ -58,6 +60,15 @@ func file(inPath string) {
 	}
 	must(err)
 
+	spell := spellbook.Identify(reader, stats.Size(), 0)
+	if *appArgs.json {
+		comm.Result(&spell)
+	}
+
+	if spell != nil {
+		comm.Logf("%s: %s", path, wizutil.MergeStrings(spell))
+	}
+
 	if stats.IsDir() {
 		comm.Logf("%s: directory", path)
 		return
@@ -69,6 +80,9 @@ func file(inPath string) {
 	}
 
 	prettySize := humanize.IBytes(uint64(stats.Size()))
+
+	_, err = reader.Seek(0, os.SEEK_SET)
+	must(err)
 
 	var magic int32
 	must(binary.Read(reader, wire.Endianness, &magic))
@@ -203,7 +217,7 @@ func file(inPath string) {
 			return true
 		}()
 
-		if !wasZip {
+		if !wasZip && spell == nil {
 			comm.Logf("%s: not sure - try the file(1) command if your system has it!", path)
 		}
 	}
