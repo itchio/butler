@@ -724,25 +724,30 @@ fb8:
   a("\\b, InnoSetup self-extracting archive")
   d[2]=t
 fb9:
-  rA=ht(r,s,po,61440,"Inno Setup Setup Data")
+  rA = gt(r,s,po+48,"InUn",0)
   if rA<0 {goto fba}
-  a("\\b, InnoSetup installer")
+  a("\\b, InnoSetup uninstaller")
   d[2]=t
 fba:
-f72:
-  if !k {goto fbb}
-  rA = gt(r,s,int64(ra),"PE\x00\x00",0)
-  if rA>=0 {goto fbb}
-  a("MS-DOS executable")
+  rA=ht(r,s,po,61440,"Inno Setup Setup Data")
+  if rA<0 {goto fbb}
+  a("\\b, InnoSetup installer")
+  d[2]=t
 fbb:
+f72:
   if !k {goto fbc}
+  rA = gt(r,s,int64(ra),"PE\x00\x00",0)
+  if rA>=0 {goto fbc}
+  a("MS-DOS executable")
+fbc:
+  if !k {goto fbd}
   rA = gt(r,s,int64(ra),"NE",0)
-  if rA<0 {goto fbc}
+  if rA<0 {goto fbd}
   gf=int64(ra)+rA
   a("\\b, NE")
   d[2]=f
   ra,k=f4l(r,s,60)
-  if !k {goto fbd}
+  if !k {goto fbe}
   rc,m=f1l(r,s,int64(ra)+54)
   switch rc {
     case 1: a("for OS/2 1.x")
@@ -750,796 +755,796 @@ fbb:
     case 3: a("for MS-DOS")
     case 4: a("for Windows 386")
     case 5: a("for Borland Operating System Services")
-    default: {goto fbd}
+    default: {goto fbe}
   }
   d[2]=t
-fbd:
-  if !k {goto fc2}
-  if d[2] {goto fc2}
+fbe:
   if !k {goto fc3}
-  a("(unknown OS %x)")
-fc3:
-  d[2]=t
-fc2:
+  if d[2] {goto fc3}
   if !k {goto fc4}
+  a("(unknown OS %x)")
+fc4:
+  d[2]=t
+fc3:
+  if !k {goto fc5}
   rc,m=f1l(r,s,int64(ra)+54)
-  if !(m&&rc==129) {goto fc4}
+  if !(m&&rc==129) {goto fc5}
   a("for MS-DOS, Phar Lap DOS extender")
   d[2]=t
-fc4:
+fc5:
   ra,k=f4l(r,s,60)
-  if !k {goto fc5}
+  if !k {goto fc6}
   rc,m=f2l(r,s,int64(ra)+12)
-  if !(m&&rc&32771==32770) {goto fc5}
+  if !(m&&rc&32771==32770) {goto fc6}
   a("(DLL)")
   d[2]=t
-fc5:
-  if !k {goto fc6}
-  if !(m&&rc&32771==32769) {goto fc6}
+fc6:
+  if !k {goto fc7}
+  if !(m&&rc&32771==32769) {goto fc7}
   a("(driver)")
   d[2]=t
-fc6:
+fc7:
   ra,k=f2l(r,s,36+gf)
-  if !k {goto fc7}
+  if !k {goto fc8}
   rA = gt(r,s,int64(ra)-1+gf,"ARJSFX",0)
-  if rA<0 {goto fc7}
+  if rA<0 {goto fc8}
   a("\\b, ARJ self-extracting archive")
   d[2]=t
-fc7:
+fc8:
   ra,k=f4l(r,s,60)
-  if !k {goto fc8}
+  if !k {goto fc9}
   rA=ht(r,s,int64(ra)+112,128,"WinZip(R) Self-Extractor")
-  if rA<0 {goto fc8}
+  if rA<0 {goto fc9}
   a("\\b, ZIP self-extracting archive (WinZip)")
   d[2]=t
-fc8:
-fbc:
-  if !k {goto fc9}
+fc9:
+fbd:
+  if !k {goto fca}
   rA = gt(r,s,int64(ra),"LX\x00\x00",0)
-  if rA<0 {goto fc9}
+  if rA<0 {goto fca}
   gf=int64(ra)+rA
   a("\\b, LX")
   ra,k=f4l(r,s,60)
-  if !k {goto fca}
-  rc,m=f2l(r,s,int64(ra)+10)
-  if !(m&&int64(int16(rc))< 1) {goto fca}
-  a("(unknown OS)")
-fca:
   if !k {goto fcb}
+  rc,m=f2l(r,s,int64(ra)+10)
+  if !(m&&int64(int16(rc))< 1) {goto fcb}
+  a("(unknown OS)")
+fcb:
+  if !k {goto fcc}
   rc,m=f2l(r,s,int64(ra)+10)
   switch rc {
     case 1: a("for OS/2")
     case 2: a("for MS Windows")
     case 3: a("for DOS")
-    default: {goto fcb}
+    default: {goto fcc}
   }
-fcb:
-  if !k {goto fce}
-  rc,m=f2l(r,s,int64(ra)+10)
-  if !(m&&int64(int16(rc))>3) {goto fce}
-  a("(unknown OS)")
-fce:
-  ra,k=f4l(r,s,60)
+fcc:
   if !k {goto fcf}
-  rc,m=f4l(r,s,int64(ra)+16)
-  if !(m&&rc&163840==32768) {goto fcf}
-  a("(DLL)")
+  rc,m=f2l(r,s,int64(ra)+10)
+  if !(m&&int64(int16(rc))>3) {goto fcf}
+  a("(unknown OS)")
 fcf:
+  ra,k=f4l(r,s,60)
   if !k {goto fd0}
-  if !(m&&int64(int32(rc))&131072>0) {goto fd0}
-  a("(device driver)")
+  rc,m=f4l(r,s,int64(ra)+16)
+  if !(m&&rc&163840==32768) {goto fd0}
+  a("(DLL)")
 fd0:
   if !k {goto fd1}
-  if !(m&&rc&768==768) {goto fd1}
-  a("(GUI)")
+  if !(m&&int64(int32(rc))&131072>0) {goto fd1}
+  a("(device driver)")
 fd1:
   if !k {goto fd2}
-  if !(m&&int64(int32(rc))&164608< 768) {goto fd2}
-  a("(console)")
+  if !(m&&rc&768==768) {goto fd2}
+  a("(GUI)")
 fd2:
-  ra,k=f4l(r,s,60)
   if !k {goto fd3}
+  if !(m&&int64(int32(rc))&164608< 768) {goto fd3}
+  a("(console)")
+fd3:
+  ra,k=f4l(r,s,60)
+  if !k {goto fd4}
   rc,m=f2l(r,s,int64(ra)+8)
   switch rc {
     case 1: a("i80286")
     case 2: a("i80386")
     case 3: a("i80486")
-    default: {goto fd3}
+    default: {goto fd4}
   }
-fd3:
+fd4:
   ra,k=f2l(r,s,8)
-  if !k {goto fd6}
+  if !k {goto fd7}
   rA = gt(r,s,int64(ra)*16,"emx",0)
-  if rA<0 {goto fd6}
+  if rA<0 {goto fd7}
   gf=int64(ra)*16+rA
   a("\\b, emx")
   rA = gt(r,s,po+1+gf,"x",0)
-  if rA<0 {goto fd7}
-  a("%s")
-fd7:
-fd6:
-  ra,k=f4l(r,s,84+gf)
-  if !k {goto fd8}
-  rA = gt(r,s,int64(ra)-3+gf,"arjsfx",0)
   if rA<0 {goto fd8}
-  a("\\b, ARJ self-extracting archive")
+  a("%s")
 fd8:
-fc9:
+fd7:
+  ra,k=f4l(r,s,84+gf)
   if !k {goto fd9}
-  rA = gt(r,s,int64(ra),"W3",0)
+  rA = gt(r,s,int64(ra)-3+gf,"arjsfx",0)
   if rA<0 {goto fd9}
-  a("\\b, W3 for MS Windows")
+  a("\\b, ARJ self-extracting archive")
 fd9:
+fca:
   if !k {goto fda}
-  rA = gt(r,s,int64(ra),"LE\x00\x00",0)
+  rA = gt(r,s,int64(ra),"W3",0)
   if rA<0 {goto fda}
+  a("\\b, W3 for MS Windows")
+fda:
+  if !k {goto fdb}
+  rA = gt(r,s,int64(ra),"LE\x00\x00",0)
+  if rA<0 {goto fdb}
   gf=int64(ra)+rA
   a("\\b, LE executable")
   ra,k=f4l(r,s,60)
-  if !k {goto fdb}
+  if !k {goto fdc}
   rc,m=f2l(r,s,int64(ra)+10)
-  if !(m&&rc==1) {goto fdb}
+  if !(m&&rc==1) {goto fdc}
   gf=int64(ra)+12
   rA=ht(r,s,po+576,256,"DOS/4G")
-  if rA<0 {goto fdc}
-  a("for MS-DOS, DOS4GW DOS extender")
-fdc:
-  rA=ht(r,s,po+576,512,"WATCOM C/C++")
   if rA<0 {goto fdd}
   a("for MS-DOS, DOS4GW DOS extender")
 fdd:
-  rA=ht(r,s,po+1088,256,"CauseWay DOS Extender")
+  rA=ht(r,s,po+576,512,"WATCOM C/C++")
   if rA<0 {goto fde}
-  a("for MS-DOS, CauseWay DOS extender")
+  a("for MS-DOS, DOS4GW DOS extender")
 fde:
-  rA=ht(r,s,po+64,64,"PMODE/W")
+  rA=ht(r,s,po+1088,256,"CauseWay DOS Extender")
   if rA<0 {goto fdf}
-  a("for MS-DOS, PMODE/W DOS extender")
+  a("for MS-DOS, CauseWay DOS extender")
 fdf:
-  rA=ht(r,s,po+64,64,"STUB/32A")
+  rA=ht(r,s,po+64,64,"PMODE/W")
   if rA<0 {goto fe0}
-  a("for MS-DOS, DOS/32A DOS extender (stub)")
+  a("for MS-DOS, PMODE/W DOS extender")
 fe0:
-  rA=ht(r,s,po+64,128,"STUB/32C")
+  rA=ht(r,s,po+64,64,"STUB/32A")
   if rA<0 {goto fe1}
-  a("for MS-DOS, DOS/32A DOS extender (configurable stub)")
+  a("for MS-DOS, DOS/32A DOS extender (stub)")
 fe1:
-  rA=ht(r,s,po+64,128,"DOS/32A")
+  rA=ht(r,s,po+64,128,"STUB/32C")
   if rA<0 {goto fe2}
-  a("for MS-DOS, DOS/32A DOS extender (embedded)")
+  a("for MS-DOS, DOS/32A DOS extender (configurable stub)")
 fe2:
+  rA=ht(r,s,po+64,128,"DOS/32A")
+  if rA<0 {goto fe3}
+  a("for MS-DOS, DOS/32A DOS extender (embedded)")
+fe3:
   rc,m=f4l(r,s,po+36+gf)
-  if !(m&&int64(int32(rc))< 80) {goto fe3}
+  if !(m&&int64(int32(rc))< 80) {goto fe4}
   gf=po+36+gf+4
   ra,k=f4l(r,s,76+gf)
-  if !k {goto fe4}
+  if !k {goto fe5}
   rA = gt(r,s,int64(ra),"\xfc\xb8WATCOM",0)
-  if rA<0 {goto fe4}
+  if rA<0 {goto fe5}
   gf=int64(ra)+rA
   rA=ht(r,s,po+gf,8,"3\xdbf\xb9")
-  if rA<0 {goto fe5}
+  if rA<0 {goto fe6}
   a("\\b, 32Lite compressed")
+fe6:
 fe5:
 fe4:
-fe3:
-fdb:
-  if !k {goto fe6}
+fdc:
+  if !k {goto fe7}
   rc,m=f2l(r,s,int64(ra)+10)
   switch rc {
     case 2: a("for MS Windows")
     case 3: a("for DOS")
     case 4: a("for MS Windows (VxD)")
-    default: {goto fe6}
+    default: {goto fe7}
   }
-fe6:
+fe7:
   ra,k=f4l(r,s,124+gf)
-  if !k {goto fe9}
-  rA = gt(r,s,int64(ra)+38,"UPX",0)
-  if rA<0 {goto fe9}
-  a("\\b, UPX compressed")
-fe9:
-  ra,k=f4l(r,s,84+gf)
   if !k {goto fea}
-  rA = gt(r,s,int64(ra)-3+gf,"UNACE",0)
+  rA = gt(r,s,int64(ra)+38,"UPX",0)
   if rA<0 {goto fea}
-  a("\\b, ACE self-extracting archive")
+  a("\\b, UPX compressed")
 fea:
-fda:
-  rc,m=f4l(r,s,po+60)
-  if !(m&&int64(int32(rc))>536870912) {goto feb}
-  ra,k=f2l(r,s,4)
-  if !k {goto fec}
-  rc,m=f2l(r,s,int64(ra)*512)
-  if !(m&&rc!=332) {goto fec}
-  a("\\b, MZ for MS-DOS")
-fec:
+  ra,k=f4l(r,s,84+gf)
+  if !k {goto feb}
+  rA = gt(r,s,int64(ra)-3+gf,"UNACE",0)
+  if rA<0 {goto feb}
+  a("\\b, ACE self-extracting archive")
 feb:
+fdb:
+  rc,m=f4l(r,s,po+60)
+  if !(m&&int64(int32(rc))>536870912) {goto fec}
+  ra,k=f2l(r,s,4)
+  if !k {goto fed}
+  rc,m=f2l(r,s,int64(ra)*512)
+  if !(m&&rc!=332) {goto fed}
+  a("\\b, MZ for MS-DOS")
+fed:
+fec:
 f71:
   rc,m=f4l(r,s,po+2)
-  if !(m&&rc!=0) {goto fed}
+  if !(m&&rc!=0) {goto fee}
   rc,m=f2l(r,s,po+24)
-  if !(m&&int64(int16(rc))< 64) {goto fee}
+  if !(m&&int64(int16(rc))< 64) {goto fef}
   ra,k=f2l(r,s,4)
-  if !k {goto fef}
+  if !k {goto ff0}
   rc,m=f2l(r,s,int64(ra)*512)
-  if !(m&&rc!=332) {goto fef}
+  if !(m&&rc!=332) {goto ff0}
   gf=int64(ra)*512+2
   ra,k=f2l(r,s,2)
-  if !k {goto ff0}
+  if !k {goto ff1}
   rA = gt(r,s,int64(ra)-514+gf,"LE",0)
-  if rA>=0 {goto ff0}
+  if rA>=0 {goto ff1}
   gf=int64(ra)-514+gf+rA
   rA = gt(r,s,po+-2+gf,"BW",0)
-  if rA>=0 {goto ff1}
+  if rA>=0 {goto ff2}
   a("\\b, MZ for MS-DOS")
+ff2:
 ff1:
-ff0:
-  if !k {goto ff2}
+  if !k {goto ff3}
   rA = gt(r,s,int64(ra)-514+gf,"LE",0)
-  if rA<0 {goto ff2}
+  if rA<0 {goto ff3}
   a("\\b, LE")
   rA=ht(r,s,po+576,256,"DOS/4G")
-  if rA<0 {goto ff3}
-  a("for MS-DOS, DOS4GW DOS extender")
-ff3:
-ff2:
-  if !k {goto ff4}
-  rA = gt(r,s,int64(ra)-514+gf,"BW",0)
   if rA<0 {goto ff4}
-  rA=ht(r,s,po+576,256,"DOS/4G")
-  if rA<0 {goto ff5}
-  a("\\b, LE for MS-DOS, DOS4GW DOS extender (embedded)")
-ff5:
-  rA=ht(r,s,po+576,256,"!DOS/4G")
-  if rA<0 {goto ff6}
-  a("\\b, BW collection for MS-DOS")
-ff6:
+  a("for MS-DOS, DOS4GW DOS extender")
 ff4:
+ff3:
+  if !k {goto ff5}
+  rA = gt(r,s,int64(ra)-514+gf,"BW",0)
+  if rA<0 {goto ff5}
+  rA=ht(r,s,po+576,256,"DOS/4G")
+  if rA<0 {goto ff6}
+  a("\\b, LE for MS-DOS, DOS4GW DOS extender (embedded)")
+ff6:
+  rA=ht(r,s,po+576,256,"!DOS/4G")
+  if rA<0 {goto ff7}
+  a("\\b, BW collection for MS-DOS")
+ff7:
+ff5:
+ff0:
 fef:
 fee:
-fed:
   ra,k=f2l(r,s,4)
-  if !k {goto ff7}
+  if !k {goto ff8}
   rc,m=f2l(r,s,int64(ra)*512)
-  if !(m&&rc==332) {goto ff7}
+  if !(m&&rc==332) {goto ff8}
   gf=int64(ra)*512+2
   a("\\b, COFF")
   ra,k=f2l(r,s,8)
-  if !k {goto ff8}
-  rA = gt(r,s,int64(ra)*16,"go32stub",0)
-  if rA<0 {goto ff8}
-  a("for MS-DOS, DJGPP go32 DOS extender")
-ff8:
   if !k {goto ff9}
-  rA = gt(r,s,int64(ra)*16,"emx",0)
+  rA = gt(r,s,int64(ra)*16,"go32stub",0)
   if rA<0 {goto ff9}
+  a("for MS-DOS, DJGPP go32 DOS extender")
+ff9:
+  if !k {goto ffa}
+  rA = gt(r,s,int64(ra)*16,"emx",0)
+  if rA<0 {goto ffa}
   gf=int64(ra)*16+rA
   rA = gt(r,s,po+1+gf,"x",0)
-  if rA<0 {goto ffa}
+  if rA<0 {goto ffb}
   a("for DOS, Win or OS/2, emx %s")
+ffb:
 ffa:
-ff9:
   ra,k=f4l(r,s,66+gf)
-  if !k {goto ffb}
+  if !k {goto ffc}
   gf=int64(ra)-3+gf+1
   rA = gt(r,s,po+38+gf,"UPX",0)
-  if rA<0 {goto ffc}
-  a("\\b, UPX compressed")
-ffc:
-ffb:
-  rA=ht(r,s,po+44+gf,160,".text")
   if rA<0 {goto ffd}
+  a("\\b, UPX compressed")
+ffd:
+ffc:
+  rA=ht(r,s,po+44+gf,160,".text")
+  if rA<0 {goto ffe}
   gf=po+44+gf+rA+5
   rc,m=f4l(r,s,po+11+gf)
-  if !(m&&int64(int32(rc))< 8192) {goto ffe}
+  if !(m&&int64(int32(rc))< 8192) {goto fff}
   gf=po+11+gf+4
   rc,m=f4l(r,s,po+gf)
-  if !(m&&int64(int32(rc))>24576) {goto fff}
+  if !(m&&int64(int32(rc))>24576) {goto f100}
   a("\\b, 32lite compressed")
+f100:
 fff:
 ffe:
-ffd:
-ff7:
+ff8:
   ra,k=f2l(r,s,8)
-  if !k {goto f100}
+  if !k {goto f101}
   rA = gt(r,s,int64(ra)*16,"$WdX",0)
-  if rA<0 {goto f100}
-  a("\\b, WDos/X DOS extender")
-f100:
-  rA = gt(r,s,po+53,"\x8e\xc0\xb9\b\x00\xf3\xa5Ju\xeb\x8eÎ\xd83\xff\xbe0\x00\x05",0)
   if rA<0 {goto f101}
-  a("\\b, aPack compressed")
+  a("\\b, WDos/X DOS extender")
 f101:
-  rA = gt(r,s,po+231,"LH/2 ",0)
+  rA = gt(r,s,po+53,"\x8e\xc0\xb9\b\x00\xf3\xa5Ju\xeb\x8eÎ\xd83\xff\xbe0\x00\x05",0)
   if rA<0 {goto f102}
-  a("Self-Extract \\b, %s")
+  a("\\b, aPack compressed")
 f102:
-  rA = gt(r,s,po+28,"UC2X",0)
+  rA = gt(r,s,po+231,"LH/2 ",0)
   if rA<0 {goto f103}
-  a("\\b, UCEXE compressed")
+  a("Self-Extract \\b, %s")
 f103:
-  rA = gt(r,s,po+28,"WWP ",0)
+  rA = gt(r,s,po+28,"UC2X",0)
   if rA<0 {goto f104}
-  a("\\b, WWPACK compressed")
+  a("\\b, UCEXE compressed")
 f104:
-  rA = gt(r,s,po+28,"RJSX",0)
+  rA = gt(r,s,po+28,"WWP ",0)
   if rA<0 {goto f105}
-  a("\\b, ARJ self-extracting archive")
+  a("\\b, WWPACK compressed")
 f105:
-  rA = gt(r,s,po+28,"diet",0)
+  rA = gt(r,s,po+28,"RJSX",0)
   if rA<0 {goto f106}
-  a("\\b, diet compressed")
+  a("\\b, ARJ self-extracting archive")
 f106:
-  rA = gt(r,s,po+28,"LZ09",0)
+  rA = gt(r,s,po+28,"diet",0)
   if rA<0 {goto f107}
-  a("\\b, LZEXE v0.90 compressed")
+  a("\\b, diet compressed")
 f107:
-  rA = gt(r,s,po+28,"LZ91",0)
+  rA = gt(r,s,po+28,"LZ09",0)
   if rA<0 {goto f108}
-  a("\\b, LZEXE v0.91 compressed")
+  a("\\b, LZEXE v0.90 compressed")
 f108:
-  rA = gt(r,s,po+28,"tz",0)
+  rA = gt(r,s,po+28,"LZ91",0)
   if rA<0 {goto f109}
-  a("\\b, TinyProg compressed")
+  a("\\b, LZEXE v0.91 compressed")
 f109:
-  rA = gt(r,s,po+30,"Copyright 1989-1990 PKWARE Inc.",0)
+  rA = gt(r,s,po+28,"tz",0)
   if rA<0 {goto f10a}
-  a("Self-extracting PKZIP archive")
+  a("\\b, TinyProg compressed")
 f10a:
-  rA = gt(r,s,po+30,"PKLITE Copr.",0)
+  rA = gt(r,s,po+30,"Copyright 1989-1990 PKWARE Inc.",0)
   if rA<0 {goto f10b}
   a("Self-extracting PKZIP archive")
 f10b:
-  rA=ht(r,s,po+32,224,"aRJsfX")
+  rA = gt(r,s,po+30,"PKLITE Copr.",0)
   if rA<0 {goto f10c}
-  a("\\b, ARJ self-extracting archive")
+  a("Self-extracting PKZIP archive")
 f10c:
-  rA = gt(r,s,po+32,"AIN",0)
+  rA=ht(r,s,po+32,224,"aRJsfX")
   if rA<0 {goto f10d}
-  rA = gt(r,s,po+35,"2",0)
+  a("\\b, ARJ self-extracting archive")
+f10d:
+  rA = gt(r,s,po+32,"AIN",0)
   if rA<0 {goto f10e}
-  a("\\b, AIN 2.x compressed")
-f10e:
-  rA = gt(r,s,po+35,"<2",0)
+  rA = gt(r,s,po+35,"2",0)
   if rA<0 {goto f10f}
-  a("\\b, AIN 1.x compressed")
+  a("\\b, AIN 2.x compressed")
 f10f:
-  rA = gt(r,s,po+35,">2",0)
+  rA = gt(r,s,po+35,"<2",0)
   if rA<0 {goto f110}
   a("\\b, AIN 1.x compressed")
 f110:
-f10d:
-  rA = gt(r,s,po+36,"LHa's SFX",0)
+  rA = gt(r,s,po+35,">2",0)
   if rA<0 {goto f111}
-  a("\\b, LHa self-extracting archive")
+  a("\\b, AIN 1.x compressed")
 f111:
-  rA = gt(r,s,po+36,"LHA's SFX",0)
+f10e:
+  rA = gt(r,s,po+36,"LHa's SFX",0)
   if rA<0 {goto f112}
   a("\\b, LHa self-extracting archive")
 f112:
-  rA = gt(r,s,po+36," $ARX",0)
+  rA = gt(r,s,po+36,"LHA's SFX",0)
   if rA<0 {goto f113}
-  a("\\b, ARX self-extracting archive")
+  a("\\b, LHa self-extracting archive")
 f113:
-  rA = gt(r,s,po+36," $LHarc",0)
+  rA = gt(r,s,po+36," $ARX",0)
   if rA<0 {goto f114}
-  a("\\b, LHarc self-extracting archive")
+  a("\\b, ARX self-extracting archive")
 f114:
-  rA = gt(r,s,po+32,"SFX by LARC",0)
+  rA = gt(r,s,po+36," $LHarc",0)
   if rA<0 {goto f115}
-  a("\\b, LARC self-extracting archive")
+  a("\\b, LHarc self-extracting archive")
 f115:
-  rA = gt(r,s,po+64,"aPKG",0)
+  rA = gt(r,s,po+32,"SFX by LARC",0)
   if rA<0 {goto f116}
-  a("\\b, aPackage self-extracting archive")
+  a("\\b, LARC self-extracting archive")
 f116:
-  rA = gt(r,s,po+100,"W Collis\x00\x00",0)
+  rA = gt(r,s,po+64,"aPKG",0)
   if rA<0 {goto f117}
-  a("\\b, Compack compressed")
+  a("\\b, aPackage self-extracting archive")
 f117:
-  rA = gt(r,s,po+122,"Windows self-extracting ZIP",0)
+  rA = gt(r,s,po+100,"W Collis\x00\x00",0)
   if rA<0 {goto f118}
+  a("\\b, Compack compressed")
+f118:
+  rA = gt(r,s,po+122,"Windows self-extracting ZIP",0)
+  if rA<0 {goto f119}
   gf=po+122+rA
   a("\\b, ZIP self-extracting archive")
   rA=ht(r,s,po+244+gf,320,"\x00@\x01\x00")
-  if rA<0 {goto f119}
+  if rA<0 {goto f11a}
   gf=po+244+gf+rA+4
   ra,k=f4l(r,s,0+gf)
-  if !k {goto f11a}
+  if !k {goto f11b}
   rb,l=f4l(r,s,0+gf + 4)
-  if !l {goto f11a}
+  if !l {goto f11b}
   rA = gt(r,s,int64(ra)+int64(rb),"MSCF",0)
-  if rA<0 {goto f11a}
+  if rA<0 {goto f11b}
   a("\\b, WinHKI CAB self-extracting archive")
+f11b:
 f11a:
 f119:
-f118:
   rA = gt(r,s,po+1638,"-lh5-",0)
-  if rA<0 {goto f11b}
-  a("\\b, LHa self-extracting archive v2.13S")
-f11b:
-  rA = gt(r,s,po+96392,"Rar!",0)
   if rA<0 {goto f11c}
-  a("\\b, RAR self-extracting archive")
+  a("\\b, LHa self-extracting archive v2.13S")
 f11c:
+  rA = gt(r,s,po+96392,"Rar!",0)
+  if rA<0 {goto f11d}
+  a("\\b, RAR self-extracting archive")
+f11d:
   ra,k=f2l(r,s,4)
-  if !k {goto f11d}
+  if !k {goto f11e}
   gf=int64(ra)*512+4
   ra,k=f2l(r,s,2)
-  if !k {goto f11e}
+  if !k {goto f11f}
   gf=int64(ra)-517+gf+1
   rA = gt(r,s,po+gf,"PK\x03\x04",0)
-  if rA<0 {goto f11f}
-  a("\\b, ZIP self-extracting archive")
-f11f:
-  rA = gt(r,s,po+gf,"Rar!",0)
   if rA<0 {goto f120}
-  a("\\b, RAR self-extracting archive")
+  a("\\b, ZIP self-extracting archive")
 f120:
-  rA = gt(r,s,po+gf,"=!\x11",0)
+  rA = gt(r,s,po+gf,"Rar!",0)
   if rA<0 {goto f121}
-  a("\\b, AIN 2.x self-extracting archive")
+  a("\\b, RAR self-extracting archive")
 f121:
-  rA = gt(r,s,po+gf,"=!\x12",0)
+  rA = gt(r,s,po+gf,"=!\x11",0)
   if rA<0 {goto f122}
   a("\\b, AIN 2.x self-extracting archive")
 f122:
-  rA = gt(r,s,po+gf,"=!\x17",0)
+  rA = gt(r,s,po+gf,"=!\x12",0)
   if rA<0 {goto f123}
-  a("\\b, AIN 1.x self-extracting archive")
+  a("\\b, AIN 2.x self-extracting archive")
 f123:
-  rA = gt(r,s,po+gf,"=!\x18",0)
+  rA = gt(r,s,po+gf,"=!\x17",0)
   if rA<0 {goto f124}
   a("\\b, AIN 1.x self-extracting archive")
 f124:
-  rA=ht(r,s,po+7+gf,400,"**ACE**")
+  rA = gt(r,s,po+gf,"=!\x18",0)
   if rA<0 {goto f125}
-  a("\\b, ACE self-extracting archive")
+  a("\\b, AIN 1.x self-extracting archive")
 f125:
-  rA=ht(r,s,po+gf,1152,"UC2SFX Header")
+  rA=ht(r,s,po+7+gf,400,"**ACE**")
   if rA<0 {goto f126}
-  a("\\b, UC2 self-extracting archive")
+  a("\\b, ACE self-extracting archive")
 f126:
-f11e:
-f11d:
-  ra,k=f2l(r,s,8)
-  if !k {goto f127}
-  rA=ht(r,s,int64(ra)*16,32,"PKSFX")
+  rA=ht(r,s,po+gf,1152,"UC2SFX Header")
   if rA<0 {goto f127}
-  a("\\b, ZIP self-extracting archive (PKZIP)")
+  a("\\b, UC2 self-extracting archive")
 f127:
-  rA = gt(r,s,po+49801,"y\xff\x80\xffv\xff",0)
+f11f:
+f11e:
+  ra,k=f2l(r,s,8)
+  if !k {goto f128}
+  rA=ht(r,s,int64(ra)*16,32,"PKSFX")
   if rA<0 {goto f128}
+  a("\\b, ZIP self-extracting archive (PKZIP)")
+f128:
+  rA = gt(r,s,po+49801,"y\xff\x80\xffv\xff",0)
+  if rA<0 {goto f129}
   a("\\b, CODEC archive v3.21")
   rc,m=f2l(r,s,po+49824)
-  if !(m&&rc==1) {goto f129}
+  if !(m&&rc==1) {goto f12a}
   a("\\b, 1 file")
-f129:
-  if !(m&&int64(int16(rc))>1) {goto f12a}
-  a("\\b, %u files")
 f12a:
-f128:
+  if !(m&&int64(int16(rc))>1) {goto f12b}
+  a("\\b, %u files")
+f12b:
+f129:
 f6f:
   rA = gt(r,s,po,"KCF",32)
-  if rA<0 {goto f12b}
+  if rA<0 {goto f12c}
   a("FreeDOS KEYBoard Layout collection")
   a("\\b, version 0x%x")
   rc,m=f1l(r,s,po+6)
-  if !(m&&rc>0) {goto f12d}
+  if !(m&&rc>0) {goto f12e}
   rA = gt(r,s,po+7,">\x00",0)
-  if rA<0 {goto f12e}
-  a("\\b, author=%-.14s")
-f12e:
-  rA=ht(r,s,po+7,254,"\xff")
   if rA<0 {goto f12f}
+  a("\\b, author=%-.14s")
+f12f:
+  rA=ht(r,s,po+7,254,"\xff")
+  if rA<0 {goto f130}
   gf=po+7+rA+1
   a("\\b, info=")
   rA = gt(r,s,po+gf,"x",0)
-  if rA<0 {goto f130}
-  a("\\b%-.15s")
-f130:
-f12f:
-f12d:
-f12b:
-  rA = gt(r,s,po,"KLF",32)
   if rA<0 {goto f131}
+  a("\\b%-.15s")
+f131:
+f130:
+f12e:
+f12c:
+  rA = gt(r,s,po,"KLF",32)
+  if rA<0 {goto f132}
   a("FreeDOS KEYBoard Layout file")
   a("\\b, version 0x%x")
   rc,m=f1l(r,s,po+5)
-  if !(m&&rc>0) {goto f133}
+  if !(m&&rc>0) {goto f134}
   rA = gt(r,s,po+8,"x",0)
-  if rA<0 {goto f134}
-  a("\\b, name=%-.2s")
-f134:
-f133:
-f131:
-  rA = gt(r,s,po,"\xffKEYB   \x00\x00\x00\x00",0)
   if rA<0 {goto f135}
-  rA = gt(r,s,po+12,"\x00\x00\x00\x00`\x04\xf0",0)
-  if rA<0 {goto f136}
-  a("MS-DOS KEYBoard Layout file")
-f136:
+  a("\\b, name=%-.2s")
 f135:
-  rc,m=f8l(r,s,po)
-  if !(m&&rc&8388071129087==4294967295) {goto f137}
-  a(IdentifyMsdosDriver(r,s,po)...)
+f134:
+f132:
+  rA = gt(r,s,po,"\xffKEYB   \x00\x00\x00\x00",0)
+  if rA<0 {goto f136}
+  rA = gt(r,s,po+12,"\x00\x00\x00\x00`\x04\xf0",0)
+  if rA<0 {goto f137}
+  a("MS-DOS KEYBoard Layout file")
 f137:
+f136:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==365847100979675154) {goto f139}
+  if !(m&&rc&8388071129087==4294967295) {goto f138}
   a(IdentifyMsdosDriver(r,s,po)...)
-f139:
+f138:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==3671137388043632662) {goto f13b}
+  if !(m&&rc==365847100979675154) {goto f13a}
   a(IdentifyMsdosDriver(r,s,po)...)
-f13b:
+f13a:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==35747322042318847) {goto f13d}
+  if !(m&&rc==3671137388043632662) {goto f13c}
   a(IdentifyMsdosDriver(r,s,po)...)
-f13d:
+f13c:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==6192449487699967) {goto f13f}
+  if !(m&&rc==35747322042318847) {goto f13e}
   a(IdentifyMsdosDriver(r,s,po)...)
-f13f:
+f13e:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==862167487276384255) {goto f141}
+  if !(m&&rc==6192449487699967) {goto f140}
   a(IdentifyMsdosDriver(r,s,po)...)
-f141:
+f140:
   rc,m=f8l(r,s,po)
-  if !(m&&rc==557611562475454463) {goto f143}
+  if !(m&&rc==862167487276384255) {goto f142}
   a(IdentifyMsdosDriver(r,s,po)...)
-f143:
+f142:
+  rc,m=f8l(r,s,po)
+  if !(m&&rc==557611562475454463) {goto f144}
+  a(IdentifyMsdosDriver(r,s,po)...)
+f144:
   rc,m=f1l(r,s,po)
-  if !(m&&rc==140) {goto f145}
+  if !(m&&rc==140) {goto f146}
   rA = gt(r,s,po+4,"O====",0)
-  if rA>=0 {goto f146}
-  rA = gt(r,s,po+5,"MAIN",0)
   if rA>=0 {goto f147}
+  rA = gt(r,s,po+5,"MAIN",0)
+  if rA>=0 {goto f148}
   rc,m=f1l(r,s,po+4)
-  if !(m&&rc>13) {goto f148}
+  if !(m&&rc>13) {goto f149}
   a("DOS executable (COM, 0x8C-variant)")
+f149:
 f148:
 f147:
 f146:
-f145:
   rc,m=f4l(r,s,po)
-  if !(m&&rc==4294906091) {goto f149}
+  if !(m&&rc==4294906091) {goto f14a}
   a("DR-DOS executable (COM)")
-f149:
-  rc,m=f2b(r,s,po)
-  if !(m&&rc&60301>60160) {goto f14a}
 f14a:
-  rc,m=f1l(r,s,po)
-  if !(m&&rc==235) {goto f14b}
-  rc,m=f1l(r,s,po+1)
-  if !(m&&int64(int8(rc))>-1) {goto f14c}
-  ra,k=f1l(r,s,1)
-  if !k {goto f14d}
-  a(IdentifyMsdosCom(r,s,po)...)
-f14d:
-f14c:
+  rc,m=f2b(r,s,po)
+  if !(m&&rc&60301>60160) {goto f14b}
 f14b:
   rc,m=f1l(r,s,po)
-  if !(m&&rc==233) {goto f14f}
-  rc,m=f2l(r,s,po+1)
-  if !(m&&int64(int16(rc))>-1) {goto f150}
-  ra,k=f2l(r,s,1)
-  if !k {goto f151}
+  if !(m&&rc==235) {goto f14c}
+  rc,m=f1l(r,s,po+1)
+  if !(m&&int64(int8(rc))>-1) {goto f14d}
+  ra,k=f1l(r,s,1)
+  if !k {goto f14e}
   a(IdentifyMsdosCom(r,s,po)...)
-f151:
-f150:
-  if !(m&&int64(int16(rc))< -259) {goto f153}
-  ra,k=f2l(r,s,1)
-  if !k {goto f154}
-  a(IdentifyMsdosCom(r,s,po)...)
-f154:
-f153:
-f14f:
+f14e:
+f14d:
+f14c:
   rc,m=f1l(r,s,po)
-  if !(m&&rc==184) {goto f156}
+  if !(m&&rc==233) {goto f150}
+  rc,m=f2l(r,s,po+1)
+  if !(m&&int64(int16(rc))>-1) {goto f151}
+  ra,k=f2l(r,s,1)
+  if !k {goto f152}
+  a(IdentifyMsdosCom(r,s,po)...)
+f152:
+f151:
+  if !(m&&int64(int16(rc))< -259) {goto f154}
+  ra,k=f2l(r,s,1)
+  if !k {goto f155}
+  a(IdentifyMsdosCom(r,s,po)...)
+f155:
+f154:
+f150:
+  rc,m=f1l(r,s,po)
+  if !(m&&rc==184) {goto f157}
   rA = gt(r,s,po,"\xb8\xc0\a\x8e",0)
-  if rA>=0 {goto f157}
+  if rA>=0 {goto f158}
   d[1]=f
   rc,m=f4l(r,s,po+1)
-  if !(m&&rc&4294967294==567102718) {goto f158}
+  if !(m&&rc&4294967294==567102718) {goto f159}
   a("COM executable (32-bit COMBOOT")
   rc,m=f4l(r,s,po+1)
   switch rc {
     case 567102719: a("\\b)")
     case 567102718: a("\\b, relocatable)")
-    default: {goto f159}
+    default: {goto f15a}
   }
-f159:
+f15a:
   d[1]=t
-f158:
-  if d[1] {goto f15b}
+f159:
+  if d[1] {goto f15c}
   a("COM executable for DOS")
   d[1]=t
-f15b:
+f15c:
+f158:
 f157:
-f156:
   rA = gt(r,s,po,"\x81\xfc",32)
-  if rA<0 {goto f15c}
-  rA = gt(r,s,po+4,"w\x02\xcd \xb9",0)
   if rA<0 {goto f15d}
-  rA = gt(r,s,po+36,"UPX!",0)
+  rA = gt(r,s,po+4,"w\x02\xcd \xb9",0)
   if rA<0 {goto f15e}
+  rA = gt(r,s,po+36,"UPX!",0)
+  if rA<0 {goto f15f}
   a("FREE-DOS executable (COM), UPX compressed")
+f15f:
 f15e:
 f15d:
-f15c:
   rA = gt(r,s,po+252,"Must have DOS version",0)
-  if rA<0 {goto f15f}
-  a("DR-DOS executable (COM)")
-f15f:
-  rA = gt(r,s,po+34,"UPX!",0)
   if rA<0 {goto f160}
-  a("FREE-DOS executable (COM), UPX compressed")
+  a("DR-DOS executable (COM)")
 f160:
-  rA = gt(r,s,po+35,"UPX!",0)
+  rA = gt(r,s,po+34,"UPX!",0)
   if rA<0 {goto f161}
   a("FREE-DOS executable (COM), UPX compressed")
 f161:
-  rA = gt(r,s,po+2,"\xcd!",0)
+  rA = gt(r,s,po+35,"UPX!",0)
   if rA<0 {goto f162}
-  a("COM executable for DOS")
+  a("FREE-DOS executable (COM), UPX compressed")
 f162:
-  rA = gt(r,s,po+4,"\xcd!",0)
+  rA = gt(r,s,po+2,"\xcd!",0)
   if rA<0 {goto f163}
   a("COM executable for DOS")
 f163:
-  rA = gt(r,s,po+5,"\xcd!",0)
+  rA = gt(r,s,po+4,"\xcd!",0)
   if rA<0 {goto f164}
   a("COM executable for DOS")
 f164:
-  rA = gt(r,s,po+7,"\xcd!",0)
-  if rA<0 {goto f165}
-  rc,m=f1l(r,s,po)
-  if !(m&&rc!=184) {goto f166}
-  a("COM executable for DOS")
-f166:
-f165:
-  rA = gt(r,s,po+10,"\xcd!",0)
-  if rA<0 {goto f167}
   rA = gt(r,s,po+5,"\xcd!",0)
-  if rA>=0 {goto f168}
+  if rA<0 {goto f165}
   a("COM executable for DOS")
-f168:
+f165:
+  rA = gt(r,s,po+7,"\xcd!",0)
+  if rA<0 {goto f166}
+  rc,m=f1l(r,s,po)
+  if !(m&&rc!=184) {goto f167}
+  a("COM executable for DOS")
 f167:
-  rA = gt(r,s,po+13,"\xcd!",0)
-  if rA<0 {goto f169}
+f166:
+  rA = gt(r,s,po+10,"\xcd!",0)
+  if rA<0 {goto f168}
+  rA = gt(r,s,po+5,"\xcd!",0)
+  if rA>=0 {goto f169}
   a("COM executable for DOS")
 f169:
-  rA = gt(r,s,po+18,"\xcd!",0)
+f168:
+  rA = gt(r,s,po+13,"\xcd!",0)
   if rA<0 {goto f16a}
-  a("COM executable for MS-DOS")
+  a("COM executable for DOS")
 f16a:
-  rA = gt(r,s,po+23,"\xcd!",0)
+  rA = gt(r,s,po+18,"\xcd!",0)
   if rA<0 {goto f16b}
   a("COM executable for MS-DOS")
 f16b:
-  rA = gt(r,s,po+30,"\xcd!",0)
+  rA = gt(r,s,po+23,"\xcd!",0)
   if rA<0 {goto f16c}
   a("COM executable for MS-DOS")
 f16c:
-  rA = gt(r,s,po+70,"\xcd!",0)
+  rA = gt(r,s,po+30,"\xcd!",0)
   if rA<0 {goto f16d}
-  a("COM executable for DOS")
-f16d:
-  rA=ht(r,s,po+6,10,"\xfcW\xf3\xa5\xc3")
-  if rA<0 {goto f16e}
   a("COM executable for MS-DOS")
+f16d:
+  rA = gt(r,s,po+70,"\xcd!",0)
+  if rA<0 {goto f16e}
+  a("COM executable for DOS")
 f16e:
-  rA=ht(r,s,po+6,10,"\xfcW\xf3\xa4\xc3")
+  rA=ht(r,s,po+6,10,"\xfcW\xf3\xa5\xc3")
   if rA<0 {goto f16f}
+  a("COM executable for MS-DOS")
+f16f:
+  rA=ht(r,s,po+6,10,"\xfcW\xf3\xa4\xc3")
+  if rA<0 {goto f170}
   a("COM executable for DOS")
   rA=ht(r,s,po+24,16,"P\xa4\xff\xd5s")
-  if rA<0 {goto f170}
-  a("\\b, aPack compressed")
-f170:
-f16f:
-  rA = gt(r,s,po+60,"W Collis\x00\x00",0)
   if rA<0 {goto f171}
-  a("COM executable for MS-DOS, Compack compressed")
+  a("\\b, aPack compressed")
 f171:
-  rA = gt(r,s,po,"LZ",32)
+f170:
+  rA = gt(r,s,po+60,"W Collis\x00\x00",0)
   if rA<0 {goto f172}
-  a("MS-DOS executable (built-in)")
+  a("COM executable for MS-DOS, Compack compressed")
 f172:
-  rA = gt(r,s,po,"\xd0\xcf\x11\u0871\x1a\xe1AAFB\r\x00OM\x06\x0e+4\x01\x01\x01\xff",32)
+  rA = gt(r,s,po,"LZ",32)
   if rA<0 {goto f173}
+  a("MS-DOS executable (built-in)")
+f173:
+  rA = gt(r,s,po,"\xd0\xcf\x11\u0871\x1a\xe1AAFB\r\x00OM\x06\x0e+4\x01\x01\x01\xff",32)
+  if rA<0 {goto f174}
   a("AAF legacy file using MS Structured Storage")
   rc,m=f1l(r,s,po+30)
   switch rc {
     case 9: a("(512B sectors)")
     case 12: a("(4kB sectors)")
-    default: {goto f174}
+    default: {goto f175}
   }
+f175:
 f174:
-f173:
   rA = gt(r,s,po,"\xd0\xcf\x11\u0871\x1a\xe1\x01\x02\x01\r\x00\x02\x00\x00\x06\x0e+4\x03\x02\x01\x01",32)
-  if rA<0 {goto f176}
+  if rA<0 {goto f177}
   a("AAF file using MS Structured Storage")
   rc,m=f1l(r,s,po+30)
   switch rc {
     case 9: a("(512B sectors)")
     case 12: a("(4kB sectors)")
-    default: {goto f177}
+    default: {goto f178}
   }
+f178:
 f177:
-f176:
   rA = gt(r,s,po+2080,"Microsoft Word 6.0 Document",0)
-  if rA<0 {goto f179}
-  a("%s")
-f179:
-  rA = gt(r,s,po+2080,"Documento Microsoft Word 6",0)
   if rA<0 {goto f17a}
-  a("Spanish Microsoft Word 6 document data")
+  a("%s")
 f17a:
-  rA = gt(r,s,po+2112,"MSWordDoc",0)
+  rA = gt(r,s,po+2080,"Documento Microsoft Word 6",0)
   if rA<0 {goto f17b}
-  a("Microsoft Word document data")
+  a("Spanish Microsoft Word 6 document data")
 f17b:
-  rc,m=f4b(r,s,po)
-  if !(m&&rc==834535424) {goto f17c}
-  a("Microsoft Word Document")
+  rA = gt(r,s,po+2112,"MSWordDoc",0)
+  if rA<0 {goto f17c}
+  a("Microsoft Word document data")
 f17c:
-  rA = gt(r,s,po,"PO^Q`",32)
-  if rA<0 {goto f17d}
-  a("Microsoft Word 6.0 Document")
+  rc,m=f4b(r,s,po)
+  if !(m&&rc==834535424) {goto f17d}
+  a("Microsoft Word Document")
 f17d:
+  rA = gt(r,s,po,"PO^Q`",32)
+  if rA<0 {goto f17e}
+  a("Microsoft Word 6.0 Document")
+f17e:
   rc,m=f4l(r,s,po+4)
-  if !(m&&rc==0) {goto f17e}
+  if !(m&&rc==0) {goto f17f}
   rc,m=f4b(r,s,po)
   switch rc {
     case 4264689664: a("Microsoft Word for Macintosh 1.0")
     case 4264820736: a("Microsoft Word for Macintosh 3.0")
     case 4265017372: a("Microsoft Word for Macintosh 4.0")
     case 4265017379: a("Microsoft Word for Macintosh 5.0")
-    default: {goto f17f}
+    default: {goto f180}
   }
+f180:
 f17f:
-f17e:
   rA = gt(r,s,po,"ۥ-\x00\x00\x00",32)
-  if rA<0 {goto f183}
-  a("Microsoft Word 2.0 Document")
-f183:
-  rA = gt(r,s,po+512,"\xec\xa5\xc1",32)
   if rA<0 {goto f184}
-  a("Microsoft Word Document")
+  a("Microsoft Word 2.0 Document")
 f184:
-  rA = gt(r,s,po,"ۥ-\x00",32)
+  rA = gt(r,s,po+512,"\xec\xa5\xc1",32)
   if rA<0 {goto f185}
-  a("Microsoft WinWord 2.0 Document")
+  a("Microsoft Word Document")
 f185:
-  rA = gt(r,s,po+2080,"Microsoft Excel 5.0 Worksheet",0)
-  if rA<0 {goto f186}
-  a("%s")
-f186:
   rA = gt(r,s,po,"ۥ-\x00",32)
-  if rA<0 {goto f187}
+  if rA<0 {goto f186}
   a("Microsoft WinWord 2.0 Document")
-f187:
-  rA = gt(r,s,po+2080,"Foglio di lavoro Microsoft Exce",0)
-  if rA<0 {goto f188}
+f186:
+  rA = gt(r,s,po+2080,"Microsoft Excel 5.0 Worksheet",0)
+  if rA<0 {goto f187}
   a("%s")
+f187:
+  rA = gt(r,s,po,"ۥ-\x00",32)
+  if rA<0 {goto f188}
+  a("Microsoft WinWord 2.0 Document")
 f188:
-  rA = gt(r,s,po+2114,"Biff5",0)
+  rA = gt(r,s,po+2080,"Foglio di lavoro Microsoft Exce",0)
   if rA<0 {goto f189}
-  a("Microsoft Excel 5.0 Worksheet")
+  a("%s")
 f189:
-  rA = gt(r,s,po+2121,"Biff5",0)
+  rA = gt(r,s,po+2114,"Biff5",0)
   if rA<0 {goto f18a}
   a("Microsoft Excel 5.0 Worksheet")
 f18a:
-  rA = gt(r,s,po,"\t\x04\x06\x00\x00\x00\x10\x00",32)
+  rA = gt(r,s,po+2121,"Biff5",0)
   if rA<0 {goto f18b}
-  a("Microsoft Excel Worksheet")
+  a("Microsoft Excel 5.0 Worksheet")
 f18b:
+  rA = gt(r,s,po,"\t\x04\x06\x00\x00\x00\x10\x00",32)
+  if rA<0 {goto f18c}
+  a("Microsoft Excel Worksheet")
+f18c:
   rc,m=f4b(r,s,po)
-  if !(m&&rc==6656) {goto f18c}
+  if !(m&&rc==6656) {goto f18d}
   rc,m=f1l(r,s,po+20)
-  if !(m&&rc>0) {goto f18d}
-  if !(m&&rc< 32) {goto f18e}
+  if !(m&&rc>0) {goto f18e}
+  if !(m&&rc< 32) {goto f18f}
   a("Lotus 1-2-3")
   d[2]=f
   rc,m=f2l(r,s,po+4)
@@ -1550,67 +1555,67 @@ f18b:
     case 4101: a("WorKsheet, version 9.8 Millennium")
     case 32769: a("FoRMatting data")
     case 32775: a("ForMatting data, version 3")
-    default: {goto f18f}
+    default: {goto f190}
   }
   d[2]=t
-f18f:
-  if d[2] {goto f195}
+f190:
+  if d[2] {goto f196}
   a("unknown")
   rc,m=f2l(r,s,po+6)
-  if !(m&&rc==4) {goto f196}
+  if !(m&&rc==4) {goto f197}
   a("worksheet")
-f196:
-  if !(m&&rc!=4) {goto f197}
-  a("formatting data")
 f197:
+  if !(m&&rc!=4) {goto f198}
+  a("formatting data")
+f198:
   a("\\b, revision 0x%x")
   d[2]=t
-f195:
+f196:
   rc,m=f2l(r,s,po+6)
-  if !(m&&rc==4) {goto f199}
+  if !(m&&rc==4) {goto f19a}
   a("\\b, cell range")
   rc,m=f4l(r,s,po+8)
-  if !(m&&rc!=0) {goto f19a}
+  if !(m&&rc!=0) {goto f19b}
   rc,m=f1l(r,s,po+10)
-  if !(m&&rc>0) {goto f19b}
+  if !(m&&rc>0) {goto f19c}
   a("\\b%d*")
-f19b:
+f19c:
   a("\\b%d,")
   a("\\b%d-")
-f19a:
+f19b:
   rc,m=f1l(r,s,po+14)
-  if !(m&&rc>0) {goto f19e}
+  if !(m&&rc>0) {goto f19f}
   a("\\b%d*")
-f19e:
+f19f:
   a("\\b%d,")
   a("\\b%d")
   rc,m=f1l(r,s,po+20)
-  if !(m&&rc>1) {goto f1a1}
+  if !(m&&rc>1) {goto f1a2}
   a("\\b, character set 0x%x")
-f1a1:
+f1a2:
   a("\\b, flags 0x%x")
   d[2]=t
-f199:
-  if !(m&&rc!=4) {goto f1a3}
+f19a:
+  if !(m&&rc!=4) {goto f1a4}
   rA=ht(r,s,po+30,29,"\x00\xae")
-  if rA<0 {goto f1a4}
+  if rA<0 {goto f1a5}
   gf=po+30+rA+2
   rA = gt(r,s,po+4+gf,">\x00",0)
-  if rA<0 {goto f1a5}
+  if rA<0 {goto f1a6}
   a("\\b, 1st font \"%s\"")
+f1a6:
 f1a5:
-f1a4:
   d[2]=t
-f1a3:
+f1a4:
+f18f:
 f18e:
 f18d:
-f18c:
   rc,m=f4b(r,s,po)
-  if !(m&&rc==512) {goto f1a6}
+  if !(m&&rc==512) {goto f1a7}
   rc,m=f1l(r,s,po+7)
-  if !(m&&rc==0) {goto f1a7}
+  if !(m&&rc==0) {goto f1a8}
   rc,m=f1l(r,s,po+6)
-  if !(m&&rc>0) {goto f1a8}
+  if !(m&&rc>0) {goto f1a9}
   a("Lotus")
   d[2]=f
   rc,m=f2l(r,s,po+4)
@@ -1630,384 +1635,384 @@ f18c:
     case 1538: a("1-2-3 worksheet, version 2.4J")
     case 32774: a("1-2-3 ForMaTting data, version 2.x")
     case 32775: a("1-2-3 FoRMatting data, version 2.0")
-    default: {goto f1a9}
+    default: {goto f1aa}
   }
   d[2]=t
-f1a9:
-  if d[2] {goto f1b8}
+f1aa:
+  if d[2] {goto f1b9}
   a("unknown worksheet or configuration")
   a("\\b, revision 0x%x")
   d[2]=t
-f1b8:
+f1b9:
   a(IdentifyLotusCells(r,s,po+6)...)
   d[2]=t
   ra,k=f2l(r,s,8)
-  if !k {goto f1bb}
+  if !k {goto f1bc}
   a(IdentifyLotusCells(r,s,int64(ra)+10)...)
   d[2]=t
-f1bb:
+f1bc:
+f1a9:
 f1a8:
 f1a7:
-f1a6:
   rA = gt(r,s,po,"WordPro\x00",32)
-  if rA<0 {goto f1bc}
-  a("Lotus WordPro")
-f1bc:
-  rA = gt(r,s,po,"WordPro\r\xfb",32)
   if rA<0 {goto f1bd}
   a("Lotus WordPro")
 f1bd:
-  rA = gt(r,s,po,"q\xa8\x00\x00\x01\x02",0)
+  rA = gt(r,s,po,"WordPro\r\xfb",32)
   if rA<0 {goto f1be}
-  rA = gt(r,s,po+12,"Stirling Technologies,",0)
-  if rA<0 {goto f1bf}
-  a("InstallShield Uninstall Script")
-f1bf:
+  a("Lotus WordPro")
 f1be:
-  rA = gt(r,s,po,"Nullsoft AVS Preset ",32)
+  rA = gt(r,s,po,"q\xa8\x00\x00\x01\x02",0)
+  if rA<0 {goto f1bf}
+  rA = gt(r,s,po+12,"Stirling Technologies,",0)
   if rA<0 {goto f1c0}
-  a("Winamp plug in")
+  a("InstallShield Uninstall Script")
 f1c0:
-  rA = gt(r,s,po,"\xd7\xcdƚ",32)
+f1bf:
+  rA = gt(r,s,po,"Nullsoft AVS Preset ",32)
   if rA<0 {goto f1c1}
-  a("ms-windows metafont .wmf")
+  a("Winamp plug in")
 f1c1:
-  rA = gt(r,s,po,"\x02\x00\t\x00",32)
+  rA = gt(r,s,po,"\xd7\xcdƚ",32)
   if rA<0 {goto f1c2}
   a("ms-windows metafont .wmf")
 f1c2:
-  rA = gt(r,s,po,"\x01\x00\t\x00",32)
+  rA = gt(r,s,po,"\x02\x00\t\x00",32)
   if rA<0 {goto f1c3}
   a("ms-windows metafont .wmf")
 f1c3:
-  rA = gt(r,s,po,"\x03\x01\x01\x048\x01\x00\x00",32)
+  rA = gt(r,s,po,"\x01\x00\t\x00",32)
   if rA<0 {goto f1c4}
-  a("tz3 ms-works file")
+  a("ms-windows metafont .wmf")
 f1c4:
-  rA = gt(r,s,po,"\x03\x02\x01\x048\x01\x00\x00",32)
+  rA = gt(r,s,po,"\x03\x01\x01\x048\x01\x00\x00",32)
   if rA<0 {goto f1c5}
   a("tz3 ms-works file")
 f1c5:
-  rA = gt(r,s,po,"\x03\x03\x01\x048\x01\x00\x00",32)
+  rA = gt(r,s,po,"\x03\x02\x01\x048\x01\x00\x00",32)
   if rA<0 {goto f1c6}
   a("tz3 ms-works file")
 f1c6:
-  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW5\x17\xb6i4\x05%A\x9b\x11\x02",0)
+  rA = gt(r,s,po,"\x03\x03\x01\x048\x01\x00\x00",32)
   if rA<0 {goto f1c7}
-  a("PGP sig")
+  a("tz3 ms-works file")
 f1c7:
-  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW6\x17\xb6i4\x05%A\x9b\x11\x02",0)
+  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW5\x17\xb6i4\x05%A\x9b\x11\x02",0)
   if rA<0 {goto f1c8}
   a("PGP sig")
 f1c8:
-  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW7\x17\xb6i4\x05%A\x9b\x11\x02",0)
+  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW6\x17\xb6i4\x05%A\x9b\x11\x02",0)
   if rA<0 {goto f1c9}
   a("PGP sig")
 f1c9:
-  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW8\x17\xb6i4\x05%A\x9b\x11\x02",0)
+  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW7\x17\xb6i4\x05%A\x9b\x11\x02",0)
   if rA<0 {goto f1ca}
   a("PGP sig")
 f1ca:
-  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW9\x17\xb6i4\x05%A\x9b\x11\x02",0)
+  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW8\x17\xb6i4\x05%A\x9b\x11\x02",0)
   if rA<0 {goto f1cb}
   a("PGP sig")
 f1cb:
-  rA = gt(r,s,po,"\x89\x00\x95\x03\x05\x002R\x87\xc4@\xe5\"",0)
+  rA = gt(r,s,po,"\x89\x00?\x03\x05\x003\x9fW9\x17\xb6i4\x05%A\x9b\x11\x02",0)
   if rA<0 {goto f1cc}
   a("PGP sig")
 f1cc:
-  rA = gt(r,s,po,"MDIF\x1a\x00\b\x00\x00\x00\xfa&@}\x01\x00\x01\x1e\x01\x00",32)
+  rA = gt(r,s,po,"\x89\x00\x95\x03\x05\x002R\x87\xc4@\xe5\"",0)
   if rA<0 {goto f1cd}
-  a("MS Windows special zipped file")
+  a("PGP sig")
 f1cd:
-  rA = gt(r,s,po,"BA(\x00\x00\x00.\x00\x00\x00\x00\x00\x00\x00",32)
+  rA = gt(r,s,po,"MDIF\x1a\x00\b\x00\x00\x00\xfa&@}\x01\x00\x01\x1e\x01\x00",32)
   if rA<0 {goto f1ce}
-  a("Icon for MS Windows")
+  a("MS Windows special zipped file")
 f1ce:
-  rc,m=f4b(r,s,po)
-  if !(m&&rc==256) {goto f1cf}
-  rc,m=f1l(r,s,po+9)
-  if !(m&&rc==0) {goto f1d0}
-  a(IdentifyCurIcoDir(r,s,po)...)
-f1d0:
-  if !(m&&rc==255) {goto f1d3}
-  a(IdentifyCurIcoDir(r,s,po)...)
-f1d3:
+  rA = gt(r,s,po,"BA(\x00\x00\x00.\x00\x00\x00\x00\x00\x00\x00",32)
+  if rA<0 {goto f1cf}
+  a("Icon for MS Windows")
 f1cf:
   rc,m=f4b(r,s,po)
-  if !(m&&rc==512) {goto f1d6}
+  if !(m&&rc==256) {goto f1d0}
   rc,m=f1l(r,s,po+9)
-  if !(m&&rc==0) {goto f1d7}
+  if !(m&&rc==0) {goto f1d1}
   a(IdentifyCurIcoDir(r,s,po)...)
+f1d1:
+  if !(m&&rc==255) {goto f1d4}
+  a(IdentifyCurIcoDir(r,s,po)...)
+f1d4:
+f1d0:
+  rc,m=f4b(r,s,po)
+  if !(m&&rc==512) {goto f1d7}
+  rc,m=f1l(r,s,po+9)
+  if !(m&&rc==0) {goto f1d8}
+  a(IdentifyCurIcoDir(r,s,po)...)
+f1d8:
+  if !(m&&rc==255) {goto f1da}
+  a(IdentifyCurIcoDir(r,s,po)...)
+f1da:
 f1d7:
-  if !(m&&rc==255) {goto f1d9}
-  a(IdentifyCurIcoDir(r,s,po)...)
-f1d9:
-f1d6:
   rA = gt(r,s,po,"PK\b\bBGI",32)
-  if rA<0 {goto f1db}
+  if rA<0 {goto f1dc}
   a("Borland font")
   rA = gt(r,s,po+4,">\x00",0)
-  if rA<0 {goto f1dc}
-  a("%s")
-f1dc:
-f1db:
-  rA = gt(r,s,po,"pk\b\bBGI",32)
   if rA<0 {goto f1dd}
+  a("%s")
+f1dd:
+f1dc:
+  rA = gt(r,s,po,"pk\b\bBGI",32)
+  if rA<0 {goto f1de}
   a("Borland device")
   rA = gt(r,s,po+4,">\x00",0)
-  if rA<0 {goto f1de}
+  if rA<0 {goto f1df}
   a("%s")
-f1de:
-f1dd:
-  rc,m=f4l(r,s,po)
-  if !(m&&rc==4) {goto f1df}
-  rc,m=f4l(r,s,po+12)
-  if !(m&&rc==280) {goto f1e0}
-  a("Windows Recycle Bin INFO2 file (Win98 or below)")
-f1e0:
 f1df:
+f1de:
   rc,m=f4l(r,s,po)
-  if !(m&&rc==5) {goto f1e1}
+  if !(m&&rc==4) {goto f1e0}
   rc,m=f4l(r,s,po+12)
-  if !(m&&rc==800) {goto f1e2}
-  a("Windows Recycle Bin INFO2 file (Win2k - WinXP)")
-f1e2:
+  if !(m&&rc==280) {goto f1e1}
+  a("Windows Recycle Bin INFO2 file (Win98 or below)")
 f1e1:
-  rA = gt(r,s,po+9,"GERBILDOC",0)
-  if rA<0 {goto f1e3}
-  a("First Choice document")
+f1e0:
+  rc,m=f4l(r,s,po)
+  if !(m&&rc==5) {goto f1e2}
+  rc,m=f4l(r,s,po+12)
+  if !(m&&rc==800) {goto f1e3}
+  a("Windows Recycle Bin INFO2 file (Win2k - WinXP)")
 f1e3:
-  rA = gt(r,s,po+9,"GERBILDB",0)
+f1e2:
+  rA = gt(r,s,po+9,"GERBILDOC",0)
   if rA<0 {goto f1e4}
-  a("First Choice database")
+  a("First Choice document")
 f1e4:
-  rA = gt(r,s,po+9,"GERBILCLIP",0)
+  rA = gt(r,s,po+9,"GERBILDB",0)
   if rA<0 {goto f1e5}
   a("First Choice database")
 f1e5:
-  rA = gt(r,s,po,"GERBIL",0)
+  rA = gt(r,s,po+9,"GERBILCLIP",0)
   if rA<0 {goto f1e6}
-  a("First Choice device file")
+  a("First Choice database")
 f1e6:
-  rA = gt(r,s,po+9,"RABBITGRAPH",0)
+  rA = gt(r,s,po,"GERBIL",0)
   if rA<0 {goto f1e7}
-  a("RabbitGraph file")
+  a("First Choice device file")
 f1e7:
-  rA = gt(r,s,po,"DCU1",0)
+  rA = gt(r,s,po+9,"RABBITGRAPH",0)
   if rA<0 {goto f1e8}
-  a("Borland Delphi .DCU file")
+  a("RabbitGraph file")
 f1e8:
-  rA = gt(r,s,po,"=!<spell>",0)
+  rA = gt(r,s,po,"DCU1",0)
   if rA<0 {goto f1e9}
-  a("MKS Spell hash list (old format)")
+  a("Borland Delphi .DCU file")
 f1e9:
-  rA = gt(r,s,po,"=!<spell2>",0)
+  rA = gt(r,s,po,"=!<spell>",0)
   if rA<0 {goto f1ea}
-  a("MKS Spell hash list")
+  a("MKS Spell hash list (old format)")
 f1ea:
-  rc,m=f4l(r,s,po)
-  if !(m&&rc==134769520) {goto f1eb}
-  a("TurboC BGI file")
+  rA = gt(r,s,po,"=!<spell2>",0)
+  if rA<0 {goto f1eb}
+  a("MKS Spell hash list")
 f1eb:
   rc,m=f4l(r,s,po)
-  if !(m&&rc==134761296) {goto f1ec}
-  a("TurboC Font file")
+  if !(m&&rc==134769520) {goto f1ec}
+  a("TurboC BGI file")
 f1ec:
-  rA = gt(r,s,po,"TPF0",0)
-  if rA<0 {goto f1ed}
+  rc,m=f4l(r,s,po)
+  if !(m&&rc==134761296) {goto f1ed}
+  a("TurboC Font file")
 f1ed:
-  rA = gt(r,s,po,"PMCC",0)
+  rA = gt(r,s,po,"TPF0",0)
   if rA<0 {goto f1ee}
-  a("Windows 3.x .GRP file")
 f1ee:
-  rA = gt(r,s,po+1,"RDC-meg",0)
+  rA = gt(r,s,po,"PMCC",0)
   if rA<0 {goto f1ef}
+  a("Windows 3.x .GRP file")
+f1ef:
+  rA = gt(r,s,po+1,"RDC-meg",0)
+  if rA<0 {goto f1f0}
   a("MegaDots")
   rc,m=f1l(r,s,po+8)
-  if !(m&&int64(int8(rc))>47) {goto f1f0}
-  a("version %c")
-f1f0:
-  rc,m=f1l(r,s,po+9)
   if !(m&&int64(int8(rc))>47) {goto f1f1}
-  a("\\b.%c file")
+  a("version %c")
 f1f1:
-f1ef:
-  rc,m=f4l(r,s,po)
-  if !(m&&rc==76) {goto f1f2}
-  rc,m=f4l(r,s,po+4)
-  if !(m&&rc==136193) {goto f1f3}
-  a("Windows shortcut file")
-f1f3:
+  rc,m=f1l(r,s,po+9)
+  if !(m&&int64(int8(rc))>47) {goto f1f2}
+  a("\\b.%c file")
 f1f2:
+f1f0:
+  rc,m=f4l(r,s,po)
+  if !(m&&rc==76) {goto f1f3}
+  rc,m=f4l(r,s,po+4)
+  if !(m&&rc==136193) {goto f1f4}
+  a("Windows shortcut file")
+f1f4:
+f1f3:
   rA = gt(r,s,po+369,"MICROSOFT PIFEX\x00",0)
-  if rA<0 {goto f1f4}
+  if rA<0 {goto f1f5}
   a("Windows Program Information File")
   rA = gt(r,s,po+36,">\x00",0)
-  if rA<0 {goto f1f5}
-  a("\\b for %.63s")
-f1f5:
-  rA = gt(r,s,po+101,">\x00",0)
   if rA<0 {goto f1f6}
-  a("\\b, directory=%.64s")
+  a("\\b for %.63s")
 f1f6:
-  rA = gt(r,s,po+165,">\x00",0)
+  rA = gt(r,s,po+101,">\x00",0)
   if rA<0 {goto f1f7}
-  a("\\b, parameters=%.64s")
+  a("\\b, directory=%.64s")
 f1f7:
-  rA=ht(r,s,po+391,2901,"WINDOWS VMM 4.0\x00")
+  rA = gt(r,s,po+165,">\x00",0)
   if rA<0 {goto f1f8}
+  a("\\b, parameters=%.64s")
+f1f8:
+  rA=ht(r,s,po+391,2901,"WINDOWS VMM 4.0\x00")
+  if rA<0 {goto f1f9}
   gf=po+391+rA+16
   rc,m=f1l(r,s,po+94+gf)
-  if !(m&&rc>0) {goto f1f9}
+  if !(m&&rc>0) {goto f1fa}
   gf=po+94+gf+1
   rA = gt(r,s,po+-1+gf,"<PIFMGR.DLL",0)
-  if rA<0 {goto f1fa}
-  a("\\b, icon=%s")
-f1fa:
-  rA = gt(r,s,po+-1+gf,">PIFMGR.DLL",0)
   if rA<0 {goto f1fb}
   a("\\b, icon=%s")
 f1fb:
-f1f9:
+  rA = gt(r,s,po+-1+gf,">PIFMGR.DLL",0)
+  if rA<0 {goto f1fc}
+  a("\\b, icon=%s")
+f1fc:
+f1fa:
   rc,m=f1l(r,s,po+240+gf)
-  if !(m&&rc>0) {goto f1fc}
+  if !(m&&rc>0) {goto f1fd}
   gf=po+240+gf+1
   rA = gt(r,s,po+-1+gf,"<Terminal",0)
-  if rA<0 {goto f1fd}
-  a("\\b, font=%.32s")
-f1fd:
-  rA = gt(r,s,po+-1+gf,">Terminal",0)
   if rA<0 {goto f1fe}
   a("\\b, font=%.32s")
 f1fe:
-f1fc:
+  rA = gt(r,s,po+-1+gf,">Terminal",0)
+  if rA<0 {goto f1ff}
+  a("\\b, font=%.32s")
+f1ff:
+f1fd:
   rc,m=f1l(r,s,po+272+gf)
-  if !(m&&rc>0) {goto f1ff}
+  if !(m&&rc>0) {goto f200}
   gf=po+272+gf+1
   rA = gt(r,s,po+-1+gf,"<Lucida Console",0)
-  if rA<0 {goto f200}
-  a("\\b, TrueTypeFont=%.32s")
-f200:
-  rA = gt(r,s,po+-1+gf,">Lucida Console",0)
   if rA<0 {goto f201}
   a("\\b, TrueTypeFont=%.32s")
 f201:
-f1ff:
-f1f8:
-  rA=ht(r,s,po+391,2901,"WINDOWS NT  3.1\x00")
+  rA = gt(r,s,po+-1+gf,">Lucida Console",0)
   if rA<0 {goto f202}
-  a("\\b, Windows NT-style")
+  a("\\b, TrueTypeFont=%.32s")
 f202:
-  rA=ht(r,s,po+391,2901,"CONFIG  SYS 4.0\x00")
+f200:
+f1f9:
+  rA=ht(r,s,po+391,2901,"WINDOWS NT  3.1\x00")
   if rA<0 {goto f203}
-  a("\\b +CONFIG.SYS")
+  a("\\b, Windows NT-style")
 f203:
-  rA=ht(r,s,po+391,2901,"AUTOEXECBAT 4.0\x00")
+  rA=ht(r,s,po+391,2901,"CONFIG  SYS 4.0\x00")
   if rA<0 {goto f204}
-  a("\\b +AUTOEXEC.BAT")
+  a("\\b +CONFIG.SYS")
 f204:
-f1f4:
+  rA=ht(r,s,po+391,2901,"AUTOEXECBAT 4.0\x00")
+  if rA<0 {goto f205}
+  a("\\b +AUTOEXEC.BAT")
+f205:
+f1f5:
   rc,m=f4b(r,s,po)
-  if !(m&&rc==3318797254) {goto f205}
+  if !(m&&rc==3318797254) {goto f206}
   a("DOS EPS Binary File")
   rc,m=f4l(r,s,po+4)
-  if !(m&&int64(int32(rc))>0) {goto f206}
+  if !(m&&int64(int32(rc))>0) {goto f207}
   a("Postscript starts at byte %d")
   rc,m=f4l(r,s,po+8)
-  if !(m&&int64(int32(rc))>0) {goto f207}
+  if !(m&&int64(int32(rc))>0) {goto f208}
   a("length %d")
   rc,m=f4l(r,s,po+12)
-  if !(m&&int64(int32(rc))>0) {goto f208}
+  if !(m&&int64(int32(rc))>0) {goto f209}
   a("Metafile starts at byte %d")
   rc,m=f4l(r,s,po+16)
-  if !(m&&int64(int32(rc))>0) {goto f209}
-  a("length %d")
-f209:
-f208:
-  rc,m=f4l(r,s,po+20)
   if !(m&&int64(int32(rc))>0) {goto f20a}
+  a("length %d")
+f20a:
+f209:
+  rc,m=f4l(r,s,po+20)
+  if !(m&&int64(int32(rc))>0) {goto f20b}
   a("TIFF starts at byte %d")
   rc,m=f4l(r,s,po+24)
-  if !(m&&int64(int32(rc))>0) {goto f20b}
+  if !(m&&int64(int32(rc))>0) {goto f20c}
   a("length %d")
+f20c:
 f20b:
-f20a:
+f208:
 f207:
 f206:
-f205:
   rc,m=f2l(r,s,po)
-  if !(m&&rc==574529400) {goto f20c}
+  if !(m&&rc==574529400) {goto f20d}
   a("TNEF")
-f20c:
+f20d:
   rA = gt(r,s,po,"NG\x00\x01",0)
-  if rA<0 {goto f20d}
+  if rA<0 {goto f20e}
   rc,m=f4l(r,s,po+2)
-  if !(m&&rc==256) {goto f20e}
+  if !(m&&rc==256) {goto f20f}
   a("Norton Guide")
   rA = gt(r,s,po+8,">\x00",0)
-  if rA<0 {goto f20f}
-  a("\"%-.40s\"")
-f20f:
-  rA = gt(r,s,po+48,">\x00",0)
   if rA<0 {goto f210}
-  a("\\b, %-.66s")
+  a("\"%-.40s\"")
 f210:
-  rA = gt(r,s,po+114,">\x00",0)
+  rA = gt(r,s,po+48,">\x00",0)
   if rA<0 {goto f211}
-  a("%-.66s")
+  a("\\b, %-.66s")
 f211:
+  rA = gt(r,s,po+114,">\x00",0)
+  if rA<0 {goto f212}
+  a("%-.66s")
+f212:
+f20f:
 f20e:
-f20d:
   rc,m=f4l(r,s,po)
-  if !(m&&rc==1212429320) {goto f212}
+  if !(m&&rc==1212429320) {goto f213}
   a("4DOS help file")
   rA = gt(r,s,po+4,"x",0)
-  if rA<0 {goto f213}
+  if rA<0 {goto f214}
   a("\\b, version %-4.4s")
-f213:
-f212:
-  rc,m=f8l(r,s,po)
-  if !(m&&rc==16325548649369164) {goto f214}
-  a("MS Advisor help file")
 f214:
-  rA = gt(r,s,po,"ITSF\x03\x00\x00\x00`\x00\x00\x00",32)
-  if rA<0 {goto f215}
-  a("MS Windows HtmlHelp Data")
+f213:
+  rc,m=f8l(r,s,po)
+  if !(m&&rc==16325548649369164) {goto f215}
+  a("MS Advisor help file")
 f215:
-  rA = gt(r,s,po+2,"GFA-BASIC3",32)
+  rA = gt(r,s,po,"ITSF\x03\x00\x00\x00`\x00\x00\x00",32)
   if rA<0 {goto f216}
-  a("GFA-BASIC 3 data")
+  a("MS Windows HtmlHelp Data")
 f216:
-  rA = gt(r,s,po,"MSCF\x00\x00\x00\x00",32)
+  rA = gt(r,s,po+2,"GFA-BASIC3",32)
   if rA<0 {goto f217}
+  a("GFA-BASIC 3 data")
+f217:
+  rA = gt(r,s,po,"MSCF\x00\x00\x00\x00",32)
+  if rA<0 {goto f218}
   a("Microsoft Cabinet archive data")
   a("\\b, %u bytes")
   rc,m=f2l(r,s,po+28)
-  if !(m&&rc==1) {goto f219}
+  if !(m&&rc==1) {goto f21a}
   a("\\b, 1 file")
-f219:
-  if !(m&&int64(int16(rc))>1) {goto f21a}
-  a("\\b, %u files")
 f21a:
-f217:
+  if !(m&&int64(int16(rc))>1) {goto f21b}
+  a("\\b, %u files")
+f21b:
+f218:
   rA = gt(r,s,po,"ISc(",32)
-  if rA<0 {goto f21b}
+  if rA<0 {goto f21c}
   a("InstallShield Cabinet archive data")
   rc,m=f1l(r,s,po+5)
-  if !(m&&rc&240==96) {goto f21c}
+  if !(m&&rc&240==96) {goto f21d}
   a("version 6,")
-f21c:
-  if !(m&&rc&240!=96) {goto f21d}
-  a("version 4/5,")
 f21d:
-  ra,k=f4l(r,s,12)
-  if !k {goto f21e}
-  a("%u files")
+  if !(m&&rc&240!=96) {goto f21e}
+  a("version 4/5,")
 f21e:
-f21b:
+  ra,k=f4l(r,s,12)
+  if !k {goto f21f}
+  a("%u files")
+f21f:
+f21c:
   rA = gt(r,s,po,"MSCE\x00\x00\x00\x00",32)
-  if rA<0 {goto f21f}
+  if rA<0 {goto f220}
   a("Microsoft WinCE install header")
   rc,m=f4l(r,s,po+20)
   switch rc {
@@ -2020,173 +2025,173 @@ f21b:
     case 10004: a("\\b, Hitachi SH3E")
     case 10005: a("\\b, Hitachi SH4")
     case 70001: a("\\b, ARM 7TDMI")
-    default: {goto f220}
+    default: {goto f221}
   }
-f220:
+f221:
   rc,m=f2l(r,s,po+52)
-  if !(m&&rc==1) {goto f229}
+  if !(m&&rc==1) {goto f22a}
   a("\\b, 1 file")
-f229:
-  if !(m&&int64(int16(rc))>1) {goto f22a}
-  a("\\b, %u files")
 f22a:
-  rc,m=f2l(r,s,po+56)
-  if !(m&&rc==1) {goto f22b}
-  a("\\b, 1 registry entry")
+  if !(m&&int64(int16(rc))>1) {goto f22b}
+  a("\\b, %u files")
 f22b:
-  if !(m&&int64(int16(rc))>1) {goto f22c}
-  a("\\b, %u registry entries")
+  rc,m=f2l(r,s,po+56)
+  if !(m&&rc==1) {goto f22c}
+  a("\\b, 1 registry entry")
 f22c:
-f21f:
+  if !(m&&int64(int16(rc))>1) {goto f22d}
+  a("\\b, %u registry entries")
+f22d:
+f220:
   rc,m=f4l(r,s,po)
-  if !(m&&rc==1) {goto f22d}
+  if !(m&&rc==1) {goto f22e}
   rA = gt(r,s,po+40," EMF",0)
-  if rA<0 {goto f22e}
+  if rA<0 {goto f22f}
   a("Windows Enhanced Metafile (EMF) image data")
   a("version 0x%x")
+f22f:
 f22e:
-f22d:
   rA = gt(r,s,po,"\xd0\xcf\x11\u0871\x1a\xe1",32)
-  if rA<0 {goto f230}
+  if rA<0 {goto f231}
   a("Microsoft Office Document")
   rA = gt(r,s,po+546,"bjbj",0)
-  if rA<0 {goto f231}
-  a("Microsoft Word Document")
-f231:
-  rA = gt(r,s,po+546,"jbjb",0)
   if rA<0 {goto f232}
   a("Microsoft Word Document")
 f232:
-f230:
-  rA = gt(r,s,po,"\x94\xa6.",32)
+  rA = gt(r,s,po+546,"jbjb",0)
   if rA<0 {goto f233}
   a("Microsoft Word Document")
 f233:
-  rA = gt(r,s,po+512,"R\x00o\x00o\x00t\x00 \x00E\x00n\x00t\x00r\x00y",0)
+f231:
+  rA = gt(r,s,po,"\x94\xa6.",32)
   if rA<0 {goto f234}
   a("Microsoft Word Document")
 f234:
-  rA = gt(r,s,po,"$RBU",32)
+  rA = gt(r,s,po+512,"R\x00o\x00o\x00t\x00 \x00E\x00n\x00t\x00r\x00y",0)
   if rA<0 {goto f235}
-  rA = gt(r,s,po+23,"Dell",0)
+  a("Microsoft Word Document")
+f235:
+  rA = gt(r,s,po,"$RBU",32)
   if rA<0 {goto f236}
+  rA = gt(r,s,po+23,"Dell",0)
+  if rA<0 {goto f237}
   a("%s system BIOS")
-f236:
+f237:
   rc,m=f1l(r,s,po+5)
-  if !(m&&rc==2) {goto f237}
+  if !(m&&rc==2) {goto f238}
   a("version %d.")
   a("\\b%d.")
   a("\\b%d")
-f237:
-  if !(m&&int64(int8(rc))< 2) {goto f23b}
+f238:
+  if !(m&&int64(int8(rc))< 2) {goto f23c}
   rA = gt(r,s,po+48,"x",0)
-  if rA<0 {goto f23c}
-  a("version %.3s")
-f23c:
-f23b:
-f235:
-  rA = gt(r,s,po,"DDS |\x00\x00\x00",32)
   if rA<0 {goto f23d}
+  a("version %.3s")
+f23d:
+f23c:
+f236:
+  rA = gt(r,s,po,"DDS |\x00\x00\x00",32)
+  if rA<0 {goto f23e}
   a("Microsoft DirectDraw Surface (DDS),")
   rc,m=f4l(r,s,po+16)
-  if !(m&&int64(int32(rc))>0) {goto f23e}
-  a("%d x")
-f23e:
-  rc,m=f4l(r,s,po+12)
   if !(m&&int64(int32(rc))>0) {goto f23f}
-  a("%d,")
+  a("%d x")
 f23f:
-  rA = gt(r,s,po+84,"x",0)
-  if rA<0 {goto f240}
-  a("%.4s")
+  rc,m=f4l(r,s,po+12)
+  if !(m&&int64(int32(rc))>0) {goto f240}
+  a("%d,")
 f240:
-f23d:
-  rA = gt(r,s,po,"ITOLITLS",32)
+  rA = gt(r,s,po+84,"x",0)
   if rA<0 {goto f241}
+  a("%.4s")
+f241:
+f23e:
+  rA = gt(r,s,po,"ITOLITLS",32)
+  if rA<0 {goto f242}
   a("Microsoft Reader eBook Data")
   a("\\b, version %u")
-f241:
+f242:
   rA = gt(r,s,po,"B000FF\n",32)
-  if rA<0 {goto f243}
-  a("Windows Embedded CE binary image")
-f243:
-  rA = gt(r,s,po,"MSWIM\x00\x00\x00",32)
   if rA<0 {goto f244}
-  a("Windows imaging (WIM) image")
+  a("Windows Embedded CE binary image")
 f244:
-  rA = gt(r,s,po,"WLPWM\x00\x00\x00",32)
+  rA = gt(r,s,po,"MSWIM\x00\x00\x00",32)
   if rA<0 {goto f245}
-  a("Windows imaging (WIM) image, wimlib pipable format")
+  a("Windows imaging (WIM) image")
 f245:
-  rA = gt(r,s,po,"\xfc\x03\x00",0)
+  rA = gt(r,s,po,"WLPWM\x00\x00\x00",32)
   if rA<0 {goto f246}
-  a("Mallard BASIC program data (v1.11)")
+  a("Windows imaging (WIM) image, wimlib pipable format")
 f246:
-  rA = gt(r,s,po,"\xfc\x04\x00",0)
+  rA = gt(r,s,po,"\xfc\x03\x00",0)
   if rA<0 {goto f247}
-  a("Mallard BASIC program data (v1.29+)")
+  a("Mallard BASIC program data (v1.11)")
 f247:
-  rA = gt(r,s,po,"\xfc\x03\x01",0)
+  rA = gt(r,s,po,"\xfc\x04\x00",0)
   if rA<0 {goto f248}
-  a("Mallard BASIC protected program data (v1.11)")
+  a("Mallard BASIC program data (v1.29+)")
 f248:
-  rA = gt(r,s,po,"\xfc\x04\x01",0)
+  rA = gt(r,s,po,"\xfc\x03\x01",0)
   if rA<0 {goto f249}
-  a("Mallard BASIC protected program data (v1.29+)")
+  a("Mallard BASIC protected program data (v1.11)")
 f249:
-  rA = gt(r,s,po,"MIOPEN",0)
+  rA = gt(r,s,po,"\xfc\x04\x01",0)
   if rA<0 {goto f24a}
-  a("Mallard BASIC Jetsam data")
+  a("Mallard BASIC protected program data (v1.29+)")
 f24a:
-  rA = gt(r,s,po,"Jetsam0",0)
+  rA = gt(r,s,po,"MIOPEN",0)
   if rA<0 {goto f24b}
-  a("Mallard BASIC Jetsam index data")
+  a("Mallard BASIC Jetsam data")
 f24b:
+  rA = gt(r,s,po,"Jetsam0",0)
+  if rA<0 {goto f24c}
+  a("Mallard BASIC Jetsam index data")
+f24c:
   rc,m=f2l(r,s,po+3)
-  if !(m&&rc>1979) {goto f24c}
+  if !(m&&rc>1979) {goto f24d}
   rc,m=f1l(r,s,po+5)
-  if !(m&&(rc-1)< 31) {goto f24d}
+  if !(m&&(rc-1)< 31) {goto f24e}
   rc,m=f1l(r,s,po+6)
-  if !(m&&(rc-1)< 12) {goto f24e}
+  if !(m&&(rc-1)< 12) {goto f24f}
   rA = gt(r,s,po+7,"\x00\x00\x00\x00\x00\x00\x00\x00",0)
-  if rA<0 {goto f24f}
+  if rA<0 {goto f250}
   a("DOS 2.0 backup id file, sequence %d")
   rc,m=f1l(r,s,po)
-  if !(m&&rc==255) {goto f251}
+  if !(m&&rc==255) {goto f252}
   a("\\b, last disk")
-f251:
+f252:
+f250:
 f24f:
 f24e:
 f24d:
-f24c:
   rc,m=f1l(r,s,po+83)
-  if !(m&&(rc-1)< 80) {goto f252}
+  if !(m&&(rc-1)< 80) {goto f253}
   rA = gt(r,s,po+84,"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",0)
-  if rA<0 {goto f253}
-  rA = gt(r,s,po+5,"x",0)
   if rA<0 {goto f254}
+  rA = gt(r,s,po+5,"x",0)
+  if rA<0 {goto f255}
   a("DOS 2.0 backed up file %s,")
-f254:
-  rc,m=f1l(r,s,po)
-  if !(m&&rc==255) {goto f255}
-  a("complete file")
 f255:
-  if !(m&&rc!=255) {goto f256}
-  a("split file, sequence %d")
+  rc,m=f1l(r,s,po)
+  if !(m&&rc==255) {goto f256}
+  a("complete file")
 f256:
+  if !(m&&rc!=255) {goto f257}
+  a("split file, sequence %d")
+f257:
+f254:
 f253:
-f252:
   rA = gt(r,s,po,"\x8bBACKUP ",0)
-  if rA<0 {goto f258}
-  rA = gt(r,s,po+10,"\x00\x00\x00\x00\x00\x00\x00\x00",0)
   if rA<0 {goto f259}
+  rA = gt(r,s,po+10,"\x00\x00\x00\x00\x00\x00\x00\x00",0)
+  if rA<0 {goto f25a}
   a("DOS 3.3 backup control file, sequence %d")
   rc,m=f1l(r,s,po+138)
-  if !(m&&rc==255) {goto f25b}
+  if !(m&&rc==255) {goto f25c}
   a("\\b, last disk")
-f25b:
+f25c:
+f25a:
 f259:
-f258:
   return out
 }
 

@@ -22,7 +22,7 @@
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
-			"revision": "ce95d2938c6db0c8c8dd5e124d2f7f7818798d62",
+			"revision": "9e5124b6fb65ed04849410b1aaed614f9f8f39f0",
 			"branch": "master",
 			"notests": true
 		},
@@ -160,7 +160,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "59105202fd6d52f972126ce8a0351154e110ad29",
+			"revision": "18506509d7125d3e28120b26498b717743463824",
 			"branch": "master",
 			"notests": true
 		},
