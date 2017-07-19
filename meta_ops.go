@@ -66,12 +66,9 @@ func file(inPath string) {
 	}
 
 	spell := spellbook.Identify(reader, stats.Size(), 0)
-	if *appArgs.json {
+	if spell != nil {
 		result.Type = "other"
 		result.Spell = spell
-	}
-
-	if spell != nil {
 		comm.Logf("%s: %s", path, wizutil.MergeStrings(spell))
 	}
 

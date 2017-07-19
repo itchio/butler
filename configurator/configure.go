@@ -81,6 +81,8 @@ const (
 	WindowsInstallerTypeMsi      WindowsInstallerType = "msi"
 	WindowsInstallerTypeInno                          = "inno"
 	WindowsInstallerTypeNullsoft                      = "nsis"
+	// self-extracting installer that unarchiver knows how to extract
+	WindowsInstallerTypeArchive = "archive"
 )
 
 type MacosInfo struct {
@@ -152,6 +154,8 @@ func sniffPE(r io.ReadSeeker, size int64) (*Candidate, error) {
 		result.WindowsInfo.Uninstaller = true
 	} else if spellHas(spell, "\\b, Nullsoft Installer self-extracting archive") {
 		result.WindowsInfo.InstallerType = WindowsInstallerTypeNullsoft
+	} else if spellHas(spell, "\\b, InstallShield self-extracting archive") {
+		result.WindowsInfo.InstallerType = WindowsInstallerTypeArchive
 	}
 
 	if spellHas(spell, "(GUI)") {
