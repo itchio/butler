@@ -93,7 +93,7 @@ func WalkSingle(Path string) (*Container, error) {
 				Mode:   uint32(stats.Mode()),
 				Size:   int64(stats.Size()),
 				Offset: 0,
-				Path:   Path,
+				Path:   filepath.Base(Path),
 			},
 		},
 		Size: stats.Size(),
