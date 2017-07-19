@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/fasterthanlime/spellbook"
@@ -563,6 +564,24 @@ func (v *Verdict) FixPermissions(dryrun bool) ([]string, error) {
 	return fixed, nil
 }
 
+type BiggestFirst struct {
+	candidates []*Candidate
+}
+
+var _ sort.Interface = (*BiggestFirst)(nil)
+
+func (bf *BiggestFirst) Len() int {
+	return len(bf.candidates)
+}
+
+func (bf *BiggestFirst) Less(i, j int) bool {
+	return bf.candidates[i].Size > bf.candidates[j].Size
+}
+
+func (bf *BiggestFirst) Swap(i, j int) {
+	bf.candidates[i], bf.candidates[j] = bf.candidates[j], bf.candidates[i]
+}
+
 func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
 	compatibleCandidates := make([]*Candidate, 0)
 
@@ -732,6 +751,9 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
 			})
 		}
 	}
+
+	// finally, sort by biggest first
+	sort.Stable(&BiggestFirst{bestCandidates})
 
 	v.Candidates = bestCandidates
 }
