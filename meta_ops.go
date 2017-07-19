@@ -29,11 +29,12 @@ import (
 
 // A ContainerResult is sent in json mode by the file command
 type ContainerResult struct {
-	Type             string `json:"type"`
-	NumFiles         int    `json:"numFiles"`
-	NumDirs          int    `json:"numDirs"`
-	NumSymlinks      int    `json:"numSymlinks"`
-	UncompressedSize int64  `json:"uncompressedSize"`
+	Type             string   `json:"type"`
+	Spell            []string `json:"spell"`
+	NumFiles         int      `json:"numFiles"`
+	NumDirs          int      `json:"numDirs"`
+	NumSymlinks      int      `json:"numSymlinks"`
+	UncompressedSize int64    `json:"uncompressedSize"`
 }
 
 var updateBaseURL = fmt.Sprintf("https://dl.itch.ovh/butler/%s-%s", runtime.GOOS, runtime.GOARCH)
@@ -60,9 +61,14 @@ func file(inPath string) {
 	}
 	must(err)
 
+	result := ContainerResult{
+		Type: "unknown",
+	}
+
 	spell := spellbook.Identify(reader, stats.Size(), 0)
 	if *appArgs.json {
-		comm.Result(&spell)
+		result.Type = "other"
+		result.Spell = spell
 	}
 
 	if spell != nil {
@@ -102,13 +108,13 @@ func file(inPath string) {
 			must(rctx.ReadMessage(container)) // source container
 
 			comm.Logf("%s: %s wharf patch file (%s) with %s", path, prettySize, ph.GetCompression().ToString(), container.Stats())
-			comm.Result(ContainerResult{
+			result = ContainerResult{
 				Type:             "wharf/patch",
 				NumFiles:         len(container.Files),
 				NumDirs:          len(container.Dirs),
 				NumSymlinks:      len(container.Symlinks),
 				UncompressedSize: container.Size,
-			})
+			}
 		}
 
 	case pwr.SignatureMagic:
@@ -123,13 +129,13 @@ func file(inPath string) {
 			must(rctx.ReadMessage(container))
 
 			comm.Logf("%s: %s wharf signature file (%s) with %s", path, prettySize, sh.GetCompression().ToString(), container.Stats())
-			comm.Result(ContainerResult{
+			result = ContainerResult{
 				Type:             "wharf/signature",
 				NumFiles:         len(container.Files),
 				NumDirs:          len(container.Dirs),
 				NumSymlinks:      len(container.Symlinks),
 				UncompressedSize: container.Size,
-			})
+			}
 		}
 
 	case pwr.ManifestMagic:
@@ -144,13 +150,13 @@ func file(inPath string) {
 			must(rctx.ReadMessage(container))
 
 			comm.Logf("%s: %s wharf manifest file (%s) with %s", path, prettySize, mh.GetCompression().ToString(), container.Stats())
-			comm.Result(ContainerResult{
+			result = ContainerResult{
 				Type:             "wharf/manifest",
 				NumFiles:         len(container.Files),
 				NumDirs:          len(container.Dirs),
 				NumSymlinks:      len(container.Symlinks),
 				UncompressedSize: container.Size,
-			})
+			}
 		}
 
 	case pwr.WoundsMagic:
@@ -185,41 +191,41 @@ func file(inPath string) {
 
 			comm.Logf("%s: %s wharf wounds file with %s, %s wounds in %d files", path, prettySize, container.Stats(),
 				humanize.IBytes(uint64(totalWounds)), len(files))
-			comm.Result(ContainerResult{
+			result = ContainerResult{
 				Type: "wharf/wounds",
-			})
+			}
 		}
 
 	default:
 		_, err := reader.Seek(0, os.SEEK_SET)
 		must(err)
 
-		wasZip := func() bool {
+		func() {
 			zr, err := zip.NewReader(reader, stats.Size())
 			if err != nil {
 				if err != zip.ErrFormat {
 					must(err)
 				}
-				return false
+				return
 			}
 
 			container, err := tlc.WalkZip(zr, func(fi os.FileInfo) bool { return true })
 			must(err)
 
 			comm.Logf("%s: %s zip file with %s", path, prettySize, container.Stats())
-			comm.Result(ContainerResult{
+			result = ContainerResult{
 				Type:             "zip",
 				NumFiles:         len(container.Files),
 				NumDirs:          len(container.Dirs),
 				NumSymlinks:      len(container.Symlinks),
 				UncompressedSize: container.Size,
-			})
-			return true
+			}
 		}()
 
-		if !wasZip && spell == nil {
+		if result.Type == "unknown" {
 			comm.Logf("%s: not sure - try the file(1) command if your system has it!", path)
 		}
+		comm.Result(result)
 	}
 }
 
