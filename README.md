@@ -6,7 +6,7 @@
 
 butler is *the itch.io command-line tools* - all by itself.
 
-It is used by:
+**It is used by:**
 
   * Content creators on [itch.io](https://itch.io) to push builds quickly & reliably
   * [the itch app](https://github.com/itchio/itch) for some network, filesystem and patching operations
@@ -36,4 +36,4 @@ Amos would like to thank in particular Leaf Corcoran, Jesús Higueras and Tomá�
 
 ## License
 
-Licensed under MIT License, see `LICENSE` for details.
+Licensed under the MIT License. See [LICENSE](LICENSE) for details.
