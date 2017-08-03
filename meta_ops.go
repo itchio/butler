@@ -209,7 +209,8 @@ func file(inPath string) {
 			container, err := tlc.WalkZip(zr, func(fi os.FileInfo) bool { return true })
 			must(err)
 
-			comm.Logf("%s: %s zip file with %s", path, prettySize, container.Stats())
+			prettyUncompressed := humanize.IBytes(uint64(container.Size))
+			comm.Logf("%s: %s zip file with %s, %s uncompressed", path, prettySize, container.Stats(), prettyUncompressed)
 			result = ContainerResult{
 				Type:             "zip",
 				NumFiles:         len(container.Files),
