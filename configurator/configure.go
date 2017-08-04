@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/fasterthanlime/spellbook"
+	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
@@ -128,7 +129,8 @@ func spellHas(spell []string, token string) bool {
 }
 
 func sniffPE(r io.ReadSeeker, size int64) (*Candidate, error) {
-	spell := spellbook.Identify(&readerAtFromSeeker{r}, size, 0)
+	sr := wizutil.NewSliceReader(&readerAtFromSeeker{r}, 0, size)
+	spell := spellbook.Identify(sr, 0)
 
 	if !spellHas(spell, "PE") {
 		// uh oh
@@ -170,7 +172,8 @@ func sniffPE(r io.ReadSeeker, size int64) (*Candidate, error) {
 }
 
 func sniffELF(r io.ReadSeeker, size int64) (*Candidate, error) {
-	spell := spellbook.Identify(&readerAtFromSeeker{r}, size, 0)
+	sr := wizutil.NewSliceReader(&readerAtFromSeeker{r}, 0, size)
+	spell := spellbook.Identify(sr, 0)
 
 	if !spellHas(spell, "ELF") {
 		// uh oh
@@ -291,7 +294,8 @@ func sniffZip(r io.ReadSeeker, size int64) (*Candidate, error) {
 func sniffFatMach(r io.ReadSeeker, size int64) (*Candidate, error) {
 	ra := &readerAtFromSeeker{r}
 
-	spell := spellbook.Identify(ra, size, 0)
+	sr := wizutil.NewSliceReader(ra, 0, size)
+	spell := spellbook.Identify(sr, 0)
 
 	if spellHas(spell, "compiled Java class data,") {
 		// nevermind

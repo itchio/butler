@@ -22,7 +22,7 @@
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
-			"revision": "9e5124b6fb65ed04849410b1aaed614f9f8f39f0",
+			"revision": "d4f27c749c702b9b9e0b04b238a83590ec1a2081",
 			"branch": "master",
 			"notests": true
 		},
@@ -30,7 +30,7 @@
 			"importpath": "github.com/fasterthanlime/wizardry/wizardry",
 			"repository": "https://github.com/fasterthanlime/wizardry",
 			"vcs": "git",
-			"revision": "f417886254cab5c1771d60b06de0b1b248518d81",
+			"revision": "c6e01a1782fd781a81cddcc19593dfdd292390e9",
 			"branch": "master",
 			"path": "/wizardry",
 			"notests": true

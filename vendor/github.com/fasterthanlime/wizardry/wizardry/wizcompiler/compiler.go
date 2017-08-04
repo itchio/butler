@@ -88,9 +88,9 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 	emit("import (")
 	withIndent(func() {
 		emit(strconv.Quote("fmt"))
-		emit(strconv.Quote("io"))
 		emit(strconv.Quote("encoding/binary"))
 		emit(strconv.Quote("github.com/fasterthanlime/wizardry/wizardry"))
+		emit(strconv.Quote("github.com/fasterthanlime/wizardry/wizardry/wizutil"))
 	})
 	emit(")")
 	emit("")
@@ -113,7 +113,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 			retType := "uint64"
 
 			emit("// reads an unsigned %d-bit %s integer", byteWidth*8, endianness)
-			emit("func f%d%s(r io.ReaderAt, s int64, off int64) (%s, bool) {", byteWidth, endiannessString(endianness, false), retType)
+			emit("func f%d%s(r *wizutil.SliceReader, off int64) (%s, bool) {", byteWidth, endiannessString(endianness, false), retType)
 			withIndent(func() {
 				emit("n,err:=r.ReadAt(tb,int64(off))")
 				emit("if n<%d||err!=nil {return 0,f}", byteWidth)
@@ -154,7 +154,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 				}
 			}
 
-			emit("func Identify%s(r io.ReaderAt, s int64, po int64) []string {", pageSymbol(page, swapEndian))
+			emit("func Identify%s(r *wizutil.SliceReader, po int64) []string {", pageSymbol(page, swapEndian))
 			withIndent(func() {
 				emit("var out []string")
 				emit("var ss []string; ss=ss[0:]")
@@ -236,7 +236,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 						}
 
 						if !reuseOffset {
-							emit("ra,k=f%d%s(r,s,%s)",
+							emit("ra,k=f%d%s(r,%s)",
 								indirect.ByteWidth,
 								endiannessString(indirect.Endianness, swapEndian),
 								offsetAddress)
@@ -247,7 +247,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 
 						if indirect.OffsetAdjustmentIsRelative {
 							offsetAdjustAddress := fmt.Sprintf("%s + %s", offsetAddress, quoteNumber(indirect.OffsetAdjustmentValue))
-							emit("rb,l=f%d%s(r,s,%s)",
+							emit("rb,l=f%d%s(r,%s)",
 								indirect.ByteWidth,
 								endiannessString(indirect.Endianness, swapEndian),
 								offsetAdjustAddress)
@@ -299,7 +299,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 					case wizparser.KindFamilySwitch:
 						sk, _ := rule.Kind.Data.(*wizparser.SwitchKind)
 
-						emit("rc,m=f%d%s(r,s,%s)",
+						emit("rc,m=f%d%s(r,%s)",
 							sk.ByteWidth,
 							endiannessString(sk.Endianness, swapEndian),
 							off,
@@ -331,7 +331,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 							}
 
 							if !reuseSibling {
-								emit("rc,m=f%d%s(r,s,%s)",
+								emit("rc,m=f%d%s(r,%s)",
 									ik.ByteWidth,
 									endiannessString(ik.Endianness, swapEndian),
 									off,
@@ -387,7 +387,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 						}
 					case wizparser.KindFamilyString:
 						sk, _ := rule.Kind.Data.(*wizparser.StringKind)
-						emit("rA = gt(r,s,%s,%s,%d)", off, strconv.Quote(string(sk.Value)), sk.Flags)
+						emit("rA = gt(r,%s,%s,%d)", off, strconv.Quote(string(sk.Value)), sk.Flags)
 						canFail = true
 						if sk.Negate {
 							emit("if rA>=0 {goto %s}", failLabel(node))
@@ -405,7 +405,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 
 					case wizparser.KindFamilySearch:
 						sk, _ := rule.Kind.Data.(*wizparser.SearchKind)
-						emit("rA=ht(r,s,%s,%s,%s)", off, quoteNumber(int64(sk.MaxLen)), strconv.Quote(string(sk.Value)))
+						emit("rA=ht(r,%s,%s,%s)", off, quoteNumber(int64(sk.MaxLen)), strconv.Quote(string(sk.Value)))
 						canFail = true
 						emit("if rA<0 {goto %s}", failLabel(node))
 						if emitGlobalOffset {
@@ -423,7 +423,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 
 					case wizparser.KindFamilyUse:
 						uk, _ := rule.Kind.Data.(*wizparser.UseKind)
-						emit("a(Identify%s(r,s,%s)...)", pageSymbol(uk.Page, uk.SwapEndian), off)
+						emit("a(Identify%s(r,%s)...)", pageSymbol(uk.Page, uk.SwapEndian), off)
 
 					case wizparser.KindFamilyName:
 						// do nothing, pretty much

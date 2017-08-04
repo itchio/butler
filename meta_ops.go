@@ -65,7 +65,8 @@ func file(inPath string) {
 		Type: "unknown",
 	}
 
-	spell := spellbook.Identify(reader, stats.Size(), 0)
+	sr := wizutil.NewSliceReader(reader, 0, stats.Size())
+	spell := spellbook.Identify(sr, 0)
 	if spell != nil {
 		result.Type = "other"
 		result.Spell = spell

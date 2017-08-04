@@ -6,6 +6,7 @@ import (
 
 	"github.com/fasterthanlime/wizardry/wizardry"
 	"github.com/fasterthanlime/wizardry/wizardry/wizparser"
+	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
 )
 
 // MaxLevels is the maximum level of magic rules that are interpreted
@@ -21,8 +22,8 @@ type InterpretContext struct {
 }
 
 // Identify follows the rules in a spellbook to find out the type of a file
-func (ctx *InterpretContext) Identify(r io.ReaderAt, size int64) ([]string, error) {
-	outStrings, err := ctx.identifyInternal(r, size, 0, "", false)
+func (ctx *InterpretContext) Identify(sr *wizutil.SliceReader) ([]string, error) {
+	outStrings, err := ctx.identifyInternal(sr, 0, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (ctx *InterpretContext) Identify(r io.ReaderAt, size int64) ([]string, erro
 	return outStrings, nil
 }
 
-func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOffset int64, page string, swapEndian bool) ([]string, error) {
+func (ctx *InterpretContext) identifyInternal(sr *wizutil.SliceReader, pageOffset int64, page string, swapEndian bool) ([]string, error) {
 	var outStrings []string
 
 	matchedLevels := make([]bool, MaxLevels)
@@ -85,7 +86,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 				offsetAddress += int64(globalOffset)
 			}
 
-			readAddress, err := readAnyUint(r, size, int(offsetAddress), indirect.ByteWidth, indirect.Endianness.MaybeSwapped(swapEndian))
+			readAddress, err := readAnyUint(sr, int(offsetAddress), indirect.ByteWidth, indirect.Endianness.MaybeSwapped(swapEndian))
 			if err != nil {
 				ctx.Logf("Error while dereferencing: %s - skipping rule", err.Error())
 				continue
@@ -95,7 +96,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 			offsetAdjustValue := indirect.OffsetAdjustmentValue
 			if indirect.OffsetAdjustmentIsRelative {
 				offsetAdjustAddress := int64(offsetAddress) + offsetAdjustValue
-				readAdjustAddress, err := readAnyUint(r, size, int(offsetAdjustAddress), indirect.ByteWidth, indirect.Endianness)
+				readAdjustAddress, err := readAnyUint(sr, int(offsetAdjustAddress), indirect.ByteWidth, indirect.Endianness)
 				if err != nil {
 					ctx.Logf("Error while dereferencing: %s - skipping rule", err.Error())
 					continue
@@ -122,7 +123,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 			lookupOffset += globalOffset
 		}
 
-		if lookupOffset < 0 || lookupOffset >= size {
+		if lookupOffset < 0 || lookupOffset >= sr.Size() {
 			ctx.Logf("we done goofed, lookupOffset %d is out of bounds, skipping %#v", lookupOffset, rule)
 			continue
 		}
@@ -136,7 +137,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 			if ik.MatchAny {
 				success = true
 			} else {
-				targetValue, err := readAnyUint(r, size, int(lookupOffset), ik.ByteWidth, ik.Endianness)
+				targetValue, err := readAnyUint(sr, int(lookupOffset), ik.ByteWidth, ik.Endianness)
 				if err != nil {
 					ctx.Logf("in integer test, while reading target value: %s", err.Error())
 					continue
@@ -202,7 +203,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 		case wizparser.KindFamilyString:
 			sk, _ := rule.Kind.Data.(*wizparser.StringKind)
 
-			matchLen := wizardry.StringTest(r, size, lookupOffset, string(sk.Value), sk.Flags)
+			matchLen := wizardry.StringTest(sr, lookupOffset, string(sk.Value), sk.Flags)
 			success = matchLen >= 0
 
 			if sk.Negate {
@@ -216,7 +217,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 		case wizparser.KindFamilySearch:
 			sk, _ := rule.Kind.Data.(*wizparser.SearchKind)
 
-			matchPos := wizardry.SearchTest(r, size, lookupOffset, sk.MaxLen, string(sk.Value))
+			matchPos := wizardry.SearchTest(sr, lookupOffset, sk.MaxLen, string(sk.Value))
 			success = matchPos >= 0
 
 			if success {
@@ -234,7 +235,7 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 
 			ctx.Logf("|====> using %s", uk.Page)
 
-			subStrings, err := ctx.identifyInternal(r, size, lookupOffset, uk.Page, uk.SwapEndian)
+			subStrings, err := ctx.identifyInternal(sr, lookupOffset, uk.Page, uk.SwapEndian)
 			if err != nil {
 				return nil, err
 			}
@@ -264,13 +265,13 @@ func (ctx *InterpretContext) identifyInternal(r io.ReaderAt, size int64, pageOff
 	return outStrings, nil
 }
 
-func readAnyUint(r io.ReaderAt, size int64, j int, byteWidth int, endianness wizparser.Endianness) (uint64, error) {
-	if int64(j+byteWidth) > size {
+func readAnyUint(sr *wizutil.SliceReader, j int, byteWidth int, endianness wizparser.Endianness) (uint64, error) {
+	if int64(j+byteWidth) > sr.Size() {
 		return 0, io.EOF
 	}
 
 	intBytes := make([]byte, byteWidth)
-	n, err := r.ReadAt(intBytes, int64(j))
+	n, err := sr.ReadAt(intBytes, int64(j))
 	if n < byteWidth {
 		if err != nil && err != io.EOF {
 			return 0, err

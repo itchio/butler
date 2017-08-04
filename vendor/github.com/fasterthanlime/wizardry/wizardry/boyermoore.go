@@ -4,7 +4,12 @@
 
 package wizardry
 
-import "strings"
+import (
+	"log"
+	"strings"
+
+	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
+)
 
 // StringFinder efficiently finds strings in a source text. It's implemented
 // using the Boyer-Moore string search algorithm:
@@ -22,7 +27,7 @@ type StringFinder struct {
 	// Whenever a mismatch is found with byte b in the text, we can safely
 	// shift the matching frame at least badCharSkip[b] until the next time
 	// the matching char could be in alignment.
-	badCharSkip [256]int
+	badCharSkip [256]int64
 
 	// goodSuffixSkip[i] defines how far we can shift the matching frame given
 	// that the suffix pattern[i+1:] matches, but the byte pattern[i] does
@@ -44,14 +49,14 @@ type StringFinder struct {
 	// suffix "xxabc" is not found elsewhere in the pattern. However, its
 	// rightmost "abc" (at position 6) is a prefix of the whole pattern, so
 	// goodSuffixSkip[3] == shift+len(suffix) == 6+5 == 11.
-	goodSuffixSkip []int
+	goodSuffixSkip []int64
 }
 
 // MakeStringFinder prepares a finder for a given pattern
 func MakeStringFinder(pattern string) *StringFinder {
 	f := &StringFinder{
 		pattern:        pattern,
-		goodSuffixSkip: make([]int, len(pattern)),
+		goodSuffixSkip: make([]int64, len(pattern)),
 	}
 	// last is the index of the last character in the pattern.
 	last := len(pattern) - 1
@@ -59,13 +64,13 @@ func MakeStringFinder(pattern string) *StringFinder {
 	// Build bad character table.
 	// Bytes not in the pattern can skip one pattern's length.
 	for i := range f.badCharSkip {
-		f.badCharSkip[i] = len(pattern)
+		f.badCharSkip[i] = int64(len(pattern))
 	}
 	// The loop condition is < instead of <= so that the last byte does not
 	// have a zero distance to itself. Finding this byte out of place implies
 	// that it is not in the last position.
 	for i := 0; i < last; i++ {
-		f.badCharSkip[pattern[i]] = last - i
+		f.badCharSkip[pattern[i]] = int64(last - i)
 	}
 
 	// Build good suffix table.
@@ -77,14 +82,14 @@ func MakeStringFinder(pattern string) *StringFinder {
 			lastPrefix = i + 1
 		}
 		// lastPrefix is the shift, and (last-i) is len(suffix).
-		f.goodSuffixSkip[i] = lastPrefix + last - i
+		f.goodSuffixSkip[i] = int64(lastPrefix + last - i)
 	}
 	// Second pass: find repeats of pattern's suffix starting from the front.
 	for i := 0; i < last; i++ {
 		lenSuffix := longestCommonSuffix(pattern, pattern[1:i+1])
 		if pattern[i-lenSuffix] != pattern[last-lenSuffix] {
 			// (last-i) is the shift, and lenSuffix is len(suffix).
-			f.goodSuffixSkip[last-lenSuffix] = lenSuffix + last - i
+			f.goodSuffixSkip[last-lenSuffix] = int64(lenSuffix + last - i)
 		}
 	}
 
@@ -102,24 +107,46 @@ func longestCommonSuffix(a, b string) (i int) {
 
 // next returns the index in text of the first occurrence of the pattern. If
 // the pattern is not found, it returns -1.
-func (f *StringFinder) next(text string) int {
-	i := len(f.pattern) - 1
-	for i < len(text) {
+func (f *StringFinder) next(sr *wizutil.SliceReader) int64 {
+	i := int64(len(f.pattern) - 1)
+
+	bv := &wizutil.ByteView{
+		Input:    sr,
+		LookBack: int64(len(f.pattern)),
+	}
+
+	for i < sr.Size() {
 		// Compare backwards from the end until the first unmatching character.
 		j := len(f.pattern) - 1
-		for j >= 0 && text[i] == f.pattern[j] {
+		var c int
+
+		for {
+			if j < 0 {
+				// match
+				return i + 1
+			}
+
+			c = bv.Get(i)
+			if c == -1 {
+				// relay errors
+				log.Printf("Read error at %d", i)
+				return -1
+			}
+
+			if byte(c) != f.pattern[j] {
+				// mismatch, must skip
+				break
+			}
 			i--
 			j--
 		}
-		if j < 0 {
-			return i + 1 // match
-		}
-		i += max(f.badCharSkip[text[i]], f.goodSuffixSkip[j])
+
+		i += max(f.badCharSkip[c], f.goodSuffixSkip[j])
 	}
 	return -1
 }
 
-func max(a, b int) int {
+func max(a, b int64) int64 {
 	if a > b {
 		return a
 	}
