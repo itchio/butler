@@ -137,6 +137,9 @@ var lastBandwidthUpdate time.Time
 var lastBandwidthAlpha = 0.0
 var bps float64
 
+var lastJsonPrintTime time.Time
+var maxJsonPrintDuration = 1 * time.Second
+
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
 func Progress(alpha float64) {
@@ -166,7 +169,16 @@ func Progress(alpha float64) {
 	}
 
 	setBarProgress(alpha)
-	send("progress", msg)
+
+	if lastJsonPrintTime.IsZero() {
+		lastJsonPrintTime = time.Now()
+	}
+	printDuration := time.Since(lastJsonPrintTime)
+
+	if printDuration > maxJsonPrintDuration {
+		lastJsonPrintTime = time.Now()
+		send("progress", msg)
+	}
 }
 
 // ProgressScale sets the scale on which the progress bar is displayed. This can be useful

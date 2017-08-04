@@ -192,6 +192,17 @@ func Login(uri string) {
 func send(msgType string, obj jsonMessage) {
 	if settings.json {
 		obj["type"] = msgType
+		if msgType == "log" {
+			if obj["level"] == "debug" {
+				if !settings.quiet && settings.verbose {
+					// k, let it through
+				} else {
+					// no thanks!
+					return
+				}
+			}
+		}
+
 		sendJSON(obj)
 		if msgType == "error" {
 			os.Exit(1)
