@@ -9,10 +9,23 @@ import (
 	"github.com/itchio/wharf/eos"
 )
 
+// FileExtracted is sent
+type FileExtracted struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
+
 func unzip(file string, dir string, resumeFile string, dryRun bool, concurrency int) {
 	comm.Opf("Extracting zip %s to %s", eos.Redact(file), dir)
 
 	var zipUncompressedSize int64
+
+	onEntryDone := func(path string) {
+		comm.Result(&FileExtracted{
+			Type: "extracted",
+			Path: path,
+		})
+	}
 
 	settings := archiver.ExtractSettings{
 		Consumer:   comm.NewStateConsumer(),
@@ -22,6 +35,7 @@ func unzip(file string, dir string, resumeFile string, dryRun bool, concurrency 
 			comm.StartProgressWithTotalBytes(uncompressedSize)
 		},
 		DryRun:      dryRun,
+		OnEntryDone: onEntryDone,
 		Concurrency: concurrency,
 	}
 

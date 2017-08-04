@@ -35,10 +35,13 @@ type CompressResult struct {
 
 type UncompressedSizeKnownFunc func(uncompressedSize int64)
 
+type EntryDoneFunc func(slashPath string)
+
 type ExtractSettings struct {
 	Consumer                *state.Consumer
 	ResumeFrom              string
 	OnUncompressedSizeKnown UncompressedSizeKnownFunc
+	OnEntryDone             EntryDoneFunc
 	DryRun                  bool
 	Concurrency             int
 }
