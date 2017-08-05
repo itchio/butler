@@ -138,7 +138,7 @@ var lastBandwidthAlpha = 0.0
 var bps float64
 
 var lastJsonPrintTime time.Time
-var maxJsonPrintDuration = 1 * time.Second
+var maxJsonPrintDuration = 500 * time.Millisecond
 
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
