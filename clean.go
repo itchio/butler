@@ -30,7 +30,14 @@ func clean(planPath string) {
 
 	for _, entry := range plan.Entries {
 		fullPath := filepath.Join(plan.BasePath, entry)
-		must(os.Remove(fullPath))
+		err := os.Remove(fullPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// ignore
+			} else {
+				must(err)
+			}
+		}
 	}
 
 	duration := time.Since(startTime)
