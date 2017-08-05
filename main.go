@@ -57,9 +57,10 @@ var (
 	fetchCmd  = app.Command("fetch", "Download and extract the latest build of a channel from itch.io")
 	statusCmd = app.Command("status", "Show a list of channels and the status of their latest and pending builds.")
 
-	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
-	lsCmd   = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
-	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
+	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
+	lsCmd    = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
+	walkCmd  = app.Command("walk", "Finds all files in a directory").Hidden()
+	cleanCmd = app.Command("clean", "Remove a bunch of files").Hidden()
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
 	versionCmd = app.Command("version", "Prints the current version of butler")
@@ -362,6 +363,12 @@ var walkArgs = struct {
 	walkCmd.Arg("dir", "A dir you want to walk").Required().String(),
 }
 
+var cleanArgs = struct {
+	plan *string
+}{
+	cleanCmd.Arg("plan", "A .json plan containing a list of entries to remove").Required().String(),
+}
+
 var upgradeArgs = struct {
 	head *bool
 }{
@@ -646,6 +653,9 @@ func doMain(args []string) {
 
 	case walkCmd.FullCommand():
 		walk(*walkArgs.dir)
+
+	case cleanCmd.FullCommand():
+		clean(*cleanArgs.plan)
 
 	case upgradeCmd.FullCommand():
 		upgrade(*upgradeArgs.head)
