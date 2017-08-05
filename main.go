@@ -59,6 +59,7 @@ var (
 
 	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
 	lsCmd   = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
+	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
 	versionCmd = app.Command("version", "Prints the current version of butler")
@@ -355,6 +356,12 @@ var lsArgs = struct {
 	lsCmd.Arg("file", "A file you'd like to list the contents of").Required().String(),
 }
 
+var walkArgs = struct {
+	dir *string
+}{
+	walkCmd.Arg("dir", "A dir you want to walk").Required().String(),
+}
+
 var upgradeArgs = struct {
 	head *bool
 }{
@@ -636,6 +643,9 @@ func doMain(args []string) {
 
 	case lsCmd.FullCommand():
 		ls(*lsArgs.file)
+
+	case walkCmd.FullCommand():
+		walk(*walkArgs.dir)
 
 	case upgradeCmd.FullCommand():
 		upgrade(*upgradeArgs.head)

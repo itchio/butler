@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/fasterthanlime/spellbook"
 	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
@@ -226,6 +227,45 @@ func file(inPath string) {
 		}
 		comm.Result(result)
 	}
+}
+
+type WalkResult struct {
+	Type string `json:"type"`
+	Path string `json:"path,omitempty"`
+	Size int64  `json:"size,omitempty"`
+}
+
+func walk(dir string) {
+	startTime := time.Now()
+
+	container, err := tlc.WalkDir(dir, func(fi os.FileInfo) bool { return true })
+	must(err)
+
+	totalEntries := 0
+	send := func(path string) {
+		totalEntries++
+		comm.Result(&WalkResult{
+			Type: "entry",
+			Path: path,
+		})
+
+		comm.Debugf("%s", path)
+	}
+
+	for _, f := range container.Files {
+		send(f.Path)
+	}
+
+	for _, s := range container.Symlinks {
+		send(s.Path)
+	}
+
+	comm.Result(&WalkResult{
+		Type: "totalSize",
+		Size: container.Size,
+	})
+
+	comm.Statf("%d entries (%s) walked in %s", totalEntries, humanize.IBytes(uint64(container.Size)), time.Since(startTime))
 }
 
 func ls(inPath string) {

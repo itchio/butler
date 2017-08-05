@@ -22,7 +22,7 @@ func unzip(file string, dir string, resumeFile string, dryRun bool, concurrency 
 
 	onEntryDone := func(path string) {
 		comm.Result(&FileExtracted{
-			Type: "extracted",
+			Type: "entry",
 			Path: path,
 		})
 	}

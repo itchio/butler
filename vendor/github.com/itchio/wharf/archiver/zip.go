@@ -112,6 +112,16 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 		settings.Consumer.Progress(float64(ds) / float64(totalSize))
 	}
 
+	done := func(file *zip.File) {
+		if file.FileInfo().IsDir() {
+			return
+		}
+
+		if settings.OnEntryDone != nil {
+			settings.OnEntryDone(filepath.ToSlash(file.Name))
+		}
+	}
+
 	for i := 0; i < numWorkers; i++ {
 		go func() {
 			reader, err := zip.NewReader(readerAt, size)
@@ -125,9 +135,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 
 				if fileIndex <= lastDoneIndex {
 					settings.Consumer.Debugf("Skipping file %d")
-					if settings.OnEntryDone != nil {
-						settings.OnEntryDone(filepath.ToSlash(file.Name))
-					}
+					done(file)
 					atomic.AddUint64(&doneSize, file.UncompressedSize64)
 					updateProgress()
 					continue
@@ -205,10 +213,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 					return
 				}
 				writeProgress(fileIndex)
-
-				if settings.OnEntryDone != nil {
-					settings.OnEntryDone(filepath.ToSlash(file.Name))
-				}
+				done(file)
 			}
 
 			errs <- nil
