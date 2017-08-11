@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -92,11 +93,21 @@ func doMsiProductInfo(productCode string) error {
 	return nil
 }
 
+type MSIWindowsInstallerError struct {
+	Code int64  `json:"code"`
+	Text string `json:"text"`
+}
+
+type MSIWindowsInstallerErrorResult struct {
+	Type  string                   `json:"type"`
+	Value MSIWindowsInstallerError `json:"value"`
+}
+
 func msiInstall(msiPath string, logPath string, target string) {
 	must(doMsiInstall(msiPath, logPath, target))
 }
 
-func doMsiInstall(msiPath string, logPath string, target string) error {
+func doMsiInstall(msiPath string, logPathIn string, target string) error {
 	initMsi()
 
 	startTime := time.Now()
@@ -142,34 +153,6 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 		comm.Opf("Installing %s", msiPath)
 	}
 
-	if logPath == "" {
-		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		defer func() {
-			os.RemoveAll(tempDir)
-		}()
-
-		logPath = filepath.Join(tempDir, "msi-install-log.txt")
-	}
-
-	{
-		// equivalent to "/lv"
-		logMode := gowin32.InstallLogModeVerbose
-		logAttr := gowin32.InstallLogAttributesFlushEachLine
-		err := gowin32.EnableInstallerLog(logMode, logPath, logAttr)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		defer func() {
-			gowin32.DisableInstallerLog()
-		}()
-
-		comm.Debugf("...will write log to %s", logPath)
-	}
-
 	// s = Recreate all shortcuts
 	// m = Rewrite all HKLM and HKCR registry entries
 	// u = Rewrite all HKCU and HKU registry entries
@@ -189,7 +172,7 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 
 	comm.Debugf("Final command line: %s", commandLine)
 
-	err = func() error {
+	return withMsiLogging(logPathIn, func() error {
 		if repair {
 			ilvl := gowin32.InstallLevelDefault
 			istate := gowin32.InstallStateDefault
@@ -208,81 +191,7 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 			comm.Opf("Installed in %s", time.Since(startTime))
 		}
 		return nil
-	}()
-
-	if err != nil {
-		comm.Logf("")
-
-		lf, openErr := os.Open(logPath)
-		if openErr != nil {
-			comm.Warnf("And what's more, we can't open the log: %s", openErr.Error())
-		} else {
-			// grok UTF-16
-			win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
-			// ...but abide by the BOM if there's one
-			utf16bom := unicode.BOMOverride(win16be.NewDecoder())
-
-			unicodeReader := transform.NewReader(lf, utf16bom)
-
-			defer lf.Close()
-			s := bufio.NewScanner(unicodeReader)
-
-			var lines []string
-			for s.Scan() {
-				lines = append(lines, s.Text())
-			}
-
-			if *appArgs.verbose {
-				comm.Logf("Full log (run without verbose mode to get only errors): ")
-				for _, line := range lines {
-					comm.Logf("%s", line)
-				}
-			} else {
-				// leading (?i) = case-insensitive in golang
-				// We're looking for lines like:
-				// [blah] [time] Error 1603. We only have a single error because we're Microsoft.
-				re := regexp.MustCompile(`Error [0-9]+\..*`)
-
-				var errors []string
-
-				for _, line := range lines {
-					submatch := re.FindString(line)
-					if submatch != "" {
-						duplicate := false
-
-						for _, e := range errors {
-							if e == submatch {
-								// already got it, abort!
-								duplicate = true
-								break
-							}
-						}
-
-						if !duplicate {
-							errors = append(errors, submatch)
-						}
-					}
-				}
-
-				if len(errors) > 0 {
-					for _, e := range errors {
-						comm.Logf("  %s", e)
-					}
-				} else {
-					comm.Logf("Full MSI log: ")
-					for _, line := range lines {
-						comm.Logf("%s", line)
-					}
-				}
-			}
-			if scanErr := s.Err(); scanErr != nil {
-				comm.Warnf("While reading msi log: %s", scanErr.Error())
-			}
-		}
-
-		comm.Logf("")
-		return fmt.Errorf("%s", err.Error())
-	}
+	})
 
 	return nil
 }
@@ -326,12 +235,140 @@ func doMsiUninstall(productCode string) error {
 
 	startTime := time.Now()
 
-	err := gowin32.UninstallProduct(productCode)
+	err := withMsiLogging("", func() error {
+		return gowin32.UninstallProduct(productCode)
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
 	comm.Statf("Uninstalled in %s", time.Since(startTime))
+
+	return nil
+}
+
+type MsiLogCallback func() error
+
+func withMsiLogging(logPath string, f MsiLogCallback) error {
+	if logPath == "" {
+		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		defer func() {
+			os.RemoveAll(tempDir)
+		}()
+
+		logPath = filepath.Join(tempDir, "msi-install-log.txt")
+	}
+
+	{
+		// equivalent to "/lv"
+		logMode := gowin32.InstallLogModeVerbose
+		logAttr := gowin32.InstallLogAttributesFlushEachLine
+		err := gowin32.EnableInstallerLog(logMode, logPath, logAttr)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		defer func() {
+			gowin32.DisableInstallerLog()
+		}()
+
+		comm.Debugf("...will write log to %s", logPath)
+	}
+
+	taskErr := f()
+
+	if taskErr != nil {
+		comm.Logf("")
+
+		lf, openErr := os.Open(logPath)
+		if openErr != nil {
+			comm.Warnf("And what's more, we can't open the log: %s", openErr.Error())
+		} else {
+			// grok UTF-16
+			win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+			// ...but abide by the BOM if there's one
+			utf16bom := unicode.BOMOverride(win16be.NewDecoder())
+
+			unicodeReader := transform.NewReader(lf, utf16bom)
+
+			defer lf.Close()
+			s := bufio.NewScanner(unicodeReader)
+
+			var lines []string
+			for s.Scan() {
+				lines = append(lines, s.Text())
+			}
+
+			if *appArgs.verbose {
+				comm.Logf("Full log (run without verbose mode to get only errors): ")
+				for _, line := range lines {
+					comm.Logf("%s", line)
+				}
+			} else {
+				// leading (?i) = case-insensitive in golang
+				// We're looking for lines like:
+				// [blah] [time] Error 1925. You don't have enough permissions for nice things. This is why you can't have nice things.
+				re := regexp.MustCompile(`Error ([0-9]+)\..*`)
+
+				var errors []string
+
+				for _, line := range lines {
+					submatch := re.FindStringSubmatch(line)
+					if len(submatch) > 0 {
+						duplicate := false
+
+						for _, e := range errors {
+							if e == submatch[0] {
+								// already got it, abort!
+								duplicate = true
+								break
+							}
+						}
+
+						if !duplicate {
+							text := submatch[0]
+							codeString := submatch[1]
+
+							errors = append(errors, text)
+
+							code, err := strconv.ParseInt(codeString, 10, 64)
+							if err != nil {
+								comm.Debugf("Couldn't parse error code '%s'", codeString)
+							} else {
+								comm.Result(&MSIWindowsInstallerErrorResult{
+									Type: "windowsInstallerError",
+									Value: MSIWindowsInstallerError{
+										Code: code,
+										Text: text,
+									},
+								})
+							}
+						}
+					}
+				}
+
+				if len(errors) > 0 {
+					for _, e := range errors {
+						comm.Logf("  %s", e)
+					}
+				} else {
+					comm.Logf("Full MSI log: ")
+					for _, line := range lines {
+						comm.Logf("%s", line)
+					}
+				}
+			}
+			if scanErr := s.Err(); scanErr != nil {
+				comm.Warnf("While reading msi log: %s", scanErr.Error())
+			}
+		}
+
+		comm.Logf("")
+		return fmt.Errorf("%s", taskErr.Error())
+	}
 
 	return nil
 }
