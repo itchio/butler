@@ -55,6 +55,9 @@ func doMsiInfo(msiPath string) error {
 			ProductCode:  productCode,
 			InstallState: installStateToString(state),
 		})
+	} else {
+		comm.Statf("MSI product code: %s", productCode)
+		comm.Statf("Install state: %s", installStateToString(state))
 	}
 
 	return nil
