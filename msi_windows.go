@@ -18,8 +18,8 @@ func msiInfo(msiPath string) {
  * MSIInfoResult describes an MSI package's properties
  */
 type MSIInfoResult struct {
-	ProductCode  string `json:"product_code"`
-	InstallState string `json:"install_state"`
+	ProductCode  string `json:"productCode"`
+	InstallState string `json:"installState"`
 }
 
 func doMsiInfo(msiPath string) error {
