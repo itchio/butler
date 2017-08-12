@@ -1,10 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -135,7 +142,20 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 		comm.Opf("Installing %s", msiPath)
 	}
 
-	if logPath != "" {
+	if logPath == "" {
+		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		defer func() {
+			os.RemoveAll(tempDir)
+		}()
+
+		logPath = filepath.Join(tempDir, "msi-install-log.txt")
+	}
+
+	{
 		// equivalent to "/lv"
 		logMode := gowin32.InstallLogModeVerbose
 		logAttr := gowin32.InstallLogAttributesFlushEachLine
@@ -169,22 +189,99 @@ func doMsiInstall(msiPath string, logPath string, target string) error {
 
 	comm.Debugf("Final command line: %s", commandLine)
 
-	if repair {
-		ilvl := gowin32.InstallLevelDefault
-		istate := gowin32.InstallStateDefault
-		err = gowin32.ConfigureInstalledProduct(productCode, ilvl, istate, commandLine)
-		if err != nil {
-			return errors.Wrap(err, 0)
+	err = func() error {
+		if repair {
+			ilvl := gowin32.InstallLevelDefault
+			istate := gowin32.InstallStateDefault
+			err = gowin32.ConfigureInstalledProduct(productCode, ilvl, istate, commandLine)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			comm.Opf("Repaired in %s", time.Since(startTime))
+		} else {
+			err = gowin32.InstallProduct(msiPath, commandLine)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			comm.Opf("Installed in %s", time.Since(startTime))
+		}
+		return nil
+	}()
+
+	if err != nil {
+		comm.Logf("")
+
+		lf, openErr := os.Open(logPath)
+		if openErr != nil {
+			comm.Warnf("And what's more, we can't open the log: %s", openErr.Error())
+		} else {
+			// grok UTF-16
+			win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+			// ...but abide by the BOM if there's one
+			utf16bom := unicode.BOMOverride(win16be.NewDecoder())
+
+			unicodeReader := transform.NewReader(lf, utf16bom)
+
+			defer lf.Close()
+			s := bufio.NewScanner(unicodeReader)
+
+			var lines []string
+			for s.Scan() {
+				lines = append(lines, s.Text())
+			}
+
+			if *appArgs.verbose {
+				comm.Logf("Full log (run without verbose mode to get only errors): ")
+				for _, line := range lines {
+					comm.Logf("%s", line)
+				}
+			} else {
+				// leading (?i) = case-insensitive in golang
+				// We're looking for lines like:
+				// [blah] [time] Error 1603. We only have a single error because we're Microsoft.
+				re := regexp.MustCompile(`Error [0-9]+\..*`)
+
+				var errors []string
+
+				for _, line := range lines {
+					submatch := re.FindString(line)
+					if submatch != "" {
+						duplicate := false
+
+						for _, e := range errors {
+							if e == submatch {
+								// already got it, abort!
+								duplicate = true
+								break
+							}
+						}
+
+						if !duplicate {
+							errors = append(errors, submatch)
+						}
+					}
+				}
+
+				if len(errors) > 0 {
+					for _, e := range errors {
+						comm.Logf("  %s", e)
+					}
+				} else {
+					comm.Logf("Full MSI log: ")
+					for _, line := range lines {
+						comm.Logf("%s", line)
+					}
+				}
+			}
+			if scanErr := s.Err(); scanErr != nil {
+				comm.Warnf("While reading msi log: %s", scanErr.Error())
+			}
 		}
 
-		comm.Opf("Repaired in %s", time.Since(startTime))
-	} else {
-		err = gowin32.InstallProduct(msiPath, commandLine)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		comm.Opf("Installed in %s", time.Since(startTime))
+		comm.Logf("")
+		return fmt.Errorf("%s", err.Error())
 	}
 
 	return nil

@@ -175,6 +175,8 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 
 			logPath := filepath.Join(tempDir, "msi-install-log.txt")
 
+			// TODO: deduplicate with doMsiInstall simply by redirecting log messages
+			// to the named pipe
 			err = doMsiInstall(commandPath, logPath, "")
 			if err != nil {
 				logf("MSI install failed: %s", err.Error())
