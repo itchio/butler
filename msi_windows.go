@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -195,6 +196,34 @@ func msiUninstall(productCode string) {
 
 func doMsiUninstall(productCode string) error {
 	initMsi()
+
+	if !strings.HasPrefix(productCode, "{") {
+		comm.Logf("Argument doesn't look like a product ID, treating it like an MSI file")
+
+		err := func() error {
+			msiPath, err := filepath.Abs(productCode)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			pkg, err := gowin32.OpenInstallerPackage(msiPath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			defer pkg.Close()
+
+			fileProductCode, err := pkg.GetProductProperty("ProductCode")
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			productCode = fileProductCode
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+	}
 
 	comm.Opf("Uninstalling product %s", productCode)
 
