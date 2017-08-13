@@ -9,7 +9,8 @@ import (
 	"github.com/itchio/wharf/eos"
 )
 
-// FileExtracted is sent
+// FileExtracted is sent as json so the consumer can know what we extracted
+// It is sent even if we're resuming an extract.
 type FileExtracted struct {
 	Type string `json:"type"`
 	Path string `json:"path"`

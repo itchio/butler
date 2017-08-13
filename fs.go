@@ -74,6 +74,12 @@ func tryChmod(path string) error {
 	return filepath.Walk(path, chmodAll)
 }
 
+// FileMirrored is sent as json so the consumer can know what we mirrored.
+type FileMirrored struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
+
 // Does not preserve users, nor permission, except the executable bit
 func ditto(src string, dst string) {
 	comm.Debugf("rsync -a %s %s", src, dst)
@@ -98,6 +104,11 @@ func ditto(src string, dst string) {
 
 		rel, err := filepath.Rel(src, path)
 		must(err)
+
+		comm.Result(&FileExtracted{
+			Type: "entry",
+			Path: rel,
+		})
 
 		dstpath := filepath.Join(dst, rel)
 		mode := f.Mode()
