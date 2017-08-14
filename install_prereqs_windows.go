@@ -68,6 +68,7 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 	}
 
 	hasConn := true
+	// TODO: remove once itch v23 is dead
 	conn, err := npipe.Dial(pipePath)
 	if err != nil {
 		comm.Warnf("Could not dial pipe %s", conn)
@@ -90,11 +91,14 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 	}
 
 	doWriteState := func(taskName string, status string) error {
-		contents, err := json.Marshal(&PrereqState{
+		msg := PrereqState{
 			Type:   "state",
 			Name:   taskName,
 			Status: status,
-		})
+		}
+		comm.Result(&msg)
+
+		contents, err := json.Marshal(&msg)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
