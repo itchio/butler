@@ -91,16 +91,6 @@ var (
 	pipeCmd    = app.Command("pipe", "Runs a command, redirecting stdin/stdout/stderr to named pipes").Hidden()
 )
 
-var (
-	// DirectorySingular is whatever people call 'directories' or 'folders'
-	// on their platforms. linuxers tend to prefer 'directories', so this global
-	// is their punishment.
-	DirectorySingular = "folder"
-
-	// DirectoryPlural is the plural of DirectorySingular (duh)
-	DirectoryPlural = "folders"
-)
-
 var appArgs = struct {
 	json       *bool
 	quiet      *bool
@@ -120,6 +110,7 @@ var appArgs = struct {
 
 	cpuprofile *string
 	memstats   *bool
+	elevate    *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -140,6 +131,8 @@ var appArgs = struct {
 
 	app.Flag("cpuprofile", "Write CPU profile to given file").Hidden().String(),
 	app.Flag("memstats", "Print memory stats for some operations").Hidden().Bool(),
+
+	app.Flag("elevate", "Run butler as administrator").Hidden().Bool(),
 }
 
 var scriptArgs = struct {
@@ -512,12 +505,6 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 }
 
 func main() {
-	if runtime.GOOS == "linux" {
-		// *long sigh*
-		DirectorySingular = "directory"
-		DirectoryPlural = "directories"
-	}
-
 	doMain(os.Args[1:])
 }
 

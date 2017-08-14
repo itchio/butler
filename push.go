@@ -5,7 +5,6 @@ import (
 	"io"
 	"math"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -377,19 +376,6 @@ type walkResult struct {
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 	container, err := tlc.WalkAny(path, filtering.FilterPaths)
 	if err != nil {
-		if errors.Is(err, tlc.ErrUnrecognizedContainer) {
-			comm.Notice("Woops, can't push that!", []string{
-				"You can push " + DirectoryPlural + " or .zip archives with butler. The file `" + path + "` appears to be neither.",
-				"",
-				"If you really want to push a single file, put it in a " + DirectorySingular + ", and push that " + DirectorySingular + ".",
-				"",
-				"Be aware that diffing and patching work poorly on 'all-in-one executables' and installers. Consider pushing a portable build instead, for optimal distribution.",
-				"",
-				"For more information, see https://itch.io/docs/butler/single-files.html",
-			})
-			os.Exit(1)
-		}
-
 		errs <- errors.Wrap(err, 1)
 		return
 	}
