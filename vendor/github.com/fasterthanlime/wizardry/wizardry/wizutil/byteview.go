@@ -29,6 +29,10 @@ func (bv *ByteView) Get(i int64) int {
 	newOffset := max(0, i-bv.LookBack)
 	newEnd := min(newOffset+maxBufLen-1, bv.Input.Size()-1)
 	newBufLen := (newEnd - newOffset) + 1
+	if newBufLen <= 0 {
+		// input isn't big enough
+		return -1
+	}
 
 	bv.bufOffset = newOffset
 	bv.bufLen = newBufLen
