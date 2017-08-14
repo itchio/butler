@@ -176,19 +176,19 @@ func doMsiInstall(msiPath string, logPathIn string, target string) error {
 		if repair {
 			ilvl := gowin32.InstallLevelDefault
 			istate := gowin32.InstallStateDefault
-			err = gowin32.ConfigureInstalledProduct(productCode, ilvl, istate, commandLine)
+			err := gowin32.ConfigureInstalledProduct(productCode, ilvl, istate, commandLine)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 
-			comm.Opf("Repaired in %s", time.Since(startTime))
+			comm.Statf("Repaired in %s", time.Since(startTime))
 		} else {
-			err = gowin32.InstallProduct(msiPath, commandLine)
+			err := gowin32.InstallProduct(msiPath, commandLine)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 
-			comm.Opf("Installed in %s", time.Since(startTime))
+			comm.Statf("Installed in %s", time.Since(startTime))
 		}
 		return nil
 	})
@@ -235,16 +235,15 @@ func doMsiUninstall(productCode string) error {
 
 	startTime := time.Now()
 
-	err := withMsiLogging("", func() error {
-		return gowin32.UninstallProduct(productCode)
+	return withMsiLogging("", func() error {
+		err := gowin32.UninstallProduct(productCode)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		comm.Statf("Uninstalled in %s", time.Since(startTime))
+		return nil
 	})
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	comm.Statf("Uninstalled in %s", time.Since(startTime))
-
-	return nil
 }
 
 type MsiLogCallback func() error
