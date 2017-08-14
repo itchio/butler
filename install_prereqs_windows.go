@@ -230,7 +230,7 @@ func doInstallPrereqs(planPath string, pipePath string) error {
 						}
 
 						if !known {
-							logf("Got unknown exit code %d, will error out", code)
+							logf("Got unknown exit code 0x%X (%d), will error out", code, code)
 							failed = append(failed, task.Name)
 						}
 					} else {
