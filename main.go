@@ -86,6 +86,9 @@ var (
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
 	configureCmd = app.Command("configure", "(Advanced) Look for launchables in a directory").Hidden()
+
+	elevateCmd = app.Command("elevate", "Runs a command as administrator").Hidden()
+	pipeCmd    = app.Command("pipe", "Runs a command, redirecting stdin/stdout/stderr to named pipes").Hidden()
 )
 
 var (
@@ -455,6 +458,24 @@ var configureArgs = struct {
 	configureCmd.Flag("no-filter", "Do not filter at all").Bool(),
 }
 
+var elevateArgs = struct {
+	command *[]string
+}{
+	elevateCmd.Arg("command", "A command to run, with arguments").Strings(),
+}
+
+var pipeArgs = struct {
+	stdin   *string
+	stdout  *string
+	stderr  *string
+	command *[]string
+}{
+	pipeCmd.Flag("stdin", "A named pipe to read stdin from").String(),
+	pipeCmd.Flag("stdout", "A named pipe to write stdout to").String(),
+	pipeCmd.Flag("stderr", "A named pipe to write stderr to").String(),
+	pipeCmd.Arg("command", "A command to run, with arguments").Strings(),
+}
+
 func must(err error) {
 	if err != nil {
 		switch err := err.(type) {
@@ -692,6 +713,12 @@ func doMain(args []string) {
 
 	case configureCmd.FullCommand():
 		configure(*configureArgs.path, *configureArgs.showSpell, *configureArgs.osFilter, *configureArgs.archFilter, *configureArgs.noFilter)
+
+	case elevateCmd.FullCommand():
+		elevate(*elevateArgs.command)
+
+	case pipeCmd.FullCommand():
+		pipe(*pipeArgs.command, *pipeArgs.stdin, *pipeArgs.stdout, *pipeArgs.stderr)
 	}
 }
 
