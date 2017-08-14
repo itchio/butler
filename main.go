@@ -537,6 +537,31 @@ func doMain(args []string) {
 		}
 	}
 
+	if *appArgs.elevate {
+		var cmdLine []string
+
+		butlerExe, err := os.Executable()
+		must(err)
+
+		cmdLine = append(cmdLine, butlerExe)
+
+		pastAppArgs := false
+		for _, arg := range args {
+			if !pastAppArgs {
+				if arg == "--elevate" {
+					// skip --elevate, otherwise we're getting into a loop :)
+					continue
+				} else if arg == "--" {
+					pastAppArgs = true
+				}
+			}
+
+			cmdLine = append(cmdLine, arg)
+		}
+		elevate(cmdLine)
+		return
+	}
+
 	if *appArgs.timestamps {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	} else {
