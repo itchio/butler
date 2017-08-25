@@ -124,7 +124,7 @@ var appArgs = struct {
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
 
-	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip"),
+	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip", "zstd"),
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 
 	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
@@ -494,6 +494,8 @@ func butlerCompressionSettings() pwr.CompressionSettings {
 		algo = pwr.CompressionAlgorithm_BROTLI
 	case "gzip":
 		algo = pwr.CompressionAlgorithm_GZIP
+	case "zstd":
+		algo = pwr.CompressionAlgorithm_ZSTD
 	default:
 		panic(fmt.Errorf("Unknown compression algorithm: %s", algo))
 	}
