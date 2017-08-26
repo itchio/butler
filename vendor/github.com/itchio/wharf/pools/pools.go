@@ -1,6 +1,8 @@
 package pools
 
 import (
+	"strings"
+
 	"github.com/itchio/arkive/zip"
 
 	"path/filepath"
@@ -37,14 +39,14 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 		return fspool.New(c, basePath), nil
 	}
 
-	zr, err := zip.NewReader(fr, targetInfo.Size())
-	if err != nil {
-		if errors.Is(err, zip.ErrFormat) {
-			// assume single-file container
-			return fspool.New(c, filepath.Dir(basePath)), nil
+	if strings.HasSuffix(strings.ToLower(basePath), ".zip") {
+		zr, err := zip.NewReader(fr, targetInfo.Size())
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
 		}
-		return nil, errors.Wrap(err, 1)
+		return zippool.New(c, zr), nil
 	}
 
-	return zippool.New(c, zr), nil
+	// assume single-file container
+	return fspool.New(c, filepath.Dir(basePath)), nil
 }

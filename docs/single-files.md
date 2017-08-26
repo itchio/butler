@@ -1,7 +1,7 @@
 
 # Single files
 
-In order to understand why butler cowardly refuses to push "single files", we have to dig a little deeper.
+In order to understand why butler is reluctant to push "single files", we have to dig a little deeper.
 
 ## Portable builds
 
@@ -164,16 +164,14 @@ them to [the itch app][].
 
 ## I still really want to push a single file though
 
-If you've read all this, but you have your reasons, and you really
-want to use butler to push a single file, you can put it by itself
-into a folder, like so:
+If you've read all this, but you have your reasons, you can still
+pass a single file to butler push and it'll work transparently.
 
-```
-- Game/
-  - SingleLonelyFile.something
-```
+butler will behave as if you had created a folder and put your
+single file in it. The upload will work as usual for users of [the itch app][]
+(although diffs might be unusually large, if your single file
+is compressed or just has high entropy), and users who download
+from [the itch.io website][] will download the single file
+directly (it won't be packaged in a .zip for them).
 
-...and push the folder with butler.
-
-Players who download directly from the itch.io website will get just the single file. Users of [the itch app][] will
-get fast automatic updates as usual.
+[the itch.io website]: https://itch.io/

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/itchio/arkive/zip"
 
@@ -36,7 +37,7 @@ var DefaultFilter FilterFunc = func(fileInfo os.FileInfo) bool {
 }
 
 // WalkAny tries to retrieve container information on containerPath. It supports:
-// the empty container (/dev/null), local directories, zip archives
+// the empty container (/dev/null), local directories, zip archives, or single files
 func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 	// empty container case
 	if containerPath == NullPath {
@@ -65,15 +66,16 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 	}
 
 	// zip archive case
-	zr, err := zip.NewReader(file, stat.Size())
-	if err != nil {
-		if err == zip.ErrFormat {
-			return WalkSingle(containerPath)
+	if strings.HasSuffix(strings.ToLower(containerPath), ".zip") {
+		zr, err := zip.NewReader(file, stat.Size())
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
 		}
-		return nil, errors.Wrap(err, 0)
+		return WalkZip(zr, filter)
 	}
 
-	return WalkZip(zr, filter)
+	// single file case
+	return WalkSingle(containerPath)
 }
 
 // WalkSingle returns a container with a single file
@@ -281,4 +283,13 @@ func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
 func (container *Container) Stats() string {
 	return fmt.Sprintf("%d files, %d dirs, %d symlinks",
 		len(container.Files), len(container.Dirs), len(container.Symlinks))
+}
+
+// IsSingleFile returns true if the container contains
+// exactly one files, and no directories or symlinks.
+func (container *Container) IsSingleFile() bool {
+	if len(container.Files) == 1 && len(container.Dirs) == 0 && len(container.Symlinks) == 0 {
+		return true
+	}
+	return false
 }

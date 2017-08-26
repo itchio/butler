@@ -142,6 +142,14 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		break
 	}
 
+	if sourceContainer.IsSingleFile() {
+		comm.Notice("You're pushing a single file", []string{
+			"Diffing and patching work poorly on 'all-in-one executables' and installers. Consider pushing a portable build instead, for optimal distribution.",
+			"",
+			"For more information, see https://itch.io/docs/butler/single-files.html",
+		})
+	}
+
 	comm.Opf("Pushing %s (%s)", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
 
 	comm.Debugf("Building diff context")
