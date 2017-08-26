@@ -131,7 +131,7 @@ func Test_ConfigureLinux(t *testing.T) {
 	assert.NoError(t, err, "fixes permissions without problems")
 	// on windows it fixes 5 because reasons
 	if runtime.GOOS != "windows" {
-		assert.EqualValues(t, 4, len(fixed), "fixed some files")
+		assert.EqualValues(t, 7, len(fixed), "fixed some files")
 	}
 
 	vcopy := *v
