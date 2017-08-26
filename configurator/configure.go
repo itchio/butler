@@ -180,10 +180,9 @@ func sniffELF(r io.ReadSeeker, size int64) (*Candidate, error) {
 		return nil, nil
 	}
 
-	if !spellHas(spell, "executable,") {
-		// ignore libraries etc.
-		return nil, nil
-	}
+	// some objects are marked as 'executable', others are marked
+	// as 'shared objects', but it doesn't matter since executables
+	// can be marked as shared objects as well (node-webkit) for example.
 
 	result := &Candidate{
 		Flavor: FlavorNativeLinux,
@@ -590,6 +589,58 @@ func (bf *BiggestFirst) Swap(i, j int) {
 	bf.candidates[i], bf.candidates[j] = bf.candidates[j], bf.candidates[i]
 }
 
+type HighestScoreFirst struct {
+	candidates []ScoredCandidate
+}
+
+var _ sort.Interface = (*HighestScoreFirst)(nil)
+
+func (hsf *HighestScoreFirst) Len() int {
+	return len(hsf.candidates)
+}
+
+func (hsf *HighestScoreFirst) Less(i, j int) bool {
+	return hsf.candidates[i].score > hsf.candidates[j].score
+}
+
+func (hsf *HighestScoreFirst) Swap(i, j int) {
+	hsf.candidates[i], hsf.candidates[j] = hsf.candidates[j], hsf.candidates[i]
+}
+
+type BlacklistEntry struct {
+	pattern *regexp.Regexp
+	penalty Penalty
+}
+
+type PenaltyKind int
+
+const (
+	PenaltyExclude = iota
+	PenaltyScore
+)
+
+type Penalty struct {
+	kind  PenaltyKind
+	delta int64
+}
+
+var blacklist = []BlacklistEntry{
+	{regexp.MustCompile(`(?i)unins.*\.exe$`), Penalty{PenaltyScore, 50}},
+	{regexp.MustCompile(`(?i)kick\.bin$`), Penalty{PenaltyScore, 50}},
+	{regexp.MustCompile(`(?i)\.vshost\.exe$`), Penalty{PenaltyScore, 50}},
+	{regexp.MustCompile(`(?i)nacl_helper`), Penalty{PenaltyScore, 20}},
+	{regexp.MustCompile(`(?i)nwjc\.exe$`), Penalty{PenaltyScore, 20}},
+	{regexp.MustCompile(`(?i)flixel\.exe$`), Penalty{PenaltyScore, 20}},
+	{regexp.MustCompile(`(?i)\.(so|dylib)$`), Penalty{PenaltyExclude, 0}},
+	{regexp.MustCompile(`(?i)dxwebsetup\.exe$`), Penalty{PenaltyExclude, 0}},
+	{regexp.MustCompile(`(?i)vcredist.*\.exe$`), Penalty{PenaltyExclude, 0}},
+}
+
+type ScoredCandidate struct {
+	candidate *Candidate
+	score     int64
+}
+
 func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
 	compatibleCandidates := make([]*Candidate, 0)
 
@@ -760,8 +811,39 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
 		}
 	}
 
-	// finally, sort by biggest first
+	// sort by biggest first
 	sort.Stable(&BiggestFirst{bestCandidates})
 
-	v.Candidates = bestCandidates
+	// score, filter & sort
+	computeScore := func(candidate *Candidate) ScoredCandidate {
+		var score int64 = 100
+		for _, entry := range blacklist {
+			if entry.pattern.MatchString(candidate.Path) {
+				switch entry.penalty.kind {
+				case PenaltyScore:
+					score -= entry.penalty.delta
+				case PenaltyExclude:
+					score = 0
+				}
+			}
+		}
+
+		return ScoredCandidate{candidate, score}
+	}
+
+	var scoredCandidates []ScoredCandidate
+	for _, candidate := range bestCandidates {
+		scored := computeScore(candidate)
+		if scored.score > 0 {
+			scoredCandidates = append(scoredCandidates, scored)
+		}
+	}
+	sort.Stable(&HighestScoreFirst{scoredCandidates})
+
+	var finalCandidates []*Candidate
+	for _, scored := range scoredCandidates {
+		finalCandidates = append(finalCandidates, scored.candidate)
+	}
+
+	v.Candidates = finalCandidates
 }

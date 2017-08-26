@@ -223,7 +223,7 @@ func Test_ConfigureHtmlNested(t *testing.T) {
 	assert.EqualValues(t, "ThisContainsStuff/index.html", vcopy.Candidates[0].Path, "lowest won")
 }
 
-func Test_ConfigureBiggestIsBetter(t *testing.T) {
+func Test_ConfigureBiggerIsBetter(t *testing.T) {
 	root := filepath.Join("testdata", "bigger-is-better")
 
 	v, err := configurator.Configure(root, true)
@@ -235,4 +235,18 @@ func Test_ConfigureBiggestIsBetter(t *testing.T) {
 
 	assert.EqualValues(t, 3, len(vcopy.Candidates), "three candidates left after filtering")
 	assert.EqualValues(t, "tiled.exe", vcopy.Candidates[0].Path, "biggest wins")
+}
+
+func Test_ConfigureBlacklist(t *testing.T) {
+	root := filepath.Join("testdata", "linux-nodewebkit")
+
+	v, err := configurator.Configure(root, true)
+	assert.NoError(t, err, "walks without problems")
+	assert.EqualValues(t, 4, len(v.Candidates), "finds all candidates on first walk")
+
+	vcopy := *v
+	(&vcopy).FilterPlatform("linux", "amd64")
+
+	assert.EqualValues(t, 3, len(vcopy.Candidates), "three candidates left after filtering")
+	assert.EqualValues(t, "nw", vcopy.Candidates[0].Path, "non-nacl helper wins")
 }
