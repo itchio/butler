@@ -125,7 +125,7 @@ func Test_ConfigureLinux(t *testing.T) {
 
 	v, err := configurator.Configure(root, true)
 	assert.NoError(t, err, "walks without problems")
-	assert.EqualValues(t, 5, len(v.Candidates), "finds all candidates on first walk")
+	assert.EqualValues(t, 8, len(v.Candidates), "finds all candidates on first walk")
 
 	fixed, err := v.FixPermissions(true)
 	assert.NoError(t, err, "fixes permissions without problems")
