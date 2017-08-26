@@ -65,6 +65,7 @@ type HTTPFile struct {
 
 	currentURL string
 	urlMutex   sync.Mutex
+	header     http.Header
 }
 
 type httpReader struct {
@@ -199,22 +200,31 @@ func (hr *httpReader) Connect() error {
 				}
 
 				hf.log("Connect: got renew: %s", err.Error())
-				renewRetryCtx := hf.newRetryContext()
 
-				for renewRetryCtx.ShouldTry() {
-					urlStr, err = hf.renewURL()
-					if err != nil {
-						if hf.shouldRetry(err) {
-							hf.log("Connect.renew: got retriable error: %s", err.Error())
-							renewRetryCtx.Retry(err.Error())
-							continue
-						} else {
-							hf.log("Connect.renew: got non-retriable error: %s", err.Error())
-							return err
+				err = func() error {
+					renewRetryCtx := hf.newRetryContext()
+
+					for renewRetryCtx.ShouldTry() {
+						urlStr, err = hf.renewURL()
+						if err != nil {
+							if hf.shouldRetry(err) {
+								hf.log("Connect.renew: got retriable error: %s", err.Error())
+								renewRetryCtx.Retry(err.Error())
+								continue
+							} else {
+								hf.log("Connect.renew: got non-retriable error: %s", err.Error())
+								return err
+							}
 						}
+
+						return nil
 					}
-					break
+					return errors.New("Connect.renew: too many errors, giving up")
+				}()
+				if err != nil {
+					return err
 				}
+
 				continue
 			} else if hf.shouldRetry(err) {
 				hf.log("Connect: got retriable error: %s", err.Error())
@@ -225,11 +235,12 @@ func (hr *httpReader) Connect() error {
 				return err
 			}
 		}
-		break
+
+		hf.log("Connect: connected!")
+		return nil
 	}
 
-	hf.log("Connect: connected!")
-	return nil
+	return errors.New("HTTPFile.Connect: too many errors, giving up")
 }
 
 func (hr *httpReader) Close() error {
@@ -318,6 +329,8 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 				return nil, err
 			}
 		}
+
+		hf.header = res.Header
 
 		err = res.Body.Close()
 		if err != nil {
@@ -660,4 +673,11 @@ func (hf *HTTPFile) log2(format string, args ...interface{}) {
 	}
 
 	hf.Log(fmt.Sprintf(format, args...))
+}
+
+// GetHeader returns the header the server responded
+// with on our initial request. It may contain checksums
+// which could be used for integrity checking.
+func (hf *HTTPFile) GetHeader() http.Header {
+	return hf.header
 }

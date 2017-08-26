@@ -17,25 +17,64 @@ import (
 	"github.com/itchio/wharf/crc32c"
 )
 
-func checkIntegrity(resp *http.Response, totalBytes int64, file string) (bool, error) {
+type BadSizeErr struct {
+	Expected int64
+	Actual   int64
+}
+
+func (bse *BadSizeErr) Error() string {
+	return fmt.Sprintf("size on disk didn't match expected size: wanted %d, got %d", bse.Expected, bse.Actual)
+}
+
+type BadHashErr struct {
+	Algo     string
+	Expected []byte
+	Actual   []byte
+}
+
+func (bhe *BadHashErr) Error() string {
+	return fmt.Sprintf("%s hash mismatch: wanted %x, got %x", bhe.Algo, bhe.Expected, bhe.Actual)
+}
+
+func IsIntegrityError(err error) bool {
+	if _, ok := err.(*BadSizeErr); ok {
+		return true
+	}
+	if _, ok := err.(*BadHashErr); ok {
+		return true
+	}
+
+	if original, ok := err.(*errors.Error); ok {
+		return IsIntegrityError(original.Err)
+	}
+
+	return false
+}
+
+func checkIntegrity(header http.Header, contentLength int64, file string) error {
 	diskSize := int64(0)
 	stats, err := os.Lstat(file)
 	if err == nil {
 		diskSize = stats.Size()
 	}
 
-	if resp.ContentLength > 0 {
-		if totalBytes != diskSize {
-			return false, fmt.Errorf("Corrupt download: expected %d bytes, got %d", totalBytes, diskSize)
+	// some servers will return a negative content-length, or 0
+	// they both mostly mean they didn't know the length of the response
+	// at the time the request was made (streaming proxies, for example)
+	if contentLength > 0 {
+		if diskSize != contentLength {
+			return &BadSizeErr{
+				Expected: contentLength,
+				Actual:   diskSize,
+			}
 		}
-
-		comm.Debugf("%10s pass (%d bytes)", "size", totalBytes)
+		comm.Debugf("%10s pass (%d bytes)", "size", diskSize)
 	}
 
-	return checkHashes(resp.Header, file)
+	return checkHashes(header, file)
 }
 
-func checkHashes(header http.Header, file string) (bool, error) {
+func checkHashes(header http.Header, file string) error {
 	googHashes := header[http.CanonicalHeaderKey("x-goog-hash")]
 
 	for _, googHash := range googHashes {
@@ -50,7 +89,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		start := time.Now()
 		checked, err := checkHash(hashType, hashValue, file)
 		if err != nil {
-			return false, errors.Wrap(err, 1)
+			return errors.Wrap(err, 1)
 		}
 
 		if checked {
@@ -60,7 +99,7 @@ func checkHashes(header http.Header, file string) (bool, error) {
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 func checkHash(hashType string, hashValue []byte, file string) (checked bool, err error) {
@@ -97,10 +136,14 @@ func checkHashMD5(hashValue []byte, file string) error {
 
 	hashComputed := hasher.Sum(nil)
 	if !bytes.Equal(hashValue, hashComputed) {
-		err = fmt.Errorf("md5 hash mismatch: got %x, expected %x", hashComputed, hashValue)
+		return &BadHashErr{
+			Algo:     "md5",
+			Actual:   hashComputed,
+			Expected: hashValue,
+		}
 	}
 
-	return err
+	return nil
 }
 
 func checkHashCRC32C(hashValue []byte, file string) error {
@@ -115,8 +158,12 @@ func checkHashCRC32C(hashValue []byte, file string) error {
 
 	hashComputed := hasher.Sum(nil)
 	if !bytes.Equal(hashValue, hashComputed) {
-		err = fmt.Errorf("crc32c hash mismatch: got %x, expected %x", hashComputed, hashValue)
+		return &BadHashErr{
+			Algo:     "crc32c",
+			Actual:   hashComputed,
+			Expected: hashValue,
+		}
 	}
 
-	return err
+	return nil
 }

@@ -22,17 +22,41 @@ type Settings struct {
 
 func New(settings Settings) *Context {
 	return &Context{
-		Tries:    1,
+		Tries:    0,
 		Settings: settings,
 	}
 }
 
 func NewDefault() *Context {
 	return New(Settings{
-		MaxTries: 15,
+		MaxTries: 10,
 	})
 }
 
+/**
+ ShouldTry must be used in a loop, like so:
+
+ ----------------------------------------
+ for rc.ShouldRetry() {
+	 err := someOperation()
+	 if err != nil {
+		 if isRetriable(err) {
+			 rc.Retry(err.Error())
+			 continue
+		 }
+	 }
+
+	 // succeeded!
+	 return nil // escape from loop
+ }
+
+ // THIS IS IMPORTANT
+ return errors.New("task: too many failures, giving up")
+ ----------------------------------------
+
+ If you forget to return an error after the loop,
+ if there are too many errors you'll just keep running
+*/
 func (rc *Context) ShouldTry() bool {
 	return rc.Tries < rc.Settings.MaxTries
 }

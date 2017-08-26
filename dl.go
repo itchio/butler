@@ -104,7 +104,7 @@ func tryDl(url string, dest string) (int64, error) {
 		comm.Log("Already fully downloaded")
 	}
 
-	_, err = checkIntegrity(resp, totalBytes, dest)
+	err = checkIntegrity(resp.Header, totalBytes, dest)
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)
