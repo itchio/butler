@@ -8,5 +8,5 @@ export PKG=github.com/itchio/butler
 
 mkdir -p src/$PKG
 rsync -a --exclude 'src' . src/$PKG || echo "rsync complained (code $?)"
-go get -v -d -t $PKG
+go get -v -d -t $PKG/...
 go test -v $PKG/...
