@@ -73,12 +73,25 @@ func tryDl(url string, dest string) (int64, error) {
 		// already has everything
 		doDownload = false
 
-		req, _ := http.NewRequest("HEAD", url, nil)
+		// the request we just made failed, so let's make another one
+		// and close it immediately. this will get us the right content
+		// length and any checksums the server might have to offer
+		// Note: we'd use HEAD here but a bunch of servers don't
+		// reply with a proper content-length.
+
+		// closing the old one first...
+		resp.Body.Close()
+
+		req, _ = http.NewRequest("GET", url, nil)
 		req.Header.Set("User-Agent", userAgent())
+
 		resp, err = client.Do(req)
 		if err != nil {
 			return 0, errors.Wrap(err, 1)
 		}
+		// immediately close new request, we're only interested
+		// in headers.
+		resp.Body.Close()
 
 		if existingBytes > resp.ContentLength {
 			comm.Debugf("Existing file too big (%d), truncating to %d", existingBytes, resp.ContentLength)
