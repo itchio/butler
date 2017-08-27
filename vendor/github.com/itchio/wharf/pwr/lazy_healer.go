@@ -23,9 +23,20 @@ type MakeHealer func() (Healer, error)
 func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 	var innerWounds chan *Wound
 	var innerResult chan error
+	var skippedWounds []*Wound
 
 	for wound := range wounds {
 		if lh.inner == nil {
+			if wound.Kind == WoundKind_CLOSED_FILE {
+				// don't summon the inner healer if we're just
+				// keeping track of which file we're at. it's just
+				// a progress thing, no action is required.
+				// it would be important if we already had an inner
+				// healer, in which case we'd still want to relay it
+				skippedWounds = append(skippedWounds, wound)
+				continue
+			}
+
 			var err error
 			lh.inner, err = lh.makeHealer()
 			if err != nil {
@@ -38,6 +49,11 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 
 			innerWounds = make(chan *Wound)
 			innerResult = make(chan error)
+
+			for _, skippedWound := range skippedWounds {
+				innerWounds <- skippedWound
+			}
+			skippedWounds = nil
 
 			go func() {
 				innerResult <- lh.inner.Do(container, innerWounds)
