@@ -34,7 +34,12 @@ func ExtractTar(archive string, dir string, settings ExtractSettings) (*ExtractR
 		return nil, errors.Wrap(err, 1)
 	}
 
-	tarReader := tar.NewReader(file)
+	stats, err := file.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, 1)
+	}
+	countingReader := counter.NewReaderCallback(settings.Consumer.CountCallback(stats.Size()), file)
+	tarReader := tar.NewReader(countingReader)
 
 	for {
 		header, err := tarReader.Next()
