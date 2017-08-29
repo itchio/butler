@@ -2,6 +2,22 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/alecthomas/template",
+			"repository": "https://github.com/alecthomas/template",
+			"vcs": "git",
+			"revision": "a0175ee3bccc567396460bf5acd36800cb10c49c",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/alecthomas/units",
+			"repository": "https://github.com/alecthomas/units",
+			"vcs": "git",
+			"revision": "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/dsnet/compress/brotli",
 			"repository": "https://github.com/dsnet/compress",
 			"vcs": "git",
@@ -160,7 +176,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "4c35cba6cbcc04d36863ea24c12ed71119439f06",
+			"revision": "ab287f9504a9d430ea8abad00fdd8a63e8b53cf6",
 			"branch": "master",
 			"notests": true
 		},
@@ -327,6 +343,14 @@
 			"revision": "cfdf022e86b4ecfb646e1efbd7db175dd623a8fa",
 			"branch": "master",
 			"path": "width",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/alecthomas/kingpin.v2",
+			"repository": "https://gopkg.in/alecthomas/kingpin.v2",
+			"vcs": "git",
+			"revision": "1087e65c9441605df944fb12c33f0fe7072d18ca",
+			"branch": "master",
 			"notests": true
 		},
 		{

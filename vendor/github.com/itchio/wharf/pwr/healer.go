@@ -36,9 +36,13 @@ type Healer interface {
 	TotalHealed() int64
 }
 
+func NewHealer(spec string, target string) (Healer, error) {
+	return NewHealerEx(spec, target, true)
+}
+
 // NewHealer takes a spec of the form "type,url", and a target folder
 // and returns a healer that knows how to repair target from spec.
-func NewHealer(spec string, target string) (Healer, error) {
+func NewHealerEx(spec string, target string, lazy bool) (Healer, error) {
 	makeHealer := func() (Healer, error) {
 		tokens := strings.SplitN(spec, ",", 2)
 		if len(tokens) != 2 {
@@ -67,7 +71,10 @@ func NewHealer(spec string, target string) (Healer, error) {
 		return nil, fmt.Errorf("Unknown healer type %s", healerType)
 	}
 
-	return &LazyHealer{
-		makeHealer: makeHealer,
-	}, nil
+	if lazy {
+		return &LazyHealer{
+			makeHealer: makeHealer,
+		}, nil
+	}
+	return makeHealer()
 }

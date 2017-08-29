@@ -50,14 +50,14 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 			innerWounds = make(chan *Wound)
 			innerResult = make(chan error)
 
+			go func() {
+				innerResult <- lh.inner.Do(container, innerWounds)
+			}()
+
 			for _, skippedWound := range skippedWounds {
 				innerWounds <- skippedWound
 			}
 			skippedWounds = nil
-
-			go func() {
-				innerResult <- lh.inner.Do(container, innerWounds)
-			}()
 		}
 
 		innerWounds <- wound
