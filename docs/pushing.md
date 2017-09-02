@@ -43,7 +43,7 @@ Pushing to a new channel will make a corresponding file appear on your game's pa
 Pushing to the same channel again will update that file, once the build is processed.
 
 *Limits: currently, the itch.io backend will reject builds with a total uncompressed
-size that exceeds 4GB.*
+size that exceeds 30GB.*
 
 ## Channel names
 
