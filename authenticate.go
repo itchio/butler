@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -262,29 +263,55 @@ func authenticateViaOauth() (*itchio.Client, error) {
 
 		http.HandleFunc("/", handler)
 
-		var listener net.Listener
-		listener, err = net.Listen("tcp", "localhost:0")
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
-		}
+		// if we're running `butler login` remotely, we're asking the user to copy-paste
+		var addr = "127.0.0.1:226"
+		var doManualOauth = os.Getenv("BUTLER_MANUAL_OAUTH") == "1"
 
-		go func() {
-			err = http.Serve(listener, nil)
+		if !doManualOauth {
+			var listener net.Listener
+			listener, err = net.Listen("tcp", "127.0.0.1:0")
 			if err != nil {
-				errs <- errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 1)
 			}
-		}()
+
+			addr = listener.Addr().String()
+
+			go func() {
+				err = http.Serve(listener, nil)
+				if err != nil {
+					errs <- errors.Wrap(err, 1)
+				}
+			}()
+		}
 
 		form := url.Values{}
 		form.Add("client_id", "butler")
 		form.Add("scope", "wharf")
 		form.Add("response_type", "token")
-		form.Add("redirect_uri", fmt.Sprintf("http://%s/oauth/callback", listener.Addr().String()))
+		form.Add("redirect_uri", fmt.Sprintf("http://%s/oauth/callback", addr))
 		query := form.Encode()
 
 		uri := fmt.Sprintf("%s/user/oauth?%s", *appArgs.address, query)
 
 		comm.Login(uri)
+
+		go func() {
+			s := bufio.NewScanner(os.Stdin)
+			for s.Scan() {
+				line := strings.TrimSpace(s.Text())
+				u, err := url.Parse(line)
+				if err != nil {
+					// not a valid url
+					continue
+				}
+
+				if u.Fragment != "" {
+					// user pasted the url!
+					done <- u.Fragment
+					return
+				}
+			}
+		}()
 
 		select {
 		case err = <-errs:

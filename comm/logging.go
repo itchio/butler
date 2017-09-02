@@ -249,11 +249,13 @@ func showLogin(uri string) {
 	log.Println("If it hasn't already, open the following link in your browser to authenticate:")
 
 	log.Println(uri)
-	log.Println("\nI'll wait...")
 
 	if runtime.GOOS == "windows" {
 		log.Println("\n(To copy text in cmd.exe: Alt+Space, Edit->Mark, select text, press Enter)")
 	}
+
+	log.Println("\nIf you're running this on a remote server, the redirect will fail to load.")
+	log.Println("In that case, copy the address you're redirected to, paste it below, and press enter.")
 }
 
 // sends a JSON-encoded message to the client
