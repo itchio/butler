@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -266,6 +267,47 @@ func testPrereqs(prereqs []string) {
 	must(doTestPrereqs(prereqs))
 }
 
+type entriesByArch struct {
+	entries []*NamedRedistEntry
+}
+
+var _ sort.Interface = (*entriesByArch)(nil)
+
+func (ss *entriesByArch) Len() int {
+	return len(ss.entries)
+}
+
+func (ss *entriesByArch) Less(i, j int) bool {
+	return strings.Compare(ss.entries[i].entry.Arch, ss.entries[j].entry.Arch) == -1
+}
+
+func (ss *entriesByArch) Swap(i, j int) {
+	ss.entries[i], ss.entries[j] = ss.entries[j], ss.entries[i]
+}
+
+type entriesByName struct {
+	entries []*NamedRedistEntry
+}
+
+var _ sort.Interface = (*entriesByName)(nil)
+
+func (ss *entriesByName) Len() int {
+	return len(ss.entries)
+}
+
+func (ss *entriesByName) Less(i, j int) bool {
+	return strings.Compare(ss.entries[i].name, ss.entries[j].name) == -1
+}
+
+func (ss *entriesByName) Swap(i, j int) {
+	ss.entries[i], ss.entries[j] = ss.entries[j], ss.entries[i]
+}
+
+type NamedRedistEntry struct {
+	name  string
+	entry *redist.RedistEntry
+}
+
 func doTestPrereqs(prereqs []string) error {
 	comm.Opf("Fetching registry...")
 
@@ -297,8 +339,16 @@ func doTestPrereqs(prereqs []string) error {
 		table.SetAutoFormatHeaders(false)
 		table.SetColWidth(60)
 		table.SetHeader([]string{"Name", "Arch", "Description", "Version"})
-		for name, info := range registry.Entries {
-			table.Append([]string{name, info.Arch, info.FullName, info.Version})
+
+		var entries []*NamedRedistEntry
+		for name, v := range registry.Entries {
+			entries = append(entries, &NamedRedistEntry{name, v})
+		}
+		sort.Stable(&entriesByArch{entries})
+		sort.Stable(&entriesByName{entries})
+		for _, e := range entries {
+			info := e.entry
+			table.Append([]string{e.name, info.Arch, info.FullName, info.Version})
 		}
 		table.Render()
 		return nil

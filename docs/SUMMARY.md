@@ -15,6 +15,7 @@
   * [itchy-electron](integration.md#itchy-electron)
   * [gradle-butler-plugin](integration.md#gradle-butler-plugin)
   * [Other resources](integration.md#other-resources)
+* [Prerequisites](prerequisites.md)
 * [Offline usage (diffing/patching)](offline.md)
 * [Utility commands](utilities.md)
 * [Single files](single-files.md)
