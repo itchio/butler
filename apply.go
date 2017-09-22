@@ -12,11 +12,11 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string) {
-	must(doApply(patch, target, output, inplace, signaturePath, woundsPath, healSpec))
+func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string, stagePath string) {
+	must(doApply(patch, target, output, inplace, signaturePath, woundsPath, healSpec, stagePath))
 }
 
-func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string) error {
+func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string, stagePath string) error {
 	if output == "" {
 		output = target
 	}
@@ -62,6 +62,7 @@ func doApply(patch string, target string, output string, inplace bool, signature
 		InPlace:    inplace,
 		Signature:  signature,
 		WoundsPath: woundsPath,
+		StagePath:  stagePath,
 		HealPath:   healSpec,
 
 		Consumer: comm.NewStateConsumer(),
