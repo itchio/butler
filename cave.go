@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -139,7 +140,22 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 			comm.Logf("- %#v", upload)
 		}
 
-		return errors.New("Missing upload in install")
+		uploadsFilterResult := manager.NarrowDownUploads(installParams.Game, uploads.Uploads, manager.CurrentRuntime())
+		comm.Logf("After filter, got %d uploads, they are: ", len(uploadsFilterResult.Uploads))
+		for _, upload := range uploadsFilterResult.Uploads {
+			comm.Logf("- %#v", upload)
+		}
+
+		if len(uploadsFilterResult.Uploads) == 0 {
+			return errors.New("No compatible uploads")
+		}
+
+		if len(uploadsFilterResult.Uploads) > 1 {
+			// TODO: ask user
+			comm.Logf("More than one upload, should ask user")
+			comm.Logf("Will just pick the first one for now")
+		}
+		installParams.Upload = uploadsFilterResult.Uploads[0]
 	}
 
 	var archiveUrlPath string
