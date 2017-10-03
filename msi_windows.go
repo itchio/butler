@@ -192,8 +192,6 @@ func doMsiInstall(msiPath string, logPathIn string, target string) error {
 		}
 		return nil
 	})
-
-	return nil
 }
 
 func msiUninstall(productCode string) {
