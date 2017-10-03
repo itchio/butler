@@ -102,3 +102,9 @@ type ListBuildEventsResponse struct {
 
 	Events []*BuildEvent `json:"events"`
 }
+
+type ListGameUploadsResponse struct {
+	Response
+
+	Uploads []*Upload `json:"uploads"`
+}

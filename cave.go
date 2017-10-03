@@ -90,7 +90,7 @@ type CaveInstallParams struct {
 type CaveCredentials struct {
 	Server      string `json:"server"`
 	APIKey      string `json:"apiKey"`
-	DownloadKey string `json:"downloadKey"`
+	DownloadKey int64  `json:"downloadKey"`
 }
 
 func doCaveInstall(installParams *CaveInstallParams) error {
@@ -102,24 +102,12 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 		return errors.New("Missing game in install")
 	}
 
-	if installParams.Upload == nil {
-		return errors.New("Missing upload in install")
-	}
-
 	if installParams.InstallFolder == "" {
 		return errors.New("Missing install folder in install")
 	}
 
 	if installParams.StageFolder == "" {
 		return errors.New("Missing stage folder in install")
-	}
-
-	if installParams.Credentials == nil {
-		return errors.New("Missing credentials in install")
-	}
-
-	if installParams.Credentials.APIKey == "" {
-		return errors.New("Missing API key in credentials in install")
 	}
 
 	comm.Opf("Installing game %s", installParams.Game.Title)
@@ -131,6 +119,29 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 		return errors.Wrap(err, 0)
 	}
 
+	client, err := clientFromCredentials(installParams.Credentials)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	if installParams.Upload == nil {
+		comm.Logf("No upload specified, looking for compatible ones...")
+		uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+			GameID:        installParams.Game.ID,
+			DownloadKeyID: installParams.Credentials.DownloadKey,
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		comm.Logf("Got %d uploads, here they are:", len(uploads.Uploads))
+		for _, upload := range uploads.Uploads {
+			comm.Logf("- %#v", upload)
+		}
+
+		return errors.New("Missing upload in install")
+	}
+
 	var archiveUrlPath string
 	if installParams.Build == nil {
 		archiveUrlPath = fmt.Sprintf("/upload/%d/download", installParams.Upload.ID)
@@ -139,8 +150,8 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 	}
 	values := make(url.Values)
 	values.Set("api_key", installParams.Credentials.APIKey)
-	if installParams.Credentials.DownloadKey != "" {
-		values.Set("download_key", installParams.Credentials.DownloadKey)
+	if installParams.Credentials.DownloadKey != 0 {
+		values.Set("download_key", fmt.Sprintf("%d", installParams.Credentials.DownloadKey))
 	}
 	var archiveUrl = fmt.Sprintf("itchfs://%s?%s", archiveUrlPath, values.Encode())
 
@@ -158,4 +169,22 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 	}
 
 	return errors.New("stub")
+}
+
+func clientFromCredentials(credentials *CaveCredentials) (*itchio.Client, error) {
+	if credentials == nil {
+		return nil, errors.New("Missing credentials")
+	}
+
+	if credentials.APIKey == "" {
+		return nil, errors.New("Missing API key in credentials")
+	}
+
+	client := itchio.ClientWithKey(credentials.APIKey)
+
+	if credentials.Server != "" {
+		client.SetServer(credentials.Server)
+	}
+
+	return client, nil
 }

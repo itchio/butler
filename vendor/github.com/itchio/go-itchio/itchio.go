@@ -555,3 +555,38 @@ func (c *Client) ListBuildEvents(buildID int64) (r ListBuildEventsResponse, err 
 	err = ParseAPIResponse(&r, resp)
 	return
 }
+
+type ListGameUploadsParams struct {
+	GameID        int64
+	DownloadKeyID int64
+	ExtraQuery    url.Values
+}
+
+// ListGameUploads
+func (c *Client) ListGameUploads(params *ListGameUploadsParams) (ListGameUploadsResponse, error) {
+	var r ListGameUploadsResponse
+
+	if params.GameID == 0 {
+		return r, errors.New("Missing GameID")
+	}
+
+	path := c.MakePath("/game/%d/uploads", params.GameID)
+	if params.DownloadKeyID != 0 {
+		path = c.MakePath("/download-key/%d/uploads", params.DownloadKeyID)
+	}
+
+	if params.ExtraQuery != nil {
+		path = fmt.Sprintf("%s?%s", path, params.ExtraQuery.Encode())
+	}
+
+	resp, err := c.Get(path)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+	return r, nil
+}
