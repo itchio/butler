@@ -16,7 +16,6 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/wsync"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,16 +44,6 @@ func putfile(t *testing.T, basePath string, i int, data []byte) {
 func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMode) {
 	samplePath := path.Join(basePath, fmt.Sprintf("dummy%d.dat", i))
 	mist(t, ioutil.WriteFile(samplePath, data, perm))
-}
-
-func shortSizeCount(hashes []wsync.BlockHash) string {
-	count := 0
-	for _, hash := range hashes {
-		if hash.ShortSize != 0 {
-			count++
-		}
-	}
-	return fmt.Sprintf("%d/%d", count, len(hashes))
 }
 
 func TestAllTheThings(t *testing.T) {

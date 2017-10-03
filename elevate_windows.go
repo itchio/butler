@@ -106,9 +106,6 @@ func makeCmdLine(args []string) string {
 	return s
 }
 
-// GetPipeFunc is a function type that gets an io.ReadCloser and can err
-type GetPipeFunc func() (io.ReadCloser, error)
-
 func pipe(command []string, stdin string, stdout string, stderr string) {
 	cmd := exec.Command(command[0], command[1:]...)
 

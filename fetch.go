@@ -17,9 +17,7 @@ func fetch(specStr string, outPath string) {
 }
 
 func doFetch(specStr string, outPath string) error {
-	var err error
-
-	err = os.MkdirAll(outPath, os.FileMode(0755))
+	err := os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -97,7 +95,7 @@ func doFetch(specStr string, outPath string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	_, err = tmpFile.Seek(0, os.SEEK_SET)
+	_, err = tmpFile.Seek(0, io.SeekStart)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

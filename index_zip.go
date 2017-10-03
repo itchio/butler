@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"time"
 
@@ -55,7 +56,7 @@ func doIndexZip(file string, output string) error {
 	duration := time.Since(startTime)
 	bytesPerSec := float64(ic.TotalCompressedSize) / duration.Seconds()
 
-	targetSize, err := w.Seek(0, os.SEEK_CUR)
+	targetSize, err := w.Seek(0, io.SeekStart)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

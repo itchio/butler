@@ -105,7 +105,7 @@ func ditto(src string, dst string) {
 		rel, err := filepath.Rel(src, path)
 		must(err)
 
-		comm.Result(&FileExtracted{
+		comm.Result(&FileMirrored{
 			Type: "entry",
 			Path: rel,
 		})

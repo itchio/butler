@@ -196,7 +196,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 				lastUploadedBytes = patchWriter.UploadedBytes
 				updateProgress()
 			case <-stopTicking:
-				break
+				return
 			}
 		}
 	}()

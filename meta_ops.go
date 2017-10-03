@@ -86,7 +86,7 @@ func file(inPath string) {
 
 	prettySize := humanize.IBytes(uint64(stats.Size()))
 
-	_, err = reader.Seek(0, os.SEEK_SET)
+	_, err = reader.Seek(0, io.SeekStart)
 	must(err)
 
 	var magic int32
@@ -196,7 +196,7 @@ func file(inPath string) {
 		}
 
 	default:
-		_, err := reader.Seek(0, os.SEEK_SET)
+		_, err := reader.Seek(0, io.SeekStart)
 		must(err)
 
 		func() {
@@ -372,7 +372,7 @@ func ls(inPath string) {
 		}
 
 	default:
-		_, err := reader.Seek(0, os.SEEK_SET)
+		_, err := reader.Seek(0, io.SeekStart)
 		must(err)
 
 		wasZip := func() bool {
@@ -569,11 +569,7 @@ func applyUpgrade(before string, after string) error {
 		defer fw.Close()
 
 		_, gErr = io.Copy(fw, gr)
-		if gErr != nil {
-			return gErr
-		}
-
-		return nil
+		return gErr
 	}()
 
 	if err != nil {

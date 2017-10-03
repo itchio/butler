@@ -32,7 +32,8 @@ func doElfProps(path string) error {
 		props.Arch = "amd64"
 	}
 
-	props.Libraries, err = f.ImportedLibraries()
+	// ignoring error on purpose
+	props.Libraries, _ = f.ImportedLibraries()
 
 	comm.Result(props)
 

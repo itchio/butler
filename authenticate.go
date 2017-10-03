@@ -108,12 +108,9 @@ func hasSavedCredentials() bool {
 	// then file at usual or specified path
 	var identity = *appArgs.identity
 	_, err := os.Lstat(identity)
-	if !os.IsNotExist(err) {
-		return true
-	}
 
-	// no key, we need login
-	return false
+	exists := !os.IsNotExist(err)
+	return exists
 }
 
 func doLogin() error {

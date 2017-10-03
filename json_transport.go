@@ -24,11 +24,6 @@ func NewJSONTransport() *JSONTransport {
 	}
 }
 
-func isJSON(b []byte) bool {
-	var js map[string]interface{}
-	return json.Unmarshal(b, &js) == nil
-}
-
 // Start fires up goroutines to handle reading JSON-lines messages
 func (jt *JSONTransport) Start() {
 	go func() {

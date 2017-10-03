@@ -54,7 +54,7 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 
 	err = func() error {
 		if resume {
-			startOffset, err = dest.Seek(0, os.SEEK_END)
+			startOffset, err = dest.Seek(0, io.SeekEnd)
 			if err != nil {
 				return err
 			}
@@ -63,7 +63,7 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 				comm.Logf("Downloading %s", humanize.IBytes(uint64(totalBytes)))
 			} else if startOffset > totalBytes {
 				comm.Logf("Existing data too big (%s > %s), starting over", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
-				startOffset, err = dest.Seek(0, os.SEEK_SET)
+				startOffset, err = dest.Seek(0, io.SeekStart)
 				if err != nil {
 					return err
 				}
@@ -74,7 +74,7 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 
 			comm.Logf("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
 
-			_, err = src.Seek(startOffset, os.SEEK_SET)
+			_, err = src.Seek(startOffset, io.SeekStart)
 			if err != nil {
 				return err
 			}
@@ -96,12 +96,7 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 		}
 		comm.EndProgress()
 
-		err = os.Truncate(destPath, totalBytes)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return os.Truncate(destPath, totalBytes)
 	}()
 
 	if err != nil {

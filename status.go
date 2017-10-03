@@ -109,13 +109,6 @@ func versionState(build *itchio.Build) string {
 	}
 }
 
-func buildParent(build *itchio.Build) string {
-	if build.ParentBuildID == -1 {
-		return ""
-	}
-	return fmt.Sprintf("#%d", build.ParentBuildID)
-}
-
 func filesState(files []*itchio.BuildFile, showAllFiles bool) string {
 	if len(files) == 0 {
 		return "(no files)"

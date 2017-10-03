@@ -14,8 +14,6 @@ import (
 	"github.com/itchio/wharf/counter"
 )
 
-const bufferSize = 128 * 1024
-
 func dl(url string, dest string) {
 	_, err := tryDl(url, dest)
 	if err != nil {
