@@ -75,7 +75,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 			return errors.Wrap(err, 1)
 		}
 
-		signatureFile := itchio.FindBuildFile(itchio.BuildFileType_SIGNATURE, buildFiles.Files)
+		signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
 		if signatureFile == nil {
 			comm.Dief("Could not find signature for parent build %d, aborting", parentID)
 		}
@@ -311,13 +311,13 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 
 type fileSlot struct {
 	Type     itchio.BuildFileType
-	Response itchio.NewBuildFileResponse
+	Response itchio.CreateBuildFileResponse
 }
 
-func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuildFileResponse, signature itchio.NewBuildFileResponse, err error) {
+func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.CreateBuildFileResponse, signature itchio.CreateBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
-		var res itchio.NewBuildFileResponse
-		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubType_DEFAULT, itchio.UploadType_DEFERRED_RESUMABLE)
+		var res itchio.CreateBuildFileResponse
+		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.UploadTypeDeferredResumable)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 		}
@@ -355,8 +355,8 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 	done := make(chan fileSlot)
 	errs := make(chan error)
 
-	go createFile(itchio.BuildFileType_PATCH, done, errs)
-	go createFile(itchio.BuildFileType_SIGNATURE, done, errs)
+	go createFile(itchio.BuildFileTypePatch, done, errs)
+	go createFile(itchio.BuildFileTypeSignature, done, errs)
 
 	for i := 0; i < 2; i++ {
 		select {
@@ -365,9 +365,9 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.NewBuil
 			return
 		case slot := <-done:
 			switch slot.Type {
-			case itchio.BuildFileType_PATCH:
+			case itchio.BuildFileTypePatch:
 				patch = slot.Response
-			case itchio.BuildFileType_SIGNATURE:
+			case itchio.BuildFileTypeSignature:
 				signature = slot.Response
 			}
 		}

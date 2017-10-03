@@ -60,11 +60,11 @@ func doFetch(specStr string, outPath string) error {
 	}
 
 	head := *channelResponse.Channel.Head
-	var headArchive *itchio.BuildFileInfo
+	var headArchive *itchio.BuildFile
 
 	for _, file := range head.Files {
 		comm.Debugf("found file %v", file)
-		if file.Type == itchio.BuildFileType_ARCHIVE && file.SubType == itchio.BuildFileSubType_DEFAULT && file.State == itchio.BuildFileState_UPLOADED {
+		if file.Type == itchio.BuildFileTypeArchive && file.SubType == itchio.BuildFileSubTypeDefault && file.State == itchio.BuildFileStateUploaded {
 			headArchive = file
 			break
 		}

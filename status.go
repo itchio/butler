@@ -76,14 +76,14 @@ func doStatus(specStr string, showAllFiles bool) error {
 	return nil
 }
 
-func buildState(build *itchio.BuildInfo) string {
+func buildState(build *itchio.Build) string {
 	theme := comm.GetTheme()
 	var s string
 
 	switch build.State {
-	case itchio.BuildState_COMPLETED:
+	case itchio.BuildStateCompleted:
 		s = fmt.Sprintf("%s #%d", theme.StatSign, build.ID)
-	case itchio.BuildState_PROCESSING:
+	case itchio.BuildStateProcessing:
 		s = fmt.Sprintf("%s #%d", theme.OpSign, build.ID)
 	default:
 		s = fmt.Sprintf("  #%d (%s)", build.ID, build.State)
@@ -96,9 +96,9 @@ func buildState(build *itchio.BuildInfo) string {
 	return s
 }
 
-func versionState(build *itchio.BuildInfo) string {
+func versionState(build *itchio.Build) string {
 	switch build.State {
-	case itchio.BuildState_COMPLETED:
+	case itchio.BuildStateCompleted:
 		if build.UserVersion != "" {
 			return build.UserVersion
 		}
@@ -109,21 +109,21 @@ func versionState(build *itchio.BuildInfo) string {
 	}
 }
 
-func buildParent(build *itchio.BuildInfo) string {
+func buildParent(build *itchio.Build) string {
 	if build.ParentBuildID == -1 {
 		return ""
 	}
 	return fmt.Sprintf("#%d", build.ParentBuildID)
 }
 
-func filesState(files []*itchio.BuildFileInfo, showAllFiles bool) string {
+func filesState(files []*itchio.BuildFile, showAllFiles bool) string {
 	if len(files) == 0 {
 		return "(no files)"
 	}
 
 	s := ""
 	for _, file := range files {
-		if !(showAllFiles || file.Type == itchio.BuildFileType_ARCHIVE) {
+		if !(showAllFiles || file.Type == itchio.BuildFileTypeArchive) {
 			continue
 		}
 
@@ -136,16 +136,16 @@ func filesState(files []*itchio.BuildFileInfo, showAllFiles bool) string {
 	return s
 }
 
-func fileState(file *itchio.BuildFileInfo) string {
+func fileState(file *itchio.BuildFile) string {
 	theme := comm.GetTheme()
 
 	fType := string(file.Type)
-	if file.SubType != itchio.BuildFileSubType_DEFAULT {
+	if file.SubType != itchio.BuildFileSubTypeDefault {
 		fType += fmt.Sprintf(" (%s)", file.SubType)
 	}
 
 	sign := theme.StatSign
-	if file.State != itchio.BuildFileState_UPLOADED {
+	if file.State != itchio.BuildFileStateUploaded {
 		sign = theme.OpSign
 	}
 

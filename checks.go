@@ -17,6 +17,7 @@ import (
 	"github.com/itchio/wharf/crc32c"
 )
 
+// BadSizeErr is returned when the size of a file on disk doesn't match what we expected it to be
 type BadSizeErr struct {
 	Expected int64
 	Actual   int64
@@ -26,6 +27,7 @@ func (bse *BadSizeErr) Error() string {
 	return fmt.Sprintf("size on disk didn't match expected size: wanted %d, got %d", bse.Expected, bse.Actual)
 }
 
+// BadHashErr is returned when the hash of a file on disk doesn't match what we expected it to be
 type BadHashErr struct {
 	Algo     string
 	Expected []byte
@@ -36,6 +38,8 @@ func (bhe *BadHashErr) Error() string {
 	return fmt.Sprintf("%s hash mismatch: wanted %x, got %x", bhe.Algo, bhe.Expected, bhe.Actual)
 }
 
+// IsIntegrityError returns true if the error is a size or a hash mismatch.
+// Simple reference equality cannot be used because the error might be wrapped (for stack traces)
 func IsIntegrityError(err error) bool {
 	if _, ok := err.(*BadSizeErr); ok {
 		return true

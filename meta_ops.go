@@ -229,6 +229,7 @@ func file(inPath string) {
 	}
 }
 
+// WalkResult is sent for each item that's walked
 type WalkResult struct {
 	Type string `json:"type"`
 	Path string `json:"path,omitempty"`

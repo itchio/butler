@@ -303,6 +303,7 @@ func (ss *entriesByName) Swap(i, j int) {
 	ss.entries[i], ss.entries[j] = ss.entries[j], ss.entries[i]
 }
 
+// NamedRedistEntry is used for sorting redists by names
 type NamedRedistEntry struct {
 	name  string
 	entry *redist.RedistEntry

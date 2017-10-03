@@ -1,11 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -27,49 +28,65 @@ func doCave() error {
 		return errors.Wrap(err, 0)
 	}
 
-	switch command.Type {
-	case CaveCommandType_Install:
+	switch command.Operation {
+	case CaveCommandOperationInstall:
 		return doCaveInstall(command.InstallParams)
 	default:
-		return fmt.Errorf("Unknown command type %s", command.Type)
+		return fmt.Errorf("Unknown cave command operation '%s'", command.Operation)
 	}
 }
 
 func readCaveCommand() (*CaveCommand, error) {
 	comm.Opf("Reading command from stdin...")
-	l, err := tr.Read()
+	l, err := tr.Read("cave-command")
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
 	cmd := CaveCommand{}
-	err = json.Unmarshal([]byte(l), &cmd)
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "json",
+		Result:  &cmd,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = decoder.Decode(l)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 	return &cmd, nil
 }
 
-type CaveCommandType string
+// CaveCommandOperation describes the operation butler should do
+// for a specific cave: install it, launch it, etc.
+type CaveCommandOperation string
 
 const (
-	CaveCommandType_Install CaveCommandType = "install"
+	// CaveCommandOperationInstall describes a download+install operation
+	CaveCommandOperationInstall CaveCommandOperation = "install"
 )
 
+// CaveCommand describes a cave-related command butler should perform
 type CaveCommand struct {
-	Type          CaveCommandType    `json:"type"`
-	InstallParams *CaveInstallParams `json:"installParams"`
+	Operation     CaveCommandOperation `json:"operation"`
+	InstallParams *CaveInstallParams   `json:"installParams"`
 }
 
+// CaveInstallParams contains all the parameters needed to perform
+// an installation for a game
 type CaveInstallParams struct {
-	Game          *itchio.Game      `json:"game"`
-	StageFolder   string            `json:"stageFolder"`
-	InstallFolder string            `json:"installFolder"`
-	Upload        *itchio.Upload    `json:"upload"`
-	Build         *itchio.BuildInfo `json:"build"`
-	Credentials   *CaveCredentials  `json:"credentials"`
+	Game          *itchio.Game     `json:"game"`
+	StageFolder   string           `json:"stageFolder"`
+	InstallFolder string           `json:"installFolder"`
+	Upload        *itchio.Upload   `json:"upload"`
+	Build         *itchio.Build    `json:"build"`
+	Credentials   *CaveCredentials `json:"credentials"`
 }
 
+// CaveCredentials contains all the credentials required to make API requests
+// including the download key if any
 type CaveCredentials struct {
 	Server      string `json:"server"`
 	APIKey      string `json:"apiKey"`

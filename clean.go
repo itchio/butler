@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/comm"
 )
 
+// CleanPlan describes which files exactly to wipe
 type CleanPlan struct {
 	BasePath string   `json:"basePath"`
 	Entries  []string `json:"entries"`
