@@ -74,6 +74,8 @@ var (
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
+	caveCmd = app.Command("cave", "Handle a cave (game install) for the itch app").Hidden()
+
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
 	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
@@ -735,6 +737,9 @@ func doMain(args []string) {
 
 	case pipeCmd.FullCommand():
 		pipe(*pipeArgs.command, *pipeArgs.stdin, *pipeArgs.stdout, *pipeArgs.stderr)
+
+	case caveCmd.FullCommand():
+		cave()
 	}
 }
 

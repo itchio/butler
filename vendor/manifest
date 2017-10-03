@@ -189,6 +189,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/mitchellh/mapstructure",
+			"repository": "https://github.com/mitchellh/mapstructure",
+			"vcs": "git",
+			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/natefinch/npipe",
 			"repository": "https://github.com/natefinch/npipe",
 			"vcs": "git",
