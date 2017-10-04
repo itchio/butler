@@ -8,7 +8,7 @@ import (
 	"github.com/itchio/butler/butler"
 )
 
-func Info(ctx *butler.Context, msiPath string) {
+func Info(ctx *butler.Context, msiPath string) error {
 	return fmt.Errorf("msi-info is a windows-only command")
 }
 
