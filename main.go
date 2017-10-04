@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/cave"
+	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
@@ -60,9 +61,8 @@ var (
 	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
-	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
-	walkCmd  = app.Command("walk", "Finds all files in a directory").Hidden()
-	cleanCmd = app.Command("clean", "Remove a bunch of files").Hidden()
+	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
+	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
 	versionCmd = app.Command("version", "Prints the current version of butler")
@@ -288,12 +288,6 @@ var walkArgs = struct {
 	walkCmd.Arg("dir", "A dir you want to walk").Required().String(),
 }
 
-var cleanArgs = struct {
-	plan *string
-}{
-	cleanCmd.Arg("plan", "A .json plan containing a list of entries to remove").Required().String(),
-}
-
 var exePropsArgs = struct {
 	path *string
 }{
@@ -375,6 +369,7 @@ func doMain(args []string) {
 	dl.Register(ctx)
 	cp.Register(ctx)
 	ls.Register(ctx)
+	clean.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -542,9 +537,6 @@ func doMain(args []string) {
 
 	case walkCmd.FullCommand():
 		walk(*walkArgs.dir)
-
-	case cleanCmd.FullCommand():
-		clean(*cleanArgs.plan)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)
