@@ -21,6 +21,7 @@ import (
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
+	"github.com/itchio/butler/cmd/ls"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
@@ -60,7 +61,6 @@ var (
 	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
 	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
-	lsCmd    = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 	walkCmd  = app.Command("walk", "Finds all files in a directory").Hidden()
 	cleanCmd = app.Command("clean", "Remove a bunch of files").Hidden()
 
@@ -282,12 +282,6 @@ var fileArgs = struct {
 	fileCmd.Arg("file", "A file you'd like to identify").Required().String(),
 }
 
-var lsArgs = struct {
-	file *string
-}{
-	lsCmd.Arg("file", "A file you'd like to list the contents of").Required().String(),
-}
-
 var walkArgs = struct {
 	dir *string
 }{
@@ -380,6 +374,7 @@ func doMain(args []string) {
 
 	dl.Register(ctx)
 	cp.Register(ctx)
+	ls.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -544,9 +539,6 @@ func doMain(args []string) {
 
 	case fileCmd.FullCommand():
 		file(*fileArgs.file)
-
-	case lsCmd.FullCommand():
-		ls(*lsArgs.file)
 
 	case walkCmd.FullCommand():
 		walk(*walkArgs.dir)
