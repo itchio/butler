@@ -1,16 +1,7 @@
 package pipe
 
 import (
-	"fmt"
-	"io"
-	"os"
-	"os/exec"
-	"syscall"
-	"time"
-
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butler"
-	"github.com/natefinch/npipe"
 )
 
 var args = struct {
@@ -32,4 +23,3 @@ func Register(ctx *butler.Context) {
 func do(ctx *butler.Context) {
 	ctx.Must(Do(ctx, *args.command, *args.stdin, *args.stdout, *args.stderr))
 }
-
