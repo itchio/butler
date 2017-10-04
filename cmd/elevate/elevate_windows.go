@@ -1,51 +1,50 @@
-package main
+// +build windows
+
+package elevate
 
 import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"syscall"
-	"time"
 
-	"github.com/itchio/butler/comm"
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/win32"
 	"github.com/natefinch/npipe"
 )
 
-func relay(listener *npipe.PipeListener, output io.Writer) {
-	conn, err := listener.Accept()
-	if err != nil {
-		return
-	}
-
-	io.Copy(output, conn)
-}
-
-func elevate(command []string) {
+func Do(command []string) error {
 	if len(command) < 0 {
-		comm.Dief(`elevate needs a command to run`)
+		return errors.New(`elevate needs a command to run`)
 	}
 
 	butlerExe, err := os.Executable()
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	commandExe, err := findInPath(command[0])
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 	commandArgs := command[1:]
 
 	pid := os.Getpid()
 
 	stdoutPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stdout`, pid)
 	stdoutListener, err := npipe.Listen(stdoutPath)
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 	defer stdoutListener.Close()
 	go relay(stdoutListener, os.Stdout)
 
 	stderrPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stderr`, pid)
 	stderrListener, err := npipe.Listen(stderrPath)
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 	defer stderrListener.Close()
 	go relay(stderrListener, os.Stderr)
 
@@ -54,12 +53,17 @@ func elevate(command []string) {
 	args = append(args, commandArgs...)
 
 	wd, err := os.Getwd()
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	err, code := win32.ShellExecuteAndWait(0, "runas", butlerExe, makeCmdLine(args), wd, syscall.SW_HIDE)
-	must(err)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	os.Exit(int(code))
+	return nil // you sily goose of a compiler...
 }
 
 func findInPath(commandExe string) (string, error) {
@@ -106,34 +110,11 @@ func makeCmdLine(args []string) string {
 	return s
 }
 
-func pipe(command []string, stdin string, stdout string, stderr string) {
-	cmd := exec.Command(command[0], command[1:]...)
-
-	hook := func(namedPath string, fallback *os.File) io.Writer {
-		pipe, err := npipe.DialTimeout(namedPath, 1*time.Second)
-		if err != nil {
-			return fallback
-		}
-		return pipe
-	}
-
-	cmd.Stdout = hook(stdout, os.Stdout)
-	cmd.Stderr = hook(stderr, os.Stderr)
-
-	exitCode := 0
-
-	err := cmd.Run()
+func relay(listener *npipe.PipeListener, output io.Writer) {
+	conn, err := listener.Accept()
 	if err != nil {
-		if ee, ok := err.(*exec.ExitError); ok {
-			if stat, ok := ee.ProcessState.Sys().(syscall.WaitStatus); ok {
-				exitCode = int(stat.ExitCode)
-			}
-		} else {
-			fmt.Fprintf(cmd.Stderr, "While running %s: %s", command[0], err.Error())
-			exitCode = 1
-			must(err)
-		}
+		return
 	}
 
-	os.Exit(exitCode)
+	io.Copy(output, conn)
 }
