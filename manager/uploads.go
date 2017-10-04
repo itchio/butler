@@ -9,17 +9,17 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-type FilterUploadsResult struct {
+type NarrowDownUploadsResult struct {
 	Uploads        []*itchio.Upload
 	HadUntagged    bool
 	HadWrongFormat bool
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(game *itchio.Game, uploads []*itchio.Upload, runtime *Runtime) *FilterUploadsResult {
+func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Runtime) *NarrowDownUploadsResult {
 	if actionForGame(game) == "open" {
 		// we don't need any filtering for "open" action
-		return &FilterUploadsResult{
+		return &NarrowDownUploadsResult{
 			Uploads:        uploads,
 			HadUntagged:    false,
 			HadWrongFormat: false,
@@ -37,9 +37,9 @@ func NarrowDownUploads(game *itchio.Game, uploads []*itchio.Upload, runtime *Run
 	archUploads := excludeWrongArch(formatUploads, runtime)
 	hadWrongArch := len(archUploads) < len(formatUploads)
 
-	sortedUploads := sortUploads(archUploads)
+	sortedUploads := sortUploads(archUploads, runtime)
 
-	return &FilterUploadsResult{
+	return &NarrowDownUploadsResult{
 		Uploads:        sortedUploads,
 		HadUntagged:    hadUntagged,
 		HadWrongFormat: hadWrongFormat,
@@ -66,9 +66,11 @@ func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.
 	var res []*itchio.Upload
 
 	for _, u := range uploads {
+		p := PlatformsForUpload(u)
+
 		if u.Type == "html" {
 			// cool, html5 is universal
-		} else if runtime.UploadIsCompatible(u) {
+		} else if p.IsCompatible(runtime) {
 			// cool, a native binary just for us!
 		} else {
 			// not html5 and not our platform, skip
@@ -109,7 +111,7 @@ var (
 	soundtrackFormatRegexp    = regexp.MustCompile(`soundtrack`)
 )
 
-func scoreUpload(upload *itchio.Upload) *scoredUpload {
+func scoreUpload(upload *itchio.Upload, runtime *Runtime) *scoredUpload {
 	filename := strings.ToLower(upload.Filename)
 	var score int64 = 500
 
@@ -137,6 +139,9 @@ func scoreUpload(upload *itchio.Upload) *scoredUpload {
 		score -= 500
 	}
 
+	p := PlatformsForUpload(upload)
+	score += p.ExclusivityScore(runtime)
+
 	return &scoredUpload{
 		score:  score,
 		upload: upload,
@@ -161,11 +166,11 @@ func (hsf *highestScoreFirst) Swap(i, j int) {
 	hsf.els[i], hsf.els[j] = hsf.els[j], hsf.els[i]
 }
 
-func sortUploads(uploads []*itchio.Upload) []*itchio.Upload {
+func sortUploads(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
 	var scoredUploads []*scoredUpload
 
 	for _, u := range uploads {
-		scoredUploads = append(scoredUploads, scoreUpload(u))
+		scoredUploads = append(scoredUploads, scoreUpload(u, runtime))
 	}
 
 	sort.Stable(&highestScoreFirst{scoredUploads})

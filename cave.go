@@ -24,7 +24,8 @@ func doCave() error {
 	tr = NewJSONTransport()
 	tr.Start()
 
-	command, err := readCaveCommand()
+	var command CaveCommand
+	err := readMessage("cave-command", &command)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -37,27 +38,25 @@ func doCave() error {
 	}
 }
 
-func readCaveCommand() (*CaveCommand, error) {
-	comm.Opf("Reading command from stdin...")
-	l, err := tr.Read("cave-command")
+func readMessage(msgType string, res interface{}) error {
+	msg, err := tr.Read(msgType)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
-	cmd := CaveCommand{}
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName: "json",
-		Result:  &cmd,
+		Result:  res,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
-	err = decoder.Decode(l)
+	err = decoder.Decode(msg)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
-	return &cmd, nil
+	return nil
 }
 
 // CaveCommandOperation describes the operation butler should do
@@ -140,22 +139,35 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 			comm.Logf("- %#v", upload)
 		}
 
-		uploadsFilterResult := manager.NarrowDownUploads(installParams.Game, uploads.Uploads, manager.CurrentRuntime())
+		uploadsFilterResult := manager.NarrowDownUploads(uploads.Uploads, installParams.Game, manager.CurrentRuntime())
 		comm.Logf("After filter, got %d uploads, they are: ", len(uploadsFilterResult.Uploads))
 		for _, upload := range uploadsFilterResult.Uploads {
 			comm.Logf("- %#v", upload)
 		}
 
 		if len(uploadsFilterResult.Uploads) == 0 {
-			return errors.New("No compatible uploads")
+			return (&CommandError{
+				Code:      "noCompatibleUploads",
+				Message:   "No compatible uploads",
+				Operation: "install",
+			}).Throw()
 		}
 
-		if len(uploadsFilterResult.Uploads) > 1 {
-			// TODO: ask user
-			comm.Logf("More than one upload, should ask user")
-			comm.Logf("Will just pick the first one for now")
+		if len(uploadsFilterResult.Uploads) == 1 {
+			installParams.Upload = uploadsFilterResult.Uploads[0]
+		} else {
+			comm.Request("install", "pick-upload", &PickUploadParams{
+				Uploads: uploadsFilterResult.Uploads,
+			})
+
+			var r PickUploadResult
+			err := readMessage("pick-upload-result", &r)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			installParams.Upload = uploadsFilterResult.Uploads[r.Index]
 		}
-		installParams.Upload = uploadsFilterResult.Uploads[0]
 	}
 
 	var archiveUrlPath string
@@ -203,4 +215,30 @@ func clientFromCredentials(credentials *CaveCredentials) (*itchio.Client, error)
 	}
 
 	return client, nil
+}
+
+type CommandError struct {
+	Type      string `json:"type"`
+	Code      string `json:"code"`
+	Message   string `json:"message"`
+	Operation string `json:"operation"`
+}
+
+func (ce *CommandError) Error() string {
+	return fmt.Sprintf("command %s error %s: %s", ce.Operation, ce.Code, ce.Message)
+}
+
+func (ce *CommandError) Throw() error {
+	ce.Type = "command-error"
+	comm.Result(ce)
+
+	return errors.Wrap(ce, 1)
+}
+
+type PickUploadParams struct {
+	Uploads []*itchio.Upload `json:"uploads"`
+}
+
+type PickUploadResult struct {
+	Index int64
 }

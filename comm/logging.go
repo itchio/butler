@@ -177,6 +177,21 @@ func Result(value interface{}) {
 	})
 }
 
+func Request(operation string, request string, params interface{}) {
+	send("request", jsonMessage{
+		"operation": operation,
+		"request":   request,
+		"params":    params,
+	})
+}
+
+func OperationError(operation string, code string, value interface{}) {
+	send("operation-error", jsonMessage{
+		"operation": operation,
+		"code":      code,
+	})
+}
+
 // Dief is a formatted variant of Die
 func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
