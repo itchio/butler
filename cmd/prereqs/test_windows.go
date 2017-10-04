@@ -14,14 +14,14 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/redist"
 	"github.com/olekukonko/tablewriter"
 )
 
-func Test(ctx *butler.Context, prereqs []string) error {
+func Test(ctx *mansion.Context, prereqs []string) error {
 	comm.Opf("Fetching registry...")
 
 	baseURL := "https://dl.itch.ovh/itch-redists"

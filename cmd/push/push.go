@@ -10,7 +10,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/uploader"
@@ -39,7 +39,7 @@ var args = struct {
 	fixPerms        *bool
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("push", "Upload a new build to itch.io. See `butler help push`.")
 	args.src = cmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String()
 	args.target = cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String()
@@ -49,7 +49,7 @@ func Register(ctx *butler.Context) {
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	go ctx.DoVersionCheck()
 
 	// if userVersionFile specified, read from the given file
@@ -68,7 +68,7 @@ func do(ctx *butler.Context) {
 	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms))
 }
 
-func Do(ctx *butler.Context, buildPath string, specStr string, userVersion string, fixPerms bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)

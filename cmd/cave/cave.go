@@ -4,21 +4,21 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 )
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("cave", "Handle a cave (game install) for the itch app").Hidden()
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx))
 }
 
 var tr *JSONTransport
 
-func Do(ctx *butler.Context) error {
+func Do(ctx *mansion.Context) error {
 	tr = NewJSONTransport()
 	tr.Start()
 

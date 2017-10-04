@@ -9,7 +9,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
@@ -20,7 +20,7 @@ var args = struct {
 	dest *string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 	ctx.Register(cmd, do)
 
@@ -28,12 +28,12 @@ func Register(ctx *butler.Context) {
 	args.dest = cmd.Arg("dest", "File to write downloaded data to").Required().String()
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	_, err := Do(ctx, *args.url, *args.dest)
 	ctx.Must(err)
 }
 
-func Do(ctx *butler.Context, url string, dest string) (int64, error) {
+func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 	existingBytes := int64(0)
 	stats, err := os.Lstat(dest)
 	if err == nil {

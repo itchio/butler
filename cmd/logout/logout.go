@@ -5,20 +5,20 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 )
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("logout", "Remove saved itch.io credentials.")
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx))
 }
 
-func Do(ctx *butler.Context) error {
+func Do(ctx *mansion.Context) error {
 	var identity = ctx.Identity
 
 	_, err := os.Lstat(identity)

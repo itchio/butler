@@ -1,7 +1,7 @@
 package pipe
 
 import (
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 )
 
 var args = struct {
@@ -11,7 +11,7 @@ var args = struct {
 	stderr  *string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("pipe", "Runs a command, redirecting stdin/stdout/stderr to named pipes").Hidden()
 	args.command = cmd.Arg("command", "A command to run, with arguments").Strings()
 	args.stdin = cmd.Flag("stdin", "A named pipe to read stdin from").String()
@@ -20,6 +20,6 @@ func Register(ctx *butler.Context) {
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, *args.command, *args.stdin, *args.stdout, *args.stderr))
 }

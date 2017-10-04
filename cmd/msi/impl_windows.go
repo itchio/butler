@@ -14,14 +14,14 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	"github.com/winlabs/gowin32"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 )
 
-func Info(ctx *butler.Context, msiPath string) error {
+func Info(ctx *mansion.Context, msiPath string) error {
 	initMsi()
 
 	msiPath, err := filepath.Abs(msiPath)
@@ -60,7 +60,7 @@ func Info(ctx *butler.Context, msiPath string) error {
 	return nil
 }
 
-func ProductInfo(ctx *butler.Context, productCode string) error {
+func ProductInfo(ctx *mansion.Context, productCode string) error {
 	initMsi()
 
 	state := gowin32.GetInstalledProductState(productCode)
@@ -75,7 +75,7 @@ func ProductInfo(ctx *butler.Context, productCode string) error {
 	return nil
 }
 
-func Install(ctx *butler.Context, msiPath string, logPathIn string, target string) error {
+func Install(ctx *mansion.Context, msiPath string, logPathIn string, target string) error {
 	initMsi()
 
 	startTime := time.Now()
@@ -162,7 +162,7 @@ func Install(ctx *butler.Context, msiPath string, logPathIn string, target strin
 	})
 }
 
-func Uninstall(ctx *butler.Context, productCode string) error {
+func Uninstall(ctx *mansion.Context, productCode string) error {
 	initMsi()
 
 	if !strings.HasPrefix(productCode, "{") {
@@ -210,7 +210,7 @@ func Uninstall(ctx *butler.Context, productCode string) error {
 
 type MsiLogCallback func() error
 
-func withMsiLogging(ctx *butler.Context, logPath string, f MsiLogCallback) error {
+func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) error {
 	if logPath == "" {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {

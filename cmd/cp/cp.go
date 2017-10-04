@@ -8,7 +8,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/httpkit/httpfile"
@@ -23,7 +23,7 @@ var args = struct {
 	resume *bool
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("cp", "Copy src to dest").Hidden()
 	args.src = cmd.Arg("src", "File to read from").Required().String()
 	args.dest = cmd.Arg("dest", "File to write to").Required().String()
@@ -31,11 +31,11 @@ func Register(ctx *butler.Context) {
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, *args.src, *args.dest, *args.resume))
 }
 
-func Do(ctx *butler.Context, srcPath string, destPath string, resume bool) error {
+func Do(ctx *mansion.Context, srcPath string, destPath string, resume bool) error {
 	retryCtx := retrycontext.NewDefault()
 	retryCtx.Settings.Consumer = comm.NewStateConsumer()
 
@@ -57,7 +57,7 @@ func Do(ctx *butler.Context, srcPath string, destPath string, resume bool) error
 	return errors.New("cp: too many errors, giving up")
 }
 
-func Try(ctx *butler.Context, srcPath string, destPath string, resume bool) error {
+func Try(ctx *mansion.Context, srcPath string, destPath string, resume bool) error {
 	src, err := eos.Open(srcPath)
 	if err != nil {
 		return err

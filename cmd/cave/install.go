@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func doCaveInstall(ctx *butler.Context, installParams *CaveInstallParams) error {
+func doCaveInstall(ctx *mansion.Context, installParams *CaveInstallParams) error {
 	if installParams == nil {
 		return errors.New("Missing install params")
 	}

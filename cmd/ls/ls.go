@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -19,17 +19,17 @@ var args = struct {
 	file *string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 	args.file = cmd.Arg("file", "A file you'd like to list the contents of").Required().String()
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, *args.file))
 }
 
-func Do(ctx *butler.Context, inPath string) error {
+func Do(ctx *mansion.Context, inPath string) error {
 	reader, err := eos.Open(inPath)
 	if err != nil {
 		return errors.Wrap(err, 0)

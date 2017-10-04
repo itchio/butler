@@ -8,7 +8,7 @@ import (
 	"runtime"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/kardianos/osext"
@@ -18,18 +18,18 @@ var args = struct {
 	head *bool
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("upgrade", "Upgrades butler to the latest version")
 	ctx.Register(cmd, do)
 
 	args.head = cmd.Flag("head", "Install bleeding-edge version").Bool()
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, *args.head))
 }
 
-func Do(ctx *butler.Context, head bool) error {
+func Do(ctx *mansion.Context, head bool) error {
 	if head {
 		if !comm.YesNo("Do you want to upgrade to the bleeding-edge version? Things may break!") {
 			comm.Logf("Okay, not upgrading. Bye!")
@@ -68,7 +68,7 @@ func Do(ctx *butler.Context, head bool) error {
 	return applyUpgrade(ctx, currentVer.String(), latestVer.String())
 }
 
-func applyUpgrade(ctx *butler.Context, before string, after string) error {
+func applyUpgrade(ctx *mansion.Context, before string, after string) error {
 	execPath, err := osext.Executable()
 	if err != nil {
 		return err

@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/natefinch/npipe"
 )
 
-func Do(ctx *butler.Context, command []string, stdin string, stdout string, stderr string) error {
+func Do(ctx *mansion.Context, command []string, stdin string, stdout string, stderr string) error {
 	cmd := exec.Command(command[0], command[1:]...)
 
 	hook := func(namedPath string, fallback *os.File) io.Writer {

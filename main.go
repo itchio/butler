@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/cmd/dl"
@@ -29,6 +28,7 @@ import (
 	"github.com/itchio/butler/cmd/upgrade"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/go-itchio/itchfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -362,7 +362,7 @@ func main() {
 }
 
 func doMain(args []string) {
-	ctx := butler.NewContext(app)
+	ctx := mansion.NewContext(app)
 
 	///////////////////////////
 	// Command register start

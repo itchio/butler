@@ -2,20 +2,20 @@ package login
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 )
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("login", "Connect butler to your itch.io account and save credentials locally.")
 	ctx.Register(cmd, do)
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx))
 }
 
-func Do(ctx *butler.Context) error {
+func Do(ctx *mansion.Context) error {
 	if ctx.HasSavedCredentials() {
 		client, err := ctx.AuthenticateViaOauth()
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
@@ -18,7 +18,7 @@ var args = struct {
 	out    *string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("fetch", "Download and extract the latest build of a channel from itch.io")
 	ctx.Register(cmd, do)
 
@@ -26,11 +26,11 @@ func Register(ctx *butler.Context) {
 	args.out = cmd.Arg("out", "Directory to fetch and extract build to").Required().String()
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, *args.target, *args.out))
 }
 
-func Do(ctx *butler.Context, specStr string, outPath string) error {
+func Do(ctx *mansion.Context, specStr string, outPath string) error {
 	err := os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
 		return errors.Wrap(err, 1)

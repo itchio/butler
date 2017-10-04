@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/comm"
 	"github.com/natefinch/npipe"
@@ -23,7 +23,7 @@ import (
 	"golang.org/x/text/transform"
 )
 
-func Install(ctx *butler.Context, planPath string, pipePath string) error {
+func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 	planReader, err := os.Open(planPath)
 	if err != nil {
 		return errors.Wrap(err, 0)

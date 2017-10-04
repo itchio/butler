@@ -1,4 +1,4 @@
-package butler
+package mansion
 
 import (
 	"fmt"

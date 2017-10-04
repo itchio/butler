@@ -7,7 +7,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/olekukonko/tablewriter"
@@ -18,7 +18,7 @@ var args = struct {
 	showAllFiles *bool
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("status", "Show a list of channels and the status of their latest and pending builds.")
 	ctx.Register(cmd, do)
 
@@ -26,12 +26,12 @@ func Register(ctx *butler.Context) {
 	args.showAllFiles = cmd.Flag("show-all-files", "Show status of all files, not just archive").Bool()
 }
 
-func do(ctx *butler.Context) {
+func do(ctx *mansion.Context) {
 	go ctx.DoVersionCheck()
 	ctx.Must(Do(ctx, *args.target, *args.showAllFiles))
 }
 
-func Do(ctx *butler.Context, specStr string, showAllFiles bool) error {
+func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
 		return errors.Wrap(err, 1)

@@ -1,7 +1,7 @@
 package prereqs
 
 import (
-	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
 )
 
@@ -14,7 +14,7 @@ var testArgs = struct {
 	prereqs *[]string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	{
 		cmd := ctx.App.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
 		installArgs.plan = cmd.Arg("plan", "Path of a .json file containing the plan to follow").Required().String()
@@ -29,11 +29,11 @@ func Register(ctx *butler.Context) {
 	}
 }
 
-func doInstall(ctx *butler.Context) {
+func doInstall(ctx *mansion.Context) {
 	ctx.Must(Install(ctx, *installArgs.plan, *installArgs.pipe))
 }
 
-func doTest(ctx *butler.Context) {
+func doTest(ctx *mansion.Context) {
 	ctx.Must(Test(ctx, *testArgs.prereqs))
 }
 

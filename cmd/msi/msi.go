@@ -1,6 +1,6 @@
 package msi
 
-import "github.com/itchio/butler/butler"
+import "github.com/itchio/butler/mansion"
 
 var infoArgs = struct {
 	msiPath *string
@@ -20,7 +20,7 @@ var uninstallArgs = struct {
 	productCode *string
 }{}
 
-func Register(ctx *butler.Context) {
+func Register(ctx *mansion.Context) {
 	{
 		infoCmd := ctx.App.Command("msi-info", "Show information about an MSI file").Hidden()
 		infoArgs.msiPath = infoCmd.Arg("msiPath", "Path to the MSI file").Required().String()
@@ -48,19 +48,19 @@ func Register(ctx *butler.Context) {
 	}
 }
 
-func doInfo(ctx *butler.Context) {
+func doInfo(ctx *mansion.Context) {
 	ctx.Must(Info(ctx, *infoArgs.msiPath))
 }
 
-func doProductInfo(ctx *butler.Context) {
+func doProductInfo(ctx *mansion.Context) {
 	ctx.Must(Info(ctx, *productInfoArgs.productCode))
 }
 
-func doInstall(ctx *butler.Context) {
+func doInstall(ctx *mansion.Context) {
 	ctx.Must(Install(ctx, *installArgs.msiPath, *installArgs.logPath, *installArgs.target))
 }
 
-func doUninstall(ctx *butler.Context) {
+func doUninstall(ctx *mansion.Context) {
 	ctx.Must(Uninstall(ctx, *uninstallArgs.productCode))
 }
 
