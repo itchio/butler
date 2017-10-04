@@ -1,4 +1,4 @@
-package main
+package cp
 
 import (
 	"io"
@@ -8,6 +8,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/httpkit/httpfile"
@@ -16,11 +17,47 @@ import (
 	"github.com/itchio/wharf/eos"
 )
 
-func cp(src string, dest string, resume bool) {
-	must(doCp(src, dest, resume))
+var args = struct {
+	src    *string
+	dest   *string
+	resume *bool
+}{}
+
+func Register(ctx *butler.Context) {
+	cmd := ctx.App.Command("cp", "Copy src to dest").Hidden()
+	args.src = cmd.Arg("src", "File to read from").Required().String()
+	args.dest = cmd.Arg("dest", "File to write to").Required().String()
+	args.resume = cmd.Flag("resume", "Try to resume if dest is partially written (doesn't check existing data)").Bool()
+	ctx.Register(cmd, do)
 }
 
-func tryCp(srcPath string, destPath string, resume bool) error {
+func do(ctx *butler.Context) {
+	ctx.Must(Do(ctx, *args.src, *args.dest, *args.resume))
+}
+
+func Do(ctx *butler.Context, srcPath string, destPath string, resume bool) error {
+	retryCtx := retrycontext.NewDefault()
+	retryCtx.Settings.Consumer = comm.NewStateConsumer()
+
+	for retryCtx.ShouldTry() {
+		err := Try(ctx, srcPath, destPath, resume)
+		if err != nil {
+			if dl.IsIntegrityError(err) {
+				retryCtx.Retry(err.Error())
+				continue
+			}
+
+			// if it's not an integrity error, just bubble it up
+			return err
+		}
+
+		return nil
+	}
+
+	return errors.New("cp: too many errors, giving up")
+}
+
+func Try(ctx *butler.Context, srcPath string, destPath string, resume bool) error {
 	src, err := eos.Open(srcPath)
 	if err != nil {
 		return err
@@ -127,26 +164,4 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 	comm.Statf("%s + %s copied @ %s/s\n", prettyStartOffset, prettySize, perSecond)
 
 	return nil
-}
-
-func doCp(srcPath string, destPath string, resume bool) error {
-	retryCtx := retrycontext.NewDefault()
-	retryCtx.Settings.Consumer = comm.NewStateConsumer()
-
-	for retryCtx.ShouldTry() {
-		err := tryCp(srcPath, destPath, resume)
-		if err != nil {
-			if dl.IsIntegrityError(err) {
-				retryCtx.Retry(err.Error())
-				continue
-			}
-
-			// if it's not an integrity error, just bubble it up
-			return err
-		}
-
-		return nil
-	}
-
-	return errors.New("cp: too many errors, giving up")
 }

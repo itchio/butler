@@ -14,6 +14,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/cmd/cave"
+	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/fetch"
@@ -49,8 +51,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	cpCmd = app.Command("cp", "Copy src to dest").Hidden()
-
 	untarCmd    = app.Command("untar", "Extract a .tar file").Hidden()
 	unzipCmd    = app.Command("unzip", "Extract a .zip file").Hidden()
 	indexZipCmd = app.Command("index-zip", "Generate an index for a .zip file").Hidden()
@@ -72,8 +72,6 @@ var (
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
-
-	caveCmd = app.Command("cave", "Handle a cave (game install) for the itch app").Hidden()
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
@@ -126,16 +124,6 @@ var scriptArgs = struct {
 	file *string
 }{
 	scriptCmd.Arg("file", "File containing a list of butler commands, one per line, with 'butler' omitted").Required().String(),
-}
-
-var cpArgs = struct {
-	src    *string
-	dest   *string
-	resume *bool
-}{
-	cpCmd.Arg("src", "File to read from").Required().String(),
-	cpCmd.Arg("dest", "File to write to").Required().String(),
-	cpCmd.Flag("resume", "Try to resume if dest is partially written (doesn't check existing data)").Bool(),
 }
 
 func defaultKeyPath() string {
@@ -391,6 +379,7 @@ func doMain(args []string) {
 	upgrade.Register(ctx)
 
 	dl.Register(ctx)
+	cp.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -400,6 +389,8 @@ func doMain(args []string) {
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
+
+	cave.Register(ctx)
 
 	///////////////////////////
 	// Command register end
@@ -506,9 +497,6 @@ func doMain(args []string) {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
 
-	case cpCmd.FullCommand():
-		cp(*cpArgs.src, *cpArgs.dest, *cpArgs.resume)
-
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
 
@@ -574,9 +562,6 @@ func doMain(args []string) {
 
 	case configureCmd.FullCommand():
 		configure(*configureArgs.path, *configureArgs.showSpell, *configureArgs.osFilter, *configureArgs.archFilter, *configureArgs.noFilter)
-
-	case caveCmd.FullCommand():
-		cave()
 
 	default:
 		do := ctx.Commands[fullCmd]
