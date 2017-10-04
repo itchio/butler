@@ -1,4 +1,6 @@
-package main
+// +build windows
+
+package msi
 
 import (
 	"bufio"
@@ -11,27 +13,15 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
-
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/comm"
 	"github.com/winlabs/gowin32"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
-func msiInfo(msiPath string) {
-	must(doMsiInfo(msiPath))
-}
-
-/**
- * MSIInfoResult describes an MSI package's properties
- */
-type MSIInfoResult struct {
-	ProductCode  string `json:"productCode"`
-	InstallState string `json:"installState"`
-}
-
-func doMsiInfo(msiPath string) error {
+func Info(ctx *butler.Context, msiPath string) error {
 	initMsi()
 
 	msiPath, err := filepath.Abs(msiPath)
@@ -59,55 +49,33 @@ func doMsiInfo(msiPath string) error {
 
 	comm.Debugf("Installed product state: %s", installStateToString(state))
 
-	if *appArgs.json {
-		comm.Result(&MSIInfoResult{
-			ProductCode:  productCode,
-			InstallState: installStateToString(state),
-		})
-	} else {
+	comm.ResultOrPrint(&MSIInfoResult{
+		ProductCode:  productCode,
+		InstallState: installStateToString(state),
+	}, func() {
 		comm.Statf("MSI product code: %s", productCode)
 		comm.Statf("Install state: %s", installStateToString(state))
-	}
+	})
 
 	return nil
 }
 
-func msiProductInfo(productCode string) {
-	must(doMsiProductInfo(productCode))
-}
-
-func doMsiProductInfo(productCode string) error {
+func ProductInfo(ctx *butler.Context, productCode string) error {
 	initMsi()
 
 	state := gowin32.GetInstalledProductState(productCode)
 
-	comm.Logf("Installed product state: %s", installStateToString(state))
-
-	if *appArgs.json {
-		comm.Result(&MSIInfoResult{
-			ProductCode:  productCode,
-			InstallState: installStateToString(state),
-		})
-	}
+	comm.ResultOrPrint(&MSIInfoResult{
+		ProductCode:  productCode,
+		InstallState: installStateToString(state),
+	}, func() {
+		comm.Statf("Installed product state: %s", installStateToString(state))
+	})
 
 	return nil
 }
 
-type MSIWindowsInstallerError struct {
-	Code int64  `json:"code"`
-	Text string `json:"text"`
-}
-
-type MSIWindowsInstallerErrorResult struct {
-	Type  string                   `json:"type"`
-	Value MSIWindowsInstallerError `json:"value"`
-}
-
-func msiInstall(msiPath string, logPath string, target string) {
-	must(doMsiInstall(msiPath, logPath, target))
-}
-
-func doMsiInstall(msiPath string, logPathIn string, target string) error {
+func Install(ctx *butler.Context, msiPath string, logPathIn string, target string) error {
 	initMsi()
 
 	startTime := time.Now()
@@ -172,7 +140,7 @@ func doMsiInstall(msiPath string, logPathIn string, target string) error {
 
 	comm.Debugf("Final command line: %s", commandLine)
 
-	return withMsiLogging(logPathIn, func() error {
+	return withMsiLogging(ctx, logPathIn, func() error {
 		if repair {
 			ilvl := gowin32.InstallLevelDefault
 			istate := gowin32.InstallStateDefault
@@ -194,11 +162,7 @@ func doMsiInstall(msiPath string, logPathIn string, target string) error {
 	})
 }
 
-func msiUninstall(productCode string) {
-	must(doMsiUninstall(productCode))
-}
-
-func doMsiUninstall(productCode string) error {
+func Uninstall(ctx *butler.Context, productCode string) error {
 	initMsi()
 
 	if !strings.HasPrefix(productCode, "{") {
@@ -233,7 +197,7 @@ func doMsiUninstall(productCode string) error {
 
 	startTime := time.Now()
 
-	return withMsiLogging("", func() error {
+	return withMsiLogging(ctx, "", func() error {
 		err := gowin32.UninstallProduct(productCode)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -246,7 +210,7 @@ func doMsiUninstall(productCode string) error {
 
 type MsiLogCallback func() error
 
-func withMsiLogging(logPath string, f MsiLogCallback) error {
+func withMsiLogging(ctx *butler.Context, logPath string, f MsiLogCallback) error {
 	if logPath == "" {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {
@@ -299,7 +263,7 @@ func withMsiLogging(logPath string, f MsiLogCallback) error {
 				lines = append(lines, s.Text())
 			}
 
-			if *appArgs.verbose {
+			if ctx.Verbose {
 				comm.Logf("Full log (run without verbose mode to get only errors): ")
 				for _, line := range lines {
 					comm.Logf("%s", line)

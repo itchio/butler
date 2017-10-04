@@ -1,8 +1,8 @@
-package main
+// +build windows
 
-import (
-	"github.com/winlabs/gowin32"
-)
+package msi
+
+import "github.com/winlabs/gowin32"
 
 func installStateToString(state gowin32.InstallState) string {
 	switch state {

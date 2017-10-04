@@ -196,7 +196,28 @@ func doCaveInstall(installParams *CaveInstallParams) error {
 		return errors.Wrap(err, 0)
 	}
 
+	installerType := getInstallerType(archiveDownloadPath)
+
+	comm.Logf("Will use installer %s", installerType)
+
 	return errors.New("stub")
+}
+
+type InstallerType string
+
+const (
+	InstallerTypeNaked   InstallerType = "naked"
+	InstallerTypeArchive               = "archive"
+	InstallerTypeDMG                   = "dmg"
+	InstallerTypeInno                  = "inno"
+	InstallerTypeNsis                  = "nsis"
+	InstallerTypeMSI                   = "msi"
+	InstallerTypeUnknown               = "unknown"
+)
+
+func getInstallerType(target string) InstallerType {
+	// TODO: implement
+	return InstallerTypeUnknown
 }
 
 func clientFromCredentials(credentials *CaveCredentials) (*itchio.Client, error) {

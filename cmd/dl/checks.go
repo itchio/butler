@@ -1,8 +1,7 @@
-package main
+package dl
 
 import (
 	"bytes"
-	"crypto/md5"
 	"encoding/base64"
 	"fmt"
 	"hash/crc32"
@@ -55,7 +54,7 @@ func IsIntegrityError(err error) bool {
 	return false
 }
 
-func checkIntegrity(header http.Header, contentLength int64, file string) error {
+func CheckIntegrity(header http.Header, contentLength int64, file string) error {
 	diskSize := int64(0)
 	stats, err := os.Lstat(file)
 	if err == nil {
@@ -99,7 +98,7 @@ func checkHashes(header http.Header, file string) error {
 		if checked {
 			comm.Debugf("%10s pass (took %s)", hashType, time.Since(start))
 		} else {
-			comm.Debugf("%10s skip (use --thorough to force check)", hashType)
+			comm.Debugf("%10s skip", hashType)
 		}
 	}
 
@@ -110,12 +109,6 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 	checked = true
 
 	switch hashType {
-	case "md5":
-		if *dlArgs.thorough {
-			err = checkHashMD5(hashValue, file)
-		} else {
-			checked = false
-		}
 	case "crc32c":
 		err = checkHashCRC32C(hashValue, file)
 	default:
@@ -126,28 +119,6 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 		err = errors.Wrap(err, 1)
 	}
 	return
-}
-
-func checkHashMD5(hashValue []byte, file string) error {
-	fr, err := os.Open(file)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-	defer fr.Close()
-
-	hasher := md5.New()
-	io.Copy(hasher, fr)
-
-	hashComputed := hasher.Sum(nil)
-	if !bytes.Equal(hashValue, hashComputed) {
-		return &BadHashErr{
-			Algo:     "md5",
-			Actual:   hashComputed,
-			Expected: hashValue,
-		}
-	}
-
-	return nil
 }
 
 func checkHashCRC32C(hashValue []byte, file string) error {

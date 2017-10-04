@@ -1,36 +1,74 @@
-package main
+package push
 
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
-	"net/http"
+	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/filtering"
-	"github.com/itchio/go-itchio"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/uploader"
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
 
-// AlmostThereThreshold is the amount of data left where the progress indicator isn't indicative anymore.
-// At this point, we're basically waiting for build files to be finalized.
-const AlmostThereThreshold int64 = 10 * 1024
+const (
+	// maxChunkGroup is the maximum amount of 256kb blocks we'll attempt to
+	// upload to storage in a single request
+	maxChunkGroup = 64
 
-func push(buildPath string, specStr string, userVersion string, fixPerms bool) {
-	go versionCheck()
-	must(doPush(buildPath, specStr, userVersion, fixPerms))
+	// almostThereThreshold is the amount of data left where the progress indicator isn't indicative anymore.
+	// At this point, we're basically waiting for build files to be finalized.
+	almostThereThreshold int64 = 10 * 1024
+)
+
+var args = struct {
+	src             *string
+	target          *string
+	userVersion     *string
+	userVersionFile *string
+	fixPerms        *bool
+}{}
+
+func Register(ctx *butler.Context) {
+	cmd := ctx.App.Command("push", "Upload a new build to itch.io. See `butler help push`.")
+	args.src = cmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String()
+	args.target = cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String()
+	args.userVersion = cmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String()
+	args.userVersionFile = cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String()
+	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
+	ctx.Register(cmd, do)
 }
 
-func doPush(buildPath string, specStr string, userVersion string, fixPerms bool) error {
+func do(ctx *butler.Context) {
+	go ctx.DoVersionCheck()
+
+	// if userVersionFile specified, read from the given file
+	// TODO: do utf-16 decoding here
+	userVersion := *args.userVersion
+	if userVersion == "" && *args.userVersionFile != "" {
+		buf, err := ioutil.ReadFile(*args.userVersionFile)
+		ctx.Must(err)
+
+		userVersion = strings.TrimSpace(string(buf))
+		if strings.ContainsAny(userVersion, "\r\n") {
+			ctx.Must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", *args.userVersionFile))
+		}
+	}
+
+	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms))
+}
+
+func Do(ctx *butler.Context, buildPath string, specStr string, userVersion string, fixPerms bool) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
@@ -46,7 +84,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		return errors.Wrap(err, 1)
 	}
 
-	client, err := authenticateViaOauth()
+	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -104,7 +142,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		uploadDone, uploadErrs, uploader.ResumableUploadSettings{
 			Consumer: comm.NewStateConsumer(),
 		})
-	patchWriter.MaxChunkGroup = *appArgs.maxChunkGroup
+	patchWriter.MaxChunkGroup = maxChunkGroup
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -113,7 +151,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		uploadDone, uploadErrs, uploader.ResumableUploadSettings{
 			Consumer: comm.NewStateConsumer(),
 		})
-	signatureWriter.MaxChunkGroup = *appArgs.maxChunkGroup
+	signatureWriter.MaxChunkGroup = maxChunkGroup
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
@@ -170,7 +208,7 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 		conservativeTotalBytes := sourceContainer.Size - goneBytes
 
 		leftBytes := conservativeTotalBytes - uploadedBytes
-		if leftBytes > AlmostThereThreshold {
+		if leftBytes > almostThereThreshold {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
 				netStatus = fmt.Sprintf("@ %s/s", humanize.IBytes(uint64(bytesPerSec)))
@@ -307,102 +345,6 @@ func doPush(buildPath string, specStr string, userVersion string, fixPerms bool)
 	comm.Logf("")
 
 	return nil
-}
-
-type fileSlot struct {
-	Type     itchio.BuildFileType
-	Response itchio.CreateBuildFileResponse
-}
-
-func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.CreateBuildFileResponse, signature itchio.CreateBuildFileResponse, err error) {
-	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
-		var res itchio.CreateBuildFileResponse
-		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.UploadTypeDeferredResumable)
-		if err != nil {
-			errs <- errors.Wrap(err, 1)
-		}
-		comm.Debugf("Created %s build file: %+v", buildType, res.File)
-
-		// TODO: resumable upload session creation sounds like it belongs in an external lib, go-itchio maybe?
-		req, reqErr := http.NewRequest("POST", res.File.UploadURL, nil)
-		if reqErr != nil {
-			errs <- errors.Wrap(reqErr, 1)
-		}
-
-		req.ContentLength = 0
-
-		for k, v := range res.File.UploadHeaders {
-			req.Header.Add(k, v)
-		}
-
-		gcsRes, gcsErr := client.HTTPClient.Do(req)
-		if gcsErr != nil {
-			errs <- errors.Wrap(gcsErr, 1)
-		}
-
-		if gcsRes.StatusCode != 201 {
-			errs <- errors.Wrap(fmt.Errorf("could not create resumable upload session (got HTTP %d)", gcsRes.StatusCode), 1)
-		}
-
-		comm.Debugf("Started resumable upload session %s", gcsRes.Header.Get("Location"))
-
-		res.File.UploadHeaders = nil
-		res.File.UploadURL = gcsRes.Header.Get("Location")
-
-		done <- fileSlot{buildType, res}
-	}
-
-	done := make(chan fileSlot)
-	errs := make(chan error)
-
-	go createFile(itchio.BuildFileTypePatch, done, errs)
-	go createFile(itchio.BuildFileTypeSignature, done, errs)
-
-	for i := 0; i < 2; i++ {
-		select {
-		case err = <-errs:
-			err = errors.Wrap(err, 1)
-			return
-		case slot := <-done:
-			switch slot.Type {
-			case itchio.BuildFileTypePatch:
-				patch = slot.Response
-			case itchio.BuildFileTypeSignature:
-				signature = slot.Response
-			}
-		}
-	}
-
-	return
-}
-
-type walkResult struct {
-	container *tlc.Container
-	pool      wsync.Pool
-}
-
-func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
-	container, err := tlc.WalkAny(path, filtering.FilterPaths)
-	if err != nil {
-		errs <- errors.Wrap(err, 1)
-		return
-	}
-
-	pool, err := pools.New(container, path)
-	if err != nil {
-		errs <- errors.Wrap(err, 1)
-		return
-	}
-
-	result := walkResult{
-		container: container,
-		pool:      pool,
-	}
-
-	if fixPerms {
-		result.container.FixPermissions(result.pool)
-	}
-	out <- result
 }
 
 func min(a, b float64) float64 {

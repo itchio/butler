@@ -1,4 +1,4 @@
-package main
+package dl
 
 import (
 	"fmt"
@@ -7,21 +7,33 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
 )
 
-func dl(url string, dest string) {
-	_, err := tryDl(url, dest)
-	if err != nil {
-		comm.Die(err.Error())
-	}
+var args = struct {
+	url  *string
+	dest *string
+}{}
+
+func Register(ctx *butler.Context) {
+	cmd := ctx.App.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
+	ctx.Register(cmd, do)
+
+	args.url = cmd.Arg("url", "Address to download from").Required().String()
+	args.dest = cmd.Arg("dest", "File to write downloaded data to").Required().String()
 }
 
-func tryDl(url string, dest string) (int64, error) {
+func do(ctx *butler.Context) {
+	_, err := Do(ctx, *args.url, *args.dest)
+	ctx.Must(err)
+}
+
+func Do(ctx *butler.Context, url string, dest string) (int64, error) {
 	existingBytes := int64(0)
 	stats, err := os.Lstat(dest)
 	if err == nil {
@@ -35,7 +47,7 @@ func tryDl(url string, dest string) (int64, error) {
 		return 0, err
 	}
 
-	req.Header.Set("User-Agent", userAgent())
+	req.Header.Set("User-Agent", ctx.UserAgent())
 	byteRange := fmt.Sprintf("bytes=%d-", existingBytes)
 
 	req.Header.Set("Range", byteRange)
@@ -81,7 +93,7 @@ func tryDl(url string, dest string) (int64, error) {
 		resp.Body.Close()
 
 		req, _ = http.NewRequest("GET", url, nil)
-		req.Header.Set("User-Agent", userAgent())
+		req.Header.Set("User-Agent", ctx.UserAgent())
 
 		resp, err = client.Do(req)
 		if err != nil {
@@ -115,7 +127,7 @@ func tryDl(url string, dest string) (int64, error) {
 		comm.Log("Already fully downloaded")
 	}
 
-	err = checkIntegrity(resp.Header, totalBytes, dest)
+	err = CheckIntegrity(resp.Header, totalBytes, dest)
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)

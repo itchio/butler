@@ -177,6 +177,16 @@ func Result(value interface{}) {
 	})
 }
 
+type printerFunc func()
+
+func ResultOrPrint(value interface{}, p printerFunc) {
+	if settings.json {
+		Result(value)
+	} else {
+		p()
+	}
+}
+
 func Request(operation string, request string, params interface{}) {
 	send("request", jsonMessage{
 		"operation": operation,

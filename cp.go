@@ -8,6 +8,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/httpkit/retrycontext"
@@ -106,7 +107,7 @@ func tryCp(srcPath string, destPath string, resume bool) error {
 	if hf, ok := src.(*httpfile.HTTPFile); ok {
 		header := hf.GetHeader()
 		if header != nil {
-			err = checkIntegrity(header, totalBytes, destPath)
+			err = dl.CheckIntegrity(header, totalBytes, destPath)
 			if err != nil {
 				comm.Log("Integrity checks failed, truncating")
 				os.Truncate(destPath, 0)
@@ -135,7 +136,7 @@ func doCp(srcPath string, destPath string, resume bool) error {
 	for retryCtx.ShouldTry() {
 		err := tryCp(srcPath, destPath, resume)
 		if err != nil {
-			if IsIntegrityError(err) {
+			if dl.IsIntegrityError(err) {
 				retryCtx.Retry(err.Error())
 				continue
 			}

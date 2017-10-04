@@ -1,29 +1,43 @@
-package main
+package status
 
 import (
 	"fmt"
 	"os"
 	"sort"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/go-itchio"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/olekukonko/tablewriter"
 )
 
-func status(specStr string, showAllFiles bool) {
-	go versionCheck()
-	must(doStatus(specStr, showAllFiles))
+var args = struct {
+	target       *string
+	showAllFiles *bool
+}{}
+
+func Register(ctx *butler.Context) {
+	cmd := ctx.App.Command("status", "Show a list of channels and the status of their latest and pending builds.")
+	ctx.Register(cmd, do)
+
+	args.target = cmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon'").Required().String()
+	args.showAllFiles = cmd.Flag("show-all-files", "Show status of all files, not just archive").Bool()
 }
 
-func doStatus(specStr string, showAllFiles bool) error {
+func do(ctx *butler.Context) {
+	go ctx.DoVersionCheck()
+	ctx.Must(Do(ctx, *args.target, *args.showAllFiles))
+}
+
+func Do(ctx *butler.Context, specStr string, showAllFiles bool) error {
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
 
-	client, err := authenticateViaOauth()
+	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

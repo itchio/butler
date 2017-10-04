@@ -1,4 +1,4 @@
-package main
+package fetch
 
 import (
 	"fmt"
@@ -7,16 +7,30 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/go-itchio"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
 )
 
-func fetch(specStr string, outPath string) {
-	must(doFetch(specStr, outPath))
+var args = struct {
+	target *string
+	out    *string
+}{}
+
+func Register(ctx *butler.Context) {
+	cmd := ctx.App.Command("fetch", "Download and extract the latest build of a channel from itch.io")
+	ctx.Register(cmd, do)
+
+	args.target = cmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String()
+	args.out = cmd.Arg("out", "Directory to fetch and extract build to").Required().String()
 }
 
-func doFetch(specStr string, outPath string) error {
+func do(ctx *butler.Context) {
+	ctx.Must(Do(ctx, *args.target, *args.out))
+}
+
+func Do(ctx *butler.Context, specStr string, outPath string) error {
 	err := os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -41,7 +55,7 @@ func doFetch(specStr string, outPath string) error {
 		return errors.Wrap(err, 1)
 	}
 
-	client, err := authenticateViaOauth()
+	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

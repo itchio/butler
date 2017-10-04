@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -11,10 +10,18 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/butler"
+	"github.com/itchio/butler/cmd/dl"
+	"github.com/itchio/butler/cmd/fetch"
+	"github.com/itchio/butler/cmd/login"
+	"github.com/itchio/butler/cmd/logout"
+	"github.com/itchio/butler/cmd/msi"
+	"github.com/itchio/butler/cmd/prereqs"
+	"github.com/itchio/butler/cmd/status"
+	"github.com/itchio/butler/cmd/upgrade"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/go-itchio/itchfs"
@@ -40,7 +47,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	dlCmd = app.Command("dl", "Download a file (resumes if can, checks hashes)").Hidden()
 	cpCmd = app.Command("cp", "Copy src to dest").Hidden()
 
 	untarCmd    = app.Command("untar", "Extract a .tar file").Hidden()
@@ -51,12 +57,6 @@ var (
 	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
-	loginCmd  = app.Command("login", "Connect butler to your itch.io account and save credentials locally.")
-	logoutCmd = app.Command("logout", "Remove saved itch.io credentials.")
-	pushCmd   = app.Command("push", "Upload a new build to itch.io. See `butler help push`.")
-	fetchCmd  = app.Command("fetch", "Download and extract the latest build of a channel from itch.io")
-	statusCmd = app.Command("status", "Show a list of channels and the status of their latest and pending builds.")
-
 	fileCmd  = app.Command("file", "Prints the type of a given file, and some stats about it")
 	lsCmd    = app.Command("ls", "Prints the list of files, dirs and symlinks contained in a patch file, signature file, or archive")
 	walkCmd  = app.Command("walk", "Finds all files in a directory").Hidden()
@@ -64,9 +64,6 @@ var (
 
 	whichCmd   = app.Command("which", "Prints the path to this binary")
 	versionCmd = app.Command("version", "Prints the current version of butler")
-	upgradeCmd = app.Command("upgrade", "Upgrades butler to the latest version")
-	ugpradeCmd = app.Command("ugprade", "Upgrades butler to the latest version (alias of upgrade for Adam)").Hidden()
-	updateCmd  = app.Command("update", "Upgrades butler to the latest version (alias of upgrade)")
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -77,13 +74,6 @@ var (
 	caveCmd = app.Command("cave", "Handle a cave (game install) for the itch app").Hidden()
 
 	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
-
-	installPrereqsCmd = app.Command("install-prereqs", "Install prerequisites from an install plan").Hidden()
-	testPrereqsCmd    = app.Command("test-prereqs", "Download and install a bunch of prerequisites from their names").Hidden()
-	msiInfoCmd        = app.Command("msi-info", "Show information about an MSI file").Hidden()
-	msiProductInfoCmd = app.Command("msi-product-info", "Show information an installed product").Hidden()
-	msiInstallCmd     = app.Command("msi-install", "Install or repair an MSI package").Hidden()
-	msiUninstallCmd   = app.Command("msi-uninstall", "Uninstall an MSI package").Hidden()
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -108,8 +98,6 @@ var appArgs = struct {
 	compressionAlgorithm *string
 	compressionQuality   *int
 
-	maxChunkGroup *int
-
 	cpuprofile *string
 	memstats   *bool
 	elevate    *bool
@@ -129,8 +117,6 @@ var appArgs = struct {
 	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip", "zstd"),
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 
-	app.Flag("maxchunkgroup", "How many 256KB chunks butler will attempt to send in a single HTTP request").Default("64").Hidden().Int(),
-
 	app.Flag("cpuprofile", "Write CPU profile to given file").Hidden().String(),
 	app.Flag("memstats", "Print memory stats for some operations").Hidden().Bool(),
 
@@ -141,18 +127,6 @@ var scriptArgs = struct {
 	file *string
 }{
 	scriptCmd.Arg("file", "File containing a list of butler commands, one per line, with 'butler' omitted").Required().String(),
-}
-
-var dlArgs = struct {
-	url  *string
-	dest *string
-
-	thorough *bool
-}{
-	dlCmd.Arg("url", "Address to download from").Required().String(),
-	dlCmd.Arg("dest", "File to write downloaded data to").Required().String(),
-
-	dlCmd.Flag("thorough", "Check all available hashes").Bool(),
 }
 
 var cpArgs = struct {
@@ -181,36 +155,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var pushArgs = struct {
-	src             *string
-	target          *string
-	userVersion     *string
-	userVersionFile *string
-	fixPerms        *bool
-}{
-	pushCmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String(),
-	pushCmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String(),
-	pushCmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String(),
-	pushCmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String(),
-	pushCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
-}
-
-var fetchArgs = struct {
-	target *string
-	out    *string
-}{
-	fetchCmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String(),
-	fetchCmd.Arg("out", "Directory to fetch and extract build to").Required().String(),
-}
-
-var statusArgs = struct {
-	target       *string
-	showAllFiles *bool
-}{
-	statusCmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon'").Required().String(),
-	statusCmd.Flag("show-all-files", "Show status of all files, not just archive").Bool(),
 }
 
 var untarArgs = struct {
@@ -369,66 +313,6 @@ var cleanArgs = struct {
 	cleanCmd.Arg("plan", "A .json plan containing a list of entries to remove").Required().String(),
 }
 
-var upgradeArgs = struct {
-	head *bool
-}{
-	upgradeCmd.Flag("head", "Install bleeding-edge version").Bool(),
-}
-
-var ugpradeArgs = struct {
-	head *bool
-}{
-	ugpradeCmd.Flag("head", "Install bleeding-edge version").Bool(),
-}
-
-var updateArgs = struct {
-	head *bool
-}{
-	updateCmd.Flag("head", "Install bleeding-edge version").Bool(),
-}
-
-var installPrereqsArgs = struct {
-	plan *string
-	pipe *string
-}{
-	installPrereqsCmd.Arg("plan", "The plan to follow").Required().String(),
-	installPrereqsCmd.Flag("pipe", "Named pipe where to write status updates").String(),
-}
-
-var testPrereqsArgs = struct {
-	prereqs *[]string
-}{
-	testPrereqsCmd.Arg("prereqs", "Which prereqs to install (space-separated). Leave empty to get a list").Strings(),
-}
-
-var msiInfoArgs = struct {
-	msiPath *string
-}{
-	msiInfoCmd.Arg("msiPath", "Path to the MSI file").Required().String(),
-}
-
-var msiProductInfoArgs = struct {
-	productCode *string
-}{
-	msiProductInfoCmd.Arg("productCode", "The product code to print info for").Required().String(),
-}
-
-var msiInstallArgs = struct {
-	msiPath *string
-	logPath *string
-	target  *string
-}{
-	msiInstallCmd.Arg("msiPath", "Path to the MSI file").Required().String(),
-	msiInstallCmd.Flag("logPath", "Where to write a (very verbose) install log").String(),
-	msiInstallCmd.Flag("target", "Where to install the MSI (does not work with all packages)").String(),
-}
-
-var msiUninstallArgs = struct {
-	productCode *string
-}{
-	msiUninstallCmd.Arg("productCode", "Product code to uninstall").Required().String(),
-}
-
 var exePropsArgs = struct {
 	path *string
 }{
@@ -515,6 +399,28 @@ func main() {
 }
 
 func doMain(args []string) {
+	ctx := butler.NewContext(app)
+
+	///////////////////////////
+	// Command register start
+	///////////////////////////
+
+	login.Register(ctx)
+	logout.Register(ctx)
+	upgrade.Register(ctx)
+
+	dl.Register(ctx)
+
+	status.Register(ctx)
+	fetch.Register(ctx)
+
+	msi.Register(ctx)
+	prereqs.Register(ctx)
+
+	///////////////////////////
+	// Command register end
+	///////////////////////////
+
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&filtering.IgnoredPaths)
 
@@ -603,41 +509,21 @@ func doMain(args []string) {
 		defer pprof.StopCPUProfile()
 	}
 
-	switch kingpin.MustParse(cmd, err) {
+	fullCmd := kingpin.MustParse(cmd, err)
+
+	ctx.Identity = *appArgs.identity
+	ctx.Address = *appArgs.address
+	ctx.VersionString = versionString
+	ctx.Version = version
+	ctx.Quiet = *appArgs.quiet
+	ctx.Verbose = *appArgs.verbose
+
+	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
 
-	case dlCmd.FullCommand():
-		dl(*dlArgs.url, *dlArgs.dest)
-
 	case cpCmd.FullCommand():
 		cp(*cpArgs.src, *cpArgs.dest, *cpArgs.resume)
-
-	case loginCmd.FullCommand():
-		login()
-
-	case logoutCmd.FullCommand():
-		logout()
-
-	case pushCmd.FullCommand():
-		{
-			userVersion := *pushArgs.userVersion
-			if userVersion == "" && *pushArgs.userVersionFile != "" {
-				buf, err := ioutil.ReadFile(*pushArgs.userVersionFile)
-				must(err)
-				userVersion = strings.TrimSpace(string(buf))
-				if strings.ContainsAny(userVersion, "\r\n") {
-					must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", *pushArgs.userVersionFile))
-				}
-			}
-			push(*pushArgs.src, *pushArgs.target, userVersion, *pushArgs.fixPerms)
-		}
-
-	case fetchCmd.FullCommand():
-		fetch(*fetchArgs.target, *fetchArgs.out)
-
-	case statusCmd.FullCommand():
-		status(*statusArgs.target, *statusArgs.showAllFiles)
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
@@ -696,33 +582,6 @@ func doMain(args []string) {
 	case cleanCmd.FullCommand():
 		clean(*cleanArgs.plan)
 
-	case upgradeCmd.FullCommand():
-		upgrade(*upgradeArgs.head)
-
-	case ugpradeCmd.FullCommand():
-		upgrade(*upgradeArgs.head)
-
-	case updateCmd.FullCommand():
-		upgrade(*updateArgs.head)
-
-	case installPrereqsCmd.FullCommand():
-		installPrereqs(*installPrereqsArgs.plan, *installPrereqsArgs.pipe)
-
-	case testPrereqsCmd.FullCommand():
-		testPrereqs(*testPrereqsArgs.prereqs)
-
-	case msiInfoCmd.FullCommand():
-		msiInfo(*msiInfoArgs.msiPath)
-
-	case msiProductInfoCmd.FullCommand():
-		msiProductInfo(*msiProductInfoArgs.productCode)
-
-	case msiInstallCmd.FullCommand():
-		msiInstall(*msiInstallArgs.msiPath, *msiInstallArgs.logPath, *msiInstallArgs.target)
-
-	case msiUninstallCmd.FullCommand():
-		msiUninstall(*msiUninstallArgs.productCode)
-
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)
 
@@ -740,6 +599,14 @@ func doMain(args []string) {
 
 	case caveCmd.FullCommand():
 		cave()
+
+	default:
+		do := ctx.Commands[fullCmd]
+		if do != nil {
+			do(ctx)
+		} else {
+			comm.Dief("Unknown command: %s", fullCmd)
+		}
 	}
 }
 
