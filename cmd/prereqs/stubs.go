@@ -1,6 +1,6 @@
 // +build !windows
 
-package testprereqs
+package prereqs
 
 import (
 	"fmt"
