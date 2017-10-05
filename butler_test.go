@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/dustin/go-humanize"
+	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/sign"
@@ -193,7 +194,12 @@ func TestAllTheThings(t *testing.T) {
 		cave := path.Join(workingDir, "cave")
 		ditto.Do(samplePerm1, cave)
 
-		mist(t, doApply(patch, cave, cave, true, "", "", "", ""))
+		mist(t, apply.Do(&apply.Params{
+			Patch:   patch,
+			Target:  cave,
+			Output:  cave,
+			InPlace: true,
+		}))
 		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
 	}
 }
