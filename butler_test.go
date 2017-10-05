@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/dustin/go-humanize"
+	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/comm"
@@ -122,7 +123,12 @@ func TestAllTheThings(t *testing.T) {
 
 		for lhs := range files {
 			for rhs := range files {
-				mist(t, doDiff(files[lhs], files[rhs], patch, compression))
+				mist(t, diff.Do(&diff.Params{
+					Target:      files[lhs],
+					Source:      files[rhs],
+					Patch:       patch,
+					Compression: compression,
+				}))
 				stat, err := os.Lstat(patch)
 				mist(t, err)
 				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.IBytes(uint64(stat.Size())))
@@ -175,7 +181,12 @@ func TestAllTheThings(t *testing.T) {
 
 		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm2, "dummy1.dat"))))
 
-		mist(t, doDiff(samplePerm1, samplePerm2, patch, compression))
+		mist(t, diff.Do(&diff.Params{
+			Target:      samplePerm1,
+			Source:      samplePerm2,
+			Patch:       patch,
+			Compression: compression,
+		}))
 		_, err := os.Lstat(patch)
 		mist(t, err)
 

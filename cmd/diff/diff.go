@@ -37,7 +37,7 @@ func Register(ctx *mansion.Context) {
 	ctx.Register(cmd, do)
 }
 
-type DiffParams struct {
+type Params struct {
 	// Target is the old version of the data
 	Target string
 	// Source is the new version of the data
@@ -50,7 +50,7 @@ type DiffParams struct {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(&DiffParams{
+	ctx.Must(Do(&Params{
 		Target:      *args.old,
 		Source:      *args.new,
 		Patch:       *args.patch,
@@ -59,7 +59,7 @@ func do(ctx *mansion.Context) {
 	}))
 }
 
-func Do(params *DiffParams) error {
+func Do(params *Params) error {
 	var err error
 
 	startTime := time.Now()
