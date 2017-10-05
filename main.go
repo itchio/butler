@@ -27,6 +27,7 @@ import (
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/status"
+	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
 	"github.com/itchio/butler/cmd/upgrade"
 	"github.com/itchio/butler/cmd/version"
@@ -58,7 +59,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	untarCmd    = app.Command("untar", "Extract a .tar file").Hidden()
 	indexZipCmd = app.Command("index-zip", "Generate an index for a .zip file").Hidden()
 	wipeCmd     = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
 	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
@@ -140,14 +140,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var untarArgs = struct {
-	file *string
-	dir  *string
-}{
-	untarCmd.Arg("file", "Path of the .tar archive to extract").Required().String(),
-	untarCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
 }
 
 var indexZipArgs = struct {
@@ -349,6 +341,7 @@ func doMain(args []string) {
 	prereqs.Register(ctx)
 
 	unzip.Register(ctx)
+	untar.Register(ctx)
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
@@ -461,9 +454,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case untarCmd.FullCommand():
-		untar(*untarArgs.file, *untarArgs.dir)
 
 	case indexZipCmd.FullCommand():
 		indexZip(*indexZipArgs.file, *indexZipArgs.output)
