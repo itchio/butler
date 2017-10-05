@@ -1,4 +1,4 @@
-package main
+package probe
 
 import (
 	"fmt"
@@ -6,17 +6,28 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
 
-func probe(patch string) {
-	must(doProbe(patch))
+var args = struct {
+	patch *string
+}{}
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
+	args.patch = cmd.Arg("patch", "Path of the patch to analyze").Required().String()
+	ctx.Register(cmd, do)
 }
 
-func doProbe(patch string) error {
+func do(ctx *mansion.Context) {
+	ctx.Must(Do(ctx, *args.patch))
+}
+
+func Do(ctx *mansion.Context, patch string) error {
 	patchReader, err := eos.Open(patch)
 	if err != nil {
 		return err
@@ -106,7 +117,7 @@ func doProbe(patch string) error {
 				pos += totalSize
 			case pwr.SyncOp_DATA:
 				totalSize := int64(len(rop.Data))
-				if *appArgs.verbose {
+				if ctx.Verbose {
 					comm.Debugf("%s fresh data at %s (%d-%d)", humanize.IBytes(uint64(totalSize)), humanize.IBytes(uint64(pos)),
 						pos, pos+totalSize)
 				}

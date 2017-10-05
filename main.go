@@ -29,6 +29,7 @@ import (
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
+	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/untar"
@@ -69,8 +70,6 @@ var (
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
-
-	probeCmd = app.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -211,12 +210,6 @@ var healArgs = struct {
 	healCmd.Arg("spec", "Path of spec to heal with").Required().String(),
 }
 
-var probeArgs = struct {
-	patch *string
-}{
-	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
-}
-
 var exePropsArgs = struct {
 	path *string
 }{
@@ -302,6 +295,7 @@ func doMain(args []string) {
 	mkdir.Register(ctx)
 	ditto.Register(ctx)
 	file.Register(ctx)
+	probe.Register(ctx)
 
 	clean.Register(ctx)
 	walk.Register(ctx)
@@ -440,9 +434,6 @@ func doMain(args []string) {
 
 	case healCmd.FullCommand():
 		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)
-
-	case probeCmd.FullCommand():
-		probe(*probeArgs.patch)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)
