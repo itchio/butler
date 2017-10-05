@@ -1,4 +1,4 @@
-package main
+package indexzip
 
 import (
 	"io"
@@ -8,15 +8,28 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
-func indexZip(file string, output string) {
-	must(doIndexZip(file, output))
+var args = struct {
+	file   *string
+	output *string
+}{}
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("index-zip", "Generate an index for a .zip file").Hidden()
+	args.file = cmd.Arg("file", "Path of the .zip archive to index").Required().String()
+	args.output = cmd.Flag("output", "Path to write the .pzi file to").Short('o').Default("index.pzi").String()
+	ctx.Register(cmd, do)
 }
 
-func doIndexZip(file string, output string) error {
+func do(ctx *mansion.Context) {
+	ctx.Must(Do(ctx, *args.file, *args.output))
+}
+
+func Do(ctx *mansion.Context, file string, output string) error {
 	ic := &pwr.ZipIndexerContext{
 		Consumer: comm.NewStateConsumer(),
 	}

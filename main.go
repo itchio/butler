@@ -20,6 +20,7 @@ import (
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
+	"github.com/itchio/butler/cmd/indexzip"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
@@ -59,11 +60,10 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	indexZipCmd = app.Command("index-zip", "Generate an index for a .zip file").Hidden()
-	wipeCmd     = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
-	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
-	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
-	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
+	wipeCmd   = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
+	dittoCmd  = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
+	mkdirCmd  = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
+	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -140,14 +140,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var indexZipArgs = struct {
-	file   *string
-	output *string
-}{
-	indexZipCmd.Arg("file", "Path of the .zip archive to index").Required().String(),
-	indexZipCmd.Flag("output", "Path to write the .pzi file to").Short('o').Default("index.pzi").String(),
 }
 
 var wipeArgs = struct {
@@ -342,6 +334,7 @@ func doMain(args []string) {
 
 	unzip.Register(ctx)
 	untar.Register(ctx)
+	indexzip.Register(ctx)
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
@@ -454,9 +447,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case indexZipCmd.FullCommand():
-		indexZip(*indexZipArgs.file, *indexZipArgs.output)
 
 	case wipeCmd.FullCommand():
 		wipe(*wipeArgs.path)
