@@ -1,22 +1,79 @@
-package main
+package apply
 
 import (
 	"fmt"
 	"path"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
 
-func apply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string, stagePath string) {
-	must(doApply(patch, target, output, inplace, signaturePath, woundsPath, healSpec, stagePath))
+var args = struct {
+	patch *string
+	old   *string
+
+	dir       *string
+	inplace   *bool
+	signature *string
+	wounds    *string
+	heal      *string
+	stage     *string
+}{}
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
+	args.patch = cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String()
+	args.old = cmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String()
+
+	args.dir = cmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String()
+	args.inplace = cmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool()
+	args.signature = cmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String()
+	args.wounds = cmd.Flag("wounds", "When given, write wounds to this path instead of failing (exclusive with --heal)").String()
+	args.heal = cmd.Flag("heal", "When given, heal using specified source instead of failing (exclusive with --wounds)").String()
+	args.stage = cmd.Flag("stage", "When given, use that folder for intermediary files when doing in-place ptching").String()
+	ctx.Register(cmd, do)
 }
 
-func doApply(patch string, target string, output string, inplace bool, signaturePath string, woundsPath string, healSpec string, stagePath string) error {
+func do(ctx *mansion.Context) {
+	ctx.Must(Do(&Params{
+		Patch:  *args.patch,
+		Target: *args.old,
+
+		Output:        *args.dir,
+		InPlace:       *args.inplace,
+		SignaturePath: *args.signature,
+		WoundsPath:    *args.wounds,
+		HealSpec:      *args.heal,
+		StagePath:     *args.stage,
+	}))
+}
+
+type Params struct {
+	Patch  string
+	Target string
+
+	Output        string
+	InPlace       bool
+	SignaturePath string
+	WoundsPath    string
+	HealSpec      string
+	StagePath     string
+}
+
+func Do(params *Params) error {
+	output := params.Output
+	target := params.Target
+	signaturePath := params.SignaturePath
+	patch := params.Patch
+	stagePath := params.StagePath
+	woundsPath := params.WoundsPath
+	healSpec := params.HealSpec
+
 	if output == "" {
 		output = target
 	}
@@ -24,7 +81,7 @@ func doApply(patch string, target string, output string, inplace bool, signature
 	target = path.Clean(target)
 	output = path.Clean(output)
 	if output == target {
-		if !inplace {
+		if !params.InPlace {
 			comm.Dief("Refusing to destructively patch %s without --inplace", output)
 		}
 	}
@@ -59,7 +116,7 @@ func doApply(patch string, target string, output string, inplace bool, signature
 	actx := &pwr.ApplyContext{
 		TargetPath: target,
 		OutputPath: output,
-		InPlace:    inplace,
+		InPlace:    params.InPlace,
 		Signature:  signature,
 		WoundsPath: woundsPath,
 		StagePath:  stagePath,

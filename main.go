@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/cp"
@@ -68,8 +69,7 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	applyCmd = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
-	healCmd  = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
+	healCmd = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -138,30 +138,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var applyArgs = struct {
-	patch *string
-	old   *string
-
-	dir       *string
-	reverse   *string
-	inplace   *bool
-	signature *string
-	wounds    *string
-	heal      *string
-	stage     *string
-}{
-	applyCmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String(),
-	applyCmd.Arg("old", "Directory, archive, or empty directory (/dev/null) to patch").Required().String(),
-
-	applyCmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String(),
-	applyCmd.Flag("reverse", "When given, generates a reverse patch to allow rolling back later, along with its signature").Hidden().String(),
-	applyCmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool(),
-	applyCmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String(),
-	applyCmd.Flag("wounds", "When given, write wounds to this path instead of failing (exclusive with --heal)").String(),
-	applyCmd.Flag("heal", "When given, heal using specified source instead of failing (exclusive with --wounds)").String(),
-	applyCmd.Flag("stage", "When given, use that folder for intermediary files when doing in-place ptching").String(),
 }
 
 var healArgs = struct {
@@ -266,6 +242,7 @@ func doMain(args []string) {
 
 	sign.Register(ctx)
 	diff.Register(ctx)
+	apply.Register(ctx)
 	verify.Register(ctx)
 
 	status.Register(ctx)
@@ -389,9 +366,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case applyCmd.FullCommand():
-		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds, *applyArgs.heal, *applyArgs.stage)
 
 	case healCmd.FullCommand():
 		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)
