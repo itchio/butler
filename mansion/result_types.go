@@ -44,3 +44,12 @@ type FileMirroredResult struct {
 type ExePropsResult struct {
 	Arch string `json:"arch"`
 }
+
+// ElfPropsResult contains the architecture of a binary file, and
+// optionally a list of libraries it depends on
+//
+// For command `elfprops`
+type ElfPropsResult struct {
+	Arch      string   `json:"arch"`
+	Libraries []string `json:"libraries"`
+}

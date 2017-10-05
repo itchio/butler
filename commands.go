@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
+	"github.com/itchio/butler/cmd/elfprops"
 	"github.com/itchio/butler/cmd/exeprops"
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
@@ -80,6 +81,7 @@ func registerCommands(ctx *mansion.Context) {
 	elevate.Register(ctx)
 
 	exeprops.Register(ctx)
+	elfprops.Register(ctx)
 
 	configure.Register(ctx)
 	cave.Register(ctx)

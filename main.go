@@ -38,8 +38,6 @@ var (
 	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
-
-	elfPropsCmd = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
 )
 
 var appArgs = struct {
@@ -104,12 +102,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var elfPropsArgs = struct {
-	path *string
-}{
-	elfPropsCmd.Arg("path", "The ELF binary to analyze").Required().String(),
 }
 
 func must(err error) {
@@ -225,9 +217,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(ctx, *scriptArgs.file)
-
-	case elfPropsCmd.FullCommand():
-		elfProps(*elfPropsArgs.path)
 
 	default:
 		do := ctx.Commands[fullCmd]
