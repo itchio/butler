@@ -39,9 +39,8 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
-	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
-	configureCmd = app.Command("configure", "(Advanced) Look for launchables in a directory").Hidden()
+	exePropsCmd = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
+	elfPropsCmd = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
 )
 
 var appArgs = struct {
@@ -118,20 +117,6 @@ var elfPropsArgs = struct {
 	path *string
 }{
 	elfPropsCmd.Arg("path", "The ELF binary to analyze").Required().String(),
-}
-
-var configureArgs = struct {
-	path       *string
-	showSpell  *bool
-	osFilter   *string
-	archFilter *string
-	noFilter   *bool
-}{
-	configureCmd.Arg("path", "The directory to configure").Required().String(),
-	configureCmd.Flag("show-spell", "Show spell for all targets").Bool(),
-	configureCmd.Flag("os-filter", "OS filter").Default(runtime.GOOS).String(),
-	configureCmd.Flag("arch-filter", "Architecture filter").Default(runtime.GOARCH).String(),
-	configureCmd.Flag("no-filter", "Do not filter at all").Bool(),
 }
 
 func must(err error) {
@@ -253,9 +238,6 @@ func doMain(args []string) {
 
 	case elfPropsCmd.FullCommand():
 		elfProps(*elfPropsArgs.path)
-
-	case configureCmd.FullCommand():
-		configure(*configureArgs.path, *configureArgs.showSpell, *configureArgs.osFilter, *configureArgs.archFilter, *configureArgs.noFilter)
 
 	default:
 		do := ctx.Commands[fullCmd]

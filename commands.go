@@ -4,6 +4,7 @@ import (
 	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/clean"
+	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
@@ -77,5 +78,6 @@ func registerCommands(ctx *mansion.Context) {
 	pipe.Register(ctx)
 	elevate.Register(ctx)
 
+	configure.Register(ctx)
 	cave.Register(ctx)
 }
