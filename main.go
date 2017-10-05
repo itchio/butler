@@ -25,6 +25,7 @@ import (
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
+	"github.com/itchio/butler/cmd/mkdir"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
@@ -62,7 +63,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	mkdirCmd  = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
@@ -140,12 +140,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var mkdirArgs = struct {
-	path *string
-}{
-	mkdirCmd.Arg("path", "Directory to create").Required().String(),
 }
 
 var sizeofArgs = struct {
@@ -311,6 +305,7 @@ func doMain(args []string) {
 	cp.Register(ctx)
 	ls.Register(ctx)
 	wipe.Register(ctx)
+	mkdir.Register(ctx)
 	ditto.Register(ctx)
 	file.Register(ctx)
 
@@ -436,9 +431,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case mkdirCmd.FullCommand():
-		mkdir(*mkdirArgs.path)
 
 	case sizeofCmd.FullCommand():
 		sizeof(*sizeofArgs.path)

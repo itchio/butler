@@ -6,14 +6,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/wharf/archiver"
 )
-
-func mkdir(dir string) {
-	comm.Debugf("mkdir -p %s", dir)
-
-	must(os.MkdirAll(dir, archiver.DirMode))
-}
 
 func sizeof(path string) {
 	totalSize := int64(0)
