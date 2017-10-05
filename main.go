@@ -29,6 +29,7 @@ import (
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/upgrade"
 	"github.com/itchio/butler/cmd/version"
+	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
@@ -63,8 +64,6 @@ var (
 	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
 	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
-
-	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -275,12 +274,6 @@ var probeArgs = struct {
 	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
 }
 
-var walkArgs = struct {
-	dir *string
-}{
-	walkCmd.Arg("dir", "A dir you want to walk").Required().String(),
-}
-
 var exePropsArgs = struct {
 	path *string
 }{
@@ -373,6 +366,7 @@ func doMain(args []string) {
 	elevate.Register(ctx)
 
 	clean.Register(ctx)
+	walk.Register(ctx)
 	cave.Register(ctx)
 
 	///////////////////////////
@@ -518,9 +512,6 @@ func doMain(args []string) {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
-
-	case walkCmd.FullCommand():
-		walk(*walkArgs.dir)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)
