@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/cp"
+	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
@@ -67,7 +68,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	diffCmd  = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
 	healCmd  = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
@@ -138,20 +138,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var diffArgs = struct {
-	old   *string
-	new   *string
-	patch *string
-
-	verify *bool
-}{
-	diffCmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String(),
-	diffCmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().String(),
-	diffCmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").String(),
-
-	diffCmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").Bool(),
 }
 
 var applyArgs = struct {
@@ -279,6 +265,7 @@ func doMain(args []string) {
 	walk.Register(ctx)
 
 	sign.Register(ctx)
+	diff.Register(ctx)
 	verify.Register(ctx)
 
 	status.Register(ctx)
@@ -402,9 +389,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case diffCmd.FullCommand():
-		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
 
 	case applyCmd.FullCommand():
 		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds, *applyArgs.heal, *applyArgs.stage)
