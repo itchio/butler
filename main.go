@@ -27,6 +27,7 @@ import (
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/status"
+	"github.com/itchio/butler/cmd/unzip"
 	"github.com/itchio/butler/cmd/upgrade"
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
@@ -58,7 +59,6 @@ var (
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
 	untarCmd    = app.Command("untar", "Extract a .tar file").Hidden()
-	unzipCmd    = app.Command("unzip", "Extract a .zip file").Hidden()
 	indexZipCmd = app.Command("index-zip", "Generate an index for a .zip file").Hidden()
 	wipeCmd     = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
 	dittoCmd    = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
@@ -148,20 +148,6 @@ var untarArgs = struct {
 }{
 	untarCmd.Arg("file", "Path of the .tar archive to extract").Required().String(),
 	untarCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
-}
-
-var unzipArgs = struct {
-	file        *string
-	dir         *string
-	resumeFile  *string
-	dryRun      *bool
-	concurrency *int
-}{
-	unzipCmd.Arg("file", "Path of the .zip archive to extract").Required().String(),
-	unzipCmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String(),
-	unzipCmd.Flag("resume-file", "When given, write current progress to this file, resume from last location if it exists.").Short('f').String(),
-	unzipCmd.Flag("dry-run", "Do not write anything to disk").Short('n').Bool(),
-	unzipCmd.Flag("concurrency", "Number of workers to use (negative for numbers of CPUs - j)").Default("-1").Int(),
 }
 
 var indexZipArgs = struct {
@@ -362,6 +348,8 @@ func doMain(args []string) {
 	msi.Register(ctx)
 	prereqs.Register(ctx)
 
+	unzip.Register(ctx)
+
 	pipe.Register(ctx)
 	elevate.Register(ctx)
 
@@ -476,9 +464,6 @@ func doMain(args []string) {
 
 	case untarCmd.FullCommand():
 		untar(*untarArgs.file, *untarArgs.dir)
-
-	case unzipCmd.FullCommand():
-		unzip(*unzipArgs.file, *unzipArgs.dir, *unzipArgs.resumeFile, *unzipArgs.dryRun, *unzipArgs.concurrency)
 
 	case indexZipCmd.FullCommand():
 		indexZip(*indexZipArgs.file, *indexZipArgs.output)

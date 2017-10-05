@@ -16,3 +16,10 @@ type ContainerResult struct {
 	NumSymlinks      int      `json:"numSymlinks"`
 	UncompressedSize int64    `json:"uncompressedSize"`
 }
+
+// FileExtractedResult is sent as json so the consumer can know what we extracted
+// It is sent even if we're resuming an extract.
+type FileExtractedResult struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
