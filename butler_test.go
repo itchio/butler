@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/dustin/go-humanize"
+	"github.com/itchio/butler/cmd/ditto"
+	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -137,7 +139,7 @@ func TestAllTheThings(t *testing.T) {
 		t.Logf("Signing %s\n", filepath)
 
 		sigPath := path.Join(workingDir, "signature.pwr.sig")
-		mist(t, doSign(filepath, sigPath, compression, false))
+		mist(t, sign.Do(filepath, sigPath, compression, false))
 
 		sigReader, err := eos.Open(sigPath)
 		mist(t, err)
@@ -178,7 +180,7 @@ func TestAllTheThings(t *testing.T) {
 		mist(t, err)
 
 		cave := path.Join(workingDir, "cave")
-		ditto(samplePerm1, cave)
+		ditto.Do(samplePerm1, cave)
 
 		mist(t, doApply(patch, cave, cave, true, "", "", "", ""))
 		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))

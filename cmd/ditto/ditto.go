@@ -24,11 +24,11 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.src, *args.dst))
+	ctx.Must(Do(*args.src, *args.dst))
 }
 
 // Does not preserve users, nor permission, except the executable bit
-func Do(ctx *mansion.Context, src string, dst string) error {
+func Do(src string, dst string) error {
 	comm.Debugf("rsync -a %s %s", src, dst)
 
 	totalSize := int64(0)

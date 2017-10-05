@@ -31,10 +31,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.output, *args.signature, ctx.CompressionSettings(), *args.fixPerms))
+	ctx.Must(Do(*args.output, *args.signature, ctx.CompressionSettings(), *args.fixPerms))
 }
 
-func Do(ctx *mansion.Context, output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
+func Do(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
