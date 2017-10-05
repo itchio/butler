@@ -8,9 +8,9 @@ import (
 	"runtime"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/kardianos/osext"
 )
 
@@ -19,7 +19,8 @@ var args = struct {
 }{}
 
 func Register(ctx *mansion.Context) {
-	cmd := ctx.App.Command("upgrade", "Upgrades butler to the latest version")
+	// aliases include common misspellings
+	cmd := ctx.App.Command("upgrade", "Upgrades butler to the latest version").Alias("ugprade").Alias("update")
 	ctx.Register(cmd, do)
 
 	args.head = cmd.Flag("head", "Install bleeding-edge version").Bool()
