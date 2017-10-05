@@ -39,7 +39,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	exePropsCmd = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
 )
 
@@ -105,12 +104,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var exePropsArgs = struct {
-	path *string
-}{
-	exePropsCmd.Arg("path", "The exe to analyze").Required().String(),
 }
 
 var elfPropsArgs = struct {
@@ -232,9 +225,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(ctx, *scriptArgs.file)
-
-	case exePropsCmd.FullCommand():
-		exeProps(*exePropsArgs.path)
 
 	case elfPropsCmd.FullCommand():
 		elfProps(*elfPropsArgs.path)

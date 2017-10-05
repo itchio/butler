@@ -37,3 +37,10 @@ type FileMirroredResult struct {
 	Type string `json:"type"`
 	Path string `json:"path"`
 }
+
+// ExePropsResult contains the architecture of a binary file
+//
+// For command `exeprops`
+type ExePropsResult struct {
+	Arch string `json:"arch"`
+}
