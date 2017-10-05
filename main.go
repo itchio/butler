@@ -29,6 +29,7 @@ import (
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
+	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
@@ -62,8 +63,6 @@ var (
 	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
-
-	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -140,12 +139,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var sizeofArgs = struct {
-	path *string
-}{
-	sizeofCmd.Arg("path", "Directory to compute the size of").Required().String(),
 }
 
 var diffArgs = struct {
@@ -305,6 +298,7 @@ func doMain(args []string) {
 	cp.Register(ctx)
 	ls.Register(ctx)
 	wipe.Register(ctx)
+	sizeof.Register(ctx)
 	mkdir.Register(ctx)
 	ditto.Register(ctx)
 	file.Register(ctx)
@@ -431,9 +425,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case sizeofCmd.FullCommand():
-		sizeof(*sizeofArgs.path)
 
 	case diffCmd.FullCommand():
 		diff(*diffArgs.old, *diffArgs.new, *diffArgs.patch, butlerCompressionSettings())
