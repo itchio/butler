@@ -235,16 +235,7 @@ func doMain(args []string) {
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&filtering.IgnoredPaths)
 
 	app.HelpFlag.Short('h')
-	if butlerBuiltAt != "" {
-		epoch, err := strconv.ParseInt(butlerBuiltAt, 10, 64)
-		must(err)
-		butlerVersionString = fmt.Sprintf("%s, built on %s", butlerVersion, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
-	} else {
-		butlerVersionString = fmt.Sprintf("%s, no build date", butlerVersion)
-	}
-	if butlerCommit != "" {
-		butlerVersionString = fmt.Sprintf("%s, ref %s", butlerVersionString, butlerCommit)
-	}
+	buildVersionString()
 	app.Version(butlerVersionString)
 	app.VersionFlag.Short('V')
 	app.Author("Amos Wenger <amos@itch.io>")
@@ -259,6 +250,7 @@ func doMain(args []string) {
 		}
 	}
 
+	// we need to handle self-elevate real soon
 	if *appArgs.elevate {
 		var cmdLine []string
 
@@ -332,7 +324,7 @@ func doMain(args []string) {
 
 	switch fullCmd {
 	case scriptCmd.FullCommand():
-		script(*scriptArgs.file)
+		script(ctx, *scriptArgs.file)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)
@@ -370,8 +362,8 @@ func setupHTTPDebug() {
 	comm.Logf("serving pprof debug interface on %s", addr)
 }
 
-func script(scriptPath string) {
-	must(doScript(scriptPath))
+func script(ctx *mansion.Context, scriptPath string) {
+	ctx.Must(doScript(scriptPath))
 }
 
 func doScript(scriptPath string) error {
@@ -394,4 +386,20 @@ func doScript(scriptPath string) error {
 		doMain(args)
 	}
 	return nil
+}
+
+func buildVersionString() {
+	if butlerBuiltAt != "" {
+		epoch, err := strconv.ParseInt(butlerBuiltAt, 10, 64)
+		if err != nil {
+			butlerVersionString = fmt.Sprintf("%s, invalid build date", butlerVersion)
+		} else {
+			butlerVersionString = fmt.Sprintf("%s, built on %s", butlerVersion, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
+		}
+	} else {
+		butlerVersionString = fmt.Sprintf("%s, no build date", butlerVersion)
+	}
+	if butlerCommit != "" {
+		butlerVersionString = fmt.Sprintf("%s, ref %s", butlerVersionString, butlerCommit)
+	}
 }
