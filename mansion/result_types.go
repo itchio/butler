@@ -1,6 +1,8 @@
 package mansion
 
 // WalkResult is sent for each item that's walked
+//
+// For command `walk`
 type WalkResult struct {
 	Type string `json:"type"`
 	Path string `json:"path,omitempty"`
@@ -8,6 +10,8 @@ type WalkResult struct {
 }
 
 // A ContainerResult is sent in json mode by the file command
+//
+// For command `file`
 type ContainerResult struct {
 	Type             string   `json:"type"`
 	Spell            []string `json:"spell"`
@@ -19,7 +23,17 @@ type ContainerResult struct {
 
 // FileExtractedResult is sent as json so the consumer can know what we extracted
 // It is sent even if we're resuming an extract.
+//
+// For command `unzip`
 type FileExtractedResult struct {
+	Type string `json:"type"`
+	Path string `json:"path"`
+}
+
+// FileMirroredResult is sent as json so the consumer can know what we mirrored
+//
+// For command `ditto`
+type FileMirroredResult struct {
 	Type string `json:"type"`
 	Path string `json:"path"`
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/cp"
+	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/fetch"
@@ -61,7 +62,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	dittoCmd  = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
 	mkdirCmd  = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
@@ -152,14 +152,6 @@ var sizeofArgs = struct {
 	path *string
 }{
 	sizeofCmd.Arg("path", "Directory to compute the size of").Required().String(),
-}
-
-var dittoArgs = struct {
-	src *string
-	dst *string
-}{
-	dittoCmd.Arg("src", "Directory to mirror").Required().String(),
-	dittoCmd.Arg("dst", "Path where to create a mirror").Required().String(),
 }
 
 var diffArgs = struct {
@@ -319,6 +311,7 @@ func doMain(args []string) {
 	cp.Register(ctx)
 	ls.Register(ctx)
 	wipe.Register(ctx)
+	ditto.Register(ctx)
 	file.Register(ctx)
 
 	clean.Register(ctx)
@@ -446,9 +439,6 @@ func doMain(args []string) {
 
 	case mkdirCmd.FullCommand():
 		mkdir(*mkdirArgs.path)
-
-	case dittoCmd.FullCommand():
-		ditto(*dittoArgs.src, *dittoArgs.dst)
 
 	case sizeofCmd.FullCommand():
 		sizeof(*sizeofArgs.path)
