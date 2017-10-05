@@ -27,6 +27,8 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/upgrade"
+	"github.com/itchio/butler/cmd/version"
+	"github.com/itchio/butler/cmd/which"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -45,11 +47,11 @@ import (
 import "C"
 
 var (
-	version       = "head" // set by command-line on CI release builds
-	builtAt       = ""     // set by command-line on CI release builds
-	commit        = ""     // set by command-line on CI release builds
-	versionString = ""     // formatted on boot from 'version' and 'builtAt'
-	app           = kingpin.New("butler", "Your happy little itch.io helper")
+	butlerVersion       = "head" // set by command-line on CI release builds
+	butlerBuiltAt       = ""     // set by command-line on CI release builds
+	butlerCommit        = ""     // set by command-line on CI release builds
+	butlerVersionString = ""     // formatted on boot from 'version' and 'builtAt'
+	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
@@ -63,9 +65,6 @@ var (
 
 	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
 	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
-
-	whichCmd   = app.Command("which", "Prints the path to this binary")
-	versionCmd = app.Command("version", "Prints the current version of butler")
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
@@ -325,10 +324,6 @@ func must(err error) {
 	}
 }
 
-func userAgent() string {
-	return fmt.Sprintf("butler/%s", versionString)
-}
-
 func butlerCompressionSettings() pwr.CompressionSettings {
 	var algo pwr.CompressionAlgorithm
 
@@ -362,6 +357,9 @@ func doMain(args []string) {
 	// Command register start
 	///////////////////////////
 
+	version.Register(ctx)
+	which.Register(ctx)
+
 	login.Register(ctx)
 	logout.Register(ctx)
 	upgrade.Register(ctx)
@@ -390,17 +388,17 @@ func doMain(args []string) {
 	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&filtering.IgnoredPaths)
 
 	app.HelpFlag.Short('h')
-	if builtAt != "" {
-		epoch, err := strconv.ParseInt(builtAt, 10, 64)
+	if butlerBuiltAt != "" {
+		epoch, err := strconv.ParseInt(butlerBuiltAt, 10, 64)
 		must(err)
-		versionString = fmt.Sprintf("%s, built on %s", version, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
+		butlerVersionString = fmt.Sprintf("%s, built on %s", butlerVersion, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
 	} else {
-		versionString = fmt.Sprintf("%s, no build date", version)
+		butlerVersionString = fmt.Sprintf("%s, no build date", butlerVersion)
 	}
-	if commit != "" {
-		versionString = fmt.Sprintf("%s, ref %s", versionString, commit)
+	if butlerCommit != "" {
+		butlerVersionString = fmt.Sprintf("%s, ref %s", butlerVersionString, butlerCommit)
 	}
-	app.Version(versionString)
+	app.Version(butlerVersionString)
 	app.VersionFlag.Short('V')
 	app.Author("Amos Wenger <amos@itch.io>")
 
@@ -478,8 +476,8 @@ func doMain(args []string) {
 
 	ctx.Identity = *appArgs.identity
 	ctx.Address = *appArgs.address
-	ctx.VersionString = versionString
-	ctx.Version = version
+	ctx.VersionString = butlerVersionString
+	ctx.Version = butlerVersion
 	ctx.Quiet = *appArgs.quiet
 	ctx.Verbose = *appArgs.verbose
 
@@ -525,12 +523,6 @@ func doMain(args []string) {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
-
-	case whichCmd.FullCommand():
-		which()
-
-	case versionCmd.FullCommand():
-		log.Println(versionString)
 
 	case fileCmd.FullCommand():
 		file(*fileArgs.file)

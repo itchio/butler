@@ -17,7 +17,6 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
-	"github.com/kardianos/osext"
 )
 
 // A ContainerResult is sent in json mode by the file command
@@ -28,14 +27,6 @@ type ContainerResult struct {
 	NumDirs          int      `json:"numDirs"`
 	NumSymlinks      int      `json:"numSymlinks"`
 	UncompressedSize int64    `json:"uncompressedSize"`
-}
-
-func which() {
-	p, err := osext.Executable()
-	must(err)
-
-	comm.Logf("You're running butler %s, from the following path:", versionString)
-	comm.Logf("%s", p)
 }
 
 func file(inPath string) {
