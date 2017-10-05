@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
@@ -15,63 +14,6 @@ func mkdir(dir string) {
 	comm.Debugf("mkdir -p %s", dir)
 
 	must(os.MkdirAll(dir, archiver.DirMode))
-}
-
-func wipe(path string) {
-	// why have retry logic built into wipe? sometimes when uninstalling
-	// games on windows, the os will randomly return I/O errors, retrying
-	// usually helps.
-	attempt := 0
-	sleepPatterns := []time.Duration{
-		time.Millisecond * 200,
-		time.Millisecond * 800,
-		time.Millisecond * 1600,
-		time.Millisecond * 3200,
-	}
-
-	for attempt <= len(sleepPatterns) {
-		err := tryWipe(path)
-		if err == nil {
-			break
-		}
-
-		if attempt == len(sleepPatterns) {
-			comm.Dief("Could not wipe %s: %s", path, err.Error())
-		}
-
-		comm.Logf("While wiping %s: %s", path, err.Error())
-
-		comm.Logf("Trying to brute-force permissions, who knows...")
-		err = tryChmod(path)
-		if err != nil {
-			comm.Logf("While bruteforcing: %s", err.Error())
-		}
-
-		comm.Logf("Sleeping for a bit before we retry...")
-		sleepDuration := sleepPatterns[attempt]
-		time.Sleep(sleepDuration)
-		attempt++
-	}
-}
-
-func tryWipe(path string) error {
-	comm.Debugf("rm -rf %s", path)
-	return os.RemoveAll(path)
-}
-
-func tryChmod(path string) error {
-	// oh yeah?
-	chmodAll := func(childpath string, f os.FileInfo, err error) error {
-		if err != nil {
-			// ignore walking errors
-			return nil
-		}
-
-		// don't ignore chmodding errors
-		return os.Chmod(childpath, os.FileMode(archiver.LuckyMode))
-	}
-
-	return filepath.Walk(path, chmodAll)
 }
 
 // FileMirrored is sent as json so the consumer can know what we mirrored.

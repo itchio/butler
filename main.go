@@ -34,6 +34,7 @@ import (
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
+	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -60,7 +61,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	wipeCmd   = app.Command("wipe", "Completely remove a directory (rm -rf)").Hidden()
 	dittoCmd  = app.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
 	mkdirCmd  = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd = app.Command("sizeof", "Compute the total size of a directory").Hidden()
@@ -140,12 +140,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var wipeArgs = struct {
-	path *string
-}{
-	wipeCmd.Arg("path", "Path to completely remove, including its contents").Required().String(),
 }
 
 var mkdirArgs = struct {
@@ -324,7 +318,11 @@ func doMain(args []string) {
 	dl.Register(ctx)
 	cp.Register(ctx)
 	ls.Register(ctx)
+	wipe.Register(ctx)
 	file.Register(ctx)
+
+	clean.Register(ctx)
+	walk.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -339,8 +337,6 @@ func doMain(args []string) {
 	pipe.Register(ctx)
 	elevate.Register(ctx)
 
-	clean.Register(ctx)
-	walk.Register(ctx)
 	cave.Register(ctx)
 
 	///////////////////////////
@@ -447,9 +443,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case wipeCmd.FullCommand():
-		wipe(*wipeArgs.path)
 
 	case mkdirCmd.FullCommand():
 		mkdir(*mkdirArgs.path)
