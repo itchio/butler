@@ -36,6 +36,7 @@ import (
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
 	"github.com/itchio/butler/cmd/upgrade"
+	"github.com/itchio/butler/cmd/verify"
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
@@ -66,10 +67,9 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
-	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
-	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
-	healCmd   = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
+	diffCmd  = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
+	applyCmd = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
+	healCmd  = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -178,18 +178,6 @@ var applyArgs = struct {
 	applyCmd.Flag("stage", "When given, use that folder for intermediary files when doing in-place ptching").String(),
 }
 
-var verifyArgs = struct {
-	signature *string
-	dir       *string
-	wounds    *string
-	heal      *string
-}{
-	verifyCmd.Arg("signature", "Path to read signature file from").Required().String(),
-	verifyCmd.Arg("dir", "Path of directory to verify").Required().String(),
-	verifyCmd.Flag("wounds", "When given, writes wounds to this path").String(),
-	verifyCmd.Flag("heal", "When given, heal wounds using this path").String(),
-}
-
 var healArgs = struct {
 	dir    *string
 	wounds *string
@@ -291,6 +279,7 @@ func doMain(args []string) {
 	walk.Register(ctx)
 
 	sign.Register(ctx)
+	verify.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -419,9 +408,6 @@ func doMain(args []string) {
 
 	case applyCmd.FullCommand():
 		apply(*applyArgs.patch, *applyArgs.old, *applyArgs.dir, *applyArgs.inplace, *applyArgs.signature, *applyArgs.wounds, *applyArgs.heal, *applyArgs.stage)
-
-	case verifyCmd.FullCommand():
-		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds, *verifyArgs.heal)
 
 	case healCmd.FullCommand():
 		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)
