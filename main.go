@@ -30,6 +30,7 @@ import (
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
+	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/untar"
@@ -65,7 +66,6 @@ var (
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 
-	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
 	verifyCmd = app.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
 	diffCmd   = app.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
 	applyCmd  = app.Command("apply", "(Advanced) Use a patch to patch a directory to a new version")
@@ -190,16 +190,6 @@ var verifyArgs = struct {
 	verifyCmd.Flag("heal", "When given, heal wounds using this path").String(),
 }
 
-var signArgs = struct {
-	output    *string
-	signature *string
-	fixPerms  *bool
-}{
-	signCmd.Arg("dir", "Path of directory to sign").Required().String(),
-	signCmd.Arg("signature", "Path to write signature to").Required().String(),
-	signCmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool(),
-}
-
 var healArgs = struct {
 	dir    *string
 	wounds *string
@@ -299,6 +289,8 @@ func doMain(args []string) {
 
 	clean.Register(ctx)
 	walk.Register(ctx)
+
+	sign.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -415,6 +407,8 @@ func doMain(args []string) {
 	ctx.Version = butlerVersion
 	ctx.Quiet = *appArgs.quiet
 	ctx.Verbose = *appArgs.verbose
+	ctx.CompressionAlgorithm = *appArgs.compressionAlgorithm
+	ctx.CompressionQuality = *appArgs.compressionQuality
 
 	switch fullCmd {
 	case scriptCmd.FullCommand():
@@ -428,9 +422,6 @@ func doMain(args []string) {
 
 	case verifyCmd.FullCommand():
 		verify(*verifyArgs.signature, *verifyArgs.dir, *verifyArgs.wounds, *verifyArgs.heal)
-
-	case signCmd.FullCommand():
-		sign(*signArgs.output, *signArgs.signature, butlerCompressionSettings(), *signArgs.fixPerms)
 
 	case healCmd.FullCommand():
 		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)

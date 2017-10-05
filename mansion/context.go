@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/pwr"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -31,6 +32,9 @@ type Context struct {
 
 	// Verbose enables chatty output
 	Verbose bool
+
+	CompressionAlgorithm string
+	CompressionQuality   int
 }
 
 func NewContext(app *kingpin.Application) *Context {
@@ -57,4 +61,26 @@ func (ctx *Context) Must(err error) {
 
 func (ctx *Context) UserAgent() string {
 	return fmt.Sprintf("butler/%s", ctx.VersionString)
+}
+
+func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
+	var algo pwr.CompressionAlgorithm
+
+	switch ctx.CompressionAlgorithm {
+	case "none":
+		algo = pwr.CompressionAlgorithm_NONE
+	case "brotli":
+		algo = pwr.CompressionAlgorithm_BROTLI
+	case "gzip":
+		algo = pwr.CompressionAlgorithm_GZIP
+	case "zstd":
+		algo = pwr.CompressionAlgorithm_ZSTD
+	default:
+		panic(fmt.Errorf("Unknown compression algorithm: %s", algo))
+	}
+
+	return pwr.CompressionSettings{
+		Algorithm: algo,
+		Quality:   int32(ctx.CompressionQuality),
+	}
 }

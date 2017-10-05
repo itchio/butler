@@ -1,13 +1,14 @@
-package main
+package sign
 
 import (
 	"os"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -15,11 +16,25 @@ import (
 	"github.com/itchio/wharf/wsync"
 )
 
-func sign(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) {
-	must(doSign(output, signature, compression, fixPerms))
+var args = struct {
+	output    *string
+	signature *string
+	fixPerms  *bool
+}{}
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
+	args.output = cmd.Arg("dir", "Path of directory to sign").Required().String()
+	args.signature = cmd.Arg("signature", "Path to write signature to").Required().String()
+	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
+	ctx.Register(cmd, do)
 }
 
-func doSign(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
+func do(ctx *mansion.Context) {
+	ctx.Must(Do(ctx, *args.output, *args.signature, ctx.CompressionSettings(), *args.fixPerms))
+}
+
+func Do(ctx *mansion.Context, output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
