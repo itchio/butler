@@ -23,6 +23,7 @@ import (
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
+	"github.com/itchio/butler/cmd/heal"
 	"github.com/itchio/butler/cmd/indexzip"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
@@ -68,8 +69,6 @@ var (
 	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
-
-	healCmd = app.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
 
 	exePropsCmd  = app.Command("exeprops", "(Advanced) Gives information about an .exe file").Hidden()
 	elfPropsCmd  = app.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
@@ -138,16 +137,6 @@ func defaultKeyPath() string {
 		configPath = filepath.FromSlash(path.Join(home, dir, "butler_creds"))
 	}
 	return configPath
-}
-
-var healArgs = struct {
-	dir    *string
-	wounds *string
-	spec   *string
-}{
-	healCmd.Arg("dir", "Path of directory to heal").Required().String(),
-	healCmd.Arg("wounds", "Path of wounds file").Required().String(),
-	healCmd.Arg("spec", "Path of spec to heal with").Required().String(),
 }
 
 var exePropsArgs = struct {
@@ -244,6 +233,7 @@ func doMain(args []string) {
 	diff.Register(ctx)
 	apply.Register(ctx)
 	verify.Register(ctx)
+	heal.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -366,9 +356,6 @@ func doMain(args []string) {
 	switch fullCmd {
 	case scriptCmd.FullCommand():
 		script(*scriptArgs.file)
-
-	case healCmd.FullCommand():
-		heal(*healArgs.dir, *healArgs.wounds, *healArgs.spec)
 
 	case exePropsCmd.FullCommand():
 		exeProps(*exePropsArgs.path)

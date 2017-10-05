@@ -1,21 +1,49 @@
-package main
+package heal
 
 import (
+	"io"
 	"os"
 
-	"io"
-
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 )
 
-func heal(dir string, wounds string, spec string) {
-	must(doHeal(dir, wounds, spec))
+var args = struct {
+	dir    *string
+	wounds *string
+	spec   *string
+}{}
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("heal", "(Advanced) Heal a directory using a list of wounds and a heal spec")
+	args.dir = cmd.Arg("dir", "Path of directory to heal").Required().String()
+	args.wounds = cmd.Arg("wounds", "Path of wounds file").Required().String()
+	args.spec = cmd.Arg("spec", "Path of spec to heal with").Required().String()
+	ctx.Register(cmd, do)
 }
 
-func doHeal(dir string, woundsPath string, spec string) error {
+type Params struct {
+	Dir        string
+	WoundsPath string
+	HealSpec   string
+}
+
+func do(ctx *mansion.Context) {
+	ctx.Must(Do(&Params{
+		Dir:        *args.dir,
+		WoundsPath: *args.wounds,
+		HealSpec:   *args.spec,
+	}))
+}
+
+func Do(params *Params) error {
+	dir := params.Dir
+	woundsPath := params.WoundsPath
+	spec := params.HealSpec
+
 	reader, err := os.Open(woundsPath)
 	if err != nil {
 		return err
