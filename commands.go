@@ -24,6 +24,7 @@ import (
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
+	"github.com/itchio/butler/cmd/push"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
@@ -41,34 +42,40 @@ import (
 // Each of these specify their own arguments and flags in
 // their own package.
 func registerCommands(ctx *mansion.Context) {
-	version.Register(ctx)
-	which.Register(ctx)
+	// documented commands
 
 	login.Register(ctx)
 	logout.Register(ctx)
+
+	push.Register(ctx)
+	fetch.Register(ctx)
+	status.Register(ctx)
+
+	file.Register(ctx)
+	ls.Register(ctx)
+
+	which.Register(ctx)
+	version.Register(ctx)
 	upgrade.Register(ctx)
+
+	sign.Register(ctx)
+	verify.Register(ctx)
+	diff.Register(ctx)
+	apply.Register(ctx)
+	heal.Register(ctx)
+
+	// hidden commands
 
 	dl.Register(ctx)
 	cp.Register(ctx)
-	ls.Register(ctx)
 	wipe.Register(ctx)
 	sizeof.Register(ctx)
 	mkdir.Register(ctx)
 	ditto.Register(ctx)
-	file.Register(ctx)
 	probe.Register(ctx)
 
 	clean.Register(ctx)
 	walk.Register(ctx)
-
-	sign.Register(ctx)
-	diff.Register(ctx)
-	apply.Register(ctx)
-	verify.Register(ctx)
-	heal.Register(ctx)
-
-	status.Register(ctx)
-	fetch.Register(ctx)
 
 	msi.Register(ctx)
 	prereqs.Register(ctx)
