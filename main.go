@@ -49,7 +49,6 @@ import (
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/go-itchio/itchfs"
 	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/pwr"
 	shellquote "github.com/kballard/go-shellquote"
 
 	"net/http"
@@ -173,28 +172,6 @@ func must(err error) {
 		default:
 			comm.Die(err.Error())
 		}
-	}
-}
-
-func butlerCompressionSettings() pwr.CompressionSettings {
-	var algo pwr.CompressionAlgorithm
-
-	switch *appArgs.compressionAlgorithm {
-	case "none":
-		algo = pwr.CompressionAlgorithm_NONE
-	case "brotli":
-		algo = pwr.CompressionAlgorithm_BROTLI
-	case "gzip":
-		algo = pwr.CompressionAlgorithm_GZIP
-	case "zstd":
-		algo = pwr.CompressionAlgorithm_ZSTD
-	default:
-		panic(fmt.Errorf("Unknown compression algorithm: %s", algo))
-	}
-
-	return pwr.CompressionSettings{
-		Algorithm: algo,
-		Quality:   int32(*appArgs.compressionQuality),
 	}
 }
 
