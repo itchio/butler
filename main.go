@@ -19,6 +19,7 @@ import (
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/fetch"
+	"github.com/itchio/butler/cmd/file"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
@@ -63,7 +64,6 @@ var (
 	mkdirCmd    = app.Command("mkdir", "Create an empty directory and all required parent directories (mkdir -p)").Hidden()
 	sizeofCmd   = app.Command("sizeof", "Compute the total size of a directory").Hidden()
 
-	fileCmd = app.Command("file", "Prints the type of a given file, and some stats about it")
 	walkCmd = app.Command("walk", "Finds all files in a directory").Hidden()
 
 	signCmd   = app.Command("sign", "(Advanced) Generate a signature file for a given directory. Useful for integrity checks and remote diff generation.")
@@ -275,12 +275,6 @@ var probeArgs = struct {
 	probeCmd.Arg("patch", "Path of the patch to analyze").Required().String(),
 }
 
-var fileArgs = struct {
-	file *string
-}{
-	fileCmd.Arg("file", "A file you'd like to identify").Required().String(),
-}
-
 var walkArgs = struct {
 	dir *string
 }{
@@ -367,7 +361,7 @@ func doMain(args []string) {
 	dl.Register(ctx)
 	cp.Register(ctx)
 	ls.Register(ctx)
-	clean.Register(ctx)
+	file.Register(ctx)
 
 	status.Register(ctx)
 	fetch.Register(ctx)
@@ -378,6 +372,7 @@ func doMain(args []string) {
 	pipe.Register(ctx)
 	elevate.Register(ctx)
 
+	clean.Register(ctx)
 	cave.Register(ctx)
 
 	///////////////////////////
@@ -523,9 +518,6 @@ func doMain(args []string) {
 
 	case probeCmd.FullCommand():
 		probe(*probeArgs.patch)
-
-	case fileCmd.FullCommand():
-		file(*fileArgs.file)
 
 	case walkCmd.FullCommand():
 		walk(*walkArgs.dir)
