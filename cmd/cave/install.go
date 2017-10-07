@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -117,7 +117,10 @@ func doCaveInstall(ctx *mansion.Context, installParams *CaveInstallParams) error
 		return errors.Wrap(err, 0)
 	}
 
-	installerType := getInstallerType(archiveDownloadPath)
+	installerType, err := getInstallerType(archiveDownloadPath)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	comm.Logf("Will use installer %s", installerType)
 
