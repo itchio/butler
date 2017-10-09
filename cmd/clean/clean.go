@@ -45,11 +45,24 @@ func Do(ctx *mansion.Context, planPath string) error {
 
 	for _, entry := range plan.Entries {
 		fullPath := filepath.Join(plan.BasePath, entry)
-		err := os.Remove(fullPath)
+
+		stat, err := os.Lstat(fullPath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				// ignore
+				// good, it's already gone!
 			} else {
+				return errors.Wrap(err, 0)
+			}
+		}
+
+		if stat.IsDir() {
+			// it's expected that we won't be able
+			// to remove all directories, ignore errors
+			os.Remove(fullPath)
+		} else {
+			// files on the other hand, we really do want to remove
+			err := os.Remove(fullPath)
+			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 		}
