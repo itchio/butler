@@ -28,7 +28,7 @@ const (
 	InstallerTypeUnsupported               = "unsupported"
 )
 
-func getInstallerType(target string) (*InstallerInfo, error) {
+func getInstallerInfo(target string) (*InstallerInfo, error) {
 	ext := filepath.Ext(target)
 	name := filepath.Base(target)
 

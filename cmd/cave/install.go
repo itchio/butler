@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/installer"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/comm"
@@ -117,12 +119,29 @@ func doCaveInstall(ctx *mansion.Context, installParams *CaveInstallParams) error
 		return errors.Wrap(err, 0)
 	}
 
-	installerType, err := getInstallerType(archiveDownloadPath)
+	installerInfo, err := getInstallerInfo(archiveDownloadPath)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Logf("Will use installer %s", installerType)
+	comm.Logf("Will use installer %s", installerInfo.Type)
+	manager := installer.GetManager(string(installerInfo.Type))
+	if manager == nil {
+		msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
+		return errors.New(msg)
+	}
 
-	return errors.New("stub")
+	res, err := manager.Install(&installer.InstallParams{
+		Consumer:          comm.NewStateConsumer(),
+		ArchiveListResult: installerInfo.ArchiveListResult,
+
+		SourcePath: archiveDownloadPath,
+	})
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	comm.Logf("Install result: %+v", res)
+
+	return nil
 }

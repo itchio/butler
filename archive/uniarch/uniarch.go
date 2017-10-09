@@ -5,6 +5,7 @@ package uniarch
 import (
 	"os"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/archive/backends/bah"
 	"github.com/itchio/butler/archive/backends/xad"
@@ -21,8 +22,8 @@ var handlers = []archive.Handler{
 func List(params *archive.ListParams) (archive.ListResult, error) {
 	// this gets size & ensures the file exists locally
 	_, err := os.Lstat(params.Path)
-	if err == nil {
-		return nil, err
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	for _, handler := range handlers {

@@ -8,25 +8,25 @@ import (
 
 func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
 	zr, err := zip.OpenReader(params.Path)
-	if err == nil {
-		defer zr.Close()
-
-		var entries []*archive.Entry
-		for _, f := range zr.File {
-			entries = append(entries, &archive.Entry{
-				Name:             archive.CleanFileName(f.Name),
-				UncompressedSize: int64(f.UncompressedSize64),
-			})
-		}
-
-		lr := &ListResult{
-			formatName: "Zip", // consistent with 'xad'
-			entries:    entries,
-		}
-		return lr, nil
+	if err != nil {
+		return nil, archive.ErrUnrecognizedArchiveType
 	}
 
-	return nil, archive.ErrUnrecognizedArchiveType
+	defer zr.Close()
+
+	var entries []*archive.Entry
+	for _, f := range zr.File {
+		entries = append(entries, &archive.Entry{
+			Name:             archive.CleanFileName(f.Name),
+			UncompressedSize: int64(f.UncompressedSize64),
+		})
+	}
+
+	lr := &ListResult{
+		formatName: "Zip", // consistent with 'xad'
+		entries:    entries,
+	}
+	return lr, nil
 }
 
 type ListResult struct {
