@@ -1,25 +1,15 @@
-package uniarch
-
-// UNIversal ARCHive handler
+package archive
 
 import (
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/archive/backends/bah"
-	"github.com/itchio/butler/archive/backends/xad"
 )
-
-var handlers = []archive.Handler{
-	bah.NewHandler(),
-	xad.NewHandler(),
-}
 
 // List returns information on a given archive
 // it cannot be an `eos` path because unarchiver doesn't
 // support those.
-func List(params *archive.ListParams) (archive.ListResult, error) {
+func List(params *ListParams) (ListResult, error) {
 	// this gets size & ensures the file exists locally
 	_, err := os.Lstat(params.Path)
 	if err != nil {
@@ -33,5 +23,5 @@ func List(params *archive.ListParams) (archive.ListResult, error) {
 		}
 	}
 
-	return nil, archive.ErrUnrecognizedArchiveType
+	return nil, ErrUnrecognizedArchiveType
 }

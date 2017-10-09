@@ -131,12 +131,15 @@ func doCaveInstall(ctx *mansion.Context, installParams *CaveInstallParams) error
 		return errors.New(msg)
 	}
 
+	comm.StartProgress()
 	res, err := manager.Install(&installer.InstallParams{
 		Consumer:          comm.NewStateConsumer(),
 		ArchiveListResult: installerInfo.ArchiveListResult,
 
-		SourcePath: archiveDownloadPath,
+		SourcePath:        archiveDownloadPath,
+		InstallFolderPath: installParams.InstallFolder,
 	})
+	comm.EndProgress()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

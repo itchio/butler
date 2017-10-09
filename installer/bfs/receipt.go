@@ -14,7 +14,9 @@ type Receipt struct {
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {
-	f, err := os.Open(InstallFolder)
+	path := receiptPath(InstallFolder)
+
+	f, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// that's ok, just return a nil receipt
@@ -37,12 +39,13 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 
 func (r *Receipt) WriteReceipt(InstallFolder string) error {
 	path := receiptPath(InstallFolder)
-	err := os.MkdirAll(path, 0755)
+
+	err := Mkdir(path)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	f, err := os.Create(InstallFolder)
+	f, err := os.Create(path)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

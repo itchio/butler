@@ -45,5 +45,5 @@ func (lr *ListResult) Entries() []*archive.Entry {
 }
 
 func (lr *ListResult) Handler() archive.Handler {
-	return NewHandler()
+	return &Handler{}
 }

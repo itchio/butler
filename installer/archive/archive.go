@@ -11,6 +11,6 @@ func (m *Manager) Name() string {
 	return "archive"
 }
 
-func init() {
+func Register() {
 	installer.RegisterManager(&Manager{})
 }

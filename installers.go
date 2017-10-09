@@ -1,5 +1,9 @@
 package main
 
 import (
-	_ "github.com/itchio/butler/installer/archive"
+	"github.com/itchio/butler/installer/archive"
 )
+
+func init() {
+	archive.Register()
+}

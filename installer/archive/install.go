@@ -3,7 +3,6 @@ package archive
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/archive/uniarch"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -12,7 +11,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	listResult := params.ArchiveListResult
 	if listResult == nil {
 		var err error
-		listResult, err = uniarch.List(&archive.ListParams{
+		listResult, err = archive.List(&archive.ListParams{
 			Path: params.SourcePath,
 		})
 
@@ -28,6 +27,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	}
 
 	err := handler.Extract(&archive.ExtractParams{
+		Consumer:   params.Consumer,
 		Path:       params.SourcePath,
 		OutputPath: params.InstallFolderPath,
 		ListResult: listResult,

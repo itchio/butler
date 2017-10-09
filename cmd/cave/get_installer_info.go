@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/archive/uniarch"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/configurator"
 )
@@ -54,7 +53,7 @@ func getInstallerInfo(target string) (*InstallerInfo, error) {
 	}
 
 	comm.Logf("%s: no configurator match, probing as archive", name)
-	listResult, err := uniarch.List(&archive.ListParams{
+	listResult, err := archive.List(&archive.ListParams{
 		Path: target,
 	})
 	if err == nil {
