@@ -145,6 +145,10 @@ func doCaveInstall(ctx *mansion.Context, installParams *CaveInstallParams) error
 	}
 
 	comm.Logf("Install result: %+v", res)
+	comm.Result(map[string]interface{}{
+		"operation":     "install",
+		"installResult": res,
+	})
 
 	return nil
 }
