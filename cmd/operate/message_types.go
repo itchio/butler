@@ -1,4 +1,4 @@
-package cave
+package operate
 
 import (
 	"github.com/go-errors/errors"
@@ -27,26 +27,26 @@ func readMessage(msgType string, res interface{}) error {
 	return nil
 }
 
-// CaveCommandOperation describes the operation butler should do
+// Operation describes the operation butler should do
 // for a specific cave: install it, launch it, etc.
-type CaveCommandOperation string
+type Operation string
 
 const (
-	// CaveCommandOperationInstall describes a download+install operation
-	CaveCommandOperationInstall CaveCommandOperation = "install"
+	// OperationInstall describes a download+install operation
+	OperationInstall Operation = "install"
 )
 
-// CaveCommand describes a cave-related command butler should perform
-type CaveCommand struct {
-	Operation     CaveCommandOperation `json:"operation"`
-	InstallParams *CaveInstallParams   `json:"installParams"`
+// OperationParams describes a complex operation butler should perform
+type OperationParams struct {
+	StageFolder   string             `json:"stageFolder"`
+	Operation     Operation          `json:"operation"`
+	InstallParams *CaveInstallParams `json:"installParams"`
 }
 
 // CaveInstallParams contains all the parameters needed to perform
 // an installation for a game
 type CaveInstallParams struct {
 	Game          *itchio.Game     `json:"game"`
-	StageFolder   string           `json:"stageFolder"`
 	InstallFolder string           `json:"installFolder"`
 	Upload        *itchio.Upload   `json:"upload"`
 	Build         *itchio.Build    `json:"build"`

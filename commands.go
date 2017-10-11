@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/itchio/butler/cmd/apply"
-	"github.com/itchio/butler/cmd/cave"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
@@ -21,6 +20,7 @@ import (
 	"github.com/itchio/butler/cmd/ls"
 	"github.com/itchio/butler/cmd/mkdir"
 	"github.com/itchio/butler/cmd/msi"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
@@ -91,5 +91,5 @@ func registerCommands(ctx *mansion.Context) {
 	elfprops.Register(ctx)
 
 	configure.Register(ctx)
-	cave.Register(ctx)
+	operate.Register(ctx)
 }

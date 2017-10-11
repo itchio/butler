@@ -1,8 +1,9 @@
-package cave
+package operate
 
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/go-errors/errors"
@@ -39,6 +40,13 @@ func (jt *JSONTransport) Start() {
 
 			jt.readQueue <- m
 		}
+
+		err := s.Err()
+		if err != nil {
+			comm.Warnf("JSON transport scanner got error: %s", err.Error())
+		}
+
+		close(jt.readQueue)
 	}()
 }
 
@@ -48,8 +56,9 @@ func (jt *JSONTransport) Read(messageType string) (GenericMessage, error) {
 			return l, nil
 		}
 
-		comm.Logf("Ignoring unexpected message type %s", messageType)
+		comm.Logf("Ignoring message of type %s (expected %s)", l["type"], messageType)
 	}
 
-	return nil, errors.New("empty read queue")
+	msg := fmt.Sprintf("EOF while trying to read a message of type %s", messageType)
+	return nil, errors.New(msg)
 }

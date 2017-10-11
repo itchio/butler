@@ -18,6 +18,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/dchest/safefile",
+			"repository": "https://github.com/dchest/safefile",
+			"vcs": "git",
+			"revision": "855e8d98f1852d48dde521e0522408d1fe7e836a",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/dsnet/compress/brotli",
 			"repository": "https://github.com/dsnet/compress",
 			"vcs": "git",

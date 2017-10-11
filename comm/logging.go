@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/itchio/butler/art"
 	"github.com/olekukonko/tablewriter"
@@ -217,6 +218,7 @@ func Login(uri string) {
 func send(msgType string, obj jsonMessage) {
 	if settings.json {
 		obj["type"] = msgType
+		obj["time"] = time.Now().UTC().Unix()
 		if msgType == "log" {
 			if obj["level"] == "debug" {
 				if !settings.quiet && settings.verbose {
