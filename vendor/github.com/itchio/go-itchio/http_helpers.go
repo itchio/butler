@@ -113,10 +113,15 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 	}
 
 	if errorsField, ok := intermediate["errors"]; ok {
-		if errorsList, ok := errorsField.([]string); ok {
-			if len(errorsList) > 0 {
-				// TODO: handle multiple errors
-				return fmt.Errorf("itch.io API error: %s", strings.Join(errorsList, ","))
+		if errorsList, ok := errorsField.([]interface{}); ok {
+			var messages []string
+			for _, el := range errorsList {
+				if errorMessage, ok := el.(string); ok {
+					messages = append(messages, errorMessage)
+				}
+			}
+			if len(messages) > 0 {
+				return fmt.Errorf("itch.io API error: %s", strings.Join(messages, ","))
 			}
 		}
 	}
@@ -126,6 +131,8 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName: "json",
 		Result:  dst,
+		// see https://github.com/itchio/itch/issues/1549
+		WeaklyTypedInput: true,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)
