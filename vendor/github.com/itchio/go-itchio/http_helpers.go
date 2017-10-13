@@ -8,12 +8,15 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/mitchellh/mapstructure"
 )
+
+var dumpApiCalls = os.Getenv("GO_ITCHIO_DEBUG") == "1"
 
 // Get performs an HTTP GET request to the API
 func (c *Client) Get(url string) (*http.Response, error) {
@@ -44,6 +47,10 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 	var res *http.Response
 	var err error
+
+	if dumpApiCalls {
+		fmt.Fprintf(os.Stderr, "[request] %s %s\n", req.Method, req.RequestURI)
+	}
 
 	retryPatterns := append(c.RetryPatterns, time.Millisecond)
 
@@ -104,6 +111,10 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		return errors.Wrap(err, 0)
 	}
 
+	if dumpApiCalls {
+		fmt.Fprintf(os.Stderr, "[response] %s\n", string(body))
+	}
+
 	intermediate := make(map[string]interface{})
 
 	err = json.NewDecoder(bytes.NewReader(body)).Decode(&intermediate)
@@ -127,6 +138,12 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 	}
 
 	intermediate = camelifyMap(intermediate)
+
+	if dumpApiCalls {
+		enc := json.NewEncoder(os.Stderr)
+		enc.SetIndent("[intermediate] ", "  ")
+		enc.Encode(intermediate)
+	}
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName: "json",

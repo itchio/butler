@@ -12,6 +12,11 @@ func camelify(input interface{}) interface{} {
 	return input
 }
 
+// FIXME: this is bad, find another way to fix it
+var camelifyBlacklist = map[string]struct{}{
+	"upload_headers": struct{}{},
+}
+
 func camelifyArray(input []interface{}) []interface{} {
 	var result []interface{}
 
@@ -26,7 +31,11 @@ func camelifyMap(input map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	for k, v := range input {
-		result[camelcase(k)] = camelify(v)
+		if _, ok := camelifyBlacklist[k]; ok {
+			result[camelcase(k)] = v
+		} else {
+			result[camelcase(k)] = camelify(v)
+		}
 	}
 
 	return result
