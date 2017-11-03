@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -45,6 +46,22 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					VersionString: h.ctx.VersionString,
 				})
 			}
+		case "Test.DoubleTwice":
+			var ddreq buse.TestDoubleTwiceRequest
+			err := json.Unmarshal(*req.Params, &ddreq)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			var dres buse.TestDoubleResult
+			err = conn.Call(ctx, "Test.Double", &buse.TestDoubleRequest{Number: ddreq.Number}, &dres)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
+				Number: dres.Number * 2,
+			})
 		case "Operation.Start":
 			{
 				res, err := operate.Start(h.ctx, conn, req)
@@ -93,7 +110,9 @@ func Do(ctx *mansion.Context) error {
 	ha := &handler{
 		ctx: ctx,
 	}
-	err = s.Serve(context.Background(), lis, ha)
+	aha := jsonrpc2.AsyncHandler(ha)
+
+	err = s.Serve(context.Background(), lis, aha)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

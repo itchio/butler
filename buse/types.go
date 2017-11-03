@@ -86,3 +86,23 @@ type LogNotification struct {
 	Level   string `json:"level"`
 	Message string `json:"message"`
 }
+
+// Test.DoubleTwice
+type TestDoubleTwiceRequest struct {
+	Number int64 `json:"number"`
+}
+
+// Result for Test.DoubleTwice
+type TestDoubleTwiceResult struct {
+	Number int64 `json:"number"`
+}
+
+// Test.Double
+type TestDoubleRequest struct {
+	Number int64 `json:"number"`
+}
+
+// Result for Test.Double
+type TestDoubleResult struct {
+	Number int64 `json:"number"`
+}
