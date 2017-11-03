@@ -25,6 +25,7 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
+	"github.com/itchio/butler/cmd/service"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
@@ -92,4 +93,6 @@ func registerCommands(ctx *mansion.Context) {
 
 	configure.Register(ctx)
 	operate.Register(ctx)
+
+	service.Register(ctx)
 }

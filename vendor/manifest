@@ -141,6 +141,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gorilla/websocket",
+			"repository": "https://github.com/gorilla/websocket",
+			"vcs": "git",
+			"revision": "3da6ca0cb65383f2b607a677b6b55e8358cacee6",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
@@ -233,6 +241,14 @@
 			"repository": "https://github.com/skratchdot/open-golang",
 			"vcs": "git",
 			"revision": "75fb7ed4208cf72d323d7d02fd1a5964a7a9073c",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/sourcegraph/jsonrpc2",
+			"repository": "https://github.com/sourcegraph/jsonrpc2",
+			"vcs": "git",
+			"revision": "c6c7b9aa99fb76ee5460ccd3912ba35d419d493d",
 			"branch": "master",
 			"notests": true
 		},
