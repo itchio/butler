@@ -30,8 +30,6 @@ When you're done, just kill the butler process.
 
 There is no human documentation for buse, save for this README.
 
-All methods
-
 All requests, notifications and results can be found in the `types.go` file. 
 
 ### Client libraries
