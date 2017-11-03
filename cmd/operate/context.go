@@ -1,6 +1,7 @@
 package operate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,12 +9,16 @@ import (
 
 	"github.com/dchest/safefile"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sourcegraph/jsonrpc2"
 )
 
 type OperationContext struct {
+	conn        *jsonrpc2.Conn
+	ctx         context.Context
 	consumer    *state.Consumer
 	stageFolder string
 	logFile     *os.File
@@ -27,7 +32,7 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(mansionContext *mansion.Context, consumer *state.Consumer, stageFolder string) *OperationContext {
+func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer *state.Consumer, stageFolder string) *OperationContext {
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
 		consumer.Warnf("Could not create operate directory: %s", err.Error())
@@ -39,14 +44,23 @@ func LoadContext(mansionContext *mansion.Context, consumer *state.Consumer, stag
 		consumer.Warnf("Could not open operate log: %s", err.Error())
 	}
 
+	ctx := mansionContext.Context()
+
 	subconsumer := &state.Consumer{
 		OnMessage: func(level, msg string) {
 			if logFile != nil {
 				fmt.Fprintf(logFile, "[%s] %s\n", level, msg)
 			}
-			consumer.OnMessage(level, msg)
+			conn.Notify(ctx, "Log", &buse.LogNotification{
+				Level:   level,
+				Message: msg,
+			})
 		},
-		OnProgress:       consumer.OnProgress,
+		OnProgress: func(percent float64) {
+			conn.Notify(ctx, "Operation.Progress", &buse.OperationProgressNotification{
+				Progress: percent,
+			})
+		},
 		OnProgressLabel:  consumer.OnProgressLabel,
 		OnPauseProgress:  consumer.OnPauseProgress,
 		OnResumeProgress: consumer.OnResumeProgress,
@@ -56,6 +70,7 @@ func LoadContext(mansionContext *mansion.Context, consumer *state.Consumer, stag
 		consumer:       subconsumer,
 		logFile:        logFile,
 		stageFolder:    stageFolder,
+		ctx:            ctx,
 		mansionContext: mansionContext,
 		root:           make(map[string]interface{}),
 		loaded:         make(map[string]struct{}),

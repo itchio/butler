@@ -1,5 +1,7 @@
 package buse
 
+import itchio "github.com/itchio/go-itchio"
+
 // must be kept in sync with clients, see for example
 // https://github.com/itchio/node-butler
 
@@ -25,15 +27,39 @@ type VersionGetResult struct {
 
 // Operation.Start
 type OperationStartParams struct {
-	Params OperationParams `json:"params"`
+	StagingFolder string         `json:"stagingFolder"`
+	Operation     string         `json:"operation"`
+	InstallParams *InstallParams `json:"installParams,omitempty"`
+}
+
+// InstallParams contains all the parameters needed to perform
+// an installation for a game
+type InstallParams struct {
+	Game          *itchio.Game     `json:"game"`
+	InstallFolder string           `json:"installFolder"`
+	Upload        *itchio.Upload   `json:"upload"`
+	Build         *itchio.Build    `json:"build"`
+	Credentials   *GameCredentials `json:"credentials"`
+}
+
+// GameCredentials contains all the credentials required to make API requests
+// including the download key if any
+type GameCredentials struct {
+	Server      string `json:"server"`
+	APIKey      string `json:"apiKey"`
+	DownloadKey int64  `json:"downloadKey"`
+}
+
+type PickUploadParams struct {
+	Uploads []*itchio.Upload `json:"uploads"`
+}
+
+type PickUploadResult struct {
+	Index int64 `json:"index"`
 }
 
 // Operation.Resume
 type OperationResumeParams struct {
-	Params OperationParams `json:"params"`
-}
-
-type OperationParams struct {
 	StagingFolder string `json:"stagingFolder"`
 }
 
@@ -49,7 +75,14 @@ type OperationProgressNotification struct {
 //   - Operation.Start
 //   - Operation.Resume
 type OperationResult struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"errorMessage,omitempty"`
-	ErrorStack   string `json:"errorStack,omitempty"`
+	Success       bool        `json:"success"`
+	InstallResult interface{} `json:"installResult,omitempty"`
+	ErrorMessage  string      `json:"errorMessage,omitempty"`
+	ErrorStack    string      `json:"errorStack,omitempty"`
+}
+
+// Log
+type LogNotification struct {
+	Level   string `json:"level"`
+	Message string `json:"message"`
 }

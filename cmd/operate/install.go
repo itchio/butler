@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"path/filepath"
 
+	"github.com/itchio/butler/buse"
+
 	"github.com/itchio/butler/installer"
 
 	"github.com/go-errors/errors"
@@ -14,21 +16,21 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-func install(oc *OperationContext, meta *MetaSubcontext) error {
+func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResult, error) {
 	consumer := oc.Consumer()
 
 	params := meta.data.InstallParams
 
 	if params == nil {
-		return errors.New("Missing install params")
+		return nil, errors.New("Missing install params")
 	}
 
 	if params.Game == nil {
-		return errors.New("Missing game in install")
+		return nil, errors.New("Missing game in install")
 	}
 
 	if params.InstallFolder == "" {
-		return errors.New("Missing install folder in install")
+		return nil, errors.New("Missing install folder in install")
 	}
 
 	consumer.Infof("Installing game %s", params.Game.Title)
@@ -37,7 +39,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 
 	client, err := clientFromCredentials(params.Credentials)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	// TODO: cache that in context
@@ -49,7 +51,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 			DownloadKeyID: params.Credentials.DownloadKey,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, 0)
 		}
 
 		consumer.Infof("Filtering %d uploads", len(uploads.Uploads))
@@ -66,7 +68,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Infof("- %#v", upload)
 			}
 
-			return (&OperationError{
+			return nil, (&OperationError{
 				Code:      "noCompatibleUploads",
 				Message:   "No compatible uploads",
 				Operation: "install",
@@ -76,14 +78,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 		if len(uploadsFilterResult.Uploads) == 1 {
 			params.Upload = uploadsFilterResult.Uploads[0]
 		} else {
-			comm.Request("install", "pick-upload", &PickUploadParams{
+			var r buse.PickUploadResult
+			err := oc.conn.Call(oc.ctx, "pick-upload", &buse.PickUploadParams{
 				Uploads: uploadsFilterResult.Uploads,
-			})
-
-			var r PickUploadResult
-			err := readMessage("pick-upload-result", &r)
+			}, &r)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
@@ -114,12 +114,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 	err = cp.Do(oc.MansionContext(), archiveUrl, archiveDownloadPath, true)
 	// TODO: cache copy result in context
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	installerInfo, err := getInstallerInfo(archiveDownloadPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	// TODO: cache get installer info result in context
@@ -127,7 +127,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 	manager := installer.GetManager(string(installerInfo.Type))
 	if manager == nil {
 		msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
-		return errors.New(msg)
+		return nil, errors.New(msg)
 	}
 
 	comm.StartProgress()
@@ -140,14 +140,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) error {
 	})
 	comm.EndProgress()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Install result: %+v", res)
-	comm.Result(map[string]interface{}{
-		"operation":     "install",
-		"installResult": res,
-	})
-
-	return nil
+	return res, nil
 }

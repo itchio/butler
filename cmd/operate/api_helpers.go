@@ -2,10 +2,11 @@ package operate
 
 import (
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func clientFromCredentials(credentials *CaveCredentials) (*itchio.Client, error) {
+func clientFromCredentials(credentials *buse.GameCredentials) (*itchio.Client, error) {
 	if credentials == nil {
 		return nil, errors.New("Missing credentials")
 	}

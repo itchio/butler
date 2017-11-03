@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"log"
 	"net"
-	"time"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/go-errors/errors"
@@ -29,6 +29,8 @@ type handler struct {
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	comm.Warnf("got request %s", req.Method)
+
 	if req.Notif {
 		log.Printf("got a notif! method = %#v, params = %#v", req.Method, req.Params)
 		return
@@ -45,26 +47,18 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			}
 		case "Operation.Start":
 			{
-				startParams := &buse.OperationStartParams{}
-				err := json.Unmarshal(*req.Params, startParams)
+				res, err := operate.Start(h.ctx, conn, req)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return err
 				}
 
-				comm.Logf("Starting operation in %s...", startParams.Params.StagingFolder)
-				max := 5
-				for i := 0; i < max; i++ {
-					time.Sleep(100 * time.Millisecond)
-					conn.Notify(ctx, "Operation.Progress", &buse.OperationProgressNotification{
-						Progress: float64(i) / float64(max),
-					})
-				}
-
-				return conn.Reply(ctx, req.ID, &buse.OperationResult{
-					Success:      false,
-					ErrorMessage: "stub!",
-				})
+				return conn.Reply(ctx, req.ID, res)
 			}
+		default:
+			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+				Code:    jsonrpc2.CodeMethodNotFound,
+				Message: fmt.Sprintf("no such method '%s'", req.Method),
+			})
 		}
 
 		return nil
@@ -72,6 +66,12 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 	if err != nil {
 		comm.Warnf("error dealing with %s request: %s", req.Method, err.Error())
+
+		// will get dropped if not handled, that's ok
+		conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+			Code:    jsonrpc2.CodeInternalError,
+			Message: err.Error(),
+		})
 	}
 }
 

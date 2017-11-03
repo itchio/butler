@@ -1,6 +1,7 @@
 package mansion
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-errors/errors"
@@ -83,4 +84,8 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 		Algorithm: algo,
 		Quality:   int32(ctx.CompressionQuality),
 	}
+}
+
+func (ctx *Context) Context() context.Context {
+	return context.Background()
 }

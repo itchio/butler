@@ -32,8 +32,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 	return nil
 }
 
-type LFObjectCodec struct {
-}
+type LFObjectCodec struct{}
 
 var separator = []byte("\n")
 

@@ -1,79 +1,57 @@
 package operate
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
-	"os/signal"
-	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/sourcegraph/jsonrpc2"
 )
 
-func Register(ctx *mansion.Context) {
-	cmd := ctx.App.Command("operate", "Perform a complex operation: game install, upgrade, etc.").Hidden()
-	ctx.Register(cmd, do)
-}
-
-func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx))
-}
-
-var tr *JSONTransport
-
-func Do(ctx *mansion.Context) error {
-	tr = NewJSONTransport()
-	tr.Start()
-
-	sigs := make(chan os.Signal)
-	signal.Notify(sigs, os.Interrupt)
-
-	go func() {
-		for sig := range sigs {
-			comm.Logf("Caught %s", sig)
-			if sig == os.Interrupt {
-				comm.Warnf("Interruted! (%s)", sig)
-				comm.Warnf("Will quit in 1 second...")
-				time.Sleep(time.Second)
-				os.Exit(1)
-			}
-		}
-	}()
-
-	var params OperationParams
-	err := readMessage("operation-params", &params)
+func Start(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (*buse.OperationResult, error) {
+	params := &buse.OperationStartParams{}
+	err := json.Unmarshal(*req.Params, params)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	if params.StageFolder == "" {
-		return errors.New("No stage folder specified")
+	if params.StagingFolder == "" {
+		return nil, errors.New("No staging folder specified")
 	}
 
-	oc := LoadContext(ctx, comm.NewStateConsumer(), params.StageFolder)
+	oc := LoadContext(conn, ctx, comm.NewStateConsumer(), params.StagingFolder)
 
-	meta := &MetaSubcontext{}
-	oc.Load(meta)
-
-	meta.MergeParams(&params)
+	meta := &MetaSubcontext{
+		data: params,
+	}
 
 	if meta.data.Operation == "" {
-		return errors.New("No operation specified")
+		return nil, errors.New("No operation specified")
 	}
 
 	oc.Save(meta)
 
-	switch meta.data.Operation {
-	case OperationInstall:
-		return install(oc, meta)
-	default:
-		return fmt.Errorf("Unknown cave command operation '%s'", params.Operation)
+	switch params.Operation {
+	case "install":
+		ires, err := install(oc, meta)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		return &buse.OperationResult{
+			Success:       true,
+			InstallResult: ires,
+		}, nil
 	}
+
+	return nil, fmt.Errorf("Unknown operation '%s'", params.Operation)
 }
 
 type MetaSubcontext struct {
-	data OperationParams
+	data *buse.OperationStartParams
 }
 
 var _ Subcontext = (*MetaSubcontext)(nil)
@@ -84,14 +62,4 @@ func (mt *MetaSubcontext) Key() string {
 
 func (mt *MetaSubcontext) Data() interface{} {
 	return &mt.data
-}
-
-func (mt *MetaSubcontext) MergeParams(params *OperationParams) {
-	if mt.data.Operation == "" {
-		mt.data.Operation = params.Operation
-	}
-
-	if mt.data.InstallParams == nil {
-		mt.data.InstallParams = params.InstallParams
-	}
 }
