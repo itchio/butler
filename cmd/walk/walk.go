@@ -12,24 +12,27 @@ import (
 )
 
 var args = struct {
-	dir *string
+	dir         *string
+	dereference *bool
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("walk", "Finds all files in a directory").Hidden()
 	args.dir = cmd.Arg("dir", "A dir you want to walk").Required().String()
+	args.dereference = cmd.Flag("dereference", "Follow symlinks").Default("false").Bool()
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.dir))
+	ctx.Must(Do(ctx, *args.dir, *args.dereference))
 }
 
-func Do(ctx *mansion.Context, dir string) error {
+func Do(ctx *mansion.Context, dir string, dereference bool) error {
 	startTime := time.Now()
 
 	container, err := tlc.WalkDir(dir, &tlc.WalkOpts{
-		Filter: func(fi os.FileInfo) bool { return true },
+		Filter:      func(fi os.FileInfo) bool { return true },
+		Dereference: dereference,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)

@@ -161,10 +161,10 @@ type NewBuildResponse struct {
 
 	Build struct {
 		ID          int64 `json:"id"`
-		UploadID    int64 `json:"upload_id"`
+		UploadID    int64 `json:"uploadId"`
 		ParentBuild struct {
 			ID int64 `json:"id"`
-		} `json:"parent_build"`
+		} `json:"parentBuild"`
 	}
 }
 

@@ -112,7 +112,7 @@ func WalkSingle(Path string) (*Container, error) {
 }
 
 // WalkDir retrieves information on all files, directories, and symlinks in a directory
-func WalkDir(BasePath string, opts *WalkOpts) (*Container, error) {
+func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 	filter := opts.Filter
 
 	if filter == nil {
@@ -123,84 +123,121 @@ func WalkDir(BasePath string, opts *WalkOpts) (*Container, error) {
 	var Symlinks []*Symlink
 	var Files []*File
 
+	currentlyWalking := make(map[string]bool)
+
 	TotalOffset := int64(0)
 
-	onEntry := func(FullPath string, fileInfo os.FileInfo, err error) error {
-		// we shouldn't encounter any error crawling the repo
-		if err != nil {
-			if os.IsPermission(err) {
-				// ...except permission errors, those are fine
-				log.Printf("Permission error: %s\n", err.Error())
-			} else {
+	var makeEntryCallback func(BasePath string, LocationPath string) filepath.WalkFunc
+
+	makeEntryCallback = func(BasePath string, LocationPath string) filepath.WalkFunc {
+		return func(FullPath string, fileInfo os.FileInfo, err error) error {
+			// we shouldn't encounter any error crawling the repo
+			if err != nil {
+				if os.IsPermission(err) {
+					// ...except permission errors, those are fine
+					log.Printf("Permission error: %s\n", err.Error())
+				} else {
+					return errors.Wrap(err, 1)
+				}
+			}
+
+			Path, err := filepath.Rel(BasePath, FullPath)
+			if err != nil {
 				return errors.Wrap(err, 1)
 			}
-		}
 
-		Path, err := filepath.Rel(BasePath, FullPath)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
+			Path = filepath.Join(LocationPath, Path)
 
-		Path = filepath.ToSlash(Path)
-		if Path == "." {
-			// Don't store a single folder named "."
-			return nil
-		}
-
-		// os.Walk does not follow symlinks, so we must do it
-		// manually if Dereference is set
-		if opts.Dereference && fileInfo.Mode()&os.ModeSymlink > 0 {
-			fileInfo, err = os.Stat(FullPath)
-			if err != nil {
-				return errors.Wrap(err, 0)
+			Path = filepath.ToSlash(Path)
+			if Path == "." {
+				// Don't store a single folder named "."
+				return nil
 			}
-		}
 
-		// don't end up with files we (the patcher) can't modify
-		Mode := fileInfo.Mode() | ModeMask
+			// os.Walk does not follow symlinks, so we must do it
+			// manually if Dereference is set
+			if opts.Dereference && fileInfo.Mode()&os.ModeSymlink > 0 {
+				fileInfo, err = os.Stat(FullPath)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
 
-		if !filter(fileInfo) {
+				if fileInfo.Mode().IsDir() {
+					Dest, err := os.Readlink(FullPath)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+
+					JoinedDest := filepath.Join(filepath.Dir(FullPath), Dest)
+
+					CleanDest := filepath.Clean(JoinedDest)
+
+					if currentlyWalking[CleanDest] {
+						err := fmt.Errorf("symlinks recurse onto %s, cowardly refusing to walk infinite container", CleanDest)
+						return errors.Wrap(err, 0)
+					}
+
+					currentlyWalking[CleanDest] = true
+					err = filepath.Walk(CleanDest, makeEntryCallback(CleanDest, Path))
+					delete(currentlyWalking, CleanDest)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+				}
+			}
+
+			// don't end up with files we (the patcher) can't modify
+			Mode := fileInfo.Mode() | ModeMask
+
+			if !filter(fileInfo) {
+				if Mode.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+
 			if Mode.IsDir() {
-				return filepath.SkipDir
+				Dirs = append(Dirs, &Dir{Path: Path, Mode: uint32(Mode)})
+			} else if Mode.IsRegular() {
+				Size := fileInfo.Size()
+				Offset := TotalOffset
+				OffsetEnd := Offset + Size
+
+				Files = append(Files, &File{Path: Path, Mode: uint32(Mode), Size: Size, Offset: Offset})
+				TotalOffset = OffsetEnd
+			} else if Mode&os.ModeSymlink > 0 {
+				Dest, err := os.Readlink(FullPath)
+				if err != nil {
+					return errors.Wrap(err, 1)
+				}
+
+				Dest = filepath.ToSlash(Dest)
+				Symlinks = append(Symlinks, &Symlink{Path: Path, Mode: uint32(Mode), Dest: Dest})
 			}
+
 			return nil
 		}
-
-		if Mode.IsDir() {
-			Dirs = append(Dirs, &Dir{Path: Path, Mode: uint32(Mode)})
-		} else if Mode.IsRegular() {
-			Size := fileInfo.Size()
-			Offset := TotalOffset
-			OffsetEnd := Offset + Size
-
-			Files = append(Files, &File{Path: Path, Mode: uint32(Mode), Size: Size, Offset: Offset})
-			TotalOffset = OffsetEnd
-		} else if Mode&os.ModeSymlink > 0 {
-			Dest, err := os.Readlink(FullPath)
-			if err != nil {
-				return errors.Wrap(err, 1)
-			}
-
-			Dest = filepath.ToSlash(Dest)
-			Symlinks = append(Symlinks, &Symlink{Path: Path, Mode: uint32(Mode), Dest: Dest})
-		}
-
-		return nil
 	}
 
-	if BasePath == NullPath {
+	if basePathIn == NullPath {
 		// empty container is fine - /dev/null is legal even on Win32 where it doesn't exist
 	} else {
-		fi, err := os.Lstat(BasePath)
+		basePathIn, err := filepath.Abs(basePathIn)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		fi, err := os.Lstat(basePathIn)
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
 		}
 
 		if !fi.IsDir() {
-			return nil, errors.Wrap(fmt.Errorf("can't walk non-directory %s", BasePath), 1)
+			return nil, errors.Wrap(fmt.Errorf("can't walk non-directory %s", basePathIn), 1)
 		}
 
-		err = filepath.Walk(BasePath, onEntry)
+		currentlyWalking[basePathIn] = true
+		err = filepath.Walk(basePathIn, makeEntryCallback(basePathIn, "."))
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
 		}
