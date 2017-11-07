@@ -36,9 +36,17 @@ var DefaultFilter FilterFunc = func(fileInfo os.FileInfo) bool {
 	return true
 }
 
+type WalkOpts struct {
+	// Filter decides which files to exclude from the walk
+	Filter FilterFunc
+
+	// Dereference walks symlinks as if they were their targets
+	Dereference bool
+}
+
 // WalkAny tries to retrieve container information on containerPath. It supports:
 // the empty container (/dev/null), local directories, zip archives, or single files
-func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
+func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 	// empty container case
 	if containerPath == NullPath {
 		return &Container{}, nil
@@ -62,7 +70,7 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 		}
 
 		// local directory case
-		return WalkDir(containerPath, filter)
+		return WalkDir(containerPath, opts)
 	}
 
 	// zip archive case
@@ -71,7 +79,7 @@ func WalkAny(containerPath string, filter FilterFunc) (*Container, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
-		return WalkZip(zr, filter)
+		return WalkZip(zr, opts)
 	}
 
 	// single file case
@@ -104,7 +112,9 @@ func WalkSingle(Path string) (*Container, error) {
 }
 
 // WalkDir retrieves information on all files, directories, and symlinks in a directory
-func WalkDir(BasePath string, filter FilterFunc) (*Container, error) {
+func WalkDir(BasePath string, opts *WalkOpts) (*Container, error) {
+	filter := opts.Filter
+
 	if filter == nil {
 		filter = DefaultFilter
 	}
@@ -135,6 +145,15 @@ func WalkDir(BasePath string, filter FilterFunc) (*Container, error) {
 		if Path == "." {
 			// Don't store a single folder named "."
 			return nil
+		}
+
+		// os.Walk does not follow symlinks, so we must do it
+		// manually if Dereference is set
+		if opts.Dereference && fileInfo.Mode()&os.ModeSymlink > 0 {
+			fileInfo, err = os.Stat(FullPath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 		}
 
 		// don't end up with files we (the patcher) can't modify
@@ -192,12 +211,18 @@ func WalkDir(BasePath string, filter FilterFunc) (*Container, error) {
 }
 
 // WalkZip walks all file in a zip archive and returns a container
-func WalkZip(zr *zip.Reader, filter FilterFunc) (*Container, error) {
+func WalkZip(zr *zip.Reader, opts *WalkOpts) (*Container, error) {
+	filter := opts.Filter
+
 	if filter == nil {
 		// default filter is a passthrough
 		filter = func(fileInfo os.FileInfo) bool {
 			return true
 		}
+	}
+
+	if opts.Dereference {
+		return nil, errors.New("Dereference is not supporting when walking a zip")
 	}
 
 	var Dirs []*Dir

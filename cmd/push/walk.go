@@ -13,8 +13,11 @@ type walkResult struct {
 	pool      wsync.Pool
 }
 
-func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
-	container, err := tlc.WalkAny(path, filtering.FilterPaths)
+func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, dereference bool) {
+	container, err := tlc.WalkAny(path, &tlc.WalkOpts{
+		Filter:      filtering.FilterPaths,
+		Dereference: dereference,
+	})
 	if err != nil {
 		errs <- errors.Wrap(err, 1)
 		return
@@ -34,5 +37,14 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool) {
 	if fixPerms {
 		result.container.FixPermissions(result.pool)
 	}
+
+	if dereference {
+		for _, s := range result.container.Symlinks {
+			result.container.Files = append(result.container.Files, &tlc.File{
+				Path: s.Path,
+			})
+		}
+	}
+
 	out <- result
 }

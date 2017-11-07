@@ -10,8 +10,8 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/uploader"
 	"github.com/itchio/wharf/counter"
@@ -37,6 +37,7 @@ var args = struct {
 	userVersion     *string
 	userVersionFile *string
 	fixPerms        *bool
+	dereference     *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -46,6 +47,7 @@ func Register(ctx *mansion.Context) {
 	args.userVersion = cmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String()
 	args.userVersionFile = cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String()
 	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
+	args.dereference = cmd.Flag("dereference", "Dereference symlinks").Default("false").Bool()
 	ctx.Register(cmd, do)
 }
 
@@ -65,14 +67,14 @@ func do(ctx *mansion.Context) {
 		}
 	}
 
-	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms))
+	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms, *args.dereference))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
-	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms)
+	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, dereference)
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {

@@ -49,7 +49,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	var err error
 
 	if dumpApiCalls {
-		fmt.Fprintf(os.Stderr, "[request] %s %s\n", req.Method, req.RequestURI)
+		fmt.Fprintf(os.Stderr, "[request] %s %s\n", req.Method, req.URL)
 	}
 
 	retryPatterns := append(c.RetryPatterns, time.Millisecond)

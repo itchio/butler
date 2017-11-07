@@ -3,7 +3,6 @@ package pwr
 import (
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"path/filepath"
@@ -430,14 +429,14 @@ func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Wri
 
 			rc.Consumer.ProgressLabel(fmt.Sprintf(">%s", sourceFile.Path))
 
-			_, err = sourceFileReader.Seek(0, os.SEEK_SET)
+			_, err = sourceFileReader.Seek(0, io.SeekStart)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 
 			rc.Consumer.ProgressLabel(fmt.Sprintf("<%s", sourceFile.Path))
 
-			_, err = targetFileReader.Seek(0, os.SEEK_SET)
+			_, err = targetFileReader.Seek(0, io.SeekStart)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}

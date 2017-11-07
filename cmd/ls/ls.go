@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -189,7 +189,9 @@ func Do(ctx *mansion.Context, inPath string) error {
 				return false
 			}
 
-			container, err := tlc.WalkZip(zr, func(fi os.FileInfo) bool { return true })
+			container, err := tlc.WalkZip(zr, &tlc.WalkOpts{
+				Filter: func(fi os.FileInfo) bool { return true },
+			})
 			ctx.Must(err)
 			container.Print(log)
 			return true

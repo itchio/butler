@@ -236,7 +236,9 @@ func Do(ctx *mansion.Context, inPath string) error {
 				return
 			}
 
-			container, err := tlc.WalkZip(zr, func(fi os.FileInfo) bool { return true })
+			container, err := tlc.WalkZip(zr, &tlc.WalkOpts{
+				Filter: func(fi os.FileInfo) bool { return true },
+			})
 			ctx.Must(err)
 
 			prettyUncompressed := humanize.IBytes(uint64(container.Size))

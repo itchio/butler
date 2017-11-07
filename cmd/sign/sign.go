@@ -38,7 +38,7 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.WalkAny(output, filtering.FilterPaths)
+	container, err := tlc.WalkAny(output, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

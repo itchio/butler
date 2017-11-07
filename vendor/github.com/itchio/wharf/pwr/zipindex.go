@@ -125,7 +125,7 @@ func (ic *ZipIndexerContext) Index(reader io.ReaderAt, size int64, writer io.Wri
 					locallyDoneCompressedSize := doneCompressedSize + c.Roffset
 					ic.Consumer.Progress(float64(locallyDoneCompressedSize) / float64(ic.TotalCompressedSize))
 
-					_, err = sr.Seek(0, os.SEEK_SET)
+					_, err = sr.Seek(0, io.SeekStart)
 					if err != nil {
 						return errors.Wrap(err, 0)
 					}

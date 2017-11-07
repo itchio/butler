@@ -415,7 +415,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 
 	var pool wsync.Pool
 
-	container, err := tlc.WalkAny(root, filtering.FilterPaths)
+	container, err := tlc.WalkAny(root, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		comm.Logf("Could not walk %s: %s", root, err.Error())
 		return verdict, nil

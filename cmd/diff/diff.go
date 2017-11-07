@@ -76,7 +76,7 @@ func Do(params *Params) error {
 		return errors.New("diff: must specify Patch")
 	}
 
-	targetSignature.Container, err = tlc.WalkAny(params.Target, filtering.FilterPaths)
+	targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		// Signature file perhaps?
 		var signatureReader io.ReadCloser
@@ -127,7 +127,7 @@ func Do(params *Params) error {
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(params.Source, filtering.FilterPaths)
+	sourceContainer, err = tlc.WalkAny(params.Source, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

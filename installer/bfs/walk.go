@@ -8,7 +8,7 @@ import (
 )
 
 func Walk(path string) (*tlc.Container, error) {
-	return tlc.WalkDir(path, DotItchFilter(path))
+	return tlc.WalkDir(path, &tlc.WalkOpts{Filter: DotItchFilter(path)})
 }
 
 func DotItchFilter(basePath string) tlc.FilterFunc {

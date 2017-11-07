@@ -415,7 +415,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				return
 			}
 
-			_, err = targetReader.Seek(0, os.SEEK_SET)
+			_, err = targetReader.Seek(0, io.SeekStart)
 			if err != nil {
 				retErr = errors.Wrap(err, 0)
 				return
@@ -757,7 +757,7 @@ func (actx *ApplyContext) mergeFolders(outPath string, stagePath string) (int64,
 		return true
 	}
 
-	stageContainer, err := tlc.WalkDir(stagePath, filter)
+	stageContainer, err := tlc.WalkDir(stagePath, &tlc.WalkOpts{Filter: filter})
 	if err != nil {
 		return 0, errors.Wrap(err, 0)
 	}

@@ -28,7 +28,9 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, dir string) error {
 	startTime := time.Now()
 
-	container, err := tlc.WalkDir(dir, func(fi os.FileInfo) bool { return true })
+	container, err := tlc.WalkDir(dir, &tlc.WalkOpts{
+		Filter: func(fi os.FileInfo) bool { return true },
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

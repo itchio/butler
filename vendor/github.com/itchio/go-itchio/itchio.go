@@ -62,6 +62,25 @@ func (c *Client) WharfStatus() (r WharfStatusResponse, err error) {
 	return
 }
 
+// GetMe returns information about to which the current credentials belong
+func (c *Client) GetMe() (GetMeResponse, error) {
+	path := c.MakePath("me")
+
+	var r GetMeResponse
+
+	resp, err := c.Get(path)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 // ListMyGames lists the games one develops (ie. can edit)
 func (c *Client) ListMyGames() (r ListMyGamesResponse, err error) {
 	path := c.MakePath("my-games")

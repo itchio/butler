@@ -14,6 +14,13 @@ type WharfStatusResponse struct {
 	Success bool `json:"success"`
 }
 
+// GetMeResponse is what the API server responds when we ask for the user's profile
+type GetMeResponse struct {
+	Response
+
+	User *User `json:"user"`
+}
+
 // ListMyGamesResponse is what the API server answers when we ask for what games
 // an account develops.
 type ListMyGamesResponse struct {

@@ -128,13 +128,8 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		consumerErrs <- vctx.WoundsConsumer.Do(signature.Container, vctx.Wounds)
 
 		// throw away wounds until closed
-		for {
-			select {
-			case _, ok := <-vctx.Wounds:
-				if !ok {
-					return
-				}
-			}
+		for range vctx.Wounds {
+			// muffin
 		}
 	}()
 
