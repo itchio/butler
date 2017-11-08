@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/natefinch/npipe"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
@@ -188,7 +188,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 			if err != nil {
 				if exitError, ok := err.(*exec.ExitError); ok {
 					if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
-						code := status.ExitStatus()
+						code := uint32(status.ExitStatus())
 						known := false
 						for _, exitCode := range task.Info.ExitCodes {
 							if code == exitCode.Code {
