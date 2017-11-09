@@ -3,13 +3,11 @@ package bfs
 import (
 	"compress/gzip"
 	"encoding/json"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
-	"gopkg.in/kothar/brotli-go.v0/enc"
 )
 
 type Receipt struct {
@@ -21,6 +19,8 @@ type Receipt struct {
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {
+	// TODO: read legacy receipts & convert them to new format
+
 	path := receiptPath(InstallFolder)
 
 	f, err := os.Open(path)
@@ -33,7 +33,12 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 	}
 	defer f.Close()
 
-	dec := json.NewDecoder(f)
+	gzr, err := gzip.NewReader(f)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	dec := json.NewDecoder(gzr)
 
 	receipt := Receipt{}
 	err = dec.Decode(&receipt)
@@ -57,27 +62,10 @@ func (r *Receipt) WriteReceipt(InstallFolder string) error {
 		return errors.Wrap(err, 0)
 	}
 	defer f.Close()
-
-	gzf, err := os.Create(path + ".gz")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	defer gzf.Close()
-	gzw := gzip.NewWriter(gzf)
+	gzw := gzip.NewWriter(f)
 	defer gzw.Close()
 
-	brf, err := os.Create(path + ".brotli")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	params := enc.NewBrotliParams()
-	params.SetQuality(9)
-	brw := enc.NewBrotliWriter(params, brf)
-	defer brw.Close()
-
-	mw := io.MultiWriter(f, gzw, brw)
-
-	enc := json.NewEncoder(mw)
+	enc := json.NewEncoder(gzw)
 	err = enc.Encode(r)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -91,5 +79,5 @@ func (r *Receipt) HasFiles() bool {
 }
 
 func receiptPath(InstallFolder string) string {
-	return filepath.Join(InstallFolder, ".itch", "receipt.json")
+	return filepath.Join(InstallFolder, ".itch", "receipt.json.gz")
 }
