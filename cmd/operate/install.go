@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/installer/bfs"
 
 	"github.com/itchio/butler/installer"
 
@@ -99,7 +100,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	values := make(url.Values)
 	values.Set("api_key", params.Credentials.APIKey)
 	if params.Credentials.DownloadKey != 0 {
-		values.Set("download_key", fmt.Sprintf("%d", params.Credentials.DownloadKey))
+		values.Set("download_key_id", fmt.Sprintf("%d", params.Credentials.DownloadKey))
 	}
 	var archiveUrl = fmt.Sprintf("itchfs://%s?%s", archiveUrlPath, values.Encode())
 
@@ -139,6 +140,20 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		InstallFolderPath: params.InstallFolder,
 	})
 	comm.EndProgress()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Install successful, writing receipt")
+	receipt := &bfs.Receipt{
+		Files:         res.Files,
+		InstallerName: string(installerInfo.Type),
+		Game:          params.Game,
+		Upload:        params.Upload,
+		Build:         params.Build,
+	}
+
+	err = receipt.WriteReceipt(params.InstallFolder)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
