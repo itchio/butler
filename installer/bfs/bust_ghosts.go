@@ -4,38 +4,49 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
 )
+
+var debugGhostBusting = os.Getenv("BUTLER_LOUD_GHOSTS") == "1"
 
 type BustGhostsParams struct {
 	Consumer *state.Consumer
 	Folder   string
 	NewFiles []string
+	Receipt  *Receipt
 }
 
 func BustGhosts(params *BustGhostsParams) error {
-	destPath := params.Folder
-
-	receipt, err := ReadReceipt(destPath)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	if !receipt.HasFiles() {
+	if !params.Receipt.HasFiles() {
 		// if we didn't have a receipt, we can't know for sure
 		// which files are ghosts, so we just don't wipe anything
 		params.Consumer.Infof("No receipt found, leaving potential ghosts alone")
 		return nil
 	}
 
-	oldFiles := receipt.Files
+	oldFiles := params.Receipt.Files
 
 	ghostFiles := Difference(oldFiles, params.NewFiles)
 
 	if len(ghostFiles) == 0 {
 		params.Consumer.Infof("No ghosts there!")
 		return nil
+	}
+
+	if debugGhostBusting {
+		params.Consumer.Infof("== old files")
+		for _, f := range oldFiles {
+			params.Consumer.Infof("  %s", f)
+		}
+		params.Consumer.Infof("== new files")
+		for _, f := range params.NewFiles {
+			params.Consumer.Infof("  %s", f)
+		}
+		params.Consumer.Infof("== ghosts")
+		for _, f := range ghostFiles {
+			params.Consumer.Infof("  %s", f)
+		}
+		params.Consumer.Infof("=====================")
 	}
 
 	removeFoundGhosts(params, ghostFiles)

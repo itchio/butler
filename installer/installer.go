@@ -2,6 +2,7 @@ package installer
 
 import (
 	"github.com/itchio/butler/archive"
+	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/state"
 )
 
@@ -14,6 +15,9 @@ type Manager interface {
 type InstallParams struct {
 	// An archive file, .exe setup file, .dmg file etc.
 	SourcePath string
+
+	// The existing receipt, if any
+	ReceiptIn *bfs.Receipt
 
 	// Where the item should be installed
 	InstallFolderPath string

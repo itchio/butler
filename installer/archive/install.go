@@ -44,6 +44,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Consumer: params.Consumer,
 		Folder:   params.InstallFolderPath,
 		NewFiles: res.Files,
+		Receipt:  params.ReceiptIn,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

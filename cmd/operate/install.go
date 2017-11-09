@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"path/filepath"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer/bfs"
 
@@ -91,6 +92,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 	}
 
+	// TODO: if upload is wharf-enabled, retrieve build & include it in context/receipt/result etc.
+
 	var archiveUrlPath string
 	if params.Build == nil {
 		archiveUrlPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
@@ -112,7 +115,18 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	var archiveDownloadPath = filepath.Join(oc.StageFolder(), archiveDownloadName)
-	err = cp.Do(oc.MansionContext(), archiveUrl, archiveDownloadPath, true)
+	copyParams := &cp.CopyParams{
+		Consumer: consumer,
+		OnStart: func(initialProgress float64, totalBytes int64) {
+			// TODO: send requests to client letting it know we're downloading
+			// something
+			consumer.Infof("Download started, %s to fetch", humanize.IBytes(uint64(totalBytes)))
+		},
+		OnStop: func() {
+			consumer.Infof("Download ended")
+		},
+	}
+	err = cp.Do(oc.MansionContext(), copyParams, archiveUrl, archiveDownloadPath, true)
 	// TODO: cache copy result in context
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -131,6 +145,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.New(msg)
 	}
 
+	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
+	if err != nil {
+		receiptIn = nil
+		consumer.Warnf("Could not read existing receipt: %s", err.Error())
+	}
+
 	comm.StartProgress()
 	res, err := manager.Install(&installer.InstallParams{
 		Consumer:          oc.Consumer(),
@@ -138,6 +158,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		SourcePath:        archiveDownloadPath,
 		InstallFolderPath: params.InstallFolder,
+
+		ReceiptIn: receiptIn,
 	})
 	comm.EndProgress()
 	if err != nil {
