@@ -41,6 +41,11 @@ func Start(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (*b
 			return nil, errors.Wrap(err, 0)
 		}
 
+		err = oc.Retire()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
 		return &buse.OperationResult{
 			Success:       true,
 			InstallResult: ires,
