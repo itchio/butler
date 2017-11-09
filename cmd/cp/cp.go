@@ -8,14 +8,24 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 )
+
+type OnCopyStart func(initialProgress float64, totalBytes int64)
+type OnCopyStop func()
+
+type CopyParams struct {
+	OnStart  OnCopyStart
+	OnStop   OnCopyStop
+	Consumer *state.Consumer
+}
 
 var args = struct {
 	src    *string
@@ -32,15 +42,26 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.src, *args.dest, *args.resume))
+	params := &CopyParams{
+		OnStart: func(initialProgress float64, totalBytes int64) {
+			comm.Progress(initialProgress)
+			comm.StartProgressWithTotalBytes(totalBytes)
+		},
+		OnStop: func() {
+			comm.EndProgress()
+		},
+		Consumer: comm.NewStateConsumer(),
+	}
+
+	ctx.Must(Do(ctx, params, *args.src, *args.dest, *args.resume))
 }
 
-func Do(ctx *mansion.Context, srcPath string, destPath string, resume bool) error {
+func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
 	retryCtx := retrycontext.NewDefault()
 	retryCtx.Settings.Consumer = comm.NewStateConsumer()
 
 	for retryCtx.ShouldTry() {
-		err := Try(ctx, srcPath, destPath, resume)
+		err := Try(ctx, params, srcPath, destPath, resume)
 		if err != nil {
 			if dl.IsIntegrityError(err) {
 				retryCtx.Retry(err.Error())
@@ -57,7 +78,9 @@ func Do(ctx *mansion.Context, srcPath string, destPath string, resume bool) erro
 	return errors.New("cp: too many errors, giving up")
 }
 
-func Try(ctx *mansion.Context, srcPath string, destPath string, resume bool) error {
+func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
+	consumer := params.Consumer
+
 	src, err := eos.Open(srcPath)
 	if err != nil {
 		return err
@@ -98,41 +121,41 @@ func Try(ctx *mansion.Context, srcPath string, destPath string, resume bool) err
 			}
 
 			if startOffset == 0 {
-				comm.Logf("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+				consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
 			} else if startOffset > totalBytes {
-				comm.Logf("Existing data too big (%s > %s), starting over", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+				consumer.Warnf("Existing data too big (%s > %s), starting over", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
 				startOffset, err = dest.Seek(0, io.SeekStart)
 				if err != nil {
 					return err
 				}
 			} else if startOffset == totalBytes {
-				comm.Logf("All %s already there", humanize.IBytes(uint64(totalBytes)))
+				consumer.Infof("All %s already there", humanize.IBytes(uint64(totalBytes)))
 				return nil
 			}
 
-			comm.Logf("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+			consumer.Infof("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
 
 			_, err = src.Seek(startOffset, io.SeekStart)
 			if err != nil {
 				return err
 			}
 		} else {
-			comm.Logf("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+			consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
 		}
 
-		comm.Progress(float64(startOffset) / float64(totalBytes))
-		comm.StartProgressWithTotalBytes(totalBytes)
+		initialProgress := float64(startOffset) / float64(totalBytes)
+		params.OnStart(initialProgress, totalBytes)
 
 		cw := counter.NewWriterCallback(func(count int64) {
 			alpha := float64(startOffset+count) / float64(totalBytes)
-			comm.Progress(alpha)
+			consumer.Progress(alpha)
 		}, dest)
 
 		copiedBytes, err = io.Copy(cw, src)
 		if err != nil {
 			return err
 		}
-		comm.EndProgress()
+		params.OnStop()
 
 		return os.Truncate(destPath, totalBytes)
 	}()
