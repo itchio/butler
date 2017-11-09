@@ -106,10 +106,16 @@ func Do(src string, dst string) error {
 		filepath.Walk(src, inc)
 
 		comm.Logf("Mirroring...")
-		filepath.Walk(src, onFile)
+		err = filepath.Walk(src, onFile)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	} else {
 		totalSize = rootinfo.Size()
-		onFile(src, rootinfo, nil)
+		err = onFile(src, rootinfo, nil)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	comm.EndProgress()
