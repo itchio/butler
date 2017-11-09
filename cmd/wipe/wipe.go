@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
+	"github.com/itchio/wharf/state"
 )
 
 var args = struct {
@@ -22,10 +23,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.path))
+	ctx.Must(Do(ctx, comm.NewStateConsumer(), *args.path))
 }
 
-func Do(ctx *mansion.Context, path string) error {
+func Do(ctx *mansion.Context, consumer *state.Consumer, path string) error {
 	// why have retry logic built into wipe? sometimes when uninstalling
 	// games on windows, the os will randomly return I/O errors, retrying
 	// usually helps.
@@ -38,7 +39,7 @@ func Do(ctx *mansion.Context, path string) error {
 	}
 
 	for attempt <= len(sleepPatterns) {
-		err := Try(ctx, path)
+		err := Try(ctx, consumer, path)
 		if err == nil {
 			break
 		}
@@ -47,15 +48,15 @@ func Do(ctx *mansion.Context, path string) error {
 			return fmt.Errorf("Could not wipe %s: %s", path, err.Error())
 		}
 
-		comm.Logf("While wiping %s: %s", path, err.Error())
+		consumer.Warnf("While wiping %s: %s", path, err.Error())
 
-		comm.Logf("Trying to brute-force permissions, who knows...")
+		consumer.Infof("Trying to brute-force permissions, who knows...")
 		err = tryChmod(ctx, path)
 		if err != nil {
-			comm.Warnf("While bruteforcing: %s", err.Error())
+			consumer.Warnf("While bruteforcing: %s", err.Error())
 		}
 
-		comm.Logf("Sleeping for a bit before we retry...")
+		consumer.Infof("Sleeping for a bit before we retry...")
 		sleepDuration := sleepPatterns[attempt]
 		time.Sleep(sleepDuration)
 		attempt++
@@ -64,8 +65,8 @@ func Do(ctx *mansion.Context, path string) error {
 	return nil
 }
 
-func Try(ctx *mansion.Context, path string) error {
-	comm.Debugf("rm -rf %s", path)
+func Try(ctx *mansion.Context, consumer *state.Consumer, path string) error {
+	consumer.Debugf("rm -rf %s", path)
 	return os.RemoveAll(path)
 }
 
