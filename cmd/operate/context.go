@@ -10,6 +10,8 @@ import (
 	"github.com/dchest/safefile"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/wipe"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
@@ -145,6 +147,23 @@ func (oc *OperationContext) Save(s Subcontext) error {
 	}
 
 	defer f.Close()
+
+	return nil
+}
+
+func (oc *OperationContext) Retire() error {
+	consumer := oc.Consumer()
+
+	consumer.Infof("Retiring stage folder...")
+	err := oc.logFile.Close()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = wipe.Do(oc.MansionContext(), comm.NewStateConsumer(), oc.StageFolder())
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	return nil
 }
