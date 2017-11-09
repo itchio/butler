@@ -168,7 +168,12 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 						return errors.Wrap(err, 0)
 					}
 
-					JoinedDest := filepath.Join(filepath.Dir(FullPath), Dest)
+					var JoinedDest string
+					if filepath.IsAbs(Dest) {
+						JoinedDest = Dest
+					} else {
+						JoinedDest = filepath.Join(filepath.Dir(FullPath), Dest)
+					}
 
 					CleanDest := filepath.Clean(JoinedDest)
 
