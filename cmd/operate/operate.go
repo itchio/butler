@@ -41,14 +41,20 @@ func Start(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (*b
 			return nil, errors.Wrap(err, 0)
 		}
 
+		oc.consumer.Infof("Installed %d files, reporting success", len(ires.Files))
+
 		err = oc.Retire()
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
 		return &buse.OperationResult{
-			Success:       true,
-			InstallResult: ires,
+			Success: true,
+			InstallResult: &buse.InstallResult{
+				Game:   params.InstallParams.Game,
+				Upload: params.InstallParams.Upload,
+				Build:  params.InstallParams.Build,
+			},
 		}, nil
 	}
 

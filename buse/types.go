@@ -81,6 +81,13 @@ type OperationResult struct {
 	ErrorStack    string      `json:"errorStack,omitempty"`
 }
 
+type InstallResult struct {
+	Game   *itchio.Game   `json:"game"`
+	Upload *itchio.Upload `json:"upload"`
+	Build  *itchio.Build  `json:"build"`
+	// TODO: verdict ?
+}
+
 // Log
 type LogNotification struct {
 	Level   string `json:"level"`
