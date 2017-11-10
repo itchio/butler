@@ -73,6 +73,7 @@ func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer 
 		logFile:        logFile,
 		stageFolder:    stageFolder,
 		ctx:            ctx,
+		conn:           conn,
 		mansionContext: mansionContext,
 		root:           make(map[string]interface{}),
 		loaded:         make(map[string]struct{}),
