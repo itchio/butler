@@ -123,7 +123,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			remainingBytes := float64(totalBytes) * (1.0 - initialProgress)
 			consumer.Infof("Download started, %s to fetch", humanize.IBytes(uint64(remainingBytes)))
 
-			oc.conn.Notify(oc.ctx, "task-started", &buse.TaskStartedNotification{
+			oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
 				Reason:    buse.TaskReasonInstall,
 				Type:      buse.TaskTypeDownload,
 				Game:      params.Game,
@@ -135,7 +135,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		OnStop: func() {
 			consumer.Infof("Download ended")
 
-			oc.conn.Notify(oc.ctx, "task-ended", &buse.TaskEndedNotification{})
+			oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
 		},
 	}
 
@@ -165,7 +165,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	comm.StartProgress()
-	err = oc.conn.Notify(oc.ctx, "task-started", &buse.TaskStartedNotification{
+	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
 		Reason: buse.TaskReasonInstall,
 		Type:   buse.TaskTypeInstall,
 		Game:   params.Game,
@@ -190,7 +190,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = oc.conn.Notify(oc.ctx, "task-ended", &buse.TaskEndedNotification{})
+	err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
