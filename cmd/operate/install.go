@@ -44,8 +44,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	// TODO: cache that in context
-
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
 		uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
@@ -90,6 +88,14 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
 		}
+
+		if params.Upload.Build != nil {
+			// if we reach this point, we *just now* queried for an upload,
+			// so we know the build object is the latest
+			params.Build = params.Upload.Build
+		}
+
+		oc.Save(meta)
 	}
 
 	// TODO: if upload is wharf-enabled, retrieve build & include it in context/receipt/result etc.

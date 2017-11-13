@@ -28,6 +28,8 @@ func Start(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (*b
 		data: params,
 	}
 
+	oc.Load(meta)
+
 	if meta.data.Operation == "" {
 		return nil, errors.New("No operation specified")
 	}
