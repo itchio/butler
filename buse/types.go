@@ -71,6 +71,37 @@ type OperationProgressNotification struct {
 	BPS      int64   `json:"bps,omitempty"`
 }
 
+type TaskReason string
+
+const (
+	TaskReasonInstall   TaskReason = "install"
+	TaskReasonReinstall TaskReason = "reinstall"
+	TaskReasonUpdate    TaskReason = "update"
+	TaskReasonRevert    TaskReason = "revert"
+	TaskReasonHeal      TaskReason = "heal"
+)
+
+type TaskType string
+
+const (
+	TaskTypeDownload  TaskType = "download"
+	TaskTypeInstall   TaskType = "install"
+	TaskTypeUninstall TaskType = "uninstall"
+)
+
+type TaskStartedNotification struct {
+	Reason    TaskReason     `json:"reason"`
+	Type      TaskType       `json:"type"`
+	CaveID    string         `json:"caveId,omitempty"`
+	Game      *itchio.Game   `json:"game"`
+	Upload    *itchio.Upload `json:"upload"`
+	Build     *itchio.Build  `json:"build,omitempty"`
+	TotalSize int64          `json:"totalSize,omitempty"`
+}
+
+type TaskEndedNotification struct {
+}
+
 // Result for
 //   - Operation.Start
 //   - Operation.Resume
