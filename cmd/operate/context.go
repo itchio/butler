@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/dchest/safefile"
 	"github.com/go-errors/errors"
@@ -13,6 +14,8 @@ import (
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/pb"
+	"github.com/itchio/butler/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sourcegraph/jsonrpc2"
@@ -24,6 +27,8 @@ type OperationContext struct {
 	consumer    *state.Consumer
 	stageFolder string
 	logFile     *os.File
+
+	counter *progress.Counter
 
 	mansionContext *mansion.Context
 
@@ -48,6 +53,23 @@ func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer 
 
 	ctx := mansionContext.Context()
 
+	// shows percentages, to the 1/100th
+	bar := pb.New64(100 * 100)
+	bar.AlwaysUpdate = true
+	bar.NotPrint = true
+	bar.RefreshRate = 250 * time.Millisecond
+	bar.Start()
+
+	oc := &OperationContext{
+		logFile:        logFile,
+		stageFolder:    stageFolder,
+		ctx:            ctx,
+		conn:           conn,
+		mansionContext: mansionContext,
+		root:           make(map[string]interface{}),
+		loaded:         make(map[string]struct{}),
+	}
+
 	subconsumer := &state.Consumer{
 		OnMessage: func(level, msg string) {
 			if logFile != nil {
@@ -58,26 +80,36 @@ func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer 
 				Message: msg,
 			})
 		},
-		OnProgress: func(percent float64) {
-			conn.Notify(ctx, "Operation.Progress", &buse.OperationProgressNotification{
-				Progress: percent,
-			})
+		OnProgress: func(alpha float64) {
+			if oc.counter == nil {
+				// skip
+				return
+			}
+
+			oc.counter.SetProgress(alpha)
+			notif := &buse.OperationProgressNotification{
+				Progress: alpha,
+				ETA:      oc.counter.ETA().Seconds(),
+				BPS:      oc.counter.BPS(),
+			}
+			conn.Notify(ctx, "Operation.Progress", notif)
 		},
-		OnProgressLabel:  consumer.OnProgressLabel,
-		OnPauseProgress:  consumer.OnPauseProgress,
-		OnResumeProgress: consumer.OnResumeProgress,
+		OnProgressLabel: func(label string) {
+			// muffin
+		},
+		OnPauseProgress: func() {
+			if oc.counter != nil {
+				oc.counter.Pause()
+			}
+		},
+		OnResumeProgress: func() {
+			if oc.counter != nil {
+				oc.counter.Resume()
+			}
+		},
 	}
 
-	oc := &OperationContext{
-		consumer:       subconsumer,
-		logFile:        logFile,
-		stageFolder:    stageFolder,
-		ctx:            ctx,
-		conn:           conn,
-		mansionContext: mansionContext,
-		root:           make(map[string]interface{}),
-		loaded:         make(map[string]struct{}),
-	}
+	oc.consumer = subconsumer
 
 	path := contextPath(stageFolder)
 
@@ -98,6 +130,37 @@ func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer 
 	}
 
 	return oc
+}
+
+func (oc *OperationContext) StartProgress() {
+	oc.StartProgressWithTotalBytes(0)
+}
+
+func (oc *OperationContext) StartProgressWithTotalBytes(totalBytes int64) {
+	oc.StartProgressWithInitialAndTotal(0.0, 0)
+}
+
+func (oc *OperationContext) StartProgressWithInitialAndTotal(initialProgress float64, totalBytes int64) {
+	if oc.counter != nil {
+		oc.consumer.Warnf("Asked to start progress but already tracking progress!")
+		return
+	}
+
+	oc.counter = progress.NewCounter()
+	oc.counter.SetSilent(true)
+	oc.counter.SetProgress(initialProgress)
+	oc.counter.SetTotalBytes(totalBytes)
+	oc.counter.Start()
+}
+
+func (oc *OperationContext) EndProgress() {
+	if oc.counter != nil {
+		oc.consumer.Infof("Ending progress...")
+		oc.counter.Finish()
+		oc.counter = nil
+	} else {
+		oc.consumer.Warnf("Asked to stop progress but wasn't tracking progress!")
+	}
 }
 
 func (oc *OperationContext) Load(s Subcontext) {

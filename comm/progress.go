@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/itchio/butler/pb"
+	"github.com/itchio/butler/progress"
 )
 
-var bar *pb.ProgressBar
-var lastProgressValue int64
+var counter *progress.Counter
+
+var lastProgressAlpha = 0.0
 
 // ProgressTheme contains all the characters we need to show progress
 type ProgressTheme struct {
@@ -64,14 +66,14 @@ const maxLabelLength = 40
 
 // ProgressLabel sets the string printed next to the progress indicator
 func ProgressLabel(label string) {
-	if bar == nil {
+	if counter == nil {
 		return
 	}
 
 	if len(label) > maxLabelLength {
 		label = fmt.Sprintf("...%s", label[len(label)-(maxLabelLength-3):])
 	}
-	bar.Postfix(label)
+	counter.Bar().Postfix(label)
 }
 
 // StartProgress begins a period in which progress is regularly printed
@@ -82,60 +84,45 @@ func StartProgress() {
 // StartProgressWithTotalBytes begins a period in which progress is regularly printed,
 // and bps (bytes per second) is estimated from the total size given
 func StartProgressWithTotalBytes(totalBytes int64) {
-	if bar != nil {
+	if counter != nil {
 		// Already in-progress
 		return
 	}
 
-	// shows percentages, to the 1/100th
-	bar = pb.New64(100 * 100)
-	bar.AlwaysUpdate = true
-	bar.RefreshRate = 125 * time.Millisecond
+	counter = progress.NewCounter()
+	bar := counter.Bar()
+
 	bar.ShowCounters = false
 	bar.ShowFinalTime = false
 	bar.TimeBoxWidth = 8
 	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
-	bar.Set64(lastProgressValue)
-	bar.TotalBytes = totalBytes
 
-	lastBandwidthAlpha = valueToAlpha(lastProgressValue)
+	counter.SetTotalBytes(totalBytes)
+	counter.SetProgress(lastProgressAlpha)
 
 	if settings.noProgress || settings.json {
 		// use bar for ETA, but don't print
-		bar.NotPrint = true
+		counter.SetSilent(true)
 	}
 
 	theme.apply(bar)
-	bar.Start()
-}
-
-func alphaToValue(alpha float64) int64 {
-	return int64(alpha * 10000.0)
-}
-
-func valueToAlpha(val int64) float64 {
-	return float64(val) / 10000.0
+	counter.Start()
 }
 
 // PauseProgress temporarily stops printing the progress bar
 func PauseProgress() {
-	if bar != nil {
-		bar.AlwaysUpdate = false
+	if counter != nil {
+		counter.Pause()
 	}
 }
 
 // ResumeProgress resumes printing the progress bar after PauseProgress was called
 func ResumeProgress() {
-	if bar != nil {
-		bar.AlwaysUpdate = true
+	if counter != nil {
+		counter.Resume()
 	}
 }
-
-var maxBucketDuration = 1 * time.Second
-var lastBandwidthUpdate time.Time
-var lastBandwidthAlpha = 0.0
-var bps float64
 
 var lastJsonPrintTime time.Time
 var maxJsonPrintDuration = 500 * time.Millisecond
@@ -143,32 +130,13 @@ var maxJsonPrintDuration = 500 * time.Millisecond
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
 func Progress(alpha float64) {
-	msg := jsonMessage{
-		"progress":   alpha,
-		"percentage": alpha * 100.0,
+	lastProgressAlpha = alpha
+
+	if counter == nil {
+		return
 	}
 
-	if bar != nil {
-		msg["eta"] = bar.TimeLeft.Seconds()
-
-		if bar.TotalBytes != 0 {
-			if lastBandwidthUpdate.IsZero() {
-				lastBandwidthUpdate = time.Now()
-			}
-			bucketDuration := time.Since(lastBandwidthUpdate)
-
-			if bucketDuration > maxBucketDuration {
-				bytesSinceLastUpdate := float64(bar.TotalBytes) * (alpha - lastBandwidthAlpha)
-				bps = bytesSinceLastUpdate / bucketDuration.Seconds()
-				lastBandwidthUpdate = time.Now()
-				lastBandwidthAlpha = alpha
-			}
-
-			msg["bps"] = bps
-		}
-	}
-
-	setBarProgress(alpha)
+	counter.SetProgress(alpha)
 
 	if lastJsonPrintTime.IsZero() {
 		lastJsonPrintTime = time.Now()
@@ -177,7 +145,12 @@ func Progress(alpha float64) {
 
 	if printDuration > maxJsonPrintDuration {
 		lastJsonPrintTime = time.Now()
-		send("progress", msg)
+		send("progress", jsonMessage{
+			"progress":   alpha,
+			"percentage": alpha * 100.0,
+			"eta":        counter.ETA().Seconds(),
+			"bps":        counter.BPS(),
+		})
 	}
 }
 
@@ -188,34 +161,16 @@ func ProgressScale(scale float64) {
 		return
 	}
 
-	if bar != nil {
-		bar.SetScale(scale)
-	}
-}
-
-func setBarProgress(alpha float64) {
-	val := alphaToValue(alpha)
-	lastProgressValue = val
-
-	if bar != nil {
-		bar.Set64(val)
+	if counter != nil {
+		counter.Bar().SetScale(scale)
 	}
 }
 
 // EndProgress stops refreshing the progress bar and erases it.
 func EndProgress() {
-	lastProgressValue = 0
-	bps = 0
-	lastBandwidthAlpha = 0.0
-	lastBandwidthUpdate = time.Time{}
-
-	if bar != nil {
-		bar.Set64(10000)
-
-		if !settings.noProgress {
-			bar.Postfix("")
-			bar.Finish()
-		}
-		bar = nil
+	if counter != nil {
+		counter.SetProgress(1.0)
+		counter.Finish()
+		counter = nil
 	}
 }

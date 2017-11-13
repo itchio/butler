@@ -7,7 +7,7 @@ import (
 )
 
 // ProgressCallback is called periodically to announce the degree of completeness of an operation
-type ProgressCallback func(percent float64)
+type ProgressCallback func(alpha float64)
 
 // ProgressLabelCallback is called when the progress label should be changed
 type ProgressLabelCallback func(label string)

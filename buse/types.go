@@ -68,7 +68,7 @@ type OperationResumeParams struct {
 type OperationProgressNotification struct {
 	Progress float64 `json:"progress"`
 	ETA      float64 `json:"eta,omitempty"`
-	BPS      int64   `json:"bps,omitempty"`
+	BPS      float64 `json:"bps,omitempty"`
 }
 
 type TaskReason string

@@ -129,6 +129,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			remainingBytes := float64(totalBytes) * (1.0 - initialProgress)
 			consumer.Infof("Download started, %s to fetch", humanize.IBytes(uint64(remainingBytes)))
 
+			oc.StartProgressWithInitialAndTotal(initialProgress, totalBytes)
+
 			oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
 				Reason:    buse.TaskReasonInstall,
 				Type:      buse.TaskTypeDownload,
@@ -140,8 +142,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		},
 		OnStop: func() {
 			consumer.Infof("Download ended")
-
 			oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+			oc.EndProgress()
 		},
 	}
 
