@@ -2,15 +2,15 @@ package fetch
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
+	"github.com/itchio/wharf/eos"
 )
 
 var args = struct {
@@ -86,40 +86,28 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 		return fmt.Errorf("Channel %s's latest build is still processing", spec.Channel)
 	}
 
-	dlReader, err := client.DownloadBuildFile(head.ID, headArchive.ID)
+	url := head.ItchfsURL(headArchive, client.Key)
+
+	remoteFile, err := eos.Open(url)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
-	tmpFile, err := ioutil.TempFile("", "butler-fetch")
+	stats, err := remoteFile.Stat()
 	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	defer func() {
-		if cErr := os.Remove(tmpFile.Name()); err == nil && cErr != nil {
-			err = cErr
-		}
-	}()
-
-	comm.Opf("Downloading build %d", head.ID)
-
-	archiveSize, err := io.Copy(tmpFile, dlReader)
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
-	_, err = tmpFile.Seek(0, io.SeekStart)
-	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	settings := archiver.ExtractSettings{
 		Consumer: comm.NewStateConsumer(),
+		OnUncompressedSizeKnown: func(totalBytes int64) {
+			comm.StartProgressWithTotalBytes(totalBytes)
+		},
 	}
 
 	comm.Opf("Extracting into %s", outPath)
-	result, err := archiver.Extract(tmpFile, archiveSize, outPath, settings)
+	result, err := archiver.Extract(remoteFile, stats.Size(), outPath, settings)
+	comm.EndProgress()
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
