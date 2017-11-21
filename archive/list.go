@@ -18,9 +18,12 @@ func List(params *ListParams) (ListResult, error) {
 
 	for _, handler := range handlers {
 		res, err := handler.List(params)
-		if err == nil {
-			return res, nil
+		if err != nil {
+			params.Consumer.Infof("Handler %s couldn't list: %s", handler.Name(), err.Error())
+			continue
 		}
+
+		return res, nil
 	}
 
 	return nil, ErrUnrecognizedArchiveType

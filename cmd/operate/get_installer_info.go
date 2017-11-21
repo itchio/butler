@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/wharf/state"
 )
 
 type InstallerInfo struct {
@@ -27,16 +27,16 @@ const (
 	InstallerTypeUnsupported               = "unsupported"
 )
 
-func getInstallerInfo(target string) (*InstallerInfo, error) {
+func getInstallerInfo(consumer *state.Consumer, target string) (*InstallerInfo, error) {
 	ext := filepath.Ext(target)
 	name := filepath.Base(target)
 
 	if typ, ok := installerForExt[ext]; ok {
-		comm.Logf("%s: choosing installer '%s'", name, typ)
+		consumer.Infof("%s: choosing installer '%s'", name, typ)
 		return &InstallerInfo{Type: typ}, nil
 	}
 
-	comm.Logf("%s: no extension match, using configurator", name)
+	consumer.Infof("%s: no extension match, using configurator", name)
 
 	verdict, err := configurator.Configure(target, false)
 	if err != nil {
@@ -44,20 +44,21 @@ func getInstallerInfo(target string) (*InstallerInfo, error) {
 	}
 
 	if len(verdict.Candidates) == 1 {
-		typ := getInstallerTypeForCandidate(name, verdict.Candidates[0])
+		typ := getInstallerTypeForCandidate(consumer, name, verdict.Candidates[0])
 		if typ != InstallerTypeUnknown {
 			return &InstallerInfo{Type: typ}, nil
 		}
 	} else {
-		comm.Logf("%s: %d candidates (expected 1), ignoring", name, len(verdict.Candidates))
+		consumer.Infof("%s: %d candidates (expected 1), ignoring", name, len(verdict.Candidates))
 	}
 
-	comm.Logf("%s: no configurator match, probing as archive", name)
+	consumer.Infof("%s: no configurator match, probing as archive", name)
 	listResult, err := archive.List(&archive.ListParams{
-		Path: target,
+		Path:     target,
+		Consumer: consumer,
 	})
 	if err == nil {
-		comm.Logf("%s: is archive, %s", name, listResult.FormatName())
+		consumer.Infof("%s: is archive, %s", name, listResult.FormatName())
 		return &InstallerInfo{
 			Type:              InstallerTypeArchive,
 			ArchiveListResult: listResult,
@@ -69,36 +70,36 @@ func getInstallerInfo(target string) (*InstallerInfo, error) {
 	}, nil
 }
 
-func getInstallerTypeForCandidate(name string, candidate *configurator.Candidate) InstallerType {
+func getInstallerTypeForCandidate(consumer *state.Consumer, name string, candidate *configurator.Candidate) InstallerType {
 	switch candidate.Flavor {
 
 	case configurator.FlavorNativeWindows:
 		if candidate.WindowsInfo != nil && candidate.WindowsInfo.InstallerType != "" {
 			typ := (InstallerType)(candidate.WindowsInfo.InstallerType)
-			comm.Logf("%s: windows installer of type %s", name, typ)
+			consumer.Infof("%s: windows installer of type %s", name, typ)
 			return typ
 		}
 
-		comm.Logf("%s: native windows executable, but not an installer", name)
+		consumer.Infof("%s: native windows executable, but not an installer", name)
 		return InstallerTypeNaked
 
 	case configurator.FlavorNativeMacos:
-		comm.Logf("%s: native macOS executable", name)
+		consumer.Infof("%s: native macOS executable", name)
 		return InstallerTypeNaked
 
 	case configurator.FlavorNativeLinux:
-		comm.Logf("%s: native linux executable", name)
+		consumer.Infof("%s: native linux executable", name)
 		return InstallerTypeNaked
 
 	case configurator.FlavorScript:
-		comm.Logf("%s: script", name)
+		consumer.Infof("%s: script", name)
 		if candidate.ScriptInfo != nil && candidate.ScriptInfo.Interpreter != "" {
-			comm.Logf("...with interpreter %s", candidate.ScriptInfo.Interpreter)
+			consumer.Infof("...with interpreter %s", candidate.ScriptInfo.Interpreter)
 		}
 		return InstallerTypeNaked
 
 	case configurator.FlavorScriptWindows:
-		comm.Logf("%s: windows script", name)
+		consumer.Infof("%s: windows script", name)
 		return InstallerTypeNaked
 
 	}

@@ -153,7 +153,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	installerInfo, err := getInstallerInfo(archiveDownloadPath)
+	installerInfo, err := getInstallerInfo(consumer, archiveDownloadPath)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

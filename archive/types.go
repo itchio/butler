@@ -17,7 +17,8 @@ type Entry struct {
 }
 
 type ListParams struct {
-	Path string
+	Path     string
+	Consumer *state.Consumer
 }
 
 type ExtractParams struct {

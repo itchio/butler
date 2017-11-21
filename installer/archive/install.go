@@ -12,7 +12,8 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	if listResult == nil {
 		var err error
 		listResult, err = archive.List(&archive.ListParams{
-			Path: params.SourcePath,
+			Path:     params.SourcePath,
+			Consumer: params.Consumer,
 		})
 
 		if err != nil {
