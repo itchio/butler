@@ -22,8 +22,10 @@ func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
 				}
 				defer item.Free()
 
+				sanePath := sanitizePath(item.GetStringProperty(sz.PidPath))
+
 				entries = append(entries, &archive.Entry{
-					Name:             item.GetStringProperty(sz.PidPath),
+					Name:             sanePath,
 					UncompressedSize: int64(item.GetUInt64Property(sz.PidSize)),
 				})
 			}()
