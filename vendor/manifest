@@ -43,6 +43,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/fasterthanlime/go-libc7zip",
+			"repository": "https://github.com/fasterthanlime/go-libc7zip",
+			"vcs": "git",
+			"revision": "fdf5eeef280dfae8d799c2b0179613441e878d86",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
