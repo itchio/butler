@@ -8,10 +8,18 @@
 
 #ifdef __WIN32
 #include <windows.h>
-#endif
+#define MY_DLOPEN LoadLibrary
+#define MY_DLSYM GetProcAddress
+#define MY_LIBHANDLE HMODULE
+#else // __WIN32
+#include <dlfcn.h>
+#define MY_DLOPEN(x) dlopen((x), RTLD_LAZY|RTLD_LOCAL)
+#define MY_DLSYM dlsym
+#define MY_LIBHANDLE void*
+#endif // !__WIN32
 
 #define LOADSYM(sym) { \
-  sym ## _ = (void*) GetProcAddress(dynlib, #sym); \
+  sym ## _ = (void*) MY_DLSYM(dynlib, #sym); \
   if (! sym ## _) { \
     fprintf(stderr, "Could not load symbol %s\n", #sym); \
     fflush(stderr); \
@@ -19,12 +27,12 @@
   } \
 }
 
-HMODULE dynlib;
+MY_LIBHANDLE dynlib;
 
-int libc7zip_initialize() {
-  dynlib = LoadLibrary("libc7zip.dll");
+int libc7zip_initialize(char *lib_path) {
+  dynlib = MY_DLOPEN(lib_path);
   if (!dynlib) {
-    fprintf(stderr, "Could not load libc7zip.dll\n");
+    fprintf(stderr, "Could not load %s\n", lib_path);
     fflush(stderr);
     return 1;
   }

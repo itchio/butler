@@ -1,6 +1,8 @@
 package sz
 
 /*
+#cgo !windows LDFLAGS: -ldl
+
 #include <stdlib.h> // for C.free
 #include "glue.h"
 
@@ -20,7 +22,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"unsafe"
 
 	"github.com/go-errors/errors"
@@ -58,10 +62,46 @@ type Lib struct {
 	lib *C.lib
 }
 
-func NewLib() (*Lib, error) {
-	ret := C.libc7zip_initialize()
+var lazyInitDone = false
+
+func lazyInit() error {
+	if lazyInitDone {
+		return nil
+	}
+
+	libPath := "unsupported-os"
+	switch runtime.GOOS {
+	case "windows":
+		libPath = "libc7zip.dll"
+	case "linux":
+		libPath = "libc7zip.so"
+	case "darwin":
+		libPath = "libc7zip.dylib"
+	}
+
+	execPath, err := os.Executable()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	libPath = filepath.Join(filepath.Dir(execPath), libPath)
+
+	cLibPath := C.CString(libPath)
+	defer C.free(unsafe.Pointer(cLibPath))
+
+	ret := C.libc7zip_initialize(cLibPath)
 	if ret != 0 {
-		return nil, fmt.Errorf("could not initialize libc7zip")
+		return fmt.Errorf("could not initialize libc7zip")
+	}
+
+	lazyInitDone = true
+	return nil
+}
+
+func NewLib() (*Lib, error) {
+	err := lazyInit()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	lib := C.libc7zip_lib_new()

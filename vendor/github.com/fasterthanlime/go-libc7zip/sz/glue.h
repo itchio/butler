@@ -9,7 +9,7 @@
 
 #define DECLARE(x) GLUE x##_t x##_;
 
-int libc7zip_initialize();
+int libc7zip_initialize(char *lib_path);
 
 // lib_new
 typedef lib *(*lib_new_t)();

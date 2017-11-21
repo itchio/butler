@@ -46,7 +46,7 @@
 			"importpath": "github.com/fasterthanlime/go-libc7zip",
 			"repository": "https://github.com/fasterthanlime/go-libc7zip",
 			"vcs": "git",
-			"revision": "fdf5eeef280dfae8d799c2b0179613441e878d86",
+			"revision": "cc3c00074d1ecb2cce0c4728473da971e771e99b",
 			"branch": "master",
 			"notests": true
 		},
