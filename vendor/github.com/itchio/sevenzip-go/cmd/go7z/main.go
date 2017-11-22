@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/fasterthanlime/go-libc7zip/sz"
 	"github.com/go-errors/errors"
+	"github.com/itchio/sevenzip-go/sz"
 )
 
 type ecs struct {

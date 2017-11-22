@@ -36,4 +36,17 @@ Amos would like to thank in particular Leaf Corcoran, Jesús Higueras and Tomá�
 
 ## License
 
-Licensed under the MIT License. See [LICENSE](LICENSE) for details.
+butler is released under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Additional licenses
+
+While butler built from source is fully MIT-licensed, some components it can use at runtime
+(if present) have other licenses:
+
+  * The 7-zip decompression engine (the `github.com/itchio/butler/archive/backends/szah` package) opens
+  dynamic libraries for [libc7zip][], and [7-zip][], which have components licensed under the LGPL 2.1 license
+  and the MPL 2.0 license, along with specific terms for the RAR extraction code.
+
+[libc7zip]: https://github.com/itchio/libc7zip
+[7-zip]: http://7-zip.org/faq.html
+[7-zip FAQ]: http://7-zip.org/faq.html

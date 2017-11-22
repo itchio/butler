@@ -1,9 +1,9 @@
 package szah
 
 import (
-	"github.com/fasterthanlime/go-libc7zip/sz"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
+	"github.com/itchio/sevenzip-go/sz"
 )
 
 func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {

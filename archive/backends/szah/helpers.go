@@ -4,8 +4,8 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/fasterthanlime/go-libc7zip/sz"
 	"github.com/go-errors/errors"
+	"github.com/itchio/sevenzip-go/sz"
 	"github.com/itchio/wharf/eos"
 )
 

@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/fasterthanlime/go-libc7zip/sz"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
+	"github.com/itchio/sevenzip-go/sz"
 )
 
 type ech struct {

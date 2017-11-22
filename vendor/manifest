@@ -43,14 +43,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/fasterthanlime/go-libc7zip",
-			"repository": "https://github.com/fasterthanlime/go-libc7zip",
-			"vcs": "git",
-			"revision": "cc3c00074d1ecb2cce0c4728473da971e771e99b",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
@@ -193,6 +185,14 @@
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
 			"revision": "46216af2bcb43df19386a220717502b8e56020ca",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/sevenzip-go",
+			"repository": "https://github.com/itchio/sevenzip-go",
+			"vcs": "git",
+			"revision": "dc52ca4cf0c927e1bf4603afbcfa3a3ac1bc12ce",
 			"branch": "master",
 			"notests": true
 		},
