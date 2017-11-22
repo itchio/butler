@@ -31,7 +31,6 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Consumer:   params.Consumer,
 		Path:       params.SourcePath,
 		OutputPath: params.InstallFolderPath,
-		ListResult: listResult,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

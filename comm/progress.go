@@ -2,64 +2,23 @@ package comm
 
 import (
 	"fmt"
-	"os"
-	"runtime"
-	"strings"
 	"time"
 
 	"github.com/itchio/butler/pb"
 	"github.com/itchio/butler/progress"
+	"github.com/itchio/wharf/state"
 )
 
 var counter *progress.Counter
 
 var lastProgressAlpha = 0.0
 
-// ProgressTheme contains all the characters we need to show progress
-type ProgressTheme struct {
-	BarStart        string
-	BarEnd          string
-	Current         string
-	CurrentHalfTone string
-	Empty           string
-	OpSign          string
-	StatSign        string
-}
-
-var themes = map[string]*ProgressTheme{
-	"unicode": {"▐", "▌", "▓", "▒", "░", "•", "✓"},
-	"ascii":   {"|", "|", "#", "=", "-", ">", "<"},
-	"cp437":   {"▐", "▌", "█", "▒", "░", "∙", "√"},
-}
-
-func (th *ProgressTheme) apply(bar *pb.ProgressBar) {
+func ApplyTheme(bar *pb.ProgressBar, th *state.ProgressTheme) {
 	bar.BarStart = th.BarStart
 	bar.BarEnd = th.BarEnd
 	bar.Current = th.Current
 	bar.CurrentN = th.Current
 	bar.Empty = th.Empty
-}
-
-func getCharset() string {
-	if runtime.GOOS == "windows" && os.Getenv("OS") != "CYGWIN" {
-		return "cp437"
-	}
-
-	var utf8 = ".UTF-8"
-	if strings.Contains(os.Getenv("LC_ALL"), utf8) ||
-		os.Getenv("LC_CTYPE") == "UTF-8" ||
-		strings.Contains(os.Getenv("LANG"), utf8) {
-		return "unicode"
-	}
-
-	return "ascii"
-}
-
-var theme = themes[getCharset()]
-
-// GetTheme returns the theme used to show progress
-func GetTheme() *ProgressTheme {
-	return theme
 }
 
 const maxLabelLength = 40
@@ -106,7 +65,7 @@ func StartProgressWithTotalBytes(totalBytes int64) {
 		counter.SetSilent(true)
 	}
 
-	theme.apply(bar)
+	ApplyTheme(bar, state.GetTheme())
 	counter.Start()
 }
 

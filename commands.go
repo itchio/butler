@@ -28,6 +28,7 @@ import (
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
+	"github.com/itchio/butler/cmd/unsz"
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
 	"github.com/itchio/butler/cmd/upgrade"
@@ -81,6 +82,7 @@ func registerCommands(ctx *mansion.Context) {
 	prereqs.Register(ctx)
 
 	unzip.Register(ctx)
+	unsz.Register(ctx)
 	untar.Register(ctx)
 	indexzip.Register(ctx)
 

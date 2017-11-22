@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/art"
+	"github.com/itchio/wharf/state"
 	"github.com/olekukonko/tablewriter"
 	"github.com/skratchdot/open-golang/open"
 )
@@ -44,7 +45,7 @@ func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool, ada
 
 	// NOW it's a feature, not a bug <3
 	if adamLovesBeeps {
-		themes["cp437"].OpSign = "•"
+		state.EnableBeepsForAdam()
 	}
 }
 
@@ -93,12 +94,12 @@ func YesNo(question string) bool {
 
 // Opf prints a formatted string informing the user on what operation we're doing
 func Opf(format string, args ...interface{}) {
-	Logf("%s %s", theme.OpSign, fmt.Sprintf(format, args...))
+	Logf("%s %s", state.GetTheme().OpSign, fmt.Sprintf(format, args...))
 }
 
 // Statf prints a formatted string informing the user how fast the operation went
 func Statf(format string, args ...interface{}) {
-	Logf("%s %s", theme.StatSign, fmt.Sprintf(format, args...))
+	Logf("%s %s", state.GetTheme().StatSign, fmt.Sprintf(format, args...))
 }
 
 // Log sends an informational message to the client

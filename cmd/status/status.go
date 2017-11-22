@@ -7,9 +7,10 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/state"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -91,7 +92,7 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 }
 
 func buildState(build *itchio.Build) string {
-	theme := comm.GetTheme()
+	theme := state.GetTheme()
 	var s string
 
 	switch build.State {
@@ -144,7 +145,7 @@ func filesState(files []*itchio.BuildFile, showAllFiles bool) string {
 }
 
 func fileState(file *itchio.BuildFile) string {
-	theme := comm.GetTheme()
+	theme := state.GetTheme()
 
 	fType := string(file.Type)
 	if file.SubType != itchio.BuildFileSubTypeDefault {
