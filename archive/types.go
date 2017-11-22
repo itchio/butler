@@ -21,12 +21,14 @@ type ListParams struct {
 	Consumer *state.Consumer
 }
 
+type UncompressedSizeKnownFunc func(uncompressedSize int64)
+
 type ExtractParams struct {
 	Path       string
 	OutputPath string
-	ListResult ListResult
 
-	Consumer *state.Consumer
+	Consumer                *state.Consumer
+	OnUncompressedSizeKnown UncompressedSizeKnownFunc
 }
 
 type Handler interface {

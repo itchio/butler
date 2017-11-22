@@ -22,9 +22,25 @@ func (h *Handler) Extract(params *archive.ExtractParams) error {
 			return errors.Wrap(err, 0)
 		}
 
+		var totalUncompressedSize int64
+
 		indices := make([]int64, itemCount)
 		for i := int64(0); i < itemCount; i++ {
 			indices[i] = i
+
+			func() {
+				item := a.GetItem(i)
+				if item == nil {
+					return
+				}
+				defer item.Free()
+
+				totalUncompressedSize += int64(item.GetUInt64Property(sz.PidSize))
+			}()
+		}
+
+		if params.OnUncompressedSizeKnown != nil {
+			params.OnUncompressedSizeKnown(totalUncompressedSize)
 		}
 
 		ec, err := sz.NewExtractCallback(&ech{
