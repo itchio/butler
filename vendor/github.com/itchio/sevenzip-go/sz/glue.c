@@ -57,6 +57,7 @@ int libc7zip_initialize(char *lib_path) {
   LOADSYM(archive_get_item)
 
   LOADSYM(item_get_string_property)
+  LOADSYM(string_free)
   LOADSYM(item_get_uint64_property)
   LOADSYM(item_get_bool_property)
   LOADSYM(item_free)
@@ -139,6 +140,10 @@ item *libc7zip_archive_get_item(archive *a, int64_t index) {
 
 char *libc7zip_item_get_string_property(item *i, int32_t property_index) {
   return item_get_string_property_(i, property_index);
+}
+
+void libc7zip_string_free(char *s) {
+  string_free_(s);
 }
 
 uint64_t libc7zip_item_get_uint64_property(item *i, int32_t property_index) {

@@ -91,6 +91,11 @@ typedef char *(*item_get_string_property_t)(item *i, int32_t property_index);
 DECLARE(item_get_string_property)
 char *libc7zip_item_get_string_property(item *i, int32_t property_index);
 
+// string_free
+typedef void (*string_free_t)(char *s);
+DECLARE(string_free)
+void libc7zip_string_free(char *s);
+
 // item_get_uint64_property
 typedef uint64_t (*item_get_uint64_property_t)(item *i, int32_t property_index);
 DECLARE(item_get_uint64_property)

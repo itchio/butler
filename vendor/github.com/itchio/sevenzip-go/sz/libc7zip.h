@@ -2,6 +2,12 @@
 #ifndef LIBC7ZIP_H
 #define LIBC7ZIP_H
 
+#ifdef _MSC_VER
+#define MYEXPORT   __declspec( dllexport )
+#else
+#define MYEXPORT 
+#endif
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -10,9 +16,9 @@ extern "C" {
 
 struct lib;
 typedef struct lib lib;
-lib *lib_new();
-int32_t lib_get_last_error(lib *l);
-void lib_free(lib *l);
+MYEXPORT lib *lib_new();
+MYEXPORT int32_t lib_get_last_error(lib *l);
+MYEXPORT void lib_free(lib *l);
 
 struct in_stream;
 typedef struct in_stream in_stream;
@@ -46,21 +52,21 @@ typedef struct out_stream_def {
   write_cb_t write_cb;
 } out_stream_def;
 
-in_stream *in_stream_new();
-in_stream_def *in_stream_get_def(in_stream *is);
-void in_stream_commit_def(in_stream *is);
-void in_stream_free(in_stream *is);
+MYEXPORT in_stream *in_stream_new();
+MYEXPORT in_stream_def *in_stream_get_def(in_stream *is);
+MYEXPORT void in_stream_commit_def(in_stream *is);
+MYEXPORT void in_stream_free(in_stream *is);
 
-out_stream *out_stream_new();
-out_stream_def *out_stream_get_def(out_stream *s);
-void out_stream_free(out_stream *s);
+MYEXPORT out_stream *out_stream_new();
+MYEXPORT out_stream_def *out_stream_get_def(out_stream *s);
+MYEXPORT void out_stream_free(out_stream *s);
 
 struct archive;
 typedef struct archive archive;
-archive *archive_open(lib *l, in_stream *is, int32_t by_signature);
-void archive_close(archive *a);
-void archive_free(archive *a);
-int64_t archive_get_item_count(archive *a);
+MYEXPORT archive *archive_open(lib *l, in_stream *is, int32_t by_signature);
+MYEXPORT void archive_close(archive *a);
+MYEXPORT void archive_free(archive *a);
+MYEXPORT int64_t archive_get_item_count(archive *a);
 
 // copied from lib7zip.h so we don't have to include it
 enum property_index {
@@ -108,12 +114,13 @@ enum error_code
 
 struct item;
 typedef struct item item;
-item *archive_get_item(archive *a, int64_t index);
-char *item_get_string_property(item *i, int32_t property_index);
-uint64_t item_get_uint64_property(item *i, int32_t property_index);
-int32_t item_get_bool_property(item *i, int32_t property_index);
-void item_free(item *i);
-int archive_extract_item(archive *a, item *i, out_stream *os);
+MYEXPORT item *archive_get_item(archive *a, int64_t index);
+MYEXPORT char *item_get_string_property(item *i, int32_t property_index);
+MYEXPORT void string_free(char *s);
+MYEXPORT uint64_t item_get_uint64_property(item *i, int32_t property_index);
+MYEXPORT int32_t item_get_bool_property(item *i, int32_t property_index);
+MYEXPORT void item_free(item *i);
+MYEXPORT int archive_extract_item(archive *a, item *i, out_stream *os);
 
 struct extract_callback;
 typedef struct extract_callback extract_callback;
@@ -126,11 +133,11 @@ typedef struct extract_callback_def {
   set_operation_result_cb_t set_operation_result_cb;
 } extract_callback_def;
 
-extract_callback *extract_callback_new();
-extract_callback_def *extract_callback_get_def(extract_callback *ec);
-void extract_callback_free(extract_callback *ec);
+MYEXPORT extract_callback *extract_callback_new();
+MYEXPORT extract_callback_def *extract_callback_get_def(extract_callback *ec);
+MYEXPORT void extract_callback_free(extract_callback *ec);
 
-int archive_extract_several(archive *a, int64_t *indices, int32_t num_indices, extract_callback *ec);
+MYEXPORT int archive_extract_several(archive *a, int64_t *indices, int32_t num_indices, extract_callback *ec);
 
 #ifdef __cplusplus
 } // extern "C"

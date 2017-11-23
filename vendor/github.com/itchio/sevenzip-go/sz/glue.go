@@ -72,7 +72,7 @@ func lazyInit() error {
 	libPath := "unsupported-os"
 	switch runtime.GOOS {
 	case "windows":
-		libPath = "libc7zip.dll"
+		libPath = "c7zip.dll"
 	case "linux":
 		libPath = "libc7zip.so"
 	case "darwin":
@@ -365,7 +365,7 @@ func (i *Item) GetStringProperty(id PropertyIndex) string {
 		return ""
 	}
 
-	defer C.free(unsafe.Pointer(cstr))
+	defer C.libc7zip_string_free(cstr)
 	return C.GoString(cstr)
 }
 
