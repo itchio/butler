@@ -35,7 +35,12 @@ func (h *Handler) Extract(params *archive.ExtractParams) error {
 				}
 				defer item.Free()
 
-				totalUncompressedSize += int64(item.GetUInt64Property(sz.PidSize))
+				if item.GetBoolProperty(sz.PidIsDir) {
+					return
+				}
+
+				itemSize := item.GetUInt64Property(sz.PidSize)
+				totalUncompressedSize += int64(itemSize)
 			}()
 		}
 
