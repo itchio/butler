@@ -8,7 +8,7 @@ import (
 
 func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
 	var entries []*archive.Entry
-	err := withArchive(params.Path, func(a *sz.Archive) error {
+	err := withArchive(params.Consumer, params.Path, func(a *sz.Archive) error {
 		itemCount, err := a.GetItemCount()
 		if err != nil {
 			return errors.Wrap(err, 0)

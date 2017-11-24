@@ -1,8 +1,7 @@
 package bah
 
 import (
-	"archive/zip"
-
+	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/archive"
 )
 

@@ -229,6 +229,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/nightlyone/lockfile",
+			"repository": "https://github.com/nightlyone/lockfile",
+			"vcs": "git",
+			"revision": "6a197d5ea61168f2ac821de2b7f011b250904900",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/oxtoacart/bpool",
 			"repository": "https://github.com/oxtoacart/bpool",
 			"vcs": "git",
