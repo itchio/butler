@@ -13,7 +13,7 @@ type httpFileInfo struct {
 var _ os.FileInfo = (*httpFileInfo)(nil)
 
 func (hfi *httpFileInfo) Name() string {
-	return "<remote file>"
+	return hfi.file.name
 }
 
 func (hfi *httpFileInfo) Size() int64 {

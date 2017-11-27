@@ -13,10 +13,13 @@ import (
 
 type ech struct {
 	params *archive.ExtractParams
+	res    *archive.Contents
 }
 
-func (h *Handler) Extract(params *archive.ExtractParams) error {
-	err := withArchive(params.Consumer, params.Path, func(a *sz.Archive) error {
+func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, error) {
+	res := &archive.Contents{}
+
+	err := withArchive(params.Consumer, params.File, func(a *sz.Archive) error {
 		itemCount, err := a.GetItemCount()
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -50,6 +53,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) error {
 
 		ec, err := sz.NewExtractCallback(&ech{
 			params: params,
+			res:    res,
 		})
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -64,10 +68,10 @@ func (h *Handler) Extract(params *archive.ExtractParams) error {
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	return nil
+	return res, nil
 }
 
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
@@ -93,7 +97,17 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	return sz.NewOutStream(f)
+	nc := &notifyCloser{
+		Writer: f,
+		OnClose: func(totalBytes int64) {
+			e.res.Entries = append(e.res.Entries, &archive.Entry{
+				Name:             sanePath,
+				UncompressedSize: totalBytes,
+			})
+		},
+	}
+
+	return sz.NewOutStream(nc)
 }
 
 func (e *ech) SetProgress(complete int64, total int64) {

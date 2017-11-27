@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -285,6 +286,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		retrySettings: &retryCtx.Settings,
 		needsRenewal:  needsRenewal,
 		client:        client,
+		name:          "<remote file>",
 
 		readers: make(map[string]*httpReader),
 
@@ -379,6 +381,17 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		hf.currentURL = urlStr
 		hf.name = parsedURL.Path
+		dispHeader := res.Header.Get("content-disposition")
+		if dispHeader != "" {
+			_, mimeParams, err := mime.ParseMediaType(dispHeader)
+			if err == nil {
+				filename := mimeParams["filename"]
+				if filename != "" {
+					hf.name = filename
+				}
+			}
+		}
+
 		hf.size = totalBytes
 		return hf, nil
 	}
@@ -401,6 +414,10 @@ func (hf *HTTPFile) NumReaders() int {
 }
 
 func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
+	if hf.size > 0 && offset >= hf.size {
+		return nil, io.EOF
+	}
+
 	hf.readersMutex.Lock()
 	defer hf.readersMutex.Unlock()
 
@@ -539,22 +556,27 @@ func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
 	return hf.offset, nil
 }
 
-func (hf *HTTPFile) Read(data []byte) (int, error) {
-	hf.log2("Read(%d)", len(data))
-	bytesRead, err := hf.readAt(data, hf.offset)
+func (hf *HTTPFile) Read(buf []byte) (int, error) {
+	hf.log2("Read(%d)", len(buf))
+	bytesRead, err := hf.readAt(buf, hf.offset)
 	hf.offset += int64(bytesRead)
-	hf.log2("Read(%d) = %d, %+v", len(data), bytesRead, err != nil)
+	hf.log2("Read(%d) = %d, %+v", len(buf), bytesRead, err != nil)
 	return bytesRead, err
 }
 
-// ReadAt reads len(data) byte from the remote file at offset.
+// ReadAt reads len(buf) byte from the remote file at offset.
 // It returns the number of bytes read, and an error. In case of temporary
 // network errors or timeouts, it will retry with truncated exponential backoff
 // according to RetrySettings
-func (hf *HTTPFile) ReadAt(data []byte, offset int64) (int, error) {
-	hf.log2("ReadAt(%d, %d)", len(data), offset)
-	n, err := hf.readAt(data, offset)
-	hf.log2("ReadAt(%d, %d) = %d, %+v", len(data), offset, n, err != nil)
+func (hf *HTTPFile) ReadAt(buf []byte, offset int64) (int, error) {
+	buflen := len(buf)
+	if buflen == 0 {
+		return 0, nil
+	}
+
+	hf.log2("ReadAt(%d, %d)", buflen, offset)
+	n, err := hf.readAt(buf, offset)
+	hf.log2("ReadAt(%d, %d) = %d, %+v", len(buf), offset, n, err != nil)
 	return n, err
 }
 

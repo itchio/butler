@@ -65,15 +65,25 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 
 	h := &szah.Handler{}
 
-	consumer.Infof("Extracting %s to %s", eos.Redact(params.File), params.Dir)
+	file, err := eos.Open(params.File)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	stats, err := file.Stat()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Extracting %s to %s", stats.Name(), params.Dir)
 
 	var uncompressedSize int64
 
 	startTime := time.Now()
 
-	err := h.Extract(&archive.ExtractParams{
+	_, err = h.Extract(&archive.ExtractParams{
 		OutputPath: params.Dir,
-		Path:       params.File,
+		File:       file,
 		Consumer:   params.Consumer,
 		OnUncompressedSizeKnown: func(size int64) {
 			uncompressedSize = size

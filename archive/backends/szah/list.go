@@ -6,9 +6,9 @@ import (
 	"github.com/itchio/sevenzip-go/sz"
 )
 
-func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
+func (h *Handler) List(params *archive.ListParams) (*archive.Contents, error) {
 	var entries []*archive.Entry
-	err := withArchive(params.Consumer, params.Path, func(a *sz.Archive) error {
+	err := withArchive(params.Consumer, params.File, func(a *sz.Archive) error {
 		itemCount, err := a.GetItemCount()
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -37,28 +37,8 @@ func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	lr := &ListResult{
-		formatName: "generic", // TODO: maybe remove that if it's unused
-		entries:    entries,
+	res := &archive.Contents{
+		Entries: entries,
 	}
-	return lr, nil
-}
-
-type ListResult struct {
-	formatName string
-	entries    []*archive.Entry
-}
-
-var _ archive.ListResult = (*ListResult)(nil)
-
-func (lr *ListResult) FormatName() string {
-	return lr.formatName
-}
-
-func (lr *ListResult) Entries() []*archive.Entry {
-	return lr.entries
-}
-
-func (lr *ListResult) Handler() archive.Handler {
-	return &Handler{}
+	return res, nil
 }

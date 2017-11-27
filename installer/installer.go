@@ -1,8 +1,8 @@
 package installer
 
 import (
-	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
 
@@ -14,21 +14,24 @@ type Manager interface {
 
 type InstallParams struct {
 	// An archive file, .exe setup file, .dmg file etc.
-	SourcePath string
+	File eos.File
 
 	// The existing receipt, if any
 	ReceiptIn *bfs.Receipt
 
-	// Where the item should be installed
+	// A folder we can use to store temp files
+	StageFolderPath string
+
+	// The folder we're installing to
 	InstallFolderPath string
 
+	// Listener for progress events, logging etc.
 	Consumer *state.Consumer
-
-	ArchiveListResult archive.ListResult
 }
 
 type UninstallParams struct {
-	InstallPath string
+	// The folder we're uninstalling from
+	InstallFolderPath string
 }
 
 type InstallResult struct {

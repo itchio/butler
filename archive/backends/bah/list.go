@@ -1,17 +1,21 @@
 package bah
 
 import (
+	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/archive"
 )
 
-func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
-	zr, err := zip.OpenReader(params.Path)
+func (h *Handler) List(params *archive.ListParams) (*archive.Contents, error) {
+	fi, err := params.File.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	zr, err := zip.NewReader(params.File, fi.Size())
 	if err != nil {
 		return nil, archive.ErrUnrecognizedArchiveType
 	}
-
-	defer zr.Close()
 
 	var entries []*archive.Entry
 	for _, f := range zr.File {
@@ -21,28 +25,8 @@ func (h *Handler) List(params *archive.ListParams) (archive.ListResult, error) {
 		})
 	}
 
-	lr := &ListResult{
-		formatName: "Zip", // consistent with 'xad'
-		entries:    entries,
+	res := &archive.Contents{
+		Entries: entries,
 	}
-	return lr, nil
-}
-
-type ListResult struct {
-	formatName string
-	entries    []*archive.Entry
-}
-
-var _ archive.ListResult = (*ListResult)(nil)
-
-func (lr *ListResult) FormatName() string {
-	return lr.formatName
-}
-
-func (lr *ListResult) Entries() []*archive.Entry {
-	return lr.entries
-}
-
-func (lr *ListResult) Handler() archive.Handler {
-	return &Handler{}
+	return res, nil
 }

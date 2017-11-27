@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos/option"
 )
 
-var debugHttpFile = os.Getenv("HTTPFILE_DEBUG") == "1"
+var httpFileLogLevel = os.Getenv("HTTPFILE_DEBUG")
 
 type File interface {
 	io.Reader
@@ -86,11 +87,7 @@ func Open(name string, opts ...option.Option) (File, error) {
 			return nil, err
 		}
 
-		if debugHttpFile {
-			hf.Log = func(msg string) {
-				fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
-			}
-		}
+		setupHttpFileDebug(hf)
 
 		return hf, nil
 	default:
@@ -112,11 +109,7 @@ func Open(name string, opts ...option.Option) (File, error) {
 			return nil, err
 		}
 
-		if debugHttpFile {
-			hf.Log = func(msg string) {
-				fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
-			}
-		}
+		setupHttpFileDebug(hf)
 
 		return hf, nil
 	}
@@ -129,4 +122,16 @@ func Redact(name string) string {
 	}
 
 	return u.Path
+}
+
+func setupHttpFileDebug(hf *httpfile.HTTPFile) {
+	if httpFileLogLevel != "" {
+		hf.Log = func(msg string) {
+			fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
+		}
+		numericLevel, err := strconv.ParseInt(httpFileLogLevel, 10, 64)
+		if err == nil {
+			hf.LogLevel = int(numericLevel)
+		}
+	}
 }

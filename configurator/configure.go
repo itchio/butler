@@ -307,9 +307,7 @@ func sniffFatMach(r io.ReadSeeker, size int64) (*Candidate, error) {
 	}, nil
 }
 
-func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error) {
-	lowerPath := strings.ToLower(file.Path)
-
+func sniffPoolEntry(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error) {
 	r, err := pool.GetReadSeeker(fileIndex)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -317,13 +315,19 @@ func sniff(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error)
 
 	size := pool.GetSize(fileIndex)
 
+	return Sniff(r, file.Path, size)
+}
+
+func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
+	lowerPath := strings.ToLower(path)
+
 	lowerBase := filepath.Base(lowerPath)
-	dir := filepath.Dir(file.Path)
+	dir := filepath.Dir(path)
 	switch lowerBase {
 	case "index.html":
 		return &Candidate{
 			Flavor: FlavorHTML,
-			Path:   file.Path,
+			Path:   path,
 		}, nil
 	case "conf.lua":
 		return sniffLove(r, size, dir)
@@ -464,7 +468,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 	for fileIndex, f := range container.Files {
 		verdict.TotalSize += f.Size
 
-		res, err := sniff(pool, int64(fileIndex), f)
+		res, err := sniffPoolEntry(pool, int64(fileIndex), f)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}

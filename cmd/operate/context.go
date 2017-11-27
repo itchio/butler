@@ -137,7 +137,7 @@ func (oc *OperationContext) StartProgress() {
 }
 
 func (oc *OperationContext) StartProgressWithTotalBytes(totalBytes int64) {
-	oc.StartProgressWithInitialAndTotal(0.0, 0)
+	oc.StartProgressWithInitialAndTotal(0.0, totalBytes)
 }
 
 func (oc *OperationContext) StartProgressWithInitialAndTotal(initialProgress float64, totalBytes int64) {

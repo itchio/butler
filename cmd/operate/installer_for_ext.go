@@ -1,5 +1,9 @@
 package operate
 
+// Note: .exe is not in that list because we need to
+// read part of its contents to decide what we're going to
+// do with it: 1) extract it 2) run it as an installer 3)
+// just copy it naked
 var installerForExt = map[string]InstallerType{
 
 	///////////////////////////////////////////////////////////
@@ -27,7 +31,7 @@ var installerForExt = map[string]InstallerType{
 	///////////////////////////////////////////////////////////
 
 	// Apple disk images
-	".dmg": InstallerTypeDMG,
+	".dmg": InstallerTypeArchive,
 
 	// Microsoft packages
 	".msi": InstallerTypeMSI,

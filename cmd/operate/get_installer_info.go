@@ -1,17 +1,18 @@
 package operate
 
 import (
+	"io"
 	"path/filepath"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
 
 type InstallerInfo struct {
-	Type              InstallerType
-	ArchiveListResult archive.ListResult
+	Type InstallerType
 }
 
 type InstallerType string
@@ -27,7 +28,15 @@ const (
 	InstallerTypeUnsupported               = "unsupported"
 )
 
-func getInstallerInfo(consumer *state.Consumer, target string) (*InstallerInfo, error) {
+var ErrNeedLocal = errors.New("getInstallerInfo needs the file to be downloaded to determine whether it can be")
+
+func getInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, error) {
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	target := stat.Name()
 	ext := filepath.Ext(target)
 	name := filepath.Base(target)
 
@@ -36,33 +45,45 @@ func getInstallerInfo(consumer *state.Consumer, target string) (*InstallerInfo, 
 		return &InstallerInfo{Type: typ}, nil
 	}
 
-	consumer.Infof("%s: no extension match, using configurator", name)
+	consumer.Infof("%s: probing as archive", name)
+	// FIXME: don't list, that's wasteful for some formats
+	// just try to open. Something like `archive.TryOpen` that
+	// returns a handler name would be nice.
+	_, err = archive.List(&archive.ListParams{
+		File:     file,
+		Consumer: consumer,
+	})
+	if err == nil {
+		consumer.Infof("%s: is archive", name)
+		return &InstallerInfo{
+			Type: InstallerTypeArchive,
+		}, nil
+	}
 
-	verdict, err := configurator.Configure(target, false)
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	if len(verdict.Candidates) == 1 {
-		typ := getInstallerTypeForCandidate(consumer, name, verdict.Candidates[0])
+	consumer.Infof("%s: probing with configurator", name)
+
+	candidate, err := configurator.Sniff(file, target, stat.Size())
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	if candidate != nil {
+		typ := getInstallerTypeForCandidate(consumer, name, candidate)
 		if typ != InstallerTypeUnknown {
 			return &InstallerInfo{Type: typ}, nil
 		}
 	} else {
-		consumer.Infof("%s: %d candidates (expected 1), ignoring", name, len(verdict.Candidates))
-	}
-
-	consumer.Infof("%s: no configurator match, probing as archive", name)
-	listResult, err := archive.List(&archive.ListParams{
-		Path:     target,
-		Consumer: consumer,
-	})
-	if err == nil {
-		consumer.Infof("%s: is archive, %s", name, listResult.FormatName())
-		return &InstallerInfo{
-			Type:              InstallerTypeArchive,
-			ArchiveListResult: listResult,
-		}, nil
+		consumer.Infof("%s: nil candidate, configurator has forsaken us")
 	}
 
 	return &InstallerInfo{

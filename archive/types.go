@@ -3,6 +3,7 @@ package archive
 import (
 	"errors"
 
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
 
@@ -10,21 +11,18 @@ var (
 	ErrUnrecognizedArchiveType = errors.New("Unrecognized archive type")
 )
 
-// Entry refers to a file entry in an archive
-type Entry struct {
-	Name             string
-	UncompressedSize int64
-}
-
 type ListParams struct {
-	Path     string
+	File      eos.File
+	StagePath string
+
 	Consumer *state.Consumer
 }
 
 type UncompressedSizeKnownFunc func(uncompressedSize int64)
 
 type ExtractParams struct {
-	Path       string
+	File       eos.File
+	StagePath  string
 	OutputPath string
 
 	Consumer                *state.Consumer
@@ -33,12 +31,16 @@ type ExtractParams struct {
 
 type Handler interface {
 	Name() string
-	List(params *ListParams) (ListResult, error)
-	Extract(params *ExtractParams) error
+	List(params *ListParams) (*Contents, error)
+	Extract(params *ExtractParams) (*Contents, error)
 }
 
-type ListResult interface {
-	FormatName() string
-	Entries() []*Entry
-	Handler() Handler
+type Contents struct {
+	Entries []*Entry
+}
+
+// Entry refers to a file entry in an archive
+type Entry struct {
+	Name             string
+	UncompressedSize int64
 }

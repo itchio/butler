@@ -2,18 +2,17 @@ package operate
 
 import (
 	"fmt"
+	"io"
 	"net/url"
-	"path/filepath"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/wharf/eos"
 
 	"github.com/itchio/butler/installer"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/cmd/cp"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -113,47 +112,22 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 	var archiveUrl = fmt.Sprintf("itchfs://%s?%s", archiveUrlPath, values.Encode())
 
-	// use natural file name for non-wharf downloads
-	var archiveDownloadName = params.Upload.Filename // TODO: cache that in context
-	if params.Build != nil {
-		// make up a sensible .zip name for wharf downloads
-		archiveDownloadName = fmt.Sprintf("%d-%d.zip", params.Upload.ID, params.Build.ID)
+	// TODO: support http servers that don't have range request
+	// (just copy it first)
+	file, err := eos.Open(archiveUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
+	defer file.Close()
 
-	var archiveDownloadPath = filepath.Join(oc.StageFolder(), archiveDownloadName)
-	copyParams := &cp.CopyParams{
-		Consumer: consumer,
-		OnStart: func(initialProgress float64, totalBytes int64) {
-			// TODO: send requests to client letting it know we're downloading
-			// something
-			remainingBytes := float64(totalBytes) * (1.0 - initialProgress)
-			consumer.Infof("Download started, %s to fetch", humanize.IBytes(uint64(remainingBytes)))
-
-			oc.StartProgressWithInitialAndTotal(initialProgress, totalBytes)
-
-			oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-				Reason:    buse.TaskReasonInstall,
-				Type:      buse.TaskTypeDownload,
-				Game:      params.Game,
-				Upload:    params.Upload,
-				Build:     params.Build,
-				TotalSize: totalBytes,
-			})
-		},
-		OnStop: func() {
-			consumer.Infof("Download ended")
-			oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
-			oc.EndProgress()
-		},
-	}
-
-	err = cp.Do(oc.MansionContext(), copyParams, archiveUrl, archiveDownloadPath, true)
-	// TODO: cache copy result in context
+	stats, err := file.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	installerInfo, err := getInstallerInfo(consumer, archiveDownloadPath)
+	consumer.Infof("Probing %s (%s)", stats.Name(), humanize.IBytes(uint64(stats.Size())))
+
+	installerInfo, err := getInstallerInfo(consumer, file)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -172,7 +146,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		consumer.Warnf("Could not read existing receipt: %s", err.Error())
 	}
 
-	comm.StartProgress()
+	// sniffing may have read parts of the file, so seek back to beginning
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
 		Reason: buse.TaskReasonInstall,
 		Type:   buse.TaskTypeInstall,
@@ -184,16 +163,17 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
+	oc.StartProgressWithTotalBytes(stats.Size())
 	res, err := manager.Install(&installer.InstallParams{
-		Consumer:          oc.Consumer(),
-		ArchiveListResult: installerInfo.ArchiveListResult,
+		Consumer: consumer,
 
-		SourcePath:        archiveDownloadPath,
+		File:              file,
+		StageFolderPath:   oc.StageFolder(),
 		InstallFolderPath: params.InstallFolder,
 
 		ReceiptIn: receiptIn,
 	})
-	comm.EndProgress()
+	oc.EndProgress()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
