@@ -69,6 +69,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
+	defer file.Close()
 
 	stats, err := file.Stat()
 	if err != nil {
