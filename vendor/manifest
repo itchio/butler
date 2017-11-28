@@ -46,7 +46,7 @@
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
-			"revision": "d4f27c749c702b9b9e0b04b238a83590ec1a2081",
+			"revision": "232323d3ecd1f61828649edcce74e03d1ecfa216",
 			"branch": "master",
 			"notests": true
 		},

@@ -719,19 +719,19 @@ fb7:
   a("\\b, Microsoft Installer self-extracting archive")
   d[2]=t
 fb8:
-  rA = gt(r,po+48,"Inno",0)
-  if rA<0 {goto fb9}
-  a("\\b, InnoSetup self-extracting archive")
-  d[2]=t
-fb9:
   rA = gt(r,po+48,"InUn",0)
-  if rA<0 {goto fba}
+  if rA<0 {goto fb9}
   a("\\b, InnoSetup uninstaller")
   d[2]=t
-fba:
-  rA=ht(r,po,4294967295,"Inno Setup Setup Data")
-  if rA<0 {goto fbb}
+fb9:
+  rA=ht(r,po,262144,"rDlPtS")
+  if rA<0 {goto fba}
   a("\\b, InnoSetup installer")
+  d[2]=t
+fba:
+  rA = gt(r,po+48,"Inno",0)
+  if rA<0 {goto fbb}
+  a("\\b, InnoSetup self-extracting archive")
   d[2]=t
 fbb:
 f72:
