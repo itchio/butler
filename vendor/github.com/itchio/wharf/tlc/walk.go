@@ -74,7 +74,7 @@ func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 	}
 
 	// zip archive case
-	if strings.HasSuffix(strings.ToLower(containerPath), ".zip") {
+	if strings.HasSuffix(strings.ToLower(stat.Name()), ".zip") {
 		zr, err := zip.NewReader(file, stat.Size())
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
@@ -83,18 +83,18 @@ func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 	}
 
 	// single file case
-	return WalkSingle(containerPath)
+	return WalkSingle(file)
 }
 
 // WalkSingle returns a container with a single file
-func WalkSingle(Path string) (*Container, error) {
-	stats, err := os.Stat(Path)
+func WalkSingle(file eos.File) (*Container, error) {
+	stats, err := file.Stat()
 	if err != nil {
 		return nil, err
 	}
 
 	if !stats.Mode().IsRegular() {
-		return nil, errors.Wrap(fmt.Errorf("%s: not a regular file, can only WalkSingle regular files", Path), 0)
+		return nil, errors.Wrap(fmt.Errorf("%s: not a regular file, can only WalkSingle regular files", stats.Name()), 0)
 	}
 
 	container := &Container{
@@ -103,7 +103,7 @@ func WalkSingle(Path string) (*Container, error) {
 				Mode:   uint32(stats.Mode()),
 				Size:   int64(stats.Size()),
 				Offset: 0,
-				Path:   filepath.Base(Path),
+				Path:   filepath.Base(stats.Name()),
 			},
 		},
 		Size: stats.Size(),

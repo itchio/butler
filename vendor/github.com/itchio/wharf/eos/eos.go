@@ -16,6 +16,7 @@ import (
 )
 
 var httpFileLogLevel = os.Getenv("HTTPFILE_DEBUG")
+var httpFileCheck = os.Getenv("HTTPFILE_CHECK") == "1"
 
 type File interface {
 	io.Reader
@@ -61,6 +62,29 @@ func (shr *simpleHTTPResource) NeedsRenewal(res *http.Response, body []byte) boo
 }
 
 func Open(name string, opts ...option.Option) (File, error) {
+	f, err := realOpen(name, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if hf, ok := f.(*httpfile.HTTPFile); ok && httpFileCheck {
+		hf.ForbidBacktracking = true
+
+		f2, err := realOpen(name, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		return &CheckingFile{
+			Reference: f,
+			Trainee:   f2,
+		}, nil
+	}
+
+	return f, err
+}
+
+func realOpen(name string, opts ...option.Option) (File, error) {
 	settings := option.DefaultSettings()
 
 	for _, opt := range opts {
@@ -124,10 +148,15 @@ func Redact(name string) string {
 	return u.Path
 }
 
+var hfSeed = 0
+
 func setupHttpFileDebug(hf *httpfile.HTTPFile) {
+	hfSeed += 1
+	hfIndex := hfSeed
+
 	if httpFileLogLevel != "" {
 		hf.Log = func(msg string) {
-			fmt.Fprintf(os.Stderr, "[hf] %s\n", msg)
+			fmt.Fprintf(os.Stderr, "[hf%d] %s\n", hfIndex, msg)
 		}
 		numericLevel, err := strconv.ParseInt(httpFileLogLevel, 10, 64)
 		if err == nil {

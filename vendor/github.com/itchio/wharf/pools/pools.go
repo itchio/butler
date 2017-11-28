@@ -39,7 +39,7 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 		return fspool.New(c, basePath), nil
 	}
 
-	if strings.HasSuffix(strings.ToLower(basePath), ".zip") {
+	if strings.HasSuffix(strings.ToLower(targetInfo.Name()), ".zip") {
 		zr, err := zip.NewReader(fr, targetInfo.Size())
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
@@ -48,5 +48,7 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 	}
 
 	// assume single-file container
-	return fspool.New(c, filepath.Dir(basePath)), nil
+	fsp := fspool.New(c, filepath.Dir(basePath))
+	fsp.UniqueReader = fr
+	return fsp, nil
 }

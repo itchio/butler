@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"math"
 	"mime"
 	"net"
@@ -17,10 +18,14 @@ import (
 	"syscall"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
 	uuid "github.com/satori/go.uuid"
 )
+
+var forbidBacktracking = os.Getenv("HTTPFILE_NO_BACKTRACK") == "1"
+var dumpStats = os.Getenv("HTTPFILE_DUMP_STATS") == "1"
 
 // A GetURLFunc returns a URL we can download the resource from.
 // It's handy to have this as a function rather than a constant for signed expiring URLs
@@ -41,6 +46,18 @@ const maxRenewals = 5
 var ErrNotFound = errors.New("HTTP file not found on server")
 
 var ErrTooManyRenewals = errors.New("Giving up, getting too many renewals. Try again later or contact support.")
+
+type hstats struct {
+	connectionWait time.Duration
+	connections    int
+	renews         int
+
+	fetchedBytes int64
+	numCacheMiss int64
+
+	cachedBytes int64
+	numCacheHit int64
+}
 
 // HTTPFile allows accessing a file served by an HTTP server as if it was local
 // (for random-access reading purposes, not writing)
@@ -67,6 +84,10 @@ type HTTPFile struct {
 	currentURL string
 	urlMutex   sync.Mutex
 	header     http.Header
+
+	stats *hstats
+
+	ForbidBacktracking bool
 }
 
 type httpReader struct {
@@ -74,6 +95,9 @@ type httpReader struct {
 	id        string
 	touchedAt time.Time
 	offset    int64
+	cache     []byte
+	cached    int
+	backtrack int
 	body      io.ReadCloser
 	reader    *bufio.Reader
 }
@@ -89,9 +113,41 @@ func (hr *httpReader) Stale() bool {
 }
 
 func (hr *httpReader) Read(data []byte) (int, error) {
+	if hr.backtrack > 0 {
+		readLen := len(data)
+		if readLen > hr.backtrack {
+			readLen = hr.backtrack
+		}
+
+		// hr.file.log2("asked to read %d, backtrack is %d, cached is %d", len(data), hr.backtrack, hr.cached)
+		cacheStartIndex := len(hr.cache) - hr.backtrack
+		// hr.file.log2("copying [%d:%d] to [0:%d]", cacheStartIndex, cacheStartIndex+readLen, readLen)
+		copy(data[:readLen], hr.cache[cacheStartIndex:cacheStartIndex+readLen])
+		hr.backtrack -= readLen
+
+		hr.file.stats.cachedBytes += int64(readLen)
+		hr.file.stats.numCacheHit += 1
+
+		return readLen, nil
+	}
+
 	hr.touchedAt = time.Now()
 	readBytes, err := hr.reader.Read(data)
 	hr.offset += int64(readBytes)
+
+	hr.file.stats.fetchedBytes += int64(readBytes)
+	hr.file.stats.numCacheMiss += 1
+
+	// offset cache to make room for the new data
+	remainingOldCacheSize := len(hr.cache) - readBytes
+	// hr.file.log2("moving [%d:] to [:%d]", readBytes, remainingOldCacheSize)
+	// hr.file.log2("caching %d bytes into [%d:]", readBytes, remainingOldCacheSize)
+	copy(hr.cache[:remainingOldCacheSize], hr.cache[readBytes:])
+	copy(hr.cache[remainingOldCacheSize:], data[:readBytes])
+	hr.cached += readBytes
+	if hr.cached > len(hr.cache) {
+		hr.cached = len(hr.cache)
+	}
 
 	if err != nil {
 		return readBytes, err
@@ -100,14 +156,23 @@ func (hr *httpReader) Read(data []byte) (int, error) {
 }
 
 func (hr *httpReader) Discard(n int) (int, error) {
-	hr.touchedAt = time.Now()
-	discarded, err := hr.reader.Discard(n)
-	hr.offset += int64(discarded)
+	buf := make([]byte, 4096)
 
-	if err != nil {
-		return discarded, err
+	totalDiscarded := 0
+	for n > 0 {
+		readLen := n
+		if readLen > len(buf) {
+			readLen = len(buf)
+		}
+
+		discarded, err := hr.Read(buf[:readLen])
+		totalDiscarded += discarded
+		if err != nil {
+			return totalDiscarded, err
+		}
+		n -= discarded
 	}
-	return discarded, nil
+	return totalDiscarded, nil
 }
 
 type NeedsRenewalError struct {
@@ -191,6 +256,7 @@ func (hr *httpReader) Connect() error {
 	renewalTries := 0
 
 	for retryCtx.ShouldTry() {
+		startTime := time.Now()
 		hf.log("Connect: trying url...")
 		err := tryURL(urlStr)
 		if err != nil {
@@ -206,6 +272,7 @@ func (hr *httpReader) Connect() error {
 					renewRetryCtx := hf.newRetryContext()
 
 					for renewRetryCtx.ShouldTry() {
+						hf.stats.renews += 1
 						urlStr, err = hf.renewURL()
 						if err != nil {
 							if hf.shouldRetry(err) {
@@ -237,7 +304,10 @@ func (hr *httpReader) Connect() error {
 			}
 		}
 
-		hf.log("Connect: connected!")
+		totalConnDuration := time.Since(startTime)
+		hf.log("Connect: connected in %s!", totalConnDuration)
+		hf.stats.connections += 1
+		hf.stats.connectionWait += totalConnDuration
 		return nil
 	}
 
@@ -289,9 +359,12 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		name:          "<remote file>",
 
 		readers: make(map[string]*httpReader),
+		stats:   &hstats{},
 
 		ReaderStaleThreshold: DefaultReaderStaleThreshold,
 		LogLevel:             DefaultLogLevel,
+
+		ForbidBacktracking: forbidBacktracking,
 	}
 
 	renewalTries := 0
@@ -424,6 +497,9 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 	var bestReader string
 	var bestDiff int64 = math.MaxInt64
 
+	var bestBackReader string
+	var bestBackDiff int64 = math.MaxInt64
+
 	for _, reader := range hf.readers {
 		if reader.Stale() {
 			delete(hf.readers, reader.id)
@@ -436,6 +512,13 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		}
 
 		diff := offset - reader.offset
+		if diff < 0 && -diff < maxDiscard && -diff <= int64(reader.cached) {
+			if -diff < bestBackDiff {
+				bestBackReader = reader.id
+				bestBackDiff = -diff
+			}
+		}
+
 		if diff >= 0 && diff < maxDiscard {
 			if diff < bestDiff {
 				bestReader = reader.id
@@ -469,6 +552,19 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 			}
 		}
 
+		reader.backtrack = 0
+		return reader, nil
+	}
+
+	if !hf.ForbidBacktracking && bestBackReader != "" {
+		// re-use!
+		reader := hf.readers[bestBackReader]
+		delete(hf.readers, bestBackReader)
+
+		hf.log2("borrow: for %d, re-using %d by backtracking %d bytes", offset, reader.offset, bestBackDiff)
+
+		// backtrack as needed
+		reader.backtrack = int(bestBackDiff)
 		return reader, nil
 	}
 
@@ -480,6 +576,8 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		id:        uuid.NewV4().String(),
 		touchedAt: time.Now(),
 		offset:    offset,
+		cache:     make([]byte, int(maxDiscard)),
+		backtrack: 0,
 	}
 
 	err := reader.Connect()
@@ -557,10 +655,11 @@ func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (hf *HTTPFile) Read(buf []byte) (int, error) {
-	hf.log2("Read(%d)", len(buf))
+	initialOffset := hf.offset
+	hf.log2("> Read(%d, %d)", len(buf), initialOffset)
 	bytesRead, err := hf.readAt(buf, hf.offset)
 	hf.offset += int64(bytesRead)
-	hf.log2("Read(%d) = %d, %+v", len(buf), bytesRead, err != nil)
+	hf.log2("< Read(%d, %d) = %d, %+v", len(buf), initialOffset, bytesRead, err != nil)
 	return bytesRead, err
 }
 
@@ -569,18 +668,18 @@ func (hf *HTTPFile) Read(buf []byte) (int, error) {
 // network errors or timeouts, it will retry with truncated exponential backoff
 // according to RetrySettings
 func (hf *HTTPFile) ReadAt(buf []byte, offset int64) (int, error) {
-	buflen := len(buf)
-	if buflen == 0 {
-		return 0, nil
-	}
-
-	hf.log2("ReadAt(%d, %d)", buflen, offset)
+	hf.log2("> ReadAt(%d, %d)", len(buf), offset)
 	n, err := hf.readAt(buf, offset)
-	hf.log2("ReadAt(%d, %d) = %d, %+v", len(buf), offset, n, err != nil)
+	hf.log2("< ReadAt(%d, %d) = %d, %+v", len(buf), offset, n, err != nil)
 	return n, err
 }
 
 func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
+	buflen := len(data)
+	if buflen == 0 {
+		return 0, nil
+	}
+
 	reader, err := hf.borrowReader(offset)
 	if err != nil {
 		return 0, err
@@ -665,6 +764,28 @@ func (hf *HTTPFile) closeAllReaders() error {
 func (hf *HTTPFile) Close() error {
 	if hf.closed {
 		return nil
+	}
+
+	if dumpStats {
+		log.Printf("========= HTTPFile stats ==============")
+		log.Printf("= total connections: %d", hf.stats.connections)
+		log.Printf("= total renews: %d", hf.stats.renews)
+		log.Printf("= time spent connecting: %s", hf.stats.connectionWait)
+		size := hf.size
+		perc := 0.0
+		percCached := 0.0
+		if size != 0 {
+			perc = float64(hf.stats.fetchedBytes) / float64(size) * 100.0
+		}
+		allReads := hf.stats.fetchedBytes + hf.stats.cachedBytes
+		percCached = float64(hf.stats.cachedBytes) / float64(allReads) * 100.0
+
+		log.Printf("= total bytes fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(hf.stats.fetchedBytes)), humanize.IBytes(uint64(size)), perc)
+		log.Printf("= total bytes served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(hf.stats.cachedBytes)), percCached)
+
+		hitRate := float64(hf.stats.numCacheHit) / float64(hf.stats.numCacheHit+hf.stats.numCacheMiss) * 100.0
+		log.Printf("= cache hit rate: %.2f%%", hitRate)
+		log.Printf("========================================")
 	}
 
 	err := hf.closeAllReaders()

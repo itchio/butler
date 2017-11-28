@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
@@ -21,7 +22,9 @@ type FsPool struct {
 	basePath  string
 
 	fileIndex int64
-	reader    *os.File
+	reader    eos.File
+
+	UniqueReader eos.File
 }
 
 var _ wsync.Pool = (*FsPool)(nil)
@@ -75,6 +78,10 @@ func (cfp *FsPool) GetReader(fileIndex int64) (io.Reader, error) {
 
 // GetReadSeeker is like GetReader but the returned object allows seeking
 func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
+	if cfp.UniqueReader != nil {
+		return cfp.UniqueReader, nil
+	}
+
 	if cfp.fileIndex != fileIndex {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
@@ -84,7 +91,7 @@ func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 			cfp.reader = nil
 		}
 
-		reader, err := os.Open(cfp.GetPath(fileIndex))
+		reader, err := eos.Open(cfp.GetPath(fileIndex))
 		if err != nil {
 			return nil, err
 		}
