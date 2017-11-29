@@ -78,7 +78,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			params.Upload = uploadsFilterResult.Uploads[0]
 		} else {
 			var r buse.PickUploadResult
-			err := oc.conn.Call(oc.ctx, "pick-upload", &buse.PickUploadParams{
+			err := oc.conn.Call(oc.ctx, "PickUpload", &buse.PickUploadParams{
 				Uploads: uploadsFilterResult.Uploads,
 			}, &r)
 			if err != nil {
