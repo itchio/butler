@@ -1,7 +1,11 @@
 package progress
 
-import "time"
-import "github.com/itchio/butler/pb"
+import (
+	"time"
+
+	"github.com/itchio/butler/pb"
+	"github.com/itchio/httpkit/timeout"
+)
 
 var maxBucketDuration = 1 * time.Second
 
@@ -81,6 +85,10 @@ func (c *Counter) ETA() time.Duration {
 }
 
 func (c *Counter) BPS() float64 {
+	return timeout.GetBPS()
+}
+
+func (c *Counter) WorkBPS() float64 {
 	return c.bps
 }
 

@@ -134,7 +134,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 				file := reader.File[fileIndex]
 
 				if fileIndex <= lastDoneIndex {
-					settings.Consumer.Debugf("Skipping file %d")
+					settings.Consumer.Debugf("Skipping file %d", fileIndex)
 					done(file)
 					atomic.AddUint64(&doneSize, file.UncompressedSize64)
 					updateProgress()

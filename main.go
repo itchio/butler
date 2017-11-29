@@ -12,12 +12,15 @@ import (
 	"strconv"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
+	"github.com/efarrer/iothrottler"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/go-itchio/itchfs"
+	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/eos"
 	shellquote "github.com/kballard/go-shellquote"
 
@@ -58,6 +61,8 @@ var appArgs = struct {
 	cpuprofile *string
 	memstats   *bool
 	elevate    *bool
+
+	throttle *int64
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -78,6 +83,8 @@ var appArgs = struct {
 	app.Flag("memstats", "Print memory stats for some operations").Hidden().Bool(),
 
 	app.Flag("elevate", "Run butler as administrator").Hidden().Bool(),
+
+	app.Flag("throttle", "Use less than 'throttle' Kbps (kilobits per second) of bandwidth").Hidden().Default("-1").Int64(),
 }
 
 var scriptArgs = struct {
@@ -201,6 +208,13 @@ func doMain(args []string) {
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
+	}
+
+	if *appArgs.throttle > 0 {
+		throttle := *appArgs.throttle
+		bwKiloBytes := throttle / 8 * 1024
+		comm.Logf("Throttling to %s/s bandwidth", humanize.IBytes(uint64(bwKiloBytes)))
+		timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(throttle) * iothrottler.Kbps)
 	}
 
 	fullCmd := kingpin.MustParse(cmd, err)

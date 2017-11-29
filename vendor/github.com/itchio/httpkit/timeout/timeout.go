@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/efarrer/iothrottler"
 	"github.com/getlantern/idletiming"
 	"github.com/go-errors/errors"
 )
@@ -16,14 +17,31 @@ const (
 	DefaultIdleTimeout                  = 60 * time.Second
 )
 
+var ThrottlerPool *iothrottler.IOThrottlerPool
+
+func init() {
+	ThrottlerPool = iothrottler.NewIOThrottlerPool(iothrottler.Unlimited)
+}
+
 func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (net.Conn, error) {
 	return func(netw, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(netw, addr, cTimeout)
+		// if it takes too long to establish a connection, give up
+		timeoutConn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {
 			return nil, errors.Wrap(err, 1)
 		}
-		idleConn := idletiming.Conn(conn, rwTimeout, func() {
-			conn.Close()
+		// respect global throttle settings
+		throttledConn, err := ThrottlerPool.AddConn(timeoutConn)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+		// measure bps
+		monitorConn := &monitoringConn{
+			Conn: throttledConn,
+		}
+		// if we stay idle too long, close
+		idleConn := idletiming.Conn(monitorConn, rwTimeout, func() {
+			monitorConn.Close()
 		})
 		return idleConn, nil
 	}

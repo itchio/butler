@@ -43,6 +43,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/efarrer/iothrottler",
+			"repository": "https://github.com/efarrer/iothrottler",
+			"vcs": "git",
+			"revision": "60e7e547c7fe106984e31e2ee8dbbce71c52cc53",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/fasterthanlime/spellbook",
 			"repository": "https://github.com/fasterthanlime/spellbook",
 			"vcs": "git",
@@ -168,7 +176,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "33a735432803f92f405c0b98ddbd3502288f3b55",
+			"revision": "99fe563646e01c4cf7f74b3801f933789164dda6",
 			"branch": "master",
 			"notests": true
 		},
@@ -200,7 +208,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "41fa07ac6e1d0acb9d87a88579716aa4eb3bcd47",
+			"revision": "b2a84a348adcdc19c593f7de7164bd1ea3de416e",
 			"branch": "master",
 			"notests": true
 		},
