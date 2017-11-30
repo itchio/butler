@@ -22,6 +22,20 @@ type VersionGetResult struct {
 }
 
 //----------------------------------------------------------------------
+// Game
+//----------------------------------------------------------------------
+
+// Game.FindUploads
+type GameFindUploadsParams struct {
+	Game        *itchio.Game     `json:"game"`
+	Credentials *GameCredentials `json:"credentials"`
+}
+
+type GameFindUploadsResult struct {
+	Uploads []*itchio.Upload `json:"uploads"`
+}
+
+//----------------------------------------------------------------------
 // Operation
 //----------------------------------------------------------------------
 

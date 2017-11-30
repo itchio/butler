@@ -71,6 +71,15 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 				return conn.Reply(ctx, req.ID, res)
 			}
+		case "Game.FindUploads":
+			{
+				res, err := operate.GameFindUploads(h.ctx, conn, req)
+				if err != nil {
+					return err
+				}
+
+				return conn.Reply(ctx, req.ID, res)
+			}
 		default:
 			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 				Code:    jsonrpc2.CodeMethodNotFound,

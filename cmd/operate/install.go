@@ -13,8 +13,6 @@ import (
 	"github.com/itchio/butler/installer"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/manager"
-	itchio "github.com/itchio/go-itchio"
 )
 
 func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResult, error) {
@@ -34,7 +32,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.New("Missing install folder in install")
 	}
 
-	consumer.Infof("Installing game %s", params.Game.Title)
+	consumer.Infof("Installing game %s", gameToString(params.Game))
 	consumer.Infof("...into directory %s", params.InstallFolder)
 	consumer.Infof("...using stage directory %s", oc.StageFolder())
 
@@ -45,25 +43,14 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-			GameID:        params.Game.ID,
-			DownloadKeyID: params.Credentials.DownloadKey,
-		})
+		uploadsFilterResult, err := getFilteredUploads(client, params.Game, params.Credentials, consumer)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
-		consumer.Infof("Filtering %d uploads", len(uploads.Uploads))
-
-		uploadsFilterResult := manager.NarrowDownUploads(uploads.Uploads, params.Game, manager.CurrentRuntime())
-		consumer.Infof("After filter, got %d uploads, they are: ", len(uploadsFilterResult.Uploads))
-		for _, upload := range uploadsFilterResult.Uploads {
-			consumer.Infof("- %#v", upload)
-		}
-
 		if len(uploadsFilterResult.Uploads) == 0 {
-			consumer.Warnf("Didn't find a compatible upload. The initial uploads were:", len(uploads.Uploads))
-			for _, upload := range uploads.Uploads {
+			consumer.Warnf("Didn't find a compatible upload. The initial uploads were:", len(uploadsFilterResult.InitialUploads))
+			for _, upload := range uploadsFilterResult.InitialUploads {
 				consumer.Infof("- %#v", upload)
 			}
 

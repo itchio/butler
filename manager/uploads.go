@@ -10,6 +10,7 @@ import (
 )
 
 type NarrowDownUploadsResult struct {
+	InitialUploads []*itchio.Upload
 	Uploads        []*itchio.Upload
 	HadUntagged    bool
 	HadWrongFormat bool
@@ -20,6 +21,7 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 	if actionForGame(game) == "open" {
 		// we don't need any filtering for "open" action
 		return &NarrowDownUploadsResult{
+			InitialUploads: uploads,
 			Uploads:        uploads,
 			HadUntagged:    false,
 			HadWrongFormat: false,
@@ -40,6 +42,7 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 	sortedUploads := sortUploads(archUploads, runtime)
 
 	return &NarrowDownUploadsResult{
+		InitialUploads: uploads,
 		Uploads:        sortedUploads,
 		HadUntagged:    hadUntagged,
 		HadWrongFormat: hadWrongFormat,
