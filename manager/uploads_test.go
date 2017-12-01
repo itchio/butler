@@ -24,14 +24,10 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 		Uploads:        nil,
+		InitialUploads: nil,
 	}, manager.NarrowDownUploads(nil, game, linux64), "empty is empty")
 
-	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadUntagged:    false,
-		HadWrongFormat: true,
-		HadWrongArch:   false,
-		Uploads:        nil,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
+	debrpm := []*itchio.Upload{
 		&itchio.Upload{
 			Linux:    true,
 			Filename: "wrong.deb",
@@ -40,24 +36,33 @@ func Test_NarrowDownUploads(t *testing.T) {
 			Linux:    true,
 			Filename: "nope.rpm",
 		},
-	}, game, linux64), "blacklist .deb and .rpm files")
+	}
+	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		HadUntagged:    false,
+		HadWrongFormat: true,
+		HadWrongArch:   false,
+		Uploads:        nil,
+		InitialUploads: debrpm,
+	}, manager.NarrowDownUploads(debrpm, game, linux64), "blacklist .deb and .rpm files")
 
 	mac64 := &manager.Runtime{
 		Platform: manager.ItchPlatformOSX,
 		Is64:     true,
 	}
 
+	blacklistpkg := []*itchio.Upload{
+		&itchio.Upload{
+			OSX:      true,
+			Filename: "super-mac-game.pkg",
+		},
+	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		HadUntagged:    false,
 		HadWrongFormat: true,
 		HadWrongArch:   false,
 		Uploads:        nil,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
-		&itchio.Upload{
-			OSX:      true,
-			Filename: "super-mac-game.pkg",
-		},
-	}, game, mac64), "blacklist .pkg files")
+		InitialUploads: blacklistpkg,
+	}, manager.NarrowDownUploads(blacklistpkg, game, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
 		Linux:    true,
@@ -66,17 +71,19 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Filename: "no-really-all-platforms.love",
 	}
 
-	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		Uploads:        []*itchio.Upload{love},
-		HadUntagged:    true,
-		HadWrongFormat: false,
-		HadWrongArch:   false,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
+	excludeuntagged := []*itchio.Upload{
 		love,
 		&itchio.Upload{
 			Filename: "untagged-all-platforms.zip",
 		},
-	}, game, linux64), "exclude untagged, flag it")
+	}
+	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: excludeuntagged,
+		Uploads:        []*itchio.Upload{love},
+		HadUntagged:    true,
+		HadWrongFormat: false,
+		HadWrongArch:   false,
+	}, manager.NarrowDownUploads(excludeuntagged, game, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
 		Linux:    true,
@@ -95,7 +102,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Filename: "twine-is-not-a-twemulator.zip",
 	}
 
+	preferlinuxbin := []*itchio.Upload{
+		linuxBinary,
+		sources,
+		html,
+	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: preferlinuxbin,
 		Uploads: []*itchio.Upload{
 			linuxBinary,
 			sources,
@@ -104,11 +117,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
-		linuxBinary,
-		sources,
-		html,
-	}, game, linux64), "prefer linux binary")
+	}, manager.NarrowDownUploads(preferlinuxbin, game, linux64), "prefer linux binary")
 
 	windowsNaked := &itchio.Upload{
 		Windows:  true,
@@ -125,7 +134,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Is64:     false,
 	}
 
+	preferwinportable := []*itchio.Upload{
+		html,
+		windowsPortable,
+		windowsNaked,
+	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: preferwinportable,
 		Uploads: []*itchio.Upload{
 			windowsPortable,
 			windowsNaked,
@@ -134,11 +149,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
-		html,
-		windowsPortable,
-		windowsNaked,
-	}, game, windows32), "prefer windows portable, then naked")
+	}, manager.NarrowDownUploads(preferwinportable, game, windows32), "prefer windows portable, then naked")
 
 	windowsDemo := &itchio.Upload{
 		Windows:  true,
@@ -146,7 +157,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Filename: "windows-demo.zip",
 	}
 
+	penalizedemos := []*itchio.Upload{
+		windowsDemo,
+		windowsPortable,
+		windowsNaked,
+	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: penalizedemos,
 		Uploads: []*itchio.Upload{
 			windowsPortable,
 			windowsNaked,
@@ -155,11 +172,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
-		windowsDemo,
-		windowsPortable,
-		windowsNaked,
-	}, game, windows32), "penalize demos")
+	}, manager.NarrowDownUploads(penalizedemos, game, windows32), "penalize demos")
 
 	windows64 := &manager.Runtime{
 		Platform: manager.ItchPlatformWindows,
@@ -183,7 +196,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Filename: "universal.zip",
 	}
 
+	preferexclusive := []*itchio.Upload{
+		loveAll,
+		loveWin,
+		loveMac,
+	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: preferexclusive,
 		Uploads: []*itchio.Upload{
 			loveWin,
 			loveAll,
@@ -191,9 +210,5 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads([]*itchio.Upload{
-		loveAll,
-		loveWin,
-		loveMac,
-	}, game, windows64), "prefer builds exclusive to platform")
+	}, manager.NarrowDownUploads(preferexclusive, game, windows64), "prefer builds exclusive to platform")
 }
