@@ -11,54 +11,96 @@ import (
 	"github.com/itchio/sevenzip-go/sz"
 )
 
+type ExtractState struct {
+	HasListedItems        bool
+	ItemCount             int64
+	TotalDoneSize         int64
+	TotalUncompressedSize int64
+	CurrentIndex          int64
+	Contents              *archive.Contents
+}
+
 type ech struct {
-	params *archive.ExtractParams
-	res    *archive.Contents
+	params          *archive.ExtractParams
+	initialProgress float64
+	state           *ExtractState
 }
 
 func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, error) {
-	res := &archive.Contents{}
+	consumer := params.Consumer
+	state := &ExtractState{
+		Contents: &archive.Contents{},
+	}
 
 	err := withArchive(params.Consumer, params.File, func(a *sz.Archive) error {
-		itemCount, err := a.GetItemCount()
+		err := params.Load(state)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			consumer.Infof("szah: could not load state: %s", err.Error())
+			consumer.Infof("szah: ...starting from beginning!")
 		}
 
-		var totalUncompressedSize int64
+		if !state.HasListedItems {
+			consumer.Infof("szah: listing items")
+			itemCount, err := a.GetItemCount()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			state.ItemCount = itemCount
 
-		indices := make([]int64, itemCount)
-		for i := int64(0); i < itemCount; i++ {
-			indices[i] = i
+			var totalUncompressedSize int64
+			for i := int64(0); i < itemCount; i++ {
+				func() {
+					item := a.GetItem(i)
+					if item == nil {
+						return
+					}
+					defer item.Free()
 
-			func() {
-				item := a.GetItem(i)
-				if item == nil {
-					return
-				}
-				defer item.Free()
+					if item.GetBoolProperty(sz.PidIsDir) {
+						return
+					}
 
-				if item.GetBoolProperty(sz.PidIsDir) {
-					return
-				}
+					itemSize := item.GetUInt64Property(sz.PidSize)
+					totalUncompressedSize += int64(itemSize)
+				}()
+			}
+			state.TotalUncompressedSize = totalUncompressedSize
 
-				itemSize := item.GetUInt64Property(sz.PidSize)
-				totalUncompressedSize += int64(itemSize)
-			}()
+			state.HasListedItems = true
+			err = params.Save(state)
+			if err != nil {
+				consumer.Warnf("szah: could not save state: %s", err.Error())
+			}
+		} else {
+			consumer.Infof("szah: using cached item listing")
 		}
 
 		if params.OnUncompressedSizeKnown != nil {
-			params.OnUncompressedSizeKnown(totalUncompressedSize)
+			params.OnUncompressedSizeKnown(state.TotalUncompressedSize)
 		}
 
 		ec, err := sz.NewExtractCallback(&ech{
-			params: params,
-			res:    res,
+			params:          params,
+			state:           state,
+			initialProgress: float64(state.TotalDoneSize) / float64(state.TotalUncompressedSize),
 		})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 		defer ec.Free()
+
+		var indices []int64
+		for i := state.CurrentIndex; i < state.ItemCount; i++ {
+			indices = append(indices, i)
+		}
+		if len(indices) == 0 {
+			consumer.Infof("szah: nothing (0 items) to extract!")
+			return nil
+		}
+
+		consumer.Infof("szah: queued %d/%d items for extraction", len(indices), state.ItemCount)
+
+		// TODO: take initial progress into account
 
 		err = a.ExtractSeveral(indices, ec)
 		if err != nil {
@@ -71,7 +113,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		return nil, errors.Wrap(err, 0)
 	}
 
-	return res, nil
+	return state.Contents, nil
 }
 
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
@@ -97,13 +139,24 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
+	contents := e.state.Contents
+	consumer := e.params.Consumer
+
 	nc := &notifyCloser{
 		Writer: f,
 		OnClose: func(totalBytes int64) {
-			e.res.Entries = append(e.res.Entries, &archive.Entry{
+			contents.Entries = append(contents.Entries, &archive.Entry{
 				Name:             sanePath,
 				UncompressedSize: totalBytes,
 			})
+			// FIXME: it'd be better for GetStream to give us the index of the entry
+			// or for Item to have an index getter
+			e.state.CurrentIndex += 1
+			e.state.TotalDoneSize += totalBytes
+			err := e.params.Save(e.state)
+			if err != nil {
+				consumer.Warnf("szah: could not save state: %s", err.Error())
+			}
 		},
 	}
 
@@ -112,7 +165,9 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 
 func (e *ech) SetProgress(complete int64, total int64) {
 	if total > 0 {
-		e.params.Consumer.Progress(float64(complete) / float64(total))
+		thisRunProgress := float64(complete) / float64(total)
+		actualProgress := e.initialProgress + (1.0-e.initialProgress)*thisRunProgress
+		e.params.Consumer.Progress(actualProgress)
 	}
 	// TODO: do something smart for other formats ?
 }

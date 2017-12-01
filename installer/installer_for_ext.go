@@ -1,4 +1,4 @@
-package operate
+package installer
 
 // Note: .exe is not in that list because we need to
 // read part of its contents to decide what we're going to

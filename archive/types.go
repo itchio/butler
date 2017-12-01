@@ -20,6 +20,9 @@ type ListParams struct {
 
 type UncompressedSizeKnownFunc func(uncompressedSize int64)
 
+type LoadFunc func(state interface{}) error
+type SaveFunc func(state interface{}) error
+
 type ExtractParams struct {
 	File       eos.File
 	StagePath  string
@@ -27,6 +30,9 @@ type ExtractParams struct {
 
 	Consumer                *state.Consumer
 	OnUncompressedSizeKnown UncompressedSizeKnownFunc
+
+	Load LoadFunc
+	Save SaveFunc
 }
 
 type TryOpenParams struct {

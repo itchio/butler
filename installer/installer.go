@@ -27,6 +27,8 @@ type InstallParams struct {
 
 	// Listener for progress events, logging etc.
 	Consumer *state.Consumer
+
+	InstallerInfo *InstallerInfo
 }
 
 type UninstallParams struct {
@@ -38,3 +40,21 @@ type InstallResult struct {
 	// Files is a list of paths, relative to the install folder
 	Files []string
 }
+
+type InstallerInfo struct {
+	Type               InstallerType
+	ArchiveHandlerName string
+}
+
+type InstallerType string
+
+const (
+	InstallerTypeNaked       InstallerType = "naked"
+	InstallerTypeArchive                   = "archive"
+	InstallerTypeDMG                       = "dmg"
+	InstallerTypeInno                      = "inno"
+	InstallerTypeNsis                      = "nsis"
+	InstallerTypeMSI                       = "msi"
+	InstallerTypeUnknown                   = "unknown"
+	InstallerTypeUnsupported               = "unsupported"
+)

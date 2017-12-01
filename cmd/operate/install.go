@@ -121,7 +121,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	if istate.InstallerInfo == nil {
 		consumer.Infof("Probing %s (%s)", stats.Name(), humanize.IBytes(uint64(stats.Size())))
 
-		installerInfo, err := getInstallerInfo(consumer, file)
+		installerInfo, err := installer.GetInstallerInfo(consumer, file)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
@@ -168,6 +168,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		Consumer: consumer,
 
 		File:              file,
+		InstallerInfo:     istate.InstallerInfo,
 		StageFolderPath:   oc.StageFolder(),
 		InstallFolderPath: params.InstallFolder,
 
@@ -201,7 +202,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 }
 
 type InstallSubcontextState struct {
-	InstallerInfo *InstallerInfo `json:"installerInfo,omitempty"`
+	InstallerInfo *installer.InstallerInfo `json:"installerInfo,omitempty"`
 }
 
 type InstallSubcontext struct {

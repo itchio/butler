@@ -1,4 +1,4 @@
-package operate
+package installer
 
 import (
 	"io"
@@ -6,30 +6,14 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
+	"github.com/itchio/butler/archive/backends/bah"
+	"github.com/itchio/butler/archive/backends/szah"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
 
-type InstallerInfo struct {
-	Type               InstallerType
-	ArchiveHandlerName string
-}
-
-type InstallerType string
-
-const (
-	InstallerTypeNaked       InstallerType = "naked"
-	InstallerTypeArchive                   = "archive"
-	InstallerTypeDMG                       = "dmg"
-	InstallerTypeInno                      = "inno"
-	InstallerTypeNsis                      = "nsis"
-	InstallerTypeMSI                       = "msi"
-	InstallerTypeUnknown                   = "unknown"
-	InstallerTypeUnsupported               = "unsupported"
-)
-
-func getInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, error) {
+func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, error) {
 	stat, err := file.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -41,7 +25,19 @@ func getInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 
 	if typ, ok := installerForExt[ext]; ok {
 		consumer.Infof("%s: choosing installer '%s'", name, typ)
-		return &InstallerInfo{Type: typ}, nil
+		var archiveHandlerName string
+		if typ == InstallerTypeArchive {
+			switch ext {
+			case ".zip":
+				archiveHandlerName = (&bah.Handler{}).Name()
+			default:
+				archiveHandlerName = (&szah.Handler{}).Name()
+			}
+		}
+		return &InstallerInfo{
+			Type:               typ,
+			ArchiveHandlerName: archiveHandlerName,
+		}, nil
 	}
 
 	consumer.Infof("%s: probing as archive", name)

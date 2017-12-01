@@ -40,3 +40,13 @@ func eachHandler(op string, cb EachHandlerFunc) (*Contents, error) {
 
 	return nil, fmt.Errorf("no backend could %s: %s", op, strings.Join(msgs, " ; "))
 }
+
+func GetHandler(name string) Handler {
+	for _, h := range handlers {
+		if h.Name() == name {
+			return h
+		}
+	}
+
+	return nil
+}
