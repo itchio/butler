@@ -1,6 +1,8 @@
 package buse
 
-import itchio "github.com/itchio/go-itchio"
+import (
+	itchio "github.com/itchio/go-itchio"
+)
 
 // must be kept in sync with clients, see for example
 // https://github.com/itchio/node-butler

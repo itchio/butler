@@ -29,9 +29,14 @@ type ExtractParams struct {
 	OnUncompressedSizeKnown UncompressedSizeKnownFunc
 }
 
+type TryOpenParams struct {
+	File     eos.File
+	Consumer *state.Consumer
+}
+
 type Handler interface {
 	Name() string
-	List(params *ListParams) (*Contents, error)
+	TryOpen(params *TryOpenParams) error
 	Extract(params *ExtractParams) (*Contents, error)
 }
 

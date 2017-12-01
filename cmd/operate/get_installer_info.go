@@ -12,7 +12,8 @@ import (
 )
 
 type InstallerInfo struct {
-	Type InstallerType
+	Type               InstallerType
+	ArchiveHandlerName string
 }
 
 type InstallerType string
@@ -27,8 +28,6 @@ const (
 	InstallerTypeUnknown                   = "unknown"
 	InstallerTypeUnsupported               = "unsupported"
 )
-
-var ErrNeedLocal = errors.New("getInstallerInfo needs the file to be downloaded to determine whether it can be")
 
 func getInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, error) {
 	stat, err := file.Stat()
@@ -46,17 +45,15 @@ func getInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	}
 
 	consumer.Infof("%s: probing as archive", name)
-	// FIXME: don't list, that's wasteful for some formats
-	// just try to open. Something like `archive.TryOpen` that
-	// returns a handler name would be nice.
-	_, err = archive.List(&archive.ListParams{
+	handler, err := archive.TryOpen(&archive.TryOpenParams{
 		File:     file,
 		Consumer: consumer,
 	})
 	if err == nil {
 		consumer.Infof("%s: is archive", name)
 		return &InstallerInfo{
-			Type: InstallerTypeArchive,
+			Type:               InstallerTypeArchive,
+			ArchiveHandlerName: handler.Name(),
 		}, nil
 	}
 

@@ -5,10 +5,17 @@ import (
 	"strings"
 )
 
-func List(params *ListParams) (*Contents, error) {
-	return eachHandler("list", func(handler Handler) (*Contents, error) {
-		return handler.List(params)
-	})
+func TryOpen(params *TryOpenParams) (Handler, error) {
+	for _, h := range handlers {
+		err := h.TryOpen(params)
+		if err != nil {
+			continue
+		} else {
+			return h, nil
+		}
+	}
+
+	return nil, ErrUnrecognizedArchiveType
 }
 
 func Extract(params *ExtractParams) (*Contents, error) {

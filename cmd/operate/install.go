@@ -84,8 +84,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		oc.Save(meta)
 	}
 
-	// TODO: if upload is wharf-enabled, retrieve build & include it in context/receipt/result etc.
-
 	var archiveUrlPath string
 	if params.Build == nil {
 		archiveUrlPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
@@ -112,14 +110,35 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Probing %s (%s)", stats.Name(), humanize.IBytes(uint64(stats.Size())))
+	istate := &InstallSubcontextState{}
 
-	installerInfo, err := getInstallerInfo(consumer, file)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
+	isub := &InstallSubcontext{
+		data: istate,
 	}
 
-	// TODO: cache get installer info result in context
+	oc.Load(isub)
+
+	if istate.InstallerInfo == nil {
+		consumer.Infof("Probing %s (%s)", stats.Name(), humanize.IBytes(uint64(stats.Size())))
+
+		installerInfo, err := getInstallerInfo(consumer, file)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		// sniffing may have read parts of the file, so seek back to beginning
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		istate.InstallerInfo = installerInfo
+		oc.Save(isub)
+	} else {
+		consumer.Infof("Using cached installer info")
+	}
+
+	installerInfo := istate.InstallerInfo
 	consumer.Infof("Will use installer %s", installerInfo.Type)
 	manager := installer.GetManager(string(installerInfo.Type))
 	if manager == nil {
@@ -131,12 +150,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	if err != nil {
 		receiptIn = nil
 		consumer.Warnf("Could not read existing receipt: %s", err.Error())
-	}
-
-	// sniffing may have read parts of the file, so seek back to beginning
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
 	}
 
 	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
@@ -185,4 +198,22 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	return res, nil
+}
+
+type InstallSubcontextState struct {
+	InstallerInfo *InstallerInfo `json:"installerInfo,omitempty"`
+}
+
+type InstallSubcontext struct {
+	data *InstallSubcontextState
+}
+
+var _ Subcontext = (*InstallSubcontext)(nil)
+
+func (mt *InstallSubcontext) Key() string {
+	return "install"
+}
+
+func (mt *InstallSubcontext) Data() interface{} {
+	return &mt.data
 }
