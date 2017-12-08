@@ -92,6 +92,12 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 				params.OnUncompressedSizeKnown(size)
 			}
 		},
+		Load: func(state interface{}) error {
+			return nil
+		},
+		Save: func(state interface{}) error {
+			return nil
+		},
 	})
 	if params.OnFinished != nil {
 		params.OnFinished()
