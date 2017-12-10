@@ -12,7 +12,14 @@ import (
 	"hash"
 	"hash/crc32"
 	"io"
+	"io/ioutil"
 	"os"
+	"strings"
+
+	"github.com/gogits/chardet"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 var (
@@ -26,6 +33,7 @@ type Reader struct {
 	File          []*File
 	Comment       string
 	decompressors map[uint16]Decompressor
+	utfnames      bool
 }
 
 type ReadCloser struct {
@@ -43,6 +51,10 @@ type File struct {
 
 func (f *File) hasDataDescriptor() bool {
 	return f.Flags&0x8 != 0
+}
+
+func (f *File) hasLanguageEncodingFlag() bool {
+	return f.Flags&(1<<11) != 0
 }
 
 // OpenReader will open the Zip file specified by name and return a ReadCloser.
@@ -75,6 +87,19 @@ func NewReader(r io.ReaderAt, size int64) (*Reader, error) {
 	return zr, nil
 }
 
+func convertToUTF(str string, enc encoding.Encoding) (string, error) {
+	reader := transform.NewReader(strings.NewReader(str), enc.NewDecoder())
+	converted, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+	return string(converted), nil
+}
+
+var encodingDict = map[string] encoding.Encoding {
+	"Shift_JIS": japanese.ShiftJIS,
+}
+
 func (z *Reader) init(r io.ReaderAt, size int64) error {
 	end, err := readDirectoryEnd(r, size)
 	if err != nil {
@@ -97,6 +122,9 @@ func (z *Reader) init(r io.ReaderAt, size int64) error {
 	// Gloss over this by reading headers until we encounter
 	// a bad one, and then only report a ErrFormat or UnexpectedEOF if
 	// the file count modulo 65536 is incorrect.
+
+	paths := ""
+
 	for {
 		f := &File{zip: z, zipr: r, zipsize: size}
 		err = readDirectoryHeader(f, buf)
@@ -107,8 +135,31 @@ func (z *Reader) init(r io.ReaderAt, size int64) error {
 			return err
 		}
 		f.headerOffset += int64(end.startSkipLen)
+
+		if f.hasLanguageEncodingFlag() {
+			z.utfnames = true
+		} else {
+			paths += f.Name
+		}
 		z.File = append(z.File, f)
 	}
+
+	if !z.utfnames {
+		detector := chardet.NewTextDetector()
+		result, err := detector.DetectBest([]byte(paths))
+		if err == nil {
+			encoding := encodingDict[result.Charset]
+			if encoding != nil {
+				for _, f := range z.File {
+					f.Name, err = convertToUTF(f.Name, encoding)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
 	if uint16(len(z.File)) != uint16(end.directoryRecords) { // only compare 16 bits here
 		// Return the readDirectoryHeader error if we read
 		// the wrong number of directory entries.
