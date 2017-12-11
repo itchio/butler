@@ -190,7 +190,7 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 
 	var fr flate.SaverReader
 	var err error
-	var woffset int64
+	var offset int64
 
 	sr, err := getSectionReader(params, zf)
 	if err != nil {
@@ -198,13 +198,14 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 	}
 
 	if state.FlateCheckpoint != nil {
-		consumer.Infof("bah: Trying to resume from flate checkpoint (r=%d,w=%d)", state.FlateCheckpoint.Roffset, state.FlateCheckpoint.Woffset)
+		consumer.Infof("bah: Trying to resume from flate checkpoint (r=%d,w=%d)", state.FlateCheckpoint.Roffset, state.FlateCheckpoint.Roffset)
 		fr, err = state.FlateCheckpoint.Resume(sr)
 		if err != nil {
 			consumer.Warnf("bah: Could not resume from flate checkpoint: %s", err.Error())
 		} else {
 			// cool, we resumed!
-			woffset = state.FlateCheckpoint.Woffset
+			// (Roffset is the offset into uncompressed data)
+			offset = state.FlateCheckpoint.Roffset
 		}
 	}
 
@@ -212,13 +213,13 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 		fr = flate.NewSaverReader(sr)
 	}
 
-	writer, err := getWriter(params, zf, zei, woffset)
+	writer, err := getWriter(params, zf, zei, offset)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 	defer writer.Close()
 
-	cw := getCountingWriter(params, state, zf, writer, woffset)
+	cw := getCountingWriter(params, state, zf, writer, offset)
 
 	var readBytes int64
 	buf := make([]byte, bufSize)
@@ -249,7 +250,7 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 						return errors.Wrap(err, 0)
 					}
 
-					consumer.Infof("bah: making flate checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(c.Woffset)))
+					consumer.Infof("bah: making flate checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(c.Roffset)))
 					state.FlateCheckpoint = c
 					state.TotalCheckpoints++
 					err = params.Save(state)
