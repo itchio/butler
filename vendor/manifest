@@ -184,7 +184,7 @@
 			"importpath": "github.com/itchio/kompress",
 			"repository": "https://github.com/itchio/kompress",
 			"vcs": "git",
-			"revision": "8a57ddd66f9db96ef07b204c15257906845ecd8a",
+			"revision": "5f1991b35651cc716ffc36605592df06b804c03a",
 			"branch": "master",
 			"notests": true
 		},

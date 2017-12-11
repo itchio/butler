@@ -870,6 +870,8 @@ func (sr *saverReader) Save() (*Checkpoint, error) {
 		return nil, NotOnBoundaryError
 	}
 
+	f.wantSave = false
+
 	res := &Checkpoint{
 		Roffset: f.roffset,
 		Woffset: f.woffset,
