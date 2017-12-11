@@ -258,12 +258,11 @@ func sniffZip(r io.ReadSeeker, size int64) (*Candidate, error) {
 		path := filepath.ToSlash(filepath.Clean(filepath.ToSlash(f.Name)))
 		if path == "META-INF/MANIFEST.MF" {
 			rc, err := f.Open()
-			defer rc.Close()
-
 			if err != nil {
 				// :(
 				return nil, nil
 			}
+			defer rc.Close()
 
 			s := bufio.NewScanner(rc)
 
