@@ -823,16 +823,19 @@ type Saver interface {
 // A Checkpoint allows resuming inflation from a certain point
 // in the compressed data stream
 type Checkpoint struct {
-	// Woffset is the offset into compressed data
+	// Woffset is the offset into uncompressed data
 	Woffset int64
-	// Roffset is the offset into uncompressed data
+	// Roffset is the offset into compressed data
 	Roffset int64
 	// B is the currently read bits
 	B uint32
 	// Nb is the number of bits currently read into B
 	Nb uint
 	// Hist keeps track of the uncompressed output written so far
-	Hist []byte
+	DictDecoderHist  []byte
+	DictDecoderWrPos int
+	DictDecoderRdPos int
+	DictDecoderFull  bool
 }
 
 type SaverReader interface {
@@ -877,7 +880,11 @@ func (sr *saverReader) Save() (*Checkpoint, error) {
 		Woffset: f.woffset,
 		B:       f.b,
 		Nb:      f.nb,
-		Hist:    f.dict.hist,
+
+		DictDecoderHist:  f.dict.hist,
+		DictDecoderRdPos: f.dict.rdPos,
+		DictDecoderWrPos: f.dict.wrPos,
+		DictDecoderFull:  f.dict.full,
 	}
 
 	return res, nil
@@ -902,7 +909,12 @@ func (c *Checkpoint) Resume(r io.ReadSeeker) (SaverReader, error) {
 	f.woffset = c.Woffset
 	f.b = c.B
 	f.nb = c.Nb
-	f.dict.init(maxMatchOffset, c.Hist)
+	f.dict = dictDecoder{
+		hist:  c.DictDecoderHist,
+		rdPos: c.DictDecoderRdPos,
+		wrPos: c.DictDecoderWrPos,
+		full:  c.DictDecoderFull,
+	}
 	return &saverReader{&f}, nil
 }
 

@@ -54,6 +54,7 @@ func (es *ExtractState) ResetCheckpoints() {
 }
 
 func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, error) {
+	save := archive.ThrottledSave(params)
 	consumer := params.Consumer
 
 	state := &ExtractState{
@@ -83,10 +84,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		}
 
 		state.HasListedItems = true
-		err := params.Save(state)
-		if err != nil {
-			consumer.Warnf("bah: could not save state: %s", err.Error())
-		}
+		save(state, true)
 	} else {
 		consumer.Infof("bah: using cached item listing")
 	}
@@ -125,21 +123,21 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			switch zf.Method {
 			// we know how to save/resume that!
 			case zip.Deflate:
-				err = extractDeflate(params, state, zf, zei)
+				err = extractDeflate(save, params, state, zf, zei)
 				if err != nil {
 					return nil, errors.Wrap(err, 0)
 				}
 
 			// we know how to save/resume that!
 			case zip.Store:
-				err = extractStore(params, state, zf, zei)
+				err = extractStore(save, params, state, zf, zei)
 				if err != nil {
 					return nil, errors.Wrap(err, 0)
 				}
 
 			// we don't know how to save/resume that!
 			default:
-				err = extractOther(params, state, zf, zei)
+				err = extractOther(save, params, state, zf, zei)
 				if err != nil {
 					return nil, errors.Wrap(err, 0)
 				}
@@ -156,10 +154,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		}
 		state.CurrentIndex++
 		state.ResetCheckpoints()
-		err := params.Save(state)
-		if err != nil {
-			consumer.Warnf("bah: could not save state: %s", err.Error())
-		}
+		save(state, false)
 	}
 
 	consumer.Statf("bah: extracted %d items successfully", state.ItemCount)
@@ -185,7 +180,7 @@ func getZipEntryInfo(params *archive.ExtractParams, zf *zip.File) *ZipEntryInfo 
 	}
 }
 
-func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
+func extractDeflate(save archive.ThrottledSaveFunc, params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
 	consumer := params.Consumer
 
 	var fr flate.SaverReader
@@ -198,14 +193,13 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 	}
 
 	if state.FlateCheckpoint != nil {
-		consumer.Infof("bah: Trying to resume from flate checkpoint (r=%d,w=%d)", state.FlateCheckpoint.Roffset, state.FlateCheckpoint.Roffset)
+		consumer.Infof("bah: Trying to resume from flate checkpoint (r=%d,w=%d)", state.FlateCheckpoint.Roffset, state.FlateCheckpoint.Woffset)
 		fr, err = state.FlateCheckpoint.Resume(sr)
 		if err != nil {
 			consumer.Warnf("bah: Could not resume from flate checkpoint: %s", err.Error())
 		} else {
 			// cool, we resumed!
-			// (Roffset is the offset into uncompressed data)
-			offset = state.FlateCheckpoint.Roffset
+			offset = state.FlateCheckpoint.Woffset
 		}
 	}
 
@@ -250,14 +244,15 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 						return errors.Wrap(err, 0)
 					}
 
-					consumer.Infof("bah: making flate checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(c.Roffset)))
+					consumer.Infof("bah: making flate checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(c.Woffset)))
+					consumer.Infof("=================================================")
+					consumer.Infof("bah: flate tells us we're at byte %d", c.Woffset)
+					currentByte, _ := writer.Seek(0, io.SeekCurrent)
+					consumer.Infof("bah:  file tells us we're at byte %d", currentByte)
+					consumer.Infof("=================================================")
 					state.FlateCheckpoint = c
 					state.TotalCheckpoints++
-					err = params.Save(state)
-					if err != nil {
-						consumer.Warnf("bah: Could not save state (after flate checkpoint): %s", err.Error())
-						// oh well, keep moving
-					}
+					save(state, false)
 				}
 			} else {
 				// an actual error!
@@ -275,7 +270,7 @@ func extractDeflate(params *archive.ExtractParams, state *ExtractState, zf *zip.
 	return nil
 }
 
-func extractStore(params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
+func extractStore(save archive.ThrottledSaveFunc, params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
 	consumer := params.Consumer
 
 	sr, err := getSectionReader(params, zf)
@@ -336,11 +331,7 @@ func extractStore(params *archive.ExtractParams, state *ExtractState, zf *zip.Fi
 			state.StoreCheckpoint = &StoreCheckpoint{
 				Offset: offset,
 			}
-			err = params.Save(state)
-			if err != nil {
-				consumer.Warnf("bah: Could not save state (store checkpoint): %s", err.Error())
-				// oh well, keep going
-			}
+			save(state, false)
 
 			readBytes = 0
 		}
@@ -350,7 +341,7 @@ func extractStore(params *archive.ExtractParams, state *ExtractState, zf *zip.Fi
 	return nil
 }
 
-func extractOther(params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
+func extractOther(save archive.ThrottledSaveFunc, params *archive.ExtractParams, state *ExtractState, zf *zip.File, zei *ZipEntryInfo) error {
 	// extracting an entry which we don't know how to save/resume, so we'll have
 	// to start over from the start of that entry if we're interrupted
 	reader, err := zf.Open()

@@ -184,7 +184,7 @@
 			"importpath": "github.com/itchio/kompress",
 			"repository": "https://github.com/itchio/kompress",
 			"vcs": "git",
-			"revision": "5f1991b35651cc716ffc36605592df06b804c03a",
+			"revision": "7f3a3c82fd34e0c06f3f1ca9813cbad754808e88",
 			"branch": "master",
 			"notests": true
 		},
@@ -208,7 +208,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "b2a84a348adcdc19c593f7de7164bd1ea3de416e",
+			"revision": "ee4ac7ed553c3beaa375de20c726751090656a29",
 			"branch": "master",
 			"notests": true
 		},

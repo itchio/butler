@@ -14,7 +14,6 @@ import (
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
 	"github.com/itchio/butler/cmd/heal"
-	"github.com/itchio/butler/cmd/indexzip"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
@@ -84,7 +83,6 @@ func registerCommands(ctx *mansion.Context) {
 	unzip.Register(ctx)
 	unsz.Register(ctx)
 	untar.Register(ctx)
-	indexzip.Register(ctx)
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
