@@ -109,15 +109,27 @@ type entryInfo struct {
 }
 
 func decodeEntryInfo(item *sz.Item) *entryInfo {
-	attr := item.GetUInt64Property(sz.PidAttrib)
+	var kind = entryKindFile
+	var mode os.FileMode = 0644
 
-	var kindmask uint64 = 0xf0000000
-	var modemask uint64 = 0x0fff0000
-	kind := entryKind((attr & kindmask) >> (7 * 4))
-	mode := os.FileMode((attr&modemask)>>(4*4)) & archiver.LuckyMode
+	if attr, ok := item.GetUInt64Property(sz.PidPosixAttrib); ok {
+		var kindmask uint64 = 0x0000f000
+		var modemask uint64 = 0x000001ff
+		kind = entryKind((attr & kindmask) >> (3 * 4))
+		mode = os.FileMode(attr&modemask) & archiver.LuckyMode
+	}
 
-	if item.GetBoolProperty(sz.PidIsDir) {
+	if attr, ok := item.GetUInt64Property(sz.PidAttrib); ok {
+		var kindmask uint64 = 0xf0000000
+		var modemask uint64 = 0x01ff0000
+		kind = entryKind((attr & kindmask) >> (7 * 4))
+		mode = os.FileMode((attr&modemask)>>(4*4)) & archiver.LuckyMode
+	}
+
+	if isDir, _ := item.GetBoolProperty(sz.PidIsDir); isDir {
 		kind = entryKindDir
+	} else if _, ok := item.GetStringProperty(sz.PidSymLink); ok {
+		kind = entryKindSymlink
 	}
 
 	switch kind {

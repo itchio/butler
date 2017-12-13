@@ -160,7 +160,12 @@ func must(err error) {
 }
 
 func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
-	outPath := filepath.ToSlash(item.GetStringProperty(sz.PidPath))
+	propPath, ok := item.GetStringProperty(sz.PidPath)
+	if !ok {
+		return nil, errors.New("could not get item path")
+	}
+
+	outPath := filepath.ToSlash(propPath)
 	// Remove illegal character for windows paths, see
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
 	for i := byte(0); i <= 31; i++ {
@@ -168,7 +173,22 @@ func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	}
 
 	absoluteOutPath := filepath.Join("out", outPath)
-	if item.GetBoolProperty(sz.PidIsDir) {
+
+	log.Printf("  ")
+	log.Printf("==> Extracting %d: %s", item.GetArchiveIndex(), outPath)
+
+	if attrib, ok := item.GetUInt64Property(sz.PidAttrib); ok {
+		log.Printf("==> Attrib       %08x", attrib)
+	}
+	if attrib, ok := item.GetUInt64Property(sz.PidPosixAttrib); ok {
+		log.Printf("==> Posix Attrib %08x", attrib)
+	}
+	if symlink, ok := item.GetStringProperty(sz.PidSymLink); ok {
+		log.Printf("==> Symlink dest: %s", symlink)
+	}
+
+	isDir, _ := item.GetBoolProperty(sz.PidIsDir)
+	if isDir {
 		log.Printf("Making %s", outPath)
 
 		err := os.MkdirAll(absoluteOutPath, 0755)
@@ -194,8 +214,6 @@ func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
-
-	log.Printf("Extracting %s", outPath)
 
 	return os, nil
 }

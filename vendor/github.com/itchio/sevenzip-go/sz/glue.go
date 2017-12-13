@@ -339,6 +339,10 @@ var (
 	PidIsDir PropertyIndex = C.kpidIsDir
 	// Uncompressed Size
 	PidSize PropertyIndex = C.kpidSize
+	// Symbolic link destination
+	PidSymLink PropertyIndex = C.kpidSymLink
+	// POSIX attributes
+	PidPosixAttrib PropertyIndex = C.kpidPosixAttrib
 )
 
 type ErrorCode int32
@@ -359,22 +363,32 @@ var (
 	ErrNotSupportedArchive               = errors.New("Archive type not supported by 7-zip")
 )
 
-func (i *Item) GetStringProperty(id PropertyIndex) string {
-	cstr := C.libc7zip_item_get_string_property(i.item, C.int32_t(id))
+func (i *Item) GetArchiveIndex() int64 {
+	return int64(C.libc7zip_item_get_archive_index(i.item))
+}
+
+func (i *Item) GetStringProperty(id PropertyIndex) (string, bool) {
+	var success = C.int32_t(0)
+
+	cstr := C.libc7zip_item_get_string_property(i.item, C.int32_t(id), &success)
 	if cstr == nil {
-		return ""
+		return "", false
 	}
 
 	defer C.libc7zip_string_free(cstr)
-	return C.GoString(cstr)
+	return C.GoString(cstr), success == 1
 }
 
-func (i *Item) GetUInt64Property(id PropertyIndex) uint64 {
-	return uint64(C.libc7zip_item_get_uint64_property(i.item, C.int32_t(id)))
+func (i *Item) GetUInt64Property(id PropertyIndex) (uint64, bool) {
+	var success = C.int32_t(0)
+	val := uint64(C.libc7zip_item_get_uint64_property(i.item, C.int32_t(id), &success))
+	return val, success == 1
 }
 
-func (i *Item) GetBoolProperty(id PropertyIndex) bool {
-	return C.libc7zip_item_get_bool_property(i.item, C.int32_t(id)) != 0
+func (i *Item) GetBoolProperty(id PropertyIndex) (bool, bool) {
+	var success = C.int32_t(0)
+	val := C.libc7zip_item_get_bool_property(i.item, C.int32_t(id), &success) != 0
+	return val, success == 1
 }
 
 func (i *Item) Free() {

@@ -68,8 +68,11 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 
 					ei := decodeEntryInfo(item)
 					if ei.kind == entryKindFile {
-						itemSize := item.GetUInt64Property(sz.PidSize)
-						totalUncompressedSize += int64(itemSize)
+						if itemSize, ok := item.GetUInt64Property(sz.PidSize); ok {
+							// if we can't get the item size well.. that's not great
+							// but it shouldn't impede anything.
+							totalUncompressedSize += int64(itemSize)
+						}
 					}
 				}()
 			}
@@ -127,7 +130,12 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	consumer := e.params.Consumer
 
-	sanePath := sanitizePath(item.GetStringProperty(sz.PidPath))
+	itemPath, ok := item.GetStringProperty(sz.PidPath)
+	if !ok {
+		return nil, errors.New("can't get item path")
+	}
+
+	sanePath := sanitizePath(itemPath)
 	outPath := filepath.Join(e.params.OutputPath, sanePath)
 
 	ei := decodeEntryInfo(item)
@@ -141,9 +149,7 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			})
 		}
 
-		// FIXME: it'd be better for GetStream to give us the index of the entry
-		// or for Item to have an index getter
-		e.state.CurrentIndex++
+		e.state.CurrentIndex = item.GetArchiveIndex() + 1
 		e.state.TotalDoneSize += totalBytes
 		e.save(e.state, false)
 	}
@@ -165,6 +171,18 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 
 	if ei.kind == entryKindSymlink && !windows {
 		e.state.NumSymlinks++
+
+		// is the link name stored as a property?
+		if linkname, ok := item.GetStringProperty(sz.PidSymLink); ok {
+			// cool!
+			err := archiver.Symlink(linkname, outPath, consumer)
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			finish(0, false)
+			return nil, nil
+		}
 
 		// the link name is stored as the file contents, so
 		// we extract to an in-memory buffer
@@ -190,7 +208,7 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	// if we end up here, it's a regular file
 	e.state.NumFiles++
 
-	uncompressedSize := item.GetUInt64Property(sz.PidSize)
+	uncompressedSize, _ := item.GetUInt64Property(sz.PidSize)
 	consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
 
 	err := os.MkdirAll(filepath.Dir(outPath), 0755)

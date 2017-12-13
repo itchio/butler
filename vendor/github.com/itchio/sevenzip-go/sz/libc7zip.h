@@ -94,6 +94,8 @@ enum property_index {
   kpidPath, //(FullPath)
   kpidIsDir, //(IsDir)
   kpidSize, //(Uncompressed Size)
+  kpidSymLink, //(Symbolic link destination)
+  kpidPosixAttrib, //(POSIX Attributes)
 
   PROP_INDEX_END
 };
@@ -115,10 +117,11 @@ enum error_code
 struct item;
 typedef struct item item;
 MYEXPORT item *archive_get_item(archive *a, int64_t index);
-MYEXPORT char *item_get_string_property(item *i, int32_t property_index);
+MYEXPORT int32_t item_get_archive_index(item *i);
+MYEXPORT char *item_get_string_property(item *i, int32_t property_index, int32_t *success);
 MYEXPORT void string_free(char *s);
-MYEXPORT uint64_t item_get_uint64_property(item *i, int32_t property_index);
-MYEXPORT int32_t item_get_bool_property(item *i, int32_t property_index);
+MYEXPORT uint64_t item_get_uint64_property(item *i, int32_t property_index, int32_t *success);
+MYEXPORT int32_t item_get_bool_property(item *i, int32_t property_index, int32_t *success);
 MYEXPORT void item_free(item *i);
 MYEXPORT int archive_extract_item(archive *a, item *i, out_stream *os);
 

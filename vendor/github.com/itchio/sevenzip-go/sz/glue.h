@@ -86,10 +86,15 @@ typedef item *(*archive_get_item_t)(archive *a, int64_t index);
 DECLARE(archive_get_item)
 item *libc7zip_archive_get_item(archive *a, int64_t index);
 
+// item_get_archive_index
+typedef int32_t (*item_get_archive_index_t)(item *i);
+DECLARE(item_get_archive_index)
+int32_t libc7zip_item_get_archive_index(item *i);
+
 // item_get_string_property
-typedef char *(*item_get_string_property_t)(item *i, int32_t property_index);
+typedef char *(*item_get_string_property_t)(item *i, int32_t property_index, int32_t *success);
 DECLARE(item_get_string_property)
-char *libc7zip_item_get_string_property(item *i, int32_t property_index);
+char *libc7zip_item_get_string_property(item *i, int32_t property_index, int32_t *success);
 
 // string_free
 typedef void (*string_free_t)(char *s);
@@ -97,14 +102,14 @@ DECLARE(string_free)
 void libc7zip_string_free(char *s);
 
 // item_get_uint64_property
-typedef uint64_t (*item_get_uint64_property_t)(item *i, int32_t property_index);
+typedef uint64_t (*item_get_uint64_property_t)(item *i, int32_t property_index, int32_t *success);
 DECLARE(item_get_uint64_property)
-uint64_t libc7zip_item_get_uint64_property(item *i, int32_t property_index);
+uint64_t libc7zip_item_get_uint64_property(item *i, int32_t property_index, int32_t *success);
 
 // item_get_bool_property
-typedef int32_t (*item_get_bool_property_t)(item *i, int32_t property_index);
+typedef int32_t (*item_get_bool_property_t)(item *i, int32_t property_index, int32_t *success);
 DECLARE(item_get_bool_property)
-int32_t libc7zip_item_get_bool_property(item *i, int32_t property_index);
+int32_t libc7zip_item_get_bool_property(item *i, int32_t property_index, int32_t *success);
 
 // item_free
 typedef void (*item_free_t)(item *i);

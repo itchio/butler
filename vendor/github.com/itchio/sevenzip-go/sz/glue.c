@@ -56,6 +56,7 @@ int libc7zip_initialize(char *lib_path) {
   LOADSYM(archive_get_item_count)
   LOADSYM(archive_get_item)
 
+  LOADSYM(item_get_archive_index)
   LOADSYM(item_get_string_property)
   LOADSYM(string_free)
   LOADSYM(item_get_uint64_property)
@@ -138,20 +139,24 @@ item *libc7zip_archive_get_item(archive *a, int64_t index) {
   return archive_get_item_(a, index);
 }
 
-char *libc7zip_item_get_string_property(item *i, int32_t property_index) {
-  return item_get_string_property_(i, property_index);
+int32_t libc7zip_item_get_archive_index(item *i) {
+  return item_get_archive_index_(i);
+}
+
+char *libc7zip_item_get_string_property(item *i, int32_t property_index, int32_t *success) {
+  return item_get_string_property_(i, property_index, success);
 }
 
 void libc7zip_string_free(char *s) {
   string_free_(s);
 }
 
-uint64_t libc7zip_item_get_uint64_property(item *i, int32_t property_index) {
-  return item_get_uint64_property_(i, property_index);
+uint64_t libc7zip_item_get_uint64_property(item *i, int32_t property_index, int32_t *success) {
+  return item_get_uint64_property_(i, property_index, success);
 }
 
-int32_t libc7zip_item_get_bool_property(item *i, int32_t property_index) {
-  return item_get_bool_property_(i, property_index);
+int32_t libc7zip_item_get_bool_property(item *i, int32_t property_index, int32_t *success) {
+  return item_get_bool_property_(i, property_index, success);
 }
 
 void libc7zip_item_free(item *i) {
