@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 
@@ -85,13 +86,9 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 
 		state.HasListedItems = true
 		save(state, true)
-	} else {
-		consumer.Infof("bah: using cached item listing")
 	}
 
 	windows := runtime.GOOS == "windows"
-
-	consumer.Progress(float64(state.TotalDoneSize) / float64(state.TotalUncompressedSize))
 
 	for state.CurrentIndex < state.ItemCount {
 		zf := reader.File[state.CurrentIndex]
@@ -118,7 +115,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			wasNormalFile = true
 			state.NumFiles++
 
-			consumer.Infof(`extracting %s (%s)`, zei.CanonicalName, humanize.IBytes(uint64(zf.UncompressedSize64)))
+			consumer.Infof(`→ %s (%s)`, zei.CanonicalName, humanize.IBytes(uint64(zf.UncompressedSize64)))
 
 			switch zf.Method {
 			// we know how to save/resume that!
@@ -193,7 +190,6 @@ func extractDeflate(save archive.ThrottledSaveFunc, params *archive.ExtractParam
 	}
 
 	if state.FlateCheckpoint != nil {
-		consumer.Infof("bah: Trying to resume from flate checkpoint (r=%d,w=%d)", state.FlateCheckpoint.Roffset, state.FlateCheckpoint.Woffset)
 		fr, err = state.FlateCheckpoint.Resume(sr)
 		if err != nil {
 			consumer.Warnf("bah: Could not resume from flate checkpoint: %s", err.Error())
@@ -244,15 +240,11 @@ func extractDeflate(save archive.ThrottledSaveFunc, params *archive.ExtractParam
 						return errors.Wrap(err, 0)
 					}
 
-					consumer.Infof("bah: making flate checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(c.Woffset)))
-					consumer.Infof("=================================================")
-					consumer.Infof("bah: flate tells us we're at byte %d", c.Woffset)
-					currentByte, _ := writer.Seek(0, io.SeekCurrent)
-					consumer.Infof("bah:  file tells us we're at byte %d", currentByte)
-					consumer.Infof("=================================================")
 					state.FlateCheckpoint = c
 					state.TotalCheckpoints++
-					save(state, false)
+					if save(state, false) {
+						consumer.Infof("↓ Saved (flate) %s / %s into %s", humanize.IBytes(uint64(c.Woffset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
+					}
 				}
 			} else {
 				// an actual error!
@@ -327,11 +319,12 @@ func extractStore(save archive.ThrottledSaveFunc, params *archive.ExtractParams,
 				return errors.Wrap(err, 0)
 			}
 
-			consumer.Infof("bah: making store checkpoint for %s at %s", zei.CanonicalName, humanize.IBytes(uint64(offset)))
 			state.StoreCheckpoint = &StoreCheckpoint{
 				Offset: offset,
 			}
-			save(state, false)
+			if save(state, false) {
+				consumer.Infof("↓ Saved (store) %s / %s into %s", humanize.IBytes(uint64(offset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
+			}
 
 			readBytes = 0
 		}
@@ -407,7 +400,7 @@ func getWriter(params *archive.ExtractParams, zf *zip.File, zei *ZipEntryInfo, w
 	}
 
 	if woffset != 0 {
-		params.Consumer.Infof("bah: Resuming %s from %s (byte %d)", zei.CanonicalName, humanize.IBytes(uint64(woffset)), woffset)
+		params.Consumer.Infof("↺ Resuming %s / %s into %s", humanize.IBytes(uint64(woffset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
 		_, err := writer.Seek(woffset, io.SeekStart)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
