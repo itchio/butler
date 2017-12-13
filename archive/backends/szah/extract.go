@@ -210,7 +210,7 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	e.state.NumFiles++
 
 	uncompressedSize, _ := item.GetUInt64Property(sz.PidSize)
-	consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
+	consumer.Debugf(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
 
 	err := os.MkdirAll(filepath.Dir(outPath), 0755)
 	if err != nil {

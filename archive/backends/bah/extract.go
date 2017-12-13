@@ -115,7 +115,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			wasNormalFile = true
 			state.NumFiles++
 
-			consumer.Infof(`→ %s (%s)`, zei.CanonicalName, humanize.IBytes(uint64(zf.UncompressedSize64)))
+			consumer.Debugf(`→ %s (%s)`, zei.CanonicalName, humanize.IBytes(uint64(zf.UncompressedSize64)))
 
 			switch zf.Method {
 			// we know how to save/resume that!
@@ -243,7 +243,7 @@ func extractDeflate(save archive.ThrottledSaveFunc, params *archive.ExtractParam
 					state.FlateCheckpoint = c
 					state.TotalCheckpoints++
 					if save(state, false) {
-						consumer.Infof("↓ Saved (flate) %s / %s into %s", humanize.IBytes(uint64(c.Woffset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
+						consumer.Debugf("↓ Saved (flate) %s / %s into %s", humanize.IBytes(uint64(c.Woffset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
 					}
 				}
 			} else {
@@ -323,7 +323,7 @@ func extractStore(save archive.ThrottledSaveFunc, params *archive.ExtractParams,
 				Offset: offset,
 			}
 			if save(state, false) {
-				consumer.Infof("↓ Saved (store) %s / %s into %s", humanize.IBytes(uint64(offset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
+				consumer.Debugf("↓ Saved (store) %s / %s into %s", humanize.IBytes(uint64(offset)), humanize.IBytes(uint64(zf.UncompressedSize64)), path.Base(zei.CanonicalName))
 			}
 
 			readBytes = 0
