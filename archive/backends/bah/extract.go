@@ -394,6 +394,13 @@ func getWriter(params *archive.ExtractParams, zf *zip.File, zei *ZipEntryInfo, w
 		return nil, errors.Wrap(err, 0)
 	}
 
+	// just make sure the file has the right mode
+	// (if it already did exist, it would keep its old mode)
+	err = os.Chmod(zei.FileName, zei.Mode|archiver.ModeMask)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	err = writer.Truncate(int64(zf.UncompressedSize64))
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

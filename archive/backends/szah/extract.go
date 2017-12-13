@@ -223,6 +223,13 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
+	// just make sure the file has the right mode
+	// (if it already did exist, it would keep its old mode)
+	err = os.Chmod(outPath, ei.mode)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	nc := &notifyCloser{
 		Writer: f,
 		OnClose: func(totalBytes int64) error {
