@@ -154,8 +154,8 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		save(state, false)
 	}
 
-	consumer.Statf("bah: extracted %d items successfully", state.ItemCount)
-	consumer.Statf("bah: %d files (%d flate checkpoints), %d dirs, %d symlinks", state.NumFiles, state.TotalCheckpoints, state.NumDirs, state.NumSymlinks)
+	consumer.Statf("extracted %d items successfully", state.ItemCount)
+	consumer.Statf("%d files (%d flate checkpoints), %d dirs, %d symlinks", state.NumFiles, state.TotalCheckpoints, state.NumDirs, state.NumSymlinks)
 
 	return state.Contents, nil
 }

@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/sevenzip-go/sz"
@@ -18,15 +19,21 @@ type ExtractState struct {
 	TotalUncompressedSize int64
 	CurrentIndex          int64
 	Contents              *archive.Contents
+
+	NumFiles    int64
+	NumDirs     int64
+	NumSymlinks int64
 }
 
 type ech struct {
 	params          *archive.ExtractParams
 	initialProgress float64
 	state           *ExtractState
+	save            archive.ThrottledSaveFunc
 }
 
 func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, error) {
+	save := archive.ThrottledSave(params)
 	consumer := params.Consumer
 	state := &ExtractState{
 		Contents: &archive.Contents{},
@@ -67,10 +74,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			state.TotalUncompressedSize = totalUncompressedSize
 
 			state.HasListedItems = true
-			err = params.Save(state)
-			if err != nil {
-				consumer.Warnf("szah: could not save state: %s", err.Error())
-			}
+			save(state, true)
 		} else {
 			consumer.Infof("szah: using cached item listing")
 		}
@@ -83,6 +87,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			params:          params,
 			state:           state,
 			initialProgress: float64(state.TotalDoneSize) / float64(state.TotalUncompressedSize),
+			save:            save,
 		})
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -94,13 +99,11 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			indices = append(indices, i)
 		}
 		if len(indices) == 0 {
-			consumer.Infof("szah: nothing (0 items) to extract!")
+			consumer.Infof("nothing (0 items) to extract!")
 			return nil
 		}
 
-		consumer.Infof("szah: queued %d/%d items for extraction", len(indices), state.ItemCount)
-
-		// TODO: take initial progress into account
+		consumer.Infof("queued %d/%d items for extraction", len(indices), state.ItemCount)
 
 		err = a.ExtractSeveral(indices, ec)
 		if err != nil {
@@ -113,10 +116,15 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		return nil, errors.Wrap(err, 0)
 	}
 
+	consumer.Statf("extracted %d items successfully", state.ItemCount)
+	consumer.Statf("%d files, %d dirs, %d symlinks", state.NumFiles, state.NumDirs, state.NumSymlinks)
+
 	return state.Contents, nil
 }
 
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
+	consumer := e.params.Consumer
+
 	sanePath := sanitizePath(item.GetStringProperty(sz.PidPath))
 	outPath := filepath.Join(e.params.OutputPath, sanePath)
 
@@ -126,8 +134,12 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			return nil, errors.Wrap(err, 0)
 		}
 
+		e.state.NumDirs++
+
 		return nil, nil
 	}
+
+	e.state.NumFiles++
 
 	err := os.MkdirAll(filepath.Dir(outPath), 0755)
 	if err != nil {
@@ -139,8 +151,10 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
+	uncompressedSize := item.GetUInt64Property(sz.PidSize)
+	consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
+
 	contents := e.state.Contents
-	consumer := e.params.Consumer
 
 	nc := &notifyCloser{
 		Writer: f,
@@ -151,12 +165,9 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			})
 			// FIXME: it'd be better for GetStream to give us the index of the entry
 			// or for Item to have an index getter
-			e.state.CurrentIndex += 1
+			e.state.CurrentIndex++
 			e.state.TotalDoneSize += totalBytes
-			err := e.params.Save(e.state)
-			if err != nil {
-				consumer.Warnf("szah: could not save state: %s", err.Error())
-			}
+			e.save(e.state, false)
 		},
 	}
 
