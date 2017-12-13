@@ -2,11 +2,12 @@ package szah
 
 import (
 	"os"
+	"bytes"
+	"io"
 	"path/filepath"
 	"runtime"
 	"strings"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/sevenzip-go/sz"
@@ -122,11 +123,32 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 	return state.Contents, nil
 }
 
+const (
+	TypeDir uint64 = 0x4
+	TypeFile = 0x8
+	TypeSymlink = 0xa
+)
+
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	consumer := e.params.Consumer
 
 	sanePath := sanitizePath(item.GetStringProperty(sz.PidPath))
 	outPath := filepath.Join(e.params.OutputPath, sanePath)
+
+	attr := item.GetUInt64Property(sz.PidAttrib)
+	var typemask uint64 = 0xf0000000
+	var modemask uint64 = 0x0fff0000
+	itemType := (attr&typemask)>>(7*4)
+	itemMode := (attr&modemask)>>(4*4)
+	formatType := func (itemType uint64) string {
+		switch itemType {
+		case TypeDir: return "dir "
+		case TypeFile: return "file"
+		case TypeSymlink: return "link"
+		default: return "????"
+		}
+	}
+	consumer.Infof(`attrib: %032x %s (%04o) %s`, attr, formatType(itemType), itemMode, sanePath)
 
 	if item.GetBoolProperty(sz.PidIsDir) {
 		err := os.MkdirAll(outPath, 0755)
@@ -146,19 +168,33 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	f, err := os.Create(outPath)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
+	var f io.WriteCloser
+	var buf *bytes.Buffer
+
+	if itemType == TypeSymlink {
+		buf = new(bytes.Buffer)
+		f = &nopWriteCloser{
+			writer: buf,
+		}
+	} else {
+		f, err = os.Create(outPath)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
 	}
 
-	uncompressedSize := item.GetUInt64Property(sz.PidSize)
-	consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
+	// uncompressedSize := item.GetUInt64Property(sz.PidSize)
+	// consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
 
 	contents := e.state.Contents
 
 	nc := &notifyCloser{
 		Writer: f,
 		OnClose: func(totalBytes int64) {
+			if itemType == TypeSymlink {
+				consumer.Infof("symlinks target: %s", string(buf.Bytes()))
+			}
+
 			contents.Entries = append(contents.Entries, &archive.Entry{
 				Name:             sanePath,
 				UncompressedSize: totalBytes,
@@ -195,4 +231,20 @@ func sanitizePath(inPath string) string {
 	}
 
 	return outPath
+}
+
+// nopWriteCloser
+
+type nopWriteCloser struct {
+	writer io.Writer
+}
+
+var _ io.Writer = (*nopWriteCloser)(nil)
+
+func (nwc *nopWriteCloser) Write(data []byte) (int, error) {
+	return nwc.writer.Write(data)
+}
+
+func (nwc *nopWriteCloser) Close() error {
+	return nil
 }
