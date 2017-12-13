@@ -174,7 +174,7 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			OnClose: func(totalBytes int64) error {
 				linkname := buf.Bytes()
 
-				err := archiver.Symlink(string(linkname), sanePath, consumer)
+				err := archiver.Symlink(string(linkname), outPath, consumer)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
