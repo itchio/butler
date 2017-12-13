@@ -2,11 +2,11 @@ package szah
 
 import "io"
 
-type OnCloseFunc func(totalBytes int64)
+type onCloseFunc func(totalBytes int64) error
 
 type notifyCloser struct {
-	Writer  io.WriteCloser
-	OnClose OnCloseFunc
+	Writer  io.Writer
+	OnClose onCloseFunc
 
 	totalBytes int64
 }
@@ -20,6 +20,12 @@ func (nc *notifyCloser) Write(buf []byte) (int, error) {
 }
 
 func (nc *notifyCloser) Close() error {
-	nc.OnClose(nc.totalBytes)
-	return nc.Writer.Close()
+	if closer, ok := nc.Writer.(io.Closer); ok {
+		err := closer.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nc.OnClose(nc.totalBytes)
 }

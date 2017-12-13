@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/sevenzip-go/sz"
+	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
@@ -90,4 +91,50 @@ func withArchive(consumer *state.Consumer, file eos.File, cb withArchiveCallback
 	}
 
 	return cb(a)
+}
+
+type entryKind int
+
+const (
+	// those are reverse-engineered from printing out
+	// the 'attrib' param of entries in .zip and .7z files
+	entryKindDir     entryKind = 0x4
+	entryKindFile    entryKind = 0x8
+	entryKindSymlink entryKind = 0xa
+)
+
+type entryInfo struct {
+	kind entryKind
+	mode os.FileMode
+}
+
+func decodeEntryInfo(item *sz.Item) *entryInfo {
+	attr := item.GetUInt64Property(sz.PidAttrib)
+
+	var kindmask uint64 = 0xf0000000
+	var modemask uint64 = 0x0fff0000
+	kind := entryKind((attr & kindmask) >> (7 * 4))
+	mode := os.FileMode((attr&modemask)>>(4*4)) & archiver.LuckyMode
+
+	if item.GetBoolProperty(sz.PidIsDir) {
+		kind = entryKindDir
+	}
+
+	switch kind {
+	case entryKindDir: // that's ok
+	case entryKindFile: // that's ok too
+	case entryKindSymlink: // that's fine
+	default:
+		// uh oh, default to file
+		kind = entryKindFile
+	}
+
+	if kind == entryKindFile {
+		mode |= archiver.ModeMask
+	}
+
+	return &entryInfo{
+		kind: kind,
+		mode: mode,
+	}
 }

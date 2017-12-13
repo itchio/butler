@@ -75,7 +75,7 @@ func ensureDeps(consumer *state.Consumer) error {
 		// lockfile's recommended way to look for a temporary error
 		if _, ok := err.(tempLockfileErr); ok {
 			consumer.Debugf("Will retry acquiring lock in a few: %s", err.Error())
-			tries -= 1
+			tries--
 			if tries <= 0 {
 				msg := fmt.Sprintf("Too many errors acquiring lock, giving up. Last error was: %s", err.Error())
 				return errors.New(msg)

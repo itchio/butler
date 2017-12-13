@@ -1,12 +1,14 @@
 package szah
 
 import (
-	"os"
 	"bytes"
-	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/wharf/archiver"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
@@ -48,7 +50,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 		}
 
 		if !state.HasListedItems {
-			consumer.Infof("szah: listing items")
+			consumer.Infof("Listing items...")
 			itemCount, err := a.GetItemCount()
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -64,12 +66,11 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 					}
 					defer item.Free()
 
-					if item.GetBoolProperty(sz.PidIsDir) {
-						return
+					ei := decodeEntryInfo(item)
+					if ei.kind == entryKindFile {
+						itemSize := item.GetUInt64Property(sz.PidSize)
+						totalUncompressedSize += int64(itemSize)
 					}
-
-					itemSize := item.GetUInt64Property(sz.PidSize)
-					totalUncompressedSize += int64(itemSize)
 				}()
 			}
 			state.TotalUncompressedSize = totalUncompressedSize
@@ -77,7 +78,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			state.HasListedItems = true
 			save(state, true)
 		} else {
-			consumer.Infof("szah: using cached item listing")
+			consumer.Infof("Using cached item listing")
 		}
 
 		if params.OnUncompressedSizeKnown != nil {
@@ -104,7 +105,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 			return nil
 		}
 
-		consumer.Infof("queued %d/%d items for extraction", len(indices), state.ItemCount)
+		consumer.Infof("Queued %d / %d items for extraction", len(indices), state.ItemCount)
 
 		err = a.ExtractSeveral(indices, ec)
 		if err != nil {
@@ -123,90 +124,93 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 	return state.Contents, nil
 }
 
-const (
-	TypeDir uint64 = 0x4
-	TypeFile = 0x8
-	TypeSymlink = 0xa
-)
-
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	consumer := e.params.Consumer
 
 	sanePath := sanitizePath(item.GetStringProperty(sz.PidPath))
 	outPath := filepath.Join(e.params.OutputPath, sanePath)
 
-	attr := item.GetUInt64Property(sz.PidAttrib)
-	var typemask uint64 = 0xf0000000
-	var modemask uint64 = 0x0fff0000
-	itemType := (attr&typemask)>>(7*4)
-	itemMode := (attr&modemask)>>(4*4)
-	formatType := func (itemType uint64) string {
-		switch itemType {
-		case TypeDir: return "dir "
-		case TypeFile: return "file"
-		case TypeSymlink: return "link"
-		default: return "????"
-		}
-	}
-	consumer.Infof(`attrib: %032x %s (%04o) %s`, attr, formatType(itemType), itemMode, sanePath)
+	ei := decodeEntryInfo(item)
 
-	if item.GetBoolProperty(sz.PidIsDir) {
+	contents := e.state.Contents
+	finish := func(totalBytes int64, createEntry bool) {
+		if createEntry {
+			contents.Entries = append(contents.Entries, &archive.Entry{
+				Name:             sanePath,
+				UncompressedSize: totalBytes,
+			})
+		}
+
+		// FIXME: it'd be better for GetStream to give us the index of the entry
+		// or for Item to have an index getter
+		e.state.CurrentIndex++
+		e.state.TotalDoneSize += totalBytes
+		e.save(e.state, false)
+	}
+
+	windows := runtime.GOOS == "windows"
+
+	if ei.kind == entryKindDir {
+		e.state.NumDirs++
+
 		err := os.MkdirAll(outPath, 0755)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
+		finish(0, false)
 
-		e.state.NumDirs++
-
+		// giving 7-zip a null stream will make it skip the entry
 		return nil, nil
 	}
 
+	if ei.kind == entryKindSymlink && !windows {
+		e.state.NumSymlinks++
+
+		// the link name is stored as the file contents, so
+		// we extract to an in-memory buffer
+		buf := new(bytes.Buffer)
+		nc := &notifyCloser{
+			Writer: buf,
+			OnClose: func(totalBytes int64) error {
+				linkname := buf.Bytes()
+
+				err := archiver.Symlink(string(linkname), sanePath, consumer)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				finish(totalBytes, false)
+				return nil
+			},
+		}
+
+		return sz.NewOutStream(nc)
+	}
+
+	// if we end up here, it's a regular file
 	e.state.NumFiles++
+
+	uncompressedSize := item.GetUInt64Property(sz.PidSize)
+	consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
 
 	err := os.MkdirAll(filepath.Dir(outPath), 0755)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var f io.WriteCloser
-	var buf *bytes.Buffer
-
-	if itemType == TypeSymlink {
-		buf = new(bytes.Buffer)
-		f = &nopWriteCloser{
-			writer: buf,
-		}
-	} else {
-		f, err = os.Create(outPath)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+	flag := os.O_CREATE | os.O_TRUNC | os.O_WRONLY
+	f, err := os.OpenFile(outPath, flag, ei.mode)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
-
-	// uncompressedSize := item.GetUInt64Property(sz.PidSize)
-	// consumer.Infof(`→ %s (%s)`, sanePath, humanize.IBytes(uncompressedSize))
-
-	contents := e.state.Contents
 
 	nc := &notifyCloser{
 		Writer: f,
-		OnClose: func(totalBytes int64) {
-			if itemType == TypeSymlink {
-				consumer.Infof("symlinks target: %s", string(buf.Bytes()))
-			}
-
-			contents.Entries = append(contents.Entries, &archive.Entry{
-				Name:             sanePath,
-				UncompressedSize: totalBytes,
-			})
-			// FIXME: it'd be better for GetStream to give us the index of the entry
-			// or for Item to have an index getter
-			e.state.CurrentIndex++
-			e.state.TotalDoneSize += totalBytes
-			e.save(e.state, false)
+		OnClose: func(totalBytes int64) error {
+			finish(totalBytes, true)
+			return nil
 		},
 	}
-
 	return sz.NewOutStream(nc)
 }
 
@@ -216,35 +220,21 @@ func (e *ech) SetProgress(complete int64, total int64) {
 		actualProgress := e.initialProgress + (1.0-e.initialProgress)*thisRunProgress
 		e.params.Consumer.Progress(actualProgress)
 	}
-	// TODO: do something smart for other formats ?
+	// TODO: some formats don't have 'total' value, should we do
+	// something smart there?
 }
 
 func sanitizePath(inPath string) string {
 	outPath := filepath.ToSlash(inPath)
 
 	if runtime.GOOS == "windows" {
-		// Remove illegal character for windows paths, see
+		// Replace illegal character for windows paths with underscores, see
 		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+		// (N.B: that's what the 7-zip CLI seems to do)
 		for i := byte(0); i <= 31; i++ {
 			outPath = strings.Replace(outPath, string([]byte{i}), "_", -1)
 		}
 	}
 
 	return outPath
-}
-
-// nopWriteCloser
-
-type nopWriteCloser struct {
-	writer io.Writer
-}
-
-var _ io.Writer = (*nopWriteCloser)(nil)
-
-func (nwc *nopWriteCloser) Write(data []byte) (int, error) {
-	return nwc.writer.Write(data)
-}
-
-func (nwc *nopWriteCloser) Close() error {
-	return nil
 }
