@@ -129,6 +129,7 @@ func (h *Handler) Extract(params *archive.ExtractParams) (*archive.Contents, err
 
 func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	consumer := e.params.Consumer
+	itemIndex := item.GetArchiveIndex()
 
 	itemPath, ok := item.GetStringProperty(sz.PidPath)
 	if !ok {
@@ -149,7 +150,7 @@ func (e *ech) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			})
 		}
 
-		e.state.CurrentIndex = item.GetArchiveIndex() + 1
+		e.state.CurrentIndex = itemIndex + 1
 		e.state.TotalDoneSize += totalBytes
 		e.save(e.state, false)
 	}
