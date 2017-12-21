@@ -1,14 +1,13 @@
-package unsz
+package extract
 
 import (
 	"time"
 
 	"github.com/itchio/savior"
 
-	"github.com/itchio/butler/archive/szextractor"
-
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
@@ -21,14 +20,14 @@ var args = struct {
 }{}
 
 func Register(ctx *mansion.Context) {
-	cmd := ctx.App.Command("unsz", "Extract any archive file supported by 7-zip").Hidden()
+	cmd := ctx.App.Command("extract", "Extract any archive file supported by butler or 7-zip").Hidden()
 	args.file = cmd.Arg("file", "Path of the archive to extract").Required().String()
 	args.dir = cmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String()
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, &UnszParams{
+	ctx.Must(Do(ctx, &ExtractParams{
 		File: *args.file,
 		Dir:  *args.dir,
 
@@ -36,19 +35,19 @@ func do(ctx *mansion.Context) {
 	}))
 }
 
-type UnszParams struct {
+type ExtractParams struct {
 	File string
 	Dir  string
 
 	Consumer *state.Consumer
 }
 
-func Do(ctx *mansion.Context, params *UnszParams) error {
+func Do(ctx *mansion.Context, params *ExtractParams) error {
 	if params.File == "" {
-		return errors.New("unsz: File must be specified")
+		return errors.New("extract: File must be specified")
 	}
 	if params.Dir == "" {
-		return errors.New("unsz: Dir must be specified")
+		return errors.New("extract: Dir must be specified")
 	}
 
 	consumer := params.Consumer
@@ -66,10 +65,21 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 
 	consumer.Opf("Extracting %s to %s", stats.Name(), params.Dir)
 
-	ex, err := szextractor.New(file, consumer)
+	archiveInfo, err := archive.Probe(&archive.TryOpenParams{
+		File:     file,
+		Consumer: consumer,
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
+	consumer.Opf("Using %s", archiveInfo.Features)
+
+	ex, err := archiveInfo.GetExtractor(file, consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	ex.SetConsumer(consumer)
 
 	startTime := time.Now()
 

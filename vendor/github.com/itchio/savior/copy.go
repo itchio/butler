@@ -6,7 +6,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-var StopErr = errors.New("copy was stopped after save!")
+var ErrStop = errors.New("copy was stopped after save!")
 
 type MakeCheckpointFunc func() (*ExtractorCheckpoint, error)
 type EmitProgressFunc func()

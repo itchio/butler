@@ -259,6 +259,14 @@ func (lib *Lib) OpenArchive(in *InStream, bySignature bool) (*Archive, error) {
 	return a, nil
 }
 
+func (a *Archive) Close() {
+	C.libc7zip_archive_close(a.arch)
+}
+
+func (a *Archive) Free() {
+	C.libc7zip_archive_free(a.arch)
+}
+
 func (a *Archive) GetItemCount() (int64, error) {
 	res := int64(C.libc7zip_archive_get_item_count(a.arch))
 	if res < 0 {

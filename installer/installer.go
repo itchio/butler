@@ -1,6 +1,7 @@
 package installer
 
 import (
+	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
@@ -42,8 +43,8 @@ type InstallResult struct {
 }
 
 type InstallerInfo struct {
-	Type               InstallerType
-	ArchiveHandlerName string
+	Type        InstallerType
+	ArchiveInfo *archive.ArchiveInfo
 }
 
 type InstallerType string

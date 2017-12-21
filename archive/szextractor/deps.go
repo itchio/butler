@@ -1,4 +1,4 @@
-package szah
+package szextractor
 
 import (
 	"crypto/sha1"
@@ -14,8 +14,8 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
-	"github.com/itchio/butler/archive/backends/szah/formulas"
-	"github.com/itchio/butler/archive/backends/szah/types"
+	"github.com/itchio/butler/archive/szextractor/formulas"
+	"github.com/itchio/butler/archive/szextractor/types"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 	"github.com/nightlyone/lockfile"

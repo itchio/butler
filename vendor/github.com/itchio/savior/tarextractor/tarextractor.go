@@ -13,7 +13,6 @@ import (
 
 type tarExtractor struct {
 	source savior.Source
-	sink   savior.Sink
 
 	saveConsumer savior.SaveConsumer
 	consumer     *state.Consumer
@@ -26,10 +25,9 @@ type TarExtractorState struct {
 
 var _ savior.Extractor = (*tarExtractor)(nil)
 
-func New(source savior.Source, sink savior.Sink) savior.Extractor {
+func New(source savior.Source) savior.Extractor {
 	return &tarExtractor{
 		source:       source,
-		sink:         sink,
 		saveConsumer: savior.NopSaveConsumer(),
 		consumer:     savior.NopConsumer(),
 	}
@@ -43,7 +41,7 @@ func (te *tarExtractor) SetConsumer(consumer *state.Consumer) {
 	te.consumer = consumer
 }
 
-func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint) (*savior.ExtractorResult, error) {
+func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savior.Sink) (*savior.ExtractorResult, error) {
 	var sr tar.SaverReader
 	var state *TarExtractorState
 
@@ -106,17 +104,9 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint) (*savior.
 	}
 
 	stop := false
-	var stopErr error
+	var stopError error
 	entryIndex := checkpoint.EntryIndex
-	for {
-		if stop {
-			if stopErr == nil {
-				te.consumer.Statf("Extracted %s", state.Result.Stats())
-				return state.Result, nil
-			}
-			return nil, stopErr
-		}
-
+	for !stop {
 		err := func() error {
 			checkpoint.EntryIndex = entryIndex
 			entryIndex++
@@ -158,19 +148,19 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint) (*savior.
 			switch entry.Kind {
 			case savior.EntryKindDir:
 				savior.Debugf(`tar: extracting dir %s`, entry.CanonicalPath)
-				err := te.sink.Mkdir(entry)
+				err := sink.Mkdir(entry)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
 			case savior.EntryKindSymlink:
 				savior.Debugf(`tar: extracting symlink %s`, entry.CanonicalPath)
-				err := te.sink.Symlink(entry, entry.Linkname)
+				err := sink.Symlink(entry, entry.Linkname)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
 			case savior.EntryKindFile:
 				savior.Debugf(`tar: extracting file %s`, entry.CanonicalPath)
-				w, err := te.sink.GetWriter(entry)
+				w, err := sink.GetWriter(entry)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
@@ -217,7 +207,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint) (*savior.
 
 				if copyRes.Action == savior.AfterSaveStop {
 					stop = true
-					stopErr = savior.StopErr
+					stopError = savior.ErrStop
 					return nil
 				}
 
@@ -235,6 +225,13 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint) (*savior.
 			return nil, errors.Wrap(err, 0)
 		}
 	}
+
+	if stopError != nil {
+		return nil, stopError
+	}
+
+	te.consumer.Statf("Extracted %s", state.Result.Stats())
+	return state.Result, nil
 }
 
 func (te *tarExtractor) Features() savior.ExtractorFeatures {

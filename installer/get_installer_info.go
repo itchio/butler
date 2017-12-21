@@ -4,10 +4,10 @@ import (
 	"io"
 	"path/filepath"
 
+	"github.com/itchio/savior"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/archive/backends/bah"
-	"github.com/itchio/butler/archive/backends/szah"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
@@ -24,32 +24,31 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	name := filepath.Base(target)
 
 	if typ, ok := installerForExt[ext]; ok {
-		consumer.Infof("%s: choosing installer '%s'", name, typ)
-		var archiveHandlerName string
 		if typ == InstallerTypeArchive {
-			switch ext {
-			case ".zip":
-				archiveHandlerName = (&bah.Handler{}).Name()
-			default:
-				archiveHandlerName = (&szah.Handler{}).Name()
-			}
+			// let code flow, probe it as archive
+		} else {
+			consumer.Infof("%s: choosing installer '%s'", name, typ)
+			return &InstallerInfo{
+				Type: typ,
+			}, nil
 		}
-		return &InstallerInfo{
-			Type:               typ,
-			ArchiveHandlerName: archiveHandlerName,
-		}, nil
 	}
 
 	consumer.Infof("%s: probing as archive", name)
-	handler, err := archive.TryOpen(&archive.TryOpenParams{
+	archiveInfo, err := archive.Probe(&archive.TryOpenParams{
 		File:     file,
 		Consumer: consumer,
 	})
 	if err == nil {
 		consumer.Infof("%s: is archive", name)
+		if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
+			// TODO: force downloading to disk first for those
+			consumer.Warnf("%s: has no/poor resume support, interruptions will waste network/CPU time")
+		}
+
 		return &InstallerInfo{
-			Type:               InstallerTypeArchive,
-			ArchiveHandlerName: handler.Name(),
+			Type:        InstallerTypeArchive,
+			ArchiveInfo: archiveInfo,
 		}, nil
 	}
 

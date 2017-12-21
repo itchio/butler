@@ -8,6 +8,9 @@ import (
 type Writer struct {
 	reference []byte
 	offset    int64
+
+	// if set, will update MinWrite/MaxWrite
+	doneItem *DoneItem
 }
 
 var _ io.WriteSeeker = (*Writer)(nil)
@@ -19,6 +22,12 @@ func NewWriter(reference []byte) *Writer {
 }
 
 func (cw *Writer) Write(buf []byte) (int, error) {
+	if cw.doneItem != nil {
+		if cw.offset < cw.doneItem.MinWrite {
+			cw.doneItem.MinWrite = cw.offset
+		}
+	}
+
 	n := 0
 	for i := 0; i < len(buf); i++ {
 		if cw.offset >= int64(len(cw.reference)) {
@@ -33,6 +42,13 @@ func (cw *Writer) Write(buf []byte) (int, error) {
 		cw.offset++
 		n++
 	}
+
+	if cw.doneItem != nil {
+		if cw.offset > cw.doneItem.MaxWrite {
+			cw.doneItem.MaxWrite = cw.offset
+		}
+	}
+
 	return n, nil
 }
 

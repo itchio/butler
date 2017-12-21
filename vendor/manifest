@@ -217,7 +217,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "95bdf0c0e23bf9e57c3f4456b41e89e9319db9b6",
+			"revision": "34f84a2d419be5789dcf1a6ad1c10037c439ba42",
 			"branch": "master",
 			"notests": true
 		},
@@ -225,7 +225,7 @@
 			"importpath": "github.com/itchio/sevenzip-go",
 			"repository": "https://github.com/itchio/sevenzip-go",
 			"vcs": "git",
-			"revision": "8cf86f5acc7d1dc64651fcf45b7b190a510e68b7",
+			"revision": "521c73d4b7d1fa7367ab52ef839c6b518b090e99",
 			"branch": "master",
 			"notests": true
 		},

@@ -9,8 +9,10 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/state"
+	"github.com/stretchr/testify/assert"
 )
 
 type MakeExtractorFunc func() savior.Extractor
@@ -18,7 +20,7 @@ type ShouldSaveFunc func() bool
 
 var showSaviorConsumerOutput = os.Getenv("SAVIOR_CONSUMER") == "1"
 
-func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave ShouldSaveFunc) {
+func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, sink *Sink, shouldSave ShouldSaveFunc) {
 	var c *savior.ExtractorCheckpoint
 	var totalCheckpointSize int64
 
@@ -27,13 +29,15 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave 
 			c2, checkpointSize := roundtripEThroughGob(t, checkpoint)
 			totalCheckpointSize += int64(checkpointSize)
 			c = c2
-			log.Printf("↓ saved @ %.0f%% (%s checkpoint)", c.Progress*100, humanize.IBytes(uint64(checkpointSize)))
+			log.Printf("↓ saved @ %.0f%% (%s checkpoint, entry %d)", c.Progress*100, humanize.IBytes(uint64(checkpointSize)), c.EntryIndex)
 			return savior.AfterSaveStop, nil
 		}
 
 		savior.Debugf("↷ Skipping over checkpoint at #%d", checkpoint.EntryIndex)
 		return savior.AfterSaveContinue, nil
 	})
+
+	sink.Reset()
 
 	var numProgressCalls int64
 	var numJumpbacks int64
@@ -42,7 +46,7 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave 
 		OnProgress: func(progress float64) {
 			if progress < lastProgress {
 				numJumpbacks++
-				log.Printf("mh, progress jumped back from %.2f to %.2f", lastProgress*100, progress*100)
+				log.Printf("mh, progress jumped back from %f to %f", lastProgress, progress)
 			}
 			lastProgress = progress
 			numProgressCalls++
@@ -59,7 +63,7 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave 
 
 	startTime := time.Now()
 
-	maxResumes := 24
+	maxResumes := 128
 	numResumes := 0
 	for {
 		if numResumes > maxResumes {
@@ -76,9 +80,9 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave 
 		} else {
 			savior.Debugf("↻ resumed @ %.0f%%", c.Progress*100)
 		}
-		res, err := ex.Resume(c)
+		res, err := ex.Resume(c, sink)
 		if err != nil {
-			if err == savior.StopErr {
+			if errors.Is(err, savior.ErrStop) {
 				numResumes++
 				continue
 			}
@@ -100,6 +104,8 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, shouldSave 
 
 		break
 	}
+
+	assert.NoError(t, sink.Validate())
 }
 
 func roundtripEThroughGob(t *testing.T, c *savior.ExtractorCheckpoint) (*savior.ExtractorCheckpoint, int) {

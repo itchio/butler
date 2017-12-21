@@ -1,4 +1,4 @@
-package szah
+package szextractor
 
 import "io"
 
