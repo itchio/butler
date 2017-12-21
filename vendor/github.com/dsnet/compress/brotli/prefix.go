@@ -132,7 +132,7 @@ func initPrefixLUTs() {
 }
 
 func initPrefixRangeLUTs() {
-	var makeRanges = func(base uint, bits []uint) (rc []rangeCode) {
+	makeRanges := func(base uint, bits []uint) (rc []rangeCode) {
 		for _, nb := range bits {
 			rc = append(rc, rangeCode{base: uint32(base), bits: uint32(nb)})
 			base += 1 << nb
@@ -158,7 +158,7 @@ func initPrefixCodeLUTs() {
 	// Prefix code for reading code lengths in RFC section 3.5.
 	codeCLens = nil
 	for sym, clen := range []uint{2, 4, 3, 2, 2, 4} {
-		var code = prefixCode{sym: uint32(sym), len: uint32(clen)}
+		code := prefixCode{sym: uint32(sym), len: uint32(clen)}
 		codeCLens = append(codeCLens, code)
 	}
 	decCLens.Init(codeCLens, true)
@@ -167,7 +167,7 @@ func initPrefixCodeLUTs() {
 	// Prefix code for reading RLEMAX in RFC section 7.3.
 	codeMaxRLE = []prefixCode{{sym: 0, val: 0, len: 1}}
 	for i := uint32(0); i < 16; i++ {
-		var code = prefixCode{sym: i + 1, val: i<<1 | 1, len: 5}
+		code := prefixCode{sym: i + 1, val: i<<1 | 1, len: 5}
 		codeMaxRLE = append(codeMaxRLE, code)
 	}
 	decMaxRLE.Init(codeMaxRLE, false)
@@ -196,12 +196,12 @@ func initPrefixCodeLUTs() {
 	// Prefix code for reading counts in RFC section 9.2.
 	// This is used for: NBLTYPESL, NBLTYPESI, NBLTYPESD, NTREESL, and NTREESD.
 	codeCounts = []prefixCode{{sym: 1, val: 0, len: 1}}
-	var code = codeCounts[len(codeCounts)-1]
+	code := codeCounts[len(codeCounts)-1]
 	for i := uint32(0); i < 8; i++ {
 		for j := uint32(0); j < 1<<i; j++ {
 			code.sym = code.sym + 1
 			code.val = j<<4 | i<<1 | 1
-			code.len = uint32(i + 4)
+			code.len = i + 4
 			codeCounts = append(codeCounts, code)
 		}
 	}
@@ -254,9 +254,9 @@ func initLengthLUTs() {
 		case distSym < 4:
 			index, delta = distSym, 0
 		case distSym < 10:
-			index, delta = 0, int(distSym/2-1)
+			index, delta = 0, distSym/2-1
 		case distSym < 16:
-			index, delta = 1, int(distSym/2-4)
+			index, delta = 1, distSym/2-4
 		}
 		if distSym%2 == 0 {
 			delta *= -1

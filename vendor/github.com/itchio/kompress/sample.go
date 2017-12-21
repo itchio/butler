@@ -1,16 +1,14 @@
 package main
 
 import (
-	"compress/flate"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 
-	"io"
-
-	"io/ioutil"
-
 	"github.com/itchio/arkive/zip"
+	"github.com/itchio/kompress/flate"
 )
 
 func main() {
@@ -65,6 +63,4 @@ func main() {
 			log.Printf("unknown method %d\n", f.Method)
 		}
 	}
-
-	// flate.NewReader(bytes.NewReader([]byte{}))
 }

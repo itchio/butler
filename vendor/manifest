@@ -26,12 +26,20 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/dsnet/compress/brotli",
+			"importpath": "github.com/dsnet/compress",
 			"repository": "https://github.com/dsnet/compress",
 			"vcs": "git",
-			"revision": "b9b32020345bd4915e650ff55212cbb0d82bc7bd",
+			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
 			"branch": "master",
-			"path": "/brotli",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/dsnet/golib/unitconv",
+			"repository": "https://github.com/dsnet/golib",
+			"vcs": "git",
+			"revision": "1ea1667757804fdcccc5a1810e09aba618885ac2",
+			"branch": "master",
+			"path": "/unitconv",
 			"notests": true
 		},
 		{
@@ -149,6 +157,15 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/google/go-cmp/cmp",
+			"repository": "https://github.com/google/go-cmp",
+			"vcs": "git",
+			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
+			"branch": "master",
+			"path": "/cmp",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/gorilla/websocket",
 			"repository": "https://github.com/gorilla/websocket",
 			"vcs": "git",
@@ -160,7 +177,7 @@
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
-			"revision": "e2705f3e7150515a049b1761a056678218ee4f1d",
+			"revision": "72c6312c02b313675a78903a663a281cad0b6cd1",
 			"branch": "master",
 			"notests": true
 		},
@@ -184,7 +201,7 @@
 			"importpath": "github.com/itchio/kompress",
 			"repository": "https://github.com/itchio/kompress",
 			"vcs": "git",
-			"revision": "7f3a3c82fd34e0c06f3f1ca9813cbad754808e88",
+			"revision": "4b26eca290c6e576a5411160c624be9a36f326e4",
 			"branch": "master",
 			"notests": true
 		},
@@ -193,6 +210,14 @@
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
 			"revision": "46216af2bcb43df19386a220717502b8e56020ca",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/savior",
+			"repository": "https://github.com/itchio/savior",
+			"vcs": "git",
+			"revision": "95bdf0c0e23bf9e57c3f4456b41e89e9319db9b6",
 			"branch": "master",
 			"notests": true
 		},
@@ -221,10 +246,35 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/klauspost/compress/flate",
+			"repository": "https://github.com/klauspost/compress",
+			"vcs": "git",
+			"revision": "ea08389e0dc46025380296f7dd04ab0e8de36adb",
+			"branch": "master",
+			"path": "/flate",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/klauspost/cpuid",
+			"repository": "https://github.com/klauspost/cpuid",
+			"vcs": "git",
+			"revision": "eae9b3e628d72774e13bdf024e78c0802f85a5b9",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/mitchellh/mapstructure",
 			"repository": "https://github.com/mitchellh/mapstructure",
 			"vcs": "git",
 			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mohae/deepcopy",
+			"repository": "https://github.com/mohae/deepcopy",
+			"vcs": "git",
+			"revision": "c48cc78d482608239f6c4c92a4abd87eb8761c90",
 			"branch": "master",
 			"notests": true
 		},
@@ -274,6 +324,69 @@
 			"vcs": "git",
 			"revision": "c6c7b9aa99fb76ee5460ccd3912ba35d419d493d",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/\\vendor\\github.com\\davecgh\\go-spew\\spew",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"branch": "master",
+			"path": "\\vendor\\github.com\\davecgh\\go-spew\\spew",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/\\vendor\\github.com\\pmezard\\go-difflib\\difflib",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"branch": "master",
+			"path": "\\vendor\\github.com\\pmezard\\go-difflib\\difflib",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/assert",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"branch": "master",
+			"path": "/assert",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/ulikunitz/xz/internal/hash",
+			"repository": "https://github.com/ulikunitz/xz",
+			"vcs": "git",
+			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
+			"branch": "master",
+			"path": "internal/hash",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/ulikunitz/xz/internal/randtxt",
+			"repository": "https://github.com/ulikunitz/xz",
+			"vcs": "git",
+			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
+			"branch": "master",
+			"path": "internal/randtxt",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/ulikunitz/xz/internal/xlog",
+			"repository": "https://github.com/ulikunitz/xz",
+			"vcs": "git",
+			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
+			"branch": "master",
+			"path": "internal/xlog",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/ulikunitz/xz/lzma",
+			"repository": "https://github.com/ulikunitz/xz",
+			"vcs": "git",
+			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
+			"branch": "master",
+			"path": "/lzma",
 			"notests": true
 		},
 		{

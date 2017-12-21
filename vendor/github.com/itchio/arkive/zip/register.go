@@ -5,12 +5,12 @@
 package zip
 
 import (
-	"compress/flate"
 	"errors"
 	"io"
 	"io/ioutil"
 	"sync"
 
+	"github.com/itchio/kompress/flate"
 	"github.com/itchio/lzma"
 )
 

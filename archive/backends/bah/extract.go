@@ -190,6 +190,11 @@ func extractDeflate(save archive.ThrottledSaveFunc, params *archive.ExtractParam
 	}
 
 	if state.FlateCheckpoint != nil {
+		_, err = sr.Seek(state.FlateCheckpoint.Roffset, io.SeekStart)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
 		fr, err = state.FlateCheckpoint.Resume(sr)
 		if err != nil {
 			consumer.Warnf("bah: Could not resume from flate checkpoint: %s", err.Error())

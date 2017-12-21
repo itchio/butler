@@ -4,6 +4,10 @@
 
 package brotli
 
+import (
+	"github.com/dsnet/compress/internal/errors"
+)
+
 // The algorithm used to decode variable length codes is based on the lookup
 // method in zlib. If the code is less-than-or-equal to prefixMaxChunkBits,
 // then the symbol can be decoded using a single lookup into the chunks table.
@@ -80,7 +84,7 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 	minBits, maxBits, symLast := c0.len, c0.len, int(c0.sym)
 	for _, c := range codes[1:] {
 		if int(c.sym) <= symLast {
-			panic(ErrCorrupt) // Non-unique or non-monotonically increasing
+			errors.Panic(errCorrupted) // Non-unique or non-monotonically increasing
 		}
 		if minBits > c.len {
 			minBits = c.len
@@ -92,10 +96,10 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 		symLast = int(c.sym) // Keep track of last symbol
 	}
 	if maxBits >= 1<<prefixCountBits || minBits == 0 {
-		panic(ErrCorrupt) // Bit-width is too long or too short
+		errors.Panic(errCorrupted) // Bit-width is too long or too short
 	}
 	if symLast >= 1<<prefixSymbolBits {
-		panic(ErrCorrupt) // Alphabet cardinality too large
+		errors.Panic(errCorrupted) // Alphabet cardinality too large
 	}
 
 	// Compute the next code for a symbol of a given bit length.
@@ -107,7 +111,7 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 		code += bitCnts[i]
 	}
 	if code != 1<<maxBits {
-		panic(ErrCorrupt) // Tree is under or over subscribed
+		errors.Panic(errCorrupted) // Tree is under or over subscribed
 	}
 
 	// Allocate chunks table if necessary.
@@ -134,7 +138,7 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 			for linkIdx := range pd.links {
 				code := reverseBits(uint32(baseCode)+uint32(linkIdx), uint(pd.chunkBits))
 				pd.links[linkIdx] = allocUint32s(pd.links[linkIdx], numLinks)
-				pd.chunks[code] = uint32(linkIdx<<prefixCountBits) | uint32(pd.chunkBits+1)
+				pd.chunks[code] = uint32(linkIdx<<prefixCountBits) | (pd.chunkBits + 1)
 			}
 		} else {
 			for i := range pd.chunks {
@@ -151,14 +155,14 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 				linkIdx := len(pd.links)
 				pd.links = extendSliceUints32s(pd.links, len(pd.links)+1)
 				pd.links[linkIdx] = allocUint32s(pd.links[linkIdx], numLinks)
-				pd.chunks[code] = uint32(linkIdx<<prefixCountBits) | uint32(pd.chunkBits+1)
+				pd.chunks[code] = uint32(linkIdx<<prefixCountBits) | (pd.chunkBits + 1)
 			}
 		}
 	}
 
 	// Fill out chunks and links tables with values.
 	for i, c := range codes {
-		chunk := c.sym<<prefixCountBits | uint32(c.len)
+		chunk := c.sym<<prefixCountBits | c.len
 		if assignCodes {
 			codes[i].val = reverseBits(uint32(nextCodes[c.len]), uint(c.len))
 			nextCodes[c.len]++
@@ -179,22 +183,4 @@ func (pd *prefixDecoder) Init(codes []prefixCode, assignCodes bool) {
 			}
 		}
 	}
-
-	if debug && !checkPrefixes(codes) {
-		panic(ErrCorrupt) // The codes do not form a valid prefix tree.
-	}
-}
-
-// checkPrefixes reports whether any codes have overlapping prefixes.
-// This check is expensive and runs in O(n^2) time!
-func checkPrefixes(codes []prefixCode) bool {
-	for i, c1 := range codes {
-		for j, c2 := range codes {
-			mask := uint32(1)<<c1.len - 1
-			if i != j && c1.len <= c2.len && c1.val&mask == c2.val&mask {
-				return false
-			}
-		}
-	}
-	return true
 }

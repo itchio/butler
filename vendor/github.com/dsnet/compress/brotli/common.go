@@ -2,41 +2,49 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE.md file.
 
-// Package brotli implements the Brotli compressed data format.
+// Package brotli implements the Brotli compressed data format,
+// described in RFC 7932.
 package brotli
 
-import "runtime"
+import (
+	"fmt"
 
-// Error is the wrapper type for errors specific to this library.
-type Error string
-
-func (e Error) Error() string { return "brotli: " + string(e) }
-
-var (
-	ErrCorrupt error = Error("stream is corrupted")
+	"github.com/dsnet/compress/internal/errors"
 )
 
-func errRecover(err *error) {
-	switch ex := recover().(type) {
-	case nil:
-		// Do nothing.
-	case runtime.Error:
-		panic(ex)
-	case error:
-		*err = ex
-	default:
-		panic(ex)
+func errorf(c int, f string, a ...interface{}) error {
+	return errors.Error{Code: c, Pkg: "brotli", Msg: fmt.Sprintf(f, a...)}
+}
+
+// errWrap converts a lower-level errors.Error to be one from this package.
+// The replaceCode passed in will be used to replace the code for any errors
+// with the errors.Invalid code.
+//
+// For the Reader, set this to errors.Corrupted.
+// For the Writer, set this to errors.Internal.
+func errWrap(err error, replaceCode int) error {
+	if cerr, ok := err.(errors.Error); ok {
+		if errors.IsInvalid(cerr) {
+			cerr.Code = replaceCode
+		}
+		err = errorf(cerr.Code, "%s", cerr.Msg)
 	}
+	return err
 }
 
 var (
+	errClosed    = errorf(errors.Closed, "")
+	errCorrupted = errorf(errors.Corrupted, "")
+	errInvalid   = errorf(errors.Invalid, "")
+	errUnaligned = errorf(errors.Invalid, "non-aligned bit buffer")
+)
+
+var (
 	reverseLUT [256]uint8
-	mtfLUT     [256]uint8
 )
 
 func init() {
 	initLUTs()
-	printLUTs() // Only occurs in debug mode
 }
 
 func initLUTs() {
@@ -47,9 +55,6 @@ func initLUTs() {
 }
 
 func initCommonLUTs() {
-	for i := range mtfLUT {
-		mtfLUT[i] = uint8(i)
-	}
 	for i := range reverseLUT {
 		b := uint8(i)
 		b = (b&0xaa)>>1 | (b&0x55)<<1
@@ -61,7 +66,7 @@ func initCommonLUTs() {
 
 // neededBits computes the minimum number of bits needed to encode n elements.
 func neededBits(n uint32) (nb uint) {
-	for n -= 1; n > 0; n >>= 1 {
+	for n--; n > 0; n >>= 1 {
 		nb++
 	}
 	return
@@ -79,55 +84,6 @@ func reverseUint32(v uint32) (x uint32) {
 // reverseBits reverses the lower n bits of v.
 func reverseBits(v uint32, n uint) uint32 {
 	return reverseUint32(v << (32 - n))
-}
-
-// moveToFront is a data structure that allows for more efficient move-to-front
-// transformations (described in RFC section 7.3). Since most transformations
-// only involve a fairly low number of symbols, it can be quite expensive
-// filling out the dict with values 0..255 for every call. Instead, we remember
-// what part of the dict was altered and make sure we reset it at the beginning
-// of every encode and decode operation.
-type moveToFront struct {
-	dict [256]uint8 // Mapping from indexes to values
-	tail int        // Number of tail bytes that are already ordered
-}
-
-func (m *moveToFront) Encode(vals []uint8) {
-	// Reset dict to be identical to mtfLUT.
-	copy(m.dict[:], mtfLUT[:256-m.tail])
-
-	var max int
-	for i, val := range vals {
-		var idx uint8 // Reverse lookup idx in dict
-		for di, dv := range m.dict {
-			if dv == val {
-				idx = uint8(di)
-				break
-			}
-		}
-		vals[i] = idx
-
-		max |= int(idx)
-		copy(m.dict[1:], m.dict[:idx])
-		m.dict[0] = val
-	}
-	m.tail = 256 - max - 1
-}
-
-func (m *moveToFront) Decode(idxs []uint8) {
-	// Reset dict to be identical to mtfLUT.
-	copy(m.dict[:], mtfLUT[:256-m.tail])
-
-	var max int
-	for i, idx := range idxs {
-		val := m.dict[idx] // Forward lookup val in dict
-		idxs[i] = val
-
-		max |= int(idx)
-		copy(m.dict[1:], m.dict[:idx])
-		m.dict[0] = val
-	}
-	m.tail = 256 - max - 1
 }
 
 func allocUint8s(s []uint8, n int) []uint8 {

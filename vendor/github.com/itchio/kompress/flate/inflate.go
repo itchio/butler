@@ -11,10 +11,9 @@ import (
 	"bufio"
 	"errors"
 	"io"
+	mathbits "math/bits"
 	"strconv"
 	"sync"
-
-	"os"
 )
 
 const (
@@ -186,7 +185,7 @@ func (h *huffmanDecoder) init(bits []int) bool {
 		link := nextcode[huffmanChunkBits+1] >> 1
 		h.links = make([][]uint32, huffmanNumChunks-link)
 		for j := uint(link); j < huffmanNumChunks; j++ {
-			reverse := int(reverseByte[j>>8]) | int(reverseByte[j&0xff])<<8
+			reverse := int(mathbits.Reverse16(uint16(j)))
 			reverse >>= uint(16 - huffmanChunkBits)
 			off := j - uint(link)
 			if sanity && h.chunks[reverse] != 0 {
@@ -204,7 +203,7 @@ func (h *huffmanDecoder) init(bits []int) bool {
 		code := nextcode[n]
 		nextcode[n]++
 		chunk := uint32(i<<huffmanValueShift | n)
-		reverse := int(reverseByte[code>>8]) | int(reverseByte[code&0xff])<<8
+		reverse := int(mathbits.Reverse16(uint16(code)))
 		reverse >>= uint(16 - n)
 		if n <= huffmanChunkBits {
 			for off := reverse; off < len(h.chunks); off += 1 << uint(n) {
@@ -364,6 +363,9 @@ func (f *decompressor) Read(b []byte) (int, error) {
 			return 0, ReadyToSaveError
 		}
 		f.step(f)
+		if f.err != nil && len(f.toRead) == 0 {
+			f.toRead = f.dict.readFlush() // Flush what's left in case of error
+		}
 	}
 }
 
@@ -487,15 +489,11 @@ func (f *decompressor) readHuffman() error {
 	return nil
 }
 
-var lastHuffmanBlock int64 = 0
-
 // Decode a single Huffman block from f.
 // hl and hd are the Huffman states for the lit/length values
 // and the distance values, respectively. If hd == nil, using the
 // fixed distance encoding associated with fixed Huffman blocks.
 func (f *decompressor) huffmanBlock() {
-	lastHuffmanBlock = f.roffset
-
 	const (
 		stateInit = iota // Zero value must be stateInit
 		stateDict
@@ -577,7 +575,7 @@ readLiteral:
 					return
 				}
 			}
-			dist = int(reverseByte[(f.b&0x1F)<<3])
+			dist = int(mathbits.Reverse8(uint8(f.b & 0x1F << 3)))
 			f.b >>= 5
 			f.nb -= 5
 		} else {
@@ -868,12 +866,12 @@ func (sr *saverReader) WantSave() {
 
 func (sr *saverReader) Save() (*Checkpoint, error) {
 	f := sr.f
+	f.wantSave = false
+	f.err = nil
 
 	if !f.onBoundary {
 		return nil, NotOnBoundaryError
 	}
-
-	f.wantSave = false
 
 	res := &Checkpoint{
 		Roffset: f.roffset,
@@ -891,13 +889,8 @@ func (sr *saverReader) Save() (*Checkpoint, error) {
 }
 
 // Resume starts decompressing again from a given checkpoint
-func (c *Checkpoint) Resume(r io.ReadSeeker) (SaverReader, error) {
+func (c *Checkpoint) Resume(r io.Reader) (SaverReader, error) {
 	fixedHuffmanDecoderInit()
-
-	_, err := r.Seek(c.Roffset, os.SEEK_SET)
-	if err != nil {
-		return nil, err
-	}
 
 	var f decompressor
 	f.r = makeReader(r)
