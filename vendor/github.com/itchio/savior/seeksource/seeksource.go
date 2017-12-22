@@ -1,6 +1,7 @@
 package seeksource
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 
@@ -11,6 +12,8 @@ import (
 
 type seekSource struct {
 	rs io.ReadSeeker
+
+	br *bufio.Reader
 
 	offset     int64
 	totalBytes int64
@@ -63,19 +66,23 @@ func (ss *seekSource) Resume(c *savior.SourceCheckpoint) (int64, error) {
 		return newOffset, errors.Wrap(err, 0)
 	}
 
+	ss.br = bufio.NewReader(ss.rs)
+
 	return ss.offset, nil
 }
 
 func (ss *seekSource) Read(buf []byte) (int, error) {
-	n, err := ss.rs.Read(buf)
+	n, err := ss.br.Read(buf)
 	ss.offset += int64(n)
 	return n, err
 }
 
 func (ss *seekSource) ReadByte() (byte, error) {
-	buf := []byte{0}
-	_, err := ss.Read(buf)
-	return buf[0], err
+	b, err := ss.br.ReadByte()
+	if err == nil {
+		ss.offset++
+	}
+	return b, err
 }
 
 func (ss *seekSource) Progress() float64 {

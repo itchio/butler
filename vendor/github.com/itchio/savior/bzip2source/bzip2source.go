@@ -21,6 +21,7 @@ type bzip2Source struct {
 	sr      bzip2.SaverReader
 	offset  int64
 	counter int64
+	bytebuf []byte
 
 	checkpoint *Bzip2SourceCheckpoint
 }
@@ -37,6 +38,7 @@ func New(source savior.Source, threshold int64) *bzip2Source {
 	return &bzip2Source{
 		source:    source,
 		threshold: threshold,
+		bytebuf:   []byte{0x00},
 	}
 }
 
@@ -137,9 +139,8 @@ func (bs *bzip2Source) Read(buf []byte) (int, error) {
 }
 
 func (bs *bzip2Source) ReadByte() (byte, error) {
-	buf := []byte{0}
-	_, err := bs.Read(buf)
-	return buf[0], err
+	_, err := bs.Read(bs.bytebuf)
+	return bs.bytebuf[0], err
 }
 
 func (bs *bzip2Source) Progress() float64 {

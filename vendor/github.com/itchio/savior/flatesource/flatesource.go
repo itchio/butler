@@ -21,6 +21,7 @@ type flateSource struct {
 	sr      flate.SaverReader
 	offset  int64
 	counter int64
+	bytebuf []byte
 
 	checkpoint *FlateSourceCheckpoint
 }
@@ -36,6 +37,7 @@ func New(source savior.Source, threshold int64) *flateSource {
 	return &flateSource{
 		source:    source,
 		threshold: threshold,
+		bytebuf:   []byte{0x00},
 	}
 }
 
@@ -136,9 +138,8 @@ func (fs *flateSource) Read(buf []byte) (int, error) {
 }
 
 func (fs *flateSource) ReadByte() (byte, error) {
-	buf := []byte{0}
-	_, err := fs.Read(buf)
-	return buf[0], err
+	_, err := fs.Read(fs.bytebuf)
+	return fs.bytebuf[0], err
 }
 
 func (fs *flateSource) Progress() float64 {

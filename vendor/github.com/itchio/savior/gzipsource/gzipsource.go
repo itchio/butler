@@ -22,6 +22,7 @@ type gzipSource struct {
 	sr      gzip.SaverReader
 	offset  int64
 	counter int64
+	bytebuf []byte
 
 	checkpoint *GzipSourceCheckpoint
 }
@@ -38,6 +39,7 @@ func New(source savior.Source, threshold int64) *gzipSource {
 	return &gzipSource{
 		source:    source,
 		threshold: threshold,
+		bytebuf:   []byte{0x00},
 	}
 }
 
@@ -141,9 +143,8 @@ func (gs *gzipSource) Read(buf []byte) (int, error) {
 }
 
 func (gs *gzipSource) ReadByte() (byte, error) {
-	buf := []byte{0}
-	_, err := gs.Read(buf)
-	return buf[0], err
+	_, err := gs.Read(gs.bytebuf)
+	return gs.bytebuf[0], err
 }
 
 func (gs *gzipSource) Progress() float64 {
