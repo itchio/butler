@@ -96,17 +96,24 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				res, err := operate.Start(ctx, h.ctx, conn, params)
 				delete(h.operationHandles, oh.id)
 				if err != nil {
+					if errors.Is(err, operate.ErrCancelled) {
+						conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+							Code:    buse.CodeOperationCancelled,
+							Message: err.Error(),
+						})
+						return nil
+					}
 					return err
 				}
 
 				err = conn.Reply(ctx, req.ID, res)
 				if err != nil {
-					comm.Warnf("could not send operation.start: %s", err.Error())
+					comm.Warnf("could not send operation.start reply: %s", err.Error())
 				}
 			}
-		case "Operation.Discard":
+		case "Operation.Cancel":
 			{
-				var creq buse.OperationDiscardParams
+				var creq buse.OperationCancelParams
 				err := json.Unmarshal(*req.Params, &creq)
 				if err != nil {
 					return errors.Wrap(err, 0)
@@ -114,7 +121,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 				if oh, ok := h.operationHandles[creq.ID]; ok {
 					oh.cancelFunc()
-					return conn.Reply(ctx, req.ID, &buse.OperationDiscardResult{})
+					return conn.Reply(ctx, req.ID, &buse.OperationCancelResult{})
 				}
 
 				return fmt.Errorf("no such operation: %s", creq.ID)

@@ -96,31 +96,7 @@ type Sink interface {
 
 	// Preallocate space for a file based on the entry's UncompressedSize
 	Preallocate(entry *Entry) error
-}
 
-// ===============================
-
-func NopSync(w io.Writer) EntryWriter {
-	return &nopSync{w: w}
-}
-
-type nopSync struct {
-	w io.Writer
-}
-
-var _ EntryWriter = (*nopSync)(nil)
-
-func (ns *nopSync) Write(buf []byte) (int, error) {
-	return ns.w.Write(buf)
-}
-
-func (ns *nopSync) Close() error {
-	if closer, ok := ns.w.(io.Closer); ok {
-		return closer.Close()
-	}
-	return nil
-}
-
-func (ns *nopSync) Sync() error {
-	return nil
+	// Remove everything written so far
+	Nuke() error
 }

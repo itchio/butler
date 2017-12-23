@@ -11,6 +11,8 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+var ErrCancelled = errors.New("operation was cancelled")
+
 func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) (*buse.OperationResult, error) {
 	if params.StagingFolder == "" {
 		return nil, errors.New("No staging folder specified")

@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/savior"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -14,27 +15,30 @@ import (
 var defaultSaveInterval = 1 * time.Second
 
 func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+	consumer := params.Consumer
+
 	var res = installer.InstallResult{
 		Files: []string{},
 	}
 
 	archiveInfo := params.InstallerInfo.ArchiveInfo
 
-	ex, err := archiveInfo.GetExtractor(params.File, params.Consumer)
+	ex, err := archiveInfo.GetExtractor(params.File, consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	ex.SetConsumer(params.Consumer)
+	ex.SetConsumer(consumer)
 
 	statePath := filepath.Join(params.StageFolderPath, "install-state.dat")
-	sc := newSaveConsumer(statePath, defaultSaveInterval, params.Consumer, params.Context)
+	sc := newSaveConsumer(statePath, defaultSaveInterval, consumer, params.Context)
 	ex.SetSaveConsumer(sc)
 
-	var checkpoint *savior.ExtractorCheckpoint
+	checkpoint := &savior.ExtractorCheckpoint{}
 	err = sc.Load(checkpoint)
 	if err != nil {
-		params.Consumer.Warnf("could not load checkpoint, ignoring: %s", err.Error())
+		consumer.Warnf("could not load checkpoint, ignoring: %s", err.Error())
+		checkpoint = nil
 	}
 
 	sink := &savior.FolderSink{
@@ -43,6 +47,9 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 	aRes, err := ex.Resume(checkpoint, sink)
 	if err != nil {
+		if errors.Is(err, savior.ErrStop) {
+			return nil, operate.ErrCancelled
+		}
 		return nil, errors.Wrap(err, 0)
 	}
 

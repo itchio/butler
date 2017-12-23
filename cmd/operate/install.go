@@ -32,7 +32,15 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.New("Missing install folder in install")
 	}
 
-	consumer.Infof("Installing game %s", gameToString(params.Game))
+	verb := ""
+	switch params.Fresh {
+	case false:
+		verb = "performing re-install "
+	default:
+		verb = "performing fresh install "
+	}
+
+	consumer.Infof("%s for %s", verb, gameToString(params.Game))
 	consumer.Infof("...into directory %s", params.InstallFolder)
 	consumer.Infof("...using stage directory %s", oc.StageFolder())
 
@@ -166,6 +174,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	oc.StartProgressWithTotalBytes(stats.Size())
 	res, err := manager.Install(&installer.InstallParams{
 		Consumer: consumer,
+		Fresh:    params.Fresh,
 
 		File:              file,
 		InstallerInfo:     istate.InstallerInfo,

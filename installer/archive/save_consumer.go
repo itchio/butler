@@ -30,6 +30,7 @@ func newSaveConsumer(statePath string, interval time.Duration, consumer *state.C
 		consumer:  consumer,
 
 		lastSave: time.Now(),
+		ctx:      ctx,
 	}
 }
 

@@ -57,7 +57,6 @@ func (c *Copier) Do(params *CopyParams) error {
 		n, readErr := params.Src.Read(c.buf)
 
 		m, err := params.Dst.Write(c.buf[:n])
-		params.Entry.WriteOffset += int64(m)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

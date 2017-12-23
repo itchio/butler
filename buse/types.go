@@ -49,12 +49,12 @@ type OperationStartParams struct {
 	InstallParams *InstallParams `json:"installParams,omitempty"`
 }
 
-// Operation.Discard
-type OperationDiscardParams struct {
+// Operation.Cancel
+type OperationCancelParams struct {
 	ID string `json:"id"`
 }
 
-type OperationDiscardResult struct{}
+type OperationCancelResult struct{}
 
 // InstallParams contains all the parameters needed to perform
 // an installation for a game
@@ -64,6 +64,7 @@ type InstallParams struct {
 	Upload        *itchio.Upload   `json:"upload"`
 	Build         *itchio.Build    `json:"build"`
 	Credentials   *GameCredentials `json:"credentials"`
+	Fresh         bool             `json:"fresh"`
 }
 
 // GameCredentials contains all the credentials required to make API requests
@@ -163,3 +164,7 @@ type TestDoubleRequest struct {
 type TestDoubleResult struct {
 	Number int64 `json:"number"`
 }
+
+const (
+	CodeOperationCancelled = 499
+)

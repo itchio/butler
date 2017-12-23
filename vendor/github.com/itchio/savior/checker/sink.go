@@ -96,17 +96,20 @@ func (cs *Sink) GetWriter(entry *savior.Entry) (savior.EntryWriter, error) {
 	var ew savior.EntryWriter
 
 	err := cs.withItem(entry, savior.EntryKindFile, func(item *Item, di *DoneItem) error {
-		c := NewWriter(item.Data)
-		c.doneItem = di
+		checkingWriter := NewWriter(item.Data)
+		checkingWriter.doneItem = di
 
 		if entry.WriteOffset != 0 {
-			_, err := c.Seek(entry.WriteOffset, io.SeekStart)
+			_, err := checkingWriter.Seek(entry.WriteOffset, io.SeekStart)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 		}
 
-		ew = savior.NopSync(c)
+		ew = &entryWriter{
+			entry: entry,
+			w:     checkingWriter,
+		}
 		return nil
 	})
 	if err != nil {
@@ -121,6 +124,11 @@ func (cs *Sink) Preallocate(entry *savior.Entry) error {
 		// nothing to do
 		return nil
 	})
+}
+
+func (cs *Sink) Nuke() error {
+	cs.Reset()
+	return nil
 }
 
 // ===============================
@@ -149,4 +157,30 @@ func (cs *Sink) withItem(entry *savior.Entry, actualKind savior.EntryKind, cb wi
 	}
 
 	return cb(item, di)
+}
+
+// ===============================
+
+type entryWriter struct {
+	w     io.Writer
+	entry *savior.Entry
+}
+
+var _ savior.EntryWriter = (*entryWriter)(nil)
+
+func (ew *entryWriter) Write(buf []byte) (int, error) {
+	n, err := ew.w.Write(buf)
+	ew.entry.WriteOffset += int64(n)
+	return n, err
+}
+
+func (ew *entryWriter) Close() error {
+	if closer, ok := ew.w.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
+func (ew *entryWriter) Sync() error {
+	return nil
 }

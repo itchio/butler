@@ -217,7 +217,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "8967c29002b2ad27fcc6636b2d7c6174b350ad29",
+			"revision": "413ecf2c414232edd77ed55b1eaba877e31d1310",
 			"branch": "master",
 			"notests": true
 		},
