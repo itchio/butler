@@ -21,10 +21,10 @@ type gzipSource struct {
 	// internal
 	sr      gzip.SaverReader
 	offset  int64
-	counter int64
 	bytebuf []byte
 
-	checkpoint *GzipSourceCheckpoint
+	ssc              savior.SourceSaveConsumer
+	sourceCheckpoint *savior.SourceCheckpoint
 }
 
 type GzipSourceCheckpoint struct {
@@ -35,29 +35,30 @@ type GzipSourceCheckpoint struct {
 
 var _ savior.Source = (*gzipSource)(nil)
 
-func New(source savior.Source, threshold int64) *gzipSource {
+func New(source savior.Source) *gzipSource {
 	return &gzipSource{
-		source:    source,
-		threshold: threshold,
-		bytebuf:   []byte{0x00},
+		source:  source,
+		bytebuf: []byte{0x00},
 	}
 }
 
-func (gs *gzipSource) Save() (*savior.SourceCheckpoint, error) {
-	if gs.checkpoint != nil {
-		c := &savior.SourceCheckpoint{
-			Offset: gs.offset,
-			Data:   gs.checkpoint,
-		}
-		return c, nil
-	}
-	return nil, nil
+func (gs *gzipSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
+	gs.ssc = ssc
+	gs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+		OnSave: func(checkpoint *savior.SourceCheckpoint) error {
+			// we need to deepcopy it because we're going to use it after return
+			gs.sourceCheckpoint = deepcopy.Copy(checkpoint).(*savior.SourceCheckpoint)
+			gs.sr.WantSave()
+			return nil
+		},
+	})
+}
+
+func (gs *gzipSource) WantSave() {
+	gs.source.WantSave()
 }
 
 func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error) {
-	gs.counter = 0
-	gs.checkpoint = nil
-
 	if checkpoint != nil {
 		if ourCheckpoint, ok := checkpoint.Data.(*GzipSourceCheckpoint); ok {
 			sourceOffset, err := gs.source.Resume(ourCheckpoint.SourceCheckpoint)
@@ -66,6 +67,16 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 			}
 
 			gc := ourCheckpoint.GzipCheckpoint
+			if sourceOffset < gc.Roffset {
+				delta := gc.Roffset - sourceOffset
+				savior.Debugf(`gzipsource: discarding %d bytes to align source with decompressor`, delta)
+				err = savior.DiscardByRead(gs.source, delta)
+				if err != nil {
+					return 0, errors.Wrap(err, 0)
+				}
+				sourceOffset += delta
+			}
+
 			if sourceOffset == gc.Roffset {
 				gs.sr, err = gc.Resume(gs.source)
 				if err != nil {
@@ -108,34 +119,34 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 func (gs *gzipSource) Read(buf []byte) (int, error) {
 	n, err := gs.sr.Read(buf)
 	gs.offset += int64(n)
-	gs.counter += int64(n)
-	if gs.counter > gs.threshold {
-		gs.sr.WantSave()
-		gs.counter = 0
-	}
 
-	if err != nil {
-		if err == flate.ReadyToSaveError {
+	if err == flate.ReadyToSaveError {
+		err = nil
+
+		if gs.sourceCheckpoint == nil {
+			savior.Debugf("gzipsource: can't save, sourceCheckpoint is nil!")
+		} else if gs.ssc == nil {
+			savior.Debugf("gzipsource: can't save, ssc is nil!")
+		} else {
 			gzipCheckpoint, saveErr := gs.sr.Save()
 			if saveErr != nil {
 				return n, saveErr
 			}
 
-			sourceCheckpoint, sourceErr := gs.source.Save()
-			if saveErr != nil {
-				return n, sourceErr
+			savior.Debugf("gzipsource: saving, gzip rOffset = %d, sourceCheckpoint.Offset = %d", gzipCheckpoint.Roffset, gs.sourceCheckpoint.Offset)
+
+			checkpoint := &savior.SourceCheckpoint{
+				Offset: gs.offset,
+				Data: &GzipSourceCheckpoint{
+					Offset:           gs.offset,
+					GzipCheckpoint:   gzipCheckpoint,
+					SourceCheckpoint: gs.sourceCheckpoint,
+				},
 			}
+			gs.sourceCheckpoint = nil
 
-			savior.Debugf("gzipsource: saving, gzip rOffset = %d, sourceCheckpoint.Offset = %d", gzipCheckpoint.Roffset, sourceCheckpoint.Offset)
-
-			gs.checkpoint = &GzipSourceCheckpoint{
-				Offset:           gs.offset,
-				GzipCheckpoint:   deepcopy.Copy(gzipCheckpoint).(*gzip.Checkpoint),
-				SourceCheckpoint: sourceCheckpoint,
-			}
-
+			err = gs.ssc.Save(checkpoint)
 			savior.Debugf("gzipsource: saved checkpoint at byte %d", gs.offset)
-			err = nil
 		}
 	}
 

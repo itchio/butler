@@ -103,11 +103,53 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 		}
 	}
 
-	stop := false
 	var stopError error
+
+	// allocate a copy buffer once
+	copier := savior.NewCopier(te.saveConsumer)
+
+	var entry *savior.Entry
+	te.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+		OnSave: func(sourceCheckpoint *savior.SourceCheckpoint) error {
+			if entry == nil {
+				// if entry is nil here, then our source emitted a checkpoint
+				// during a call to `Next()`
+				return nil
+			}
+
+			savior.Debugf("tarextractor: making checkpoint at entry %d", checkpoint.EntryIndex)
+
+			tarCheckpoint, err := sr.Save()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			savior.Debugf("tarextractor: at checkpoint, tar read offset is %s", humanize.IBytes(uint64(tarCheckpoint.Roffset)))
+
+			state.TarCheckpoint = tarCheckpoint
+
+			checkpoint.SourceCheckpoint = sourceCheckpoint
+			checkpoint.Data = state
+			checkpoint.Progress = te.source.Progress()
+
+			// FIXME: we're not syncing the writer here - but we should
+
+			action, err := te.saveConsumer.Save(checkpoint)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			if action == savior.AfterSaveStop {
+				copier.Stop()
+				stopError = savior.ErrStop
+			}
+			return nil
+		},
+	})
+
 	entryIndex := checkpoint.EntryIndex
-	for !stop {
+	for stopError == nil {
 		err := func() error {
+			entry = nil
+
 			checkpoint.EntryIndex = entryIndex
 			entryIndex++
 
@@ -116,7 +158,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				if err != nil {
 					if err == io.EOF {
 						// we done!
-						stop = true
+						stopError = io.EOF
 						return nil
 					}
 					return errors.Wrap(err, 0)
@@ -141,7 +183,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				}
 				checkpoint.Entry = entry
 			}
-			entry := checkpoint.Entry
+			entry = checkpoint.Entry
 
 			te.consumer.Debugf("→ %s", entry)
 
@@ -166,36 +208,12 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				}
 				defer w.Close()
 
-				copyRes, err := savior.CopyWithSaver(&savior.CopyParams{
+				err = copier.Do(&savior.CopyParams{
 					Dst:   w,
 					Src:   sr,
 					Entry: entry,
 
-					SaveConsumer: te.saveConsumer,
-					MakeCheckpoint: func() (*savior.ExtractorCheckpoint, error) {
-						savior.Debugf("tarextractor: making checkpoint at entry %d", checkpoint.EntryIndex)
-						sourceCheckpoint, err := te.source.Save()
-						if err != nil {
-							return nil, errors.Wrap(err, 0)
-						}
-						if sourceCheckpoint != nil {
-							savior.Debugf("tarextractor: at checkpoint, source is at %s", humanize.IBytes(uint64(sourceCheckpoint.Offset)))
-						}
-
-						tarCheckpoint, err := sr.Save()
-						if err != nil {
-							return nil, errors.Wrap(err, 0)
-						}
-						savior.Debugf("tarextractor: at checkpoint, tar read offset is %s", humanize.IBytes(uint64(tarCheckpoint.Roffset)))
-
-						state.TarCheckpoint = tarCheckpoint
-
-						checkpoint.SourceCheckpoint = sourceCheckpoint
-						checkpoint.Data = state
-						checkpoint.Progress = te.source.Progress()
-
-						return checkpoint, nil
-					},
+					Savable: te.source,
 
 					EmitProgress: func() {
 						te.consumer.Progress(te.source.Progress())
@@ -203,12 +221,6 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				})
 				if err != nil {
 					return errors.Wrap(err, 0)
-				}
-
-				if copyRes.Action == savior.AfterSaveStop {
-					stop = true
-					stopError = savior.ErrStop
-					return nil
 				}
 
 				state.Result.Entries = append(state.Result.Entries, entry)
@@ -227,7 +239,11 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 	}
 
 	if stopError != nil {
-		return nil, stopError
+		if stopError == io.EOF {
+			// success!
+		} else {
+			return nil, stopError
+		}
 	}
 
 	te.consumer.Statf("Extracted %s", state.Result.Stats())

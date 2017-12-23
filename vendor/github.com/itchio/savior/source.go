@@ -33,17 +33,16 @@ type SourceCheckpoint struct {
 // at any given byte, whereas sources that are decompressors are typically
 // only able to save on a block boundary.
 type Source interface {
-	// Save tries to establish a checkpoint that lets this Source resume from
-	// its current position (or as close before it as it can).
-	//
-	// If it's too early or impossible to make a checkpoint, the source should
-	// return a nil SourceCheckpoint and a nil error.
-	Save() (*SourceCheckpoint, error)
-
 	// Resume tries to use a checkpoint to start reading again at the checkpoint.
 	// It *must be called* before using the source, whether or not checkpoint is
 	// an actual mid-stream checkpoint or just the nil checkpoint (for Offset=0)
 	Resume(checkpoint *SourceCheckpoint) (int64, error)
+
+	// Register a source save consumer for this source
+	SetSourceSaveConsumer(ssc SourceSaveConsumer)
+
+	// Let the source know that it should emit a checkpoint as soon as it can.
+	WantSave()
 
 	// Progress returns how much of the stream has been consumed, in a [0,1] range.
 	// If this source does not support progress reporting (ie. the total size of
@@ -55,6 +54,23 @@ type Source interface {
 	// io.ByteReader is embedded in Source so it can be used by the `flate` package
 	// without it wrapping it in a `bufio.Reader`
 	io.ByteReader
+}
+
+type SourceSaveConsumer interface {
+	// Send a checkpoint to the consumer. The consumer
+	// must encode/save it immediately, and cannot retain it
+	// as its contents may change afterwards
+	Save(checkpoint *SourceCheckpoint) error
+}
+
+type CallbackSourceSaveConsumer struct {
+	OnSave func(checkpoint *SourceCheckpoint) error
+}
+
+var _ SourceSaveConsumer = (*CallbackSourceSaveConsumer)(nil)
+
+func (cssc *CallbackSourceSaveConsumer) Save(checkpoint *SourceCheckpoint) error {
+	return cssc.OnSave(checkpoint)
 }
 
 // DiscardByRead advances a source by `delta` bytes by reading

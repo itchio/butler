@@ -14,16 +14,14 @@ type bzip2Source struct {
 	// input
 	source savior.Source
 
-	// params
-	threshold int64
-
 	// internal
 	sr      bzip2.SaverReader
 	offset  int64
 	counter int64
 	bytebuf []byte
 
-	checkpoint *Bzip2SourceCheckpoint
+	ssc              savior.SourceSaveConsumer
+	sourceCheckpoint *savior.SourceCheckpoint
 }
 
 type Bzip2SourceCheckpoint struct {
@@ -34,28 +32,34 @@ type Bzip2SourceCheckpoint struct {
 
 var _ savior.Source = (*bzip2Source)(nil)
 
-func New(source savior.Source, threshold int64) *bzip2Source {
+func New(source savior.Source) *bzip2Source {
 	return &bzip2Source{
-		source:    source,
-		threshold: threshold,
-		bytebuf:   []byte{0x00},
+		source:  source,
+		bytebuf: []byte{0x00},
 	}
 }
 
-func (bs *bzip2Source) Save() (*savior.SourceCheckpoint, error) {
-	if bs.checkpoint != nil {
-		c := &savior.SourceCheckpoint{
-			Offset: bs.offset,
-			Data:   bs.checkpoint,
-		}
-		return c, nil
-	}
-	return nil, nil
+func (bs *bzip2Source) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
+	savior.Debugf("bzip2: set source save consumer!")
+	bs.ssc = ssc
+	bs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+		OnSave: func(checkpoint *savior.SourceCheckpoint) error {
+			savior.Debugf("bzip2: on save!")
+			// we need to deepcopy it because we're going to use it after return
+			bs.sourceCheckpoint = deepcopy.Copy(checkpoint).(*savior.SourceCheckpoint)
+			bs.sr.WantSave()
+			return nil
+		},
+	})
+}
+
+func (bs *bzip2Source) WantSave() {
+	savior.Debugf("bzip2: want save!")
+	bs.source.WantSave()
 }
 
 func (bs *bzip2Source) Resume(checkpoint *savior.SourceCheckpoint) (int64, error) {
-	bs.counter = 0
-	bs.checkpoint = nil
+	savior.Debugf(`bzip2: asked to resume`)
 
 	if checkpoint != nil {
 		if ourCheckpoint, ok := checkpoint.Data.(*Bzip2SourceCheckpoint); ok {
@@ -65,6 +69,16 @@ func (bs *bzip2Source) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 			}
 
 			bc := ourCheckpoint.Bzip2Checkpoint
+			if sourceOffset < bc.Roffset {
+				delta := bc.Roffset - sourceOffset
+				savior.Debugf(`bzip2source: discarding %d bytes to align source with decompressor`, delta)
+				err = savior.DiscardByRead(bs.source, delta)
+				if err != nil {
+					return 0, errors.Wrap(err, 0)
+				}
+				sourceOffset += delta
+			}
+
 			if sourceOffset == bc.Roffset {
 				bs.sr, err = bc.Resume(bs.source)
 				if err != nil {
@@ -104,34 +118,33 @@ func (bs *bzip2Source) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 func (bs *bzip2Source) Read(buf []byte) (int, error) {
 	n, err := bs.sr.Read(buf)
 	bs.offset += int64(n)
-	bs.counter += int64(n)
-	if bs.counter > bs.threshold {
-		bs.sr.WantSave()
-		bs.counter = 0
-	}
 
-	if err != nil {
-		if err == bzip2.ReadyToSaveError {
+	if err == bzip2.ReadyToSaveError {
+		err = nil
+
+		if bs.sourceCheckpoint == nil {
+			savior.Debugf("bzip2source: can't save, sourceCheckpoint is nil!")
+		} else if bs.ssc == nil {
+			savior.Debugf("bzip2source: can't save, ssc is nil!")
+		} else {
 			bzip2Checkpoint, saveErr := bs.sr.Save()
 			if saveErr != nil {
 				return n, saveErr
 			}
 
-			sourceCheckpoint, sourceErr := bs.source.Save()
-			if saveErr != nil {
-				return n, sourceErr
+			savior.Debugf("bzip2source: saving, bzip2 rOffset = %d, sourceCheckpoint.Offset = %d", bzip2Checkpoint.Roffset, bs.sourceCheckpoint.Offset)
+
+			checkpoint := &savior.SourceCheckpoint{
+				Offset: bs.offset,
+				Data: &Bzip2SourceCheckpoint{
+					Offset:           bs.offset,
+					Bzip2Checkpoint:  bzip2Checkpoint,
+					SourceCheckpoint: bs.sourceCheckpoint,
+				},
 			}
 
-			savior.Debugf("bzip2source: saving, bzip2 rOffset = %d, sourceCheckpoint.Offset = %d", bzip2Checkpoint.Roffset, sourceCheckpoint.Offset)
-
-			bs.checkpoint = &Bzip2SourceCheckpoint{
-				Offset:           bs.offset,
-				Bzip2Checkpoint:  deepcopy.Copy(bzip2Checkpoint).(*bzip2.Checkpoint),
-				SourceCheckpoint: sourceCheckpoint,
-			}
-
+			err = bs.ssc.Save(checkpoint)
 			savior.Debugf("bzip2source: saved checkpoint at byte %d", bs.offset)
-			err = nil
 		}
 	}
 

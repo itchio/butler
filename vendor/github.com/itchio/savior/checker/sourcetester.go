@@ -3,6 +3,7 @@ package checker
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"io"
 	"log"
 	"testing"
@@ -20,6 +21,9 @@ func must(t *testing.T, err error) {
 }
 
 func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
+	numResumes := 0
+	maxResumes := 128
+
 	_, err := source.Resume(nil)
 	assert.NoError(t, err)
 	output := NewWriter(reference)
@@ -37,23 +41,15 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 	totalCheckpoints := 0
 
 	buf := make([]byte, 16*1024)
-	for {
-		n, readErr := source.Read(buf)
+	var counter int64
 
-		_, err := output.Write(buf[:n])
-		must(t, err)
-
-		if readErr != nil {
-			if readErr == io.EOF {
-				break
+	source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+		OnSave: func(c *savior.SourceCheckpoint) error {
+			numResumes++
+			if numResumes > maxResumes {
+				must(t, errors.New("too many resumes, something must be wrong"))
 			}
-			must(t, readErr)
-		}
 
-		c, err := source.Save()
-		must(t, err)
-
-		if c != nil {
 			c2, checkpointSize := roundtripThroughGob(t, c)
 
 			totalCheckpoints++
@@ -65,6 +61,29 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 			log.Printf("%s ↻ resumed", humanize.IBytes(uint64(newOffset)))
 			_, err = output.Seek(newOffset, io.SeekStart)
 			must(t, err)
+
+			return nil
+		},
+	})
+	var threshold int64 = 256 * 1024 // 256KiB
+
+	for {
+		n, readErr := source.Read(buf)
+
+		counter += int64(n)
+		if counter > threshold {
+			counter = 0
+			source.WantSave()
+		}
+
+		_, err := output.Write(buf[:n])
+		must(t, err)
+
+		if readErr != nil {
+			if readErr == io.EOF {
+				break
+			}
+			must(t, readErr)
 		}
 	}
 

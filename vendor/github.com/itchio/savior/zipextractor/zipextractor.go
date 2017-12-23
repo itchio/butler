@@ -83,7 +83,6 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 		ze.consumer.Infof("↻ Resuming @ %.1f%%", checkpoint.Progress*100)
 	}
 
-	stop := false
 	numEntries := int64(len(zr.File))
 
 	var doneBytes int64
@@ -112,7 +111,12 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 		ze.consumer.Infof("⇒ Pre-allocated in %s, nothing can stop us now", preallocateDuration)
 	}
 
-	for entryIndex := checkpoint.EntryIndex; entryIndex < numEntries && !stop; entryIndex++ {
+	var stopError error
+
+	// allocate a copy buffer once
+	copier := savior.NewCopier(ze.saveConsumer)
+
+	for entryIndex := checkpoint.EntryIndex; entryIndex < numEntries && stopError == nil; entryIndex++ {
 		savior.Debugf(`doing entryIndex %d`, entryIndex)
 		zf := zr.File[entryIndex]
 
@@ -168,7 +172,7 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 					case zip.Store:
 						src = rawSource
 					case zip.Deflate:
-						src = flatesource.New(rawSource, ze.FlateThreshold())
+						src = flatesource.New(rawSource)
 					}
 				default:
 					// will have to copy
@@ -222,18 +226,8 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 						return float64(actualDoneBytes) / float64(totalBytes)
 					}
 
-					copyRes, err := savior.CopyWithSaver(&savior.CopyParams{
-						Src:   src,
-						Dst:   writer,
-						Entry: entry,
-
-						SaveConsumer: ze.saveConsumer,
-						MakeCheckpoint: func() (*savior.ExtractorCheckpoint, error) {
-							sourceCheckpoint, err := src.Save()
-							if err != nil {
-								return nil, errors.Wrap(err, 0)
-							}
-
+					src.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+						OnSave: func(sourceCheckpoint *savior.SourceCheckpoint) error {
 							savior.Debugf(`%s: saving, has source checkpoint? %v`, entry.CanonicalPath, sourceCheckpoint != nil)
 							if sourceCheckpoint != nil {
 								savior.Debugf(`%s: source checkpoint is at %d`, entry.CanonicalPath, sourceCheckpoint.Offset)
@@ -242,13 +236,30 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 							err = writer.Sync()
 							if err != nil {
-								return nil, errors.Wrap(err, 0)
+								return errors.Wrap(err, 0)
 							}
 
 							checkpoint.Progress = computeProgress()
 
-							return checkpoint, nil
+							action, err := ze.saveConsumer.Save(checkpoint)
+							if err != nil {
+								return errors.Wrap(err, 0)
+							}
+							if action == savior.AfterSaveStop {
+								copier.Stop()
+								stopError = savior.ErrStop
+							}
+
+							return nil
 						},
+					})
+
+					err = copier.Do(&savior.CopyParams{
+						Src:   src,
+						Dst:   writer,
+						Entry: entry,
+
+						Savable: src,
 
 						EmitProgress: func() {
 							ze.consumer.Progress(computeProgress())
@@ -256,13 +267,6 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 					})
 					if err != nil {
 						return errors.Wrap(err, 0)
-					}
-
-					ze.consumer.Progress(computeProgress())
-
-					if copyRes.Action == savior.AfterSaveStop {
-						stop = true
-						return nil
 					}
 				}
 			}
@@ -278,7 +282,7 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 		checkpoint.Entry = nil
 	}
 
-	if stop {
+	if stopError != nil {
 		return nil, savior.ErrStop
 	}
 

@@ -15,6 +15,9 @@ type seekSource struct {
 
 	br *bufio.Reader
 
+	ssc      savior.SourceSaveConsumer
+	wantSave bool
+
 	offset     int64
 	totalBytes int64
 }
@@ -47,11 +50,14 @@ func NewWithSize(rs io.ReadSeeker, totalBytes int64) savior.Source {
 	}
 }
 
-func (ss *seekSource) Save() (*savior.SourceCheckpoint, error) {
-	c := &savior.SourceCheckpoint{
-		Offset: ss.offset,
-	}
-	return c, nil
+func (ss *seekSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
+	savior.Debugf("seeksource: set source save consumer!")
+	ss.ssc = ssc
+}
+
+func (ss *seekSource) WantSave() {
+	savior.Debugf("seeksource: want save!")
+	ss.wantSave = true
 }
 
 func (ss *seekSource) Resume(c *savior.SourceCheckpoint) (int64, error) {
@@ -72,17 +78,32 @@ func (ss *seekSource) Resume(c *savior.SourceCheckpoint) (int64, error) {
 }
 
 func (ss *seekSource) Read(buf []byte) (int, error) {
+	ss.handleSave()
 	n, err := ss.br.Read(buf)
 	ss.offset += int64(n)
 	return n, err
 }
 
 func (ss *seekSource) ReadByte() (byte, error) {
+	ss.handleSave()
 	b, err := ss.br.ReadByte()
 	if err == nil {
 		ss.offset++
 	}
 	return b, err
+}
+
+func (ss *seekSource) handleSave() {
+	if ss.wantSave {
+		ss.wantSave = false
+		if ss.ssc != nil {
+			c := &savior.SourceCheckpoint{
+				Offset: ss.offset,
+			}
+			savior.Debugf("seeksource: emitting checkpoint at %d!", c.Offset)
+			ss.ssc.Save(c)
+		}
+	}
 }
 
 func (ss *seekSource) Progress() float64 {

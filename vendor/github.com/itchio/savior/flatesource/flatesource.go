@@ -14,16 +14,14 @@ type flateSource struct {
 	// input
 	source savior.Source
 
-	// params
-	threshold int64
-
 	// internal
 	sr      flate.SaverReader
 	offset  int64
 	counter int64
 	bytebuf []byte
 
-	checkpoint *FlateSourceCheckpoint
+	ssc              savior.SourceSaveConsumer
+	sourceCheckpoint *savior.SourceCheckpoint
 }
 
 type FlateSourceCheckpoint struct {
@@ -33,29 +31,30 @@ type FlateSourceCheckpoint struct {
 
 var _ savior.Source = (*flateSource)(nil)
 
-func New(source savior.Source, threshold int64) *flateSource {
+func New(source savior.Source) *flateSource {
 	return &flateSource{
-		source:    source,
-		threshold: threshold,
-		bytebuf:   []byte{0x00},
+		source:  source,
+		bytebuf: []byte{0x00},
 	}
 }
 
-func (fs *flateSource) Save() (*savior.SourceCheckpoint, error) {
-	if fs.checkpoint != nil {
-		c := &savior.SourceCheckpoint{
-			Offset: fs.offset,
-			Data:   fs.checkpoint,
-		}
-		return c, nil
-	}
-	return nil, nil
+func (fs *flateSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
+	fs.ssc = ssc
+	fs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
+		OnSave: func(checkpoint *savior.SourceCheckpoint) error {
+			// we need to deepcopy it because we're going to use it after return
+			fs.sourceCheckpoint = deepcopy.Copy(checkpoint).(*savior.SourceCheckpoint)
+			fs.sr.WantSave()
+			return nil
+		},
+	})
+}
+
+func (fs *flateSource) WantSave() {
+	fs.source.WantSave()
 }
 
 func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error) {
-	fs.counter = 0
-	fs.checkpoint = nil
-
 	savior.Debugf(`flate: asked to resume`)
 
 	if checkpoint != nil {
@@ -66,6 +65,16 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 			}
 
 			fc := ourCheckpoint.FlateCheckpoint
+			if sourceOffset < fc.Roffset {
+				delta := fc.Roffset - sourceOffset
+				savior.Debugf(`flatesource: discarding %d bytes to align source with decompressor`, delta)
+				err = savior.DiscardByRead(fs.source, delta)
+				if err != nil {
+					return 0, errors.Wrap(err, 0)
+				}
+				sourceOffset += delta
+			}
+
 			if sourceOffset == fc.Roffset {
 				fs.sr, err = fc.Resume(fs.source)
 				if err != nil {
@@ -104,33 +113,33 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 func (fs *flateSource) Read(buf []byte) (int, error) {
 	n, err := fs.sr.Read(buf)
 	fs.offset += int64(n)
-	fs.counter += int64(n)
-	if fs.counter > fs.threshold {
-		fs.sr.WantSave()
-		fs.counter = 0
-	}
 
-	if err != nil {
-		if err == flate.ReadyToSaveError {
+	if err == flate.ReadyToSaveError {
+		err = nil
+
+		if fs.sourceCheckpoint == nil {
+			savior.Debugf("flatesource: can't save, sourceCheckpoint is nil!")
+		} else if fs.ssc == nil {
+			savior.Debugf("flatesource: can't save, ssc is nil!")
+		} else {
 			flateCheckpoint, saveErr := fs.sr.Save()
 			if saveErr != nil {
 				return n, saveErr
 			}
 
-			sourceCheckpoint, sourceErr := fs.source.Save()
-			if saveErr != nil {
-				return n, sourceErr
+			savior.Debugf("flatesource: saving, flate rOffset = %d, sourceCheckpoint.Offset = %d", flateCheckpoint.Roffset, fs.sourceCheckpoint.Offset)
+
+			checkpoint := &savior.SourceCheckpoint{
+				Offset: fs.offset,
+				Data: &FlateSourceCheckpoint{
+					FlateCheckpoint:  flateCheckpoint,
+					SourceCheckpoint: fs.sourceCheckpoint,
+				},
 			}
+			fs.sourceCheckpoint = nil
 
-			savior.Debugf("flatesource: saving, flate rOffset = %d, sourceCheckpoint.Offset = %d", flateCheckpoint.Roffset, sourceCheckpoint.Offset)
-
-			fs.checkpoint = &FlateSourceCheckpoint{
-				FlateCheckpoint:  deepcopy.Copy(flateCheckpoint).(*flate.Checkpoint),
-				SourceCheckpoint: sourceCheckpoint,
-			}
-
+			err = fs.ssc.Save(checkpoint)
 			savior.Debugf("flatesource: saved checkpoint at byte %d", fs.offset)
-			err = nil
 		}
 	}
 

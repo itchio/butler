@@ -89,9 +89,6 @@ func getStrategy(file eos.File, consumer *state.Consumer) ArchiveStrategy {
 	return ArchiveStrategySevenZip
 }
 
-// checkpoint every 1MiB
-const standardThreshold = 1 * 1024 * 1024
-
 func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
 	switch ai.Strategy {
 	case ArchiveStrategyZip:
@@ -108,9 +105,9 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	case ArchiveStrategyTar:
 		return tarextractor.New(seeksource.FromFile(file)), nil
 	case ArchiveStrategyTarGz:
-		return tarextractor.New(gzipsource.New(seeksource.FromFile(file), standardThreshold)), nil
+		return tarextractor.New(gzipsource.New(seeksource.FromFile(file))), nil
 	case ArchiveStrategyTarBz2:
-		return tarextractor.New(bzip2source.New(seeksource.FromFile(file), standardThreshold)), nil
+		return tarextractor.New(bzip2source.New(seeksource.FromFile(file))), nil
 	case ArchiveStrategySevenZip:
 		return szextractor.New(file, consumer)
 	}
