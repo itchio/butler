@@ -28,7 +28,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	ex.SetConsumer(params.Consumer)
 
 	statePath := filepath.Join(params.StageFolderPath, "install-state.dat")
-	sc := newSaveConsumer(statePath, defaultSaveInterval, params.Consumer)
+	sc := newSaveConsumer(statePath, defaultSaveInterval, params.Consumer, params.Context)
 	ex.SetSaveConsumer(sc)
 
 	var checkpoint *savior.ExtractorCheckpoint

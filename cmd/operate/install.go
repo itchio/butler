@@ -173,6 +173,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		InstallFolderPath: params.InstallFolder,
 
 		ReceiptIn: receiptIn,
+
+		Context: oc.ctx,
 	})
 	oc.EndProgress()
 	if err != nil {

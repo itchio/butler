@@ -43,10 +43,18 @@ type GameFindUploadsResult struct {
 
 // Operation.Start
 type OperationStartParams struct {
+	ID            string         `json:"id"`
 	StagingFolder string         `json:"stagingFolder"`
 	Operation     string         `json:"operation"`
 	InstallParams *InstallParams `json:"installParams,omitempty"`
 }
+
+// Operation.Discard
+type OperationDiscardParams struct {
+	ID string `json:"id"`
+}
+
+type OperationDiscardResult struct{}
 
 // InstallParams contains all the parameters needed to perform
 // an installation for a game
@@ -72,11 +80,6 @@ type PickUploadParams struct {
 
 type PickUploadResult struct {
 	Index int64 `json:"index"`
-}
-
-// Operation.Resume
-type OperationResumeParams struct {
-	StagingFolder string `json:"stagingFolder"`
 }
 
 // Operation.Progress
@@ -120,8 +123,8 @@ type TaskEndedNotification struct {
 
 // Result for
 //   - Operation.Start
-//   - Operation.Resume
 type OperationResult struct {
+	ID            string      `json:"id"`
 	Success       bool        `json:"success"`
 	InstallResult interface{} `json:"installResult,omitempty"`
 	ErrorMessage  string      `json:"errorMessage,omitempty"`

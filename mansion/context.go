@@ -36,6 +36,8 @@ type Context struct {
 
 	CompressionAlgorithm string
 	CompressionQuality   int
+
+	Cancelled bool
 }
 
 func NewContext(app *kingpin.Application) *Context {

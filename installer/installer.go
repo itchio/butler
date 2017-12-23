@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"context"
+
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
@@ -30,6 +32,9 @@ type InstallParams struct {
 	Consumer *state.Consumer
 
 	InstallerInfo *InstallerInfo
+
+	// For cancellation
+	Context context.Context
 }
 
 type UninstallParams struct {

@@ -1,7 +1,7 @@
 package operate
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 
 	"github.com/go-errors/errors"
@@ -11,18 +11,12 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
-func Start(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (*buse.OperationResult, error) {
-	params := &buse.OperationStartParams{}
-	err := json.Unmarshal(*req.Params, params)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
+func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) (*buse.OperationResult, error) {
 	if params.StagingFolder == "" {
 		return nil, errors.New("No staging folder specified")
 	}
 
-	oc := LoadContext(conn, ctx, comm.NewStateConsumer(), params.StagingFolder)
+	oc := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
 
 	meta := &MetaSubcontext{
 		data: params,

@@ -39,7 +39,7 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer *state.Consumer, stageFolder string) *OperationContext {
+func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansion.Context, consumer *state.Consumer, stageFolder string) *OperationContext {
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
 		consumer.Warnf("Could not create operate directory: %s", err.Error())
@@ -50,8 +50,6 @@ func LoadContext(conn *jsonrpc2.Conn, mansionContext *mansion.Context, consumer 
 	if err != nil {
 		consumer.Warnf("Could not open operate log: %s", err.Error())
 	}
-
-	ctx := mansionContext.Context()
 
 	// shows percentages, to the 1/100th
 	bar := pb.New64(100 * 100)

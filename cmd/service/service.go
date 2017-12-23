@@ -26,7 +26,13 @@ func do(ctx *mansion.Context) {
 }
 
 type handler struct {
-	ctx *mansion.Context
+	ctx              *mansion.Context
+	operationHandles map[string]*operationHandle
+}
+
+type operationHandle struct {
+	id         string
+	cancelFunc context.CancelFunc
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
@@ -64,12 +70,54 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			})
 		case "Operation.Start":
 			{
-				res, err := operate.Start(h.ctx, conn, req)
+				params := &buse.OperationStartParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				if params.ID == "" {
+					return errors.New("'id' parameter missing")
+				}
+
+				if _, ok := h.operationHandles[params.ID]; ok {
+					return fmt.Errorf("an operation is already running with id '%s'", params.ID)
+				}
+
+				parentCtx := h.ctx.Context()
+				ctx, cancelFunc := context.WithCancel(parentCtx)
+
+				oh := &operationHandle{
+					id:         params.ID,
+					cancelFunc: cancelFunc,
+				}
+				h.operationHandles[oh.id] = oh
+
+				res, err := operate.Start(ctx, h.ctx, conn, params)
+				delete(h.operationHandles, oh.id)
 				if err != nil {
 					return err
 				}
 
-				return conn.Reply(ctx, req.ID, res)
+				err = conn.Reply(ctx, req.ID, res)
+				if err != nil {
+					comm.Warnf("could not send operation.start: %s", err.Error())
+				}
+			}
+		case "Operation.Discard":
+			{
+				var creq buse.OperationDiscardParams
+				err := json.Unmarshal(*req.Params, &creq)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				if oh, ok := h.operationHandles[creq.ID]; ok {
+					oh.cancelFunc()
+					return conn.Reply(ctx, req.ID, &buse.OperationDiscardResult{})
+				}
+
+				return fmt.Errorf("no such operation: %s", creq.ID)
 			}
 		case "Game.FindUploads":
 			{
@@ -117,7 +165,8 @@ func Do(ctx *mansion.Context) error {
 	s := buse.NewServer()
 
 	ha := &handler{
-		ctx: ctx,
+		ctx:              ctx,
+		operationHandles: make(map[string]*operationHandle),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
 

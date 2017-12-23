@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"context"
 	"encoding/gob"
 	"os"
 	"time"
@@ -15,13 +16,14 @@ type saveConsumer struct {
 	statePath string
 	interval  time.Duration
 	consumer  *state.Consumer
+	ctx       context.Context
 
 	lastSave time.Time
 }
 
 var _ savior.SaveConsumer = (*saveConsumer)(nil)
 
-func newSaveConsumer(statePath string, interval time.Duration, consumer *state.Consumer) *saveConsumer {
+func newSaveConsumer(statePath string, interval time.Duration, consumer *state.Consumer, ctx context.Context) *saveConsumer {
 	return &saveConsumer{
 		statePath: statePath,
 		interval:  interval,
@@ -77,5 +79,14 @@ func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSav
 		sc.consumer.Warnf("saveconsumer: could not persist extractor state: %s", err.Error())
 	}
 
-	return savior.AfterSaveContinue, nil
+	var action savior.AfterSaveAction
+	select {
+	case <-sc.ctx.Done():
+		sc.consumer.Warnf("saveconsumer: stopping extractor")
+		action = savior.AfterSaveStop
+	default:
+		action = savior.AfterSaveContinue
+	}
+
+	return action, nil
 }
