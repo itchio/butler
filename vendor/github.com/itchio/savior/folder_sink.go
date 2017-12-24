@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/wharf/state"
 )
 
 const (
@@ -24,6 +25,7 @@ var onWindows = runtime.GOOS == "windows"
 
 type FolderSink struct {
 	Directory string
+	Consumer  *state.Consumer
 
 	writer *entryWriter
 }
@@ -116,7 +118,7 @@ func (fs *FolderSink) GetWriter(entry *Entry) (EntryWriter, error) {
 
 	err = fs.closeAllWriters()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		fs.Consumer.Warnf("folder_sink could not close last writer: %s", err.Error())
 	}
 
 	ew := &entryWriter{
@@ -213,32 +215,34 @@ type entryWriter struct {
 var _ EntryWriter = (*entryWriter)(nil)
 
 func (ew *entryWriter) Write(buf []byte) (int, error) {
+	if ew.f == nil {
+		return 0, os.ErrClosed
+	}
+
 	n, err := ew.f.Write(buf)
 	ew.entry.WriteOffset += int64(n)
 	return n, err
 }
 
 func (ew *entryWriter) Close() error {
-	err := ew.f.Close()
-	if err != nil {
-		return errors.Wrap(err, 0)
+	if ew.f == nil {
+		// already closed
+		return nil
 	}
 
-	// if we're writing to a file that used to be larger
-	// we might need to truncate
-	stats, err := ew.f.Stat()
-	if err == nil {
-		if stats.Size() != ew.entry.WriteOffset {
-			err = ew.f.Truncate(ew.entry.WriteOffset)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-		}
+	err := ew.f.Close()
+	ew.f = nil
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	return nil
 }
 
 func (ew *entryWriter) Sync() error {
+	if ew.f == nil {
+		return os.ErrClosed
+	}
+
 	return ew.f.Sync()
 }

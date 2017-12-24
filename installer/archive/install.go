@@ -43,6 +43,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 	sink := &savior.FolderSink{
 		Directory: params.InstallFolderPath,
+		Consumer:  consumer,
 	}
 
 	aRes, err := ex.Resume(checkpoint, sink)
