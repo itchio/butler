@@ -107,9 +107,31 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 	}
 	defer dest.Close()
 
+	var stopError error
+
 	src.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
 		OnSave: func(sourceCheckpoint *savior.SourceCheckpoint) error {
+			consumer.Infof("saving @ %.2f%%", src.Progress()*100.0)
+
 			checkpoint.SourceCheckpoint = sourceCheckpoint
+
+			err = dest.Sync()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			checkpoint.Progress = src.Progress()
+
+			action, err := de.sc.Save(checkpoint)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if action == savior.AfterSaveStop {
+				copier.Stop()
+				stopError = savior.ErrStop
+			}
+
 			return nil
 		},
 	})
@@ -120,23 +142,16 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 		Dst:     dest,
 		Savable: src,
 
-		MakeCheckpoint: func() (*savior.ExtractorCheckpoint, error) {
-			consumer.Infof("saving @ %.2f%%", src.Progress()*100.0)
-
-			err = dest.Sync()
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
-			}
-
-			return checkpoint, nil
-		},
-
 		EmitProgress: func() {
 			consumer.Progress(src.Progress())
 		},
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
+	}
+
+	if stopError != nil {
+		return nil, savior.ErrStop
 	}
 
 	integrityCheck := func() error {

@@ -8,7 +8,6 @@ import (
 
 var ErrStop = errors.New("copy was stopped after save!")
 
-type MakeCheckpointFunc func() (*ExtractorCheckpoint, error)
 type EmitProgressFunc func()
 
 type Savable interface {
@@ -22,8 +21,7 @@ type CopyParams struct {
 
 	Savable Savable
 
-	MakeCheckpoint MakeCheckpointFunc
-	EmitProgress   EmitProgressFunc
+	EmitProgress EmitProgressFunc
 }
 
 const progressThreshold = 512 * 1024

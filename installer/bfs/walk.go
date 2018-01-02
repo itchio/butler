@@ -2,7 +2,6 @@ package bfs
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/itchio/wharf/tlc"
 )
@@ -13,18 +12,14 @@ func Walk(path string) (*tlc.Container, error) {
 
 func DotItchFilter(basePath string) tlc.FilterFunc {
 	return func(fi os.FileInfo) bool {
-		absolutePath := fi.Name()
-
-		relativePath, err := filepath.Rel(basePath, absolutePath)
-		if err != nil {
-			panic(err)
+		// skip directories named ".itch". in WalkDir, this
+		// will also skip all its children
+		if fi.IsDir() && fi.Name() == ".itch" {
+			return false
 		}
 
-		dir, _ := filepath.Split(relativePath)
-		isInItch := filepath.Clean(dir) == ".itch"
-
-		// walk everything that isn't in Itch
-		return !isInItch
+		// walk everything else
+		return true
 	}
 }
 

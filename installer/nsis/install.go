@@ -34,7 +34,12 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	angelParams := &bfs.SaveAngelsParams{
 		Consumer: consumer,
 		Folder:   params.InstallFolderPath,
+		Receipt:  params.ReceiptIn,
 	}
+
+	cancel := make(chan struct{})
+	defer close(cancel)
+	bfs.StartAsymptoticProgress(consumer, cancel)
 
 	angelResult, err := bfs.SaveAngels(angelParams, func() error {
 		cmd := []string{

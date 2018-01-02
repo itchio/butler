@@ -51,6 +51,10 @@ func DownloadInstallSource(oc *OperationContext, file eos.File, destPath string)
 	for retryCtx.ShouldTry() {
 		err := tryDownload()
 		if err != nil {
+			if errors.Is(err, savior.ErrStop) {
+				return ErrCancelled
+			}
+
 			if dl.IsIntegrityError(err) {
 				consumer.Warnf("had integrity errors, we have to start over")
 				checkpoint = nil

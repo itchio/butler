@@ -177,6 +177,15 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	tryInstall := func() (*installer.InstallResult, error) {
+		defer managerInstallParams.File.Close()
+
+		select {
+		case <-oc.ctx.Done():
+			return nil, ErrCancelled
+		default:
+			// keep going!
+		}
+
 		err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
 			Reason: buse.TaskReasonInstall,
 			Type:   buse.TaskTypeInstall,
@@ -188,10 +197,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return nil, errors.Wrap(err, 0)
 		}
 
-		oc.StartProgressWithTotalBytes(stats.Size())
-
+		oc.StartProgress()
+		oc.consumer.Progress(0)
 		res, installErr := manager.Install(managerInstallParams)
-
 		oc.EndProgress()
 
 		err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
@@ -210,14 +218,35 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		consumer.Infof("install source needs to be available locally, copying to disk...")
 
 		dlErr := func() error {
-			// TODO: add missing TaskStarted/TaskEnded notifications
-			destName := filepath.Base(stats.Name())
-			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
-			err := DownloadInstallSource(oc, file, destPath)
+			err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+				Reason: buse.TaskReasonInstall,
+				Type:   buse.TaskTypeDownload,
+				Game:   params.Game,
+				Upload: params.Upload,
+				Build:  params.Build,
+			})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 
+			// TODO: add missing TaskStarted/TaskEnded notifications
+			// TODO: if download is already done, don't redo it (save that in context?)
+			destName := filepath.Base(stats.Name())
+			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
+
+			oc.StartProgress()
+			err := DownloadInstallSource(oc, file, destPath)
+			oc.EndProgress()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			// fixme: this must be closed
 			lf, err := os.Open(destPath)
 			if err != nil {
 				return errors.Wrap(err, 0)

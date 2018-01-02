@@ -16,6 +16,22 @@ type BustGhostsParams struct {
 	Receipt  *Receipt
 }
 
+/**
+ * A ghost busting is performed after performing an install using a method
+ * that lets us know exactly what was written to disk.
+ *
+ * In this case, we:
+ *   - Install in-place, directly into the destination
+ *   - Compare the previous list of installed files with the list
+ *     of files we just wrote to disk
+ *   - Remove all the ghosts
+ *
+ * Ghosts are files that were in the previous install and aren't present
+ * in the new install. Since we don't want to keep old, unnecessary files
+ * (that aren't angels) around, we just remove them.
+ *
+ * See also: save angels.
+ */
 func BustGhosts(params *BustGhostsParams) error {
 	if !params.Receipt.HasFiles() {
 		// if we didn't have a receipt, we can't know for sure
