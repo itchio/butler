@@ -3,6 +3,7 @@ package installer
 import (
 	"io"
 	"path/filepath"
+	"time"
 
 	"github.com/itchio/savior"
 
@@ -34,52 +35,68 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		}
 	}
 
-	consumer.Infof("%s: probing as archive", name)
-	archiveInfo, err := archive.Probe(&archive.TryOpenParams{
-		File:     file,
-		Consumer: consumer,
-	})
-	if err == nil {
-		consumer.Infof("%s: is archive", name)
-		if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
-			// TODO: force downloading to disk first for those
-			consumer.Warnf("%s: has no/poor resume support, interruptions will waste network/CPU time")
-		}
-
-		return &InstallerInfo{
-			Type:        InstallerTypeArchive,
-			ArchiveInfo: archiveInfo,
-		}, nil
-	}
-
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	// configurator is what we do first because it's generally fast:
+	// it shouldn't read *much* of the remote file, and with httpfile
+	// caching, it's even faster. whereas 7-zip might read a *bunch*
+	// of an .exe file before it gives up
 
 	consumer.Infof("%s: probing with configurator", name)
 
+	beforeConfiguratorProbe := time.Now()
 	candidate, err := configurator.Sniff(file, target, stat.Size())
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+	consumer.Infof("%s: configurator probe took %s", name, time.Since(beforeConfiguratorProbe))
 
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	var typePerConfigurator = InstallerTypeUnknown
 
 	if candidate != nil {
-		typ := getInstallerTypeForCandidate(consumer, name, candidate)
-		if typ != InstallerTypeUnknown {
-			return &InstallerInfo{Type: typ}, nil
-		}
+		typePerConfigurator = getInstallerTypeForCandidate(consumer, name, candidate)
 	} else {
-		consumer.Infof("%s: nil candidate, configurator has forsaken us")
+		consumer.Infof("%s: nil candidate, configurator has forsaken us", name)
 	}
 
+	if typePerConfigurator == InstallerTypeUnknown || typePerConfigurator == InstallerTypeNaked {
+		// some archive types are better sniffed by 7-zip and/or butler's own
+		// decompression engines, so if configurator returns naked, we try
+		// to open as an archive.
+		beforeArchiveProbe := time.Now()
+		consumer.Infof("%s: probing as archive", name)
+
+		// seek to start first because configurator may have seeked itself
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		archiveInfo, err := archive.Probe(&archive.TryOpenParams{
+			File:     file,
+			Consumer: consumer,
+		})
+		consumer.Infof("%s: archive probe took %s", name, time.Since(beforeArchiveProbe))
+		if err == nil {
+			consumer.Infof("%s: is archive", name)
+			if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
+				// TODO: force downloading to disk first for those
+				consumer.Warnf("%s: has no/poor resume support, interruptions will waste network/CPU time")
+			}
+
+			return &InstallerInfo{
+				Type:        InstallerTypeArchive,
+				ArchiveInfo: archiveInfo,
+			}, nil
+		}
+
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
+	consumer.Infof("%s: going with configurator's result", name)
 	return &InstallerInfo{
-		Type: InstallerTypeUnknown,
+		Type: typePerConfigurator,
 	}, nil
 }
 

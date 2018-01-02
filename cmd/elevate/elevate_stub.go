@@ -6,6 +6,6 @@ import (
 	"fmt"
 )
 
-func Do(command []string) error {
-	return fmt.Errorf("elevate is a windows-only command")
+func Elevate(params *ElevateParams) (int, error) {
+	return 0, fmt.Errorf("elevate is a windows-only command")
 }

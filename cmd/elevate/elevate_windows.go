@@ -14,19 +14,21 @@ import (
 	"github.com/natefinch/npipe"
 )
 
-func Do(command []string) error {
+func Elevate(params *ElevateParams) (int, error) {
+	command := params.Command
+
 	if len(command) < 0 {
-		return errors.New(`elevate needs a command to run`)
+		return -1, errors.New(`elevate needs a command to run`)
 	}
 
 	butlerExe, err := os.Executable()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 
 	commandExe, err := findInPath(command[0])
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 	commandArgs := command[1:]
 
@@ -35,18 +37,18 @@ func Do(command []string) error {
 	stdoutPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stdout`, pid)
 	stdoutListener, err := npipe.Listen(stdoutPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 	defer stdoutListener.Close()
-	go relay(stdoutListener, os.Stdout)
+	go relay(stdoutListener, params.Stdout)
 
 	stderrPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stderr`, pid)
 	stderrListener, err := npipe.Listen(stderrPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 	defer stderrListener.Close()
-	go relay(stderrListener, os.Stderr)
+	go relay(stderrListener, params.Stderr)
 
 	args := []string{"pipe", "--stdout", stdoutPath, "--stderr", stderrPath, "--"}
 	args = append(args, commandExe)
@@ -54,16 +56,19 @@ func Do(command []string) error {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 
 	err, code := win32.ShellExecuteAndWait(0, "runas", butlerExe, makeCmdLine(args), wd, syscall.SW_HIDE)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return -1, errors.Wrap(err, 0)
 	}
 
-	os.Exit(int(code))
-	return nil // you sily goose of a compiler...
+	// TODO: is there a known exit code for when the user declined to elevate?
+	// could we turn it into a go error instead? or is that already done by
+	// the win32 package?
+
+	return int(code), nil
 }
 
 func findInPath(commandExe string) (string, error) {

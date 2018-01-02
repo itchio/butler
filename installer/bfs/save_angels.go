@@ -33,8 +33,10 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 
 	if !receipt.HasFiles() {
 		params.Consumer.Infof("No receipt found, will not perform a switcheroo")
+		needSwitcheroo = false
 	} else if !Exists(params.Folder) {
 		params.Consumer.Infof("Destination doesn't exist yet, will not perform a switcheroo")
+		needSwitcheroo = false
 	}
 
 	previousPath := destPath + "-previous"
