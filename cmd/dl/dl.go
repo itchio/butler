@@ -9,8 +9,8 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
 )
@@ -127,7 +127,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 		comm.Log("Already fully downloaded")
 	}
 
-	err = CheckIntegrity(resp.Header, totalBytes, dest)
+	err = CheckIntegrity(comm.NewStateConsumer(), resp.Header, totalBytes, dest)
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)

@@ -22,6 +22,8 @@ import (
  * So, we run them with elevate all the time.
  */
 func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+	consumer := params.Consumer
+
 	// we need the installer on disk to run it. this'll err if it's not,
 	// and the caller is in charge of downloading it and calling us again.
 	f, err := installer.AsLocalFile(params.File)
@@ -30,18 +32,13 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	}
 
 	angelParams := &bfs.SaveAngelsParams{
-		Consumer: params.Consumer,
+		Consumer: consumer,
 		Folder:   params.InstallFolderPath,
 	}
 
 	angelResult, err := bfs.SaveAngels(angelParams, func() error {
-		stats, err := f.Stat()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
 		cmd := []string{
-			stats.Name(),
+			f.Name(),
 			"/S",    // run the installer silently
 			"/NCRC", // disable CRC-check, we do hash checking ourselves
 		}
@@ -49,10 +46,13 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		pathArgs := getSeriouslyMisdesignedNsisPathArguments("/D=", params.InstallFolderPath)
 		cmd = append(cmd, pathArgs...)
 
+		consumer.Infof("launching nsis installer, command:")
+		consumer.Infof("%s", strings.Join(cmd, " ::: "))
+
 		elevateParams := &elevate.ElevateParams{
 			Command: cmd,
-			Stdout:  makeConsumerWriter(params.Consumer, "out"),
-			Stderr:  makeConsumerWriter(params.Consumer, "err"),
+			Stdout:  makeConsumerWriter(consumer, "out"),
+			Stderr:  makeConsumerWriter(consumer, "err"),
 		}
 
 		ret, err := elevate.Elevate(elevateParams)

@@ -1,4 +1,4 @@
-package archive
+package intervalsaveconsumer
 
 import (
 	"context"
@@ -23,7 +23,9 @@ type saveConsumer struct {
 
 var _ savior.SaveConsumer = (*saveConsumer)(nil)
 
-func newSaveConsumer(statePath string, interval time.Duration, consumer *state.Consumer, ctx context.Context) *saveConsumer {
+var DefaultInterval = 1 * time.Second
+
+func New(statePath string, interval time.Duration, consumer *state.Consumer, ctx context.Context) *saveConsumer {
 	return &saveConsumer{
 		statePath: statePath,
 		interval:  interval,

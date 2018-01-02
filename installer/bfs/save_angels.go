@@ -68,6 +68,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 
 	err = innerTask()
 	if err != nil {
+		// FIXME: uhh we don't do any cleanup if we err here?
 		return nil, errors.Wrap(err, 0)
 	}
 

@@ -167,7 +167,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	if hf, ok := src.(*httpfile.HTTPFile); ok {
 		header := hf.GetHeader()
 		if header != nil {
-			err = dl.CheckIntegrity(header, totalBytes, destPath)
+			err = dl.CheckIntegrity(comm.NewStateConsumer(), header, totalBytes, destPath)
 			if err != nil {
 				comm.Log("Integrity checks failed, truncating")
 				os.Truncate(destPath, 0)

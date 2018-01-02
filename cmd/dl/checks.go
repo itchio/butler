@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/crc32c"
+	"github.com/itchio/wharf/state"
 )
 
 // BadSizeErr is returned when the size of a file on disk doesn't match what we expected it to be
@@ -54,7 +54,7 @@ func IsIntegrityError(err error) bool {
 	return false
 }
 
-func CheckIntegrity(header http.Header, contentLength int64, file string) error {
+func CheckIntegrity(consumer *state.Consumer, header http.Header, contentLength int64, file string) error {
 	diskSize := int64(0)
 	stats, err := os.Lstat(file)
 	if err == nil {
@@ -71,13 +71,13 @@ func CheckIntegrity(header http.Header, contentLength int64, file string) error 
 				Actual:   diskSize,
 			}
 		}
-		comm.Debugf("%10s pass (%d bytes)", "size", diskSize)
+		consumer.Debugf("%10s pass (%d bytes)", "size", diskSize)
 	}
 
-	return checkHashes(header, file)
+	return checkHashes(consumer, header, file)
 }
 
-func checkHashes(header http.Header, file string) error {
+func checkHashes(consumer *state.Consumer, header http.Header, file string) error {
 	googHashes := header[http.CanonicalHeaderKey("x-goog-hash")]
 
 	for _, googHash := range googHashes {
@@ -85,20 +85,21 @@ func checkHashes(header http.Header, file string) error {
 		hashType := tokens[0]
 		hashValue, err := base64.StdEncoding.DecodeString(tokens[1])
 		if err != nil {
-			comm.Logf("Could not verify %s hash: %s", hashType, err)
+			consumer.Infof("Could not verify %s hash: %s", hashType, err)
 			continue
 		}
 
 		start := time.Now()
 		checked, err := checkHash(hashType, hashValue, file)
 		if err != nil {
+			consumer.Warnf("%10s fail: %s", hashType, err.Error())
 			return errors.Wrap(err, 1)
 		}
 
 		if checked {
-			comm.Debugf("%10s pass (took %s)", hashType, time.Since(start))
+			consumer.Debugf("%10s pass (took %s)", hashType, time.Since(start))
 		} else {
-			comm.Debugf("%10s skip", hashType)
+			consumer.Debugf("%10s skip", hashType)
 		}
 	}
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/buse"
@@ -92,22 +94,22 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		oc.Save(meta)
 	}
 
-	var archiveUrlPath string
+	var archiveURLPath string
 	if params.Build == nil {
-		archiveUrlPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
+		archiveURLPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
 	} else {
-		archiveUrlPath = fmt.Sprintf("/upload/%d/download/builds/%d/archive", params.Upload.ID, params.Build.ID)
+		archiveURLPath = fmt.Sprintf("/upload/%d/download/builds/%d/archive", params.Upload.ID, params.Build.ID)
 	}
 	values := make(url.Values)
 	values.Set("api_key", params.Credentials.APIKey)
 	if params.Credentials.DownloadKey != 0 {
 		values.Set("download_key_id", fmt.Sprintf("%d", params.Credentials.DownloadKey))
 	}
-	var archiveUrl = fmt.Sprintf("itchfs://%s?%s", archiveUrlPath, values.Encode())
+	var archiveURL = fmt.Sprintf("itchfs://%s?%s", archiveURLPath, values.Encode())
 
 	// TODO: support http servers that don't have range request
-	// (just copy it first)
-	file, err := eos.Open(archiveUrl)
+	// (just copy it first). see DownloadInstallSource later on.
+	file, err := eos.Open(archiveURL)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -160,19 +162,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		consumer.Warnf("Could not read existing receipt: %s", err.Error())
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-		Reason: buse.TaskReasonInstall,
-		Type:   buse.TaskTypeInstall,
-		Game:   params.Game,
-		Upload: params.Upload,
-		Build:  params.Build,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	oc.StartProgressWithTotalBytes(stats.Size())
-	res, err := manager.Install(&installer.InstallParams{
+	managerInstallParams := &installer.InstallParams{
 		Consumer: consumer,
 		Fresh:    params.Fresh,
 
@@ -184,13 +174,67 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		ReceiptIn: receiptIn,
 
 		Context: oc.ctx,
-	})
-	oc.EndProgress()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+	tryInstall := func() (*installer.InstallResult, error) {
+		err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+			Reason: buse.TaskReasonInstall,
+			Type:   buse.TaskTypeInstall,
+			Game:   params.Game,
+			Upload: params.Upload,
+			Build:  params.Build,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		oc.StartProgressWithTotalBytes(stats.Size())
+
+		res, installErr := manager.Install(managerInstallParams)
+
+		oc.EndProgress()
+
+		err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if installErr != nil {
+			return nil, errors.Wrap(installErr, 0)
+		}
+		return res, nil
+	}
+
+	res, err := tryInstall()
+	if err != nil && errors.Is(err, installer.ErrNeedLocal) {
+		consumer.Infof("install source needs to be available locally, copying to disk...")
+
+		dlErr := func() error {
+			// TODO: add missing TaskStarted/TaskEnded notifications
+			destName := filepath.Base(stats.Name())
+			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
+			err := DownloadInstallSource(oc, file, destPath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			lf, err := os.Open(destPath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			managerInstallParams.File = lf
+			return nil
+		}()
+
+		if dlErr != nil {
+			return nil, errors.Wrap(dlErr, 0)
+		}
+
+		consumer.Infof("invoking manager again with local file...")
+		res, err = tryInstall()
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

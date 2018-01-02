@@ -2,17 +2,15 @@ package archive
 
 import (
 	"path/filepath"
-	"time"
 
 	"github.com/itchio/savior"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
 	"github.com/itchio/butler/installer/bfs"
 )
-
-var defaultSaveInterval = 1 * time.Second
 
 func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
 	consumer := params.Consumer
@@ -31,7 +29,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	ex.SetConsumer(consumer)
 
 	statePath := filepath.Join(params.StageFolderPath, "install-state.dat")
-	sc := newSaveConsumer(statePath, defaultSaveInterval, consumer, params.Context)
+	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, params.Context)
 	ex.SetSaveConsumer(sc)
 
 	checkpoint := &savior.ExtractorCheckpoint{}
