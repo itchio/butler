@@ -222,7 +222,7 @@ func (oc *OperationContext) Retire() error {
 		return errors.Wrap(err, 0)
 	}
 
-	err = wipe.Do(oc.MansionContext(), comm.NewStateConsumer(), oc.StageFolder())
+	err = wipe.Do(comm.NewStateConsumer(), oc.StageFolder())
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

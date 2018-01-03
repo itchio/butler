@@ -187,11 +187,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-			Reason: buse.TaskReasonInstall,
-			Type:   buse.TaskTypeInstall,
-			Game:   params.Game,
-			Upload: params.Upload,
-			Build:  params.Build,
+			Reason:    buse.TaskReasonInstall,
+			Type:      buse.TaskTypeInstall,
+			Game:      params.Game,
+			Upload:    params.Upload,
+			Build:     params.Build,
+			TotalSize: stats.Size(),
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
@@ -219,11 +220,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		dlErr := func() error {
 			err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-				Reason: buse.TaskReasonInstall,
-				Type:   buse.TaskTypeDownload,
-				Game:   params.Game,
-				Upload: params.Upload,
-				Build:  params.Build,
+				Reason:    buse.TaskReasonInstall,
+				Type:      buse.TaskTypeDownload,
+				Game:      params.Game,
+				Upload:    params.Upload,
+				Build:     params.Build,
+				TotalSize: stats.Size(),
 			})
 			if err != nil {
 				return errors.Wrap(err, 0)

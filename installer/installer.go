@@ -47,6 +47,9 @@ type InstallParams struct {
 type UninstallParams struct {
 	// The folder we're uninstalling from
 	InstallFolderPath string
+
+	// Listener for progress events, logging etc.
+	Consumer *state.Consumer
 }
 
 type InstallResult struct {

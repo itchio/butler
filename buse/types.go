@@ -41,12 +41,23 @@ type GameFindUploadsResult struct {
 // Operation
 //----------------------------------------------------------------------
 
+type Operation string
+
+var (
+	OperationInstall   Operation = "install"
+	OperationUninstall Operation = "uninstall"
+)
+
 // Operation.Start
 type OperationStartParams struct {
-	ID            string         `json:"id"`
-	StagingFolder string         `json:"stagingFolder"`
-	Operation     string         `json:"operation"`
-	InstallParams *InstallParams `json:"installParams,omitempty"`
+	ID            string    `json:"id"`
+	StagingFolder string    `json:"stagingFolder"`
+	Operation     Operation `json:"operation"`
+
+	// this is more or less a union, the relevant field
+	// should be set depending on the 'Operation' type
+	InstallParams   *InstallParams   `json:"installParams,omitempty"`
+	UninstallParams *UninstallParams `json:"uninstallParams,omitempty"`
 }
 
 // Operation.Cancel
@@ -65,6 +76,10 @@ type InstallParams struct {
 	Build         *itchio.Build    `json:"build"`
 	Credentials   *GameCredentials `json:"credentials"`
 	Fresh         bool             `json:"fresh"`
+}
+
+type UninstallParams struct {
+	InstallFolder string `json:"installFolder"`
 }
 
 // GameCredentials contains all the credentials required to make API requests
@@ -99,6 +114,7 @@ const (
 	TaskReasonUpdate    TaskReason = "update"
 	TaskReasonRevert    TaskReason = "revert"
 	TaskReasonHeal      TaskReason = "heal"
+	TaskReasonUninstall TaskReason = "uninstall"
 )
 
 type TaskType string
@@ -112,7 +128,6 @@ const (
 type TaskStartedNotification struct {
 	Reason    TaskReason     `json:"reason"`
 	Type      TaskType       `json:"type"`
-	CaveID    string         `json:"caveId,omitempty"`
 	Game      *itchio.Game   `json:"game"`
 	Upload    *itchio.Upload `json:"upload"`
 	Build     *itchio.Build  `json:"build,omitempty"`

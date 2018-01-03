@@ -54,6 +54,21 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 				Build:  params.InstallParams.Build,
 			},
 		}, nil
+
+	case "uninstall":
+		err := uninstall(oc, meta)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		err = oc.Retire()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		return &buse.OperationResult{
+			Success: true,
+		}, nil
 	}
 
 	return nil, fmt.Errorf("Unknown operation '%s'", params.Operation)

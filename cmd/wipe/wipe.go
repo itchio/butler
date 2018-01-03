@@ -23,13 +23,13 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, comm.NewStateConsumer(), *args.path))
+	ctx.Must(Do(comm.NewStateConsumer(), *args.path))
 }
 
-func Do(ctx *mansion.Context, consumer *state.Consumer, path string) error {
-	// why have retry logic built into wipe? sometimes when uninstalling
-	// games on windows, the os will randomly return I/O errors, retrying
-	// usually helps.
+func Do(consumer *state.Consumer, path string) error {
+	// Q: why have retry logic built into wipe?
+	// A: sometimes when uninstalling games on windows, the os will
+	// randomly return I/O errors, retrying usually helps.
 	attempt := 0
 	sleepPatterns := []time.Duration{
 		time.Millisecond * 200,
@@ -39,7 +39,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer, path string) error {
 	}
 
 	for attempt <= len(sleepPatterns) {
-		err := Try(ctx, consumer, path)
+		err := Try(consumer, path)
 		if err == nil {
 			break
 		}
@@ -51,7 +51,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer, path string) error {
 		consumer.Warnf("While wiping %s: %s", path, err.Error())
 
 		consumer.Infof("Trying to brute-force permissions, who knows...")
-		err = tryChmod(ctx, path)
+		err = tryChmod(path)
 		if err != nil {
 			consumer.Warnf("While bruteforcing: %s", err.Error())
 		}
@@ -65,12 +65,12 @@ func Do(ctx *mansion.Context, consumer *state.Consumer, path string) error {
 	return nil
 }
 
-func Try(ctx *mansion.Context, consumer *state.Consumer, path string) error {
+func Try(consumer *state.Consumer, path string) error {
 	consumer.Debugf("rm -rf %s", path)
 	return os.RemoveAll(path)
 }
 
-func tryChmod(ctx *mansion.Context, path string) error {
+func tryChmod(path string) error {
 	// oh yeah?
 	chmodAll := func(childpath string, f os.FileInfo, err error) error {
 		if err != nil {
