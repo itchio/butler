@@ -199,7 +199,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		oc.StartProgress()
-		oc.consumer.Progress(0)
 		res, installErr := manager.Install(managerInstallParams)
 		oc.EndProgress()
 
@@ -239,6 +238,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			oc.StartProgress()
 			err := DownloadInstallSource(oc, file, destPath)
 			oc.EndProgress()
+			oc.consumer.Progress(0)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
