@@ -1,6 +1,7 @@
 package bfs
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,7 +10,8 @@ import (
 )
 
 func Test_Walk(t *testing.T) {
-	dir := os.TempDir()
+	dir, err := ioutil.TempDir("", "bfs-walk-test")
+	must(t, err)
 	defer func() {
 		os.RemoveAll(dir)
 	}()
