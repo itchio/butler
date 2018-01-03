@@ -1,6 +1,7 @@
 package msi
 
 import "github.com/itchio/butler/mansion"
+import "github.com/itchio/butler/comm"
 
 var infoArgs = struct {
 	msiPath *string
@@ -49,19 +50,37 @@ func Register(ctx *mansion.Context) {
 }
 
 func doInfo(ctx *mansion.Context) {
-	ctx.Must(Info(ctx, *infoArgs.msiPath))
+	res, err := Info(comm.NewStateConsumer(), *infoArgs.msiPath)
+	ctx.Must(err)
+
+	comm.ResultOrPrint(res, func() {
+		comm.Statf("MSI product code: %s", res.ProductCode)
+		comm.Statf("Install state: %s", res.InstallState)
+	})
 }
 
 func doProductInfo(ctx *mansion.Context) {
-	ctx.Must(Info(ctx, *productInfoArgs.productCode))
+	res, err := ProductInfo(comm.NewStateConsumer(), *productInfoArgs.productCode)
+	ctx.Must(err)
+
+	comm.ResultOrPrint(res, func() {
+		comm.Statf("Installed product state: %s", res.InstallState)
+	})
+}
+
+func onMsiError(err MSIWindowsInstallerError) {
+	comm.Result(&MSIWindowsInstallerErrorResult{
+		Type:  "windowsInstallerError",
+		Value: err,
+	})
 }
 
 func doInstall(ctx *mansion.Context) {
-	ctx.Must(Install(ctx, *installArgs.msiPath, *installArgs.logPath, *installArgs.target))
+	ctx.Must(Install(comm.NewStateConsumer(), *installArgs.msiPath, *installArgs.logPath, *installArgs.target, onMsiError))
 }
 
 func doUninstall(ctx *mansion.Context) {
-	ctx.Must(Uninstall(ctx, *uninstallArgs.productCode))
+	ctx.Must(Uninstall(comm.NewStateConsumer(), *uninstallArgs.productCode, onMsiError))
 }
 
 /**
@@ -81,3 +100,5 @@ type MSIWindowsInstallerErrorResult struct {
 	Type  string                   `json:"type"`
 	Value MSIWindowsInstallerError `json:"value"`
 }
+
+type MSIErrorCallback func(err MSIWindowsInstallerError)

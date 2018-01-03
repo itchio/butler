@@ -151,7 +151,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 
 			// TODO: deduplicate with doMsiInstall simply by redirecting log messages
 			// to the named pipe
-			err = msi.Install(ctx, commandPath, logPath, "")
+			err = msi.Install(comm.NewStateConsumer(), commandPath, logPath, "", nil)
 			if err != nil {
 				logf("MSI install failed: %s", err.Error())
 				lf, openErr := os.Open(logPath)

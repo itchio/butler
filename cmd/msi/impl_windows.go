@@ -14,68 +14,62 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
-	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/state"
 	"github.com/winlabs/gowin32"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 )
 
-func Info(ctx *mansion.Context, msiPath string) error {
+var showFullMsiLog = os.Getenv("BUTLER_FULL_MSI_LOG") == "1"
+
+func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error) {
 	initMsi()
 
 	msiPath, err := filepath.Abs(msiPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	pkg, err := gowin32.OpenInstallerPackage(msiPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	defer pkg.Close()
 
 	productCode, err := pkg.GetProductProperty("ProductCode")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
-	comm.Debugf("Product code for %s: %s", msiPath, productCode)
+	consumer.Debugf("Product code for %s: %s", msiPath, productCode)
 
 	state := gowin32.GetInstalledProductState(productCode)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	comm.Debugf("Installed product state: %s", installStateToString(state))
+	consumer.Debugf("Installed product state: %s", installStateToString(state))
 
-	comm.ResultOrPrint(&MSIInfoResult{
+	res := &MSIInfoResult{
 		ProductCode:  productCode,
 		InstallState: installStateToString(state),
-	}, func() {
-		comm.Statf("MSI product code: %s", productCode)
-		comm.Statf("Install state: %s", installStateToString(state))
-	})
-
-	return nil
+	}
+	return res, nil
 }
 
-func ProductInfo(ctx *mansion.Context, productCode string) error {
+func ProductInfo(consumer *state.Consumer, productCode string) (*MSIInfoResult, error) {
 	initMsi()
 
 	state := gowin32.GetInstalledProductState(productCode)
 
-	comm.ResultOrPrint(&MSIInfoResult{
+	res := &MSIInfoResult{
 		ProductCode:  productCode,
 		InstallState: installStateToString(state),
-	}, func() {
-		comm.Statf("Installed product state: %s", installStateToString(state))
-	})
-
-	return nil
+	}
+	return res, nil
 }
 
-func Install(ctx *mansion.Context, msiPath string, logPathIn string, target string) error {
+func Install(consumer *state.Consumer, msiPath string, logPathIn string, target string, onError MSIErrorCallback) error {
 	initMsi()
 
 	startTime := time.Now()
@@ -85,7 +79,7 @@ func Install(ctx *mansion.Context, msiPath string, logPathIn string, target stri
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Debugf("Assessing state of %s", msiPath)
+	consumer.Debugf("Assessing state of %s", msiPath)
 
 	var productCode string
 
@@ -101,7 +95,7 @@ func Install(ctx *mansion.Context, msiPath string, logPathIn string, target stri
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
-		comm.Debugf("Product code for %s: %s", msiPath, productCode)
+		consumer.Debugf("Product code for %s: %s", msiPath, productCode)
 		return nil
 	}()
 	if err != nil {
@@ -115,10 +109,10 @@ func Install(ctx *mansion.Context, msiPath string, logPathIn string, target stri
 
 	repair := false
 	if state == gowin32.InstallStateDefault {
-		comm.Opf("Already installed, repairing from %s", msiPath)
+		consumer.Opf("Already installed, repairing from %s", msiPath)
 		repair = true
 	} else {
-		comm.Opf("Installing %s", msiPath)
+		consumer.Opf("Installing %s", msiPath)
 	}
 
 	// s = Recreate all shortcuts
@@ -132,15 +126,22 @@ func Install(ctx *mansion.Context, msiPath string, logPathIn string, target stri
 	commandLine := "REINSTALLMODE=smup REBOOT=reallysuppress"
 
 	if target != "" {
+		consumer.Warnf("target verbatim is: %s", target)
+		if absTarget, err := filepath.Abs(target); err == nil {
+			consumer.Warnf("target abs is: %s", absTarget)
+		} else {
+			consumer.Warnf("could not absolutize target: %s", err.Error())
+		}
+
 		// throw everything we got to try and get a local install
 		commandLine += " ALLUSERS=2 MSIINSTALLPERUSER=1"
 		commandLine += fmt.Sprintf(" TARGETDIR=\"%s\" INSTALLDIR=\"%s\" APPDIR=\"%s\"", target, target, target)
-		comm.Debugf("...will install in folder %s", target)
+		consumer.Debugf("...will install in folder %s", target)
 	}
 
-	comm.Debugf("Final command line: %s", commandLine)
+	consumer.Debugf("Final command line: %s", commandLine)
 
-	return withMsiLogging(ctx, logPathIn, func() error {
+	return withMsiLogging(consumer, logPathIn, func() error {
 		if repair {
 			ilvl := gowin32.InstallLevelDefault
 			istate := gowin32.InstallStateDefault
@@ -149,24 +150,24 @@ func Install(ctx *mansion.Context, msiPath string, logPathIn string, target stri
 				return errors.Wrap(err, 0)
 			}
 
-			comm.Statf("Repaired in %s", time.Since(startTime))
+			consumer.Statf("Repaired in %s", time.Since(startTime))
 		} else {
 			err := gowin32.InstallProduct(msiPath, commandLine)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
 
-			comm.Statf("Installed in %s", time.Since(startTime))
+			consumer.Statf("Installed in %s", time.Since(startTime))
 		}
 		return nil
-	})
+	}, onError)
 }
 
-func Uninstall(ctx *mansion.Context, productCode string) error {
+func Uninstall(consumer *state.Consumer, productCode string, onError MSIErrorCallback) error {
 	initMsi()
 
 	if !strings.HasPrefix(productCode, "{") {
-		comm.Logf("Argument doesn't look like a product ID, treating it like an MSI file")
+		consumer.Logf("Argument doesn't look like a product ID, treating it like an MSI file")
 
 		err := func() error {
 			msiPath, err := filepath.Abs(productCode)
@@ -193,24 +194,24 @@ func Uninstall(ctx *mansion.Context, productCode string) error {
 		}
 	}
 
-	comm.Opf("Uninstalling product %s", productCode)
+	consumer.Opf("Uninstalling product %s", productCode)
 
 	startTime := time.Now()
 
-	return withMsiLogging(ctx, "", func() error {
+	return withMsiLogging(consumer, "", func() error {
 		err := gowin32.UninstallProduct(productCode)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		comm.Statf("Uninstalled in %s", time.Since(startTime))
+		consumer.Statf("Uninstalled in %s", time.Since(startTime))
 		return nil
-	})
+	}, onError)
 }
 
-type MsiLogCallback func() error
+type MsiTaskFunc func() error
 
-func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) error {
+func withMsiLogging(consumer *state.Consumer, logPath string, task MsiTaskFunc, onError MSIErrorCallback) error {
 	if logPath == "" {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {
@@ -236,17 +237,17 @@ func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) erro
 			gowin32.DisableInstallerLog()
 		}()
 
-		comm.Debugf("...will write log to %s", logPath)
+		consumer.Debugf("...will write log to %s", logPath)
 	}
 
-	taskErr := f()
+	taskErr := task()
 
 	if taskErr != nil {
-		comm.Logf("")
+		consumer.Infof("")
 
 		lf, openErr := os.Open(logPath)
 		if openErr != nil {
-			comm.Warnf("And what's more, we can't open the log: %s", openErr.Error())
+			consumer.Warnf("And what's more, we can't open the log: %s", openErr.Error())
 		} else {
 			// grok UTF-16
 			win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
@@ -263,10 +264,10 @@ func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) erro
 				lines = append(lines, s.Text())
 			}
 
-			if ctx.Verbose {
-				comm.Logf("Full log (run without verbose mode to get only errors): ")
+			if showFullMsiLog {
+				consumer.Infof("Full log (run without verbose mode to get only errors): ")
 				for _, line := range lines {
-					comm.Logf("%s", line)
+					consumer.Infof("%s", line)
 				}
 			} else {
 				// leading (?i) = case-insensitive in golang
@@ -297,15 +298,14 @@ func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) erro
 
 							code, err := strconv.ParseInt(codeString, 10, 64)
 							if err != nil {
-								comm.Debugf("Couldn't parse error code '%s'", codeString)
+								consumer.Debugf("Couldn't parse error code '%s'", codeString)
 							} else {
-								comm.Result(&MSIWindowsInstallerErrorResult{
-									Type: "windowsInstallerError",
-									Value: MSIWindowsInstallerError{
+								if onError != nil {
+									onError(MSIWindowsInstallerError{
 										Code: code,
 										Text: text,
-									},
-								})
+									})
+								}
 							}
 						}
 					}
@@ -313,21 +313,21 @@ func withMsiLogging(ctx *mansion.Context, logPath string, f MsiLogCallback) erro
 
 				if len(errors) > 0 {
 					for _, e := range errors {
-						comm.Logf("  %s", e)
+						consumer.Infof("  %s", e)
 					}
 				} else {
-					comm.Logf("Full MSI log: ")
+					consumer.Infof("Full MSI log: ")
 					for _, line := range lines {
-						comm.Logf("%s", line)
+						consumer.Infof("%s", line)
 					}
 				}
 			}
 			if scanErr := s.Err(); scanErr != nil {
-				comm.Warnf("While reading msi log: %s", scanErr.Error())
+				consumer.Warnf("While reading msi log: %s", scanErr.Error())
 			}
 		}
 
-		comm.Logf("")
+		consumer.Logf("")
 		return fmt.Errorf("%s", taskErr.Error())
 	}
 

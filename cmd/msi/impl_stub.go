@@ -8,18 +8,18 @@ import (
 	"github.com/itchio/butler/mansion"
 )
 
-func Info(ctx *mansion.Context, msiPath string) error {
+func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error {
 	return fmt.Errorf("msi-info is a windows-only command")
 }
 
-func ProductInfo(ctx *mansion.Context, productCode string) error {
+func ProductInfo(consumer *state.Consumer, productCode string) (*MSIInfoResult, error) {
 	return fmt.Errorf("msi-product-info is a windows-only command")
 }
 
-func Install(ctx *mansion.Context, msiPath string, logPath string, target string) error {
+func Install(consumer *state.Consumer, msiPath string, logPathIn string, target string, onError MSIErrorCallback) error {
 	return fmt.Errorf("msi-install is a windows-only command")
 }
 
-func Uninstall(ctx *mansion.Context, productCode string) error {
+func Uninstall(consumer *state.Consumer, productCode string, onError MSIErrorCallback) error {
 	return fmt.Errorf("msi-uninstall is a windows-only command")
 }
