@@ -1,4 +1,4 @@
-package nsis
+package inno
 
 import (
 	"path/filepath"
@@ -31,7 +31,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 			continue
 		}
 
-		if c.WindowsInfo.InstallerType != "nsis" {
+		if c.WindowsInfo.InstallerType != "inno" {
 			consumer.Infof("%s: ignoring (wrong installer type '%s')", c.Path, c.WindowsInfo.InstallerType)
 			continue
 		}
@@ -42,21 +42,19 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	}
 
 	if chosen == nil {
-		return errors.New("could not find nsis uninstaller in folder")
+		return errors.New("could not find inno uninstaller in folder")
 	}
 
 	uninstallerPath := filepath.Join(folder, chosen.Path)
 	cmdTokens := []string{
 		uninstallerPath,
-		"/S", // run the uninstaller silently
+		"/VERYSILENT", // be vewwy vewwy quiet
 	}
 
-	pathArgs := getSeriouslyMisdesignedNsisPathArguments("_?=", params.InstallFolderPath)
-	cmdTokens = append(cmdTokens, pathArgs...)
+	consumer.Infof("launching inno uninstaller")
 
-	consumer.Infof("launching nsis uninstaller")
-
-	exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
+	// N.B: InnoSetup uninstallers are smart enough to elevate themselves.
+	exitCode, err := installer.RunCommand(consumer, cmdTokens)
 	err = installer.CheckExitCode(exitCode, err)
 	if err != nil {
 		return errors.Wrap(err, 0)

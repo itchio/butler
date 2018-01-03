@@ -1,13 +1,9 @@
 package nsis
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/installer/bfs"
 
-	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer"
 )
 
@@ -39,31 +35,21 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	bfs.StartAsymptoticProgress(consumer, cancel)
 
 	angelResult, err := bfs.SaveAngels(angelParams, func() error {
-		cmd := []string{
+		cmdTokens := []string{
 			f.Name(),
 			"/S",    // run the installer silently
 			"/NCRC", // disable CRC-check, we do hash checking ourselves
 		}
 
 		pathArgs := getSeriouslyMisdesignedNsisPathArguments("/D=", params.InstallFolderPath)
-		cmd = append(cmd, pathArgs...)
+		cmdTokens = append(cmdTokens, pathArgs...)
 
-		consumer.Infof("launching nsis installer, command:")
-		consumer.Infof("%s", strings.Join(cmd, " ::: "))
+		consumer.Infof("launching nsis installer")
 
-		elevateParams := &elevate.ElevateParams{
-			Command: cmd,
-			Stdout:  makeConsumerWriter(consumer, "out"),
-			Stderr:  makeConsumerWriter(consumer, "err"),
-		}
-
-		ret, err := elevate.Elevate(elevateParams)
+		exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
+		err = installer.CheckExitCode(exitCode, err)
 		if err != nil {
 			return errors.Wrap(err, 0)
-		}
-
-		if ret != 0 {
-			return fmt.Errorf("non-zero exit code %d (%x)", ret, ret)
 		}
 
 		return nil

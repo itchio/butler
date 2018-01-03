@@ -1,12 +1,8 @@
 package nsis
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"strings"
-
-	"github.com/itchio/wharf/state"
 )
 
 /*
@@ -25,27 +21,4 @@ func getSeriouslyMisdesignedNsisPathArguments(prefix string, name string) []stri
 	tokens := strings.Split(name, " ")
 	tokens[0] = fmt.Sprintf("%s%s", prefix, tokens[0])
 	return tokens
-}
-
-// makeConsumerWriter returns an io.Writer that, when a line is
-// written to, writes it as a log message to the consumer with the
-// given prefix
-func makeConsumerWriter(consumer *state.Consumer, prefix string) io.Writer {
-	pr, pw := io.Pipe()
-
-	go func() {
-		// note: we don't care terribly about bufio.Scanner error
-		// conditions for this.
-		s := bufio.NewScanner(pr)
-
-		for s.Scan() {
-			if prefix == "err" {
-				consumer.Warnf("[%s] %s", s.Text())
-			} else {
-				consumer.Infof("[%s] %s", s.Text())
-			}
-		}
-	}()
-
-	return pw
 }
