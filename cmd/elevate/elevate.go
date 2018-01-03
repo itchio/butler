@@ -31,6 +31,8 @@ type ElevateParams struct {
 func Do(command []string) error {
 	ret, err := Elevate(&ElevateParams{
 		Command: command,
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)
