@@ -126,17 +126,20 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 	commandLine := "REINSTALLMODE=smup REBOOT=reallysuppress"
 
 	if target != "" {
-		consumer.Warnf("target verbatim is: %s", target)
-		if absTarget, err := filepath.Abs(target); err == nil {
-			consumer.Warnf("target abs is: %s", absTarget)
-		} else {
-			consumer.Warnf("could not absolutize target: %s", err.Error())
+		// transform inputs like
+		//   - `./dir`
+		//   - `C:/msys64/home/john/dir`
+		// into:
+		//   - `C:\msys64\home\john\dir`
+		absTarget, err := filepath.Abs(target)
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 
 		// throw everything we got to try and get a local install
 		commandLine += " ALLUSERS=2 MSIINSTALLPERUSER=1"
-		commandLine += fmt.Sprintf(" TARGETDIR=\"%s\" INSTALLDIR=\"%s\" APPDIR=\"%s\"", target, target, target)
-		consumer.Debugf("...will install in folder %s", target)
+		commandLine += fmt.Sprintf(" TARGETDIR=\"%s\" INSTALLDIR=\"%s\" APPDIR=\"%s\"", absTarget, absTarget, absTarget)
+		consumer.Infof("...will install in folder %s", absTarget)
 	}
 
 	consumer.Debugf("Final command line: %s", commandLine)

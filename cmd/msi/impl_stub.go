@@ -5,10 +5,10 @@ package msi
 import (
 	"fmt"
 
-	"github.com/itchio/butler/mansion"
+	"github.com/itchio/wharf/state"
 )
 
-func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error {
+func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error) {
 	return fmt.Errorf("msi-info is a windows-only command")
 }
 
