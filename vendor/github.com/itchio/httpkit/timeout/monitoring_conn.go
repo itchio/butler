@@ -74,5 +74,13 @@ func recordBytesRead(bytesRead int64) {
 }
 
 func GetBPS() float64 {
+	bucketDuration := time.Since(lastBandwidthUpdate)
+
+	if bucketDuration > maxBucketDuration*2 {
+		// if we don't read anything from the network in a while,
+		// bps won't update, but it should be 0
+		return 0.0
+	}
+
 	return bps
 }

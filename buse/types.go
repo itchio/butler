@@ -102,8 +102,8 @@ type PickUploadResult struct {
 // Sent periodically to inform on the current state an operation
 type OperationProgressNotification struct {
 	Progress float64 `json:"progress"`
-	ETA      float64 `json:"eta,omitempty"`
-	BPS      float64 `json:"bps,omitempty"`
+	ETA      float64 `json:"eta"`
+	BPS      float64 `json:"bps"`
 }
 
 type TaskReason string
