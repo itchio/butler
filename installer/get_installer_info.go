@@ -52,12 +52,13 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	var typePerConfigurator = InstallerTypeUnknown
 
 	if candidate != nil {
+		consumer.Infof("%s", candidate.String())
 		typePerConfigurator = getInstallerTypeForCandidate(consumer, name, candidate)
 	} else {
 		consumer.Infof("%s: nil candidate, configurator has forsaken us", name)
 	}
 
-	if typePerConfigurator == InstallerTypeUnknown || typePerConfigurator == InstallerTypeNaked {
+	if typePerConfigurator == InstallerTypeUnknown || typePerConfigurator == InstallerTypeNaked || typePerConfigurator == InstallerTypeArchive {
 		// some archive types are better sniffed by 7-zip and/or butler's own
 		// decompression engines, so if configurator returns naked, we try
 		// to open as an archive.

@@ -69,6 +69,15 @@ type Candidate struct {
 	JarInfo     *JarInfo     `json:"jarInfo,omitempty"`
 }
 
+func (c *Candidate) String() string {
+	marshalled, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		return ""
+	}
+
+	return string(marshalled)
+}
+
 type WindowsInfo struct {
 	InstallerType WindowsInstallerType `json:"installerType,omitempty"`
 	Uninstaller   bool                 `json:"uninstaller,omitempty"`
