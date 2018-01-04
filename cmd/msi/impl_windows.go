@@ -212,9 +212,9 @@ func Uninstall(consumer *state.Consumer, productCode string, onError MSIErrorCal
 	}, onError)
 }
 
-type MsiTaskFunc func() error
+type MSITaskFunc func() error
 
-func withMsiLogging(consumer *state.Consumer, logPath string, task MsiTaskFunc, onError MSIErrorCallback) error {
+func withMsiLogging(consumer *state.Consumer, logPath string, task MSITaskFunc, onError MSIErrorCallback) error {
 	if logPath == "" {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {

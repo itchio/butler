@@ -272,11 +272,15 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	consumer.Infof("Install successful, writing receipt")
 	receipt := &bfs.Receipt{
-		Files:         res.Files,
 		InstallerName: string(installerInfo.Type),
 		Game:          params.Game,
 		Upload:        params.Upload,
 		Build:         params.Build,
+
+		Files: res.Files,
+
+		// optionals:
+		MSIProductID: res.MSIProductCode,
 	}
 
 	err = receipt.WriteReceipt(params.InstallFolder)

@@ -11,11 +11,15 @@ import (
 )
 
 type Receipt struct {
-	Files         []string       `json:"files"`
-	InstallerName string         `json:"installerName"`
-	Game          *itchio.Game   `json:"game"`
-	Upload        *itchio.Upload `json:"upload"`
-	Build         *itchio.Build  `json:"build"`
+	Game   *itchio.Game   `json:"game"`
+	Upload *itchio.Upload `json:"upload"`
+	Build  *itchio.Build  `json:"build"`
+
+	Files         []string `json:"files"`
+	InstallerName string   `json:"installerName"`
+
+	// optional, installer-specific fields
+	MSIProductID string `json:"msiProductId,omitempty"`
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {
