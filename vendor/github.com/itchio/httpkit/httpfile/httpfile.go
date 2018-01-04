@@ -21,7 +21,6 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
-	uuid "github.com/satori/go.uuid"
 )
 
 var forbidBacktracking = os.Getenv("HTTPFILE_NO_BACKTRACK") == "1"
@@ -80,6 +79,8 @@ type HTTPFile struct {
 
 	readers      map[string]*httpReader
 	readersMutex sync.Mutex
+
+	idSeed int64
 
 	currentURL string
 	urlMutex   sync.Mutex
@@ -360,6 +361,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		readers: make(map[string]*httpReader),
 		stats:   &hstats{},
+		idSeed:  1,
 
 		ReaderStaleThreshold: DefaultReaderStaleThreshold,
 		LogLevel:             DefaultLogLevel,
@@ -571,9 +573,11 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 	// provision a new reader
 	hf.log("borrow: making fresh for offset %d", offset)
 
+	id := hf.idSeed
+	hf.idSeed++
 	reader := &httpReader{
 		file:      hf,
-		id:        uuid.Must(uuid.NewV4()).String(),
+		id:        fmt.Sprintf("reader-%d", id),
 		touchedAt: time.Now(),
 		offset:    offset,
 		cache:     make([]byte, int(maxDiscard)),

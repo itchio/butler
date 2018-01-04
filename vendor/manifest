@@ -193,7 +193,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "29f5ede95325f8bbf1da7c2f4e8a0e6efe2dd9c6",
+			"revision": "2cc5f1934a9bd3c55969691671631a744ef1faa2",
 			"branch": "master",
 			"notests": true
 		},
@@ -299,14 +299,6 @@
 			"repository": "https://github.com/oxtoacart/bpool",
 			"vcs": "git",
 			"revision": "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/satori/go.uuid",
-			"repository": "https://github.com/satori/go.uuid",
-			"vcs": "git",
-			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
 			"branch": "master",
 			"notests": true
 		},
