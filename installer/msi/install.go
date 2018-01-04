@@ -52,16 +52,16 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			comm.Warnf("MSI installation failed: %s", err.Error())
 
 			for _, me := range msiErrors {
-				comm.Warnf("MSI error %d: %s", me.Code, me.Text)
+				comm.Warnf(me.Text)
 			}
 
 			// try to make a nice error:
 			if len(msiErrors) > 0 {
 				var errorStrings []string
 				for _, me := range msiErrors {
-					errorStrings = append(errorStrings, fmt.Sprintf("%d: %s", me.Code, me.Text))
+					errorStrings = append(errorStrings, me.Text)
 				}
-				return fmt.Errorf("MSI installation failed: %s", strings.Join(errorStrings, ", "))
+				return fmt.Errorf("MSI installation failed:\n%s", strings.Join(errorStrings, "\n"))
 			}
 			return fmt.Errorf("MSI installation failed: %s", err.Error())
 		}
