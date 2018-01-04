@@ -51,7 +51,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 		"/VERYSILENT", // be vewwy vewwy quiet
 	}
 
-	consumer.Infof("launching inno uninstaller")
+	consumer.Infof("→ Launching inno uninstaller")
 
 	// N.B: InnoSetup uninstallers are smart enough to elevate themselves.
 	exitCode, err := installer.RunCommand(consumer, cmdTokens)

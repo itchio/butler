@@ -134,7 +134,7 @@ func Notice(header string, lines []string) {
 
 // Warn lets the user know about a problem that's non-critical
 func Warn(msg string) {
-	Logl("warn", msg)
+	Logl("warning", msg)
 }
 
 // Warnf is a formatted variant of Warn

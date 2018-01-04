@@ -44,7 +44,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		pathArgs := getSeriouslyMisdesignedNsisPathArguments("/D=", params.InstallFolderPath)
 		cmdTokens = append(cmdTokens, pathArgs...)
 
-		consumer.Infof("launching nsis installer")
+		consumer.Infof("→ Launching nsis installer")
 
 		exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
 		err = installer.CheckExitCode(exitCode, err)

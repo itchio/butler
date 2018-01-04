@@ -45,7 +45,7 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 		consumer.Warnf("Could not create operate directory: %s", err.Error())
 	}
 
-	logFilePath := filepath.Join(stageFolder, "operate-log.txt")
+	logFilePath := filepath.Join(stageFolder, "operate-log.json")
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		consumer.Warnf("Could not open operate log: %s", err.Error())
@@ -71,7 +71,17 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 	subconsumer := &state.Consumer{
 		OnMessage: func(level, msg string) {
 			if logFile != nil {
-				fmt.Fprintf(logFile, "[%s] %s\n", level, msg)
+				payload, err := json.Marshal(map[string]interface{}{
+					"time":  currentTimeMillis(),
+					"name":  "butler",
+					"level": butlerLevelToItchLevel(level),
+					"msg":   msg,
+				})
+				if err == nil {
+					fmt.Fprintf(logFile, "%s\n", string(payload))
+				} else {
+					fmt.Fprintf(logFile, "could not marshal json log entry: %s\n", err.Error())
+				}
 			}
 			conn.Notify(ctx, "Log", &buse.LogNotification{
 				Level:   level,
@@ -153,7 +163,6 @@ func (oc *OperationContext) StartProgressWithInitialAndTotal(initialProgress flo
 
 func (oc *OperationContext) EndProgress() {
 	if oc.counter != nil {
-		oc.consumer.Infof("Ending progress...")
 		oc.counter.Finish()
 		oc.counter = nil
 	} else {
@@ -174,13 +183,13 @@ func (oc *OperationContext) Load(s Subcontext) {
 			Result:  s.Data(),
 		})
 		if err != nil {
-			oc.consumer.Warnf("could not load subcontext %s: while configuring decoder, %s", s.Key(), err.Error())
+			oc.consumer.Warnf("Could not load subcontext %s: while configuring decoder, %s", s.Key(), err.Error())
 			return
 		}
 
 		err = dec.Decode(val)
 		if err != nil {
-			oc.consumer.Warnf("could not load subcontext %s: while decoding, %s", s.Key(), err.Error())
+			oc.consumer.Warnf("Could not load subcontext %s: while decoding, %s", s.Key(), err.Error())
 			return
 		}
 	}
@@ -254,4 +263,31 @@ type Subcontext interface {
 	// Data should return a pointer to the underlying struct
 	// of the subcontext
 	Data() interface{}
+}
+
+func butlerLevelToItchLevel(level string) int {
+	switch level {
+	case "fatal":
+		return 60
+	case "error":
+		return 50
+	case "warning":
+		return 40
+	case "info":
+		return 30
+	case "debug":
+		return 20
+	case "trace":
+		return 10
+	default:
+		return 30 // default
+	}
+}
+
+func currentTimeMillis() int64 {
+	timeUtc := time.Now().UTC()
+	nanos := timeUtc.Nanosecond()
+	millis := timeUtc.Unix() * 1000
+	millis += int64(nanos) / 1000000
+	return millis
 }

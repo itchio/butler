@@ -49,13 +49,13 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			fmt.Sprintf("/DIR=%s", destPath), // specify install directory
 		}
 
-		consumer.Infof("launching inno installer")
+		consumer.Infof("→ Launching inno installer")
 
 		// N.B: InnoSetup installers are smart enough to elevate themselves.
 		exitCode, err := installer.RunCommand(consumer, cmdTokens)
 		err = installer.CheckExitCode(exitCode, err)
 		if err != nil {
-			consumer.Warnf("installation failed: %s", err.Error())
+			consumer.Warnf("Installation failed: %s", err.Error())
 
 			lf, err := os.Open(logPath)
 			if err != nil {

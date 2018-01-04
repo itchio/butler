@@ -16,8 +16,8 @@ import (
 // and goes through a weird type-casting dance to retrieve
 // the actual exit code.
 func RunCommand(consumer *state.Consumer, cmdTokens []string) (int, error) {
-	consumer.Infof("running command:")
-	consumer.Infof("%s", strings.Join(cmdTokens, " ::: "))
+	consumer.Infof("→ Running command:")
+	consumer.Infof("  %s", strings.Join(cmdTokens, " ::: "))
 
 	cmd := exec.Command(cmdTokens[0], cmdTokens[1:]...)
 	cmd.Stdout = loggerwriter.New(consumer, "out")
@@ -38,8 +38,8 @@ func RunCommand(consumer *state.Consumer, cmdTokens []string) (int, error) {
 }
 
 func RunElevatedCommand(consumer *state.Consumer, cmdTokens []string) (int, error) {
-	consumer.Infof("running elevated command:")
-	consumer.Infof("%s", strings.Join(cmdTokens, " ::: "))
+	consumer.Infof("→ Running elevated command:")
+	consumer.Infof("  %s", strings.Join(cmdTokens, " ::: "))
 
 	elevateParams := &elevate.ElevateParams{
 		Command: cmdTokens,

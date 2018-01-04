@@ -21,13 +21,13 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 		return errors.New("Missing install folder in uninstall")
 	}
 
-	consumer.Infof("uninstalling %s", params.InstallFolder)
+	consumer.Infof("→ Uninstalling %s", params.InstallFolder)
 
 	var installerType = installer.InstallerTypeUnknown
 
 	receipt, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
-		consumer.Warnf("could not read receipt: %s", err.Error())
+		consumer.Warnf("Could not read receipt: %s", err.Error())
 	}
 
 	if receipt != nil && receipt.InstallerName != "" {

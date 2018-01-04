@@ -23,7 +23,7 @@ func DownloadInstallSource(oc *OperationContext, file eos.File, destPath string)
 	checkpoint := &savior.ExtractorCheckpoint{}
 	err := sc.Load(checkpoint)
 	if err != nil {
-		consumer.Warnf("could not load checkpoint, ignoring: %s", err.Error())
+		consumer.Warnf("Could not load checkpoint, ignoring: %s", err.Error())
 		checkpoint = nil
 	}
 
@@ -56,7 +56,7 @@ func DownloadInstallSource(oc *OperationContext, file eos.File, destPath string)
 			}
 
 			if dl.IsIntegrityError(err) {
-				consumer.Warnf("had integrity errors, we have to start over")
+				consumer.Warnf("Had integrity errors, we have to start over")
 				checkpoint = nil
 				retryCtx.Retry(err.Error())
 				continue

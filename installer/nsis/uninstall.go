@@ -54,7 +54,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	pathArgs := getSeriouslyMisdesignedNsisPathArguments("_?=", params.InstallFolderPath)
 	cmdTokens = append(cmdTokens, pathArgs...)
 
-	consumer.Infof("launching nsis uninstaller")
+	consumer.Infof("→ Launching nsis uninstaller")
 
 	exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
 	err = installer.CheckExitCode(exitCode, err)

@@ -36,10 +36,10 @@ type operationHandle struct {
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	comm.Warnf("got request %s", req.Method)
+	comm.Warnf("Got request %s", req.Method)
 
 	if req.Notif {
-		log.Printf("got a notif! method = %#v, params = %#v", req.Method, req.Params)
+		log.Printf("Got a notif! method = %#v, params = %#v", req.Method, req.Params)
 		return
 	}
 

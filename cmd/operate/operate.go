@@ -37,7 +37,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	case "install":
 		ires, err := install(oc, meta)
 		if err != nil {
-			consumer.Warnf("Install failed: %s", err.Error())
+			consumer.Errorf("Install failed: %s", err.Error())
 			return nil, errors.Wrap(err, 0)
 		}
 
@@ -60,7 +60,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	case "uninstall":
 		err := uninstall(oc, meta)
 		if err != nil {
-			consumer.Warnf("Uninstall failed: %s", err.Error())
+			consumer.Errorf("Uninstall failed: %s", err.Error())
 			return nil, errors.Wrap(err, 0)
 		}
 

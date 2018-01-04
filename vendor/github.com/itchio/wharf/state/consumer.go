@@ -156,6 +156,20 @@ func (c *Consumer) Warnf(msg string, args ...interface{}) {
 	}
 }
 
+// Error logs error-level messages
+func (c *Consumer) Error(msg string) {
+	if c.OnMessage != nil {
+		c.OnMessage("error", msg)
+	}
+}
+
+// Errorf is a formatted version of Error
+func (c *Consumer) Errorf(msg string, args ...interface{}) {
+	if c.OnMessage != nil {
+		c.OnMessage("error", fmt.Sprintf(msg, args...))
+	}
+}
+
 // CountCallback returns a function suitable for counter.NewWriterCallback
 // or counter.NewReaderCallback
 func (c *Consumer) CountCallback(totalSize int64) counter.CountCallback {

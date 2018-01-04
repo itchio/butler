@@ -349,7 +349,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 				}
 				action, err := se.saveConsumer.Save(checkpoint)
 				if err != nil {
-					se.consumer.Warnf("szextractor could not save checkpoint: %s", err.Error())
+					se.consumer.Warnf("7-zip extractor could not save checkpoint: %s", err.Error())
 				}
 
 				if action == savior.AfterSaveStop {

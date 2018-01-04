@@ -79,13 +79,13 @@ func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSav
 		return nil
 	}()
 	if err != nil {
-		sc.consumer.Warnf("saveconsumer: could not persist extractor state: %s", err.Error())
+		sc.consumer.Warnf("saveconsumer: Could not persist extractor state: %s", err.Error())
 	}
 
 	var action savior.AfterSaveAction
 	select {
 	case <-sc.ctx.Done():
-		sc.consumer.Warnf("saveconsumer: stopping extractor")
+		sc.consumer.Warnf("saveconsumer: Stopping extractor")
 		action = savior.AfterSaveStop
 	default:
 		action = savior.AfterSaveContinue

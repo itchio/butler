@@ -573,7 +573,7 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 
 	reader := &httpReader{
 		file:      hf,
-		id:        uuid.NewV4().String(),
+		id:        uuid.Must(uuid.NewV4()).String(),
 		touchedAt: time.Now(),
 		offset:    offset,
 		cache:     make([]byte, int(maxDiscard)),

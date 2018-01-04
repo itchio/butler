@@ -61,7 +61,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 		if checkpoint.SourceCheckpoint != nil && checkpoint.Entry != nil {
 			// cool, we'll do that
 		} else {
-			consumer.Warnf("invalid checkpoint, starting over")
+			consumer.Warnf("Invalid checkpoint, starting over")
 			checkpoint = nil
 		}
 	}
@@ -78,7 +78,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 			Mode:             os.FileMode(0644),
 		}
 
-		consumer.Infof("pre-allocating %s", humanize.IBytes(uint64(entry.UncompressedSize)))
+		consumer.Infof("⇓ Pre-allocating %s on disk", humanize.IBytes(uint64(entry.UncompressedSize)))
 		err = sink.Preallocate(entry)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
@@ -93,9 +93,9 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 
 	offset, err := src.Resume(checkpoint.SourceCheckpoint)
 	if err != nil {
-		consumer.Warnf("could not resume source, starting over: %s", err.Error())
+		consumer.Warnf("Could not resume source, starting over: %s", err.Error())
 	} else {
-		consumer.Infof("resuming @ %s", humanize.IBytes(uint64(offset)))
+		consumer.Infof("↻ Resuming @ %s", humanize.IBytes(uint64(offset)))
 	}
 	checkpoint.Entry.WriteOffset = offset
 
@@ -111,8 +111,6 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 
 	src.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
 		OnSave: func(sourceCheckpoint *savior.SourceCheckpoint) error {
-			consumer.Infof("saving @ %.2f%%", src.Progress()*100.0)
-
 			checkpoint.SourceCheckpoint = sourceCheckpoint
 
 			err = dest.Sync()

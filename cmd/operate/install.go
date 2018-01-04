@@ -59,7 +59,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		if len(uploadsFilterResult.Uploads) == 0 {
-			consumer.Warnf("Didn't find a compatible upload. The initial uploads were:", len(uploadsFilterResult.InitialUploads))
+			consumer.Errorf("Didn't find a compatible upload.")
+			consumer.Errorf("The initial uploads were:", len(uploadsFilterResult.InitialUploads))
 			for _, upload := range uploadsFilterResult.InitialUploads {
 				consumer.Infof("- %#v", upload)
 			}
@@ -159,7 +160,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
 		receiptIn = nil
-		consumer.Warnf("Could not read existing receipt: %s", err.Error())
+		consumer.Errorf("Could not read existing receipt: %s", err.Error())
 	}
 
 	managerInstallParams := &installer.InstallParams{
@@ -215,7 +216,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	res, err := tryInstall()
 	if err != nil && errors.Is(err, installer.ErrNeedLocal) {
-		consumer.Infof("install source needs to be available locally, copying to disk...")
+		consumer.Infof("Install source needs to be available locally, copying to disk...")
 
 		dlErr := func() error {
 			err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
@@ -262,7 +263,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return nil, errors.Wrap(dlErr, 0)
 		}
 
-		consumer.Infof("invoking manager again with local file...")
+		consumer.Infof("Re-invoking manager with local file...")
 		res, err = tryInstall()
 	}
 

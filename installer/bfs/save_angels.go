@@ -73,22 +73,20 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 
 	innerErr := innerTask()
 	if innerErr != nil {
-		consumer.Warnf("inner task failed: %s", innerErr.Error())
-
 		// let's just wipe the folder
 		// TODO: retry logic?
-		consumer.Warnf("%s: wiping", destPath)
+		consumer.Infof("%s: wiping because inner task failed", destPath)
 		err := os.RemoveAll(destPath)
 		if err != nil {
-			consumer.Warnf("could not wipe after failed inner task: ", err.Error())
+			consumer.Warnf("Could not wipe after failed inner task: ", err.Error())
 		}
 
 		if switching {
 			// let's restore the previous folder
-			consumer.Warnf("%s: restoring", previousPath)
+			consumer.Infof("%s: restoring", previousPath)
 			err := os.Rename(previousPath, destPath)
 			if err != nil {
-				consumer.Warnf("could not restore previous folder after inner task: ", err.Error())
+				consumer.Warnf("Could not restore previous folder after inner task: ", err.Error())
 			}
 		}
 
