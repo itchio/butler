@@ -19,6 +19,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	}
 
 	oc := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
+	consumer := oc.Consumer()
 
 	meta := &MetaSubcontext{
 		data: params,
@@ -36,10 +37,11 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	case "install":
 		ires, err := install(oc, meta)
 		if err != nil {
+			consumer.Warnf("Install failed: %s", err.Error())
 			return nil, errors.Wrap(err, 0)
 		}
 
-		oc.consumer.Infof("Installed %d files, reporting success", len(ires.Files))
+		consumer.Infof("Installed %d files, reporting success", len(ires.Files))
 
 		err = oc.Retire()
 		if err != nil {
@@ -58,6 +60,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	case "uninstall":
 		err := uninstall(oc, meta)
 		if err != nil {
+			consumer.Warnf("Uninstall failed: %s", err.Error())
 			return nil, errors.Wrap(err, 0)
 		}
 
