@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/go-itchio"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer/bfs"
@@ -95,22 +97,33 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		oc.Save(meta)
 	}
 
-	var archiveURLPath string
+	var installSourceURLPath string
 	if params.Build == nil {
-		archiveURLPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
+		installSourceURLPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
 	} else {
-		archiveURLPath = fmt.Sprintf("/upload/%d/download/builds/%d/archive", params.Upload.ID, params.Build.ID)
+		fileType := "archive"
+
+		for _, bf := range params.Build.Files {
+			if bf.Type == itchio.BuildFileTypeUnpacked {
+				consumer.Infof("Build %d / %d has an unpacked file", params.Upload.ID, params.Build.ID)
+				consumer.Warnf("Not using unpacked yet, see https://github.com/itchio/itch/issues/1599")
+				// fileType = "unpacked"
+				// break
+			}
+		}
+
+		installSourceURLPath = fmt.Sprintf("/upload/%d/download/builds/%d/%s", params.Upload.ID, params.Build.ID, fileType)
 	}
 	values := make(url.Values)
 	values.Set("api_key", params.Credentials.APIKey)
 	if params.Credentials.DownloadKey != 0 {
 		values.Set("download_key_id", fmt.Sprintf("%d", params.Credentials.DownloadKey))
 	}
-	var archiveURL = fmt.Sprintf("itchfs://%s?%s", archiveURLPath, values.Encode())
+	var installSourceURL = fmt.Sprintf("itchfs://%s?%s", installSourceURLPath, values.Encode())
 
 	// TODO: support http servers that don't have range request
 	// (just copy it first). see DownloadInstallSource later on.
-	file, err := eos.Open(archiveURL)
+	file, err := eos.Open(installSourceURL)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
