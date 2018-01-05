@@ -50,6 +50,9 @@ type UninstallParams struct {
 
 	// Listener for progress events, logging etc.
 	Consumer *state.Consumer
+
+	// Receipt at the time we asked for an uninstall
+	Receipt *bfs.Receipt
 }
 
 type InstallResult struct {

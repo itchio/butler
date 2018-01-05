@@ -7,10 +7,10 @@ import (
 )
 
 func Walk(path string) (*tlc.Container, error) {
-	return tlc.WalkDir(path, &tlc.WalkOpts{Filter: DotItchFilter(path)})
+	return tlc.WalkDir(path, &tlc.WalkOpts{Filter: DotItchFilter()})
 }
 
-func DotItchFilter(basePath string) tlc.FilterFunc {
+func DotItchFilter() tlc.FilterFunc {
 	return func(fi os.FileInfo) bool {
 		// skip directories named ".itch". in WalkDir, this
 		// will also skip all its children

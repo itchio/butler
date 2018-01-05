@@ -87,8 +87,9 @@ func doUninstall(ctx *mansion.Context) {
  * MSIInfoResult describes an MSI package's properties
  */
 type MSIInfoResult struct {
-	ProductCode  string `json:"productCode"`
-	InstallState string `json:"installState"`
+	ProductCode     string `json:"productCode"`
+	InstallState    string `json:"installState"`
+	InstallLocation string `json:"installLocation"`
 }
 
 type MSIWindowsInstallerError struct {

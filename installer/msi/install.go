@@ -2,11 +2,11 @@ package msi
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/itchio/wharf/tlc"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/msi"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -31,39 +31,72 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	defer close(cancel)
 	bfs.StartAsymptoticProgress(consumer, cancel)
 
-	var msiProductCode string
+	infoRes, err := msi.Info(consumer, f.Name())
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	msiProductCode := infoRes.ProductCode
 
 	angelResult, err := bfs.SaveAngels(angelParams, func() error {
-		infoRes, err := msi.Info(consumer, f.Name())
+		args := []string{
+			"msi-install",
+			f.Name(),
+			"--target",
+			params.InstallFolderPath,
+		}
+
+		consumer.Infof("Attempting non-elevated MSI install")
+		res, err := installer.RunSelf(consumer, args)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		msiProductCode = infoRes.ProductCode
+		if res.ExitCode != 0 {
+			consumer.Warnf("Non-elevated installation failed with exit code %d", res.ExitCode)
 
-		var msiErrors []msi.MSIWindowsInstallerError
+			if shouldTryElevated(consumer, res) {
+				args = append(args, "--elevate")
 
-		onError := func(me msi.MSIWindowsInstallerError) {
-			msiErrors = append(msiErrors, me)
+				consumer.Infof("Attempting elevated MSI install")
+				res, err := installer.RunSelf(consumer, args)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				if res.ExitCode != 0 {
+					consumer.Errorf("Elevated MSI install failed, we're out of options")
+					return errors.New("Elevated MSI installation failed, this package is probably not compatible")
+				}
+			} else {
+				consumer.Errorf("Non-elevated MSI install failed, and not trying elevated")
+				return errors.New("MSI installation failed, this package is probably not compatible")
+			}
 		}
 
-		err = msi.Install(consumer, f.Name(), "", params.InstallFolderPath, onError)
+		consumer.Infof("MSI installed successfully.")
+		consumer.Infof("Making sure it installed in the directory we wanted...")
+		container, err := tlc.WalkDir(params.InstallFolderPath, &tlc.WalkOpts{
+			Filter: bfs.DotItchFilter(),
+		})
 		if err != nil {
-			comm.Warnf("MSI installation failed: %s", err.Error())
+			return errors.Wrap(err, 0)
+		}
 
-			for _, me := range msiErrors {
-				comm.Warnf(me.Text)
-			}
+		if len(container.Files) == 0 {
+			consumer.Errorf("No files were found in the install folder after install.")
+			consumer.Errorf("The itch app won't be able to launch it.")
 
-			// try to make a nice error:
-			if len(msiErrors) > 0 {
-				var errorStrings []string
-				for _, me := range msiErrors {
-					errorStrings = append(errorStrings, me.Text)
+			var installLocation = "<unknown>"
+			{
+				infoRes2, err := msi.Info(consumer, f.Name())
+				if err == nil && infoRes2.InstallLocation != "" {
+					installLocation = infoRes2.InstallLocation
 				}
-				return fmt.Errorf("MSI installation failed:\n%s", strings.Join(errorStrings, "\n"))
 			}
-			return fmt.Errorf("MSI installation failed: %s", err.Error())
+			consumer.Infof("Package install location: %s", installLocation)
+
+			return fmt.Errorf("The MSI package was installed in an unexpected location: %s", installLocation)
 		}
 
 		return nil

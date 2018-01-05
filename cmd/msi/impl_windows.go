@@ -54,6 +54,16 @@ func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error) {
 		ProductCode:  productCode,
 		InstallState: installStateToString(state),
 	}
+
+	if state == gowin32.InstallStateDefault {
+		installLocation, err := gowin32.GetInstalledProductProperty(productCode, gowin32.InstallPropertyInstallLocation)
+		if err != nil {
+			consumer.Debugf("Could not get install location: %s", err.Error())
+		} else {
+			res.InstallLocation = installLocation
+		}
+	}
+
 	return res, nil
 }
 

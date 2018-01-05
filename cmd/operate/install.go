@@ -216,54 +216,59 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	res, err := tryInstall()
 	if err != nil && errors.Is(err, installer.ErrNeedLocal) {
-		consumer.Infof("Install source needs to be available locally, copying to disk...")
+		destName := filepath.Base(stats.Name())
+		destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
 
-		dlErr := func() error {
-			err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-				Reason:    buse.TaskReasonInstall,
-				Type:      buse.TaskTypeDownload,
-				Game:      params.Game,
-				Upload:    params.Upload,
-				Build:     params.Build,
-				TotalSize: stats.Size(),
-			})
-			if err != nil {
-				return errors.Wrap(err, 0)
+		if istate.IsAvailableLocally {
+			consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
+		} else {
+			consumer.Infof("Install source needs to be available locally, copying to disk...")
+
+			dlErr := func() error {
+				err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+					Reason:    buse.TaskReasonInstall,
+					Type:      buse.TaskTypeDownload,
+					Game:      params.Game,
+					Upload:    params.Upload,
+					Build:     params.Build,
+					TotalSize: stats.Size(),
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				oc.StartProgress()
+				err := DownloadInstallSource(oc, file, destPath)
+				oc.EndProgress()
+				oc.consumer.Progress(0)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+				return nil
+			}()
+
+			if dlErr != nil {
+				return nil, errors.Wrap(dlErr, 0)
 			}
 
-			// TODO: add missing TaskStarted/TaskEnded notifications
-			// TODO: if download is already done, don't redo it (save that in context?)
-			destName := filepath.Base(stats.Name())
-			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
-
-			oc.StartProgress()
-			err := DownloadInstallSource(oc, file, destPath)
-			oc.EndProgress()
-			oc.consumer.Progress(0)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
-			err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
-			// fixme: this must be closed
-			lf, err := os.Open(destPath)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
-			managerInstallParams.File = lf
-			return nil
-		}()
-
-		if dlErr != nil {
-			return nil, errors.Wrap(dlErr, 0)
+			istate.IsAvailableLocally = true
+			oc.Save(isub)
 		}
 
 		consumer.Infof("Re-invoking manager with local file...")
+		{
+			lf, err := os.Open(destPath)
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+			managerInstallParams.File = lf
+		}
+
 		res, err = tryInstall()
 	}
 
@@ -281,7 +286,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		Files: res.Files,
 
 		// optionals:
-		MSIProductID: res.MSIProductCode,
+		MSIProductCode: res.MSIProductCode,
 	}
 
 	err = receipt.WriteReceipt(params.InstallFolder)
@@ -293,7 +298,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 }
 
 type InstallSubcontextState struct {
-	InstallerInfo *installer.InstallerInfo `json:"installerInfo,omitempty"`
+	InstallerInfo      *installer.InstallerInfo `json:"installerInfo,omitempty"`
+	IsAvailableLocally bool                     `json:"isAvailableLocally"`
 }
 
 type InstallSubcontext struct {

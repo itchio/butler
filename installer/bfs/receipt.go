@@ -19,7 +19,7 @@ type Receipt struct {
 	InstallerName string   `json:"installerName"`
 
 	// optional, installer-specific fields
-	MSIProductID string `json:"msiProductId,omitempty"`
+	MSIProductCode string `json:"msiProductCode,omitempty"`
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {

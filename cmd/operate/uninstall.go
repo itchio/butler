@@ -49,6 +49,7 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 	managerUninstallParams := &installer.UninstallParams{
 		InstallFolderPath: params.InstallFolder,
 		Consumer:          consumer,
+		Receipt:           receipt,
 	}
 
 	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
