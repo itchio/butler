@@ -35,6 +35,10 @@ func shouldTryElevated(consumer *state.Consumer, res *installer.RunSelfResult) b
 				consumer.Infof("MSI complained about a program it needs to run, will retry elevated. Original error: ")
 				consumer.Infof(me.Text)
 				return true
+			case 1406:
+				consumer.Infof("MSI complained about a registry key it needs to write, will retry elevated. Original error: ")
+				consumer.Infof(me.Text)
+				return true
 			}
 		}
 	}

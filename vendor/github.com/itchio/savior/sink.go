@@ -99,4 +99,7 @@ type Sink interface {
 
 	// Remove everything written so far
 	Nuke() error
+
+	// Close this sink, including all pending writers
+	Close() error
 }

@@ -42,7 +42,7 @@ func BustGhosts(params *BustGhostsParams) error {
 
 	oldFiles := params.Receipt.Files
 
-	ghostFiles := Difference(oldFiles, params.NewFiles)
+	ghostFiles := Difference(params.NewFiles, oldFiles)
 
 	if len(ghostFiles) == 0 {
 		params.Consumer.Infof("No ghosts there!")

@@ -137,3 +137,16 @@ func getInstallerTypeForCandidate(consumer *state.Consumer, name string, candida
 
 	return InstallerTypeUnknown
 }
+
+func IsWindowsInstaller(typ InstallerType) bool {
+	switch typ {
+	case InstallerTypeMSI:
+		return true
+	case InstallerTypeNsis:
+		return true
+	case InstallerTypeInno:
+		return true
+	default:
+		return false
+	}
+}

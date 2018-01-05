@@ -159,6 +159,10 @@ func (cs *Sink) withItem(entry *savior.Entry, actualKind savior.EntryKind, cb wi
 	return cb(item, di)
 }
 
+func (cs *Sink) Close() error {
+	return nil
+}
+
 // ===============================
 
 type entryWriter struct {

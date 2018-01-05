@@ -289,7 +289,84 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Install successful, writing receipt")
+	consumer.Infof("Install successful")
+	if len(res.Files) == 1 {
+		single := res.Files[0]
+
+		consumer.Infof("Only installed a single file, is it an installer?")
+		consumer.Infof("%s: probing", single)
+
+		err = func() error {
+			singlePath := filepath.Join(params.InstallFolder, single)
+			sf, err := os.Open(singlePath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			defer sf.Close()
+
+			installerInfo, err = installer.GetInstallerInfo(consumer, sf)
+			if err != nil {
+				consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
+				return nil
+			}
+
+			if !installer.IsWindowsInstaller(installerInfo.Type) {
+				consumer.Infof("Installer type is '%s', ignoring", installerInfo.Type)
+				return nil
+			}
+
+			consumer.Infof("Will use nested installer %s", installerInfo.Type)
+			manager = installer.GetManager(string(installerInfo.Type))
+			if manager == nil {
+				return fmt.Errorf("Don't know how to install '%s' packages", installerInfo.Type)
+			}
+
+			sf.Close()
+
+			destName := filepath.Base(single)
+			destPath := filepath.Join(oc.StageFolder(), "nested-install-source", destName)
+
+			_, err = os.Stat(destPath)
+			if err == nil {
+				// ah, it must already be there then
+				consumer.Infof("%s: using for nested install", destPath)
+			} else {
+				consumer.Infof("%s: moving to", singlePath)
+				consumer.Infof("%s - for nested install", destPath)
+
+				err = os.MkdirAll(filepath.Dir(destPath), 0755)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = os.RemoveAll(destPath)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = os.Rename(singlePath, destPath)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+			}
+
+			lf, err := os.Open(destPath)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			managerInstallParams.File = lf
+
+			consumer.Infof("Invoking nested install manager, let's go!")
+			res, err = tryInstall()
+			return err
+		}()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
+	consumer.Infof("Writing receipt...")
 	receipt := &bfs.Receipt{
 		InstallerName: string(installerInfo.Type),
 		Game:          params.Game,

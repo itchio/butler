@@ -116,7 +116,7 @@ func (fs *FolderSink) GetWriter(entry *Entry) (EntryWriter, error) {
 		}
 	}
 
-	err = fs.closeAllWriters()
+	err = fs.Close()
 	if err != nil {
 		fs.Consumer.Warnf("folder_sink could not close last writer: %s", err.Error())
 	}
@@ -187,7 +187,7 @@ func (fs *FolderSink) Symlink(entry *Entry, linkname string) error {
 }
 
 func (fs *FolderSink) Nuke() error {
-	err := fs.closeAllWriters()
+	err := fs.Close()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -196,7 +196,7 @@ func (fs *FolderSink) Nuke() error {
 	return os.RemoveAll(fs.Directory)
 }
 
-func (fs *FolderSink) closeAllWriters() error {
+func (fs *FolderSink) Close() error {
 	if fs.writer != nil {
 		err := fs.writer.Close()
 		fs.writer = nil

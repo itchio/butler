@@ -52,6 +52,11 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		return nil, errors.Wrap(err, 0)
 	}
 
+	err = sink.Close()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	for _, entry := range aRes.Entries {
 		res.Files = append(res.Files, entry.CanonicalPath)
 	}
