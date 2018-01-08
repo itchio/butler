@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/elfprops"
 	"github.com/itchio/butler/cmd/exeprops"
+	"github.com/itchio/butler/cmd/extract"
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
 	"github.com/itchio/butler/cmd/heal"
@@ -23,11 +24,11 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
+	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/service"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
-	"github.com/itchio/butler/cmd/extract"
 	"github.com/itchio/butler/cmd/unsz"
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
@@ -85,6 +86,8 @@ func registerCommands(ctx *mansion.Context) {
 	unzip.Register(ctx)
 	unsz.Register(ctx)
 	untar.Register(ctx)
+
+	repack.Register(ctx)
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
