@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
@@ -16,66 +19,93 @@ import (
 )
 
 var args = struct {
-	inPath *string
+	inPath  *string
+	outPath *string
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("repack", "Recompress a wharf patch using a different compression algorithm/format")
 	args.inPath = cmd.Arg("inpath", "Path of patch to recompress").Required().String()
+	args.outPath = cmd.Flag("outpath", "Path of patch to recompress").Short('o').String()
 	ctx.Register(cmd, do)
 }
 
 type Params struct {
 	InPath      string
+	OutPath     string
 	Compression *pwr.CompressionSettings
 }
 
 func do(ctx *mansion.Context) {
-	headers := []string{
-		"algorithm", "relative size", "compression speed",
-	}
-	fmt.Printf("%s\n", strings.Join(headers, ","))
-
-	algos := []pwr.CompressionAlgorithm{
-		pwr.CompressionAlgorithm_ZSTD,
-		pwr.CompressionAlgorithm_BROTLI,
-	}
-	qualities := []int32{
-		1,
-		3,
-		6,
-		9,
-	}
-	for _, algo := range algos {
-		for _, quality := range qualities {
-			comp := &pwr.CompressionSettings{
-				Algorithm: algo,
-				Quality:   quality,
-			}
-
-			ctx.Must(Do(&Params{
-				InPath:      *args.inPath,
-				Compression: comp,
-			}))
+	if *args.outPath == "" {
+		// benchmark!
+		headers := []string{
+			"algorithm", "relative size", "compression speed",
 		}
+		fmt.Printf("%s\n", strings.Join(headers, ","))
+
+		algos := []pwr.CompressionAlgorithm{
+			pwr.CompressionAlgorithm_ZSTD,
+			pwr.CompressionAlgorithm_BROTLI,
+		}
+		qualities := []int32{
+			1,
+			3,
+			6,
+			9,
+		}
+		for _, algo := range algos {
+			for _, quality := range qualities {
+				comp := &pwr.CompressionSettings{
+					Algorithm: algo,
+					Quality:   quality,
+				}
+
+				ctx.Must(Do(&Params{
+					InPath:      *args.inPath,
+					Compression: comp,
+				}))
+			}
+		}
+	} else {
+		// output!
+		comp := ctx.CompressionSettings()
+		ctx.Must(Do(&Params{
+			InPath:      *args.inPath,
+			OutPath:     *args.outPath,
+			Compression: &comp,
+		}))
 	}
 }
 
 func Do(params *Params) error {
-	var columns []string
+	bench := params.OutPath == ""
+	consumer := comm.NewStateConsumer()
 
-	r, err := eos.Open(params.InPath)
+	dr, err := eos.Open(params.InPath)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer r.Close()
+	defer dr.Close()
 
-	stats, err := r.Stat()
+	stats, err := dr.Stat()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	dw := ioutil.Discard
+	r := counter.NewReaderCallback(func(count int64) {
+		comm.Progress(float64(count) / float64(stats.Size()))
+	}, dr)
+
+	var dw io.Writer
+	if bench {
+		dw = ioutil.Discard
+	} else {
+		dw, err = os.Create(params.OutPath)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
 	w := counter.NewWriter(dw)
 
 	rawInWire := wire.NewReadContext(r)
@@ -101,6 +131,11 @@ func Do(params *Params) error {
 	err = rawOutWire.WriteMagic(pwr.PatchMagic)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	if !bench {
+		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), humanize.IBytes(uint64(stats.Size())), header.Compression, params.Compression)
+		comm.StartProgressWithTotalBytes(stats.Size())
 	}
 
 	header.Compression = params.Compression
@@ -130,6 +165,12 @@ func Do(params *Params) error {
 
 		megaBytesPerSec = float64(numBytes) / 1024.0 / 1024.0 / duration.Seconds()
 
+		if !bench {
+			comm.EndProgress()
+			perSec := humanize.IBytes(uint64(float64(numBytes) / duration.Seconds()))
+			consumer.Statf("Repacked %s @ %s/s", humanize.IBytes(uint64(numBytes)), perSec)
+		}
+
 		return nil
 	}()
 	if err != nil {
@@ -140,11 +181,22 @@ func Do(params *Params) error {
 
 	outSize := w.Count()
 
-	columns = append(columns, fmt.Sprintf("%s-q%d", header.Compression.Algorithm, header.Compression.Quality))
-	columns = append(columns, fmt.Sprintf("%f", float64(outSize)/float64(inSize)))
-	columns = append(columns, fmt.Sprintf("%f", megaBytesPerSec))
+	if bench {
+		columns := []string{
+			fmt.Sprintf("%s-q%d", header.Compression.Algorithm, header.Compression.Quality),
+			fmt.Sprintf("%f", float64(outSize)/float64(inSize)),
+			fmt.Sprintf("%f", megaBytesPerSec),
+		}
 
-	fmt.Printf("%s\n", strings.Join(columns, ","))
+		fmt.Printf("%s\n", strings.Join(columns, ","))
+	} else {
+		consumer.Statf("%s => %s (%.3f as large as the input)",
+			humanize.IBytes(uint64(inSize)),
+			humanize.IBytes(uint64(outSize)),
+			float64(outSize)/float64(inSize),
+		)
+		consumer.Statf("Wrote to %s", params.OutPath)
+	}
 
 	return nil
 }
