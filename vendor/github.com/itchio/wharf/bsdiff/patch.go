@@ -1,10 +1,8 @@
 package bsdiff
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"os"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/itchio/wharf/bsdiff/lrufile"
+	"github.com/itchio/wharf/counter"
 )
 
 // ErrCorrupt indicates that a patch is corrupted, most often that it would produce a longer file
@@ -31,10 +30,12 @@ func NewPatchContext() *PatchContext {
 	return &PatchContext{}
 }
 
+var useLru = os.Getenv("BUTLER_LRU") == "1"
+
 // Patch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
-func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
-	if ctx.lruFile == nil {
+func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, neworig io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+	if ctx.lf == nil {
 		// let's commandeer 32MiB of memory to avoid too many syscalls.
 		// these values found empirically: https://twitter.com/fasterthanlime/status/950823147472850950
 		// but also, 32K is golang's default copy size.
@@ -42,10 +43,10 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int
 		const lruNumEntries = 1024
 
 		var err error
-		ctx.lruFile, err = lrufile.New(lruChunkSize, lruNumEntries)
+		ctx.lf, err = lrufile.New(lruChunkSize, lruNumEntries)
 
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -56,20 +57,22 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int
 	buffer := ctx.buffer
 
 	var old io.ReadSeeker
-	if os.Getenv("BUTLER_IN_MEMORY") == "1" {
-		buf, err := ioutil.ReadAll(oldorig)
+	if useLru {
+		err := ctx.lf.Reset(oldorig)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
-		old = bytes.NewReader(buf)
+
+		old = ctx.lf
 	} else {
 		old = oldorig
 	}
 
-	var oldpos, newpos int64
 	var err error
 
 	ctrl := &Control{}
+
+	new := counter.NewWriter(neworig)
 
 	for {
 		ctrl.Reset()
@@ -83,48 +86,51 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int
 			break
 		}
 
-		// Sanity-check
-		if newpos+int64(len(ctrl.Add)) > newSize {
-			return errors.Wrap(ErrCorrupt, 0)
-		}
-
 		// Add old data to diff string
-		ar := &AdderReader{
-			Buffer: ctrl.Add,
-			Reader: old,
-		}
+		addlen := len(ctrl.Add)
+		if addlen > 0 {
+			ar := &AdderReader{
+				Buffer: ctrl.Add,
+				Reader: old,
+			}
 
-		_, err := io.CopyBuffer(new, io.LimitReader(ar, int64(len(ctrl.Add))), buffer)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+			copied, err := io.CopyBuffer(new, io.LimitReader(ar, int64(addlen)), buffer)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 
-		// Adjust pointers
-		newpos += int64(len(ctrl.Add))
-		oldpos += int64(len(ctrl.Add))
-
-		// Sanity-check
-		if newpos+int64(len(ctrl.Copy)) > newSize {
-			return errors.Wrap(ErrCorrupt, 0)
+			if copied != int64(addlen) {
+				return errors.Wrap(fmt.Errorf("bsdiff-add: expected to copy %d bytes but copied %d", addlen, copied), 0)
+			}
 		}
 
 		// Read extra string
-		_, err = new.Write(ctrl.Copy)
-		if err != nil {
-			return errors.Wrap(err, 0)
+		copylen := len(ctrl.Copy)
+		if copylen > 0 {
+			copied, err := new.Write(ctrl.Copy)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if copied != copylen {
+				return errors.Wrap(fmt.Errorf("bsdiff-copy: expected to copy %d bytes but copied %d", addlen, copied), 0)
+			}
 		}
 
-		// Adjust pointers
-		newpos += int64(len(ctrl.Copy))
-
-		oldpos, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
+		_, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 	}
 
-	if newpos != newSize {
-		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, newpos, humanize.IBytes(uint64(newSize-newpos)))
+	if new.Count() != newSize {
+		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, new.Count(), humanize.IBytes(uint64(newSize-new.Count())))
+	}
+
+	if useLru {
+		s := ctx.lf.Stats()
+		hitRate := float64(s.Hits) / float64(s.Hits+s.Misses)
+		fmt.Printf("%.2f%% hit rate\n", hitRate*100)
 	}
 
 	return nil

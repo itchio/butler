@@ -106,14 +106,18 @@ func (lf *lruFile) Read(buf []byte) (int, error) {
 
 		chunkStart := chunkIndex * lf.chunkSize
 		chunkEnd := chunkStart + lf.chunkSize
+		lastChunk := false
 		if chunkEnd > lf.size {
 			chunkEnd = lf.size
-			eof = true
+			lastChunk = true
 		}
 		chunkSize := chunkEnd - chunkStart
 
 		if end > chunkSize {
 			end = chunkSize
+			if lastChunk {
+				eof = true
+			}
 		}
 
 		copied := copy(buf[readBytes:], chunk[start:end])
@@ -141,8 +145,9 @@ func (lf *lruFile) Seek(offset int64, whence int) (int64, error) {
 	}
 
 	if lf.offset < 0 || lf.offset > lf.size {
+		invalid := lf.offset
 		lf.offset = 0
-		return lf.offset, fmt.Errorf("invalid seek to %d, must be in [%d,%d]", lf.offset, 0, lf.size)
+		return lf.offset, fmt.Errorf("invalid seek to %d, must be in [%d,%d]", invalid, 0, lf.size)
 	}
 
 	return lf.offset, nil
