@@ -3,17 +3,16 @@ package cbrotli
 import (
 	"io"
 
-	"gopkg.in/kothar/brotli-go.v0/enc"
-
+	"github.com/itchio/go-brotli/enc"
 	"github.com/itchio/wharf/pwr"
 )
 
 type brotliCompressor struct{}
 
 func (bc *brotliCompressor) Apply(writer io.Writer, quality int32) (io.Writer, error) {
-	params := enc.NewBrotliParams()
-	params.SetQuality(int(quality))
-	return enc.NewBrotliWriter(params, writer), nil
+	return enc.NewBrotliWriter(writer, &enc.BrotliWriterOptions{
+		Quality: int(quality),
+	}), nil
 }
 
 func init() {

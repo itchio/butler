@@ -3,8 +3,7 @@ package cbrotli
 import (
 	"io"
 
-	"gopkg.in/kothar/brotli-go.v0/dec"
-
+	"github.com/itchio/go-brotli/dec"
 	"github.com/itchio/wharf/pwr"
 )
 

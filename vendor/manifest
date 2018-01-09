@@ -182,6 +182,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/go-brotli",
+			"repository": "https://github.com/itchio/go-brotli",
+			"vcs": "git",
+			"revision": "29899a447037af0c68028d70df58ac2faebf280c",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
@@ -233,7 +241,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "2ad473d696843264fc9f2117cd35e00b9e975c85",
+			"revision": "b539b18a6ae193be3298e25b31bad61991282252",
 			"branch": "master",
 			"notests": true
 		},
@@ -512,33 +520,6 @@
 			"vcs": "git",
 			"revision": "1087e65c9441605df944fb12c33f0fe7072d18ca",
 			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "gopkg.in/kothar/brotli-go.v0/dec",
-			"repository": "https://gopkg.in/kothar/brotli-go.v0",
-			"vcs": "git",
-			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
-			"branch": "master",
-			"path": "/dec",
-			"notests": true
-		},
-		{
-			"importpath": "gopkg.in/kothar/brotli-go.v0/enc",
-			"repository": "https://gopkg.in/kothar/brotli-go.v0",
-			"vcs": "git",
-			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
-			"branch": "master",
-			"path": "/enc",
-			"notests": true
-		},
-		{
-			"importpath": "gopkg.in/kothar/brotli-go.v0/shared",
-			"repository": "https://gopkg.in/kothar/brotli-go.v0",
-			"vcs": "git",
-			"revision": "34bde402ce950e61aa10b78de09c9d64ad314934",
-			"branch": "master",
-			"path": "/shared",
 			"notests": true
 		}
 	]
