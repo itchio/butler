@@ -24,7 +24,7 @@ var args = struct {
 }{}
 
 func Register(ctx *mansion.Context) {
-	cmd := ctx.App.Command("repack", "Recompress a wharf patch using a different compression algorithm/format")
+	cmd := ctx.App.Command("repack", "Recompress a wharf patch using a different compression algorithm/format").Hidden()
 	args.inPath = cmd.Arg("inpath", "Path of patch to recompress").Required().String()
 	args.outPath = cmd.Flag("outpath", "Path of patch to recompress").Short('o').String()
 	ctx.Register(cmd, do)
