@@ -11,6 +11,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
+	"github.com/itchio/wharf/bsdiff/lrufile"
 )
 
 // ErrCorrupt indicates that a patch is corrupted, most often that it would produce a longer file
@@ -23,6 +24,7 @@ type ReadMessageFunc func(msg proto.Message) error
 
 type PatchContext struct {
 	buffer []byte
+	lf     lrufile.File
 }
 
 func NewPatchContext() *PatchContext {
@@ -32,6 +34,21 @@ func NewPatchContext() *PatchContext {
 // Patch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
 func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+	if ctx.lruFile == nil {
+		// let's commandeer 32MiB of memory to avoid too many syscalls.
+		// these values found empirically: https://twitter.com/fasterthanlime/status/950823147472850950
+		// but also, 32K is golang's default copy size.
+		const lruChunkSize int64 = 32 * 1024
+		const lruNumEntries = 1024
+
+		var err error
+		ctx.lruFile, err = lrufile.New(lruChunkSize, lruNumEntries)
+
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
 	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
 	if len(ctx.buffer) < minBufferSize {
 		ctx.buffer = make([]byte, minBufferSize)

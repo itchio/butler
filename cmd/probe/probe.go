@@ -234,8 +234,9 @@ func Do(ctx *mansion.Context, patch string) error {
 			name = filepath.Base(name)
 		}
 
-		comm.Logf("  - %s in %s (%.2f%% changed, %s)",
+		comm.Logf("  - %s / %s in %s (%.2f%% changed, %s)",
 			humanize.IBytes(uint64(stat.freshData)),
+			humanize.IBytes(uint64(f.Size)),
 			name,
 			float64(stat.freshData)/float64(f.Size)*100.0,
 			stat.algo)
