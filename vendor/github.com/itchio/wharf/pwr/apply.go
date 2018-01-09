@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -61,7 +62,10 @@ type ApplyContext struct {
 
 	TargetPath string
 	OutputPath string
-	InPlace    bool
+	// if set, will patch files in-place rather than in a new directory
+	InPlace bool
+	// if set, will apply to a nullpool (not writing anything to disk)
+	DryRun bool
 
 	TargetContainer *tlc.Container
 	TargetPool      wsync.Pool
@@ -124,7 +128,11 @@ type Ghost struct {
 func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 	actx.actualOutputPath = actx.OutputPath
 	if actx.OutputPool == nil {
-		if actx.InPlace {
+		if actx.DryRun {
+			if actx.actualOutputPath != "" {
+				return fmt.Errorf("cannot specify both OutputPath and DryRun")
+			}
+		} else if actx.InPlace {
 			// applying in-place is a bit tricky: we can't overwrite files in the
 			// target directory (old) while we're reading the patch otherwise
 			// we might be copying new bytes instead of old bytes into later files
@@ -192,7 +200,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 
 	// when not working with a custom output pool
 	if actx.OutputPool == nil {
-		if actx.InPlace {
+		if actx.DryRun {
+			actx.OutputPool = nullpool.New(actx.SourceContainer)
+		} else if actx.InPlace {
 			// when working in-place, we have to keep track of which files were deleted
 			// from one version to the other, so that we too may delete them in the end.
 			ghosts = detectGhosts(actx.SourceContainer, actx.TargetContainer)
@@ -211,7 +221,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
 		return errors.Wrap(err, 0)
 	}
 
-	if actx.InPlace {
+	if actx.DryRun {
+		// muffin to do
+	} else if actx.InPlace {
 		err = actx.ensureDirsAndSymlinks(actx.actualOutputPath)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -325,6 +337,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 	}
 
 	sctx := mksync()
+	bctx := bsdiff.NewPatchContext()
 	sh := &SyncHeader{}
 
 	// transpositions, indexed by TargetPath
@@ -431,7 +444,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 			newSize := actx.SourceContainer.Files[sh.FileIndex].Size
 
-			err = bsdiff.Patch(targetReader, writeCounter, newSize, patchWire.ReadMessage)
+			err = bctx.Patch(targetReader, writeCounter, newSize, patchWire.ReadMessage)
 			if err != nil {
 				retErr = errors.Wrap(err, 0)
 				return

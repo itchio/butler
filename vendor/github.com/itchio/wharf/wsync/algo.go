@@ -57,6 +57,12 @@ func (ctx *Context) ApplyPatch(output io.Writer, pool Pool, ops chan Operation) 
 
 // ApplyPatchFull is like ApplyPatch but accepts an ApplyWound channel
 func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operation, failFast bool) error {
+	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
+	if len(ctx.buffer) < minBufferSize {
+		ctx.buffer = make([]byte, minBufferSize)
+	}
+	buffer := ctx.buffer
+
 	blockSize := int64(ctx.blockSize)
 	pos := int64(0)
 
@@ -77,7 +83,7 @@ func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operati
 				if failFast {
 					return errors.Wrap(err, 1)
 				}
-				io.CopyN(output, &devNullReader{}, opSize)
+				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
 				pos += opSize
 				continue
 			}
@@ -87,19 +93,19 @@ func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operati
 				if failFast {
 					return errors.Wrap(err, 1)
 				}
-				io.CopyN(output, &devNullReader{}, opSize)
+				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
 				pos += opSize
 				continue
 			}
 
-			copied, err := io.CopyN(output, target, opSize)
+			copied, err := io.CopyBuffer(output, io.LimitReader(target, opSize), buffer)
 			if err != nil {
 				if failFast {
 					return errors.Wrap(fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error()), 1)
 				}
 
 				remaining := opSize - copied
-				io.CopyN(output, &devNullReader{}, remaining)
+				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, remaining), buffer)
 				pos += opSize
 				continue
 			}

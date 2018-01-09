@@ -19,6 +19,7 @@ var args = struct {
 
 	dir       *string
 	inplace   *bool
+	dryrun    *bool
 	signature *string
 	wounds    *string
 	heal      *string
@@ -32,6 +33,7 @@ func Register(ctx *mansion.Context) {
 
 	args.dir = cmd.Flag("dir", "Directory to create newer files in, instead of working in-place").Short('d').String()
 	args.inplace = cmd.Flag("inplace", "Apply patch directly to old directory. Required for safety").Bool()
+	args.dryrun = cmd.Flag("dryrun", "Don't write the new files anywhere, just apply the patch in memory").Bool()
 	args.signature = cmd.Flag("signature", "When given, verify the integrity of touched file using the signature").String()
 	args.wounds = cmd.Flag("wounds", "When given, write wounds to this path instead of failing (exclusive with --heal)").String()
 	args.heal = cmd.Flag("heal", "When given, heal using specified source instead of failing (exclusive with --wounds)").String()
@@ -46,6 +48,7 @@ func do(ctx *mansion.Context) {
 
 		Output:        *args.dir,
 		InPlace:       *args.inplace,
+		DryRun:        *args.dryrun,
 		SignaturePath: *args.signature,
 		WoundsPath:    *args.wounds,
 		HealSpec:      *args.heal,
@@ -59,6 +62,7 @@ type Params struct {
 
 	Output        string
 	InPlace       bool
+	DryRun        bool
 	SignaturePath string
 	WoundsPath    string
 	HealSpec      string
@@ -74,15 +78,17 @@ func Do(params *Params) error {
 	woundsPath := params.WoundsPath
 	healSpec := params.HealSpec
 
-	if output == "" {
-		output = target
-	}
+	if !params.DryRun {
+		if output == "" {
+			output = target
+		}
 
-	target = path.Clean(target)
-	output = path.Clean(output)
-	if output == target {
-		if !params.InPlace {
-			comm.Dief("Refusing to destructively patch %s without --inplace", output)
+		target = path.Clean(target)
+		output = path.Clean(output)
+		if output == target {
+			if !params.InPlace {
+				comm.Dief("Refusing to destructively patch %s without --inplace", output)
+			}
 		}
 	}
 
@@ -116,6 +122,7 @@ func Do(params *Params) error {
 	actx := &pwr.ApplyContext{
 		TargetPath: target,
 		OutputPath: output,
+		DryRun:     params.DryRun,
 		InPlace:    params.InPlace,
 		Signature:  signature,
 		WoundsPath: woundsPath,

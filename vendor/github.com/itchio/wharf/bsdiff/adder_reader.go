@@ -1,6 +1,8 @@
 package bsdiff
 
-import "io"
+import (
+	"io"
+)
 
 type AdderReader struct {
 	Buffer []byte
@@ -17,10 +19,13 @@ func (ar *AdderReader) Read(p []byte) (int, error) {
 		return n, err
 	}
 
-	for i := range p {
-		p[i] += ar.Buffer[ar.offset]
-		ar.offset++
+	b := ar.Buffer
+	off := ar.offset
+
+	for i := 0; i < n; i++ {
+		p[i] += b[off+i]
 	}
+	ar.offset += n
 
 	return n, nil
 }

@@ -1,8 +1,10 @@
 package bsdiff
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 
 	"os"
 
@@ -19,9 +21,34 @@ var ErrCorrupt = errors.New("corrupt patch")
 // See the `wire` package for an example implementation.
 type ReadMessageFunc func(msg proto.Message) error
 
+type PatchContext struct {
+	buffer []byte
+}
+
+func NewPatchContext() *PatchContext {
+	return &PatchContext{}
+}
+
 // Patch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
-func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
+	if len(ctx.buffer) < minBufferSize {
+		ctx.buffer = make([]byte, minBufferSize)
+	}
+	buffer := ctx.buffer
+
+	var old io.ReadSeeker
+	if os.Getenv("BUTLER_IN_MEMORY") == "1" {
+		buf, err := ioutil.ReadAll(oldorig)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		old = bytes.NewReader(buf)
+	} else {
+		old = oldorig
+	}
+
 	var oldpos, newpos int64
 	var err error
 
@@ -50,7 +77,7 @@ func Patch(old io.ReadSeeker, new io.Writer, newSize int64, readMessage ReadMess
 			Reader: old,
 		}
 
-		_, err := io.CopyN(new, ar, int64(len(ctrl.Add)))
+		_, err := io.CopyBuffer(new, io.LimitReader(ar, int64(len(ctrl.Add))), buffer)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
