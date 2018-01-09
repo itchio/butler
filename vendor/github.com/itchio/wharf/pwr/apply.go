@@ -427,9 +427,11 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				return
 			}
 
+			writeCounter := counter.NewWriterCallback(onSourceWrite, sourceWriter)
+
 			newSize := actx.SourceContainer.Files[sh.FileIndex].Size
 
-			err = bsdiff.Patch(targetReader, sourceWriter, newSize, patchWire.ReadMessage)
+			err = bsdiff.Patch(targetReader, writeCounter, newSize, patchWire.ReadMessage)
 			if err != nil {
 				retErr = errors.Wrap(err, 0)
 				return
