@@ -533,6 +533,11 @@ func (actx *ApplyContext) applyTranspositions(transpositions map[string][]*Trans
 		return nil
 	}
 
+	if actx.DryRun {
+		actx.Consumer.Infof("Doing a dry-run, ignoring %d transpositions", len(transpositions))
+		return nil
+	}
+
 	if !actx.InPlace {
 		return fmt.Errorf("internal error: found transpositions but not applying in-place")
 	}

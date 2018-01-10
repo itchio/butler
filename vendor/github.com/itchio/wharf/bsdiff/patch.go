@@ -31,6 +31,7 @@ func NewPatchContext() *PatchContext {
 }
 
 var useLru = os.Getenv("BUTLER_LRU") == "1"
+var showLruStats = os.Getenv("BUTLER_LRU_STATS") == "1"
 
 // Patch applies patch to old, according to the bspatch algorithm,
 // and writes the result to new.
@@ -127,7 +128,7 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, neworig io.Writer, newSize
 		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, new.Count(), humanize.IBytes(uint64(newSize-new.Count())))
 	}
 
-	if useLru {
+	if useLru && showLruStats {
 		s := ctx.lf.Stats()
 		hitRate := float64(s.Hits) / float64(s.Hits+s.Misses)
 		fmt.Printf("%.2f%% hit rate\n", hitRate*100)
