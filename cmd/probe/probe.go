@@ -52,7 +52,7 @@ func Do(ctx *mansion.Context, patch string) error {
 	return nil
 }
 
-func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]int64, error) {
+func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) {
 	patchReader, err := eos.Open(patch)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -245,7 +245,6 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]int64, error) {
 	comm.Logf("")
 	comm.Statf("Most of the fresh data is in the following files:")
 
-	var topFileIndices []int64
 	for i, stat := range patchStats {
 		f := source.Files[stat.fileIndex]
 		name := f.Path
@@ -261,7 +260,6 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]int64, error) {
 			stat.algo)
 
 		printedFresh += stat.freshData
-		topFileIndices = append(topFileIndices, stat.fileIndex)
 
 		if i >= 10 || printedFresh >= freshThreshold {
 			break
@@ -281,7 +279,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]int64, error) {
 	)
 	comm.Logf(" (%d/%d files are changed by this patch, they weigh a total of %s)", numTouched, numTotal, humanize.IBytes(uint64(naivePatchSize)))
 
-	return topFileIndices, nil
+	return patchStats, nil
 }
 
 type deepDiveContext struct {
@@ -462,6 +460,18 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	var newpos int64
 
 	var pristine int64
+	var bestUnchanged int64
+
+	clearUnchanged := func() {
+		if bestUnchanged > 1024*1024 {
+			comm.Logf("%s contiguous unchanged block ending at from %s to %s",
+				humanize.IBytes(uint64(bestUnchanged)),
+				humanize.IBytes(uint64(newpos-bestUnchanged)),
+				humanize.IBytes(uint64(newpos)),
+			)
+		}
+		bestUnchanged = 0
+	}
 
 	for readingOps {
 		bc.Reset()
@@ -480,20 +490,24 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 			if oldpos == newpos {
 				var unchanged int64
 				for _, b := range bc.Add {
+					oldpos++
+					newpos++
 					if b == 0 {
 						unchanged++
+						bestUnchanged++
+					} else {
+						clearUnchanged()
 					}
 				}
 				pristine += unchanged
 			} else {
-				// comm.Logf("at %d, applying %d range from %d", newpos, len(bc.Add), oldpos)
+				oldpos += int64(len(bc.Add))
+				newpos += int64(len(bc.Add))
 			}
-
-			oldpos += int64(len(bc.Add))
-			newpos += int64(len(bc.Add))
 		}
 
 		if len(bc.Copy) > 0 {
+			clearUnchanged()
 			newpos += int64(len(bc.Copy))
 		}
 
