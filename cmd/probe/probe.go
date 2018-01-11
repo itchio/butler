@@ -37,13 +37,13 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(ctx *mansion.Context, patch string) error {
-	topFileIndices, err := doPrimaryAnalysis(ctx, patch)
+	patchStats, err := doPrimaryAnalysis(ctx, patch)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
 	if *args.deep {
-		err = doDeepAnalysis(ctx, patch, topFileIndices)
+		err = doDeepAnalysis(ctx, patch, patchStats)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -149,9 +149,11 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 					switch rop.Type {
 					case pwr.SyncOp_BLOCK_RANGE:
+						tf := target.Files[rop.FileIndex]
+
 						fixedSize := (rop.BlockSpan - 1) * pwr.BlockSize
 						lastIndex := rop.BlockIndex + (rop.BlockSpan - 1)
-						lastSize := pwr.ComputeBlockSize(f.Size, lastIndex)
+						lastSize := pwr.ComputeBlockSize(tf.Size, lastIndex)
 						totalSize := (fixedSize + lastSize)
 						stat.freshData -= totalSize
 						pos += totalSize
@@ -286,16 +288,23 @@ type deepDiveContext struct {
 	target *tlc.Container
 	source *tlc.Container
 	rctx   *wire.ReadContext
+
+	totalPristine int64
+	totalTouched  int64
 }
 
-func doDeepAnalysis(ctx *mansion.Context, patch string, topFileIndices []int64) error {
+func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) error {
 	comm.Logf("")
-	comm.Statf("Now deep-diving into top %d files", len(topFileIndices))
-
-	topIndexMap := make(map[int64]bool)
-	for _, i := range topFileIndices {
-		topIndexMap[i] = true
+	var numTouched int
+	patchStatPerFileIndex := make(map[int64]patchStat)
+	for _, ps := range patchStats {
+		patchStatPerFileIndex[ps.fileIndex] = ps
+		if ps.freshData > 0 {
+			numTouched++
+		}
 	}
+
+	comm.Statf("Now deep-diving into %d touched files", numTouched)
 
 	patchReader, err := eos.Open(patch)
 	if err != nil {
@@ -363,10 +372,10 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, topFileIndices []int64) 
 			return fmt.Errorf("malformed patch: expected file %d, got %d", fileIndex, sh.FileIndex)
 		}
 
-		if topIndexMap[sh.FileIndex] {
+		pc := patchStatPerFileIndex[sh.FileIndex]
+		if pc.freshData > 0 {
 			err = ddc.analyzeSeries(sh)
 		} else {
-			comm.Debugf("Skipping %d...", sh.FileIndex)
 			err = ddc.skipSeries(sh)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -374,18 +383,23 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, topFileIndices []int64) 
 		}
 	}
 
+	comm.Statf("All in all, that's %s / %s pristine of all the touched data",
+		humanize.IBytes(uint64(ddc.totalPristine)),
+		humanize.IBytes(uint64(ddc.totalTouched)),
+	)
+
 	return nil
 }
 
 func (ddc *deepDiveContext) analyzeSeries(sh *pwr.SyncHeader) error {
-	comm.Logf("")
-	comm.Logf("=============================================")
-	comm.Logf("")
+	f := ddc.source.Files[sh.FileIndex]
 
 	switch sh.Type {
 	case pwr.SyncHeader_RSYNC:
+		ddc.totalTouched += f.Size
 		return ddc.analyzeRsync(sh)
 	case pwr.SyncHeader_BSDIFF:
+		ddc.totalTouched += f.Size
 		return ddc.analyzeBsdiff(sh)
 	default:
 		return fmt.Errorf("don't know how to analyze series of type %d", sh.Type)
@@ -394,7 +408,7 @@ func (ddc *deepDiveContext) analyzeSeries(sh *pwr.SyncHeader) error {
 
 func (ddc *deepDiveContext) analyzeRsync(sh *pwr.SyncHeader) error {
 	f := ddc.source.Files[sh.FileIndex]
-	comm.Logf("Analyzing rsync series for '%s'", f.Path)
+	comm.Debugf("Analyzing rsync series for '%s'", f.Path)
 
 	rctx := ddc.rctx
 	readingOps := true
@@ -402,6 +416,9 @@ func (ddc *deepDiveContext) analyzeRsync(sh *pwr.SyncHeader) error {
 	rop := &pwr.SyncOp{}
 
 	targetBlocks := make(map[int64]int64)
+
+	var pos int64
+	var pristine int64
 
 	for readingOps {
 		rop.Reset()
@@ -415,29 +432,45 @@ func (ddc *deepDiveContext) analyzeRsync(sh *pwr.SyncHeader) error {
 		case pwr.SyncOp_BLOCK_RANGE:
 			i := rop.FileIndex
 			targetBlocks[i] = targetBlocks[i] + rop.BlockSpan
+
+			tf := ddc.target.Files[rop.FileIndex]
+
+			fixedSize := (rop.BlockSpan - 1) * pwr.BlockSize
+			lastIndex := rop.BlockIndex + (rop.BlockSpan - 1)
+			lastSize := pwr.ComputeBlockSize(tf.Size, lastIndex)
+			totalSize := (fixedSize + lastSize)
+			pos += totalSize
+
+			if f.Path == tf.Path {
+				if pos == pwr.BlockSize*rop.BlockIndex {
+					pristine += totalSize
+				}
+			}
 		case pwr.SyncOp_DATA:
-			// TODO: something
+			pos += int64(len(rop.Data))
 		case pwr.SyncOp_HEY_YOU_DID_IT:
 			readingOps = false
 		}
 	}
 
 	if len(targetBlocks) > 0 {
-		comm.Statf("Sourcing from '%d' blocks total: ", len(targetBlocks))
+		comm.Debugf("Sourcing from '%d' blocks total: ", len(targetBlocks))
 		for i, numBlocks := range targetBlocks {
 			tf := ddc.target.Files[i]
-			comm.Statf("Taking %d blocks from '%s'", numBlocks, tf.Path)
+			comm.Debugf("Taking %d blocks from '%s'", numBlocks, tf.Path)
 		}
 	} else {
-		comm.Statf("Entirely fresh data!")
+		comm.Debugf("Entirely fresh data!")
 	}
+
+	ddc.totalPristine += pristine
 
 	return nil
 }
 
 func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	f := ddc.source.Files[sh.FileIndex]
-	comm.Logf("Analyzing bsdiff series for '%s'", f.Path)
+	comm.Debugf("Analyzing bsdiff series for '%s'", f.Path)
 
 	rctx := ddc.rctx
 	readingOps := true
@@ -449,9 +482,9 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	}
 
 	tf := ddc.target.Files[bh.TargetIndex]
-	comm.Logf("Diffed against target file '%s'", tf.Path)
+	comm.Debugf("Diffed against target file '%s'", tf.Path)
 	if tf.Path == f.Path {
-		comm.Logf("Same path, can do in-place!")
+		comm.Debugf("Same path, can do in-place!")
 	}
 
 	bc := &bsdiff.Control{}
@@ -460,11 +493,12 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	var newpos int64
 
 	var pristine int64
+	var similar int64
 	var bestUnchanged int64
 
 	clearUnchanged := func() {
 		if bestUnchanged > 1024*1024 {
-			comm.Logf("%s contiguous unchanged block ending at from %s to %s",
+			comm.Debugf("%s contiguous unchanged block ending at from %s to %s",
 				humanize.IBytes(uint64(bestUnchanged)),
 				humanize.IBytes(uint64(newpos-bestUnchanged)),
 				humanize.IBytes(uint64(newpos)),
@@ -472,6 +506,8 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 		}
 		bestUnchanged = 0
 	}
+
+	var clobbered int64
 
 	for readingOps {
 		bc.Reset()
@@ -501,8 +537,17 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 				}
 				pristine += unchanged
 			} else {
+				if oldpos < newpos {
+					clobbered += int64(len(bc.Add))
+				}
 				oldpos += int64(len(bc.Add))
 				newpos += int64(len(bc.Add))
+			}
+
+			for _, b := range bc.Add {
+				if b == 0 {
+					similar++
+				}
 			}
 		}
 
@@ -526,8 +571,12 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 		return errors.New(msg)
 	}
 
-	comm.Statf("%s / %s pristine after patch application", humanize.IBytes(uint64(pristine)), humanize.IBytes(uint64(tf.Size)))
-	comm.Statf("File went from %s to %s", humanize.IBytes(uint64(tf.Size)), humanize.IBytes(uint64(f.Size)))
+	comm.Debugf("%s / %s pristine after patch application", humanize.IBytes(uint64(pristine)), humanize.IBytes(uint64(tf.Size)))
+	comm.Debugf("File went from %s to %s", humanize.IBytes(uint64(tf.Size)), humanize.IBytes(uint64(f.Size)))
+	comm.Debugf("%s / %s clobbered total", humanize.IBytes(uint64(clobbered)), humanize.IBytes(uint64(tf.Size)))
+	comm.Debugf("%s / %s similar total", humanize.IBytes(uint64(similar)), humanize.IBytes(uint64(tf.Size)))
+
+	ddc.totalPristine += pristine
 
 	return nil
 }
