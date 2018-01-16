@@ -75,6 +75,8 @@ func serveBuildFile(r itchio.DownloadUploadBuildResponse, fileType string) (stri
 		return r.Signature.URL, nil
 	case "manifest":
 		return r.Manifest.URL, nil
+	case "unpacked":
+		return r.Unpacked.URL, nil
 	}
 
 	return "", fmt.Errorf("unknown file type %s", fileType)

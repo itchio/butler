@@ -91,6 +91,8 @@ type DownloadUploadBuildResponse struct {
 	Manifest *DownloadUploadBuildResponseItem `json:"manifest"`
 	// Archive is the download info for the .zip archive, if any
 	Archive *DownloadUploadBuildResponseItem `json:"archive"`
+	// Unpacked is the only file of the build, if it's a single file
+	Unpacked *DownloadUploadBuildResponseItem `json:"unpacked"`
 }
 
 // CreateBuildEventResponse is what the API responds with when you create a new build event

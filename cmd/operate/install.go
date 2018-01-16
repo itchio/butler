@@ -99,6 +99,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		oc.Save(meta)
 	}
 
+	// FIXME: if the upload isn't nil, we still want to look for a build
+	// so we can return the right thing
+
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
 		receiptIn = nil
@@ -171,9 +174,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		for _, bf := range params.Build.Files {
 			if bf.Type == itchio.BuildFileTypeUnpacked {
 				consumer.Infof("Build %d / %d has an unpacked file", params.Upload.ID, params.Build.ID)
-				consumer.Warnf("Not using unpacked yet, see https://github.com/itchio/itch/issues/1599")
-				// fileType = "unpacked"
-				// break
+				fileType = "unpacked"
+				break
 			}
 		}
 
@@ -469,7 +471,7 @@ func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	if u == nil {
 		consumer.Infof("  No upload")
 	} else {
-		consumer.Infof("  Upload %d: %s %s (%s)", u.ID, u.Filename, u.DisplayName)
+		consumer.Infof("  Upload %d (%s): %s", u.ID, u.Filename, u.DisplayName)
 
 		ch := "No channel"
 		if u.ChannelName != "" {
