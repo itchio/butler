@@ -7,7 +7,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/kompress/bzip2"
 	"github.com/itchio/savior"
-	"github.com/mohae/deepcopy"
 )
 
 type bzip2Source struct {
@@ -45,8 +44,7 @@ func (bs *bzip2Source) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	bs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
 		OnSave: func(checkpoint *savior.SourceCheckpoint) error {
 			savior.Debugf("bzip2: on save!")
-			// we need to deepcopy it because we're going to use it after return
-			bs.sourceCheckpoint = deepcopy.Copy(checkpoint).(*savior.SourceCheckpoint)
+			bs.sourceCheckpoint = checkpoint
 			bs.sr.WantSave()
 			return nil
 		},
@@ -116,6 +114,10 @@ func (bs *bzip2Source) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 }
 
 func (bs *bzip2Source) Read(buf []byte) (int, error) {
+	if bs.sr == nil {
+		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+	}
+
 	n, err := bs.sr.Read(buf)
 	bs.offset += int64(n)
 
@@ -152,6 +154,10 @@ func (bs *bzip2Source) Read(buf []byte) (int, error) {
 }
 
 func (bs *bzip2Source) ReadByte() (byte, error) {
+	if bs.sr == nil {
+		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+	}
+
 	_, err := bs.Read(bs.bytebuf)
 	return bs.bytebuf[0], err
 }

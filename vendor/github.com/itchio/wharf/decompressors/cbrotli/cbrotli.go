@@ -1,17 +1,15 @@
 package cbrotli
 
 import (
-	"io"
-
-	"github.com/itchio/go-brotli/dec"
+	"github.com/itchio/savior"
+	"github.com/itchio/savior/brotlisource"
 	"github.com/itchio/wharf/pwr"
 )
 
 type brotliDecompressor struct{}
 
-func (bc *brotliDecompressor) Apply(reader io.Reader) (io.Reader, error) {
-	br := dec.NewBrotliReader(reader)
-	return br, nil
+func (bc *brotliDecompressor) Apply(source savior.Source) (savior.Source, error) {
+	return brotlisource.New(source), nil
 }
 
 func init() {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
@@ -126,7 +125,6 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 
 	for fileIndex, f := range dctx.SourceContainer.Files {
 		dctx.Consumer.ProgressLabel(f.Path)
-		dctx.Consumer.Debug(fmt.Sprintf("%s (%s)", f.Path, humanize.IBytes(uint64(f.Size))))
 		fileOffset = f.Offset
 
 		syncHeader.Reset()

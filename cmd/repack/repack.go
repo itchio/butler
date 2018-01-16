@@ -12,6 +12,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/countingsource"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -93,9 +95,16 @@ func Do(params *Params) error {
 		return errors.Wrap(err, 0)
 	}
 
-	r := counter.NewReaderCallback(func(count int64) {
-		comm.Progress(float64(count) / float64(stats.Size()))
-	}, dr)
+	source := seeksource.FromFile(dr)
+
+	cs := countingsource.New(source, func(count int64) {
+		comm.Progress(source.Progress())
+	})
+
+	_, err = cs.Resume(nil)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	var dw io.Writer
 	if bench {
@@ -108,7 +117,7 @@ func Do(params *Params) error {
 	}
 	w := counter.NewWriter(dw)
 
-	rawInWire := wire.NewReadContext(r)
+	rawInWire := wire.NewReadContext(source)
 
 	err = rawInWire.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
@@ -134,8 +143,8 @@ func Do(params *Params) error {
 	}
 
 	if !bench {
-		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), humanize.IBytes(uint64(stats.Size())), header.Compression, params.Compression)
-		comm.StartProgressWithTotalBytes(stats.Size())
+		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), humanize.IBytes(uint64(source.Size())), header.Compression, params.Compression)
+		comm.StartProgressWithTotalBytes(source.Size())
 	}
 
 	header.Compression = params.Compression
@@ -155,7 +164,7 @@ func Do(params *Params) error {
 		defer outWire.Close()
 
 		startTime := time.Now()
-		rd := inWire.Reader()
+		rd := inWire.GetSource()
 		wr := outWire.Writer()
 		numBytes, err := io.Copy(wr, rd)
 		if err != nil {
@@ -177,7 +186,7 @@ func Do(params *Params) error {
 		return errors.Wrap(err, 0)
 	}
 
-	inSize := stats.Size()
+	inSize := source.Size()
 
 	outSize := w.Count()
 

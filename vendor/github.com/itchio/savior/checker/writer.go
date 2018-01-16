@@ -3,6 +3,8 @@ package checker
 import (
 	"fmt"
 	"io"
+
+	"github.com/go-errors/errors"
 )
 
 type Writer struct {
@@ -31,13 +33,13 @@ func (cw *Writer) Write(buf []byte) (int, error) {
 	n := 0
 	for i := 0; i < len(buf); i++ {
 		if cw.offset >= int64(len(cw.reference)) {
-			return n, fmt.Errorf("out of bounds write: %d but max length is %d", cw.offset, len(cw.reference))
+			return n, errors.Wrap(fmt.Errorf("out of bounds write: %d but max length is %d", cw.offset, len(cw.reference)), 0)
 		}
 
 		expected := cw.reference[cw.offset]
 		actual := buf[i]
 		if expected != actual {
-			return n, fmt.Errorf("at byte %d, expected %x but got %x", cw.offset, expected, actual)
+			return n, errors.Wrap(fmt.Errorf("at byte %d, expected %x but got %x", cw.offset, expected, actual), 0)
 		}
 		cw.offset++
 		n++

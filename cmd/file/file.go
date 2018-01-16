@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -74,13 +75,15 @@ func Do(ctx *mansion.Context, inPath string) error {
 
 	prettySize := humanize.IBytes(uint64(stats.Size()))
 
-	_, err = reader.Seek(0, io.SeekStart)
+	source := seeksource.FromFile(reader)
+
+	_, err = source.Resume(nil)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
 	var magic int32
-	err = binary.Read(reader, wire.Endianness, &magic)
+	err = binary.Read(source, wire.Endianness, &magic)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -89,7 +92,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	case pwr.PatchMagic:
 		{
 			ph := &pwr.PatchHeader{}
-			rctx := wire.NewReadContext(reader)
+			rctx := wire.NewReadContext(source)
 			err = rctx.ReadMessage(ph)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -123,7 +126,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	case pwr.SignatureMagic:
 		{
 			sh := &pwr.SignatureHeader{}
-			rctx := wire.NewReadContext(reader)
+			rctx := wire.NewReadContext(source)
 			err = rctx.ReadMessage(sh)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -152,7 +155,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	case pwr.ManifestMagic:
 		{
 			mh := &pwr.ManifestHeader{}
-			rctx := wire.NewReadContext(reader)
+			rctx := wire.NewReadContext(source)
 			err = rctx.ReadMessage(mh)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -181,7 +184,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	case pwr.WoundsMagic:
 		{
 			wh := &pwr.WoundsHeader{}
-			rctx := wire.NewReadContext(reader)
+			rctx := wire.NewReadContext(source)
 			err = rctx.ReadMessage(wh)
 			if err != nil {
 				return errors.Wrap(err, 0)

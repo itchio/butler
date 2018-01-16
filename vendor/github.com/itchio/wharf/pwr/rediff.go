@@ -9,6 +9,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
@@ -93,7 +94,7 @@ type RediffContext struct {
 
 // AnalyzePatch parses a non-optimized patch, looking for good bsdiff'ing candidates
 // and building DiffMappings.
-func (rc *RediffContext) AnalyzePatch(patchReader io.Reader) error {
+func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 	var err error
 
 	rctx := wire.NewReadContext(patchReader)
@@ -236,7 +237,7 @@ func (rc *RediffContext) AnalyzePatch(patchReader io.Reader) error {
 
 // OptimizePatch uses the information computed by AnalyzePatch to write a new version of
 // the patch, but with bsdiff instead of rsync diffs for each DiffMapping.
-func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Writer) error {
+func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWriter io.Writer) error {
 	var err error
 
 	if rc.SourcePool == nil {
@@ -486,7 +487,7 @@ func (rc *RediffContext) OptimizePatch(patchReader io.Reader, patchWriter io.Wri
 
 func defaultRediffCompressionSettings() *CompressionSettings {
 	return &CompressionSettings{
-		Algorithm: CompressionAlgorithm_ZSTD,
+		Algorithm: CompressionAlgorithm_BROTLI,
 		Quality:   9,
 	}
 }

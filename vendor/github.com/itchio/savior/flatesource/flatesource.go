@@ -7,7 +7,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/kompress/flate"
 	"github.com/itchio/savior"
-	"github.com/mohae/deepcopy"
 )
 
 type flateSource struct {
@@ -42,8 +41,7 @@ func (fs *flateSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	fs.ssc = ssc
 	fs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{
 		OnSave: func(checkpoint *savior.SourceCheckpoint) error {
-			// we need to deepcopy it because we're going to use it after return
-			fs.sourceCheckpoint = deepcopy.Copy(checkpoint).(*savior.SourceCheckpoint)
+			fs.sourceCheckpoint = checkpoint
 			fs.sr.WantSave()
 			return nil
 		},
@@ -111,6 +109,10 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 }
 
 func (fs *flateSource) Read(buf []byte) (int, error) {
+	if fs.sr == nil {
+		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+	}
+
 	n, err := fs.sr.Read(buf)
 	fs.offset += int64(n)
 
@@ -147,6 +149,10 @@ func (fs *flateSource) Read(buf []byte) (int, error) {
 }
 
 func (fs *flateSource) ReadByte() (byte, error) {
+	if fs.sr == nil {
+		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+	}
+
 	_, err := fs.Read(fs.bytebuf)
 	return fs.bytebuf[0], err
 }

@@ -2,9 +2,9 @@ package genie
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -26,7 +26,7 @@ type Genie struct {
 // ParseHeader is the first step of the genie's operation - it reads both
 // containers, leaving the caller a chance to use them later, when parsing
 // the contents
-func (g *Genie) ParseHeader(patchReader io.Reader) error {
+func (g *Genie) ParseHeader(patchReader savior.SeekSource) error {
 	rawPatchWire := wire.NewReadContext(patchReader)
 	err := rawPatchWire.ExpectMagic(pwr.PatchMagic)
 	if err != nil {

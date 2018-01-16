@@ -78,7 +78,17 @@ func (cfp *FsPool) GetPath(fileIndex int64) string {
 // returned reader if the file index is similar. The cache size is 1, so
 // reading in parallel from different files is not supported.
 func (cfp *FsPool) GetReader(fileIndex int64) (io.Reader, error) {
-	return cfp.GetReadSeeker(fileIndex)
+	rs, err := cfp.GetReadSeeker(fileIndex)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	_, err = rs.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return rs, nil
 }
 
 // GetReadSeeker is like GetReader but the returned object allows seeking
@@ -91,7 +101,7 @@ func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 0)
 			}
 			cfp.reader = nil
 		}
@@ -113,7 +123,7 @@ func (cfp *FsPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 
 		cfp.reader = nil
@@ -128,7 +138,7 @@ func (cfp *FsPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	outputFile := cfp.container.Files[fileIndex]

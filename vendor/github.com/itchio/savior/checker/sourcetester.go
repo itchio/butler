@@ -3,18 +3,21 @@ package checker
 import (
 	"bytes"
 	"encoding/gob"
-	"errors"
 	"io"
 	"log"
 	"testing"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/stretchr/testify/assert"
 )
 
 func must(t *testing.T, err error) {
 	if err != nil {
+		if se, ok := err.(*errors.Error); ok {
+			t.Logf("Full stack: %s", se.ErrorStack())
+		}
 		assert.NoError(t, err)
 		t.FailNow()
 	}
@@ -25,18 +28,18 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 	maxResumes := 128
 
 	_, err := source.Resume(nil)
-	assert.NoError(t, err)
+	must(t, err)
 	output := NewWriter(reference)
 
 	// first try just copying
 	_, err = io.Copy(output, source)
-	assert.NoError(t, err)
+	must(t, err)
 
 	// now reset
 	_, err = source.Resume(nil)
-	assert.NoError(t, err)
+	must(t, err)
 	_, err = output.Seek(0, io.SeekStart)
-	assert.NoError(t, err)
+	must(t, err)
 
 	totalCheckpoints := 0
 
@@ -53,7 +56,7 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 			c2, checkpointSize := roundtripThroughGob(t, c)
 
 			totalCheckpoints++
-			log.Printf("%s ↓ made %s checkpoint @ %.2f%%", humanize.IBytes(uint64(c2.Offset)), humanize.IBytes(uint64(checkpointSize)), source.Progress()*100)
+			log.Printf("%s ↓ made %s checkpoint @ %.2f%% (byte %d)", humanize.IBytes(uint64(c2.Offset)), humanize.IBytes(uint64(checkpointSize)), source.Progress()*100, c2.Offset)
 
 			newOffset, err := source.Resume(c2)
 			must(t, err)

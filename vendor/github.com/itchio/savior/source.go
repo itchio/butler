@@ -19,6 +19,8 @@ type SourceCheckpoint struct {
 	Data interface{}
 }
 
+var ErrUninitializedSource = errors.New("tried to read from source before Resume() was called")
+
 // A Source represents a data stream that does not provide random access,
 // is not seekable, but for which checkpoints can be emitted, allowing
 // the consumer to resume reading from the stream later.
@@ -56,10 +58,26 @@ type Source interface {
 	io.ByteReader
 }
 
+// SeekSource is a Source with extra powers: you can know its size,
+// tell which offset it's currently at, and ask for a view of a subsection of it.
+type SeekSource interface {
+	Source
+
+	// Tell returns the current offset of the seeksource
+	Tell() int64
+	// Size returns the total number of bytes the seeksource reads
+	Size() int64
+	// Section returns a SeekSource that reads from start to start+size
+	// Note that the returned SeekSource will use the same underlying
+	// io.ReadSeeker, so the original SeekSource cannot be used anymore.
+	// The returned SeekSource should be Resume()'d before being used
+	Section(start int64, size int64) (SeekSource, error)
+}
+
 type SourceSaveConsumer interface {
-	// Send a checkpoint to the consumer. The consumer
-	// must encode/save it immediately, and cannot retain it
-	// as its contents may change afterwards
+	// Send a checkpoint to the consumer. The consumer may
+	// retain the checkpoint, so its contents must not change
+	// after it is sent.
 	Save(checkpoint *SourceCheckpoint) error
 }
 
@@ -83,6 +101,7 @@ func DiscardByRead(source Source, delta int64) error {
 		if toRead > int64(len(buf)) {
 			toRead = int64(len(buf))
 		}
+
 		n, err := source.Read(buf[:toRead])
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -90,6 +109,7 @@ func DiscardByRead(source Source, delta int64) error {
 
 		delta -= int64(n)
 	}
+
 	return nil
 }
 

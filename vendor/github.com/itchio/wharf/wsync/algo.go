@@ -57,6 +57,21 @@ func (ctx *Context) ApplyPatch(output io.Writer, pool Pool, ops chan Operation) 
 
 // ApplyPatchFull is like ApplyPatch but accepts an ApplyWound channel
 func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operation, failFast bool) error {
+	for op := range ops {
+		err := ctx.ApplySingleFull(output, pool, op, failFast)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	return nil
+}
+
+func (ctx *Context) ApplySingle(output io.Writer, pool Pool, op Operation) error {
+	return ctx.ApplySingleFull(output, pool, op, true)
+}
+
+func (ctx *Context) ApplySingleFull(output io.Writer, pool Pool, op Operation, failFast bool) error {
 	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
 	if len(ctx.buffer) < minBufferSize {
 		ctx.buffer = make([]byte, minBufferSize)
@@ -64,56 +79,50 @@ func (ctx *Context) ApplyPatchFull(output io.Writer, pool Pool, ops chan Operati
 	buffer := ctx.buffer
 
 	blockSize := int64(ctx.blockSize)
-	pos := int64(0)
 
-	for op := range ops {
-		switch op.Type {
-		case OpBlockRange:
-			fileSize := pool.GetSize(op.FileIndex)
-			fixedSize := (op.BlockSpan - 1) * blockSize
-			lastIndex := op.BlockIndex + (op.BlockSpan - 1)
-			lastSize := blockSize
-			if blockSize*(lastIndex+1) > fileSize {
-				lastSize = fileSize % blockSize
-			}
-			opSize := (fixedSize + lastSize)
+	switch op.Type {
+	case OpBlockRange:
+		fileSize := pool.GetSize(op.FileIndex)
+		fixedSize := (op.BlockSpan - 1) * blockSize
+		lastIndex := op.BlockIndex + (op.BlockSpan - 1)
+		lastSize := blockSize
+		if blockSize*(lastIndex+1) > fileSize {
+			lastSize = fileSize % blockSize
+		}
+		opSize := (fixedSize + lastSize)
 
-			target, err := pool.GetReadSeeker(op.FileIndex)
-			if err != nil {
-				if failFast {
-					return errors.Wrap(err, 1)
-				}
-				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
-				pos += opSize
-				continue
-			}
-
-			_, err = target.Seek(blockSize*op.BlockIndex, os.SEEK_SET)
-			if err != nil {
-				if failFast {
-					return errors.Wrap(err, 1)
-				}
-				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
-				pos += opSize
-				continue
-			}
-
-			copied, err := io.CopyBuffer(output, io.LimitReader(target, opSize), buffer)
-			if err != nil {
-				if failFast {
-					return errors.Wrap(fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error()), 1)
-				}
-
-				remaining := opSize - copied
-				io.CopyBuffer(output, io.LimitReader(&devNullReader{}, remaining), buffer)
-				pos += opSize
-				continue
-			}
-		case OpData:
-			_, err := output.Write(op.Data)
-			if err != nil {
+		target, err := pool.GetReadSeeker(op.FileIndex)
+		if err != nil {
+			if failFast {
 				return errors.Wrap(err, 1)
 			}
+			io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
+			return nil
+		}
+
+		_, err = target.Seek(blockSize*op.BlockIndex, os.SEEK_SET)
+		if err != nil {
+			if failFast {
+				return errors.Wrap(err, 1)
+			}
+			io.CopyBuffer(output, io.LimitReader(&devNullReader{}, opSize), buffer)
+			return nil
+		}
+
+		copied, err := io.CopyBuffer(output, io.LimitReader(target, opSize), buffer)
+		if err != nil {
+			if failFast {
+				return errors.Wrap(fmt.Errorf("While copying %d bytes: %s", blockSize*op.BlockSpan, err.Error()), 1)
+			}
+
+			remaining := opSize - copied
+			io.CopyBuffer(output, io.LimitReader(&devNullReader{}, remaining), buffer)
+			return nil
+		}
+	case OpData:
+		_, err := output.Write(op.Data)
+		if err != nil {
+			return errors.Wrap(err, 1)
 		}
 	}
 

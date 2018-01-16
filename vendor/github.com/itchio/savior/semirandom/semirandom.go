@@ -6,7 +6,8 @@ import (
 	"math/rand"
 )
 
-const DefaultSeed = 0xfaadbeef
+// const DefaultSeed = 0xfaadbeef
+const DefaultSeed = 0xfeefeefa
 
 func Write(output io.Writer, length int64, seed int64) error {
 	lw := &limitedWriter{

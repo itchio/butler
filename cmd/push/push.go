@@ -14,7 +14,9 @@ import (
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/uploader"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
+	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
@@ -120,13 +122,25 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.Dief("Could not find signature for parent build %d, aborting", parentID)
 		}
 
-		var signatureReader io.Reader
-		signatureReader, err = client.DownloadBuildFile(parentID, signatureFile.ID)
+		signatureURL := itchio.ItchfsURL(
+			parentID,
+			signatureFile.ID,
+			client.Key,
+		)
+
+		signatureReader, err := eos.Open(signatureURL)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}
 
-		targetSignature, err = pwr.ReadSignature(signatureReader)
+		signatureSource := seeksource.FromFile(signatureReader)
+
+		_, err = signatureSource.Resume(nil)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		targetSignature, err = pwr.ReadSignature(signatureSource)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}

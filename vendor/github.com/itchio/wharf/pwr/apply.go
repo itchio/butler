@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
@@ -125,7 +126,7 @@ type Ghost struct {
 }
 
 // ApplyPatch reads a patch, parses it, and generates the new file tree
-func (actx *ApplyContext) ApplyPatch(patchReader io.Reader) error {
+func (actx *ApplyContext) ApplyPatch(patchReader savior.SeekSource) error {
 	actx.actualOutputPath = actx.OutputPath
 	if actx.OutputPool == nil {
 		if actx.DryRun {

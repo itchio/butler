@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/dsnet/compress/bzip2"
+	"github.com/itchio/go-brotli/enc"
 	"github.com/itchio/kompress/flate"
 	"github.com/itchio/kompress/gzip"
 
@@ -58,6 +59,26 @@ func Bzip2Compress(input []byte) ([]byte, error) {
 	}
 
 	_, err = w.Write(input)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = w.Close()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return compressedBuf.Bytes(), nil
+}
+
+func BrotliCompress(input []byte, level int) ([]byte, error) {
+	compressedBuf := new(bytes.Buffer)
+
+	w := enc.NewBrotliWriter(compressedBuf, &enc.BrotliWriterOptions{
+		Quality: level,
+	})
+
+	_, err := w.Write(input)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

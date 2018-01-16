@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools"
@@ -79,14 +80,18 @@ func Do(params *Params) error {
 	targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		// Signature file perhaps?
-		var signatureReader io.ReadCloser
-
-		signatureReader, err = eos.Open(params.Target)
+		signatureReader, err := eos.Open(params.Target)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		targetSignature, err = pwr.ReadSignature(signatureReader)
+		signatureSource := seeksource.FromFile(signatureReader)
+		_, err = signatureSource.Resume(nil)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		targetSignature, err = pwr.ReadSignature(signatureSource)
 		if err != nil {
 			if errors.Is(err, wire.ErrFormat) {
 				return fmt.Errorf("unrecognized target %s (not a container, not a signature file)", params.Target)
@@ -197,7 +202,14 @@ func Do(params *Params) error {
 			return errors.Wrap(err, 0)
 		}
 
-		signature, err := pwr.ReadSignature(signatureWriter)
+		signatureSource := seeksource.FromFile(signatureWriter)
+
+		_, err = signatureSource.Resume(nil)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		signature, err := pwr.ReadSignature(signatureSource)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -216,13 +228,15 @@ func Do(params *Params) error {
 			Consumer: comm.NewStateConsumer(),
 		}
 
-		_, err = patchWriter.Seek(0, io.SeekStart)
+		patchSource := seeksource.FromFile(patchWriter)
+
+		_, err = patchSource.Resume(nil)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		comm.StartProgress()
-		err = actx.ApplyPatch(patchWriter)
+		err = actx.ApplyPatch(patchSource)
 		comm.EndProgress()
 		if err != nil {
 			return errors.Wrap(err, 0)

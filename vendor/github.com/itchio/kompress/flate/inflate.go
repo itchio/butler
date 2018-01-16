@@ -873,13 +873,16 @@ func (sr *saverReader) Save() (*Checkpoint, error) {
 		return nil, NotOnBoundaryError
 	}
 
+	hist := make([]byte, len(f.dict.hist))
+	copy(hist, f.dict.hist)
+
 	res := &Checkpoint{
 		Roffset: f.roffset,
 		Woffset: f.woffset,
 		B:       f.b,
 		Nb:      f.nb,
 
-		DictDecoderHist:  f.dict.hist,
+		DictDecoderHist:  hist,
 		DictDecoderRdPos: f.dict.rdPos,
 		DictDecoderWrPos: f.dict.wrPos,
 		DictDecoderFull:  f.dict.full,

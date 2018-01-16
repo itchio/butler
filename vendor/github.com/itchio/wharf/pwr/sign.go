@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
@@ -28,7 +29,7 @@ func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *state
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	return signature, nil
@@ -41,7 +42,7 @@ func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consume
 
 	defer func() {
 		if pErr := pool.Close(); pErr != nil && err == nil {
-			err = errors.Wrap(pErr, 1)
+			err = errors.Wrap(pErr, 0)
 		}
 	}()
 
@@ -61,40 +62,40 @@ func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consume
 		var reader io.Reader
 		reader, err = pool.GetReader(int64(fileIndex))
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 
 		cr := counter.NewReaderCallback(onRead, reader)
 		err = sctx.CreateSignature(int64(fileIndex), cr, sigWriter)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 	}
 
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 	return nil
 }
 
 // ReadSignature reads the hashes from all files of a given container, from a
 // wharf signature file.
-func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
+func ReadSignature(signatureReader savior.SeekSource) (*SignatureInfo, error) {
 	rawSigWire := wire.NewReadContext(signatureReader)
 	err := rawSigWire.ExpectMagic(SignatureMagic)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	header := &SignatureHeader{}
 	err = rawSigWire.ReadMessage(header)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	sigWire, err := DecompressWire(rawSigWire, header.Compression)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	container := &tlc.Container{}
@@ -103,7 +104,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 		if errors.Is(err, io.EOF) {
 			// ok
 		} else {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.Wrap(err, 0)
 		}
 	}
 
@@ -120,7 +121,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			// empty files have a 0-length shortblock for historical reasons.
@@ -144,7 +145,7 @@ func ReadSignature(signatureReader io.Reader) (*SignatureInfo, error) {
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			// full blocks have a shortSize of 0, for more compact storage

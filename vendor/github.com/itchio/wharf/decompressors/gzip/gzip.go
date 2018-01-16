@@ -1,16 +1,15 @@
 package gzip
 
 import (
-	"compress/gzip"
-	"io"
-
+	"github.com/itchio/savior"
+	"github.com/itchio/savior/gzipsource"
 	"github.com/itchio/wharf/pwr"
 )
 
 type gzipDecompressor struct{}
 
-func (bc *gzipDecompressor) Apply(reader io.Reader) (io.Reader, error) {
-	return gzip.NewReader(reader)
+func (bc *gzipDecompressor) Apply(source savior.Source) (savior.Source, error) {
+	return gzipsource.New(source), nil
 }
 
 func init() {

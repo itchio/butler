@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -77,8 +78,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 }
 
 // ReadManifest reads container info and block addresses from a wharf manifest file.
-// Does not close manifestReader.
-func ReadManifest(manifestReader io.Reader) (*tlc.Container, *BlockHashMap, error) {
+func ReadManifest(manifestReader savior.SeekSource) (*tlc.Container, *BlockHashMap, error) {
 	container := &tlc.Container{}
 	blockHashes := NewBlockHashMap()
 

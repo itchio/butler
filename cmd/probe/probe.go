@@ -6,12 +6,14 @@ import (
 	"sort"
 	"time"
 
+	"github.com/itchio/savior/countingsource"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/bsdiff"
-	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -60,18 +62,20 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	defer patchReader.Close()
 
-	stats, err := patchReader.Stat()
+	patchSource := seeksource.FromFile(patchReader)
+
+	comm.Opf("patch:  %s", humanize.IBytes(uint64(patchSource.Size())))
+
+	cs := countingsource.New(patchSource, func(count int64) {
+		comm.Progress(patchSource.Progress())
+	})
+
+	_, err = cs.Resume(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	comm.Opf("patch:  %s", humanize.IBytes(uint64(stats.Size())))
-
-	cr := counter.NewReaderCallback(func(count int64) {
-		comm.Progress(float64(count) / float64(stats.Size()))
-	}, patchReader)
-
-	rctx := wire.NewReadContext(cr)
+	rctx := wire.NewReadContext(cs)
 	err = rctx.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -105,7 +109,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	startTime := time.Now()
 
-	comm.StartProgressWithTotalBytes(stats.Size())
+	comm.StartProgressWithTotalBytes(cs.Size())
 
 	var patchStats []patchStat
 
@@ -228,8 +232,8 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	duration := time.Since(startTime)
 
-	perSec := humanize.IBytes(uint64(float64(stats.Size()) / duration.Seconds()))
-	comm.Statf("Analyzed %s @ %s/s (%s total)", humanize.IBytes(uint64(stats.Size())), perSec, duration)
+	perSec := humanize.IBytes(uint64(float64(cs.Size()) / duration.Seconds()))
+	comm.Statf("Analyzed %s @ %s/s (%s total)", humanize.IBytes(uint64(cs.Size())), perSec, duration)
 	comm.Statf("%d bsdiff series, %d rsync series", numBsdiff, numRsync)
 
 	var numTouched = 0
@@ -276,7 +280,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 	}
 	comm.Statf("All in all, that's %s of fresh data in a %s %s patch",
 		humanize.IBytes(uint64(totalFresh)),
-		humanize.IBytes(uint64(stats.Size())),
+		humanize.IBytes(uint64(cs.Size())),
 		kind,
 	)
 	comm.Logf(" (%d/%d files are changed by this patch, they weigh a total of %s)", numTouched, numTotal, humanize.IBytes(uint64(naivePatchSize)))
@@ -313,18 +317,15 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 
 	defer patchReader.Close()
 
-	stats, err := patchReader.Stat()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	patchSource := seeksource.FromFile(patchReader)
 
-	comm.Opf("patch:  %s", humanize.IBytes(uint64(stats.Size())))
+	cs := countingsource.New(patchSource, func(count int64) {
+		comm.Progress(patchSource.Progress())
+	})
 
-	cr := counter.NewReaderCallback(func(count int64) {
-		comm.Progress(float64(count) / float64(stats.Size()))
-	}, patchReader)
+	comm.Opf("patch:  %s", humanize.IBytes(uint64(cs.Size())))
 
-	rctx := wire.NewReadContext(cr)
+	rctx := wire.NewReadContext(cs)
 	err = rctx.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
 		return errors.Wrap(err, 0)

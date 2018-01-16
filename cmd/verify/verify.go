@@ -7,6 +7,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
@@ -53,7 +54,14 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 	}
 	defer signatureReader.Close()
 
-	signature, err := pwr.ReadSignature(signatureReader)
+	signatureSource := seeksource.FromFile(signatureReader)
+
+	_, err = signatureSource.Resume(nil)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	signature, err := pwr.ReadSignature(signatureSource)
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}

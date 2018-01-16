@@ -30,12 +30,22 @@ func NewPatchContext() *PatchContext {
 	return &PatchContext{}
 }
 
-var useLru = os.Getenv("BUTLER_LRU") == "1"
 var showLruStats = os.Getenv("BUTLER_LRU_STATS") == "1"
 
-// Patch applies patch to old, according to the bspatch algorithm,
-// and writes the result to new.
-func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, neworig io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+type IndividualPatchContext struct {
+	parent    *PatchContext
+	OldOffset int64
+	out       io.Writer
+}
+
+func (ctx *PatchContext) NewIndividualPatchContext(old io.ReadSeeker, oldOffset int64, out io.Writer) (*IndividualPatchContext, error) {
+	// allocate buffer if needed
+	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
+	if len(ctx.buffer) < minBufferSize {
+		ctx.buffer = make([]byte, minBufferSize)
+	}
+
+	// allocate lruFile if needed
 	if ctx.lf == nil {
 		// let's commandeer 32MiB of memory to avoid too many syscalls.
 		// these values found empirically: https://twitter.com/fasterthanlime/status/950823147472850950
@@ -47,37 +57,83 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, neworig io.Writer, newSize
 		ctx.lf, err = lrufile.New(lruChunkSize, lruNumEntries)
 
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, 0)
 		}
 	}
 
-	const minBufferSize = 32 * 1024 // golang's io.Copy default szie
-	if len(ctx.buffer) < minBufferSize {
-		ctx.buffer = make([]byte, minBufferSize)
+	err := ctx.lf.Reset(old)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
-	buffer := ctx.buffer
 
-	var old io.ReadSeeker
-	if useLru {
-		err := ctx.lf.Reset(oldorig)
+	ipc := &IndividualPatchContext{
+		parent:    ctx,
+		OldOffset: 0,
+		out:       out,
+	}
+	return ipc, nil
+}
+
+func (ipc *IndividualPatchContext) Apply(ctrl *Control) error {
+	buffer := ipc.parent.buffer
+
+	old := ipc.parent.lf
+	_, err := old.Seek(ipc.OldOffset, io.SeekStart)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	// Add old data to diff string
+	addlen := len(ctrl.Add)
+	if addlen > 0 {
+		ar := &AdderReader{
+			Buffer: ctrl.Add,
+			Reader: old,
+		}
+
+		copied, err := io.CopyBuffer(ipc.out, io.LimitReader(ar, int64(addlen)), buffer)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		old = ctx.lf
-	} else {
-		old = oldorig
+		if copied != int64(addlen) {
+			return errors.Wrap(fmt.Errorf("bsdiff-add: expected to copy %d bytes but copied %d", addlen, copied), 0)
+		}
+
+		ipc.OldOffset += int64(addlen)
 	}
 
-	var err error
+	// Read extra string
+	copylen := len(ctrl.Copy)
+	if copylen > 0 {
+		copied, err := ipc.out.Write(ctrl.Copy)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if copied != copylen {
+			return errors.Wrap(fmt.Errorf("bsdiff-copy: expected to copy %d bytes but copied %d", addlen, copied), 0)
+		}
+	}
+
+	ipc.OldOffset += ctrl.Seek
+
+	return nil
+}
+
+// Patch applies patch to old, according to the bspatch algorithm,
+// and writes the result to new.
+func (ctx *PatchContext) Patch(old io.ReadSeeker, out io.Writer, newSize int64, readMessage ReadMessageFunc) error {
+	countingOut := counter.NewWriter(out)
+
+	ipc, err := ctx.NewIndividualPatchContext(old, 0, countingOut)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	ctrl := &Control{}
 
-	new := counter.NewWriter(neworig)
-
 	for {
-		ctrl.Reset()
-
 		err = readMessage(ctrl)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -87,48 +143,17 @@ func (ctx *PatchContext) Patch(oldorig io.ReadSeeker, neworig io.Writer, newSize
 			break
 		}
 
-		// Add old data to diff string
-		addlen := len(ctrl.Add)
-		if addlen > 0 {
-			ar := &AdderReader{
-				Buffer: ctrl.Add,
-				Reader: old,
-			}
-
-			copied, err := io.CopyBuffer(new, io.LimitReader(ar, int64(addlen)), buffer)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
-			if copied != int64(addlen) {
-				return errors.Wrap(fmt.Errorf("bsdiff-add: expected to copy %d bytes but copied %d", addlen, copied), 0)
-			}
-		}
-
-		// Read extra string
-		copylen := len(ctrl.Copy)
-		if copylen > 0 {
-			copied, err := new.Write(ctrl.Copy)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
-			if copied != copylen {
-				return errors.Wrap(fmt.Errorf("bsdiff-copy: expected to copy %d bytes but copied %d", addlen, copied), 0)
-			}
-		}
-
-		_, err = old.Seek(ctrl.Seek, os.SEEK_CUR)
+		err := ipc.Apply(ctrl)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 	}
 
-	if new.Count() != newSize {
-		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, new.Count(), humanize.IBytes(uint64(newSize-new.Count())))
+	if countingOut.Count() != newSize {
+		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, countingOut.Count(), humanize.IBytes(uint64(newSize-countingOut.Count())))
 	}
 
-	if useLru && showLruStats {
+	if showLruStats {
 		s := ctx.lf.Stats()
 		hitRate := float64(s.Hits) / float64(s.Hits+s.Misses)
 		fmt.Printf("%.2f%% hit rate\n", hitRate*100)

@@ -182,6 +182,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/dskompress",
+			"repository": "https://github.com/itchio/dskompress",
+			"vcs": "git",
+			"revision": "75b00f4ea5dbb16a4431baea98b3f92404638a18",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/go-brotli",
 			"repository": "https://github.com/itchio/go-brotli",
 			"vcs": "git",
@@ -209,7 +217,7 @@
 			"importpath": "github.com/itchio/kompress",
 			"repository": "https://github.com/itchio/kompress",
 			"vcs": "git",
-			"revision": "4b26eca290c6e576a5411160c624be9a36f326e4",
+			"revision": "a19876f8c9b70f4265bb1beb4b1ee1ae26896e65",
 			"branch": "master",
 			"notests": true
 		},
@@ -225,7 +233,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "7bf31a0ba7c1fdf351d42630e231a84813fc2cc1",
+			"revision": "d462cdec452c83bf23a823131fdc8ed22a163d02",
 			"branch": "master",
 			"notests": true
 		},
@@ -241,7 +249,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "1e73cc70b301e1e81ef982c3be1c30b4f81bb01c",
+			"revision": "abae31242ee19527c9ce916cdf8c6a635b074fe7",
 			"branch": "master",
 			"notests": true
 		},

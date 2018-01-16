@@ -9,6 +9,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 )
@@ -102,20 +103,26 @@ func Do(params *Params) error {
 
 	patchReader, err := eos.Open(patch)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
 	}
 
 	var signature *pwr.SignatureInfo
 	if signaturePath != "" {
 		sigReader, sigErr := eos.Open(signaturePath)
 		if sigErr != nil {
-			return errors.Wrap(sigErr, 1)
+			return errors.Wrap(sigErr, 0)
 		}
 		defer sigReader.Close()
 
-		signature, sigErr = pwr.ReadSignature(sigReader)
+		sigSource := seeksource.FromFile(sigReader)
+		_, sigErr = sigSource.Resume(nil)
 		if sigErr != nil {
-			return errors.Wrap(sigErr, 1)
+			return errors.Wrap(sigErr, 0)
+		}
+
+		signature, sigErr = pwr.ReadSignature(sigSource)
+		if sigErr != nil {
+			return errors.Wrap(sigErr, 0)
 		}
 	}
 
@@ -132,10 +139,17 @@ func Do(params *Params) error {
 		Consumer: comm.NewStateConsumer(),
 	}
 
-	comm.StartProgress()
-	err = actx.ApplyPatch(patchReader)
+	patchSource := seeksource.FromFile(patchReader)
+
+	_, err = patchSource.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, 0)
+	}
+
+	comm.StartProgressWithTotalBytes(patchSource.Size())
+	err = actx.ApplyPatch(patchSource)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 	comm.EndProgress()
 

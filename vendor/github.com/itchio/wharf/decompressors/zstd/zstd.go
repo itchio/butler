@@ -1,16 +1,15 @@
 package zstd
 
 import (
-	"io"
-
-	"github.com/Datadog/zstd"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/zstdsource"
 )
 
 type zstdDecompressor struct{}
 
-func (zd *zstdDecompressor) Apply(reader io.Reader) (io.Reader, error) {
-	return zstd.NewReader(reader), nil
+func (zd *zstdDecompressor) Apply(source savior.Source) (savior.Source, error) {
+	return zstdsource.New(source), nil
 }
 
 func init() {

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/wire"
 )
 
@@ -16,7 +17,7 @@ type Compressor interface {
 
 // A Decompressor can decompress a stream with a given algorithm
 type Decompressor interface {
-	Apply(reader io.Reader) (io.Reader, error)
+	Apply(source savior.Source) (savior.Source, error)
 }
 
 var compressors map[CompressionAlgorithm]Compressor
@@ -79,19 +80,43 @@ func DecompressWire(ctx *wire.ReadContext, compression *CompressionSettings) (*w
 		return nil, errors.Wrap(fmt.Errorf("no compression specified"), 1)
 	}
 
-	if compression.Algorithm == CompressionAlgorithm_NONE {
-		return ctx, nil
+	originalSource, ok := ctx.GetSource().(savior.SeekSource)
+	if !ok {
+		return nil, errors.Wrap(fmt.Errorf("can only DecompressWire when source is a savior.SeekSource"), 0)
 	}
 
-	decompressor := decompressors[compression.Algorithm]
-	if decompressor == nil {
-		return nil, errors.Wrap(fmt.Errorf("no decompressor registered for %s", compression.Algorithm.String()), 1)
-	}
-
-	compressedReader, err := decompressor.Apply(ctx.Reader())
+	offset := originalSource.Tell()
+	size := originalSource.Size()
+	sectionSource, err := originalSource.Section(offset, size-offset)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	return wire.NewReadContext(compressedReader), nil
+	var finalSource savior.Source
+
+	if compression.Algorithm == CompressionAlgorithm_NONE {
+		finalSource = sectionSource
+	} else {
+		decompressor := decompressors[compression.Algorithm]
+		if decompressor == nil {
+			return nil, errors.Wrap(fmt.Errorf("no decompressor registered for %s", compression.Algorithm.String()), 0)
+		}
+
+		var err error
+		finalSource, err = decompressor.Apply(sectionSource)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
+	finalOffset, err := finalSource.Resume(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	if finalOffset != 0 {
+		return nil, errors.Wrap(fmt.Errorf("expected source to resume at 0, got %d", finalOffset), 0)
+	}
+
+	return wire.NewReadContext(finalSource), nil
 }
