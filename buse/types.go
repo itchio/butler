@@ -1,6 +1,7 @@
 package buse
 
 import (
+	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -96,6 +97,14 @@ type PickUploadParams struct {
 
 type PickUploadResult struct {
 	Index int64 `json:"index"`
+}
+
+type GetReceiptParams struct {
+	// muffin
+}
+
+type GetReceiptResult struct {
+	Receipt *bfs.Receipt `json:"receipt"`
 }
 
 // Operation.Progress

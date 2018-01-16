@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/itchio/go-itchio"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 
 	"github.com/itchio/butler/installer"
 
@@ -39,9 +41,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	verb := ""
 	switch params.Fresh {
 	case false:
-		verb = "performing re-install "
+		verb = "Performing re-install "
 	default:
-		verb = "performing fresh install "
+		verb = "Performing fresh install "
 	}
 
 	consumer.Infof("%s for %s", verb, gameToString(params.Game))
@@ -62,7 +64,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		if len(uploadsFilterResult.Uploads) == 0 {
 			consumer.Errorf("Didn't find a compatible upload.")
-			consumer.Errorf("The initial uploads were:", len(uploadsFilterResult.InitialUploads))
+			consumer.Errorf("The initial %d uploads were:", len(uploadsFilterResult.InitialUploads))
 			for _, upload := range uploadsFilterResult.InitialUploads {
 				consumer.Infof("- %#v", upload)
 			}
@@ -95,6 +97,69 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		oc.Save(meta)
+	}
+
+	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
+	if err != nil {
+		receiptIn = nil
+		consumer.Errorf("Could not read existing receipt: %s", err.Error())
+	}
+
+	if receiptIn == nil {
+		consumer.Infof("No receipt found, asking client for info...")
+
+		var r buse.GetReceiptResult
+		err := oc.conn.Call(oc.ctx, "GetReceipt", &buse.GetReceiptParams{}, &r)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if r.Receipt != nil {
+			consumer.Infof("Got receipt from client")
+			receiptIn = r.Receipt
+		}
+	}
+
+	if receiptIn == nil {
+		consumer.Infof("← No previous install info (no recorded upload or build)")
+	} else {
+		consumer.Infof("← Previously installed:")
+		logUpload(consumer, receiptIn.Upload, receiptIn.Build)
+	}
+
+	consumer.Infof("→ To be installed:")
+	logUpload(consumer, params.Upload, params.Build)
+
+	if receiptIn != nil && receiptIn.Upload != nil && receiptIn.Upload.ID == params.Upload.ID {
+		consumer.Infof("Installing over same upload")
+		if receiptIn.Build != nil && params.Build != nil {
+			oldID := receiptIn.Build.ID
+			newID := params.Build.ID
+			if newID > oldID {
+				consumer.Infof("↑ Upgrading from build %d to %d", oldID, newID)
+				upgradePath, err := client.FindUpgrade(&itchio.FindUpgradeParams{
+					CurrentBuildID: oldID,
+					UploadID:       params.Upload.ID,
+					DownloadKeyID:  params.Credentials.DownloadKey,
+				})
+				if err != nil {
+					consumer.Warnf("Could not find upgrade path: %s", err.Error())
+					consumer.Warnf("TODO: heal")
+				} else {
+					consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
+					for _, item := range upgradePath.UpgradePath {
+						consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
+					}
+					consumer.Warnf("TODO: update")
+				}
+			} else if newID < oldID {
+				consumer.Infof("↓ Downgrading from build %d to %d", oldID, newID)
+				consumer.Warnf("TODO: heal")
+			} else {
+				consumer.Infof("↺ Re-installing build %d", newID)
+				consumer.Warnf("TODO: heal")
+			}
+		}
 	}
 
 	var installSourceURLPath string
@@ -168,12 +233,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	if manager == nil {
 		msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
 		return nil, errors.New(msg)
-	}
-
-	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
-	if err != nil {
-		receiptIn = nil
-		consumer.Errorf("Could not read existing receipt: %s", err.Error())
 	}
 
 	managerInstallParams := &installer.InstallParams{
@@ -404,4 +463,46 @@ func (mt *InstallSubcontext) Key() string {
 
 func (mt *InstallSubcontext) Data() interface{} {
 	return &mt.data
+}
+
+func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
+	if u == nil {
+		consumer.Infof("  No upload")
+	} else {
+		consumer.Infof("  Upload %d: %s %s (%s)", u.ID, u.Filename, u.DisplayName)
+
+		ch := "No channel"
+		if u.ChannelName != "" {
+			ch = fmt.Sprintf("Channel '%s'", u.ChannelName)
+		}
+
+		var plats []string
+		if u.Linux {
+			plats = append(plats, "Linux")
+		}
+		if u.Windows {
+			plats = append(plats, "Windows")
+		}
+		if u.OSX {
+			plats = append(plats, "macOS")
+		}
+		if u.Android {
+			plats = append(plats, "Android")
+		}
+
+		consumer.Infof("  %s, Platforms: %s", ch, strings.Join(plats, ", "))
+	}
+
+	if b == nil {
+		consumer.Infof("  No build")
+	} else {
+		additionalInfo := ""
+		if b.UserVersion != "" {
+			additionalInfo = fmt.Sprintf(", version %s", b.UserVersion)
+		} else if b.Version != 0 {
+			additionalInfo = fmt.Sprintf(", number %d", b.Version)
+		}
+
+		consumer.Infof("  Build %d%s", b.ID, additionalInfo)
+	}
 }

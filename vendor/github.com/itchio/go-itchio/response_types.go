@@ -115,3 +115,17 @@ type ListGameUploadsResponse struct {
 
 	Uploads []*Upload `json:"uploads"`
 }
+
+type FindUpgradeResponse struct {
+	Response
+
+	// UpgradePath is a list of patches needed to upgrade to the latest version
+	UpgradePath []*UpgradePathItem `json:"upgradePath"`
+}
+
+type UpgradePathItem struct {
+	ID          int64  `json:"id"`
+	UserVersion string `json:"userVersion"`
+	UpdatedAt   string `json:"updatedAt"`
+	PatchSize   int64  `json:"patchSize"`
+}

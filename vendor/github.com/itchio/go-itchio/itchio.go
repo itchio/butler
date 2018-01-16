@@ -609,3 +609,42 @@ func (c *Client) ListGameUploads(params *ListGameUploadsParams) (ListGameUploads
 	}
 	return r, nil
 }
+
+type FindUpgradeParams struct {
+	UploadID       int64
+	CurrentBuildID int64
+	DownloadKeyID  int64
+}
+
+// FindUpgrade
+func (c *Client) FindUpgrade(params *FindUpgradeParams) (FindUpgradeResponse, error) {
+	var r FindUpgradeResponse
+
+	if params.UploadID == 0 {
+		return r, errors.New("Missing UploadID")
+	}
+
+	if params.CurrentBuildID == 0 {
+		return r, errors.New("Missing CurrentBuildID")
+	}
+
+	form := url.Values{}
+	form.Add("v", "2")
+
+	if params.DownloadKeyID != 0 {
+		form.Add("download_key_id", fmt.Sprintf("%d", params.DownloadKeyID))
+	}
+
+	path := c.MakePath("/upload/%d/upgrade/%d?%s", params.UploadID, params.CurrentBuildID, form.Encode())
+
+	resp, err := c.Get(path)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+
+	err = ParseAPIResponse(&r, resp)
+	if err != nil {
+		return r, errors.Wrap(err, 0)
+	}
+	return r, nil
+}
