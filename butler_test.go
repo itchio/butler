@@ -18,6 +18,7 @@ import (
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/stretchr/testify/assert"
@@ -151,7 +152,11 @@ func TestAllTheThings(t *testing.T) {
 		sigReader, err := eos.Open(sigPath)
 		mist(t, err)
 
-		signature, err := pwr.ReadSignature(sigReader)
+		sigSource := seeksource.FromFile(sigReader)
+		_, err = sigSource.Resume(nil)
+		mist(t, err)
+
+		signature, err := pwr.ReadSignature(sigSource)
 		mist(t, err)
 
 		mist(t, sigReader.Close())
