@@ -69,9 +69,9 @@ type BuildFile struct {
 
 // Build contains information about a specific build
 type Build struct {
-	ID            int64 `json:"id"`
-	ParentBuildID int64 `json:"parentBuildId"`
-	State         BuildState
+	ID            int64      `json:"id"`
+	ParentBuildID int64      `json:"parentBuildId"`
+	State         BuildState `json:"state"`
 
 	Version     int64  `json:"version"`
 	UserVersion string `json:"userVersion"`
