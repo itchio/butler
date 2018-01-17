@@ -114,10 +114,12 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		var r buse.GetReceiptResult
 		err := oc.conn.Call(oc.ctx, "GetReceipt", &buse.GetReceiptParams{}, &r)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			consumer.Warnf("Could not get receipt from client: ", err.Error())
 		}
 
-		if r.Receipt != nil {
+		if r.Receipt == nil {
+			consumer.Infof("Client returned nil receipt")
+		} else {
 			consumer.Infof("Got receipt from client")
 			receiptIn = r.Receipt
 		}
