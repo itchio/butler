@@ -3,6 +3,7 @@ package operate
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
@@ -66,9 +67,54 @@ func getFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *b
 	consumer.Infof("Filtering %d uploads", len(uploads.Uploads))
 	uploadsFilterResult := manager.NarrowDownUploads(uploads.Uploads, game, manager.CurrentRuntime())
 	consumer.Infof("After filter, got %d uploads, they are: ", len(uploadsFilterResult.Uploads))
-	for _, upload := range uploadsFilterResult.Uploads {
-		consumer.Infof("- %#v", upload)
+	for _, u := range uploadsFilterResult.Uploads {
+		logUpload(consumer, u, u.Build)
 	}
 
 	return uploadsFilterResult, nil
+}
+
+func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
+	if u == nil {
+		consumer.Infof("  No upload")
+	} else {
+		consumer.Infof("  Upload %d (%s): %s", u.ID, u.Filename, u.DisplayName)
+
+		ch := "No channel"
+		if u.ChannelName != "" {
+			ch = fmt.Sprintf("Channel '%s'", u.ChannelName)
+		}
+
+		var plats []string
+		if u.Linux {
+			plats = append(plats, "Linux")
+		}
+		if u.Windows {
+			plats = append(plats, "Windows")
+		}
+		if u.OSX {
+			plats = append(plats, "macOS")
+		}
+		if u.Android {
+			plats = append(plats, "Android")
+		}
+
+		var platString = "(none)"
+		if len(plats) > 0 {
+			platString = strings.Join(plats, ", ")
+		}
+
+		consumer.Infof("  ...%s, Type: %s, Platforms: %s", ch, u.Type, platString)
+	}
+
+	if b != nil {
+		additionalInfo := ""
+		if b.UserVersion != "" {
+			additionalInfo = fmt.Sprintf(", version %s", b.UserVersion)
+		} else if b.Version != 0 {
+			additionalInfo = fmt.Sprintf(", number %d", b.Version)
+		}
+
+		consumer.Infof("  ...Build %d%s", b.ID, additionalInfo)
+	}
 }

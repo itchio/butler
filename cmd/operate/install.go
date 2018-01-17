@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/itchio/go-itchio"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
 
 	"github.com/itchio/butler/installer"
 
@@ -146,7 +144,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		var r buse.GetReceiptResult
 		err := oc.conn.Call(oc.ctx, "GetReceipt", &buse.GetReceiptParams{}, &r)
 		if err != nil {
-			consumer.Warnf("Could not get receipt from client: ", err.Error())
+			consumer.Warnf("Could not get receipt from client: %s", err.Error())
 		}
 
 		if r.Receipt == nil {
@@ -499,46 +497,4 @@ func (mt *InstallSubcontext) Key() string {
 
 func (mt *InstallSubcontext) Data() interface{} {
 	return &mt.data
-}
-
-func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
-	if u == nil {
-		consumer.Infof("  No upload")
-	} else {
-		consumer.Infof("  Upload %d (%s): %s", u.ID, u.Filename, u.DisplayName)
-
-		ch := "No channel"
-		if u.ChannelName != "" {
-			ch = fmt.Sprintf("Channel '%s'", u.ChannelName)
-		}
-
-		var plats []string
-		if u.Linux {
-			plats = append(plats, "Linux")
-		}
-		if u.Windows {
-			plats = append(plats, "Windows")
-		}
-		if u.OSX {
-			plats = append(plats, "macOS")
-		}
-		if u.Android {
-			plats = append(plats, "Android")
-		}
-
-		consumer.Infof("  %s, Platforms: %s", ch, strings.Join(plats, ", "))
-	}
-
-	if b == nil {
-		consumer.Infof("  No build")
-	} else {
-		additionalInfo := ""
-		if b.UserVersion != "" {
-			additionalInfo = fmt.Sprintf(", version %s", b.UserVersion)
-		} else if b.Version != 0 {
-			additionalInfo = fmt.Sprintf(", number %d", b.Version)
-		}
-
-		consumer.Infof("  Build %d%s", b.ID, additionalInfo)
-	}
 }
