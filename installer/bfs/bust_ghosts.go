@@ -75,7 +75,7 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 
 		err := os.Remove(absolutePath)
 		if err != nil {
-			params.Consumer.Infof("Could not bust ghost file %s", err.Error())
+			params.Consumer.Infof("Could not bust ghost file '%s': %s", absolutePath, err.Error())
 		}
 	}
 
@@ -86,7 +86,7 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 
 		err := os.Remove(absolutePath)
 		if err != nil {
-			params.Consumer.Infof("Could not bust ghost dir %s", err.Error())
+			params.Consumer.Infof("Could not bust ghost dir '%s': %s", absolutePath, err.Error())
 		}
 	}
 }

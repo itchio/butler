@@ -182,9 +182,21 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 					consumer.Warnf("TODO: heal")
 				} else {
 					consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
+					var totalUpgradeSize int64
 					for _, item := range upgradePath.UpgradePath {
 						consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
+						totalUpgradeSize += item.PatchSize
 					}
+
+					var comparative = "smaller than"
+					if totalUpgradeSize > params.Upload.Size {
+						comparative = "larger than"
+					}
+					consumer.Infof("Total upgrade size %s is %s full upload %s",
+						humanize.IBytes(uint64(totalUpgradeSize)),
+						comparative,
+						humanize.IBytes(uint64(params.Upload.Size)),
+					)
 					consumer.Warnf("TODO: update")
 				}
 			} else if newID < oldID {
