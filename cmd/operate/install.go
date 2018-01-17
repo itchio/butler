@@ -99,8 +99,40 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		oc.Save(meta)
 	}
 
-	// FIXME: if the upload isn't nil, we still want to look for a build
-	// so we can return the right thing
+	// params.Upload can't be nil by now
+	if params.Build == nil {
+		// We were passed an upload but not a build:
+		// Let's refresh upload info so we can settle on a build we want to install (if any)
+
+		listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+			GameID:        params.Game.ID,
+			DownloadKeyID: params.Credentials.DownloadKey,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		found := true
+		for _, u := range listUploadsRes.Uploads {
+			if u.ID == params.Upload.ID {
+				if u.Build == nil {
+					consumer.Infof("Upload is not wharf-enabled")
+				} else {
+					consumer.Infof("Latest build for upload is %d", u.Build.ID)
+					params.Build = u.Build
+				}
+				break
+			}
+		}
+
+		if !found {
+			consumer.Errorf("Uh oh, we didn't find that upload on the server:")
+			logUpload(consumer, params.Upload, nil)
+			return nil, errors.New("Upload not found")
+		}
+
+		oc.Save(meta)
+	}
 
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
