@@ -151,7 +151,6 @@ type TaskEndedNotification struct {
 // Result for
 //   - Operation.Start
 type OperationResult struct {
-	ID           string `json:"id"`
 	Success      bool   `json:"success"`
 	ErrorMessage string `json:"errorMessage,omitempty"`
 	ErrorStack   string `json:"errorStack,omitempty"`
