@@ -61,16 +61,16 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 	}
 
 	oc.StartProgress()
-	uninstallErr := manager.Uninstall(managerUninstallParams)
+	err = manager.Uninstall(managerUninstallParams)
 	oc.EndProgress()
 
-	err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	if uninstallErr != nil {
-		return errors.Wrap(uninstallErr, 0)
+	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{})
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	err = wipe.Do(consumer, params.InstallFolder)
