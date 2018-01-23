@@ -36,17 +36,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.New("Missing install folder in install")
 	}
 
-	verb := ""
-	switch params.Fresh {
-	case false:
-		verb = "Performing re-install "
-	default:
-		verb = "Performing fresh install "
-	}
-
-	consumer.Infof("%s for %s", verb, gameToString(params.Game))
-	consumer.Infof("...into directory %s", params.InstallFolder)
-	consumer.Infof("...using stage directory %s", oc.StageFolder())
+	consumer.Infof("→ Installing %s", gameToString(params.Game))
+	consumer.Infof("  into %s", params.InstallFolder)
+	consumer.Infof("  using stage %s", oc.StageFolder())
 
 	client, err := clientFromCredentials(params.Credentials)
 	if err != nil {
@@ -64,7 +56,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			consumer.Errorf("Didn't find a compatible upload.")
 			consumer.Errorf("The initial %d uploads were:", len(uploadsFilterResult.InitialUploads))
 			for _, upload := range uploadsFilterResult.InitialUploads {
-				consumer.Infof("- %#v", upload)
+				logUpload(consumer, upload, upload.Build)
 			}
 
 			return nil, (&OperationError{
@@ -283,7 +275,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	managerInstallParams := &installer.InstallParams{
 		Consumer: consumer,
-		Fresh:    params.Fresh,
 
 		File:              file,
 		InstallerInfo:     istate.InstallerInfo,
@@ -318,28 +309,25 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		oc.StartProgress()
-		res, installErr := manager.Install(managerInstallParams)
+		res, err := manager.Install(managerInstallParams)
 		oc.EndProgress()
 
-		taskEnded := &buse.TaskEndedNotification{
-			Type: buse.TaskTypeInstall,
-		}
-		if err == nil {
-			taskEnded.InstallResult = &buse.InstallResult{
-				Game:   params.Game,
-				Upload: params.Upload,
-				Build:  params.Build,
-			}
-		}
-
-		err = oc.conn.Notify(oc.ctx, "TaskEnded", taskEnded)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
-		if installErr != nil {
-			return nil, errors.Wrap(installErr, 0)
+		err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+			Type: buse.TaskTypeInstall,
+			InstallResult: &buse.InstallResult{
+				Game:   params.Game,
+				Upload: params.Upload,
+				Build:  params.Build,
+			},
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
 		}
+
 		return res, nil
 	}
 
@@ -374,7 +362,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 					return errors.Wrap(err, 0)
 				}
 
-				err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{
+				err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
 					Type: buse.TaskTypeDownload,
 				})
 				if err != nil {

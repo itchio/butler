@@ -39,9 +39,6 @@ type InstallParams struct {
 
 	// For cancellation
 	Context context.Context
-
-	// true if first-time install
-	Fresh bool
 }
 
 type UninstallParams struct {

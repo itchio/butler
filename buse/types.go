@@ -76,7 +76,6 @@ type InstallParams struct {
 	Upload        *itchio.Upload   `json:"upload"`
 	Build         *itchio.Build    `json:"build"`
 	Credentials   *GameCredentials `json:"credentials"`
-	Fresh         bool             `json:"fresh"`
 }
 
 type UninstallParams struct {
@@ -141,7 +140,7 @@ type TaskStartedNotification struct {
 	TotalSize int64          `json:"totalSize,omitempty"`
 }
 
-type TaskEndedNotification struct {
+type TaskSucceededNotification struct {
 	Type TaskType `json:"type"`
 	// If the task installed something, then this contains
 	// info about the game, upload, build that were installed
