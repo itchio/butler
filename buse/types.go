@@ -150,11 +150,7 @@ type TaskEndedNotification struct {
 
 // Result for
 //   - Operation.Start
-type OperationResult struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"errorMessage,omitempty"`
-	ErrorStack   string `json:"errorStack,omitempty"`
-}
+type OperationResult struct{}
 
 type InstallResult struct {
 	Game   *itchio.Game   `json:"game"`

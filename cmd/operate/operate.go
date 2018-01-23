@@ -13,9 +13,9 @@ import (
 
 var ErrCancelled = errors.New("operation was cancelled")
 
-func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) (*buse.OperationResult, error) {
+func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) error {
 	if params.StagingFolder == "" {
-		return nil, errors.New("No staging folder specified")
+		return errors.New("No staging folder specified")
 	}
 
 	oc := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
@@ -28,7 +28,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 	oc.Load(meta)
 
 	if meta.data.Operation == "" {
-		return nil, errors.New("No operation specified")
+		return errors.New("No operation specified")
 	}
 
 	oc.Save(meta)
@@ -38,38 +38,34 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 		ires, err := install(oc, meta)
 		if err != nil {
 			consumer.Errorf("Install failed: %s", err.Error())
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
 		consumer.Infof("Installed %d files, reporting success", len(ires.Files))
 
 		err = oc.Retire()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
-		return &buse.OperationResult{
-			Success: true,
-		}, nil
+		return nil
 
 	case "uninstall":
 		err := uninstall(oc, meta)
 		if err != nil {
 			consumer.Errorf("Uninstall failed: %s", err.Error())
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
 		err = oc.Retire()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
-		return &buse.OperationResult{
-			Success: true,
-		}, nil
+		return nil
 	}
 
-	return nil, fmt.Errorf("Unknown operation '%s'", params.Operation)
+	return fmt.Errorf("Unknown operation '%s'", params.Operation)
 }
 
 type MetaSubcontext struct {

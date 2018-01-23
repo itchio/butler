@@ -93,7 +93,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				}
 				h.operationHandles[oh.id] = oh
 
-				res, err := operate.Start(ctx, h.ctx, conn, params)
+				err = operate.Start(ctx, h.ctx, conn, params)
 				delete(h.operationHandles, oh.id)
 				if err != nil {
 					if errors.Is(err, operate.ErrCancelled) {
@@ -106,7 +106,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					return err
 				}
 
-				err = conn.Reply(ctx, req.ID, res)
+				err = conn.Reply(ctx, req.ID, &buse.OperationResult{})
 				if err != nil {
 					comm.Warnf("could not send operation.start reply: %s", err.Error())
 				}
