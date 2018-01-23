@@ -119,10 +119,6 @@ type TaskReason string
 
 const (
 	TaskReasonInstall   TaskReason = "install"
-	TaskReasonReinstall TaskReason = "reinstall"
-	TaskReasonUpdate    TaskReason = "update"
-	TaskReasonRevert    TaskReason = "revert"
-	TaskReasonHeal      TaskReason = "heal"
 	TaskReasonUninstall TaskReason = "uninstall"
 )
 
@@ -132,6 +128,8 @@ const (
 	TaskTypeDownload  TaskType = "download"
 	TaskTypeInstall   TaskType = "install"
 	TaskTypeUninstall TaskType = "uninstall"
+	TaskTypeUpdate    TaskType = "update"
+	TaskTypeHeal      TaskType = "heal"
 )
 
 type TaskStartedNotification struct {
