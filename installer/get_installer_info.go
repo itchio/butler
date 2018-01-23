@@ -24,11 +24,13 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	ext := filepath.Ext(target)
 	name := filepath.Base(target)
 
+	consumer.Infof("↝ For source (%s)", name)
+
 	if typ, ok := installerForExt[ext]; ok {
 		if typ == InstallerTypeArchive {
 			// let code flow, probe it as archive
 		} else {
-			consumer.Infof("%s: choosing installer '%s'", name, typ)
+			consumer.Infof("✓ Using file extension registry (%s)", typ)
 			return &InstallerInfo{
 				Type: typ,
 			}, nil
@@ -40,22 +42,22 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	// caching, it's even faster. whereas 7-zip might read a *bunch*
 	// of an .exe file before it gives up
 
-	consumer.Infof("%s: probing with configurator", name)
+	consumer.Infof("  Probing with configurator...")
 
 	beforeConfiguratorProbe := time.Now()
 	candidate, err := configurator.Sniff(file, target, stat.Size())
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
-	consumer.Infof("%s: configurator probe took %s", name, time.Since(beforeConfiguratorProbe))
+	consumer.Debugf("  (took %s)", time.Since(beforeConfiguratorProbe))
 
 	var typePerConfigurator = InstallerTypeUnknown
 
 	if candidate != nil {
-		consumer.Infof("%s", candidate.String())
-		typePerConfigurator = getInstallerTypeForCandidate(consumer, name, candidate)
+		consumer.Infof("  Candidate: %s", candidate.String())
+		typePerConfigurator = getInstallerTypeForCandidate(consumer, candidate)
 	} else {
-		consumer.Infof("%s: nil candidate, configurator has forsaken us", name)
+		consumer.Infof("  No results from configurator")
 	}
 
 	if typePerConfigurator == InstallerTypeUnknown || typePerConfigurator == InstallerTypeNaked || typePerConfigurator == InstallerTypeArchive {
@@ -63,7 +65,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		// decompression engines, so if configurator returns naked, we try
 		// to open as an archive.
 		beforeArchiveProbe := time.Now()
-		consumer.Infof("%s: probing as archive", name)
+		consumer.Infof("  Probing as archive...")
 
 		// seek to start first because configurator may have seeked itself
 		_, err = file.Seek(0, io.SeekStart)
@@ -75,12 +77,12 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 			File:     file,
 			Consumer: consumer,
 		})
-		consumer.Infof("%s: archive probe took %s", name, time.Since(beforeArchiveProbe))
+		consumer.Debugf("  (took %s)", time.Since(beforeArchiveProbe))
 		if err == nil {
-			consumer.Infof("%s: is archive", name)
+			consumer.Infof("✓ Source is a supported archive format")
 			if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
 				// TODO: force downloading to disk first for those
-				consumer.Warnf("%s: has no/poor resume support, interruptions will waste network/CPU time")
+				consumer.Warnf("    ...but this format has no/poor resume support, interruptions will waste network/CPU time")
 			}
 
 			return &InstallerInfo{
@@ -95,44 +97,43 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		}
 	}
 
-	consumer.Infof("%s: going with configurator's result", name)
+	consumer.Infof("✓ Using configurator results")
 	return &InstallerInfo{
 		Type: typePerConfigurator,
 	}, nil
 }
 
-func getInstallerTypeForCandidate(consumer *state.Consumer, name string, candidate *configurator.Candidate) InstallerType {
+func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *configurator.Candidate) InstallerType {
 	switch candidate.Flavor {
 
 	case configurator.FlavorNativeWindows:
 		if candidate.WindowsInfo != nil && candidate.WindowsInfo.InstallerType != "" {
 			typ := (InstallerType)(candidate.WindowsInfo.InstallerType)
-			consumer.Infof("%s: windows installer of type %s", name, typ)
+			consumer.Infof("  → Windows installer of type %s", typ)
 			return typ
 		}
 
-		consumer.Infof("%s: native windows executable, but not an installer", name)
+		consumer.Infof("  → Native windows executable, but not an installer")
 		return InstallerTypeNaked
 
 	case configurator.FlavorNativeMacos:
-		consumer.Infof("%s: native macOS executable", name)
+		consumer.Infof("  → Native macOS executable")
 		return InstallerTypeNaked
 
 	case configurator.FlavorNativeLinux:
-		consumer.Infof("%s: native linux executable", name)
+		consumer.Infof("  → Native linux executable")
 		return InstallerTypeNaked
 
 	case configurator.FlavorScript:
-		consumer.Infof("%s: script", name)
+		consumer.Infof("  → Script")
 		if candidate.ScriptInfo != nil && candidate.ScriptInfo.Interpreter != "" {
-			consumer.Infof("...with interpreter %s", candidate.ScriptInfo.Interpreter)
+			consumer.Infof("    with interpreter %s", candidate.ScriptInfo.Interpreter)
 		}
 		return InstallerTypeNaked
 
 	case configurator.FlavorScriptWindows:
-		consumer.Infof("%s: windows script", name)
+		consumer.Infof("  → Windows script")
 		return InstallerTypeNaked
-
 	}
 
 	return InstallerTypeUnknown

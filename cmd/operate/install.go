@@ -37,8 +37,8 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	consumer.Infof("→ Installing %s", gameToString(params.Game))
-	consumer.Infof("  into %s", params.InstallFolder)
-	consumer.Infof("  using stage %s", oc.StageFolder())
+	consumer.Infof("  (%s) is our destination", params.InstallFolder)
+	consumer.Infof("  (%s) is our stage", oc.StageFolder())
 
 	client, err := clientFromCredentials(params.Credentials)
 	if err != nil {
@@ -246,7 +246,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	oc.Load(isub)
 
 	if istate.InstallerInfo == nil {
-		consumer.Infof("Probing %s (%s)", stats.Name(), humanize.IBytes(uint64(stats.Size())))
+		consumer.Infof("Determining source information...")
 
 		installerInfo, err := installer.GetInstallerInfo(consumer, file)
 		if err != nil {
@@ -262,7 +262,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		istate.InstallerInfo = installerInfo
 		oc.Save(isub)
 	} else {
-		consumer.Infof("Using cached installer info")
+		consumer.Infof("Using cached source information")
 	}
 
 	installerInfo := istate.InstallerInfo
@@ -417,14 +417,14 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			}
 
 			if !installer.IsWindowsInstaller(installerInfo.Type) {
-				consumer.Infof("Installer type is '%s', ignoring", installerInfo.Type)
+				consumer.Infof("Installer type is (%s), ignoring", installerInfo.Type)
 				return nil
 			}
 
 			consumer.Infof("Will use nested installer %s", installerInfo.Type)
 			manager = installer.GetManager(string(installerInfo.Type))
 			if manager == nil {
-				return fmt.Errorf("Don't know how to install '%s' packages", installerInfo.Type)
+				return fmt.Errorf("Don't know how to install (%s) packages", installerInfo.Type)
 			}
 
 			sf.Close()

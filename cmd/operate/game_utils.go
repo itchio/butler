@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 
@@ -64,11 +65,27 @@ func getFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *b
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Filtering %d uploads", len(uploads.Uploads))
+	numInputs := len(uploads.Uploads)
+	if numInputs == 0 {
+		consumer.Infof("No uploads found at all (that we can access)")
+	}
 	uploadsFilterResult := manager.NarrowDownUploads(uploads.Uploads, game, manager.CurrentRuntime())
-	consumer.Infof("After filter, got %d uploads, they are: ", len(uploadsFilterResult.Uploads))
-	for _, u := range uploadsFilterResult.Uploads {
-		logUpload(consumer, u, u.Build)
+
+	numResults := len(uploadsFilterResult.Uploads)
+
+	if numInputs > 0 {
+		if numResults == 0 {
+			consumer.Infof("→ All uploads were filtered out")
+		}
+		qualif := fmt.Sprintf("these %d uploads", numResults)
+		if numResults == 1 {
+			qualif = "this upload"
+		}
+
+		consumer.Infof("→ Narrowed %d uploads down to %s: ", numInputs, qualif)
+		for _, u := range uploadsFilterResult.Uploads {
+			logUpload(consumer, u, u.Build)
+		}
 	}
 
 	return uploadsFilterResult, nil
@@ -78,12 +95,21 @@ func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	if u == nil {
 		consumer.Infof("  No upload")
 	} else {
-		consumer.Infof("  Upload %d (%s): %s", u.ID, u.Filename, u.DisplayName)
-
-		ch := "No channel"
-		if u.ChannelName != "" {
-			ch = fmt.Sprintf("Channel '%s'", u.ChannelName)
+		var name string
+		if u.DisplayName != "" {
+			name = u.DisplayName
+		} else {
+			name = u.Filename
 		}
+
+		var size string
+		if u.Size > 0 {
+			size = humanize.IBytes(uint64(u.Size))
+		} else {
+			size = "Unknown size"
+		}
+
+		consumer.Infof("  ☁ %s :: %s :: #%d", name, size, u.ID)
 
 		var plats []string
 		if u.Linux {
@@ -99,22 +125,59 @@ func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 			plats = append(plats, "Android")
 		}
 
-		var platString = "(none)"
+		var platString = "No platforms"
 		if len(plats) > 0 {
 			platString = strings.Join(plats, ", ")
 		}
 
-		consumer.Infof("  ...%s, Type: %s, Platforms: %s", ch, u.Type, platString)
+		consumer.Infof("    %s :: %s", formatUploadType(u.Type), platString)
 	}
 
 	if b != nil {
-		additionalInfo := ""
+		version := ""
 		if b.UserVersion != "" {
-			additionalInfo = fmt.Sprintf(", version %s", b.UserVersion)
+			version = fmt.Sprintf("%s", b.UserVersion)
 		} else if b.Version != 0 {
-			additionalInfo = fmt.Sprintf(", number %d", b.Version)
+			version = "No explicit version"
 		}
 
-		consumer.Infof("  ...Build %d%s", b.ID, additionalInfo)
+		consumer.Infof("    Build %d for channel (%s) :: %s :: #%d", b.Version, u.ChannelName, version, b.ID)
+	}
+}
+
+func formatUploadType(uploadType string) string {
+	switch uploadType {
+	case "default":
+		return "Executable"
+
+	case "flash":
+		return "Flash object"
+	case "unity":
+		return "Legacy Unity Web"
+	case "java":
+		return "Java applet"
+
+	case "soundtrack":
+		return "Soundtrack"
+	case "book":
+		return "Book"
+	case "video":
+		return "Video"
+	case "documentation":
+		return "Documentation"
+	case "mod":
+		return "Mod"
+	case "audio_assets":
+		return "Audio assets"
+	case "graphical_assets":
+		return "Graphical assets"
+	case "sourcecode":
+		return "Source code"
+
+	case "other":
+		return "Other"
+
+	default:
+		return fmt.Sprintf("(%s)", uploadType)
 	}
 }
