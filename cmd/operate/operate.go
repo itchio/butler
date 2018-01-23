@@ -50,11 +50,6 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 
 		return &buse.OperationResult{
 			Success: true,
-			InstallResult: &buse.InstallResult{
-				Game:   params.InstallParams.Game,
-				Upload: params.InstallParams.Upload,
-				Build:  params.InstallParams.Build,
-			},
 		}, nil
 
 	case "uninstall":

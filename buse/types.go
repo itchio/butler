@@ -144,16 +144,19 @@ type TaskStartedNotification struct {
 }
 
 type TaskEndedNotification struct {
+	Type TaskType `json:"type"`
+	// If the task installed something, then this contains
+	// info about the game, upload, build that were installed
+	InstallResult *InstallResult `json:"installResult,omitempty"`
 }
 
 // Result for
 //   - Operation.Start
 type OperationResult struct {
-	ID            string      `json:"id"`
-	Success       bool        `json:"success"`
-	InstallResult interface{} `json:"installResult,omitempty"`
-	ErrorMessage  string      `json:"errorMessage,omitempty"`
-	ErrorStack    string      `json:"errorStack,omitempty"`
+	ID           string `json:"id"`
+	Success      bool   `json:"success"`
+	ErrorMessage string `json:"errorMessage,omitempty"`
+	ErrorStack   string `json:"errorStack,omitempty"`
 }
 
 type InstallResult struct {

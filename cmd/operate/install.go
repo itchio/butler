@@ -321,7 +321,18 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		res, installErr := manager.Install(managerInstallParams)
 		oc.EndProgress()
 
-		err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+		taskEnded := &buse.TaskEndedNotification{
+			Type: buse.TaskTypeInstall,
+		}
+		if err == nil {
+			taskEnded.InstallResult = &buse.InstallResult{
+				Game:   params.Game,
+				Upload: params.Upload,
+				Build:  params.Build,
+			}
+		}
+
+		err = oc.conn.Notify(oc.ctx, "TaskEnded", taskEnded)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
@@ -363,7 +374,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 					return errors.Wrap(err, 0)
 				}
 
-				err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{})
+				err = oc.conn.Notify(oc.ctx, "TaskEnded", &buse.TaskEndedNotification{
+					Type: buse.TaskTypeDownload,
+				})
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
