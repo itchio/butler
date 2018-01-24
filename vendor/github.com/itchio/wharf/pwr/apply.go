@@ -451,6 +451,12 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 				return
 			}
 
+			err = sourceWriter.Close()
+			if err != nil {
+				retErr = errors.Wrap(err, 0)
+				return
+			}
+
 			rop := &SyncOp{}
 			err = patchWire.ReadMessage(rop)
 			if err != nil {
