@@ -12,6 +12,8 @@ var args = struct {
 	command *[]string
 }{}
 
+const ExitCodeAccessDenied = 127
+
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("elevate", "Runs a command as administrator").Hidden()
 	args.command = cmd.Arg("command", "A command to run, with arguments").Strings()

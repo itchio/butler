@@ -171,7 +171,7 @@ func doMain(args []string) {
 
 			cmdLine = append(cmdLine, arg)
 		}
-		elevate.Do(cmdLine)
+		must(elevate.Do(cmdLine))
 		return
 	}
 

@@ -20,9 +20,9 @@ func New(consumer *state.Consumer, prefix string) io.Writer {
 
 		for s.Scan() {
 			if prefix == "err" {
-				consumer.Warnf("[%s] %s", s.Text())
+				consumer.Warnf("[%s] %s", prefix, s.Text())
 			} else {
-				consumer.Infof("[%s] %s", s.Text())
+				consumer.Infof("[%s] %s", prefix, s.Text())
 			}
 		}
 	}()

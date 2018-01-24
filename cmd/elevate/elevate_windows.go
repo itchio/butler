@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/go-errors/errors"
@@ -61,12 +62,11 @@ func Elevate(params *ElevateParams) (int, error) {
 
 	err, code := win32.ShellExecuteAndWait(0, "runas", butlerExe, makeCmdLine(args), wd, syscall.SW_HIDE)
 	if err != nil {
+		if strings.Contains(err.Error(), "The operating system denied access to the specified file") {
+			return ExitCodeAccessDenied, nil
+		}
 		return -1, errors.Wrap(err, 0)
 	}
-
-	// TODO: is there a known exit code for when the user declined to elevate?
-	// could we turn it into a go error instead? or is that already done by
-	// the win32 package?
 
 	return int(code), nil
 }

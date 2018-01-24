@@ -6,6 +6,7 @@ import (
 	"github.com/itchio/wharf/tlc"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
@@ -40,41 +41,31 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 	angelResult, err := bfs.SaveAngels(angelParams, func() error {
 		args := []string{
+			"--elevate",
 			"msi-install",
 			f.Name(),
 			"--target",
 			params.InstallFolderPath,
 		}
 
-		consumer.Infof("Attempting non-elevated MSI install")
+		consumer.Infof("Attempting elevated MSI install")
 		res, err := installer.RunSelf(consumer, args)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		if res.ExitCode != 0 {
-			consumer.Warnf("Non-elevated installation failed with exit code %d", res.ExitCode)
-
-			if shouldTryElevated(consumer, res) {
-				args = append(args, "--elevate")
-
-				consumer.Infof("Attempting elevated MSI install")
-				res, err := installer.RunSelf(consumer, args)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
-
-				if res.ExitCode != 0 {
-					consumer.Errorf("Elevated MSI install failed, we're out of options")
-					return errors.New("Elevated MSI installation failed, this package is probably not compatible")
-				}
-			} else {
-				consumer.Errorf("Non-elevated MSI install failed, and not trying elevated")
-				return errors.New("MSI installation failed, this package is probably not compatible")
+			if res.ExitCode == elevate.ExitCodeAccessDenied {
+				msg := "User or system did not grant elevation privileges"
+				consumer.Errorf(msg)
+				return errors.New(msg)
 			}
+
+			consumer.Errorf("Elevated MSI install failed (code %d, 0x%x), we're out of options", res.ExitCode, res.ExitCode)
+			return errors.New("Elevated MSI installation failed, this package is probably not compatible")
 		}
 
-		consumer.Infof("MSI installed successfully.")
+		consumer.Infof("MSI package installed successfully.")
 		consumer.Infof("Making sure it installed in the directory we wanted...")
 		container, err := tlc.WalkDir(params.InstallFolderPath, &tlc.WalkOpts{
 			Filter: bfs.DotItchFilter(),
