@@ -186,4 +186,5 @@ type TestDoubleResult struct {
 
 const (
 	CodeOperationCancelled = 499
+	CodeOperationAborted   = 410
 )

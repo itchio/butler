@@ -103,6 +103,15 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 						})
 						return nil
 					}
+
+					if errors.Is(err, operate.ErrAborted) {
+						conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+							Code:    buse.CodeOperationAborted,
+							Message: err.Error(),
+						})
+						return nil
+					}
+
 					return err
 				}
 

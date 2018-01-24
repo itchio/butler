@@ -3,6 +3,7 @@ package msi
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/elevate"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer"
 )
 
@@ -43,7 +44,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 				if res.ExitCode == elevate.ExitCodeAccessDenied {
 					msg := "User or system did not grant elevation privileges"
 					consumer.Errorf(msg)
-					return errors.New(msg)
+					return operate.ErrAborted
 				}
 
 				consumer.Errorf("Elevated MSI uninstall failed (code %d, 0x%x), we're out of options", res.ExitCode, res.ExitCode)

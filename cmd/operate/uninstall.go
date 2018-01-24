@@ -68,7 +68,9 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 		return errors.Wrap(err, 0)
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{})
+	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+		Type: buse.TaskTypeUninstall,
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

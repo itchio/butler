@@ -77,6 +77,10 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 				return nil, errors.Wrap(err, 0)
 			}
 
+			if r.Index < 0 {
+				return nil, ErrAborted
+			}
+
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
 		}
 
@@ -316,18 +320,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return nil, errors.Wrap(err, 0)
 		}
 
-		err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
-			Type: buse.TaskTypeInstall,
-			InstallResult: &buse.InstallResult{
-				Game:   params.Game,
-				Upload: params.Upload,
-				Build:  params.Build,
-			},
-		})
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
 		return res, nil
 	}
 
@@ -470,6 +462,18 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
+	}
+
+	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+		Type: buse.TaskTypeInstall,
+		InstallResult: &buse.InstallResult{
+			Game:   params.Game,
+			Upload: params.Upload,
+			Build:  params.Build,
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("Writing receipt...")

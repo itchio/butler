@@ -11,7 +11,12 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+// ErrCancelled is returned when the client asked for an operation to be cancelled
 var ErrCancelled = errors.New("operation was cancelled")
+
+// ErrAborted is returned when the user stopped an operation outside the client's control
+// and it should just be stopped.
+var ErrAborted = errors.New("operation was aborted")
 
 func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) error {
 	if params.StagingFolder == "" {

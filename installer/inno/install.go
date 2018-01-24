@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/cmd/operate"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
@@ -53,13 +55,18 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 		// N.B: InnoSetup installers are smart enough to elevate themselves.
 		exitCode, err := installer.RunCommand(consumer, cmdTokens)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
 		err = installer.CheckExitCode(exitCode, err)
 		if err != nil {
-			consumer.Warnf("Installation failed: %s", err.Error())
+			msg := messageForExitCode(exitCode)
+			consumer.Warnf("InnoSetup installation failed:", msg)
 
-			lf, err := os.Open(logPath)
-			if err != nil {
-				consumer.Warnf("...aditionally, we could not read the installation log: %s", err.Error())
+			lf, openErr := os.Open(logPath)
+			if openErr != nil {
+				consumer.Warnf("...aditionally, we could not read the installation log: %s", openErr.Error())
 			} else {
 				defer lf.Close()
 				consumer.Warnf("==== inno installation log start ====")
@@ -70,7 +77,11 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 				consumer.Warnf("==== inno installation log end ====")
 			}
 
-			return errors.Wrap(err, 0)
+			if exitCodeIsAborted(exitCode) {
+				return operate.ErrAborted
+			}
+
+			return errors.Wrap(errors.New(msg), 0)
 		}
 
 		return nil
@@ -84,4 +95,42 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Files: angelResult.Files,
 	}
 	return res, nil
+}
+
+func exitCodeIsAborted(exitCode int) bool {
+	// see http://www.jrsoftware.org/ishelp/index.php?topic=setupexitcodes
+	switch exitCode {
+	case 2:
+		// the user clicked cancel or failed to allow elevation
+		return true
+	case 5:
+		// the user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box.
+		return true
+	default:
+		return false
+	}
+}
+
+func messageForExitCode(exitCode int) string {
+	// see http://www.jrsoftware.org/ishelp/index.php?topic=setupexitcodes
+	switch exitCode {
+	case 1:
+		return `Setup failed to initialize`
+	case 2:
+		return `The user clicked Cancel in the wizard before the actual installation started, or chose "No" on the opening "This will install..." message box.`
+	case 3:
+		return `A fatal error occurred while preparing to move to the next installation phase (for example, from displaying the pre-installation wizard pages to the actual installation process). This should never happen except under the most unusual of circumstances, such as running out of memory or Windows resources.`
+	case 4:
+		return `A fatal error occurred during the actual installation process.`
+	case 5:
+		return `The user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box.`
+	case 6:
+		return `The Setup process was forcefully terminated by the debugger (Run | Terminate was used in the IDE).`
+	case 7:
+		return `The Preparing to Install stage determined that Setup cannot proceed with installation.`
+	case 8:
+		return `The Preparing to Install stage determined that Setup cannot proceed with installation, and that the system needs to be restarted in order to correct the problem.`
+	default:
+		return fmt.Sprintf(`Unknown error (exit code %d)`, exitCode)
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/msi"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -58,7 +59,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			if res.ExitCode == elevate.ExitCodeAccessDenied {
 				msg := "User or system did not grant elevation privileges"
 				consumer.Errorf(msg)
-				return errors.New(msg)
+				return operate.ErrAborted
 			}
 
 			consumer.Errorf("Elevated MSI install failed (code %d, 0x%x), we're out of options", res.ExitCode, res.ExitCode)
