@@ -3,6 +3,7 @@ package tarextractor
 import (
 	"encoding/gob"
 	"io"
+	"os"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
@@ -167,6 +168,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				entry := &savior.Entry{
 					CanonicalPath:    hdr.Name,
 					UncompressedSize: hdr.Size,
+					Mode:             os.FileMode(hdr.Mode),
 				}
 
 				switch hdr.Typeflag {
