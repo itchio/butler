@@ -1,10 +1,12 @@
 package ls
 
 import (
+	"archive/tar"
 	"encoding/binary"
 	"io"
 	"os"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
@@ -205,9 +207,32 @@ func Do(ctx *mansion.Context, inPath string) error {
 			return true
 		}()
 
-		if !wasZip {
-			comm.Logf("%s: not sure - try the file(1) command if your system has it!", path)
+		if wasZip {
+			return nil
 		}
+
+		wasTar := func() bool {
+			tr := tar.NewReader(reader)
+
+			for {
+				hdr, err := tr.Next()
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					return false
+				}
+
+				comm.Logf("%s %10s %s", os.FileMode(hdr.Mode), humanize.IBytes(uint64(hdr.Size)), hdr.Name)
+			}
+			return true
+		}()
+
+		if wasTar {
+			return nil
+		}
+
+		comm.Logf("%s: not able to list contents", path)
 	}
 
 	return nil
