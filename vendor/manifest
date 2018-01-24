@@ -148,6 +148,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gogits/chardet",
+			"repository": "https://github.com/gogits/chardet",
+			"vcs": "git",
+			"revision": "2404f777256163ea3eadb273dada5dcb037993c0",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
