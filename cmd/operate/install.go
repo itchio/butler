@@ -3,7 +3,6 @@ package operate
 import (
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 
@@ -175,58 +174,45 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 				})
 				if err != nil {
 					consumer.Warnf("Could not find upgrade path: %s", err.Error())
-					consumer.Warnf("TODO: heal")
-				} else {
-					consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
-					var totalUpgradeSize int64
-					for _, item := range upgradePath.UpgradePath {
-						consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
-						totalUpgradeSize += item.PatchSize
-					}
-
-					var comparative = "smaller than"
-					if totalUpgradeSize > params.Upload.Size {
-						comparative = "larger than"
-					}
-					consumer.Infof("Total upgrade size %s is %s full upload %s",
-						humanize.IBytes(uint64(totalUpgradeSize)),
-						comparative,
-						humanize.IBytes(uint64(params.Upload.Size)),
-					)
-					consumer.Warnf("TODO: update")
+					consumer.Infof("Falling back to heal...")
+					return heal(oc, meta, receiptIn)
 				}
+
+				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
+				var totalUpgradeSize int64
+				for _, item := range upgradePath.UpgradePath {
+					consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
+					totalUpgradeSize += item.PatchSize
+				}
+				fullUploadSize := params.Upload.Size
+
+				var comparative = "smaller than"
+				if totalUpgradeSize > fullUploadSize {
+					comparative = "larger than"
+				}
+				consumer.Infof("Total upgrade size %s is %s full upload %s",
+					humanize.IBytes(uint64(totalUpgradeSize)),
+					comparative,
+					humanize.IBytes(uint64(fullUploadSize)),
+				)
+
+				if totalUpgradeSize > fullUploadSize {
+					consumer.Infof("Healing instead of patching")
+					return heal(oc, meta, receiptIn)
+				}
+
+				consumer.Warnf("TODO: update (falling back to install for now)")
 			} else if newID < oldID {
 				consumer.Infof("↓ Downgrading from build %d to %d", oldID, newID)
-				consumer.Warnf("TODO: heal")
-			} else {
-				consumer.Infof("↺ Re-installing build %d", newID)
-				consumer.Warnf("TODO: heal")
+				return heal(oc, meta, receiptIn)
 			}
+
+			consumer.Infof("↺ Re-installing build %d", newID)
+			return heal(oc, meta, receiptIn)
 		}
 	}
 
-	var installSourceURLPath string
-	if params.Build == nil {
-		installSourceURLPath = fmt.Sprintf("/upload/%d/download", params.Upload.ID)
-	} else {
-		fileType := "archive"
-
-		for _, bf := range params.Build.Files {
-			if bf.Type == itchio.BuildFileTypeUnpacked {
-				consumer.Infof("Build %d / %d has an unpacked file", params.Upload.ID, params.Build.ID)
-				fileType = "unpacked"
-				break
-			}
-		}
-
-		installSourceURLPath = fmt.Sprintf("/upload/%d/download/builds/%d/%s", params.Upload.ID, params.Build.ID, fileType)
-	}
-	values := make(url.Values)
-	values.Set("api_key", params.Credentials.APIKey)
-	if params.Credentials.DownloadKey != 0 {
-		values.Set("download_key_id", fmt.Sprintf("%d", params.Credentials.DownloadKey))
-	}
-	var installSourceURL = fmt.Sprintf("itchfs://%s?%s", installSourceURLPath, values.Encode())
+	installSourceURL := sourceURL(consumer, params, "")
 
 	// TODO: support http servers that don't have range request
 	// (just copy it first). see DownloadInstallSource later on.
@@ -464,37 +450,16 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
-		Type: buse.TaskTypeInstall,
-		InstallResult: &buse.InstallResult{
-			Game:   params.Game,
-			Upload: params.Upload,
-			Build:  params.Build,
-		},
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	return commitInstall(oc, &CommitInstallParams{
+		InstallFolder: params.InstallFolder,
 
-	consumer.Infof("Writing receipt...")
-	receipt := &bfs.Receipt{
 		InstallerName: string(installerInfo.Type),
 		Game:          params.Game,
 		Upload:        params.Upload,
 		Build:         params.Build,
 
-		Files: res.Files,
-
-		// optionals:
-		MSIProductCode: res.MSIProductCode,
-	}
-
-	err = receipt.WriteReceipt(params.InstallFolder)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	return res, nil
+		InstallResult: res,
+	})
 }
 
 type InstallSubcontextState struct {

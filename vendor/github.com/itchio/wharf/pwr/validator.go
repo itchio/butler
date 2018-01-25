@@ -138,7 +138,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 		path := filepath.Join(target, filepath.FromSlash(dir.Path))
 		stats, err := os.Lstat(path)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if IsNotExist(err) {
 				vctx.Wounds <- &Wound{
 					Kind:  WoundKind_DIR,
 					Index: int64(dirIndex),
@@ -279,7 +279,7 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 		var reader io.Reader
 		reader, err = targetPool.GetReader(fileIndex)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if IsNotExist(err) {
 				// whole file is missing
 				wound := &Wound{
 					Kind:  WoundKind_FILE,
@@ -373,4 +373,12 @@ func AssertValid(target string, signature *SignatureInfo) error {
 	}
 
 	return nil
+}
+
+// IsNotExist is a variant of os.IsNotExist that works with nested errors
+func IsNotExist(err error) bool {
+	if se, ok := err.(*errors.Error); ok {
+		return IsNotExist(se.Err)
+	}
+	return os.IsNotExist(err)
 }

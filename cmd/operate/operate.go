@@ -43,6 +43,9 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 		ires, err := install(oc, meta)
 		if err != nil {
 			consumer.Errorf("Install failed: %s", err.Error())
+			if se, ok := err.(*errors.Error); ok {
+				consumer.Errorf("Full stack trace:\n%s", se.ErrorStack())
+			}
 			return errors.Wrap(err, 0)
 		}
 
