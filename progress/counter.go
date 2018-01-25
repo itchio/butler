@@ -1,6 +1,7 @@
 package progress
 
 import (
+	"sync"
 	"time"
 
 	"github.com/itchio/butler/pb"
@@ -15,6 +16,7 @@ type Counter struct {
 	bps                 float64
 	bar                 *pb.ProgressBar
 	alpha               float64
+	lock                sync.Mutex
 }
 
 func NewCounter() *Counter {
@@ -54,6 +56,9 @@ func (c *Counter) Resume() {
 }
 
 func (c *Counter) SetProgress(alpha float64) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	if c.bar.TotalBytes != 0 {
 		if c.lastBandwidthUpdate.IsZero() {
 			c.lastBandwidthUpdate = time.Now()
@@ -81,7 +86,7 @@ func (c *Counter) Progress() float64 {
 }
 
 func (c *Counter) ETA() time.Duration {
-	return c.bar.TimeLeft
+	return c.bar.GetTimeLeft()
 }
 
 func (c *Counter) BPS() float64 {

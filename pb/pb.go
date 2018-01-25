@@ -108,6 +108,9 @@ type ProgressBar struct {
 
 // Start print
 func (pb *ProgressBar) Start() *ProgressBar {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	pb.startTime = time.Now()
 	pb.startValue = pb.current
 	if pb.Total == 0 {
@@ -122,23 +125,35 @@ func (pb *ProgressBar) Start() *ProgressBar {
 
 // Set64 sets the current value as int64
 func (pb *ProgressBar) Set64(current int64) *ProgressBar {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	pb.current = current
 	return pb
 }
 
 func (pb *ProgressBar) SetScale(scale float64) *ProgressBar {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	pb.scale = scale
 	return pb
 }
 
 // Set prefix string
 func (pb *ProgressBar) Prefix(prefix string) *ProgressBar {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	pb.prefix = prefix
 	return pb
 }
 
 // Set postfix string
 func (pb *ProgressBar) Postfix(postfix string) *ProgressBar {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	pb.postfix = postfix
 	return pb
 }
@@ -323,9 +338,7 @@ func (pb *ProgressBar) write(current int64) {
 	}
 
 	// and print!
-	pb.mu.Lock()
 	pb.lastPrint = out + end
-	pb.mu.Unlock()
 	switch {
 	case pb.Output != nil:
 		fmt.Fprint(pb.Output, "\r"+out+end)
@@ -354,6 +367,9 @@ func (pb *ProgressBar) GetWidth() int {
 
 // Write the current state of the progressbar
 func (pb *ProgressBar) Update() {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+
 	c := atomic.LoadInt64(&pb.current)
 	if pb.AlwaysUpdate || c != pb.currentValue {
 		pb.write(c)
@@ -380,6 +396,12 @@ func (pb *ProgressBar) writer() {
 
 func (pb *ProgressBar) CurrentValue() int64 {
 	return pb.currentValue
+}
+
+func (pb *ProgressBar) GetTimeLeft() time.Duration {
+	pb.mu.Lock()
+	defer pb.mu.Unlock()
+	return pb.TimeLeft
 }
 
 type window struct {
