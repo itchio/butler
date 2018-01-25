@@ -41,6 +41,7 @@ build:linux:386:
   tags:
     - dropsy
   artifacts:
+    expire_in: 1 week
     paths:
       - binaries
 
@@ -53,6 +54,7 @@ build:linux:amd64:
   tags:
     - dropsy
   artifacts:
+    expire_in: 1 week
     paths:
       - binaries
 
@@ -65,6 +67,7 @@ build:darwin:amd64:
   tags:
     - darwin
   artifacts:
+    expire_in: 1 week
     paths:
       - binaries
 
@@ -77,6 +80,7 @@ build:windows:386:
   tags:
     - windows
   artifacts:
+    expire_in: 1 week
     paths:
       - binaries
 
@@ -89,6 +93,7 @@ build:windows:amd64:
   tags:
     - windows
   artifacts:
+    expire_in: 1 week
     paths:
       - binaries
 
