@@ -2,6 +2,7 @@ package operate
 
 import (
 	"fmt"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/installer"
@@ -34,15 +35,24 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 		HealPath:   healSpec,
 	}
 
-	consumer.Infof("Fetching + parsing signature...")
-
 	signatureFile, err := eos.Open(signatureURL)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 	defer signatureFile.Close()
 
+	stat, err := signatureFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Fetching + parsing %s signature...",
+		humanize.IBytes(uint64(stat.Size())),
+	)
+
 	signatureSource := seeksource.FromFile(signatureFile)
+
+	timeBeforeSig := time.Now()
 
 	_, err = signatureSource.Resume(nil)
 	if err != nil {
@@ -54,7 +64,14 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Nursing wharf build back to health...")
+	consumer.Infof("✓ Fetched signature in %s, dealing with %s container",
+		time.Since(timeBeforeSig),
+		humanize.IBytes(uint64(sigInfo.Container.Size)),
+	)
+
+	consumer.Infof("Healing container...")
+
+	timeBeforeHeal := time.Now()
 
 	oc.StartProgress()
 	err = vc.Validate(params.InstallFolder, sigInfo)
@@ -64,12 +81,20 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 		return nil, errors.Wrap(err, 0)
 	}
 
+	healDuration := time.Since(timeBeforeHeal)
+	containerSize := sigInfo.Container.Size
+
 	if vc.WoundsConsumer.HasWounds() {
 		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
-			consumer.Infof("✓ %s corrupted data found, %s healed (of %s total)",
+			totalHealed := healer.TotalHealed()
+			perSec := humanize.IBytes(uint64(float64(totalHealed) / healDuration.Seconds()))
+
+			consumer.Infof("✓ %s corrupted data found (of %s total), %s healed @ %s/s, %s total",
 				humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())),
-				humanize.IBytes(uint64(healer.TotalHealed())),
 				humanize.IBytes(uint64(sigInfo.Container.Size)),
+				humanize.IBytes(uint64(totalHealed)),
+				perSec,
+				healDuration,
 			)
 		} else {
 			consumer.Warnf("%s corrupted data found (of %s total)",
@@ -78,8 +103,12 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 			)
 		}
 	} else {
-		consumer.Infof("✓ All %s were healthy",
-			humanize.IBytes(uint64(sigInfo.Container.Size)),
+		perSec := humanize.IBytes(uint64(float64(containerSize) / healDuration.Seconds()))
+
+		consumer.Infof("✓ All %s were healthy (checked @ %s/s, %s total)",
+			humanize.IBytes(uint64(containerSize)),
+			perSec,
+			healDuration,
 		)
 	}
 

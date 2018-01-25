@@ -25,6 +25,8 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 	var innerResult chan error
 	var skippedWounds []*Wound
 
+	var initialHealthy int64
+
 	for wound := range wounds {
 		if lh.inner == nil {
 			if wound.Kind == WoundKind_CLOSED_FILE {
@@ -34,6 +36,10 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 				// it would be important if we already had an inner
 				// healer, in which case we'd still want to relay it
 				skippedWounds = append(skippedWounds, wound)
+				initialHealthy += wound.End - wound.Start
+				if lh.consumer != nil {
+					lh.consumer.Progress(float64(initialHealthy) / float64(container.Size))
+				}
 				continue
 			}
 
@@ -44,7 +50,6 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 			}
 
 			lh.inner.SetNumWorkers(lh.numWorkers)
-			lh.inner.SetConsumer(lh.consumer)
 			lh.inner.SetLockMap(lh.lockmap)
 
 			innerWounds = make(chan *Wound)
@@ -58,6 +63,9 @@ func (lh *LazyHealer) Do(container *tlc.Container, wounds chan *Wound) error {
 				innerWounds <- skippedWound
 			}
 			skippedWounds = nil
+
+			// set consumer late so we don't have progress bar jumpbacks
+			lh.inner.SetConsumer(lh.consumer)
 		}
 
 		innerWounds <- wound
