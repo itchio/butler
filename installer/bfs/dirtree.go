@@ -89,6 +89,10 @@ func (dt *DirTree) hasPath(dirPath string) bool {
 }
 
 func (dt *DirTree) commitPath(dirPath string) {
+	if dirPath == "." {
+		return
+	}
+
 	tokens := dt.split(dirPath)
 	node := dt.root
 	for _, token := range tokens {

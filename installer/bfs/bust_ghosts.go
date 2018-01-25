@@ -75,18 +75,22 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 
 		err := os.Remove(absolutePath)
 		if err != nil {
-			params.Consumer.Infof("Could not bust ghost file '%s': %s", absolutePath, err.Error())
+			params.Consumer.Infof("Leaving ghost file behind (%s): %s", absolutePath, err.Error())
 		}
 	}
 
 	dt := NewDirTree(params.Folder)
 	dt.CommitFiles(ghostFiles)
 	for _, ghostDir := range dt.ListRelativeDirs() {
+		if ghostDir == "." {
+			continue
+		}
+
 		absolutePath := filepath.Join(params.Folder, ghostDir)
 
 		err := os.Remove(absolutePath)
 		if err != nil {
-			params.Consumer.Infof("Could not bust ghost dir '%s': %s", absolutePath, err.Error())
+			params.Consumer.Infof("Leaving directory behind (%s): %s", absolutePath, err.Error())
 		}
 	}
 }
