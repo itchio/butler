@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync/atomic"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
@@ -58,7 +58,12 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	fileIndices := make(chan int64, len(container.Files))
 
 	if ah.NumWorkers == 0 {
-		ah.NumWorkers = runtime.NumCPU() + 1
+		// default to 1 worker, which is usually the sensible
+		// thing to do I/O-wise (whether we're reading from disk or network)
+		ah.NumWorkers = 1
+	}
+	if ah.Consumer != nil {
+		ah.Consumer.Debugf("archive healer: using %d workers", ah.NumWorkers)
 	}
 
 	defer ah.File.Close()
@@ -89,6 +94,10 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	}
 
 	processWound := func(wound *Wound) error {
+		if ah.Consumer != nil {
+			ah.Consumer.Debugf("processing wound: %s", wound)
+		}
+
 		if !wound.Healthy() {
 			ah.totalCorrupted += wound.Size()
 			ah.hasWounds = true
@@ -233,6 +242,11 @@ func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.Writabl
 	var err error
 	var reader io.Reader
 	var writer io.WriteCloser
+
+	if ah.Consumer != nil {
+		f := ah.container.Files[fileIndex]
+		ah.Consumer.Debugf("healing (%s) %s", f.Path, humanize.IBytes(uint64(f.Size)))
+	}
 
 	reader, err = sourcePool.GetReader(fileIndex)
 	if err != nil {

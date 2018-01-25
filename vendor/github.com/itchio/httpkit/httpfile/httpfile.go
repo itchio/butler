@@ -58,6 +58,9 @@ type hstats struct {
 	numCacheHit int64
 }
 
+var idSeed int64 = 1
+var idMutex sync.Mutex
+
 // HTTPFile allows accessing a file served by an HTTP server as if it was local
 // (for random-access reading purposes, not writing)
 type HTTPFile struct {
@@ -77,10 +80,8 @@ type HTTPFile struct {
 
 	closed bool
 
-	readers      map[string]*httpReader
-	readersMutex sync.Mutex
-
-	idSeed int64
+	readers map[string]*httpReader
+	lock    sync.Mutex
 
 	currentURL string
 	urlMutex   sync.Mutex
@@ -127,7 +128,7 @@ func (hr *httpReader) Read(data []byte) (int, error) {
 		hr.backtrack -= readLen
 
 		hr.file.stats.cachedBytes += int64(readLen)
-		hr.file.stats.numCacheHit += 1
+		hr.file.stats.numCacheHit++
 
 		return readLen, nil
 	}
@@ -137,7 +138,7 @@ func (hr *httpReader) Read(data []byte) (int, error) {
 	hr.offset += int64(readBytes)
 
 	hr.file.stats.fetchedBytes += int64(readBytes)
-	hr.file.stats.numCacheMiss += 1
+	hr.file.stats.numCacheMiss++
 
 	// offset cache to make room for the new data
 	remainingOldCacheSize := len(hr.cache) - readBytes
@@ -157,6 +158,7 @@ func (hr *httpReader) Read(data []byte) (int, error) {
 }
 
 func (hr *httpReader) Discard(n int) (int, error) {
+	// TODO: don't realloc that buf all the time
 	buf := make([]byte, 4096)
 
 	totalDiscarded := 0
@@ -361,7 +363,6 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		readers: make(map[string]*httpReader),
 		stats:   &hstats{},
-		idSeed:  1,
 
 		ReaderStaleThreshold: DefaultReaderStaleThreshold,
 		LogLevel:             DefaultLogLevel,
@@ -493,9 +494,6 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		return nil, io.EOF
 	}
 
-	hf.readersMutex.Lock()
-	defer hf.readersMutex.Unlock()
-
 	var bestReader string
 	var bestDiff int64 = math.MaxInt64
 
@@ -534,6 +532,9 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		reader := hf.readers[bestReader]
 		delete(hf.readers, bestReader)
 
+		// clear backtrack if any
+		reader.backtrack = 0
+
 		// discard if needed
 		if bestDiff > 0 {
 			hf.log2("borrow: for %d, re-using %d by discarding %d bytes", offset, reader.offset, bestDiff)
@@ -554,7 +555,6 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 			}
 		}
 
-		reader.backtrack = 0
 		return reader, nil
 	}
 
@@ -573,8 +573,7 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 	// provision a new reader
 	hf.log("borrow: making fresh for offset %d", offset)
 
-	id := hf.idSeed
-	hf.idSeed++
+	id := generateID()
 	reader := &httpReader{
 		file:      hf,
 		id:        fmt.Sprintf("reader-%d", id),
@@ -593,9 +592,6 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 }
 
 func (hf *HTTPFile) returnReader(reader *httpReader) {
-	hf.readersMutex.Lock()
-	defer hf.readersMutex.Unlock()
-
 	// TODO: enforce max idle readers ?
 
 	reader.touchedAt = time.Now()
@@ -633,6 +629,9 @@ func (hf *HTTPFile) Stat() (os.FileInfo, error) {
 // If an invalid offset is given, it will be truncated to a valid one, between
 // [0,size).
 func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
+	hf.lock.Lock()
+	defer hf.lock.Unlock()
+
 	var newOffset int64
 
 	switch whence {
@@ -659,6 +658,9 @@ func (hf *HTTPFile) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (hf *HTTPFile) Read(buf []byte) (int, error) {
+	hf.lock.Lock()
+	defer hf.lock.Unlock()
+
 	initialOffset := hf.offset
 	hf.log2("> Read(%d, %d)", len(buf), initialOffset)
 	bytesRead, err := hf.readAt(buf, hf.offset)
@@ -672,6 +674,9 @@ func (hf *HTTPFile) Read(buf []byte) (int, error) {
 // network errors or timeouts, it will retry with truncated exponential backoff
 // according to RetrySettings
 func (hf *HTTPFile) ReadAt(buf []byte, offset int64) (int, error) {
+	hf.lock.Lock()
+	defer hf.lock.Unlock()
+
 	hf.log2("> ReadAt(%d, %d)", len(buf), offset)
 	n, err := hf.readAt(buf, offset)
 	hf.log2("< ReadAt(%d, %d) = %d, %+v", len(buf), offset, n, err != nil)
@@ -726,21 +731,20 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 			strings.HasPrefix(opError.Err.Error(), "read tcp") {
 			hf.log("shouldRetry: retrying net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
 			return true
-		} else {
-			hf.log("shouldRetry: bailing on net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
 		}
+		hf.log("shouldRetry: bailing on net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
 	} else if urlError, ok := err.(*url.Error); ok {
 		// examples: "dial tcp: [...] on port 53: server misbehaving"
 		// examples: "dial tcp: [...] on port 53: timed out"
 		if urlError.Timeout() ||
 			urlError.Temporary() ||
 			errors.Is(urlError.Err, io.EOF) ||
-			strings.HasPrefix(urlError.Err.Error(), "dial tcp") {
+			strings.HasPrefix(urlError.Err.Error(), "dial tcp") ||
+			strings.HasPrefix(urlError.Err.Error(), "x509: certificate has expired or is not yet valid") {
 			hf.log("shouldRetry: retrying url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 			return true
-		} else {
-			hf.log("shouldRetry: bailing on url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 		}
+		hf.log("shouldRetry: bailing on url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 	} else {
 		hf.log("shouldRetry: bailing on unknown error %s", err.Error())
 	}
@@ -749,9 +753,6 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 }
 
 func (hf *HTTPFile) closeAllReaders() error {
-	hf.readersMutex.Lock()
-	defer hf.readersMutex.Unlock()
-
 	for id, reader := range hf.readers {
 		err := reader.Close()
 		if err != nil {
@@ -766,6 +767,9 @@ func (hf *HTTPFile) closeAllReaders() error {
 
 // Close closes all connections to the distant http server used by this HTTPFile
 func (hf *HTTPFile) Close() error {
+	hf.lock.Lock()
+	defer hf.lock.Unlock()
+
 	if hf.closed {
 		return nil
 	}
@@ -827,4 +831,13 @@ func (hf *HTTPFile) log2(format string, args ...interface{}) {
 // which could be used for integrity checking.
 func (hf *HTTPFile) GetHeader() http.Header {
 	return hf.header
+}
+
+func generateID() int64 {
+	idMutex.Lock()
+	defer idMutex.Unlock()
+
+	id := idSeed
+	idSeed++
+	return id
 }

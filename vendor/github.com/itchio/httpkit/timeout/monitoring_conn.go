@@ -2,6 +2,7 @@ package timeout
 
 import (
 	"net"
+	"sync"
 	"time"
 )
 
@@ -9,6 +10,7 @@ var lastBandwidthUpdate time.Time
 var bytesSinceLastUpdate float64
 var maxBucketDuration = 1 * time.Second
 var bps float64
+var lock sync.Mutex
 
 type BytesReadFunc func(bytesRead int64)
 
@@ -59,6 +61,9 @@ func recordBytesRead(bytesRead int64) {
 		return
 	}
 
+	lock.Lock()
+	defer lock.Unlock()
+
 	bytesSinceLastUpdate += float64(bytesRead)
 	if lastBandwidthUpdate.IsZero() {
 		lastBandwidthUpdate = time.Now()
@@ -74,6 +79,9 @@ func recordBytesRead(bytesRead int64) {
 }
 
 func GetBPS() float64 {
+	lock.Lock()
+	defer lock.Unlock()
+
 	bucketDuration := time.Since(lastBandwidthUpdate)
 
 	if bucketDuration > maxBucketDuration*2 {

@@ -97,11 +97,11 @@ func (cf *CheckingFile) ReadAt(tBuf []byte, offset int64) (int, error) {
 		numDifferent := 0
 		for i := 0; i < rReadBytes; i++ {
 			if rBuf[i] != tBuf[i] {
-				numDifferent += 1
+				numDifferent++
 			}
 		}
 
-		must(errors.Wrap(fmt.Errorf("reference & trainee read different bytes, first different is at %d / %d, %d bytes are different", firstDifferent, rReadBytes, numDifferent), 0))
+		must(errors.Wrap(fmt.Errorf("reference & trainee read different bytes at %d, first different is at %d / %d, %d bytes are different", offset, firstDifferent, rReadBytes, numDifferent), 0))
 	}
 
 	return tReadBytes, tErr
