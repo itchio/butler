@@ -3,6 +3,7 @@ package operate
 import (
 	"fmt"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/savior/seeksource"
@@ -27,7 +28,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 
 	healSpec := fmt.Sprintf("archive,%s", archiveURL)
 
-	vctx := &pwr.ValidatorContext{
+	vc := &pwr.ValidatorContext{
 		Consumer:   consumer,
 		NumWorkers: 1,
 		HealPath:   healSpec,
@@ -56,14 +57,31 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 	consumer.Infof("Nursing wharf build back to health...")
 
 	oc.StartProgress()
-	err = vctx.Validate(params.InstallFolder, sigInfo)
+	err = vc.Validate(params.InstallFolder, sigInfo)
 	oc.EndProgress()
 
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("✓ Everything healed")
+	if vc.WoundsConsumer.HasWounds() {
+		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
+			consumer.Infof("✓ %s corrupted data found, %s healed (of %s total)",
+				humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())),
+				humanize.IBytes(uint64(healer.TotalHealed())),
+				humanize.IBytes(uint64(sigInfo.Container.Size)),
+			)
+		} else {
+			consumer.Warnf("%s corrupted data found (of %s total)",
+				humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())),
+				humanize.IBytes(uint64(sigInfo.Container.Size)),
+			)
+		}
+	} else {
+		consumer.Infof("✓ All %s were healthy",
+			humanize.IBytes(uint64(sigInfo.Container.Size)),
+		)
+	}
 
 	res := resultForContainer(sigInfo.Container)
 
