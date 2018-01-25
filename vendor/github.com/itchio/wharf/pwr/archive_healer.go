@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/arkive/zip"
+
+	humanize "github.com/dustin/go-humanize"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
@@ -25,8 +26,8 @@ type ArchiveHealer struct {
 	// the directory we should heal
 	Target string
 
-	// the file
-	File eos.File
+	// an eos path for the archive
+	ArchivePath string
 
 	// number of workers running in parallel
 	NumWorkers int
@@ -58,30 +59,16 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	fileIndices := make(chan int64, len(container.Files))
 
 	if ah.NumWorkers == 0 {
-		// default to 1 worker, which is usually the sensible
-		// thing to do I/O-wise (whether we're reading from disk or network)
-		ah.NumWorkers = 1
+		// use a sensible default I/O-wise (whether we're reading from disk or network)
+		ah.NumWorkers = 2
 	}
 	if ah.Consumer != nil {
 		ah.Consumer.Debugf("archive healer: using %d workers", ah.NumWorkers)
 	}
 
-	defer ah.File.Close()
-
-	stat, err := ah.File.Stat()
-	if err != nil {
-		return err
-	}
-
-	zipReader, err := zip.NewReader(ah.File, stat.Size())
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
-
 	targetPool := fspool.New(container, ah.Target)
 
-	errs := make(chan error)
-	done := make(chan bool, ah.NumWorkers)
+	errs := make(chan error, ah.NumWorkers)
 	cancelled := make(chan struct{})
 
 	onChunkHealed := func(healedChunk int64) {
@@ -90,7 +77,9 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	}
 
 	for i := 0; i < ah.NumWorkers; i++ {
-		go ah.heal(container, zipReader, stat.Size(), targetPool, fileIndices, errs, done, cancelled, onChunkHealed)
+		go func() {
+			errs <- ah.heal(container, targetPool, fileIndices, cancelled, onChunkHealed)
+		}()
 	}
 
 	processWound := func(wound *Wound) error {
@@ -171,11 +160,11 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	}
 
 	for wound := range wounds {
-		err = processWound(wound)
+		err := processWound(wound)
 		if err != nil {
 			close(fileIndices)
 			close(cancelled)
-			return errors.Wrap(err, 1)
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -185,49 +174,64 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	// expecting up to NumWorkers done, some may still
 	// send errors
 	for i := 0; i < ah.NumWorkers; i++ {
-		select {
-		case err = <-errs:
-			close(cancelled)
-			return errors.Wrap(err, 1)
-		case <-done:
-			// good!
+		err := <-errs
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 	}
 
 	return nil
 }
 
-func (ah *ArchiveHealer) heal(container *tlc.Container, zipReader *zip.Reader, zipSize int64,
-	targetPool wsync.WritablePool,
-	fileIndices chan int64, errs chan error, done chan bool, cancelled chan struct{}, chunkHealed chunkHealedFunc) {
+func (ah *ArchiveHealer) heal(container *tlc.Container, targetPool wsync.WritablePool,
+	fileIndices chan int64, cancelled chan struct{}, chunkHealed chunkHealedFunc) error {
 
 	var sourcePool wsync.Pool
 	var err error
-
-	sourcePool = zippool.New(container, zipReader)
-	defer sourcePool.Close()
 
 	for {
 		select {
 		case <-cancelled:
 			// something else stopped the healing
-			return
+			return nil
 		case fileIndex, ok := <-fileIndices:
 			if !ok {
 				// no more files to heal
-				done <- true
-				return
+				return nil
+			}
+
+			// lazily open file
+			if sourcePool == nil {
+				if ah.Consumer != nil {
+					ah.Consumer.Debugf("opening archive for worker!")
+				}
+
+				file, err := eos.Open(ah.ArchivePath)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				defer file.Close()
+
+				stat, err := file.Stat()
+				if err != nil {
+					return err
+				}
+
+				zipReader, err := zip.NewReader(file, stat.Size())
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				sourcePool = zippool.New(container, zipReader)
+				// sic: we're inside a for, not a function, so this correctly happens
+				// when we actually return
+				defer sourcePool.Close()
 			}
 
 			err = ah.healOne(sourcePool, targetPool, fileIndex, chunkHealed)
 			if err != nil {
-				select {
-				case <-cancelled:
-					// already cancelled, no need for more errors
-					return
-				case errs <- err:
-					return
-				}
+				return errors.Wrap(err, 0)
 			}
 		}
 	}
