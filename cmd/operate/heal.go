@@ -31,7 +31,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*
 
 	vc := &pwr.ValidatorContext{
 		Consumer:   consumer,
-		NumWorkers: 2,
+		NumWorkers: 1,
 		HealPath:   healSpec,
 	}
 
