@@ -65,7 +65,7 @@ func ObtainSource(itchClient *itchio.Client, itchPath string, queryValues url.Va
 	return nil, fmt.Errorf("unrecognized itchfs pattern: %s", itchPath)
 }
 
-func serveBuildFile(r itchio.DownloadUploadBuildResponse, fileType string) (string, error) {
+func serveBuildFile(r *itchio.DownloadUploadBuildResponse, fileType string) (string, error) {
 	switch fileType {
 	case "archive":
 		return r.Archive.URL, nil

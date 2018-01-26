@@ -50,89 +50,67 @@ func (c *Client) SetServer(itchioServer string) *Client {
 }
 
 // WharfStatus requests the status of the wharf infrastructure
-func (c *Client) WharfStatus() (r WharfStatusResponse, err error) {
-	path := c.MakePath("wharf/status")
+func (c *Client) WharfStatus() (*WharfStatusResponse, error) {
+	r := &WharfStatusResponse{}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(c.MakePath("wharf/status"), r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // GetMe returns information about to which the current credentials belong
-func (c *Client) GetMe() (GetMeResponse, error) {
-	path := c.MakePath("me")
+func (c *Client) GetMe() (*GetMeResponse, error) {
+	r := &GetMeResponse{}
 
-	var r GetMeResponse
-
-	resp, err := c.Get(path)
+	err := c.GetResponse(c.MakePath("me"), r)
 	if err != nil {
-		return r, errors.Wrap(err, 0)
-	}
-
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return r, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	return r, nil
 }
 
 // ListMyGames lists the games one develops (ie. can edit)
-func (c *Client) ListMyGames() (r ListMyGamesResponse, err error) {
-	path := c.MakePath("my-games")
+func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
+	r := &ListMyGamesResponse{}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(c.MakePath("my-games"), r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
-}
-
-// GameUploadsResponse is what the server replies with when asked for a game's uploads
-type GameUploadsResponse struct {
-	Response
-
-	Uploads []*Upload `json:"uploads"`
+	return r, nil
 }
 
 // GameUploads lists the uploads for a game that we have access to with our API key
-func (c *Client) GameUploads(gameID int64) (r GameUploadsResponse, err error) {
+func (c *Client) GameUploads(gameID int64) (*GameUploadsResponse, error) {
+	r := &GameUploadsResponse{}
 	path := c.MakePath("game/%d/uploads", gameID)
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
-}
-
-// UploadDownloadResponse is what the API replies to when we ask to download an upload
-type UploadDownloadResponse struct {
-	Response
-
-	URL string
+	return r, nil
 }
 
 // UploadDownload attempts to download an upload without a download key
-func (c *Client) UploadDownload(uploadID int64) (r UploadDownloadResponse, err error) {
+func (c *Client) UploadDownload(uploadID int64) (*UploadDownloadResponse, error) {
 	return c.UploadDownloadWithKey("", uploadID)
 }
 
 // UploadDownloadWithKey attempts to download an upload with a download key
-func (c *Client) UploadDownloadWithKey(downloadKey string, uploadID int64) (r UploadDownloadResponse, err error) {
+func (c *Client) UploadDownloadWithKey(downloadKey string, uploadID int64) (*UploadDownloadResponse, error) {
 	return c.UploadDownloadWithKeyAndValues(downloadKey, uploadID, nil)
 }
 
 // UploadDownloadWithKeyAndValues attempts to download an upload with a download key and additional parameters
-func (c *Client) UploadDownloadWithKeyAndValues(downloadKey string, uploadID int64, values url.Values) (r UploadDownloadResponse, err error) {
+func (c *Client) UploadDownloadWithKeyAndValues(downloadKey string, uploadID int64, values url.Values) (*UploadDownloadResponse, error) {
+	r := &UploadDownloadResponse{}
 	if values == nil {
 		values = url.Values{}
 	}
@@ -146,31 +124,18 @@ func (c *Client) UploadDownloadWithKeyAndValues(downloadKey string, uploadID int
 		path = fmt.Sprintf("%s?%s", path, values.Encode())
 	}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return r, err
-}
-
-// NewBuildResponse is what the API replies with when we create a new build
-type NewBuildResponse struct {
-	Response
-
-	Build struct {
-		ID          int64 `json:"id"`
-		UploadID    int64 `json:"uploadId"`
-		ParentBuild struct {
-			ID int64 `json:"id"`
-		} `json:"parentBuild"`
-	}
+	return r, nil
 }
 
 // CreateBuild creates a new build for a given user/game:channel, with
 // an optional user version
-func (c *Client) CreateBuild(target string, channel string, userVersion string) (r NewBuildResponse, err error) {
+func (c *Client) CreateBuild(target string, channel string, userVersion string) (*NewBuildResponse, error) {
+	r := &NewBuildResponse{}
 	path := c.MakePath("wharf/builds")
 
 	form := url.Values{}
@@ -180,43 +145,42 @@ func (c *Client) CreateBuild(target string, channel string, userVersion string) 
 		form.Add("user_version", userVersion)
 	}
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // ListChannels returns a list of the channels for a game
-func (c *Client) ListChannels(target string) (r ListChannelsResponse, err error) {
+func (c *Client) ListChannels(target string) (*ListChannelsResponse, error) {
+	r := &ListChannelsResponse{}
 	form := url.Values{}
 	form.Add("target", target)
 	path := c.MakePath("wharf/channels?%s", form.Encode())
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // GetChannel returns information about a given channel for a given game
-func (c *Client) GetChannel(target string, channel string) (r GetChannelResponse, err error) {
+func (c *Client) GetChannel(target string, channel string) (*GetChannelResponse, error) {
+	r := &GetChannelResponse{}
 	form := url.Values{}
 	form.Add("target", target)
 	path := c.MakePath("wharf/channels/%s?%s", channel, form.Encode())
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // BuildFileType describes the type of a build file: patch, archive, signature, etc.
@@ -298,20 +262,21 @@ const (
 )
 
 // ListBuildFiles returns a list of files associated to a build
-func (c *Client) ListBuildFiles(buildID int64) (r ListBuildFilesResponse, err error) {
+func (c *Client) ListBuildFiles(buildID int64) (*ListBuildFilesResponse, error) {
+	r := &ListBuildFilesResponse{}
 	path := c.MakePath("wharf/builds/%d/files", buildID)
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // CreateBuildFile creates a new build file for a build
-func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType) (r CreateBuildFileResponse, err error) {
+func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType) (*CreateBuildFileResponse, error) {
+	r := &CreateBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files", buildID)
 
 	form := url.Values{}
@@ -323,17 +288,17 @@ func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType 
 		form.Add("upload_type", string(uploadType))
 	}
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // CreateBuildFileWithName creates a new build file for a build, with a specific name
-func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType, name string) (r CreateBuildFileResponse, err error) {
+func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType, name string) (*CreateBuildFileResponse, error) {
+	r := &CreateBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files", buildID)
 
 	form := url.Values{}
@@ -348,37 +313,28 @@ func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, 
 		form.Add("filename", name)
 	}
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // FinalizeBuildFile marks the end of the upload for a build file, it validates
-func (c *Client) FinalizeBuildFile(buildID int64, fileID int64, size int64) (r FinalizeBuildFileResponse, err error) {
+func (c *Client) FinalizeBuildFile(buildID int64, fileID int64, size int64) (*FinalizeBuildFileResponse, error) {
+	r := &FinalizeBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files/%d", buildID, fileID)
 
 	form := url.Values{}
 	form.Add("size", fmt.Sprintf("%d", size))
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
-}
-
-// DownloadBuildFileResponse is what the API responds with when we
-// ask to download an upload
-type DownloadBuildFileResponse struct {
-	Response
-
-	URL string
+	return r, nil
 }
 
 var (
@@ -387,85 +343,75 @@ var (
 )
 
 // GetBuildFileDownloadURL returns a download URL for a given build file
-func (c *Client) GetBuildFileDownloadURL(buildID int64, fileID int64) (r DownloadBuildFileResponse, err error) {
+func (c *Client) GetBuildFileDownloadURL(buildID int64, fileID int64) (*DownloadBuildFileResponse, error) {
 	return c.GetBuildFileDownloadURLWithValues(buildID, fileID, nil)
 }
 
 // GetBuildFileDownloadURLWithValues returns a download URL for a given build file, with additional query parameters
-func (c *Client) GetBuildFileDownloadURLWithValues(buildID int64, fileID int64, values url.Values) (r DownloadBuildFileResponse, err error) {
+func (c *Client) GetBuildFileDownloadURLWithValues(buildID int64, fileID int64, values url.Values) (*DownloadBuildFileResponse, error) {
+	r := &DownloadBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files/%d/download", buildID, fileID)
 	if values != nil {
 		path = path + "?" + values.Encode()
 	}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return
-	}
-
-	return
+	return r, nil
 }
 
 // DownloadBuildFile returns an io.ReadCloser to download a build file, as
 // opposed to GetBuildFileDownloadURL
-func (c *Client) DownloadBuildFile(buildID int64, fileID int64) (reader io.ReadCloser, err error) {
+func (c *Client) DownloadBuildFile(buildID int64, fileID int64) (io.ReadCloser, error) {
 	path := c.MakePath("wharf/builds/%d/files/%d/download", buildID, fileID)
 
-	resp, err := c.Get(path)
+	r := &DownloadBuildFileResponse{}
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
-	}
-
-	var r DownloadBuildFileResponse
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
 	req, err := http.NewRequest("GET", r.URL, nil)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
 	// not an API request, going directly with http's DefaultClient
 	dlResp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
 	if dlResp.StatusCode == 200 {
-		reader = dlResp.Body
-		return
+		return dlResp.Body, nil
 	}
 
+	// non-200 status, emit an error
 	dlResp.Body.Close()
 
 	if dlResp.StatusCode == 404 {
-		err = ErrBuildFileNotFound
-	} else {
-		err = fmt.Errorf("Can't download: %s", dlResp.Status)
+		return nil, ErrBuildFileNotFound
 	}
-	return
+	return nil, fmt.Errorf("Can't download: %s", dlResp.Status)
 }
 
 // DownloadUploadBuild returns download info for all types of files for a build
-func (c *Client) DownloadUploadBuild(uploadID int64, buildID int64) (r DownloadUploadBuildResponse, err error) {
+func (c *Client) DownloadUploadBuild(uploadID int64, buildID int64) (*DownloadUploadBuildResponse, error) {
 	return c.DownloadUploadBuildWithKey("", uploadID, buildID)
 }
 
 // DownloadUploadBuildWithKey returns download info for all types of files for a build, when using with a download key
-func (c *Client) DownloadUploadBuildWithKey(downloadKey string, uploadID int64, buildID int64) (r DownloadUploadBuildResponse, err error) {
+func (c *Client) DownloadUploadBuildWithKey(downloadKey string, uploadID int64, buildID int64) (*DownloadUploadBuildResponse, error) {
 	return c.DownloadUploadBuildWithKeyAndValues(downloadKey, uploadID, buildID, nil)
 }
 
 // DownloadUploadBuildWithKeyAndValues returns download info for all types of files for a build.
 // downloadKey can be empty
-func (c *Client) DownloadUploadBuildWithKeyAndValues(downloadKey string, uploadID int64, buildID int64, values url.Values) (r DownloadUploadBuildResponse, err error) {
+func (c *Client) DownloadUploadBuildWithKeyAndValues(downloadKey string, uploadID int64, buildID int64, values url.Values) (*DownloadUploadBuildResponse, error) {
+	r := &DownloadUploadBuildResponse{}
 	if values == nil {
 		values = url.Values{}
 	}
@@ -479,17 +425,12 @@ func (c *Client) DownloadUploadBuildWithKeyAndValues(downloadKey string, uploadI
 		path = fmt.Sprintf("%s?%s", path, values.Encode())
 	}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return
-	}
-
-	return
+	return r, nil
 }
 
 // BuildEventType specifies what kind of event a build event is - could be a log message, etc.
@@ -504,7 +445,8 @@ const (
 type BuildEventData map[string]interface{}
 
 // CreateBuildEvent associates a new build event to a build
-func (c *Client) CreateBuildEvent(buildID int64, eventType BuildEventType, message string, data BuildEventData) (r CreateBuildEventResponse, err error) {
+func (c *Client) CreateBuildEvent(buildID int64, eventType BuildEventType, message string, data BuildEventData) (*CreateBuildEventResponse, error) {
+	r := &CreateBuildEventResponse{}
 	path := c.MakePath("wharf/builds/%d/events", buildID)
 
 	form := url.Values{}
@@ -513,22 +455,22 @@ func (c *Client) CreateBuildEvent(buildID int64, eventType BuildEventType, messa
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 	form.Add("data", string(jsonData))
 
-	resp, err := c.PostForm(path, form)
+	err = c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // CreateBuildFailure marks a given build as failed. We get to specify an error message and
 // if it's a fatal error (if not, the build can be retried after a bit)
-func (c *Client) CreateBuildFailure(buildID int64, message string, fatal bool) (r CreateBuildFailureResponse, err error) {
+func (c *Client) CreateBuildFailure(buildID int64, message string, fatal bool) (*CreateBuildFailureResponse, error) {
+	r := &CreateBuildFailureResponse{}
 	path := c.MakePath("wharf/builds/%d/failures", buildID)
 
 	form := url.Values{}
@@ -537,42 +479,41 @@ func (c *Client) CreateBuildFailure(buildID int64, message string, fatal bool) (
 		form.Add("fatal", fmt.Sprintf("%v", fatal))
 	}
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // CreateRediffBuildFailure marks a given build as having failed to rediff (optimize)
-func (c *Client) CreateRediffBuildFailure(buildID int64, message string) (r CreateBuildFailureResponse, err error) {
+func (c *Client) CreateRediffBuildFailure(buildID int64, message string) (*CreateBuildFailureResponse, error) {
+	r := &CreateBuildFailureResponse{}
 	path := c.MakePath("wharf/builds/%d/failures/rediff", buildID)
 
 	form := url.Values{}
 	form.Add("message", message)
 
-	resp, err := c.PostForm(path, form)
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 // ListBuildEvents returns a series of events associated with a given build
-func (c *Client) ListBuildEvents(buildID int64) (r ListBuildEventsResponse, err error) {
+func (c *Client) ListBuildEvents(buildID int64) (*ListBuildEventsResponse, error) {
+	r := &ListBuildEventsResponse{}
 	path := c.MakePath("wharf/builds/%d/events", buildID)
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	return
+	return r, nil
 }
 
 type ListGameUploadsParams struct {
@@ -582,11 +523,11 @@ type ListGameUploadsParams struct {
 }
 
 // ListGameUploads
-func (c *Client) ListGameUploads(params *ListGameUploadsParams) (ListGameUploadsResponse, error) {
-	var r ListGameUploadsResponse
+func (c *Client) ListGameUploads(params *ListGameUploadsParams) (*ListGameUploadsResponse, error) {
+	r := &ListGameUploadsResponse{}
 
 	if params.GameID == 0 {
-		return r, errors.New("Missing GameID")
+		return nil, errors.New("Missing GameID")
 	}
 
 	path := c.MakePath("/game/%d/uploads", params.GameID)
@@ -598,15 +539,11 @@ func (c *Client) ListGameUploads(params *ListGameUploadsParams) (ListGameUploads
 		path = fmt.Sprintf("%s?%s", path, params.ExtraQuery.Encode())
 	}
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
 	if err != nil {
-		return r, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return r, errors.Wrap(err, 0)
-	}
 	return r, nil
 }
 
@@ -616,16 +553,16 @@ type FindUpgradeParams struct {
 	DownloadKeyID  int64
 }
 
-// FindUpgrade
-func (c *Client) FindUpgrade(params *FindUpgradeParams) (FindUpgradeResponse, error) {
-	var r FindUpgradeResponse
+// FindUpgrade looks for a series of patch to upgrade from a given version to the latest version
+func (c *Client) FindUpgrade(params *FindUpgradeParams) (*FindUpgradeResponse, error) {
+	r := &FindUpgradeResponse{}
 
 	if params.UploadID == 0 {
-		return r, errors.New("Missing UploadID")
+		return nil, errors.New("Missing UploadID")
 	}
 
 	if params.CurrentBuildID == 0 {
-		return r, errors.New("Missing CurrentBuildID")
+		return nil, errors.New("Missing CurrentBuildID")
 	}
 
 	form := url.Values{}
@@ -637,14 +574,32 @@ func (c *Client) FindUpgrade(params *FindUpgradeParams) (FindUpgradeResponse, er
 
 	path := c.MakePath("/upload/%d/upgrade/%d?%s", params.UploadID, params.CurrentBuildID, form.Encode())
 
-	resp, err := c.Get(path)
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+type NewDownloadSessionParams struct {
+	GameID        int64
+	DownloadKeyID int64
+}
+
+func (c *Client) NewDownloadSession(params *NewDownloadSessionParams) (*NewDownloadSessionResponse, error) {
+	r := &NewDownloadSessionResponse{}
+	path := c.MakePath("/game/%d/download", params.GameID)
+
+	form := url.Values{}
+	if params.DownloadKeyID != 0 {
+		form.Add("download_key_id", fmt.Sprintf("%d", params.DownloadKeyID))
+	}
+
+	err := c.PostFormResponse(path, form, r)
 	if err != nil {
 		return r, errors.Wrap(err, 0)
 	}
 
-	err = ParseAPIResponse(&r, resp)
-	if err != nil {
-		return r, errors.Wrap(err, 0)
-	}
 	return r, nil
 }

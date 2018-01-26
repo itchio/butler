@@ -27,6 +27,20 @@ func (c *Client) Get(url string) (*http.Response, error) {
 	return c.Do(req)
 }
 
+func (c *Client) GetResponse(url string, dst interface{}) error {
+	resp, err := c.Get(url)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = ParseAPIResponse(dst, resp)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
 // PostForm performs an HTTP POST request to the API, with url-encoded parameters
 func (c *Client) PostForm(url string, data url.Values) (*http.Response, error) {
 	req, err := http.NewRequest("POST", url, strings.NewReader(data.Encode()))
@@ -35,6 +49,20 @@ func (c *Client) PostForm(url string, data url.Values) (*http.Response, error) {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return c.Do(req)
+}
+
+func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) error {
+	resp, err := c.PostForm(url, data)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = ParseAPIResponse(dst, resp)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
 }
 
 // Do performs a request (any method). It takes care of JWT or API key
@@ -132,7 +160,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 				}
 			}
 			if len(messages) > 0 {
-				return fmt.Errorf("itch.io API error: %s", strings.Join(messages, ","))
+				return &APIError{Messages: messages}
 			}
 		}
 	}

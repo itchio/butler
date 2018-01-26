@@ -1,61 +1,62 @@
 package itchio
 
-// Response is what the itch.io API replies with. It may
-// include one or several errors
-type Response struct {
-	Errors []string `json:"errors"`
-}
-
 // WharfStatusResponse is what the API responds with when we ask for
 // the status of the wharf infrastructure
 type WharfStatusResponse struct {
-	Response
-
 	Success bool `json:"success"`
 }
 
 // GetMeResponse is what the API server responds when we ask for the user's profile
 type GetMeResponse struct {
-	Response
-
 	User *User `json:"user"`
+}
+
+// GameUploadsResponse is what the server replies with when asked for a game's uploads
+type GameUploadsResponse struct {
+	Uploads []*Upload `json:"uploads"`
+}
+
+// UploadDownloadResponse is what the API replies to when we ask to download an upload
+type UploadDownloadResponse struct {
+	URL string `json:"url"`
 }
 
 // ListMyGamesResponse is what the API server answers when we ask for what games
 // an account develops.
 type ListMyGamesResponse struct {
-	Response
-
 	Games []*Game `json:"games"`
+}
+
+// NewBuildResponse is what the API replies with when we create a new build
+type NewBuildResponse struct {
+	Build struct {
+		ID          int64 `json:"id"`
+		UploadID    int64 `json:"uploadId"`
+		ParentBuild struct {
+			ID int64 `json:"id"`
+		} `json:"parentBuild"`
+	}
 }
 
 // ListChannelsResponse is what the API responds with when we ask for all the
 // channels of a particular game
 type ListChannelsResponse struct {
-	Response
-
 	Channels map[string]*Channel `json:"channels"`
 }
 
 // GetChannelResponse is what the API responds with when we ask info about a channel
 type GetChannelResponse struct {
-	Response
-
 	Channel *Channel `json:"channel"`
 }
 
 // ListBuildFilesResponse is what the API responds with when we ask for the files
 // in a specific build
 type ListBuildFilesResponse struct {
-	Response
-
 	Files []*BuildFile `json:"files"`
 }
 
 // CreateBuildFileResponse is what the API responds when we create a new build file
 type CreateBuildFileResponse struct {
-	Response
-
 	File *FileUploadSpec `json:"file"`
 }
 
@@ -68,8 +69,12 @@ type FileUploadSpec struct {
 }
 
 // FinalizeBuildFileResponse is what the API responds when we finalize a build file
-type FinalizeBuildFileResponse struct {
-	Response
+type FinalizeBuildFileResponse struct{}
+
+// DownloadBuildFileResponse is what the API responds with when we
+// ask to download an upload
+type DownloadBuildFileResponse struct {
+	URL string `json:"url"`
 }
 
 // DownloadUploadBuildResponseItem contains download information for a specific
@@ -81,8 +86,6 @@ type DownloadUploadBuildResponseItem struct {
 // DownloadUploadBuildResponse is what the API responds when we want to download
 // a build
 type DownloadUploadBuildResponse struct {
-	Response
-
 	// Patch is the download info for the wharf patch, if any
 	Patch *DownloadUploadBuildResponseItem `json:"patch"`
 	// Signature is the download info for the wharf signature, if any
@@ -97,30 +100,22 @@ type DownloadUploadBuildResponse struct {
 
 // CreateBuildEventResponse is what the API responds with when you create a new build event
 type CreateBuildEventResponse struct {
-	Response
 }
 
 // CreateBuildFailureResponse is what the API responds with when we mark a build as failed
 type CreateBuildFailureResponse struct {
-	Response
 }
 
 // ListBuildEventsResponse is what the API responds with when we ask for the list of events for a build
 type ListBuildEventsResponse struct {
-	Response
-
 	Events []*BuildEvent `json:"events"`
 }
 
 type ListGameUploadsResponse struct {
-	Response
-
 	Uploads []*Upload `json:"uploads"`
 }
 
 type FindUpgradeResponse struct {
-	Response
-
 	// UpgradePath is a list of patches needed to upgrade to the latest version
 	UpgradePath []*UpgradePathItem `json:"upgradePath"`
 }
@@ -130,4 +125,8 @@ type UpgradePathItem struct {
 	UserVersion string `json:"userVersion"`
 	UpdatedAt   string `json:"updatedAt"`
 	PatchSize   int64  `json:"patchSize"`
+}
+
+type NewDownloadSessionResponse struct {
+	UUID string `json:"uuid"`
 }

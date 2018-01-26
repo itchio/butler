@@ -111,8 +111,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", spec.Channel, parentID)
-		var buildFiles itchio.ListBuildFilesResponse
-		buildFiles, err = client.ListBuildFiles(parentID)
+		buildFiles, err := client.ListBuildFiles(parentID)
 		if err != nil {
 			return errors.Wrap(err, 1)
 		}

@@ -11,13 +11,12 @@ import (
 
 type fileSlot struct {
 	Type     itchio.BuildFileType
-	Response itchio.CreateBuildFileResponse
+	Response *itchio.CreateBuildFileResponse
 }
 
-func createBothFiles(client *itchio.Client, buildID int64) (patch itchio.CreateBuildFileResponse, signature itchio.CreateBuildFileResponse, err error) {
+func createBothFiles(client *itchio.Client, buildID int64) (patch *itchio.CreateBuildFileResponse, signature *itchio.CreateBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
-		var res itchio.CreateBuildFileResponse
-		res, err = client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.UploadTypeDeferredResumable)
+		res, err := client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.UploadTypeDeferredResumable)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 		}
