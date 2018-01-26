@@ -150,6 +150,14 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 	}
 
+	istate := &InstallSubcontextState{}
+
+	isub := &InstallSubcontext{
+		data: istate,
+	}
+
+	oc.Load(isub)
+
 	if receiptIn == nil {
 		consumer.Infof("← No previous install info (no recorded upload or build)")
 	} else {
@@ -175,7 +183,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 				if err != nil {
 					consumer.Warnf("Could not find upgrade path: %s", err.Error())
 					consumer.Infof("Falling back to heal...")
-					return heal(oc, meta, receiptIn)
+					return heal(oc, meta, isub, receiptIn)
 				}
 
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
@@ -198,17 +206,17 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 				if totalUpgradeSize > fullUploadSize {
 					consumer.Infof("Healing instead of patching")
-					return heal(oc, meta, receiptIn)
+					return heal(oc, meta, isub, receiptIn)
 				}
 
 				consumer.Warnf("TODO: update (falling back to install for now)")
 			} else if newID < oldID {
 				consumer.Infof("↓ Downgrading from build %d to %d", oldID, newID)
-				return heal(oc, meta, receiptIn)
+				return heal(oc, meta, isub, receiptIn)
 			}
 
 			consumer.Infof("↺ Re-installing build %d", newID)
-			return heal(oc, meta, receiptIn)
+			return heal(oc, meta, isub, receiptIn)
 		}
 	}
 
@@ -226,14 +234,6 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
-
-	istate := &InstallSubcontextState{}
-
-	isub := &InstallSubcontext{
-		data: istate,
-	}
-
-	oc.Load(isub)
 
 	if istate.InstallerInfo == nil {
 		consumer.Infof("Determining source information...")

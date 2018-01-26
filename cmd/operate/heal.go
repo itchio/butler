@@ -15,7 +15,7 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func heal(oc *OperationContext, meta *MetaSubcontext, receiptIn *bfs.Receipt) (*installer.InstallResult, error) {
+func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) (*installer.InstallResult, error) {
 	consumer := oc.Consumer()
 
 	params := meta.data.InstallParams
