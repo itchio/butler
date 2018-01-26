@@ -155,8 +155,23 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	isub := &InstallSubcontext{
 		data: istate,
 	}
-
 	oc.Load(isub)
+
+	if istate.DownloadSessionId == "" {
+		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
+			GameID:        params.Game.ID,
+			DownloadKeyID: params.Credentials.DownloadKey,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		istate.DownloadSessionId = res.UUID
+		oc.Save(isub)
+
+		consumer.Infof("→ Starting fresh download session (%s)", istate.DownloadSessionId)
+	} else {
+		consumer.Infof("↻ Resuming download session (%s)", istate.DownloadSessionId)
+	}
 
 	if receiptIn == nil {
 		consumer.Infof("← No previous install info (no recorded upload or build)")
@@ -220,7 +235,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 	}
 
-	installSourceURL := sourceURL(consumer, params, "")
+	installSourceURL := sourceURL(consumer, istate, params, "")
 
 	// TODO: support http servers that don't have range request
 	// (just copy it first). see DownloadInstallSource later on.
@@ -486,6 +501,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 }
 
 type InstallSubcontextState struct {
+	DownloadSessionId   string                   `json:"downloadSessionId,omitempty"`
 	InstallerInfo       *installer.InstallerInfo `json:"installerInfo,omitempty"`
 	IsAvailableLocally  bool                     `json:"isAvailableLocally,omitempty"`
 	FirstInstallResult  *installer.InstallResult `json:"firstInstallResult,omitempty"`

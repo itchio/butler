@@ -17,6 +17,7 @@ import (
 
 func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) (*installer.InstallResult, error) {
 	consumer := oc.Consumer()
+	istate := isub.data
 
 	params := meta.data.InstallParams
 
@@ -24,8 +25,8 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		return nil, errors.New("heal: missing build")
 	}
 
-	signatureURL := sourceURL(consumer, params, "signature")
-	archiveURL := sourceURL(consumer, params, "archive")
+	signatureURL := sourceURL(consumer, istate, params, "signature")
+	archiveURL := sourceURL(consumer, istate, params, "archive")
 
 	healSpec := fmt.Sprintf("archive,%s", archiveURL)
 
