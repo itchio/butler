@@ -62,19 +62,29 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		err = installer.CheckExitCode(exitCode, err)
 		if err != nil {
 			msg := messageForExitCode(exitCode)
-			consumer.Warnf("InnoSetup installation failed:", msg)
+			consumer.Warnf("InnoSetup installation failed: %s", msg)
 
 			lf, openErr := os.Open(logPath)
 			if openErr != nil {
 				consumer.Warnf("...aditionally, we could not read the installation log: %s", openErr.Error())
 			} else {
 				defer lf.Close()
-				consumer.Warnf("==== inno installation log start ====")
+				var lines []string
+				var maxLines = 20
+
 				s := bufio.NewScanner(lf)
 				for s.Scan() {
-					consumer.Warnf(s.Text())
+					lines = append(lines, s.Text())
+					if len(lines) > maxLines {
+						// this is extremely wasteful but hey, we don't care that much
+						lines = lines[len(lines)-maxLines : len(lines)]
+					}
 				}
-				consumer.Warnf("==== inno installation log end ====")
+				consumer.Warnf("==== last %d lines of inno installation log ====", maxLines)
+				for _, line := range lines {
+					consumer.Warnf("%s", line)
+				}
+				consumer.Warnf("==== end of inno installation log ====")
 			}
 
 			if exitCodeIsAborted(exitCode) {

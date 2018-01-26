@@ -309,103 +309,127 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return res, nil
 	}
 
-	res, err := tryInstall()
-	if err != nil && errors.Is(err, installer.ErrNeedLocal) {
-		destName := filepath.Base(stats.Name())
-		destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
+	var firstInstallResult *installer.InstallResult
+	firstInstallResult = isub.data.FirstInstallResult
 
-		if istate.IsAvailableLocally {
-			consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
-		} else {
-			consumer.Infof("Install source needs to be available locally, copying to disk...")
+	if firstInstallResult != nil {
+		consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
+	} else {
+		var err error
+		firstInstallResult, err = tryInstall()
+		if err != nil && errors.Is(err, installer.ErrNeedLocal) {
+			destName := filepath.Base(stats.Name())
+			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
 
-			dlErr := func() error {
-				err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
-					Reason:    buse.TaskReasonInstall,
-					Type:      buse.TaskTypeDownload,
-					Game:      params.Game,
-					Upload:    params.Upload,
-					Build:     params.Build,
-					TotalSize: stats.Size(),
-				})
-				if err != nil {
-					return errors.Wrap(err, 0)
+			if istate.IsAvailableLocally {
+				consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
+			} else {
+				consumer.Infof("Install source needs to be available locally, copying to disk...")
+
+				dlErr := func() error {
+					err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+						Reason:    buse.TaskReasonInstall,
+						Type:      buse.TaskTypeDownload,
+						Game:      params.Game,
+						Upload:    params.Upload,
+						Build:     params.Build,
+						TotalSize: stats.Size(),
+					})
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+
+					oc.StartProgress()
+					err := DownloadInstallSource(oc, file, destPath)
+					oc.EndProgress()
+					oc.consumer.Progress(0)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+
+					err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+						Type: buse.TaskTypeDownload,
+					})
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+					return nil
+				}()
+
+				if dlErr != nil {
+					return nil, errors.Wrap(dlErr, 0)
 				}
 
-				oc.StartProgress()
-				err := DownloadInstallSource(oc, file, destPath)
-				oc.EndProgress()
-				oc.consumer.Progress(0)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
-
-				err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
-					Type: buse.TaskTypeDownload,
-				})
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
-				return nil
-			}()
-
-			if dlErr != nil {
-				return nil, errors.Wrap(dlErr, 0)
+				istate.IsAvailableLocally = true
+				oc.Save(isub)
 			}
 
-			istate.IsAvailableLocally = true
-			oc.Save(isub)
-		}
-
-		consumer.Infof("Re-invoking manager with local file...")
-		{
-			lf, err := os.Open(destPath)
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
+			consumer.Infof("Re-invoking manager with local file...")
+			{
+				lf, err := os.Open(destPath)
+				if err != nil {
+					return nil, errors.Wrap(err, 0)
+				}
+				managerInstallParams.File = lf
 			}
-			managerInstallParams.File = lf
+
+			firstInstallResult, err = tryInstall()
 		}
 
-		res, err = tryInstall()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		consumer.Infof("Install successful")
+
+		isub.data.FirstInstallResult = firstInstallResult
+		oc.Save(isub)
 	}
 
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	var finalInstallResult = firstInstallResult
+	var finalInstallerInfo = installerInfo
 
-	consumer.Infof("Install successful")
-	if len(res.Files) == 1 {
-		single := res.Files[0]
+	if len(firstInstallResult.Files) == 1 {
+		single := firstInstallResult.Files[0]
+		singlePath := filepath.Join(params.InstallFolder, single)
 
-		consumer.Infof("Only installed a single file, is it an installer?")
-		consumer.Infof("%s: probing", single)
+		consumer.Infof("Installed a single file")
 
 		err = func() error {
-			singlePath := filepath.Join(params.InstallFolder, single)
-			sf, err := os.Open(singlePath)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-			defer sf.Close()
+			secondInstallerInfo := isub.data.SecondInstallerInfo
+			if secondInstallerInfo != nil {
+				consumer.Infof("Using cached second installer info")
+			} else {
+				consumer.Infof("Probing (%s)...", single)
+				sf, err := os.Open(singlePath)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+				defer sf.Close()
 
-			installerInfo, err = installer.GetInstallerInfo(consumer, sf)
-			if err != nil {
-				consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
+				secondInstallerInfo, err = installer.GetInstallerInfo(consumer, sf)
+				if err != nil {
+					consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
+					return nil
+				}
+
+				sf.Close()
+
+				isub.data.SecondInstallerInfo = secondInstallerInfo
+				oc.Save(isub)
+			}
+
+			if !installer.IsWindowsInstaller(secondInstallerInfo.Type) {
+				consumer.Infof("Installer type is (%s), ignoring", secondInstallerInfo.Type)
 				return nil
 			}
 
-			if !installer.IsWindowsInstaller(installerInfo.Type) {
-				consumer.Infof("Installer type is (%s), ignoring", installerInfo.Type)
-				return nil
-			}
-
-			consumer.Infof("Will use nested installer %s", installerInfo.Type)
-			manager = installer.GetManager(string(installerInfo.Type))
+			consumer.Infof("Will use nested installer (%s)", secondInstallerInfo.Type)
+			finalInstallerInfo = secondInstallerInfo
+			manager = installer.GetManager(string(secondInstallerInfo.Type))
 			if manager == nil {
-				return fmt.Errorf("Don't know how to install (%s) packages", installerInfo.Type)
+				return fmt.Errorf("Don't know how to install (%s) packages", secondInstallerInfo.Type)
 			}
-
-			sf.Close()
 
 			destName := filepath.Base(single)
 			destPath := filepath.Join(oc.StageFolder(), "nested-install-source", destName)
@@ -413,10 +437,9 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			_, err = os.Stat(destPath)
 			if err == nil {
 				// ah, it must already be there then
-				consumer.Infof("%s: using for nested install", destPath)
+				consumer.Infof("Using (%s) for nested install", destPath)
 			} else {
-				consumer.Infof("%s: moving to", singlePath)
-				consumer.Infof("%s - for nested install", destPath)
+				consumer.Infof("Moving (%s) to (%s) for nested install", singlePath, destPath)
 
 				err = os.MkdirAll(filepath.Dir(destPath), 0755)
 				if err != nil {
@@ -442,7 +465,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			managerInstallParams.File = lf
 
 			consumer.Infof("Invoking nested install manager, let's go!")
-			res, err = tryInstall()
+			finalInstallResult, err = tryInstall()
 			return err
 		}()
 		if err != nil {
@@ -453,18 +476,20 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	return commitInstall(oc, &CommitInstallParams{
 		InstallFolder: params.InstallFolder,
 
-		InstallerName: string(installerInfo.Type),
+		InstallerName: string(finalInstallerInfo.Type),
 		Game:          params.Game,
 		Upload:        params.Upload,
 		Build:         params.Build,
 
-		InstallResult: res,
+		InstallResult: finalInstallResult,
 	})
 }
 
 type InstallSubcontextState struct {
-	InstallerInfo      *installer.InstallerInfo `json:"installerInfo,omitempty"`
-	IsAvailableLocally bool                     `json:"isAvailableLocally"`
+	InstallerInfo       *installer.InstallerInfo `json:"installerInfo,omitempty"`
+	IsAvailableLocally  bool                     `json:"isAvailableLocally,omitempty"`
+	FirstInstallResult  *installer.InstallResult `json:"firstInstallResult,omitempty"`
+	SecondInstallerInfo *installer.InstallerInfo `json:"secondInstallerInfo,omitempty"`
 }
 
 type InstallSubcontext struct {

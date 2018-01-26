@@ -43,7 +43,17 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 		return
 	}
 
-	err := func() error {
+	err := func() (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				if rErr, ok := r.(error); ok {
+					err = errors.Wrap(rErr, 0)
+				} else {
+					err = errors.New(r)
+				}
+			}
+		}()
+
 		switch req.Method {
 		case "Version.Get":
 			{
@@ -157,10 +167,15 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	if err != nil {
 		comm.Warnf("error dealing with %s request: %s", req.Method, err.Error())
 
+		msg := err.Error()
+		if se, ok := err.(*errors.Error); ok {
+			msg = se.ErrorStack()
+		}
+
 		// will get dropped if not handled, that's ok
 		conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 			Code:    jsonrpc2.CodeInternalError,
-			Message: err.Error(),
+			Message: msg,
 		})
 	}
 }

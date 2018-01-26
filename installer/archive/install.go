@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/itchio/savior"
@@ -32,6 +33,14 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, params.Context)
 	ex.SetSaveConsumer(sc)
 
+	cancelled := false
+	defer func() {
+		if !cancelled {
+			consumer.Infof("Clearing archive install state")
+			os.Remove(statePath)
+		}
+	}()
+
 	checkpoint := &savior.ExtractorCheckpoint{}
 	err = sc.Load(checkpoint)
 	if err != nil {
@@ -47,6 +56,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	aRes, err := ex.Resume(checkpoint, sink)
 	if err != nil {
 		if errors.Is(err, savior.ErrStop) {
+			cancelled = true
 			return nil, operate.ErrCancelled
 		}
 		return nil, errors.Wrap(err, 0)

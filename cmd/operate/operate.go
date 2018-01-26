@@ -18,7 +18,7 @@ var ErrCancelled = errors.New("operation was cancelled")
 // and it should just be stopped.
 var ErrAborted = errors.New("operation was aborted")
 
-func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) error {
+func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) (err error) {
 	if params.StagingFolder == "" {
 		return errors.New("No staging folder specified")
 	}
