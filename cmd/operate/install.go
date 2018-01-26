@@ -310,7 +310,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	}
 
 	var firstInstallResult *installer.InstallResult
-	firstInstallResult = isub.data.FirstInstallResult
+	firstInstallResult = istate.FirstInstallResult
 
 	if firstInstallResult != nil {
 		consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
@@ -382,7 +382,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		consumer.Infof("Install successful")
 
-		isub.data.FirstInstallResult = firstInstallResult
+		istate.FirstInstallResult = firstInstallResult
 		oc.Save(isub)
 	}
 
@@ -396,7 +396,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		consumer.Infof("Installed a single file")
 
 		err = func() error {
-			secondInstallerInfo := isub.data.SecondInstallerInfo
+			secondInstallerInfo := istate.SecondInstallerInfo
 			if secondInstallerInfo != nil {
 				consumer.Infof("Using cached second installer info")
 			} else {
@@ -415,7 +415,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 				sf.Close()
 
-				isub.data.SecondInstallerInfo = secondInstallerInfo
+				istate.SecondInstallerInfo = secondInstallerInfo
 				oc.Save(isub)
 			}
 
