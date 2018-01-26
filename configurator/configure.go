@@ -494,6 +494,22 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 		}
 	}
 
+	if len(candidates) == 0 && container.IsSingleFile() {
+		f := container.Files[0]
+
+		if strings.HasSuffix(strings.ToLower(f.Path), ".html") {
+			// ok, that's an HTML5 game
+			candidate := &Candidate{
+				Size:   f.Size,
+				Path:   f.Path,
+				Mode:   f.Mode,
+				Depth:  pathToDepth(f.Path),
+				Flavor: FlavorHTML,
+			}
+			candidates = append(candidates, candidate)
+		}
+	}
+
 	verdict.Candidates = candidates
 
 	if !showSpell {

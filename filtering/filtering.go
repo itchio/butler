@@ -14,6 +14,7 @@ var IgnoredPaths = []string{
 	"__MACOSX",
 	"._*",
 	"Thumbs.db",
+	".itch",
 }
 
 // FilterPaths filters out known bad folder/files
