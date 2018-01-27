@@ -2,6 +2,7 @@ package operate
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	humanize "github.com/dustin/go-humanize"
@@ -9,7 +10,6 @@ import (
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/wharf/state"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 )
 
@@ -25,7 +25,13 @@ func CleanDownloadsSearch(params *buse.CleanDownloadsSearchParams, consumer *sta
 	for _, root := range params.Roots {
 		folders, err := ioutil.ReadDir(root)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			if os.IsNotExist(err) {
+				// good, nothing to clean!
+				continue
+			} else {
+				consumer.Warnf("Cannot scan root (%s): %s", root, err.Error())
+				continue
+			}
 		}
 
 		for _, folder := range folders {
