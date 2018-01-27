@@ -20,14 +20,21 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.path))
+	path := *args.path
+	totalSize, err := Do(path)
+	ctx.Must(err)
+
+	comm.ResultOrPrint(totalSize, func() {
+		comm.Logf("Total size of %s: %s", path, humanize.IBytes(uint64(totalSize)))
+	})
 }
 
-func Do(ctx *mansion.Context, path string) error {
-	totalSize := int64(0)
+func Do(path string) (int64, error) {
+	var totalSize int64
 
 	inc := func(_ string, f os.FileInfo, err error) error {
 		if err != nil {
+			// just skip'em
 			return nil
 		}
 		totalSize += f.Size()
@@ -35,9 +42,6 @@ func Do(ctx *mansion.Context, path string) error {
 	}
 
 	filepath.Walk(path, inc)
-	comm.ResultOrPrint(totalSize, func() {
-		comm.Logf("Total size of %s: %s", path, humanize.IBytes(uint64(totalSize)))
-	})
 
-	return nil
+	return totalSize, nil
 }

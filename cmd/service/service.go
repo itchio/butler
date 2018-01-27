@@ -78,6 +78,53 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
 				Number: dres.Number * 2,
 			})
+		case "CleanDownloads.Search":
+			{
+				params := &buse.CleanDownloadsSearchParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+					Conn: conn,
+					Ctx:  ctx,
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				res, err := operate.CleanDownloadsSearch(params, consumer)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				return conn.Reply(ctx, req.ID, res)
+			}
+
+		case "CleanDownloads.Apply":
+			{
+				params := &buse.CleanDownloadsApplyParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+					Conn: conn,
+					Ctx:  ctx,
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				res, err := operate.CleanDownloadsApply(params, consumer)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				return conn.Reply(ctx, req.ID, res)
+			}
 		case "Operation.Start":
 			{
 				params := &buse.OperationStartParams{}
@@ -125,10 +172,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					return err
 				}
 
-				err = conn.Reply(ctx, req.ID, &buse.OperationResult{})
-				if err != nil {
-					comm.Warnf("could not send operation.start reply: %s", err.Error())
-				}
+				return conn.Reply(ctx, req.ID, &buse.OperationResult{})
 			}
 		case "Operation.Cancel":
 			{

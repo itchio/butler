@@ -158,6 +158,34 @@ type InstallResult struct {
 	// TODO: verdict ?
 }
 
+//----------------------------------------------------------------------
+// CleanDownloads
+//----------------------------------------------------------------------
+
+// CleanDownloads.Search
+type CleanDownloadsSearchParams struct {
+	// A list of folders to scan for potential subfolders to clean up
+	Roots []string `json:"roots"`
+	// A list of subfolders to not consider when cleaning
+	// (staging folders for in-progress downloads)
+	Whitelist []string `json:"whitelist"`
+}
+
+type CleanDownloadsSearchResult struct {
+	Entries []*CleanDownloadEntry `json:"entries"`
+}
+
+type CleanDownloadEntry struct {
+	Path string `json:"path"`
+	Size int64  `json:"size"`
+}
+
+type CleanDownloadsApplyParams struct {
+	Entries []*CleanDownloadEntry `json:"entries"`
+}
+
+type CleanDownloadsApplyResult struct{}
+
 // Log
 type LogNotification struct {
 	Level   string `json:"level"`

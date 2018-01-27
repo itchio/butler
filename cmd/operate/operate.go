@@ -23,7 +23,11 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 		return errors.New("No staging folder specified")
 	}
 
-	oc := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
+	oc, err := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	consumer := oc.Consumer()
 
 	meta := &MetaSubcontext{

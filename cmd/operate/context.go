@@ -39,16 +39,16 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansion.Context, consumer *state.Consumer, stageFolder string) *OperationContext {
+func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansion.Context, parentConsumer *state.Consumer, stageFolder string) (*OperationContext, error) {
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
-		consumer.Warnf("Could not create operate directory: %s", err.Error())
+		parentConsumer.Warnf("Could not create operate directory: %s", err.Error())
 	}
 
 	logFilePath := filepath.Join(stageFolder, "operate-log.json")
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		consumer.Warnf("Could not open operate log: %s", err.Error())
+		parentConsumer.Warnf("Could not open operate log: %s", err.Error())
 	}
 
 	// shows percentages, to the 1/100th
@@ -68,56 +68,45 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 		loaded:         make(map[string]struct{}),
 	}
 
-	subconsumer := &state.Consumer{
-		OnMessage: func(level, msg string) {
-			if logFile != nil {
-				payload, err := json.Marshal(map[string]interface{}{
-					"time":  currentTimeMillis(),
-					"name":  "butler",
-					"level": butlerLevelToItchLevel(level),
-					"msg":   msg,
-				})
-				if err == nil {
-					fmt.Fprintf(logFile, "%s\n", string(payload))
-				} else {
-					fmt.Fprintf(logFile, "could not marshal json log entry: %s\n", err.Error())
-				}
-			}
-			conn.Notify(ctx, "Log", &buse.LogNotification{
-				Level:   level,
-				Message: msg,
-			})
-		},
-		OnProgress: func(alpha float64) {
-			if oc.counter == nil {
-				// skip
-				return
-			}
+	consumer, err := NewStateConsumer(&NewStateConsumerParams{
+		Conn:    conn,
+		Ctx:     ctx,
+		LogFile: logFile,
+	})
 
-			oc.counter.SetProgress(alpha)
-			notif := &buse.OperationProgressNotification{
-				Progress: alpha,
-				ETA:      oc.counter.ETA().Seconds(),
-				BPS:      oc.counter.BPS(),
-			}
-			conn.Notify(ctx, "Operation.Progress", notif)
-		},
-		OnProgressLabel: func(label string) {
-			// muffin
-		},
-		OnPauseProgress: func() {
-			if oc.counter != nil {
-				oc.counter.Pause()
-			}
-		},
-		OnResumeProgress: func() {
-			if oc.counter != nil {
-				oc.counter.Resume()
-			}
-		},
+	consumer.OnProgress = func(alpha float64) {
+		if oc.counter == nil {
+			// skip
+			return
+		}
+
+		oc.counter.SetProgress(alpha)
+		notif := &buse.OperationProgressNotification{
+			Progress: alpha,
+			ETA:      oc.counter.ETA().Seconds(),
+			BPS:      oc.counter.BPS(),
+		}
+
+		oc.conn.Notify(ctx, "Operation.Progress", notif)
+	}
+	consumer.OnProgressLabel = func(label string) {
+		// muffin
+	}
+	consumer.OnPauseProgress = func() {
+		if oc.counter != nil {
+			oc.counter.Pause()
+		}
+	}
+	consumer.OnResumeProgress = func() {
+		if oc.counter != nil {
+			oc.counter.Resume()
+		}
 	}
 
-	oc.consumer = subconsumer
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	oc.consumer = consumer
 
 	path := contextPath(stageFolder)
 
@@ -126,18 +115,61 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 		if os.IsNotExist(err) {
 			// empty context, that's fine
 		} else {
-			oc.consumer.Warnf("While loading context from %s: %s", path, err.Error())
+			consumer.Warnf("While loading context from %s: %s", path, err.Error())
 		}
-		return oc
+		return oc, nil
 	}
 	defer f.Close()
 
 	err = json.NewDecoder(f).Decode(&oc.root)
 	if err != nil {
-		oc.consumer.Warnf("While decoding context from %s: %s", path, err.Error())
+		consumer.Warnf("While decoding context from %s: %s", path, err.Error())
 	}
 
-	return oc
+	return oc, nil
+}
+
+type NewStateConsumerParams struct {
+	// Mandatory
+	Conn *jsonrpc2.Conn
+	Ctx  context.Context
+
+	// Optional
+	LogFile *os.File
+}
+
+func NewStateConsumer(params *NewStateConsumerParams) (*state.Consumer, error) {
+	if params.Conn == nil {
+		return nil, errors.New("NewConsumer: missing Conn")
+	}
+
+	if params.Ctx == nil {
+		return nil, errors.New("NewConsumer: missing Ctx")
+	}
+
+	c := &state.Consumer{
+		OnMessage: func(level, msg string) {
+			if params.LogFile != nil {
+				payload, err := json.Marshal(map[string]interface{}{
+					"time":  currentTimeMillis(),
+					"name":  "butler",
+					"level": butlerLevelToItchLevel(level),
+					"msg":   msg,
+				})
+				if err == nil {
+					fmt.Fprintf(params.LogFile, "%s\n", string(payload))
+				} else {
+					fmt.Fprintf(params.LogFile, "could not marshal json log entry: %s\n", err.Error())
+				}
+			}
+			params.Conn.Notify(params.Ctx, "Log", &buse.LogNotification{
+				Level:   level,
+				Message: msg,
+			})
+		},
+	}
+
+	return c, nil
 }
 
 func (oc *OperationContext) StartProgress() {
