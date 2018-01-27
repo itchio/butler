@@ -172,16 +172,16 @@ type CleanDownloadsSearchParams struct {
 }
 
 type CleanDownloadsSearchResult struct {
-	Entries []*CleanDownloadEntry `json:"entries"`
+	Entries []*CleanDownloadsEntry `json:"entries"`
 }
 
-type CleanDownloadEntry struct {
+type CleanDownloadsEntry struct {
 	Path string `json:"path"`
 	Size int64  `json:"size"`
 }
 
 type CleanDownloadsApplyParams struct {
-	Entries []*CleanDownloadEntry `json:"entries"`
+	Entries []*CleanDownloadsEntry `json:"entries"`
 }
 
 type CleanDownloadsApplyResult struct{}

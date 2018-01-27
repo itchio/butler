@@ -20,7 +20,7 @@ func CleanDownloadsSearch(params *buse.CleanDownloadsSearchParams, consumer *sta
 		whitemap[whitelistPath] = struct{}{}
 	}
 
-	var entries []*buse.CleanDownloadEntry
+	var entries []*buse.CleanDownloadsEntry
 
 	for _, root := range params.Roots {
 		folders, err := ioutil.ReadDir(root)
@@ -44,7 +44,7 @@ func CleanDownloadsSearch(params *buse.CleanDownloadsSearchParams, consumer *sta
 				consumer.Warnf("Could not determine folder size: %s", err.Error())
 			}
 
-			entries = append(entries, &buse.CleanDownloadEntry{
+			entries = append(entries, &buse.CleanDownloadsEntry{
 				Path: absoluteFolderPath,
 				Size: folderSize,
 			})
