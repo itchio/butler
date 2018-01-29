@@ -153,7 +153,14 @@ func (fs *flateSource) ReadByte() (byte, error) {
 		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
 	}
 
-	_, err := fs.Read(fs.bytebuf)
+	n, err := fs.Read(fs.bytebuf)
+	if n == 0 {
+		/* this happens when Read needs to save, but it swallows the error */
+		/* we're not meant to surface them, but there's no way to handle a */
+		/* short read from ReadByte, so we just read again */
+		n, err = fs.Read(fs.bytebuf)
+	}
+
 	return fs.bytebuf[0], err
 }
 
