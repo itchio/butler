@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/itchio/butler/cmd/apply"
+	"github.com/itchio/butler/cmd/apply2"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
@@ -96,6 +97,8 @@ func registerCommands(ctx *mansion.Context) {
 	elfprops.Register(ctx)
 
 	configure.Register(ctx)
+
+	apply2.Register(ctx)
 
 	service.Register(ctx)
 }
