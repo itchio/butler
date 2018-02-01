@@ -17,7 +17,7 @@ func sourceURL(consumer *state.Consumer, istate *InstallSubcontextState, params 
 		if fileType == "" {
 			fileType = "archive"
 			for _, bf := range params.Build.Files {
-				if bf.Type == itchio.BuildFileTypeUnpacked {
+				if bf.Type == itchio.BuildFileTypeUnpacked && bf.State == itchio.BuildFileStateUploaded {
 					consumer.Infof("Build %d / %d has an unpacked file", params.Upload.ID, params.Build.ID)
 					fileType = "unpacked"
 					break
