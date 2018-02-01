@@ -723,6 +723,9 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		hf.log("shouldRetry: retrying unexpected EOF")
 		return true
+	} else if errors.Is(err, io.EOF) {
+		// don't retry EOF, it's a perfectly expected error
+		return false
 	} else if opError, ok := err.(*net.OpError); ok {
 		// examples (win): "read tcp [...]: wsarecv: An established connection was aborted by the software in your host machine"
 		if opError.Timeout() ||
@@ -739,8 +742,7 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 		if urlError.Timeout() ||
 			urlError.Temporary() ||
 			errors.Is(urlError.Err, io.EOF) ||
-			strings.HasPrefix(urlError.Err.Error(), "dial tcp") ||
-			strings.HasPrefix(urlError.Err.Error(), "x509: certificate has expired or is not yet valid") {
+			strings.HasPrefix(urlError.Err.Error(), "dial tcp") {
 			hf.log("shouldRetry: retrying url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 			return true
 		}
