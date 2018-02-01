@@ -182,6 +182,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/hashicorp/golang-lru",
+			"repository": "https://github.com/hashicorp/golang-lru",
+			"vcs": "git",
+			"revision": "d47b7dcae7b7f047c3273fd8ca8d87edf4fdf483",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
@@ -257,7 +265,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "99e6052a6f90bfa8a137c9166f6f1ad5a4efaabb",
+			"revision": "b806a0123d0b675a3b932aa68dc28171d51fc882",
 			"branch": "master",
 			"notests": true
 		},

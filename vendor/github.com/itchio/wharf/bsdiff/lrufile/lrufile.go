@@ -36,7 +36,7 @@ type lruFile struct {
 	allocations []int64
 
 	// maps chunkIndex to storageIndex
-	lru *simplelru.LRU
+	lru simplelru.LRUCache
 
 	stats Stats
 }
