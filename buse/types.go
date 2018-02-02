@@ -1,6 +1,7 @@
 package buse
 
 import (
+	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -159,6 +160,39 @@ type InstallResult struct {
 }
 
 //----------------------------------------------------------------------
+// Launch
+//----------------------------------------------------------------------
+
+type LaunchParams struct {
+	InstallFolder string                `json:"installFolder"`
+	Verdict       *configurator.Verdict `json:"verdict"`
+	PrereqsDir    string                `json:"prereqsDir"`
+	ForcePrereqs  bool                  `json:"forcePrereqs"`
+}
+
+type LaunchResult struct {
+}
+
+type LaunchRunningNotification struct{}
+
+type LaunchExitedNotification struct{}
+
+type ShellLaunchParams struct {
+	ItemPath string `json:"itemPath"`
+}
+
+type ShellLaunchResult struct {
+}
+
+type HTMLLaunchParams struct {
+	RootFolder string `json:"rootFolder"`
+	IndexPath  string `json:"indexPath"`
+}
+
+type HTMLLaunchResult struct {
+}
+
+//----------------------------------------------------------------------
 // CleanDownloads
 //----------------------------------------------------------------------
 
@@ -185,6 +219,10 @@ type CleanDownloadsApplyParams struct {
 }
 
 type CleanDownloadsApplyResult struct{}
+
+//----------------------------------------------------------------------
+// Misc.
+//----------------------------------------------------------------------
 
 // Log
 type LogNotification struct {

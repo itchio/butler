@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/sourcegraph/jsonrpc2"
 
@@ -124,6 +125,20 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				}
 
 				return conn.Reply(ctx, req.ID, res)
+			}
+		case "Launch":
+			{
+				params := &buse.LaunchParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = launch.Do(ctx, conn, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+				return conn.Reply(ctx, req.ID, &buse.LaunchResult{})
 			}
 		case "Operation.Start":
 			{
