@@ -124,18 +124,21 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			return nil
 		}
 
-		_, err = url.Parse(manifestAction.Path)
-		if err == nil {
-			strategy = LaunchStrategyURL
-			fullTargetPath = manifestAction.Path
-			return nil
-		}
-
-		// so it's not an URL, is it a path?
+		// is it a path?
 
 		fullPath := manifestAction.ExpandPath(runtime, params.InstallFolder)
 		stats, err := os.Stat(fullPath)
 		if err != nil {
+			// is it an URL?
+			{
+				_, err := url.Parse(manifestAction.Path)
+				if err == nil {
+					strategy = LaunchStrategyURL
+					fullTargetPath = manifestAction.Path
+					return nil
+				}
+			}
+
 			if os.IsNotExist(err) {
 				err = fmt.Errorf("Manifest action '%s' refers to non-existent path (%s)", manifestAction.Name, fullPath)
 				return errors.Wrap(err, 0)
@@ -157,13 +160,13 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 		if len(verdict.Candidates) > 0 {
 			strategy = flavorToStrategy(verdict.Candidates[0].Flavor)
+			candidate = verdict.Candidates[0]
 		} else {
 			// must not be an executable, that's ok, just open it
 			strategy = LaunchStrategyShell
 		}
 
 		fullTargetPath = fullPath
-		candidate = verdict.Candidates[0]
 		return nil
 	}
 	err = pickManifestAction()
