@@ -10,9 +10,9 @@ You can download the latest, bleeding-edge version of butler from here:
 Alternatively, if you have the [itch app](https://itch.io/app) installed, then
 you already have a stable build of butler on your system, in:
 
-  * `%APPDATA%\itch\bin\butler.exe` on Windows
-  * `~/.config/itch/bin/butler` on Linux
-  * `~/Library/Application Support/itch/bin/butler` on Mac OS
+  * `%APPDATA%\itch\bin` on Windows
+  * `~/.config/itch/bin` on Linux
+  * `~/Library/Application Support/itch/bin` on Mac OS
 
 The itch app will update its version of butler to the latest stable
 on start-up. If you upgrade it to the bleeding-edge version, the itch
@@ -23,18 +23,57 @@ app will stop checking for upgrades.
 Adding an executable to your path allows you to launch it from anywhere,
 no matter which directory you're currently in.
 
-* On Windows, [follow this article](http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/) to add the folder where you downloaded butler.exe to your path.
+### On Windows
+
+[Follow this article](http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/) to add the folder where you downloaded butler.exe to your path.
 
 *Alternatively, Windows will look into the current working directory when
 looking for commands*
 
-* On Mac & Linux, edit your `~/.bashrc` or equivalent to include a line like:
+### On Linux
+
+If you downloaded butler to a directory (let's say `~/bin`), you first need
+to mark it as executable. From a terminal, run:
+
+```sh
+chmod +x ~/bin/butler
+```
+
+(Replacing `~/bin` with the folder you actually want to store butler into)
+
+Then, edit the `~/.bashrc` file (`~` is your home directory) and add this line
+at the end:
 
 ```sh
 export PATH="$PATH:~/bin"
 ```
 
-Where `~/bin` is the directory where you downloaded butler.
+(Again, replacing `~/bin` as appropriate)
+
+You'll need to close and start a new terminal to apply the changes. You should
+now be able to move on to the `First run` section.
+
+**Alternatively**, if you want to use the version installed by the itch app,
+you can skip the chmod command and use this line in your `~/.bashrc` instead:
+
+```sh
+export PATH="$PATH:~/.config/itch/bin"
+```
+
+### On macOS
+
+Follow the Linux instructions, except:
+
+  * On macOS, the `~/.bash_profile` file is used instead of `~/.bashrc`
+  * If you want to use the itch app version, use this line in your `~/.bash_profile` instead:
+
+```sh
+export PATH="$PATH:~/Library/Application Support/itch/bin"
+```
+
+*(don't forget the double-quotes, they're needed because there is a space in Application Support)*
+
+As with Linux, don't forget to close and re-open your terminal to apply the changes.
 
 ## First run
 
