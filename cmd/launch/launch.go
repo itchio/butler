@@ -50,13 +50,13 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 	receiptSaidOtherwise := false
 
 	if receiptIn.Upload != nil {
-		if params.Upload.ID != receiptIn.Upload.ID {
+		if params.Upload == nil || params.Upload.ID != receiptIn.Upload.ID {
 			receiptSaidOtherwise = true
 			params.Upload = receiptIn.Upload
 		}
 
 		if receiptIn.Build != nil {
-			if params.Build.ID != receiptIn.Build.ID {
+			if params.Build == nil || params.Build.ID != receiptIn.Build.ID {
 				receiptSaidOtherwise = true
 				params.Build = receiptIn.Build
 			}
@@ -74,6 +74,10 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 	var manifestAction *manifest.Action
 
 	appManifest, err := manifest.Read(params.InstallFolder)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	pickManifestAction := func() error {
 		var err error
 

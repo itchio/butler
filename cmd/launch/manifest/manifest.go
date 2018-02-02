@@ -3,7 +3,9 @@ package manifest
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/itchio/butler/manager"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/BurntSushi/toml"
@@ -57,7 +59,7 @@ func Read(folder string) (*Manifest, error) {
 	defer f.Close()
 
 	intermediate := make(map[string]interface{})
-	_, err = toml.DecodeReader(f, intermediate)
+	_, err = toml.DecodeReader(f, &intermediate)
 	if err != nil {
 		// invalid TOML
 		return nil, errors.Wrap(err, 0)
@@ -85,5 +87,18 @@ func (a *Action) GetPath(baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
-	return filepath.Join(baseFolder, a.Path)
+
+	path := a.Path
+	if strings.Contains(path, "{{EXT}}") {
+		runtime := manager.CurrentRuntime()
+
+		var ext = ""
+		switch runtime.Platform {
+		case manager.ItchPlatformWindows:
+			ext = ".exe"
+		}
+		path = strings.Replace(path, "{{EXT}}", ext, 1)
+	}
+
+	return filepath.Join(baseFolder, path)
 }
