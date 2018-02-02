@@ -37,15 +37,33 @@ func (m *Manifest) ListActions(runtime *manager.Runtime) []*Action {
 	return result
 }
 
+// see https://itch.io/docs/itch/integrating/manifest.html
 type Action struct {
-	Name    string
-	Path    string
-	Args    []string
-	Scope   string
+	// human-readable or standard name
+	Name string
+
+	// file path (relative to manifest or absolute), URL, etc.
+	Path string
+
+	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
+	Icon string
+
+	// command-line arguments
+	Args []string
+
+	// sandbox opt-in
 	Sandbox bool
 
+	// requested API scope
+	Scope string
+
+	// don't redirect stdout/stderr, open in new console window
+	Console bool
+
+	// platform to restrict this action too
 	Platform manager.ItchPlatform
 
+	// localized action name
 	Locales map[string]*ActionLocale
 }
 
