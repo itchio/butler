@@ -292,6 +292,13 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		return errors.Wrap(err, 0)
 	}
 
+	var args []string
+	var env = make(map[string]string)
+
+	if manifestAction != nil {
+		args = append(args, manifestAction.Args...)
+	}
+
 	launcherParams := &LauncherParams{
 		Conn:         conn,
 		Ctx:          ctx,
@@ -302,8 +309,8 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		Candidate:      candidate,
 		Action:         manifestAction,
 		Sandbox:        params.Sandbox,
-		Args:           nil,
-		Env:            nil,
+		Args:           args,
+		Env:            env,
 	}
 
 	err = launcher.Do(launcherParams)

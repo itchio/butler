@@ -205,10 +205,19 @@ type ShellLaunchResult struct {
 type HTMLLaunchParams struct {
 	RootFolder string `json:"rootFolder"`
 	IndexPath  string `json:"indexPath"`
+
+	Args []string
+	Env  map[string]string
 }
 
 type HTMLLaunchResult struct {
 }
+
+type URLLaunchParams struct {
+	URL string `json:"url"`
+}
+
+type URLLaunchResult struct{}
 
 //----------------------------------------------------------------------
 // CleanDownloads

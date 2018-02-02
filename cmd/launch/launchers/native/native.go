@@ -36,16 +36,9 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		return errors.Wrap(err, 0)
 	}
 
-	var args []string
-
-	manifestAction := params.Action
-	if manifestAction != nil {
-		args = append(args, manifestAction.Args...)
-	}
-
 	// TODO: launch args & env
 
-	cmd := exec.Command(params.FullTargetPath, args...)
+	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = cwd
 	err = cmd.Start()
 	if err != nil {
