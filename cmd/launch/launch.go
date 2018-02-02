@@ -125,7 +125,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		}
 
 		_, err = url.Parse(manifestAction.Path)
-		if err != nil {
+		if err == nil {
 			strategy = LaunchStrategyURL
 			fullTargetPath = manifestAction.Path
 			return nil
@@ -155,12 +155,13 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			return errors.Wrap(err, 0)
 		}
 
-		if len(verdict.Candidates) == 0 {
-			err = fmt.Errorf("Wasn't able to configure (%s) - no candidates", fullPath)
-			return errors.Wrap(err, 0)
+		if len(verdict.Candidates) > 0 {
+			strategy = flavorToStrategy(verdict.Candidates[0].Flavor)
+		} else {
+			// must not be an executable, that's ok, just open it
+			strategy = LaunchStrategyShell
 		}
 
-		strategy = LaunchStrategyNative
 		fullTargetPath = fullPath
 		candidate = verdict.Candidates[0]
 		return nil
@@ -247,31 +248,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			return errors.Wrap(err, 0)
 		}
 
-		switch candidate.Flavor {
-		// HTML
-		case configurator.FlavorHTML:
-			strategy = LaunchStrategyHTML
-		// Native
-		case configurator.FlavorNativeLinux:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorNativeMacos:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorNativeWindows:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorAppMacos:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorScript:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorScriptWindows:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorJar:
-			strategy = LaunchStrategyNative
-		case configurator.FlavorLove:
-			strategy = LaunchStrategyNative
-		default:
-			err := fmt.Errorf("unknown flavor (%s) for target (%s)", candidate.Flavor, fullTargetPath)
-			return errors.Wrap(err, 0)
-		}
+		strategy = flavorToStrategy(candidate.Flavor)
 	}
 
 	if params.Upload != nil {
@@ -319,4 +296,31 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 	}
 
 	return nil
+}
+
+func flavorToStrategy(flavor configurator.Flavor) LaunchStrategy {
+	switch flavor {
+	// HTML
+	case configurator.FlavorHTML:
+		return LaunchStrategyHTML
+	// Native
+	case configurator.FlavorNativeLinux:
+		return LaunchStrategyNative
+	case configurator.FlavorNativeMacos:
+		return LaunchStrategyNative
+	case configurator.FlavorNativeWindows:
+		return LaunchStrategyNative
+	case configurator.FlavorAppMacos:
+		return LaunchStrategyNative
+	case configurator.FlavorScript:
+		return LaunchStrategyNative
+	case configurator.FlavorScriptWindows:
+		return LaunchStrategyNative
+	case configurator.FlavorJar:
+		return LaunchStrategyNative
+	case configurator.FlavorLove:
+		return LaunchStrategyNative
+	default:
+		return LaunchStrategyUnknown
+	}
 }

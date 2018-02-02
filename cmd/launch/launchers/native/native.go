@@ -36,8 +36,6 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		return errors.Wrap(err, 0)
 	}
 
-	// TODO: launch args & env
-
 	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = cwd
 	err = cmd.Start()
