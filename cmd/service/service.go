@@ -55,6 +55,26 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			}
 		}()
 
+		handleCommonErrors := func(err error) error {
+			if errors.Is(err, operate.ErrCancelled) {
+				conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+					Code:    buse.CodeOperationCancelled,
+					Message: err.Error(),
+				})
+				return nil
+			}
+
+			if errors.Is(err, operate.ErrAborted) {
+				conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+					Code:    buse.CodeOperationAborted,
+					Message: err.Error(),
+				})
+				return nil
+			}
+
+			return err
+		}
+
 		switch req.Method {
 		case "Version.Get":
 			{
@@ -136,7 +156,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 				err = launch.Do(ctx, conn, params)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return handleCommonErrors(err)
 				}
 				return conn.Reply(ctx, req.ID, &buse.LaunchResult{})
 			}
@@ -168,23 +188,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				err = operate.Start(ctx, h.ctx, conn, params)
 				delete(h.operationHandles, oh.id)
 				if err != nil {
-					if errors.Is(err, operate.ErrCancelled) {
-						conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-							Code:    buse.CodeOperationCancelled,
-							Message: err.Error(),
-						})
-						return nil
-					}
-
-					if errors.Is(err, operate.ErrAborted) {
-						conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-							Code:    buse.CodeOperationAborted,
-							Message: err.Error(),
-						})
-						return nil
-					}
-
-					return err
+					return handleCommonErrors(err)
 				}
 
 				return conn.Reply(ctx, req.ID, &buse.OperationResult{})

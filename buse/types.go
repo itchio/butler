@@ -1,6 +1,7 @@
 package buse
 
 import (
+	"github.com/itchio/butler/cmd/launch/manifest"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
@@ -185,6 +186,14 @@ type LaunchResult struct {
 type LaunchRunningNotification struct{}
 
 type LaunchExitedNotification struct{}
+
+type PickManifestActionParams struct {
+	Actions []*manifest.Action `json:"actions"`
+}
+
+type PickManifestActionResult struct {
+	Name string `json:"name"`
+}
 
 type ShellLaunchParams struct {
 	ItemPath string `json:"itemPath"`

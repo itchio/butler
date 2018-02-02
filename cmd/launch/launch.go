@@ -97,11 +97,33 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			return nil
 		}
 
-		if len(actions) > 1 {
-			consumer.Warnf("Picking actions: stub! For now, picking the first one.")
+		if len(actions) == 1 {
+			manifestAction = actions[0]
+		} else {
+			var r buse.PickManifestActionResult
+			err := conn.Call(ctx, "PickManifestAction", &buse.PickManifestActionParams{
+				Actions: actions,
+			}, &r)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if r.Name == "" {
+				return operate.ErrAborted
+			}
+
+			for _, action := range actions {
+				if action.Name == r.Name {
+					manifestAction = action
+					break
+				}
+			}
 		}
 
-		manifestAction = actions[0]
+		if manifestAction == nil {
+			consumer.Warnf("No manifest action picked")
+			return nil
+		}
 
 		_, err = url.Parse(manifestAction.Path)
 		if err != nil {
