@@ -35,7 +35,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return nil, errors.New("Missing install folder in install")
 	}
 
-	consumer.Infof("→ Installing %s", gameToString(params.Game))
+	consumer.Infof("→ Installing %s", GameToString(params.Game))
 	consumer.Infof("  (%s) is our destination", params.InstallFolder)
 	consumer.Infof("  (%s) is our stage", oc.StageFolder())
 
@@ -55,7 +55,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			consumer.Errorf("Didn't find a compatible upload.")
 			consumer.Errorf("The initial %d uploads were:", len(uploadsFilterResult.InitialUploads))
 			for _, upload := range uploadsFilterResult.InitialUploads {
-				logUpload(consumer, upload, upload.Build)
+				LogUpload(consumer, upload, upload.Build)
 			}
 
 			return nil, (&OperationError{
@@ -120,7 +120,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		if !found {
 			consumer.Errorf("Uh oh, we didn't find that upload on the server:")
-			logUpload(consumer, params.Upload, nil)
+			LogUpload(consumer, params.Upload, nil)
 			return nil, errors.New("Upload not found")
 		}
 
@@ -177,11 +177,11 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		consumer.Infof("← No previous install info (no recorded upload or build)")
 	} else {
 		consumer.Infof("← Previously installed:")
-		logUpload(consumer, receiptIn.Upload, receiptIn.Build)
+		LogUpload(consumer, receiptIn.Upload, receiptIn.Build)
 	}
 
 	consumer.Infof("→ To be installed:")
-	logUpload(consumer, params.Upload, params.Build)
+	LogUpload(consumer, params.Upload, params.Build)
 
 	if receiptIn != nil && receiptIn.Upload != nil && receiptIn.Upload.ID == params.Upload.ID {
 		consumer.Infof("Installing over same upload")

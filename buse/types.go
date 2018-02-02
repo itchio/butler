@@ -165,9 +165,18 @@ type InstallResult struct {
 
 type LaunchParams struct {
 	InstallFolder string                `json:"installFolder"`
+	Game          *itchio.Game          `json:"game"`
+	Upload        *itchio.Upload        `json:"upload"`
+	Build         *itchio.Build         `json:"build"`
 	Verdict       *configurator.Verdict `json:"verdict"`
-	PrereqsDir    string                `json:"prereqsDir"`
-	ForcePrereqs  bool                  `json:"forcePrereqs"`
+
+	PrereqsDir   string `json:"prereqsDir"`
+	ForcePrereqs bool   `json:"forcePrereqs,omitempty"`
+
+	Sandbox bool `json:"sandbox,omitempty"`
+
+	// Used for subkeying
+	Credentials *GameCredentials `json:"credentials"`
 }
 
 type LaunchResult struct {

@@ -30,7 +30,7 @@ func GameFindUploads(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Re
 		return nil, errors.New("Missing game")
 	}
 
-	consumer.Infof("Looking for compatible uploads for game %s", gameToString(params.Game))
+	consumer.Infof("Looking for compatible uploads for game %s", GameToString(params.Game))
 
 	client, err := clientFromCredentials(params.Credentials)
 	if err != nil {
@@ -48,7 +48,7 @@ func GameFindUploads(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Re
 	return res, nil
 }
 
-func gameToString(game *itchio.Game) string {
+func GameToString(game *itchio.Game) string {
 	if game == nil {
 		return "<nil game>"
 	}
@@ -84,14 +84,14 @@ func getFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *b
 
 		consumer.Infof("→ Narrowed %d uploads down to %s: ", numInputs, qualif)
 		for _, u := range uploadsFilterResult.Uploads {
-			logUpload(consumer, u, u.Build)
+			LogUpload(consumer, u, u.Build)
 		}
 	}
 
 	return uploadsFilterResult, nil
 }
 
-func logUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
+func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	if u == nil {
 		consumer.Infof("  No upload")
 	} else {
