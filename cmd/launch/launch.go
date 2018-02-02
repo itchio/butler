@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/itchio/butler/configurator"
@@ -175,10 +174,11 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		consumer.Infof("→ Using verdict: %s", params.Verdict)
 
 		if len(params.Verdict.Candidates) == 0 {
-			return errors.New("No candidates")
+			return nil
 		}
 
 		if len(params.Verdict.Candidates) > 1 {
+			// TODO: ask client to disambiguate
 			return errors.New("More than one candidate: stub")
 		}
 
@@ -236,51 +236,80 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 	}
 
 	if fullTargetPath == "" {
-		err = fmt.Errorf("internal error: Could not determine a target path through manifest or verdict")
+		consumer.Warnf("No target from manifest or verdict, falling back to shell strategy")
+		fullTargetPath = "."
+		strategy = LaunchStrategyShell
+	}
+
+	if strategy == LaunchStrategyUnknown {
+		if candidate == nil {
+			err := fmt.Errorf("could not determine launch strategy for %s", fullTargetPath)
+			return errors.Wrap(err, 0)
+		}
+
+		switch candidate.Flavor {
+		// HTML
+		case configurator.FlavorHTML:
+			strategy = LaunchStrategyHTML
+		// Native
+		case configurator.FlavorNativeLinux:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorNativeMacos:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorNativeWindows:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorAppMacos:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorScript:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorScriptWindows:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorJar:
+			strategy = LaunchStrategyNative
+		case configurator.FlavorLove:
+			strategy = LaunchStrategyNative
+		default:
+			err := fmt.Errorf("unknown flavor (%s) for target (%s)", candidate.Flavor, fullTargetPath)
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	if params.Upload != nil {
+		switch params.Upload.Type {
+		case "html":
+			consumer.Infof("Forcing html because of upload")
+		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
+			consumer.Infof("Forcing html because of upload")
+		}
+	}
+
+	consumer.Infof("→ Using strategy (%s)", strategy)
+	consumer.Infof("  (%s) is our target", fullTargetPath)
+
+	launcher := launchers[strategy]
+	if launcher == nil {
+		err := fmt.Errorf("no launcher for strategy (%s)", strategy)
 		return errors.Wrap(err, 0)
 	}
 
-	// FIXME: cwd is only relevant for native
+	launcherParams := &LauncherParams{
+		Conn:         conn,
+		Ctx:          ctx,
+		Consumer:     consumer,
+		ParentParams: params,
 
-	cwd := params.InstallFolder
-	_, err = filepath.Rel(params.InstallFolder, fullTargetPath)
-	if err != nil {
-		// if it's relative, set the cwd to the folder the
-		// target is in
-		cwd = filepath.Dir(fullTargetPath)
+		FullTargetPath: fullTargetPath,
+		Candidate:      candidate,
+		Action:         manifestAction,
+		Sandbox:        params.Sandbox,
+		Args:           nil,
+		Env:            nil,
 	}
 
-	consumer.Infof("→ (%s) is our target", fullTargetPath)
-
-	_, err = os.Stat(fullTargetPath)
-	if err != nil {
-		// TODO: reconfigure!
-		return errors.Wrap(err, 0)
-	}
-
-	var args []string
-
-	if manifestAction != nil {
-		args = append(args, manifestAction.Args...)
-	}
-
-	// TODO: launch args & env
-
-	cmd := exec.Command(fullTargetPath, args...)
-	cmd.Dir = cwd
-	err = cmd.Start()
+	err = launcher.Do(launcherParams)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-
-	conn.Notify(ctx, "LaunchRunning", &buse.LaunchRunningNotification{})
-
-	err = cmd.Wait()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	conn.Notify(ctx, "LaunchExited", &buse.LaunchExitedNotification{})
 
 	return nil
 }

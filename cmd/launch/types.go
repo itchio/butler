@@ -1,5 +1,16 @@
 package launch
 
+import (
+	"context"
+
+	"github.com/itchio/butler/buse"
+
+	"github.com/itchio/butler/cmd/launch/manifest"
+	"github.com/itchio/butler/configurator"
+	"github.com/itchio/wharf/state"
+	"github.com/sourcegraph/jsonrpc2"
+)
+
 type LaunchStrategy string
 
 const (
@@ -11,10 +22,19 @@ const (
 )
 
 type LauncherParams struct {
-	WorkingDirectory string
+	Ctx          context.Context
+	Conn         *jsonrpc2.Conn
+	Consumer     *state.Consumer
+	ParentParams *buse.LaunchParams
 
 	// If relative, it's relative to the WorkingDirectory
-	Path string
+	FullTargetPath string
+
+	// May be nil
+	Candidate *configurator.Candidate
+
+	// May be nil
+	Action *manifest.Action
 
 	// If true, enable sandbox
 	Sandbox bool
@@ -24,7 +44,14 @@ type LauncherParams struct {
 
 	// Additional environment variables
 	Env map[string]string
+}
 
-	// $TEMP
-	TempDir string
+type Launcher interface {
+	Do(params *LauncherParams) error
+}
+
+var launchers = make(map[LaunchStrategy]Launcher)
+
+func Register(strategy LaunchStrategy, launcher Launcher) {
+	launchers[strategy] = launcher
 }
