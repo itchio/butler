@@ -13,9 +13,28 @@ import (
 	"github.com/go-errors/errors"
 )
 
+// TODO: linter
+
 type Manifest struct {
 	Actions []*Action
 	Prereqs []*Prereq
+}
+
+func (m *Manifest) ListActions(runtime *manager.Runtime) []*Action {
+	var result []*Action
+
+	for _, a := range m.Actions {
+		if a.Platform == "" {
+			// universal
+			result = append(result, a)
+		} else if a.Platform == runtime.Platform {
+			// just the right platform for us!
+			result = append(result, a)
+		}
+		// otherwise, skip it
+	}
+
+	return result
 }
 
 type Action struct {
@@ -24,6 +43,8 @@ type Action struct {
 	Args    []string
 	Scope   string
 	Sandbox bool
+
+	Platform manager.ItchPlatform
 
 	Locales map[string]*ActionLocale
 }
@@ -83,15 +104,13 @@ func Read(folder string) (*Manifest, error) {
 	return manifest, nil
 }
 
-func (a *Action) GetPath(baseFolder string) string {
+func (a *Action) ExpandPath(runtime *manager.Runtime, baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
 
 	path := a.Path
 	if strings.Contains(path, "{{EXT}}") {
-		runtime := manager.CurrentRuntime()
-
 		var ext = ""
 		switch runtime.Platform {
 		case manager.ItchPlatformWindows:

@@ -10,6 +10,7 @@ import (
 
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/butler/manager"
 
 	goerrors "errors"
 
@@ -37,7 +38,10 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		return errors.New("InstallFolder must be specified")
 	}
 
+	runtime := manager.CurrentRuntime()
+
 	consumer.Infof("→ Launching %s", operate.GameToString(params.Game))
+	consumer.Infof("   on runtime %s", runtime)
 	consumer.Infof("   (%s) is our install folder", params.InstallFolder)
 	consumer.Infof("Passed:")
 	operate.LogUpload(consumer, params.Upload, params.Build)
@@ -86,15 +90,18 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			return nil
 		}
 
-		if len(appManifest.Actions) == 0 {
+		actions := appManifest.ListActions(runtime)
+
+		if len(actions) == 0 {
+			consumer.Warnf("Had manifest, but no actions available (for this platform at least)")
 			return nil
 		}
 
-		if len(appManifest.Actions) > 1 {
+		if len(actions) > 1 {
 			consumer.Warnf("Picking actions: stub! For now, picking the first one.")
 		}
 
-		manifestAction = appManifest.Actions[0]
+		manifestAction = actions[0]
 
 		_, err = url.Parse(manifestAction.Path)
 		if err != nil {
@@ -105,7 +112,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 		// so it's not an URL, is it a path?
 
-		fullPath := manifestAction.GetPath(params.InstallFolder)
+		fullPath := manifestAction.ExpandPath(runtime, params.InstallFolder)
 		stats, err := os.Stat(fullPath)
 		if err != nil {
 			if os.IsNotExist(err) {
