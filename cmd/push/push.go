@@ -303,7 +303,7 @@ uploadOuter:
 		case uploadErr := <-uploadDone:
 			if uploadErr == nil {
 				comm.Debugf("upload done")
-				break uploadOuter
+				continue uploadOuter
 			}
 			return errors.Wrap(uploadErr, 1)
 		}
@@ -331,7 +331,7 @@ finalOuter:
 		select {
 		case err := <-finalDone:
 			if err == nil {
-				break finalOuter
+				continue finalOuter
 			}
 			return errors.Wrap(err, 1)
 		}
