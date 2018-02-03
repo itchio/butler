@@ -20,7 +20,6 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 		Uploads:        nil,
@@ -31,14 +30,15 @@ func Test_NarrowDownUploads(t *testing.T) {
 		&itchio.Upload{
 			Linux:    true,
 			Filename: "wrong.deb",
+			Type:     "default",
 		},
 		&itchio.Upload{
 			Linux:    true,
 			Filename: "nope.rpm",
+			Type:     "default",
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadUntagged:    false,
 		HadWrongFormat: true,
 		HadWrongArch:   false,
 		Uploads:        nil,
@@ -54,10 +54,10 @@ func Test_NarrowDownUploads(t *testing.T) {
 		&itchio.Upload{
 			OSX:      true,
 			Filename: "super-mac-game.pkg",
+			Type:     "default",
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadUntagged:    false,
 		HadWrongFormat: true,
 		HadWrongArch:   false,
 		Uploads:        nil,
@@ -69,18 +69,19 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Windows:  true,
 		OSX:      true,
 		Filename: "no-really-all-platforms.love",
+		Type:     "default",
 	}
 
 	excludeuntagged := []*itchio.Upload{
 		love,
 		&itchio.Upload{
 			Filename: "untagged-all-platforms.zip",
+			Type:     "default",
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		InitialUploads: excludeuntagged,
 		Uploads:        []*itchio.Upload{love},
-		HadUntagged:    true,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(excludeuntagged, game, linux64), "exclude untagged, flag it")
@@ -90,16 +91,18 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Windows:  true,
 		OSX:      true,
 		Filename: "sources.tar.gz",
+		Type:     "default",
 	}
 
 	linuxBinary := &itchio.Upload{
 		Linux:    true,
 		Filename: "binary.zip",
+		Type:     "default",
 	}
 
 	html := &itchio.Upload{
-		Type:     "html",
 		Filename: "twine-is-not-a-twemulator.zip",
+		Type:     "html",
 	}
 
 	preferlinuxbin := []*itchio.Upload{
@@ -114,7 +117,6 @@ func Test_NarrowDownUploads(t *testing.T) {
 			sources,
 			html,
 		},
-		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(preferlinuxbin, game, linux64), "prefer linux binary")
@@ -122,11 +124,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 	windowsNaked := &itchio.Upload{
 		Windows:  true,
 		Filename: "gamemaker-stuff-probably.exe",
+		Type:     "default",
 	}
 
 	windowsPortable := &itchio.Upload{
 		Windows:  true,
 		Filename: "portable-build.zip",
+		Type:     "default",
 	}
 
 	windows32 := &manager.Runtime{
@@ -146,7 +150,6 @@ func Test_NarrowDownUploads(t *testing.T) {
 			windowsNaked,
 			html,
 		},
-		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(preferwinportable, game, windows32), "prefer windows portable, then naked")
@@ -155,6 +158,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Windows:  true,
 		Demo:     true,
 		Filename: "windows-demo.zip",
+		Type:     "default",
 	}
 
 	penalizedemos := []*itchio.Upload{
@@ -169,7 +173,6 @@ func Test_NarrowDownUploads(t *testing.T) {
 			windowsNaked,
 			windowsDemo,
 		},
-		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(penalizedemos, game, windows32), "penalize demos")
@@ -182,11 +185,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 	loveWin := &itchio.Upload{
 		Windows:  true,
 		Filename: "win32.zip",
+		Type:     "default",
 	}
 
 	loveMac := &itchio.Upload{
 		OSX:      true,
 		Filename: "mac64.zip",
+		Type:     "default",
 	}
 
 	loveAll := &itchio.Upload{
@@ -194,6 +199,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		OSX:      true,
 		Linux:    true,
 		Filename: "universal.zip",
+		Type:     "default",
 	}
 
 	preferexclusive := []*itchio.Upload{
@@ -207,7 +213,6 @@ func Test_NarrowDownUploads(t *testing.T) {
 			loveWin,
 			loveAll,
 		},
-		HadUntagged:    false,
 		HadWrongFormat: false,
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(preferexclusive, game, windows64), "prefer builds exclusive to platform")
