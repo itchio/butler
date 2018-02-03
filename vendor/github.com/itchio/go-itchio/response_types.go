@@ -130,3 +130,8 @@ type UpgradePathItem struct {
 type NewDownloadSessionResponse struct {
 	UUID string `json:"uuid"`
 }
+
+type SubkeyResponse struct {
+	Key       string `json:"key"`
+	ExpiresAt string `json:"expiresAt"`
+}

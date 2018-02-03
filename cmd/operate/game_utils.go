@@ -32,7 +32,7 @@ func GameFindUploads(ctx *mansion.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Re
 
 	consumer.Infof("Looking for compatible uploads for game %s", GameToString(params.Game))
 
-	client, err := clientFromCredentials(params.Credentials)
+	client, err := ClientFromCredentials(params.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

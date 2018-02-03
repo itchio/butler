@@ -39,7 +39,7 @@ func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	consumer.Infof("  (%s) is our destination", params.InstallFolder)
 	consumer.Infof("  (%s) is our stage", oc.StageFolder())
 
-	client, err := clientFromCredentials(params.Credentials)
+	client, err := ClientFromCredentials(params.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

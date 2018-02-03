@@ -6,7 +6,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-func clientFromCredentials(credentials *buse.GameCredentials) (*itchio.Client, error) {
+func ClientFromCredentials(credentials *buse.GameCredentials) (*itchio.Client, error) {
 	if credentials == nil {
 		return nil, errors.New("Missing credentials")
 	}

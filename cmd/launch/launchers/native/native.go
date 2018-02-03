@@ -1,6 +1,7 @@
 package native
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,6 +39,14 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = cwd
+
+	// TODO: sanitize environment somewhat?
+	env := os.Environ()
+	for k, v := range params.Env {
+		env = append(env, fmt.Sprintf("%s=%s", k, v))
+	}
+	cmd.Env = env
+
 	err = cmd.Start()
 	if err != nil {
 		return errors.Wrap(err, 0)

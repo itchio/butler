@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
+	itchio "github.com/itchio/go-itchio"
 
 	goerrors "errors"
 
@@ -52,16 +53,18 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 	receiptSaidOtherwise := false
 
-	if receiptIn.Upload != nil {
-		if params.Upload == nil || params.Upload.ID != receiptIn.Upload.ID {
-			receiptSaidOtherwise = true
-			params.Upload = receiptIn.Upload
-		}
-
-		if receiptIn.Build != nil {
-			if params.Build == nil || params.Build.ID != receiptIn.Build.ID {
+	if receiptIn != nil {
+		if receiptIn.Upload != nil {
+			if params.Upload == nil || params.Upload.ID != receiptIn.Upload.ID {
 				receiptSaidOtherwise = true
-				params.Build = receiptIn.Build
+				params.Upload = receiptIn.Upload
+			}
+
+			if receiptIn.Build != nil {
+				if params.Build == nil || params.Build.ID != receiptIn.Build.ID {
+					receiptSaidOtherwise = true
+					params.Build = receiptIn.Build
+				}
 			}
 		}
 	}
@@ -276,6 +279,32 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 	if manifestAction != nil {
 		args = append(args, manifestAction.Args...)
+
+		if manifestAction.Scope != "" {
+			const onlyPermittedScope = "profile:me"
+			if manifestAction.Scope != onlyPermittedScope {
+				err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
+				return errors.Wrap(err, 0)
+			}
+
+			client, err := operate.ClientFromCredentials(params.Credentials)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			res, err := client.Subkey(&itchio.SubkeyParams{
+				GameID: params.Game.ID,
+				Scope:  manifestAction.Scope,
+			})
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
+
+			env["ITCHIO_API_KEY"] = res.Key
+			env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
+		}
 	}
 
 	launcherParams := &LauncherParams{

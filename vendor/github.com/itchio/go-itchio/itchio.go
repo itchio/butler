@@ -598,7 +598,28 @@ func (c *Client) NewDownloadSession(params *NewDownloadSessionParams) (*NewDownl
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return r, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+type SubkeyParams struct {
+	GameID int64
+	Scope  string
+}
+
+func (c *Client) Subkey(params *SubkeyParams) (*SubkeyResponse, error) {
+	r := &SubkeyResponse{}
+	path := c.MakePath("/credentials/subkey")
+
+	form := url.Values{}
+	form.Add("game_id", fmt.Sprintf("%d", params.GameID))
+	form.Add("scope", params.Scope)
+
+	err := c.PostFormResponse(path, form, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	return r, nil
