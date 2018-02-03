@@ -150,11 +150,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, 1)
 	}
 
-	uploadDone := make(chan bool)
-	uploadErrs := make(chan error)
+	uploadDone := make(chan error)
 
 	patchWriter, err := uploader.NewResumableUpload(newPatchRes.File.UploadURL,
-		uploadDone, uploadErrs, uploader.ResumableUploadSettings{
+		uploadDone, uploader.ResumableUploadSettings{
 			Consumer: comm.NewStateConsumer(),
 		})
 	patchWriter.MaxChunkGroup = maxChunkGroup
@@ -163,7 +162,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	signatureWriter, err := uploader.NewResumableUpload(newSignatureRes.File.UploadURL,
-		uploadDone, uploadErrs, uploader.ResumableUploadSettings{
+		uploadDone, uploader.ResumableUploadSettings{
 			Consumer: comm.NewStateConsumer(),
 		})
 	signatureWriter.MaxChunkGroup = maxChunkGroup
@@ -286,52 +285,55 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	// close in a goroutine to avoid deadlocking
-	doClose := func(c io.Closer, done chan bool, errs chan error) {
+	doClose := func(c io.Closer, done chan error) {
 		closeErr := c.Close()
 		if closeErr != nil {
-			errs <- errors.Wrap(closeErr, 1)
+			done <- errors.Wrap(closeErr, 1)
 			return
 		}
-
-		done <- true
+		done <- nil
 	}
 
-	go doClose(patchWriter, uploadDone, uploadErrs)
-	go doClose(signatureWriter, uploadDone, uploadErrs)
+	go doClose(patchWriter, uploadDone)
+	go doClose(signatureWriter, uploadDone)
 
+uploadOuter:
 	for c := 0; c < 4; c++ {
 		select {
-		case uploadErr := <-uploadErrs:
+		case uploadErr := <-uploadDone:
+			if uploadErr == nil {
+				comm.Debugf("upload done")
+				break uploadOuter
+			}
 			return errors.Wrap(uploadErr, 1)
-		case <-uploadDone:
-			comm.Debugf("upload done")
 		}
 	}
 
 	close(stopTicking)
 	comm.ProgressLabel("finalizing build")
 
-	finalDone := make(chan bool)
-	finalErrs := make(chan error)
+	finalDone := make(chan error)
 
-	doFinalize := func(fileID int64, fileSize int64, done chan bool, errs chan error) {
+	doFinalize := func(fileID int64, fileSize int64, done chan error) {
 		_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
 		if err != nil {
-			errs <- errors.Wrap(err, 1)
+			done <- errors.Wrap(err, 1)
 			return
 		}
-
-		done <- true
+		done <- nil
 	}
 
-	go doFinalize(newPatchRes.File.ID, patchCounter.Count(), finalDone, finalErrs)
-	go doFinalize(newSignatureRes.File.ID, signatureCounter.Count(), finalDone, finalErrs)
+	go doFinalize(newPatchRes.File.ID, patchCounter.Count(), finalDone)
+	go doFinalize(newSignatureRes.File.ID, signatureCounter.Count(), finalDone)
 
+finalOuter:
 	for i := 0; i < 2; i++ {
 		select {
-		case err := <-finalErrs:
+		case err := <-finalDone:
+			if err == nil {
+				break finalOuter
+			}
 			return errors.Wrap(err, 1)
-		case <-finalDone:
 		}
 	}
 

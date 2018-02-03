@@ -61,7 +61,7 @@ type ResumableUploadSettings struct {
 	BufferSize int
 }
 
-func NewResumableUpload(uploadURL string, done chan bool, errs chan error, settings ResumableUploadSettings) (*ResumableUpload, error) {
+func NewResumableUpload(uploadURL string, done chan error, settings ResumableUploadSettings) (*ResumableUpload, error) {
 	ru := &ResumableUpload{}
 	ru.MaxChunkGroup = settings.MaxChunkGroup
 	if ru.MaxChunkGroup == 0 {
@@ -94,7 +94,7 @@ func NewResumableUpload(uploadURL string, done chan bool, errs chan error, setti
 	}
 	ru.writeCounter = counter.NewWriterCallback(onWrite, bufferedWriter)
 
-	go ru.uploadChunks(pipeR, done, errs)
+	go ru.uploadChunks(pipeR, done)
 
 	return ru, nil
 }
@@ -304,7 +304,7 @@ func (ru *ResumableUpload) newRetryContext() *retrycontext.Context {
 	})
 }
 
-func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs chan error) {
+func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan error) {
 	var offset int64 = 0
 
 	var maxSendBuf = ru.MaxChunkGroup * gcsChunkSize // 16MB
@@ -340,8 +340,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		return fmt.Errorf("Too many errors, giving up.")
 	}
 
-	subDone := make(chan bool)
-	subErrs := make(chan error)
+	subDone := make(chan error)
 
 	ru.Debugf("sender: starting up, upload URL: %s", ru.uploadURL)
 
@@ -392,13 +391,13 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				err := sendBytes(sendBuf, isLast)
 				if err != nil {
 					ru.Debugf("sender: send error, bailing out")
-					subErrs <- errors.Wrap(err, 1)
+					subDone <- errors.Wrap(err, 1)
 					return
 				}
 			}
 		}
 
-		subDone <- true
+		subDone <- nil
 		ru.Debugf("sender: all done")
 	}()
 
@@ -458,7 +457,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		err := s.Err()
 		if err != nil {
 			ru.Debugf("scanner error :(")
-			subErrs <- errors.Wrap(err, 1)
+			subDone <- errors.Wrap(err, 1)
 			return
 		}
 
@@ -469,23 +468,25 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			return
 		}
 
-		subDone <- true
+		subDone <- nil
 		ru.Debugf("scanner done")
 	}()
 
+outer:
 	for i := 0; i < 2; i++ {
 		select {
-		case <-subDone:
-			// woo!
-		case err := <-subErrs:
+		case err := <-subDone:
+			if err == nil {
+				continue outer
+			}
 			ru.Debugf("got sub error: %s, bailing", err.Error())
 			// any error that travels this far up cancels the whole upload
 			close(canceller)
-			errs <- errors.Wrap(err, 1)
+			done <- errors.Wrap(err, 1)
 			return
 		}
 	}
 
-	done <- true
+	done <- nil
 	ru.Debugf("done sent!")
 }
