@@ -149,14 +149,14 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 			return fmt.Errorf("upload failed: beginning not committed somehow (committed range: %s)", committedRange)
 		}
 
-		perSec := humanize.IBytes(uint64(float64(committedRange.end) / callDuration.Seconds()))
+		committedBytes := committedRange.end - cu.offset
+		perSec := humanize.IBytes(uint64(float64(committedBytes) / callDuration.Seconds()))
 
 		if committedRange.end == expectedOffset {
 			cu.debugf("✓ Commit succeeded (%d blocks stored @ %s / s)", buflen/gcsChunkSize, perSec)
 			return nil
 		}
 
-		committedBytes := committedRange.end - cu.offset
 		if committedBytes < 0 {
 			return fmt.Errorf("upload failed: committed negative bytes somehow (committed range: %s, expectedOffset: %d)", committedRange, expectedOffset)
 		}
