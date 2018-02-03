@@ -292,19 +292,16 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			return
 		}
 		done <- nil
+		comm.Debugf("upload done")
 	}
 
 	go doClose(patchWriter, uploadDone)
 	go doClose(signatureWriter, uploadDone)
 
-uploadOuter:
+	// 2 resumableUpload, 2 goClose
 	for c := 0; c < 4; c++ {
-		select {
-		case uploadErr := <-uploadDone:
-			if uploadErr == nil {
-				comm.Debugf("upload done")
-				continue uploadOuter
-			}
+		uploadErr := <-uploadDone
+		if uploadErr != nil {
 			return errors.Wrap(uploadErr, 1)
 		}
 	}
@@ -326,14 +323,11 @@ uploadOuter:
 	go doFinalize(newPatchRes.File.ID, patchCounter.Count(), finalDone)
 	go doFinalize(newSignatureRes.File.ID, signatureCounter.Count(), finalDone)
 
-finalOuter:
+	// 2 doFinalize
 	for i := 0; i < 2; i++ {
-		select {
-		case err := <-finalDone:
-			if err == nil {
-				continue finalOuter
-			}
-			return errors.Wrap(err, 1)
+		err := <-finalDone
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 	}
 
