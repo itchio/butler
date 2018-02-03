@@ -238,6 +238,14 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 			}
 		}
 	}
+	if params.Upload != nil {
+		switch params.Upload.Type {
+		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
+			consumer.Infof("Forcing shell strategy because upload is of type (%s)", params.Upload.Type)
+			fullTargetPath = "."
+			strategy = LaunchStrategyShell
+		}
+	}
 
 	if fullTargetPath == "" {
 		consumer.Warnf("No target from manifest or verdict, falling back to shell strategy")
@@ -252,15 +260,6 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		}
 
 		strategy = flavorToStrategy(candidate.Flavor)
-	}
-
-	if params.Upload != nil {
-		switch params.Upload.Type {
-		case "html":
-			consumer.Infof("Forcing html because of upload")
-		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
-			consumer.Infof("Forcing html because of upload")
-		}
 	}
 
 	consumer.Infof("→ Using strategy (%s)", strategy)

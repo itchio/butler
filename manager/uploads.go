@@ -12,7 +12,6 @@ import (
 type NarrowDownUploadsResult struct {
 	InitialUploads []*itchio.Upload
 	Uploads        []*itchio.Upload
-	HadUntagged    bool
 	HadWrongFormat bool
 	HadWrongArch   bool
 }
@@ -23,16 +22,12 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 		return &NarrowDownUploadsResult{
 			InitialUploads: uploads,
 			Uploads:        uploads,
-			HadUntagged:    false,
 			HadWrongFormat: false,
 			HadWrongArch:   false,
 		}
 	}
 
-	taggedUploads := excludeUntagged(uploads)
-	hadUntagged := len(taggedUploads) < len(uploads)
-
-	platformUploads := excludeWrongPlatform(taggedUploads, runtime)
+	platformUploads := excludeWrongPlatform(uploads, runtime)
 	formatUploads := excludeWrongFormat(platformUploads)
 	hadWrongFormat := len(formatUploads) < len(platformUploads)
 
@@ -44,25 +39,9 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 	return &NarrowDownUploadsResult{
 		InitialUploads: uploads,
 		Uploads:        sortedUploads,
-		HadUntagged:    hadUntagged,
 		HadWrongFormat: hadWrongFormat,
 		HadWrongArch:   hadWrongArch,
 	}
-}
-
-func excludeUntagged(uploads []*itchio.Upload) []*itchio.Upload {
-	var res []*itchio.Upload
-
-	for _, u := range uploads {
-		if !u.OSX && !u.Android && !u.Windows && !u.Linux && u.Type != "html" {
-			// untagged, exclude
-			continue
-		}
-
-		res = append(res, u)
-	}
-
-	return res
 }
 
 func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
@@ -71,13 +50,14 @@ func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.
 	for _, u := range uploads {
 		p := PlatformsForUpload(u)
 
-		if u.Type == "html" {
-			// cool, html5 is universal
-		} else if p.IsCompatible(runtime) {
-			// cool, a native binary just for us!
-		} else {
-			// not html5 and not our platform, skip
-			continue
+		switch u.Type {
+		case "default":
+			if !p.IsCompatible(runtime) {
+				// executable and not compatible with us? that's a skip
+				continue
+			}
+		default:
+			// soundtracks, books etc. - that's all good
 		}
 
 		res = append(res, u)
