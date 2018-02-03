@@ -2,7 +2,6 @@ package push
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math"
 	"strings"
@@ -24,10 +23,6 @@ import (
 )
 
 const (
-	// maxChunkGroup is the maximum amount of 256kb blocks we'll attempt to
-	// upload to storage in a single request
-	maxChunkGroup = 64
-
 	// almostThereThreshold is the amount of data left where the progress indicator isn't indicative anymore.
 	// At this point, we're basically waiting for build files to be finalized.
 	almostThereThreshold int64 = 10 * 1024
@@ -150,25 +145,13 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, 1)
 	}
 
-	uploadDone := make(chan error)
+	consumer := comm.NewStateConsumer()
 
-	patchWriter, err := uploader.NewResumableUpload(newPatchRes.File.UploadURL,
-		uploadDone, uploader.ResumableUploadSettings{
-			Consumer: comm.NewStateConsumer(),
-		})
-	patchWriter.MaxChunkGroup = maxChunkGroup
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
+	patchWriter := uploader.NewResumableUpload2(newPatchRes.File.UploadURL)
+	patchWriter.SetConsumer(consumer)
 
-	signatureWriter, err := uploader.NewResumableUpload(newSignatureRes.File.UploadURL,
-		uploadDone, uploader.ResumableUploadSettings{
-			Consumer: comm.NewStateConsumer(),
-		})
-	signatureWriter.MaxChunkGroup = maxChunkGroup
-	if err != nil {
-		return errors.Wrap(err, 1)
-	}
+	signatureWriter := uploader.NewResumableUpload2(newSignatureRes.File.UploadURL)
+	signatureWriter.SetConsumer(consumer)
 
 	comm.Debugf("Launching patch & signature channels")
 
@@ -207,21 +190,20 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.Debugf("Building diff context")
 	var readBytes int64
 
-	bytesPerSec := float64(0)
-	lastUploadedBytes := int64(0)
+	var bytesPerSec float64
+	var lastUploadedBytes int64
+	var patchUploadedBytes int64
+
 	stopTicking := make(chan struct{})
-
 	updateProgress := func() {
-		uploadedBytes := int64(float64(patchWriter.UploadedBytes))
-
 		// input bytes that aren't in output, for example:
 		//  - bytes that have been compressed away
 		//  - bytes that were in old build and were simply reused
-		goneBytes := readBytes - patchWriter.TotalBytes
+		goneBytes := readBytes - patchCounter.Count()
 
 		conservativeTotalBytes := sourceContainer.Size - goneBytes
 
-		leftBytes := conservativeTotalBytes - uploadedBytes
+		leftBytes := conservativeTotalBytes - patchUploadedBytes
 		if leftBytes > almostThereThreshold {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
@@ -232,28 +214,31 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.ProgressLabel(fmt.Sprintf("- almost there"))
 		}
 
-		conservativeProgress := float64(uploadedBytes) / float64(conservativeTotalBytes)
+		conservativeProgress := float64(patchUploadedBytes) / float64(conservativeTotalBytes)
 		conservativeProgress = min(1.0, conservativeProgress)
 		comm.Progress(conservativeProgress)
 
 		comm.ProgressScale(float64(readBytes) / float64(sourceContainer.Size))
 	}
 
+	patchWriter.SetProgressListener(func(count int64) {
+		patchUploadedBytes = count
+		updateProgress()
+	})
+
 	go func() {
 		ticker := time.NewTicker(time.Second * time.Duration(2))
 		for {
 			select {
 			case <-ticker.C:
-				bytesPerSec = float64(patchWriter.UploadedBytes-lastUploadedBytes) / 2.0
-				lastUploadedBytes = patchWriter.UploadedBytes
+				bytesPerSec = float64(patchUploadedBytes-lastUploadedBytes) / 2.0
+				lastUploadedBytes = patchUploadedBytes
 				updateProgress()
 			case <-stopTicking:
 				return
 			}
 		}
 	}()
-
-	patchWriter.OnProgress = updateProgress
 
 	stateConsumer := &state.Consumer{
 		OnProgress: func(progress float64) {
@@ -284,50 +269,47 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, 1)
 	}
 
-	// close in a goroutine to avoid deadlocking
-	doClose := func(c io.Closer, done chan error) {
-		closeErr := c.Close()
-		if closeErr != nil {
-			done <- errors.Wrap(closeErr, 1)
-			return
-		}
-		done <- nil
-		comm.Debugf("upload done")
-	}
+	// close both files concurrently
+	{
+		errs := make(chan error)
 
-	go doClose(patchWriter, uploadDone)
-	go doClose(signatureWriter, uploadDone)
+		go func() {
+			errs <- patchWriter.Close()
+		}()
+		go func() {
+			errs <- signatureWriter.Close()
+		}()
 
-	// 2 resumableUpload, 2 goClose
-	for c := 0; c < 4; c++ {
-		uploadErr := <-uploadDone
-		if uploadErr != nil {
-			return errors.Wrap(uploadErr, 1)
+		// 2 close
+		for i := 0; i < 2; i++ {
+			err := <-errs
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 		}
 	}
 
 	close(stopTicking)
 	comm.ProgressLabel("finalizing build")
 
-	finalDone := make(chan error)
+	// finalize both files concurrently
+	{
+		errs := make(chan error)
 
-	doFinalize := func(fileID int64, fileSize int64, done chan error) {
-		_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
-		if err != nil {
-			done <- errors.Wrap(err, 1)
-			return
+		doFinalize := func(fileID int64, fileSize int64, done chan error) {
+			_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
+			done <- err
 		}
-		done <- nil
-	}
 
-	go doFinalize(newPatchRes.File.ID, patchCounter.Count(), finalDone)
-	go doFinalize(newSignatureRes.File.ID, signatureCounter.Count(), finalDone)
+		go doFinalize(newPatchRes.File.ID, patchCounter.Count(), errs)
+		go doFinalize(newSignatureRes.File.ID, signatureCounter.Count(), errs)
 
-	// 2 doFinalize
-	for i := 0; i < 2; i++ {
-		err := <-finalDone
-		if err != nil {
-			return errors.Wrap(err, 0)
+		// 2 doFinalize
+		for i := 0; i < 2; i++ {
+			err := <-errs
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 		}
 	}
 
