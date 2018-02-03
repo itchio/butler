@@ -206,8 +206,8 @@ type HTMLLaunchParams struct {
 	RootFolder string `json:"rootFolder"`
 	IndexPath  string `json:"indexPath"`
 
-	Args []string
-	Env  map[string]string
+	Args []string          `json:"args"`
+	Env  map[string]string `json:"env"`
 }
 
 type HTMLLaunchResult struct {

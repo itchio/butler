@@ -271,7 +271,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		return errors.Wrap(err, 0)
 	}
 
-	var args []string
+	var args []string = []string{}
 	var env = make(map[string]string)
 
 	if manifestAction != nil {
