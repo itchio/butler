@@ -3,24 +3,18 @@
 package prereqs
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/msi"
-	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/mansion"
-	"github.com/natefinch/npipe"
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
 )
 
 func Install(ctx *mansion.Context, planPath string, pipePath string) error {
@@ -37,101 +31,25 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 		return errors.Wrap(err, 0)
 	}
 
-	hasConn := true
-	// TODO: remove once itch v23 is dead
-	conn, err := npipe.Dial(pipePath)
+	namedPipe, err := NewNamedPipe(pipePath)
 	if err != nil {
-		comm.Warnf("Could not dial pipe %s", conn)
-		hasConn = false
+		return errors.Wrap(err, 0)
 	}
 
-	writeLine := func(contents []byte) error {
-		if !hasConn {
-			return nil
-		}
+	consumer := namedPipe.Consumer()
 
-		contents = append(contents, '\n')
-
-		_, err = conn.Write(contents)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		return nil
-	}
-
-	doWriteState := func(taskName string, status string) error {
-		msg := PrereqState{
-			Type:   "state",
-			Name:   taskName,
-			Status: status,
-		}
-		comm.Result(&msg)
-
-		contents, err := json.Marshal(&msg)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		return writeLine(contents)
-	}
-
-	writeState := func(taskName string, status string) {
-		err := doWriteState(taskName, status)
-		if err != nil {
-			switch err := err.(type) {
-			case *errors.Error:
-				comm.Warnf("Couldn't write log entry: %s", err.ErrorStack())
-			default:
-				comm.Warnf("Couldn't write log entry: %s", err.Error())
-			}
-		}
-	}
-
-	doLogf := func(format string, args ...interface{}) error {
-		comm.Logf(format, args...)
-		message := fmt.Sprintf(format, args...)
-
-		contents, err := json.Marshal(&PrereqLogEntry{
-			Type:    "log",
-			Message: message,
-		})
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		err = writeLine([]byte(contents))
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		return nil
-	}
-
-	logf := func(format string, args ...interface{}) {
-		err := doLogf(format, args...)
-		if err != nil {
-			switch err := err.(type) {
-			case *errors.Error:
-				comm.Warnf("Couldn't write log entry: %s", err.ErrorStack())
-			default:
-				comm.Warnf("Couldn't write log entry: %s", err.Error())
-			}
-		}
-	}
-
-	logf("Installing %d prereqs", len(plan.Tasks))
+	consumer.Infof("Installing %d prereqs", len(plan.Tasks))
 	startTime := time.Now()
 
 	var failed []string
 
 	for _, task := range plan.Tasks {
 		taskStartTime := time.Now()
-		writeState(task.Name, "installing")
+		namedPipe.WriteState(task.Name, "installing")
 
-		logf("")
-		logf("# Installing %s", task.Name)
-		logf("")
+		consumer.Infof("")
+		consumer.Infof("# Installing %s", task.Name)
+		consumer.Infof("")
 
 		commandPath := filepath.Join(task.WorkDir, task.Info.Command)
 		args := task.Info.Args
@@ -149,85 +67,53 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 
 			logPath := filepath.Join(tempDir, "msi-install-log.txt")
 
-			// TODO: deduplicate with doMsiInstall simply by redirecting log messages
-			// to the named pipe
-			err = msi.Install(comm.NewStateConsumer(), commandPath, logPath, "", nil)
+			err = msi.Install(consumer, commandPath, logPath, "", nil)
 			if err != nil {
-				logf("MSI install failed: %s", err.Error())
-				lf, openErr := os.Open(logPath)
-				if openErr != nil {
-					logf("And what's more, we can't open the log: %s", openErr.Error())
-				} else {
-					// grok UTF-16
-					win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
-					// ...but abide by the BOM if there's one
-					utf16bom := unicode.BOMOverride(win16be.NewDecoder())
-
-					unicodeReader := transform.NewReader(lf, utf16bom)
-
-					defer lf.Close()
-					logf("Full MSI log follows:")
-					s := bufio.NewScanner(unicodeReader)
-					for s.Scan() {
-						logf("[msi] %s", s.Text())
-					}
-					if scanErr := s.Err(); scanErr != nil {
-						logf("While reading msi log: %s", scanErr.Error())
-					}
-				}
-
+				consumer.Errorf("MSI install failed: %s", err.Error())
 				failed = append(failed, task.Name)
 			}
 		} else {
-			cmd := exec.Command(commandPath, args...)
-			cmd.Dir = task.WorkDir
-
-			logf("Launching %s %s", task.Info.Command, strings.Join(args, " "))
-
-			err = cmd.Run()
+			cmdTokens := append([]string{commandPath}, args...)
+			signedCode, err := installer.RunCommand(consumer, cmdTokens)
 			if err != nil {
-				if exitError, ok := err.(*exec.ExitError); ok {
-					if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
-						code := uint32(status.ExitStatus())
-						known := false
-						for _, exitCode := range task.Info.ExitCodes {
-							if code == exitCode.Code {
-								if exitCode.Success {
-									logf("%s (Code %d), continuing", exitCode.Message, exitCode.Code)
-								} else {
-									logf("%s (Code %d), we'll error out eventually", exitCode.Message, exitCode.Code)
-									failed = append(failed, task.Name)
-								}
-								known = true
-							}
-							break
-						}
+				return errors.Wrap(err, 0)
+			}
 
-						if !known {
-							logf("Got unknown exit code 0x%X (%d), will error out", code, code)
+			if signedCode != 0 {
+				code := uint32(signedCode)
+				known := false
+				for _, exitCode := range task.Info.ExitCodes {
+					if code == exitCode.Code {
+						if exitCode.Success {
+							consumer.Infof("%s (Code %d), continuing", exitCode.Message, exitCode.Code)
+						} else {
+							consumer.Warnf("%s (Code %d), we'll error out eventually", exitCode.Message, exitCode.Code)
 							failed = append(failed, task.Name)
 						}
-					} else {
-						return errors.Wrap(err, 0)
+						known = true
 					}
-				} else {
-					return errors.Wrap(err, 0)
+					break
+				}
+
+				if !known {
+					consumer.Infof("Got unknown exit code 0x%X (%d), will error out", code, code)
+					failed = append(failed, task.Name)
 				}
 			}
 		}
 
-		writeState(task.Name, "done")
-		logf("(Spent %s)", time.Since(taskStartTime))
+		namedPipe.WriteState(task.Name, "done")
+		consumer.Infof("(Spent %s)", time.Since(taskStartTime))
 	}
 
-	logf("")
+	consumer.Infof("")
 	if len(failed) > 0 {
 		errMsg := fmt.Sprintf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
-		logf(errMsg)
+		consumer.Errorf(errMsg)
 		return errors.Wrap(errors.New(errMsg), 0)
 	}
 
-	logf("All done! (Spent %s total)", time.Since(startTime))
+	consumer.Statf("All done! (Spent %s total)", time.Since(startTime))
 
 	return nil
 }
