@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -180,16 +181,39 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 	pickFromVerdict := func() error {
 		consumer.Infof("→ Using verdict: %s", params.Verdict)
 
-		if len(params.Verdict.Candidates) == 0 {
+		switch len(params.Verdict.Candidates) {
+		case 0:
 			return nil
+		case 1:
+			candidate = params.Verdict.Candidates[0]
+		default:
+			nameMap := make(map[string]*configurator.Candidate)
+
+			fakeActions := []*manifest.Action{}
+			for _, c := range params.Verdict.Candidates {
+				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
+				nameMap[name] = c
+				fakeActions = append(fakeActions, &manifest.Action{
+					Name: name,
+					Path: c.Path,
+				})
+			}
+
+			var r buse.PickManifestActionResult
+			err := conn.Call(ctx, "PickManifestAction", &buse.PickManifestActionParams{
+				Actions: fakeActions,
+			}, &r)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if r.Name == "" {
+				return operate.ErrAborted
+			}
+
+			candidate = nameMap[r.Name]
 		}
 
-		if len(params.Verdict.Candidates) > 1 {
-			// TODO: ask client to disambiguate
-			return errors.New("More than one candidate: stub")
-		}
-
-		candidate = params.Verdict.Candidates[0]
 		fullPath := filepath.Join(params.InstallFolder, candidate.Path)
 		_, err := os.Stat(fullPath)
 		if err != nil {
