@@ -1,7 +1,9 @@
 package native
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,43 +79,80 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	cmd.Env = envBlock
 
-	err = cmd.Start()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	const maxLines = 40
+	stdout := newOutputCollector(maxLines)
+	cmd.Stdout = stdout
 
-	startTime := time.Now()
+	stderr := newOutputCollector(maxLines)
+	cmd.Stderr = stderr
 
-	conn.Notify(ctx, "LaunchRunning", &buse.LaunchRunningNotification{})
-	exitCode, err := waitCommand(cmd)
-	conn.Notify(ctx, "LaunchExited", &buse.LaunchExitedNotification{})
-
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	runDuration := time.Since(startTime)
-
-	if exitCode != 0 {
-		var signedExitCode = int64(exitCode)
-		if runtime.GOOS == "windows" {
-			// Windows uses 32-bit unsigned integers as exit codes,[11] although the
-			// command interpreter treats them as signed.[12] If a process fails
-			// initialization, a Windows system error code may be returned.[13][14]
-			signedExitCode = int64(int32(signedExitCode))
-
-			// The line above turns `4294967295` into -1
+	err = func() error {
+		err = cmd.Start()
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 
-		exeName := filepath.Base(params.FullTargetPath)
-		msg := fmt.Sprintf("Exit code 0x%x (%d) for (%s)", uint32(exitCode), signedExitCode, exeName)
-		consumer.Warnf(msg)
+		startTime := time.Now()
 
-		if runDuration.Seconds() > 2 {
-			consumer.Warnf("That's after running for %s, ignoring non-zero exit code", runDuration)
+		conn.Notify(ctx, "LaunchRunning", &buse.LaunchRunningNotification{})
+		exitCode, err := waitCommand(cmd)
+		conn.Notify(ctx, "LaunchExited", &buse.LaunchExitedNotification{})
+
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		runDuration := time.Since(startTime)
+
+		if exitCode != 0 {
+			var signedExitCode = int64(exitCode)
+			if runtime.GOOS == "windows" {
+				// Windows uses 32-bit unsigned integers as exit codes,[11] although the
+				// command interpreter treats them as signed.[12] If a process fails
+				// initialization, a Windows system error code may be returned.[13][14]
+				signedExitCode = int64(int32(signedExitCode))
+
+				// The line above turns `4294967295` into -1
+			}
+
+			exeName := filepath.Base(params.FullTargetPath)
+			msg := fmt.Sprintf("Exit code 0x%x (%d) for (%s)", uint32(exitCode), signedExitCode, exeName)
+			consumer.Warnf(msg)
+
+			if runDuration.Seconds() > 10 {
+				consumer.Warnf("That's after running for %s, ignoring non-zero exit code", runDuration)
+			} else {
+				return errors.New(msg)
+			}
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		consumer.Errorf("Had error: %s", err.Error())
+		if len(stderr.Lines()) == 0 {
+			consumer.Errorf("No messages for standard error")
+			consumer.Errorf("→ Standard error: empty")
 		} else {
-			return errors.New(msg)
+			consumer.Errorf("→ Standard error ================")
+			for _, l := range stderr.Lines() {
+				consumer.Errorf("  %s", l)
+			}
+			consumer.Errorf("=================================")
 		}
+
+		if len(stdout.Lines()) == 0 {
+			consumer.Errorf("→ Standard output: empty")
+		} else {
+			consumer.Errorf("→ Standard output ===============")
+			for _, l := range stdout.Lines() {
+				consumer.Errorf("  %s", l)
+			}
+			consumer.Errorf("=================================")
+		}
+		consumer.Errorf("Relaying launch failure.")
+		return errors.Wrap(err, 0)
 	}
 
 	return nil
@@ -132,4 +171,43 @@ func waitCommand(cmd *exec.Cmd) (int, error) {
 	}
 
 	return 0, nil
+}
+
+//
+
+type outputCollector struct {
+	lines  []string
+	writer io.Writer
+}
+
+var _ io.Writer = (*outputCollector)(nil)
+
+func newOutputCollector(maxLines int) *outputCollector {
+	pipeR, pipeW := io.Pipe()
+
+	oc := &outputCollector{
+		writer: pipeW,
+	}
+
+	go func() {
+		s := bufio.NewScanner(pipeR)
+		for s.Scan() {
+			line := s.Text()
+			oc.lines = append(oc.lines, line)
+
+			if len(oc.lines) > maxLines {
+				oc.lines = oc.lines[1:]
+			}
+		}
+	}()
+
+	return oc
+}
+
+func (oc *outputCollector) Lines() []string {
+	return oc.lines
+}
+
+func (oc *outputCollector) Write(p []byte) (int, error) {
+	return oc.writer.Write(p)
 }
