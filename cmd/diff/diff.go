@@ -1,7 +1,6 @@
 package diff
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -77,12 +76,17 @@ func Do(params *Params) error {
 		return errors.New("diff: must specify Patch")
 	}
 
-	targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
-	if err != nil {
+	readAsSignature := func() error {
 		// Signature file perhaps?
 		signatureReader, err := eos.Open(params.Target)
 		if err != nil {
 			return errors.Wrap(err, 0)
+		}
+		defer signatureReader.Close()
+
+		stats, _ := signatureReader.Stat()
+		if stats.IsDir() {
+			return wire.ErrFormat
 		}
 
 		signatureSource := seeksource.FromFile(signatureReader)
@@ -93,39 +97,43 @@ func Do(params *Params) error {
 
 		targetSignature, err = pwr.ReadSignature(signatureSource)
 		if err != nil {
-			if errors.Is(err, wire.ErrFormat) {
-				return fmt.Errorf("unrecognized target %s (not a container, not a signature file)", params.Target)
-			}
 			return errors.Wrap(err, 0)
 		}
 
 		comm.Opf("Read signature from %s", params.Target)
 
-		err = signatureReader.Close()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-	} else {
-		// Container (dir, archive, etc.)
-		comm.Opf("Hashing %s", params.Target)
+		return nil
+	}
 
-		comm.StartProgress()
-		var targetPool wsync.Pool
-		targetPool, err = pools.New(targetSignature.Container, params.Target)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+	err = readAsSignature()
 
-		targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
-		comm.EndProgress()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+	if err != nil {
+		if errors.Is(err, wire.ErrFormat) {
+			// must be a container then
+			targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
+			// Container (dir, archive, etc.)
+			comm.Opf("Hashing %s", params.Target)
 
-		{
-			prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
-			perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
-			comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
+			comm.StartProgress()
+			var targetPool wsync.Pool
+			targetPool, err = pools.New(targetSignature.Container, params.Target)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
+			comm.EndProgress()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			{
+				prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
+				perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
+				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
+			}
+		} else {
+			return errors.Wrap(err, 0)
 		}
 	}
 
