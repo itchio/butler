@@ -2,8 +2,10 @@ package native
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,9 +14,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/butler/installer"
+
+	"github.com/itchio/butler/redist"
+	"github.com/itchio/wharf/eos"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/wipe"
 )
 
@@ -41,6 +49,11 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	}
 
 	_, err = os.Stat(params.FullTargetPath)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = handlePrereqs(params)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -152,6 +165,123 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 			consumer.Errorf("=================================")
 		}
 		consumer.Errorf("Relaying launch failure.")
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
+func handlePrereqs(params *launch.LauncherParams) error {
+	consumer := params.Consumer
+
+	if runtime.GOOS != "windows" {
+		consumer.Infof("Not on windows, ignoring prereqs")
+		return nil
+	}
+
+	if params.AppManifest == nil {
+		consumer.Infof("No manifest, no prereqs")
+		return nil
+	}
+
+	if len(params.AppManifest.Prereqs) == 0 {
+		consumer.Infof("Got manifest but no prereqs requested")
+		return nil
+	}
+
+	// TODO: store done somewhere
+	prereqsDir := params.ParentParams.PrereqsDir
+
+	// TODO: cache maybe
+	consumer.Infof("Fetching prereqs registry...")
+
+	registry := &redist.RedistRegistry{}
+
+	err := func() error {
+		registryURL := fmt.Sprintf("%s/info.json", prereqs.RedistsBaseURL)
+		f, err := eos.Open(registryURL)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		dec := json.NewDecoder(f)
+		err = dec.Decode(registry)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		return nil
+	}()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	var initialNames []string
+	for _, p := range params.AppManifest.Prereqs {
+		initialNames = append(initialNames, p.Name)
+	}
+
+	pa, err := prereqs.AssessPrereqs(consumer, registry, initialNames)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("%d done: %s", len(pa.Done), strings.Join(pa.Done, ", "))
+	consumer.Infof("%d todo: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
+
+	if len(pa.Todo) == 0 {
+		consumer.Infof("Everything done!")
+		return nil
+	}
+
+	consumer.Infof("%d prereqs to install: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
+
+	psc := &prereqs.PrereqStateConsumer{
+		OnPrereqState: func(name string, status prereqs.PrereqStatus, progress float64) {
+			consumer.Infof("%s %s %.2f", name, status, progress)
+		},
+	}
+
+	err = prereqs.FetchPrereqs(consumer, psc, prereqsDir, registry, pa.Todo)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	plan := &prereqs.PrereqPlan{}
+
+	planFile, err := ioutil.TempFile("", "butler-prereqs-plan.json")
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	planPath := planFile.Name()
+	defer os.Remove(planPath)
+
+	for _, name := range pa.Todo {
+		plan.Tasks = append(plan.Tasks, &prereqs.PrereqTask{
+			Name:    name,
+			WorkDir: filepath.Join(prereqsDir, name),
+			Info:    *registry.Entries[name],
+		})
+	}
+
+	enc := json.NewEncoder(planFile)
+	err = enc.Encode(plan)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = planFile.Close()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	_, err = installer.RunSelf(consumer, []string{
+		"--elevate",
+		"install-prereqs",
+		planPath,
+	})
+	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 

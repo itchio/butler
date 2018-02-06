@@ -34,6 +34,9 @@ type LauncherParams struct {
 	Candidate *configurator.Candidate
 
 	// May be nil
+	AppManifest *manifest.Manifest
+
+	// May be nil
 	Action *manifest.Action
 
 	// If true, enable sandbox

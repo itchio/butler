@@ -339,6 +339,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 		FullTargetPath: fullTargetPath,
 		Candidate:      candidate,
+		AppManifest:    appManifest,
 		Action:         manifestAction,
 		Sandbox:        params.Sandbox,
 		Args:           args,
