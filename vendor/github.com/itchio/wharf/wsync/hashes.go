@@ -81,18 +81,25 @@ func (ctx *Context) uniqueHash(v []byte) []byte {
 }
 
 // Searches for a given strong hash among all strong hashes in this bucket.
-func findUniqueHash(hh []BlockHash, hashValue []byte, shortSize int32, preferredFileIndex int64) *BlockHash {
-	if len(hashValue) == 0 {
+func (ctx *Context) findUniqueHash(hh []BlockHash, data []byte, shortSize int32, preferredFileIndex int64) *BlockHash {
+	if len(data) == 0 {
 		return nil
 	}
+
+	var hashValue []byte
 
 	// try to find block in preferred file first
 	// this helps detect files that aren't touched by patches
 	if preferredFileIndex != -1 {
 		for _, block := range hh {
 			if block.FileIndex == preferredFileIndex {
-				if block.ShortSize == shortSize && bytes.Equal(block.StrongHash, hashValue) {
-					return &block
+				if block.ShortSize == shortSize {
+					if hashValue == nil {
+						hashValue = ctx.uniqueHash(data)
+					}
+					if bytes.Equal(block.StrongHash, hashValue) {
+						return &block
+					}
 				}
 			}
 		}
@@ -100,8 +107,13 @@ func findUniqueHash(hh []BlockHash, hashValue []byte, shortSize int32, preferred
 
 	for _, block := range hh {
 		// full blocks have 0 shortSize
-		if block.ShortSize == shortSize && bytes.Equal(block.StrongHash, hashValue) {
-			return &block
+		if block.ShortSize == shortSize {
+			if hashValue == nil {
+				hashValue = ctx.uniqueHash(data)
+			}
+			if bytes.Equal(block.StrongHash, hashValue) {
+				return &block
+			}
 		}
 	}
 	return nil
