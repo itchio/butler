@@ -95,10 +95,12 @@ func Do(params *Params) error {
 			return errors.Wrap(err, 0)
 		}
 
-		targetSignature, err = pwr.ReadSignature(signatureSource)
+		readSignature, err := pwr.ReadSignature(signatureSource)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
+
+		targetSignature = readSignature
 
 		comm.Opf("Read signature from %s", params.Target)
 
@@ -108,7 +110,7 @@ func Do(params *Params) error {
 	err = readAsSignature()
 
 	if err != nil {
-		if errors.Is(err, wire.ErrFormat) {
+		if errors.Is(err, wire.ErrFormat) || errors.Is(err, io.EOF) {
 			// must be a container then
 			targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 			// Container (dir, archive, etc.)
