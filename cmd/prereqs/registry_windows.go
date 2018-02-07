@@ -4,7 +4,6 @@ package prereqs
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 
 	"github.com/go-errors/errors"
@@ -32,7 +31,7 @@ func RegistryKeyExists(consumer *state.Consumer, path string) bool {
 
 	key, err := registry.OpenKey(rootKey, pathName, registry.QUERY_VALUE)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, registry.ErrNotExist) {
 			// cool, the key does not exist!
 			return false
 		}

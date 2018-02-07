@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/itchio/butler/archive/szextractor"
 	"github.com/itchio/butler/buse"
@@ -65,16 +66,29 @@ func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder strin
 		counter := progress.NewCounter()
 		counter.Start()
 
+		cancel := make(chan struct{})
+		defer close(cancel)
+
+		go func() {
+			for {
+				select {
+				case <-time.After(1 * time.Second):
+					tsc.OnState(&buse.PrereqsTaskStateNotification{
+						Name:     name,
+						Status:   buse.PrereqStatusDownloading,
+						Progress: counter.Progress(),
+						ETA:      counter.ETA().Seconds(),
+						BPS:      counter.BPS(),
+					})
+				case <-cancel:
+					return
+				}
+			}
+		}()
+
 		extractor.SetConsumer(&state.Consumer{
 			OnProgress: func(progress float64) {
 				counter.SetProgress(progress)
-				tsc.OnState(&buse.PrereqsTaskStateNotification{
-					Name:     name,
-					Status:   buse.PrereqStatusDownloading,
-					Progress: counter.Progress(),
-					ETA:      counter.ETA().Seconds(),
-					BPS:      counter.BPS(),
-				})
 			},
 		})
 

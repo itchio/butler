@@ -1,10 +1,7 @@
 package native
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,14 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/eos"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/wipe"
 )
 
@@ -196,127 +189,6 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	return nil
 }
 
-func handlePrereqs(params *launch.LauncherParams) error {
-	consumer := params.Consumer
-	ctx := params.Ctx
-	conn := params.Conn
-
-	if runtime.GOOS != "windows" {
-		consumer.Infof("Not on windows, ignoring prereqs")
-		return nil
-	}
-
-	if params.AppManifest == nil {
-		consumer.Infof("No manifest, no prereqs")
-		return nil
-	}
-
-	if len(params.AppManifest.Prereqs) == 0 {
-		consumer.Infof("Got manifest but no prereqs requested")
-		return nil
-	}
-
-	// TODO: store done somewhere
-	prereqsDir := params.ParentParams.PrereqsDir
-
-	// TODO: cache maybe
-	consumer.Infof("Fetching prereqs registry...")
-
-	registry := &redist.RedistRegistry{}
-
-	err := func() error {
-		registryURL := fmt.Sprintf("%s/info.json", prereqs.RedistsBaseURL)
-		f, err := eos.Open(registryURL)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		dec := json.NewDecoder(f)
-		err = dec.Decode(registry)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		return nil
-	}()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	var initialNames []string
-	for _, p := range params.AppManifest.Prereqs {
-		initialNames = append(initialNames, p.Name)
-	}
-
-	pa, err := prereqs.AssessPrereqs(consumer, registry, initialNames)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	consumer.Infof("%d done: %s", len(pa.Done), strings.Join(pa.Done, ", "))
-	consumer.Infof("%d todo: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
-
-	if len(pa.Todo) == 0 {
-		consumer.Infof("Everything done!")
-		return nil
-	}
-
-	consumer.Infof("%d prereqs to install: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
-
-	{
-		psn := &buse.PrereqsStartedNotification{
-			Tasks: make(map[string]*buse.PrereqTask),
-		}
-		for i, name := range pa.Todo {
-			psn.Tasks[name] = &buse.PrereqTask{
-				FullName: registry.Entries[name].FullName,
-				Order:    i,
-			}
-		}
-
-		err = conn.Notify(ctx, "PrereqsStarted", psn)
-		if err != nil {
-			consumer.Warnf(err.Error())
-		}
-	}
-
-	tsc := &prereqs.TaskStateConsumer{
-		OnState: func(state *buse.PrereqsTaskStateNotification) {
-			err = conn.Notify(ctx, "PrereqsTaskState", state)
-			if err != nil {
-				consumer.Warnf(err.Error())
-			}
-		},
-	}
-
-	err = prereqs.FetchPrereqs(consumer, tsc, prereqsDir, registry, pa.Todo)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	plan := &prereqs.PrereqPlan{}
-
-	for _, name := range pa.Todo {
-		plan.Tasks = append(plan.Tasks, &prereqs.PrereqTask{
-			Name:    name,
-			WorkDir: filepath.Join(prereqsDir, name),
-			Info:    *registry.Entries[name],
-		})
-	}
-
-	err = prereqs.ElevatedInstall(consumer, plan, tsc)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = conn.Notify(ctx, "PrereqsEnded", &buse.PrereqsEndedNotification{})
-	if err != nil {
-		consumer.Warnf(err.Error())
-	}
-
-	return nil
-}
-
 func waitCommand(cmd *exec.Cmd) (int, error) {
 	err := cmd.Wait()
 	if err != nil {
@@ -330,43 +202,4 @@ func waitCommand(cmd *exec.Cmd) (int, error) {
 	}
 
 	return 0, nil
-}
-
-//
-
-type outputCollector struct {
-	lines  []string
-	writer io.Writer
-}
-
-var _ io.Writer = (*outputCollector)(nil)
-
-func newOutputCollector(maxLines int) *outputCollector {
-	pipeR, pipeW := io.Pipe()
-
-	oc := &outputCollector{
-		writer: pipeW,
-	}
-
-	go func() {
-		s := bufio.NewScanner(pipeR)
-		for s.Scan() {
-			line := s.Text()
-			oc.lines = append(oc.lines, line)
-
-			if len(oc.lines) > maxLines {
-				oc.lines = oc.lines[1:]
-			}
-		}
-	}()
-
-	return oc
-}
-
-func (oc *outputCollector) Lines() []string {
-	return oc.lines
-}
-
-func (oc *outputCollector) Write(p []byte) (int, error) {
-	return oc.writer.Write(p)
 }
