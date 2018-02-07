@@ -18,12 +18,21 @@ type RedistEntry struct {
 	// Version is the version of the redistributable we're distributing
 	Version string `json:"version"`
 	// RegistryKeys hint that the redist might already be installed, if present
-	RegistryKeys []string `json:"registryKeys"`
+	RegistryKeys []string `json:"registryKeys,omitempty"`
 	// DLLs hint that the redist might already be installed, if we can load them
-	DLLs []string `json:"dlls"`
+	DLLs []string `json:"dlls,omitempty"`
 	// ExitCodes let prereqs installation succeed in case of non-zero exit codes
 	// that mean something like "this is already installed"
-	ExitCodes []*ExitCode `json:"exitCodes"`
+	ExitCodes []*ExitCode `json:"exitCodes,omitempty"`
+
+	Hashes Hashes `json:"hashes"`
+}
+
+type HashMap map[string]string
+
+type Hashes struct {
+	SHA1   HashMap `json:"sha1"`
+	SHA256 HashMap `json:"sha256"`
 }
 
 type ExitCode struct {
