@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/state"
 	"github.com/natefinch/npipe"
@@ -53,7 +54,7 @@ func (np NamedPipe) Consumer() *state.Consumer {
 	}
 }
 
-func (np NamedPipe) WriteState(taskName string, status string) error {
+func (np NamedPipe) WriteState(taskName string, status buse.PrereqStatus) error {
 	msg := PrereqState{
 		Type:   "state",
 		Name:   taskName,

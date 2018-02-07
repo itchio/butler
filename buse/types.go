@@ -219,6 +219,35 @@ type URLLaunchParams struct {
 
 type URLLaunchResult struct{}
 
+type PrereqsStartedNotification struct {
+	Tasks map[string]*PrereqTask `json:"tasks"`
+}
+
+type PrereqTask struct {
+	FullName string `json:"name"`
+	Order    int    `json:"order"`
+}
+
+type PrereqStatus string
+
+const (
+	PrereqStatusPending     PrereqStatus = "pending"
+	PrereqStatusDownloading PrereqStatus = "downloading"
+	PrereqStatusReady       PrereqStatus = "ready"
+	PrereqStatusInstalling  PrereqStatus = "installing"
+	PrereqStatusDone        PrereqStatus = "done"
+)
+
+type PrereqsTaskState struct {
+	Name     string       `json:"name"`
+	Status   PrereqStatus `json:"status"`
+	Progress float64      `json:"progress"`
+	ETA      float64      `json:"eta"`
+}
+
+type PrereqsEndedNotification struct {
+}
+
 //----------------------------------------------------------------------
 // CleanDownloads
 //----------------------------------------------------------------------

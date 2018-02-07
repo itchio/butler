@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/installer"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
@@ -173,6 +174,8 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 func handlePrereqs(params *launch.LauncherParams) error {
 	consumer := params.Consumer
+	ctx := params.Ctx
+	conn := params.Conn
 
 	if runtime.GOOS != "windows" {
 		consumer.Infof("Not on windows, ignoring prereqs")
@@ -236,13 +239,34 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	consumer.Infof("%d prereqs to install: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
 
-	psc := &prereqs.PrereqStateConsumer{
-		OnPrereqState: func(name string, status prereqs.PrereqStatus, progress float64) {
-			consumer.Infof("%s %s %.2f", name, status, progress)
+	{
+		psn := &buse.PrereqsStartedNotification{
+			Tasks: make(map[string]*buse.PrereqTask),
+		}
+		for i, name := range pa.Todo {
+			psn.Tasks[name] = &buse.PrereqTask{
+				FullName: registry.Entries[name].FullName,
+				Order:    i,
+			}
+		}
+
+		err = conn.Notify(ctx, "PrereqsStarted", psn)
+		if err != nil {
+			consumer.Warnf(err.Error())
+		}
+	}
+
+	tsc := &prereqs.TaskStateConsumer{
+		OnState: func(state *buse.PrereqsTaskState) {
+			consumer.Infof("%s %s %.2f, ETA %.2f", state.Name, state.Status, state.Progress, state.ETA)
+			err = conn.Notify(ctx, "PrereqsTaskState", state)
+			if err != nil {
+				consumer.Warnf(err.Error())
+			}
 		},
 	}
 
-	err = prereqs.FetchPrereqs(consumer, psc, prereqsDir, registry, pa.Todo)
+	err = prereqs.FetchPrereqs(consumer, tsc, prereqsDir, registry, pa.Todo)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -276,13 +300,45 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		return errors.Wrap(err, 0)
 	}
 
-	_, err = installer.RunSelf(consumer, []string{
-		"--elevate",
-		"install-prereqs",
-		planPath,
+	_, err = installer.RunSelf(&installer.RunSelfParams{
+		Consumer: consumer,
+		Args: []string{
+			"--elevate",
+			"install-prereqs",
+			planPath,
+		},
+		OnResult: func(value installer.Any) {
+			if value["type"] == "state" {
+				ps := &prereqs.PrereqState{}
+				msdec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+					TagName: "json",
+					Result:  ps,
+				})
+				if err != nil {
+					consumer.Warnf("could not decode result: %s", err.Error())
+					return
+				}
+
+				err = msdec.Decode(value)
+				if err != nil {
+					consumer.Warnf("could not decode result: %s", err.Error())
+					return
+				}
+
+				tsc.OnState(&buse.PrereqsTaskState{
+					Name:   ps.Name,
+					Status: ps.Status,
+				})
+			}
+		},
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	err = conn.Notify(ctx, "PrereqsEnded", &buse.PrereqsEndedNotification{})
+	if err != nil {
+		consumer.Warnf(err.Error())
 	}
 
 	return nil

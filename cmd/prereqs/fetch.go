@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/butler/archive/szextractor"
+	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/progress"
 	"github.com/itchio/savior"
 
 	"github.com/go-errors/errors"
@@ -14,23 +16,13 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-type PrereqStatus string
-
-const (
-	PrereqStatusPending     PrereqStatus = "pending"
-	PrereqStatusDownloading PrereqStatus = "downloading"
-	PrereqStatusReady       PrereqStatus = "ready"
-	PrereqStatusInstalling  PrereqStatus = "installing"
-	PrereqStatusDone        PrereqStatus = "done"
-)
-
 const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
 
-type PrereqStateConsumer struct {
-	OnPrereqState func(name string, status PrereqStatus, progress float64)
+type TaskStateConsumer struct {
+	OnState func(state *buse.PrereqsTaskState)
 }
 
-func FetchPrereqs(consumer *state.Consumer, psc *PrereqStateConsumer, folder string, redistRegistry *redist.RedistRegistry, names []string) error {
+func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder string, redistRegistry *redist.RedistRegistry, names []string) error {
 	doPrereq := func(name string) error {
 		entry := redistRegistry.Entries[name]
 		if entry == nil {
@@ -38,7 +30,10 @@ func FetchPrereqs(consumer *state.Consumer, psc *PrereqStateConsumer, folder str
 			return nil
 		}
 
-		psc.OnPrereqState(name, PrereqStatusDownloading, 0)
+		tsc.OnState(&buse.PrereqsTaskState{
+			Name:   name,
+			Status: buse.PrereqStatusDownloading,
+		})
 
 		baseURL := getBaseURL(name)
 		// TODO: skip download if existing and SHA1+SHA256 sums match
@@ -67,9 +62,18 @@ func FetchPrereqs(consumer *state.Consumer, psc *PrereqStateConsumer, folder str
 			Directory: destDir,
 		}
 
+		counter := progress.NewCounter()
+		counter.Start()
+
 		extractor.SetConsumer(&state.Consumer{
 			OnProgress: func(progress float64) {
-				psc.OnPrereqState(name, PrereqStatusDownloading, progress)
+				counter.SetProgress(progress)
+				tsc.OnState(&buse.PrereqsTaskState{
+					Name:     name,
+					Status:   buse.PrereqStatusDownloading,
+					Progress: counter.Progress(),
+					ETA:      counter.ETA().Seconds(),
+				})
 			},
 		})
 
@@ -78,7 +82,10 @@ func FetchPrereqs(consumer *state.Consumer, psc *PrereqStateConsumer, folder str
 			return errors.Wrap(err, 0)
 		}
 
-		psc.OnPrereqState(name, PrereqStatusReady, 0)
+		tsc.OnState(&buse.PrereqsTaskState{
+			Name:   name,
+			Status: buse.PrereqStatusReady,
+		})
 
 		return nil
 	}

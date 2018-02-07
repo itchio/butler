@@ -25,7 +25,10 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	}
 
 	consumer.Infof("Attempting non-elevated MSI uninstall")
-	res, err := installer.RunSelf(consumer, args)
+	res, err := installer.RunSelf(&installer.RunSelfParams{
+		Consumer: consumer,
+		Args:     args,
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -35,7 +38,10 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 			args = append(args, "--elevate")
 
 			consumer.Infof("Attempting elevated MSI uninstall")
-			res, err := installer.RunSelf(consumer, args)
+			res, err := installer.RunSelf(&installer.RunSelfParams{
+				Consumer: consumer,
+				Args:     args,
+			})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}

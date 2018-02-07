@@ -50,7 +50,10 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		}
 
 		consumer.Infof("Attempting elevated MSI install")
-		res, err := installer.RunSelf(consumer, args)
+		res, err := installer.RunSelf(&installer.RunSelfParams{
+			Consumer: consumer,
+			Args:     args,
+		})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

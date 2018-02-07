@@ -21,11 +21,22 @@ type RunSelfResult struct {
 	Results  []Any
 }
 
-func RunSelf(consumer *state.Consumer, args []string) (*RunSelfResult, error) {
+type OnResultFunc func(res Any)
+
+type RunSelfParams struct {
+	Consumer *state.Consumer
+	Args     []string
+	OnResult OnResultFunc
+}
+
+func RunSelf(params *RunSelfParams) (*RunSelfResult, error) {
 	selfPath, err := os.Executable()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+
+	consumer := params.Consumer
+	args := params.Args
 
 	consumer.Infof("→ Invoking self:")
 	consumer.Infof("  butler ::: %s", strings.Join(args, " ::: "))
@@ -37,7 +48,7 @@ func RunSelf(consumer *state.Consumer, args []string) (*RunSelfResult, error) {
 	completeArgs := append([]string{"--json"}, args...)
 
 	cmd := exec.Command(selfPath, completeArgs...)
-	parser := newParserWriter(consumer, res)
+	parser := newParserWriter(consumer, res, params.OnResult)
 	cmd.Stdout = parser
 	cmd.Stderr = loggerwriter.New(consumer, "err")
 
@@ -56,7 +67,7 @@ func RunSelf(consumer *state.Consumer, args []string) (*RunSelfResult, error) {
 	return res, nil
 }
 
-func newParserWriter(consumer *state.Consumer, res *RunSelfResult) io.Writer {
+func newParserWriter(consumer *state.Consumer, res *RunSelfResult, onResult OnResultFunc) io.Writer {
 	pr, pw := io.Pipe()
 
 	go func() {
@@ -85,7 +96,11 @@ func newParserWriter(consumer *state.Consumer, res *RunSelfResult) io.Writer {
 					}
 				case "result":
 					if value, ok := obj["value"].(map[string]interface{}); ok {
-						res.Results = append(res.Results, value)
+						if onResult != nil {
+							onResult(value)
+						} else {
+							res.Results = append(res.Results, value)
+						}
 					} else {
 						consumer.Warnf("runself: ignoring result because value is not a map")
 					}
