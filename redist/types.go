@@ -25,7 +25,7 @@ type RedistEntry struct {
 	// that mean something like "this is already installed"
 	ExitCodes []*ExitCode `json:"exitCodes,omitempty"`
 
-	Hashes Hashes `json:"hashes"`
+	Hashes *Hashes `json:"hashes"`
 }
 
 type HashMap map[string]string
