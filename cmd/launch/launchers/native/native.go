@@ -33,7 +33,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	cwd := installFolder
 	_, err := filepath.Rel(installFolder, params.FullTargetPath)
-	if err != nil {
+	if err == nil {
 		// if it's relative, set the cwd to the folder the
 		// target is in
 		cwd = filepath.Dir(params.FullTargetPath)
