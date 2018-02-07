@@ -19,7 +19,7 @@ import (
 const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
 
 type TaskStateConsumer struct {
-	OnState func(state *buse.PrereqsTaskState)
+	OnState func(state *buse.PrereqsTaskStateNotification)
 }
 
 func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder string, redistRegistry *redist.RedistRegistry, names []string) error {
@@ -30,7 +30,7 @@ func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder strin
 			return nil
 		}
 
-		tsc.OnState(&buse.PrereqsTaskState{
+		tsc.OnState(&buse.PrereqsTaskStateNotification{
 			Name:   name,
 			Status: buse.PrereqStatusDownloading,
 		})
@@ -68,11 +68,12 @@ func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder strin
 		extractor.SetConsumer(&state.Consumer{
 			OnProgress: func(progress float64) {
 				counter.SetProgress(progress)
-				tsc.OnState(&buse.PrereqsTaskState{
+				tsc.OnState(&buse.PrereqsTaskStateNotification{
 					Name:     name,
 					Status:   buse.PrereqStatusDownloading,
 					Progress: counter.Progress(),
 					ETA:      counter.ETA().Seconds(),
+					BPS:      counter.BPS(),
 				})
 			},
 		})
@@ -82,7 +83,7 @@ func FetchPrereqs(consumer *state.Consumer, tsc *TaskStateConsumer, folder strin
 			return errors.Wrap(err, 0)
 		}
 
-		tsc.OnState(&buse.PrereqsTaskState{
+		tsc.OnState(&buse.PrereqsTaskStateNotification{
 			Name:   name,
 			Status: buse.PrereqStatusReady,
 		})

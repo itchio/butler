@@ -224,7 +224,7 @@ type PrereqsStartedNotification struct {
 }
 
 type PrereqTask struct {
-	FullName string `json:"name"`
+	FullName string `json:"fullName"`
 	Order    int    `json:"order"`
 }
 
@@ -238,14 +238,24 @@ const (
 	PrereqStatusDone        PrereqStatus = "done"
 )
 
-type PrereqsTaskState struct {
+type PrereqsTaskStateNotification struct {
 	Name     string       `json:"name"`
 	Status   PrereqStatus `json:"status"`
 	Progress float64      `json:"progress"`
 	ETA      float64      `json:"eta"`
+	BPS      float64      `json:"bps"`
 }
 
 type PrereqsEndedNotification struct {
+}
+
+type PrereqsFailedParams struct {
+	Error      string `json:"error"`
+	ErrorStack string `json:"errorStack"`
+}
+
+type PrereqsFailedResult struct {
+	Continue bool `json:"continue"`
 }
 
 //----------------------------------------------------------------------

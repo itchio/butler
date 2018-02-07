@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,15 +13,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/itchio/butler/installer"
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/wipe"
 )
@@ -56,7 +53,34 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	err = handlePrereqs(params)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		if errors.Is(err, operate.ErrAborted) {
+			return err
+		}
+
+		consumer.Warnf("While handling prereqs: %s", err.Error())
+
+		var r buse.PrereqsFailedResult
+		var errorStack string
+		if se, ok := err.(*errors.Error); ok {
+			errorStack = se.ErrorStack()
+		}
+
+		err = conn.Call(ctx, "PrereqsFailed", &buse.PrereqsFailedParams{
+			Error:      err.Error(),
+			ErrorStack: errorStack,
+		}, &r)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if r.Continue {
+			// continue!
+			consumer.Warnf("Continuing after prereqs failure because user told us to")
+		} else {
+			// abort
+			consumer.Warnf("Giving up after prereqs failure because user asked us to")
+			return operate.ErrAborted
+		}
 	}
 
 	cmd := exec.Command(params.FullTargetPath, params.Args...)
@@ -257,8 +281,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	}
 
 	tsc := &prereqs.TaskStateConsumer{
-		OnState: func(state *buse.PrereqsTaskState) {
-			consumer.Infof("%s %s %.2f, ETA %.2f", state.Name, state.Status, state.Progress, state.ETA)
+		OnState: func(state *buse.PrereqsTaskStateNotification) {
 			err = conn.Notify(ctx, "PrereqsTaskState", state)
 			if err != nil {
 				consumer.Warnf(err.Error())
@@ -273,14 +296,6 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	plan := &prereqs.PrereqPlan{}
 
-	planFile, err := ioutil.TempFile("", "butler-prereqs-plan.json")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	planPath := planFile.Name()
-	defer os.Remove(planPath)
-
 	for _, name := range pa.Todo {
 		plan.Tasks = append(plan.Tasks, &prereqs.PrereqTask{
 			Name:    name,
@@ -289,49 +304,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		})
 	}
 
-	enc := json.NewEncoder(planFile)
-	err = enc.Encode(plan)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = planFile.Close()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	_, err = installer.RunSelf(&installer.RunSelfParams{
-		Consumer: consumer,
-		Args: []string{
-			"--elevate",
-			"install-prereqs",
-			planPath,
-		},
-		OnResult: func(value installer.Any) {
-			if value["type"] == "state" {
-				ps := &prereqs.PrereqState{}
-				msdec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-					TagName: "json",
-					Result:  ps,
-				})
-				if err != nil {
-					consumer.Warnf("could not decode result: %s", err.Error())
-					return
-				}
-
-				err = msdec.Decode(value)
-				if err != nil {
-					consumer.Warnf("could not decode result: %s", err.Error())
-					return
-				}
-
-				tsc.OnState(&buse.PrereqsTaskState{
-					Name:   ps.Name,
-					Status: ps.Status,
-				})
-			}
-		},
-	})
+	err = prereqs.ElevatedInstall(consumer, plan, tsc)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
