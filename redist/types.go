@@ -25,14 +25,14 @@ type RedistEntry struct {
 	// that mean something like "this is already installed"
 	ExitCodes []*ExitCode `json:"exitCodes,omitempty"`
 
-	Hashes *Hashes `json:"hashes"`
+	Files []*File `json:"hashes"`
 }
 
-type HashMap map[string]string
-
-type Hashes struct {
-	SHA1   HashMap `json:"sha1"`
-	SHA256 HashMap `json:"sha256"`
+type File struct {
+	Name   string `json:"name"`
+	Size   int64  `json:"size"`
+	SHA1   string `json:"sha1"`
+	SHA256 string `json:"sha256"`
 }
 
 type ExitCode struct {
