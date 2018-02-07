@@ -2,7 +2,6 @@ package native
 
 import (
 	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -41,16 +40,26 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	// TODO: cache maybe
 	consumer.Infof("Fetching prereqs registry...")
+
 	beforeFetch := time.Now()
+	library, err := prereqs.NewLibrary(params.ParentParams.Credentials)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	registry := &redist.RedistRegistry{}
 
-	err := func() error {
-		registryURL := fmt.Sprintf("%s/info.json", prereqs.RedistsBaseURL)
+	err = func() error {
+		registryURL, err := library.GetURL("info", "unpacked")
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
 		f, err := eos.Open(registryURL)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
+		defer f.Close()
 
 		dec := json.NewDecoder(f)
 		err = dec.Decode(registry)
@@ -113,7 +122,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		},
 	}
 
-	err = prereqs.FetchPrereqs(consumer, tsc, prereqsDir, registry, pa.Todo)
+	err = prereqs.FetchPrereqs(library, consumer, tsc, prereqsDir, registry, pa.Todo)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
