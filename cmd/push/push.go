@@ -35,6 +35,7 @@ var args = struct {
 	userVersionFile *string
 	fixPerms        *bool
 	dereference     *bool
+	ifChanged       *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -45,6 +46,7 @@ func Register(ctx *mansion.Context) {
 	args.userVersionFile = cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String()
 	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
 	args.dereference = cmd.Flag("dereference", "Dereference symlinks").Default("false").Bool()
+	args.ifChanged = cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").Bool()
 	ctx.Register(cmd, do)
 }
 
@@ -64,10 +66,10 @@ func do(ctx *mansion.Context) {
 		}
 	}
 
-	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms, *args.dereference))
+	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms, *args.dereference, *args.ifChanged))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool) error {
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
@@ -137,6 +139,18 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		targetSignature, err = pwr.ReadSignature(signatureSource)
 		if err != nil {
 			return errors.Wrap(err, 1)
+		}
+
+		if ifChanged {
+			vctx := pwr.ValidatorContext{
+				Consumer:   comm.NewStateConsumer(),
+				NumWorkers: 1,
+			}
+			err := vctx.Validate(buildPath, targetSignature)
+			if err == nil {
+				comm.Statf("No changes and --if-changed used, not pushing anything")
+				return nil
+			}
 		}
 	}
 
