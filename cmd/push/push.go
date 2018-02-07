@@ -90,6 +90,69 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, 1)
 	}
 
+	getSignature := func(ID int64) (*pwr.SignatureInfo, error) {
+		buildFiles, err := client.ListBuildFiles(ID)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+
+		signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
+		if signatureFile == nil {
+			comm.Dief("Could not find signature for parent build %d, aborting", ID)
+		}
+
+		signatureURL := itchio.ItchfsURL(
+			ID,
+			signatureFile.ID,
+			client.Key,
+		)
+
+		signatureReader, err := eos.Open(signatureURL)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+		defer signatureReader.Close()
+
+		signatureSource := seeksource.FromFile(signatureReader)
+
+		_, err = signatureSource.Resume(nil)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		signature, err := pwr.ReadSignature(signatureSource)
+		if err != nil {
+			return nil, errors.Wrap(err, 1)
+		}
+
+		return signature, nil
+	}
+
+	if ifChanged {
+		chanInfo, err := client.GetChannel(spec.Target, spec.Channel)
+		if err == nil && chanInfo != nil && chanInfo.Channel != nil && chanInfo.Channel.Head != nil {
+			comm.Opf("Comparing against previous build...")
+			sig, err := getSignature(chanInfo.Channel.Head.ID)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			err = pwr.AssertValid(buildPath, sig)
+			if err == nil {
+				comm.Statf("No changes and --if-changed used, not pushing anything")
+				return nil
+			}
+
+			if _, ok := err.(*pwr.ErrHasWound); ok {
+				// cool, that's what we expected
+			} else {
+				return errors.Wrap(err, 0)
+			}
+		} else {
+			comm.Opf("No previous build to compare against, pushing unconditionally")
+		}
+	}
+
 	newBuildRes, err := client.CreateBuild(spec.Target, spec.Channel, userVersion)
 	if err != nil {
 		return errors.Wrap(err, 1)
@@ -108,49 +171,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", spec.Channel, parentID)
-		buildFiles, err := client.ListBuildFiles(parentID)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
-		if signatureFile == nil {
-			comm.Dief("Could not find signature for parent build %d, aborting", parentID)
-		}
-
-		signatureURL := itchio.ItchfsURL(
-			parentID,
-			signatureFile.ID,
-			client.Key,
-		)
-
-		signatureReader, err := eos.Open(signatureURL)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		signatureSource := seeksource.FromFile(signatureReader)
-
-		_, err = signatureSource.Resume(nil)
+		var err error
+		targetSignature, err = getSignature(parentID)
 		if err != nil {
 			return errors.Wrap(err, 0)
-		}
-
-		targetSignature, err = pwr.ReadSignature(signatureSource)
-		if err != nil {
-			return errors.Wrap(err, 1)
-		}
-
-		if ifChanged {
-			vctx := pwr.ValidatorContext{
-				Consumer:   comm.NewStateConsumer(),
-				NumWorkers: 1,
-			}
-			err := vctx.Validate(buildPath, targetSignature)
-			if err == nil {
-				comm.Statf("No changes and --if-changed used, not pushing anything")
-				return nil
-			}
 		}
 	}
 

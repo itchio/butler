@@ -40,6 +40,17 @@ type WoundsGuardian struct {
 
 var _ WoundsConsumer = (*WoundsGuardian)(nil)
 
+type ErrHasWound struct {
+	Wound     *Wound
+	Container *tlc.Container
+}
+
+var _ error = (*ErrHasWound)(nil)
+
+func (e *ErrHasWound) Error() string {
+	return e.Wound.PrettyString(e.Container)
+}
+
 // Do returns an error on the first wound received. If no wounds are ever received,
 // it returns nil (no error)
 func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error {
@@ -50,7 +61,10 @@ func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error
 
 		wg.hasWounds = true
 		wg.totalCorrupted += wound.Size()
-		return fmt.Errorf(wound.PrettyString(container))
+		return &ErrHasWound{
+			Wound:     wound,
+			Container: container,
+		}
 	}
 
 	return nil
