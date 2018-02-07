@@ -25,7 +25,7 @@ type RedistEntry struct {
 	// that mean something like "this is already installed"
 	ExitCodes []*ExitCode `json:"exitCodes,omitempty"`
 
-	Files []*File `json:"hashes"`
+	Files []*File `json:"files"`
 }
 
 type File struct {
