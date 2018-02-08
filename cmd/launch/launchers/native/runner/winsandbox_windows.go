@@ -3,11 +3,8 @@
 package runner
 
 import (
-	"os"
-	"syscall"
-	"unsafe"
-
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/launch/launchers/native/runner/execas"
 	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
 
 	"golang.org/x/sys/windows/registry"
@@ -68,44 +65,21 @@ func (wr *winsandboxRunner) getItchPlayerData(name string) (string, error) {
 }
 
 func (wr *winsandboxRunner) Run() error {
-	consumer := wr.params.Consumer
+	params := wr.params
+	consumer := params.Consumer
+	consumer.Infof("Running as user (%s)", wr.username)
 
-	domain := "."
-
-	si := new(syscall.StartupInfo)
-	si.Cb = uint32(unsafe.Sizeof(*si))
-
-	pi := new(syscall.ProcessInformation)
-
-	err := syscallex.CreateProcessWithLogon(
-		syscall.StringToUTF16Ptr(wr.username),
-		syscall.StringToUTF16Ptr(domain),
-		syscall.StringToUTF16Ptr(wr.password),
-		syscallex.LOGON_WITH_PROFILE,
-		syscall.StringToUTF16Ptr(wr.params.FullTargetPath),
-		nil, // commandLine
-		0,   // creationFlags
-		nil, // env
-		syscall.StringToUTF16Ptr(wr.params.Dir),
-		si,
-		pi,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
+	cmd := execas.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
+	cmd.Username = wr.username
+	cmd.Domain = "."
+	cmd.Password = wr.password
+	cmd.Dir = params.Dir
+	cmd.Env = params.Env
+	cmd.Stdout = params.Stdout
+	cmd.Stderr = params.Stderr
+	cmd.SysProcAttr = &syscallex.SysProcAttr{
+		LogonFlags: syscallex.LOGON_WITH_PROFILE,
 	}
 
-	consumer.Infof("Process ID: %d", pi.ProcessId)
-	syscall.CloseHandle(pi.Thread)
-
-	p, err := os.FindProcess(int(pi.ProcessId))
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	_, err = p.Wait()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	return nil
+	return cmd.Run()
 }
