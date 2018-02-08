@@ -67,6 +67,12 @@ func (wr *winsandboxRunner) getItchPlayerData(name string) (string, error) {
 func (wr *winsandboxRunner) Run() error {
 	params := wr.params
 	consumer := params.Consumer
+
+	err := SetupJobObject(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	consumer.Infof("Running as user (%s)", wr.username)
 
 	cmd := execas.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
@@ -81,5 +87,15 @@ func (wr *winsandboxRunner) Run() error {
 		LogonFlags: syscallex.LOGON_WITH_PROFILE,
 	}
 
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = WaitJobObject(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
 }

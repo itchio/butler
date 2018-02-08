@@ -1,6 +1,10 @@
 package runner
 
-import "os/exec"
+import (
+	"os/exec"
+
+	"github.com/go-errors/errors"
+)
 
 type simpleRunner struct {
 	params *RunnerParams
@@ -22,11 +26,28 @@ func (sr *simpleRunner) Prepare() error {
 
 func (sr *simpleRunner) Run() error {
 	params := sr.params
+	consumer := params.Consumer
+
+	err := SetupJobObject(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	cmd := exec.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = WaitJobObject(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
 }
