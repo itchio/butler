@@ -152,9 +152,9 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		if exitCode != 0 {
 			var signedExitCode = int64(exitCode)
 			if runtime.GOOS == "windows" {
-				// Windows uses 32-bit unsigned integers as exit codes,[11] although the
-				// command interpreter treats them as signed.[12] If a process fails
-				// initialization, a Windows system error code may be returned.[13][14]
+				// Windows uses 32-bit unsigned integers as exit codes, although the
+				// command interpreter treats them as signed. If a process fails
+				// initialization, a Windows system error code may be returned.
 				signedExitCode = int64(int32(signedExitCode))
 
 				// The line above turns `4294967295` into -1
