@@ -35,10 +35,30 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	// TODO: store done somewhere
 	prereqsDir := params.ParentParams.PrereqsDir
 
-	// TODO: cache maybe
+	var listed []string
+	for _, p := range params.AppManifest.Prereqs {
+		listed = append(listed, p.Name)
+	}
+
+	var pending []string
+	for _, name := range listed {
+		if prereqs.IsInstalled(prereqsDir, name) {
+			continue
+		}
+
+		pending = append(pending, name)
+	}
+
+	if len(pending) == 0 {
+		consumer.Infof("✓ %d Prereqs already installed: %s", len(listed), strings.Join(listed, ", "))
+		return nil
+	}
+
+	consumer.Infof("Assessing state of %d prereqs...", len(pending))
+
+	// TODO: cache somewhere
 	consumer.Infof("Fetching prereqs registry...")
 
 	beforeFetch := time.Now()
@@ -76,12 +96,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	registryFetchDuration := time.Since(beforeFetch)
 	consumer.Infof("✓ Fetched %d entries in %s", len(registry.Entries), registryFetchDuration)
 
-	var initialNames []string
-	for _, p := range params.AppManifest.Prereqs {
-		initialNames = append(initialNames, p.Name)
-	}
-
-	pa, err := prereqs.AssessPrereqs(consumer, registry, initialNames)
+	pa, err := prereqs.AssessPrereqs(consumer, registry, prereqsDir, pending)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -140,6 +155,13 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	err = prereqs.ElevatedInstall(consumer, plan, tsc)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	for _, name := range pa.Todo {
+		err = prereqs.MarkInstalled(prereqsDir, name)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	err = conn.Notify(ctx, "PrereqsEnded", &buse.PrereqsEndedNotification{})

@@ -95,6 +95,11 @@ func FetchPrereqs(library Library, consumer *state.Consumer, tsc *TaskStateConsu
 				return errors.Wrap(err, 0)
 			}
 
+			err = os.RemoveAll(destDir)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
 			err = os.MkdirAll(destDir, 0755)
 			if err != nil {
 				return errors.Wrap(err, 0)
