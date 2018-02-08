@@ -8,8 +8,8 @@ import (
 	"unsafe"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
 
-	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -70,13 +70,6 @@ func (wr *winsandboxRunner) getItchPlayerData(name string) (string, error) {
 func (wr *winsandboxRunner) Run() error {
 	consumer := wr.params.Consumer
 
-	// just a quick POC, will be extracted into its own package
-	var advapi = windows.NewLazyDLL("advapi32.dll")
-	var createProcess = advapi.NewProc("CreateProcessWithLogonW")
-	// var LOGON32_LOGON_INTERACTIVE = 2
-	// var LOGON32_PROVIDER_DEFAULT = 0
-	var LOGON_WITH_PROFILE = 1
-
 	domain := "."
 
 	si := new(syscall.StartupInfo)
@@ -84,20 +77,23 @@ func (wr *winsandboxRunner) Run() error {
 
 	pi := new(syscall.ProcessInformation)
 
-	ret, _, _ := createProcess.Call(
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(wr.username))),              // username
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(domain))),                   // domain
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(wr.password))),              // password
-		uintptr(LOGON_WITH_PROFILE),                                                 // logon flags
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(wr.params.FullTargetPath))), // app name
-		uintptr(0),                  // command line
-		uintptr(0),                  // creation flags
-		uintptr(0),                  // environment
-		uintptr(0),                  // current directory
-		uintptr(unsafe.Pointer(si)), // startup info
-		uintptr(unsafe.Pointer(pi)), // process info
+	err := syscallex.CreateProcessWithLogon(
+		syscall.StringToUTF16Ptr(wr.username),
+		syscall.StringToUTF16Ptr(domain),
+		syscall.StringToUTF16Ptr(wr.password),
+		syscallex.LOGON_WITH_PROFILE,
+		syscall.StringToUTF16Ptr(wr.params.FullTargetPath),
+		nil, // commandLine
+		0,   // creationFlags
+		nil, // env
+		syscall.StringToUTF16Ptr(wr.params.Dir),
+		si,
+		pi,
 	)
-	consumer.Infof("CreateProcess returned: %d", ret)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	consumer.Infof("Process ID: %d", pi.ProcessId)
 	syscall.CloseHandle(pi.Thread)
 
