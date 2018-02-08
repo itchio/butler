@@ -13,6 +13,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/cmd/launch/launchers/native/runner"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
 )
@@ -76,9 +77,6 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		}
 	}
 
-	cmd := exec.Command(params.FullTargetPath, params.Args...)
-	cmd.Dir = cwd
-
 	envMap := make(map[string]string)
 	for k, v := range params.Env {
 		envMap[k] = v
@@ -108,27 +106,43 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		envBlock = append(envBlock, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	cmd.Env = envBlock
-
 	const maxLines = 40
 	stdout := newOutputCollector(maxLines)
-	cmd.Stdout = stdout
-
 	stderr := newOutputCollector(maxLines)
-	cmd.Stderr = stderr
+
+	runParams := &runner.RunnerParams{
+		Consumer: consumer,
+		Conn:     conn,
+		Ctx:      ctx,
+
+		Sandbox: params.Sandbox,
+
+		FullTargetPath: params.FullTargetPath,
+
+		Name:   params.FullTargetPath,
+		Dir:    cwd,
+		Args:   params.Args,
+		Env:    envBlock,
+		Stdout: stdout,
+		Stderr: stderr,
+	}
+
+	run, err := runner.GetRunner(runParams)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = run.Prepare()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	err = func() error {
-		err = cmd.Start()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
 		startTime := time.Now()
 
 		conn.Notify(ctx, "LaunchRunning", &buse.LaunchRunningNotification{})
-		exitCode, err := waitCommand(cmd)
+		exitCode, err := interpretRunError(run.Run())
 		conn.Notify(ctx, "LaunchExited", &buse.LaunchExitedNotification{})
-
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -189,8 +203,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	return nil
 }
 
-func waitCommand(cmd *exec.Cmd) (int, error) {
-	err := cmd.Wait()
+func interpretRunError(err error) (int, error) {
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
