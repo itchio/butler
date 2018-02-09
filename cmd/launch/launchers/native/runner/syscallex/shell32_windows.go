@@ -45,7 +45,7 @@ func SHGetFolderPath(
 		uintptr(unsafe.Pointer(&buffer[0])),
 		0,
 	)
-	if r1 == 0 {
+	if FAILED(r1) {
 		if e1 != 0 {
 			err = e1
 		} else {
@@ -56,4 +56,10 @@ func SHGetFolderPath(
 		s = syscall.UTF16ToString(buffer)
 	}
 	return
+}
+
+const ERROR_SUCCESS = 0
+
+func FAILED(r1 uintptr) bool {
+	return r1 != ERROR_SUCCESS
 }

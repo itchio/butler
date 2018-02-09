@@ -68,13 +68,9 @@ func (wr *winsandboxRunner) getItchPlayerData(name string) (string, error) {
 }
 
 func (wr *winsandboxRunner) Run() error {
+	var err error
 	params := wr.params
 	consumer := params.Consumer
-
-	err := SetupJobObject(consumer)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
 
 	consumer.Infof("Running as user (%s)", wr.username)
 
@@ -140,6 +136,11 @@ func (wr *winsandboxRunner) Run() error {
 	env = append(env, fmt.Sprintf("userprofile=%s", profileDir))
 	env = append(env, fmt.Sprintf("appdata=%s", appDataDir))
 	env = append(env, fmt.Sprintf("localappdata=%s", localAppDataDir))
+
+	err = SetupJobObject(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	cmd := execas.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
 	cmd.Username = wr.username
