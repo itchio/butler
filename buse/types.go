@@ -219,6 +219,10 @@ type URLLaunchParams struct {
 
 type URLLaunchResult struct{}
 
+type AllowSandboxSetupParams struct{}
+
+type AllowSandboxSetupResponse struct{}
+
 type PrereqsStartedNotification struct {
 	Tasks map[string]*PrereqTask `json:"tasks"`
 }
