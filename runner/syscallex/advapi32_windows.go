@@ -33,6 +33,9 @@ var (
 	procLookupAccountNameW      = modadvapi32.NewProc("LookupAccountNameW")
 	procLookupAccountSidW       = modadvapi32.NewProc("LookupAccountSidW")
 	procCreateWellKnownSid      = modadvapi32.NewProc("CreateWellKnownSid")
+
+	procGetNamedSecurityInfoW = modadvapi32.NewProc("GetNamedSecurityInfoW")
+	procSetNamedSecurityInfoW = modadvapi32.NewProc("SetNamedSecurityInfoW")
 )
 
 func CreateProcessWithLogon(
@@ -223,3 +226,155 @@ func CreateWellKnownSid(
 	}
 	return
 }
+
+// SE_OBJECT_TYPE, cf.
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa379593(v=vs.85).aspx
+// do not reorder
+const (
+	SE_UNKNOWN_OBJECT_TYPE = iota
+	SE_FILE_OBJECT
+	SE_SERVICE
+	SE_PRINTER
+	SE_REGISTRY_KEY
+	SE_LMSHARE
+	SE_KERNEL_OBJECT
+	SE_WINDOW_OBJECT
+	SE_DS_OBJECT
+	SE_DS_OBJECT_ALL
+	SE_PROVIDER_DEFINED_OBJECT
+	SE_WMIGUID_OBJECT
+	SE_REGISTRY_WOW64_32KEY
+)
+
+// see
+// https://raw.githubusercontent.com/mirror/reactos/master/reactos/include/xdk/setypes.h
+const (
+	DELETE                   = 0x00010000
+	READ_CONTROL             = 0x00020000
+	WRITE_DAC                = 0x00040000
+	WRITE_OWNER              = 0x00080000
+	SYNCHRONIZE              = 0x00100000
+	STANDARD_RIGHTS_REQUIRED = 0x000F0000
+	STANDARD_RIGHTS_READ     = READ_CONTROL
+	STANDARD_RIGHTS_WRITE    = READ_CONTROL
+	STANDARD_RIGHTS_EXECUTE  = READ_CONTROL
+	STANDARD_RIGHTS_ALL      = 0x001F0000
+	SPECIFIC_RIGHTS_ALL      = 0x0000FFFF
+	ACCESS_SYSTEM_SECURITY   = 0x01000000
+	MAXIMUM_ALLOWED          = 0x02000000
+	GENERIC_READ             = 0x80000000
+	GENERIC_WRITE            = 0x40000000
+	GENERIC_EXECUTE          = 0x20000000
+	GENERIC_ALL              = 0x10000000
+)
+
+// ACCESS_MODE, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa374899(v=vs.85).aspx
+// do not reorder
+const (
+	NOT_USED_ACCESS = iota
+	GRANT_ACCESS
+	SET_ACCESS
+	DENY_ACCESS
+	REVOKE_ACCESS
+	SET_AUDIT_SUCCESS
+	SET_AUDIT_FAILURE
+)
+
+// SECURITY_INFORMATION, cf.
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa379573(v=vs.85).aspx
+// and
+// https://raw.githubusercontent.com/mirror/reactos/master/reactos/include/xdk/setypes.h
+const (
+	OWNER_SECURITY_INFORMATION = 0x00000001
+	GROUP_SECURITY_INFORMATION = 0x00000002
+	DACL_SECURITY_INFORMATION  = 0x00000004
+	SACL_SECURITY_INFORMATION  = 0x00000008
+	LABEL_SECURITY_INFORMATION = 0x00000010
+
+	PROTECTED_DACL_SECURITY_INFORMATION   = 0x80000000
+	PROTECTED_SACL_SECURITY_INFORMATION   = 0x40000000
+	UNPROTECTED_DACL_SECURITY_INFORMATION = 0x20000000
+	UNPROTECTED_SACL_SECURITY_INFORMATION = 0x10000000
+)
+
+// struct _ACL, cf.
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa374931(v=vs.85).aspx
+type ACL struct {
+	AclRevision byte
+	Sbz1        byte
+	AclSize     int16
+	AceCount    int16
+	Sbz2        int16
+}
+
+func GetNamedSecurityInfo(
+	objectName *uint16,
+	objectType uint32,
+	securityInfo uint32,
+	ppsidOwner uintptr,
+	ppsidGroup uintptr,
+	ppDacl **ACL,
+	ppSacl **ACL,
+	ppSecurityDescriptor uintptr,
+) (err error) {
+	r1, _, _ := syscall.Syscall9(
+		procSetNamedSecurityInfoW.Addr(),
+		7,
+		uintptr(unsafe.Pointer(objectName)),
+		uintptr(objectType),
+		uintptr(securityInfo),
+		ppsidOwner,
+		ppsidGroup,
+		uintptr(unsafe.Pointer(ppDacl)),
+		uintptr(unsafe.Pointer(ppSacl)),
+		ppSecurityDescriptor,
+		0,
+	)
+	// cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa446645(v=vs.85).aspx
+	// If the function succeeds, the return value is ERROR_SUCCESS.
+	// If the function fails, the return value is a nonzero error code defined in WinError.h.
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
+
+func SetNamedSecurityInfo(
+	objectName *uint16,
+	objectType uint32,
+	securityInfo uint32,
+	psidOwner uintptr,
+	psidGroup uintptr,
+	pDacl *ACL,
+	pSacl *ACL,
+) (err error) {
+	r1, _, _ := syscall.Syscall9(
+		procSetNamedSecurityInfoW.Addr(),
+		7,
+		uintptr(unsafe.Pointer(objectName)),
+		uintptr(objectType),
+		uintptr(securityInfo),
+		psidOwner,
+		psidGroup,
+		uintptr(unsafe.Pointer(pDacl)),
+		uintptr(unsafe.Pointer(pSacl)),
+		0, 0,
+	)
+	// cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379579(v=vs.85).aspx
+	// If the function succeeds, the return value is ERROR_SUCCESS.
+	// If the function fails, the return value is a nonzero error code defined in WinError.h.
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
+
+// TRUSTEE_FORM, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379638(v=vs.85).aspx
+// do not reorder
+const (
+	TRUSTEE_IS_SID = iota
+	TRUSTEE_IS_NAME
+	TRUSTEE_BAD_FORM
+	TRUSTEE_IS_OBJECTS_AND_SID
+	TRUSTEE_IS_OBJECTS_AND_NAME
+)
