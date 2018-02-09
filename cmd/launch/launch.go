@@ -23,6 +23,7 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (err error) {
@@ -183,7 +184,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 		switch len(params.Verdict.Candidates) {
 		case 0:
-			return nil
+			return ErrNoCandidates
 		case 1:
 			candidate = params.Verdict.Candidates[0]
 		default:
@@ -239,15 +240,24 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 
 			err = pickFromVerdict()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				if !errors.Is(err, ErrNoCandidates) {
+					return errors.Wrap(err, 0)
+				}
 			}
 		} else {
 			// pick from cached verdict
 			err = pickFromVerdict()
 			if err != nil {
+				redoReason := ""
 				if errors.Is(err, ErrCandidateDisappeared) {
+					redoReason = "Candidate disappeared!"
+				} else if errors.Is(err, ErrNoCandidates) {
+					redoReason = "No candidates!"
+				}
+
+				if redoReason != "" {
 					// TODO: send back to client
-					consumer.Warnf("Candidate disappeared! Re-configuring...")
+					consumer.Warnf("%s Re-configuring...", redoReason)
 
 					verdict, err := configurator.Configure(params.InstallFolder, false)
 					if err != nil {

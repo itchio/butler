@@ -497,7 +497,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 	if len(candidates) == 0 && container.IsSingleFile() {
 		f := container.Files[0]
 
-		if strings.HasSuffix(strings.ToLower(f.Path), ".html") {
+		if HasExt(f.Path, ".html") {
 			// ok, that's an HTML5 game
 			candidate := &Candidate{
 				Size:   f.Size,
@@ -510,6 +510,23 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 		}
 	}
 
+	if len(candidates) == 0 {
+		// still no candidates? if we have a top-level .html file, let's go for it
+		for _, f := range container.Files {
+			if PathDepth(f.Path) == 1 && HasExt(f.Path, ".html") {
+				// ok, that's an HTML5 game
+				candidate := &Candidate{
+					Size:   f.Size,
+					Path:   f.Path,
+					Mode:   f.Mode,
+					Depth:  pathToDepth(f.Path),
+					Flavor: FlavorHTML,
+				}
+				candidates = append(candidates, candidate)
+			}
+		}
+	}
+
 	verdict.Candidates = candidates
 
 	if !showSpell {
@@ -519,6 +536,14 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 	}
 
 	return verdict, nil
+}
+
+func PathDepth(path string) int {
+	return len(strings.Split(path, "/"))
+}
+
+func HasExt(path string, ext string) bool {
+	return strings.HasSuffix(strings.ToLower(path), ext)
 }
 
 // Adapt an io.ReadSeeker into an io.ReaderAt in the dumbest possible fashion
