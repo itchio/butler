@@ -4,11 +4,13 @@ package runner
 
 import (
 	"fmt"
-	"syscall"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/launch/launchers/native/runner/execas"
 	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
+	"github.com/itchio/butler/cmd/launch/launchers/native/runner/winutil"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -74,68 +76,44 @@ func (wr *winsandboxRunner) Run() error {
 
 	consumer.Infof("Running as user (%s)", wr.username)
 
-	var token syscall.Handle
-	err = syscallex.LogonUser(
-		syscall.StringToUTF16Ptr(wr.username),
-		syscall.StringToUTF16Ptr("."),
-		syscall.StringToUTF16Ptr(wr.password),
-		syscallex.LOGON32_LOGON_INTERACTIVE,
-		syscallex.LOGON32_PROVIDER_DEFAULT,
-		&token,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	_, err = syscall.GetEnvironmentStrings()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = syscallex.ImpersonateLoggedOnUser(token)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	profileDir, err := syscallex.SHGetFolderPath(
-		0,
-		syscallex.CSIDL_PROFILE|syscallex.CSIDL_FLAG_CREATE,
-		0,
-		syscallex.SHGFP_TYPE_CURRENT,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	appDataDir, err := syscallex.SHGetFolderPath(
-		0,
-		syscallex.CSIDL_APPDATA|syscallex.CSIDL_FLAG_CREATE,
-		0,
-		syscallex.SHGFP_TYPE_CURRENT,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	localAppDataDir, err := syscallex.SHGetFolderPath(
-		0,
-		syscallex.CSIDL_LOCAL_APPDATA|syscallex.CSIDL_FLAG_CREATE,
-		0,
-		syscallex.SHGFP_TYPE_CURRENT,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = syscallex.RevertToSelf()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
 	env := params.Env
-	env = append(env, fmt.Sprintf("userprofile=%s", profileDir))
-	env = append(env, fmt.Sprintf("appdata=%s", appDataDir))
-	env = append(env, fmt.Sprintf("localappdata=%s", localAppDataDir))
+	setEnv := func(key string, value string) {
+		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	setEnv("username", wr.username)
+	// we're not setting `userdomain` or `userdomain_roaming_profile`,
+	// since we expect those to be the same for the regular user
+	// and the sandbox user
+
+	err = winutil.Impersonate(wr.username, ".", wr.password, func() error {
+		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		// environment variables are case-insensitive on windows,
+		// and exec{,as}.Command do case-insensitive deduplication properly
+		setEnv("userprofile", profileDir)
+
+		// when %userprofile% is `C:\Users\terry`,
+		// %homepath% is usually `\Users\terry`.
+		homePath := strings.TrimPrefix(profileDir, filepath.VolumeName(profileDir))
+		setEnv("homepath", homePath)
+
+		appDataDir, err := winutil.GetFolderPath(winutil.FolderTypeAppData)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		setEnv("appdata", appDataDir)
+
+		localAppDataDir, err := winutil.GetFolderPath(winutil.FolderTypeLocalAppData)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		setEnv("localappdata", localAppDataDir)
+
+		return nil
+	})
 
 	err = SetupJobObject(consumer)
 	if err != nil {
