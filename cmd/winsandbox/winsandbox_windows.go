@@ -63,8 +63,42 @@ func Check(consumer *state.Consumer) error {
 			switch en {
 			case syscallex.ERROR_PASSWORD_EXPIRED:
 			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
+				// Some Windows versions (10 for example) expire password automatically.
+				// Thankfully, we can renew it without administrator access, simply by using the old one.
+				consumer.Opf("Password has expired, setting new password...")
+				newPassword := generatePassword()
+
+				err := syscallex.NetUserChangePassword(
+					nil, // domainname
+					syscall.StringToUTF16Ptr(pd.Username),
+					syscall.StringToUTF16Ptr(pd.Password),
+					syscall.StringToUTF16Ptr(newPassword),
+				)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				pd.Password = newPassword
+				err = pd.Save()
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = syscallex.LogonUser(
+					syscall.StringToUTF16Ptr(pd.Username),
+					syscall.StringToUTF16Ptr("."),
+					syscall.StringToUTF16Ptr(pd.Password),
+					syscallex.LOGON32_LOGON_INTERACTIVE,
+					syscallex.LOGON32_PROVIDER_DEFAULT,
+					&token,
+				)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				consumer.Statf("Set new password successfully!")
+
 				rescued = true
-				return errors.New("should change password: stub")
 			}
 		}
 
