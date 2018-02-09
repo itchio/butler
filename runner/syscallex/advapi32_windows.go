@@ -31,6 +31,7 @@ var (
 	procImpersonateLoggedOnUser = modadvapi32.NewProc("ImpersonateLoggedOnUser")
 	procRevertToSelf            = modadvapi32.NewProc("RevertToSelf")
 	procLookupAccountNameW      = modadvapi32.NewProc("LookupAccountNameW")
+	procLookupAccountSidW       = modadvapi32.NewProc("LookupAccountSidW")
 	procCreateWellKnownSid      = modadvapi32.NewProc("CreateWellKnownSid")
 )
 
@@ -152,6 +153,37 @@ func LookupAccountName(
 		uintptr(unsafe.Pointer(accountName)),
 		sid,
 		uintptr(unsafe.Pointer(cbSid)),
+		uintptr(unsafe.Pointer(referencedDomainName)),
+		uintptr(unsafe.Pointer(cchReferencedDomainName)),
+		uintptr(unsafe.Pointer(use)),
+		0, 0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func LookupAccountSid(
+	systemName *uint16,
+	sid uintptr,
+	name *uint16,
+	cchName *uint32,
+	referencedDomainName *uint16,
+	cchReferencedDomainName *uint32,
+	use *uint32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall9(
+		procLookupAccountSidW.Addr(),
+		7,
+		uintptr(unsafe.Pointer(systemName)),
+		sid,
+		uintptr(unsafe.Pointer(name)),
+		uintptr(unsafe.Pointer(cchName)),
 		uintptr(unsafe.Pointer(referencedDomainName)),
 		uintptr(unsafe.Pointer(cchReferencedDomainName)),
 		uintptr(unsafe.Pointer(use)),
