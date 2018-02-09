@@ -31,6 +31,7 @@ var (
 	procImpersonateLoggedOnUser = modadvapi32.NewProc("ImpersonateLoggedOnUser")
 	procRevertToSelf            = modadvapi32.NewProc("RevertToSelf")
 	procLookupAccountNameW      = modadvapi32.NewProc("LookupAccountNameW")
+	procCreateWellKnownSid      = modadvapi32.NewProc("CreateWellKnownSid")
 )
 
 func CreateProcessWithLogon(
@@ -154,6 +155,31 @@ func LookupAccountName(
 		uintptr(unsafe.Pointer(referencedDomainName)),
 		uintptr(unsafe.Pointer(cchReferencedDomainName)),
 		uintptr(unsafe.Pointer(use)),
+		0, 0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func CreateWellKnownSid(
+	wellKnownSidType int,
+	domainSid uintptr,
+	sid uintptr,
+	cbSid *uint32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall6(
+		procCreateWellKnownSid.Addr(),
+		4,
+		uintptr(wellKnownSidType),
+		domainSid,
+		sid,
+		uintptr(unsafe.Pointer(cbSid)),
 		0, 0,
 	)
 	if r1 == 0 {
