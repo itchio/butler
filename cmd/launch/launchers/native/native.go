@@ -13,9 +13,9 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
+	"github.com/itchio/butler/runner"
 )
 
 func Register() {

@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/execas"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/winutil"
+	"github.com/itchio/butler/runner/execas"
+	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/butler/runner/winutil"
 
 	"golang.org/x/sys/windows/registry"
 )

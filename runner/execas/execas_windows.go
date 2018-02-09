@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/osex"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
+	"github.com/itchio/butler/runner/osex"
+	"github.com/itchio/butler/runner/syscallex"
 )
 
 // Cmd represents an external command being prepared or run.

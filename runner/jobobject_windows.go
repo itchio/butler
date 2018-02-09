@@ -8,7 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
+	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/wharf/state"
 )
 
