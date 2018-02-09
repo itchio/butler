@@ -34,8 +34,12 @@ var (
 	procLookupAccountSidW       = modadvapi32.NewProc("LookupAccountSidW")
 	procCreateWellKnownSid      = modadvapi32.NewProc("CreateWellKnownSid")
 
-	procGetNamedSecurityInfoW = modadvapi32.NewProc("GetNamedSecurityInfoW")
-	procSetNamedSecurityInfoW = modadvapi32.NewProc("SetNamedSecurityInfoW")
+	procGetNamedSecurityInfoW     = modadvapi32.NewProc("GetNamedSecurityInfoW")
+	procSetNamedSecurityInfoW     = modadvapi32.NewProc("SetNamedSecurityInfoW")
+	procSetEntriesInAclW          = modadvapi32.NewProc("SetEntriesInAclW")
+	procMakeAbsoluteSD            = modadvapi32.NewProc("MakeAbsoluteSD")
+	procSetSecurityDescriptorDacl = modadvapi32.NewProc("SetSecurityDescriptorDacl")
+	procSetFileSecurityW          = modadvapi32.NewProc("SetFileSecurityW")
 )
 
 func CreateProcessWithLogon(
@@ -378,3 +382,137 @@ const (
 	TRUSTEE_IS_OBJECTS_AND_SID
 	TRUSTEE_IS_OBJECTS_AND_NAME
 )
+
+// struct _EXPLICIT_ACCESS, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa446627(v=vs.85).aspx
+type ExplicitAccess struct {
+	AccessPermissions uint32
+	AccessMode        uint32 // ACCESS_MODE
+	Inheritance       uint32
+	Trustee           Trustee
+}
+
+// MULTIPLE_TRUSTEE_OPERATION enum, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379284(v=vs.85).aspx
+// do not reorder.
+const (
+	NO_MULTIPLE_TRUSTEE = iota
+	TRUSTEE_IS_IMPERSONATE
+)
+
+// struct _TRUSTEE, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379636(v=vs.85).aspx
+type Trustee struct {
+	MultipleTrustee          *Trustee
+	MultipleTrusteeOperation uint32 // MULTIPLE_TRUSTEE_OPERATION
+	TrusteeForm              uint32 // TRUSTEE_FORM
+	Name                     *uint16
+}
+
+func SetEntriesInAcl(
+	countOfExplicitEntries uint32,
+	listOfExplicitEntries uintptr,
+	oldAcl *ACL,
+	newAcl **ACL,
+) (err error) {
+	r1, _, _ := syscall.Syscall6(
+		procSetEntriesInAclW.Addr(),
+		4,
+		uintptr(countOfExplicitEntries),
+		listOfExplicitEntries,
+		uintptr(unsafe.Pointer(oldAcl)),
+		uintptr(unsafe.Pointer(newAcl)),
+		0, 0,
+	)
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa379576(v=vs.85).aspx
+	// If the function succeeds, the return value is ERROR_SUCCESS.
+	// If the function fails, the return value is a nonzero error code defined in WinError.h.
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
+
+// here be dragons
+func MakeAbsoluteSD(
+	pSelfRelativeSd uintptr,
+	pAbsoluteSD uintptr,
+	lpdwAbsoluteSDSize *uint32,
+	pDacl *ACL,
+	lpdwDaclSize *uint32,
+	pSacl *ACL,
+	lpdwSaclSize *uint32,
+	pOwner uintptr,
+	lpdwOwnerSize *uint32,
+	pPrimaryGroup uintptr,
+	lpdwPrimaryGroupSize *uint32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall12(
+		procMakeAbsoluteSD.Addr(),
+		11,
+		pSelfRelativeSd,
+		pAbsoluteSD,
+		uintptr(unsafe.Pointer(lpdwAbsoluteSDSize)),
+		uintptr(unsafe.Pointer(pDacl)),
+		uintptr(unsafe.Pointer(lpdwDaclSize)),
+		uintptr(unsafe.Pointer(pSacl)),
+		uintptr(unsafe.Pointer(lpdwSaclSize)),
+		pOwner,
+		uintptr(unsafe.Pointer(lpdwOwnerSize)),
+		pPrimaryGroup,
+		uintptr(unsafe.Pointer(lpdwPrimaryGroupSize)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func SetSecurityDescriptorDacl(
+	pSecurityDescriptor uintptr,
+	bDaclPresent uint32, // BOOL
+	pDacl *ACL,
+	bDaclDefaulted uint32, // BOOL
+) (err error) {
+	r1, _, e1 := syscall.Syscall6(
+		procSetSecurityDescriptorDacl.Addr(),
+		4,
+		pSecurityDescriptor,
+		uintptr(bDaclPresent),
+		uintptr(unsafe.Pointer(pDacl)),
+		uintptr(bDaclDefaulted),
+		0, 0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func SetFileSecurity(
+	fileName *uint16,
+	securityInformation uint32,
+	securityDescriptor uintptr,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procSetFileSecurityW.Addr(),
+		3,
+		uintptr(unsafe.Pointer(fileName)),
+		uintptr(securityInformation),
+		securityDescriptor,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
