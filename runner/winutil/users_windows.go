@@ -75,12 +75,13 @@ func Impersonate(username string, domain string, password string, cb Impersonate
 	return cb()
 }
 
-func AddUser(username string, password string) error {
+func AddUser(username string, password string, comment string) error {
 	var usri1 = syscallex.UserInfo1{
 		Name:     syscall.StringToUTF16Ptr(username),
 		Password: syscall.StringToUTF16Ptr(password),
 		Priv:     syscallex.USER_PRIV_USER,
 		Flags:    syscallex.UF_SCRIPT,
+		Comment:  syscall.StringToUTF16Ptr(comment),
 	}
 
 	err := syscallex.NetUserAdd(

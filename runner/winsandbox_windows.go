@@ -8,18 +8,16 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
-
-	"golang.org/x/sys/windows/registry"
 )
 
 type winsandboxRunner struct {
 	params *RunnerParams
 
-	username string
-	password string
+	playerData *winsandbox.PlayerData
 }
 
 var _ Runner = (*winsandboxRunner)(nil)
@@ -35,58 +33,36 @@ func (wr *winsandboxRunner) Prepare() error {
 	// TODO: create user if it doesn't exist
 	consumer := wr.params.Consumer
 
-	username, err := wr.getItchPlayerData("username")
+	playerData, err := winsandbox.GetPlayerData()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	wr.username = username
 
-	password, err := wr.getItchPlayerData("password")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	wr.password = password
+	wr.playerData = playerData
 
 	consumer.Infof("Successfully retrieved login details for sandbox user")
 	return nil
-}
-
-const itchPlayerRegistryKey = `SOFTWARE\itch\Sandbox`
-
-func (wr *winsandboxRunner) getItchPlayerData(name string) (string, error) {
-	key, err := registry.OpenKey(registry.CURRENT_USER, itchPlayerRegistryKey, registry.QUERY_VALUE)
-	if err != nil {
-		return "", errors.Wrap(err, 0)
-	}
-
-	defer key.Close()
-
-	ret, _, err := key.GetStringValue(name)
-	if err != nil {
-		return "", errors.Wrap(err, 0)
-	}
-
-	return ret, nil
 }
 
 func (wr *winsandboxRunner) Run() error {
 	var err error
 	params := wr.params
 	consumer := params.Consumer
+	pd := wr.playerData
 
-	consumer.Infof("Running as user (%s)", wr.username)
+	consumer.Infof("Running as user (%s)", pd.Username)
 
 	env := params.Env
 	setEnv := func(key string, value string) {
 		env = append(env, fmt.Sprintf("%s=%s", key, value))
 	}
 
-	setEnv("username", wr.username)
+	setEnv("username", pd.Username)
 	// we're not setting `userdomain` or `userdomain_roaming_profile`,
 	// since we expect those to be the same for the regular user
 	// and the sandbox user
 
-	err = winutil.Impersonate(wr.username, ".", wr.password, func() error {
+	err = winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
 		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -121,9 +97,9 @@ func (wr *winsandboxRunner) Run() error {
 	}
 
 	cmd := execas.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
-	cmd.Username = wr.username
+	cmd.Username = pd.Username
 	cmd.Domain = "."
-	cmd.Password = wr.password
+	cmd.Password = pd.Password
 	cmd.Dir = params.Dir
 	cmd.Env = env
 	cmd.Stdout = params.Stdout
