@@ -1,5 +1,12 @@
 // +build windows
 
+// This package implements a sandbox for Windows. It works by
+// creating a less-privileged user, `itch-player-XXXXX`, which
+// we hide from login and share a game's folder before we launch
+// it (then unshare it immediately after).
+//
+// If you want to see/manage the user the sandbox creates,
+// you can use "lusrmgr.msc" on Windows (works in Win+R)
 package winsandbox
 
 import (
@@ -118,11 +125,13 @@ func doSetup(ctx *mansion.Context) {
 }
 
 func Setup(consumer *state.Consumer) error {
+	startTime := time.Now()
+
 	nullConsumer := &state.Consumer{}
 
 	err := Check(nullConsumer)
 	if err == nil {
-		consumer.Opf("Nothing to do for setup")
+		consumer.Statf("Already set up properly!")
 		return nil
 	}
 
@@ -134,10 +143,39 @@ func Setup(consumer *state.Consumer) error {
 
 	comment := "itch.io sandbox user"
 
+	comm.Opf("Adding user...")
+
 	err = winutil.AddUser(username, password, comment)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	return errors.New("stub!")
+	comm.Opf("Removing from Users group (so it doesn't show up as a login option)...")
+
+	err = winutil.RemoveUserFromUsersGroup(username)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	comm.Opf("Loading profile for the first time (to create some directories)...")
+
+	err = winutil.LoadProfileOnce(username, ".", password)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	comm.Opf("Saving to credentials registry...")
+
+	pd := &PlayerData{
+		Username: username,
+		Password: password,
+	}
+	err = pd.Save()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	comm.Statf("All done! (in %s)", time.Since(startTime))
+
+	return nil
 }

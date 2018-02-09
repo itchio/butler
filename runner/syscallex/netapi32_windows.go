@@ -94,6 +94,7 @@ const (
 	ERROR_INVALID_PASSWORD     syscall.Errno = 86
 	ERROR_PASSWORD_EXPIRED     syscall.Errno = 1330
 	ERROR_PASSWORD_MUST_CHANGE syscall.Errno = 1907
+	ERROR_MEMBER_NOT_IN_ALIAS  syscall.Errno = 1377
 )
 
 func NetUserChangePassword(

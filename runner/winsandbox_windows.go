@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
+	"github.com/itchio/wharf/state"
 )
 
 type winsandboxRunner struct {
@@ -32,6 +33,13 @@ func newWinSandboxRunner(params *RunnerParams) (Runner, error) {
 func (wr *winsandboxRunner) Prepare() error {
 	// TODO: create user if it doesn't exist
 	consumer := wr.params.Consumer
+
+	nullConsumer := &state.Consumer{}
+	err := winsandbox.Check(nullConsumer)
+	if err != nil {
+		consumer.Warnf("Sandbox isn't setup properly: %s", err.Error())
+		return errors.New("TODO: ask user for permission to set up")
+	}
 
 	playerData, err := winsandbox.GetPlayerData()
 	if err != nil {
@@ -61,6 +69,8 @@ func (wr *winsandboxRunner) Run() error {
 	// we're not setting `userdomain` or `userdomain_roaming_profile`,
 	// since we expect those to be the same for the regular user
 	// and the sandbox user
+
+	// TODO: check, and trigger setup if needed
 
 	err = winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
 		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)

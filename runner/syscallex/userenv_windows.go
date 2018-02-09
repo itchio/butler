@@ -12,11 +12,15 @@ import (
 var (
 	moduserenv = windows.NewLazySystemDLL("userenv.dll")
 
-	procLoadUserProfileW   = moduserenv.NewProc("LoadUserProfileW")
-	procUnloadUserProfileW = moduserenv.NewProc("UnloadUserProfileW")
+	procLoadUserProfileW  = moduserenv.NewProc("LoadUserProfileW")
+	procUnloadUserProfile = moduserenv.NewProc("UnloadUserProfile")
 )
 
-const PI_NOUI = 1
+// flags for the ProfileInfo struct
+const (
+	// Prevents the display of profile error messages.
+	PI_NOUI = 1
+)
 
 // struct _PROFILEINFO, cf.
 // https://msdn.microsoft.com/en-us/library/windows/desktop/bb773378(v=vs.85).aspx
@@ -57,7 +61,7 @@ func UnloadUserProfile(
 	profile syscall.Handle,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall(
-		procUnloadUserProfileW.Addr(),
+		procUnloadUserProfile.Addr(),
 		2,
 		uintptr(token),
 		uintptr(profile),
