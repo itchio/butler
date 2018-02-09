@@ -4,6 +4,7 @@ package winutil
 
 import (
 	"syscall"
+	"unsafe"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/launch/launchers/native/runner/syscallex"
@@ -72,4 +73,25 @@ func Impersonate(username string, domain string, password string, cb Impersonate
 	defer syscallex.RevertToSelf()
 
 	return cb()
+}
+
+func AddUser(username string, password string) error {
+	var usri1 = syscallex.UserInfo1{
+		Name:     syscall.StringToUTF16Ptr(username),
+		Password: syscall.StringToUTF16Ptr(password),
+		Priv:     syscallex.USER_PRIV_USER,
+		Flags:    syscallex.UF_SCRIPT,
+	}
+
+	err := syscallex.NetUserAdd(
+		nil,
+		1,
+		uintptr(unsafe.Pointer(&usri1)),
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
 }
