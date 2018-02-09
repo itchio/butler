@@ -4,979 +4,328 @@
 
 package syscallex
 
-import "fmt"
-
-type NERR int
-
-var _ error = (NERR)(0)
+import "syscall"
 
 const (
-	NERR_NetNotStarted = 2102
-	NERR_UnknownServer = 2103
-	NERR_ShareMem = 2104
-	NERR_NoNetworkResource = 2105
-	NERR_RemoteOnly = 2106
-	NERR_DevNotRedirected = 2107
-	NERR_ServerNotStarted = 2114
-	NERR_ItemNotFound = 2115
-	NERR_UnknownDevDir = 2116
-	NERR_RedirectedPath = 2117
-	NERR_DuplicateShare = 2118
-	NERR_NoRoom = 2119
-	NERR_TooManyItems = 2121
-	NERR_InvalidMaxUsers = 2122
-	NERR_BufTooSmall = 2123
-	NERR_RemoteErr = 2127
-	NERR_LanmanIniError = 2131
-	NERR_NetworkError = 2136
-	NERR_WkstaInconsistentState = 2137
-	NERR_WkstaNotStarted = 2138
-	NERR_BrowserNotStarted = 2139
-	NERR_InternalError = 2140
-	NERR_BadTransactConfig = 2141
-	NERR_InvalidAPI = 2142
-	NERR_BadEventName = 2143
-	NERR_DupNameReboot = 2144
-	NERR_CfgCompNotFound = 2146
-	NERR_CfgParamNotFound = 2147
-	NERR_LineTooLong = 2149
-	NERR_QNotFound = 2150
-	NERR_JobNotFound = 2151
-	NERR_DestNotFound = 2152
-	NERR_DestExists = 2153
-	NERR_QExists = 2154
-	NERR_QNoRoom = 2155
-	NERR_JobNoRoom = 2156
-	NERR_DestNoRoom = 2157
-	NERR_DestIdle = 2158
-	NERR_DestInvalidOp = 2159
-	NERR_ProcNoRespond = 2160
-	NERR_SpoolerNotLoaded = 2161
-	NERR_DestInvalidState = 2162
-	NERR_QinvalidState = 2163
-	NERR_JobInvalidState = 2164
-	NERR_SpoolNoMemory = 2165
-	NERR_DriverNotFound = 2166
-	NERR_DataTypeInvalid = 2167
-	NERR_ProcNotFound = 2168
-	NERR_ServiceTableLocked = 2180
-	NERR_ServiceTableFull = 2181
-	NERR_ServiceInstalled = 2182
-	NERR_ServiceEntryLocked = 2183
-	NERR_ServiceNotInstalled = 2184
-	NERR_BadServiceName = 2185
-	NERR_ServiceCtlTimeout = 2186
-	NERR_ServiceCtlBusy = 2187
-	NERR_BadServiceProgName = 2188
-	NERR_ServiceNotCtrl = 2189
-	NERR_ServiceKillProc = 2190
-	NERR_ServiceCtlNotValid = 2191
-	NERR_NotInDispatchTbl = 2192
-	NERR_BadControlRecv = 2193
-	NERR_ServiceNotStarting = 2194
-	NERR_AlreadyLoggedOn = 2200
-	NERR_NotLoggedOn = 2201
-	NERR_BadUsername = 2202
-	NERR_BadPassword = 2203
-	NERR_UnableToAddName_W = 2204
-	NERR_UnableToAddName_F = 2205
-	NERR_UnableToDelName_W = 2206
-	NERR_UnableToDelName_F = 2207
-	NERR_LogonsPaused = 2209
-	NERR_LogonServerConflict = 2210
-	NERR_LogonNoUserPath = 2211
-	NERR_LogonScriptError = 2212
-	NERR_StandaloneLogon = 2214
-	NERR_LogonServerNotFound = 2215
-	NERR_LogonDomainExists = 2216
-	NERR_NonValidatedLogon = 2217
-	NERR_ACFNotFound = 2219
-	NERR_GroupNotFound = 2220
-	NERR_UserNotFound = 2221
-	NERR_ResourceNotFound = 2222
-	NERR_GroupExists = 2223
-	NERR_UserExists = 2224
-	NERR_ResourceExists = 2225
-	NERR_NotPrimary = 2226
-	NERR_ACFNotLoaded = 2227
-	NERR_ACFNoRoom = 2228
-	NERR_ACFFileIOFail = 2229
-	NERR_ACFTooManyLists = 2230
-	NERR_UserLogon = 2231
-	NERR_ACFNoParent = 2232
-	NERR_CanNotGrowSegment = 2233
-	NERR_SpeGroupOp = 2234
-	NERR_NotInCache = 2235
-	NERR_UserInGroup = 2236
-	NERR_UserNotInGroup = 2237
-	NERR_AccountUndefined = 2238
-	NERR_AccountExpired = 2239
-	NERR_InvalidWorkstation = 2240
-	NERR_InvalidLogonHours = 2241
-	NERR_PasswordExpired = 2242
-	NERR_PasswordCantChange = 2243
-	NERR_PasswordHistConflict = 2244
-	NERR_PasswordTooShort = 2245
-	NERR_PasswordTooRecent = 2246
-	NERR_InvalidDatabase = 2247
-	NERR_DatabaseUpToDate = 2248
-	NERR_SyncRequired = 2249
-	NERR_UseNotFound = 2250
-	NERR_BadAsgType = 2251
-	NERR_DeviceIsShared = 2252
-	NERR_NoComputerName = 2270
-	NERR_MsgAlreadyStarted = 2271
-	NERR_MsgInitFailed = 2272
-	NERR_NameNotFound = 2273
-	NERR_AlreadyForwarded = 2274
-	NERR_AddForwarded = 2275
-	NERR_AlreadyExists = 2276
-	NERR_TooManyNames = 2277
-	NERR_DelComputerName = 2278
-	NERR_LocalForward = 2279
-	NERR_GrpMsgProcessor = 2280
-	NERR_PausedRemote = 2281
-	NERR_BadReceive = 2282
-	NERR_NameInUse = 2283
-	NERR_MsgNotStarted = 2284
-	NERR_NotLocalName = 2285
-	NERR_NoForwardName = 2286
-	NERR_RemoteFull = 2287
-	NERR_NameNotForwarded = 2288
-	NERR_TruncatedBroadcast = 2289
-	NERR_InvalidDevice = 2294
-	NERR_WriteFault = 2295
-	NERR_DuplicateName = 2297
-	NERR_DeleteLater = 2298
-	NERR_IncompleteDel = 2299
-	NERR_MultipleNets = 2300
-	NERR_NetNameNotFound = 2310
-	NERR_DeviceNotShared = 2311
-	NERR_ClientNameNotFound = 2312
-	NERR_FileIdNotFound = 2314
-	NERR_ExecFailure = 2315
-	NERR_TmpFile = 2316
-	NERR_TooMuchData = 2317
-	NERR_DeviceShareConflict = 2318
-	NERR_BrowserTableIncomplete = 2319
-	NERR_NotLocalDomain = 2320
-	NERR_IsDfsShare = 2321
-	NERR_DevInvalidOpCode = 2331
-	NERR_DevNotFound = 2332
-	NERR_DevNotOpen = 2333
-	NERR_BadQueueDevString = 2334
-	NERR_BadQueuePriority = 2335
-	NERR_NoCommDevs = 2337
-	NERR_QueueNotFound = 2338
-	NERR_BadDevString = 2340
-	NERR_BadDev = 2341
-	NERR_InUseBySpooler = 2342
-	NERR_CommDevInUse = 2343
-	NERR_InvalidComputer = 2351
-	NERR_MaxLenExceeded = 2354
-	NERR_BadComponent = 2356
-	NERR_CantType = 2357
-	NERR_TooManyEntries = 2362
-	NERR_ProfileFileTooBig = 2370
-	NERR_ProfileOffset = 2371
-	NERR_ProfileCleanup = 2372
-	NERR_ProfileUnknownCmd = 2373
-	NERR_ProfileLoadErr = 2374
-	NERR_ProfileSaveErr = 2375
-	NERR_LogOverflow = 2377
-	NERR_LogFileChanged = 2378
-	NERR_LogFileCorrupt = 2379
-	NERR_SourceIsDir = 2380
-	NERR_BadSource = 2381
-	NERR_BadDest = 2382
-	NERR_DifferentServers = 2383
-	NERR_RunSrvPaused = 2385
-	NERR_ErrCommRunSrv = 2389
-	NERR_ErrorExecingGhost = 2391
-	NERR_ShareNotFound = 2392
-	NERR_InvalidLana = 2400
-	NERR_OpenFiles = 2401
-	NERR_ActiveConns = 2402
-	NERR_BadPasswordCore = 2403
-	NERR_DevInUse = 2404
-	NERR_LocalDrive = 2405
-	NERR_AlertExists = 2430
-	NERR_TooManyAlerts = 2431
-	NERR_NoSuchAlert = 2432
-	NERR_BadRecipient = 2433
-	NERR_AcctLimitExceeded = 2434
-	NERR_InvalidLogSeek = 2440
-	NERR_BadUasConfig = 2450
-	NERR_InvalidUASOp = 2451
-	NERR_LastAdmin = 2452
-	NERR_DCNotFound = 2453
-	NERR_LogonTrackingError = 2454
-	NERR_NetlogonNotStarted = 2455
-	NERR_CanNotGrowUASFile = 2456
-	NERR_TimeDiffAtDC = 2457
-	NERR_PasswordMismatch = 2458
-	NERR_NoSuchServer = 2460
-	NERR_NoSuchSession = 2461
-	NERR_NoSuchConnection = 2462
-	NERR_TooManyServers = 2463
-	NERR_TooManySessions = 2464
-	NERR_TooManyConnections = 2465
-	NERR_TooManyFiles = 2466
-	NERR_NoAlternateServers = 2467
-	NERR_TryDownLevel = 2470
-	NERR_UPSDriverNotStarted = 2480
-	NERR_UPSInvalidConfig = 2481
-	NERR_UPSInvalidCommPort = 2482
-	NERR_UPSSignalAsserted = 2483
-	NERR_UPSShutdownFailed = 2484
-	NERR_BadDosRetCode = 2500
-	NERR_ProgNeedsExtraMem = 2501
-	NERR_BadDosFunction = 2502
-	NERR_RemoteBootFailed = 2503
-	NERR_BadFileCheckSum = 2504
-	NERR_NoRplBootSystem = 2505
-	NERR_RplLoadrNetBiosErr = 2506
-	NERR_RplLoadrDiskErr = 2507
-	NERR_ImageParamErr = 2508
-	NERR_TooManyImageParams = 2509
-	NERR_NonDosFloppyUsed = 2510
-	NERR_RplBootRestart = 2511
-	NERR_RplSrvrCallFailed = 2512
-	NERR_CantConnectRplSrvr = 2513
-	NERR_CantOpenImageFile = 2514
-	NERR_CallingRplSrvr = 2515
-	NERR_StartingRplBoot = 2516
-	NERR_RplBootServiceTerm = 2517
-	NERR_RplBootStartFailed = 2518
-	NERR_RPL_CONNECTED = 2519
-	NERR_BrowserConfiguredToNotRun = 2550
-	NERR_RplNoAdaptersStarted = 2610
-	NERR_RplBadRegistry = 2611
-	NERR_RplBadDatabase = 2612
-	NERR_RplRplfilesShare = 2613
-	NERR_RplNotRplServer = 2614
-	NERR_RplCannotEnum = 2615
-	NERR_RplWkstaInfoCorrupted = 2616
-	NERR_RplWkstaNotFound = 2617
-	NERR_RplWkstaNameUnavailable = 2618
-	NERR_RplProfileInfoCorrupted = 2619
-	NERR_RplProfileNotFound = 2620
-	NERR_RplProfileNameUnavailable = 2621
-	NERR_RplProfileNotEmpty = 2622
-	NERR_RplConfigInfoCorrupted = 2623
-	NERR_RplConfigNotFound = 2624
-	NERR_RplAdapterInfoCorrupted = 2625
-	NERR_RplInternal = 2626
-	NERR_RplVendorInfoCorrupted = 2627
-	NERR_RplBootInfoCorrupted = 2628
-	NERR_RplWkstaNeedsUserAcct = 2629
-	NERR_RplNeedsRPLUSERAcct = 2630
-	NERR_RplBootNotFound = 2631
-	NERR_RplIncompatibleProfile = 2632
-	NERR_RplAdapterNameUnavailable = 2633
-	NERR_RplConfigNotEmpty = 2634
-	NERR_RplBootInUse = 2635
-	NERR_RplBackupDatabase = 2636
-	NERR_RplAdapterNotFound = 2637
-	NERR_RplVendorNotFound = 2638
-	NERR_RplVendorNameUnavailable = 2639
-	NERR_RplBootNameUnavailable = 2640
-	NERR_RplConfigNameUnavailable = 2641
-	NERR_DfsInternalCorruption = 2660
-	NERR_DfsVolumeDataCorrupt = 2661
-	NERR_DfsNoSuchVolume = 2662
-	NERR_DfsVolumeAlreadyExists = 2663
-	NERR_DfsAlreadyShared = 2664
-	NERR_DfsNoSuchShare = 2665
-	NERR_DfsNotALeafVolume = 2666
-	NERR_DfsLeafVolume = 2667
-	NERR_DfsVolumeHasMultipleServers = 2668
-	NERR_DfsCantCreateJunctionPoint = 2669
-	NERR_DfsServerNotDfsAware = 2670
-	NERR_DfsBadRenamePath = 2671
-	NERR_DfsVolumeIsOffline = 2672
-	NERR_DfsNoSuchServer = 2673
-	NERR_DfsCyclicalName = 2674
-	NERR_DfsNotSupportedInServerDfs = 2675
-	NERR_DfsDuplicateService = 2676
-	NERR_DfsCantRemoveLastServerShare = 2677
-	NERR_DfsVolumeIsInterDfs = 2678
-	NERR_DfsInconsistent = 2679
-	NERR_DfsServerUpgraded = 2680
-	NERR_DfsDataIsIdentical = 2681
-	NERR_DfsCantRemoveDfsRoot = 2682
-	NERR_DfsChildOrParentInDfs = 2683
-	NERR_DfsInternalError = 2690
-	NERR_SetupAlreadyJoined = 2691
-	NERR_SetupNotJoined = 2692
-	NERR_SetupDomainController = 2693
-	NERR_DefaultJoinRequired = 2694
-	NERR_InvalidWorkgroupName = 2695
-	NERR_NameUsesIncompatibleCodePage = 2696
-	NERR_ComputerAccountNotFound = 2697
-	NERR_PersonalSku = 2698
-	NERR_PasswordMustChange = 2701
-	NERR_AccountLockedOut = 2702
-	NERR_PasswordTooLong = 2703
-	NERR_PasswordNotComplexEnough = 2704
-	NERR_PasswordFilterError = 2705
-	NERR_NoOfflineJoinInfo = 2709
-	NERR_BadOfflineJoinInfo = 2710
-	NERR_CantCreateJoinInfo = 2711
-	NERR_BadDomainJoinInfo = 2712
-	NERR_JoinPerformedMustRestart = 2713
-	NERR_NoJoinPending = 2714
-	NERR_ValuesNotSet = 2715
-	NERR_CantVerifyHostname = 2716
-	NERR_CantLoadOfflineHive = 2717
-	NERR_ConnectionInsecure = 2718
-	NERR_ProvisioningBlobUnsupported = 2719
+	NERR_NetNotStarted syscall.Errno = 2102
+	NERR_UnknownServer syscall.Errno = 2103
+	NERR_ShareMem syscall.Errno = 2104
+	NERR_NoNetworkResource syscall.Errno = 2105
+	NERR_RemoteOnly syscall.Errno = 2106
+	NERR_DevNotRedirected syscall.Errno = 2107
+	NERR_ServerNotStarted syscall.Errno = 2114
+	NERR_ItemNotFound syscall.Errno = 2115
+	NERR_UnknownDevDir syscall.Errno = 2116
+	NERR_RedirectedPath syscall.Errno = 2117
+	NERR_DuplicateShare syscall.Errno = 2118
+	NERR_NoRoom syscall.Errno = 2119
+	NERR_TooManyItems syscall.Errno = 2121
+	NERR_InvalidMaxUsers syscall.Errno = 2122
+	NERR_BufTooSmall syscall.Errno = 2123
+	NERR_RemoteErr syscall.Errno = 2127
+	NERR_LanmanIniError syscall.Errno = 2131
+	NERR_NetworkError syscall.Errno = 2136
+	NERR_WkstaInconsistentState syscall.Errno = 2137
+	NERR_WkstaNotStarted syscall.Errno = 2138
+	NERR_BrowserNotStarted syscall.Errno = 2139
+	NERR_InternalError syscall.Errno = 2140
+	NERR_BadTransactConfig syscall.Errno = 2141
+	NERR_InvalidAPI syscall.Errno = 2142
+	NERR_BadEventName syscall.Errno = 2143
+	NERR_DupNameReboot syscall.Errno = 2144
+	NERR_CfgCompNotFound syscall.Errno = 2146
+	NERR_CfgParamNotFound syscall.Errno = 2147
+	NERR_LineTooLong syscall.Errno = 2149
+	NERR_QNotFound syscall.Errno = 2150
+	NERR_JobNotFound syscall.Errno = 2151
+	NERR_DestNotFound syscall.Errno = 2152
+	NERR_DestExists syscall.Errno = 2153
+	NERR_QExists syscall.Errno = 2154
+	NERR_QNoRoom syscall.Errno = 2155
+	NERR_JobNoRoom syscall.Errno = 2156
+	NERR_DestNoRoom syscall.Errno = 2157
+	NERR_DestIdle syscall.Errno = 2158
+	NERR_DestInvalidOp syscall.Errno = 2159
+	NERR_ProcNoRespond syscall.Errno = 2160
+	NERR_SpoolerNotLoaded syscall.Errno = 2161
+	NERR_DestInvalidState syscall.Errno = 2162
+	NERR_QinvalidState syscall.Errno = 2163
+	NERR_JobInvalidState syscall.Errno = 2164
+	NERR_SpoolNoMemory syscall.Errno = 2165
+	NERR_DriverNotFound syscall.Errno = 2166
+	NERR_DataTypeInvalid syscall.Errno = 2167
+	NERR_ProcNotFound syscall.Errno = 2168
+	NERR_ServiceTableLocked syscall.Errno = 2180
+	NERR_ServiceTableFull syscall.Errno = 2181
+	NERR_ServiceInstalled syscall.Errno = 2182
+	NERR_ServiceEntryLocked syscall.Errno = 2183
+	NERR_ServiceNotInstalled syscall.Errno = 2184
+	NERR_BadServiceName syscall.Errno = 2185
+	NERR_ServiceCtlTimeout syscall.Errno = 2186
+	NERR_ServiceCtlBusy syscall.Errno = 2187
+	NERR_BadServiceProgName syscall.Errno = 2188
+	NERR_ServiceNotCtrl syscall.Errno = 2189
+	NERR_ServiceKillProc syscall.Errno = 2190
+	NERR_ServiceCtlNotValid syscall.Errno = 2191
+	NERR_NotInDispatchTbl syscall.Errno = 2192
+	NERR_BadControlRecv syscall.Errno = 2193
+	NERR_ServiceNotStarting syscall.Errno = 2194
+	NERR_AlreadyLoggedOn syscall.Errno = 2200
+	NERR_NotLoggedOn syscall.Errno = 2201
+	NERR_BadUsername syscall.Errno = 2202
+	NERR_BadPassword syscall.Errno = 2203
+	NERR_UnableToAddName_W syscall.Errno = 2204
+	NERR_UnableToAddName_F syscall.Errno = 2205
+	NERR_UnableToDelName_W syscall.Errno = 2206
+	NERR_UnableToDelName_F syscall.Errno = 2207
+	NERR_LogonsPaused syscall.Errno = 2209
+	NERR_LogonServerConflict syscall.Errno = 2210
+	NERR_LogonNoUserPath syscall.Errno = 2211
+	NERR_LogonScriptError syscall.Errno = 2212
+	NERR_StandaloneLogon syscall.Errno = 2214
+	NERR_LogonServerNotFound syscall.Errno = 2215
+	NERR_LogonDomainExists syscall.Errno = 2216
+	NERR_NonValidatedLogon syscall.Errno = 2217
+	NERR_ACFNotFound syscall.Errno = 2219
+	NERR_GroupNotFound syscall.Errno = 2220
+	NERR_UserNotFound syscall.Errno = 2221
+	NERR_ResourceNotFound syscall.Errno = 2222
+	NERR_GroupExists syscall.Errno = 2223
+	NERR_UserExists syscall.Errno = 2224
+	NERR_ResourceExists syscall.Errno = 2225
+	NERR_NotPrimary syscall.Errno = 2226
+	NERR_ACFNotLoaded syscall.Errno = 2227
+	NERR_ACFNoRoom syscall.Errno = 2228
+	NERR_ACFFileIOFail syscall.Errno = 2229
+	NERR_ACFTooManyLists syscall.Errno = 2230
+	NERR_UserLogon syscall.Errno = 2231
+	NERR_ACFNoParent syscall.Errno = 2232
+	NERR_CanNotGrowSegment syscall.Errno = 2233
+	NERR_SpeGroupOp syscall.Errno = 2234
+	NERR_NotInCache syscall.Errno = 2235
+	NERR_UserInGroup syscall.Errno = 2236
+	NERR_UserNotInGroup syscall.Errno = 2237
+	NERR_AccountUndefined syscall.Errno = 2238
+	NERR_AccountExpired syscall.Errno = 2239
+	NERR_InvalidWorkstation syscall.Errno = 2240
+	NERR_InvalidLogonHours syscall.Errno = 2241
+	NERR_PasswordExpired syscall.Errno = 2242
+	NERR_PasswordCantChange syscall.Errno = 2243
+	NERR_PasswordHistConflict syscall.Errno = 2244
+	NERR_PasswordTooShort syscall.Errno = 2245
+	NERR_PasswordTooRecent syscall.Errno = 2246
+	NERR_InvalidDatabase syscall.Errno = 2247
+	NERR_DatabaseUpToDate syscall.Errno = 2248
+	NERR_SyncRequired syscall.Errno = 2249
+	NERR_UseNotFound syscall.Errno = 2250
+	NERR_BadAsgType syscall.Errno = 2251
+	NERR_DeviceIsShared syscall.Errno = 2252
+	NERR_NoComputerName syscall.Errno = 2270
+	NERR_MsgAlreadyStarted syscall.Errno = 2271
+	NERR_MsgInitFailed syscall.Errno = 2272
+	NERR_NameNotFound syscall.Errno = 2273
+	NERR_AlreadyForwarded syscall.Errno = 2274
+	NERR_AddForwarded syscall.Errno = 2275
+	NERR_AlreadyExists syscall.Errno = 2276
+	NERR_TooManyNames syscall.Errno = 2277
+	NERR_DelComputerName syscall.Errno = 2278
+	NERR_LocalForward syscall.Errno = 2279
+	NERR_GrpMsgProcessor syscall.Errno = 2280
+	NERR_PausedRemote syscall.Errno = 2281
+	NERR_BadReceive syscall.Errno = 2282
+	NERR_NameInUse syscall.Errno = 2283
+	NERR_MsgNotStarted syscall.Errno = 2284
+	NERR_NotLocalName syscall.Errno = 2285
+	NERR_NoForwardName syscall.Errno = 2286
+	NERR_RemoteFull syscall.Errno = 2287
+	NERR_NameNotForwarded syscall.Errno = 2288
+	NERR_TruncatedBroadcast syscall.Errno = 2289
+	NERR_InvalidDevice syscall.Errno = 2294
+	NERR_WriteFault syscall.Errno = 2295
+	NERR_DuplicateName syscall.Errno = 2297
+	NERR_DeleteLater syscall.Errno = 2298
+	NERR_IncompleteDel syscall.Errno = 2299
+	NERR_MultipleNets syscall.Errno = 2300
+	NERR_NetNameNotFound syscall.Errno = 2310
+	NERR_DeviceNotShared syscall.Errno = 2311
+	NERR_ClientNameNotFound syscall.Errno = 2312
+	NERR_FileIdNotFound syscall.Errno = 2314
+	NERR_ExecFailure syscall.Errno = 2315
+	NERR_TmpFile syscall.Errno = 2316
+	NERR_TooMuchData syscall.Errno = 2317
+	NERR_DeviceShareConflict syscall.Errno = 2318
+	NERR_BrowserTableIncomplete syscall.Errno = 2319
+	NERR_NotLocalDomain syscall.Errno = 2320
+	NERR_IsDfsShare syscall.Errno = 2321
+	NERR_DevInvalidOpCode syscall.Errno = 2331
+	NERR_DevNotFound syscall.Errno = 2332
+	NERR_DevNotOpen syscall.Errno = 2333
+	NERR_BadQueueDevString syscall.Errno = 2334
+	NERR_BadQueuePriority syscall.Errno = 2335
+	NERR_NoCommDevs syscall.Errno = 2337
+	NERR_QueueNotFound syscall.Errno = 2338
+	NERR_BadDevString syscall.Errno = 2340
+	NERR_BadDev syscall.Errno = 2341
+	NERR_InUseBySpooler syscall.Errno = 2342
+	NERR_CommDevInUse syscall.Errno = 2343
+	NERR_InvalidComputer syscall.Errno = 2351
+	NERR_MaxLenExceeded syscall.Errno = 2354
+	NERR_BadComponent syscall.Errno = 2356
+	NERR_CantType syscall.Errno = 2357
+	NERR_TooManyEntries syscall.Errno = 2362
+	NERR_ProfileFileTooBig syscall.Errno = 2370
+	NERR_ProfileOffset syscall.Errno = 2371
+	NERR_ProfileCleanup syscall.Errno = 2372
+	NERR_ProfileUnknownCmd syscall.Errno = 2373
+	NERR_ProfileLoadErr syscall.Errno = 2374
+	NERR_ProfileSaveErr syscall.Errno = 2375
+	NERR_LogOverflow syscall.Errno = 2377
+	NERR_LogFileChanged syscall.Errno = 2378
+	NERR_LogFileCorrupt syscall.Errno = 2379
+	NERR_SourceIsDir syscall.Errno = 2380
+	NERR_BadSource syscall.Errno = 2381
+	NERR_BadDest syscall.Errno = 2382
+	NERR_DifferentServers syscall.Errno = 2383
+	NERR_RunSrvPaused syscall.Errno = 2385
+	NERR_ErrCommRunSrv syscall.Errno = 2389
+	NERR_ErrorExecingGhost syscall.Errno = 2391
+	NERR_ShareNotFound syscall.Errno = 2392
+	NERR_InvalidLana syscall.Errno = 2400
+	NERR_OpenFiles syscall.Errno = 2401
+	NERR_ActiveConns syscall.Errno = 2402
+	NERR_BadPasswordCore syscall.Errno = 2403
+	NERR_DevInUse syscall.Errno = 2404
+	NERR_LocalDrive syscall.Errno = 2405
+	NERR_AlertExists syscall.Errno = 2430
+	NERR_TooManyAlerts syscall.Errno = 2431
+	NERR_NoSuchAlert syscall.Errno = 2432
+	NERR_BadRecipient syscall.Errno = 2433
+	NERR_AcctLimitExceeded syscall.Errno = 2434
+	NERR_InvalidLogSeek syscall.Errno = 2440
+	NERR_BadUasConfig syscall.Errno = 2450
+	NERR_InvalidUASOp syscall.Errno = 2451
+	NERR_LastAdmin syscall.Errno = 2452
+	NERR_DCNotFound syscall.Errno = 2453
+	NERR_LogonTrackingError syscall.Errno = 2454
+	NERR_NetlogonNotStarted syscall.Errno = 2455
+	NERR_CanNotGrowUASFile syscall.Errno = 2456
+	NERR_TimeDiffAtDC syscall.Errno = 2457
+	NERR_PasswordMismatch syscall.Errno = 2458
+	NERR_NoSuchServer syscall.Errno = 2460
+	NERR_NoSuchSession syscall.Errno = 2461
+	NERR_NoSuchConnection syscall.Errno = 2462
+	NERR_TooManyServers syscall.Errno = 2463
+	NERR_TooManySessions syscall.Errno = 2464
+	NERR_TooManyConnections syscall.Errno = 2465
+	NERR_TooManyFiles syscall.Errno = 2466
+	NERR_NoAlternateServers syscall.Errno = 2467
+	NERR_TryDownLevel syscall.Errno = 2470
+	NERR_UPSDriverNotStarted syscall.Errno = 2480
+	NERR_UPSInvalidConfig syscall.Errno = 2481
+	NERR_UPSInvalidCommPort syscall.Errno = 2482
+	NERR_UPSSignalAsserted syscall.Errno = 2483
+	NERR_UPSShutdownFailed syscall.Errno = 2484
+	NERR_BadDosRetCode syscall.Errno = 2500
+	NERR_ProgNeedsExtraMem syscall.Errno = 2501
+	NERR_BadDosFunction syscall.Errno = 2502
+	NERR_RemoteBootFailed syscall.Errno = 2503
+	NERR_BadFileCheckSum syscall.Errno = 2504
+	NERR_NoRplBootSystem syscall.Errno = 2505
+	NERR_RplLoadrNetBiosErr syscall.Errno = 2506
+	NERR_RplLoadrDiskErr syscall.Errno = 2507
+	NERR_ImageParamErr syscall.Errno = 2508
+	NERR_TooManyImageParams syscall.Errno = 2509
+	NERR_NonDosFloppyUsed syscall.Errno = 2510
+	NERR_RplBootRestart syscall.Errno = 2511
+	NERR_RplSrvrCallFailed syscall.Errno = 2512
+	NERR_CantConnectRplSrvr syscall.Errno = 2513
+	NERR_CantOpenImageFile syscall.Errno = 2514
+	NERR_CallingRplSrvr syscall.Errno = 2515
+	NERR_StartingRplBoot syscall.Errno = 2516
+	NERR_RplBootServiceTerm syscall.Errno = 2517
+	NERR_RplBootStartFailed syscall.Errno = 2518
+	NERR_RPL_CONNECTED syscall.Errno = 2519
+	NERR_BrowserConfiguredToNotRun syscall.Errno = 2550
+	NERR_RplNoAdaptersStarted syscall.Errno = 2610
+	NERR_RplBadRegistry syscall.Errno = 2611
+	NERR_RplBadDatabase syscall.Errno = 2612
+	NERR_RplRplfilesShare syscall.Errno = 2613
+	NERR_RplNotRplServer syscall.Errno = 2614
+	NERR_RplCannotEnum syscall.Errno = 2615
+	NERR_RplWkstaInfoCorrupted syscall.Errno = 2616
+	NERR_RplWkstaNotFound syscall.Errno = 2617
+	NERR_RplWkstaNameUnavailable syscall.Errno = 2618
+	NERR_RplProfileInfoCorrupted syscall.Errno = 2619
+	NERR_RplProfileNotFound syscall.Errno = 2620
+	NERR_RplProfileNameUnavailable syscall.Errno = 2621
+	NERR_RplProfileNotEmpty syscall.Errno = 2622
+	NERR_RplConfigInfoCorrupted syscall.Errno = 2623
+	NERR_RplConfigNotFound syscall.Errno = 2624
+	NERR_RplAdapterInfoCorrupted syscall.Errno = 2625
+	NERR_RplInternal syscall.Errno = 2626
+	NERR_RplVendorInfoCorrupted syscall.Errno = 2627
+	NERR_RplBootInfoCorrupted syscall.Errno = 2628
+	NERR_RplWkstaNeedsUserAcct syscall.Errno = 2629
+	NERR_RplNeedsRPLUSERAcct syscall.Errno = 2630
+	NERR_RplBootNotFound syscall.Errno = 2631
+	NERR_RplIncompatibleProfile syscall.Errno = 2632
+	NERR_RplAdapterNameUnavailable syscall.Errno = 2633
+	NERR_RplConfigNotEmpty syscall.Errno = 2634
+	NERR_RplBootInUse syscall.Errno = 2635
+	NERR_RplBackupDatabase syscall.Errno = 2636
+	NERR_RplAdapterNotFound syscall.Errno = 2637
+	NERR_RplVendorNotFound syscall.Errno = 2638
+	NERR_RplVendorNameUnavailable syscall.Errno = 2639
+	NERR_RplBootNameUnavailable syscall.Errno = 2640
+	NERR_RplConfigNameUnavailable syscall.Errno = 2641
+	NERR_DfsInternalCorruption syscall.Errno = 2660
+	NERR_DfsVolumeDataCorrupt syscall.Errno = 2661
+	NERR_DfsNoSuchVolume syscall.Errno = 2662
+	NERR_DfsVolumeAlreadyExists syscall.Errno = 2663
+	NERR_DfsAlreadyShared syscall.Errno = 2664
+	NERR_DfsNoSuchShare syscall.Errno = 2665
+	NERR_DfsNotALeafVolume syscall.Errno = 2666
+	NERR_DfsLeafVolume syscall.Errno = 2667
+	NERR_DfsVolumeHasMultipleServers syscall.Errno = 2668
+	NERR_DfsCantCreateJunctionPoint syscall.Errno = 2669
+	NERR_DfsServerNotDfsAware syscall.Errno = 2670
+	NERR_DfsBadRenamePath syscall.Errno = 2671
+	NERR_DfsVolumeIsOffline syscall.Errno = 2672
+	NERR_DfsNoSuchServer syscall.Errno = 2673
+	NERR_DfsCyclicalName syscall.Errno = 2674
+	NERR_DfsNotSupportedInServerDfs syscall.Errno = 2675
+	NERR_DfsDuplicateService syscall.Errno = 2676
+	NERR_DfsCantRemoveLastServerShare syscall.Errno = 2677
+	NERR_DfsVolumeIsInterDfs syscall.Errno = 2678
+	NERR_DfsInconsistent syscall.Errno = 2679
+	NERR_DfsServerUpgraded syscall.Errno = 2680
+	NERR_DfsDataIsIdentical syscall.Errno = 2681
+	NERR_DfsCantRemoveDfsRoot syscall.Errno = 2682
+	NERR_DfsChildOrParentInDfs syscall.Errno = 2683
+	NERR_DfsInternalError syscall.Errno = 2690
+	NERR_SetupAlreadyJoined syscall.Errno = 2691
+	NERR_SetupNotJoined syscall.Errno = 2692
+	NERR_SetupDomainController syscall.Errno = 2693
+	NERR_DefaultJoinRequired syscall.Errno = 2694
+	NERR_InvalidWorkgroupName syscall.Errno = 2695
+	NERR_NameUsesIncompatibleCodePage syscall.Errno = 2696
+	NERR_ComputerAccountNotFound syscall.Errno = 2697
+	NERR_PersonalSku syscall.Errno = 2698
+	NERR_PasswordMustChange syscall.Errno = 2701
+	NERR_AccountLockedOut syscall.Errno = 2702
+	NERR_PasswordTooLong syscall.Errno = 2703
+	NERR_PasswordNotComplexEnough syscall.Errno = 2704
+	NERR_PasswordFilterError syscall.Errno = 2705
+	NERR_NoOfflineJoinInfo syscall.Errno = 2709
+	NERR_BadOfflineJoinInfo syscall.Errno = 2710
+	NERR_CantCreateJoinInfo syscall.Errno = 2711
+	NERR_BadDomainJoinInfo syscall.Errno = 2712
+	NERR_JoinPerformedMustRestart syscall.Errno = 2713
+	NERR_NoJoinPending syscall.Errno = 2714
+	NERR_ValuesNotSet syscall.Errno = 2715
+	NERR_CantVerifyHostname syscall.Errno = 2716
+	NERR_CantLoadOfflineHive syscall.Errno = 2717
+	NERR_ConnectionInsecure syscall.Errno = 2718
+	NERR_ProvisioningBlobUnsupported syscall.Errno = 2719
 )
-
-func (n NERR) Error() string {
-	switch n {
-	case NERR_NetNotStarted:
-		return "The workstation driver is not installed."
-	case NERR_UnknownServer:
-		return "The server could not be located."
-	case NERR_ShareMem:
-		return "An internal error occurred. The network cannot access a shared memory segment."
-	case NERR_NoNetworkResource:
-		return "A network resource shortage occurred."
-	case NERR_RemoteOnly:
-		return "This operation is not supported on workstations."
-	case NERR_DevNotRedirected:
-		return "The device is not connected."
-	case NERR_ServerNotStarted:
-		return "The Server service is not started."
-	case NERR_ItemNotFound:
-		return "The queue is empty."
-	case NERR_UnknownDevDir:
-		return "The device or directory does not exist."
-	case NERR_RedirectedPath:
-		return "The operation is invalid on a redirected resource."
-	case NERR_DuplicateShare:
-		return "The name has already been shared."
-	case NERR_NoRoom:
-		return "The server is currently out of the requested resource."
-	case NERR_TooManyItems:
-		return "Requested addition of items exceeds the maximum allowed."
-	case NERR_InvalidMaxUsers:
-		return "The Peer service supports only two simultaneous users."
-	case NERR_BufTooSmall:
-		return "The API return buffer is too small."
-	case NERR_RemoteErr:
-		return "A remote API error occurred."
-	case NERR_LanmanIniError:
-		return "An error occurred when opening or reading the configuration file."
-	case NERR_NetworkError:
-		return "A general network error occurred."
-	case NERR_WkstaInconsistentState:
-		return "The Workstation service is in an inconsistent state. Restart the computer before restarting the Workstation service."
-	case NERR_WkstaNotStarted:
-		return "The Workstation service has not been started."
-	case NERR_BrowserNotStarted:
-		return "The requested information is not available."
-	case NERR_InternalError:
-		return "An internal error occurred."
-	case NERR_BadTransactConfig:
-		return "The server is not configured for transactions."
-	case NERR_InvalidAPI:
-		return "The requested API is not supported on the remote server."
-	case NERR_BadEventName:
-		return "The event name is invalid."
-	case NERR_DupNameReboot:
-		return "The computer name already exists on the network. Change it and restart the computer."
-	case NERR_CfgCompNotFound:
-		return "The specified component could not be found in the configuration information."
-	case NERR_CfgParamNotFound:
-		return "The specified parameter could not be found in the configuration information."
-	case NERR_LineTooLong:
-		return "A line in the configuration file is too long."
-	case NERR_QNotFound:
-		return "The printer does not exist."
-	case NERR_JobNotFound:
-		return "The print job does not exist."
-	case NERR_DestNotFound:
-		return "The printer destination cannot be found."
-	case NERR_DestExists:
-		return "The printer destination already exists."
-	case NERR_QExists:
-		return "The printer queue already exists."
-	case NERR_QNoRoom:
-		return "No more printers can be added."
-	case NERR_JobNoRoom:
-		return "No more print jobs can be added."
-	case NERR_DestNoRoom:
-		return "No more printer destinations can be added."
-	case NERR_DestIdle:
-		return "This printer destination is idle and cannot accept control operations."
-	case NERR_DestInvalidOp:
-		return "This printer destination request contains an invalid control function."
-	case NERR_ProcNoRespond:
-		return "The print processor is not responding."
-	case NERR_SpoolerNotLoaded:
-		return "The spooler is not running."
-	case NERR_DestInvalidState:
-		return "This operation cannot be performed on the print destination in its current state."
-	case NERR_QinvalidState:
-		return "This operation cannot be performed on the printer queue in its current state."
-	case NERR_JobInvalidState:
-		return "This operation cannot be performed on the print job in its current state."
-	case NERR_SpoolNoMemory:
-		return "A spooler memory allocation failure occurred."
-	case NERR_DriverNotFound:
-		return "The device driver does not exist."
-	case NERR_DataTypeInvalid:
-		return "The data type is not supported by the print processor."
-	case NERR_ProcNotFound:
-		return "The print processor is not installed."
-	case NERR_ServiceTableLocked:
-		return "The service database is locked."
-	case NERR_ServiceTableFull:
-		return "The service table is full."
-	case NERR_ServiceInstalled:
-		return "The requested service has already been started."
-	case NERR_ServiceEntryLocked:
-		return "The service does not respond to control actions."
-	case NERR_ServiceNotInstalled:
-		return "The service has not been started."
-	case NERR_BadServiceName:
-		return "The service name is invalid."
-	case NERR_ServiceCtlTimeout:
-		return "The service is not responding to the control function."
-	case NERR_ServiceCtlBusy:
-		return "The service control is busy."
-	case NERR_BadServiceProgName:
-		return "The configuration file contains an invalid service program name."
-	case NERR_ServiceNotCtrl:
-		return "The service could not be controlled in its present state."
-	case NERR_ServiceKillProc:
-		return "The service ended abnormally."
-	case NERR_ServiceCtlNotValid:
-		return "The requested pause or stop is not valid for this service."
-	case NERR_NotInDispatchTbl:
-		return "The service control dispatcher could not find the service name in the dispatch table."
-	case NERR_BadControlRecv:
-		return "The service control dispatcher pipe read failed."
-	case NERR_ServiceNotStarting:
-		return "A thread for the new service could not be created."
-	case NERR_AlreadyLoggedOn:
-		return "This workstation is already logged on to the local-area network."
-	case NERR_NotLoggedOn:
-		return "The workstation is not logged on to the local-area network."
-	case NERR_BadUsername:
-		return "The user name or group name parameter is invalid."
-	case NERR_BadPassword:
-		return "The password parameter is invalid."
-	case NERR_UnableToAddName_W:
-		return "@W The logon processor did not add the message alias."
-	case NERR_UnableToAddName_F:
-		return "The logon processor did not add the message alias."
-	case NERR_UnableToDelName_W:
-		return "@W The logoff processor did not delete the message alias."
-	case NERR_UnableToDelName_F:
-		return "The logoff processor did not delete the message alias."
-	case NERR_LogonsPaused:
-		return "Network logons are paused."
-	case NERR_LogonServerConflict:
-		return "A centralized logon-server conflict occurred."
-	case NERR_LogonNoUserPath:
-		return "The server is configured without a valid user path."
-	case NERR_LogonScriptError:
-		return "An error occurred while loading or running the logon script."
-	case NERR_StandaloneLogon:
-		return "The logon server was not specified. Your computer will be logged on as STANDALONE."
-	case NERR_LogonServerNotFound:
-		return "The logon server could not be found."
-	case NERR_LogonDomainExists:
-		return "There is already a logon domain for this computer."
-	case NERR_NonValidatedLogon:
-		return "The logon server could not validate the logon."
-	case NERR_ACFNotFound:
-		return "The security database could not be found."
-	case NERR_GroupNotFound:
-		return "The group name could not be found."
-	case NERR_UserNotFound:
-		return "The user name could not be found."
-	case NERR_ResourceNotFound:
-		return "The resource name could not be found."
-	case NERR_GroupExists:
-		return "The group already exists."
-	case NERR_UserExists:
-		return "The user account already exists."
-	case NERR_ResourceExists:
-		return "The resource permission list already exists."
-	case NERR_NotPrimary:
-		return "This operation is only allowed on the primary domain controller of the domain."
-	case NERR_ACFNotLoaded:
-		return "The security database has not been started."
-	case NERR_ACFNoRoom:
-		return "There are too many names in the user accounts database."
-	case NERR_ACFFileIOFail:
-		return "A disk I/O failure occurred."
-	case NERR_ACFTooManyLists:
-		return "The limit of 64 entries per resource was exceeded."
-	case NERR_UserLogon:
-		return "Deleting a user with a session is not allowed."
-	case NERR_ACFNoParent:
-		return "The parent directory could not be located."
-	case NERR_CanNotGrowSegment:
-		return "Unable to add to the security database session cache segment."
-	case NERR_SpeGroupOp:
-		return "This operation is not allowed on this special group."
-	case NERR_NotInCache:
-		return "This user is not cached in user accounts database session cache."
-	case NERR_UserInGroup:
-		return "The user already belongs to this group."
-	case NERR_UserNotInGroup:
-		return "The user does not belong to this group."
-	case NERR_AccountUndefined:
-		return "This user account is undefined."
-	case NERR_AccountExpired:
-		return "This user account has expired."
-	case NERR_InvalidWorkstation:
-		return "The user is not allowed to log on from this workstation."
-	case NERR_InvalidLogonHours:
-		return "The user is not allowed to log on at this time."
-	case NERR_PasswordExpired:
-		return "The password of this user has expired."
-	case NERR_PasswordCantChange:
-		return "The password of this user cannot change."
-	case NERR_PasswordHistConflict:
-		return "This password cannot be used now."
-	case NERR_PasswordTooShort:
-		return "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements."
-	case NERR_PasswordTooRecent:
-		return "The password of this user is too recent to change."
-	case NERR_InvalidDatabase:
-		return "The security database is corrupted."
-	case NERR_DatabaseUpToDate:
-		return "No updates are necessary to this replicant network/local security database."
-	case NERR_SyncRequired:
-		return "This replicant database is outdated; synchronization is required."
-	case NERR_UseNotFound:
-		return "The network connection could not be found."
-	case NERR_BadAsgType:
-		return "This asg_type is invalid."
-	case NERR_DeviceIsShared:
-		return "This device is currently being shared."
-	case NERR_NoComputerName:
-		return "The computer name could not be added as a message alias. The name may already exist on the network."
-	case NERR_MsgAlreadyStarted:
-		return "The Messenger service is already started."
-	case NERR_MsgInitFailed:
-		return "The Messenger service failed to start."
-	case NERR_NameNotFound:
-		return "The message alias could not be found on the network."
-	case NERR_AlreadyForwarded:
-		return "This message alias has already been forwarded."
-	case NERR_AddForwarded:
-		return "This message alias has been added but is still forwarded."
-	case NERR_AlreadyExists:
-		return "This message alias already exists locally."
-	case NERR_TooManyNames:
-		return "The maximum number of added message aliases has been exceeded."
-	case NERR_DelComputerName:
-		return "The computer name could not be deleted."
-	case NERR_LocalForward:
-		return "Messages cannot be forwarded back to the same workstation."
-	case NERR_GrpMsgProcessor:
-		return "An error occurred in the domain message processor."
-	case NERR_PausedRemote:
-		return "The message was sent, but the recipient has paused the Messenger service."
-	case NERR_BadReceive:
-		return "The message was sent but not received."
-	case NERR_NameInUse:
-		return "The message alias is currently in use. Try again later."
-	case NERR_MsgNotStarted:
-		return "The Messenger service has not been started."
-	case NERR_NotLocalName:
-		return "The name is not on the local computer."
-	case NERR_NoForwardName:
-		return "The forwarded message alias could not be found on the network."
-	case NERR_RemoteFull:
-		return "The message alias table on the remote station is full."
-	case NERR_NameNotForwarded:
-		return "Messages for this alias are not currently being forwarded."
-	case NERR_TruncatedBroadcast:
-		return "The broadcast message was truncated."
-	case NERR_InvalidDevice:
-		return "This is an invalid device name."
-	case NERR_WriteFault:
-		return "A write fault occurred."
-	case NERR_DuplicateName:
-		return "A duplicate message alias exists on the network."
-	case NERR_DeleteLater:
-		return "@W This message alias will be deleted later."
-	case NERR_IncompleteDel:
-		return "The message alias was not successfully deleted from all networks."
-	case NERR_MultipleNets:
-		return "This operation is not supported on computers with multiple networks."
-	case NERR_NetNameNotFound:
-		return "This shared resource does not exist."
-	case NERR_DeviceNotShared:
-		return "This device is not shared."
-	case NERR_ClientNameNotFound:
-		return "A session does not exist with that computer name."
-	case NERR_FileIdNotFound:
-		return "There is not an open file with that identification number."
-	case NERR_ExecFailure:
-		return "A failure occurred when executing a remote administration command."
-	case NERR_TmpFile:
-		return "A failure occurred when opening a remote temporary file."
-	case NERR_TooMuchData:
-		return "The data returned from a remote administration command has been truncated to 64K."
-	case NERR_DeviceShareConflict:
-		return "This device cannot be shared as both a spooled and a non-spooled resource."
-	case NERR_BrowserTableIncomplete:
-		return "The information in the list of servers may be incorrect."
-	case NERR_NotLocalDomain:
-		return "The computer is not active in this domain."
-	case NERR_IsDfsShare:
-		return "The share must be removed from the Distributed File System before it can be deleted."
-	case NERR_DevInvalidOpCode:
-		return "The operation is invalid for this device."
-	case NERR_DevNotFound:
-		return "This device cannot be shared."
-	case NERR_DevNotOpen:
-		return "This device was not open."
-	case NERR_BadQueueDevString:
-		return "This device name list is invalid."
-	case NERR_BadQueuePriority:
-		return "The queue priority is invalid."
-	case NERR_NoCommDevs:
-		return "There are no shared communication devices."
-	case NERR_QueueNotFound:
-		return "The queue you specified does not exist."
-	case NERR_BadDevString:
-		return "This list of devices is invalid."
-	case NERR_BadDev:
-		return "The requested device is invalid."
-	case NERR_InUseBySpooler:
-		return "This device is already in use by the spooler."
-	case NERR_CommDevInUse:
-		return "This device is already in use as a communication device."
-	case NERR_InvalidComputer:
-		return "This computer name is invalid."
-	case NERR_MaxLenExceeded:
-		return "The string and prefix specified are too long."
-	case NERR_BadComponent:
-		return "This path component is invalid."
-	case NERR_CantType:
-		return "Could not determine the type of input."
-	case NERR_TooManyEntries:
-		return "The buffer for types is not big enough."
-	case NERR_ProfileFileTooBig:
-		return "Profile files cannot exceed 64K."
-	case NERR_ProfileOffset:
-		return "The start offset is out of range."
-	case NERR_ProfileCleanup:
-		return "The system cannot delete current connections to network resources."
-	case NERR_ProfileUnknownCmd:
-		return "The system was unable to parse the command line in this file."
-	case NERR_ProfileLoadErr:
-		return "An error occurred while loading the profile file."
-	case NERR_ProfileSaveErr:
-		return "@W Errors occurred while saving the profile file. The profile was partially saved."
-	case NERR_LogOverflow:
-		return "Log file %1 is full."
-	case NERR_LogFileChanged:
-		return "This log file has changed between reads."
-	case NERR_LogFileCorrupt:
-		return "Log file %1 is corrupt."
-	case NERR_SourceIsDir:
-		return "The source path cannot be a directory."
-	case NERR_BadSource:
-		return "The source path is illegal."
-	case NERR_BadDest:
-		return "The destination path is illegal."
-	case NERR_DifferentServers:
-		return "The source and destination paths are on different servers."
-	case NERR_RunSrvPaused:
-		return "The Run server you requested is paused."
-	case NERR_ErrCommRunSrv:
-		return "An error occurred when communicating with a Run server."
-	case NERR_ErrorExecingGhost:
-		return "An error occurred when starting a background process."
-	case NERR_ShareNotFound:
-		return "The shared resource you are connected to could not be found."
-	case NERR_InvalidLana:
-		return "The LAN adapter number is invalid."
-	case NERR_OpenFiles:
-		return "There are open files on the connection."
-	case NERR_ActiveConns:
-		return "Active connections still exist."
-	case NERR_BadPasswordCore:
-		return "This share name or password is invalid."
-	case NERR_DevInUse:
-		return "The device is being accessed by an active process."
-	case NERR_LocalDrive:
-		return "The drive letter is in use locally."
-	case NERR_AlertExists:
-		return "The specified client is already registered for the specified event."
-	case NERR_TooManyAlerts:
-		return "The alert table is full."
-	case NERR_NoSuchAlert:
-		return "An invalid or nonexistent alert name was raised."
-	case NERR_BadRecipient:
-		return "The alert recipient is invalid."
-	case NERR_AcctLimitExceeded:
-		return "A user's session with this server has been deleted"
-	case NERR_InvalidLogSeek:
-		return "The log file does not contain the requested record number."
-	case NERR_BadUasConfig:
-		return "The user accounts database is not configured correctly."
-	case NERR_InvalidUASOp:
-		return "This operation is not permitted when the Netlogon service is running."
-	case NERR_LastAdmin:
-		return "This operation is not allowed on the last administrative account."
-	case NERR_DCNotFound:
-		return "Could not find domain controller for this domain."
-	case NERR_LogonTrackingError:
-		return "Could not set logon information for this user."
-	case NERR_NetlogonNotStarted:
-		return "The Netlogon service has not been started."
-	case NERR_CanNotGrowUASFile:
-		return "Unable to add to the user accounts database."
-	case NERR_TimeDiffAtDC:
-		return "This server's clock is not synchronized with the primary domain controller's clock."
-	case NERR_PasswordMismatch:
-		return "A password mismatch has been detected."
-	case NERR_NoSuchServer:
-		return "The server identification does not specify a valid server."
-	case NERR_NoSuchSession:
-		return "The session identification does not specify a valid session."
-	case NERR_NoSuchConnection:
-		return "The connection identification does not specify a valid connection."
-	case NERR_TooManyServers:
-		return "There is no space for another entry in the table of available servers."
-	case NERR_TooManySessions:
-		return "The server has reached the maximum number of sessions it supports."
-	case NERR_TooManyConnections:
-		return "The server has reached the maximum number of connections it supports."
-	case NERR_TooManyFiles:
-		return "The server cannot open more files because it has reached its maximum number."
-	case NERR_NoAlternateServers:
-		return "There are no alternate servers registered on this server."
-	case NERR_TryDownLevel:
-		return "Try down-level (remote admin protocol) version of API instead."
-	case NERR_UPSDriverNotStarted:
-		return "The UPS driver could not be accessed by the UPS service."
-	case NERR_UPSInvalidConfig:
-		return "The UPS service is not configured correctly."
-	case NERR_UPSInvalidCommPort:
-		return "The UPS service could not access the specified Comm Port."
-	case NERR_UPSSignalAsserted:
-		return "The UPS indicated a line fail or low battery situation. Service not started."
-	case NERR_UPSShutdownFailed:
-		return "The UPS service failed to perform a system shut down."
-	case NERR_BadDosRetCode:
-		return "The program below returned an MS-DOS error code:"
-	case NERR_ProgNeedsExtraMem:
-		return "The program below needs more memory:"
-	case NERR_BadDosFunction:
-		return "The program below called an unsupported MS-DOS function:"
-	case NERR_RemoteBootFailed:
-		return "The workstation failed to boot."
-	case NERR_BadFileCheckSum:
-		return "The file below is corrupt."
-	case NERR_NoRplBootSystem:
-		return "No loader is specified in the boot-block definition file."
-	case NERR_RplLoadrNetBiosErr:
-		return "NetBIOS returned an error: The NCB and SMB are dumped above."
-	case NERR_RplLoadrDiskErr:
-		return "A disk I/O error occurred."
-	case NERR_ImageParamErr:
-		return "Image parameter substitution failed."
-	case NERR_TooManyImageParams:
-		return "Too many image parameters cross disk sector boundaries."
-	case NERR_NonDosFloppyUsed:
-		return "The image was not generated from an MS-DOS diskette formatted with /S."
-	case NERR_RplBootRestart:
-		return "Remote boot will be restarted later."
-	case NERR_RplSrvrCallFailed:
-		return "The call to the Remoteboot server failed."
-	case NERR_CantConnectRplSrvr:
-		return "Cannot connect to the Remoteboot server."
-	case NERR_CantOpenImageFile:
-		return "Cannot open image file on the Remoteboot server."
-	case NERR_CallingRplSrvr:
-		return "Connecting to the Remoteboot server..."
-	case NERR_StartingRplBoot:
-		return "Connecting to the Remoteboot server..."
-	case NERR_RplBootServiceTerm:
-		return "Remote boot service was stopped; check the error log for the cause of the problem."
-	case NERR_RplBootStartFailed:
-		return "Remote boot startup failed; check the error log for the cause of the problem."
-	case NERR_RPL_CONNECTED:
-		return "A second connection to a Remoteboot resource is not allowed."
-	case NERR_BrowserConfiguredToNotRun:
-		return "The browser service was configured with MaintainServerList=No."
-	case NERR_RplNoAdaptersStarted:
-		return "Service failed to start since none of the network adapters started with this service."
-	case NERR_RplBadRegistry:
-		return "Service failed to start due to bad startup information in the registry."
-	case NERR_RplBadDatabase:
-		return "Service failed to start because its database is absent or corrupt."
-	case NERR_RplRplfilesShare:
-		return "Service failed to start because RPLFILES share is absent."
-	case NERR_RplNotRplServer:
-		return "Service failed to start because RPLUSER group is absent."
-	case NERR_RplCannotEnum:
-		return "Cannot enumerate service records."
-	case NERR_RplWkstaInfoCorrupted:
-		return "Workstation record information has been corrupted."
-	case NERR_RplWkstaNotFound:
-		return "Workstation record was not found."
-	case NERR_RplWkstaNameUnavailable:
-		return "Workstation name is in use by some other workstation."
-	case NERR_RplProfileInfoCorrupted:
-		return "Profile record information has been corrupted."
-	case NERR_RplProfileNotFound:
-		return "Profile record was not found."
-	case NERR_RplProfileNameUnavailable:
-		return "Profile name is in use by some other profile."
-	case NERR_RplProfileNotEmpty:
-		return "There are workstations using this profile."
-	case NERR_RplConfigInfoCorrupted:
-		return "Configuration record information has been corrupted."
-	case NERR_RplConfigNotFound:
-		return "Configuration record was not found."
-	case NERR_RplAdapterInfoCorrupted:
-		return "Adapter ID record information has been corrupted."
-	case NERR_RplInternal:
-		return "An internal service error has occurred."
-	case NERR_RplVendorInfoCorrupted:
-		return "Vendor ID record information has been corrupted."
-	case NERR_RplBootInfoCorrupted:
-		return "Boot block record information has been corrupted."
-	case NERR_RplWkstaNeedsUserAcct:
-		return "The user account for this workstation record is missing."
-	case NERR_RplNeedsRPLUSERAcct:
-		return "The RPLUSER local group could not be found."
-	case NERR_RplBootNotFound:
-		return "Boot block record was not found."
-	case NERR_RplIncompatibleProfile:
-		return "Chosen profile is incompatible with this workstation."
-	case NERR_RplAdapterNameUnavailable:
-		return "Chosen network adapter ID is in use by some other workstation."
-	case NERR_RplConfigNotEmpty:
-		return "There are profiles using this configuration."
-	case NERR_RplBootInUse:
-		return "There are workstations, profiles, or configurations using this boot block."
-	case NERR_RplBackupDatabase:
-		return "Service failed to backup Remoteboot database."
-	case NERR_RplAdapterNotFound:
-		return "Adapter record was not found."
-	case NERR_RplVendorNotFound:
-		return "Vendor record was not found."
-	case NERR_RplVendorNameUnavailable:
-		return "Vendor name is in use by some other vendor record."
-	case NERR_RplBootNameUnavailable:
-		return "(boot name, vendor ID) is in use by some other boot block record."
-	case NERR_RplConfigNameUnavailable:
-		return "Configuration name is in use by some other configuration."
-	case NERR_DfsInternalCorruption:
-		return "The internal database maintained by the Dfs service is corrupt."
-	case NERR_DfsVolumeDataCorrupt:
-		return "One of the records in the internal Dfs database is corrupt."
-	case NERR_DfsNoSuchVolume:
-		return "There is no DFS name whose entry path matches the input Entry Path."
-	case NERR_DfsVolumeAlreadyExists:
-		return "A root or link with the given name already exists."
-	case NERR_DfsAlreadyShared:
-		return "The server share specified is already shared in the Dfs."
-	case NERR_DfsNoSuchShare:
-		return "The indicated server share does not support the indicated DFS namespace."
-	case NERR_DfsNotALeafVolume:
-		return "The operation is not valid on this portion of the namespace."
-	case NERR_DfsLeafVolume:
-		return "The operation is not valid on this portion of the namespace."
-	case NERR_DfsVolumeHasMultipleServers:
-		return "The operation is ambiguous because the link has multiple servers."
-	case NERR_DfsCantCreateJunctionPoint:
-		return "Unable to create a link."
-	case NERR_DfsServerNotDfsAware:
-		return "The server is not Dfs Aware."
-	case NERR_DfsBadRenamePath:
-		return "The specified rename target path is invalid."
-	case NERR_DfsVolumeIsOffline:
-		return "The specified DFS link is offline."
-	case NERR_DfsNoSuchServer:
-		return "The specified server is not a server for this link."
-	case NERR_DfsCyclicalName:
-		return "A cycle in the Dfs name was detected."
-	case NERR_DfsNotSupportedInServerDfs:
-		return "The operation is not supported on a server-based Dfs."
-	case NERR_DfsDuplicateService:
-		return "This link is already supported by the specified server-share."
-	case NERR_DfsCantRemoveLastServerShare:
-		return "Can't remove the last server-share supporting this root or link."
-	case NERR_DfsVolumeIsInterDfs:
-		return "The operation is not supported for an Inter-DFS link."
-	case NERR_DfsInconsistent:
-		return "The internal state of the Dfs Service has become inconsistent."
-	case NERR_DfsServerUpgraded:
-		return "The Dfs Service has been installed on the specified server."
-	case NERR_DfsDataIsIdentical:
-		return "The Dfs data being reconciled is identical."
-	case NERR_DfsCantRemoveDfsRoot:
-		return "The DFS root cannot be deleted. Uninstall DFS if required."
-	case NERR_DfsChildOrParentInDfs:
-		return "A child or parent directory of the share is already in a Dfs."
-	case NERR_DfsInternalError:
-		return "Dfs internal error."
-	case NERR_SetupAlreadyJoined:
-		return "This computer is already joined to a domain."
-	case NERR_SetupNotJoined:
-		return "This computer is not currently joined to a domain."
-	case NERR_SetupDomainController:
-		return "This computer is a domain controller and cannot be unjoined from a domain."
-	case NERR_DefaultJoinRequired:
-		return "The destination domain controller does not support creating machine accounts in OUs."
-	case NERR_InvalidWorkgroupName:
-		return "The specified workgroup name is invalid."
-	case NERR_NameUsesIncompatibleCodePage:
-		return "The specified computer name is incompatible with the default language used on the domain controller."
-	case NERR_ComputerAccountNotFound:
-		return "The specified computer account could not be found."
-	case NERR_PersonalSku:
-		return "This version of Windows cannot be joined to a domain."
-	case NERR_PasswordMustChange:
-		return "The password must change at the next logon."
-	case NERR_AccountLockedOut:
-		return "The account is locked out."
-	case NERR_PasswordTooLong:
-		return "The password is too long."
-	case NERR_PasswordNotComplexEnough:
-		return "The password does not meet the complexity policy."
-	case NERR_PasswordFilterError:
-		return "The password does not meet the requirements of the password filter DLLs."
-	case NERR_NoOfflineJoinInfo:
-		return "The offline join completion information was not found."
-	case NERR_BadOfflineJoinInfo:
-		return "The offline join completion information was bad."
-	case NERR_CantCreateJoinInfo:
-		return "Unable to create offline join information. Please ensure you have access to the specified path location and permissions to modify its contents. Running as an elevated administrator may be required."
-	case NERR_BadDomainJoinInfo:
-		return "The domain join info being saved was incomplete or bad."
-	case NERR_JoinPerformedMustRestart:
-		return "Offline join operation successfully completed but a restart is needed."
-	case NERR_NoJoinPending:
-		return "There was no offline join operation pending."
-	case NERR_ValuesNotSet:
-		return "Unable to set one or more requested machine or domain name values on the local computer."
-	case NERR_CantVerifyHostname:
-		return "Could not verify the current machine's hostname against the saved value in the join completion information."
-	case NERR_CantLoadOfflineHive:
-		return "Unable to load the specified offline registry hive. Please ensure you have access to the specified path location and permissions to modify its contents. Running as an elevated administrator may be required."
-	case NERR_ConnectionInsecure:
-		return "The minimum session security requirements for this operation were not met."
-	case NERR_ProvisioningBlobUnsupported:
-		return "Computer account provisioning blob version is not supported."
-	default:
-		return fmt.Sprintf("NET_API_STATUS=%d", n)
-	}
-}
 

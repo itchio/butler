@@ -4,7 +4,10 @@ package winsandbox
 
 import (
 	"fmt"
+	"syscall"
 	"time"
+
+	"github.com/itchio/butler/runner/syscallex"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -41,13 +44,35 @@ func Check(consumer *state.Consumer) error {
 
 	consumer.Statf("Sandbox user is (%s)", pd.Username)
 
-	consumer.Opf("Trying to impersonate")
-	err = winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
-		return nil
-	})
+	consumer.Opf("Trying to log in...")
+
+	var token syscall.Handle
+	err = syscallex.LogonUser(
+		syscall.StringToUTF16Ptr(pd.Username),
+		syscall.StringToUTF16Ptr("."),
+		syscall.StringToUTF16Ptr(pd.Password),
+		syscallex.LOGON32_LOGON_INTERACTIVE,
+		syscallex.LOGON32_PROVIDER_DEFAULT,
+		&token,
+	)
+
 	if err != nil {
-		return errors.Wrap(err, 0)
+		rescued := false
+
+		if en, ok := err.(syscall.Errno); ok {
+			switch en {
+			case syscallex.ERROR_PASSWORD_EXPIRED:
+			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
+				rescued = true
+				return errors.New("should change password: stub")
+			}
+		}
+
+		if !rescued {
+			return errors.Wrap(err, 0)
+		}
 	}
+	defer syscall.CloseHandle(token)
 
 	consumer.Statf("Everything looks good!")
 

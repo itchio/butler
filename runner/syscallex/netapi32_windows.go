@@ -10,7 +10,9 @@ import (
 var (
 	modnetapi32 = windows.NewLazySystemDLL("netapi32.dll")
 
-	procNetUserAdd = modnetapi32.NewProc("NetUserAdd")
+	procNetUserAdd              = modnetapi32.NewProc("NetUserAdd")
+	procNetLocalGroupDelMembers = modnetapi32.NewProc("NetLocalGroupDelMembers")
+	procNetUserChangePassword   = modnetapi32.NewProc("NetUserChangePassword")
 )
 
 // struct _USER_INFO_1, cf.
@@ -26,7 +28,11 @@ type UserInfo1 struct {
 	ScriptPath  *uint16
 }
 
-const NERR_Success = 0
+// struct LOCALGROUP_MEMBERS_INFO_3, cf.
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa370281(v=vs.85).aspx
+type LocalGroupMembersInfo3 struct {
+	DomainAndName *uint16
+}
 
 // see http://www.rensselaer.org/dept/cis/software/g77-mingw32/include/lmaccess.h
 const (
@@ -54,17 +60,59 @@ func NetUserAdd(
 		uintptr(unsafe.Pointer(parmErr)),
 		0, 0,
 	)
-	switch r1 {
-	case NERR_Success:
-		// all good!
-	case uintptr(syscall.ERROR_ACCESS_DENIED):
-		err = syscall.ERROR_ACCESS_DENIED
-	default:
-		// must be a net error
-		err = NERR(r1)
+	if r1 != 0 {
+		err = syscall.Errno(r1)
 	}
 	return
 }
 
-// NET_API_STATUS values
-// cf. http://www.cs.uofs.edu/~beidler/Ada/win32/win32-lmerr.html
+func NetLocalGroupDelMembers(
+	servername *uint16,
+	groupname *uint16,
+	level uint32,
+	buf uintptr,
+	totalentries uint32,
+) (err error) {
+	r1, _, _ := syscall.Syscall6(
+		procNetLocalGroupDelMembers.Addr(),
+		5,
+		uintptr(unsafe.Pointer(servername)),
+		uintptr(unsafe.Pointer(groupname)),
+		uintptr(level),
+		buf,
+		uintptr(totalentries),
+		0,
+	)
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
+
+// cf. https://www.rpi.edu/dept/cis/software/g77-mingw32/include/winerror.h
+const (
+	ERROR_INVALID_PASSWORD     syscall.Errno = 86
+	ERROR_PASSWORD_EXPIRED     syscall.Errno = 1330
+	ERROR_PASSWORD_MUST_CHANGE syscall.Errno = 1907
+)
+
+func NetUserChangePassword(
+	domainname *uint16,
+	username *uint16,
+	oldpassword *uint16,
+	newpassword *uint16,
+) (err error) {
+	r1, _, _ := syscall.Syscall6(
+		procNetUserChangePassword.Addr(),
+		4,
+		uintptr(unsafe.Pointer(domainname)),
+		uintptr(unsafe.Pointer(username)),
+		uintptr(unsafe.Pointer(oldpassword)),
+		uintptr(unsafe.Pointer(newpassword)),
+		0, 0,
+	)
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
