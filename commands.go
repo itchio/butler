@@ -38,6 +38,7 @@ import (
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
+	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/mansion"
 )
@@ -101,4 +102,6 @@ func registerCommands(ctx *mansion.Context) {
 	apply2.Register(ctx)
 
 	service.Register(ctx)
+
+	winsandbox.Register(ctx)
 }
