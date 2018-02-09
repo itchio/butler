@@ -53,20 +53,12 @@ func Check(consumer *state.Consumer) error {
 
 	consumer.Opf("Trying to log in...")
 
-	var token syscall.Handle
-	err = syscallex.LogonUser(
-		syscall.StringToUTF16Ptr(pd.Username),
-		syscall.StringToUTF16Ptr("."),
-		syscall.StringToUTF16Ptr(pd.Password),
-		syscallex.LOGON32_LOGON_INTERACTIVE,
-		syscallex.LOGON32_PROVIDER_DEFAULT,
-		&token,
-	)
+	token, err := winutil.Logon(pd.Username, ".", pd.Password)
 
 	if err != nil {
 		rescued := false
 
-		if en, ok := err.(syscall.Errno); ok {
+		if en, ok := winutil.AsErrno(err); ok {
 			switch en {
 			case syscallex.ERROR_PASSWORD_EXPIRED:
 			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
@@ -91,14 +83,7 @@ func Check(consumer *state.Consumer) error {
 					return errors.Wrap(err, 0)
 				}
 
-				err = syscallex.LogonUser(
-					syscall.StringToUTF16Ptr(pd.Username),
-					syscall.StringToUTF16Ptr("."),
-					syscall.StringToUTF16Ptr(pd.Password),
-					syscallex.LOGON32_LOGON_INTERACTIVE,
-					syscallex.LOGON32_PROVIDER_DEFAULT,
-					&token,
-				)
+				token, err = winutil.Logon(pd.Username, ".", pd.Password)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}

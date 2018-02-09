@@ -192,3 +192,12 @@ func LoadProfileOnce(username string, domain string, password string) error {
 
 	return nil
 }
+
+func AsErrno(err error) (syscall.Errno, bool) {
+	if se, ok := err.(*errors.Error); ok {
+		return AsErrno(se.Err)
+	}
+
+	en, ok := err.(syscall.Errno)
+	return en, ok
+}
