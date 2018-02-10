@@ -206,7 +206,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 func interpretRunError(err error) (int, error) {
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
+		if exitError, ok := AsExitError(err); ok {
 			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
 				return status.ExitStatus(), nil
 			}
@@ -216,4 +216,20 @@ func interpretRunError(err error) (int, error) {
 	}
 
 	return 0, nil
+}
+
+func AsExitError(err error) (*exec.ExitError, bool) {
+	if err == nil {
+		return nil, false
+	}
+
+	if se, ok := err.(*errors.Error); ok {
+		return AsExitError(se.Err)
+	}
+
+	if ee, ok := err.(*exec.ExitError); ok {
+		return ee, true
+	}
+
+	return nil, false
 }

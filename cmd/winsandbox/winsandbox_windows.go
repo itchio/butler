@@ -32,8 +32,12 @@ var setfilepermissionsArgs = struct {
 	inherit *bool
 }{}
 
+var checkAccessArgs = struct {
+	file *string
+}{}
+
 func Register(ctx *mansion.Context) {
-	parentCmd := ctx.App.Command("winsandbox", "Use or manage the itch.io sandbox for Windows")
+	parentCmd := ctx.App.Command("winsandbox", "Use or manage the itch.io sandbox for Windows").Hidden()
 
 	{
 		cmd := parentCmd.Command("check", "Verify that the sandbox is properly set up").Hidden()
@@ -53,6 +57,12 @@ func Register(ctx *mansion.Context) {
 		setfilepermissionsArgs.trustee = cmd.Arg("trustee", "Name of trustee").Required().String()
 		setfilepermissionsArgs.inherit = cmd.Flag("inherit", "Whether to inherit").Required().Bool()
 		ctx.Register(cmd, doSetfilepermissions)
+	}
+
+	{
+		cmd := parentCmd.Command("checkaccess", "Check if the sandbox user has access to a certain file").Hidden()
+		checkAccessArgs.file = cmd.Arg("file", "Name of file (or directory) to check access for").Required().String()
+		ctx.Register(cmd, doCheckAccess)
 	}
 }
 
@@ -236,6 +246,54 @@ func Setfilepermissions(consumer *state.Consumer) error {
 	}
 
 	comm.Statf("Policy applied successfully")
+
+	return nil
+}
+
+func doCheckAccess(ctx *mansion.Context) {
+	ctx.Must(CheckAccess(comm.NewStateConsumer()))
+}
+
+type checkAccessSpec struct {
+	name  string
+	flags uint32
+}
+
+var checkAccessSpecs = []checkAccessSpec{
+	checkAccessSpec{"read", syscallex.GENERIC_READ},
+	checkAccessSpec{"write", syscallex.GENERIC_WRITE},
+	checkAccessSpec{"execute", syscallex.GENERIC_EXECUTE},
+	checkAccessSpec{"all", syscallex.GENERIC_ALL},
+}
+
+func CheckAccess(consumer *state.Consumer) error {
+	pd, err := GetPlayerData()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	defer winutil.SafeRelease(uintptr(impersonationToken))
+
+	for _, spec := range checkAccessSpecs {
+		hasAccess, err := winutil.UserHasPermission(
+			impersonationToken,
+			spec.flags,
+			*checkAccessArgs.file,
+		)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if hasAccess {
+			comm.Opf("User has %s access", spec.name)
+		} else {
+			comm.Opf("User does not have %s access", spec.name)
+		}
+	}
 
 	return nil
 }

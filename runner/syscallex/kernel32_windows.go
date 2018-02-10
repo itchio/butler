@@ -25,6 +25,9 @@ var (
 	procSetInformationJobObject   = modkernel32.NewProc("SetInformationJobObject")
 	procQueryInformationJobObject = modkernel32.NewProc("QueryInformationJobObject")
 	procAssignProcessToJobObject  = modkernel32.NewProc("AssignProcessToJobObject")
+
+	procGetCurrentThread = modkernel32.NewProc("GetCurrentThread")
+	procOpenThreadToken  = modkernel32.NewProc("OpenThreadToken")
 )
 
 func CreateJobObject(
@@ -147,6 +150,40 @@ func AssignProcessToJobObject(
 		uintptr(jobObject),
 		uintptr(process),
 		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func GetCurrentThread() syscall.Handle {
+	r1, _, _ := syscall.Syscall(
+		procGetCurrentThread.Addr(),
+		0,
+		0, 0, 0,
+	)
+	return syscall.Handle(r1)
+}
+
+func OpenThreadToken(
+	threadHandle syscall.Handle,
+	desiredAccess uint32,
+	openAsSelf uint32,
+	tokenHandle *syscall.Handle,
+) (err error) {
+	r1, _, e1 := syscall.Syscall6(
+		procOpenThreadToken.Addr(),
+		4,
+		uintptr(threadHandle),
+		uintptr(desiredAccess),
+		uintptr(openAsSelf),
+		uintptr(unsafe.Pointer(tokenHandle)),
+		0, 0,
 	)
 	if r1 == 0 {
 		if e1 != 0 {

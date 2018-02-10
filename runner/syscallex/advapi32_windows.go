@@ -39,7 +39,10 @@ var (
 	procSetEntriesInAclW          = modadvapi32.NewProc("SetEntriesInAclW")
 	procMakeAbsoluteSD            = modadvapi32.NewProc("MakeAbsoluteSD")
 	procSetSecurityDescriptorDacl = modadvapi32.NewProc("SetSecurityDescriptorDacl")
+	procGetFileSecurityW          = modadvapi32.NewProc("GetFileSecurityW")
 	procSetFileSecurityW          = modadvapi32.NewProc("SetFileSecurityW")
+	procAccessCheck               = modadvapi32.NewProc("AccessCheck")
+	procMapGenericMask            = modadvapi32.NewProc("MapGenericMask")
 )
 
 func CreateProcessWithLogon(
@@ -270,6 +273,36 @@ const (
 	GENERIC_WRITE            = 0x40000000
 	GENERIC_EXECUTE          = 0x20000000
 	GENERIC_ALL              = 0x10000000
+
+	// cf. https://www.codeproject.com/script/Content/ViewAssociatedFile.aspx?rzp=%2FKB%2Fasp%2Fuseraccesscheck%2Fuseraccesscheck_demo.zip&zep=ASPDev%2FMasks.txt&obid=1881&obtid=2&ovid=1
+	FILE_READ_DATA      = (0x0001) // file & pipe
+	FILE_LIST_DIRECTORY = (0x0001) // directory
+
+	FILE_WRITE_DATA = (0x0002) // file & pipe
+	FILE_ADD_FILE   = (0x0002) // directory
+
+	FILE_APPEND_DATA          = (0x0004) // file
+	FILE_ADD_SUBDIRECTORY     = (0x0004) // directory
+	FILE_CREATE_PIPE_INSTANCE = (0x0004) // named pipe
+
+	FILE_READ_EA = (0x0008) // file & directory
+
+	FILE_WRITE_EA = (0x0010) // file & directory
+
+	FILE_EXECUTE  = (0x0020) // file
+	FILE_TRAVERSE = (0x0020) // directory
+
+	FILE_DELETE_CHILD = (0x0040) // directory
+
+	FILE_READ_ATTRIBUTES = (0x0080) // all
+
+	FILE_WRITE_ATTRIBUTES = (0x0100) // all
+
+	FILE_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1FF)
+
+	FILE_GENERIC_READ    = (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA | SYNCHRONIZE)
+	FILE_GENERIC_WRITE   = (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA | SYNCHRONIZE)
+	FILE_GENERIC_EXECUTE = (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
 )
 
 // ACCESS_MODE, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa374899(v=vs.85).aspx
@@ -517,17 +550,22 @@ func SetSecurityDescriptorDacl(
 	return
 }
 
-func SetFileSecurity(
+func GetFileSecurity(
 	fileName *uint16,
-	securityInformation uint32,
-	securityDescriptor uintptr,
+	requestedInformation uint32,
+	pSecurityDescriptor uintptr,
+	nLength uint32,
+	nLengthNeeded *uint32,
 ) (err error) {
-	r1, _, e1 := syscall.Syscall(
-		procSetFileSecurityW.Addr(),
-		3,
+	r1, _, e1 := syscall.Syscall6(
+		procGetFileSecurityW.Addr(),
+		5,
 		uintptr(unsafe.Pointer(fileName)),
-		uintptr(securityInformation),
-		securityDescriptor,
+		uintptr(requestedInformation),
+		pSecurityDescriptor,
+		uintptr(nLength),
+		uintptr(unsafe.Pointer(nLengthNeeded)),
+		0,
 	)
 	if r1 == 0 {
 		if e1 != 0 {
@@ -537,4 +575,81 @@ func SetFileSecurity(
 		}
 	}
 	return
+}
+
+func SetFileSecurity(
+	fileName *uint16,
+	securityInformation uint32,
+	pSecurityDescriptor uintptr,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procSetFileSecurityW.Addr(),
+		3,
+		uintptr(unsafe.Pointer(fileName)),
+		uintptr(securityInformation),
+		pSecurityDescriptor,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+// struct _GENERIC_MAPPING
+// cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa446633(v=vs.85).aspx
+type GenericMapping struct {
+	GenericRead    uint32
+	GenericWrite   uint32
+	GenericExecute uint32
+	GenericAll     uint32
+}
+
+func AccessCheck(
+	securityDescriptor uintptr,
+	clientToken syscall.Handle,
+	desiredAccess uint32,
+	genericMapping *GenericMapping,
+	privilegeSet uintptr,
+	privilegeSetLength *uint32,
+	grantedAccess *uint32,
+	accessStatus *bool,
+) (err error) {
+	r1, _, e1 := syscall.Syscall9(
+		procAccessCheck.Addr(),
+		8,
+		securityDescriptor,
+		uintptr(clientToken),
+		uintptr(desiredAccess),
+		uintptr(unsafe.Pointer(genericMapping)),
+		uintptr(unsafe.Pointer(privilegeSet)),
+		uintptr(unsafe.Pointer(privilegeSetLength)),
+		uintptr(unsafe.Pointer(grantedAccess)),
+		uintptr(unsafe.Pointer(accessStatus)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func MapGenericMask(
+	accessMask *uint32,
+	genericMapping *GenericMapping,
+) {
+	syscall.Syscall(
+		procMapGenericMask.Addr(),
+		2,
+		uintptr(unsafe.Pointer(accessMask)),
+		uintptr(unsafe.Pointer(genericMapping)),
+		0,
+	)
 }

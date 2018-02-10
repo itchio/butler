@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
@@ -58,62 +59,25 @@ func (wr *winsandboxRunner) Run() error {
 	consumer := params.Consumer
 	pd := wr.playerData
 
+	// TODO: check, and trigger setup if needed
 	consumer.Infof("Running as user (%s)", pd.Username)
 
-	env := params.Env
-	setEnv := func(key string, value string) {
-		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	env, err := wr.getEnvironment(params)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
-	setEnv("username", pd.Username)
-	// we're not setting `userdomain` or `userdomain_roaming_profile`,
-	// since we expect those to be the same for the regular user
-	// and the sandbox user
-
-	// TODO: check, and trigger setup if needed
-
-	err = winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
-		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		// environment variables are case-insensitive on windows,
-		// and exec{,as}.Command do case-insensitive deduplication properly
-		setEnv("userprofile", profileDir)
-
-		// when %userprofile% is `C:\Users\terry`,
-		// %homepath% is usually `\Users\terry`.
-		homePath := strings.TrimPrefix(profileDir, filepath.VolumeName(profileDir))
-		setEnv("homepath", homePath)
-
-		appDataDir, err := winutil.GetFolderPath(winutil.FolderTypeAppData)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		setEnv("appdata", appDataDir)
-
-		localAppDataDir, err := winutil.GetFolderPath(winutil.FolderTypeLocalAppData)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		setEnv("localappdata", localAppDataDir)
-
-		return nil
-	})
-
-	sp := &winutil.SharingPolicy{
-		Trustee: pd.Username,
+	sp, err := wr.getSharingPolicy(params)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
-	sp.Entries = append(sp.Entries, &winutil.ShareEntry{
-		Path:        params.InstallFolder,
-		Inheritance: winutil.InheritanceModeFull,
-		Rights:      winutil.RightsFull,
-	})
+
 	consumer.Infof("Sharing policy: %s", sp)
 
 	err = sp.Grant(consumer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		comm.Warnf(err.Error())
+		comm.Warnf("Attempting launch anyway...")
 	}
 
 	defer sp.Revoke(consumer)
@@ -146,4 +110,113 @@ func (wr *winsandboxRunner) Run() error {
 	}
 
 	return nil
+}
+
+func (wr *winsandboxRunner) getSharingPolicy(params *RunnerParams) (*winutil.SharingPolicy, error) {
+	pd := wr.playerData
+	consumer := params.Consumer
+
+	sp := &winutil.SharingPolicy{
+		Trustee: pd.Username,
+	}
+
+	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	defer winutil.SafeRelease(uintptr(impersonationToken))
+
+	hasAccess, err := winutil.UserHasPermission(
+		impersonationToken,
+		syscallex.GENERIC_ALL,
+		params.InstallFolder,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	if !hasAccess {
+		sp.Entries = append(sp.Entries, &winutil.ShareEntry{
+			Path:        params.InstallFolder,
+			Inheritance: winutil.InheritanceModeFull,
+			Rights:      winutil.RightsFull,
+		})
+	}
+
+	// cf. https://github.com/itchio/itch/issues/1470
+	current := filepath.Dir(params.InstallFolder)
+	for i := 0; i < 128; i++ { // dumb failsafe
+		consumer.Debugf("Checking access for (%s)...", current)
+		hasAccess, err := winutil.UserHasPermission(
+			impersonationToken,
+			syscallex.GENERIC_READ,
+			current,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if !hasAccess {
+			consumer.Infof("Will need to grant temporary read permission to (%s)", current)
+			sp.Entries = append(sp.Entries, &winutil.ShareEntry{
+				Path:        current,
+				Inheritance: winutil.InheritanceModeNone,
+				Rights:      winutil.RightsRead,
+			})
+		}
+		next := filepath.Dir(current)
+		if next == current {
+			break
+		}
+		current = next
+	}
+
+	return sp, nil
+}
+
+func (wr *winsandboxRunner) getEnvironment(params *RunnerParams) ([]string, error) {
+	pd := wr.playerData
+
+	env := params.Env
+	setEnv := func(key string, value string) {
+		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	setEnv("username", pd.Username)
+	// we're not setting `userdomain` or `userdomain_roaming_profile`,
+	// since we expect those to be the same for the regular user
+	// and the sandbox user
+
+	err := winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
+		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		// environment variables are case-insensitive on windows,
+		// and exec{,as}.Command do case-insensitive deduplication properly
+		setEnv("userprofile", profileDir)
+
+		// when %userprofile% is `C:\Users\terry`,
+		// %homepath% is usually `\Users\terry`.
+		homePath := strings.TrimPrefix(profileDir, filepath.VolumeName(profileDir))
+		setEnv("homepath", homePath)
+
+		appDataDir, err := winutil.GetFolderPath(winutil.FolderTypeAppData)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		setEnv("appdata", appDataDir)
+
+		localAppDataDir, err := winutil.GetFolderPath(winutil.FolderTypeLocalAppData)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		setEnv("localappdata", localAppDataDir)
+
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return env, nil
 }

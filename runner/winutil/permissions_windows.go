@@ -312,10 +312,15 @@ func (sp *SharingPolicy) String() string {
 			inherit = ""
 		}
 
-		entries = append(entries, fmt.Sprintf("%s(%s)%s", e.Path, perms, inherit))
+		entries = append(entries, fmt.Sprintf("  → (%s)(%s)%s", e.Path, perms, inherit))
 	}
 
-	return fmt.Sprintf("for %s\n%s", sp.Trustee, strings.Join(entries, "\n"))
+	var entriesString = "  (no sharing entries)"
+	if len(entries) > 0 {
+		entriesString = strings.Join(entries, "\n")
+	}
+
+	return fmt.Sprintf("for %s\n%s", sp.Trustee, entriesString)
 }
 
 type errorCoalescer struct {
@@ -346,4 +351,98 @@ func (ec *errorCoalescer) Result() error {
 		return fmt.Errorf("%d errors while %s: %s", len(messages), ec.operation, strings.Join(messages, " ; "))
 	}
 	return nil
+}
+
+func GetImpersonationToken(username string, domain string, password string) (syscall.Handle, error) {
+	var impersonationToken syscall.Handle
+	err := Impersonate(username, domain, password, func() error {
+		currentThread := syscallex.GetCurrentThread()
+
+		err := syscallex.OpenThreadToken(
+			currentThread,
+			syscall.TOKEN_ALL_ACCESS,
+			1,
+			&impersonationToken,
+		)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, errors.Wrap(err, 0)
+	}
+
+	return impersonationToken, nil
+}
+
+func UserHasPermission(impersonationToken syscall.Handle, accessDesired uint32, path string) (bool, error) {
+	// cf. http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
+	// (more or less)
+
+	// get the security descriptor for the file
+	var securityDescriptorLength uint32
+	syscallex.GetFileSecurity(
+		syscall.StringToUTF16Ptr(path),
+		syscallex.OWNER_SECURITY_INFORMATION|syscallex.GROUP_SECURITY_INFORMATION|syscallex.DACL_SECURITY_INFORMATION,
+		0,
+		0,
+		&securityDescriptorLength,
+	)
+
+	// allow 0-length allocations
+	securityDescriptor := make([]byte, securityDescriptorLength+1)
+	err := syscallex.GetFileSecurity(
+		syscall.StringToUTF16Ptr(path),
+		syscallex.OWNER_SECURITY_INFORMATION|syscallex.GROUP_SECURITY_INFORMATION|syscallex.DACL_SECURITY_INFORMATION,
+		uintptr(unsafe.Pointer(&securityDescriptor[0])),
+		securityDescriptorLength,
+		&securityDescriptorLength,
+	)
+	if err != nil {
+		return false, errors.Wrap(err, 0)
+	}
+
+	var accessStatus bool
+
+	var mapping syscallex.GenericMapping
+	mapping.GenericRead = syscallex.FILE_GENERIC_READ
+	mapping.GenericWrite = syscallex.FILE_GENERIC_WRITE
+	mapping.GenericExecute = syscallex.FILE_GENERIC_EXECUTE
+	mapping.GenericAll = syscallex.FILE_ALL_ACCESS
+	syscallex.MapGenericMask(&accessDesired, &mapping)
+
+	var grantedAccess uint32
+	var privilegeSetLength uint32
+
+	// get length of privilegeSet
+	syscallex.AccessCheck(
+		uintptr(unsafe.Pointer(&securityDescriptor[0])),
+		impersonationToken,
+		accessDesired,
+		&mapping,
+		0,
+		&privilegeSetLength,
+		&grantedAccess,
+		&accessStatus,
+	)
+
+	// avoid 0-byte allocation
+	privilegeSet := make([]byte, privilegeSetLength+1)
+
+	err = syscallex.AccessCheck(
+		uintptr(unsafe.Pointer(&securityDescriptor[0])),
+		impersonationToken,
+		accessDesired,
+		&mapping,
+		uintptr(unsafe.Pointer(&privilegeSet[0])),
+		&privilegeSetLength,
+		&grantedAccess,
+		&accessStatus,
+	)
+	if err != nil {
+		return false, errors.Wrap(err, 0)
+	}
+
+	return accessStatus, nil
 }
