@@ -10,7 +10,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-var lruFileDumpStats = os.Getenv("LRU)FILE_DUMP_STATS") == "1"
+var lruFileDumpStats = os.Getenv("LRU_FILE_DUMP_STATS") == "1"
 
 type File interface {
 	io.ReadSeeker
