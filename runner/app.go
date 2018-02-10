@@ -63,7 +63,7 @@ func (ar *appRunner) Run() error {
 
 		// Block until a signal is received.
 		s := <-c
-		consumer.Warnf("Got signal:", s)
+		consumer.Warnf("Got signal: %v", s)
 
 		consumer.Warnf("Killing app...")
 		// TODO: kill the actual binary, not the app

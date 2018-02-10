@@ -33,7 +33,7 @@ import (
 )
 
 func GetExecutablePath(bundlePath string) (string, error) {
-	cPath := C.GetExecutablePath(C.CString("/Applications/TextEdit.app"))
+	cPath := C.GetExecutablePath(C.CString(bundlePath))
 	if uintptr(unsafe.Pointer(cPath)) == 0 {
 		return "", fmt.Errorf("Could not get executable path for app bundle (%s)", bundlePath)
 	}
