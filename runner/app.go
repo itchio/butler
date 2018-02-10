@@ -1,7 +1,9 @@
 package runner
 
 import (
+	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -50,6 +52,27 @@ func (ar *appRunner) Run() error {
 	cmd.Env = params.Env
 	// 'open' does not relay stdout or stderr, so we don't
 	// even bother setting them
+
+	go func() {
+		// catch SIGINT and kill the child if needed
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+
+		consumer.Infof("Signal handler installed...")
+
+		// Block until a signal is received.
+		s := <-c
+		consumer.Warnf("Got signal:", s)
+
+		consumer.Warnf("Killing app...")
+		// TODO: kill the actual binary, not the app
+		cmd := exec.Command("pkill", "-f", params.FullTargetPath)
+		err := cmd.Run()
+		if err != nil {
+			consumer.Errorf("While killing: ", err.Error())
+		}
+		os.Exit(0)
+	}()
 
 	err := cmd.Run()
 	if err != nil {
