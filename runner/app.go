@@ -4,9 +4,9 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/runner/macutil"
 )
 
 type appRunner struct {
@@ -31,12 +31,6 @@ func (ar *appRunner) Run() error {
 	params := ar.params
 	consumer := params.Consumer
 
-	fullLowerPath := strings.ToLower(params.FullTargetPath)
-	if !strings.HasSuffix(fullLowerPath, ".app") {
-		// TODO: relax that a bit at some point
-		return errors.New("itch only supports launching .app bundles")
-	}
-
 	var args = []string{
 		"-W",
 		params.FullTargetPath,
@@ -44,7 +38,14 @@ func (ar *appRunner) Run() error {
 	}
 	args = append(args, params.Args...)
 
-	consumer.Infof("Opening (%s)", params.FullTargetPath)
+	consumer.Infof("App bundle is (%s)", params.FullTargetPath)
+
+	binaryPath, err := macutil.GetExecutablePath(params.FullTargetPath)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Actual binary is (%s)", binaryPath)
 
 	cmd := exec.CommandContext(params.Ctx, "open", args...)
 	// I doubt this matters
@@ -66,7 +67,7 @@ func (ar *appRunner) Run() error {
 
 		consumer.Warnf("Killing app...")
 		// TODO: kill the actual binary, not the app
-		cmd := exec.Command("pkill", "-f", params.FullTargetPath)
+		cmd := exec.Command("pkill", "-f", binaryPath)
 		err := cmd.Run()
 		if err != nil {
 			consumer.Errorf("While killing: ", err.Error())
