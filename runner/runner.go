@@ -45,7 +45,7 @@ func GetRunner(params *RunnerParams) (Runner, error) {
 			return newFirejailRunner(params)
 		}
 		return newSimpleRunner(params)
-	case "osx":
+	case "darwin":
 		if params.Sandbox {
 			return newSandboxExecRunner(params)
 		}

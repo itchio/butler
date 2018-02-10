@@ -21,9 +21,6 @@ func newAppRunner(params *RunnerParams) (Runner, error) {
 }
 
 func (ar *appRunner) Prepare() error {
-	// TODO: if sandbox is enabled, check that we have
-	// "sandbox-exec" here
-
 	// nothing to prepare
 	return nil
 }
@@ -38,17 +35,14 @@ func (ar *appRunner) Run() error {
 		return errors.New("itch only supports launching .app bundles")
 	}
 
-	if params.Sandbox {
-		// TODO: support
-		consumer.Warnf("Sandbox enabled but not supported yet")
-	}
-
 	var args = []string{
 		"-W",
 		params.FullTargetPath,
 		"--args",
 	}
 	args = append(args, params.Args...)
+
+	consumer.Infof("Opening (%s)", params.FullTargetPath)
 
 	cmd := exec.CommandContext(params.Ctx, "open", args...)
 	// I doubt this matters
