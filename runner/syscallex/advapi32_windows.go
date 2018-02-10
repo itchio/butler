@@ -322,8 +322,8 @@ func GetNamedSecurityInfo(
 	ppSecurityDescriptor uintptr,
 ) (err error) {
 	r1, _, _ := syscall.Syscall9(
-		procSetNamedSecurityInfoW.Addr(),
-		7,
+		procGetNamedSecurityInfoW.Addr(),
+		8,
 		uintptr(unsafe.Pointer(objectName)),
 		uintptr(objectType),
 		uintptr(securityInfo),
@@ -391,6 +391,14 @@ type ExplicitAccess struct {
 	Trustee           Trustee
 }
 
+// dwInheritance flags in EXPLICIT_ACCESS
+const (
+	NO_INHERITANCE           = 0
+	OBJECT_INHERIT_ACE       = 1 // (OI)
+	CONTAINER_INHERIT_ACE    = 2 // (CI)
+	NO_PROPAGATE_INHERIT_ACE = 4
+)
+
 // MULTIPLE_TRUSTEE_OPERATION enum, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379284(v=vs.85).aspx
 // do not reorder.
 const (
@@ -398,11 +406,25 @@ const (
 	TRUSTEE_IS_IMPERSONATE
 )
 
+// TRUSTEE_TYPE enum, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379639(v=vs.85).aspx
+const (
+	TRUSTEE_IS_UNKNOWN = iota
+	TRUSTEE_IS_USER
+	TRUSTEE_IS_GROUP
+	TRUSTEE_IS_DOMAIN
+	TRUSTEE_IS_ALIAS
+	TRUSTEE_IS_WELL_KNOWN_GROUP
+	TRUSTEE_IS_DELETED
+	TRUSTEE_IS_INVALID
+	TRUSTEE_IS_COMPUTER
+)
+
 // struct _TRUSTEE, cf. https://msdn.microsoft.com/en-us/library/windows/desktop/aa379636(v=vs.85).aspx
 type Trustee struct {
 	MultipleTrustee          *Trustee
 	MultipleTrusteeOperation uint32 // MULTIPLE_TRUSTEE_OPERATION
 	TrusteeForm              uint32 // TRUSTEE_FORM
+	TrusteeType              uint32 // TRUSTEE_TYPE
 	Name                     *uint16
 }
 

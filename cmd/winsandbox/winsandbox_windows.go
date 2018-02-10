@@ -24,6 +24,14 @@ import (
 	"github.com/itchio/butler/mansion"
 )
 
+var setfilepermissionsArgs = struct {
+	file    *string
+	change  *string
+	rights  *string
+	trustee *string
+	inherit *bool
+}{}
+
 func Register(ctx *mansion.Context) {
 	parentCmd := ctx.App.Command("winsandbox", "Use or manage the itch.io sandbox for Windows")
 
@@ -35,6 +43,16 @@ func Register(ctx *mansion.Context) {
 	{
 		cmd := parentCmd.Command("setup", "Set up the sandbox (requires elevation)").Hidden()
 		ctx.Register(cmd, doSetup)
+	}
+
+	{
+		cmd := parentCmd.Command("setfilepermissions", "Set up the sandbox (requires elevation)").Hidden()
+		setfilepermissionsArgs.file = cmd.Arg("file", "Name of file (or directory) to manipulate").Required().String()
+		setfilepermissionsArgs.change = cmd.Arg("change", "Operation").Required().Enum("grant", "revoke")
+		setfilepermissionsArgs.rights = cmd.Arg("rights", "Rights to grant/revoke").Required().Enum("read", "all")
+		setfilepermissionsArgs.trustee = cmd.Arg("trustee", "Name of trustee").Required().String()
+		setfilepermissionsArgs.inherit = cmd.Flag("inherit", "Whether to inherit").Required().Bool()
+		ctx.Register(cmd, doSetfilepermissions)
 	}
 }
 
@@ -161,6 +179,57 @@ func Setup(consumer *state.Consumer) error {
 	}
 
 	comm.Statf("All done! (in %s)", time.Since(startTime))
+
+	return nil
+}
+
+func doSetfilepermissions(ctx *mansion.Context) {
+	ctx.Must(Setfilepermissions(comm.NewStateConsumer()))
+}
+
+func Setfilepermissions(consumer *state.Consumer) error {
+	params := &winutil.SetFilePermissionsParams{
+		FilePath: *setfilepermissionsArgs.file,
+		Trustee:  *setfilepermissionsArgs.trustee,
+	}
+
+	switch *setfilepermissionsArgs.change {
+	case "grant":
+		consumer.Opf("Granting...")
+		params.PermissionChange = winutil.PermissionChangeGrant
+	case "revoke":
+		consumer.Opf("Revoking...")
+		params.PermissionChange = winutil.PermissionChangeRevoke
+	default:
+		return fmt.Errorf("unknown change: %s", *setfilepermissionsArgs.change)
+	}
+
+	if *setfilepermissionsArgs.inherit {
+		consumer.Opf("With inheritance...")
+		params.Inheritance = winutil.InheritanceModeFull
+	} else {
+		consumer.Opf("Without inheritance...")
+		params.Inheritance = winutil.InheritanceModeNone
+	}
+
+	switch *setfilepermissionsArgs.rights {
+	case "read":
+		consumer.Opf("Read access...")
+		params.AccessRights = syscallex.GENERIC_READ
+	case "all":
+		consumer.Opf("All access...")
+		params.AccessRights = syscallex.GENERIC_READ | syscallex.GENERIC_WRITE | syscallex.GENERIC_EXECUTE | syscallex.GENERIC_ALL
+	default:
+		return fmt.Errorf("unknown rights: %s", *setfilepermissionsArgs.rights)
+	}
+
+	consumer.Opf("To %s...", *setfilepermissionsArgs.trustee)
+	consumer.Opf("For %s", *setfilepermissionsArgs.file)
+
+	err := winutil.SetFilePermissions(params)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
 	return nil
 }
