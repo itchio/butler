@@ -363,6 +363,12 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		}
 	}
 
+	sandbox := params.Sandbox
+	if manifestAction != nil && manifestAction.Sandbox {
+		consumer.Infof("Enabling sandbox because of manifest opt-in")
+		sandbox = true
+	}
+
 	launcherParams := &LauncherParams{
 		Conn:         conn,
 		Ctx:          ctx,
@@ -373,7 +379,7 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		Candidate:      candidate,
 		AppManifest:    appManifest,
 		Action:         manifestAction,
-		Sandbox:        params.Sandbox,
+		Sandbox:        sandbox,
 		Args:           args,
 		Env:            env,
 	}
