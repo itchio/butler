@@ -75,7 +75,7 @@ func (ar *appRunner) Run() error {
 		os.Exit(0)
 	}()
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
