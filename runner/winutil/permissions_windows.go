@@ -3,11 +3,14 @@
 package winutil
 
 import (
+	"fmt"
+	"strings"
 	"syscall"
 	"unsafe"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/wharf/state"
 )
 
 type PermissionChange int
@@ -24,16 +27,24 @@ const (
 	InheritanceModeFull
 )
 
+type Rights uint32
+
+const (
+	RightsRead    = syscallex.GENERIC_READ
+	RightsWrite   = syscallex.GENERIC_WRITE
+	RightsExecute = syscallex.GENERIC_EXECUTE
+	RightsAll     = syscallex.GENERIC_ALL
+
+	RightsFull = RightsRead | RightsWrite | RightsExecute | RightsAll
+)
+
 type SetFilePermissionsParams struct {
 	FilePath         string
 	Trustee          string
 	PermissionChange PermissionChange
 
-	// syscallex.GENERIC_READ etc.
-	AccessRights uint32
-
-	// syscallex.OBJECT_INHERIT_ACE etc.
-	Inheritance uint32
+	AccessRights Rights
+	Inheritance  InheritanceMode
 }
 
 func SetFilePermissions(params *SetFilePermissionsParams) error {
@@ -87,7 +98,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 
 	// Initialize an EXPLICIT_ACCESS structure for the new ACE
 	var ea syscallex.ExplicitAccess
-	ea.AccessPermissions = params.AccessRights
+	ea.AccessPermissions = uint32(params.AccessRights)
 	ea.AccessMode = accessMode
 	ea.Inheritance = inheritance
 	ea.Trustee.TrusteeForm = syscallex.TRUSTEE_IS_NAME
@@ -107,68 +118,81 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 	}
 	defer SafeRelease(uintptr(unsafe.Pointer(pNewDACL)))
 
-	// Convert the security descriptor to absolute format
-	var absoluteSDSize uint32
-	var daclSize uint32
-	var saclSize uint32
-	var ownerSize uint32
-	var groupSize uint32
-
-	// sic. ignoring err on purpose
-	syscallex.MakeAbsoluteSD(
-		pSD,
-		0,
-		&absoluteSDSize,
-		nil,
-		&daclSize,
-		nil,
-		&saclSize,
-		0,
-		&ownerSize,
-		0,
-		&groupSize,
-	)
-
-	// allocate everything
-	// avoid 0-length allocations because then the
-	// uintptr(unsafe.Pointer(&slice[0])) doesn't work
-	pAbsoluteSD := make([]byte, absoluteSDSize+1)
-	pDacl := make([]byte, daclSize+1)
-	pSacl := make([]byte, saclSize+1)
-	pOwner := make([]byte, ownerSize+1)
-	pGroup := make([]byte, groupSize+1)
-
-	err = syscallex.MakeAbsoluteSD(
-		pSD,
-		uintptr(unsafe.Pointer(&pAbsoluteSD[0])),
-		&absoluteSDSize,
-		(*syscallex.ACL)(unsafe.Pointer(&pDacl[0])),
-		&daclSize,
-		(*syscallex.ACL)(unsafe.Pointer(&pSacl[0])),
-		&saclSize,
-		uintptr(unsafe.Pointer(&pOwner[0])),
-		&ownerSize,
-		uintptr(unsafe.Pointer(&pGroup[0])),
-		&groupSize,
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	// Attach the new ACL as the object's DACL
-	err = syscallex.SetSecurityDescriptorDacl(
-		uintptr(unsafe.Pointer(&pAbsoluteSD[0])),
-		1, // bDaclPresent
-		pNewDACL,
-		0, // not defaulted
-	)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
 	switch params.Inheritance {
 	case InheritanceModeNone:
 		// use legacy SetFileSecurity call, which doesn't propagaate
+
+		// But first, convert the (self-relative) security descriptor to absolute format
+		var absoluteSDSize uint32
+		var daclSize uint32
+		var saclSize uint32
+		var ownerSize uint32
+		var groupSize uint32
+
+		// sic. ignoring err on purpose
+		err = syscallex.MakeAbsoluteSD(
+			pSD,
+			0,
+			&absoluteSDSize,
+			nil,
+			&daclSize,
+			nil,
+			&saclSize,
+			0,
+			&ownerSize,
+			0,
+			&groupSize,
+		)
+		if err != nil {
+			rescued := false
+			if en, ok := AsErrno(err); ok {
+				if en == syscall.ERROR_INSUFFICIENT_BUFFER {
+					// cool, that's expected!
+					rescued = true
+				}
+			}
+
+			if !rescued {
+				return errors.Wrap(err, 0)
+			}
+		}
+
+		// allocate everything
+		// avoid 0-length allocations because then the
+		// uintptr(unsafe.Pointer(&slice[0])) doesn't work
+		pAbsoluteSD := make([]byte, absoluteSDSize+1)
+		pDacl := make([]byte, daclSize+1)
+		pSacl := make([]byte, saclSize+1)
+		pOwner := make([]byte, ownerSize+1)
+		pGroup := make([]byte, groupSize+1)
+
+		err = syscallex.MakeAbsoluteSD(
+			pSD,
+			uintptr(unsafe.Pointer(&pAbsoluteSD[0])),
+			&absoluteSDSize,
+			(*syscallex.ACL)(unsafe.Pointer(&pDacl[0])),
+			&daclSize,
+			(*syscallex.ACL)(unsafe.Pointer(&pSacl[0])),
+			&saclSize,
+			uintptr(unsafe.Pointer(&pOwner[0])),
+			&ownerSize,
+			uintptr(unsafe.Pointer(&pGroup[0])),
+			&groupSize,
+		)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		// Attach the new ACL as the object's DACL
+		err = syscallex.SetSecurityDescriptorDacl(
+			uintptr(unsafe.Pointer(&pAbsoluteSD[0])),
+			1, // bDaclPresent
+			pNewDACL,
+			0, // not defaulted
+		)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 		err = syscallex.SetFileSecurity(
 			objectName,
 			syscallex.DACL_SECURITY_INFORMATION,
@@ -200,4 +224,126 @@ func SafeRelease(handle uintptr) {
 	if handle != 0 {
 		syscall.Close(syscall.Handle(handle))
 	}
+}
+
+type ShareEntry struct {
+	Path        string
+	Inheritance InheritanceMode
+	Rights      Rights
+}
+
+func (se *ShareEntry) Grant(trustee string) error {
+	err := SetFilePermissions(se.params(PermissionChangeGrant, trustee))
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
+func (se *ShareEntry) Revoke(trustee string) error {
+	err := SetFilePermissions(se.params(PermissionChangeRevoke, trustee))
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
+func (se *ShareEntry) params(change PermissionChange, trustee string) *SetFilePermissionsParams {
+	return &SetFilePermissionsParams{
+		FilePath:         se.Path,
+		AccessRights:     se.Rights,
+		PermissionChange: change,
+		Trustee:          trustee,
+		Inheritance:      se.Inheritance,
+	}
+}
+
+type SharingPolicy struct {
+	Trustee string
+	Entries []*ShareEntry
+}
+
+func (sp *SharingPolicy) Grant(consumer *state.Consumer) error {
+	ec := &errorCoalescer{
+		operation: "granting permissions",
+		consumer:  consumer,
+	}
+	for _, se := range sp.Entries {
+		ec.Record(se.Grant(sp.Trustee))
+	}
+	return ec.Result()
+}
+
+func (sp *SharingPolicy) Revoke(consumer *state.Consumer) error {
+	ec := &errorCoalescer{
+		operation: "revoking permissions",
+		consumer:  consumer,
+	}
+	for _, se := range sp.Entries {
+		ec.Record(se.Revoke(sp.Trustee))
+	}
+	return ec.Result()
+}
+
+func (sp *SharingPolicy) String() string {
+	var entries []string
+
+	for _, e := range sp.Entries {
+		perms := ""
+		if e.Rights&RightsRead > 0 {
+			perms += "R"
+		}
+		if e.Rights&RightsWrite > 0 {
+			perms += "W"
+		}
+		if e.Rights&RightsExecute > 0 {
+			perms += "X"
+		}
+		if e.Rights&RightsAll > 0 {
+			perms += "*"
+		}
+
+		inherit := ""
+		if e.Inheritance == InheritanceModeFull {
+			inherit = "(CI)(OI)"
+		} else {
+			inherit = ""
+		}
+
+		entries = append(entries, fmt.Sprintf("%s(%s)%s", e.Path, perms, inherit))
+	}
+
+	return fmt.Sprintf("for %s\n%s", sp.Trustee, strings.Join(entries, "\n"))
+}
+
+type errorCoalescer struct {
+	operation string
+	consumer  *state.Consumer
+
+	// internal
+	errors []error
+}
+
+func (ec *errorCoalescer) Record(err error) {
+	if err != nil {
+		ec.errors = append(ec.errors, err)
+		if se, ok := err.(*errors.Error); ok {
+			ec.consumer.Warnf("While %s: %s", ec.operation, se.ErrorStack())
+		} else {
+			ec.consumer.Warnf("While %s: %s", ec.operation, err.Error())
+		}
+	}
+}
+
+func (ec *errorCoalescer) Result() error {
+	if len(ec.errors) > 0 {
+		var messages []string
+		for _, e := range ec.errors {
+			messages = append(messages, e.Error())
+		}
+		return fmt.Errorf("%d errors while %s: %s", len(messages), ec.operation, strings.Join(messages, " ; "))
+	}
+	return nil
 }

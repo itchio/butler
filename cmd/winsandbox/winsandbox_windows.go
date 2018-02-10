@@ -49,7 +49,7 @@ func Register(ctx *mansion.Context) {
 		cmd := parentCmd.Command("setfilepermissions", "Set up the sandbox (requires elevation)").Hidden()
 		setfilepermissionsArgs.file = cmd.Arg("file", "Name of file (or directory) to manipulate").Required().String()
 		setfilepermissionsArgs.change = cmd.Arg("change", "Operation").Required().Enum("grant", "revoke")
-		setfilepermissionsArgs.rights = cmd.Arg("rights", "Rights to grant/revoke").Required().Enum("read", "all")
+		setfilepermissionsArgs.rights = cmd.Arg("rights", "Rights to grant/revoke").Required().Enum("read", "write", "execute", "all", "full")
 		setfilepermissionsArgs.trustee = cmd.Arg("trustee", "Name of trustee").Required().String()
 		setfilepermissionsArgs.inherit = cmd.Flag("inherit", "Whether to inherit").Required().Bool()
 		ctx.Register(cmd, doSetfilepermissions)
@@ -188,48 +188,54 @@ func doSetfilepermissions(ctx *mansion.Context) {
 }
 
 func Setfilepermissions(consumer *state.Consumer) error {
-	params := &winutil.SetFilePermissionsParams{
-		FilePath: *setfilepermissionsArgs.file,
-		Trustee:  *setfilepermissionsArgs.trustee,
-	}
-
-	switch *setfilepermissionsArgs.change {
-	case "grant":
-		consumer.Opf("Granting...")
-		params.PermissionChange = winutil.PermissionChangeGrant
-	case "revoke":
-		consumer.Opf("Revoking...")
-		params.PermissionChange = winutil.PermissionChangeRevoke
-	default:
-		return fmt.Errorf("unknown change: %s", *setfilepermissionsArgs.change)
+	entry := &winutil.ShareEntry{
+		Path: *setfilepermissionsArgs.file,
 	}
 
 	if *setfilepermissionsArgs.inherit {
-		consumer.Opf("With inheritance...")
-		params.Inheritance = winutil.InheritanceModeFull
+		entry.Inheritance = winutil.InheritanceModeFull
 	} else {
-		consumer.Opf("Without inheritance...")
-		params.Inheritance = winutil.InheritanceModeNone
+		entry.Inheritance = winutil.InheritanceModeNone
 	}
 
 	switch *setfilepermissionsArgs.rights {
 	case "read":
-		consumer.Opf("Read access...")
-		params.AccessRights = syscallex.GENERIC_READ
+		entry.Rights = winutil.RightsRead
+	case "write":
+		entry.Rights = winutil.RightsWrite
+	case "execute":
+		entry.Rights = winutil.RightsExecute
 	case "all":
-		consumer.Opf("All access...")
-		params.AccessRights = syscallex.GENERIC_READ | syscallex.GENERIC_WRITE | syscallex.GENERIC_EXECUTE | syscallex.GENERIC_ALL
+		entry.Rights = winutil.RightsAll
+	case "full":
+		entry.Rights = winutil.RightsFull
 	default:
 		return fmt.Errorf("unknown rights: %s", *setfilepermissionsArgs.rights)
 	}
 
-	consumer.Opf("To %s...", *setfilepermissionsArgs.trustee)
-	consumer.Opf("For %s", *setfilepermissionsArgs.file)
-
-	err := winutil.SetFilePermissions(params)
-	if err != nil {
-		return errors.Wrap(err, 0)
+	policy := &winutil.SharingPolicy{
+		Trustee: *setfilepermissionsArgs.trustee,
+		Entries: []*winutil.ShareEntry{entry},
 	}
+
+	switch *setfilepermissionsArgs.change {
+	case "grant":
+		consumer.Opf("Granting %s", policy)
+		err := policy.Grant(consumer)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	case "revoke":
+		consumer.Opf("Revoking %s", policy)
+		err := policy.Revoke(consumer)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	default:
+		return fmt.Errorf("unknown change: %s", *setfilepermissionsArgs.change)
+	}
+
+	comm.Statf("Policy applied successfully")
 
 	return nil
 }
