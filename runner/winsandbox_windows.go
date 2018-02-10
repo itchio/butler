@@ -101,6 +101,23 @@ func (wr *winsandboxRunner) Run() error {
 		return nil
 	})
 
+	sp := &winutil.SharingPolicy{
+		Trustee: pd.Username,
+	}
+	sp.Entries = append(sp.Entries, &winutil.ShareEntry{
+		Path:        params.InstallFolder,
+		Inheritance: winutil.InheritanceModeFull,
+		Rights:      winutil.RightsFull,
+	})
+	consumer.Infof("Sharing policy: %s", sp)
+
+	err = sp.Grant(consumer)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	defer sp.Revoke(consumer)
+
 	err = SetupJobObject(consumer)
 	if err != nil {
 		return errors.Wrap(err, 0)

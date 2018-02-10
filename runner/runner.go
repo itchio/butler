@@ -17,6 +17,7 @@ type RunnerParams struct {
 
 	Sandbox bool
 
+	InstallFolder  string
 	FullTargetPath string
 
 	Name   string

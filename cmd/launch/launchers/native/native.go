@@ -117,6 +117,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 		Sandbox: params.Sandbox,
 
+		InstallFolder:  params.ParentParams.InstallFolder,
 		FullTargetPath: params.FullTargetPath,
 
 		Name:   params.FullTargetPath,
