@@ -133,6 +133,8 @@ func (a *Action) ExpandPath(runtime *manager.Runtime, baseFolder string) string 
 		switch runtime.Platform {
 		case manager.ItchPlatformWindows:
 			ext = ".exe"
+		case manager.ItchPlatformOSX:
+			ext = ".app"
 		}
 		path = strings.Replace(path, "{{EXT}}", ext, 1)
 	}
