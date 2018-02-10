@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/configurator"
@@ -152,6 +153,13 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		}
 
 		if stats.IsDir() {
+			// is it an app bundle?
+			if runtime.Platform == manager.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+				strategy = LaunchStrategyNative
+				fullTargetPath = fullPath
+				return nil
+			}
+
 			// if it's a folder, just browse it!
 			strategy = LaunchStrategyShell
 			fullTargetPath = fullPath
