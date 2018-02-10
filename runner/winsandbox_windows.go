@@ -1,11 +1,15 @@
-// +build windows
-
 package runner
 
 import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/itchio/butler/installer"
+
+	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/elevate"
+	"github.com/itchio/butler/cmd/operate"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
@@ -32,14 +36,55 @@ func newWinSandboxRunner(params *RunnerParams) (Runner, error) {
 }
 
 func (wr *winsandboxRunner) Prepare() error {
-	// TODO: create user if it doesn't exist
 	consumer := wr.params.Consumer
 
 	nullConsumer := &state.Consumer{}
 	err := winsandbox.Check(nullConsumer)
 	if err != nil {
-		consumer.Warnf("Sandbox isn't setup properly: %s", err.Error())
-		return errors.New("TODO: ask user for permission to set up")
+		consumer.Warnf("Sandbox check failed: %s", err.Error())
+
+		ctx := wr.params.Ctx
+		conn := wr.params.Conn
+
+		var r buse.AllowSandboxSetupResponse
+		err := conn.Call(ctx, "AllowSandboxSetup", &buse.AllowSandboxSetupParams{}, &r)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if !r.Allow {
+			return operate.ErrAborted
+		}
+		consumer.Infof("Proceeding with sandbox setup...")
+
+		res, err := installer.RunSelf(&installer.RunSelfParams{
+			Consumer: consumer,
+			Args: []string{
+				"--elevate",
+				"winsandbox",
+				"setup",
+			},
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if res.ExitCode != 0 {
+			if res.ExitCode == elevate.ExitCodeAccessDenied {
+				return operate.ErrAborted
+			}
+		}
+
+		err = installer.CheckExitCode(res.ExitCode, err)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		consumer.Infof("Sandbox setup done, checking again...")
+		err = winsandbox.Check(nullConsumer)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	playerData, err := winsandbox.GetPlayerData()
@@ -49,7 +94,7 @@ func (wr *winsandboxRunner) Prepare() error {
 
 	wr.playerData = playerData
 
-	consumer.Infof("Successfully retrieved login details for sandbox user")
+	consumer.Infof("Sandbox is ready")
 	return nil
 }
 
@@ -59,7 +104,6 @@ func (wr *winsandboxRunner) Run() error {
 	consumer := params.Consumer
 	pd := wr.playerData
 
-	// TODO: check, and trigger setup if needed
 	consumer.Infof("Running as user (%s)", pd.Username)
 
 	env, err := wr.getEnvironment(params)
@@ -156,7 +200,7 @@ func (wr *winsandboxRunner) getSharingPolicy(params *RunnerParams) (*winutil.Sha
 		}
 
 		if !hasAccess {
-			consumer.Infof("Will need to grant temporary read permission to (%s)", current)
+			consumer.Debugf("Will need to grant temporary read permission to (%s)", current)
 			sp.Entries = append(sp.Entries, &winutil.ShareEntry{
 				Path:        current,
 				Inheritance: winutil.InheritanceModeNone,

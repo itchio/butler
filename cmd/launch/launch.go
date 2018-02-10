@@ -229,7 +229,6 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 		consumer.Infof("Switching to verdict!")
 
 		if params.Verdict == nil {
-			// TODO: send back to client
 			consumer.Infof("No verdict, configuring now")
 
 			verdict, err := configurator.Configure(params.InstallFolder, false)
@@ -237,6 +236,14 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 				return errors.Wrap(err, 0)
 			}
 			params.Verdict = verdict
+
+			var r buse.SaveVerdictResult
+			err = conn.Call(ctx, "SaveVerdict", &buse.SaveVerdictParams{
+				Verdict: verdict,
+			}, &r)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
 
 			err = pickFromVerdict()
 			if err != nil {
@@ -256,7 +263,6 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 				}
 
 				if redoReason != "" {
-					// TODO: send back to client
 					consumer.Warnf("%s Re-configuring...", redoReason)
 
 					verdict, err := configurator.Configure(params.InstallFolder, false)
@@ -264,6 +270,14 @@ func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (er
 						return errors.Wrap(err, 0)
 					}
 					params.Verdict = verdict
+
+					var r buse.SaveVerdictResult
+					err = conn.Call(ctx, "SaveVerdict", &buse.SaveVerdictParams{
+						Verdict: verdict,
+					}, &r)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
 
 					err = pickFromVerdict()
 					if err != nil {

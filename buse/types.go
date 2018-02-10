@@ -219,9 +219,16 @@ type URLLaunchParams struct {
 
 type URLLaunchResult struct{}
 
+type SaveVerdictParams struct {
+	Verdict *configurator.Verdict `json:"verdict"`
+}
+type SaveVerdictResult struct{}
+
 type AllowSandboxSetupParams struct{}
 
-type AllowSandboxSetupResponse struct{}
+type AllowSandboxSetupResponse struct {
+	Allow bool `json:"allow"`
+}
 
 type PrereqsStartedNotification struct {
 	Tasks map[string]*PrereqTask `json:"tasks"`

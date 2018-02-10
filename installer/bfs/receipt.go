@@ -23,8 +23,6 @@ type Receipt struct {
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {
-	// TODO: read legacy receipts & convert them to new format
-
 	path := receiptPath(InstallFolder)
 
 	f, err := os.Open(path)
