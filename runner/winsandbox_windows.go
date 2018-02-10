@@ -106,12 +106,12 @@ func (wr *winsandboxRunner) Run() error {
 
 	consumer.Infof("Running as user (%s)", pd.Username)
 
-	env, err := wr.getEnvironment(params)
+	env, err := wr.getEnvironment()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	sp, err := wr.getSharingPolicy(params)
+	sp, err := wr.getSharingPolicy()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -156,7 +156,8 @@ func (wr *winsandboxRunner) Run() error {
 	return nil
 }
 
-func (wr *winsandboxRunner) getSharingPolicy(params *RunnerParams) (*winutil.SharingPolicy, error) {
+func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
+	params := wr.params
 	pd := wr.playerData
 	consumer := params.Consumer
 
@@ -217,7 +218,8 @@ func (wr *winsandboxRunner) getSharingPolicy(params *RunnerParams) (*winutil.Sha
 	return sp, nil
 }
 
-func (wr *winsandboxRunner) getEnvironment(params *RunnerParams) ([]string, error) {
+func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
+	params := wr.params
 	pd := wr.playerData
 
 	env := params.Env
