@@ -89,20 +89,20 @@ func (ser *sandboxExecRunner) Run() error {
 		return errors.Wrap(err, 0)
 	}
 
-	shimBundleDir, err := ioutil.TempDir("", "butler-shim-bundle")
+	workDir, err := ioutil.TempDir("", "butler-shim-bundle")
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer os.RemoveAll(shimBundleDir)
+	defer os.RemoveAll(workDir)
 
 	shimBundlePath := filepath.Join(
-		shimBundleDir,
+		workDir,
 		filepath.Base(realBundlePath),
 	)
 	consumer.Opf("Generating shim bundle as (%s)", shimBundlePath)
 
 	shimBinaryPath := filepath.Join(
-		shimBundleDir,
+		shimBundlePath,
 		"Contents",
 		"MacOS",
 		binaryName,
