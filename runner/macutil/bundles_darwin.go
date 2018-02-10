@@ -24,6 +24,17 @@ char *GetExecutablePath(char *cBundlePath) {
     memcpy(ret, tempString, strlen(tempString) + 1);
     return ret;
 }
+
+char *GetLibraryPath() {
+	NSArray* paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    for (NSString* path in paths) {
+		const char *tempString = [path UTF8String];
+		char *ret = malloc(strlen(tempString) + 1);
+		memcpy(ret, tempString, strlen(tempString) + 1);
+		return ret;
+	}
+	return 0;
+}
 */
 import "C"
 
@@ -36,6 +47,16 @@ func GetExecutablePath(bundlePath string) (string, error) {
 	cPath := C.GetExecutablePath(C.CString(bundlePath))
 	if uintptr(unsafe.Pointer(cPath)) == 0 {
 		return "", fmt.Errorf("Could not get executable path for app bundle (%s)", bundlePath)
+	}
+	defer C.free(unsafe.Pointer(cPath))
+
+	return C.GoString(cPath), nil
+}
+
+func GetLibraryPath() (string, error) {
+	cPath := C.GetLibraryPath()
+	if uintptr(unsafe.Pointer(cPath)) == 0 {
+		return "", fmt.Errorf("Could not get library path")
 	}
 	defer C.free(unsafe.Pointer(cPath))
 

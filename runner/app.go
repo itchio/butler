@@ -29,18 +29,26 @@ func (ar *appRunner) Prepare() error {
 
 func (ar *appRunner) Run() error {
 	params := ar.params
+
+	return RunAppBundle(
+		params,
+		params.FullTargetPath,
+	)
+}
+
+func RunAppBundle(params *RunnerParams, bundlePath string) error {
 	consumer := params.Consumer
 
 	var args = []string{
 		"-W",
-		params.FullTargetPath,
+		bundlePath,
 		"--args",
 	}
 	args = append(args, params.Args...)
 
-	consumer.Infof("App bundle is (%s)", params.FullTargetPath)
+	consumer.Infof("App bundle is (%s)", bundlePath)
 
-	binaryPath, err := macutil.GetExecutablePath(params.FullTargetPath)
+	binaryPath, err := macutil.GetExecutablePath(bundlePath)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -54,6 +62,8 @@ func (ar *appRunner) Run() error {
 	// 'open' does not relay stdout or stderr, so we don't
 	// even bother setting them
 
+	processDone := make(chan struct{})
+
 	go func() {
 		// catch SIGINT and kill the child if needed
 		c := make(chan os.Signal, 1)
@@ -62,8 +72,14 @@ func (ar *appRunner) Run() error {
 		consumer.Infof("Signal handler installed...")
 
 		// Block until a signal is received.
-		s := <-c
-		consumer.Warnf("Got signal: %v", s)
+		select {
+		case <-params.Ctx.Done():
+			consumer.Warnf("Context done!")
+		case s := <-c:
+			consumer.Warnf("Got signal: %v", s)
+		case <-processDone:
+			return
+		}
 
 		consumer.Warnf("Killing app...")
 		// TODO: kill the actual binary, not the app
@@ -76,6 +92,7 @@ func (ar *appRunner) Run() error {
 	}()
 
 	err = cmd.Run()
+	close(processDone)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
