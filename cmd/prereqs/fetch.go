@@ -18,6 +18,13 @@ import (
 
 const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
 
+var RedistsGame = &itchio.Game{
+	ID:        222417,
+	Title:     "itch-redists",
+	ShortText: "Redistributables for the itch.io app",
+	URL:       "https://fasterthanlime.itch.io/itch-redists",
+}
+
 type TaskStateConsumer struct {
 	OnState func(state *buse.PrereqsTaskStateNotification)
 }
@@ -62,7 +69,7 @@ func FetchPrereqs(library Library, consumer *state.Consumer, tsc *TaskStateConsu
 			Operation:     buse.OperationInstall,
 
 			InstallParams: &buse.InstallParams{
-				Game:          &itchio.Game{Title: "prereqs"},
+				Game:          RedistsGame,
 				InstallFolder: destDir,
 				Upload:        upload,
 				Build:         nil, // just go with the latest

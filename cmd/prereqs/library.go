@@ -9,9 +9,6 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-// https://fasterthanlime.itch.io/itch-redists
-const RedistsGameID int64 = 222417
-
 type Library interface {
 	GetURL(name string, fileType string) (string, error)
 	GetUpload(name string) *itchio.Upload
@@ -32,7 +29,7 @@ func NewLibrary(credentials *buse.GameCredentials) (Library, error) {
 	}
 
 	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-		GameID: RedistsGameID,
+		GameID: RedistsGame.ID,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

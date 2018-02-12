@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/itchio/butler/buse"
+
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/wharf/state"
 )
@@ -31,11 +33,19 @@ type loopbackConn struct {
 }
 
 func New(consumer *state.Consumer) LoopbackConn {
-	return &loopbackConn{
+	lc := &loopbackConn{
 		consumer:             consumer,
 		notificationHandlers: make(map[string]NotificationHandler),
 		callHandlers:         make(map[string]CallHandler),
 	}
+
+	lc.OnNotification("Log", func(ctx context.Context, method string, params interface{}) error {
+		log := params.(*buse.LogNotification)
+		lc.consumer.OnMessage(log.Level, log.Message)
+		return nil
+	})
+
+	return lc
 }
 
 var _ operate.Conn = (*loopbackConn)(nil)
