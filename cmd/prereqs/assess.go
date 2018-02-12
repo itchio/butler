@@ -63,10 +63,7 @@ func MarkerPath(prereqsDir string, name string) string {
 func IsInstalled(prereqsDir string, name string) bool {
 	path := MarkerPath(prereqsDir, name)
 	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	return false
+	return err == nil
 }
 
 func MarkInstalled(prereqsDir string, name string) error {

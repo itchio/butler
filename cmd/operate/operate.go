@@ -7,8 +7,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/mansion"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 // ErrCancelled is returned when the client asked for an operation to be cancelled
@@ -18,12 +16,12 @@ var ErrCancelled = errors.New("operation was cancelled")
 // and it should just be stopped.
 var ErrAborted = errors.New("operation was aborted")
 
-func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.Conn, params *buse.OperationStartParams) (err error) {
+func Start(ctx context.Context, conn Conn, params *buse.OperationStartParams) (err error) {
 	if params.StagingFolder == "" {
 		return errors.New("No staging folder specified")
 	}
 
-	oc, err := LoadContext(conn, ctx, mansionContext, comm.NewStateConsumer(), params.StagingFolder)
+	oc, err := LoadContext(conn, ctx, comm.NewStateConsumer(), params.StagingFolder)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -44,7 +42,7 @@ func Start(ctx context.Context, mansionContext *mansion.Context, conn *jsonrpc2.
 
 	switch params.Operation {
 	case "install":
-		ires, err := install(oc, meta)
+		ires, err := Install(oc, meta)
 		if err != nil {
 			consumer.Errorf("Install failed: %s", err.Error())
 			if se, ok := err.(*errors.Error); ok {

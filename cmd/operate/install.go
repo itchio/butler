@@ -18,7 +18,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-func install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResult, error) {
+func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResult, error) {
 	consumer := oc.Consumer()
 
 	params := meta.data.InstallParams

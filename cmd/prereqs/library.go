@@ -14,6 +14,8 @@ const RedistsGameID int64 = 222417
 
 type Library interface {
 	GetURL(name string, fileType string) (string, error)
+	GetUpload(name string) *itchio.Upload
+	GetCredentials() *buse.GameCredentials
 }
 
 type library struct {
@@ -45,7 +47,7 @@ func NewLibrary(credentials *buse.GameCredentials) (Library, error) {
 }
 
 func (l *library) GetURL(name string, fileType string) (string, error) {
-	upload := l.getUpload(name)
+	upload := l.GetUpload(name)
 	if upload == nil {
 		return "", fmt.Errorf("Could not find download for prereq (%s)", name)
 	}
@@ -59,7 +61,7 @@ func (l *library) GetURL(name string, fileType string) (string, error) {
 	return url, nil
 }
 
-func (l *library) getUpload(name string) *itchio.Upload {
+func (l *library) GetUpload(name string) *itchio.Upload {
 	for _, upload := range l.uploads {
 		if upload.ChannelName == name {
 			return upload
@@ -67,4 +69,8 @@ func (l *library) getUpload(name string) *itchio.Upload {
 	}
 
 	return nil
+}
+
+func (l *library) GetCredentials() *buse.GameCredentials {
+	return l.credentials
 }

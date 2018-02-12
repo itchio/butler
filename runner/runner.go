@@ -6,13 +6,14 @@ import (
 	"io"
 	"runtime"
 
+	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/wharf/state"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type RunnerParams struct {
 	Consumer *state.Consumer
-	Conn     *jsonrpc2.Conn
+	Conn     operate.Conn
 	Ctx      context.Context
 
 	Sandbox bool
@@ -26,6 +27,8 @@ type RunnerParams struct {
 	Env    []string
 	Stdout io.Writer
 	Stderr io.Writer
+
+	LauncherParams *launch.LauncherParams
 }
 
 type Runner interface {

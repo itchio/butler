@@ -126,6 +126,8 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		Env:    envBlock,
 		Stdout: stdout,
 		Stderr: stderr,
+
+		LauncherParams: params,
 	}
 
 	run, err := runner.GetRunner(runParams)

@@ -21,13 +21,12 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 
 	"github.com/itchio/butler/buse"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
-func Do(ctx context.Context, conn *jsonrpc2.Conn, params *buse.LaunchParams) (err error) {
+func Do(ctx context.Context, conn operate.Conn, params *buse.LaunchParams) (err error) {
 	consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
 		Ctx:     ctx,
 		Conn:    conn,

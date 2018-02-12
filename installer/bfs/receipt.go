@@ -23,7 +23,7 @@ type Receipt struct {
 }
 
 func ReadReceipt(InstallFolder string) (*Receipt, error) {
-	path := receiptPath(InstallFolder)
+	path := ReceiptPath(InstallFolder)
 
 	f, err := os.Open(path)
 	if err != nil {
@@ -52,7 +52,7 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 }
 
 func (r *Receipt) WriteReceipt(InstallFolder string) error {
-	path := receiptPath(InstallFolder)
+	path := ReceiptPath(InstallFolder)
 
 	err := Mkdir(filepath.Dir(path))
 	if err != nil {
@@ -80,6 +80,6 @@ func (r *Receipt) HasFiles() bool {
 	return r != nil && len(r.Files) > 0
 }
 
-func receiptPath(InstallFolder string) string {
+func ReceiptPath(InstallFolder string) string {
 	return filepath.Join(InstallFolder, ".itch", "receipt.json.gz")
 }

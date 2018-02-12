@@ -108,7 +108,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				}
 
 				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-					Conn: conn,
+					Conn: &jsonrpc2Conn{conn},
 					Ctx:  ctx,
 				})
 				if err != nil {
@@ -132,7 +132,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				}
 
 				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-					Conn: conn,
+					Conn: &jsonrpc2Conn{conn},
 					Ctx:  ctx,
 				})
 				if err != nil {
@@ -154,7 +154,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					return errors.Wrap(err, 0)
 				}
 
-				err = launch.Do(ctx, conn, params)
+				err = launch.Do(ctx, &jsonrpc2Conn{conn}, params)
 				if err != nil {
 					return handleCommonErrors(err)
 				}
@@ -185,7 +185,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				}
 				h.operationHandles[oh.id] = oh
 
-				err = operate.Start(ctx, h.ctx, conn, params)
+				err = operate.Start(ctx, &jsonrpc2Conn{conn}, params)
 				delete(h.operationHandles, oh.id)
 				if err != nil {
 					return handleCommonErrors(err)
@@ -270,4 +270,24 @@ func Do(ctx *mansion.Context) error {
 	}
 
 	return nil
+}
+
+//
+
+type jsonrpc2Conn struct {
+	conn *jsonrpc2.Conn
+}
+
+var _ operate.Conn = (*jsonrpc2Conn)(nil)
+
+func (jc *jsonrpc2Conn) Notify(ctx context.Context, method string, params interface{}) error {
+	return jc.conn.Notify(ctx, method, params)
+}
+
+func (jc *jsonrpc2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
+	return jc.conn.Call(ctx, method, params, result)
+}
+
+func (jc *jsonrpc2Conn) Close() error {
+	return jc.conn.Close()
 }

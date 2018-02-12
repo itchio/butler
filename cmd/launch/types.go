@@ -6,9 +6,9 @@ import (
 	"github.com/itchio/butler/buse"
 
 	"github.com/itchio/butler/cmd/launch/manifest"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/state"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type LaunchStrategy string
@@ -23,7 +23,7 @@ const (
 
 type LauncherParams struct {
 	Ctx          context.Context
-	Conn         *jsonrpc2.Conn
+	Conn         operate.Conn
 	Consumer     *state.Consumer
 	ParentParams *buse.LaunchParams
 

@@ -13,24 +13,20 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/pb"
 	"github.com/itchio/butler/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type OperationContext struct {
-	conn        *jsonrpc2.Conn
+	conn        Conn
 	ctx         context.Context
 	consumer    *state.Consumer
 	stageFolder string
 	logFile     *os.File
 
 	counter *progress.Counter
-
-	mansionContext *mansion.Context
 
 	root map[string]interface{}
 
@@ -39,7 +35,12 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansion.Context, parentConsumer *state.Consumer, stageFolder string) (*OperationContext, error) {
+type Conn interface {
+	Notify(ctx context.Context, method string, params interface{}) error
+	Call(ctx context.Context, method string, params interface{}, result interface{}) error
+}
+
+func LoadContext(conn Conn, ctx context.Context, parentConsumer *state.Consumer, stageFolder string) (*OperationContext, error) {
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
 		parentConsumer.Warnf("Could not create operate directory: %s", err.Error())
@@ -59,13 +60,12 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 	bar.Start()
 
 	oc := &OperationContext{
-		logFile:        logFile,
-		stageFolder:    stageFolder,
-		ctx:            ctx,
-		conn:           conn,
-		mansionContext: mansionContext,
-		root:           make(map[string]interface{}),
-		loaded:         make(map[string]struct{}),
+		logFile:     logFile,
+		stageFolder: stageFolder,
+		ctx:         ctx,
+		conn:        conn,
+		root:        make(map[string]interface{}),
+		loaded:      make(map[string]struct{}),
 	}
 
 	consumer, err := NewStateConsumer(&NewStateConsumerParams{
@@ -131,7 +131,7 @@ func LoadContext(conn *jsonrpc2.Conn, ctx context.Context, mansionContext *mansi
 
 type NewStateConsumerParams struct {
 	// Mandatory
-	Conn *jsonrpc2.Conn
+	Conn Conn
 	Ctx  context.Context
 
 	// Optional
@@ -269,10 +269,6 @@ func (oc *OperationContext) Retire() error {
 	}
 
 	return nil
-}
-
-func (oc *OperationContext) MansionContext() *mansion.Context {
-	return oc.mansionContext
 }
 
 func (oc *OperationContext) StageFolder() string {
