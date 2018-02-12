@@ -26,6 +26,7 @@ import (
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
 	"github.com/itchio/butler/cmd/repack"
+	"github.com/itchio/butler/cmd/run"
 	"github.com/itchio/butler/cmd/service"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
@@ -93,6 +94,7 @@ func registerCommands(ctx *mansion.Context) {
 
 	pipe.Register(ctx)
 	elevate.Register(ctx)
+	run.Register(ctx)
 
 	exeprops.Register(ctx)
 	elfprops.Register(ctx)

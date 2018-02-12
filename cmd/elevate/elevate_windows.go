@@ -18,7 +18,7 @@ import (
 func Elevate(params *ElevateParams) (int, error) {
 	command := params.Command
 
-	if len(command) < 0 {
+	if len(command) <= 0 {
 		return -1, errors.New(`elevate needs a command to run`)
 	}
 
