@@ -2,10 +2,13 @@ package runner
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/runner/policies"
 )
 
 type firejailRunner struct {
@@ -33,10 +36,23 @@ func (fr *firejailRunner) Run() error {
 	firejailName := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
 	firejailPath := filepath.Join(params.PrereqsDir, firejailName, "firejail")
 
-	consumer.Infof("Running (%s) through firejail", params.FullTargetPath)
+	sandboxProfilePath := filepath.Join(params.InstallFolder, ".itch", "isolate-app.profile")
+	consumer.Opf("Writing sandbox profile to (%s)", sandboxProfilePath)
+	err := os.MkdirAll(filepath.Dir(sandboxProfilePath), 0755)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	sandboxSource := policies.FirejailTemplate
+	err = ioutil.WriteFile(sandboxProfilePath, []byte(sandboxSource), 0644)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Opf("Running (%s) through firejail", params.FullTargetPath)
 
 	var args []string
-	args = append(args, "--noprofile")
+	args = append(args, fmt.Sprintf("--profile=%s", sandboxProfilePath))
 	args = append(args, "--")
 	args = append(args, params.FullTargetPath)
 	args = append(args, params.Args...)
@@ -47,7 +63,7 @@ func (fr *firejailRunner) Run() error {
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
