@@ -136,17 +136,19 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	return nil, fmt.Errorf("unknown ArchiveStrategy %d", ai.Strategy)
 }
 
+var (
+	archiveStrategyStrings = map[ArchiveStrategy]string{
+		ArchiveStrategyTar:    "tar",
+		ArchiveStrategyTarBz2: "tar.bz2",
+		ArchiveStrategyTarGz:  "tar.gz",
+		ArchiveStrategyZip:    "zip",
+	}
+)
+
 func (as ArchiveStrategy) String() string {
-	switch as {
-	case ArchiveStrategyTar:
-		return "tar"
-	case ArchiveStrategyTarBz2:
-		return "tar.bz2"
-	case ArchiveStrategyTarGz:
-		return "tar.gz"
-	case ArchiveStrategyZip:
-		return "zip"
-	default:
+	str, ok := archiveStrategyStrings[as]
+	if !ok {
 		return "?"
 	}
+	return str
 }
