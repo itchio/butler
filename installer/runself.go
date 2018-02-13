@@ -19,6 +19,7 @@ type Any map[string]interface{}
 type RunSelfResult struct {
 	ExitCode int
 	Results  []Any
+	Errors   []string
 }
 
 type OnResultFunc func(res Any)
@@ -53,6 +54,10 @@ func RunSelf(params *RunSelfParams) (*RunSelfResult, error) {
 	cmd.Stderr = loggerwriter.New(consumer, "err")
 
 	err = cmd.Run()
+	if len(res.Errors) > 0 {
+		return nil, errors.New(res.Errors[0])
+	}
+
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
@@ -103,6 +108,10 @@ func newParserWriter(consumer *state.Consumer, res *RunSelfResult, onResult OnRe
 						}
 					} else {
 						consumer.Warnf("runself: ignoring result because value is not a map")
+					}
+				case "error":
+					if message, ok := obj["message"].(string); ok {
+						res.Errors = append(res.Errors, message)
 					}
 				}
 			} else {

@@ -65,27 +65,30 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 		Consumer: consumer,
 		Args:     args,
 		OnResult: func(value installer.Any) {
-			if value["type"] == "state" {
-				ps := &PrereqState{}
-				msdec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-					TagName: "json",
-					Result:  ps,
-				})
-				if err != nil {
-					consumer.Warnf("could not decode result: %s", err.Error())
-					return
-				}
+			switch value["type"] {
+			case "state":
+				{
+					ps := &PrereqState{}
+					msdec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+						TagName: "json",
+						Result:  ps,
+					})
+					if err != nil {
+						consumer.Warnf("could not decode result: %s", err.Error())
+						return
+					}
 
-				err = msdec.Decode(value)
-				if err != nil {
-					consumer.Warnf("could not decode result: %s", err.Error())
-					return
-				}
+					err = msdec.Decode(value)
+					if err != nil {
+						consumer.Warnf("could not decode result: %s", err.Error())
+						return
+					}
 
-				tsc.OnState(&buse.PrereqsTaskStateNotification{
-					Name:   ps.Name,
-					Status: ps.Status,
-				})
+					tsc.OnState(&buse.PrereqsTaskStateNotification{
+						Name:   ps.Name,
+						Status: ps.Status,
+					})
+				}
 			}
 		},
 	})
