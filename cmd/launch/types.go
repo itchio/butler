@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/manager"
 
 	"github.com/itchio/butler/cmd/launch/manifest"
 	"github.com/itchio/butler/cmd/operate"
@@ -22,10 +23,9 @@ const (
 )
 
 type LauncherParams struct {
-	Ctx          context.Context
-	Conn         operate.Conn
-	Consumer     *state.Consumer
-	ParentParams *buse.LaunchParams
+	Ctx      context.Context
+	Conn     operate.Conn
+	Consumer *state.Consumer
 
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
@@ -47,6 +47,11 @@ type LauncherParams struct {
 
 	// Additional environment variables
 	Env map[string]string
+
+	PrereqsDir    string
+	Credentials   *buse.GameCredentials
+	InstallFolder string
+	Runtime       *manager.Runtime
 }
 
 type Launcher interface {

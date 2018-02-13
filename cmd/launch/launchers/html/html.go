@@ -20,7 +20,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	ctx := params.Ctx
 	conn := params.Conn
 
-	rootFolder := params.ParentParams.InstallFolder
+	rootFolder := params.InstallFolder
 	indexPath, err := filepath.Rel(rootFolder, params.FullTargetPath)
 	if err != nil {
 		return errors.Wrap(err, 0)

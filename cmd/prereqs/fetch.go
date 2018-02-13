@@ -3,7 +3,6 @@ package prereqs
 import (
 	"context"
 	"io/ioutil"
-	"path/filepath"
 
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
@@ -12,8 +11,6 @@ import (
 	"github.com/itchio/butler/buse"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/state"
 )
 
 const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
@@ -29,14 +26,25 @@ type TaskStateConsumer struct {
 	OnState func(state *buse.PrereqsTaskStateNotification)
 }
 
-func FetchPrereqs(library Library, consumer *state.Consumer, tsc *TaskStateConsumer, folder string, redistRegistry *redist.RedistRegistry, names []string) error {
+func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
+	consumer := pc.Consumer
+
 	doPrereq := func(name string) error {
-		entry := redistRegistry.Entries[name]
+		entry, err := pc.GetEntry(name)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
 		if entry == nil {
 			consumer.Warnf("Prereq (%s) not found in registry, skipping")
 			return nil
 		}
-		destDir := filepath.Join(folder, name)
+		destDir := pc.GetEntryDir(name)
+
+		library, err := pc.GetLibrary()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 
 		upload := library.GetUpload(name)
 		if upload == nil {

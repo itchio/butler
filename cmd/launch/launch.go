@@ -369,10 +369,9 @@ func Do(ctx context.Context, conn operate.Conn, params *buse.LaunchParams) (err 
 	}
 
 	launcherParams := &LauncherParams{
-		Conn:         conn,
-		Ctx:          ctx,
-		Consumer:     consumer,
-		ParentParams: params,
+		Conn:     conn,
+		Ctx:      ctx,
+		Consumer: consumer,
 
 		FullTargetPath: fullTargetPath,
 		Candidate:      candidate,
@@ -381,6 +380,11 @@ func Do(ctx context.Context, conn operate.Conn, params *buse.LaunchParams) (err 
 		Sandbox:        sandbox,
 		Args:           args,
 		Env:            env,
+
+		PrereqsDir:    params.PrereqsDir,
+		Credentials:   params.Credentials,
+		InstallFolder: params.InstallFolder,
+		Runtime:       runtime,
 	}
 
 	err = launcher.Do(launcherParams)

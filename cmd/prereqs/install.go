@@ -5,16 +5,37 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/itchio/butler/manager"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer"
-	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 )
 
-func ElevatedInstall(consumer *state.Consumer, plan *PrereqPlan, tsc *TaskStateConsumer) error {
+func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error {
+	consumer := pc.Consumer
+
+	needElevation := false
+	for _, task := range plan.Tasks {
+		switch pc.Runtime.Platform {
+		case manager.ItchPlatformWindows:
+			block := task.Info.Windows
+			if block.Elevate {
+				consumer.Infof("Will perform prereqs installation elevated because of (%s)", task.Name)
+				needElevation = true
+			}
+		case manager.ItchPlatformLinux:
+			block := task.Info.Linux
+			if len(block.EnsureSuidRoot) > 0 {
+				consumer.Infof("Will perform prereqs installation elevated because (%s) has SUID binaries", task.Name)
+				needElevation = true
+			}
+		}
+	}
+
 	planFile, err := ioutil.TempFile("", "butler-prereqs-plan.json")
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -34,13 +55,15 @@ func ElevatedInstall(consumer *state.Consumer, plan *PrereqPlan, tsc *TaskStateC
 		return errors.Wrap(err, 0)
 	}
 
+	var args []string
+	if needElevation {
+		args = append(args, "--elevate")
+	}
+	args = append(args, []string{"install-prereqs", planPath}...)
+
 	res, err := installer.RunSelf(&installer.RunSelfParams{
 		Consumer: consumer,
-		Args: []string{
-			"--elevate",
-			"install-prereqs",
-			planPath,
-		},
+		Args:     args,
 		OnResult: func(value installer.Any) {
 			if value["type"] == "state" {
 				ps := &PrereqState{}

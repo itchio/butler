@@ -86,7 +86,7 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 		cmd := exec.Command("pkill", "-f", binaryPath)
 		err := cmd.Run()
 		if err != nil {
-			consumer.Errorf("While killing: ", err.Error())
+			consumer.Errorf("While killing: %s", err.Error())
 		}
 		os.Exit(0)
 	}()

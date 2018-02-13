@@ -6,8 +6,9 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 )
 
@@ -18,7 +19,6 @@ type RunnerParams struct {
 
 	Sandbox bool
 
-	InstallFolder  string
 	FullTargetPath string
 
 	Name   string
@@ -28,7 +28,10 @@ type RunnerParams struct {
 	Stdout io.Writer
 	Stderr io.Writer
 
-	LauncherParams *launch.LauncherParams
+	PrereqsDir    string
+	Credentials   *buse.GameCredentials
+	InstallFolder string
+	Runtime       *manager.Runtime
 }
 
 type Runner interface {

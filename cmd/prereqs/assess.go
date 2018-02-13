@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
+	"github.com/itchio/butler/manager"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/state"
 )
 
 type PrereqAssessment struct {
@@ -17,26 +19,30 @@ type PrereqAssessment struct {
 	Todo []string
 }
 
-func AssessPrereqs(consumer *state.Consumer, redistRegistry *redist.RedistRegistry, prereqsDir string, names []string) (*PrereqAssessment, error) {
+func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, error) {
 	pa := &PrereqAssessment{}
 
 	for _, name := range names {
-		entry, ok := redistRegistry.Entries[name]
-		if !ok {
-			consumer.Warnf("Prereq (%s) not found in registry, skipping...", name)
+		entry, err := pc.GetEntry(name)
+		if entry == nil {
+			pc.Consumer.Warnf("Prereq (%s) not found in registry, skipping...", name)
 			continue
 		}
 
-		hasRegistry := false
+		alreadyGood := false
 
-		for _, registryKey := range entry.RegistryKeys {
-			if RegistryKeyExists(consumer, registryKey) {
-				hasRegistry = true
-				break
-			}
+		switch pc.Runtime.Platform {
+		case manager.ItchPlatformWindows:
+			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
+		case manager.ItchPlatformLinux:
+			alreadyGood, err = pc.AssessLinuxPrereq(name, entry)
 		}
 
-		if hasRegistry {
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if alreadyGood {
 			// then it's already installed, cool!
 			pa.Done = append(pa.Done, name)
 			continue
@@ -46,7 +52,7 @@ func AssessPrereqs(consumer *state.Consumer, redistRegistry *redist.RedistRegist
 	}
 
 	for _, name := range pa.Done {
-		err := MarkInstalled(prereqsDir, name)
+		err := pc.MarkInstalled(name)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
@@ -56,24 +62,24 @@ func AssessPrereqs(consumer *state.Consumer, redistRegistry *redist.RedistRegist
 	return pa, nil
 }
 
-func MarkerPath(prereqsDir string, name string) string {
-	return filepath.Join(prereqsDir, name, ".installed")
+func (pc *PrereqsContext) MarkerPath(name string) string {
+	return filepath.Join(pc.PrereqsDir, name, ".installed")
 }
 
-func IsInstalled(prereqsDir string, name string) bool {
-	path := MarkerPath(prereqsDir, name)
+func (pc *PrereqsContext) HasInstallMarker(name string) bool {
+	path := pc.MarkerPath(name)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func MarkInstalled(prereqsDir string, name string) error {
-	if IsInstalled(prereqsDir, name) {
+func (pc *PrereqsContext) MarkInstalled(name string) error {
+	if pc.HasInstallMarker(name) {
 		// don't mark again
 		return nil
 	}
 
 	contents := fmt.Sprintf("Installed on %s", time.Now())
-	path := MarkerPath(prereqsDir, name)
+	path := pc.MarkerPath(name)
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -81,6 +87,51 @@ func MarkInstalled(prereqsDir string, name string) error {
 
 	err = ioutil.WriteFile(path, []byte(contents), os.FileMode(0644))
 	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
+func (pc *PrereqsContext) AssessWindowsPrereq(name string, entry *redist.RedistEntry) (bool, error) {
+	block := entry.Windows
+
+	for _, registryKey := range block.RegistryKeys {
+		if RegistryKeyExists(pc.Consumer, registryKey) {
+			pc.Consumer.Debugf("Found registry key (%s)", registryKey)
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEntry) (bool, error) {
+	block := entry.Linux
+
+	switch block.Type {
+	case redist.LinuxRedistTypeHosted:
+		// cool!
+	default:
+		return false, fmt.Errorf("Don't know how to assess linux prereq of type (%s)", block.Type)
+	}
+
+	for _, sc := range block.SanityChecks {
+		err := pc.RunSanityCheck(name, entry, sc)
+		if err != nil {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func (pc *PrereqsContext) RunSanityCheck(name string, entry *redist.RedistEntry, sc *redist.LinuxSanityCheck) error {
+	cmd := exec.Command(sc.Command, sc.Args...)
+	cmd.Dir = filepath.Join(pc.PrereqsDir, name)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		pc.Consumer.Debugf("Sanity check failed:%s\n%s", err.Error(), string(output))
 		return errors.Wrap(err, 0)
 	}
 

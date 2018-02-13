@@ -40,9 +40,9 @@ func doTest(ctx *mansion.Context) {
 
 // PrereqTask describes something the prereq installer has to do
 type PrereqTask struct {
-	Name    string             `json:"name"`
-	WorkDir string             `json:"workDir"`
-	Info    redist.RedistEntry `json:"info"`
+	Name    string              `json:"name"`
+	WorkDir string              `json:"workDir"`
+	Info    *redist.RedistEntry `json:"info"`
 }
 
 // PrereqPlan contains a list of tasks for the prereq installer

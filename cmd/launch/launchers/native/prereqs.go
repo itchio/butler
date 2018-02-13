@@ -1,18 +1,15 @@
 package native
 
 import (
-	"encoding/json"
-	"path/filepath"
-	"runtime"
+	"fmt"
 	"strings"
-	"time"
+
+	"github.com/itchio/butler/manager"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/prereqs"
-	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/eos"
 )
 
 func handlePrereqs(params *launch.LauncherParams) error {
@@ -20,31 +17,38 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	ctx := params.Ctx
 	conn := params.Conn
 
-	if runtime.GOOS != "windows" {
-		consumer.Infof("Not on windows, ignoring prereqs")
-		return nil
-	}
+	var listed []string
 
+	// add manifest prereqs
 	if params.AppManifest == nil {
 		consumer.Infof("No manifest, no prereqs")
-		return nil
+	} else {
+		if len(params.AppManifest.Prereqs) == 0 {
+			consumer.Infof("Got manifest but no prereqs requested")
+		} else {
+			for _, p := range params.AppManifest.Prereqs {
+				listed = append(listed, p.Name)
+			}
+		}
 	}
 
-	if len(params.AppManifest.Prereqs) == 0 {
-		consumer.Infof("Got manifest but no prereqs requested")
-		return nil
+	// append built-in params if we need some
+	runtime := params.Runtime
+	if runtime.Platform == manager.ItchPlatformLinux && params.Sandbox {
+		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
+		listed = append(listed, firejailName)
 	}
 
-	prereqsDir := params.ParentParams.PrereqsDir
-
-	var listed []string
-	for _, p := range params.AppManifest.Prereqs {
-		listed = append(listed, p.Name)
+	pc := &prereqs.PrereqsContext{
+		Credentials: params.Credentials,
+		Runtime:     params.Runtime,
+		Consumer:    params.Consumer,
+		PrereqsDir:  params.PrereqsDir,
 	}
 
 	var pending []string
 	for _, name := range listed {
-		if prereqs.IsInstalled(prereqsDir, name) {
+		if pc.HasInstallMarker(name) {
 			continue
 		}
 
@@ -56,47 +60,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	consumer.Infof("Assessing state of %d prereqs...", len(pending))
-
-	// TODO: cache somewhere
-	consumer.Infof("Fetching prereqs registry...")
-
-	beforeFetch := time.Now()
-	library, err := prereqs.NewLibrary(params.ParentParams.Credentials)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	registry := &redist.RedistRegistry{}
-
-	err = func() error {
-		registryURL, err := library.GetURL("info", "unpacked")
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		f, err := eos.Open(registryURL)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		defer f.Close()
-
-		dec := json.NewDecoder(f)
-		err = dec.Decode(registry)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		return nil
-	}()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	registryFetchDuration := time.Since(beforeFetch)
-	consumer.Infof("✓ Fetched %d entries in %s", len(registry.Entries), registryFetchDuration)
-
-	pa, err := prereqs.AssessPrereqs(consumer, registry, prereqsDir, pending)
+	pa, err := pc.AssessPrereqs(pending)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -116,8 +80,13 @@ func handlePrereqs(params *launch.LauncherParams) error {
 			Tasks: make(map[string]*buse.PrereqTask),
 		}
 		for i, name := range pa.Todo {
+			entry, err := pc.GetEntry(name)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
 			psn.Tasks[name] = &buse.PrereqTask{
-				FullName: registry.Entries[name].FullName,
+				FullName: entry.FullName,
 				Order:    i,
 			}
 		}
@@ -137,28 +106,23 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		},
 	}
 
-	err = prereqs.FetchPrereqs(library, consumer, tsc, prereqsDir, registry, pa.Todo)
+	err = pc.FetchPrereqs(tsc, pa.Todo)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	plan := &prereqs.PrereqPlan{}
-
-	for _, name := range pa.Todo {
-		plan.Tasks = append(plan.Tasks, &prereqs.PrereqTask{
-			Name:    name,
-			WorkDir: filepath.Join(prereqsDir, name),
-			Info:    *registry.Entries[name],
-		})
+	plan, err := pc.BuildPlan(pa.Todo)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
-	err = prereqs.ElevatedInstall(consumer, plan, tsc)
+	err = pc.InstallPrereqs(tsc, plan)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
 	for _, name := range pa.Todo {
-		err = prereqs.MarkInstalled(prereqsDir, name)
+		err = pc.MarkInstalled(name)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
