@@ -1,5 +1,3 @@
-// +build windows
-
 package prereqs
 
 import (
@@ -14,9 +12,9 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
 	"github.com/olekukonko/tablewriter"
 )
@@ -103,7 +101,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		}
 
 		task := &PrereqTask{
-			Info:    *info,
+			Info:    info,
 			Name:    name,
 			WorkDir: workDir,
 		}
@@ -112,7 +110,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		dest := filepath.Join(workDir, info.Command)
 		_, err = dl.Do(ctx, url, dest)
 		if err != nil {
-			comm.Logf("Could not donwload prereq %s", name)
+			comm.Logf("Could not download prereq %s", name)
 			return errors.Wrap(err, 0)
 		}
 
