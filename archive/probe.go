@@ -36,6 +36,7 @@ const (
 type ArchiveInfo struct {
 	Strategy ArchiveStrategy
 	Features savior.ExtractorFeatures
+	Format   string
 }
 
 func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
@@ -56,6 +57,12 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 	}
 
 	info.Features = ex.Features()
+	if szex, ok := ex.(szextractor.SzExtractor); ok {
+		info.Format = szex.GetFormat()
+	} else {
+		info.Format = info.Strategy.String()
+	}
+
 	return info, nil
 }
 
@@ -127,4 +134,19 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	}
 
 	return nil, fmt.Errorf("unknown ArchiveStrategy %d", ai.Strategy)
+}
+
+func (as ArchiveStrategy) String() string {
+	switch as {
+	case ArchiveStrategyTar:
+		return "tar"
+	case ArchiveStrategyTarBz2:
+		return "tar.bz2"
+	case ArchiveStrategyTarGz:
+		return "tar.gz"
+	case ArchiveStrategyZip:
+		return "zip"
+	default:
+		return "?"
+	}
 }

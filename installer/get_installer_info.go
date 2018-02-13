@@ -79,7 +79,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		})
 		consumer.Debugf("  (took %s)", time.Since(beforeArchiveProbe))
 		if err == nil {
-			consumer.Infof("✓ Source is a supported archive format")
+			consumer.Infof("✓ Source is a supported archive format (%s)", archiveInfo.Format)
 			if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
 				// TODO: force downloading to disk first for those
 				consumer.Warnf("    ...but this format has no/poor resume support, interruptions will waste network/CPU time")
