@@ -2,8 +2,10 @@ package prereqs
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/itchio/butler/manager"
 
@@ -105,6 +107,22 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	err = installer.CheckExitCode(res.ExitCode, err)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	// now to run some sanity checks (as regular user)
+	for _, task := range plan.Tasks {
+		switch pc.Runtime.Platform {
+		case manager.ItchPlatformLinux:
+			block := task.Info.Linux
+			for _, sc := range block.SanityChecks {
+				err := pc.RunSanityCheck(task.Name, task.Info, sc)
+				if err != nil {
+					retErr := fmt.Errorf("Sanity check failed for (%s): %s", task.Name, err.Error())
+					return errors.Wrap(retErr, 0)
+				}
+				consumer.Infof("Sanity check (%s ::: %s) passed", sc.Command, strings.Join(sc.Args, " ::: "))
+			}
+		}
 	}
 
 	return nil

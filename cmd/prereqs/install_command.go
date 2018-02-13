@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/itchio/butler/redist"
+
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 
@@ -138,5 +140,36 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 }
 
 func installLinuxPrereq(consumer *state.Consumer, task *PrereqTask) error {
-	return errors.New("stub!")
+	block := task.Info.Linux
+
+	switch block.Type {
+	case redist.LinuxRedistTypeHosted:
+		for _, f := range block.EnsureExecutable {
+			path := filepath.Join(task.WorkDir, f)
+			consumer.Infof("Making (%s) executable", path)
+			err := os.Chmod(path, 0755)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+
+		for _, f := range block.EnsureSuidRoot {
+			path := filepath.Join(task.WorkDir, f)
+			consumer.Infof("Making (%s) SUID", path)
+
+			err := os.Chown(path, 0, 0)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			err = os.Chmod(path, 0755|os.ModeSetuid)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+	default:
+		return fmt.Errorf("Don't know how to install linux redist type (%s)", block.Type)
+	}
+
+	return nil
 }

@@ -128,7 +128,7 @@ func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEnt
 
 func (pc *PrereqsContext) RunSanityCheck(name string, entry *redist.RedistEntry, sc *redist.LinuxSanityCheck) error {
 	cmd := exec.Command(sc.Command, sc.Args...)
-	cmd.Dir = filepath.Join(pc.PrereqsDir, name)
+	cmd.Dir = pc.GetEntryDir(name)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		pc.Consumer.Debugf("Sanity check failed:%s\n%s", err.Error(), string(output))
