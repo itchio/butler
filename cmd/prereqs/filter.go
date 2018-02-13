@@ -1,23 +1,31 @@
 package prereqs
 
 import (
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/state"
 )
 
-func FilterPrereqs(consumer *state.Consumer, redistRegistry *redist.RedistRegistry, names []string) ([]string, error) {
+func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
+	consumer := pc.Consumer
+
 	var result []string
 	for _, name := range names {
-		entry, ok := redistRegistry.Entries[name]
-		if !ok {
+		entry, err := pc.GetEntry(name)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if entry == nil {
 			consumer.Warnf("Prereq (%s) not found in registry, skipping...", name)
 			continue
 		}
 
-		if RedistHasPlatform(entry, manager.CurrentRuntime().Platform) {
-			result = append(result, name)
+		if !RedistHasPlatform(entry, pc.Runtime.Platform) {
+			consumer.Warnf("Prereq (%s) is not relevant on (%s), skipping...", name, pc.Runtime.Platform)
+			continue
 		}
+		result = append(result, name)
 	}
 	return result, nil
 }

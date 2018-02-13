@@ -55,8 +55,14 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		pending = append(pending, name)
 	}
 
+	var err error
+	pending, err = pc.FilterPrereqs(pending)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	if len(pending) == 0 {
-		consumer.Infof("✓ %d Prereqs already installed: %s", len(listed), strings.Join(listed, ", "))
+		consumer.Infof("✓ %d Prereqs already installed or irrelevant: %s", len(listed), strings.Join(listed, ", "))
 		return nil
 	}
 

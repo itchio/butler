@@ -267,6 +267,16 @@ func (a *Archive) Free() {
 	C.libc7zip_archive_free(a.arch)
 }
 
+func (a *Archive) GetArchiveFormat() string {
+	cstr := C.libc7zip_archive_get_archive_format(a.arch)
+	if cstr == nil {
+		return ""
+	}
+
+	defer C.libc7zip_string_free(cstr)
+	return C.GoString(cstr)
+}
+
 func (a *Archive) GetItemCount() (int64, error) {
 	res := int64(C.libc7zip_archive_get_item_count(a.arch))
 	if res < 0 {

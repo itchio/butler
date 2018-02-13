@@ -21,6 +21,11 @@ import (
 var dontEnsureDeps = os.Getenv("BUTLER_NO_DEPS") == "1"
 var ensuredDeps = false
 
+type SzExtractor interface {
+	savior.Extractor
+	GetFormat() string
+}
+
 type szExtractor struct {
 	file eos.File
 
@@ -30,6 +35,7 @@ type szExtractor struct {
 	lib     *sz.Lib
 	archive *sz.Archive
 	in      *sz.InStream
+	format  string
 
 	resumeSupport savior.ResumeSupport
 
@@ -39,9 +45,9 @@ type szExtractor struct {
 	freed bool
 }
 
-var _ savior.Extractor = (*szExtractor)(nil)
+var _ SzExtractor = (*szExtractor)(nil)
 
-func New(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
+func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 	se := &szExtractor{
 		file:          file,
 		consumer:      consumer,
@@ -69,13 +75,6 @@ func New(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
 	}
 
 	ext := nameToExt(stats.Name())
-
-	if ext == "7z" {
-		// .7z is a known non-resumable format - resuming means a lot
-		// of extra IO and decompression work on already-extracted blocks,
-		// so we just don't want to do it on-the-fly
-		se.resumeSupport = savior.ResumeSupportNone
-	}
 
 	in, err := sz.NewInStream(file, ext, stats.Size())
 	if err != nil {
@@ -126,7 +125,19 @@ func New(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
 	}
 	se.archive = a
 
+	se.format = a.GetArchiveFormat()
+	if se.format == "7z" {
+		// .7z is a known non-resumable format - resuming means a lot
+		// of extra IO and decompression work on already-extracted blocks,
+		// so we just don't want to do it on-the-fly
+		se.resumeSupport = savior.ResumeSupportNone
+	}
+
 	return se, nil
+}
+
+func (se *szExtractor) GetFormat() string {
+	return se.format
 }
 
 func (se *szExtractor) SetConsumer(consumer *state.Consumer) {

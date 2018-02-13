@@ -85,7 +85,7 @@ func getStrategy(file eos.File, consumer *state.Consumer) ArchiveStrategy {
 		return ArchiveStrategySevenZip
 	}
 
-	consumer.Warnf("archive: Unfamiliar extension '%s', handing it to 7-zip hoping for a miracle", ext)
+	consumer.Warnf("archive: Unrecognized extension (%s), deferring to 7-zip", ext)
 	return ArchiveStrategySevenZip
 }
 
@@ -109,7 +109,21 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	case ArchiveStrategyTarBz2:
 		return tarextractor.New(bzip2source.New(seeksource.FromFile(file))), nil
 	case ArchiveStrategySevenZip:
-		return szextractor.New(file, consumer)
+		szex, err := szextractor.New(file, consumer)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		// apply blacklist
+		switch szex.GetFormat() {
+		// cf. https://github.com/itchio/itch/issues/1700
+		case "ELF":
+			return nil, fmt.Errorf("won't extract ELF executable")
+		case "PE":
+			return nil, fmt.Errorf("won't extract PE executable")
+		default:
+			return szex, nil
+		}
 	}
 
 	return nil, fmt.Errorf("unknown ArchiveStrategy %d", ai.Strategy)

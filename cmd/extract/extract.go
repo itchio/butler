@@ -3,6 +3,8 @@ package extract
 import (
 	"time"
 
+	"github.com/itchio/butler/archive/szextractor"
+
 	"github.com/itchio/savior"
 
 	humanize "github.com/dustin/go-humanize"
@@ -77,6 +79,10 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	ex, err := archiveInfo.GetExtractor(file, consumer)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	if szex, ok := ex.(szextractor.SzExtractor); ok {
+		consumer.Opf("Archive format: (%s)", szex.GetFormat())
 	}
 
 	ex.SetConsumer(consumer)

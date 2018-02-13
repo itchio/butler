@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	version := "v1.3.0"
+	version := "v1.5.0"
 	osarches := []string{
 		"windows-386",
 		"windows-amd64",

@@ -1,6 +1,7 @@
 package operate
 
 import (
+	"context"
 	"path/filepath"
 
 	"github.com/itchio/httpkit/retrycontext"
@@ -12,13 +13,12 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 )
 
-func DownloadInstallSource(oc *OperationContext, file eos.File, destPath string) error {
-	consumer := oc.Consumer()
-
-	statePath := filepath.Join(oc.StageFolder(), "download-state.dat")
-	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, oc.ctx)
+func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx context.Context, file eos.File, destPath string) error {
+	statePath := filepath.Join(stageFolder, "download-state.dat")
+	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, ctx)
 
 	checkpoint := &savior.ExtractorCheckpoint{}
 	err := sc.Load(checkpoint)

@@ -264,6 +264,18 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return nil, errors.Wrap(err, 0)
 		}
 
+		if params.IgnoreInstallers {
+			switch installerInfo.Type {
+			case installer.InstallerTypeArchive:
+				// that's cool
+			case installer.InstallerTypeNaked:
+				// that's cool too
+			default:
+				consumer.Infof("Asked to ignore installers, forcing (naked) instead of (%s)", installerInfo.Type)
+				installerInfo.Type = installer.InstallerTypeNaked
+			}
+		}
+
 		istate.InstallerInfo = installerInfo
 		oc.Save(isub)
 	} else {
@@ -355,7 +367,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 					}
 
 					oc.StartProgress()
-					err := DownloadInstallSource(oc, file, destPath)
+					err := DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
 					oc.EndProgress()
 					oc.consumer.Progress(0)
 					if err != nil {

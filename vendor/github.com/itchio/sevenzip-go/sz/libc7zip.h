@@ -67,6 +67,7 @@ MYEXPORT archive *archive_open(lib *l, in_stream *is, int32_t by_signature);
 MYEXPORT void archive_close(archive *a);
 MYEXPORT void archive_free(archive *a);
 MYEXPORT int64_t archive_get_item_count(archive *a);
+MYEXPORT char *archive_get_archive_format(archive *a);
 
 // copied from lib7zip.h so we don't have to include it
 enum property_index {

@@ -78,6 +78,10 @@ type InstallParams struct {
 	Upload        *itchio.Upload   `json:"upload"`
 	Build         *itchio.Build    `json:"build"`
 	Credentials   *GameCredentials `json:"credentials"`
+
+	// Optional parameters
+
+	IgnoreInstallers bool `json:"ignoreInstallers,omitempty"`
 }
 
 type UninstallParams struct {

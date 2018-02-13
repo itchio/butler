@@ -76,6 +76,11 @@ typedef void (*archive_free_t)(archive *a);
 DECLARE(archive_free)
 void libc7zip_archive_free(archive *a);
 
+// archive_get_archive_format
+typedef char *(*archive_get_archive_format_t)(archive *a);
+DECLARE(archive_get_archive_format)
+char *libc7zip_archive_get_archive_format(archive *a);
+
 // archive_get_item_count
 typedef int64_t (*archive_get_item_count_t)(archive *a);
 DECLARE(archive_get_item_count)

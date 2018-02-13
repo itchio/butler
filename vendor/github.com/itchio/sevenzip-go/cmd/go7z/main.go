@@ -63,7 +63,7 @@ func main() {
 	}
 	must(err)
 
-	log.Printf("Opened archive...")
+	log.Printf("Opened archive: format is (%s)", a.GetArchiveFormat())
 
 	itemCount, err := a.GetItemCount()
 	must(err)

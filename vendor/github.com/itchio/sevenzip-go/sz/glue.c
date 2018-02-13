@@ -53,6 +53,7 @@ int libc7zip_initialize(char *lib_path) {
   LOADSYM(archive_open)
   LOADSYM(archive_close)
   LOADSYM(archive_free)
+  LOADSYM(archive_get_archive_format)
   LOADSYM(archive_get_item_count)
   LOADSYM(archive_get_item)
 
@@ -129,6 +130,10 @@ void libc7zip_archive_close(archive *a) {
 
 void libc7zip_archive_free(archive *a) {
   return archive_free_(a);
+}
+
+char *libc7zip_archive_get_archive_format(archive *a) {
+  return archive_get_archive_format_(a);
 }
 
 int64_t libc7zip_archive_get_item_count(archive *a) {
