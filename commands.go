@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/apply2"
+	"github.com/itchio/butler/cmd/auditzip"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
@@ -89,6 +90,7 @@ func registerCommands(ctx *mansion.Context) {
 	unzip.Register(ctx)
 	unsz.Register(ctx)
 	untar.Register(ctx)
+	auditzip.Register(ctx)
 
 	repack.Register(ctx)
 
