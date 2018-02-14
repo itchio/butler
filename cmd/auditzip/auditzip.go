@@ -5,8 +5,11 @@ import (
 	"io"
 	"io/ioutil"
 
+	upstreamzip "archive/zip"
+
+	itchiozip "github.com/itchio/arkive/zip"
+
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/arkive/zip"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
@@ -17,12 +20,14 @@ import (
 )
 
 var args = struct {
-	file *string
+	file     *string
+	upstream *bool
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("auditzip", "Audit a zip file for common errors")
 	args.file = cmd.Arg("file", ".zip file to audit").Required().String()
+	args.upstream = cmd.Flag("upstream", "Use upstream zip implementation (archive/zip)").Bool()
 	ctx.Register(cmd, do)
 }
 
@@ -45,15 +50,19 @@ func Do(consumer *state.Consumer, file string) error {
 
 	consumer.Opf("Auditing (%s)...", stats.Name())
 
-	zr, err := zip.NewReader(f, stats.Size())
-	if err != nil {
-		return errors.Wrap(err, 0)
+	var impl ZipImpl
+	if *args.upstream {
+		consumer.Opf("Using upstream zip implementation")
+		impl = &upstreamImpl{}
+	} else {
+		consumer.Opf("Using itchio/arkive zip implementation")
+		impl = &itchioImpl{}
 	}
 
-	numEntries := len(zr.File)
 	paths := make(map[string]int)
-	checkEntry := func(index int, e *zip.File) error {
-		path := archive.CleanFileName(e.Name)
+	comm.StartProgress()
+	err = impl.EachEntry(f, stats.Size(), func(index int, name string, uncompressedSize int64, rc io.ReadCloser, numEntries int) error {
+		path := archive.CleanFileName(name)
 
 		comm.Progress(float64(index) / float64(numEntries))
 		comm.ProgressLabel(path)
@@ -63,40 +72,95 @@ func Do(consumer *state.Consumer, file string) error {
 		}
 		paths[path] = index
 
-		rc, err := e.Open()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		defer rc.Close()
-
 		actualSize, err := io.Copy(ioutil.Discard, rc)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		if actualSize != int64(e.UncompressedSize64) {
+		if actualSize != uncompressedSize {
 			err := fmt.Errorf("Dictionary says (%s) is %s (%d bytes), but it's actually %s (%d bytes)",
 				path,
-				humanize.IBytes(e.UncompressedSize64),
-				e.UncompressedSize64,
+				humanize.IBytes(uint64(uncompressedSize)),
+				uncompressedSize,
 				humanize.IBytes(uint64(actualSize)),
 				actualSize,
 			)
 			return errors.Wrap(err, 0)
 		}
 		return nil
+	})
+	comm.EndProgress()
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
-	comm.StartProgress()
-	for index, e := range zr.File {
-		err = checkEntry(index, e)
+	consumer.Statf("Everything checks out!")
+
+	return nil
+}
+
+// zip implementation types
+
+type EachEntryFunc func(index int, name string, uncompressedSize int64, rc io.ReadCloser, numEntries int) error
+
+type ZipImpl interface {
+	EachEntry(r io.ReaderAt, size int64, cb EachEntryFunc) error
+}
+
+// itchio zip impl
+
+type itchioImpl struct{}
+
+var _ ZipImpl = (*itchioImpl)(nil)
+
+func (a *itchioImpl) EachEntry(r io.ReaderAt, size int64, cb EachEntryFunc) error {
+	zr, err := itchiozip.NewReader(r, size)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	numEntries := len(zr.File)
+	for index, entry := range zr.File {
+		rc, err := entry.Open()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
+		rc.Close()
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 	}
-	comm.EndProgress()
 
-	consumer.Statf("Everything checks out!")
+	return nil
+}
+
+// upstream zip impl
+
+type upstreamImpl struct{}
+
+var _ ZipImpl = (*upstreamImpl)(nil)
+
+func (a *upstreamImpl) EachEntry(r io.ReaderAt, size int64, cb EachEntryFunc) error {
+	zr, err := upstreamzip.NewReader(r, size)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	numEntries := len(zr.File)
+	for index, entry := range zr.File {
+		rc, err := entry.Open()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
+		rc.Close()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
 
 	return nil
 }
