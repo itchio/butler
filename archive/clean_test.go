@@ -63,22 +63,14 @@ var cleantests = []PathTest{
 	{"abc/./../def", "def"},
 	{"abc//./../def", "def"},
 	{"abc/../../././../def", "../../def"},
-	{`c:`, `c:.`},
-	{`c:\`, `c:/`},
-	{`c:\abc`, `c:/abc`},
-	{`c:abc\..\..\.\.\..\def`, `c:../../def`},
-	{`c:\abc\def\..\..`, `c:/`},
-	{`c:\..\abc`, `c:/abc`},
-	{`c:..\abc`, `c:../abc`},
 	{`\`, `/`},
 	{`/`, `/`},
-	{`\\i\..\c$`, `/c$`},
-	{`\\i\..\i\c$`, `/i/c$`},
-	{`\\i\..\I\c$`, `/I/c$`},
-	{`\\host\share\foo\..\bar`, `//host/share/bar`},
-	{`//host/share/foo/../baz`, `//host/share/baz`},
-	{`\\a\b\..\c`, `//a/b/c`},
-	{`\\a\b`, `//a/b`},
+	{`abc\./../def`, "def"},
+	{`abc\./../def\\`, "def"},
+
+	// Note: tests with absolute windows-style file paths
+	// have been removed, since archive entries only contain
+	// relative paths
 }
 
 func TestCleanFileName(t *testing.T) {
