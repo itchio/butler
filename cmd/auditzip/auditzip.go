@@ -88,7 +88,7 @@ func Do(consumer *state.Consumer, file string) error {
 
 		actualSize, err := io.Copy(ioutil.Discard, rc)
 		if err != nil {
-			markError("while extracting: %s", err.Error())
+			markError(path, err.Error())
 			return nil
 		}
 
