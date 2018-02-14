@@ -50,6 +50,7 @@ func Do(ctx *mansion.Context, planPath string) error {
 		if err != nil {
 			if os.IsNotExist(err) {
 				// good, it's already gone!
+				continue
 			} else {
 				return errors.Wrap(err, 0)
 			}
