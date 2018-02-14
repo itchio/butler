@@ -96,7 +96,7 @@ func convertToUTF(str string, enc encoding.Encoding) (string, error) {
 	return string(converted), nil
 }
 
-var encodingDict = map[string] encoding.Encoding {
+var encodingDict = map[string]encoding.Encoding{
 	"Shift_JIS": japanese.ShiftJIS,
 }
 
@@ -479,26 +479,80 @@ func readDirectoryEnd(r io.ReaderAt, size int64) (dir *directoryEnd, err error) 
 	}
 	d.comment = string(b[:l])
 
-	var computedDirOffset int64
+	var computedDirectoryOffset int64
+	hasZip64Directory := false
 
 	// These values mean that the file can be a zip64 file
-	if d.directoryRecords == 0xffff || d.directorySize == 0xffff || d.directoryOffset == 0xffffffff {
+	//
+	// However, on macOS, some .zip files have a zip64 directory
+	// but doesn't have these values, cf. https://github.com/itchio/butler/issues/141
+	probablyZip64 := (d.directoryRecords == 0xffff || d.directorySize == 0xffff || d.directoryOffset == 0xffffffff)
+
+	var directory64EndOffset int64
+	{
 		p, err := findDirectory64End(r, directoryEndOffset)
 		if err == nil && p >= 0 {
+			directory64EndOffset = p
 			err = readDirectory64End(r, p, d)
-			computedDirOffset = p - int64(d.directorySize)
+			if err == nil {
+				hasZip64Directory = true
+			}
 		}
-		if err != nil {
+
+		if err != nil && probablyZip64 {
 			return nil, err
 		}
-	} else {
-		computedDirOffset = directoryEndOffset - int64(d.directorySize)
 	}
 
-	if computedDirOffset > 0 && computedDirOffset != int64(d.directoryOffset) {
-		startSkipLen := uint64(computedDirOffset) - d.directoryOffset
-		d.directoryOffset = uint64(computedDirOffset)
-		d.startSkipLen = startSkipLen
+	if hasZip64Directory {
+		// cf. https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html
+		// `directorySize` does not include
+		//  - Zip64 end of central directory record
+		//  - Zip64 end of central directory locator
+		// and we don't want to be a few bytes off, now do we.
+		computedDirectoryOffset = directory64EndOffset - int64(d.directorySize)
+	} else {
+		computedDirectoryOffset = directoryEndOffset - int64(d.directorySize)
+	}
+
+	//
+	// Pure .zip files look like this:
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//                     <-----d.directorySize----->
+	// [ Data 1 ][ Data 2 ][    Central directory    ][ ??? ]
+	// ^                   ^                          ^
+	// 0                   d.directoryOffset          directoryEndOffset
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// But there exist some valid zip archives with padding at the beginning, like so:
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// <--startSkipLen-->                    <-----d.directorySize----->
+	// [    Padding     ][ Data 1 ][ Data 2 ][    Central directory    ][ ??? ]
+	// ^                 ^                   ^                         ^
+	// 0                 startSkipLen        computedDirectoryOffset   directoryEndOffset
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// (e.g. https://www.icculus.org/mojosetup/ installers are ELF binaries with a .zip file appended)
+	//
+	// `directoryEndOffset` is found by scanning the file (so it accounts for padding), but
+	// `d.directoryOffset` is found by reading a data structure (so it does not account for padding).
+	// If we just trusted `d.directoryOffset`, we'd be reading the central directory at the wrong place:
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//                                       <-----d.directorySize----->
+	// [    Padding     ][ Data 1 ][ Data 2 ][    Central directory    ][ ??? ]
+	// ^                   ^                                           ^
+	// 0                   d.directoryOffset - woops!                  directoryEndOffset
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// did we find a valid offset?
+	if computedDirectoryOffset > 0 && computedDirectoryOffset < size {
+		// that's different from the recorded one?
+		if computedDirectoryOffset != int64(d.directoryOffset) {
+			// then assume `startSkipLen` padding
+			startSkipLen := uint64(computedDirectoryOffset) - d.directoryOffset
+			d.directoryOffset = uint64(computedDirectoryOffset)
+			d.startSkipLen = startSkipLen
+		}
 	}
 
 	// Make sure directoryOffset points to somewhere in our file.
