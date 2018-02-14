@@ -1,202 +1,142 @@
-package clean
+package clean_test
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/itchio/butler/mansion"
+	"github.com/go-errors/errors"
+	"github.com/itchio/butler/cmd/clean"
+	"github.com/itchio/wharf/wtest"
 	"github.com/stretchr/testify/assert"
 )
 
-func initTestDirectory() error {
-	return os.Mkdir("tests", os.ModeDir)
-}
+func withTestDirectory(f func(testDir string) error) error {
+	testDir, err := ioutil.TempDir("", "cmd-clean-tests")
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
 
-func removeTestDirectory() error {
-	return os.Remove("tests")
+	err = os.MkdirAll(testDir, 0755)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	defer os.RemoveAll(testDir)
+
+	err = f(testDir)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	return nil
 }
 
 func TestBadPlanPath(t *testing.T) {
-	ctx := &mansion.Context{}
-	err := Do(ctx, "notafile.garbage")
+	err := clean.Do("notafile.garbage")
 	assert.NotNil(t, err)
 }
 
 func TestBadJSON(t *testing.T) {
-	err := initTestDirectory()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err = removeTestDirectory()
+	wtest.Must(t, withTestDirectory(func(testDir string) error {
+		planPath := filepath.Join(testDir, "plan.json")
+		invalidJSON := "this is not valid json { { { ] ] ] ]- - -"
+		err := ioutil.WriteFile(planPath, []byte(invalidJSON), 0644)
 		if err != nil {
-			t.Fatal(err)
+			return errors.Wrap(err, 0)
 		}
-	}()
-	ctx := &mansion.Context{}
-	planPath := filepath.Join("tests", "badfile")
-	f, err := os.Create(planPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err := os.Remove(planPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	_, err = f.Write([]byte("this is not valid json { { { ] ] ] ]- - -"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = f.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = Do(ctx, planPath)
-	assert.NotNil(t, err)
+
+		assert.Error(t, clean.Do(planPath))
+		return nil
+	}))
 }
 
 func TestAlreadyRemoved(t *testing.T) {
-	err := initTestDirectory()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err = removeTestDirectory()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	ctx := &mansion.Context{}
-	planPath := filepath.Join("tests", "plan.json")
-	f, err := os.Create(planPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err := os.Remove(planPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	_, err = f.Write([]byte(
-		`{
-		  "basePath": "tests",
+	wtest.Must(t, withTestDirectory(func(testDir string) error {
+		planPath := filepath.Join(testDir, "plan.json")
+		planContents := fmt.Sprintf(`{
+		  "basePath": %#v,
 		  "entries": [
 			"already-removed"
 		  ]
-		}`,
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = f.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = Do(ctx, planPath)
-	assert.Nil(t, err)
+		}`, testDir)
+		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		assert.NoError(t, clean.Do(planPath))
+		return nil
+	}))
 }
 
 func TestRemoveFail(t *testing.T) {
-	err := initTestDirectory()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err = removeTestDirectory()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	ctx := &mansion.Context{}
-	// Try to remove plan, which in this test, we don't close.
-	// This should fail on some platforms and succeed on others.
-	planPath := filepath.Join("tests", "plan.json")
-	f, err := os.Create(planPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err = f.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-		err := os.Remove(planPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	_, err = f.Write([]byte(
-		`{
-		  "basePath": "tests",
+	wtest.Must(t, withTestDirectory(func(testDir string) error {
+		planPath := filepath.Join(testDir, "badfile")
+		// Try to remove plan, which in this test, we don't close.
+		// This should fail on some platforms and succeed on others.
+		planContents := fmt.Sprintf(`{
+		  "basePath": %#v,
 		  "entries": [
-			"plan.json"
+			"nonempty"
 		  ]
-		}`,
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = Do(ctx, planPath)
-	// Todo: update for OSes that this succeeds on,
-	// hypothetically linux is ok with removing open file descriptors
-	assert.NotNil(t, err)
+		}`, testDir)
+		pf, err := os.OpenFile(planPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0644)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		_, err = pf.Write([]byte(planContents))
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		// Well, since it fails on some platforms and succeeds on others,
+		// we can't assert anything here.
+		clean.Do(planPath)
+
+		return nil
+	}))
 }
 
 func TestHappyPath(t *testing.T) {
-	err := initTestDirectory()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err = removeTestDirectory()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	ctx := &mansion.Context{}
-	planPath := filepath.Join("tests", "plan.json")
-	f, err := os.Create(planPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		err := os.Remove(planPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	_, err = f.Write([]byte(
-		`{
-		  "basePath": "tests",
+	wtest.Must(t, withTestDirectory(func(testDir string) error {
+		planPath := filepath.Join(testDir, "plan.json")
+		planContents := fmt.Sprintf(`{
+		  "basePath": %#v,
 		  "entries": [
 			"exists.txt",
 			"a-directory"
 		  ]
-		}`,
-	))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = f.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	f, err = os.Create(filepath.Join("tests", "exists.txt"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = f.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = os.Mkdir(filepath.Join("tests", "a-directory"), os.ModeDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = Do(ctx, planPath)
-	assert.Nil(t, err)
+		}`, testDir)
+		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		// prepare files to be cleaned
+		aFilePath := filepath.Join(testDir, "exists.txt")
+		err = ioutil.WriteFile(aFilePath, []byte{'P', 'K'}, 0644)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		aDirPath := filepath.Join(testDir, "a-directory")
+		err = os.Mkdir(aDirPath, 0755)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		assert.NoError(t, clean.Do(planPath))
+
+		// make sure they're gone
+		_, err = os.Stat(aFilePath)
+		assert.Error(t, err)
+		assert.True(t, os.IsNotExist(err))
+		_, err = os.Stat(aDirPath)
+		assert.Error(t, err)
+		assert.True(t, os.IsNotExist(err))
+
+		return nil
+	}))
 }

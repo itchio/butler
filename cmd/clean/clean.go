@@ -23,10 +23,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.plan))
+	ctx.Must(Do(*args.plan))
 }
 
-func Do(ctx *mansion.Context, planPath string) error {
+func Do(planPath string) error {
 	startTime := time.Now()
 
 	contents, err := ioutil.ReadFile(planPath)
