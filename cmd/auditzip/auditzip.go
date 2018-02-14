@@ -64,6 +64,7 @@ func Do(consumer *state.Consumer, file string) error {
 	markError := func(path string, message string, args ...interface{}) {
 		formatted := fmt.Sprintf(message, args...)
 		fullMessage := fmt.Sprintf("(%s): %s", path, formatted)
+		consumer.Errorf(fullMessage)
 		foundErrors = append(foundErrors, fullMessage)
 	}
 
