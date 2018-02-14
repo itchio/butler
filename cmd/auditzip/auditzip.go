@@ -144,10 +144,7 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 		compressedSize += int64(entry.CompressedSize64)
 		uncompressedSize += int64(entry.UncompressedSize64)
 	}
-	consumer.Statf("Archive size      : %s (%d bytes)", humanize.IBytes(uint64(size)), size)
-	consumer.Statf("Sum (compressed)  : %s (%d bytes)", humanize.IBytes(uint64(compressedSize)), compressedSize)
-	consumer.Statf("Sum (uncompressed): %s (%d bytes)", humanize.IBytes(uint64(uncompressedSize)), uncompressedSize)
-	consumer.Statf("Comment: (%s)", zr.Comment)
+	printExtras(consumer, size, compressedSize, uncompressedSize, zr.Comment)
 
 	foundMethods := make(map[uint16]int)
 	for _, entry := range zr.File {
@@ -190,11 +187,8 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 		compressedSize += int64(entry.CompressedSize64)
 		uncompressedSize += int64(entry.UncompressedSize64)
 	}
-	consumer.Statf("Archive size      : %s (%d bytes)", humanize.IBytes(uint64(size)), size)
-	consumer.Statf("Sum (compressed)  : %s (%d bytes)", humanize.IBytes(uint64(compressedSize)), compressedSize)
-	consumer.Statf("Sum (uncompressed): %s (%d bytes)", humanize.IBytes(uint64(uncompressedSize)), uncompressedSize)
+	printExtras(consumer, size, compressedSize, uncompressedSize, zr.Comment)
 
-	consumer.Statf("Comment: (%s)", zr.Comment)
 	foundMethods := make(map[uint16]int)
 	for _, entry := range zr.File {
 		foundMethods[entry.Method] = foundMethods[entry.Method] + 1
@@ -220,17 +214,29 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 
 // utils
 
+func printExtras(consumer *state.Consumer, size int64, compressedSize int64, uncompressedSize int64, comment string) {
+	consumer.Infof("Comment: (%s)", comment)
+	consumer.Infof("Sizes: ")
+	consumer.Infof(" → Archive size      : %s (%d bytes)", humanize.IBytes(uint64(size)), size)
+	consumer.Infof(" → Sum (compressed)  : %s (%d bytes)", humanize.IBytes(uint64(compressedSize)), compressedSize)
+	consumer.Infof(" → Sum (uncompressed): %s (%d bytes)", humanize.IBytes(uint64(uncompressedSize)), uncompressedSize)
+	if compressedSize > uncompressedSize {
+		consumer.Warnf("Compressed size is larger than uncompressed, that's suspicious.")
+	}
+}
+
 func printFoundMethods(consumer *state.Consumer, foundMethods map[uint16]int) {
+	consumer.Infof("Entries: ")
 	for method, count := range foundMethods {
 		switch method {
 		case itchiozip.Store:
-			consumer.Statf("%d STORE entries", count)
+			consumer.Infof(" → %d STORE entries", count)
 		case itchiozip.Deflate:
-			consumer.Statf("%d DEFLATE entries", count)
+			consumer.Infof(" → %d DEFLATE entries", count)
 		case itchiozip.LZMA:
-			consumer.Statf("%d LZMA entries", count)
+			consumer.Infof(" → %d LZMA entries", count)
 		default:
-			consumer.Statf("%d entries with unknown method (%d)", count, method)
+			consumer.Infof(" → %d entries with unknown method (%d)", count, method)
 		}
 	}
 }
