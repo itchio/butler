@@ -56,6 +56,7 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 	if err != nil {
 		return errors.Wrap(err, 1)
 	}
+	defer signatureWriter.Close()
 
 	rawSigWire := wire.NewWriteContext(signatureWriter)
 	rawSigWire.WriteMagic(pwr.SignatureMagic)
