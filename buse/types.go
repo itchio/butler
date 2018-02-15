@@ -184,7 +184,8 @@ type CheckUpdateItem struct {
 }
 
 type CheckUpdateResult struct {
-	Updates []*GameUpdate `json:"updates"`
+	Updates  []*GameUpdate `json:"updates"`
+	Warnings []string      `json:"warnings"`
 }
 
 type GameUpdate struct {

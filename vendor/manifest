@@ -225,7 +225,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "708f105b886149cc0c72f7cbd098aca3dfeb95b4",
+			"revision": "75742ae58751b16296160a826fa65f3ffeebbf91",
 			"branch": "master",
 			"notests": true
 		},
@@ -552,6 +552,14 @@
 			"vcs": "git",
 			"revision": "1087e65c9441605df944fb12c33f0fe7072d18ca",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/jarcoal/httpmock.v1",
+			"repository": "https://gopkg.in/jarcoal/httpmock.v1",
+			"vcs": "git",
+			"revision": "cf52904a3cf0f78f199ecade6a6df8e245d5b25a",
+			"branch": "v1",
 			"notests": true
 		}
 	]

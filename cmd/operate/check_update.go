@@ -5,18 +5,19 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 )
 
-func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer) (*buse.CheckUpdateResult, error) {
+func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness harness.Harness) (*buse.CheckUpdateResult, error) {
 	res := &buse.CheckUpdateResult{}
 
 	for _, item := range params.Items {
 		ml := &memoryLogger{}
 		update, err := checkUpdateItem(ml.Consumer(), item)
 		if err != nil {
-			consumer.Warnf("==============================================")
+			res.Warnings = append(res.Warnings, err.Error())
 			if se, ok := err.(*errors.Error); ok {
 				consumer.Warnf("An update check failed: %s", se.ErrorStack())
 			} else {
@@ -24,9 +25,11 @@ func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer) (*bus
 			}
 			consumer.Warnf("Log follows:")
 			ml.Copy(consumer)
-			consumer.Warnf("==============================================")
+			consumer.Warnf("End of log")
 		} else {
-			res.Updates = append(res.Updates, update)
+			if update != nil {
+				res.Updates = append(res.Updates, update)
+			}
 		}
 	}
 
@@ -40,6 +43,10 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 		return nil, errors.New("missing itemId")
 	}
 
+	if item.Credentials == nil {
+		return nil, errors.New("missing credentials")
+	}
+
 	if item.Game == nil {
 		return nil, errors.New("missing game")
 	}
@@ -48,7 +55,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 		return nil, errors.New("missing upload")
 	}
 
-	consumer.Statf("Checking for updates to %s", GameToString(item.Game))
+	consumer.Statf("Checking for updates to (%s)", GameToString(item.Game))
 	consumer.Statf("Item ID (%s)", item.ItemID)
 	consumer.Infof("→ Cached upload:")
 	LogUpload(consumer, item.Upload, item.Build)
@@ -61,7 +68,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 
 	installedAt, err := buse.FromDateTime(item.InstalledAt)
 	if err != nil {
-		consumer.Warnf("Could not parsed installedAt: %s", err.Error())
+		consumer.Warnf("Could not parse installedAt: %s", err.Error())
 		installedAt = time.Unix(0, 0)
 		consumer.Warnf("Assuming unix 0 time")
 	}
@@ -127,7 +134,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 	{
 		consumer.Infof("We have no build installed, comparing build numbers...")
 		if freshUpload.Build == nil {
-			return nil, errors.New("We have a build installed but fresh upload doesn't. This shouldn't happen")
+			return nil, errors.New("We have a build installed but fresh upload has none. This shouldn't happen")
 		}
 
 		if freshUpload.Build.ID > item.Build.ID {

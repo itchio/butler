@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/go-errors/errors"
@@ -28,6 +29,7 @@ func do(ctx *mansion.Context) {
 
 type handler struct {
 	ctx              *mansion.Context
+	harness          harness.Harness
 	operationHandles map[string]*operationHandle
 }
 
@@ -115,7 +117,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					return errors.Wrap(err, 0)
 				}
 
-				res, err := operate.CheckUpdate(params, consumer)
+				res, err := operate.CheckUpdate(params, consumer, h.harness)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
@@ -283,6 +285,7 @@ func Do(ctx *mansion.Context) error {
 
 	ha := &handler{
 		ctx:              ctx,
+		harness:          harness.NewProductionHarness(),
 		operationHandles: make(map[string]*operationHandle),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
