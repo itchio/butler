@@ -12,8 +12,7 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
-type Server struct {
-}
+type Server struct{}
 
 func NewServer() *Server {
 	return &Server{}
