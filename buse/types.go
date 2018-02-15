@@ -189,10 +189,10 @@ type CheckUpdateResult struct {
 }
 
 type GameUpdate struct {
-	ItemID string `json:"itemId"`
-	Game   *itchio.Game
-	Upload *itchio.Upload
-	Build  *itchio.Build
+	ItemID string         `json:"itemId"`
+	Game   *itchio.Game   `json:"game"`
+	Upload *itchio.Upload `json:"upload"`
+	Build  *itchio.Build  `json:"build"`
 }
 
 //----------------------------------------------------------------------
