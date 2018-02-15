@@ -1,6 +1,7 @@
 package operate
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -10,7 +11,7 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness harness.Harness) (*buse.CheckUpdateResult, error) {
+func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness harness.Harness, ctx context.Context, conn Conn) (*buse.CheckUpdateResult, error) {
 	res := &buse.CheckUpdateResult{}
 
 	for _, item := range params.Items {
@@ -29,6 +30,10 @@ func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harne
 		} else {
 			if update != nil {
 				res.Updates = append(res.Updates, update)
+				err := conn.Notify(ctx, "GameUpdateAvailable", update)
+				if err != nil {
+					consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
+				}
 			}
 		}
 	}

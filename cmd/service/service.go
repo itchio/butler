@@ -117,7 +117,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 					return errors.Wrap(err, 0)
 				}
 
-				res, err := operate.CheckUpdate(params, consumer, h.harness)
+				res, err := operate.CheckUpdate(params, consumer, h.harness, ctx, &jsonrpc2Conn{conn})
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}

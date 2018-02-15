@@ -188,6 +188,10 @@ type CheckUpdateResult struct {
 	Warnings []string      `json:"warnings"`
 }
 
+type GameUpdateAvailableNotification struct {
+	Update *GameUpdate `json:"update"`
+}
+
 type GameUpdate struct {
 	ItemID string         `json:"itemId"`
 	Game   *itchio.Game   `json:"game"`

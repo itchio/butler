@@ -1,6 +1,7 @@
 package operate_test
 
 import (
+	"context"
 	"testing"
 
 	"gopkg.in/jarcoal/httpmock.v1"
@@ -9,6 +10,7 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/itchio/butler/cmd/operate/harness/mockharness"
+	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wtest"
@@ -20,20 +22,22 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		item := &buse.CheckUpdateItem{
 			InstalledAt: "2017-04-04T09:32:00Z",
 		}
+		consumer := &state.Consumer{
+			OnMessage: func(level string, message string) {
+				t.Logf("[%s] [%s]", level, message)
+			},
+		}
+		ctx := context.Background()
+		conn := loopbackconn.New(consumer)
 
 		params := &buse.CheckUpdateParams{
 			Items: []*buse.CheckUpdateItem{
 				item,
 			},
 		}
-		consumer := &state.Consumer{
-			OnMessage: func(level string, message string) {
-				t.Logf("[%s] [%s]", level, message)
-			},
-		}
 
 		{
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing itemId")
@@ -41,7 +45,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.ItemID = "foo-bar"
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing credentials")
@@ -49,7 +53,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.Credentials = testCredentials
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing game")
@@ -57,7 +61,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.Game = testGame
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing upload")
@@ -66,7 +70,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		{
 			item.Upload = testUpload()
 			httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", httpmock.NewBytesResponder(404, nil))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "Server returned 404")
@@ -78,7 +82,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 			httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, &itchio.ListGameUploadsResponse{
 				Uploads: nil,
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -96,7 +100,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -115,7 +119,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))
@@ -141,7 +145,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "have no build installed but fresh upload has one")
@@ -169,7 +173,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -198,7 +202,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))
@@ -224,7 +228,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "have a build installed but fresh upload has none")
@@ -245,7 +249,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h)
+			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))
