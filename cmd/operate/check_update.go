@@ -30,7 +30,9 @@ func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harne
 		} else {
 			if update != nil {
 				res.Updates = append(res.Updates, update)
-				err := conn.Notify(ctx, "GameUpdateAvailable", update)
+				err := conn.Notify(ctx, "GameUpdateAvailable", &buse.GameUpdateAvailableNotification{
+					Update: update,
+				})
 				if err != nil {
 					consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
 				}
