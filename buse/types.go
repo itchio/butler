@@ -1,6 +1,8 @@
 package buse
 
 import (
+	"time"
+
 	"github.com/itchio/butler/cmd/launch/manifest"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
@@ -162,6 +164,34 @@ type InstallResult struct {
 	Upload *itchio.Upload `json:"upload"`
 	Build  *itchio.Build  `json:"build"`
 	// TODO: verdict ?
+}
+
+//----------------------------------------------------------------------
+// CheckUpdate
+//----------------------------------------------------------------------
+
+type CheckUpdateParams struct {
+	Items []*CheckUpdateItem `json:"items"`
+}
+
+type CheckUpdateItem struct {
+	ItemID      string           `json:"itemId"`
+	InstalledAt string           `json:"installedAt"`
+	Game        *itchio.Game     `json:"game"`
+	Upload      *itchio.Upload   `json:"upload"`
+	Build       *itchio.Build    `json:"build,omitempty"`
+	Credentials *GameCredentials `json:"credentials"`
+}
+
+type CheckUpdateResult struct {
+	Updates []*GameUpdate `json:"updates"`
+}
+
+type GameUpdate struct {
+	ItemID string `json:"itemId"`
+	Game   *itchio.Game
+	Upload *itchio.Upload
+	Build  *itchio.Build
 }
 
 //----------------------------------------------------------------------
@@ -335,3 +365,13 @@ const (
 	CodeOperationCancelled = 499
 	CodeOperationAborted   = 410
 )
+
+// Dates
+
+func FromDateTime(s string) (time.Time, error) {
+	return time.Parse(time.RFC3339, s)
+}
+
+func ToDateTime(t time.Time) string {
+	return t.Format(time.RFC3339)
+}

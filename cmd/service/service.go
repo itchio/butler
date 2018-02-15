@@ -99,6 +99,29 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
 				Number: dres.Number * 2,
 			})
+		case "CheckUpdate":
+			{
+				params := &buse.CheckUpdateParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+					Conn: &jsonrpc2Conn{conn},
+					Ctx:  ctx,
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				res, err := operate.CheckUpdate(params, consumer)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				return conn.Reply(ctx, req.ID, res)
+			}
 		case "CleanDownloads.Search":
 			{
 				params := &buse.CleanDownloadsSearchParams{}

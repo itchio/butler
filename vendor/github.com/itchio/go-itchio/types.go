@@ -59,6 +59,9 @@ type Upload struct {
 	Linux   bool   `json:"pLinux"`
 	Windows bool   `json:"pWindows"`
 	Android bool   `json:"pAndroid"`
+
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 // BuildFile contains information about a build's "file", which could be its
