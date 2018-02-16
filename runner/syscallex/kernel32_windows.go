@@ -58,27 +58,6 @@ type JobObjectBasicProcessIdList struct {
 	ProcessIdList             [1]uint64
 }
 
-type JobObjectExtendedLimitInformation struct {
-	BasicLimitInformation JobObjectBasicLimitInformation
-	IoInfo                IoCounters
-	ProcessMemoryLimit    uintptr
-	JobMemoryLimit        uintptr
-	PeakProcessMemoryUsed uintptr
-	PeakJobMemoryUsed     uintptr
-}
-
-type JobObjectBasicLimitInformation struct {
-	PerProcessUserTimeLimit uint64
-	PerJobUserTimeLimit     uint64
-	LimitFlags              uint32
-	MinimumWorkingSetSize   uintptr
-	MaximumWorkingSetSize   uintptr
-	ActiveProcessLimit      uint32
-	Affinity                uintptr // originally ULONG_PTR
-	PriorityClass           uint32
-	SchedulingClass         uint32
-}
-
 type IoCounters struct {
 	ReadOperationCount  uint64
 	WriteOperationCount uint64
