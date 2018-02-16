@@ -30,7 +30,6 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-// #cgo windows LDFLAGS: -Wl,--allow-multiple-definition -static
 import "C"
 
 var (
