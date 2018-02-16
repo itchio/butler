@@ -144,14 +144,18 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 func resultForContainer(c *tlc.Container) *installer.InstallResult {
 	res := &installer.InstallResult{
-		Files: nil,
+		Files: make([]string, len(c.Files)+len(c.Symlinks)),
 	}
 
+	i := 0
+
 	for _, f := range c.Files {
-		res.Files = append(res.Files, f.Path)
+		res.Files[i] = f.Path
+		i++
 	}
 	for _, f := range c.Symlinks {
-		res.Files = append(res.Files, f.Path)
+		res.Files[i] = f.Path
+		i++
 	}
 
 	return res

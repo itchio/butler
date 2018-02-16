@@ -2,7 +2,11 @@
 
 package msi
 
-import "github.com/winlabs/gowin32"
+import (
+	"sync"
+
+	"github.com/winlabs/gowin32"
+)
 
 func installStateToString(state gowin32.InstallState) string {
 	switch state {
@@ -34,14 +38,10 @@ func installStateToString(state gowin32.InstallState) string {
 	return "<Unsupported>"
 }
 
-var msiInitialized = false
+var msiInitialized sync.Once
 
 func initMsi() {
-	if msiInitialized {
-		return
-	}
-
-	gowin32.SetInstallerInternalUI(gowin32.InstallUILevelNone)
-
-	msiInitialized = true
+	msiInitialized.Do(func() {
+		gowin32.SetInstallerInternalUI(gowin32.InstallUILevelNone)
+	})
 }

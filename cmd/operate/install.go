@@ -336,8 +336,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return res, nil
 	}
 
-	var firstInstallResult *installer.InstallResult
-	firstInstallResult = istate.FirstInstallResult
+	firstInstallResult := istate.FirstInstallResult
 
 	if firstInstallResult != nil {
 		consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))

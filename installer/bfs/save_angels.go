@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
-	"github.com/itchio/wharf/tlc"
 )
 
 type SaveAngelsParams struct {
@@ -108,8 +107,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 	if merging {
 		redempt := func() error {
 			// now, save angels if any
-			var previousContainer *tlc.Container
-			previousContainer, err = Walk(previousPath)
+			previousContainer, err := Walk(previousPath)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}

@@ -150,17 +150,17 @@ func (hsf *highestScoreFirst) Swap(i, j int) {
 }
 
 func sortUploads(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
-	var scoredUploads []*scoredUpload
+	scoredUploads := make([]*scoredUpload, len(uploads))
 
-	for _, u := range uploads {
-		scoredUploads = append(scoredUploads, scoreUpload(u, runtime))
+	for i, u := range uploads {
+		scoredUploads[i] = scoreUpload(u, runtime)
 	}
 
 	sort.Stable(&highestScoreFirst{scoredUploads})
 
-	var res []*itchio.Upload
-	for _, su := range scoredUploads {
-		res = append(res, su.upload)
+	res := make([]*itchio.Upload, len(scoredUploads))
+	for i, su := range scoredUploads {
+		res[i] = su.upload
 	}
 
 	return res

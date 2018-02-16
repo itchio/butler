@@ -129,7 +129,7 @@ func (a *Action) ExpandPath(runtime *manager.Runtime, baseFolder string) string 
 
 	path := a.Path
 	if strings.Contains(path, "{{EXT}}") {
-		var ext = ""
+		ext := ""
 		switch runtime.Platform {
 		case manager.ItchPlatformWindows:
 			ext = ".exe"
