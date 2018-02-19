@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
+	"github.com/itchio/butler/cmd/dbtest"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/dl"
@@ -108,4 +109,6 @@ func registerCommands(ctx *mansion.Context) {
 	service.Register(ctx)
 
 	winsandbox.Register(ctx)
+
+	dbtest.Register(ctx)
 }
