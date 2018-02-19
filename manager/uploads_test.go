@@ -22,7 +22,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-		Uploads:        nil,
+		Uploads:        []*itchio.Upload{},
 		InitialUploads: nil,
 	}, manager.NarrowDownUploads(nil, game, linux64), "empty is empty")
 
@@ -41,7 +41,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		HadWrongFormat: true,
 		HadWrongArch:   false,
-		Uploads:        nil,
+		Uploads:        []*itchio.Upload{},
 		InitialUploads: debrpm,
 	}, manager.NarrowDownUploads(debrpm, game, linux64), "blacklist .deb and .rpm files")
 
@@ -60,7 +60,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		HadWrongFormat: true,
 		HadWrongArch:   false,
-		Uploads:        nil,
+		Uploads:        []*itchio.Upload{},
 		InitialUploads: blacklistpkg,
 	}, manager.NarrowDownUploads(blacklistpkg, game, mac64), "blacklist .pkg files")
 

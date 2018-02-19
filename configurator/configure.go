@@ -425,19 +425,15 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 		BasePath: root,
 	}
 
-	var pool wsync.Pool
-
 	container, err := tlc.WalkAny(root, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		comm.Logf("Could not walk %s: %s", root, err.Error())
 		return verdict, nil
 	}
 
-	if pool == nil {
-		pool, err = pools.New(container, root)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+	pool, err := pools.New(container, root)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	defer pool.Close()
@@ -893,9 +889,9 @@ func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
 	}
 	sort.Stable(&HighestScoreFirst{scoredCandidates})
 
-	var finalCandidates []*Candidate
-	for _, scored := range scoredCandidates {
-		finalCandidates = append(finalCandidates, scored.candidate)
+	finalCandidates := make([]*Candidate, len(scoredCandidates))
+	for i, scored := range scoredCandidates {
+		finalCandidates[i] = scored.candidate
 	}
 
 	v.Candidates = finalCandidates

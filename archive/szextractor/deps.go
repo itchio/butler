@@ -119,9 +119,11 @@ func ensureDeps(consumer *state.Consumer) error {
 			}
 
 			// oh go, I'm so disappoint in you right now
-			var writers []io.Writer
+			writers := make([]io.Writer, len(hashes))
+			i := 0
 			for _, h := range hashes {
-				writers = append(writers, h)
+				writers[i] = h
+				i++
 			}
 			mw := io.MultiWriter(writers...)
 

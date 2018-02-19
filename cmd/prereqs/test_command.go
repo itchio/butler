@@ -51,9 +51,11 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		table.SetColWidth(60)
 		table.SetHeader([]string{"Name", "Arch", "Description", "Version"})
 
-		var entries []*NamedRedistEntry
+		entries := make([]*NamedRedistEntry, len(registry.Entries))
+		i := 0
 		for name, v := range registry.Entries {
-			entries = append(entries, &NamedRedistEntry{name, v})
+			entries[i] = &NamedRedistEntry{name, v}
+			i++
 		}
 		sort.Stable(&entriesByArch{entries})
 		sort.Stable(&entriesByName{entries})

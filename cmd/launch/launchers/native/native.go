@@ -94,9 +94,10 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		consumer.Infof("Giving app temp dir (%s)", tempDir)
 	}
 
-	var envKeys []string
+	envKeys := make([]string, len(envMap))
+	i := 0
 	for k := range envMap {
-		envKeys = append(envKeys, k)
+		envKeys[i] = k
 	}
 	consumer.Infof("Environment variables passed: %s", strings.Join(envKeys, ", "))
 

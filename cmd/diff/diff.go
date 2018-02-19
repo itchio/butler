@@ -18,7 +18,6 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
-	"github.com/itchio/wharf/wsync"
 )
 
 var args = struct {
@@ -60,8 +59,6 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(params *Params) error {
-	var err error
-
 	startTime := time.Now()
 
 	targetSignature := &pwr.SignatureInfo{}
@@ -107,7 +104,7 @@ func Do(params *Params) error {
 		return nil
 	}
 
-	err = readAsSignature()
+	err := readAsSignature()
 
 	if err != nil {
 		if errors.Is(err, wire.ErrFormat) || errors.Is(err, io.EOF) {
@@ -117,8 +114,7 @@ func Do(params *Params) error {
 			comm.Opf("Hashing %s", params.Target)
 
 			comm.StartProgress()
-			var targetPool wsync.Pool
-			targetPool, err = pools.New(targetSignature.Container, params.Target)
+			targetPool, err := pools.New(targetSignature.Container, params.Target)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -141,14 +137,12 @@ func Do(params *Params) error {
 
 	startTime = time.Now()
 
-	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(params.Source, &tlc.WalkOpts{Filter: filtering.FilterPaths})
+	sourceContainer, err := tlc.WalkAny(params.Source, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	var sourcePool wsync.Pool
-	sourcePool, err = pools.New(sourceContainer, params.Source)
+	sourcePool, err := pools.New(sourceContainer, params.Source)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
