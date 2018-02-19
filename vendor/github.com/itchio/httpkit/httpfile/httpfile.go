@@ -18,6 +18,8 @@ import (
 	"syscall"
 	"time"
 
+	goerrors "errors"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
@@ -42,9 +44,9 @@ const maxDiscard int64 = 1 * 1024 * 1024 // 1MB
 const maxRenewals = 5
 
 // ErrNotFound is returned when the HTTP server returns 404 - it's not considered a temporary error
-var ErrNotFound = errors.New("HTTP file not found on server")
+var ErrNotFound = goerrors.New("HTTP file not found on server")
 
-var ErrTooManyRenewals = errors.New("Giving up, getting too many renewals. Try again later or contact support.")
+var ErrTooManyRenewals = goerrors.New("Giving up, getting too many renewals. Try again later or contact support.")
 
 type hstats struct {
 	connectionWait time.Duration

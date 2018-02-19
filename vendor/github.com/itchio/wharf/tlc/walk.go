@@ -65,10 +65,6 @@ func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 	}
 
 	if stat.IsDir() {
-		if err != nil {
-			return nil, errors.Wrap(err, 1)
-		}
-
 		// local directory case
 		return WalkDir(containerPath, opts)
 	}

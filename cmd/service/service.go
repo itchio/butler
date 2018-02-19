@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/go-errors/errors"
@@ -28,6 +29,7 @@ func do(ctx *mansion.Context) {
 
 type handler struct {
 	ctx              *mansion.Context
+	harness          harness.Harness
 	operationHandles map[string]*operationHandle
 }
 
@@ -99,6 +101,29 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
 				Number: dres.Number * 2,
 			})
+		case "CheckUpdate":
+			{
+				params := &buse.CheckUpdateParams{}
+				err := json.Unmarshal(*req.Params, params)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+					Conn: &jsonrpc2Conn{conn},
+					Ctx:  ctx,
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				res, err := operate.CheckUpdate(params, consumer, h.harness, ctx, &jsonrpc2Conn{conn})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				return conn.Reply(ctx, req.ID, res)
+			}
 		case "CleanDownloads.Search":
 			{
 				params := &buse.CleanDownloadsSearchParams{}
@@ -260,6 +285,7 @@ func Do(ctx *mansion.Context) error {
 
 	ha := &handler{
 		ctx:              ctx,
+		harness:          harness.NewProductionHarness(),
 		operationHandles: make(map[string]*operationHandle),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
