@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,18 +31,27 @@ func doMain() error {
 	}
 	log.Printf("Working directory: (%s)", wd)
 
-	outPath := filepath.Join(wd, "docs", "README.md")
-	log.Printf("Out path: (%s)", outPath)
-
-	out, err := os.Create(outPath)
+	layoutPath := filepath.Join(wd, "layout.md")
+	log.Printf("Reading layout from: (%s)", layoutPath)
+	layoutBytes, err := ioutil.ReadFile(layoutPath)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer out.Close()
+
+	doc := string(layoutBytes)
+	buffer := ""
+
+	outPath := filepath.Join(wd, "docs", "README.md")
+	log.Printf("Out path: (%s)", outPath)
 
 	line := func(msg string, args ...interface{}) {
-		out.WriteString(fmt.Sprintf(msg, args...))
-		out.WriteString("\n")
+		buffer += fmt.Sprintf(msg, args...)
+		buffer += "\n"
+	}
+
+	commit := func(name string) {
+		doc = strings.Replace(doc, name, buffer, 1)
+		buffer = ""
 	}
 
 	dumpStruct := func(obj *ast.Object) {
@@ -83,26 +93,12 @@ func doMain() error {
 			}
 		}
 	}
+	sort.Slice(requestNames, func(i, j int) bool {
+		return i < j
+	})
+
 	sort.Strings(requestNames)
 	sort.Strings(notificationNames)
-
-	line("# buse")
-	line("")
-	line("> butler's JSON-RPC 2.0 service documentation")
-
-	line("")
-	line("# Requests")
-	line("")
-	line("Requests are essentially procedure calls: they're made asynchronously, and")
-	line("a result is sent asynchronously. They may also fail, in which case")
-	line("you get an error back, with details.")
-	line("")
-	line("Some requests may complete almost instantly, and have an empty result")
-	line("Still, waiting for the result lets you know that the peer has received")
-	line("the request and processed it successfully.")
-	line("")
-	line("Some requests are made by the client to butler (like CheckUpdate),")
-	line("others are made from butler to the client (like AllowSandboxSetup)")
 
 	for _, name := range requestNames {
 		line("## %s", name)
@@ -129,9 +125,7 @@ func doMain() error {
 		line("")
 	}
 
-	line("")
-	line("# Notifications")
-	line("")
+	commit("{{REQUESTS}}")
 
 	for _, name := range notificationNames {
 		line("## %s", name)
@@ -146,6 +140,13 @@ func doMain() error {
 		dumpStruct(notif)
 
 		line("")
+	}
+
+	commit("{{NOTIFICATIONS}}")
+
+	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	return nil

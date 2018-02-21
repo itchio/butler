@@ -1,6 +1,25 @@
-# buse
+# Overview
 
-> butler's JSON-RPC 2.0 service documentation
+buse is butler's JSON-RPC 2.0 service
+
+## Starting the service
+
+To start butler service, run:
+
+```
+butler service --json
+```
+
+> Note: Contrary to most JSON-RPC services, it's not recommended
+> to keep a single instance of butler running and make all requests
+> to it (like a server).
+>
+> Instead, 
+
+## Protocol
+
+Requests, results, and notifications are sent over TCP, separated by
+a newline (`\n`) character.
 
 # Requests
 
@@ -14,6 +33,7 @@ the request and processed it successfully.
 
 Some requests are made by the client to butler (like CheckUpdate),
 others are made from butler to the client (like AllowSandboxSetup)
+
 ## AllowSandboxSetup
 
 
@@ -32,13 +52,13 @@ Parameters:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Items | &{%!s(token.Pos=4646) <nil> %!s(*ast.StarExpr=&{4648 0xc0420a8ba0})} | `json:"items"`
+Items | &{%!s(token.Pos=4646) <nil> %!s(*ast.StarExpr=&{4648 0xc0420aaba0})} | `json:"items"`
 
 Result:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Updates | &{%!s(token.Pos=5051) <nil> %!s(*ast.StarExpr=&{5053 0xc0420a9040})} | `json:"updates"`
+Updates | &{%!s(token.Pos=5051) <nil> %!s(*ast.StarExpr=&{5053 0xc0420ab040})} | `json:"updates"`
 Warnings | &{%!s(token.Pos=5092) <nil> string} | `json:"warnings"`
 
 ## CleanDownloadsApply
@@ -48,7 +68,7 @@ Parameters:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Entries | &{%!s(token.Pos=8605) <nil> %!s(*ast.StarExpr=&{8607 0xc0420af080})} | `json:"entries"`
+Entries | &{%!s(token.Pos=8605) <nil> %!s(*ast.StarExpr=&{8607 0xc0420b1080})} | `json:"entries"`
 
 Result:
 
@@ -68,7 +88,7 @@ Result:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Entries | &{%!s(token.Pos=8422) <nil> %!s(*ast.StarExpr=&{8424 0xc0420aeec0})} | `json:"entries"`
+Entries | &{%!s(token.Pos=8422) <nil> %!s(*ast.StarExpr=&{8424 0xc0420b0ec0})} | `json:"entries"`
 
 ## GameFindUploads
 
@@ -133,9 +153,9 @@ Result:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Game | &{%!s(token.Pos=4316) %!s(*ast.SelectorExpr=&{0xc0420a8820 0xc0420a8840})} | `json:"game"`
-Upload | &{%!s(token.Pos=4353) %!s(*ast.SelectorExpr=&{0xc0420a88e0 0xc0420a8900})} | `json:"upload"`
-Build | &{%!s(token.Pos=4392) %!s(*ast.SelectorExpr=&{0xc0420a89a0 0xc0420a89c0})} | `json:"build"`
+Game | &{%!s(token.Pos=4316) %!s(*ast.SelectorExpr=&{0xc0420aa820 0xc0420aa840})} | `json:"game"`
+Upload | &{%!s(token.Pos=4353) %!s(*ast.SelectorExpr=&{0xc0420aa8e0 0xc0420aa900})} | `json:"upload"`
+Build | &{%!s(token.Pos=4392) %!s(*ast.SelectorExpr=&{0xc0420aa9a0 0xc0420aa9c0})} | `json:"build"`
 
 ## Launch
 
@@ -145,10 +165,10 @@ Parameters:
 Name | Type | JSON Tag
 --- | --- | ---
 InstallFolder | string | `json:"installFolder"`
-Game | &{%!s(token.Pos=5652) %!s(*ast.SelectorExpr=&{0xc0420a9620 0xc0420a9640})} | `json:"game"`
-Upload | &{%!s(token.Pos=5703) %!s(*ast.SelectorExpr=&{0xc0420a96e0 0xc0420a9700})} | `json:"upload"`
-Build | &{%!s(token.Pos=5756) %!s(*ast.SelectorExpr=&{0xc0420a97c0 0xc0420a97e0})} | `json:"build"`
-Verdict | &{%!s(token.Pos=5808) %!s(*ast.SelectorExpr=&{0xc0420a9880 0xc0420a98a0})} | `json:"verdict"`
+Game | &{%!s(token.Pos=5652) %!s(*ast.SelectorExpr=&{0xc0420ab620 0xc0420ab640})} | `json:"game"`
+Upload | &{%!s(token.Pos=5703) %!s(*ast.SelectorExpr=&{0xc0420ab6e0 0xc0420ab700})} | `json:"upload"`
+Build | &{%!s(token.Pos=5756) %!s(*ast.SelectorExpr=&{0xc0420ab7c0 0xc0420ab7e0})} | `json:"build"`
+Verdict | &{%!s(token.Pos=5808) %!s(*ast.SelectorExpr=&{0xc0420ab880 0xc0420ab8a0})} | `json:"verdict"`
 PrereqsDir | string | `json:"prereqsDir"`
 ForcePrereqs | bool | `json:"forcePrereqs,omitempty"`
 Sandbox | bool | `json:"sandbox,omitempty"`
@@ -195,7 +215,7 @@ Parameters:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Actions | &{%!s(token.Pos=6221) <nil> %!s(*ast.StarExpr=&{6223 0xc0420a9c60})} | `json:"actions"`
+Actions | &{%!s(token.Pos=6221) <nil> %!s(*ast.StarExpr=&{6223 0xc0420abc60})} | `json:"actions"`
 
 Result:
 
@@ -241,7 +261,7 @@ Parameters:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Verdict | &{%!s(token.Pos=6785) %!s(*ast.SelectorExpr=&{0xc0420ae1c0 0xc0420ae1e0})} | `json:"verdict"`
+Verdict | &{%!s(token.Pos=6785) %!s(*ast.SelectorExpr=&{0xc0420b01c0 0xc0420b01e0})} | `json:"verdict"`
 
 Result:
 
@@ -301,7 +321,10 @@ Version | string | `json:"version"`
 VersionString | string | `json:"versionString"`
 
 
+
 # Notifications
+
+Notifications
 
 ## GameUpdateAvailable
 
@@ -361,7 +384,7 @@ Payload:
 
 Name | Type | JSON Tag
 --- | --- | ---
-Tasks | &{%!s(token.Pos=7016) string %!s(*ast.StarExpr=&{7027 0xc0420ae420})} | `json:"tasks"`
+Tasks | &{%!s(token.Pos=7016) string %!s(*ast.StarExpr=&{7027 0xc0420b0420})} | `json:"tasks"`
 
 ## PrereqsTaskState
 
@@ -385,9 +408,9 @@ Name | Type | JSON Tag
 --- | --- | ---
 Reason | TaskReason | `json:"reason"`
 Type | TaskType | `json:"type"`
-Game | &{%!s(token.Pos=3782) %!s(*ast.SelectorExpr=&{0xc0420a8300 0xc0420a8320})} | `json:"game"`
-Upload | &{%!s(token.Pos=3822) %!s(*ast.SelectorExpr=&{0xc0420a83e0 0xc0420a8400})} | `json:"upload"`
-Build | &{%!s(token.Pos=3864) %!s(*ast.SelectorExpr=&{0xc0420a84a0 0xc0420a84c0})} | `json:"build,omitempty"`
+Game | &{%!s(token.Pos=3782) %!s(*ast.SelectorExpr=&{0xc0420aa300 0xc0420aa320})} | `json:"game"`
+Upload | &{%!s(token.Pos=3822) %!s(*ast.SelectorExpr=&{0xc0420aa3e0 0xc0420aa400})} | `json:"upload"`
+Build | &{%!s(token.Pos=3864) %!s(*ast.SelectorExpr=&{0xc0420aa4a0 0xc0420aa4c0})} | `json:"build,omitempty"`
 TotalSize | int64 | `json:"totalSize,omitempty"`
 
 ## TaskSucceeded
@@ -399,4 +422,5 @@ Name | Type | JSON Tag
 --- | --- | ---
 Type | TaskType | `json:"type"`
 InstallResult | &{%!s(token.Pos=4161) InstallResult} | `json:"installResult,omitempty"`
+
 
