@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -89,7 +88,7 @@ func doMain() error {
 
 	getComment := func(doc *ast.CommentGroup, separator string) string {
 		if doc == nil {
-			return "(null doc)"
+			return "*undocumented*"
 		}
 
 		comment := ""
@@ -100,8 +99,8 @@ func doMain() error {
 		return comment
 	}
 
-	dumpStruct := func(obj *ast.Object) {
-		ts := obj.Decl.(*ast.TypeSpec)
+	dumpStruct := func(gd *ast.GenDecl) {
+		ts := gd.Specs[0].(*ast.TypeSpec)
 		st := ts.Type.(*ast.StructType)
 		fl := st.Fields.List
 
@@ -136,63 +135,71 @@ func doMain() error {
 		return errors.Wrap(err, 0)
 	}
 
+	var paramDecls []*ast.GenDecl
+	var notificationDecls []*ast.GenDecl
+	var typeDecls []*ast.GenDecl
+
+	asType := func(gd *ast.GenDecl) *ast.TypeSpec {
+		for _, spec := range gd.Specs {
+			if ts, ok := spec.(*ast.TypeSpec); ok {
+				return ts
+			}
+		}
+		return nil
+	}
+
+	isStruct := func(ts *ast.TypeSpec) bool {
+		if ts == nil {
+			return false
+		}
+
+		_, ok := ts.Type.(*ast.StructType)
+		return ok
+	}
+
 	for _, decl := range f.Decls {
 		if gd, ok := decl.(*ast.GenDecl); ok {
-			for _, spec := range gd.Specs {
-				if ts, ok := spec.(*ast.TypeSpec); ok {
-					log.Printf("%s: ", ts.Name.Name)
-					log.Printf("Docs: %s", getComment(gd.Doc, " "))
+			ts := asType(gd)
+			if ts != nil && isStruct(ts) {
+				name := ts.Name.Name
+				switch true {
+				case strings.HasSuffix(name, "Params"):
+					paramDecls = append(paramDecls, gd)
+				case strings.HasSuffix(name, "Notification"):
+					notificationDecls = append(notificationDecls, gd)
+				case strings.HasSuffix(name, "Result"):
+					// ignore
+				default:
+					typeDecls = append(typeDecls, gd)
 				}
 			}
 		}
 	}
 
-	var requestNames []string
-	var notificationNames []string
-
-	for declName, object := range f.Scope.Objects {
-		if object.Kind == ast.Typ {
-			switch true {
-			case strings.HasSuffix(declName, "Params"):
-				name := strings.TrimSuffix(declName, "Params")
-				requestNames = append(requestNames, name)
-			case strings.HasSuffix(declName, "Notification"):
-				name := strings.TrimSuffix(declName, "Notification")
-				notificationNames = append(notificationNames, name)
+	findStruct := func(name string) *ast.GenDecl {
+		for _, decl := range f.Decls {
+			if gd, ok := decl.(*ast.GenDecl); ok {
+				ts := asType(gd)
+				if ts != nil && isStruct(ts) {
+					if ts.Name.Name == name {
+						return gd
+					}
+				}
 			}
 		}
+		return nil
 	}
-	sort.Slice(requestNames, func(i, j int) bool {
-		a := f.Scope.Objects[requestNames[i]+"Params"]
-		b := f.Scope.Objects[requestNames[j]+"Params"]
-		return a.Pos() < b.Pos()
-	})
-	sort.Slice(notificationNames, func(i, j int) bool {
-		a := f.Scope.Objects[notificationNames[i]+"Notification"]
-		b := f.Scope.Objects[notificationNames[j]+"Notification"]
-		return a.Pos() < b.Pos()
-	})
 
-	for _, name := range requestNames {
+	for _, params := range paramDecls {
+		name := asType(params).Name.Name
+		name = strings.TrimSuffix(name, "Params")
+
 		line("## %s", name)
 		line("")
 
-		params := f.Scope.Objects[name+"Params"]
-		result := f.Scope.Objects[name+"Result"]
+		result := findStruct(name + "Result")
 
-		line("%#v", params)
-		ts := params.Decl.(*ast.TypeSpec)
-
-		line("")
-		line("Comment:")
-		line("")
-		comment := getComment(ts.Comment, "\n")
-		line(comment)
-
-		line("")
-		line("Doc:")
-		line("")
-		comment = getComment(ts.Doc, "\n")
+		comment := getComment(params.Doc, "\n")
 		line(comment)
 
 		line("")
@@ -215,22 +222,46 @@ func doMain() error {
 
 	commit("{{REQUESTS}}")
 
-	for _, name := range notificationNames {
+	for _, notification := range notificationDecls {
+		name := asType(notification).Name.Name
+		name = strings.TrimSuffix(name, "Notification")
+
 		line("## %s", name)
 		line("")
 
-		notif := f.Scope.Objects[name+"Notification"]
+		comment := getComment(notification.Doc, "\n")
+		line(comment)
 
 		line("")
 		line("Payload:")
 		line("")
 
-		dumpStruct(notif)
+		dumpStruct(notification)
 
 		line("")
 	}
 
 	commit("{{NOTIFICATIONS}}")
+
+	for _, typ := range typeDecls {
+		name := asType(typ).Name.Name
+
+		line("## %s", name)
+		line("")
+
+		comment := getComment(typ.Doc, "\n")
+		line(comment)
+
+		line("")
+		line("Fields:")
+		line("")
+
+		dumpStruct(typ)
+
+		line("")
+	}
+
+	commit("{{TYPES}}")
 
 	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
 	if err != nil {

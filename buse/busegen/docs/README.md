@@ -42,15 +42,8 @@ others are made from butler to the client (like AllowSandboxSetup)
 
 ## VersionGet
 
-&ast.Object{Kind:3, Name:"VersionGetParams", Decl:(*ast.TypeSpec)(0xc0420801b0), Data:interface {}(nil), Type:interface {}(nil)}
+Version.Get
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
@@ -65,50 +58,36 @@ Name | Type | Description
 
 ## GameFindUploads
 
-&ast.Object{Kind:3, Name:"GameFindUploadsParams", Decl:(*ast.TypeSpec)(0xc042080270), Data:interface {}(nil), Type:interface {}(nil)}
+Game.FindUploads
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**game** | `itchio.Game` | (null doc)
-**credentials** | `GameCredentials` | (null doc)
+**game** | `itchio.Game` | *undocumented*
+**credentials** | `GameCredentials` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**uploads** | `itchio.Upload[]` | (null doc)
+**uploads** | `itchio.Upload[]` | *undocumented*
 
 ## OperationStart
 
-&ast.Object{Kind:3, Name:"OperationStartParams", Decl:(*ast.TypeSpec)(0xc042080390), Data:interface {}(nil), Type:interface {}(nil)}
+Operation.Start
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**id** | `string` | (null doc)
-**stagingFolder** | `string` | (null doc)
-**operation** | `Operation` | (null doc)
+**id** | `string` | *undocumented*
+**stagingFolder** | `string` | *undocumented*
+**operation** | `Operation` | *undocumented*
 **installParams** | `InstallParams` | this is more or less a union, the relevant field should be set depending on the 'Operation' type 
-**uninstallParams** | `UninstallParams` | (null doc)
+**uninstallParams** | `UninstallParams` | *undocumented*
 
 Result:
 
@@ -116,21 +95,14 @@ Result:
 
 ## OperationCancel
 
-&ast.Object{Kind:3, Name:"OperationCancelParams", Decl:(*ast.TypeSpec)(0xc0420803f0), Data:interface {}(nil), Type:interface {}(nil)}
+Operation.Cancel
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**id** | `string` | (null doc)
+**id** | `string` | *undocumented*
 
 Result:
 
@@ -138,52 +110,38 @@ Result:
 
 ## Install
 
-&ast.Object{Kind:3, Name:"InstallParams", Decl:(*ast.TypeSpec)(0xc0420804b0), Data:interface {}(nil), Type:interface {}(nil)}
+InstallParams contains all the parameters needed to perform
+an installation for a game
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**game** | `itchio.Game` | (null doc)
-**installFolder** | `string` | (null doc)
-**upload** | `itchio.Upload` | (null doc)
-**build** | `itchio.Build` | (null doc)
-**credentials** | `GameCredentials` | (null doc)
-**ignoreInstallers** | `boolean` | (null doc)
+**game** | `itchio.Game` | *undocumented*
+**installFolder** | `string` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
+**credentials** | `GameCredentials` | *undocumented*
+**ignoreInstallers** | `boolean` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**game** | `itchio.Game` | (null doc)
-**upload** | `itchio.Upload` | (null doc)
-**build** | `itchio.Build` | (null doc)
+**game** | `itchio.Game` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
 
 ## Uninstall
 
-&ast.Object{Kind:3, Name:"UninstallParams", Decl:(*ast.TypeSpec)(0xc042080510), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**installFolder** | `string` | (null doc)
+**installFolder** | `string` | *undocumented*
 
 Result:
 
@@ -191,39 +149,23 @@ Result:
 
 ## PickUpload
 
-&ast.Object{Kind:3, Name:"PickUploadParams", Decl:(*ast.TypeSpec)(0xc0420805d0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**uploads** | `itchio.Upload[]` | (null doc)
+**uploads** | `itchio.Upload[]` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**index** | `number` | (null doc)
+**index** | `number` | *undocumented*
 
 ## GetReceipt
 
-&ast.Object{Kind:3, Name:"GetReceiptParams", Decl:(*ast.TypeSpec)(0xc0420806c0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
@@ -233,57 +175,41 @@ Result:
 
 Name | Type | Description
 --- | --- | ---
-**receipt** | `bfs.Receipt` | (null doc)
+**receipt** | `bfs.Receipt` | *undocumented*
 
 ## CheckUpdate
 
-&ast.Object{Kind:3, Name:"CheckUpdateParams", Decl:(*ast.TypeSpec)(0xc0420809c0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**items** | `CheckUpdateItem[]` | (null doc)
+**items** | `CheckUpdateItem[]` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**updates** | `GameUpdate[]` | (null doc)
-**warnings** | `string[]` | (null doc)
+**updates** | `GameUpdate[]` | *undocumented*
+**warnings** | `string[]` | *undocumented*
 
 ## Launch
 
-&ast.Object{Kind:3, Name:"LaunchParams", Decl:(*ast.TypeSpec)(0xc042080c30), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**installFolder** | `string` | (null doc)
-**game** | `itchio.Game` | (null doc)
-**upload** | `itchio.Upload` | (null doc)
-**build** | `itchio.Build` | (null doc)
-**verdict** | `configurator.Verdict` | (null doc)
-**prereqsDir** | `string` | (null doc)
-**forcePrereqs** | `boolean` | (null doc)
-**sandbox** | `boolean` | (null doc)
+**installFolder** | `string` | *undocumented*
+**game** | `itchio.Game` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
+**verdict** | `configurator.Verdict` | *undocumented*
+**prereqsDir** | `string` | *undocumented*
+**forcePrereqs** | `boolean` | *undocumented*
+**sandbox** | `boolean` | *undocumented*
 **credentials** | `GameCredentials` | Used for subkeying 
 
 Result:
@@ -292,45 +218,29 @@ Result:
 
 ## PickManifestAction
 
-&ast.Object{Kind:3, Name:"PickManifestActionParams", Decl:(*ast.TypeSpec)(0xc042080db0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**actions** | `manifest.Action[]` | (null doc)
+**actions** | `manifest.Action[]` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**name** | `string` | (null doc)
+**name** | `string` | *undocumented*
 
 ## ShellLaunch
 
-&ast.Object{Kind:3, Name:"ShellLaunchParams", Decl:(*ast.TypeSpec)(0xc042080ea0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**itemPath** | `string` | (null doc)
+**itemPath** | `string` | *undocumented*
 
 Result:
 
@@ -338,24 +248,16 @@ Result:
 
 ## HTMLLaunch
 
-&ast.Object{Kind:3, Name:"HTMLLaunchParams", Decl:(*ast.TypeSpec)(0xc042080f60), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**rootFolder** | `string` | (null doc)
-**indexPath** | `string` | (null doc)
-**args** | `string[]` | (null doc)
-**env** | `Map<string, string>` | (null doc)
+**rootFolder** | `string` | *undocumented*
+**indexPath** | `string` | *undocumented*
+**args** | `string[]` | *undocumented*
+**env** | `Map<string, string>` | *undocumented*
 
 Result:
 
@@ -363,21 +265,13 @@ Result:
 
 ## URLLaunch
 
-&ast.Object{Kind:3, Name:"URLLaunchParams", Decl:(*ast.TypeSpec)(0xc042081080), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**url** | `string` | (null doc)
+**url** | `string` | *undocumented*
 
 Result:
 
@@ -385,21 +279,13 @@ Result:
 
 ## SaveVerdict
 
-&ast.Object{Kind:3, Name:"SaveVerdictParams", Decl:(*ast.TypeSpec)(0xc042081140), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**verdict** | `configurator.Verdict` | (null doc)
+**verdict** | `configurator.Verdict` | *undocumented*
 
 Result:
 
@@ -407,15 +293,7 @@ Result:
 
 ## AllowSandboxSetup
 
-&ast.Object{Kind:3, Name:"AllowSandboxSetupParams", Decl:(*ast.TypeSpec)(0xc042081200), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
@@ -427,40 +305,25 @@ Result:
 
 ## PrereqsFailed
 
-&ast.Object{Kind:3, Name:"PrereqsFailedParams", Decl:(*ast.TypeSpec)(0xc0420814a0), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**error** | `string` | (null doc)
-**errorStack** | `string` | (null doc)
+**error** | `string` | *undocumented*
+**errorStack** | `string` | *undocumented*
 
 Result:
 
 Name | Type | Description
 --- | --- | ---
-**continue** | `boolean` | (null doc)
+**continue** | `boolean` | *undocumented*
 
 ## CleanDownloadsSearch
 
-&ast.Object{Kind:3, Name:"CleanDownloadsSearchParams", Decl:(*ast.TypeSpec)(0xc042081560), Data:interface {}(nil), Type:interface {}(nil)}
+CleanDownloads.Search
 
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
 
 Parameters:
 
@@ -473,25 +336,17 @@ Result:
 
 Name | Type | Description
 --- | --- | ---
-**entries** | `CleanDownloadsEntry[]` | (null doc)
+**entries** | `CleanDownloadsEntry[]` | *undocumented*
 
 ## CleanDownloadsApply
 
-&ast.Object{Kind:3, Name:"CleanDownloadsApplyParams", Decl:(*ast.TypeSpec)(0xc042081710), Data:interface {}(nil), Type:interface {}(nil)}
-
-Comment:
-
-(null doc)
-
-Doc:
-
-(null doc)
+*undocumented*
 
 Parameters:
 
 Name | Type | Description
 --- | --- | ---
-**entries** | `CleanDownloadsEntry[]` | (null doc)
+**entries** | `CleanDownloadsEntry[]` | *undocumented*
 
 Result:
 
@@ -501,54 +356,64 @@ Result:
 
 # Notifications
 
-Notifications
+Notifications are messages that can be sent at any time, in any direction.
+
+There is no way to check that a notification was delivered, only that it was
+sent (but the other peer may fail to process it before it exits).
 
 ## OperationProgress
 
+Operation.Progress
+Sent periodically to inform on the current state an operation
+
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**progress** | `number` | (null doc)
-**eta** | `number` | (null doc)
-**bps** | `number` | (null doc)
+**progress** | `number` | *undocumented*
+**eta** | `number` | *undocumented*
+**bps** | `number` | *undocumented*
 
 ## TaskStarted
 
+*undocumented*
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**reason** | `TaskReason` | (null doc)
-**type** | `TaskType` | (null doc)
-**game** | `itchio.Game` | (null doc)
-**upload** | `itchio.Upload` | (null doc)
-**build** | `itchio.Build` | (null doc)
-**totalSize** | `number` | (null doc)
+**reason** | `TaskReason` | *undocumented*
+**type** | `TaskType` | *undocumented*
+**game** | `itchio.Game` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
+**totalSize** | `number` | *undocumented*
 
 ## TaskSucceeded
 
+*undocumented*
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**type** | `TaskType` | (null doc)
+**type** | `TaskType` | *undocumented*
 **installResult** | `InstallResult` | If the task installed something, then this contains info about the game, upload, build that were installed 
 
 ## GameUpdateAvailable
 
+*undocumented*
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**update** | `GameUpdate` | (null doc)
+**update** | `GameUpdate` | *undocumented*
 
 ## LaunchRunning
 
+*undocumented*
 
 Payload:
 
@@ -556,6 +421,7 @@ Payload:
 
 ## LaunchExited
 
+*undocumented*
 
 Payload:
 
@@ -563,28 +429,31 @@ Payload:
 
 ## PrereqsStarted
 
+*undocumented*
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**tasks** | `Map<string, PrereqTask>` | (null doc)
+**tasks** | `Map<string, PrereqTask>` | *undocumented*
 
 ## PrereqsTaskState
 
+*undocumented*
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**name** | `string` | (null doc)
-**status** | `PrereqStatus` | (null doc)
-**progress** | `number` | (null doc)
-**eta** | `number` | (null doc)
-**bps** | `number` | (null doc)
+**name** | `string` | *undocumented*
+**status** | `PrereqStatus` | *undocumented*
+**progress** | `number` | *undocumented*
+**eta** | `number` | *undocumented*
+**bps** | `number` | *undocumented*
 
 ## PrereqsEnded
 
+*undocumented*
 
 Payload:
 
@@ -592,12 +461,116 @@ Payload:
 
 ## Log
 
+Log
+
 
 Payload:
 
 Name | Type | Description
 --- | --- | ---
-**level** | `string` | (null doc)
-**message** | `string` | (null doc)
+**level** | `string` | *undocumented*
+**message** | `string` | *undocumented*
+
+
+
+# Types
+
+These are some types that are used throughout the API:
+
+## GameCredentials
+
+GameCredentials contains all the credentials required to make API requests
+including the download key if any
+
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**server** | `string` | *undocumented*
+**apiKey** | `string` | *undocumented*
+**downloadKey** | `number` | *undocumented*
+
+## CheckUpdateItem
+
+*undocumented*
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**itemId** | `string` | *undocumented*
+**installedAt** | `string` | *undocumented*
+**game** | `itchio.Game` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
+**credentials** | `GameCredentials` | *undocumented*
+
+## GameUpdate
+
+*undocumented*
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**itemId** | `string` | *undocumented*
+**game** | `itchio.Game` | *undocumented*
+**upload** | `itchio.Upload` | *undocumented*
+**build** | `itchio.Build` | *undocumented*
+
+## AllowSandboxSetupResponse
+
+*undocumented*
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**allow** | `boolean` | *undocumented*
+
+## PrereqTask
+
+*undocumented*
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**fullName** | `string` | *undocumented*
+**order** | `int` | *undocumented*
+
+## CleanDownloadsEntry
+
+*undocumented*
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**path** | `string` | *undocumented*
+**size** | `number` | *undocumented*
+
+## TestDoubleTwiceRequest
+
+Test.DoubleTwice
+
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**number** | `number` | *undocumented*
+
+## TestDoubleRequest
+
+Test.Double
+
+
+Fields:
+
+Name | Type | Description
+--- | --- | ---
+**number** | `number` | *undocumented*
 
 

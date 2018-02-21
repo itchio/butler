@@ -44,6 +44,15 @@ others are made from butler to the client (like AllowSandboxSetup)
 
 # Notifications
 
-Notifications
+Notifications are messages that can be sent at any time, in any direction.
+
+There is no way to check that a notification was delivered, only that it was
+sent (but the other peer may fail to process it before it exits).
 
 {{NOTIFICATIONS}}
+
+# Types
+
+These are some types that are used throughout the API:
+
+{{TYPES}}
