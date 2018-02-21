@@ -6,15 +6,21 @@ buse is butler's JSON-RPC 2.0 service
 
 To start butler service, run:
 
-```
+```bash
 butler service --json
 ```
 
-> Note: Contrary to most JSON-RPC services, it's not recommended
-> to keep a single instance of butler running and make all requests
-> to it (like a server).
->
-> Instead, 
+The output will be a single line of JSON:
+
+```json
+{"time":1519235834,"type":"result","value":{"address":"127.0.0.1:52919","type":"server-listening"}}
+```
+
+!> Contrary to most JSON-RPC services, it's not recommended
+   to keep a single instance of butler running and make all requests
+   to it (like a server). Instead, start a new butler instance for each
+   individual task you want to achieve, like logging in, performing a search,
+   or cleaning downloads.
 
 ## Protocol
 
@@ -34,8 +40,17 @@ the request and processed it successfully.
 Some requests are made by the client to butler (like CheckUpdate),
 others are made from butler to the client (like AllowSandboxSetup)
 
-## AllowSandboxSetup
+## VersionGet
 
+&ast.Object{Kind:3, Name:"VersionGetParams", Decl:(*ast.TypeSpec)(0xc0420801b0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
@@ -43,136 +58,57 @@ Parameters:
 
 Result:
 
-*empty*
-
-## CheckUpdate
-
-
-Parameters:
-
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Items | &{%!s(token.Pos=4646) <nil> %!s(*ast.StarExpr=&{4648 0xc0420aaba0})} | `json:"items"`
-
-Result:
-
-Name | Type | JSON Tag
---- | --- | ---
-Updates | &{%!s(token.Pos=5051) <nil> %!s(*ast.StarExpr=&{5053 0xc0420ab040})} | `json:"updates"`
-Warnings | &{%!s(token.Pos=5092) <nil> string} | `json:"warnings"`
-
-## CleanDownloadsApply
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-Entries | &{%!s(token.Pos=8605) <nil> %!s(*ast.StarExpr=&{8607 0xc0420b1080})} | `json:"entries"`
-
-Result:
-
-*empty*
-
-## CleanDownloadsSearch
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-Roots | &{%!s(token.Pos=8203) <nil> string} | `json:"roots"`
-Whitelist | &{%!s(token.Pos=8341) <nil> string} | `json:"whitelist"`
-
-Result:
-
-Name | Type | JSON Tag
---- | --- | ---
-Entries | &{%!s(token.Pos=8422) <nil> %!s(*ast.StarExpr=&{8424 0xc0420b0ec0})} | `json:"entries"`
+**version** | `string` | Something short, like `v8.0.0` 
+**versionString** | `string` | Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290` 
 
 ## GameFindUploads
 
+&ast.Object{Kind:3, Name:"GameFindUploadsParams", Decl:(*ast.TypeSpec)(0xc042080270), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Game | &{%!s(token.Pos=1016) %!s(*ast.SelectorExpr=&{0xc04204aa40 0xc04204aa80})} | `json:"game"`
-Credentials | &{%!s(token.Pos=1060) GameCredentials} | `json:"credentials"`
+**game** | `itchio.Game` | (null doc)
+**credentials** | `GameCredentials` | (null doc)
 
 Result:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Uploads | &{%!s(token.Pos=1146) <nil> %!s(*ast.StarExpr=&{1148 0xc04204ac20})} | `json:"uploads"`
+**uploads** | `itchio.Upload[]` | (null doc)
 
-## GetReceipt
+## OperationStart
 
+&ast.Object{Kind:3, Name:"OperationStartParams", Decl:(*ast.TypeSpec)(0xc042080390), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-*empty*
-
-Result:
-
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Receipt | &{%!s(token.Pos=3029) %!s(*ast.SelectorExpr=&{0xc04204bc00 0xc04204bc20})} | `json:"receipt"`
-
-## HTMLLaunch
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-RootFolder | string | `json:"rootFolder"`
-IndexPath | string | `json:"indexPath"`
-Args | &{%!s(token.Pos=6549) <nil> string} | `json:"args"`
-Env | &{%!s(token.Pos=6587) string string} | `json:"env"`
-
-Result:
-
-*empty*
-
-## Install
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-Game | &{%!s(token.Pos=2144) %!s(*ast.SelectorExpr=&{0xc04204b340 0xc04204b360})} | `json:"game"`
-InstallFolder | string | `json:"installFolder"`
-Upload | &{%!s(token.Pos=2245) %!s(*ast.SelectorExpr=&{0xc04204b460 0xc04204b480})} | `json:"upload"`
-Build | &{%!s(token.Pos=2293) %!s(*ast.SelectorExpr=&{0xc04204b540 0xc04204b560})} | `json:"build"`
-Credentials | &{%!s(token.Pos=2340) GameCredentials} | `json:"credentials"`
-IgnoreInstallers | bool | `json:"ignoreInstallers,omitempty"`
-
-Result:
-
-Name | Type | JSON Tag
---- | --- | ---
-Game | &{%!s(token.Pos=4316) %!s(*ast.SelectorExpr=&{0xc0420aa820 0xc0420aa840})} | `json:"game"`
-Upload | &{%!s(token.Pos=4353) %!s(*ast.SelectorExpr=&{0xc0420aa8e0 0xc0420aa900})} | `json:"upload"`
-Build | &{%!s(token.Pos=4392) %!s(*ast.SelectorExpr=&{0xc0420aa9a0 0xc0420aa9c0})} | `json:"build"`
-
-## Launch
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-InstallFolder | string | `json:"installFolder"`
-Game | &{%!s(token.Pos=5652) %!s(*ast.SelectorExpr=&{0xc0420ab620 0xc0420ab640})} | `json:"game"`
-Upload | &{%!s(token.Pos=5703) %!s(*ast.SelectorExpr=&{0xc0420ab6e0 0xc0420ab700})} | `json:"upload"`
-Build | &{%!s(token.Pos=5756) %!s(*ast.SelectorExpr=&{0xc0420ab7c0 0xc0420ab7e0})} | `json:"build"`
-Verdict | &{%!s(token.Pos=5808) %!s(*ast.SelectorExpr=&{0xc0420ab880 0xc0420ab8a0})} | `json:"verdict"`
-PrereqsDir | string | `json:"prereqsDir"`
-ForcePrereqs | bool | `json:"forcePrereqs,omitempty"`
-Sandbox | bool | `json:"sandbox,omitempty"`
-Credentials | &{%!s(token.Pos=6021) GameCredentials} | `json:"credentials"`
+**id** | `string` | (null doc)
+**stagingFolder** | `string` | (null doc)
+**operation** | `Operation` | (null doc)
+**installParams** | `InstallParams` | this is more or less a union, the relevant field should be set depending on the 'Operation' type 
+**uninstallParams** | `UninstallParams` | (null doc)
 
 Result:
 
@@ -180,29 +116,175 @@ Result:
 
 ## OperationCancel
 
+&ast.Object{Kind:3, Name:"OperationCancelParams", Decl:(*ast.TypeSpec)(0xc0420803f0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-ID | string | `json:"id"`
+**id** | `string` | (null doc)
 
 Result:
 
 *empty*
 
-## OperationStart
+## Install
 
+&ast.Object{Kind:3, Name:"InstallParams", Decl:(*ast.TypeSpec)(0xc0420804b0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-ID | string | `json:"id"`
-StagingFolder | string | `json:"stagingFolder"`
-Operation | Operation | `json:"operation"`
-InstallParams | &{%!s(token.Pos=1767) InstallParams} | `json:"installParams,omitempty"`
-UninstallParams | &{%!s(token.Pos=1834) UninstallParams} | `json:"uninstallParams,omitempty"`
+**game** | `itchio.Game` | (null doc)
+**installFolder** | `string` | (null doc)
+**upload** | `itchio.Upload` | (null doc)
+**build** | `itchio.Build` | (null doc)
+**credentials** | `GameCredentials` | (null doc)
+**ignoreInstallers** | `boolean` | (null doc)
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**game** | `itchio.Game` | (null doc)
+**upload** | `itchio.Upload` | (null doc)
+**build** | `itchio.Build` | (null doc)
+
+## Uninstall
+
+&ast.Object{Kind:3, Name:"UninstallParams", Decl:(*ast.TypeSpec)(0xc042080510), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**installFolder** | `string` | (null doc)
+
+Result:
+
+*empty*
+
+## PickUpload
+
+&ast.Object{Kind:3, Name:"PickUploadParams", Decl:(*ast.TypeSpec)(0xc0420805d0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**uploads** | `itchio.Upload[]` | (null doc)
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**index** | `number` | (null doc)
+
+## GetReceipt
+
+&ast.Object{Kind:3, Name:"GetReceiptParams", Decl:(*ast.TypeSpec)(0xc0420806c0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+*empty*
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**receipt** | `bfs.Receipt` | (null doc)
+
+## CheckUpdate
+
+&ast.Object{Kind:3, Name:"CheckUpdateParams", Decl:(*ast.TypeSpec)(0xc0420809c0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**items** | `CheckUpdateItem[]` | (null doc)
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**updates** | `GameUpdate[]` | (null doc)
+**warnings** | `string[]` | (null doc)
+
+## Launch
+
+&ast.Object{Kind:3, Name:"LaunchParams", Decl:(*ast.TypeSpec)(0xc042080c30), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**installFolder** | `string` | (null doc)
+**game** | `itchio.Game` | (null doc)
+**upload** | `itchio.Upload` | (null doc)
+**build** | `itchio.Build` | (null doc)
+**verdict** | `configurator.Verdict` | (null doc)
+**prereqsDir** | `string` | (null doc)
+**forcePrereqs** | `boolean` | (null doc)
+**sandbox** | `boolean` | (null doc)
+**credentials** | `GameCredentials` | Used for subkeying 
 
 Result:
 
@@ -210,71 +292,70 @@ Result:
 
 ## PickManifestAction
 
+&ast.Object{Kind:3, Name:"PickManifestActionParams", Decl:(*ast.TypeSpec)(0xc042080db0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Actions | &{%!s(token.Pos=6221) <nil> %!s(*ast.StarExpr=&{6223 0xc0420abc60})} | `json:"actions"`
+**actions** | `manifest.Action[]` | (null doc)
 
 Result:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Name | string | `json:"name"`
+**name** | `string` | (null doc)
 
-## PickUpload
+## ShellLaunch
 
+&ast.Object{Kind:3, Name:"ShellLaunchParams", Decl:(*ast.TypeSpec)(0xc042080ea0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Uploads | &{%!s(token.Pos=2845) <nil> %!s(*ast.StarExpr=&{2847 0xc04204ba20})} | `json:"uploads"`
-
-Result:
-
-Name | Type | JSON Tag
---- | --- | ---
-Index | int64 | `json:"index"`
-
-## PrereqsFailed
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-Error | string | `json:"error"`
-ErrorStack | string | `json:"errorStack"`
-
-Result:
-
-Name | Type | JSON Tag
---- | --- | ---
-Continue | bool | `json:"continue"`
-
-## SaveVerdict
-
-
-Parameters:
-
-Name | Type | JSON Tag
---- | --- | ---
-Verdict | &{%!s(token.Pos=6785) %!s(*ast.SelectorExpr=&{0xc0420b01c0 0xc0420b01e0})} | `json:"verdict"`
+**itemPath** | `string` | (null doc)
 
 Result:
 
 *empty*
 
-## ShellLaunch
+## HTMLLaunch
 
+&ast.Object{Kind:3, Name:"HTMLLaunchParams", Decl:(*ast.TypeSpec)(0xc042080f60), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-ItemPath | string | `json:"itemPath"`
+**rootFolder** | `string` | (null doc)
+**indexPath** | `string` | (null doc)
+**args** | `string[]` | (null doc)
+**env** | `Map<string, string>` | (null doc)
 
 Result:
 
@@ -282,32 +363,59 @@ Result:
 
 ## URLLaunch
 
+&ast.Object{Kind:3, Name:"URLLaunchParams", Decl:(*ast.TypeSpec)(0xc042081080), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-URL | string | `json:"url"`
+**url** | `string` | (null doc)
 
 Result:
 
 *empty*
 
-## Uninstall
+## SaveVerdict
 
+&ast.Object{Kind:3, Name:"SaveVerdictParams", Decl:(*ast.TypeSpec)(0xc042081140), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-InstallFolder | string | `json:"installFolder"`
+**verdict** | `configurator.Verdict` | (null doc)
 
 Result:
 
 *empty*
 
-## VersionGet
+## AllowSandboxSetup
 
+&ast.Object{Kind:3, Name:"AllowSandboxSetupParams", Decl:(*ast.TypeSpec)(0xc042081200), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
 
 Parameters:
 
@@ -315,10 +423,79 @@ Parameters:
 
 Result:
 
-Name | Type | JSON Tag
+*empty*
+
+## PrereqsFailed
+
+&ast.Object{Kind:3, Name:"PrereqsFailedParams", Decl:(*ast.TypeSpec)(0xc0420814a0), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
 --- | --- | ---
-Version | string | `json:"version"`
-VersionString | string | `json:"versionString"`
+**error** | `string` | (null doc)
+**errorStack** | `string` | (null doc)
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**continue** | `boolean` | (null doc)
+
+## CleanDownloadsSearch
+
+&ast.Object{Kind:3, Name:"CleanDownloadsSearchParams", Decl:(*ast.TypeSpec)(0xc042081560), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**roots** | `string[]` | A list of folders to scan for potential subfolders to clean up 
+**whitelist** | `string[]` | A list of subfolders to not consider when cleaning (staging folders for in-progress downloads) 
+
+Result:
+
+Name | Type | Description
+--- | --- | ---
+**entries** | `CleanDownloadsEntry[]` | (null doc)
+
+## CleanDownloadsApply
+
+&ast.Object{Kind:3, Name:"CleanDownloadsApplyParams", Decl:(*ast.TypeSpec)(0xc042081710), Data:interface {}(nil), Type:interface {}(nil)}
+
+Comment:
+
+(null doc)
+
+Doc:
+
+(null doc)
+
+Parameters:
+
+Name | Type | Description
+--- | --- | ---
+**entries** | `CleanDownloadsEntry[]` | (null doc)
+
+Result:
+
+*empty*
 
 
 
@@ -326,21 +503,49 @@ VersionString | string | `json:"versionString"`
 
 Notifications
 
+## OperationProgress
+
+
+Payload:
+
+Name | Type | Description
+--- | --- | ---
+**progress** | `number` | (null doc)
+**eta** | `number` | (null doc)
+**bps** | `number` | (null doc)
+
+## TaskStarted
+
+
+Payload:
+
+Name | Type | Description
+--- | --- | ---
+**reason** | `TaskReason` | (null doc)
+**type** | `TaskType` | (null doc)
+**game** | `itchio.Game` | (null doc)
+**upload** | `itchio.Upload` | (null doc)
+**build** | `itchio.Build` | (null doc)
+**totalSize** | `number` | (null doc)
+
+## TaskSucceeded
+
+
+Payload:
+
+Name | Type | Description
+--- | --- | ---
+**type** | `TaskType` | (null doc)
+**installResult** | `InstallResult` | If the task installed something, then this contains info about the game, upload, build that were installed 
+
 ## GameUpdateAvailable
 
 
 Payload:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Update | &{%!s(token.Pos=5181) GameUpdate} | `json:"update"`
-
-## LaunchExited
-
-
-Payload:
-
-*empty*
+**update** | `GameUpdate` | (null doc)
 
 ## LaunchRunning
 
@@ -349,28 +554,7 @@ Payload:
 
 *empty*
 
-## Log
-
-
-Payload:
-
-Name | Type | JSON Tag
---- | --- | ---
-Level | string | `json:"level"`
-Message | string | `json:"message"`
-
-## OperationProgress
-
-
-Payload:
-
-Name | Type | JSON Tag
---- | --- | ---
-Progress | float64 | `json:"progress"`
-ETA | float64 | `json:"eta"`
-BPS | float64 | `json:"bps"`
-
-## PrereqsEnded
+## LaunchExited
 
 
 Payload:
@@ -382,45 +566,38 @@ Payload:
 
 Payload:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Tasks | &{%!s(token.Pos=7016) string %!s(*ast.StarExpr=&{7027 0xc0420b0420})} | `json:"tasks"`
+**tasks** | `Map<string, PrereqTask>` | (null doc)
 
 ## PrereqsTaskState
 
 
 Payload:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Name | string | `json:"name"`
-Status | PrereqStatus | `json:"status"`
-Progress | float64 | `json:"progress"`
-ETA | float64 | `json:"eta"`
-BPS | float64 | `json:"bps"`
+**name** | `string` | (null doc)
+**status** | `PrereqStatus` | (null doc)
+**progress** | `number` | (null doc)
+**eta** | `number` | (null doc)
+**bps** | `number` | (null doc)
 
-## TaskStarted
+## PrereqsEnded
 
 
 Payload:
 
-Name | Type | JSON Tag
---- | --- | ---
-Reason | TaskReason | `json:"reason"`
-Type | TaskType | `json:"type"`
-Game | &{%!s(token.Pos=3782) %!s(*ast.SelectorExpr=&{0xc0420aa300 0xc0420aa320})} | `json:"game"`
-Upload | &{%!s(token.Pos=3822) %!s(*ast.SelectorExpr=&{0xc0420aa3e0 0xc0420aa400})} | `json:"upload"`
-Build | &{%!s(token.Pos=3864) %!s(*ast.SelectorExpr=&{0xc0420aa4a0 0xc0420aa4c0})} | `json:"build,omitempty"`
-TotalSize | int64 | `json:"totalSize,omitempty"`
+*empty*
 
-## TaskSucceeded
+## Log
 
 
 Payload:
 
-Name | Type | JSON Tag
+Name | Type | Description
 --- | --- | ---
-Type | TaskType | `json:"type"`
-InstallResult | &{%!s(token.Pos=4161) InstallResult} | `json:"installResult,omitempty"`
+**level** | `string` | (null doc)
+**message** | `string` | (null doc)
 
 

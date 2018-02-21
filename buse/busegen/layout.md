@@ -6,15 +6,21 @@ buse is butler's JSON-RPC 2.0 service
 
 To start butler service, run:
 
-```
+```bash
 butler service --json
 ```
 
-> Note: Contrary to most JSON-RPC services, it's not recommended
-> to keep a single instance of butler running and make all requests
-> to it (like a server).
->
-> Instead, 
+The output will be a single line of JSON:
+
+```json
+{"time":1519235834,"type":"result","value":{"address":"127.0.0.1:52919","type":"server-listening"}}
+```
+
+!> Contrary to most JSON-RPC services, it's not recommended
+   to keep a single instance of butler running and make all requests
+   to it (like a server). Instead, start a new butler instance for each
+   individual task you want to achieve, like logging in, performing a search,
+   or cleaning downloads.
 
 ## Protocol
 
