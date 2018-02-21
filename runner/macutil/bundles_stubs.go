@@ -11,3 +11,7 @@ func GetExecutablePath(bundlePath string) (string, error) {
 func GetLibraryPath() (string, error) {
 	return "", errors.New("GetLibraryPath: only supported on macOS")
 }
+
+func GetApplicationSupportPath() (string, error) {
+	return "", errors.New("GetApplicationSupportPath: only supported on macOS")
+}
