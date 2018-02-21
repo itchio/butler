@@ -265,7 +265,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "75742ae58751b16296160a826fa65f3ffeebbf91",
+			"revision": "cc5ad7854fc007adc02401a2eafcfeaec8412ffb",
 			"branch": "master",
 			"notests": true
 		},
