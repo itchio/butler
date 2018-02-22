@@ -86,17 +86,26 @@ func doMain() error {
 		}
 	}
 
-	getComment := func(doc *ast.CommentGroup, separator string) string {
+	getCommentLines := func(doc *ast.CommentGroup) []string {
 		if doc == nil {
+			return nil
+		}
+
+		var lines []string
+		for _, el := range doc.List {
+			line := strings.TrimSpace(strings.TrimPrefix(el.Text, "//"))
+			lines = append(lines, line)
+		}
+		return lines
+	}
+
+	getComment := func(doc *ast.CommentGroup, separator string) string {
+		lines := getCommentLines(doc)
+		if len(lines) == 0 {
 			return "*undocumented*"
 		}
 
-		comment := ""
-		for _, line := range doc.List {
-			comment += strings.TrimPrefix(line.Text, "// ")
-			comment += separator
-		}
-		return comment
+		return strings.Join(lines, separator)
 	}
 
 	dumpStruct := func(gd *ast.GenDecl) {
@@ -190,26 +199,68 @@ func doMain() error {
 		return nil
 	}
 
+	parseTag := func(line string) (tag string, value string) {
+		if strings.HasPrefix(line, "@") {
+			for i := 1; i < len(line); i++ {
+				if line[i] == ' ' {
+					tag = line[1:i]
+					value = line[i+1:]
+					break
+				}
+			}
+		}
+		return
+	}
+
 	for _, params := range paramDecls {
 		name := asType(params).Name.Name
 		name = strings.TrimSuffix(name, "Params")
 
-		line("## %s", name)
-		line("")
-
 		result := findStruct(name + "Result")
 
-		comment := getComment(params.Doc, "\n")
+		var tags []string
+		category := ""
+		comment := "undocumented"
+		lines := getCommentLines(params.Doc)
+		if len(lines) > 0 {
+			var outlines []string
+			for _, line := range lines {
+				tag, value := parseTag(line)
+				switch tag {
+				case "name":
+					name = value
+				case "category":
+					category = value
+				case "tags":
+					tags = strings.Split(value, ", ")
+				default:
+					outlines = append(outlines, line)
+				}
+			}
+
+			comment = strings.Join(outlines, "\n")
+		}
+
+		line("# %s", category)
+		line("## %s <em class='request'>Request</em>", name)
+		if len(tags) > 0 {
+			line("<p class='tags'>")
+			for _, tag := range tags {
+				line("<em>%s</em>", tag)
+			}
+			line("</p>")
+		}
+		line("")
 		line(comment)
 
 		line("")
-		line("Parameters:")
+		line("**Parameters**")
 		line("")
 
 		dumpStruct(params)
 
 		line("")
-		line("Result:")
+		line("**Result**")
 		line("")
 
 		if result == nil {
@@ -226,10 +277,10 @@ func doMain() error {
 		name := asType(notification).Name.Name
 		name = strings.TrimSuffix(name, "Notification")
 
-		line("## %s", name)
-		line("")
-
 		comment := getComment(notification.Doc, "\n")
+
+		line("## %s <em class='notification'>Notification</em>", name)
+		line("")
 		line(comment)
 
 		line("")

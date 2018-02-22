@@ -1,3 +1,8 @@
+# Caution: this is a draft
+
+!> This document is a draft! It should not be used yet for implementing
+   clients for buse. The API and recommendations are still subject to change.
+
 # Overview
 
 buse is butler's JSON-RPC 2.0 service
@@ -16,16 +21,65 @@ The output will be a single line of JSON:
 {"time":1519235834,"type":"result","value":{"address":"127.0.0.1:52919","type":"server-listening"}}
 ```
 
-!> Contrary to most JSON-RPC services, it's not recommended
-   to keep a single instance of butler running and make all requests
-   to it (like a server). Instead, start a new butler instance for each
-   individual task you want to achieve, like logging in, performing a search,
-   or cleaning downloads.
+Contrary to most JSON-RPC services, it's not recommended to keep a single
+instance of butler running and make all requests to it (like a server).
 
-## Protocol
+Instead, start a new butler instance for each individual task you want to
+achieve, like logging in, performing a search, or cleaning downloads.
+
+## Transport
 
 Requests, results, and notifications are sent over TCP, separated by
 a newline (`\n`) character.
+
+The format of each line conforms to the
+[JSON-RPC 2.0 Specification](http://www.jsonrpc.org/specification),
+with the following exceptions:
+
+  * Request `id`s are always numbers
+  * Batch requests are not supported
+
+### Why TCP?
+
+We need a connection where either peer can send any number of
+messages to the other.
+
+HTTP 1.x implementations of JSON-RPC 2.0 typically allow only
+one request/reply, and HTTP 2.0, while awesome, seemed like
+overkill for a protocol that is typically used for IPC.
+
+## Updating
+
+Clients are responsible for regularly checking for butler updates, and
+installing them.
+
+### HTTP endpoints
+
+Use the following HTTP endpoint to check for a newer version:
+
+  * <https://dl.itch.ovh/butler/windows-amd64/LATEST>
+
+Where `windows-amd64` is one of:
+
+  * `windows-386` - 32-bit Windows
+  * `windows-amd64` - 64-bit Windows
+  * `linux-amd64` - 64-bit Linux
+  * `darwin-amd64` - 64-bit macOS
+
+`LATEST` is a text file that contains a version number.
+
+For example, if the contents of `LATEST` is `v11.1.0`, then
+the latest version of butler can be downloaded via:
+
+  * <https://dl.itch.ovh/butler/windows-amd64/v11.1.0/butler.gz>
+
+For the `windows` platform, `butler.gz` should be decompressed to `butler.exe`.
+On other platforms, it should be decompressed to just `butler`, and the
+executable bit needs to be set.
+
+### Friendly update deployment
+
+See <https://github.com/itchio/itch/issues/1721>
 
 # Requests
 
@@ -40,165 +94,194 @@ the request and processed it successfully.
 Some requests are made by the client to butler (like CheckUpdate),
 others are made from butler to the client (like AllowSandboxSetup)
 
-## VersionGet
+# Utilities
+## Version.Get <em class='request'>Request</em>
+<p class='tags'>
+<em>Offline</em>
+</p>
 
-Version.Get
+Retrieves the version of the butler instance the client
+is connected to.
 
-
-Parameters:
-
-*empty*
-
-Result:
-
-Name | Type | Description
---- | --- | ---
-**version** | `string` | Something short, like `v8.0.0` 
-**versionString** | `string` | Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290` 
-
-## GameFindUploads
-
-Game.FindUploads
+This endpoint is meant to gather information when reporting
+issues, rather than feature sniffing. Conforming clients should
+automatically download new versions of butler, see [Updating](#updating).
 
 
-Parameters:
-
-Name | Type | Description
---- | --- | ---
-**game** | `itchio.Game` | *undocumented*
-**credentials** | `GameCredentials` | *undocumented*
-
-Result:
-
-Name | Type | Description
---- | --- | ---
-**uploads** | `itchio.Upload[]` | *undocumented*
-
-## OperationStart
-
-Operation.Start
-
-
-Parameters:
-
-Name | Type | Description
---- | --- | ---
-**id** | `string` | *undocumented*
-**stagingFolder** | `string` | *undocumented*
-**operation** | `Operation` | *undocumented*
-**installParams** | `InstallParams` | this is more or less a union, the relevant field should be set depending on the 'Operation' type 
-**uninstallParams** | `UninstallParams` | *undocumented*
-
-Result:
+**Parameters**
 
 *empty*
 
-## OperationCancel
-
-Operation.Cancel
-
-
-Parameters:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
-**id** | `string` | *undocumented*
+**version** | `string` | Something short, like `v8.0.0`
+**versionString** | `string` | Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290`
 
-Result:
+# Install
+## Game.FindUploads <em class='request'>Request</em>
+
+Finds uploads compatible with the current runtime, for a given game
+
+
+**Parameters**
+
+Name | Type | Description
+--- | --- | ---
+**game** | `itchio.Game` | Which game to find uploads for
+**credentials** | `GameCredentials` | The credentials to use to list uploads
+
+**Result**
+
+Name | Type | Description
+--- | --- | ---
+**uploads** | `itchio.Upload[]` | A list of uploads that were found to be compatible.
+
+# Install
+## Operation.Start <em class='request'>Request</em>
+<p class='tags'>
+<em>Cancellable</em>
+</p>
+
+Start a new operation (installing or uninstalling).
+
+
+**Parameters**
+
+Name | Type | Description
+--- | --- | ---
+**id** | `string` | A UUID, generated by the client, used for referring to the task when cancelling it, for instance.
+**stagingFolder** | `string` | A folder that butler can use to store temporary files, like partial downloads, checkpoint files, etc.
+**operation** | `Operation` | Which operation to perform
+**installParams** | `InstallParams` | Must be set if Operation is `install`
+**uninstallParams** | `UninstallParams` | Must be set if Operation is `uninstall`
+
+**Result**
 
 *empty*
 
-## Install
+# Install
+## Operation.Cancel <em class='request'>Request</em>
+
+Attempt to gracefully cancel an ongoing operation.
+
+
+**Parameters**
+
+Name | Type | Description
+--- | --- | ---
+**id** | `string` | The UUID of the task to cancel, as passed to [Operation.Start](#operationstart-request)
+
+**Result**
+
+*empty*
+
+# Install
+## Install <em class='request'>Request</em>
 
 InstallParams contains all the parameters needed to perform
-an installation for a game
+an installation for a game.
 
+**Parameters**
 
-Parameters:
+Name | Type | Description
+--- | --- | ---
+**game** | `itchio.Game` | Which game to install
+**installFolder** | `string` | An absolute path where to install the game
+**upload** | `itchio.Upload` | Which upload to install @optional
+**build** | `itchio.Build` | Which build to install @optional
+**credentials** | `GameCredentials` | Which credentials to use to install the game
+**ignoreInstallers** | `boolean` | If true, do not run windows installers, just extract whatever to the install folder. @optional
+
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **game** | `itchio.Game` | *undocumented*
-**installFolder** | `string` | *undocumented*
-**upload** | `itchio.Upload` | *undocumented*
-**build** | `itchio.Build` | *undocumented*
-**credentials** | `GameCredentials` | *undocumented*
-**ignoreInstallers** | `boolean` | *undocumented*
-
-Result:
-
-Name | Type | Description
---- | --- | ---
-**game** | `itchio.Game` | *undocumented*
 **upload** | `itchio.Upload` | *undocumented*
 **build** | `itchio.Build` | *undocumented*
 
-## Uninstall
+# Install
+## Uninstall <em class='request'>Request</em>
 
-*undocumented*
+UninstallParams contains all the parameters needed to perform
+an uninstallation for a game.
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **installFolder** | `string` | *undocumented*
 
-Result:
+**Result**
 
 *empty*
 
-## PickUpload
+# Install
+## PickUpload <em class='request'>Request</em>
+<p class='tags'>
+<em>Dialog</em>
+</p>
 
-*undocumented*
+Asks the user to pick between multiple available uploads
 
-Parameters:
+
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **uploads** | `itchio.Upload[]` | *undocumented*
 
-Result:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **index** | `number` | *undocumented*
 
-## GetReceipt
+# Install
+## GetReceipt <em class='request'>Request</em>
+<p class='tags'>
+<em>Deprecated</em>
+</p>
 
-*undocumented*
+Retrieves existing receipt information for an install
 
-Parameters:
+
+**Parameters**
 
 *empty*
 
-Result:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **receipt** | `bfs.Receipt` | *undocumented*
 
-## CheckUpdate
+# 
+## CheckUpdate <em class='request'>Request</em>
 
-*undocumented*
+Looks for one or more game updates
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **items** | `CheckUpdateItem[]` | *undocumented*
 
-Result:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **updates** | `GameUpdate[]` | *undocumented*
 **warnings** | `string[]` | *undocumented*
 
-## Launch
+# 
+## Launch <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
@@ -210,47 +293,54 @@ Name | Type | Description
 **prereqsDir** | `string` | *undocumented*
 **forcePrereqs** | `boolean` | *undocumented*
 **sandbox** | `boolean` | *undocumented*
-**credentials** | `GameCredentials` | Used for subkeying 
+**credentials** | `GameCredentials` | Used for subkeying
 
-Result:
+**Result**
 
 *empty*
 
-## PickManifestAction
+# 
+## PickManifestAction <em class='request'>Request</em>
+<p class='tags'>
+<em>Dialogs</em>
+</p>
 
-*undocumented*
+Pick a manifest action to launch, see [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html)
 
-Parameters:
+
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **actions** | `manifest.Action[]` | *undocumented*
 
-Result:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **name** | `string` | *undocumented*
 
-## ShellLaunch
+# 
+## ShellLaunch <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **itemPath** | `string` | *undocumented*
 
-Result:
+**Result**
 
 *empty*
 
-## HTMLLaunch
+# 
+## HTMLLaunch <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
@@ -259,96 +349,101 @@ Name | Type | Description
 **args** | `string[]` | *undocumented*
 **env** | `Map<string, string>` | *undocumented*
 
-Result:
+**Result**
 
 *empty*
 
-## URLLaunch
+# 
+## URLLaunch <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **url** | `string` | *undocumented*
 
-Result:
+**Result**
 
 *empty*
 
-## SaveVerdict
+# 
+## SaveVerdict <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **verdict** | `configurator.Verdict` | *undocumented*
 
-Result:
+**Result**
 
 *empty*
 
-## AllowSandboxSetup
+# 
+## AllowSandboxSetup <em class='request'>Request</em>
 
-*undocumented*
+undocumented
 
-Parameters:
-
-*empty*
-
-Result:
+**Parameters**
 
 *empty*
 
-## PrereqsFailed
+**Result**
 
-*undocumented*
+*empty*
 
-Parameters:
+# 
+## PrereqsFailed <em class='request'>Request</em>
+
+undocumented
+
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
 **error** | `string` | *undocumented*
 **errorStack** | `string` | *undocumented*
 
-Result:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **continue** | `boolean` | *undocumented*
 
-## CleanDownloadsSearch
+# 
+## CleanDownloadsSearch <em class='request'>Request</em>
 
 CleanDownloads.Search
 
-
-Parameters:
-
-Name | Type | Description
---- | --- | ---
-**roots** | `string[]` | A list of folders to scan for potential subfolders to clean up 
-**whitelist** | `string[]` | A list of subfolders to not consider when cleaning (staging folders for in-progress downloads) 
-
-Result:
+**Parameters**
 
 Name | Type | Description
 --- | --- | ---
-**entries** | `CleanDownloadsEntry[]` | *undocumented*
+**roots** | `string[]` | A list of folders to scan for potential subfolders to clean up
+**whitelist** | `string[]` | A list of subfolders to not consider when cleaning (staging folders for in-progress downloads)
 
-## CleanDownloadsApply
-
-*undocumented*
-
-Parameters:
+**Result**
 
 Name | Type | Description
 --- | --- | ---
 **entries** | `CleanDownloadsEntry[]` | *undocumented*
 
-Result:
+# 
+## CleanDownloadsApply <em class='request'>Request</em>
+
+undocumented
+
+**Parameters**
+
+Name | Type | Description
+--- | --- | ---
+**entries** | `CleanDownloadsEntry[]` | *undocumented*
+
+**Result**
 
 *empty*
 
@@ -361,11 +456,10 @@ Notifications are messages that can be sent at any time, in any direction.
 There is no way to check that a notification was delivered, only that it was
 sent (but the other peer may fail to process it before it exits).
 
-## OperationProgress
+## OperationProgress <em class='notification'>Notification</em>
 
-Operation.Progress
-Sent periodically to inform on the current state an operation
-
+@name Operation.Progress
+@category Install
 
 Payload:
 
@@ -375,7 +469,7 @@ Name | Type | Description
 **eta** | `number` | *undocumented*
 **bps** | `number` | *undocumented*
 
-## TaskStarted
+## TaskStarted <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -390,7 +484,7 @@ Name | Type | Description
 **build** | `itchio.Build` | *undocumented*
 **totalSize** | `number` | *undocumented*
 
-## TaskSucceeded
+## TaskSucceeded <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -399,9 +493,9 @@ Payload:
 Name | Type | Description
 --- | --- | ---
 **type** | `TaskType` | *undocumented*
-**installResult** | `InstallResult` | If the task installed something, then this contains info about the game, upload, build that were installed 
+**installResult** | `InstallResult` | If the task installed something, then this contains info about the game, upload, build that were installed
 
-## GameUpdateAvailable
+## GameUpdateAvailable <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -411,7 +505,7 @@ Name | Type | Description
 --- | --- | ---
 **update** | `GameUpdate` | *undocumented*
 
-## LaunchRunning
+## LaunchRunning <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -419,7 +513,7 @@ Payload:
 
 *empty*
 
-## LaunchExited
+## LaunchExited <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -427,7 +521,7 @@ Payload:
 
 *empty*
 
-## PrereqsStarted
+## PrereqsStarted <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -437,7 +531,7 @@ Name | Type | Description
 --- | --- | ---
 **tasks** | `Map<string, PrereqTask>` | *undocumented*
 
-## PrereqsTaskState
+## PrereqsTaskState <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -451,7 +545,7 @@ Name | Type | Description
 **eta** | `number` | *undocumented*
 **bps** | `number` | *undocumented*
 
-## PrereqsEnded
+## PrereqsEnded <em class='notification'>Notification</em>
 
 *undocumented*
 
@@ -459,10 +553,9 @@ Payload:
 
 *empty*
 
-## Log
+## Log <em class='notification'>Notification</em>
 
 Log
-
 
 Payload:
 
@@ -481,7 +574,7 @@ These are some types that are used throughout the API:
 
 GameCredentials contains all the credentials required to make API requests
 including the download key if any
-
+@category General
 
 Fields:
 
@@ -555,7 +648,6 @@ Name | Type | Description
 
 Test.DoubleTwice
 
-
 Fields:
 
 Name | Type | Description
@@ -565,7 +657,6 @@ Name | Type | Description
 ## TestDoubleRequest
 
 Test.Double
-
 
 Fields:
 
