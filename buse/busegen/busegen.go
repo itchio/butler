@@ -54,69 +54,26 @@ func doMain() error {
 		buffer = ""
 	}
 
-	jsonType := func(goType string) string {
-		switch goType {
-		case "string":
-			return "string"
-		case "int64", "float64":
-			return "number"
-		case "bool":
-			return "boolean"
-		default:
-			return goType
-		}
+	linkType := func(typeName string) string {
+		return fmt.Sprintf("[%s](#%s-type)", typeName, linkify(typeName))
 	}
 
-	var typeToString func(e ast.Expr) string
-
-	typeToString = func(e ast.Expr) string {
-		switch node := e.(type) {
-		case *ast.Ident:
-			return jsonType(node.Name)
-		case *ast.StarExpr:
-			return typeToString(node.X)
-		case *ast.SelectorExpr:
-			return typeToString(node.X) + "." + node.Sel.Name
-		case *ast.ArrayType:
-			return typeToString(node.Elt) + "[]"
-		case *ast.MapType:
-			return "Map<" + typeToString(node.Key) + ", " + typeToString(node.Value) + ">"
-		default:
-			return fmt.Sprintf("%#v", node)
-		}
-	}
-
-	getCommentLines := func(doc *ast.CommentGroup) []string {
-		if doc == nil {
-			return nil
+	dumpStruct := func(header string, gd *ast.GenDecl) {
+		if gd == nil {
+			return
 		}
 
-		var lines []string
-		for _, el := range doc.List {
-			line := strings.TrimSpace(strings.TrimPrefix(el.Text, "//"))
-			lines = append(lines, line)
-		}
-		return lines
-	}
-
-	getComment := func(doc *ast.CommentGroup, separator string) string {
-		lines := getCommentLines(doc)
-		if len(lines) == 0 {
-			return "*undocumented*"
-		}
-
-		return strings.Join(lines, separator)
-	}
-
-	dumpStruct := func(gd *ast.GenDecl) {
 		ts := gd.Specs[0].(*ast.TypeSpec)
 		st := ts.Type.(*ast.StructType)
 		fl := st.Fields.List
 
 		if len(fl) == 0 {
-			line("*empty*")
 			return
 		}
+
+		line("")
+		line("**%s**", header)
+		line("")
 
 		line("Name | Type | Description")
 		line("--- | --- | ---")
@@ -134,7 +91,7 @@ func doMain() error {
 			}
 
 			comment := getComment(sf.Doc, " ")
-			line("**%s** | `%s` | %s", jsonTag.Name, typeToString(sf.Type), comment)
+			line("**%s** | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
 		}
 	}
 
@@ -147,15 +104,6 @@ func doMain() error {
 	var paramDecls []*ast.GenDecl
 	var notificationDecls []*ast.GenDecl
 	var typeDecls []*ast.GenDecl
-
-	asType := func(gd *ast.GenDecl) *ast.TypeSpec {
-		for _, spec := range gd.Specs {
-			if ts, ok := spec.(*ast.TypeSpec); ok {
-				return ts
-			}
-		}
-		return nil
-	}
 
 	isStruct := func(ts *ast.TypeSpec) bool {
 		if ts == nil {
@@ -253,21 +201,8 @@ func doMain() error {
 		line("")
 		line(comment)
 
-		line("")
-		line("**Parameters**")
-		line("")
-
-		dumpStruct(params)
-
-		line("")
-		line("**Result**")
-		line("")
-
-		if result == nil {
-			line("*empty*")
-		} else {
-			dumpStruct(result)
-		}
+		dumpStruct("Parameters", params)
+		dumpStruct("Result", result)
 		line("")
 	}
 
@@ -283,12 +218,7 @@ func doMain() error {
 		line("")
 		line(comment)
 
-		line("")
-		line("Payload:")
-		line("")
-
-		dumpStruct(notification)
-
+		dumpStruct("Payload", notification)
 		line("")
 	}
 
@@ -297,17 +227,13 @@ func doMain() error {
 	for _, typ := range typeDecls {
 		name := asType(typ).Name.Name
 
-		line("## %s", name)
+		line("## %s _Type_", name)
 		line("")
 
 		comment := getComment(typ.Doc, "\n")
 		line(comment)
 
-		line("")
-		line("Fields:")
-		line("")
-
-		dumpStruct(typ)
+		dumpStruct("Fields", typ)
 
 		line("")
 	}
