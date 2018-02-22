@@ -15,6 +15,28 @@ func asType(gd *ast.GenDecl) *ast.TypeSpec {
 	return nil
 }
 
+func isStruct(ts *ast.TypeSpec) bool {
+	if ts == nil {
+		return false
+	}
+
+	_, ok := ts.Type.(*ast.StructType)
+	return ok
+}
+
+func parseTag(line string) (tag string, value string) {
+	if strings.HasPrefix(line, "@") {
+		for i := 1; i < len(line); i++ {
+			if line[i] == ' ' {
+				tag = line[1:i]
+				value = line[i+1:]
+				break
+			}
+		}
+	}
+	return
+}
+
 func linkify(input string) string {
 	return strings.Replace(strings.ToLower(input), ".", "", -1)
 }

@@ -22,7 +22,20 @@
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
   <style>
-    .sidebar-nav a em, .content h2 em, .content p.tags em {
+    .content table {
+      margin-left: 1.5em;
+    }
+
+    .content p.tags {
+      float: right;
+    }
+
+    .content h3 {
+      border-top: 1px dashed #aaa;
+      padding-top: .5em;
+    }
+
+    .sidebar-nav a em, .content h3 em, .content p.tags em {
       font-style: initial;
       font-size: 80%;
       color: white;
@@ -38,6 +51,10 @@
 
     em.notification {
       background: #6666a8 !important;
+    }
+
+    .content ul li {
+      padding: .3em 0;
     }
   </style>
 </body>

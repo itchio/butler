@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"go/ast"
-	"go/parser"
-	"go/token"
 	"io/ioutil"
 	"log"
 	"os"
@@ -55,7 +53,7 @@ func doMain() error {
 	}
 
 	linkType := func(typeName string) string {
-		return fmt.Sprintf("[%s](#%s-type)", typeName, linkify(typeName))
+		return fmt.Sprintf("[`%s`](#%s-type)", typeName, linkify(typeName))
 	}
 
 	dumpStruct := func(header string, gd *ast.GenDecl) {
@@ -72,11 +70,11 @@ func doMain() error {
 		}
 
 		line("")
-		line("**%s**", header)
+		line("%s: ", header)
 		line("")
 
-		line("Name | Type | Description")
-		line("--- | --- | ---")
+		// line("Name | Type | Description")
+		// line("--- | --- | ---")
 		for _, sf := range fl {
 			tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
 
@@ -91,154 +89,89 @@ func doMain() error {
 			}
 
 			comment := getComment(sf.Doc, " ")
-			line("**%s** | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
+			// line("**%s** | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
+			// line("  * `%s` %s — %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
+			line("  * `%s` %s  ", jsonTag.Name, linkType(typeToString(sf.Type)))
+			line("    %s", comment)
 		}
+		line("")
 	}
 
-	var fset token.FileSet
-	f, err := parser.ParseFile(&fset, "../types.go", nil, parser.ParseComments)
+	scope := newScope()
+	err = scope.Assimilate("", "../types.go")
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	var paramDecls []*ast.GenDecl
-	var notificationDecls []*ast.GenDecl
-	var typeDecls []*ast.GenDecl
-
-	isStruct := func(ts *ast.TypeSpec) bool {
-		if ts == nil {
-			return false
+	renderHeader := func(entry *Entry) {
+		var kindString string
+		switch entry.kind {
+		case EntryKindParams:
+			kindString = `<em class="request">Request</em>`
+		case EntryKindNotification:
+			kindString = `<em class="notification">Notification</em>`
+		case EntryKindType:
+			kindString = `<em class="type">Type</em>`
 		}
 
-		_, ok := ts.Type.(*ast.StructType)
-		return ok
-	}
-
-	for _, decl := range f.Decls {
-		if gd, ok := decl.(*ast.GenDecl); ok {
-			ts := asType(gd)
-			if ts != nil && isStruct(ts) {
-				name := ts.Name.Name
-				switch true {
-				case strings.HasSuffix(name, "Params"):
-					paramDecls = append(paramDecls, gd)
-				case strings.HasSuffix(name, "Notification"):
-					notificationDecls = append(notificationDecls, gd)
-				case strings.HasSuffix(name, "Result"):
-					// ignore
-				default:
-					typeDecls = append(typeDecls, gd)
-				}
-			}
-		}
-	}
-
-	findStruct := func(name string) *ast.GenDecl {
-		for _, decl := range f.Decls {
-			if gd, ok := decl.(*ast.GenDecl); ok {
-				ts := asType(gd)
-				if ts != nil && isStruct(ts) {
-					if ts.Name.Name == name {
-						return gd
-					}
-				}
-			}
-		}
-		return nil
-	}
-
-	parseTag := func(line string) (tag string, value string) {
-		if strings.HasPrefix(line, "@") {
-			for i := 1; i < len(line); i++ {
-				if line[i] == ' ' {
-					tag = line[1:i]
-					value = line[i+1:]
-					break
-				}
-			}
-		}
-		return
-	}
-
-	for _, params := range paramDecls {
-		name := asType(params).Name.Name
-		name = strings.TrimSuffix(name, "Params")
-
-		result := findStruct(name + "Result")
-
-		var tags []string
-		category := ""
-		comment := "undocumented"
-		lines := getCommentLines(params.Doc)
-		if len(lines) > 0 {
-			var outlines []string
-			for _, line := range lines {
-				tag, value := parseTag(line)
-				switch tag {
-				case "name":
-					name = value
-				case "category":
-					category = value
-				case "tags":
-					tags = strings.Split(value, ", ")
-				default:
-					outlines = append(outlines, line)
-				}
-			}
-
-			comment = strings.Join(outlines, "\n")
-		}
-
-		line("# %s", category)
-		line("## %s <em class='request'>Request</em>", name)
-		if len(tags) > 0 {
+		line("### %s %s", entry.name, kindString)
+		if len(entry.tags) > 0 {
 			line("<p class='tags'>")
-			for _, tag := range tags {
+			for _, tag := range entry.tags {
 				line("<em>%s</em>", tag)
 			}
 			line("</p>")
 		}
-		line("")
-		line(comment)
 
-		dumpStruct("Parameters", params)
+		line("")
+		line(entry.doc)
+		line("")
+	}
+
+	renderRequest := func(params *Entry) {
+		paramsName := asType(params.gd).Name.Name
+		resultName := strings.TrimSuffix(paramsName, "Params") + "Result"
+
+		result := scope.FindStruct(resultName)
+
+		renderHeader(params)
+		dumpStruct("Parameters", params.gd)
 		dumpStruct("Result", result)
-		line("")
 	}
 
-	commit("{{REQUESTS}}")
-
-	for _, notification := range notificationDecls {
-		name := asType(notification).Name.Name
-		name = strings.TrimSuffix(name, "Notification")
-
-		comment := getComment(notification.Doc, "\n")
-
-		line("## %s <em class='notification'>Notification</em>", name)
-		line("")
-		line(comment)
-
-		dumpStruct("Payload", notification)
-		line("")
+	renderNotification := func(entry *Entry) {
+		renderHeader(entry)
+		dumpStruct("Payload", entry.gd)
 	}
 
-	commit("{{NOTIFICATIONS}}")
-
-	for _, typ := range typeDecls {
-		name := asType(typ).Name.Name
-
-		line("## %s _Type_", name)
-		line("")
-
-		comment := getComment(typ.Doc, "\n")
-		line(comment)
-
-		dumpStruct("Fields", typ)
-
-		line("")
+	renderType := func(entry *Entry) {
+		renderHeader(entry)
+		dumpStruct("Fields", entry.gd)
 	}
 
-	commit("{{TYPES}}")
+	line("")
+	line("# Messages")
+	line("")
+
+	for _, category := range scope.categoryList {
+		line("")
+		line("## %s", category)
+		line("")
+
+		cat := scope.categories[category]
+		for _, entry := range cat.entries {
+			switch entry.kind {
+			case EntryKindParams:
+				renderRequest(entry)
+			case EntryKindNotification:
+				renderNotification(entry)
+			case EntryKindType:
+				renderType(entry)
+			}
+		}
+	}
+
+	commit("{{EVERYTHING}}")
 
 	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
 	if err != nil {
