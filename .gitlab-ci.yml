@@ -11,6 +11,13 @@ book:
   script:
     - scripts/ci-book.sh
 
+busedocs:
+  stage: test
+  tags:
+    - dropsy
+  script:
+    - scripts/ci-busedocs.sh
+
 test:linux:
   stage: test
   tags:
