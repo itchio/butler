@@ -46,7 +46,7 @@ func (wr *winsandboxRunner) Prepare() error {
 		ctx := wr.params.Ctx
 		conn := wr.params.Conn
 
-		var r buse.AllowSandboxSetupResponse
+		var r buse.AllowSandboxSetupResult
 		err := conn.Call(ctx, "AllowSandboxSetup", &buse.AllowSandboxSetupParams{}, &r)
 		if err != nil {
 			return errors.Wrap(err, 0)
