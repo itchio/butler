@@ -239,6 +239,7 @@ type TaskSucceededNotification struct {
 
 type OperationResult struct{}
 
+// @category Install
 // @kind type
 type InstallResult struct {
 	Game   *itchio.Game   `json:"game"`

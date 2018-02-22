@@ -123,7 +123,7 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 
 					e := &Entry{
 						kind:     kind,
-						name:     name,
+						name:     prefix + name,
 						gd:       gd,
 						tags:     tags,
 						category: category,

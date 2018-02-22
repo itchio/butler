@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -73,9 +74,13 @@ func doMain() error {
 		line("%s: ", header)
 		line("")
 
-		// line("Name | Type | Description")
-		// line("--- | --- | ---")
+		line("Name | Type | Description")
+		line("--- | --- | ---")
 		for _, sf := range fl {
+			if sf.Tag == nil {
+				log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
+			}
+
 			tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
 
 			tags, err := structtag.Parse(tagValue)
@@ -89,16 +94,18 @@ func doMain() error {
 			}
 
 			comment := getComment(sf.Doc, " ")
-			// line("**%s** | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
-			// line("  * `%s` %s — %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
-			line("  * `%s` %s  ", jsonTag.Name, linkType(typeToString(sf.Type)))
-			line("    %s", comment)
+			line("`%s` | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
 		}
 		line("")
 	}
 
 	scope := newScope()
 	err = scope.Assimilate("", "../types.go")
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = scope.Assimilate("itchio.", "../../vendor/github.com/itchio/go-itchio/types.go")
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -153,6 +160,13 @@ func doMain() error {
 	line("# Messages")
 	line("")
 
+	// Make sure the Misc. category is at the end
+	sort.Slice(scope.categoryList, func(i, j int) bool {
+		if scope.categoryList[i] == "Miscellaneous" {
+			return false
+		}
+		return true
+	})
 	for _, category := range scope.categoryList {
 		line("")
 		line("## %s", category)
