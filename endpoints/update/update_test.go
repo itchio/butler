@@ -1,23 +1,26 @@
-package operate_test
+package update_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
-
-	"gopkg.in/jarcoal/httpmock.v1"
 
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/mockharness"
-	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
+	"github.com/itchio/butler/endpoints/update"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wtest"
 	"github.com/stretchr/testify/assert"
+	httpmock "gopkg.in/jarcoal/httpmock.v1"
 )
 
 func TestCheckUpdateMissingFields(t *testing.T) {
 	wtest.Must(t, mockharness.With(func(h buse.Harness) error {
+		router := buse.NewRouter(nil)
+		update.Register(router)
+
 		item := &buse.CheckUpdateItem{
 			InstalledAt: "2017-04-04T09:32:00Z",
 		}
@@ -29,6 +32,26 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		ctx := context.Background()
 		conn := loopbackconn.New(consumer)
 
+		checkUpdate := func(params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
+			h := router.Handlers["CheckUpdate"]
+			bs, err := json.Marshal(params)
+			wtest.Must(t, err)
+			raw := json.RawMessage(bs)
+
+			res, err := h(&buse.RequestContext{
+				Ctx:            ctx,
+				Conn:           conn,
+				Consumer:       consumer,
+				Params:         &raw,
+				MansionContext: router.MansionContext,
+			})
+			if err != nil {
+				return nil, err
+			} else {
+				return res.(*buse.CheckUpdateResult), nil
+			}
+		}
+
 		params := &buse.CheckUpdateParams{
 			Items: []*buse.CheckUpdateItem{
 				item,
@@ -36,7 +59,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		}
 
 		{
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing itemId")
@@ -44,7 +67,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.ItemID = "foo-bar"
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing credentials")
@@ -52,7 +75,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.Credentials = testCredentials
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing game")
@@ -60,7 +83,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.Game = testGame
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "missing upload")
@@ -69,7 +92,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		{
 			item.Upload = testUpload()
 			httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", httpmock.NewBytesResponder(404, nil))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "Server returned 404")
@@ -81,7 +104,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 			httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, &itchio.ListGameUploadsResponse{
 				Uploads: nil,
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -99,7 +122,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -118,7 +141,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))
@@ -144,7 +167,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "have no build installed but fresh upload has one")
@@ -172,7 +195,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 0, len(res.Updates))
@@ -201,7 +224,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))
@@ -227,7 +250,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
 			assert.Contains(t, res.Warnings[0], "have a build installed but fresh upload has none")
@@ -248,7 +271,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 					otherUpload,
 				},
 			}))
-			res, err := operate.CheckUpdate(params, consumer, h, ctx, conn)
+			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(res.Warnings))
 			assert.Equal(t, 1, len(res.Updates))

@@ -18,7 +18,14 @@ type Router struct {
 	MansionContext *mansion.Context
 }
 
-func (r Router) Register(method string, rh RequestHandler) {
+func NewRouter(mansionContext *mansion.Context) *Router {
+	return &Router{
+		Handlers:       make(map[string]RequestHandler),
+		MansionContext: mansionContext,
+	}
+}
+
+func (r *Router) Register(method string, rh RequestHandler) {
 	if _, ok := r.Handlers[method]; ok {
 		panic(fmt.Sprintf("Can't register handler twice for %s", method))
 	}

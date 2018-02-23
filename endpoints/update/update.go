@@ -1,45 +1,50 @@
-package operate
+package update
 
 import (
-	"context"
 	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/go-itchio"
+	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/cmd/operate/memorylogger"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 )
 
-func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness buse.Harness, ctx context.Context, conn buse.Conn) (*buse.CheckUpdateResult, error) {
-	res := &buse.CheckUpdateResult{}
+func Register(router *buse.Router) {
+	messages.CheckUpdate.Register(router, func(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
+		consumer := rc.Consumer
+		res := &buse.CheckUpdateResult{}
 
-	for _, item := range params.Items {
-		ml := &memoryLogger{}
-		update, err := checkUpdateItem(ml.Consumer(), item)
-		if err != nil {
-			res.Warnings = append(res.Warnings, err.Error())
-			if se, ok := err.(*errors.Error); ok {
-				consumer.Warnf("An update check failed: %s", se.ErrorStack())
+		for _, item := range params.Items {
+			ml := memorylogger.New()
+			update, err := checkUpdateItem(ml.Consumer(), item)
+			if err != nil {
+				res.Warnings = append(res.Warnings, err.Error())
+				if se, ok := err.(*errors.Error); ok {
+					consumer.Warnf("An update check failed: %s", se.ErrorStack())
+				} else {
+					consumer.Warnf("An update check failed: %s", err.Error())
+				}
+				consumer.Warnf("Log follows:")
+				ml.Copy(consumer)
+				consumer.Warnf("End of log")
 			} else {
-				consumer.Warnf("An update check failed: %s", err.Error())
-			}
-			consumer.Warnf("Log follows:")
-			ml.Copy(consumer)
-			consumer.Warnf("End of log")
-		} else {
-			if update != nil {
-				res.Updates = append(res.Updates, update)
-				err := conn.Notify(ctx, "GameUpdateAvailable", &buse.GameUpdateAvailableNotification{
-					Update: update,
-				})
-				if err != nil {
-					consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
+				if update != nil {
+					res.Updates = append(res.Updates, update)
+					err := messages.GameUpdateAvailable.Notify(rc, &buse.GameUpdateAvailableNotification{
+						Update: update,
+					})
+					if err != nil {
+						consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
+					}
 				}
 			}
 		}
-	}
 
-	return res, nil
+		return res, nil
+	})
 }
 
 func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*buse.GameUpdate, error) {
@@ -61,10 +66,10 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 		return nil, errors.New("missing upload")
 	}
 
-	consumer.Statf("Checking for updates to (%s)", GameToString(item.Game))
+	consumer.Statf("Checking for updates to (%s)", operate.GameToString(item.Game))
 	consumer.Statf("Item ID (%s)", item.ItemID)
 	consumer.Infof("→ Cached upload:")
-	LogUpload(consumer, item.Upload, item.Build)
+	operate.LogUpload(consumer, item.Upload, item.Build)
 
 	if item.Credentials.DownloadKey > 0 {
 		consumer.Infof("→ Has download key (game is owned)")
@@ -80,7 +85,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 	}
 	consumer.Infof("→ Last install operation at (%s)", installedAt)
 
-	client, err := ClientFromCredentials(item.Credentials)
+	client, err := operate.ClientFromCredentials(item.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -106,7 +111,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 	}
 
 	consumer.Infof("→ Fresh upload:")
-	LogUpload(consumer, freshUpload, freshUpload.Build)
+	operate.LogUpload(consumer, freshUpload, freshUpload.Build)
 
 	// non-wharf updates
 	if item.Build == nil {

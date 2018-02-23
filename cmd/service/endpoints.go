@@ -4,6 +4,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/endpoints/tests"
+	"github.com/itchio/butler/endpoints/update"
 	"github.com/itchio/butler/endpoints/utilities"
 	"github.com/itchio/butler/mansion"
 )
@@ -15,13 +16,10 @@ func getRouter(mansionContext *mansion.Context) *buse.Router {
 		return mainRouter
 	}
 
-	mainRouter = &buse.Router{
-		Handlers:       make(map[string]buse.RequestHandler),
-		MansionContext: mansionContext,
-	}
-
+	mainRouter = buse.NewRouter(mansionContext)
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
+	update.Register(mainRouter)
 
 	messages.EnsureAllRequests(mainRouter)
 

@@ -266,7 +266,7 @@ func doGen() error {
 				method := decl.name
 				allRequests = append(allRequests, method)
 
-				line("// %s", method)
+				line("// %s (Request)", method)
 				line("")
 				line("type %s struct {}", typeName)
 				line("")
@@ -291,6 +291,30 @@ func doGen() error {
 				line("  var result %s", resultTypeName)
 				line("  err := rc.Call(%#v, params, &result)", method)
 				line("  return &result, err")
+				line("}")
+				line("")
+				line("var %s *%s", varName, typeName)
+				line("")
+
+			case EntryKindNotification:
+				ts := asType(decl.gd)
+				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Notification"))
+				typeName := varName + "Type"
+				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
+				method := decl.name
+
+				line("// %s (Notification)", method)
+				line("")
+				line("type %s struct {}", typeName)
+				line("")
+				line("var _ NotificationMessage = (*%s)(nil)", typeName)
+				line("")
+				line("func (r *%s) Method() string {", typeName)
+				line("  return %#v", method)
+				line("}")
+				line("")
+				line("func (r *%s) Notify(rc *buse.RequestContext, params *%s) (error) {", typeName, paramsTypeName)
+				line("  return rc.Notify(%#v, params)", method)
 				line("}")
 				line("")
 				line("var %s *%s", varName, typeName)
