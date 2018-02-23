@@ -14,7 +14,11 @@
     window.$docsify = {
       name: 'buse',
       themeColor: '#fa5c5c',
-      repo: ''
+      repo: '',
+      markdown: {
+        gfm: true,
+        tables: true,
+      }
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
@@ -22,31 +26,40 @@
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
   <style>
-    .content p.tags {
-      float: right;
+    .content p.tags em {
+      font-style: initial;
+      background: #eee;
+      color: #999;
+      font-weight: bold;
+      clear: both;
+
+      border-radius: 2px;
+      padding: 3px 6px;
+    }
+
+    .sidebar-nav a em, .content h3 em {
+      font-style: initial;
+      margin-right: .4em;
     }
 
     .content h3 {
-      border-top: 1px dashed #aaa;
-      padding-top: .5em;
+      padding-top: 1.4em;
     }
 
-    .sidebar-nav a em, .content h3 em, .content p.tags em {
-      font-style: initial;
-      font-size: 80%;
-      color: white;
-      padding: 2px 4px;
-      border-radius: 5px;
-      margin-left: .4em;
-      background: #777;
+    em.request-server-caller::before {
+      content: "⬅️";
     }
 
-    em.request {
-      background: #44aa40 !important;
+    em.request-client-caller::before {
+      content: "➡️️";
     }
 
-    em.notification {
-      background: #6666a8 !important;
+    em.notification::before {
+      content: "✉️️";
+    }
+
+    em.type::before {
+      content: "📦";
     }
   </style>
 </body>

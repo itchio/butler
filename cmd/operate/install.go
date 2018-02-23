@@ -46,7 +46,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploadsFilterResult, err := getFilteredUploads(client, params.Game, params.Credentials, consumer)
+		uploadsFilterResult, err := GetFilteredUploads(client, params.Game, params.Credentials, consumer)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}

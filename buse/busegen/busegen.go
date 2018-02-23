@@ -82,11 +82,14 @@ func doDocs() error {
 		fl := st.Fields.List
 
 		if len(fl) == 0 {
+			line("")
+			line("**%s**: _none_", header)
+			line("")
 			return
 		}
 
 		line("")
-		line("%s: ", header)
+		line("**%s**: ", header)
 		line("")
 
 		line("Name | Type | Description")
@@ -129,21 +132,37 @@ func doDocs() error {
 		var kindString string
 		switch entry.kind {
 		case EntryKindParams:
-			kindString = `<em class="request">Request</em>`
+			switch entry.caller {
+			case CallerClient:
+				kindString = `<em class="request-client-caller"></em>`
+			case CallerServer:
+				kindString = `<em class="request-server-caller"></em>`
+			}
 		case EntryKindNotification:
-			kindString = `<em class="notification">Notification</em>`
+			kindString = `<em class="notification"></em>`
 		case EntryKindType:
-			kindString = `<em class="type">Type</em>`
+			kindString = `<em class="type"></em>`
 		}
 
-		line("### %s %s", entry.name, kindString)
-		if len(entry.tags) > 0 {
-			line("<p class='tags'>")
-			for _, tag := range entry.tags {
-				line("<em>%s</em>", tag)
+		line("### %s%s", kindString, entry.name)
+		line("<p class='tags'>")
+		switch entry.kind {
+		case EntryKindParams:
+			switch entry.caller {
+			case CallerClient:
+				line("<em>Client request</em>")
+			case CallerServer:
+				line("<em>Server request</em>")
 			}
-			line("</p>")
+		case EntryKindNotification:
+			line("<em>Notification</em>")
+		case EntryKindType:
+			line("<em>Type</em>")
 		}
+		for _, tag := range entry.tags {
+			line("<em>%s</em>", tag)
+		}
+		line("</p>")
 
 		line("")
 		line(entry.doc)
@@ -245,7 +264,7 @@ func doGen() error {
 		return errors.Wrap(err, 0)
 	}
 
-	var allRequests []string
+	var clientRequests []string
 
 	for _, category := range scope.categoryList {
 		cat := scope.categories[category]
@@ -255,16 +274,18 @@ func doGen() error {
 		line("//==============================")
 		line("")
 
-		for _, decl := range cat.entries {
-			switch decl.kind {
+		for _, entry := range cat.entries {
+			switch entry.kind {
 			case EntryKindParams:
-				ts := asType(decl.gd)
+				ts := asType(entry.gd)
 				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Params"))
 				typeName := varName + "Type"
 				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
 				resultTypeName := fmt.Sprintf("buse.%sResult", strings.TrimSuffix(ts.Name.Name, "Params"))
-				method := decl.name
-				allRequests = append(allRequests, method)
+				method := entry.name
+				if entry.caller == CallerClient {
+					clientRequests = append(clientRequests, method)
+				}
 
 				line("// %s (Request)", method)
 				line("")
@@ -297,11 +318,11 @@ func doGen() error {
 				line("")
 
 			case EntryKindNotification:
-				ts := asType(decl.gd)
+				ts := asType(entry.gd)
 				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Notification"))
 				typeName := varName + "Type"
 				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
-				method := decl.name
+				method := entry.name
 
 				line("// %s (Notification)", method)
 				line("")
@@ -325,7 +346,7 @@ func doGen() error {
 
 	line("")
 	line("func EnsureAllRequests(router *buse.Router) {")
-	for _, method := range allRequests {
+	for _, method := range clientRequests {
 		line("  if _, ok := router.Handlers[%#v]; !ok { panic(%#v) }", method, fmt.Sprintf("missing request handler for (%s)", method))
 	}
 	line("}")

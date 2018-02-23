@@ -107,8 +107,9 @@ sent (but the other peer may fail to process it before it exits).
 
 ## Utilities
 
-### Version.Get <em class="request">Request</em>
+### <em class="request-client-caller"></em>Version.Get
 <p class='tags'>
+<em>Client request</em>
 <em>Offline</em>
 </p>
 
@@ -121,7 +122,10 @@ automatically download new versions of butler, see [Updating](#updating).
 
 
 
-Result: 
+**Parameters**: _none_
+
+
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -131,12 +135,15 @@ Name | Type | Description
 
 ## Launch
 
-### Launch <em class="request">Request</em>
+### <em class="request-client-caller"></em>Launch
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -150,19 +157,35 @@ Name | Type | Description
 `sandbox` | [`boolean`](#boolean-type) | *undocumented*
 `credentials` | [`GameCredentials`](#gamecredentials-type) | Used for subkeying
 
-### LaunchRunning <em class="notification">Notification</em>
+
+**Result**: _none_
+
+### <em class="notification"></em>LaunchRunning
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent when the game is configured, prerequisites are installed
 sandbox is set up (if enabled), and the game is actually running.
 
 
-### LaunchExited <em class="notification">Notification</em>
+
+**Payload**: _none_
+
+### <em class="notification"></em>LaunchExited
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent when the game has actually exited.
 
 
-### PickManifestAction <em class="request">Request</em>
+
+**Payload**: _none_
+
+### <em class="request-server-caller"></em>PickManifestAction
 <p class='tags'>
+<em>Server request</em>
 <em>Dialogs</em>
 </p>
 
@@ -170,40 +193,49 @@ Pick a manifest action to launch, see [itch app manifests](https://itch.io/docs/
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `actions` | [`manifest.Action[]`](#manifestaction[]-type) | *undocumented*
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `name` | [`string`](#string-type) | *undocumented*
 
-### ShellLaunch <em class="request">Request</em>
+### <em class="request-server-caller"></em>ShellLaunch
+<p class='tags'>
+<em>Server request</em>
+</p>
 
 Ask the client to perform a shell launch, ie. open an item
 with the operating system's default handler (File explorer)
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `itemPath` | [`string`](#string-type) | *undocumented*
 
-### HTMLLaunch <em class="request">Request</em>
+
+**Result**: _none_
+
+### <em class="request-server-caller"></em>HTMLLaunch
+<p class='tags'>
+<em>Server request</em>
+</p>
 
 Ask the client to perform an HTML launch, ie. open an HTML5
 game, ideally in an embedded browser.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -212,21 +244,31 @@ Name | Type | Description
 `args` | [`string[]`](#string[]-type) | *undocumented*
 `env` | [`Map<string, string>`](#map<string, string>-type) | *undocumented*
 
-### URLLaunch <em class="request">Request</em>
+
+**Result**: _none_
+
+### <em class="request-server-caller"></em>URLLaunch
+<p class='tags'>
+<em>Server request</em>
+</p>
 
 Ask the client to perform an URL launch, ie. open an address
 with the system browser or appropriate.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `url` | [`string`](#string-type) | *undocumented*
 
-### SaveVerdict <em class="request">Request</em>
+
+**Result**: _none_
+
+### <em class="request-server-caller"></em>SaveVerdict
 <p class='tags'>
+<em>Server request</em>
 <em>Deprecated</em>
 </p>
 
@@ -234,14 +276,18 @@ Ask the client to save verdict information after a reconfiguration.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `verdict` | [`configurator.Verdict`](#configuratorverdict-type) | *undocumented*
 
-### AllowSandboxSetup <em class="request">Request</em>
+
+**Result**: _none_
+
+### <em class="request-server-caller"></em>AllowSandboxSetup
 <p class='tags'>
+<em>Server request</em>
 <em>Dialogs</em>
 </p>
 
@@ -251,42 +297,54 @@ the user allows.
 
 
 
-Result: 
+**Parameters**: _none_
+
+
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `allow` | [`boolean`](#boolean-type) | *undocumented*
 
-### PrereqsStarted <em class="notification">Notification</em>
+### <em class="notification"></em>PrereqsStarted
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent when some prerequisites are about to be installed.
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
 `tasks` | [`Map<string, PrereqTask>`](#map<string, prereqtask>-type) | *undocumented*
 
-### PrereqTask <em class="type">Type</em>
+### <em class="type"></em>PrereqTask
+<p class='tags'>
+<em>Type</em>
+</p>
 
 
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
 `fullName` | [`string`](#string-type) | *undocumented*
 `order` | [`int`](#int-type) | *undocumented*
 
-### PrereqsTaskState <em class="notification">Notification</em>
+### <em class="notification"></em>PrereqsTaskState
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -296,16 +354,25 @@ Name | Type | Description
 `eta` | [`number`](#number-type) | *undocumented*
 `bps` | [`number`](#number-type) | *undocumented*
 
-### PrereqsEnded <em class="notification">Notification</em>
+### <em class="notification"></em>PrereqsEnded
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 
 
-### PrereqsFailed <em class="request">Request</em>
+
+**Payload**: _none_
+
+### <em class="request-server-caller"></em>PrereqsFailed
+<p class='tags'>
+<em>Server request</em>
+</p>
 
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -313,7 +380,7 @@ Name | Type | Description
 `errorStack` | [`string`](#string-type) | *undocumented*
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -322,32 +389,38 @@ Name | Type | Description
 
 ## Update
 
-### CheckUpdate <em class="request">Request</em>
+### <em class="request-client-caller"></em>CheckUpdate
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 Looks for one or more game updates.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `items` | [`CheckUpdateItem[]`](#checkupdateitem[]-type) | A list of items, each of it will be checked for updates
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `updates` | [`GameUpdate[]`](#gameupdate[]-type) | Any updates found (might be empty)
 `warnings` | [`string[]`](#string[]-type) | Warnings messages logged while looking for updates
 
-### CheckUpdateItem <em class="type">Type</em>
+### <em class="type"></em>CheckUpdateItem
+<p class='tags'>
+<em>Type</em>
+</p>
 
 
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -358,8 +431,9 @@ Name | Type | Description
 `build` | [`itchio.Build`](#itchiobuild-type) | Currently installed build
 `credentials` | [`GameCredentials`](#gamecredentials-type) | Credentials to use to list uploads
 
-### GameUpdateAvailable <em class="notification">Notification</em>
+### <em class="notification"></em>GameUpdateAvailable
 <p class='tags'>
+<em>Notification</em>
 <em>Optional</em>
 </p>
 
@@ -369,19 +443,22 @@ updates as they are found is not a requirement for the client.
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
 `update` | [`GameUpdate`](#gameupdate-type) | *undocumented*
 
-### GameUpdate <em class="type">Type</em>
+### <em class="type"></em>GameUpdate
+<p class='tags'>
+<em>Type</em>
+</p>
 
 Describes an available update for a particular game install.
 
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -393,13 +470,16 @@ Name | Type | Description
 
 ## General
 
-### GameCredentials <em class="type">Type</em>
+### <em class="type"></em>GameCredentials
+<p class='tags'>
+<em>Type</em>
+</p>
 
 GameCredentials contains all the credentials required to make API requests
 including the download key if any
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -410,13 +490,16 @@ Name | Type | Description
 
 ## Install
 
-### Game.FindUploads <em class="request">Request</em>
+### <em class="request-client-caller"></em>Game.FindUploads
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 Finds uploads compatible with the current runtime, for a given game
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -424,14 +507,15 @@ Name | Type | Description
 `credentials` | [`GameCredentials`](#gamecredentials-type) | The credentials to use to list uploads
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `uploads` | [`itchio.Upload[]`](#itchioupload[]-type) | A list of uploads that were found to be compatible.
 
-### Operation.Start <em class="request">Request</em>
+### <em class="request-client-caller"></em>Operation.Start
 <p class='tags'>
+<em>Client request</em>
 <em>Cancellable</em>
 </p>
 
@@ -439,7 +523,7 @@ Start a new operation (installing or uninstalling).
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -449,25 +533,37 @@ Name | Type | Description
 `installParams` | [`InstallParams`](#installparams-type) | Must be set if Operation is `install`
 `uninstallParams` | [`UninstallParams`](#uninstallparams-type) | Must be set if Operation is `uninstall`
 
-### Operation.Cancel <em class="request">Request</em>
+
+**Result**: _none_
+
+### <em class="request-client-caller"></em>Operation.Cancel
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 Attempt to gracefully cancel an ongoing operation.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `id` | [`string`](#string-type) | The UUID of the task to cancel, as passed to [Operation.Start](#operationstart-request)
 
-### InstallParams <em class="type">Type</em>
+
+**Result**: _none_
+
+### <em class="type"></em>InstallParams
+<p class='tags'>
+<em>Type</em>
+</p>
 
 InstallParams contains all the parameters needed to perform
 an installation for a game.
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -478,20 +574,24 @@ Name | Type | Description
 `credentials` | [`GameCredentials`](#gamecredentials-type) | Which credentials to use to install the game
 `ignoreInstallers` | [`boolean`](#boolean-type) | If true, do not run windows installers, just extract whatever to the install folder. @optional
 
-### UninstallParams <em class="type">Type</em>
+### <em class="type"></em>UninstallParams
+<p class='tags'>
+<em>Type</em>
+</p>
 
 UninstallParams contains all the parameters needed to perform
 an uninstallation for a game.
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
 `installFolder` | [`string`](#string-type) | Absolute path of the folder butler should uninstall
 
-### PickUpload <em class="request">Request</em>
+### <em class="request-server-caller"></em>PickUpload
 <p class='tags'>
+<em>Server request</em>
 <em>Dialog</em>
 </p>
 
@@ -499,21 +599,22 @@ Asks the user to pick between multiple available uploads
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `uploads` | [`itchio.Upload[]`](#itchioupload[]-type) | An array of upload objects to choose from
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `index` | [`number`](#number-type) | The index (in the original array) of the upload that was picked, or a negative value to cancel.
 
-### GetReceipt <em class="request">Request</em>
+### <em class="request-server-caller"></em>GetReceipt
 <p class='tags'>
+<em>Server request</em>
 <em>Deprecated</em>
 </p>
 
@@ -521,19 +622,25 @@ Retrieves existing receipt information for an install
 
 
 
-Result: 
+**Parameters**: _none_
+
+
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `receipt` | [`bfs.Receipt`](#bfsreceipt-type) | *undocumented*
 
-### Operation.Progress <em class="notification">Notification</em>
+### <em class="notification"></em>Operation.Progress
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent periodically to inform on the current state an operation.
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -541,14 +648,17 @@ Name | Type | Description
 `eta` | [`number`](#number-type) | Estimated completion time for the operation, in seconds (floating)
 `bps` | [`number`](#number-type) | Network bandwidth used, in bytes per second (floating)
 
-### TaskStarted <em class="notification">Notification</em>
+### <em class="notification"></em>TaskStarted
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Each operation is made up of one or more tasks. This notification
 is sent whenever a task starts for an operation.
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -559,25 +669,31 @@ Name | Type | Description
 `build` | [`itchio.Build`](#itchiobuild-type) | The build this task is dealing with (if any)
 `totalSize` | [`number`](#number-type) | Total size in bytes
 
-### TaskSucceeded <em class="notification">Notification</em>
+### <em class="notification"></em>TaskSucceeded
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent whenever a task succeeds for an operation.
 
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
 `type` | [`TaskType`](#tasktype-type) | *undocumented*
 `installResult` | [`InstallResult`](#installresult-type) | If the task installed something, then this contains info about the game, upload, build that were installed
 
-### InstallResult <em class="type">Type</em>
+### <em class="type"></em>InstallResult
+<p class='tags'>
+<em>Type</em>
+</p>
 
 
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -588,37 +704,43 @@ Name | Type | Description
 
 ## Test
 
-### Test.DoubleTwice <em class="request">Request</em>
+### <em class="request-client-caller"></em>Test.DoubleTwice
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 
 
 
-Parameters: 
-
-Name | Type | Description
---- | --- | ---
-`number` | [`number`](#number-type) | *undocumented*
-
-
-Result: 
-
-Name | Type | Description
---- | --- | ---
-`number` | [`number`](#number-type) | *undocumented*
-
-### Test.Double <em class="request">Request</em>
-
-
-
-
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `number` | [`number`](#number-type) | *undocumented*
 
 
-Result: 
+**Result**: 
+
+Name | Type | Description
+--- | --- | ---
+`number` | [`number`](#number-type) | *undocumented*
+
+### <em class="request-server-caller"></em>Test.Double
+<p class='tags'>
+<em>Server request</em>
+</p>
+
+
+
+
+**Parameters**: 
+
+Name | Type | Description
+--- | --- | ---
+`number` | [`number`](#number-type) | *undocumented*
+
+
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -627,7 +749,10 @@ Name | Type | Description
 
 ## Clean Downloads
 
-### CleanDownloads.Search <em class="request">Request</em>
+### <em class="request-client-caller"></em>CleanDownloads.Search
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 Look for folders we can clean up in various download folders.
 This finds anything that doesn't correspond to any current downloads
@@ -635,7 +760,7 @@ we know about.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -643,40 +768,52 @@ Name | Type | Description
 `whitelist` | [`string[]`](#string[]-type) | A list of subfolders to not consider when cleaning (staging folders for in-progress downloads)
 
 
-Result: 
+**Result**: 
 
 Name | Type | Description
 --- | --- | ---
 `entries` | [`CleanDownloadsEntry[]`](#cleandownloadsentry[]-type) | *undocumented*
 
-### CleanDownloadsEntry <em class="type">Type</em>
+### <em class="type"></em>CleanDownloadsEntry
+<p class='tags'>
+<em>Type</em>
+</p>
 
 
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
 `path` | [`string`](#string-type) | The complete path of the file or folder we intend to remove
 `size` | [`number`](#number-type) | The size of the folder or file, in bytes
 
-### CleanDownloads.Apply <em class="request">Request</em>
+### <em class="request-client-caller"></em>CleanDownloads.Apply
+<p class='tags'>
+<em>Client request</em>
+</p>
 
 Remove the specified entries from disk, freeing up disk space.
 
 
 
-Parameters: 
+**Parameters**: 
 
 Name | Type | Description
 --- | --- | ---
 `entries` | [`CleanDownloadsEntry[]`](#cleandownloadsentry[]-type) | *undocumented*
 
 
+**Result**: _none_
+
+
 ## Miscellaneous
 
-### Log <em class="notification">Notification</em>
+### <em class="notification"></em>Log
+<p class='tags'>
+<em>Notification</em>
+</p>
 
 Sent any time butler needs to send a log message. The client should
 relay them in their own stdout / stderr, and collect them so they
@@ -685,19 +822,22 @@ can be part of an issue report if something goes wrong.
 Log
 
 
-Payload: 
+**Payload**: 
 
 Name | Type | Description
 --- | --- | ---
 `level` | [`string`](#string-type) | *undocumented*
 `message` | [`string`](#string-type) | *undocumented*
 
-### itchio.User <em class="type">Type</em>
+### <em class="type"></em>itchio.User
+<p class='tags'>
+<em>Type</em>
+</p>
 
 User represents an itch.io account, with basic profile info
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -710,13 +850,16 @@ Name | Type | Description
 `coverUrl` | [`string`](#string-type) | User's avatar, may be a GIF
 `stillCoverUrl` | [`string`](#string-type) | Static version of user's avatar, only set if the main cover URL is a GIF
 
-### itchio.Game <em class="type">Type</em>
+### <em class="type"></em>itchio.Game
+<p class='tags'>
+<em>Type</em>
+</p>
 
 Game represents a page on itch.io, it could be a game,
 a tool, a comic, etc.
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -738,14 +881,17 @@ Name | Type | Description
 `pWindows` | [`boolean`](#boolean-type) | Does this game have an upload tagged with 'Windows compatible'? (creator-controlled)
 `pAndroid` | [`boolean`](#boolean-type) | Does this game have an upload tagged with 'Android compatible'? (creator-controlled)
 
-### itchio.Upload <em class="type">Type</em>
+### <em class="type"></em>itchio.Upload
+<p class='tags'>
+<em>Type</em>
+</p>
 
 An Upload is a downloadable file. Some are wharf-enabled, which means
 they're actually a "channel" that may contain multiple builds, pushed
 with <https://github.com/itchio/butler>
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -765,12 +911,15 @@ Name | Type | Description
 `createdAt` | [`string`](#string-type) | Date this upload was created at
 `updatedAt` | [`string`](#string-type) | Date this upload was last updated at (order changed, display name set, etc.)
 
-### itchio.Collection <em class="type">Type</em>
+### <em class="type"></em>itchio.Collection
+<p class='tags'>
+<em>Type</em>
+</p>
 
 A Collection is a set of games, curated by humans.
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -780,14 +929,17 @@ Name | Type | Description
 `updatedAt` | [`string`](#string-type) | Date this collection was last updated at (item added, title set, etc.)
 `gamesCount` | [`number`](#number-type) | Number of games in the collection. This might not be accurate as some games might not be accessible to whoever is asking (project page deleted, visibility level changed, etc.)
 
-### itchio.DownloadKey <em class="type">Type</em>
+### <em class="type"></em>itchio.DownloadKey
+<p class='tags'>
+<em>Type</em>
+</p>
 
 A download key is often generated when a purchase is made, it
 allows downloading uploads for a game that are not available
 for free.
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---
@@ -798,12 +950,15 @@ Name | Type | Description
 `updatedAt` | [`string`](#string-type) | Date this key was last updated at
 `ownerId` | [`number`](#number-type) | Identifier of the itch.io user to which this key belongs
 
-### itchio.Build <em class="type">Type</em>
+### <em class="type"></em>itchio.Build
+<p class='tags'>
+<em>Type</em>
+</p>
 
 Build contains information about a specific build
 
 
-Fields: 
+**Fields**: 
 
 Name | Type | Description
 --- | --- | ---

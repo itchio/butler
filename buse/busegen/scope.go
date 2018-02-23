@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -20,6 +21,14 @@ type Category struct {
 	entries []*Entry
 }
 
+type Caller int
+
+const (
+	CallerUnknown Caller = iota
+	CallerClient
+	CallerServer
+)
+
 type Entry struct {
 	kind     EntryKind
 	gd       *ast.GenDecl
@@ -27,6 +36,7 @@ type Entry struct {
 	category string
 	doc      string
 	name     string
+	caller   Caller
 }
 
 type EntryKind int
@@ -78,6 +88,7 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 					var tags []string
 					var customName string
 					var doc string
+					var caller = CallerUnknown
 
 					lines := getCommentLines(gd.Doc)
 					if len(lines) > 0 {
@@ -98,6 +109,15 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 								category = value
 							case "tags":
 								tags = strings.Split(value, ", ")
+							case "caller":
+								switch value {
+								case "server":
+									caller = CallerServer
+								case "client":
+									caller = CallerClient
+								default:
+									panic(fmt.Sprintf("invalid caller specified for (%s): %s (must be server or client)", tsName, value))
+								}
 							default:
 								outlines = append(outlines, line)
 							}
@@ -121,6 +141,10 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 						name = customName
 					}
 
+					if kind == EntryKindParams && caller == CallerUnknown {
+						panic(fmt.Sprintf("no caller specified for (%s) (must be server or client)", tsName))
+					}
+
 					e := &Entry{
 						kind:     kind,
 						name:     prefix + name,
@@ -128,6 +152,7 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 						tags:     tags,
 						category: category,
 						doc:      doc,
+						caller:   caller,
 					}
 					s.AddEntry(category, e)
 				}

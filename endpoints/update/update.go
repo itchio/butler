@@ -19,7 +19,7 @@ func Register(router *buse.Router) {
 
 		for _, item := range params.Items {
 			ml := memorylogger.New()
-			update, err := checkUpdateItem(ml.Consumer(), item)
+			update, err := checkUpdateItem(rc, ml.Consumer(), item)
 			if err != nil {
 				res.Warnings = append(res.Warnings, err.Error())
 				if se, ok := err.(*errors.Error); ok {
@@ -47,7 +47,7 @@ func Register(router *buse.Router) {
 	})
 }
 
-func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*buse.GameUpdate, error) {
+func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *buse.CheckUpdateItem) (*buse.GameUpdate, error) {
 	// TODO: respect upload successors, use upcoming check-update endpoint
 
 	if item.ItemID == "" {
@@ -85,7 +85,7 @@ func checkUpdateItem(consumer *state.Consumer, item *buse.CheckUpdateItem) (*bus
 	}
 	consumer.Infof("→ Last install operation at (%s)", installedAt)
 
-	client, err := operate.ClientFromCredentials(item.Credentials)
+	client, err := rc.Harness.ClientFromCredentials(item.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

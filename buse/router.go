@@ -16,12 +16,16 @@ type RequestHandler func(rc *RequestContext) (interface{}, error)
 type Router struct {
 	Handlers       map[string]RequestHandler
 	MansionContext *mansion.Context
+	CancelFuncs    *CancelFuncs
 }
 
 func NewRouter(mansionContext *mansion.Context) *Router {
 	return &Router{
 		Handlers:       make(map[string]RequestHandler),
 		MansionContext: mansionContext,
+		CancelFuncs: &CancelFuncs{
+			Funcs: make(map[string]context.CancelFunc),
+		},
 	}
 }
 
@@ -65,6 +69,7 @@ func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 				Params:         req.Params,
 				Conn:           conn,
 				MansionContext: r.MansionContext,
+				CancelFuncs:    r.CancelFuncs,
 			}
 			res, err = h(rc)
 		} else {
@@ -108,6 +113,7 @@ type RequestContext struct {
 	Params         *json.RawMessage
 	Conn           Conn
 	MansionContext *mansion.Context
+	CancelFuncs    *CancelFuncs
 }
 
 type WithParamsFunc func() (interface{}, error)
@@ -130,4 +136,26 @@ func (rc *RequestContext) Call(method string, params interface{}, res interface{
 
 func (rc *RequestContext) Notify(method string, params interface{}) error {
 	return rc.Conn.Notify(rc.Ctx, method, params)
+}
+
+type CancelFuncs struct {
+	Funcs map[string]context.CancelFunc
+}
+
+func (cf *CancelFuncs) Add(id string, f context.CancelFunc) {
+	cf.Funcs[id] = f
+}
+
+func (cf *CancelFuncs) Remove(id string) {
+	delete(cf.Funcs, id)
+}
+
+func (cf *CancelFuncs) Call(id string) bool {
+	if f, ok := cf.Funcs[id]; ok {
+		f()
+		delete(cf.Funcs, id)
+		return true
+	}
+
+	return false
 }

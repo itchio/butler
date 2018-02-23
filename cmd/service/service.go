@@ -75,52 +75,6 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	// 	}
 
 	// 	switch req.Method {
-	// 	case "Version.Get":
-	// 		{
-	// 			return conn.Reply(ctx, req.ID, &buse.VersionGetResult{
-	// 				Version:       h.ctx.Version,
-	// 				VersionString: h.ctx.VersionString,
-	// 			})
-	// 		}
-	// 	case "Test.DoubleTwice":
-	// 		var ddreq buse.TestDoubleTwiceRequest
-	// 		err := json.Unmarshal(*req.Params, &ddreq)
-	// 		if err != nil {
-	// 			return errors.Wrap(err, 0)
-	// 		}
-
-	// 		var dres buse.TestDoubleResult
-	// 		err = conn.Call(ctx, "Test.Double", &buse.TestDoubleRequest{Number: ddreq.Number}, &dres)
-	// 		if err != nil {
-	// 			return errors.Wrap(err, 0)
-	// 		}
-
-	// 		return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
-	// 			Number: dres.Number * 2,
-	// 		})
-	// 	case "CheckUpdate":
-	// 		{
-	// 			params := &buse.CheckUpdateParams{}
-	// 			err := json.Unmarshal(*req.Params, params)
-	// 			if err != nil {
-	// 				return errors.Wrap(err, 0)
-	// 			}
-
-	// 			consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-	// 				Conn: &jsonrpc2Conn{conn},
-	// 				Ctx:  ctx,
-	// 			})
-	// 			if err != nil {
-	// 				return errors.Wrap(err, 0)
-	// 			}
-
-	// 			res, err := operate.CheckUpdate(params, consumer, h.harness, ctx, &jsonrpc2Conn{conn})
-	// 			if err != nil {
-	// 				return errors.Wrap(err, 0)
-	// 			}
-
-	// 			return conn.Reply(ctx, req.ID, res)
-	// 		}
 	// 	case "CleanDownloads.Search":
 	// 		{
 	// 			params := &buse.CleanDownloadsSearchParams{}
@@ -181,63 +135,6 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	// 				return handleCommonErrors(err)
 	// 			}
 	// 			return conn.Reply(ctx, req.ID, &buse.LaunchResult{})
-	// 		}
-	// 	case "Operation.Start":
-	// 		{
-	// 			params := &buse.OperationStartParams{}
-	// 			err := json.Unmarshal(*req.Params, params)
-	// 			if err != nil {
-	// 				return errors.Wrap(err, 0)
-	// 			}
-
-	// 			if params.ID == "" {
-	// 				return errors.New("'id' parameter missing")
-	// 			}
-
-	// 			if _, ok := h.operationHandles[params.ID]; ok {
-	// 				return fmt.Errorf("an operation is already running with id '%s'", params.ID)
-	// 			}
-
-	// 			parentCtx := h.ctx.Context()
-	// 			ctx, cancelFunc := context.WithCancel(parentCtx)
-
-	// 			oh := &operationHandle{
-	// 				id:         params.ID,
-	// 				cancelFunc: cancelFunc,
-	// 			}
-	// 			h.operationHandles[oh.id] = oh
-
-	// 			err = operate.Start(ctx, &jsonrpc2Conn{conn}, params)
-	// 			delete(h.operationHandles, oh.id)
-	// 			if err != nil {
-	// 				return handleCommonErrors(err)
-	// 			}
-
-	// 			return conn.Reply(ctx, req.ID, &buse.OperationResult{})
-	// 		}
-	// 	case "Operation.Cancel":
-	// 		{
-	// 			var creq buse.OperationCancelParams
-	// 			err := json.Unmarshal(*req.Params, &creq)
-	// 			if err != nil {
-	// 				return errors.Wrap(err, 0)
-	// 			}
-
-	// 			if oh, ok := h.operationHandles[creq.ID]; ok {
-	// 				oh.cancelFunc()
-	// 				return conn.Reply(ctx, req.ID, &buse.OperationCancelResult{})
-	// 			}
-
-	// 			return fmt.Errorf("no such operation: %s", creq.ID)
-	// 		}
-	// 	case "Game.FindUploads":
-	// 		{
-	// 			res, err := operate.GameFindUploads(h.ctx, conn, req)
-	// 			if err != nil {
-	// 				return err
-	// 			}
-
-	// 			return conn.Reply(ctx, req.ID, res)
 	// 		}
 	// 	default:
 	// 		conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
