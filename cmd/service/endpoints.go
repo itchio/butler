@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/endpoints/tests"
 	"github.com/itchio/butler/endpoints/utilities"
 	"github.com/itchio/butler/mansion"
@@ -21,6 +22,8 @@ func getRouter(mansionContext *mansion.Context) *buse.Router {
 
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
+
+	messages.EnsureAllRequests(mainRouter)
 
 	return mainRouter
 }

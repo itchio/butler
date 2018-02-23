@@ -245,6 +245,8 @@ func doGen() error {
 		return errors.Wrap(err, 0)
 	}
 
+	var allRequests []string
+
 	for _, category := range scope.categoryList {
 		cat := scope.categories[category]
 		line("")
@@ -262,6 +264,7 @@ func doGen() error {
 				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
 				resultTypeName := fmt.Sprintf("buse.%sResult", strings.TrimSuffix(ts.Name.Name, "Params"))
 				method := decl.name
+				allRequests = append(allRequests, method)
 
 				line("// %s", method)
 				line("")
@@ -295,6 +298,14 @@ func doGen() error {
 			}
 		}
 	}
+
+	line("")
+	line("func EnsureAllRequests(router *buse.Router) {")
+	for _, method := range allRequests {
+		line("  if _, ok := router.Handlers[%#v]; !ok { panic(%#v) }", method, fmt.Sprintf("missing request handler for (%s)", method))
+	}
+	line("}")
+	line("")
 
 	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
 	if err != nil {
