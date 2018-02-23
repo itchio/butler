@@ -381,7 +381,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, errors.Wrap(err, 0)
 	}
 
-	return nil, nil
+	return &buse.LaunchResult{}, nil
 }
 
 func flavorToStrategy(flavor configurator.Flavor) LaunchStrategy {

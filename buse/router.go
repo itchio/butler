@@ -36,9 +36,18 @@ func (r *Router) Register(method string, rh RequestHandler) {
 	r.Handlers[method] = rh
 }
 
-func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	method := req.Method
 	var res interface{}
+
+	conn := &jsonrpc2Conn{origConn}
+	consumer, cErr := NewStateConsumer(&NewStateConsumerParams{
+		Ctx:  ctx,
+		Conn: conn,
+	})
+	if cErr != nil {
+		return
+	}
 
 	err := func() (err error) {
 		defer func() {
@@ -52,16 +61,6 @@ func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 		}()
 
 		if h, ok := r.Handlers[method]; ok {
-			conn := &jsonrpc2Conn{conn}
-			var consumer *state.Consumer
-			consumer, err = NewStateConsumer(&NewStateConsumerParams{
-				Ctx:  ctx,
-				Conn: conn,
-			})
-			if err != nil {
-				return
-			}
-
 			rc := &RequestContext{
 				Ctx:            ctx,
 				Harness:        NewProductionHarness(),
@@ -79,12 +78,15 @@ func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	}()
 
 	if err == nil {
-		conn.Reply(ctx, req.ID, res)
+		err = origConn.Reply(ctx, req.ID, res)
+		if err != nil {
+			consumer.Errorf("Error while replying: %s", err.Error())
+		}
 		return
 	}
 
 	if ee, ok := asBuseError(err); ok {
-		conn.ReplyWithError(ctx, req.ID, ee.AsJsonRpc2())
+		origConn.ReplyWithError(ctx, req.ID, ee.AsJsonRpc2())
 		return
 	}
 
@@ -99,7 +101,7 @@ func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 			errStack = &rm
 		}
 	}
-	conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	origConn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeInternalError,
 		Message: err.Error(),
 		Data:    errStack,
