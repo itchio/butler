@@ -26,8 +26,8 @@ import (
 var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
-func Do(ctx context.Context, conn operate.Conn, params *buse.LaunchParams) (err error) {
-	consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err error) {
+	consumer, err := buse.NewStateConsumer(&buse.NewStateConsumerParams{
 		Ctx:     ctx,
 		Conn:    conn,
 		LogFile: nil,

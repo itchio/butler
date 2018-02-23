@@ -6,7 +6,6 @@ import (
 
 	"github.com/itchio/butler/buse"
 
-	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/wharf/state"
 )
 
@@ -20,7 +19,7 @@ var NoopNotificationHandler NotificationHandler = func(ctx context.Context, meth
 }
 
 type LoopbackConn interface {
-	operate.Conn
+	buse.Conn
 
 	OnNotification(method string, handler NotificationHandler)
 	OnCall(method string, handler CallHandler)
@@ -48,7 +47,7 @@ func New(consumer *state.Consumer) LoopbackConn {
 	return lc
 }
 
-var _ operate.Conn = (*loopbackConn)(nil)
+var _ buse.Conn = (*loopbackConn)(nil)
 
 func (lc *loopbackConn) OnNotification(method string, handler NotificationHandler) {
 	lc.notificationHandlers[method] = handler

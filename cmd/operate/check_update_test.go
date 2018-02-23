@@ -7,9 +7,8 @@ import (
 	"gopkg.in/jarcoal/httpmock.v1"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/mockharness"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/cmd/operate/harness"
-	"github.com/itchio/butler/cmd/operate/harness/mockharness"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
@@ -18,7 +17,7 @@ import (
 )
 
 func TestCheckUpdateMissingFields(t *testing.T) {
-	wtest.Must(t, mockharness.With(func(h harness.Harness) error {
+	wtest.Must(t, mockharness.With(func(h buse.Harness) error {
 		item := &buse.CheckUpdateItem{
 			InstalledAt: "2017-04-04T09:32:00Z",
 		}

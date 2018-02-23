@@ -1,9 +1,8 @@
-package harness
+package buse
 
 import (
 	"errors"
 
-	"github.com/itchio/butler/buse"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -18,7 +17,7 @@ func NewProductionHarness() Harness {
 	return &productionHarness{}
 }
 
-func (ph *productionHarness) ClientFromCredentials(credentials *buse.GameCredentials) (*itchio.Client, error) {
+func (ph *productionHarness) ClientFromCredentials(credentials *GameCredentials) (*itchio.Client, error) {
 	if credentials == nil {
 		return nil, errors.New("Missing credentials")
 	}

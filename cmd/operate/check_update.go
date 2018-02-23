@@ -6,12 +6,11 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 )
 
-func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness harness.Harness, ctx context.Context, conn Conn) (*buse.CheckUpdateResult, error) {
+func CheckUpdate(params *buse.CheckUpdateParams, consumer *state.Consumer, harness buse.Harness, ctx context.Context, conn buse.Conn) (*buse.CheckUpdateResult, error) {
 	res := &buse.CheckUpdateResult{}
 
 	for _, item := range params.Items {

@@ -7,14 +7,13 @@ import (
 	"runtime"
 
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 )
 
 type RunnerParams struct {
 	Consumer *state.Consumer
-	Conn     operate.Conn
+	Conn     buse.Conn
 	Ctx      context.Context
 
 	Sandbox bool

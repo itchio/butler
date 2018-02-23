@@ -73,6 +73,27 @@ func MarshalBuild(in *itchio.Build, out *string) error {
 	return nil
 }
 
+// User
+
+func UnmarshalUser(in string) (*itchio.User, error) {
+	var out itchio.User
+	err := json.Unmarshal([]byte(in), &out)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return &out, nil
+}
+
+func MarshalUser(in *itchio.User, out *string) error {
+	contents, err := json.Marshal(in)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	*out = string(contents)
+	return nil
+}
+
 // Verdict
 
 func UnmarshalVerdict(in string) (*configurator.Verdict, error) {

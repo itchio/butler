@@ -3,7 +3,6 @@ package mockharness
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/operate/harness"
 	itchio "github.com/itchio/go-itchio"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 )
@@ -11,18 +10,18 @@ import (
 // mockHarness
 
 type mockHarness struct {
-	ph harness.Harness
+	ph buse.Harness
 }
 
-var _ harness.Harness = (*mockHarness)(nil)
+var _ buse.Harness = (*mockHarness)(nil)
 
-type WithHarnessFunc func(h harness.Harness) error
+type WithHarnessFunc func(h buse.Harness) error
 
 func With(cb WithHarnessFunc) error {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	th := &mockHarness{harness.NewProductionHarness()}
+	th := &mockHarness{buse.NewProductionHarness()}
 	err := cb(th)
 	if err != nil {
 		return errors.Wrap(err, 0)

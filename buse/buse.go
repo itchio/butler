@@ -9,6 +9,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
+	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -70,4 +72,40 @@ scanLoop:
 	}
 
 	return json.Unmarshal(buf, v)
+}
+
+type Conn interface {
+	Notify(ctx context.Context, method string, params interface{}) error
+	Call(ctx context.Context, method string, params interface{}, result interface{}) error
+}
+
+//
+
+type jsonrpc2Conn struct {
+	conn *jsonrpc2.Conn
+}
+
+var _ Conn = (*jsonrpc2Conn)(nil)
+
+func (jc *jsonrpc2Conn) Notify(ctx context.Context, method string, params interface{}) error {
+	return jc.conn.Notify(ctx, method, params)
+}
+
+func (jc *jsonrpc2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
+	return jc.conn.Call(ctx, method, params, result)
+}
+
+func (jc *jsonrpc2Conn) Close() error {
+	return jc.conn.Close()
+}
+
+//
+
+type RequestContext struct {
+	Ctx            context.Context
+	Harness        Harness
+	Consumer       *state.Consumer
+	Params         interface{}
+	Conn           Conn
+	MansionContext *mansion.Context
 }

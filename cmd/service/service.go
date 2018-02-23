@@ -2,15 +2,10 @@ package service
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net"
 
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/launch"
-	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/cmd/operate/harness"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/go-errors/errors"
@@ -29,8 +24,8 @@ func do(ctx *mansion.Context) {
 
 type handler struct {
 	ctx              *mansion.Context
-	harness          harness.Harness
 	operationHandles map[string]*operationHandle
+	router           *buse.Router
 }
 
 type operationHandle struct {
@@ -46,226 +41,228 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 		return
 	}
 
-	err := func() (err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				if rErr, ok := r.(error); ok {
-					err = errors.Wrap(rErr, 0)
-				} else {
-					err = errors.New(r)
-				}
-			}
-		}()
+	h.router.Dispatch(ctx, conn, req)
 
-		handleCommonErrors := func(err error) error {
-			if errors.Is(err, operate.ErrCancelled) {
-				conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-					Code:    buse.CodeOperationCancelled,
-					Message: err.Error(),
-				})
-				return nil
-			}
+	// err := func() (err error) {
+	// 	defer func() {
+	// 		if r := recover(); r != nil {
+	// 			if rErr, ok := r.(error); ok {
+	// 				err = errors.Wrap(rErr, 0)
+	// 			} else {
+	// 				err = errors.New(r)
+	// 			}
+	// 		}
+	// 	}()
 
-			if errors.Is(err, operate.ErrAborted) {
-				conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-					Code:    buse.CodeOperationAborted,
-					Message: err.Error(),
-				})
-				return nil
-			}
+	// 	handleCommonErrors := func(err error) error {
+	// 		if errors.Is(err, operate.ErrCancelled) {
+	// 			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	// 				Code:    buse.CodeOperationCancelled,
+	// 				Message: err.Error(),
+	// 			})
+	// 			return nil
+	// 		}
 
-			return err
-		}
+	// 		if errors.Is(err, operate.ErrAborted) {
+	// 			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	// 				Code:    buse.CodeOperationAborted,
+	// 				Message: err.Error(),
+	// 			})
+	// 			return nil
+	// 		}
 
-		switch req.Method {
-		case "Version.Get":
-			{
-				return conn.Reply(ctx, req.ID, &buse.VersionGetResult{
-					Version:       h.ctx.Version,
-					VersionString: h.ctx.VersionString,
-				})
-			}
-		case "Test.DoubleTwice":
-			var ddreq buse.TestDoubleTwiceRequest
-			err := json.Unmarshal(*req.Params, &ddreq)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
+	// 		return err
+	// 	}
 
-			var dres buse.TestDoubleResult
-			err = conn.Call(ctx, "Test.Double", &buse.TestDoubleRequest{Number: ddreq.Number}, &dres)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
+	// 	switch req.Method {
+	// 	case "Version.Get":
+	// 		{
+	// 			return conn.Reply(ctx, req.ID, &buse.VersionGetResult{
+	// 				Version:       h.ctx.Version,
+	// 				VersionString: h.ctx.VersionString,
+	// 			})
+	// 		}
+	// 	case "Test.DoubleTwice":
+	// 		var ddreq buse.TestDoubleTwiceRequest
+	// 		err := json.Unmarshal(*req.Params, &ddreq)
+	// 		if err != nil {
+	// 			return errors.Wrap(err, 0)
+	// 		}
 
-			return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
-				Number: dres.Number * 2,
-			})
-		case "CheckUpdate":
-			{
-				params := &buse.CheckUpdateParams{}
-				err := json.Unmarshal(*req.Params, params)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 		var dres buse.TestDoubleResult
+	// 		err = conn.Call(ctx, "Test.Double", &buse.TestDoubleRequest{Number: ddreq.Number}, &dres)
+	// 		if err != nil {
+	// 			return errors.Wrap(err, 0)
+	// 		}
 
-				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-					Conn: &jsonrpc2Conn{conn},
-					Ctx:  ctx,
-				})
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 		return conn.Reply(ctx, req.ID, &buse.TestDoubleTwiceResult{
+	// 			Number: dres.Number * 2,
+	// 		})
+	// 	case "CheckUpdate":
+	// 		{
+	// 			params := &buse.CheckUpdateParams{}
+	// 			err := json.Unmarshal(*req.Params, params)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				res, err := operate.CheckUpdate(params, consumer, h.harness, ctx, &jsonrpc2Conn{conn})
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+	// 				Conn: &jsonrpc2Conn{conn},
+	// 				Ctx:  ctx,
+	// 			})
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				return conn.Reply(ctx, req.ID, res)
-			}
-		case "CleanDownloads.Search":
-			{
-				params := &buse.CleanDownloadsSearchParams{}
-				err := json.Unmarshal(*req.Params, params)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			res, err := operate.CheckUpdate(params, consumer, h.harness, ctx, &jsonrpc2Conn{conn})
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-					Conn: &jsonrpc2Conn{conn},
-					Ctx:  ctx,
-				})
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			return conn.Reply(ctx, req.ID, res)
+	// 		}
+	// 	case "CleanDownloads.Search":
+	// 		{
+	// 			params := &buse.CleanDownloadsSearchParams{}
+	// 			err := json.Unmarshal(*req.Params, params)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				res, err := operate.CleanDownloadsSearch(params, consumer)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+	// 				Conn: &jsonrpc2Conn{conn},
+	// 				Ctx:  ctx,
+	// 			})
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				return conn.Reply(ctx, req.ID, res)
-			}
+	// 			res, err := operate.CleanDownloadsSearch(params, consumer)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-		case "CleanDownloads.Apply":
-			{
-				params := &buse.CleanDownloadsApplyParams{}
-				err := json.Unmarshal(*req.Params, params)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			return conn.Reply(ctx, req.ID, res)
+	// 		}
 
-				consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
-					Conn: &jsonrpc2Conn{conn},
-					Ctx:  ctx,
-				})
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 	case "CleanDownloads.Apply":
+	// 		{
+	// 			params := &buse.CleanDownloadsApplyParams{}
+	// 			err := json.Unmarshal(*req.Params, params)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				res, err := operate.CleanDownloadsApply(params, consumer)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			consumer, err := operate.NewStateConsumer(&operate.NewStateConsumerParams{
+	// 				Conn: &jsonrpc2Conn{conn},
+	// 				Ctx:  ctx,
+	// 			})
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				return conn.Reply(ctx, req.ID, res)
-			}
-		case "Launch":
-			{
-				params := &buse.LaunchParams{}
-				err := json.Unmarshal(*req.Params, params)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			res, err := operate.CleanDownloadsApply(params, consumer)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				err = launch.Do(ctx, &jsonrpc2Conn{conn}, params)
-				if err != nil {
-					return handleCommonErrors(err)
-				}
-				return conn.Reply(ctx, req.ID, &buse.LaunchResult{})
-			}
-		case "Operation.Start":
-			{
-				params := &buse.OperationStartParams{}
-				err := json.Unmarshal(*req.Params, params)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			return conn.Reply(ctx, req.ID, res)
+	// 		}
+	// 	case "Launch":
+	// 		{
+	// 			params := &buse.LaunchParams{}
+	// 			err := json.Unmarshal(*req.Params, params)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				if params.ID == "" {
-					return errors.New("'id' parameter missing")
-				}
+	// 			err = launch.Do(ctx, &jsonrpc2Conn{conn}, params)
+	// 			if err != nil {
+	// 				return handleCommonErrors(err)
+	// 			}
+	// 			return conn.Reply(ctx, req.ID, &buse.LaunchResult{})
+	// 		}
+	// 	case "Operation.Start":
+	// 		{
+	// 			params := &buse.OperationStartParams{}
+	// 			err := json.Unmarshal(*req.Params, params)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				if _, ok := h.operationHandles[params.ID]; ok {
-					return fmt.Errorf("an operation is already running with id '%s'", params.ID)
-				}
+	// 			if params.ID == "" {
+	// 				return errors.New("'id' parameter missing")
+	// 			}
 
-				parentCtx := h.ctx.Context()
-				ctx, cancelFunc := context.WithCancel(parentCtx)
+	// 			if _, ok := h.operationHandles[params.ID]; ok {
+	// 				return fmt.Errorf("an operation is already running with id '%s'", params.ID)
+	// 			}
 
-				oh := &operationHandle{
-					id:         params.ID,
-					cancelFunc: cancelFunc,
-				}
-				h.operationHandles[oh.id] = oh
+	// 			parentCtx := h.ctx.Context()
+	// 			ctx, cancelFunc := context.WithCancel(parentCtx)
 
-				err = operate.Start(ctx, &jsonrpc2Conn{conn}, params)
-				delete(h.operationHandles, oh.id)
-				if err != nil {
-					return handleCommonErrors(err)
-				}
+	// 			oh := &operationHandle{
+	// 				id:         params.ID,
+	// 				cancelFunc: cancelFunc,
+	// 			}
+	// 			h.operationHandles[oh.id] = oh
 
-				return conn.Reply(ctx, req.ID, &buse.OperationResult{})
-			}
-		case "Operation.Cancel":
-			{
-				var creq buse.OperationCancelParams
-				err := json.Unmarshal(*req.Params, &creq)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
+	// 			err = operate.Start(ctx, &jsonrpc2Conn{conn}, params)
+	// 			delete(h.operationHandles, oh.id)
+	// 			if err != nil {
+	// 				return handleCommonErrors(err)
+	// 			}
 
-				if oh, ok := h.operationHandles[creq.ID]; ok {
-					oh.cancelFunc()
-					return conn.Reply(ctx, req.ID, &buse.OperationCancelResult{})
-				}
+	// 			return conn.Reply(ctx, req.ID, &buse.OperationResult{})
+	// 		}
+	// 	case "Operation.Cancel":
+	// 		{
+	// 			var creq buse.OperationCancelParams
+	// 			err := json.Unmarshal(*req.Params, &creq)
+	// 			if err != nil {
+	// 				return errors.Wrap(err, 0)
+	// 			}
 
-				return fmt.Errorf("no such operation: %s", creq.ID)
-			}
-		case "Game.FindUploads":
-			{
-				res, err := operate.GameFindUploads(h.ctx, conn, req)
-				if err != nil {
-					return err
-				}
+	// 			if oh, ok := h.operationHandles[creq.ID]; ok {
+	// 				oh.cancelFunc()
+	// 				return conn.Reply(ctx, req.ID, &buse.OperationCancelResult{})
+	// 			}
 
-				return conn.Reply(ctx, req.ID, res)
-			}
-		default:
-			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-				Code:    jsonrpc2.CodeMethodNotFound,
-				Message: fmt.Sprintf("no such method '%s'", req.Method),
-			})
-		}
+	// 			return fmt.Errorf("no such operation: %s", creq.ID)
+	// 		}
+	// 	case "Game.FindUploads":
+	// 		{
+	// 			res, err := operate.GameFindUploads(h.ctx, conn, req)
+	// 			if err != nil {
+	// 				return err
+	// 			}
 
-		return nil
-	}()
+	// 			return conn.Reply(ctx, req.ID, res)
+	// 		}
+	// 	default:
+	// 		conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	// 			Code:    jsonrpc2.CodeMethodNotFound,
+	// 			Message: fmt.Sprintf("no such method '%s'", req.Method),
+	// 		})
+	// 	}
 
-	if err != nil {
-		comm.Warnf("error dealing with %s request: %s", req.Method, err.Error())
+	// 	return nil
+	// }()
 
-		msg := err.Error()
-		if se, ok := err.(*errors.Error); ok {
-			msg = se.ErrorStack()
-		}
+	// if err != nil {
+	// 	comm.Warnf("error dealing with %s request: %s", req.Method, err.Error())
 
-		// will get dropped if not handled, that's ok
-		conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-			Code:    jsonrpc2.CodeInternalError,
-			Message: msg,
-		})
-	}
+	// 	msg := err.Error()
+	// 	if se, ok := err.(*errors.Error); ok {
+	// 		msg = se.ErrorStack()
+	// 	}
+
+	// 	// will get dropped if not handled, that's ok
+	// 	conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	// 		Code:    jsonrpc2.CodeInternalError,
+	// 		Message: msg,
+	// 	})
+	// }
 }
 
 func Do(ctx *mansion.Context) error {
@@ -285,8 +282,8 @@ func Do(ctx *mansion.Context) error {
 
 	ha := &handler{
 		ctx:              ctx,
-		harness:          harness.NewProductionHarness(),
 		operationHandles: make(map[string]*operationHandle),
+		router:           getRouter(ctx),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
 
@@ -296,24 +293,4 @@ func Do(ctx *mansion.Context) error {
 	}
 
 	return nil
-}
-
-//
-
-type jsonrpc2Conn struct {
-	conn *jsonrpc2.Conn
-}
-
-var _ operate.Conn = (*jsonrpc2Conn)(nil)
-
-func (jc *jsonrpc2Conn) Notify(ctx context.Context, method string, params interface{}) error {
-	return jc.conn.Notify(ctx, method, params)
-}
-
-func (jc *jsonrpc2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
-	return jc.conn.Call(ctx, method, params, result)
-}
-
-func (jc *jsonrpc2Conn) Close() error {
-	return jc.conn.Close()
 }

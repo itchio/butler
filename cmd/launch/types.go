@@ -7,7 +7,6 @@ import (
 	"github.com/itchio/butler/manager"
 
 	"github.com/itchio/butler/cmd/launch/manifest"
-	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/state"
 )
@@ -24,7 +23,7 @@ const (
 
 type LauncherParams struct {
 	Ctx      context.Context
-	Conn     operate.Conn
+	Conn     buse.Conn
 	Consumer *state.Consumer
 
 	// If relative, it's relative to the WorkingDirectory
