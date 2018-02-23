@@ -17,7 +17,7 @@ import (
 )
 
 func TestCheckUpdateMissingFields(t *testing.T) {
-	wtest.Must(t, mockharness.With(func(h buse.Harness) error {
+	wtest.Must(t, mockharness.With(func(harness buse.Harness) error {
 		router := buse.NewRouter(nil)
 		update.Register(router)
 
@@ -44,6 +44,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 				Consumer:       consumer,
 				Params:         &raw,
 				MansionContext: router.MansionContext,
+				Harness:        harness,
 			})
 			if err != nil {
 				return nil, err
