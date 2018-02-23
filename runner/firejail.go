@@ -31,7 +31,7 @@ func (fr *firejailRunner) Prepare() error {
 
 func (fr *firejailRunner) Run() error {
 	params := fr.params
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 
 	firejailName := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
 	firejailPath := filepath.Join(params.PrereqsDir, firejailName, "firejail")
@@ -57,7 +57,7 @@ func (fr *firejailRunner) Run() error {
 	args = append(args, params.FullTargetPath)
 	args = append(args, params.Args...)
 
-	cmd := exec.CommandContext(params.Ctx, firejailPath, args...)
+	cmd := exec.CommandContext(params.RequestContext.Ctx, firejailPath, args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout

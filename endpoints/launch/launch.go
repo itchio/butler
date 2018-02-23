@@ -1,43 +1,38 @@
 package launch
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
+	goerrors "errors"
+
 	humanize "github.com/dustin/go-humanize"
+	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
-
-	goerrors "errors"
-
-	"github.com/go-errors/errors"
-	"github.com/itchio/butler/cmd/launch/manifest"
-	"github.com/itchio/butler/cmd/operate"
-
-	"github.com/itchio/butler/buse"
 )
 
 var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
-func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err error) {
-	consumer, err := buse.NewStateConsumer(&buse.NewStateConsumerParams{
-		Ctx:     ctx,
-		Conn:    conn,
-		LogFile: nil,
-	})
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+func Register(router *buse.Router) {
+	messages.Launch.Register(router, Launch)
+}
+
+func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchResult, error) {
+	consumer := rc.Consumer
 
 	if params.InstallFolder == "" {
-		return errors.New("InstallFolder must be specified")
+		return nil, errors.New("InstallFolder must be specified")
 	}
 
 	runtime := manager.CurrentRuntime()
@@ -50,7 +45,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	receiptSaidOtherwise := false
@@ -83,7 +78,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 
 	appManifest, err := manifest.Read(params.InstallFolder)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	pickManifestAction := func() error {
@@ -104,10 +99,9 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 		if len(actions) == 1 {
 			manifestAction = actions[0]
 		} else {
-			var r buse.PickManifestActionResult
-			err := conn.Call(ctx, "PickManifestAction", &buse.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, &buse.PickManifestActionParams{
 				Actions: actions,
-			}, &r)
+			})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -183,7 +177,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 	}
 	err = pickManifestAction()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	pickFromVerdict := func() error {
@@ -207,10 +201,9 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 				})
 			}
 
-			var r buse.PickManifestActionResult
-			err := conn.Call(ctx, "PickManifestAction", &buse.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, &buse.PickManifestActionParams{
 				Actions: fakeActions,
-			}, &r)
+			})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -240,22 +233,21 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 
 			verdict, err := configurator.Configure(params.InstallFolder, false)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 			params.Verdict = verdict
 
-			var r buse.SaveVerdictResult
-			err = conn.Call(ctx, "SaveVerdict", &buse.SaveVerdictParams{
+			_, err = messages.SaveVerdict.Call(rc, &buse.SaveVerdictParams{
 				Verdict: verdict,
-			}, &r)
+			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			err = pickFromVerdict()
 			if err != nil {
 				if !errors.Is(err, ErrNoCandidates) {
-					return errors.Wrap(err, 0)
+					return nil, errors.Wrap(err, 0)
 				}
 			}
 		} else {
@@ -274,24 +266,23 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 
 					verdict, err := configurator.Configure(params.InstallFolder, false)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return nil, errors.Wrap(err, 0)
 					}
 					params.Verdict = verdict
 
-					var r buse.SaveVerdictResult
-					err = conn.Call(ctx, "SaveVerdict", &buse.SaveVerdictParams{
+					_, err = messages.SaveVerdict.Call(rc, &buse.SaveVerdictParams{
 						Verdict: verdict,
-					}, &r)
+					})
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return nil, errors.Wrap(err, 0)
 					}
 
 					err = pickFromVerdict()
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return nil, errors.Wrap(err, 0)
 					}
 				} else {
-					return errors.Wrap(err, 0)
+					return nil, errors.Wrap(err, 0)
 				}
 			}
 		}
@@ -314,7 +305,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 	if strategy == LaunchStrategyUnknown {
 		if candidate == nil {
 			err := fmt.Errorf("could not determine launch strategy for %s", fullTargetPath)
-			return errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, 0)
 		}
 
 		strategy = flavorToStrategy(candidate.Flavor)
@@ -326,7 +317,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 	launcher := launchers[strategy]
 	if launcher == nil {
 		err := fmt.Errorf("no launcher for strategy (%s)", strategy)
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
 	var args []string = []string{}
@@ -339,12 +330,12 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 			const onlyPermittedScope = "profile:me"
 			if manifestAction.Scope != onlyPermittedScope {
 				err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			client, err := operate.ClientFromCredentials(params.Credentials)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			res, err := client.Subkey(&itchio.SubkeyParams{
@@ -352,7 +343,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 				Scope:  manifestAction.Scope,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, 0)
 			}
 
 			consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
@@ -369,9 +360,7 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 	}
 
 	launcherParams := &LauncherParams{
-		Conn:     conn,
-		Ctx:      ctx,
-		Consumer: consumer,
+		RequestContext: rc,
 
 		FullTargetPath: fullTargetPath,
 		Candidate:      candidate,
@@ -389,10 +378,10 @@ func Do(ctx context.Context, conn buse.Conn, params *buse.LaunchParams) (err err
 
 	err = launcher.Do(launcherParams)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 
-	return nil
+	return nil, nil
 }
 
 func flavorToStrategy(flavor configurator.Flavor) LaunchStrategy {

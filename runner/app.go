@@ -37,7 +37,7 @@ func (ar *appRunner) Run() error {
 }
 
 func RunAppBundle(params *RunnerParams, bundlePath string) error {
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 
 	var args = []string{
 		"-W",
@@ -55,7 +55,7 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 
 	consumer.Infof("Actual binary is (%s)", binaryPath)
 
-	cmd := exec.CommandContext(params.Ctx, "open", args...)
+	cmd := exec.CommandContext(params.RequestContext.Ctx, "open", args...)
 	// I doubt this matters
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
@@ -73,7 +73,7 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 
 		// Block until a signal is received.
 		select {
-		case <-params.Ctx.Done():
+		case <-params.RequestContext.Ctx.Done():
 			consumer.Warnf("Context done!")
 		case s := <-c:
 			consumer.Warnf("Got signal: %v", s)

@@ -1,14 +1,11 @@
 package launch
 
 import (
-	"context"
-
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/manager"
 
-	"github.com/itchio/butler/cmd/launch/manifest"
 	"github.com/itchio/butler/configurator"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/butler/endpoints/launch/manifest"
 )
 
 type LaunchStrategy string
@@ -22,9 +19,7 @@ const (
 )
 
 type LauncherParams struct {
-	Ctx      context.Context
-	Conn     buse.Conn
-	Consumer *state.Consumer
+	RequestContext *buse.RequestContext
 
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
@@ -59,6 +54,6 @@ type Launcher interface {
 
 var launchers = make(map[LaunchStrategy]Launcher)
 
-func Register(strategy LaunchStrategy, launcher Launcher) {
+func RegisterLauncher(strategy LaunchStrategy, launcher Launcher) {
 	launchers[strategy] = launcher
 }

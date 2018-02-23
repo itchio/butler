@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/itchio/butler/buse/messages"
+
 	"github.com/itchio/butler/installer"
 
 	"github.com/itchio/butler/buse"
@@ -36,18 +38,14 @@ func newWinSandboxRunner(params *RunnerParams) (Runner, error) {
 }
 
 func (wr *winsandboxRunner) Prepare() error {
-	consumer := wr.params.Consumer
+	consumer := wr.params.RequestContext.Consumer
 
 	nullConsumer := &state.Consumer{}
 	err := winsandbox.Check(nullConsumer)
 	if err != nil {
 		consumer.Warnf("Sandbox check failed: %s", err.Error())
 
-		ctx := wr.params.Ctx
-		conn := wr.params.Conn
-
-		var r buse.AllowSandboxSetupResult
-		err := conn.Call(ctx, "AllowSandboxSetup", &buse.AllowSandboxSetupParams{}, &r)
+		r, err := messages.AllowSandboxSetup.Call(wr.params.RequestContext, &buse.AllowSandboxSetupParams{})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -101,7 +99,7 @@ func (wr *winsandboxRunner) Prepare() error {
 func (wr *winsandboxRunner) Run() error {
 	var err error
 	params := wr.params
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 	pd := wr.playerData
 
 	consumer.Infof("Running as user (%s)", pd.Username)
@@ -131,7 +129,7 @@ func (wr *winsandboxRunner) Run() error {
 		return errors.Wrap(err, 0)
 	}
 
-	cmd := execas.CommandContext(params.Ctx, params.FullTargetPath, params.Args...)
+	cmd := execas.CommandContext(params.RequestContext.Ctx, params.FullTargetPath, params.Args...)
 	cmd.Username = pd.Username
 	cmd.Domain = "."
 	cmd.Password = pd.Password
@@ -159,7 +157,7 @@ func (wr *winsandboxRunner) Run() error {
 func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 	params := wr.params
 	pd := wr.playerData
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 
 	sp := &winutil.SharingPolicy{
 		Trustee: pd.Username,

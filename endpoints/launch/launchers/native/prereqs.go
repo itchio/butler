@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/itchio/butler/buse/messages"
+
 	"github.com/itchio/butler/manager"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/prereqs"
+	"github.com/itchio/butler/endpoints/launch"
 )
 
 func handlePrereqs(params *launch.LauncherParams) error {
-	consumer := params.Consumer
-	ctx := params.Ctx
-	conn := params.Conn
+	consumer := params.RequestContext.Consumer
 
 	var listed []string
 
@@ -42,7 +42,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	pc := &prereqs.PrereqsContext{
 		Credentials: params.Credentials,
 		Runtime:     params.Runtime,
-		Consumer:    params.Consumer,
+		Consumer:    params.RequestContext.Consumer,
 		PrereqsDir:  params.PrereqsDir,
 	}
 
@@ -97,7 +97,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 			}
 		}
 
-		err = conn.Notify(ctx, "PrereqsStarted", psn)
+		err = messages.PrereqsStarted.Notify(params.RequestContext, psn)
 		if err != nil {
 			consumer.Warnf(err.Error())
 		}
@@ -105,7 +105,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	tsc := &prereqs.TaskStateConsumer{
 		OnState: func(state *buse.PrereqsTaskStateNotification) {
-			err = conn.Notify(ctx, "PrereqsTaskState", state)
+			err = messages.PrereqsTaskState.Notify(params.RequestContext, state)
 			if err != nil {
 				consumer.Warnf(err.Error())
 			}
@@ -134,7 +134,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		}
 	}
 
-	err = conn.Notify(ctx, "PrereqsEnded", &buse.PrereqsEndedNotification{})
+	err = messages.PrereqsEnded.Notify(params.RequestContext, &buse.PrereqsEndedNotification{})
 	if err != nil {
 		consumer.Warnf(err.Error())
 	}

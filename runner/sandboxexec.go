@@ -30,7 +30,7 @@ func newSandboxExecRunner(params *RunnerParams) (Runner, error) {
 }
 
 func (ser *sandboxExecRunner) Prepare() error {
-	consumer := ser.params.Consumer
+	consumer := ser.params.RequestContext.Consumer
 
 	// make sure we have sandbox-exec
 	{
@@ -47,7 +47,7 @@ func (ser *sandboxExecRunner) Prepare() error {
 
 func (ser *sandboxExecRunner) Run() error {
 	params := ser.params
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 
 	consumer.Infof("Creating shim app bundle to enable sandboxing")
 	realBundlePath := params.FullTargetPath

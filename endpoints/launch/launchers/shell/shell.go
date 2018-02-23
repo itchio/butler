@@ -3,11 +3,12 @@ package shell
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/launch"
+	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/endpoints/launch"
 )
 
 func Register() {
-	launch.Register(launch.LaunchStrategyShell, &Launcher{})
+	launch.RegisterLauncher(launch.LaunchStrategyShell, &Launcher{})
 }
 
 type Launcher struct{}
@@ -15,13 +16,9 @@ type Launcher struct{}
 var _ launch.Launcher = (*Launcher)(nil)
 
 func (l *Launcher) Do(params *launch.LauncherParams) error {
-	ctx := params.Ctx
-	conn := params.Conn
-
-	var r buse.ShellLaunchResult
-	err := conn.Call(ctx, "ShellLaunch", &buse.ShellLaunchParams{
+	_, err := messages.ShellLaunch.Call(params.RequestContext, &buse.ShellLaunchParams{
 		ItemPath: params.FullTargetPath,
-	}, &r)
+	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

@@ -10,16 +10,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/butler/buse/messages"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/launch"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
+	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/runner"
 )
 
 func Register() {
-	launch.Register(launch.LaunchStrategyNative, &Launcher{})
+	launch.RegisterLauncher(launch.LaunchStrategyNative, &Launcher{})
 }
 
 type Launcher struct{}
@@ -27,9 +29,7 @@ type Launcher struct{}
 var _ launch.Launcher = (*Launcher)(nil)
 
 func (l *Launcher) Do(params *launch.LauncherParams) error {
-	ctx := params.Ctx
-	conn := params.Conn
-	consumer := params.Consumer
+	consumer := params.RequestContext.Consumer
 	installFolder := params.InstallFolder
 
 	cwd := installFolder
@@ -53,16 +53,15 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 		consumer.Warnf("While handling prereqs: %s", err.Error())
 
-		var r buse.PrereqsFailedResult
 		var errorStack string
 		if se, ok := err.(*errors.Error); ok {
 			errorStack = se.ErrorStack()
 		}
 
-		err = conn.Call(ctx, "PrereqsFailed", &buse.PrereqsFailedParams{
+		r, err := messages.PrereqsFailed.Call(params.RequestContext, &buse.PrereqsFailedParams{
 			Error:      err.Error(),
 			ErrorStack: errorStack,
-		}, &r)
+		})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -111,9 +110,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	stderr := newOutputCollector(maxLines)
 
 	runParams := &runner.RunnerParams{
-		Consumer: consumer,
-		Conn:     conn,
-		Ctx:      ctx,
+		RequestContext: params.RequestContext,
 
 		Sandbox: params.Sandbox,
 
@@ -145,9 +142,9 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	err = func() error {
 		startTime := time.Now()
 
-		conn.Notify(ctx, "LaunchRunning", &buse.LaunchRunningNotification{})
+		messages.LaunchRunning.Notify(params.RequestContext, &buse.LaunchRunningNotification{})
 		exitCode, err := interpretRunError(run.Run())
-		conn.Notify(ctx, "LaunchExited", &buse.LaunchExitedNotification{})
+		messages.LaunchExited.Notify(params.RequestContext, &buse.LaunchExitedNotification{})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

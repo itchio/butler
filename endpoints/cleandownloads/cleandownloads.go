@@ -1,19 +1,26 @@
-package operate
+package cleandownloads
 
 import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/buse/messages"
+
 	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/wipe"
-	"github.com/itchio/wharf/state"
-
-	"github.com/itchio/butler/buse"
 )
 
-func CleanDownloadsSearch(params *buse.CleanDownloadsSearchParams, consumer *state.Consumer) (*buse.CleanDownloadsSearchResult, error) {
+func Register(router *buse.Router) {
+	messages.CleanDownloadsSearch.Register(router, CleanDownloadsSearch)
+	messages.CleanDownloadsApply.Register(router, CleanDownloadsApply)
+}
+
+func CleanDownloadsSearch(rc *buse.RequestContext, params *buse.CleanDownloadsSearchParams) (*buse.CleanDownloadsSearchResult, error) {
+	consumer := rc.Consumer
+
 	// struct{} trick to use map as a set with 0-sized values
 	whitemap := make(map[string]struct{})
 	for _, whitelistPath := range params.Whitelist {
@@ -63,7 +70,9 @@ func CleanDownloadsSearch(params *buse.CleanDownloadsSearchParams, consumer *sta
 	return res, nil
 }
 
-func CleanDownloadsApply(params *buse.CleanDownloadsApplyParams, consumer *state.Consumer) (*buse.CleanDownloadsApplyResult, error) {
+func CleanDownloadsApply(rc *buse.RequestContext, params *buse.CleanDownloadsApplyParams) (*buse.CleanDownloadsApplyResult, error) {
+	consumer := rc.Consumer
+
 	for _, entry := range params.Entries {
 		consumer.Infof("Wiping (%s) - %s", entry.Path, humanize.IBytes(uint64(entry.Size)))
 		err := wipe.Do(consumer, entry.Path)
