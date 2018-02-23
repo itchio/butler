@@ -516,7 +516,7 @@ type LogNotification struct {
 
 // @name Test.DoubleTwice
 // @category Test
-type TestDoubleTwiceRequest struct {
+type TestDoubleTwiceParams struct {
 	Number int64 `json:"number"`
 }
 
@@ -527,7 +527,7 @@ type TestDoubleTwiceResult struct {
 
 // @name Test.Double
 // @category Test
-type TestDoubleRequest struct {
+type TestDoubleParams struct {
 	Number int64 `json:"number"`
 }
 

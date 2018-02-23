@@ -9,8 +9,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -97,15 +95,4 @@ func (jc *jsonrpc2Conn) Call(ctx context.Context, method string, params interfac
 
 func (jc *jsonrpc2Conn) Close() error {
 	return jc.conn.Close()
-}
-
-//
-
-type RequestContext struct {
-	Ctx            context.Context
-	Harness        Harness
-	Consumer       *state.Consumer
-	Params         interface{}
-	Conn           Conn
-	MansionContext *mansion.Context
 }

@@ -93,3 +93,34 @@ func (r Router) Dispatch(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 		Data:    errStack,
 	})
 }
+
+type RequestContext struct {
+	Ctx            context.Context
+	Harness        Harness
+	Consumer       *state.Consumer
+	Params         *json.RawMessage
+	Conn           Conn
+	MansionContext *mansion.Context
+}
+
+type WithParamsFunc func() (interface{}, error)
+
+func (rc *RequestContext) WithParams(params interface{}, cb WithParamsFunc) (interface{}, error) {
+	err := json.Unmarshal(*rc.Params, params)
+	if err != nil {
+		return nil, &RpcError{
+			Code:    jsonrpc2.CodeParseError,
+			Message: err.Error(),
+		}
+	}
+
+	return cb()
+}
+
+func (rc *RequestContext) Call(method string, params interface{}, res interface{}) error {
+	return rc.Conn.Call(rc.Ctx, method, params, res)
+}
+
+func (rc *RequestContext) Notify(method string, params interface{}) error {
+	return rc.Conn.Notify(rc.Ctx, method, params)
+}
