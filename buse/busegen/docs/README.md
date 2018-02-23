@@ -588,23 +588,37 @@ Name | Type | Description
 
 ## Test
 
-### Test.DoubleTwice <em class="type">Type</em>
+### Test.DoubleTwice <em class="request">Request</em>
 
 
 
 
-Fields: 
+Parameters: 
 
 Name | Type | Description
 --- | --- | ---
 `number` | [`number`](#number-type) | *undocumented*
 
-### Test.Double <em class="type">Type</em>
+
+Result: 
+
+Name | Type | Description
+--- | --- | ---
+`number` | [`number`](#number-type) | *undocumented*
+
+### Test.Double <em class="request">Request</em>
 
 
 
 
-Fields: 
+Parameters: 
+
+Name | Type | Description
+--- | --- | ---
+`number` | [`number`](#number-type) | *undocumented*
+
+
+Result: 
 
 Name | Type | Description
 --- | --- | ---

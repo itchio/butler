@@ -91,6 +91,8 @@ type OperationStartParams struct {
 	UninstallParams *UninstallParams `json:"uninstallParams,omitempty"`
 }
 
+type OperationStartResult struct{}
+
 // Attempt to gracefully cancel an ongoing operation.
 //
 // @name Operation.Cancel

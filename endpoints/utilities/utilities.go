@@ -2,14 +2,14 @@ package utilities
 
 import (
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
 )
 
 func Register(router *buse.Router) {
-	router.Register("Version.Get", func(rc *buse.RequestContext) (interface{}, error) {
-		res := &buse.VersionGetResult{
+	messages.VersionGet.Register(router, func(rc *buse.RequestContext, params *buse.VersionGetParams) (*buse.VersionGetResult, error) {
+		return &buse.VersionGetResult{
 			Version:       rc.MansionContext.Version,
 			VersionString: rc.MansionContext.VersionString,
-		}
-		return res, nil
+		}, nil
 	})
 }
