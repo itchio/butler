@@ -202,7 +202,7 @@ automatically download new versions of butler, see <a href="#updating">Updating<
 </tr>
 <tr>
 <td><code>verdict</code></td>
-<td><code class="typename">Verdict</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Verdict__TypeHint">Verdict</span></code></td>
 <td><p><em>undocumented</em></p>
 </td>
 </tr>
@@ -475,7 +475,7 @@ with the system browser or appropriate.</p>
 </tr>
 <tr>
 <td><code>verdict</code></td>
-<td><code class="typename">Verdict</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Verdict__TypeHint">Verdict</span></code></td>
 <td><p><em>undocumented</em></p>
 </td>
 </tr>
@@ -1468,7 +1468,7 @@ an uninstallation for a game.</p>
 </tr>
 <tr>
 <td><code>receipt</code></td>
-<td><code class="typename">Receipt</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Receipt__TypeHint">Receipt</span></code></td>
 <td><p><em>undocumented</em></p>
 </td>
 </tr>
@@ -2829,6 +2829,576 @@ for free.</p>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>Verdict
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>basePath</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename">number</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>candidates</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="Verdict__TypeHint" style="display: none;" class="tip-content">
+<p>Verdict <a href="#/?id=verdict">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>basePath</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename">number</code></td>
+</tr>
+<tr>
+<td><code>candidates</code></td>
+<td><code class="typename"><span class="struct-type">Candidate</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>Candidate
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+<p>
+<p>Candidate indicates what&rsquo;s interesting about a file</p>
+
+</p>
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code class="typename">uint32</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>depth</code></td>
+<td><code class="typename">int</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>flavor</code></td>
+<td><code class="typename">Flavor</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename">Arch</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename">number</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>spell</code></td>
+<td><code class="typename">string[]</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>windowsInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>linuxInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>macosInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>loveInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>scriptInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>jarInfo</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="Candidate__TypeHint" style="display: none;" class="tip-content">
+<p>Candidate <a href="#/?id=candidate">(Go to definition)</a></p>
+
+<p>
+<p>Candidate indicates what&rsquo;s interesting about a file</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code class="typename">uint32</code></td>
+</tr>
+<tr>
+<td><code>depth</code></td>
+<td><code class="typename">int</code></td>
+</tr>
+<tr>
+<td><code>flavor</code></td>
+<td><code class="typename">Flavor</code></td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename">Arch</code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename">number</code></td>
+</tr>
+<tr>
+<td><code>spell</code></td>
+<td><code class="typename">string[]</code></td>
+</tr>
+<tr>
+<td><code>windowsInfo</code></td>
+<td><code class="typename"><span class="struct-type">WindowsInfo</span></code></td>
+</tr>
+<tr>
+<td><code>linuxInfo</code></td>
+<td><code class="typename"><span class="struct-type">LinuxInfo</span></code></td>
+</tr>
+<tr>
+<td><code>macosInfo</code></td>
+<td><code class="typename"><span class="struct-type">MacosInfo</span></code></td>
+</tr>
+<tr>
+<td><code>loveInfo</code></td>
+<td><code class="typename"><span class="struct-type">LoveInfo</span></code></td>
+</tr>
+<tr>
+<td><code>scriptInfo</code></td>
+<td><code class="typename"><span class="struct-type">ScriptInfo</span></code></td>
+</tr>
+<tr>
+<td><code>jarInfo</code></td>
+<td><code class="typename"><span class="struct-type">JarInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>WindowsInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>installerType</code></td>
+<td><code class="typename">WindowsInstallerType</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>uninstaller</code></td>
+<td><code class="typename">boolean</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>gui</code></td>
+<td><code class="typename">boolean</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>dotNet</code></td>
+<td><code class="typename">boolean</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="WindowsInfo__TypeHint" style="display: none;" class="tip-content">
+<p>WindowsInfo <a href="#/?id=windowsinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>installerType</code></td>
+<td><code class="typename">WindowsInstallerType</code></td>
+</tr>
+<tr>
+<td><code>uninstaller</code></td>
+<td><code class="typename">boolean</code></td>
+</tr>
+<tr>
+<td><code>gui</code></td>
+<td><code class="typename">boolean</code></td>
+</tr>
+<tr>
+<td><code>dotNet</code></td>
+<td><code class="typename">boolean</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>MacosInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: <em>none</em>
+</p>
+
+
+<div id="MacosInfo__TypeHint" style="display: none;" class="tip-content">
+<p>MacosInfo <a href="#/?id=macosinfo">(Go to definition)</a></p>
+
+</div>
+
+### <em class="type"></em>LinuxInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: <em>none</em>
+</p>
+
+
+<div id="LinuxInfo__TypeHint" style="display: none;" class="tip-content">
+<p>LinuxInfo <a href="#/?id=linuxinfo">(Go to definition)</a></p>
+
+</div>
+
+### <em class="type"></em>LoveInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="LoveInfo__TypeHint" style="display: none;" class="tip-content">
+<p>LoveInfo <a href="#/?id=loveinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>ScriptInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>interpreter</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="ScriptInfo__TypeHint" style="display: none;" class="tip-content">
+<p>ScriptInfo <a href="#/?id=scriptinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>interpreter</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>JarInfo
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>mainClass</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+</table>
+
+
+<div id="JarInfo__TypeHint" style="display: none;" class="tip-content">
+<p>JarInfo <a href="#/?id=jarinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>mainClass</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="type"></em>Receipt
+
+<p class='tags'>
+<em>Type</em>
+</p>
+
+
+<p>
+<strong>Fields</strong>: 
+</p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code class="typename">string[]</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>installerName</code></td>
+<td><code class="typename">string</code></td>
+<td><p><em>undocumented</em></p>
+</td>
+</tr>
+<tr>
+<td><code>msiProductCode</code></td>
+<td><code class="typename">string</code></td>
+<td><p>optional, installer-specific fields</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Receipt__TypeHint" style="display: none;" class="tip-content">
+<p>Receipt <a href="#/?id=receipt">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code class="typename">string[]</code></td>
+</tr>
+<tr>
+<td><code>installerName</code></td>
+<td><code class="typename">string</code></td>
+</tr>
+<tr>
+<td><code>msiProductCode</code></td>
 <td><code class="typename">string</code></td>
 </tr>
 </table>

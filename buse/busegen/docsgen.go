@@ -20,6 +20,8 @@ func (bc *BuseContext) GenerateDocs() error {
 	scope := newScope()
 	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
+	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
+	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
 
 	dumpStruct := func(header string, entry *Entry, showDesc bool) {
 		gd := entry.gd
