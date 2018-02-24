@@ -61,7 +61,7 @@ func typeToString(e ast.Expr) string {
 	case *ast.StarExpr:
 		return typeToString(node.X)
 	case *ast.SelectorExpr:
-		return typeToString(node.X) + "." + node.Sel.Name
+		return node.Sel.Name
 	case *ast.ArrayType:
 		return typeToString(node.Elt) + "[]"
 	case *ast.MapType:

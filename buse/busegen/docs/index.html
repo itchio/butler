@@ -18,13 +18,29 @@
       markdown: {
         gfm: true,
         tables: true,
-      }
+      },
+      plugins: [
+        function (hook, vm) {
+          hook.doneEach(function() {
+            tippy('[data-tip-selector]', {
+              placement: 'right',
+              arrow: true,
+              html: (el) => el.dataset.tipSelector,
+              interactive: true,
+              multiple: true,
+              trigger: "click",
+              maxWidth: "400px",
+            });
+          })
+        }
+  ]
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
   <script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
   <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
+  <script src="//unpkg.com/tippy.js@2.2.3/dist/tippy.all.min.js"></script>
   <style>
     .content p.tags em {
       font-style: initial;
@@ -60,6 +76,32 @@
 
     em.type::before {
       content: "📦";
+    }
+
+    span.struct-type::before {
+      content: "📦";
+      margin-right: .4em;
+    }
+
+    .tippy-content {
+      text-align: left;
+    }
+
+    .tippy-content a {
+      color: white;
+    }
+
+    code.typename {
+      color: #55aa88;
+    }
+
+    span[data-tip-selector] {
+      text-decoration: underline;
+      cursor: help;
+    }
+
+    .field-table p {
+      margin: 0;
     }
   </style>
 </body>

@@ -6,6 +6,9 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -15,6 +18,7 @@ type Scope struct {
 	categories   map[string]*Category
 	categoryList []string
 	structs      map[string]*ast.GenDecl
+	entries      map[string]*Entry
 }
 
 type Category struct {
@@ -37,6 +41,8 @@ type Entry struct {
 	doc      string
 	name     string
 	caller   Caller
+	pkg      string
+	pkgName  string
 }
 
 type EntryKind int
@@ -54,12 +60,34 @@ func newScope() *Scope {
 		categories:   make(map[string]*Category),
 		categoryList: nil,
 		structs:      make(map[string]*ast.GenDecl),
+		entries:      make(map[string]*Entry),
 	}
 }
 
-func (s *Scope) Assimilate(prefix string, path string) error {
+const butlerPkg = "github.com/itchio/butler"
+
+func (s *Scope) Assimilate(pkg string, file string) error {
+	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	var rootPath = filepath.Join(wd, "..", "..")
+
+	var relativePath string
+	if strings.HasPrefix(pkg, butlerPkg) {
+		relativePath = strings.TrimPrefix(pkg, butlerPkg)
+	} else {
+		relativePath = path.Join("vendor", pkg)
+	}
+
+	absoluteFilePath := filepath.Join(rootPath, filepath.FromSlash(relativePath), file)
+	log.Printf("Parsing (%s)", absoluteFilePath)
+	prefix := ""
+
 	var fset token.FileSet
-	f, err := parser.ParseFile(&fset, path, nil, parser.ParseComments)
+	f, err := parser.ParseFile(&fset, absoluteFilePath, nil, parser.ParseComments)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -155,11 +183,45 @@ func (s *Scope) Assimilate(prefix string, path string) error {
 						caller:   caller,
 					}
 					s.AddEntry(category, e)
+
+					s.entries[tsName] = e
 				}
 			}
 		}
 	}
 	return nil
+}
+
+func (s *Scope) LinkType(typeName string, tip bool) string {
+	return fmt.Sprintf("<code class=%#v>%s</code>", "typename", s.LinkTypeInner(typeName, tip))
+}
+
+var builtinTypes = map[string]struct{}{
+	"number":  struct{}{},
+	"string":  struct{}{},
+	"boolean": struct{}{},
+}
+
+func (s *Scope) LinkTypeInner(typeName string, tip bool) string {
+	if strings.Contains(typeName, "<") {
+		return typeName
+	}
+
+	if strings.HasSuffix(typeName, "[]") {
+		return s.LinkTypeInner(strings.TrimSuffix(typeName, "[]"), tip) + "[]"
+	}
+
+	if gd, ok := s.structs[typeName]; ok {
+		if tip {
+			ts := gd.Specs[0].(*ast.TypeSpec)
+			sel := fmt.Sprintf("#%s__TypeHint", ts.Name.Name)
+			return fmt.Sprintf(`<span class="struct-type" data-tip-selector="%s">%s</span>`, sel, typeName)
+		} else {
+			return fmt.Sprintf(`<span class="struct-type">%s</span>`, typeName)
+		}
+	}
+
+	return typeName
 }
 
 func (s *Scope) AddEntry(category string, e *Entry) {
@@ -176,4 +238,8 @@ func (s *Scope) AddEntry(category string, e *Entry) {
 
 func (s *Scope) FindStruct(name string) *ast.GenDecl {
 	return s.structs[name]
+}
+
+func (s *Scope) FindEntry(name string) *Entry {
+	return s.entries[name]
 }

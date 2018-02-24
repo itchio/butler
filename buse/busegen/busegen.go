@@ -2,373 +2,95 @@ package main
 
 import (
 	"fmt"
-	"go/ast"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
-	"time"
 
-	"github.com/fatih/structtag"
 	"github.com/go-errors/errors"
 )
+
+type BuseContext struct {
+	Dir string
+}
 
 func main() {
 	log.SetFlags(0)
 
-	err := doMain()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func doMain() error {
-	err := doDocs()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = doGen()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	return nil
-}
-
-func doDocs() error {
 	wd, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	must(err)
 	log.Printf("Working directory: (%s)", wd)
 
-	layoutPath := filepath.Join(wd, "layout.md")
-	log.Printf("Reading layout from: (%s)", layoutPath)
-	layoutBytes, err := ioutil.ReadFile(layoutPath)
-	if err != nil {
-		return errors.Wrap(err, 0)
+	bc := &BuseContext{
+		Dir: wd,
 	}
 
-	doc := string(layoutBytes)
-	buffer := ""
-
-	outPath := filepath.Join(wd, "docs", "README.md")
-	log.Printf("Out path: (%s)", outPath)
-
-	line := func(msg string, args ...interface{}) {
-		buffer += fmt.Sprintf(msg, args...)
-		buffer += "\n"
-	}
-
-	commit := func(name string) {
-		doc = strings.Replace(doc, name, buffer, 1)
-		buffer = ""
-	}
-
-	linkType := func(typeName string) string {
-		return fmt.Sprintf("[`%s`](#%s-type)", typeName, linkify(typeName))
-	}
-
-	dumpStruct := func(header string, gd *ast.GenDecl) {
-		if gd == nil {
-			return
-		}
-
-		ts := gd.Specs[0].(*ast.TypeSpec)
-		st := ts.Type.(*ast.StructType)
-		fl := st.Fields.List
-
-		if len(fl) == 0 {
-			line("")
-			line("**%s**: _none_", header)
-			line("")
-			return
-		}
-
-		line("")
-		line("**%s**: ", header)
-		line("")
-
-		line("Name | Type | Description")
-		line("--- | --- | ---")
-		for _, sf := range fl {
-			if sf.Tag == nil {
-				log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
-			}
-
-			tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
-
-			tags, err := structtag.Parse(tagValue)
-			if err != nil {
-				log.Fatalf("For tag (%s): %s", sf.Tag.Value, err.Error())
-			}
-
-			jsonTag, err := tags.Get("json")
-			if err != nil {
-				panic(err)
-			}
-
-			comment := getComment(sf.Doc, " ")
-			line("`%s` | %s | %s", jsonTag.Name, linkType(typeToString(sf.Type)), comment)
-		}
-		line("")
-	}
-
-	scope := newScope()
-	err = scope.Assimilate("", "../types.go")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	err = scope.Assimilate("itchio.", "../../vendor/github.com/itchio/go-itchio/types.go")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	renderHeader := func(entry *Entry) {
-		var kindString string
-		switch entry.kind {
-		case EntryKindParams:
-			switch entry.caller {
-			case CallerClient:
-				kindString = `<em class="request-client-caller"></em>`
-			case CallerServer:
-				kindString = `<em class="request-server-caller"></em>`
-			}
-		case EntryKindNotification:
-			kindString = `<em class="notification"></em>`
-		case EntryKindType:
-			kindString = `<em class="type"></em>`
-		}
-
-		line("### %s%s", kindString, entry.name)
-		line("<p class='tags'>")
-		switch entry.kind {
-		case EntryKindParams:
-			switch entry.caller {
-			case CallerClient:
-				line("<em>Client request</em>")
-			case CallerServer:
-				line("<em>Server request</em>")
-			}
-		case EntryKindNotification:
-			line("<em>Notification</em>")
-		case EntryKindType:
-			line("<em>Type</em>")
-		}
-		for _, tag := range entry.tags {
-			line("<em>%s</em>", tag)
-		}
-		line("</p>")
-
-		line("")
-		line(entry.doc)
-		line("")
-	}
-
-	renderRequest := func(params *Entry) {
-		paramsName := asType(params.gd).Name.Name
-		resultName := strings.TrimSuffix(paramsName, "Params") + "Result"
-
-		result := scope.FindStruct(resultName)
-
-		renderHeader(params)
-		dumpStruct("Parameters", params.gd)
-		dumpStruct("Result", result)
-	}
-
-	renderNotification := func(entry *Entry) {
-		renderHeader(entry)
-		dumpStruct("Payload", entry.gd)
-	}
-
-	renderType := func(entry *Entry) {
-		renderHeader(entry)
-		dumpStruct("Fields", entry.gd)
-	}
-
-	line("")
-	line("# Messages")
-	line("")
-
-	// Make sure the Misc. category is at the end
-	sort.Slice(scope.categoryList, func(i, j int) bool {
-		if scope.categoryList[i] == "Miscellaneous" {
-			return false
-		}
-		return true
-	})
-	for _, category := range scope.categoryList {
-		line("")
-		line("## %s", category)
-		line("")
-
-		cat := scope.categories[category]
-		for _, entry := range cat.entries {
-			switch entry.kind {
-			case EntryKindParams:
-				renderRequest(entry)
-			case EntryKindNotification:
-				renderNotification(entry)
-			case EntryKindType:
-				renderType(entry)
-			}
-		}
-	}
-
-	commit("{{EVERYTHING}}")
-
-	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	return nil
+	must(bc.GenerateDocs())
+	must(bc.GenerateGoCode())
 }
 
-func doGen() error {
-	wd, err := os.Getwd()
+func (bc *BuseContext) Task(task string) {
+	log.Printf("")
+	log.Printf("=========================")
+	log.Printf(">> %s", task)
+	log.Printf("=========================")
+}
+
+func (bc *BuseContext) ReadFile(file string) string {
+	bs, err := ioutil.ReadFile(filepath.Join(bc.Dir, file))
+	must(err)
+	return string(bs)
+}
+
+func (bc *BuseContext) NewDoc(name string) *Doc {
+	return &Doc{
+		bc:   bc,
+		name: name,
+	}
+}
+
+func must(err error) {
 	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	log.Printf("Working directory: (%s)", wd)
-
-	var doc string
-
-	outPath := filepath.Join(wd, "..", "messages", "messages.go")
-	log.Printf("Out path: (%s)", outPath)
-
-	line := func(msg string, args ...interface{}) {
-		doc += fmt.Sprintf(msg, args...)
-		doc += "\n"
-	}
-
-	line("// Code generated by busegen; DO NOT EDIT.")
-	line("// Generated at %s", time.Now())
-	line("package messages")
-	line("")
-	line("import (")
-	line("	%#v", "encoding/json")
-	line("	%#v", "errors")
-	line("")
-	line("	%#v", "github.com/itchio/butler/buse")
-	line("	%#v", "github.com/sourcegraph/jsonrpc2")
-	line(")")
-	line("")
-
-	scope := newScope()
-	err = scope.Assimilate("", "../types.go")
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	var clientRequests []string
-
-	for _, category := range scope.categoryList {
-		cat := scope.categories[category]
-		line("")
-		line("//==============================")
-		line("// %s", category)
-		line("//==============================")
-		line("")
-
-		for _, entry := range cat.entries {
-			switch entry.kind {
-			case EntryKindParams:
-				ts := asType(entry.gd)
-				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Params"))
-				typeName := varName + "Type"
-				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
-				resultTypeName := fmt.Sprintf("buse.%sResult", strings.TrimSuffix(ts.Name.Name, "Params"))
-				method := entry.name
-				if entry.caller == CallerClient {
-					clientRequests = append(clientRequests, method)
-				}
-
-				line("// %s (Request)", method)
-				line("")
-				line("type %s struct {}", typeName)
-				line("")
-				line("var _ RequestMessage = (*%s)(nil)", typeName)
-				line("")
-				line("func (r *%s) Method() string {", typeName)
-				line("  return %#v", method)
-				line("}")
-
-				switch entry.caller {
-				case CallerClient:
-					line("")
-					line("func (r *%s) Register(router *buse.Router, f func(*buse.RequestContext, *%s) (*%s, error)) {", typeName, paramsTypeName, resultTypeName)
-					line("  router.Register(%#v, func (rc *buse.RequestContext) (interface{}, error) {", method)
-					line("    var params %s", paramsTypeName)
-					line("    err := json.Unmarshal(*rc.Params, &params)")
-					line("    if err != nil {")
-					line("    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}")
-					line("    }")
-					line("    res, err := f(rc, &params)")
-					line("    if err != nil {")
-					line("    	return nil, err")
-					line("    }")
-					line("    if res == nil {")
-					line("    	return nil, errors.New(%#v)", fmt.Sprintf("internal error: nil result for %s", method))
-					line("    }")
-					line("    return res, nil")
-					line("  })")
-					line("}")
-				case CallerServer:
-					line("")
-					line("func (r *%s) Call(rc *buse.RequestContext, params *%s) (*%s, error) {", typeName, paramsTypeName, resultTypeName)
-					line("  var result %s", resultTypeName)
-					line("  err := rc.Call(%#v, params, &result)", method)
-					line("  return &result, err")
-					line("}")
-				}
-				line("")
-				line("var %s *%s", varName, typeName)
-				line("")
-
-			case EntryKindNotification:
-				ts := asType(entry.gd)
-				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Notification"))
-				typeName := varName + "Type"
-				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
-				method := entry.name
-
-				line("// %s (Notification)", method)
-				line("")
-				line("type %s struct {}", typeName)
-				line("")
-				line("var _ NotificationMessage = (*%s)(nil)", typeName)
-				line("")
-				line("func (r *%s) Method() string {", typeName)
-				line("  return %#v", method)
-				line("}")
-				line("")
-				line("func (r *%s) Notify(rc *buse.RequestContext, params *%s) (error) {", typeName, paramsTypeName)
-				line("  return rc.Notify(%#v, params)", method)
-				line("}")
-				line("")
-				line("var %s *%s", varName, typeName)
-				line("")
-			}
+		if se, ok := err.(*errors.Error); ok {
+			log.Fatal(se.ErrorStack)
+		} else {
+			log.Fatal(se.Error)
 		}
 	}
+}
 
-	line("")
-	line("func EnsureAllRequests(router *buse.Router) {")
-	for _, method := range clientRequests {
-		line("  if _, ok := router.Handlers[%#v]; !ok { panic(%#v) }", method, fmt.Sprintf("missing request handler for (%s)", method))
+//
+
+type Doc struct {
+	name string
+	bc   *BuseContext
+
+	doc string
+	buf string
+}
+
+func (d *Doc) Load(doc string) {
+	d.doc = doc
+}
+
+func (d *Doc) Line(msg string, args ...interface{}) {
+	d.buf += fmt.Sprintf(msg, args...)
+	d.buf += "\n"
+}
+
+func (d *Doc) Commit(name string) {
+	if name == "" {
+		d.doc = d.buf
+	} else {
+		d.doc = strings.Replace(d.doc, name, d.buf, 1)
 	}
-	line("}")
-	line("")
+	d.buf = ""
+}
 
-	err = ioutil.WriteFile(outPath, []byte(doc), 0644)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	return nil
+func (b *Doc) Write() {
+	bs := []byte(b.doc)
+	dest := filepath.Join(b.bc.Dir, filepath.FromSlash(b.name))
+	log.Printf("Writing (%s)...", dest)
+	must(ioutil.WriteFile(dest, bs, 0644))
 }
