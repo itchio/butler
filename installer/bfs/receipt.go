@@ -27,6 +27,7 @@ type Receipt struct {
 	// A list of installed files (slash-separated paths, relative to install folder)
 	Files []string `json:"files"`
 	// The installer used to install at this location
+	// @optional
 	InstallerName string `json:"installerName"`
 
 	// If this was installed from an MSI package, the product code,

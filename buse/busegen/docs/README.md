@@ -378,7 +378,7 @@ we know about.</p>
 <tr>
 <td><code>forcePrereqs</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Force installing all prerequisites, even if they&rsquo;re already marked as installed</p>
+<td><p><span class="tag">Optional</span> Force installing all prerequisites, even if they&rsquo;re already marked as installed</p>
 </td>
 </tr>
 <tr>
@@ -1556,13 +1556,13 @@ partial downloads, checkpoint files, etc.</p>
 <tr>
 <td><code>installParams</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallParams__TypeHint">InstallParams</span></code></td>
-<td><p>Must be set if Operation is <code>install</code></p>
+<td><p><span class="tag">Optional</span> Must be set if Operation is <code>install</code></p>
 </td>
 </tr>
 <tr>
 <td><code>uninstallParams</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#UninstallParams__TypeHint">UninstallParams</span></code></td>
-<td><p>Must be set if Operation is <code>uninstall</code></p>
+<td><p><span class="tag">Optional</span> Must be set if Operation is <code>uninstall</code></p>
 </td>
 </tr>
 </table>
@@ -2438,7 +2438,7 @@ including the download key if any.</p>
 <tr>
 <td><code>server</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Defaults to <code>https://itch.io</code></p>
+<td><p><span class="tag">Optional</span> Defaults to <code>https://itch.io</code></p>
 </td>
 </tr>
 <tr>
@@ -2450,7 +2450,7 @@ including the download key if any.</p>
 <tr>
 <td><code>downloadKey</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>A download key identifier, or 0 if no download key is available</p>
+<td><p><span class="tag">Optional</span> A download key identifier, or 0 if no download key is available</p>
 </td>
 </tr>
 </table>
@@ -2637,6 +2637,52 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>"unknown"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>Code
+
+
+<p>
+<p>Buse JSON-RPC 2.0 error codes</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>499</code></td>
+<td><p>An operation was cancelled gracefully</p>
+</td>
+</tr>
+<tr>
+<td><code>410</code></td>
+<td><p>An operation was aborted by the user</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Code__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>Code <a href="#/?id=code">(Go to definition)</a></p>
+
+<p>
+<p>Buse JSON-RPC 2.0 error codes</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>499</code></td>
+</tr>
+<tr>
+<td><code>410</code></td>
 </tr>
 </table>
 
@@ -3034,14 +3080,20 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameType__TypeHint">GameType</span></code></td>
 <td><p>Downloadable game, html game, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td><p>Classification: game, tool, comic, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>embed</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameEmbedInfo__TypeHint">GameEmbedInfo</span></code></td>
+<td><p><span class="tag">Optional</span> Configuration for embedded (HTML5) games</p>
 </td>
 </tr>
 <tr>
@@ -3072,6 +3124,12 @@ a tool, a comic, etc.</p>
 <td><code>minPrice</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Price in cents of a dollar</p>
+</td>
+</tr>
+<tr>
+<td><code>canBeBought</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Can this game be bought?</p>
 </td>
 </tr>
 <tr>
@@ -3110,6 +3168,24 @@ a tool, a comic, etc.</p>
 <td><p>Does this game have an upload tagged with &lsquo;Android compatible&rsquo;? (creator-controlled)</p>
 </td>
 </tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><p><span class="tag">Optional</span> The user account this game is associated to</p>
+</td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>ID of the user account this game is associated to</p>
+</td>
+</tr>
+<tr>
+<td><code>sale</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
+<td><p><span class="tag">Optional</span> The best current sale for this game</p>
+</td>
+</tr>
 </table>
 
 
@@ -3141,11 +3217,15 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type">GameType</span></code></td>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>embed</code></td>
+<td><code class="typename"><span class="type struct-type">GameEmbedInfo</span></code></td>
 </tr>
 <tr>
 <td><code>coverUrl</code></td>
@@ -3166,6 +3246,10 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>minPrice</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>canBeBought</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>inPressSystem</code></td>
@@ -3190,6 +3274,323 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>pAndroid</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>sale</code></td>
+<td><code class="typename"><span class="type struct-type">Sale</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>GameType
+
+
+<p>
+<p>Type of an itch.io game page, mostly related to
+how it should be presented on web (downloadable or embed)</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+<td><p>downloadable</p>
+</td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+<td><p>.swf (legacy)</p>
+</td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+<td><p>.unity3d (legacy)</p>
+</td>
+</tr>
+<tr>
+<td><code>"java"</code></td>
+<td><p>.jar (legacy)</p>
+</td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+<td><p>.html (thriving)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameType__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>GameType <a href="#/?id=gametype">(Go to definition)</a></p>
+
+<p>
+<p>Type of an itch.io game page, mostly related to
+how it should be presented on web (downloadable or embed)</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+</tr>
+<tr>
+<td><code>"java"</code></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>GameClassification
+
+
+<p>
+<p>Creator-picked classification for a page</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"game"</code></td>
+<td><p>something you can play</p>
+</td>
+</tr>
+<tr>
+<td><code>"tool"</code></td>
+<td><p>all software pretty much</p>
+</td>
+</tr>
+<tr>
+<td><code>"assets"</code></td>
+<td><p>assets: graphics, sounds, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>"game_mod"</code></td>
+<td><p>game mod (no link to game, purely creator tagging)</p>
+</td>
+</tr>
+<tr>
+<td><code>"physical_game"</code></td>
+<td><p>printable / board / card game</p>
+</td>
+</tr>
+<tr>
+<td><code>"soundtrack"</code></td>
+<td><p>bunch of music files</p>
+</td>
+</tr>
+<tr>
+<td><code>"other"</code></td>
+<td><p>anything that creators think don&rsquo;t fit in any other category</p>
+</td>
+</tr>
+<tr>
+<td><code>"comic"</code></td>
+<td><p>comic book (pdf, jpg, specific comic formats, etc.)</p>
+</td>
+</tr>
+<tr>
+<td><code>"book"</code></td>
+<td><p>book (pdf, jpg, specific e-book formats, etc.)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameClassification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>GameClassification <a href="#/?id=gameclassification">(Go to definition)</a></p>
+
+<p>
+<p>Creator-picked classification for a page</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"game"</code></td>
+</tr>
+<tr>
+<td><code>"tool"</code></td>
+</tr>
+<tr>
+<td><code>"assets"</code></td>
+</tr>
+<tr>
+<td><code>"game_mod"</code></td>
+</tr>
+<tr>
+<td><code>"physical_game"</code></td>
+</tr>
+<tr>
+<td><code>"soundtrack"</code></td>
+</tr>
+<tr>
+<td><code>"other"</code></td>
+</tr>
+<tr>
+<td><code>"comic"</code></td>
+</tr>
+<tr>
+<td><code>"book"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>GameEmbedInfo
+
+
+<p>
+<p>Presentation information for embed games</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>width</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>width of the initial viewport, in pixels</p>
+</td>
+</tr>
+<tr>
+<td><code>height</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>height of the initial viewport, in pixels</p>
+</td>
+</tr>
+<tr>
+<td><code>fullscreen</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>for itch.io website, whether or not a fullscreen button should be shown</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameEmbedInfo__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>GameEmbedInfo <a href="#/?id=gameembedinfo">(Go to definition)</a></p>
+
+<p>
+<p>Presentation information for embed games</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>width</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>height</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>fullscreen</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Sale
+
+
+<p>
+<p>Describes a discount for a game.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Site-wide unique identifier generated by itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Discount rate in percent.
+Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales">https://itch.io/updates/introducing-reverse-sales</a></p>
+</td>
+</tr>
+<tr>
+<td><code>startDate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Timestamp the sale started at</p>
+</td>
+</tr>
+<tr>
+<td><code>endDate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Timestamp the sale ends at</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Sale__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Sale <a href="#/?id=sale">(Go to definition)</a></p>
+
+<p>
+<p>Describes a discount for a game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>startDate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>endDate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -4153,43 +4554,43 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>spell</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>Spell contains raw output from <a href="https://github.com/fasterthanlime/wizardry">https://github.com/fasterthanlime/wizardry</a></p>
+<td><p><span class="tag">Optional</span> Spell contains raw output from <a href="https://github.com/fasterthanlime/wizardry">https://github.com/fasterthanlime/wizardry</a></p>
 </td>
 </tr>
 <tr>
 <td><code>windowsInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
-<td><p>WindowsInfo contains information specific to native Windows candidates</p>
+<td><p><span class="tag">Optional</span> WindowsInfo contains information specific to native Windows candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>linuxInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
-<td><p>WindowsInfo contains information specific to native Linux candidates</p>
+<td><p><span class="tag">Optional</span> LinuxInfo contains information specific to native Linux candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>macosInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
-<td><p>MacosInfo contains information specific to native macOS candidates</p>
+<td><p><span class="tag">Optional</span> MacosInfo contains information specific to native macOS candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>loveInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
-<td><p>LoveInfo contains information specific to Love2D bundles (<code>.love</code> files)</p>
+<td><p><span class="tag">Optional</span> LoveInfo contains information specific to Love2D bundles (<code>.love</code> files)</p>
 </td>
 </tr>
 <tr>
 <td><code>scriptInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
-<td><p>ScriptInfo contains information specific to shell scripts (<code>.sh</code>, <code>.bat</code> etc.)</p>
+<td><p><span class="tag">Optional</span> ScriptInfo contains information specific to shell scripts (<code>.sh</code>, <code>.bat</code> etc.)</p>
 </td>
 </tr>
 <tr>
 <td><code>jarInfo</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
-<td><p>JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
+<td><p><span class="tag">Optional</span> JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
 </td>
 </tr>
 </table>
@@ -4427,25 +4828,25 @@ or installer packages.</p>
 <tr>
 <td><code>installerType</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#WindowsInstallerType__TypeHint">WindowsInstallerType</span></code></td>
-<td><p>Particular type of installer (msi, inno, etc.)</p>
+<td><p><span class="tag">Optional</span> Particular type of installer (msi, inno, etc.)</p>
 </td>
 </tr>
 <tr>
 <td><code>uninstaller</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>True if we suspect this might be an uninstaller rather than an installer</p>
+<td><p><span class="tag">Optional</span> True if we suspect this might be an uninstaller rather than an installer</p>
 </td>
 </tr>
 <tr>
 <td><code>gui</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this executable marked as GUI? This can be false and still pop a GUI, it&rsquo;s just a hint.</p>
+<td><p><span class="tag">Optional</span> Is this executable marked as GUI? This can be false and still pop a GUI, it&rsquo;s just a hint.</p>
 </td>
 </tr>
 <tr>
 <td><code>dotNet</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this a .NET assembly?</p>
+<td><p><span class="tag">Optional</span> Is this a .NET assembly?</p>
 </td>
 </tr>
 </table>
@@ -4606,7 +5007,7 @@ or app bundles.</p>
 <tr>
 <td><code>version</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The version of love2D required to open this bundle. May be empty</p>
+<td><p><span class="tag">Optional</span> The version of love2D required to open this bundle. May be empty</p>
 </td>
 </tr>
 </table>
@@ -4646,7 +5047,7 @@ or app bundles.</p>
 <tr>
 <td><code>interpreter</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Something like <code>/bin/bash</code></p>
+<td><p><span class="tag">Optional</span> Something like <code>/bin/bash</code></p>
 </td>
 </tr>
 </table>
@@ -4686,7 +5087,7 @@ or app bundles.</p>
 <tr>
 <td><code>mainClass</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The main Java class as specified by the manifest included in the .jar (if any)</p>
+<td><p><span class="tag">Optional</span> The main Java class as specified by the manifest included in the .jar (if any)</p>
 </td>
 </tr>
 </table>
@@ -4755,7 +5156,7 @@ angels are saved.</p>
 <tr>
 <td><code>installerName</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The installer used to install at this location</p>
+<td><p><span class="tag">Optional</span> The installer used to install at this location</p>
 </td>
 </tr>
 <tr>

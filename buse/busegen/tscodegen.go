@@ -21,7 +21,7 @@ func (bc *BuseContext) GenerateTsCode() error {
 	doc.Line("// See <https://docs.itch.ovh/buse/master> for a human-friendly documentation")
 
 	doc.Line("")
-	doc.Line("import { createRequest, createNotification } from %#v;", "./client")
+	doc.Line("import { createRequest, createNotification, Client, IRequest, INotification } from %#v;", "./client")
 
 	scope := newScope()
 	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
@@ -102,14 +102,15 @@ func (bc *BuseContext) GenerateTsCode() error {
 				resultTypeName := entry.typeName
 				params := scope.FindEntry(paramsTypeName)
 				method := params.name
-				symbolName := strings.TrimSuffix(entry.typeName, "Result")
+				symbolName := strings.Replace(method, ".", "", -1)
 
 				doc.Line("")
 				doc.Line("export const %s = ", symbolName)
 				doc.Line("	createRequest<%s, %s>(%#v);", paramsTypeName, resultTypeName, method)
 			case EntryKindNotification:
 				method := entry.name
-				symbolName := strings.TrimSuffix(entry.typeName, "Result")
+				symbolName := strings.Replace(method, ".", "", -1)
+
 				doc.Line("")
 				doc.Line("export const %s = ", symbolName)
 				doc.Line("	createNotification<%s>(%#v);", entry.typeName, method)

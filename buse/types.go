@@ -82,9 +82,11 @@ type OperationStartParams struct {
 	Operation Operation `json:"operation"`
 
 	// Must be set if Operation is `install`
+	// @optional
 	InstallParams *InstallParams `json:"installParams,omitempty"`
 
 	// Must be set if Operation is `uninstall`
+	// @optional
 	UninstallParams *UninstallParams `json:"uninstallParams,omitempty"`
 }
 
@@ -155,10 +157,12 @@ type UninstallParams struct {
 // including the download key if any.
 type GameCredentials struct {
 	// Defaults to `https://itch.io`
+	// @optional
 	Server string `json:"server"`
 	// A valid itch.io API key
 	APIKey string `json:"apiKey"`
 	// A download key identifier, or 0 if no download key is available
+	// @optional
 	DownloadKey int64 `json:"downloadKey"`
 }
 
@@ -363,6 +367,7 @@ type LaunchParams struct {
 	// The directory to use to store installer files for prerequisites
 	PrereqsDir string `json:"prereqsDir"`
 	// Force installing all prerequisites, even if they're already marked as installed
+	// @optional
 	ForcePrereqs bool `json:"forcePrereqs,omitempty"`
 
 	// Enable sandbox (regardless of manifest opt-in)
@@ -686,9 +691,14 @@ const (
 	ItchPlatformUnknown ItchPlatform = "unknown"
 )
 
+// Buse JSON-RPC 2.0 error codes
+type Code = int
+
 const (
-	CodeOperationCancelled = 499
-	CodeOperationAborted   = 410
+	// An operation was cancelled gracefully
+	CodeOperationCancelled Code = 499
+	// An operation was aborted by the user
+	CodeOperationAborted Code = 410
 )
 
 //==================================

@@ -27,18 +27,25 @@ type Candidate struct {
 	// Size is the size of the candidate's file, in bytes
 	Size int64 `json:"size"`
 	// Spell contains raw output from <https://github.com/fasterthanlime/wizardry>
+	// @optional
 	Spell []string `json:"spell,omitempty"`
 	// WindowsInfo contains information specific to native Windows candidates
+	// @optional
 	WindowsInfo *WindowsInfo `json:"windowsInfo,omitempty"`
-	// WindowsInfo contains information specific to native Linux candidates
+	// LinuxInfo contains information specific to native Linux candidates
+	// @optional
 	LinuxInfo *LinuxInfo `json:"linuxInfo,omitempty"`
 	// MacosInfo contains information specific to native macOS candidates
+	// @optional
 	MacosInfo *MacosInfo `json:"macosInfo,omitempty"`
 	// LoveInfo contains information specific to Love2D bundles (`.love` files)
+	// @optional
 	LoveInfo *LoveInfo `json:"loveInfo,omitempty"`
 	// ScriptInfo contains information specific to shell scripts (`.sh`, `.bat` etc.)
+	// @optional
 	ScriptInfo *ScriptInfo `json:"scriptInfo,omitempty"`
 	// JarInfo contains information specific to Java archives (`.jar` files)
+	// @optional
 	JarInfo *JarInfo `json:"jarInfo,omitempty"`
 }
 
@@ -80,12 +87,16 @@ const (
 // or installer packages.
 type WindowsInfo struct {
 	// Particular type of installer (msi, inno, etc.)
+	// @optional
 	InstallerType WindowsInstallerType `json:"installerType,omitempty"`
 	// True if we suspect this might be an uninstaller rather than an installer
+	// @optional
 	Uninstaller bool `json:"uninstaller,omitempty"`
 	// Is this executable marked as GUI? This can be false and still pop a GUI, it's just a hint.
+	// @optional
 	Gui bool `json:"gui,omitempty"`
 	// Is this a .NET assembly?
+	// @optional
 	DotNet bool `json:"dotNet,omitempty"`
 }
 
@@ -115,17 +126,20 @@ type LinuxInfo struct {
 // Contains information specific to Love2D bundles
 type LoveInfo struct {
 	// The version of love2D required to open this bundle. May be empty
+	// @optional
 	Version string `json:"version,omitempty"`
 }
 
 // Contains information specific to shell scripts
 type ScriptInfo struct {
 	// Something like `/bin/bash`
+	// @optional
 	Interpreter string `json:"interpreter,omitempty"`
 }
 
 // Contains information specific to Java archives
 type JarInfo struct {
 	// The main Java class as specified by the manifest included in the .jar (if any)
+	// @optional
 	MainClass string `json:"mainClass,omitempty"`
 }

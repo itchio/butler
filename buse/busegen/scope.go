@@ -300,7 +300,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 								name := vs.Names[0]
 								val := vs.Values[0]
 								if bl, ok := val.(*ast.BasicLit); ok {
-									if bl.Kind == token.STRING {
+									if bl.Kind == token.STRING || bl.Kind == token.INT {
 										shortName := strings.TrimPrefix(name.Name, enum.typeName)
 										enum.enumValues = append(enum.enumValues, &EnumValue{
 											name:  shortName,
