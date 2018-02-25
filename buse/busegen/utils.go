@@ -24,6 +24,20 @@ func isStruct(ts *ast.TypeSpec) bool {
 	return ok
 }
 
+func isEnum(ts *ast.TypeSpec) bool {
+	if ts == nil {
+		return false
+	}
+
+	if id, ok := ts.Type.(*ast.Ident); ok {
+		if id.Name == "string" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func parseTag(line string) (tag string, value string) {
 	if strings.HasPrefix(line, "@") {
 		for i := 1; i < len(line); i++ {

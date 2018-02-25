@@ -134,7 +134,9 @@ type DownloadKey struct {
 
 	// Identifier of the game to which this download key grants access
 	GameID int64 `json:"gameId"`
-	Game   *Game `json:"game,omitempty" gorm:"-"`
+
+	// Game to which this download key grants access
+	Game *Game `json:"game,omitempty" gorm:"-"`
 
 	// Date this key was created at (often coincides with purchase time)
 	CreatedAt string `json:"createdAt"`
@@ -166,7 +168,10 @@ type Build struct {
 	// is still processing or if processing has failed.
 	Files []*BuildFile `json:"files"`
 
-	User      User   `json:"user"`
+	// User who pushed the build
+	User User `json:"user"`
+	// Timestamp the build was created at
 	CreatedAt string `json:"createdAt"`
+	// Timestamp the build was last updated at
 	UpdatedAt string `json:"updatedAt"`
 }

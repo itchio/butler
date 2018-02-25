@@ -10,15 +10,28 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
+// A Receipt describes what was installed to a specific folder.
+//
+// It's compressed and written to `./.itch/receipt.json.gz` every
+// time an install operation completes successfully, and is used
+// in further install operations to make sure ghosts are busted and/or
+// angels are saved.
 type Receipt struct {
-	Game   *itchio.Game   `json:"game"`
+	// The itch.io game installed at this location
+	Game *itchio.Game `json:"game"`
+	// The itch.io upload installed at this location
 	Upload *itchio.Upload `json:"upload"`
-	Build  *itchio.Build  `json:"build"`
+	// The itch.io build installed at this location. Null for non-wharf upload.
+	Build *itchio.Build `json:"build"`
 
-	Files         []string `json:"files"`
-	InstallerName string   `json:"installerName"`
+	// A list of installed files (slash-separated paths, relative to install folder)
+	Files []string `json:"files"`
+	// The installer used to install at this location
+	InstallerName string `json:"installerName"`
 
-	// optional, installer-specific fields
+	// If this was installed from an MSI package, the product code,
+	// used for a clean uninstall.
+	// @optional
 	MSIProductCode string `json:"msiProductCode,omitempty"`
 }
 

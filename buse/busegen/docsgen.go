@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
 func (bc *BuseContext) GenerateDocs() error {
@@ -22,18 +21,18 @@ func (bc *BuseContext) GenerateDocs() error {
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
+	must(scope.Assimilate("github.com/itchio/butler/endpoints/launch/manifest", "types.go"))
 
 	dumpStruct := func(header string, entry *Entry, showDesc bool) {
-		gd := entry.gd
+		ts := entry.typeSpec
 
 		doc.Line("")
 		if entry.doc != "" {
 			doc.Line("<p>")
-			doc.Line(markdown(entry.doc))
+			doc.Line(scope.Markdown(entry.doc, showDesc))
 			doc.Line("</p>")
 		}
 
-		ts := gd.Specs[0].(*ast.TypeSpec)
 		st := ts.Type.(*ast.StructType)
 		fl := st.Fields.List
 
@@ -41,7 +40,7 @@ func (bc *BuseContext) GenerateDocs() error {
 			if header != "" {
 				doc.Line("")
 				doc.Line("<p>")
-				doc.Line("<strong>%s</strong>: <em>none</em>", header)
+				doc.Line("<span class=%#v>%s</span> <em>none</em>", "header", header)
 				doc.Line("</p>")
 				doc.Line("")
 			}
@@ -51,20 +50,14 @@ func (bc *BuseContext) GenerateDocs() error {
 		if header != "" {
 			doc.Line("")
 			doc.Line("<p>")
-			doc.Line("<strong>%s</strong>: ", header)
+			doc.Line("<span class=%#v>%s</span> ", "header", header)
 			doc.Line("</p>")
 			doc.Line("")
 		}
 
 		doc.Line("")
 		doc.Line("<table class=%#v>", "field-table")
-		doc.Line("<tr>")
-		doc.Line("<th>Name</th>")
-		doc.Line("<th>Type</th>")
-		if showDesc {
-			doc.Line("<th>Description</th>")
-		}
-		doc.Line("</tr>")
+
 		for _, sf := range fl {
 			if sf.Tag == nil {
 				log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
@@ -82,12 +75,18 @@ func (bc *BuseContext) GenerateDocs() error {
 				panic(err)
 			}
 
-			comment := getComment(sf.Doc, " ")
+			var beforeDesc = ""
+			comment := getComment(sf.Doc, "\n")
+			if strings.Contains(comment, "@optional") {
+				comment = strings.TrimSpace(strings.Replace(comment, "@optional", "", -1))
+				beforeDesc = fmt.Sprintf("<span class=%#v>Optional</span> ", "tag")
+			}
+
 			doc.Line("<tr>")
 			doc.Line("<td><code>%s</code></td>", jsonTag.Name)
 			doc.Line("<td>%s</td>", scope.LinkType(typeToString(sf.Type), showDesc))
 			if showDesc {
-				doc.Line("<td>%s</td>", markdown(comment))
+				doc.Line("<td>%s</td>", scope.Markdown(beforeDesc+comment, showDesc))
 			}
 			doc.Line("</tr>")
 		}
@@ -95,42 +94,89 @@ func (bc *BuseContext) GenerateDocs() error {
 		doc.Line("")
 	}
 
-	renderHeader := func(entry *Entry) {
-		var kindString string
-		switch entry.kind {
-		case EntryKindParams:
-			switch entry.caller {
-			case CallerClient:
-				kindString = `<em class="request-client-caller"></em>`
-			case CallerServer:
-				kindString = `<em class="request-server-caller"></em>`
-			}
-		case EntryKindNotification:
-			kindString = `<em class="notification"></em>`
-		case EntryKindType:
-			kindString = `<em class="type"></em>`
+	dumpEnum := func(header string, entry *Entry, showDesc bool) {
+		doc.Line("")
+		if entry.doc != "" {
+			doc.Line("<p>")
+			doc.Line(scope.Markdown(entry.doc, showDesc))
+			doc.Line("</p>")
 		}
 
-		doc.Line("### %s%s", kindString, entry.name)
+		values := entry.enumValues
+
+		if len(values) == 0 {
+			if header != "" {
+				doc.Line("")
+				doc.Line("<p>")
+				doc.Line("<span class=%#v>%s</span> <em>none</em>", "header", header)
+				doc.Line("</p>")
+				doc.Line("")
+			}
+			return
+		}
+
+		if header != "" {
+			doc.Line("")
+			doc.Line("<p>")
+			doc.Line("<span class=%#v>%s</span> ", "header", header)
+			doc.Line("</p>")
+			doc.Line("")
+		}
+
 		doc.Line("")
-		doc.Line("<p class='tags'>")
+		doc.Line("<table class=%#v>", "field-table")
+
+		for _, v := range values {
+			doc.Line("<tr>")
+			doc.Line("<td><code>%s</code></td>", v.value)
+			if showDesc {
+				comment := strings.Join(v.doc, "\n")
+				doc.Line("<td>%s</td>", scope.Markdown(comment, showDesc))
+			}
+			doc.Line("</tr>")
+		}
+		doc.Line("</table>")
+		doc.Line("")
+	}
+
+	kindString := func(entry *Entry) string {
 		switch entry.kind {
 		case EntryKindParams:
 			switch entry.caller {
 			case CallerClient:
-				doc.Line("<em>Client request</em>")
+				return `<em class="request-client-caller"></em>`
 			case CallerServer:
-				doc.Line("<em>Server request</em>")
+				return `<em class="request-server-caller"></em>`
 			}
 		case EntryKindNotification:
-			doc.Line("<em>Notification</em>")
+			return `<em class="notification"></em>`
 		case EntryKindType:
-			doc.Line("<em>Type</em>")
+			return `<em class="struct-type"></em>`
+		case EntryKindEnum:
+			return `<em class="enum-type"></em>`
 		}
-		for _, tag := range entry.tags {
-			doc.Line("<em>%s</em>", tag)
+		return ""
+	}
+
+	renderHeader := func(entry *Entry) {
+		doc.Line("### %s%s", kindString(entry), entry.name)
+		doc.Line("")
+	}
+
+	renderTypeHint := func(entry *Entry) {
+		id := entry.typeName + "__TypeHint"
+		doc.Line("")
+		doc.Line("<div id=%#v style=%#v class=%#v>", id, "display: none;", "tip-content")
+		doc.Line("<p>%s%s <a href=%#v>(Go to definition)</a></p>", kindString(entry), entry.name, fmt.Sprintf("#/?id=%s", linkify(entry.name)))
+
+		switch entry.typeKind {
+		case EntryTypeKindStruct:
+			dumpStruct("", entry, false)
+		case EntryTypeKindEnum:
+			dumpEnum("", entry, false)
 		}
-		doc.Line("</p>")
+		doc.Line("</div>")
+		doc.Line("")
 	}
 
 	renderRequest := func(params *Entry) {
@@ -142,27 +188,29 @@ func (bc *BuseContext) GenerateDocs() error {
 		renderHeader(params)
 		dumpStruct("Parameters", params, true)
 		dumpStruct("Result", result, true)
+
+		renderTypeHint(params)
 	}
 
 	renderNotification := func(entry *Entry) {
 		renderHeader(entry)
 		dumpStruct("Payload", entry, true)
+
+		renderTypeHint(entry)
 	}
 
 	renderType := func(entry *Entry) {
 		renderHeader(entry)
 		dumpStruct("Fields", entry, true)
 
-		ts := entry.gd.Specs[0].(*ast.TypeSpec)
+		renderTypeHint(entry)
+	}
 
-		id := ts.Name.Name + "__TypeHint"
+	renderEnum := func(entry *Entry) {
+		renderHeader(entry)
+		dumpEnum("Values", entry, true)
 
-		doc.Line("")
-		doc.Line("<div id=%#v style=%#v class=%#v>", id, "display: none;", "tip-content")
-		doc.Line("<p>%s <a href=%#v>(Go to definition)</a></p>", ts.Name.Name, fmt.Sprintf("#/?id=%s", linkify(ts.Name.Name)))
-		dumpStruct("", entry, false)
-		doc.Line("</div>")
-		doc.Line("")
+		renderTypeHint(entry)
 	}
 
 	doc.Line("")
@@ -190,6 +238,8 @@ func (bc *BuseContext) GenerateDocs() error {
 				renderNotification(entry)
 			case EntryKindType:
 				renderType(entry)
+			case EntryKindEnum:
+				renderEnum(entry)
 			}
 		}
 	}
@@ -198,8 +248,4 @@ func (bc *BuseContext) GenerateDocs() error {
 	doc.Write()
 
 	return nil
-}
-
-func markdown(s string) string {
-	return string(blackfriday.Run([]byte(s)))
 }

@@ -21,7 +21,7 @@ import (
 //
 // This endpoint is meant to gather information when reporting
 // issues, rather than feature sniffing. Conforming clients should
-// automatically download new versions of butler, see [Updating](#updating).
+// automatically download new versions of butler, see the **Updating** section.
 //
 // @name Version.Get
 // @category Utilities
@@ -41,7 +41,7 @@ type VersionGetResult struct {
 // Game
 //----------------------------------------------------------------------
 
-// Finds uploads compatible with the current runtime, for a given game
+// Finds uploads compatible with the current runtime, for a given game.
 //
 // @name Game.FindUploads
 // @category Install
@@ -62,14 +62,9 @@ type GameFindUploadsResult struct {
 // Operation
 //----------------------------------------------------------------------
 
-type Operation string
-
-var (
-	OperationInstall   Operation = "install"
-	OperationUninstall Operation = "uninstall"
-)
-
 // Start a new operation (installing or uninstalling).
+//
+// Can be cancelled by passing the same `ID` to @@OperationCancelParams.
 //
 // @name Operation.Start
 // @category Install
@@ -96,20 +91,31 @@ type OperationStartParams struct {
 
 type OperationStartResult struct{}
 
+// @category Install
+type Operation string
+
+const (
+	// Install a game (includes upgrades, heals, etc.)
+	OperationInstall Operation = "install"
+	// Uninstall a game
+	OperationUninstall Operation = "uninstall"
+)
+
 // Attempt to gracefully cancel an ongoing operation.
 //
 // @name Operation.Cancel
 // @category Install
 // @caller client
 type OperationCancelParams struct {
-	// The UUID of the task to cancel, as passed to [Operation.Start](#operationstart-request)
+	// The UUID of the task to cancel, as passed to @@OperationStartParams
 	ID string `json:"id"`
 }
 
 type OperationCancelResult struct{}
 
 // InstallParams contains all the parameters needed to perform
-// an installation for a game.
+// an installation for a game via @@OperationStartParams.
+//
 // @kind type
 // @category Install
 type InstallParams struct {
@@ -137,7 +143,8 @@ type InstallParams struct {
 }
 
 // UninstallParams contains all the parameters needed to perform
-// an uninstallation for a game.
+// an uninstallation for a game via @@OperationStartParams.
+//
 // @kind type
 // @category Install
 type UninstallParams struct {
@@ -146,8 +153,7 @@ type UninstallParams struct {
 }
 
 // GameCredentials contains all the credentials required to make API requests
-// including the download key if any
-// @category General
+// including the download key if any.
 type GameCredentials struct {
 	// Defaults to `https://itch.io`
 	Server string `json:"server"`
@@ -186,7 +192,7 @@ type GetReceiptResult struct {
 	Receipt *bfs.Receipt `json:"receipt"`
 }
 
-// Sent periodically to inform on the current state an operation.
+// Sent periodically during @@OperationStartParams to inform on the current state an operation.
 //
 // @name Operation.Progress
 // @category Install
@@ -199,25 +205,34 @@ type OperationProgressNotification struct {
 	BPS float64 `json:"bps"`
 }
 
+// @category Install
 type TaskReason string
 
 const (
-	TaskReasonInstall   TaskReason = "install"
+	// Task was started for an install operation
+	TaskReasonInstall TaskReason = "install"
+	// Task was started for an uninstall operation
 	TaskReasonUninstall TaskReason = "uninstall"
 )
 
+// @category Install
 type TaskType string
 
 const (
-	TaskTypeDownload  TaskType = "download"
-	TaskTypeInstall   TaskType = "install"
+	// We're fetching files from a remote server
+	TaskTypeDownload TaskType = "download"
+	// We're running an installer
+	TaskTypeInstall TaskType = "install"
+	// We're running an uninstaller
 	TaskTypeUninstall TaskType = "uninstall"
-	TaskTypeUpdate    TaskType = "update"
-	TaskTypeHeal      TaskType = "heal"
+	// We're applying some patches
+	TaskTypeUpdate TaskType = "update"
+	// We're healing from a signature and heal source
+	TaskTypeHeal TaskType = "heal"
 )
 
 // Each operation is made up of one or more tasks. This notification
-// is sent whenever a task starts for an operation.
+// is sent during @@OperationStartParams whenever a specific task starts.
 //
 // @category Install
 type TaskStartedNotification struct {
@@ -235,7 +250,7 @@ type TaskStartedNotification struct {
 	TotalSize int64 `json:"totalSize,omitempty"`
 }
 
-// Sent whenever a task succeeds for an operation.
+// Sent during @@OperationStartParams whenever a task succeeds for an operation.
 //
 // @category Install
 type TaskSucceededNotification struct {
@@ -245,12 +260,20 @@ type TaskSucceededNotification struct {
 	InstallResult *InstallResult `json:"installResult,omitempty"`
 }
 
+// What was installed by a subtask of @@OperationStartParams.
+//
+// See @@TaskSucceededNotification.
+//
 // @category Install
 // @kind type
 type InstallResult struct {
-	Game   *itchio.Game   `json:"game"`
+	// The game we installed
+	Game *itchio.Game `json:"game"`
+	// The upload we installed
 	Upload *itchio.Upload `json:"upload"`
-	Build  *itchio.Build  `json:"build"`
+	// The build we installed
+	// @optional
+	Build *itchio.Build `json:"build"`
 	// TODO: verdict ?
 }
 
@@ -259,6 +282,9 @@ type InstallResult struct {
 //----------------------------------------------------------------------
 
 // Looks for one or more game updates.
+//
+// Updates found are regularly sent via @@GameUpdateAvailableNotification, and
+// then all at once in the result.
 //
 // @category Update
 // @caller client
@@ -291,7 +317,7 @@ type CheckUpdateResult struct {
 	Warnings []string `json:"warnings"`
 }
 
-// Sent while CheckUpdate is still running, every time butler
+// Sent during @@CheckUpdateParams, every time butler
 // finds an update for a game. Can be safely ignored if displaying
 // updates as they are found is not a requirement for the client.
 //
@@ -319,57 +345,75 @@ type GameUpdate struct {
 // Launch
 //----------------------------------------------------------------------
 
+// Attempt to launch an installed game.
+//
 // @category Launch
 // @caller client
 type LaunchParams struct {
-	InstallFolder string                `json:"installFolder"`
-	Game          *itchio.Game          `json:"game"`
-	Upload        *itchio.Upload        `json:"upload"`
-	Build         *itchio.Build         `json:"build"`
-	Verdict       *configurator.Verdict `json:"verdict"`
+	// The folder the game was installed to
+	InstallFolder string `json:"installFolder"`
+	// The itch.io game that was installed
+	Game *itchio.Game `json:"game"`
+	// The itch.io upload that was installed
+	Upload *itchio.Upload `json:"upload"`
+	// The itch.io build that was installed
+	Build *itchio.Build `json:"build"`
+	// The stored verdict from when the folder was last configured (can be null)
+	Verdict *configurator.Verdict `json:"verdict"`
 
-	PrereqsDir   string `json:"prereqsDir"`
-	ForcePrereqs bool   `json:"forcePrereqs,omitempty"`
+	// The directory to use to store installer files for prerequisites
+	PrereqsDir string `json:"prereqsDir"`
+	// Force installing all prerequisites, even if they're already marked as installed
+	ForcePrereqs bool `json:"forcePrereqs,omitempty"`
 
+	// Enable sandbox (regardless of manifest opt-in)
 	Sandbox bool `json:"sandbox,omitempty"`
 
-	// Used for subkeying
+	// itch.io credentials to use for any necessary API
+	// requests (prereqs downloads, subkeying, etc.)
 	Credentials *GameCredentials `json:"credentials"`
 }
 
 type LaunchResult struct {
 }
 
-// Sent when the game is configured, prerequisites are installed
+// Sent during @@LaunchParams, when the game is configured, prerequisites are installed
 // sandbox is set up (if enabled), and the game is actually running.
 //
 // @category Launch
 type LaunchRunningNotification struct{}
 
-// Sent when the game has actually exited.
+// Sent during @@LaunchParams, when the game has actually exited.
 //
 // @category Launch
 type LaunchExitedNotification struct{}
 
-// Pick a manifest action to launch, see [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html)
+// Sent during @@LaunchParams, ask the user to pick a manifest action to launch.
+//
+// See [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html).
 //
 // @tags Dialogs
 // @category Launch
 // @caller server
 type PickManifestActionParams struct {
+	// A list of actions to pick from. Must be shown to the user in the order they're passed.
 	Actions []*manifest.Action `json:"actions"`
 }
 
 type PickManifestActionResult struct {
+	// Name of the action picked by user, or empty is we're aborting.
 	Name string `json:"name"`
 }
 
 // Ask the client to perform a shell launch, ie. open an item
-// with the operating system's default handler (File explorer)
+// with the operating system's default handler (File explorer).
+//
+// Sent during @@LaunchParams.
 //
 // @category Launch
 // @caller server
 type ShellLaunchParams struct {
+	// Absolute path of item to open, e.g. `D:\\Games\\Itch\\garden\\README.txt`
 	ItemPath string `json:"itemPath"`
 }
 
@@ -379,14 +423,20 @@ type ShellLaunchResult struct {
 // Ask the client to perform an HTML launch, ie. open an HTML5
 // game, ideally in an embedded browser.
 //
+// Sent during @@LaunchParams.
+//
 // @category Launch
 // @caller server
 type HTMLLaunchParams struct {
+	// Absolute path on disk to serve
 	RootFolder string `json:"rootFolder"`
-	IndexPath  string `json:"indexPath"`
+	// Path of index file, relative to root folder
+	IndexPath string `json:"indexPath"`
 
-	Args []string          `json:"args"`
-	Env  map[string]string `json:"env"`
+	// Command-line arguments, to pass as `global.Itch.args`
+	Args []string `json:"args"`
+	// Environment variables, to pass as `global.Itch.env`
+	Env map[string]string `json:"env"`
 }
 
 type HTMLLaunchResult struct {
@@ -395,15 +445,20 @@ type HTMLLaunchResult struct {
 // Ask the client to perform an URL launch, ie. open an address
 // with the system browser or appropriate.
 //
+// Sent during @@LaunchParams.
+//
 // @category Launch
 // @caller server
 type URLLaunchParams struct {
+	// URL to open, e.g. `https://itch.io/community`
 	URL string `json:"url"`
 }
 
 type URLLaunchResult struct{}
 
 // Ask the client to save verdict information after a reconfiguration.
+//
+// Sent during @@LaunchParams.
 //
 // @category Launch
 // @tags Deprecated
@@ -417,59 +472,98 @@ type SaveVerdictResult struct{}
 // a UAC prompt (on Windows) or a pkexec dialog (on Linux) if
 // the user allows.
 //
+// Sent during @@LaunchParams.
+//
 // @category Launch
 // @tags Dialogs
 // @caller server
 type AllowSandboxSetupParams struct{}
 
 type AllowSandboxSetupResult struct {
+	// Set to true if user allowed the sandbox setup, false otherwise
 	Allow bool `json:"allow"`
 }
 
-// Sent when some prerequisites are about to be installed.
+// Sent during @@LaunchParams, when some prerequisites are about to be installed.
+//
+// This is a good time to start showing a UI element with the state of prereq
+// tasks.
+//
+// Updates are regularly provided via @@PrereqsTaskStateNotification.
 //
 // @category Launch
 type PrereqsStartedNotification struct {
+	// A list of prereqs that need to be tended to
 	Tasks map[string]*PrereqTask `json:"tasks"`
 }
 
+// Information about a prerequisite task.
+//
 // @category Launch
 type PrereqTask struct {
+	// Full name of the prerequisite, for example: `Microsoft .NET Framework 4.6.2`
 	FullName string `json:"fullName"`
-	Order    int    `json:"order"`
+	// Order of task in the list. Respect this order in the UI if you want consistent progress indicators.
+	Order int `json:"order"`
 }
 
+// Current status of a prerequisite task
+//
+// Sent during @@LaunchParams, after @@PrereqsStartedNotification, repeatedly
+// until all prereq tasks are done.
+//
+// @category Launch
+type PrereqsTaskStateNotification struct {
+	// Short name of the prerequisite task (e.g. `xna-4.0`)
+	Name string `json:"name"`
+	// Current status of the prereq
+	Status PrereqStatus `json:"status"`
+	// Value between 0 and 1 (floating)
+	Progress float64 `json:"progress"`
+	// ETA in seconds (floating)
+	ETA float64 `json:"eta"`
+	// Network bandwidth used in bytes per second (floating)
+	BPS float64 `json:"bps"`
+}
+
+// @category Launch
 type PrereqStatus string
 
 const (
-	PrereqStatusPending     PrereqStatus = "pending"
+	// Prerequisite has not started downloading yet
+	PrereqStatusPending PrereqStatus = "pending"
+	// Prerequisite is currently being downloaded
 	PrereqStatusDownloading PrereqStatus = "downloading"
-	PrereqStatusReady       PrereqStatus = "ready"
-	PrereqStatusInstalling  PrereqStatus = "installing"
-	PrereqStatusDone        PrereqStatus = "done"
+	// Prerequisite has been downloaded and is pending installation
+	PrereqStatusReady PrereqStatus = "ready"
+	// Prerequisite is currently installing
+	PrereqStatusInstalling PrereqStatus = "installing"
+	// Prerequisite was installed (successfully or not)
+	PrereqStatusDone PrereqStatus = "done"
 )
 
-// @category Launch
-type PrereqsTaskStateNotification struct {
-	Name     string       `json:"name"`
-	Status   PrereqStatus `json:"status"`
-	Progress float64      `json:"progress"`
-	ETA      float64      `json:"eta"`
-	BPS      float64      `json:"bps"`
-}
-
+// Sent during @@LaunchParams, when all prereqs have finished installing (successfully or not)
+//
+// After this is received, it's safe to close any UI element showing prereq task state.
+//
 // @category Launch
 type PrereqsEndedNotification struct {
 }
 
+// Sent during @@LaunchParams, when one or more prerequisites have failed to install.
+// The user may choose to proceed with the launch anyway.
+//
 // @category Launch
 // @caller server
 type PrereqsFailedParams struct {
-	Error      string `json:"error"`
+	// Short error
+	Error string `json:"error"`
+	// Longer error (to include in logs)
 	ErrorStack string `json:"errorStack"`
 }
 
 type PrereqsFailedResult struct {
+	// Set to true if the user wants to proceed with the launch in spite of the prerequisites failure
 	Continue bool `json:"continue"`
 }
 
@@ -494,6 +588,7 @@ type CleanDownloadsSearchParams struct {
 
 // @category Clean Downloads
 type CleanDownloadsSearchResult struct {
+	// Entries we found that could use some cleaning (with path and size information)
 	Entries []*CleanDownloadsEntry `json:"entries"`
 }
 
@@ -527,31 +622,61 @@ type CleanDownloadsApplyResult struct{}
 //
 // Log
 type LogNotification struct {
-	Level   string `json:"level"`
+	// Level of the message (`info`, `warn`, etc.)
+	Level LogLevel `json:"level"`
+	// Contents of the message.
+	//
+	// Note: logs may contain non-ASCII characters, or even emojis.
 	Message string `json:"message"`
 }
 
+type LogLevel string
+
+const (
+	// Hidden from logs by default, noisy
+	LogLevelDebug LogLevel = "debug"
+	// Just thinking out loud
+	LogLevelInfo LogLevel = "info"
+	// We're continuing, but we're not thrilled about it
+	LogLevelWarning LogLevel = "warning"
+	// We're eventually going to fail loudly
+	LogLevelError LogLevel = "error"
+)
+
+// Test request: asks butler to double a number twice.
+// First by calling @@TestDoubleParams, then by
+// returning the result of that call doubled.
+//
+// Use that to try out your JSON-RPC 2.0 over TCP implementation.
+//
 // @name Test.DoubleTwice
 // @category Test
 // @caller client
 type TestDoubleTwiceParams struct {
+	// The number to quadruple
 	Number int64 `json:"number"`
 }
 
 // @category Test
 type TestDoubleTwiceResult struct {
+	// The input, quadrupled
 	Number int64 `json:"number"`
 }
 
+// Test request: return a number, doubled. Implement that to
+// use @@TestDoubleTwiceParams in your testing.
+//
 // @name Test.Double
 // @category Test
 // @caller server
 type TestDoubleParams struct {
+	// The number to double
 	Number int64 `json:"number"`
 }
 
 // Result for Test.Double
 type TestDoubleResult struct {
+	// The number, doubled
 	Number int64 `json:"number"`
 }
 

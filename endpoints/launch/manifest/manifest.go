@@ -15,11 +15,6 @@ import (
 
 // TODO: linter
 
-type Manifest struct {
-	Actions []*Action `json:"actions"`
-	Prereqs []*Prereq `json:"prereqs"`
-}
-
 func (m *Manifest) ListActions(runtime *manager.Runtime) []*Action {
 	var result []*Action
 
@@ -35,44 +30,6 @@ func (m *Manifest) ListActions(runtime *manager.Runtime) []*Action {
 	}
 
 	return result
-}
-
-// see https://itch.io/docs/itch/integrating/manifest.html
-type Action struct {
-	// human-readable or standard name
-	Name string `json:"name"`
-
-	// file path (relative to manifest or absolute), URL, etc.
-	Path string `json:"path"`
-
-	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
-	Icon string `json:"icon"`
-
-	// command-line arguments
-	Args []string `json:"args"`
-
-	// sandbox opt-in
-	Sandbox bool `json:"sandbox"`
-
-	// requested API scope
-	Scope string `json:"scope"`
-
-	// don't redirect stdout/stderr, open in new console window
-	Console bool `json:"console"`
-
-	// platform to restrict this action too
-	Platform manager.ItchPlatform `json:"platform"`
-
-	// localized action name
-	Locales map[string]*ActionLocale `json:"locales"`
-}
-
-type Prereq struct {
-	Name string `json:"name"`
-}
-
-type ActionLocale struct {
-	Name string `json:"name"`
 }
 
 func Path(folder string) string {
