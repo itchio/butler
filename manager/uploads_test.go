@@ -3,6 +3,7 @@ package manager_test
 import (
 	"testing"
 
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	linux64 := &manager.Runtime{
-		Platform: manager.ItchPlatformLinux,
+		Platform: buse.ItchPlatformLinux,
 		Is64:     true,
 	}
 
@@ -46,7 +47,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(debrpm, game, linux64), "blacklist .deb and .rpm files")
 
 	mac64 := &manager.Runtime{
-		Platform: manager.ItchPlatformOSX,
+		Platform: buse.ItchPlatformOSX,
 		Is64:     true,
 	}
 
@@ -134,7 +135,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	windows32 := &manager.Runtime{
-		Platform: manager.ItchPlatformWindows,
+		Platform: buse.ItchPlatformWindows,
 		Is64:     false,
 	}
 
@@ -178,7 +179,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(penalizedemos, game, windows32), "penalize demos")
 
 	windows64 := &manager.Runtime{
-		Platform: manager.ItchPlatformWindows,
+		Platform: buse.ItchPlatformWindows,
 		Is64:     true,
 	}
 

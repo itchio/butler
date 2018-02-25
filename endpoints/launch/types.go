@@ -5,7 +5,6 @@ import (
 	"github.com/itchio/butler/manager"
 
 	"github.com/itchio/butler/configurator"
-	"github.com/itchio/butler/endpoints/launch/manifest"
 )
 
 type LaunchStrategy string
@@ -28,10 +27,10 @@ type LauncherParams struct {
 	Candidate *configurator.Candidate
 
 	// May be nil
-	AppManifest *manifest.Manifest
+	AppManifest *buse.Manifest
 
 	// May be nil
-	Action *manifest.Action
+	Action *buse.Action
 
 	// If true, enable sandbox
 	Sandbox bool

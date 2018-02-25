@@ -28,6 +28,7 @@ func main() {
 
 	must(bc.GenerateDocs())
 	must(bc.GenerateGoCode())
+	must(bc.GenerateTsCode())
 }
 
 func (bc *BuseContext) Task(task string) {
@@ -53,9 +54,9 @@ func (bc *BuseContext) NewDoc(name string) *Doc {
 func must(err error) {
 	if err != nil {
 		if se, ok := err.(*errors.Error); ok {
-			log.Fatal(se.ErrorStack)
+			log.Fatal(se.ErrorStack())
 		} else {
-			log.Fatal(se.Error)
+			log.Fatal(se.Error())
 		}
 	}
 }
@@ -92,5 +93,6 @@ func (b *Doc) Write() {
 	bs := []byte(b.doc)
 	dest := filepath.Join(b.bc.Dir, filepath.FromSlash(b.name))
 	log.Printf("Writing (%s)...", dest)
+	must(os.MkdirAll(filepath.Dir(dest), 0755))
 	must(ioutil.WriteFile(dest, bs, 0644))
 }

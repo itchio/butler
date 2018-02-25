@@ -183,35 +183,6 @@ func (c *Client) GetChannel(target string, channel string) (*GetChannelResponse,
 	return r, nil
 }
 
-// BuildFileType describes the type of a build file: patch, archive, signature, etc.
-type BuildFileType string
-
-const (
-	// BuildFileTypePatch describes wharf patch files (.pwr)
-	BuildFileTypePatch BuildFileType = "patch"
-	// BuildFileTypeArchive describes canonical archive form (.zip)
-	BuildFileTypeArchive = "archive"
-	// BuildFileTypeSignature describes wharf signature files (.pws)
-	BuildFileTypeSignature = "signature"
-	// BuildFileTypeManifest is reserved
-	BuildFileTypeManifest = "manifest"
-	// BuildFileTypeUnpacked describes the single file that is in the build (if it was just a single file)
-	BuildFileTypeUnpacked = "unpacked"
-)
-
-// BuildFileSubType describes the subtype of a build file: mostly its compression
-// level. For example, rediff'd patches are "optimized", whereas initial patches are "default"
-type BuildFileSubType string
-
-const (
-	// BuildFileSubTypeDefault describes default compression (rsync patches)
-	BuildFileSubTypeDefault BuildFileSubType = "default"
-	// BuildFileSubTypeGzip is reserved
-	BuildFileSubTypeGzip = "gzip"
-	// BuildFileSubTypeOptimized describes optimized compression (rediff'd / bsdiff patches)
-	BuildFileSubTypeOptimized = "optimized"
-)
-
 // UploadType describes which strategy is used for uploading to storage
 // some types allow for uploading in blocks (which is resumable), some
 // expect the whole payload in one request.
@@ -226,39 +197,6 @@ const (
 	// UploadTypeDeferredResumable also lets you send blocks of N*128KB at a time, but it
 	// lets you start the upload session from the client, which means you might get a closer ingest point.
 	UploadTypeDeferredResumable = "deferred_resumable"
-)
-
-// BuildState describes the state of a build, relative to its initial upload, and
-// its processing.
-type BuildState string
-
-const (
-	// BuildStateStarted is the state of a build from its creation until the initial upload is complete
-	BuildStateStarted BuildState = "started"
-	// BuildStateProcessing is the state of a build from the initial upload's completion to its fully-processed state.
-	// This state does not mean the build is actually being processed right now, it's just queued for processing.
-	BuildStateProcessing = "processing"
-	// BuildStateCompleted means the build was successfully processed. Its patch hasn't necessarily been
-	// rediff'd yet, but we have the holy (patch,signature,archive) trinity.
-	BuildStateCompleted = "completed"
-	// BuildStateFailed means something went wrong with the build. A failing build will not update the channel
-	// head and can be requeued by the itch.io team, although if a new build is pushed before they do,
-	// that new build will "win".
-	BuildStateFailed = "failed"
-)
-
-// BuildFileState describes the state of a specific file for a build
-type BuildFileState string
-
-const (
-	// BuildFileStateCreated means the file entry exists on itch.io
-	BuildFileStateCreated BuildFileState = "created"
-	// BuildFileStateUploading means the file is currently being uploaded to storage
-	BuildFileStateUploading = "uploading"
-	// BuildFileStateUploaded means the file is ready
-	BuildFileStateUploaded = "uploaded"
-	// BuildFileStateFailed means the file failed uploading
-	BuildFileStateFailed = "failed"
 )
 
 // ListBuildFiles returns a list of files associated to a build

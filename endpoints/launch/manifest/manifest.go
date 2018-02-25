@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/manager"
 	"github.com/mitchellh/mapstructure"
 
@@ -15,8 +16,8 @@ import (
 
 // TODO: linter
 
-func (m *Manifest) ListActions(runtime *manager.Runtime) []*Action {
-	var result []*Action
+func ListActions(m *buse.Manifest, runtime *manager.Runtime) []*buse.Action {
+	var result []*buse.Action
 
 	for _, a := range m.Actions {
 		if a.Platform == "" {
@@ -41,7 +42,7 @@ func Path(folder string) string {
 // in the folder. Returns an error if there is a file, but it can't
 // be read, for example because of permissions errors, invalid TOML
 // markup, or invalid manifest structure
-func Read(folder string) (*Manifest, error) {
+func Read(folder string) (*buse.Manifest, error) {
 	manifestPath := Path(folder)
 	f, err := os.Open(manifestPath)
 	if err != nil {
@@ -61,7 +62,7 @@ func Read(folder string) (*Manifest, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	manifest := &Manifest{}
+	manifest := &buse.Manifest{}
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result: manifest,
 	})
@@ -79,7 +80,7 @@ func Read(folder string) (*Manifest, error) {
 	return manifest, nil
 }
 
-func (a *Action) ExpandPath(runtime *manager.Runtime, baseFolder string) string {
+func ExpandPath(a *buse.Action, runtime *manager.Runtime, baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
@@ -88,9 +89,9 @@ func (a *Action) ExpandPath(runtime *manager.Runtime, baseFolder string) string 
 	if strings.Contains(path, "{{EXT}}") {
 		var ext = ""
 		switch runtime.Platform {
-		case manager.ItchPlatformWindows:
+		case buse.ItchPlatformWindows:
 			ext = ".exe"
-		case manager.ItchPlatformOSX:
+		case buse.ItchPlatformOSX:
 			ext = ".app"
 		}
 		path = strings.Replace(path, "{{EXT}}", ext, 1)

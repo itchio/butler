@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/butler/manager"
-
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/redist"
 )
 
@@ -32,9 +31,9 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 		alreadyGood := false
 
 		switch pc.Runtime.Platform {
-		case manager.ItchPlatformWindows:
+		case buse.ItchPlatformWindows:
 			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
-		case manager.ItchPlatformLinux:
+		case buse.ItchPlatformLinux:
 			alreadyGood, err = pc.AssessLinuxPrereq(name, entry)
 		}
 

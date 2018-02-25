@@ -6,8 +6,6 @@ import (
 
 	"github.com/itchio/butler/buse/messages"
 
-	"github.com/itchio/butler/manager"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/prereqs"
@@ -34,7 +32,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	// append built-in params if we need some
 	runtime := params.Runtime
-	if runtime.Platform == manager.ItchPlatformLinux && params.Sandbox {
+	if runtime.Platform == buse.ItchPlatformLinux && params.Sandbox {
 		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
 		listed = append(listed, firejailName)
 	}

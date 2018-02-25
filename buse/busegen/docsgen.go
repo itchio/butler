@@ -3,11 +3,8 @@ package main
 import (
 	"fmt"
 	"go/ast"
-	"log"
 	"sort"
 	"strings"
-
-	"github.com/fatih/structtag"
 )
 
 func (bc *BuseContext) GenerateDocs() error {
@@ -21,15 +18,14 @@ func (bc *BuseContext) GenerateDocs() error {
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
-	must(scope.Assimilate("github.com/itchio/butler/endpoints/launch/manifest", "types.go"))
 
 	dumpStruct := func(header string, entry *Entry, showDesc bool) {
 		ts := entry.typeSpec
 
 		doc.Line("")
-		if entry.doc != "" {
+		if len(entry.doc) > 0 {
 			doc.Line("<p>")
-			doc.Line(scope.Markdown(entry.doc, showDesc))
+			doc.Line(scope.MarkdownAll(entry.doc, showDesc))
 			doc.Line("</p>")
 		}
 
@@ -58,47 +54,31 @@ func (bc *BuseContext) GenerateDocs() error {
 		doc.Line("")
 		doc.Line("<table class=%#v>", "field-table")
 
-		for _, sf := range fl {
-			if sf.Tag == nil {
-				log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
-			}
-
-			tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
-
-			tags, err := structtag.Parse(tagValue)
-			if err != nil {
-				log.Fatalf("For tag (%s): %s", sf.Tag.Value, err.Error())
-			}
-
-			jsonTag, err := tags.Get("json")
-			if err != nil {
-				panic(err)
-			}
-
+		for _, sf := range entry.structFields {
 			var beforeDesc = ""
-			comment := getComment(sf.Doc, "\n")
-			if strings.Contains(comment, "@optional") {
-				comment = strings.TrimSpace(strings.Replace(comment, "@optional", "", -1))
+			if sf.optional {
 				beforeDesc = fmt.Sprintf("<span class=%#v>Optional</span> ", "tag")
 			}
 
 			doc.Line("<tr>")
-			doc.Line("<td><code>%s</code></td>", jsonTag.Name)
-			doc.Line("<td>%s</td>", scope.LinkType(typeToString(sf.Type), showDesc))
+			doc.Line("<td><code>%s</code></td>", sf.name)
+			doc.Line("<td>%s</td>", scope.LinkType(sf.typeString, showDesc))
 			if showDesc {
+				comment := strings.Join(sf.doc, "\n")
 				doc.Line("<td>%s</td>", scope.Markdown(beforeDesc+comment, showDesc))
 			}
 			doc.Line("</tr>")
 		}
+
 		doc.Line("</table>")
 		doc.Line("")
 	}
 
 	dumpEnum := func(header string, entry *Entry, showDesc bool) {
 		doc.Line("")
-		if entry.doc != "" {
+		if len(entry.doc) > 0 {
 			doc.Line("<p>")
-			doc.Line(scope.Markdown(entry.doc, showDesc))
+			doc.Line(scope.MarkdownAll(entry.doc, showDesc))
 			doc.Line("</p>")
 		}
 

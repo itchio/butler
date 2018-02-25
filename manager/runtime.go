@@ -7,23 +7,15 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 )
 
-type ItchPlatform string
-
-const (
-	ItchPlatformOSX     ItchPlatform = "osx"
-	ItchPlatformWindows              = "windows"
-	ItchPlatformLinux                = "linux"
-	ItchPlatformUnknown              = "unknown"
-)
-
 // Runtime describes an os-arch combo in a convenient way
 type Runtime struct {
-	Platform ItchPlatform `json:"platform"`
-	Is64     bool         `json:"is64"`
+	Platform buse.ItchPlatform `json:"platform"`
+	Is64     bool              `json:"is64"`
 }
 
 func (r *Runtime) String() string {
@@ -48,16 +40,16 @@ var cachedRuntime *Runtime
 func CurrentRuntime() *Runtime {
 	if cachedRuntime == nil {
 		var is64 = is64Bit()
-		var platform ItchPlatform
+		var platform buse.ItchPlatform
 		switch runtime.GOOS {
 		case "linux":
-			platform = ItchPlatformLinux
+			platform = buse.ItchPlatformLinux
 		case "darwin":
-			platform = ItchPlatformOSX
+			platform = buse.ItchPlatformOSX
 		case "windows":
-			platform = ItchPlatformWindows
+			platform = buse.ItchPlatformWindows
 		default:
-			platform = ItchPlatformUnknown
+			platform = buse.ItchPlatformUnknown
 		}
 
 		cachedRuntime = &Runtime{
@@ -153,11 +145,11 @@ func PlatformsForUpload(upload *itchio.Upload) *Platforms {
 
 func (p *Platforms) IsCompatible(rt *Runtime) bool {
 	switch rt.Platform {
-	case ItchPlatformLinux:
+	case buse.ItchPlatformLinux:
 		return p.Linux
-	case ItchPlatformOSX:
+	case buse.ItchPlatformOSX:
 		return p.OSX
-	case ItchPlatformWindows:
+	case buse.ItchPlatformWindows:
 		return p.Windows
 	}
 
@@ -170,7 +162,7 @@ func (p *Platforms) ExclusivityScore(rt *Runtime) int64 {
 	var score int64 = 400
 
 	switch rt.Platform {
-	case ItchPlatformLinux:
+	case buse.ItchPlatformLinux:
 		if p.OSX {
 			score -= 100
 		}
@@ -180,7 +172,7 @@ func (p *Platforms) ExclusivityScore(rt *Runtime) int64 {
 		if p.Android {
 			score -= 200
 		}
-	case ItchPlatformOSX:
+	case buse.ItchPlatformOSX:
 		if p.Linux {
 			score -= 100
 		}
@@ -190,7 +182,7 @@ func (p *Platforms) ExclusivityScore(rt *Runtime) int64 {
 		if p.Android {
 			score -= 200
 		}
-	case ItchPlatformWindows:
+	case buse.ItchPlatformWindows:
 		if p.Linux {
 			score -= 100
 		}

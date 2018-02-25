@@ -59,7 +59,7 @@ func jsonType(goType string) string {
 	switch goType {
 	case "string":
 		return "string"
-	case "int64", "float64":
+	case "int", "int64", "float64", "int32", "uint32":
 		return "number"
 	case "bool":
 		return "boolean"
@@ -95,6 +95,7 @@ func getCommentLines(doc *ast.CommentGroup) []string {
 		line := strings.TrimSpace(strings.TrimPrefix(el.Text, "//"))
 		lines = append(lines, line)
 	}
+
 	return lines
 }
 

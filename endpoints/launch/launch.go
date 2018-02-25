@@ -74,7 +74,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	var fullTargetPath string
 	var strategy = LaunchStrategyUnknown
 	var candidate *configurator.Candidate
-	var manifestAction *manifest.Action
+	var manifestAction *buse.Action
 
 	appManifest, err := manifest.Read(params.InstallFolder)
 	if err != nil {
@@ -89,7 +89,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			return nil
 		}
 
-		actions := appManifest.ListActions(runtime)
+		actions := manifest.ListActions(appManifest, runtime)
 
 		if len(actions) == 0 {
 			consumer.Warnf("Had manifest, but no actions available (for this platform at least)")
@@ -125,7 +125,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 		// is it a path?
 
-		fullPath := manifestAction.ExpandPath(runtime, params.InstallFolder)
+		fullPath := manifest.ExpandPath(manifestAction, runtime, params.InstallFolder)
 		stats, err := os.Stat(fullPath)
 		if err != nil {
 			// is it an URL?
@@ -147,7 +147,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 		if stats.IsDir() {
 			// is it an app bundle?
-			if runtime.Platform == manager.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+			if runtime.Platform == buse.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
 				strategy = LaunchStrategyNative
 				fullTargetPath = fullPath
 				return nil
@@ -191,11 +191,11 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		default:
 			nameMap := make(map[string]*configurator.Candidate)
 
-			fakeActions := []*manifest.Action{}
+			fakeActions := []*buse.Action{}
 			for _, c := range params.Verdict.Candidates {
 				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
 				nameMap[name] = c
-				fakeActions = append(fakeActions, &manifest.Action{
+				fakeActions = append(fakeActions, &buse.Action{
 					Name: name,
 					Path: c.Path,
 				})

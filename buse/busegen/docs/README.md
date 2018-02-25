@@ -294,8 +294,7 @@ we know about.</p>
 <tr>
 <td><code>entries</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
-<td><p><em>undocumented</em></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -764,8 +763,7 @@ with the system browser or appropriate.</p>
 <tr>
 <td><code>verdict</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Verdict__TypeHint">Verdict</span></code></td>
-<td><p><em>undocumented</em></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -913,7 +911,7 @@ tasks.</p>
 </tr>
 <tr>
 <td><code>order</code></td>
-<td><code class="typename"><span class="type builtin-type">int</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Order of task in the list. Respect this order in the UI if you want consistent progress indicators.</p>
 </td>
 </tr>
@@ -935,7 +933,7 @@ tasks.</p>
 </tr>
 <tr>
 <td><code>order</code></td>
-<td><code class="typename"><span class="type builtin-type">int</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -1356,8 +1354,7 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>update</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
-<td><p><em>undocumented</em></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -1911,8 +1908,7 @@ or a negative value to cancel.</p>
 <tr>
 <td><code>receipt</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Receipt__TypeHint">Receipt</span></code></td>
-<td><p><em>undocumented</em></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -2195,8 +2191,7 @@ is sent during <code class="typename"><span class="type request-client-caller">O
 <tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
-<td><p><em>undocumented</em></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>installResult</code></td>
@@ -2495,8 +2490,6 @@ including the download key if any.</p>
 relay them in their own stdout / stderr, and collect them so they
 can be part of an issue report if something goes wrong.</p>
 
-<p>Log</p>
-
 </p>
 
 <p>
@@ -2529,8 +2522,6 @@ can be part of an issue report if something goes wrong.</p>
 <p>Sent any time butler needs to send a log message. The client should
 relay them in their own stdout / stderr, and collect them so they
 can be part of an issue report if something goes wrong.</p>
-
-<p>Log</p>
 
 </p>
 
@@ -2596,6 +2587,297 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>"error"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>ItchPlatform
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="ItchPlatform__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>ItchPlatform <a href="#/?id=itchplatform">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Manifest
+
+
+<p>
+<p>A Manifest describes prerequisites (dependencies) and actions that
+can be taken while launching a game.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>actions</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
+<td><p>Actions are a list of options to give the user when launching a game.</p>
+</td>
+</tr>
+<tr>
+<td><code>prereqs</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
+<td><p>Prereqs describe libraries or frameworks that must be installed
+prior to launching a game</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Manifest__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Manifest <a href="#/?id=manifest">(Go to definition)</a></p>
+
+<p>
+<p>A Manifest describes prerequisites (dependencies) and actions that
+can be taken while launching a game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>actions</code></td>
+<td><code class="typename"><span class="type struct-type">Action</span>[]</code></td>
+</tr>
+<tr>
+<td><code>prereqs</code></td>
+<td><code class="typename"><span class="type struct-type">Prereq</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Action
+
+
+<p>
+<p>An Action is a choice for the user to pick when launching a game.</p>
+
+<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>human-readable or standard name</p>
+</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>file path (relative to manifest or absolute), URL, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
+</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>command-line arguments</p>
+</td>
+</tr>
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>sandbox opt-in</p>
+</td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>requested API scope</p>
+</td>
+</tr>
+<tr>
+<td><code>console</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>don&rsquo;t redirect stdout/stderr, open in new console window</p>
+</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#ItchPlatform__TypeHint">ItchPlatform</span></code></td>
+<td><p>platform to restrict this action too</p>
+</td>
+</tr>
+<tr>
+<td><code>locales</code></td>
+<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type" data-tip-selector="#ActionLocale__TypeHint">ActionLocale</span>&gt;</code></td>
+<td><p>localized action name</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Action__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Action <a href="#/?id=action">(Go to definition)</a></p>
+
+<p>
+<p>An Action is a choice for the user to pick when launching a game.</p>
+
+<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>console</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type enum-type">ItchPlatform</span></code></td>
+</tr>
+<tr>
+<td><code>locales</code></td>
+<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type">ActionLocale</span>&gt;</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Prereq
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A prerequisite to be installed, see <a href="https://itch.io/docs/itch/integrating/prereqs/">https://itch.io/docs/itch/integrating/prereqs/</a> for the full list.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Prereq__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Prereq <a href="#/?id=prereq">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>ActionLocale
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A localized action name</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ActionLocale__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>ActionLocale <a href="#/?id=actionlocale">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -3302,7 +3584,7 @@ or 0 if this is the initial build.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type builtin-type">BuildState</span></code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildState__TypeHint">BuildState</span></code></td>
 <td><p>State of the build: started, processing, etc.</p>
 </td>
 </tr>
@@ -3321,7 +3603,7 @@ Might not be unique across builds of a given channel.</p>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code class="typename"><span class="type builtin-type">BuildFile</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#BuildFile__TypeHint">BuildFile</span>[]</code></td>
 <td><p>Files associated with this build - often at least an archive,
 a signature, and a patch. Some might be missing while the build
 is still processing or if processing has failed.</p>
@@ -3367,7 +3649,7 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type builtin-type">BuildState</span></code></td>
+<td><code class="typename"><span class="type enum-type">BuildState</span></code></td>
 </tr>
 <tr>
 <td><code>version</code></td>
@@ -3379,7 +3661,7 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code class="typename"><span class="type builtin-type">BuildFile</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type">BuildFile</span>[]</code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
@@ -3392,6 +3674,364 @@ is still processing or if processing has failed.</p>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>BuildState
+
+
+<p>
+<p>BuildState describes the state of a build, relative to its initial upload, and
+its processing.</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"started"</code></td>
+<td><p>BuildStateStarted is the state of a build from its creation until the initial upload is complete</p>
+</td>
+</tr>
+<tr>
+<td><code>"processing"</code></td>
+<td><p>BuildStateProcessing is the state of a build from the initial upload&rsquo;s completion to its fully-processed state.
+This state does not mean the build is actually being processed right now, it&rsquo;s just queued for processing.</p>
+</td>
+</tr>
+<tr>
+<td><code>"completed"</code></td>
+<td><p>BuildStateCompleted means the build was successfully processed. Its patch hasn&rsquo;t necessarily been
+rediff&rsquo;d yet, but we have the holy (patch,signature,archive) trinity.</p>
+</td>
+</tr>
+<tr>
+<td><code>"failed"</code></td>
+<td><p>BuildStateFailed means something went wrong with the build. A failing build will not update the channel
+head and can be requeued by the itch.io team, although if a new build is pushed before they do,
+that new build will &ldquo;win&rdquo;.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BuildState__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>BuildState <a href="#/?id=buildstate">(Go to definition)</a></p>
+
+<p>
+<p>BuildState describes the state of a build, relative to its initial upload, and
+its processing.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"started"</code></td>
+</tr>
+<tr>
+<td><code>"processing"</code></td>
+</tr>
+<tr>
+<td><code>"completed"</code></td>
+</tr>
+<tr>
+<td><code>"failed"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>BuildFile
+
+
+<p>
+<p>BuildFile contains information about a build&rsquo;s &ldquo;file&rdquo;, which could be its
+archive, its signature, its patch, etc.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Site-wide unique identifier generated by itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Size of this build file</p>
+</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileState__TypeHint">BuildFileState</span></code></td>
+<td><p>State of this file: created, uploading, uploaded, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileType__TypeHint">BuildFileType</span></code></td>
+<td><p>Type of this build file: archive, signature, patch, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>subType</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileSubType__TypeHint">BuildFileSubType</span></code></td>
+<td><p>Subtype of this build file, usually indicates compression</p>
+</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Date this build file was created at</p>
+</td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Date this build file was last updated at</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BuildFile__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>BuildFile <a href="#/?id=buildfile">(Go to definition)</a></p>
+
+<p>
+<p>BuildFile contains information about a build&rsquo;s &ldquo;file&rdquo;, which could be its
+archive, its signature, its patch, etc.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code class="typename"><span class="type enum-type">BuildFileState</span></code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type">BuildFileType</span></code></td>
+</tr>
+<tr>
+<td><code>subType</code></td>
+<td><code class="typename"><span class="type enum-type">BuildFileSubType</span></code></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>BuildFileState
+
+
+<p>
+<p>BuildFileState describes the state of a specific file for a build</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"created"</code></td>
+<td><p>BuildFileStateCreated means the file entry exists on itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>"uploading"</code></td>
+<td><p>BuildFileStateUploading means the file is currently being uploaded to storage</p>
+</td>
+</tr>
+<tr>
+<td><code>"uploaded"</code></td>
+<td><p>BuildFileStateUploaded means the file is ready</p>
+</td>
+</tr>
+<tr>
+<td><code>"failed"</code></td>
+<td><p>BuildFileStateFailed means the file failed uploading</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BuildFileState__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>BuildFileState <a href="#/?id=buildfilestate">(Go to definition)</a></p>
+
+<p>
+<p>BuildFileState describes the state of a specific file for a build</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"created"</code></td>
+</tr>
+<tr>
+<td><code>"uploading"</code></td>
+</tr>
+<tr>
+<td><code>"uploaded"</code></td>
+</tr>
+<tr>
+<td><code>"failed"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>BuildFileType
+
+
+<p>
+<p>BuildFileType describes the type of a build file: patch, archive, signature, etc.</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"patch"</code></td>
+<td><p>BuildFileTypePatch describes wharf patch files (.pwr)</p>
+</td>
+</tr>
+<tr>
+<td><code>"archive"</code></td>
+<td><p>BuildFileTypeArchive describes canonical archive form (.zip)</p>
+</td>
+</tr>
+<tr>
+<td><code>"signature"</code></td>
+<td><p>BuildFileTypeSignature describes wharf signature files (.pws)</p>
+</td>
+</tr>
+<tr>
+<td><code>"manifest"</code></td>
+<td><p>BuildFileTypeManifest is reserved</p>
+</td>
+</tr>
+<tr>
+<td><code>"unpacked"</code></td>
+<td><p>BuildFileTypeUnpacked describes the single file that is in the build (if it was just a single file)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BuildFileType__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>BuildFileType <a href="#/?id=buildfiletype">(Go to definition)</a></p>
+
+<p>
+<p>BuildFileType describes the type of a build file: patch, archive, signature, etc.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"patch"</code></td>
+</tr>
+<tr>
+<td><code>"archive"</code></td>
+</tr>
+<tr>
+<td><code>"signature"</code></td>
+</tr>
+<tr>
+<td><code>"manifest"</code></td>
+</tr>
+<tr>
+<td><code>"unpacked"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>BuildFileSubType
+
+
+<p>
+<p>BuildFileSubType describes the subtype of a build file: mostly its compression
+level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas initial patches are &ldquo;default&rdquo;</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+<td><p>BuildFileSubTypeDefault describes default compression (rsync patches)</p>
+</td>
+</tr>
+<tr>
+<td><code>"gzip"</code></td>
+<td><p>BuildFileSubTypeGzip is reserved</p>
+</td>
+</tr>
+<tr>
+<td><code>"optimized"</code></td>
+<td><p>BuildFileSubTypeOptimized describes optimized compression (rediff&rsquo;d / bsdiff patches)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BuildFileSubType__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>BuildFileSubType <a href="#/?id=buildfilesubtype">(Go to definition)</a></p>
+
+<p>
+<p>BuildFileSubType describes the subtype of a build file: mostly its compression
+level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas initial patches are &ldquo;default&rdquo;</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+</tr>
+<tr>
+<td><code>"gzip"</code></td>
+</tr>
+<tr>
+<td><code>"optimized"</code></td>
 </tr>
 </table>
 
@@ -3482,13 +4122,13 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>mode</code></td>
-<td><code class="typename"><span class="type builtin-type">uint32</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Mode describes file permissions</p>
 </td>
 </tr>
 <tr>
 <td><code>depth</code></td>
-<td><code class="typename"><span class="type builtin-type">int</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Depth is the number of path elements leading up to this candidate</p>
 </td>
 </tr>
@@ -3571,11 +4211,11 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>mode</code></td>
-<td><code class="typename"><span class="type builtin-type">uint32</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>depth</code></td>
-<td><code class="typename"><span class="type builtin-type">int</span></code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>flavor</code></td>
@@ -4164,247 +4804,6 @@ angels are saved.</p>
 </tr>
 <tr>
 <td><code>msiProductCode</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>Manifest
-
-
-<p>
-<p>A Manifest describes prerequisites (dependencies) and actions that
-can be taken while launching a game.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
-<td><p>Actions are a list of options to give the user when launching a game.</p>
-</td>
-</tr>
-<tr>
-<td><code>prereqs</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
-<td><p>Prereqs describe libraries or frameworks that must be installed
-prior to launching a game</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Manifest__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Manifest <a href="#/?id=manifest">(Go to definition)</a></p>
-
-<p>
-<p>A Manifest describes prerequisites (dependencies) and actions that
-can be taken while launching a game.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type">Action</span>[]</code></td>
-</tr>
-<tr>
-<td><code>prereqs</code></td>
-<td><code class="typename"><span class="type struct-type">Prereq</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>Action
-
-
-<p>
-<p>An Action is a choice for the user to pick when launching a game.</p>
-
-<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>human-readable or standard name</p>
-</td>
-</tr>
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>file path (relative to manifest or absolute), URL, etc.</p>
-</td>
-</tr>
-<tr>
-<td><code>icon</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
-</td>
-</tr>
-<tr>
-<td><code>args</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>command-line arguments</p>
-</td>
-</tr>
-<tr>
-<td><code>sandbox</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>sandbox opt-in</p>
-</td>
-</tr>
-<tr>
-<td><code>scope</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>requested API scope</p>
-</td>
-</tr>
-<tr>
-<td><code>console</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>don&rsquo;t redirect stdout/stderr, open in new console window</p>
-</td>
-</tr>
-<tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">ItchPlatform</span></code></td>
-<td><p>platform to restrict this action too</p>
-</td>
-</tr>
-<tr>
-<td><code>locales</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type" data-tip-selector="#ActionLocale__TypeHint">ActionLocale</span>&gt;</code></td>
-<td><p>localized action name</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Action__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Action <a href="#/?id=action">(Go to definition)</a></p>
-
-<p>
-<p>An Action is a choice for the user to pick when launching a game.</p>
-
-<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>icon</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>args</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-</tr>
-<tr>
-<td><code>sandbox</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>scope</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>console</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">ItchPlatform</span></code></td>
-</tr>
-<tr>
-<td><code>locales</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type">ActionLocale</span>&gt;</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>Prereq
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A prerequisite to be installed, see <a href="https://itch.io/docs/itch/integrating/prereqs/">https://itch.io/docs/itch/integrating/prereqs/</a> for the full list.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Prereq__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Prereq <a href="#/?id=prereq">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>ActionLocale
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A localized action name</p>
-</td>
-</tr>
-</table>
-
-
-<div id="ActionLocale__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ActionLocale <a href="#/?id=actionlocale">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>

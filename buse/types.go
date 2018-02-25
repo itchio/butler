@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/itchio/butler/configurator"
-	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -397,7 +396,7 @@ type LaunchExitedNotification struct{}
 // @caller server
 type PickManifestActionParams struct {
 	// A list of actions to pick from. Must be shown to the user in the order they're passed.
-	Actions []*manifest.Action `json:"actions"`
+	Actions []*Action `json:"actions"`
 }
 
 type PickManifestActionResult struct {
@@ -619,8 +618,6 @@ type CleanDownloadsApplyResult struct{}
 // Sent any time butler needs to send a log message. The client should
 // relay them in their own stdout / stderr, and collect them so they
 // can be part of an issue report if something goes wrong.
-//
-// Log
 type LogNotification struct {
 	// Level of the message (`info`, `warn`, etc.)
 	Level LogLevel `json:"level"`
@@ -680,10 +677,76 @@ type TestDoubleResult struct {
 	Number int64 `json:"number"`
 }
 
+type ItchPlatform string
+
+const (
+	ItchPlatformOSX     ItchPlatform = "osx"
+	ItchPlatformWindows ItchPlatform = "windows"
+	ItchPlatformLinux   ItchPlatform = "linux"
+	ItchPlatformUnknown ItchPlatform = "unknown"
+)
+
 const (
 	CodeOperationCancelled = 499
 	CodeOperationAborted   = 410
 )
+
+//==================================
+// Manifests
+//==================================
+
+// A Manifest describes prerequisites (dependencies) and actions that
+// can be taken while launching a game.
+type Manifest struct {
+	// Actions are a list of options to give the user when launching a game.
+	Actions []*Action `json:"actions"`
+
+	// Prereqs describe libraries or frameworks that must be installed
+	// prior to launching a game
+	Prereqs []*Prereq `json:"prereqs"`
+}
+
+// An Action is a choice for the user to pick when launching a game.
+//
+// see https://itch.io/docs/itch/integrating/manifest.html
+type Action struct {
+	// human-readable or standard name
+	Name string `json:"name"`
+
+	// file path (relative to manifest or absolute), URL, etc.
+	Path string `json:"path"`
+
+	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
+	Icon string `json:"icon"`
+
+	// command-line arguments
+	Args []string `json:"args"`
+
+	// sandbox opt-in
+	Sandbox bool `json:"sandbox"`
+
+	// requested API scope
+	Scope string `json:"scope"`
+
+	// don't redirect stdout/stderr, open in new console window
+	Console bool `json:"console"`
+
+	// platform to restrict this action too
+	Platform ItchPlatform `json:"platform"`
+
+	// localized action name
+	Locales map[string]*ActionLocale `json:"locales"`
+}
+
+type Prereq struct {
+	// A prerequisite to be installed, see <https://itch.io/docs/itch/integrating/prereqs/> for the full list.
+	Name string `json:"name"`
+}
+
+type ActionLocale struct {
+	// A localized action name
+	Name string `json:"name"`
+}
 
 // Dates
 

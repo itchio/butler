@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/fatih/structtag"
 	"github.com/go-errors/errors"
 	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
@@ -37,25 +38,35 @@ const (
 )
 
 type Entry struct {
-	kind       EntryKind
-	typeKind   EntryTypeKind
-	gd         *ast.GenDecl
-	typeSpec   *ast.TypeSpec
-	tags       []string
-	category   string
-	doc        string
-	name       string
-	typeName   string
-	caller     Caller
-	pkg        string
-	pkgName    string
-	enumValues []*EnumValue
+	kind         EntryKind
+	typeKind     EntryTypeKind
+	gd           *ast.GenDecl
+	typeSpec     *ast.TypeSpec
+	tags         []string
+	category     string
+	doc          []string
+	name         string
+	typeName     string
+	caller       Caller
+	pkg          string
+	pkgName      string
+	enumValues   []*EnumValue
+	structFields []*StructField
 }
 
 type EnumValue struct {
 	name  string
 	value string
 	doc   []string
+}
+
+type StructField struct {
+	goName     string
+	name       string
+	typeString string
+	typeNode   ast.Expr
+	doc        []string
+	optional   bool
 }
 
 type EntryTypeKind int
@@ -149,12 +160,11 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 						category := "Miscellaneous"
 						var tags []string
 						var customName string
-						var doc string
+						var doc []string
 						var caller = CallerUnknown
 
 						lines := getCommentLines(gd.Doc)
 						if len(lines) > 0 {
-							var outlines []string
 							for _, line := range lines {
 								tag, value := parseTag(line)
 								switch tag {
@@ -181,11 +191,18 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 										panic(fmt.Sprintf("invalid caller specified for (%s): %s (must be server or client)", tsName, value))
 									}
 								default:
-									outlines = append(outlines, line)
+									doc = append(doc, line)
 								}
 							}
 
-							doc = strings.Join(outlines, "\n")
+							// trim empty lines at the end
+							for len(doc) > 0 {
+								if doc[len(doc)-1] == "" {
+									doc = doc[:len(doc)-1]
+								} else {
+									break
+								}
+							}
 						}
 
 						var name string
@@ -219,6 +236,47 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 							doc:      doc,
 							caller:   caller,
 						}
+
+						if typeKind == EntryTypeKindStruct {
+							st := ts.Type.(*ast.StructType)
+							for _, sf := range st.Fields.List {
+								if sf.Tag == nil {
+									log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
+								}
+
+								tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
+
+								tags, err := structtag.Parse(tagValue)
+								if err != nil {
+									log.Fatalf("For tag (%s): %s", sf.Tag.Value, err.Error())
+								}
+
+								jsonTag, err := tags.Get("json")
+								if err != nil {
+									panic(err)
+								}
+
+								var optional = false
+								var doc []string
+								for _, line := range getCommentLines(sf.Doc) {
+									if strings.Contains(line, "@optional") {
+										optional = true
+										continue
+									}
+									doc = append(doc, line)
+								}
+
+								e.structFields = append(e.structFields, &StructField{
+									goName:     sf.Names[0].Name,
+									name:       jsonTag.Name,
+									doc:        doc,
+									typeString: typeToString(sf.Type),
+									typeNode:   sf.Type,
+									optional:   optional,
+								})
+							}
+						}
+
 						s.AddEntry(category, e)
 
 						s.entries[tsName] = e
@@ -282,6 +340,10 @@ var builtinTypes = map[string]struct{}{
 }
 
 var doubleAtRe = regexp.MustCompile(`@@[\w]+`)
+
+func (s *Scope) MarkdownAll(input []string, tip bool) string {
+	return s.Markdown(strings.Join(input, "\n"), tip)
+}
 
 func (s *Scope) Markdown(input string, tip bool) string {
 	buf := string(blackfriday.Run([]byte(input)))
