@@ -692,7 +692,7 @@ const (
 )
 
 // Buse JSON-RPC 2.0 error codes
-type Code = int
+type Code = int64
 
 const (
 	// An operation was cancelled gracefully

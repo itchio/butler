@@ -32,16 +32,21 @@ func (bc *BuseContext) GenerateTsCode() error {
 	bindType := func(entry *Entry) {
 		doc.Line("")
 		doc.Line("/**")
-		if len(entry.doc) == 0 {
-			if entry.kind == EntryKindResult {
-				params := scope.FindEntry(strings.TrimSuffix(entry.typeName, "Result") + "Params")
-				doc.Line(" * Result for %s", params.name)
-			} else {
+		switch entry.kind {
+		case EntryKindParams:
+			doc.Line(" * Params for %s", entry.name)
+		case EntryKindResult:
+			params := scope.FindEntry(strings.TrimSuffix(entry.typeName, "Result") + "Params")
+			doc.Line(" * Result for %s", params.name)
+		case EntryKindNotification:
+			doc.Line(" * Payload for %s", entry.name)
+		default:
+			if len(entry.doc) == 0 {
 				doc.Line(" * undocumented")
-			}
-		} else {
-			for _, line := range entry.doc {
-				doc.Line(" * %s", line)
+			} else {
+				for _, line := range entry.doc {
+					doc.Line(" * %s", line)
+				}
 			}
 		}
 		doc.Line(" */")
@@ -105,6 +110,15 @@ func (bc *BuseContext) GenerateTsCode() error {
 				symbolName := strings.Replace(method, ".", "", -1)
 
 				doc.Line("")
+				doc.Line("/**")
+				if len(params.doc) == 0 {
+					doc.Line(" * undocumented")
+				} else {
+					for _, line := range params.doc {
+						doc.Line(" * %s", line)
+					}
+				}
+				doc.Line(" */")
 				doc.Line("export const %s = ", symbolName)
 				doc.Line("	createRequest<%s, %s>(%#v);", paramsTypeName, resultTypeName, method)
 			case EntryKindNotification:
@@ -112,6 +126,16 @@ func (bc *BuseContext) GenerateTsCode() error {
 				symbolName := strings.Replace(method, ".", "", -1)
 
 				doc.Line("")
+				doc.Line("")
+				doc.Line("/**")
+				if len(entry.doc) == 0 {
+					doc.Line(" * undocumented")
+				} else {
+					for _, line := range entry.doc {
+						doc.Line(" * %s", line)
+					}
+				}
+				doc.Line(" */")
 				doc.Line("export const %s = ", symbolName)
 				doc.Line("	createNotification<%s>(%#v);", entry.typeName, method)
 			}
