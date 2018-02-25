@@ -45,7 +45,7 @@ func NewStateConsumer(params *NewStateConsumerParams) (*state.Consumer, error) {
 				}
 			}
 			params.Conn.Notify(params.Ctx, "Log", &LogNotification{
-				Level:   level,
+				Level:   LogLevel(level),
 				Message: msg,
 			})
 		},

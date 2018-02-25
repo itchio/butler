@@ -40,7 +40,7 @@ func New(consumer *state.Consumer) LoopbackConn {
 
 	lc.OnNotification("Log", func(ctx context.Context, method string, params interface{}) error {
 		log := params.(*buse.LogNotification)
-		lc.consumer.OnMessage(log.Level, log.Message)
+		lc.consumer.OnMessage(string(log.Level), log.Message)
 		return nil
 	})
 
