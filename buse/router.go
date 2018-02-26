@@ -6,8 +6,10 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/state"
+	"github.com/jinzhu/gorm"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -17,15 +19,20 @@ type Router struct {
 	Handlers       map[string]RequestHandler
 	MansionContext *mansion.Context
 	CancelFuncs    *CancelFuncs
+	openDB         OpenDBFunc
 }
 
-func NewRouter(mansionContext *mansion.Context) *Router {
+type OpenDBFunc func() (*gorm.DB, error)
+
+func NewRouter(mansionContext *mansion.Context, openDB OpenDBFunc) *Router {
 	return &Router{
 		Handlers:       make(map[string]RequestHandler),
 		MansionContext: mansionContext,
 		CancelFuncs: &CancelFuncs{
 			Funcs: make(map[string]context.CancelFunc),
 		},
+
+		openDB: openDB,
 	}
 }
 
@@ -61,6 +68,28 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 		}()
 
 		if h, ok := r.Handlers[method]; ok {
+			var _db *gorm.DB
+			getDB := func() (*gorm.DB, error) {
+				if _db == nil {
+					db, err := r.openDB()
+					if err != nil {
+						return nil, errors.Wrap(err, 0)
+					}
+
+					_db = db
+				}
+
+				return _db, nil
+			}
+			defer func() {
+				if _db != nil {
+					err := _db.Close()
+					if err != nil {
+						comm.Warnf("Could not close db connection: %s", err.Error())
+					}
+				}
+			}()
+
 			rc := &RequestContext{
 				Ctx:            ctx,
 				Harness:        NewProductionHarness(),
@@ -69,6 +98,7 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 				Conn:           conn,
 				MansionContext: r.MansionContext,
 				CancelFuncs:    r.CancelFuncs,
+				DB:             getDB,
 			}
 			res, err = h(rc)
 		} else {
@@ -116,7 +146,10 @@ type RequestContext struct {
 	Conn           Conn
 	MansionContext *mansion.Context
 	CancelFuncs    *CancelFuncs
+	DB             DBGetter
 }
+
+type DBGetter func() (*gorm.DB, error)
 
 type WithParamsFunc func() (interface{}, error)
 

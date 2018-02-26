@@ -34,6 +34,9 @@ type Context struct {
 	// Verbose enables chatty output
 	Verbose bool
 
+	// Path to the local sqlite database
+	DBPath string
+
 	CompressionAlgorithm string
 	CompressionQuality   int
 
