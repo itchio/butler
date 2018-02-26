@@ -16,5 +16,5 @@ rsync -a --exclude 'src' . src/$PKG || echo "rsync complained (code $?)"
 go get -v -x $PKG/buse/busegen
 busegen godocs
 
-gsutil cp -r -a public-read $PKG/buse/busegen/docs/* gs://docs.itch.ovh/buse/$CI_BUILD_REF_NAME/
+gsutil cp -r -a public-read src/$PKG/buse/busegen/docs/* gs://docs.itch.ovh/buse/$CI_BUILD_REF_NAME/
 
