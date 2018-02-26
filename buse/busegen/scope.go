@@ -238,14 +238,16 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 							st := ts.Type.(*ast.StructType)
 							for _, sf := range st.Fields.List {
 								if sf.Tag == nil {
-									log.Fatalf("%s.%s is untagged", ts.Name.Name, sf.Names[0].Name)
+									pos := fset.Position(sf.Pos())
+									log.Fatalf("%s: %s.%s is untagged", pos, ts.Name.Name, sf.Names[0].Name)
 								}
 
 								tagValue := strings.TrimRight(strings.TrimLeft(sf.Tag.Value, "`"), "`")
 
 								tags, err := structtag.Parse(tagValue)
 								if err != nil {
-									log.Fatalf("For tag (%s): %s", sf.Tag.Value, err.Error())
+									pos := fset.Position(sf.Pos())
+									log.Fatalf("For tag (%s): %s", pos, sf.Tag.Value, err.Error())
 								}
 
 								jsonTag, err := tags.Get("json")

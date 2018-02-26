@@ -37,6 +37,115 @@ type VersionGetResult struct {
 }
 
 //----------------------------------------------------------------------
+// Session
+//----------------------------------------------------------------------
+
+// Lists remembered sessions
+//
+// @name Session.List
+// @category Session
+// @caller client
+type SessionListParams struct {
+}
+
+type SessionListResult struct {
+	// A list of remembered sessions
+	Sessions []*Session `json:"sessions"`
+}
+
+// Represents a user for which we have session information,
+// ie. that we can connect as, etc.
+type Session struct {
+	// itch.io user ID, doubling as session ID
+	ID int64 `json:"id"`
+
+	// Timestamp the user last connected at (to the client)
+	LastConnected time.Time `json:"lastConnected"`
+
+	// User information
+	User *itchio.User `json:"user"`
+}
+
+// Add a new session by password login
+//
+// @name Session.LoginWithPassword
+// @category Session
+// @caller client
+type SessionLoginWithPasswordParams struct {
+	// The username (or e-mail) to use for login
+	Username string `json:"username"`
+
+	// The password to use
+	Password string `json:"password"`
+}
+
+type SessionLoginWithPasswordResult struct {
+	// Information for the new session, now remembered
+	Session *Session `json:"session"`
+}
+
+// Ask the user to solve a captcha challenge
+// Sent during @@SessionLoginWithPasswordParams if certain
+// conditions are met.
+//
+// @name Session.RequestCaptcha
+// @category Session
+// @caller server
+type SessionRequestCaptchaParams struct {
+	// Address of page containing a recaptcha widget
+	RecaptchaURL string `json:"recaptchaUrl"`
+}
+
+type SessionRequestCaptchaResult struct {
+	// The response given by recaptcha after it's been filled
+	RecaptchaResponse string `json:"recaptchaResponse"`
+}
+
+// Ask the user to provide a TOTP token.
+// Sent during @@SessionLoginWithPasswordParams if the user has
+// two-factor authentication enabled.
+//
+// @name Session.RequestTOTP
+// @category Session
+// @caller server
+type SessionRequestTOTPParams struct {
+}
+
+type SessionRequestTOTPResult struct {
+	// The TOTP code entered by the user
+	Code string `json:"code"`
+}
+
+// Use saved login credentials to validate a session.
+//
+// @name Session.UseSavedLogin
+// @category Session
+// @caller client
+type SessionUseSavedLoginParams struct {
+	SessionID int64 `json:"sessionID"`
+}
+
+type SessionUseSavedLoginResult struct {
+	// Information for the now validated session
+	Session *Session `json:"session"`
+}
+
+// Forgets a remembered session - it won't appear in the
+// @@SessionListParams results anymore.
+//
+// @name Session.Forget
+// @category Session
+// @caller client
+type SessionForgetParams struct {
+	SessionID int64 `json:"sessionID"`
+}
+
+type SessionForgetResult struct {
+	// True if the session did exist (and was successfully forgotten)
+	Success bool `json:"success"`
+}
+
+//----------------------------------------------------------------------
 // Game
 //----------------------------------------------------------------------
 

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"go/ast"
-	"sort"
 	"strings"
 )
 
@@ -202,13 +201,15 @@ func (bc *BuseContext) GenerateDocs() error {
 	doc.Line("")
 
 	// Make sure the Misc. category is at the end
-	sort.Slice(scope.categoryList, func(i, j int) bool {
-		if scope.categoryList[i] == "Miscellaneous" {
-			return false
-		}
-		return true
-	})
+	var ourCategoryList []string
 	for _, category := range scope.categoryList {
+		if category != "Miscellaneous" {
+			ourCategoryList = append(ourCategoryList, category)
+		}
+	}
+	ourCategoryList = append(ourCategoryList, "Miscellaneous")
+
+	for _, category := range ourCategoryList {
 		doc.Line("")
 		doc.Line("## %s", category)
 		doc.Line("")

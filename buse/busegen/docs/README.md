@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Feb 26 17:43:37 against [butler@d7ae9a3](https://github.com/itchio/butler/commit/d7ae9a3e95cf82e8273ba4079912bfb95d1dddbc
+This documentation was generated on Feb 26 18:21:26 against [butler@1394e95](https://github.com/itchio/butler/commit/1394e95601c236d56e7ec5e0b17859bbbb87b39e
 )
 
 
@@ -169,15 +169,51 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </div>
 
 
-## Clean Downloads
+## Session
 
-### <em class="request-client-caller"></em>CleanDownloads.Search
+### <em class="request-client-caller"></em>Session.List
 
 
 <p>
-<p>Look for folders we can clean up in various download folders.
-This finds anything that doesn&rsquo;t correspond to any current downloads
-we know about.</p>
+<p>Lists remembered sessions</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessions</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span>[]</code></td>
+<td><p>A list of remembered sessions</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SessionListParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Session.List <a href="#/?id=sessionlist">(Go to definition)</a></p>
+
+<p>
+<p>Lists remembered sessions</p>
+
+</p>
+</div>
+
+### <em class="request-client-caller"></em>Session.LoginWithPassword
+
+
+<p>
+<p>Add a new session by password login</p>
 
 </p>
 
@@ -188,16 +224,15 @@ we know about.</p>
 
 <table class="field-table">
 <tr>
-<td><code>roots</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>A list of folders to scan for potential subfolders to clean up</p>
+<td><code>username</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The username (or e-mail) to use for login</p>
 </td>
 </tr>
 <tr>
-<td><code>whitelist</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>A list of subfolders to not consider when cleaning
-(staging folders for in-progress downloads)</p>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The password to use</p>
 </td>
 </tr>
 </table>
@@ -211,84 +246,42 @@ we know about.</p>
 
 <table class="field-table">
 <tr>
-<td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
-<td><p>Entries we found that could use some cleaning (with path and size information)</p>
+<td><code>session</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span></code></td>
+<td><p>Information for the new session, now remembered</p>
 </td>
 </tr>
 </table>
 
 
-<div id="CleanDownloadsSearchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CleanDownloads.Search <a href="#/?id=cleandownloadssearch">(Go to definition)</a></p>
+<div id="SessionLoginWithPasswordParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Session.LoginWithPassword <a href="#/?id=sessionloginwithpassword">(Go to definition)</a></p>
 
 <p>
-<p>Look for folders we can clean up in various download folders.
-This finds anything that doesn&rsquo;t correspond to any current downloads
-we know about.</p>
+<p>Add a new session by password login</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>roots</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><code>username</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>whitelist</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>CleanDownloadsEntry
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The complete path of the file or folder we intend to remove</p>
-</td>
-</tr>
-<tr>
-<td><code>size</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>The size of the folder or file, in bytes</p>
-</td>
-</tr>
-</table>
-
-
-<div id="CleanDownloadsEntry__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CleanDownloadsEntry <a href="#/?id=cleandownloadsentry">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>size</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-client-caller"></em>CleanDownloads.Apply
+### <em class="request-server-caller"></em>Session.RequestCaptcha
 
 
 <p>
-<p>Remove the specified entries from disk, freeing up disk space.</p>
+<p>Ask the user to solve a captcha challenge
+Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionLoginWithPasswordParams__TypeHint">Session.LoginWithPassword</span></code> if certain
+conditions are met.</p>
 
 </p>
 
@@ -299,9 +292,319 @@ we know about.</p>
 
 <table class="field-table">
 <tr>
-<td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
+<td><code>recaptchaUrl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Address of page containing a recaptcha widget</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>recaptchaResponse</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The response given by recaptcha after it&rsquo;s been filled</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SessionRequestCaptchaParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Session.RequestCaptcha <a href="#/?id=sessionrequestcaptcha">(Go to definition)</a></p>
+
+<p>
+<p>Ask the user to solve a captcha challenge
+Sent during <code class="typename"><span class="type request-client-caller">Session.LoginWithPassword</span></code> if certain
+conditions are met.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>recaptchaUrl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-server-caller"></em>Session.RequestTOTP
+
+
+<p>
+<p>Ask the user to provide a TOTP token.
+Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionLoginWithPasswordParams__TypeHint">Session.LoginWithPassword</span></code> if the user has
+two-factor authentication enabled.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>code</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The TOTP code entered by the user</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SessionRequestTOTPParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Session.RequestTOTP <a href="#/?id=sessionrequesttotp">(Go to definition)</a></p>
+
+<p>
+<p>Ask the user to provide a TOTP token.
+Sent during <code class="typename"><span class="type request-client-caller">Session.LoginWithPassword</span></code> if the user has
+two-factor authentication enabled.</p>
+
+</p>
+</div>
+
+### <em class="request-client-caller"></em>Session.UseSavedLogin
+
+
+<p>
+<p>Use saved login credentials to validate a session.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>session</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span></code></td>
+<td><p>Information for the now validated session</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SessionUseSavedLoginParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Session.UseSavedLogin <a href="#/?id=sessionusesavedlogin">(Go to definition)</a></p>
+
+<p>
+<p>Use saved login credentials to validate a session.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>sessionID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Session.Forget
+
+
+<p>
+<p>Forgets a remembered session - it won&rsquo;t appear in the
+<code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionListParams__TypeHint">Session.List</span></code> results anymore.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>success</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True if the session did exist (and was successfully forgotten)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SessionForgetParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Session.Forget <a href="#/?id=sessionforget">(Go to definition)</a></p>
+
+<p>
+<p>Forgets a remembered session - it won&rsquo;t appear in the
+<code class="typename"><span class="type request-client-caller">Session.List</span></code> results anymore.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>sessionID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+## Install
+
+### <em class="request-client-caller"></em>Game.FindUploads
+
+
+<p>
+<p>Finds uploads compatible with the current runtime, for a given game.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Which game to find uploads for</p>
+</td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
+<td><p>The credentials to use to list uploads</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><p>A list of uploads that were found to be compatible.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameFindUploadsParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Game.FindUploads <a href="#/?id=gamefinduploads">(Go to definition)</a></p>
+
+<p>
+<p>Finds uploads compatible with the current runtime, for a given game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Operation.Start
+
+
+<p>
+<p>Start a new operation (installing or uninstalling).</p>
+
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationCancelParams__TypeHint">Operation.Cancel</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A UUID, generated by the client, used for referring to the
+task when cancelling it, for instance.</p>
+</td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A folder that butler can use to store temporary files, like
+partial downloads, checkpoint files, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#Operation__TypeHint">Operation</span></code></td>
+<td><p>Which operation to perform</p>
+</td>
+</tr>
+<tr>
+<td><code>installParams</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallParams__TypeHint">InstallParams</span></code></td>
+<td><p><span class="tag">Optional</span> Must be set if Operation is <code>install</code></p>
+</td>
+</tr>
+<tr>
+<td><code>uninstallParams</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#UninstallParams__TypeHint">UninstallParams</span></code></td>
+<td><p><span class="tag">Optional</span> Must be set if Operation is <code>uninstall</code></p>
+</td>
 </tr>
 </table>
 
@@ -312,18 +615,982 @@ we know about.</p>
 </p>
 
 
-<div id="CleanDownloadsApplyParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CleanDownloads.Apply <a href="#/?id=cleandownloadsapply">(Go to definition)</a></p>
+<div id="OperationStartParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Operation.Start <a href="#/?id=operationstart">(Go to definition)</a></p>
 
 <p>
-<p>Remove the specified entries from disk, freeing up disk space.</p>
+<p>Start a new operation (installing or uninstalling).</p>
+
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller">Operation.Cancel</span></code>.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type">CleanDownloadsEntry</span>[]</code></td>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type enum-type">Operation</span></code></td>
+</tr>
+<tr>
+<td><code>installParams</code></td>
+<td><code class="typename"><span class="type struct-type">InstallParams</span></code></td>
+</tr>
+<tr>
+<td><code>uninstallParams</code></td>
+<td><code class="typename"><span class="type struct-type">UninstallParams</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>Operation
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+<td><p>Install a game (includes upgrades, heals, etc.)</p>
+</td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+<td><p>Uninstall a game</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Operation__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>Operation <a href="#/?id=operation">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Operation.Cancel
+
+
+<p>
+<p>Attempt to gracefully cancel an ongoing operation.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The UUID of the task to cancel, as passed to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="OperationCancelParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Operation.Cancel <a href="#/?id=operationcancel">(Go to definition)</a></p>
+
+<p>
+<p>Attempt to gracefully cancel an ongoing operation.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>InstallParams
+
+
+<p>
+<p>InstallParams contains all the parameters needed to perform
+an installation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Which game to install</p>
+</td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>An absolute path where to install the game</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p><span class="tag">Optional</span> Which upload to install</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><span class="tag">Optional</span> Which build to install</p>
+</td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
+<td><p>Which credentials to use to install the game</p>
+</td>
+</tr>
+<tr>
+<td><code>ignoreInstallers</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, do not run windows installers, just extract
+whatever to the install folder.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>InstallParams <a href="#/?id=installparams">(Go to definition)</a></p>
+
+<p>
+<p>InstallParams contains all the parameters needed to perform
+an installation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
+</tr>
+<tr>
+<td><code>ignoreInstallers</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>UninstallParams
+
+
+<p>
+<p>UninstallParams contains all the parameters needed to perform
+an uninstallation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Absolute path of the folder butler should uninstall</p>
+</td>
+</tr>
+</table>
+
+
+<div id="UninstallParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>UninstallParams <a href="#/?id=uninstallparams">(Go to definition)</a></p>
+
+<p>
+<p>UninstallParams contains all the parameters needed to perform
+an uninstallation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-server-caller"></em>PickUpload
+
+
+<p>
+<p>Asks the user to pick between multiple available uploads</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><p>An array of upload objects to choose from</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>index</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>The index (in the original array) of the upload that was picked,
+or a negative value to cancel.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PickUploadParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>PickUpload <a href="#/?id=pickupload">(Go to definition)</a></p>
+
+<p>
+<p>Asks the user to pick between multiple available uploads</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-server-caller"></em>GetReceipt
+
+
+<p>
+<p>Retrieves existing receipt information for an install</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>receipt</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Receipt__TypeHint">Receipt</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="GetReceiptParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>GetReceipt <a href="#/?id=getreceipt">(Go to definition)</a></p>
+
+<p>
+<p>Retrieves existing receipt information for an install</p>
+
+</p>
+</div>
+
+### <em class="notification"></em>Operation.Progress
+
+
+<p>
+<p>Sent periodically during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> to inform on the current state an operation.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>An overall progress value between 0 and 1</p>
+</td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Estimated completion time for the operation, in seconds (floating)</p>
+</td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Network bandwidth used, in bytes per second (floating)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="OperationProgressNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Operation.Progress <a href="#/?id=operationprogress">(Go to definition)</a></p>
+
+<p>
+<p>Sent periodically during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> to inform on the current state an operation.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>TaskReason
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+<td><p>Task was started for an install operation</p>
+</td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+<td><p>Task was started for an uninstall operation</p>
+</td>
+</tr>
+</table>
+
+
+<div id="TaskReason__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>TaskReason <a href="#/?id=taskreason">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>TaskType
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"download"</code></td>
+<td><p>We&rsquo;re fetching files from a remote server</p>
+</td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+<td><p>We&rsquo;re running an installer</p>
+</td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+<td><p>We&rsquo;re running an uninstaller</p>
+</td>
+</tr>
+<tr>
+<td><code>"update"</code></td>
+<td><p>We&rsquo;re applying some patches</p>
+</td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+<td><p>We&rsquo;re healing from a signature and heal source</p>
+</td>
+</tr>
+</table>
+
+
+<div id="TaskType__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>TaskType <a href="#/?id=tasktype">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"download"</code></td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"uninstall"</code></td>
+</tr>
+<tr>
+<td><code>"update"</code></td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>TaskStarted
+
+
+<p>
+<p>Each operation is made up of one or more tasks. This notification
+is sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a specific task starts.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskReason__TypeHint">TaskReason</span></code></td>
+<td><p>Why this task was started</p>
+</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
+<td><p>Is this task a download? An install?</p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>The game this task is dealing with</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>The upload this task is dealing with</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p>The build this task is dealing with (if any)</p>
+</td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total size in bytes</p>
+</td>
+</tr>
+</table>
+
+
+<div id="TaskStartedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>TaskStarted <a href="#/?id=taskstarted">(Go to definition)</a></p>
+
+<p>
+<p>Each operation is made up of one or more tasks. This notification
+is sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a specific task starts.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type">TaskReason</span></code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>TaskSucceeded
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installResult</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallResult__TypeHint">InstallResult</span></code></td>
+<td><p>If the task installed something, then this contains
+info about the game, upload, build that were installed</p>
+</td>
+</tr>
+</table>
+
+
+<div id="TaskSucceededNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>TaskSucceeded <a href="#/?id=tasksucceeded">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
+</tr>
+<tr>
+<td><code>installResult</code></td>
+<td><code class="typename"><span class="type struct-type">InstallResult</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>InstallResult
+
+
+<p>
+<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
+
+<p>See <code class="typename"><span class="type notification" data-tip-selector="#TaskSucceededNotification__TypeHint">TaskSucceeded</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>The game we installed</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>The upload we installed</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><span class="tag">Optional</span> The build we installed</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallResult__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>InstallResult <a href="#/?id=installresult">(Go to definition)</a></p>
+
+<p>
+<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
+
+<p>See <code class="typename"><span class="type notification">TaskSucceeded</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+## Update
+
+### <em class="request-client-caller"></em>CheckUpdate
+
+
+<p>
+<p>Looks for one or more game updates.</p>
+
+<p>Updates found are regularly sent via <code class="typename"><span class="type notification" data-tip-selector="#GameUpdateAvailableNotification__TypeHint">GameUpdateAvailable</span></code>, and
+then all at once in the result.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CheckUpdateItem__TypeHint">CheckUpdateItem</span>[]</code></td>
+<td><p>A list of items, each of it will be checked for updates</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>updates</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span>[]</code></td>
+<td><p>Any updates found (might be empty)</p>
+</td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>Warnings messages logged while looking for updates</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CheckUpdateParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
+
+<p>
+<p>Looks for one or more game updates.</p>
+
+<p>Updates found are regularly sent via <code class="typename"><span class="type notification">GameUpdateAvailable</span></code>, and
+then all at once in the result.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">CheckUpdateItem</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CheckUpdateItem
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>itemId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>An UUID generated by the client, which allows it to map back the
+results to its own items.</p>
+</td>
+</tr>
+<tr>
+<td><code>installedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Timestamp of the last successful install operation</p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Game for which to look for an update</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>Currently installed upload</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p>Currently installed build</p>
+</td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
+<td><p>Credentials to use to list uploads</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CheckUpdateItem__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CheckUpdateItem <a href="#/?id=checkupdateitem">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>itemId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>installedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>GameUpdateAvailable
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code>, every time butler
+finds an update for a game. Can be safely ignored if displaying
+updates as they are found is not a requirement for the client.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>update</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="GameUpdateAvailableNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>GameUpdateAvailable <a href="#/?id=gameupdateavailable">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">CheckUpdate</span></code>, every time butler
+finds an update for a game. Can be safely ignored if displaying
+updates as they are found is not a requirement for the client.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>update</code></td>
+<td><code class="typename"><span class="type struct-type">GameUpdate</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>GameUpdate
+
+
+<p>
+<p>Describes an available update for a particular game install.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>itemId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Identifier originally passed in CheckUpdateItem</p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Game we found an update for</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>Upload to be installed</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p>Build to be installed (may be nil)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameUpdate__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>GameUpdate <a href="#/?id=gameupdate">(Go to definition)</a></p>
+
+<p>
+<p>Describes an available update for a particular game install.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>itemId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
 </tr>
 </table>
 
@@ -1189,16 +2456,15 @@ The user may choose to proceed with the launch anyway.</p>
 </div>
 
 
-## Update
+## Clean Downloads
 
-### <em class="request-client-caller"></em>CheckUpdate
+### <em class="request-client-caller"></em>CleanDownloads.Search
 
 
 <p>
-<p>Looks for one or more game updates.</p>
-
-<p>Updates found are regularly sent via <code class="typename"><span class="type notification" data-tip-selector="#GameUpdateAvailableNotification__TypeHint">GameUpdateAvailable</span></code>, and
-then all at once in the result.</p>
+<p>Look for folders we can clean up in various download folders.
+This finds anything that doesn&rsquo;t correspond to any current downloads
+we know about.</p>
 
 </p>
 
@@ -1209,279 +2475,16 @@ then all at once in the result.</p>
 
 <table class="field-table">
 <tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CheckUpdateItem__TypeHint">CheckUpdateItem</span>[]</code></td>
-<td><p>A list of items, each of it will be checked for updates</p>
-</td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>updates</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span>[]</code></td>
-<td><p>Any updates found (might be empty)</p>
-</td>
-</tr>
-<tr>
-<td><code>warnings</code></td>
+<td><code>roots</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>Warnings messages logged while looking for updates</p>
-</td>
-</tr>
-</table>
-
-
-<div id="CheckUpdateParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
-
-<p>
-<p>Looks for one or more game updates.</p>
-
-<p>Updates found are regularly sent via <code class="typename"><span class="type notification">GameUpdateAvailable</span></code>, and
-then all at once in the result.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">CheckUpdateItem</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>CheckUpdateItem
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>itemId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>An UUID generated by the client, which allows it to map back the
-results to its own items.</p>
+<td><p>A list of folders to scan for potential subfolders to clean up</p>
 </td>
 </tr>
 <tr>
-<td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Timestamp of the last successful install operation</p>
-</td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game for which to look for an update</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>Currently installed upload</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>Currently installed build</p>
-</td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>Credentials to use to list uploads</p>
-</td>
-</tr>
-</table>
-
-
-<div id="CheckUpdateItem__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CheckUpdateItem <a href="#/?id=checkupdateitem">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>itemId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>GameUpdateAvailable
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code>, every time butler
-finds an update for a game. Can be safely ignored if displaying
-updates as they are found is not a requirement for the client.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>update</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="GameUpdateAvailableNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>GameUpdateAvailable <a href="#/?id=gameupdateavailable">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">CheckUpdate</span></code>, every time butler
-finds an update for a game. Can be safely ignored if displaying
-updates as they are found is not a requirement for the client.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>update</code></td>
-<td><code class="typename"><span class="type struct-type">GameUpdate</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>GameUpdate
-
-
-<p>
-<p>Describes an available update for a particular game install.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>itemId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Identifier originally passed in CheckUpdateItem</p>
-</td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game we found an update for</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>Upload to be installed</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>Build to be installed (may be nil)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="GameUpdate__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameUpdate <a href="#/?id=gameupdate">(Go to definition)</a></p>
-
-<p>
-<p>Describes an available update for a particular game install.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>itemId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-</table>
-
-</div>
-
-
-## Install
-
-### <em class="request-client-caller"></em>Game.FindUploads
-
-
-<p>
-<p>Finds uploads compatible with the current runtime, for a given game.</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to find uploads for</p>
-</td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>The credentials to use to list uploads</p>
+<td><code>whitelist</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>A list of subfolders to not consider when cleaning
+(staging folders for in-progress downloads)</p>
 </td>
 </tr>
 </table>
@@ -1495,42 +2498,84 @@ updates as they are found is not a requirement for the client.</p>
 
 <table class="field-table">
 <tr>
-<td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
-<td><p>A list of uploads that were found to be compatible.</p>
+<td><code>entries</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
+<td><p>Entries we found that could use some cleaning (with path and size information)</p>
 </td>
 </tr>
 </table>
 
 
-<div id="GameFindUploadsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Game.FindUploads <a href="#/?id=gamefinduploads">(Go to definition)</a></p>
+<div id="CleanDownloadsSearchParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>CleanDownloads.Search <a href="#/?id=cleandownloadssearch">(Go to definition)</a></p>
 
 <p>
-<p>Finds uploads compatible with the current runtime, for a given game.</p>
+<p>Look for folders we can clean up in various download folders.
+This finds anything that doesn&rsquo;t correspond to any current downloads
+we know about.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code>roots</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
+<td><code>whitelist</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Operation.Start
+### <em class="struct-type"></em>CleanDownloadsEntry
+
 
 
 <p>
-<p>Start a new operation (installing or uninstalling).</p>
+<span class="header">Fields</span> 
+</p>
 
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationCancelParams__TypeHint">Operation.Cancel</span></code>.</p>
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The complete path of the file or folder we intend to remove</p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>The size of the folder or file, in bytes</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CleanDownloadsEntry__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CleanDownloadsEntry <a href="#/?id=cleandownloadsentry">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>CleanDownloads.Apply
+
+
+<p>
+<p>Remove the specified entries from disk, freeing up disk space.</p>
 
 </p>
 
@@ -1541,36 +2586,9 @@ updates as they are found is not a requirement for the client.</p>
 
 <table class="field-table">
 <tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A UUID, generated by the client, used for referring to the
-task when cancelling it, for instance.</p>
-</td>
-</tr>
-<tr>
-<td><code>stagingFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A folder that butler can use to store temporary files, like
-partial downloads, checkpoint files, etc.</p>
-</td>
-</tr>
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Operation__TypeHint">Operation</span></code></td>
-<td><p>Which operation to perform</p>
-</td>
-</tr>
-<tr>
-<td><code>installParams</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallParams__TypeHint">InstallParams</span></code></td>
-<td><p><span class="tag">Optional</span> Must be set if Operation is <code>install</code></p>
-</td>
-</tr>
-<tr>
-<td><code>uninstallParams</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#UninstallParams__TypeHint">UninstallParams</span></code></td>
-<td><p><span class="tag">Optional</span> Must be set if Operation is <code>uninstall</code></p>
-</td>
+<td><code>entries</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
+<td></td>
 </tr>
 </table>
 
@@ -1581,715 +2599,18 @@ partial downloads, checkpoint files, etc.</p>
 </p>
 
 
-<div id="OperationStartParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Operation.Start <a href="#/?id=operationstart">(Go to definition)</a></p>
+<div id="CleanDownloadsApplyParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>CleanDownloads.Apply <a href="#/?id=cleandownloadsapply">(Go to definition)</a></p>
 
 <p>
-<p>Start a new operation (installing or uninstalling).</p>
-
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller">Operation.Cancel</span></code>.</p>
+<p>Remove the specified entries from disk, freeing up disk space.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>stagingFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type enum-type">Operation</span></code></td>
-</tr>
-<tr>
-<td><code>installParams</code></td>
-<td><code class="typename"><span class="type struct-type">InstallParams</span></code></td>
-</tr>
-<tr>
-<td><code>uninstallParams</code></td>
-<td><code class="typename"><span class="type struct-type">UninstallParams</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="enum-type"></em>Operation
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-<td><p>Install a game (includes upgrades, heals, etc.)</p>
-</td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-<td><p>Uninstall a game</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Operation__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Operation <a href="#/?id=operation">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-client-caller"></em>Operation.Cancel
-
-
-<p>
-<p>Attempt to gracefully cancel an ongoing operation.</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The UUID of the task to cancel, as passed to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code></p>
-</td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> <em>none</em>
-</p>
-
-
-<div id="OperationCancelParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Operation.Cancel <a href="#/?id=operationcancel">(Go to definition)</a></p>
-
-<p>
-<p>Attempt to gracefully cancel an ongoing operation.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>InstallParams
-
-
-<p>
-<p>InstallParams contains all the parameters needed to perform
-an installation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to install</p>
-</td>
-</tr>
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>An absolute path where to install the game</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> Which upload to install</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span> Which build to install</p>
-</td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>Which credentials to use to install the game</p>
-</td>
-</tr>
-<tr>
-<td><code>ignoreInstallers</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> If true, do not run windows installers, just extract
-whatever to the install folder.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="InstallParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallParams <a href="#/?id=installparams">(Go to definition)</a></p>
-
-<p>
-<p>InstallParams contains all the parameters needed to perform
-an installation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
-</tr>
-<tr>
-<td><code>ignoreInstallers</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>UninstallParams
-
-
-<p>
-<p>UninstallParams contains all the parameters needed to perform
-an uninstallation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Absolute path of the folder butler should uninstall</p>
-</td>
-</tr>
-</table>
-
-
-<div id="UninstallParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>UninstallParams <a href="#/?id=uninstallparams">(Go to definition)</a></p>
-
-<p>
-<p>UninstallParams contains all the parameters needed to perform
-an uninstallation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-server-caller"></em>PickUpload
-
-
-<p>
-<p>Asks the user to pick between multiple available uploads</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
-<td><p>An array of upload objects to choose from</p>
-</td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>index</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>The index (in the original array) of the upload that was picked,
-or a negative value to cancel.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="PickUploadParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>PickUpload <a href="#/?id=pickupload">(Go to definition)</a></p>
-
-<p>
-<p>Asks the user to pick between multiple available uploads</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-server-caller"></em>GetReceipt
-
-
-<p>
-<p>Retrieves existing receipt information for an install</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> <em>none</em>
-</p>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>receipt</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Receipt__TypeHint">Receipt</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="GetReceiptParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>GetReceipt <a href="#/?id=getreceipt">(Go to definition)</a></p>
-
-<p>
-<p>Retrieves existing receipt information for an install</p>
-
-</p>
-</div>
-
-### <em class="notification"></em>Operation.Progress
-
-
-<p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> to inform on the current state an operation.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>progress</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>An overall progress value between 0 and 1</p>
-</td>
-</tr>
-<tr>
-<td><code>eta</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Estimated completion time for the operation, in seconds (floating)</p>
-</td>
-</tr>
-<tr>
-<td><code>bps</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Network bandwidth used, in bytes per second (floating)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="OperationProgressNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Operation.Progress <a href="#/?id=operationprogress">(Go to definition)</a></p>
-
-<p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> to inform on the current state an operation.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>progress</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>eta</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>bps</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="enum-type"></em>TaskReason
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-<td><p>Task was started for an install operation</p>
-</td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-<td><p>Task was started for an uninstall operation</p>
-</td>
-</tr>
-</table>
-
-
-<div id="TaskReason__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>TaskReason <a href="#/?id=taskreason">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="enum-type"></em>TaskType
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"download"</code></td>
-<td><p>We&rsquo;re fetching files from a remote server</p>
-</td>
-</tr>
-<tr>
-<td><code>"install"</code></td>
-<td><p>We&rsquo;re running an installer</p>
-</td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-<td><p>We&rsquo;re running an uninstaller</p>
-</td>
-</tr>
-<tr>
-<td><code>"update"</code></td>
-<td><p>We&rsquo;re applying some patches</p>
-</td>
-</tr>
-<tr>
-<td><code>"heal"</code></td>
-<td><p>We&rsquo;re healing from a signature and heal source</p>
-</td>
-</tr>
-</table>
-
-
-<div id="TaskType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>TaskType <a href="#/?id=tasktype">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"download"</code></td>
-</tr>
-<tr>
-<td><code>"install"</code></td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-</tr>
-<tr>
-<td><code>"update"</code></td>
-</tr>
-<tr>
-<td><code>"heal"</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>TaskStarted
-
-
-<p>
-<p>Each operation is made up of one or more tasks. This notification
-is sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a specific task starts.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskReason__TypeHint">TaskReason</span></code></td>
-<td><p>Why this task was started</p>
-</td>
-</tr>
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
-<td><p>Is this task a download? An install?</p>
-</td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The game this task is dealing with</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The upload this task is dealing with</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>The build this task is dealing with (if any)</p>
-</td>
-</tr>
-<tr>
-<td><code>totalSize</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Total size in bytes</p>
-</td>
-</tr>
-</table>
-
-
-<div id="TaskStartedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>TaskStarted <a href="#/?id=taskstarted">(Go to definition)</a></p>
-
-<p>
-<p>Each operation is made up of one or more tasks. This notification
-is sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a specific task starts.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type">TaskReason</span></code></td>
-</tr>
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>totalSize</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>TaskSucceeded
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>installResult</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallResult__TypeHint">InstallResult</span></code></td>
-<td><p>If the task installed something, then this contains
-info about the game, upload, build that were installed</p>
-</td>
-</tr>
-</table>
-
-
-<div id="TaskSucceededNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>TaskSucceeded <a href="#/?id=tasksucceeded">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
-</tr>
-<tr>
-<td><code>installResult</code></td>
-<td><code class="typename"><span class="type struct-type">InstallResult</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>InstallResult
-
-
-<p>
-<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
-
-<p>See <code class="typename"><span class="type notification" data-tip-selector="#TaskSucceededNotification__TypeHint">TaskSucceeded</span></code>.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The game we installed</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The upload we installed</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span> The build we installed</p>
-</td>
-</tr>
-</table>
-
-
-<div id="InstallResult__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallResult <a href="#/?id=installresult">(Go to definition)</a></p>
-
-<p>
-<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
-
-<p>See <code class="typename"><span class="type notification">TaskSucceeded</span></code>.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code>entries</code></td>
+<td><code class="typename"><span class="type struct-type">CleanDownloadsEntry</span>[]</code></td>
 </tr>
 </table>
 
@@ -2426,6 +2747,68 @@ use <code class="typename"><span class="type request-client-caller">Test.DoubleT
 
 
 ## Miscellaneous
+
+### <em class="struct-type"></em>Session
+
+
+<p>
+<p>Represents a user for which we have session information,
+ie. that we can connect as, etc.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io user ID, doubling as session ID</p>
+</td>
+</tr>
+<tr>
+<td><code>lastConnected</code></td>
+<td><code class="typename"><span class="type builtin-type">Time</span></code></td>
+<td><p>Timestamp the user last connected at (to the client)</p>
+</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><p>User information</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Session__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Session <a href="#/?id=session">(Go to definition)</a></p>
+
+<p>
+<p>Represents a user for which we have session information,
+ie. that we can connect as, etc.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>lastConnected</code></td>
+<td><code class="typename"><span class="type builtin-type">Time</span></code></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+</table>
+
+</div>
 
 ### <em class="struct-type"></em>GameCredentials
 
