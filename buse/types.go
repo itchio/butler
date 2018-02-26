@@ -82,6 +82,9 @@ type SessionLoginWithPasswordParams struct {
 type SessionLoginWithPasswordResult struct {
 	// Information for the new session, now remembered
 	Session *Session `json:"session"`
+
+	// Session cookie for website
+	Cookie map[string]string `json:"cookie"`
 }
 
 // Ask the user to solve a captcha challenge

@@ -75,7 +75,13 @@ func typeToString(e ast.Expr) string {
 	case *ast.StarExpr:
 		return typeToString(node.X)
 	case *ast.SelectorExpr:
-		return node.Sel.Name
+		name := node.Sel.Name
+		switch name {
+		case "Time":
+			return "Date" // javascript type date
+		default:
+			return name
+		}
 	case *ast.ArrayType:
 		return typeToString(node.Elt) + "[]"
 	case *ast.MapType:

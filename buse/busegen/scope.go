@@ -332,12 +332,6 @@ func (s *Scope) LinkType(typeName string, tip bool) string {
 	return fmt.Sprintf("<code class=%#v>%s</code>", "typename", s.LinkTypeInner(typeName, tip))
 }
 
-var builtinTypes = map[string]struct{}{
-	"number":  struct{}{},
-	"string":  struct{}{},
-	"boolean": struct{}{},
-}
-
 var doubleAtRe = regexp.MustCompile(`@@[\w]+`)
 
 func (s *Scope) MarkdownAll(input []string, tip bool) string {
