@@ -10,10 +10,14 @@ import (
 func (bc *BuseContext) GenerateDocs() error {
 	bc.Task("Generating docs")
 
-	doc := bc.NewDoc("docs/README.md")
+	doc := bc.NewBusegenRelativeDoc("docs/README.md")
 	doc.Load(bc.ReadFile("layout.md"))
 
-	scope := newScope()
+	rev := bc.Revision()
+	doc.Line("This documentation was generated on %s against [butler@%s](https://github.com/itchio/butler/commit/%s)", bc.Timestamp(), rev[:7], rev)
+	doc.Commit("{{VERSION}}")
+
+	scope := newScope(bc)
 	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))

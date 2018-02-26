@@ -5,7 +5,12 @@
 
 # Overview
 
-buse is butler's JSON-RPC 2.0 service
+buse is butler's JSON-RPC 2.0 service. It is used heavily by the [itch.io app](https://itch.io/app)
+as of version v25.
+
+## Version
+
+{{VERSION}}
 
 ## Starting the service
 

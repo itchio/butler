@@ -6,7 +6,6 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -23,6 +22,7 @@ type Scope struct {
 	structs      map[string]*Entry
 	enums        map[string]*Entry
 	entries      map[string]*Entry
+	bc           *BuseContext
 }
 
 type Category struct {
@@ -88,11 +88,12 @@ const (
 	EntryKindInvalid
 )
 
-func newScope() *Scope {
+func newScope(bc *BuseContext) *Scope {
 	return &Scope{
 		categories:   make(map[string]*Category),
 		categoryList: nil,
 		entries:      make(map[string]*Entry),
+		bc:           bc,
 	}
 }
 
@@ -101,11 +102,7 @@ const butlerPkg = "github.com/itchio/butler"
 func (s *Scope) Assimilate(pkg string, file string) error {
 	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	var rootPath = filepath.Join(wd, "..", "..")
+	var rootPath = filepath.Join(s.bc.Dir, "..", "..")
 
 	var relativePath string
 	if strings.HasPrefix(pkg, butlerPkg) {
