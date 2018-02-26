@@ -15,7 +15,7 @@ func (bc *BuseContext) GenerateTsCode(outPath string) error {
 	doc.Line("// See <https://docs.itch.ovh/buse/master> for a human-friendly documentation")
 
 	doc.Line("")
-	doc.Line("import { createRequest, createNotification, Client, IRequest, INotification } from %#v;", "node-buse")
+	doc.Line("import { createRequest, createNotification } from %#v;", "node-buse")
 
 	scope := newScope(bc)
 	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
