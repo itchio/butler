@@ -825,7 +825,7 @@ type Manifest struct {
 
 	// Prereqs describe libraries or frameworks that must be installed
 	// prior to launching a game
-	Prereqs []*Prereq `json:"prereqs"`
+	Prereqs []*Prereq `json:"prereqs,omitempty"`
 }
 
 // An Action is a choice for the user to pick when launching a game.
@@ -839,25 +839,25 @@ type Action struct {
 	Path string `json:"path"`
 
 	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
-	Icon string `json:"icon"`
+	Icon string `json:"icon,omitempty"`
 
 	// command-line arguments
-	Args []string `json:"args"`
+	Args []string `json:"args,omitempty"`
 
 	// sandbox opt-in
-	Sandbox bool `json:"sandbox"`
+	Sandbox bool `json:"sandbox,omitempty"`
 
 	// requested API scope
-	Scope string `json:"scope"`
+	Scope string `json:"scope,omitempty"`
 
 	// don't redirect stdout/stderr, open in new console window
-	Console bool `json:"console"`
+	Console bool `json:"console,omitempty"`
 
 	// platform to restrict this action too
-	Platform ItchPlatform `json:"platform"`
+	Platform ItchPlatform `json:"platform,omitempty"`
 
 	// localized action name
-	Locales map[string]*ActionLocale `json:"locales"`
+	Locales map[string]*ActionLocale `json:"locales,omitempty"`
 }
 
 type Prereq struct {
