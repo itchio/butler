@@ -6,9 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/cmd/operate"
-
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -88,7 +87,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			}
 
 			if exitCodeIsAborted(exitCode) {
-				return operate.ErrAborted
+				return &buse.ErrAborted{}
 			}
 
 			return errors.Wrap(errors.New(msg), 0)

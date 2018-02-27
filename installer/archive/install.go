@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/savior"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
 	"github.com/itchio/butler/installer/bfs"
@@ -57,7 +57,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	if err != nil {
 		if errors.Is(err, savior.ErrStop) {
 			cancelled = true
-			return nil, operate.ErrCancelled
+			return nil, &buse.ErrCancelled{}
 		}
 		return nil, errors.Wrap(err, 0)
 	}

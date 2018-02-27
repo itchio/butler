@@ -9,13 +9,6 @@ import (
 	"github.com/itchio/butler/comm"
 )
 
-// ErrCancelled is returned when the client asked for an operation to be cancelled
-var ErrCancelled = errors.New("operation was cancelled")
-
-// ErrAborted is returned when the user stopped an operation outside the client's control
-// and it should just be stopped.
-var ErrAborted = errors.New("operation was aborted")
-
 func Start(ctx context.Context, conn buse.Conn, params *buse.OperationStartParams) (err error) {
 	if params.StagingFolder == "" {
 		return errors.New("No staging folder specified")

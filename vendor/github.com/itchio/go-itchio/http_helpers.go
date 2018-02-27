@@ -106,7 +106,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	return res, err
 }
 
-// MakePath crafts an API url from our configured base URL
+// MakePath crafts an API url from our configured base URL, containing our API key
 func (c *Client) MakePath(format string, a ...interface{}) string {
 	base := strings.Trim(c.BaseURL, "/")
 	subPath := strings.Trim(fmt.Sprintf(format, a...), "/")
@@ -118,6 +118,14 @@ func (c *Client) MakePath(format string, a ...interface{}) string {
 		key = c.Key
 	}
 	return fmt.Sprintf("%s/%s/%s", base, key, subPath)
+}
+
+// MakeRootPath crafts an API url from our configured base URL, without the API key component
+func (c *Client) MakeRootPath(format string, a ...interface{}) string {
+	base := strings.Trim(c.BaseURL, "/")
+	subPath := strings.Trim(fmt.Sprintf(format, a...), "/")
+
+	return fmt.Sprintf("%s/%s", base, subPath)
 }
 
 // ParseAPIResponse unmarshals an HTTP response into one of out response

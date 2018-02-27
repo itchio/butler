@@ -77,7 +77,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			}
 
 			if r.Index < 0 {
-				return nil, ErrAborted
+				return nil, &buse.ErrAborted{}
 			}
 
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
@@ -308,7 +308,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		select {
 		case <-oc.ctx.Done():
-			return nil, ErrCancelled
+			return nil, &buse.ErrCancelled{}
 		default:
 			// keep going!
 		}

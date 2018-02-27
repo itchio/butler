@@ -105,7 +105,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 
 			if r.Name == "" {
-				return operate.ErrAborted
+				return &buse.ErrAborted{}
 			}
 
 			for _, action := range actions {
@@ -166,7 +166,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 
 			if r.Name == "" {
-				return operate.ErrAborted
+				return &buse.ErrAborted{}
 			}
 
 			candidate = nameMap[r.Name]

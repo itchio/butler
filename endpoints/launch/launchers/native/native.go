@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/runner"
@@ -47,7 +46,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	err = handlePrereqs(params)
 	if err != nil {
-		if errors.Is(err, operate.ErrAborted) {
+		if errors.Is(err, &buse.ErrAborted{}) {
 			return err
 		}
 
@@ -72,7 +71,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		} else {
 			// abort
 			consumer.Warnf("Giving up after prereqs failure because user asked us to")
-			return operate.ErrAborted
+			return &buse.ErrAborted{}
 		}
 	}
 

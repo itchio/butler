@@ -542,6 +542,54 @@ func (c *Client) NewDownloadSession(params *NewDownloadSessionParams) (*NewDownl
 	return r, nil
 }
 
+type LoginWithPasswordParams struct {
+	Username          string
+	Password          string
+	RecaptchaResponse string
+}
+
+func (c *Client) LoginWithPassword(params *LoginWithPasswordParams) (*LoginWithPasswordResponse, error) {
+	r := &LoginWithPasswordResponse{}
+	path := c.MakeRootPath("/login")
+
+	form := url.Values{}
+	form.Add("v", "3")
+	form.Add("source", "desktop")
+	form.Add("username", params.Username)
+	form.Add("password", params.Password)
+	if params.RecaptchaResponse != "" {
+		form.Add("recaptcha_response", params.RecaptchaResponse)
+	}
+
+	err := c.PostFormResponse(path, form, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+type TOTPVerifyParams struct {
+	Token string
+	Code  string
+}
+
+func (c *Client) TOTPVerify(params *TOTPVerifyParams) (*TOTPVerifyResponse, error) {
+	r := &TOTPVerifyResponse{}
+	path := c.MakeRootPath("/totp/verify")
+
+	form := url.Values{}
+	form.Add("token", params.Token)
+	form.Add("code", params.Code)
+
+	err := c.PostFormResponse(path, form, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 type SubkeyParams struct {
 	GameID int64
 	Scope  string

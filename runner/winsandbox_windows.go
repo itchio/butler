@@ -11,7 +11,6 @@ import (
 
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/elevate"
-	"github.com/itchio/butler/cmd/operate"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
@@ -51,7 +50,7 @@ func (wr *winsandboxRunner) Prepare() error {
 		}
 
 		if !r.Allow {
-			return operate.ErrAborted
+			return &buse.ErrAborted{}
 		}
 		consumer.Infof("Proceeding with sandbox setup...")
 
@@ -69,7 +68,7 @@ func (wr *winsandboxRunner) Prepare() error {
 
 		if res.ExitCode != 0 {
 			if res.ExitCode == elevate.ExitCodeAccessDenied {
-				return operate.ErrAborted
+				return &buse.ErrAborted{}
 			}
 		}
 

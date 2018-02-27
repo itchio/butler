@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/savior"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/operate/downloadextractor"
 	"github.com/itchio/butler/comm"
@@ -52,7 +53,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 		err := tryDownload()
 		if err != nil {
 			if errors.Is(err, savior.ErrStop) {
-				return ErrCancelled
+				return &buse.ErrCancelled{}
 			}
 
 			if dl.IsIntegrityError(err) {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/pwr"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
@@ -93,4 +94,11 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 
 func (ctx *Context) Context() context.Context {
 	return context.Background()
+}
+
+func (ctx *Context) NewClient(key string) (*itchio.Client, error) {
+	client := itchio.ClientWithKey(key)
+	client.SetServer(ctx.Address)
+	client.UserAgent = ctx.UserAgent()
+	return client, nil
 }

@@ -1,10 +1,13 @@
 package session
 
 import (
+	"time"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/go-itchio"
 )
 
 func Register(router *buse.Router) {
@@ -57,13 +60,174 @@ func profileToSession(p *models.Profile) (*buse.Session, error) {
 }
 
 func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPasswordParams) (*buse.SessionLoginWithPasswordResult, error) {
-	return nil, errors.New("stub!")
+	rootClient, err := rc.MansionContext.NewClient("<filler>")
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	var key *itchio.APIKey
+	var cookie itchio.Cookie
+
+	{
+		loginRes, err := rootClient.LoginWithPassword(&itchio.LoginWithPasswordParams{
+			Username: params.Username,
+			Password: params.Password,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if loginRes.RecaptchaNeeded {
+			// Captcha flow
+			recaptchaRes, err := messages.SessionRequestCaptcha.Call(rc, &buse.SessionRequestCaptchaParams{
+				RecaptchaURL: loginRes.RecaptchaURL,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			if recaptchaRes.RecaptchaResponse == "" {
+				return nil, &buse.ErrAborted{}
+			}
+
+			loginRes, err = rootClient.LoginWithPassword(&itchio.LoginWithPasswordParams{
+				Username:          params.Username,
+				Password:          params.Password,
+				RecaptchaResponse: recaptchaRes.RecaptchaResponse,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+		}
+
+		if loginRes.Token != "" {
+			// TOTP flow
+			totpRes, err := messages.SessionRequestTOTP.Call(rc, &buse.SessionRequestTOTPParams{})
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			if totpRes.Code == "" {
+				return nil, &buse.ErrAborted{}
+			}
+
+			verifyRes, err := rootClient.TOTPVerify(&itchio.TOTPVerifyParams{
+				Token: loginRes.Token,
+				Code:  totpRes.Code,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			key = verifyRes.Key
+			cookie = verifyRes.Cookie
+		} else {
+			// One-factor flow
+			key = loginRes.Key
+			cookie = loginRes.Cookie
+		}
+	}
+
+	client, err := rc.MansionContext.NewClient(key.Key)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	meRes, err := client.GetMe()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	profile := &models.Profile{
+		ID:            meRes.User.ID,
+		APIKey:        key.Key,
+		LastConnected: time.Now(),
+	}
+	err = profile.SetUser(meRes.User)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	db, err := rc.DB()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = db.Save(profile).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	session, err := profileToSession(profile)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	res := &buse.SessionLoginWithPasswordResult{
+		Cookie:  cookie,
+		Session: session,
+	}
+	return res, nil
 }
 
 func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginParams) (*buse.SessionUseSavedLoginResult, error) {
-	return nil, errors.New("stub!")
+	db, err := rc.DB()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	profile := &models.Profile{}
+	err = db.Where("id = ?", params.SessionID).First(profile).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	client, err := rc.MansionContext.NewClient(profile.APIKey)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	meRes, err := client.GetMe()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	profile.LastConnected = time.Now()
+	err = profile.SetUser(meRes.User)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = db.Save(profile).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	session, err := profileToSession(profile)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	res := &buse.SessionUseSavedLoginResult{
+		Session: session,
+	}
+	return res, nil
 }
 
 func Forget(rc *buse.RequestContext, params *buse.SessionForgetParams) (*buse.SessionForgetResult, error) {
-	return nil, errors.New("stub!")
+	db, err := rc.DB()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = db.Where("id = ?", params.SessionID).Delete(&models.Profile{}).Error
+	success := db.RowsAffected > 1
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	res := &buse.SessionForgetResult{
+		Success: success,
+	}
+	return res, nil
 }
