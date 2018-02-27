@@ -2,7 +2,6 @@ package configurator
 
 import (
 	"bufio"
-	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -20,25 +19,6 @@ import (
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 )
-
-
-func (c *Candidate) String() string {
-	marshalled, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return ""
-	}
-
-	return string(marshalled)
-}
-
-func (v *Verdict) String() string {
-	marshalled, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return ""
-	}
-
-	return string(marshalled)
-}
 
 func spellHas(spell []string, token string) bool {
 	for _, tok := range spell {

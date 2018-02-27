@@ -20,7 +20,6 @@ import (
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
-	"github.com/itchio/butler/cmd/manifest"
 	"github.com/itchio/butler/cmd/mkdir"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
@@ -37,6 +36,7 @@ import (
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
 	"github.com/itchio/butler/cmd/upgrade"
+	"github.com/itchio/butler/cmd/validate"
 	"github.com/itchio/butler/cmd/verify"
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
@@ -109,5 +109,5 @@ func registerCommands(ctx *mansion.Context) {
 	service.Register(ctx)
 
 	winsandbox.Register(ctx)
-	manifest.Register(ctx)
+	validate.Register(ctx)
 }

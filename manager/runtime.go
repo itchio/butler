@@ -25,7 +25,29 @@ func (r *Runtime) String() string {
 	} else {
 		arch = "32-bit"
 	}
-	return fmt.Sprintf("%s %s", arch, r.Platform)
+	var platform = "Unknown"
+	switch r.Platform {
+	case buse.ItchPlatformLinux:
+		platform = "Linux"
+	case buse.ItchPlatformOSX:
+		platform = "macOS"
+	case buse.ItchPlatformWindows:
+		platform = "Windows"
+	}
+	return fmt.Sprintf("%s %s", arch, platform)
+}
+
+func (r *Runtime) OS() string {
+	switch r.Platform {
+	case buse.ItchPlatformLinux:
+		return "linux"
+	case buse.ItchPlatformOSX:
+		return "darwin"
+	case buse.ItchPlatformWindows:
+		return "windows"
+	default:
+		return "unknown"
+	}
 }
 
 func (r *Runtime) Arch() string {

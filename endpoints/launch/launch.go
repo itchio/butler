@@ -2,10 +2,8 @@ package launch
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	goerrors "errors"
 
@@ -124,55 +122,14 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		}
 
 		// is it a path?
-
-		fullPath := manifest.ExpandPath(manifestAction, runtime, params.InstallFolder)
-		stats, err := os.Stat(fullPath)
-		if err != nil {
-			// is it an URL?
-			{
-				_, err := url.Parse(manifestAction.Path)
-				if err == nil {
-					strategy = LaunchStrategyURL
-					fullTargetPath = manifestAction.Path
-					return nil
-				}
-			}
-
-			if os.IsNotExist(err) {
-				err = fmt.Errorf("Manifest action '%s' refers to non-existent path (%s)", manifestAction.Name, fullPath)
-				return errors.Wrap(err, 0)
-			}
-			return errors.Wrap(err, 0)
-		}
-
-		if stats.IsDir() {
-			// is it an app bundle?
-			if runtime.Platform == buse.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
-				strategy = LaunchStrategyNative
-				fullTargetPath = fullPath
-				return nil
-			}
-
-			// if it's a folder, just browse it!
-			strategy = LaunchStrategyShell
-			fullTargetPath = fullPath
-			return nil
-		}
-
-		verdict, err := configurator.Configure(fullPath, false)
+		res, err := DetermineStrategy(runtime, params.InstallFolder, manifestAction)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		if len(verdict.Candidates) > 0 {
-			strategy = flavorToStrategy(verdict.Candidates[0].Flavor)
-			candidate = verdict.Candidates[0]
-		} else {
-			// must not be an executable, that's ok, just open it
-			strategy = LaunchStrategyShell
-		}
-
-		fullTargetPath = fullPath
+		strategy = res.Strategy
+		fullTargetPath = res.FullTargetPath
+		candidate = res.Candidate
 		return nil
 	}
 	err = pickManifestAction()
@@ -320,7 +277,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var args []string = []string{}
+	var args = []string{}
 	var env = make(map[string]string)
 
 	if manifestAction != nil {
@@ -382,31 +339,4 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	}
 
 	return &buse.LaunchResult{}, nil
-}
-
-func flavorToStrategy(flavor configurator.Flavor) LaunchStrategy {
-	switch flavor {
-	// HTML
-	case configurator.FlavorHTML:
-		return LaunchStrategyHTML
-	// Native
-	case configurator.FlavorNativeLinux:
-		return LaunchStrategyNative
-	case configurator.FlavorNativeMacos:
-		return LaunchStrategyNative
-	case configurator.FlavorNativeWindows:
-		return LaunchStrategyNative
-	case configurator.FlavorAppMacos:
-		return LaunchStrategyNative
-	case configurator.FlavorScript:
-		return LaunchStrategyNative
-	case configurator.FlavorScriptWindows:
-		return LaunchStrategyNative
-	case configurator.FlavorJar:
-		return LaunchStrategyNative
-	case configurator.FlavorLove:
-		return LaunchStrategyNative
-	default:
-		return LaunchStrategyUnknown
-	}
 }
