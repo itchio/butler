@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Feb 28 14:09:11 against [butler@62a12dc](https://github.com/itchio/butler/commit/62a12dcd32c7153ed468816b655d53c0c896c239)
+This documentation was generated on Feb 28 19:00:01 against [butler@d733e8e](https://github.com/itchio/butler/commit/d733e8e00ac518efc1ad2f45bc90859bf08e0bc0)
 
 
 ## Starting the service
@@ -397,7 +397,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionID</code></td>
+<td><code>sessionId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
@@ -430,7 +430,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionID</code></td>
+<td><code>sessionId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -453,7 +453,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionID</code></td>
+<td><code>sessionId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
@@ -487,7 +487,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionID</code></td>
+<td><code>sessionId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>

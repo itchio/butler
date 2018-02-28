@@ -125,7 +125,7 @@ type SessionRequestTOTPResult struct {
 // @category Session
 // @caller client
 type SessionUseSavedLoginParams struct {
-	SessionID int64 `json:"sessionID"`
+	SessionID int64 `json:"sessionId"`
 }
 
 type SessionUseSavedLoginResult struct {
@@ -140,7 +140,7 @@ type SessionUseSavedLoginResult struct {
 // @category Session
 // @caller client
 type SessionForgetParams struct {
-	SessionID int64 `json:"sessionID"`
+	SessionID int64 `json:"sessionId"`
 }
 
 type SessionForgetResult struct {

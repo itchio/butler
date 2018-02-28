@@ -184,14 +184,17 @@ func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
 }
 
 func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error) {
-	profile := &models.Profile{}
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
+	profile := &models.Profile{}
 	err = db.Where("id = ?", sessionID).First(profile).Error
 	if err != nil {
+		if db.RecordNotFound() {
+			return nil, fmt.Errorf("Could not fidn session %d", sessionID)
+		}
 		return nil, errors.Wrap(err, 0)
 	}
 
