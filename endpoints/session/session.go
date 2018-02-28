@@ -171,6 +171,13 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 }
 
 func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginParams) (*buse.SessionUseSavedLoginResult, error) {
+	if params.SessionID == 0 {
+		return nil, errors.New("sessionID must be non-zero")
+	}
+
+	consumer := rc.Consumer
+	consumer.Opf("Fetching saved info...")
+
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -181,6 +188,8 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginPar
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+
+	consumer.Opf("Validating credentials...")
 
 	client, err := rc.MansionContext.NewClient(profile.APIKey)
 	if err != nil {
@@ -207,6 +216,8 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginPar
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+
+	consumer.Opf("Logged in!")
 
 	res := &buse.SessionUseSavedLoginResult{
 		Session: session,

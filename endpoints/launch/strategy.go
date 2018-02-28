@@ -95,7 +95,7 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 	}
 
 	if len(verdict.Candidates) > 0 {
-		return DetermineCandidateStrategy(verdict, verdict.Candidates[0])
+		return DetermineCandidateStrategy(filepath.Dir(fullPath), verdict.Candidates[0])
 	}
 
 	// must not be an executable, that's ok, just open it
@@ -106,13 +106,13 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 	return res, nil
 }
 
-func DetermineCandidateStrategy(verdict *configurator.Verdict, candidate *configurator.Candidate) (*StrategyResult, error) {
-	fullPath := filepath.Join(verdict.BasePath, filepath.FromSlash(candidate.Path))
+func DetermineCandidateStrategy(basePath string, candidate *configurator.Candidate) (*StrategyResult, error) {
+	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
 
 	res := &StrategyResult{
-		Strategy:       flavorToStrategy(verdict.Candidates[0].Flavor),
+		Strategy:       flavorToStrategy(candidate.Flavor),
 		FullTargetPath: fullPath,
-		Candidate:      verdict.Candidates[0],
+		Candidate:      candidate,
 	}
 	return res, nil
 }
