@@ -10,8 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Feb 26 18:21:26 against [butler@1394e95](https://github.com/itchio/butler/commit/1394e95601c236d56e7ec5e0b17859bbbb87b39e
-)
+This documentation was generated on Feb 28 14:07:04 against [butler@9a0737a](https://github.com/itchio/butler/commit/9a0737aac4901ae55069e62fec6703a7b3cab814)
 
 
 ## Starting the service
@@ -251,6 +250,12 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 <td><p>Information for the new session, now remembered</p>
 </td>
 </tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type builtin-type">string</span>&gt;</code></td>
+<td><p>Session cookie for website</p>
+</td>
+</tr>
 </table>
 
 
@@ -484,6 +489,145 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>sessionID</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+## Fetch
+
+### <em class="struct-type"></em>FetchCredentials
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of session to fetch as</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchCredentials__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>FetchCredentials <a href="#/?id=fetchcredentials">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.Game
+
+
+<p>
+<p>Fetches information for an itch.io game.</p>
+
+<p>Sends <code class="typename"><span class="type notification" data-tip-selector="#FetchGameYieldNotification__TypeHint">Fetch.Game.Yield</span></code> twice at most: first from cache,
+second from API if we&rsquo;re online.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
+<td><p>Credentials to use for fetching</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of game to look for</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchGameParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Game <a href="#/?id=fetchgame">(Go to definition)</a></p>
+
+<p>
+<p>Fetches information for an itch.io game.</p>
+
+<p>Sends <code class="typename"><span class="type notification">Fetch.Game.Yield</span></code> twice at most: first from cache,
+second from API if we&rsquo;re online.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.Game.Yield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchGameParams__TypeHint">Fetch.Game</span></code> whenever a result is
+available.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Current result for game fetching (from local DB, or API, etc.)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchGameYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.Game.Yield <a href="#/?id=fetchgameyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.Game</span></code> whenever a result is
+available.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
 </tr>
 </table>
 
@@ -2771,7 +2915,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastConnected</code></td>
-<td><code class="typename"><span class="type builtin-type">Time</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp the user last connected at (to the client)</p>
 </td>
 </tr>
@@ -2800,7 +2944,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastConnected</code></td>
-<td><code class="typename"><span class="type builtin-type">Time</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>

@@ -1,0 +1,826 @@
+{
+  "requests": [
+    {
+      "method": "Version.Get",
+      "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "version",
+            "doc": "Something short, like `v8.0.0`",
+            "type": "string"
+          },
+          {
+            "name": "versionString",
+            "doc": "Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290`",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.List",
+      "doc": "Lists remembered sessions",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "sessions",
+            "doc": "A list of remembered sessions",
+            "type": "Session[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.LoginWithPassword",
+      "doc": "Add a new session by password login",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "username",
+            "doc": "The username (or e-mail) to use for login",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "doc": "The password to use",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "session",
+            "doc": "Information for the new session, now remembered",
+            "type": "Session"
+          },
+          {
+            "name": "cookie",
+            "doc": "Session cookie for website",
+            "type": "Map\u003cstring, string\u003e"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.RequestCaptcha",
+      "doc": "Ask the user to solve a captcha challenge\nSent during @@SessionLoginWithPasswordParams if certain\nconditions are met.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "recaptchaUrl",
+            "doc": "Address of page containing a recaptcha widget",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "recaptchaResponse",
+            "doc": "The response given by recaptcha after it's been filled",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.RequestTOTP",
+      "doc": "Ask the user to provide a TOTP token.\nSent during @@SessionLoginWithPasswordParams if the user has\ntwo-factor authentication enabled.",
+      "caller": "server",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "code",
+            "doc": "The TOTP code entered by the user",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.UseSavedLogin",
+      "doc": "Use saved login credentials to validate a session.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "sessionID",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "session",
+            "doc": "Information for the now validated session",
+            "type": "Session"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Session.Forget",
+      "doc": "Forgets a remembered session - it won't appear in the\n@@SessionListParams results anymore.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "sessionID",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "success",
+            "doc": "True if the session did exist (and was successfully forgotten)",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.Game",
+      "doc": "Fetches information for an itch.io game.\n\nSends @@FetchGameYieldNotification twice at most: first from cache,\nsecond from API if we're online.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "credentials",
+            "doc": "Credentials to use for fetching",
+            "type": "FetchCredentials"
+          },
+          {
+            "name": "gameId",
+            "doc": "Identifier of game to look for",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Game.FindUploads",
+      "doc": "Finds uploads compatible with the current runtime, for a given game.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "Which game to find uploads for",
+            "type": "Game"
+          },
+          {
+            "name": "credentials",
+            "doc": "The credentials to use to list uploads",
+            "type": "GameCredentials"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "uploads",
+            "doc": "A list of uploads that were found to be compatible.",
+            "type": "Upload[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Operation.Start",
+      "doc": "Start a new operation (installing or uninstalling).\n\nCan be cancelled by passing the same `ID` to @@OperationCancelParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "A UUID, generated by the client, used for referring to the\ntask when cancelling it, for instance.",
+            "type": "string"
+          },
+          {
+            "name": "stagingFolder",
+            "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "doc": "Which operation to perform",
+            "type": "Operation"
+          },
+          {
+            "name": "installParams",
+            "doc": "Must be set if Operation is `install`",
+            "type": "InstallParams"
+          },
+          {
+            "name": "uninstallParams",
+            "doc": "Must be set if Operation is `uninstall`",
+            "type": "UninstallParams"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Operation.Cancel",
+      "doc": "Attempt to gracefully cancel an ongoing operation.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The UUID of the task to cancel, as passed to @@OperationStartParams",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "PickUpload",
+      "doc": "Asks the user to pick between multiple available uploads",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "uploads",
+            "doc": "An array of upload objects to choose from",
+            "type": "Upload[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "index",
+            "doc": "The index (in the original array) of the upload that was picked,\nor a negative value to cancel.",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GetReceipt",
+      "doc": "Retrieves existing receipt information for an install",
+      "caller": "server",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "receipt",
+            "doc": "",
+            "type": "Receipt"
+          }
+        ]
+      }
+    },
+    {
+      "method": "CheckUpdate",
+      "doc": "Looks for one or more game updates.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "items",
+            "doc": "A list of items, each of it will be checked for updates",
+            "type": "CheckUpdateItem[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "updates",
+            "doc": "Any updates found (might be empty)",
+            "type": "GameUpdate[]"
+          },
+          {
+            "name": "warnings",
+            "doc": "Warnings messages logged while looking for updates",
+            "type": "string[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Launch",
+      "doc": "Attempt to launch an installed game.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "installFolder",
+            "doc": "The folder the game was installed to",
+            "type": "string"
+          },
+          {
+            "name": "game",
+            "doc": "The itch.io game that was installed",
+            "type": "Game"
+          },
+          {
+            "name": "upload",
+            "doc": "The itch.io upload that was installed",
+            "type": "Upload"
+          },
+          {
+            "name": "build",
+            "doc": "The itch.io build that was installed",
+            "type": "Build"
+          },
+          {
+            "name": "verdict",
+            "doc": "The stored verdict from when the folder was last configured (can be null)",
+            "type": "Verdict"
+          },
+          {
+            "name": "prereqsDir",
+            "doc": "The directory to use to store installer files for prerequisites",
+            "type": "string"
+          },
+          {
+            "name": "forcePrereqs",
+            "doc": "Force installing all prerequisites, even if they're already marked as installed",
+            "type": "boolean"
+          },
+          {
+            "name": "sandbox",
+            "doc": "Enable sandbox (regardless of manifest opt-in)",
+            "type": "boolean"
+          },
+          {
+            "name": "credentials",
+            "doc": "itch.io credentials to use for any necessary API\nrequests (prereqs downloads, subkeying, etc.)",
+            "type": "GameCredentials"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "PickManifestAction",
+      "doc": "Sent during @@LaunchParams, ask the user to pick a manifest action to launch.\n\nSee [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html).",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "actions",
+            "doc": "A list of actions to pick from. Must be shown to the user in the order they're passed.",
+            "type": "Action[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "name",
+            "doc": "Name of the action picked by user, or empty is we're aborting.",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ShellLaunch",
+      "doc": "Ask the client to perform a shell launch, ie. open an item\nwith the operating system's default handler (File explorer).\n\nSent during @@LaunchParams.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "itemPath",
+            "doc": "Absolute path of item to open, e.g. `D:\\\\Games\\\\Itch\\\\garden\\\\README.txt`",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "HTMLLaunch",
+      "doc": "Ask the client to perform an HTML launch, ie. open an HTML5\ngame, ideally in an embedded browser.\n\nSent during @@LaunchParams.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "rootFolder",
+            "doc": "Absolute path on disk to serve",
+            "type": "string"
+          },
+          {
+            "name": "indexPath",
+            "doc": "Path of index file, relative to root folder",
+            "type": "string"
+          },
+          {
+            "name": "args",
+            "doc": "Command-line arguments, to pass as `global.Itch.args`",
+            "type": "string[]"
+          },
+          {
+            "name": "env",
+            "doc": "Environment variables, to pass as `global.Itch.env`",
+            "type": "Map\u003cstring, string\u003e"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "URLLaunch",
+      "doc": "Ask the client to perform an URL launch, ie. open an address\nwith the system browser or appropriate.\n\nSent during @@LaunchParams.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "url",
+            "doc": "URL to open, e.g. `https://itch.io/community`",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "SaveVerdict",
+      "doc": "Ask the client to save verdict information after a reconfiguration.\n\nSent during @@LaunchParams.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "verdict",
+            "doc": "",
+            "type": "Verdict"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "AllowSandboxSetup",
+      "doc": "Ask the user to allow sandbox setup. Will be followed by\na UAC prompt (on Windows) or a pkexec dialog (on Linux) if\nthe user allows.\n\nSent during @@LaunchParams.",
+      "caller": "server",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "allow",
+            "doc": "Set to true if user allowed the sandbox setup, false otherwise",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "PrereqsFailed",
+      "doc": "Sent during @@LaunchParams, when one or more prerequisites have failed to install.\nThe user may choose to proceed with the launch anyway.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "error",
+            "doc": "Short error",
+            "type": "string"
+          },
+          {
+            "name": "errorStack",
+            "doc": "Longer error (to include in logs)",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "continue",
+            "doc": "Set to true if the user wants to proceed with the launch in spite of the prerequisites failure",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "CleanDownloads.Search",
+      "doc": "Look for folders we can clean up in various download folders.\nThis finds anything that doesn't correspond to any current downloads\nwe know about.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "roots",
+            "doc": "A list of folders to scan for potential subfolders to clean up",
+            "type": "string[]"
+          },
+          {
+            "name": "whitelist",
+            "doc": "A list of subfolders to not consider when cleaning\n(staging folders for in-progress downloads)",
+            "type": "string[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "entries",
+            "doc": "Entries we found that could use some cleaning (with path and size information)",
+            "type": "CleanDownloadsEntry[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "CleanDownloads.Apply",
+      "doc": "Remove the specified entries from disk, freeing up disk space.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "entries",
+            "doc": "",
+            "type": "CleanDownloadsEntry[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Test.DoubleTwice",
+      "doc": "Test request: asks butler to double a number twice.\nFirst by calling @@TestDoubleParams, then by\nreturning the result of that call doubled.\n\nUse that to try out your JSON-RPC 2.0 over TCP implementation.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "number",
+            "doc": "The number to quadruple",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "number",
+            "doc": "The input, quadrupled",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Test.Double",
+      "doc": "Test request: return a number, doubled. Implement that to\nuse @@TestDoubleTwiceParams in your testing.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "number",
+            "doc": "The number to double",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "number",
+            "doc": "The number, doubled",
+            "type": "number"
+          }
+        ]
+      }
+    }
+  ],
+  "notifications": [
+    {
+      "method": "Log",
+      "doc": "Sent any time butler needs to send a log message. The client should\nrelay them in their own stdout / stderr, and collect them so they\ncan be part of an issue report if something goes wrong.",
+      "params": {
+        "fields": [
+          {
+            "name": "level",
+            "doc": "Level of the message (`info`, `warn`, etc.)",
+            "type": "LogLevel"
+          },
+          {
+            "name": "message",
+            "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.Game.Yield",
+      "doc": "Sent during @@FetchGameParams whenever a result is\navailable.",
+      "params": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "Current result for game fetching (from local DB, or API, etc.)",
+            "type": "Game"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Operation.Progress",
+      "doc": "Sent periodically during @@OperationStartParams to inform on the current state an operation.",
+      "params": {
+        "fields": [
+          {
+            "name": "progress",
+            "doc": "An overall progress value between 0 and 1",
+            "type": "number"
+          },
+          {
+            "name": "eta",
+            "doc": "Estimated completion time for the operation, in seconds (floating)",
+            "type": "number"
+          },
+          {
+            "name": "bps",
+            "doc": "Network bandwidth used, in bytes per second (floating)",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "TaskStarted",
+      "doc": "Each operation is made up of one or more tasks. This notification\nis sent during @@OperationStartParams whenever a specific task starts.",
+      "params": {
+        "fields": [
+          {
+            "name": "reason",
+            "doc": "Why this task was started",
+            "type": "TaskReason"
+          },
+          {
+            "name": "type",
+            "doc": "Is this task a download? An install?",
+            "type": "TaskType"
+          },
+          {
+            "name": "game",
+            "doc": "The game this task is dealing with",
+            "type": "Game"
+          },
+          {
+            "name": "upload",
+            "doc": "The upload this task is dealing with",
+            "type": "Upload"
+          },
+          {
+            "name": "build",
+            "doc": "The build this task is dealing with (if any)",
+            "type": "Build"
+          },
+          {
+            "name": "totalSize",
+            "doc": "Total size in bytes",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "TaskSucceeded",
+      "doc": "Sent during @@OperationStartParams whenever a task succeeds for an operation.",
+      "params": {
+        "fields": [
+          {
+            "name": "type",
+            "doc": "",
+            "type": "TaskType"
+          },
+          {
+            "name": "installResult",
+            "doc": "If the task installed something, then this contains\ninfo about the game, upload, build that were installed",
+            "type": "InstallResult"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GameUpdateAvailable",
+      "doc": "Sent during @@CheckUpdateParams, every time butler\nfinds an update for a game. Can be safely ignored if displaying\nupdates as they are found is not a requirement for the client.",
+      "params": {
+        "fields": [
+          {
+            "name": "update",
+            "doc": "",
+            "type": "GameUpdate"
+          }
+        ]
+      }
+    },
+    {
+      "method": "LaunchRunning",
+      "doc": "Sent during @@LaunchParams, when the game is configured, prerequisites are installed\nsandbox is set up (if enabled), and the game is actually running.",
+      "params": {
+        "fields": null
+      }
+    },
+    {
+      "method": "LaunchExited",
+      "doc": "Sent during @@LaunchParams, when the game has actually exited.",
+      "params": {
+        "fields": null
+      }
+    },
+    {
+      "method": "PrereqsStarted",
+      "doc": "Sent during @@LaunchParams, when some prerequisites are about to be installed.\n\nThis is a good time to start showing a UI element with the state of prereq\ntasks.\n\nUpdates are regularly provided via @@PrereqsTaskStateNotification.",
+      "params": {
+        "fields": [
+          {
+            "name": "tasks",
+            "doc": "A list of prereqs that need to be tended to",
+            "type": "Map\u003cstring, PrereqTask\u003e"
+          }
+        ]
+      }
+    },
+    {
+      "method": "PrereqsTaskState",
+      "doc": "Current status of a prerequisite task\n\nSent during @@LaunchParams, after @@PrereqsStartedNotification, repeatedly\nuntil all prereq tasks are done.",
+      "params": {
+        "fields": [
+          {
+            "name": "name",
+            "doc": "Short name of the prerequisite task (e.g. `xna-4.0`)",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "doc": "Current status of the prereq",
+            "type": "PrereqStatus"
+          },
+          {
+            "name": "progress",
+            "doc": "Value between 0 and 1 (floating)",
+            "type": "number"
+          },
+          {
+            "name": "eta",
+            "doc": "ETA in seconds (floating)",
+            "type": "number"
+          },
+          {
+            "name": "bps",
+            "doc": "Network bandwidth used in bytes per second (floating)",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "PrereqsEnded",
+      "doc": "Sent during @@LaunchParams, when all prereqs have finished installing (successfully or not)\n\nAfter this is received, it's safe to close any UI element showing prereq task state.",
+      "params": {
+        "fields": null
+      }
+    }
+  ],
+  "versionNote": "Generated on Feb 28 14:07:05 against butler@9a0737aac4901ae55069e62fec6703a7b3cab814"
+}

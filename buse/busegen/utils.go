@@ -104,12 +104,3 @@ func getCommentLines(doc *ast.CommentGroup) []string {
 
 	return lines
 }
-
-func getComment(doc *ast.CommentGroup, separator string) string {
-	lines := getCommentLines(doc)
-	if len(lines) == 0 {
-		return "*undocumented*"
-	}
-
-	return strings.Join(lines, separator)
-}

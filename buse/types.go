@@ -149,6 +149,44 @@ type SessionForgetResult struct {
 }
 
 //----------------------------------------------------------------------
+// Fetch
+//----------------------------------------------------------------------
+
+// @category Fetch
+type FetchCredentials struct {
+	// Identifier of session to fetch as
+	SessionID int64 `json:"sessionId"`
+}
+
+// Fetches information for an itch.io game.
+//
+// Sends @@FetchGameYieldNotification twice at most: first from cache,
+// second from API if we're online.
+//
+// @name Fetch.Game
+// @category Fetch
+// @caller client
+type FetchGameParams struct {
+	// Credentials to use for fetching
+	Credentials *FetchCredentials `json:"credentials"`
+	// Identifier of game to look for
+	GameID int64 `json:"gameId"`
+}
+
+// Sent during @@FetchGameParams whenever a result is
+// available.
+//
+// @name Fetch.Game.Yield
+// @category Fetch
+type FetchGameYieldNotification struct {
+	// Current result for game fetching (from local DB, or API, etc.)
+	Game *itchio.Game `json:"game"`
+}
+
+type FetchGameResult struct {
+}
+
+//----------------------------------------------------------------------
 // Game
 //----------------------------------------------------------------------
 
@@ -804,7 +842,7 @@ const (
 )
 
 // Buse JSON-RPC 2.0 error codes
-type Code = int64
+type Code int64
 
 const (
 	// An operation was cancelled gracefully

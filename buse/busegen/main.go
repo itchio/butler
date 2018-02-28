@@ -46,6 +46,7 @@ func main() {
 	case "godocs":
 		must(bc.GenerateDocs())
 		must(bc.GenerateGoCode())
+		must(bc.GenerateSpec())
 	case "ts":
 		if len(os.Args) < 2 {
 			log.Printf("busegen ts: missing output path")
@@ -139,5 +140,5 @@ func (bc *BuseContext) Revision() string {
 	cmd.Dir = bc.Dir
 	rev, err := cmd.CombinedOutput()
 	must(err)
-	return string(rev)
+	return strings.TrimSpace(string(rev))
 }

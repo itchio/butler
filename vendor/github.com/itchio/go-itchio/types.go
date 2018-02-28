@@ -86,7 +86,7 @@ type Game struct {
 
 // Type of an itch.io game page, mostly related to
 // how it should be presented on web (downloadable or embed)
-type GameType = string
+type GameType string
 
 const (
 	// downloadable
@@ -102,7 +102,7 @@ const (
 )
 
 // Creator-picked classification for a page
-type GameClassification = string
+type GameClassification string
 
 const (
 	// something you can play

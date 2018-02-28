@@ -73,6 +73,22 @@ func (c *Client) GetMe() (*GetMeResponse, error) {
 	return r, nil
 }
 
+type GetGameParams struct {
+	GameID int64 `json:"gameId"`
+}
+
+func (c *Client) GetGame(params *GetGameParams) (*GetGameResponse, error) {
+	r := &GetGameResponse{}
+
+	path := c.MakePath("game/%d", params.GameID)
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 // ListMyGames lists the games one develops (ie. can edit)
 func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
 	r := &ListMyGamesResponse{}

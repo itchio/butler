@@ -60,7 +60,7 @@ func profileToSession(p *models.Profile) (*buse.Session, error) {
 }
 
 func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPasswordParams) (*buse.SessionLoginWithPasswordResult, error) {
-	rootClient, err := rc.MansionContext.NewClient("<filler>")
+	rootClient, err := rc.RootClient()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -128,7 +128,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 		}
 	}
 
-	client, err := rc.MansionContext.NewClient(key.Key)
+	client, err := rc.KeyClient(key.Key)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

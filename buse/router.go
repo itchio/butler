@@ -7,7 +7,9 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/mansion"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 	"github.com/sourcegraph/jsonrpc2"
@@ -171,6 +173,33 @@ func (rc *RequestContext) Call(method string, params interface{}, res interface{
 
 func (rc *RequestContext) Notify(method string, params interface{}) error {
 	return rc.Conn.Notify(rc.Ctx, method, params)
+}
+
+func (rc *RequestContext) RootClient() (*itchio.Client, error) {
+	return rc.KeyClient("<keyless>")
+}
+
+func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
+	return rc.MansionContext.NewClient(key)
+}
+
+func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error) {
+	profile := &models.Profile{}
+	db, err := rc.DB()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = db.Where("id = ?", sessionID).First(profile).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return rc.MansionContext.NewClient(profile.APIKey)
+}
+
+func (rc *RequestContext) Client(credentials *FetchCredentials) (*itchio.Client, error) {
+	return rc.SessionClient(credentials.SessionID)
 }
 
 type CancelFuncs struct {

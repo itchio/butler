@@ -11,6 +11,11 @@ type GetMeResponse struct {
 	User *User `json:"user"`
 }
 
+// GetGameResponse is what the API server responds when we ask for a game's info
+type GetGameResponse struct {
+	Game *Game `json:"game"`
+}
+
 // GameUploadsResponse is what the server replies with when asked for a game's uploads
 type GameUploadsResponse struct {
 	Uploads []*Upload `json:"uploads"`

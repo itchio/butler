@@ -625,7 +625,7 @@ func AccessCheck(
 		uintptr(clientToken),
 		uintptr(desiredAccess),
 		uintptr(unsafe.Pointer(genericMapping)),
-		uintptr(unsafe.Pointer(privilegeSet)),
+		privilegeSet,
 		uintptr(unsafe.Pointer(privilegeSetLength)),
 		uintptr(unsafe.Pointer(grantedAccess)),
 		uintptr(unsafe.Pointer(accessStatus)),

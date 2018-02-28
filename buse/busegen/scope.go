@@ -19,8 +19,6 @@ import (
 type Scope struct {
 	categories   map[string]*Category
 	categoryList []string
-	structs      map[string]*Entry
-	enums        map[string]*Entry
 	entries      map[string]*Entry
 	bc           *BuseContext
 }
@@ -48,8 +46,6 @@ type Entry struct {
 	name         string
 	typeName     string
 	caller       Caller
-	pkg          string
-	pkgName      string
 	enumValues   []*EnumValue
 	structFields []*StructField
 }
@@ -247,7 +243,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 								tags, err := structtag.Parse(tagValue)
 								if err != nil {
 									pos := fset.Position(sf.Pos())
-									log.Fatalf("For tag (%s): %s", pos, sf.Tag.Value, err.Error())
+									log.Fatalf("%s: For tag (%s): %s", pos, sf.Tag.Value, err.Error())
 								}
 
 								jsonTag, err := tags.Get("json")

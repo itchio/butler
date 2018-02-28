@@ -41,7 +41,7 @@ func (bc *BuseContext) GenerateGoCode() error {
 			switch entry.kind {
 			case EntryKindParams:
 				ts := asType(entry.gd)
-				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Params"))
+				varName := strings.TrimSuffix(ts.Name.Name, "Params")
 				typeName := varName + "Type"
 				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
 				resultTypeName := fmt.Sprintf("buse.%sResult", strings.TrimSuffix(ts.Name.Name, "Params"))
@@ -94,7 +94,7 @@ func (bc *BuseContext) GenerateGoCode() error {
 
 			case EntryKindNotification:
 				ts := asType(entry.gd)
-				varName := fmt.Sprintf("%s", strings.TrimSuffix(ts.Name.Name, "Notification"))
+				varName := strings.TrimSuffix(ts.Name.Name, "Notification")
 				typeName := varName + "Type"
 				paramsTypeName := fmt.Sprintf("buse.%s", ts.Name.Name)
 				method := entry.name

@@ -55,7 +55,7 @@ var _ Error = (*ErrAborted)(nil)
 
 func (e *ErrAborted) AsJsonRpc2() *jsonrpc2.Error {
 	return &jsonrpc2.Error{
-		Code:    CodeOperationAborted,
+		Code:    int64(CodeOperationAborted),
 		Message: "operation aborted",
 	}
 }
@@ -72,7 +72,7 @@ var _ Error = (*ErrCancelled)(nil)
 
 func (e *ErrCancelled) AsJsonRpc2() *jsonrpc2.Error {
 	return &jsonrpc2.Error{
-		Code:    CodeOperationCancelled,
+		Code:    int64(CodeOperationCancelled),
 		Message: "operation cancelled",
 	}
 }

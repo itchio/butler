@@ -23,7 +23,7 @@ var knownClassificationActions = map[string]ClassificationAction{
 }
 
 func actionForGame(game *itchio.Game) ClassificationAction {
-	knownAction, ok := knownClassificationActions[game.Classification]
+	knownAction, ok := knownClassificationActions[string(game.Classification)]
 	if ok {
 		return knownAction
 	}
