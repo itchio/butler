@@ -165,9 +165,9 @@
       "params": {
         "fields": [
           {
-            "name": "credentials",
-            "doc": "Credentials to use for fetching",
-            "type": "FetchCredentials"
+            "name": "sessionId",
+            "doc": "Session to use to fetch game",
+            "type": "number"
           },
           {
             "name": "gameId",
@@ -187,9 +187,9 @@
       "params": {
         "fields": [
           {
-            "name": "credentials",
-            "doc": "Credentials to use for fetching",
-            "type": "FetchCredentials"
+            "name": "sessionId",
+            "doc": "Session to use to fetch game",
+            "type": "number"
           },
           {
             "name": "collectionId",
@@ -209,9 +209,43 @@
       "params": {
         "fields": [
           {
-            "name": "credentials",
-            "doc": "Credentials to use for fetching",
-            "type": "FetchCredentials"
+            "name": "sessionId",
+            "doc": "Session to use to fetch game",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Fetch.MyGames",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "sessionId",
+            "doc": "Session to use to fetch game",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Fetch.MyOwnedKeys",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "sessionId",
+            "doc": "Session to use to fetch game",
+            "type": "number"
           }
         ]
       },
@@ -761,6 +795,52 @@
       }
     },
     {
+      "method": "Fetch.MyGames.Yield",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "offset",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "total",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "items",
+            "doc": "",
+            "type": "Game[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.MyOwnedKeys.Yield",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "offset",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "total",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "items",
+            "doc": "",
+            "type": "DownloadKey[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "Operation.Progress",
       "doc": "Sent periodically during @@OperationStartParams to inform on the current state an operation.",
       "params": {
@@ -1095,11 +1175,6 @@
           "name": "stillCoverUrl",
           "doc": "Static version of user's avatar, only set if the main cover URL is a GIF",
           "type": "string"
-        },
-        {
-          "name": "dashboardGame",
-          "doc": "",
-          "type": "Game[]"
         }
       ]
     },
@@ -1749,17 +1824,6 @@
       ]
     },
     {
-      "name": "FetchCredentials",
-      "doc": "",
-      "fields": [
-        {
-          "name": "sessionId",
-          "doc": "Identifier of session to fetch as",
-          "type": "number"
-        }
-      ]
-    },
-    {
       "name": "CollectionGame",
       "doc": "Association between a @@Game and a @@Collection",
       "fields": [
@@ -1955,5 +2019,5 @@
     }
   ],
   "enumTypes": null,
-  "versionNote": "Generated on Mar  1 17:46:34 against butler@089e1a1968b53503fea00ed4bb4ed760b8e94fd0"
+  "versionNote": "Generated on Mar  1 18:47:05 against butler@82ae2b6a14c996ae1430909d84575414d0bc81f4"
 }

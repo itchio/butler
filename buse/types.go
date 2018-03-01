@@ -152,12 +152,6 @@ type SessionForgetResult struct {
 // Fetch
 //----------------------------------------------------------------------
 
-// @category Fetch
-type FetchCredentials struct {
-	// Identifier of session to fetch as
-	SessionID int64 `json:"sessionId"`
-}
-
 // Fetches information for an itch.io game.
 //
 // Sends @@FetchGameYieldNotification twice at most: first from cache,
@@ -167,8 +161,8 @@ type FetchCredentials struct {
 // @category Fetch
 // @caller client
 type FetchGameParams struct {
-	// Credentials to use for fetching
-	Credentials *FetchCredentials `json:"credentials"`
+	// Session to use to fetch game
+	SessionID int64 `json:"sessionId"`
 	// Identifier of game to look for
 	GameID int64 `json:"gameId"`
 }
@@ -195,8 +189,8 @@ type FetchGameResult struct {
 // @category Fetch
 // @caller client
 type FetchCollectionParams struct {
-	// Credentials to use for fetching
-	Credentials *FetchCredentials `json:"credentials"`
+	// Session to use to fetch game
+	SessionID int64 `json:"sessionId"`
 	// Identifier of the collection to look for
 	CollectionID int64 `json:"collectionId"`
 }
@@ -235,8 +229,8 @@ type FetchCollectionResult struct {
 // @category Fetch
 // @caller client
 type FetchMyCollectionsParams struct {
-	// Credentials to use for fetching
-	Credentials *FetchCredentials `json:"credentials"`
+	// Session to use to fetch game
+	SessionID int64 `json:"sessionId"`
 }
 
 // Sent during @@FetchMyCollectionsParams whenever new info is
@@ -258,6 +252,44 @@ type CollectionSummary struct {
 }
 
 type FetchMyCollectionsResult struct {
+}
+
+// @name Fetch.MyGames
+// @category Fetch
+// @caller client
+type FetchMyGamesParams struct {
+	// Session to use to fetch game
+	SessionID int64 `json:"sessionId"`
+}
+
+// @name Fetch.MyGames.Yield
+// @category Fetch
+type FetchMyGamesYieldNotification struct {
+	Offset int64          `json:"offset"`
+	Total  int64          `json:"total"`
+	Items  []*itchio.Game `json:"items"`
+}
+
+type FetchMyGamesResult struct {
+}
+
+// @name Fetch.MyOwnedKeys
+// @category Fetch
+// @caller client
+type FetchMyOwnedKeysParams struct {
+	// Session to use to fetch game
+	SessionID int64 `json:"sessionId"`
+}
+
+// @name Fetch.MyOwnedKeys.Yield
+// @category Fetch
+type FetchMyOwnedKeysYieldNotification struct {
+	Offset int64                 `json:"offset"`
+	Total  int64                 `json:"total"`
+	Items  []*itchio.DownloadKey `json:"items"`
+}
+
+type FetchMyOwnedKeysResult struct {
 }
 
 //----------------------------------------------------------------------

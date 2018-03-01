@@ -43,6 +43,11 @@ type ListMyGamesResponse struct {
 	Games []*Game `json:"games"`
 }
 
+// ListMyOwnedKeysResponse is the response for /my-owned-keys
+type ListMyOwnedKeysResponse struct {
+	OwnedKeys []*DownloadKey `json:"ownedKeys"`
+}
+
 // ListMyCollectionsResponse is the response for /my-collections
 type ListMyCollectionsResponse struct {
 	Collections []*Collection `json:"collections"`

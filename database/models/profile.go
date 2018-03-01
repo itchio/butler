@@ -18,7 +18,9 @@ type Profile struct {
 	Developer bool `json:"developer"`
 	PressUser bool `json:"pressUser"`
 
-	Collections []*itchio.Collection `json:"collections,omitempty" gorm:"many2many:profile_collections"`
+	Collections []*itchio.Collection  `json:"collections,omitempty" gorm:"many2many:profile_collections"`
+	Games       []*itchio.Game        `json:"games,omitempty" gorm:"many2many:profile_games"`
+	OwnedKeys   []*itchio.DownloadKey `json:"ownedKeys,omitempty" gorm:"foreignKey:owner_id"`
 }
 
 func (p *Profile) UpdateFromUser(user *itchio.User) {

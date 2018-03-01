@@ -184,6 +184,10 @@ func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
 }
 
 func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error) {
+	if sessionID == 0 {
+		return nil, errors.New("sessionId must be non-zero")
+	}
+
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -200,10 +204,6 @@ func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error)
 	}
 
 	return rc.MansionContext.NewClient(profile.APIKey)
-}
-
-func (rc *RequestContext) Client(credentials *FetchCredentials) (*itchio.Client, error) {
-	return rc.SessionClient(credentials.SessionID)
 }
 
 type CancelFuncs struct {

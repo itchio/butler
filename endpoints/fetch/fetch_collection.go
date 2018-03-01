@@ -11,10 +11,10 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 	consumer := rc.Consumer
 
 	if params.CollectionID == 0 {
-		return nil, errors.New("CollectionID must be non-zero")
+		return nil, errors.New("collectionId must be non-zero")
 	}
 
-	err := checkCredentials(params.Credentials)
+	client, err := rc.SessionClient(params.SessionID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -38,11 +38,6 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
-	}
-
-	client, err := rc.Client(params.Credentials)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("Querying API...")

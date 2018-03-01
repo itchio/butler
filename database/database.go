@@ -12,6 +12,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+var debugSql = os.Getenv("BUTLER_SQL") == "1"
+
 var _db *gorm.DB
 
 // Models contains all the tables contained in butler's database
@@ -51,7 +53,9 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	db.LogMode(true)
+	if debugSql {
+		db.LogMode(true)
+	}
 
 	return db, nil
 }

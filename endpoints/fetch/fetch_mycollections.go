@@ -12,7 +12,7 @@ import (
 func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollectionsParams) (*buse.FetchMyCollectionsResult, error) {
 	consumer := rc.Consumer
 
-	err := checkCredentials(params.Credentials)
+	client, err := rc.SessionClient(params.SessionID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -23,7 +23,7 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 	}
 
 	profile := &models.Profile{}
-	err = db.Where("id = ?", params.Credentials.SessionID).First(profile).Error
+	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -71,11 +71,6 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 	}
 
 	err = sendDBCollections()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	client, err := rc.Client(params.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

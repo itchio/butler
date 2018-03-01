@@ -137,6 +137,18 @@ func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
 	return r, nil
 }
 
+// ListMyOwnedKeys lists the download keys one owns
+func (c *Client) ListMyOwnedKeys() (*ListMyOwnedKeysResponse, error) {
+	r := &ListMyOwnedKeysResponse{}
+
+	err := c.GetResponse(c.MakePath("my-owned-keys"), r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 // ListMyCollections lists the collections associated to a profile
 func (c *Client) ListMyCollections() (*ListMyCollectionsResponse, error) {
 	r := &ListMyCollectionsResponse{}

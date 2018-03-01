@@ -11,10 +11,10 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 	consumer := rc.Consumer
 
 	if params.GameID == 0 {
-		return nil, errors.New("GameID must be non-zero")
+		return nil, errors.New("gameId must be non-zero")
 	}
 
-	err := checkCredentials(params.Credentials)
+	client, err := rc.SessionClient(params.SessionID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -41,11 +41,6 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 	}
 
 	err = sendDBGame()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	client, err := rc.Client(params.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

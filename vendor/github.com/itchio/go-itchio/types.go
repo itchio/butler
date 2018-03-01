@@ -21,10 +21,6 @@ type User struct {
 	CoverURL string `json:"coverUrl"`
 	// Static version of user's avatar, only set if the main cover URL is a GIF
 	StillCoverURL string `json:"stillCoverUrl"`
-
-	// Associations
-
-	DashboardGames []*Game `json:"dashboardGame,omitempty" gorm:"many2many:dashboard_games"`
 }
 
 // Game represents a page on itch.io, it could be a game,

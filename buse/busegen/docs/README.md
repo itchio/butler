@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  1 17:46:33 against [butler@089e1a1](https://github.com/itchio/butler/commit/089e1a1968b53503fea00ed4bb4ed760b8e94fd0)
+This documentation was generated on Mar  1 18:47:05 against [butler@82ae2b6](https://github.com/itchio/butler/commit/82ae2b6a14c996ae1430909d84575414d0bc81f4)
 
 
 ## Starting the service
@@ -497,38 +497,6 @@ two-factor authentication enabled.</p>
 
 ## Fetch
 
-### <em class="struct-type"></em>FetchCredentials
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>sessionId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Identifier of session to fetch as</p>
-</td>
-</tr>
-</table>
-
-
-<div id="FetchCredentials__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>FetchCredentials <a href="#/?id=fetchcredentials">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>sessionId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
 ### <em class="request-client-caller"></em>Fetch.Game
 
 
@@ -547,9 +515,9 @@ second from API if we&rsquo;re online.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
-<td><p>Credentials to use for fetching</p>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Session to use to fetch game</p>
 </td>
 </tr>
 <tr>
@@ -580,8 +548,8 @@ second from API if we&rsquo;re online.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>gameId</code></td>
@@ -651,9 +619,9 @@ contains.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
-<td><p>Credentials to use for fetching</p>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Session to use to fetch game</p>
 </td>
 </tr>
 <tr>
@@ -684,8 +652,8 @@ contains.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>collectionId</code></td>
@@ -854,9 +822,9 @@ the cache, another time from the API.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
-<td><p>Credentials to use for fetching</p>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Session to use to fetch game</p>
 </td>
 </tr>
 </table>
@@ -874,8 +842,8 @@ the cache, another time from the API.</p>
 
 <table class="field-table">
 <tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -983,6 +951,180 @@ available.</p>
 <tr>
 <td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.MyGames
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Session to use to fetch game</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchMyGamesParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.MyGames <a href="#/?id=fetchmygames">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.MyGames.Yield
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchMyGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.MyGames.Yield <a href="#/?id=fetchmygamesyield">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.MyOwnedKeys
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Session to use to fetch game</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchMyOwnedKeysParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.MyOwnedKeys <a href="#/?id=fetchmyownedkeys">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.MyOwnedKeys.Yield
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchMyOwnedKeysYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.MyOwnedKeys.Yield <a href="#/?id=fetchmyownedkeysyield">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">DownloadKey</span>[]</code></td>
 </tr>
 </table>
 
@@ -3880,11 +4022,6 @@ can be taken while launching a game.</p>
 <td><p>Static version of user&rsquo;s avatar, only set if the main cover URL is a GIF</p>
 </td>
 </tr>
-<tr>
-<td><code>dashboardGame</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td></td>
-</tr>
 </table>
 
 
@@ -3928,10 +4065,6 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>stillCoverUrl</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>dashboardGame</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 </table>
 
