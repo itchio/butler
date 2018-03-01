@@ -6,9 +6,12 @@ import (
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
+	"github.com/jinzhu/gorm"
 )
 
 func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollectionsParams) (*buse.FetchMyCollectionsResult, error) {
+	consumer := rc.Consumer
+
 	err := checkCredentials(params.Credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -19,57 +22,57 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var userCollections []*models.UserCollection
-	err = db.Where("user_id = ?", params.Credentials.SessionID).Find(&userCollections).Error
+	profile := &models.Profile{}
+	err = db.Where("id = ?", params.Credentials.SessionID).First(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	if len(userCollections) > 0 {
-		yn := &buse.FetchMyCollectionsYieldNotification{}
-		yn.Offset = 0
-		yn.Total = int64(len(userCollections))
-
-		var collectionIDs []int64
-		for _, uc := range userCollections {
-			collectionIDs = append(collectionIDs, uc.CollectionID)
-		}
+	sendDBCollections := func() error {
 		var collections []*itchio.Collection
-		err = db.Where("where id in ?", collectionIDs).Find(collections).Error
+		err = db.Model(profile).Related(&collections, "Collections").Error
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
-		for _, c := range collections {
-			cs := &buse.CollectionSummary{
-				Collection: c,
+		err = db.Preload("Games", func(db *gorm.DB) *gorm.DB {
+			return db.Order(`"order" ASC`).Limit(8)
+		}).Error
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if len(collections) > 0 {
+			yn := &buse.FetchMyCollectionsYieldNotification{}
+			yn.Offset = 0
+			yn.Total = int64(len(collections))
+
+			for _, c := range collections {
+				cs := &buse.CollectionSummary{
+					Collection: c,
+				}
+
+				for i, g := range c.Games {
+					cs.Items = append(cs.Items, &buse.CollectionGame{
+						Order: int64(i),
+						Game:  g,
+					})
+				}
+
+				yn.Items = append(yn.Items, cs)
 			}
 
-			var games []*itchio.Game
-			err = db.Table("collection_games").
-				Where("collection_id = ?", c.ID).
-				Order("collection_games.order desc").
-				Limit(8).
-				Joins("join games on collection_games.game_id = games.id").
-				Scan(games).Error
+			err = messages.FetchMyCollectionsYield.Notify(rc, yn)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return errors.Wrap(err, 0)
 			}
-
-			for i, g := range games {
-				cs.Items = append(cs.Items, &buse.CollectionGame{
-					Order: int64(i),
-					Game:  g,
-				})
-			}
-
-			yn.Items = append(yn.Items, cs)
 		}
+		return nil
+	}
 
-		err = messages.FetchMyCollectionsYield.Notify(rc, yn)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+	err = sendDBCollections()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	client, err := rc.Client(params.Credentials)
@@ -82,34 +85,22 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	{
-		yg := &buse.FetchMyCollectionsYieldNotification{}
-		yg.Offset = 0
-		yg.Total = int64(len(collRes.Collections))
-
-		for _, coll := range collRes.Collections {
-			cs := &buse.CollectionSummary{
-				Collection: coll,
-			}
-
-			for i, g := range coll.Games {
-				cs.Items = append(cs.Items, &buse.CollectionGame{
-					Order: int64(i),
-					Game:  g,
-				})
-			}
-			coll.Games = nil
-
-			yg.Items = append(yg.Items, cs)
-		}
-
-		err = messages.FetchMyCollectionsYield.Notify(rc, yg)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+	var colls []interface{}
+	for _, c := range collRes.Collections {
+		colls = append(colls, c)
 	}
 
-	// TODO: persist
+	consumer.Logf("Saving %d collections", len(colls))
+
+	err = db.Model(profile).Association("Collections").Replace(colls...).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = sendDBCollections()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
 
 	res := &buse.FetchMyCollectionsResult{}
 	return res, nil

@@ -190,10 +190,11 @@ func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error)
 	}
 
 	profile := &models.Profile{}
-	err = db.Where("id = ?", sessionID).First(profile).Error
+	req := db.Where("id = ?", sessionID).First(profile)
+	err = req.Error
 	if err != nil {
-		if db.RecordNotFound() {
-			return nil, fmt.Errorf("Could not fidn session %d", sessionID)
+		if req.RecordNotFound() {
+			return nil, fmt.Errorf("Could not find session %d", sessionID)
 		}
 		return nil, errors.Wrap(err, 0)
 	}

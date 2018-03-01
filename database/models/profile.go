@@ -11,9 +11,19 @@ type Profile struct {
 
 	APIKey string `json:"apiKey"`
 
-	LastConnected time.Time `json:"lastConnected"`
-	User          JSON      `json:"user"`
+	LastConnected time.Time    `json:"lastConnected"`
+	User          *itchio.User `json:"user"`
+	UserID        int64        `json:"userId"`
+
+	Developer bool `json:"developer"`
+	PressUser bool `json:"pressUser"`
+
+	Collections []*itchio.Collection `json:"collections,omitempty" gorm:"many2many:profile_collections"`
 }
 
-func (p *Profile) SetUser(user *itchio.User) error { return MarshalUser(user, &p.User) }
-func (p *Profile) GetUser() (*itchio.User, error)  { return UnmarshalUser(p.User) }
+func (p *Profile) UpdateFromUser(user *itchio.User) {
+	p.User = user
+	p.Developer = user.Developer
+	p.PressUser = user.PressUser
+	p.LastConnected = time.Now().UTC()
+}

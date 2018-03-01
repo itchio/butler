@@ -1,8 +1,6 @@
 package session
 
 import (
-	"time"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
@@ -24,7 +22,7 @@ func List(rc *buse.RequestContext, params *buse.SessionListParams) (*buse.Sessio
 	}
 
 	var profiles []*models.Profile
-	err = db.Order("last_connected desc").Find(&profiles).Error
+	err = db.Preload("User").Order("last_connected desc").Find(&profiles).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -46,15 +44,10 @@ func List(rc *buse.RequestContext, params *buse.SessionListParams) (*buse.Sessio
 }
 
 func profileToSession(p *models.Profile) (*buse.Session, error) {
-	user, err := p.GetUser()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	s := &buse.Session{
 		ID:            p.ID,
 		LastConnected: p.LastConnected,
-		User:          user,
+		User:          p.User,
 	}
 	return s, nil
 }
@@ -138,20 +131,16 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 		return nil, errors.Wrap(err, 0)
 	}
 
-	profile := &models.Profile{
-		ID:            meRes.User.ID,
-		APIKey:        key.Key,
-		LastConnected: time.Now().UTC(),
-	}
-	err = profile.SetUser(meRes.User)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+
+	profile := &models.Profile{
+		ID:     meRes.User.ID,
+		APIKey: key.Key,
+	}
+	profile.UpdateFromUser(meRes.User)
 
 	err = db.Save(profile).Error
 	if err != nil {
@@ -172,7 +161,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 
 func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginParams) (*buse.SessionUseSavedLoginResult, error) {
 	if params.SessionID == 0 {
-		return nil, errors.New("sessionID must be non-zero")
+		return nil, errors.New("SessionID must be non-zero")
 	}
 
 	consumer := rc.Consumer
@@ -201,8 +190,7 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginPar
 		return nil, errors.Wrap(err, 0)
 	}
 
-	profile.LastConnected = time.Now().UTC()
-	err = profile.SetUser(meRes.User)
+	profile.UpdateFromUser(meRes.User)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

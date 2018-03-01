@@ -21,20 +21,14 @@ type Download struct {
 	Err        string    `json:"err"`
 	ErrStack   string    `json:"errStack"`
 
-	CaveID          string `json:"caveId"`
-	Game            JSON   `json:"game"`
-	Upload          JSON   `json:"upload"`
-	Build           JSON   `json:"build"`
-	TotalSize       int64  `json:"totalSize"`
-	InstallLocation string `json:"installLocation"`
-	InstallFolder   string `json:"installFolder"`
+	CaveID          string         `json:"caveId"`
+	GameID          int64          `json:"gameId"`
+	Game            *itchio.Game   `json:"game"`
+	UploadID        int64          `json:"uploadId"`
+	Upload          *itchio.Upload `json:"upload"`
+	BuildID         int64          `json:"buildId"`
+	Build           *itchio.Build  `json:"build"`
+	TotalSize       int64          `json:"totalSize"`
+	InstallLocation string         `json:"installLocation"`
+	InstallFolder   string         `json:"installFolder"`
 }
-
-func (d *Download) SetGame(game *itchio.Game) error { return MarshalGame(game, &d.Game) }
-func (d *Download) GetGame() (*itchio.Game, error)  { return UnmarshalGame(d.Game) }
-
-func (d *Download) SetUpload(upload *itchio.Upload) error { return MarshalUpload(upload, &d.Upload) }
-func (d *Download) GetUpload() (*itchio.Upload, error)    { return UnmarshalUpload(d.Upload) }
-
-func (d *Download) SetBuild(build *itchio.Build) error { return MarshalBuild(build, &d.Build) }
-func (d *Download) GetBuild() (*itchio.Build, error)   { return UnmarshalBuild(d.Build) }

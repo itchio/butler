@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  1 11:07:58 against [butler@561da45](https://github.com/itchio/butler/commit/561da459820391cdc2c40af3d4172ff2a838db2e)
+This documentation was generated on Mar  1 17:46:33 against [butler@089e1a1](https://github.com/itchio/butler/commit/089e1a1968b53503fea00ed4bb4ed760b8e94fd0)
 
 
 ## Starting the service
@@ -3880,6 +3880,11 @@ can be taken while launching a game.</p>
 <td><p>Static version of user&rsquo;s avatar, only set if the main cover URL is a GIF</p>
 </td>
 </tr>
+<tr>
+<td><code>dashboardGame</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -3923,6 +3928,10 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>stillCoverUrl</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>dashboardGame</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 </table>
 
@@ -3981,7 +3990,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>embed</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameEmbedInfo__TypeHint">GameEmbedInfo</span></code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameEmbedData__TypeHint">GameEmbedData</span></code></td>
 <td><p><span class="tag">Optional</span> Configuration for embedded (HTML5) games</p>
 </td>
 </tr>
@@ -4075,6 +4084,26 @@ a tool, a comic, etc.</p>
 <td><p><span class="tag">Optional</span> The best current sale for this game</p>
 </td>
 </tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -4114,7 +4143,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>embed</code></td>
-<td><code class="typename"><span class="type struct-type">GameEmbedInfo</span></code></td>
+<td><code class="typename"><span class="type struct-type">GameEmbedData</span></code></td>
 </tr>
 <tr>
 <td><code>coverUrl</code></td>
@@ -4175,6 +4204,22 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>sale</code></td>
 <td><code class="typename"><span class="type struct-type">Sale</span></code></td>
+</tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -4354,7 +4399,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 </div>
 
-### <em class="struct-type"></em>GameEmbedInfo
+### <em class="struct-type"></em>GameEmbedData
 
 
 <p>
@@ -4368,6 +4413,12 @@ how it should be presented on web (downloadable or embed)</p>
 
 
 <table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game this embed info is for</p>
+</td>
+</tr>
 <tr>
 <td><code>width</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
@@ -4389,8 +4440,8 @@ how it should be presented on web (downloadable or embed)</p>
 </table>
 
 
-<div id="GameEmbedInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameEmbedInfo <a href="#/?id=gameembedinfo">(Go to definition)</a></p>
+<div id="GameEmbedData__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>GameEmbedData <a href="#/?id=gameembeddata">(Go to definition)</a></p>
 
 <p>
 <p>Presentation information for embed games</p>
@@ -4398,6 +4449,10 @@ how it should be presented on web (downloadable or embed)</p>
 </p>
 
 <table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
 <tr>
 <td><code>width</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
@@ -4435,6 +4490,12 @@ how it should be presented on web (downloadable or embed)</p>
 </td>
 </tr>
 <tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game this sale is for</p>
+</td>
+</tr>
+<tr>
 <td><code>rate</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Discount rate in percent.
@@ -4467,6 +4528,10 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 <table class="field-table">
 <tr>
 <td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
@@ -4721,6 +4786,16 @@ page deleted, visibility level changed, etc.)</p>
 <td><p>The first few games of this collection</p>
 </td>
 </tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -4756,6 +4831,14 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>games</code></td>
 <td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type">User</span></code></td>
 </tr>
 </table>
 

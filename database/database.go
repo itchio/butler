@@ -19,12 +19,14 @@ var Models = []interface{}{
 	&models.Profile{},
 	&itchio.DownloadKey{},
 	&itchio.Collection{},
-	&models.UserCollection{},
 	&models.CollectionGame{},
 	&models.DashboardGame{},
 	&itchio.Game{},
+	&itchio.User{},
 	&models.Download{},
 	&models.Cave{},
+	&itchio.GameEmbedData{},
+	&itchio.Sale{},
 }
 
 // OpenAndPrepare returns a connection to butler's sqlite database
