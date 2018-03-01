@@ -3,8 +3,8 @@ package spec
 type Spec struct {
 	Requests      []*RequestSpec      `json:"requests"`
 	Notifications []*NotificationSpec `json:"notifications"`
-	StructTypes   []*StructTypeSpec   `json:"types"`
-	EnumTypes     []*EnumTypeSpec     `json:"types"`
+	StructTypes   []*StructTypeSpec   `json:"structTypes"`
+	EnumTypes     []*EnumTypeSpec     `json:"enumTypes"`
 	VersionNote   string              `json:"versionNote"`
 }
 

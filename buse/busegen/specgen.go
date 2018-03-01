@@ -39,6 +39,19 @@ func (bc *BuseContext) GenerateSpec() error {
 		return res
 	}
 
+	encodeEnum := func(entry *Entry) []*spec.EnumValueSpec {
+		var res []*spec.EnumValueSpec
+		for _, ev := range entry.enumValues {
+			evs := &spec.EnumValueSpec{
+				Name:  ev.name,
+				Value: ev.value,
+				Doc:   strings.Join(ev.doc, "\n"),
+			}
+			res = append(res, evs)
+		}
+		return res
+	}
+
 	for _, category := range scope.categoryList {
 		cat := scope.categories[category]
 		for _, entry := range cat.entries {
@@ -75,6 +88,23 @@ func (bc *BuseContext) GenerateSpec() error {
 					Doc: strings.Join(entry.doc, "\n"),
 				}
 				s.Notifications = append(s.Notifications, ns)
+			case EntryKindType:
+				switch entry.typeKind {
+				case EntryTypeKindStruct:
+					sts := &spec.StructTypeSpec{
+						Name:   entry.name,
+						Doc:    strings.Join(entry.doc, "\n"),
+						Fields: encodeStruct(entry),
+					}
+					s.StructTypes = append(s.StructTypes, sts)
+				case EntryTypeKindEnum:
+					ets := &spec.EnumTypeSpec{
+						Name:   entry.name,
+						Doc:    strings.Join(entry.doc, "\n"),
+						Values: encodeEnum(entry),
+					}
+					s.EnumTypes = append(s.EnumTypes, ets)
+				}
 			}
 		}
 	}

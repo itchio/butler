@@ -141,7 +141,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 	profile := &models.Profile{
 		ID:            meRes.User.ID,
 		APIKey:        key.Key,
-		LastConnected: time.Now(),
+		LastConnected: time.Now().UTC(),
 	}
 	err = profile.SetUser(meRes.User)
 	if err != nil {
@@ -201,7 +201,7 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginPar
 		return nil, errors.Wrap(err, 0)
 	}
 
-	profile.LastConnected = time.Now()
+	profile.LastConnected = time.Now().UTC()
 	err = profile.SetUser(meRes.User)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

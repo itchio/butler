@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Feb 28 19:00:01 against [butler@d733e8e](https://github.com/itchio/butler/commit/d733e8e00ac518efc1ad2f45bc90859bf08e0bc0)
+This documentation was generated on Mar  1 11:07:58 against [butler@561da45](https://github.com/itchio/butler/commit/561da459820391cdc2c40af3d4172ff2a838db2e)
 
 
 ## Starting the service
@@ -628,6 +628,361 @@ available.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.Collection
+
+
+<p>
+<p>Fetches information about a collection and the games it
+contains.</p>
+
+<p>Sends <code class="typename"><span class="type notification" data-tip-selector="#FetchCollectionYieldNotification__TypeHint">Fetch.Collection.Yield</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
+<td><p>Credentials to use for fetching</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the collection to look for</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchCollectionParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Collection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+
+<p>
+<p>Fetches information about a collection and the games it
+contains.</p>
+
+<p>Sends <code class="typename"><span class="type notification">Fetch.Collection.Yield</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.Collection.Yield
+
+
+<p>
+<p>Contains general info about a collection</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchCollectionYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.Collection.Yield <a href="#/?id=fetchcollectionyield">(Go to definition)</a></p>
+
+<p>
+<p>Contains general info about a collection</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.Collection.YieldGames
+
+
+<p>
+<p>Contains a range of games associated with a collection.
+The same ranges may be sent several times: once from
+the cache, another time from the API.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchCollectionYieldGamesNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.Collection.YieldGames <a href="#/?id=fetchcollectionyieldgames">(Go to definition)</a></p>
+
+<p>
+<p>Contains a range of games associated with a collection.
+The same ranges may be sent several times: once from
+the cache, another time from the API.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CollectionGame
+
+
+<p>
+<p>Association between a <code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code> and a <code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>order</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CollectionGame__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CollectionGame <a href="#/?id=collectiongame">(Go to definition)</a></p>
+
+<p>
+<p>Association between a <code class="typename"><span class="type struct-type">Game</span></code> and a <code class="typename"><span class="type struct-type">Collection</span></code></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>order</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.MyCollections
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#FetchCredentials__TypeHint">FetchCredentials</span></code></td>
+<td><p>Credentials to use for fetching</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchMyCollectionsParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.MyCollections <a href="#/?id=fetchmycollections">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">FetchCredentials</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Fetch.MyCollections.Yield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchMyCollectionsParams__TypeHint">Fetch.MyCollections</span></code> whenever new info is
+available.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionSummary__TypeHint">CollectionSummary</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchMyCollectionsYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.MyCollections.Yield <a href="#/?id=fetchmycollectionsyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.MyCollections</span></code> whenever new info is
+available.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>total</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">CollectionSummary</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CollectionSummary
+
+
+<p>
+<p>Information about a collection + a few games</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CollectionSummary__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CollectionSummary <a href="#/?id=collectionsummary">(Go to definition)</a></p>
+
+<p>
+<p>Information about a collection + a few games</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
 </tr>
 </table>
 
@@ -4360,6 +4715,12 @@ as some games might not be accessible to whoever is asking (project
 page deleted, visibility level changed, etc.)</p>
 </td>
 </tr>
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td><p>The first few games of this collection</p>
+</td>
+</tr>
 </table>
 
 
@@ -4391,6 +4752,10 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>gamesCount</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 </table>
 

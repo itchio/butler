@@ -8,7 +8,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-type JSON = string
+type JSON string
 
 // Game
 
@@ -27,13 +27,13 @@ func MarshalGame(in *itchio.Game, out *JSON) error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	*out = string(contents)
+	*out = JSON(contents)
 	return nil
 }
 
 // Upload
 
-func UnmarshalUpload(in string) (*itchio.Upload, error) {
+func UnmarshalUpload(in JSON) (*itchio.Upload, error) {
 	var out itchio.Upload
 	err := json.Unmarshal([]byte(in), &out)
 	if err != nil {
@@ -43,18 +43,18 @@ func UnmarshalUpload(in string) (*itchio.Upload, error) {
 	return &out, nil
 }
 
-func MarshalUpload(in *itchio.Upload, out *string) error {
+func MarshalUpload(in *itchio.Upload, out *JSON) error {
 	contents, err := json.Marshal(in)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	*out = string(contents)
+	*out = JSON(contents)
 	return nil
 }
 
 // Build
 
-func UnmarshalBuild(in string) (*itchio.Build, error) {
+func UnmarshalBuild(in JSON) (*itchio.Build, error) {
 	var out itchio.Build
 	err := json.Unmarshal([]byte(in), &out)
 	if err != nil {
@@ -64,18 +64,18 @@ func UnmarshalBuild(in string) (*itchio.Build, error) {
 	return &out, nil
 }
 
-func MarshalBuild(in *itchio.Build, out *string) error {
+func MarshalBuild(in *itchio.Build, out *JSON) error {
 	contents, err := json.Marshal(in)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	*out = string(contents)
+	*out = JSON(contents)
 	return nil
 }
 
 // User
 
-func UnmarshalUser(in string) (*itchio.User, error) {
+func UnmarshalUser(in JSON) (*itchio.User, error) {
 	var out itchio.User
 	err := json.Unmarshal([]byte(in), &out)
 	if err != nil {
@@ -85,18 +85,18 @@ func UnmarshalUser(in string) (*itchio.User, error) {
 	return &out, nil
 }
 
-func MarshalUser(in *itchio.User, out *string) error {
+func MarshalUser(in *itchio.User, out *JSON) error {
 	contents, err := json.Marshal(in)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	*out = string(contents)
+	*out = JSON(contents)
 	return nil
 }
 
 // Verdict
 
-func UnmarshalVerdict(in string) (*configurator.Verdict, error) {
+func UnmarshalVerdict(in JSON) (*configurator.Verdict, error) {
 	var out configurator.Verdict
 	err := json.Unmarshal([]byte(in), &out)
 	if err != nil {
@@ -106,11 +106,11 @@ func UnmarshalVerdict(in string) (*configurator.Verdict, error) {
 	return &out, nil
 }
 
-func MarshalVerdict(in *configurator.Verdict, out *string) error {
+func MarshalVerdict(in *configurator.Verdict, out *JSON) error {
 	contents, err := json.Marshal(in)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	*out = string(contents)
+	*out = JSON(contents)
 	return nil
 }

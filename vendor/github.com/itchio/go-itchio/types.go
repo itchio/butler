@@ -206,6 +206,9 @@ type Collection struct {
 	// as some games might not be accessible to whoever is asking (project
 	// page deleted, visibility level changed, etc.)
 	GamesCount int64 `json:"gamesCount"`
+
+	// The first few games of this collection
+	Games []*Game `json:"games,omitempty" gorm:"-"`
 }
 
 // A download key is often generated when a purchase is made, it

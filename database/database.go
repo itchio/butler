@@ -19,6 +19,7 @@ var Models = []interface{}{
 	&models.Profile{},
 	&itchio.DownloadKey{},
 	&itchio.Collection{},
+	&models.UserCollection{},
 	&models.CollectionGame{},
 	&models.DashboardGame{},
 	&itchio.Game{},

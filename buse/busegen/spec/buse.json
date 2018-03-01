@@ -181,6 +181,45 @@
       }
     },
     {
+      "method": "Fetch.Collection",
+      "doc": "Fetches information about a collection and the games it\ncontains.\n\nSends @@FetchCollectionYieldNotification.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "credentials",
+            "doc": "Credentials to use for fetching",
+            "type": "FetchCredentials"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Identifier of the collection to look for",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Fetch.MyCollections",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "credentials",
+            "doc": "Credentials to use for fetching",
+            "type": "FetchCredentials"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Game.FindUploads",
       "doc": "Finds uploads compatible with the current runtime, for a given game.",
       "caller": "client",
@@ -663,6 +702,65 @@
       }
     },
     {
+      "method": "Fetch.Collection.Yield",
+      "doc": "Contains general info about a collection",
+      "params": {
+        "fields": [
+          {
+            "name": "collection",
+            "doc": "",
+            "type": "Collection"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.Collection.YieldGames",
+      "doc": "Contains a range of games associated with a collection.\nThe same ranges may be sent several times: once from\nthe cache, another time from the API.",
+      "params": {
+        "fields": [
+          {
+            "name": "offset",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "total",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "items",
+            "doc": "",
+            "type": "CollectionGame[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.MyCollections.Yield",
+      "doc": "Sent during @@FetchMyCollectionsParams whenever new info is\navailable.",
+      "params": {
+        "fields": [
+          {
+            "name": "offset",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "total",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "items",
+            "doc": "",
+            "type": "CollectionSummary[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "Operation.Progress",
       "doc": "Sent periodically during @@OperationStartParams to inform on the current state an operation.",
       "params": {
@@ -822,5 +920,995 @@
       }
     }
   ],
-  "versionNote": "Generated on Feb 28 19:00:02 against butler@d733e8e00ac518efc1ad2f45bc90859bf08e0bc0"
+  "structTypes": [
+    {
+      "name": "Session",
+      "doc": "Represents a user for which we have session information,\nie. that we can connect as, etc.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "itch.io user ID, doubling as session ID",
+          "type": "number"
+        },
+        {
+          "name": "lastConnected",
+          "doc": "Timestamp the user last connected at (to the client)",
+          "type": "Date"
+        },
+        {
+          "name": "user",
+          "doc": "User information",
+          "type": "User"
+        }
+      ]
+    },
+    {
+      "name": "GameCredentials",
+      "doc": "GameCredentials contains all the credentials required to make API requests\nincluding the download key if any.",
+      "fields": [
+        {
+          "name": "server",
+          "doc": "Defaults to `https://itch.io`",
+          "type": "string"
+        },
+        {
+          "name": "apiKey",
+          "doc": "A valid itch.io API key",
+          "type": "string"
+        },
+        {
+          "name": "downloadKey",
+          "doc": "A download key identifier, or 0 if no download key is available",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Manifest",
+      "doc": "A Manifest describes prerequisites (dependencies) and actions that\ncan be taken while launching a game.",
+      "fields": [
+        {
+          "name": "actions",
+          "doc": "Actions are a list of options to give the user when launching a game.",
+          "type": "Action[]"
+        },
+        {
+          "name": "prereqs",
+          "doc": "Prereqs describe libraries or frameworks that must be installed\nprior to launching a game",
+          "type": "Prereq[]"
+        }
+      ]
+    },
+    {
+      "name": "Action",
+      "doc": "An Action is a choice for the user to pick when launching a game.\n\nsee https://itch.io/docs/itch/integrating/manifest.html",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "human-readable or standard name",
+          "type": "string"
+        },
+        {
+          "name": "path",
+          "doc": "file path (relative to manifest or absolute), URL, etc.",
+          "type": "string"
+        },
+        {
+          "name": "icon",
+          "doc": "icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)",
+          "type": "string"
+        },
+        {
+          "name": "args",
+          "doc": "command-line arguments",
+          "type": "string[]"
+        },
+        {
+          "name": "sandbox",
+          "doc": "sandbox opt-in",
+          "type": "boolean"
+        },
+        {
+          "name": "scope",
+          "doc": "requested API scope",
+          "type": "string"
+        },
+        {
+          "name": "console",
+          "doc": "don't redirect stdout/stderr, open in new console window",
+          "type": "boolean"
+        },
+        {
+          "name": "platform",
+          "doc": "platform to restrict this action too",
+          "type": "ItchPlatform"
+        },
+        {
+          "name": "locales",
+          "doc": "localized action name",
+          "type": "Map\u003cstring, ActionLocale\u003e"
+        }
+      ]
+    },
+    {
+      "name": "Prereq",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "A prerequisite to be installed, see \u003chttps://itch.io/docs/itch/integrating/prereqs/\u003e for the full list.",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ActionLocale",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "A localized action name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "doc": "User represents an itch.io account, with basic profile info",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "username",
+          "doc": "The user's username (used for login)",
+          "type": "string"
+        },
+        {
+          "name": "displayName",
+          "doc": "The user's display name: human-friendly, may contain spaces, unicode etc.",
+          "type": "string"
+        },
+        {
+          "name": "developer",
+          "doc": "Has the user opted into creating games?",
+          "type": "boolean"
+        },
+        {
+          "name": "pressUser",
+          "doc": "Is the user part of itch.io's press program?",
+          "type": "boolean"
+        },
+        {
+          "name": "url",
+          "doc": "The address of the user's page on itch.io",
+          "type": "string"
+        },
+        {
+          "name": "coverUrl",
+          "doc": "User's avatar, may be a GIF",
+          "type": "string"
+        },
+        {
+          "name": "stillCoverUrl",
+          "doc": "Static version of user's avatar, only set if the main cover URL is a GIF",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Game",
+      "doc": "Game represents a page on itch.io, it could be a game,\na tool, a comic, etc.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "url",
+          "doc": "Canonical address of the game's page on itch.io",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "doc": "Human-friendly title (may contain any character)",
+          "type": "string"
+        },
+        {
+          "name": "shortText",
+          "doc": "Human-friendly short description",
+          "type": "string"
+        },
+        {
+          "name": "type",
+          "doc": "Downloadable game, html game, etc.",
+          "type": "GameType"
+        },
+        {
+          "name": "classification",
+          "doc": "Classification: game, tool, comic, etc.",
+          "type": "GameClassification"
+        },
+        {
+          "name": "embed",
+          "doc": "Configuration for embedded (HTML5) games",
+          "type": "GameEmbedInfo"
+        },
+        {
+          "name": "coverUrl",
+          "doc": "Cover url (might be a GIF)",
+          "type": "string"
+        },
+        {
+          "name": "stillCoverUrl",
+          "doc": "Non-gif cover url, only set if main cover url is a GIF",
+          "type": "string"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date the game was created",
+          "type": "string"
+        },
+        {
+          "name": "publishedAt",
+          "doc": "Date the game was published, empty if not currently published",
+          "type": "string"
+        },
+        {
+          "name": "minPrice",
+          "doc": "Price in cents of a dollar",
+          "type": "number"
+        },
+        {
+          "name": "canBeBought",
+          "doc": "Can this game be bought?",
+          "type": "boolean"
+        },
+        {
+          "name": "inPressSystem",
+          "doc": "Is this game downloadable by press users for free?",
+          "type": "boolean"
+        },
+        {
+          "name": "hasDemo",
+          "doc": "Does this game have a demo that can be downloaded for free?",
+          "type": "boolean"
+        },
+        {
+          "name": "pOsx",
+          "doc": "Does this game have an upload tagged with 'macOS compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pLinux",
+          "doc": "Does this game have an upload tagged with 'Linux compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pWindows",
+          "doc": "Does this game have an upload tagged with 'Windows compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pAndroid",
+          "doc": "Does this game have an upload tagged with 'Android compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "user",
+          "doc": "The user account this game is associated to",
+          "type": "User"
+        },
+        {
+          "name": "userId",
+          "doc": "ID of the user account this game is associated to",
+          "type": "number"
+        },
+        {
+          "name": "sale",
+          "doc": "The best current sale for this game",
+          "type": "Sale"
+        }
+      ]
+    },
+    {
+      "name": "GameEmbedInfo",
+      "doc": "Presentation information for embed games",
+      "fields": [
+        {
+          "name": "width",
+          "doc": "width of the initial viewport, in pixels",
+          "type": "number"
+        },
+        {
+          "name": "height",
+          "doc": "height of the initial viewport, in pixels",
+          "type": "number"
+        },
+        {
+          "name": "fullscreen",
+          "doc": "for itch.io website, whether or not a fullscreen button should be shown",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Sale",
+      "doc": "Describes a discount for a game.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "rate",
+          "doc": "Discount rate in percent.\nCan be negative, see https://itch.io/updates/introducing-reverse-sales",
+          "type": "number"
+        },
+        {
+          "name": "startDate",
+          "doc": "Timestamp the sale started at",
+          "type": "string"
+        },
+        {
+          "name": "endDate",
+          "doc": "Timestamp the sale ends at",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "doc": "An Upload is a downloadable file. Some are wharf-enabled, which means\nthey're actually a \"channel\" that may contain multiple builds, pushed\nwith \u003chttps://github.com/itchio/butler\u003e",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "filename",
+          "doc": "Original file name (example: `Overland_x64.zip`)",
+          "type": "string"
+        },
+        {
+          "name": "displayName",
+          "doc": "Human-friendly name set by developer (example: `Overland for Windows 64-bit`)",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "doc": "Size of upload in bytes. For wharf-enabled uploads, it's the archive size.",
+          "type": "number"
+        },
+        {
+          "name": "channelName",
+          "doc": "Name of the wharf channel for this upload, if it's a wharf-enabled upload",
+          "type": "string"
+        },
+        {
+          "name": "build",
+          "doc": "Latest build for this upload, if it's a wharf-enabled upload",
+          "type": "Build"
+        },
+        {
+          "name": "demo",
+          "doc": "Is this upload a demo that can be downloaded for free?",
+          "type": "boolean"
+        },
+        {
+          "name": "preorder",
+          "doc": "Is this upload a pre-order placeholder?",
+          "type": "boolean"
+        },
+        {
+          "name": "type",
+          "doc": "Upload type: default, soundtrack, etc.",
+          "type": "string"
+        },
+        {
+          "name": "pOsx",
+          "doc": "Is this upload tagged with 'macOS compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pLinux",
+          "doc": "Is this upload tagged with 'Linux compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pWindows",
+          "doc": "Is this upload tagged with 'Windows compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "pAndroid",
+          "doc": "Is this upload tagged with 'Android compatible'? (creator-controlled)",
+          "type": "boolean"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date this upload was created at",
+          "type": "string"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Collection",
+      "doc": "A Collection is a set of games, curated by humans.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "title",
+          "doc": "Human-friendly title for collection, for example `Couch coop games`",
+          "type": "string"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date this collection was created at",
+          "type": "string"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Date this collection was last updated at (item added, title set, etc.)",
+          "type": "string"
+        },
+        {
+          "name": "gamesCount",
+          "doc": "Number of games in the collection. This might not be accurate\nas some games might not be accessible to whoever is asking (project\npage deleted, visibility level changed, etc.)",
+          "type": "number"
+        },
+        {
+          "name": "games",
+          "doc": "The first few games of this collection",
+          "type": "Game[]"
+        }
+      ]
+    },
+    {
+      "name": "DownloadKey",
+      "doc": "A download key is often generated when a purchase is made, it\nallows downloading uploads for a game that are not available\nfor free.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "gameId",
+          "doc": "Identifier of the game to which this download key grants access",
+          "type": "number"
+        },
+        {
+          "name": "game",
+          "doc": "Game to which this download key grants access",
+          "type": "Game"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date this key was created at (often coincides with purchase time)",
+          "type": "string"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Date this key was last updated at",
+          "type": "string"
+        },
+        {
+          "name": "ownerId",
+          "doc": "Identifier of the itch.io user to which this key belongs",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Build",
+      "doc": "Build contains information about a specific build",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "parentBuildId",
+          "doc": "Identifier of the build before this one on the same channel,\nor 0 if this is the initial build.",
+          "type": "number"
+        },
+        {
+          "name": "state",
+          "doc": "State of the build: started, processing, etc.",
+          "type": "BuildState"
+        },
+        {
+          "name": "version",
+          "doc": "Automatically-incremented version number, starting with 1",
+          "type": "number"
+        },
+        {
+          "name": "userVersion",
+          "doc": "Value specified by developer with `--userversion` when pushing a build\nMight not be unique across builds of a given channel.",
+          "type": "string"
+        },
+        {
+          "name": "files",
+          "doc": "Files associated with this build - often at least an archive,\na signature, and a patch. Some might be missing while the build\nis still processing or if processing has failed.",
+          "type": "BuildFile[]"
+        },
+        {
+          "name": "user",
+          "doc": "User who pushed the build",
+          "type": "User"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Timestamp the build was created at",
+          "type": "string"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Timestamp the build was last updated at",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "BuildFile",
+      "doc": "BuildFile contains information about a build's \"file\", which could be its\narchive, its signature, its patch, etc.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "size",
+          "doc": "Size of this build file",
+          "type": "number"
+        },
+        {
+          "name": "state",
+          "doc": "State of this file: created, uploading, uploaded, etc.",
+          "type": "BuildFileState"
+        },
+        {
+          "name": "type",
+          "doc": "Type of this build file: archive, signature, patch, etc.",
+          "type": "BuildFileType"
+        },
+        {
+          "name": "subType",
+          "doc": "Subtype of this build file, usually indicates compression",
+          "type": "BuildFileSubType"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date this build file was created at",
+          "type": "string"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Date this build file was last updated at",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Verdict",
+      "doc": "A Verdict contains a wealth of information on how to \"launch\" or \"open\" a specific\nfolder.",
+      "fields": [
+        {
+          "name": "basePath",
+          "doc": "BasePath is the absolute path of the folder that was configured",
+          "type": "string"
+        },
+        {
+          "name": "totalSize",
+          "doc": "TotalSize is the size in bytes of the folder and all its children, recursively",
+          "type": "number"
+        },
+        {
+          "name": "candidates",
+          "doc": "Candidates is a list of potentially interesting files, with a lot of additional info",
+          "type": "Candidate[]"
+        }
+      ]
+    },
+    {
+      "name": "Candidate",
+      "doc": "A Candidate is a potentially interesting launch target, be it\na native executable, a Java or Love2D bundle, an HTML index, etc.",
+      "fields": [
+        {
+          "name": "path",
+          "doc": "Path is relative to the configured folder",
+          "type": "string"
+        },
+        {
+          "name": "mode",
+          "doc": "Mode describes file permissions",
+          "type": "number"
+        },
+        {
+          "name": "depth",
+          "doc": "Depth is the number of path elements leading up to this candidate",
+          "type": "number"
+        },
+        {
+          "name": "flavor",
+          "doc": "Flavor is the type of a candidate - native, html, jar etc.",
+          "type": "Flavor"
+        },
+        {
+          "name": "arch",
+          "doc": "Arch describes the architecture of a candidate (where relevant)",
+          "type": "Arch"
+        },
+        {
+          "name": "size",
+          "doc": "Size is the size of the candidate's file, in bytes",
+          "type": "number"
+        },
+        {
+          "name": "spell",
+          "doc": "Spell contains raw output from \u003chttps://github.com/fasterthanlime/wizardry\u003e",
+          "type": "string[]"
+        },
+        {
+          "name": "windowsInfo",
+          "doc": "WindowsInfo contains information specific to native Windows candidates",
+          "type": "WindowsInfo"
+        },
+        {
+          "name": "linuxInfo",
+          "doc": "LinuxInfo contains information specific to native Linux candidates",
+          "type": "LinuxInfo"
+        },
+        {
+          "name": "macosInfo",
+          "doc": "MacosInfo contains information specific to native macOS candidates",
+          "type": "MacosInfo"
+        },
+        {
+          "name": "loveInfo",
+          "doc": "LoveInfo contains information specific to Love2D bundles (`.love` files)",
+          "type": "LoveInfo"
+        },
+        {
+          "name": "scriptInfo",
+          "doc": "ScriptInfo contains information specific to shell scripts (`.sh`, `.bat` etc.)",
+          "type": "ScriptInfo"
+        },
+        {
+          "name": "jarInfo",
+          "doc": "JarInfo contains information specific to Java archives (`.jar` files)",
+          "type": "JarInfo"
+        }
+      ]
+    },
+    {
+      "name": "WindowsInfo",
+      "doc": "Contains information specific to native windows executables\nor installer packages.",
+      "fields": [
+        {
+          "name": "installerType",
+          "doc": "Particular type of installer (msi, inno, etc.)",
+          "type": "WindowsInstallerType"
+        },
+        {
+          "name": "uninstaller",
+          "doc": "True if we suspect this might be an uninstaller rather than an installer",
+          "type": "boolean"
+        },
+        {
+          "name": "gui",
+          "doc": "Is this executable marked as GUI? This can be false and still pop a GUI, it's just a hint.",
+          "type": "boolean"
+        },
+        {
+          "name": "dotNet",
+          "doc": "Is this a .NET assembly?",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "MacosInfo",
+      "doc": "Contains information specific to native macOS executables\nor app bundles.",
+      "fields": null
+    },
+    {
+      "name": "LinuxInfo",
+      "doc": "Contains information specific to native Linux executables",
+      "fields": null
+    },
+    {
+      "name": "LoveInfo",
+      "doc": "Contains information specific to Love2D bundles",
+      "fields": [
+        {
+          "name": "version",
+          "doc": "The version of love2D required to open this bundle. May be empty",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ScriptInfo",
+      "doc": "Contains information specific to shell scripts",
+      "fields": [
+        {
+          "name": "interpreter",
+          "doc": "Something like `/bin/bash`",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "JarInfo",
+      "doc": "Contains information specific to Java archives",
+      "fields": [
+        {
+          "name": "mainClass",
+          "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Receipt",
+      "doc": "A Receipt describes what was installed to a specific folder.\n\nIt's compressed and written to `./.itch/receipt.json.gz` every\ntime an install operation completes successfully, and is used\nin further install operations to make sure ghosts are busted and/or\nangels are saved.",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "The itch.io game installed at this location",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "The itch.io upload installed at this location",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "The itch.io build installed at this location. Null for non-wharf upload.",
+          "type": "Build"
+        },
+        {
+          "name": "files",
+          "doc": "A list of installed files (slash-separated paths, relative to install folder)",
+          "type": "string[]"
+        },
+        {
+          "name": "installerName",
+          "doc": "The installer used to install at this location",
+          "type": "string"
+        },
+        {
+          "name": "msiProductCode",
+          "doc": "If this was installed from an MSI package, the product code,\nused for a clean uninstall.",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FetchCredentials",
+      "doc": "",
+      "fields": [
+        {
+          "name": "sessionId",
+          "doc": "Identifier of session to fetch as",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CollectionGame",
+      "doc": "Association between a @@Game and a @@Collection",
+      "fields": [
+        {
+          "name": "order",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        }
+      ]
+    },
+    {
+      "name": "CollectionSummary",
+      "doc": "Information about a collection + a few games",
+      "fields": [
+        {
+          "name": "collection",
+          "doc": "",
+          "type": "Collection"
+        },
+        {
+          "name": "items",
+          "doc": "",
+          "type": "CollectionGame[]"
+        }
+      ]
+    },
+    {
+      "name": "InstallParams",
+      "doc": "InstallParams contains all the parameters needed to perform\nan installation for a game via @@OperationStartParams.",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "Which game to install",
+          "type": "Game"
+        },
+        {
+          "name": "installFolder",
+          "doc": "An absolute path where to install the game",
+          "type": "string"
+        },
+        {
+          "name": "upload",
+          "doc": "Which upload to install",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "Which build to install",
+          "type": "Build"
+        },
+        {
+          "name": "credentials",
+          "doc": "Which credentials to use to install the game",
+          "type": "GameCredentials"
+        },
+        {
+          "name": "ignoreInstallers",
+          "doc": "If true, do not run windows installers, just extract\nwhatever to the install folder.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "UninstallParams",
+      "doc": "UninstallParams contains all the parameters needed to perform\nan uninstallation for a game via @@OperationStartParams.",
+      "fields": [
+        {
+          "name": "installFolder",
+          "doc": "Absolute path of the folder butler should uninstall",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallResult",
+      "doc": "What was installed by a subtask of @@OperationStartParams.\n\nSee @@TaskSucceededNotification.",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "The game we installed",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "The upload we installed",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "The build we installed",
+          "type": "Build"
+        }
+      ]
+    },
+    {
+      "name": "CheckUpdateItem",
+      "doc": "",
+      "fields": [
+        {
+          "name": "itemId",
+          "doc": "An UUID generated by the client, which allows it to map back the\nresults to its own items.",
+          "type": "string"
+        },
+        {
+          "name": "installedAt",
+          "doc": "Timestamp of the last successful install operation",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "Game for which to look for an update",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "Currently installed upload",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "Currently installed build",
+          "type": "Build"
+        },
+        {
+          "name": "credentials",
+          "doc": "Credentials to use to list uploads",
+          "type": "GameCredentials"
+        }
+      ]
+    },
+    {
+      "name": "GameUpdate",
+      "doc": "Describes an available update for a particular game install.",
+      "fields": [
+        {
+          "name": "itemId",
+          "doc": "Identifier originally passed in CheckUpdateItem",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "Game we found an update for",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "Upload to be installed",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "Build to be installed (may be nil)",
+          "type": "Build"
+        }
+      ]
+    },
+    {
+      "name": "PrereqTask",
+      "doc": "Information about a prerequisite task.",
+      "fields": [
+        {
+          "name": "fullName",
+          "doc": "Full name of the prerequisite, for example: `Microsoft .NET Framework 4.6.2`",
+          "type": "string"
+        },
+        {
+          "name": "order",
+          "doc": "Order of task in the list. Respect this order in the UI if you want consistent progress indicators.",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CleanDownloadsEntry",
+      "doc": "",
+      "fields": [
+        {
+          "name": "path",
+          "doc": "The complete path of the file or folder we intend to remove",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "doc": "The size of the folder or file, in bytes",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "enumTypes": null,
+  "versionNote": "Generated on Mar  1 11:07:58 against butler@561da459820391cdc2c40af3d4172ff2a838db2e"
 }

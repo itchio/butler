@@ -89,11 +89,59 @@ func (c *Client) GetGame(params *GetGameParams) (*GetGameResponse, error) {
 	return r, nil
 }
 
+type GetCollectionParams struct {
+	CollectionID int64 `json:"collectionId"`
+}
+
+func (c *Client) GetCollection(params *GetCollectionParams) (*GetCollectionResponse, error) {
+	r := &GetCollectionResponse{}
+
+	path := c.MakePath("collection/%d", params.CollectionID)
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+type GetCollectionGamesParams struct {
+	CollectionID int64 `json:"collectionId"`
+	Page         int64 `json:"page"`
+}
+
+func (c *Client) GetCollectionGames(params *GetCollectionGamesParams) (*GetCollectionGamesResponse, error) {
+	r := &GetCollectionGamesResponse{}
+
+	values := url.Values{}
+	values.Add("page", fmt.Sprintf("%d", params.Page))
+
+	path := c.MakePath("collection/%d/games?%s", params.CollectionID, values.Encode())
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 // ListMyGames lists the games one develops (ie. can edit)
 func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
 	r := &ListMyGamesResponse{}
 
 	err := c.GetResponse(c.MakePath("my-games"), r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+// ListMyCollections lists the collections associated to a profile
+func (c *Client) ListMyCollections() (*ListMyCollectionsResponse, error) {
+	r := &ListMyCollectionsResponse{}
+
+	err := c.GetResponse(c.MakePath("my-collections"), r)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

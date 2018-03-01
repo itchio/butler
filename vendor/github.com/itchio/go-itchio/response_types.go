@@ -16,6 +16,17 @@ type GetGameResponse struct {
 	Game *Game `json:"game"`
 }
 
+// GetCollectionResponse is what the API server responds when we ask for a collection's info
+type GetCollectionResponse struct {
+	Collection *Collection `json:"collection"`
+}
+
+type GetCollectionGamesResponse struct {
+	Page    int64   `json:"page"`
+	PerPage int64   `json:"perPage"`
+	Games   []*Game `json:"games"`
+}
+
 // GameUploadsResponse is what the server replies with when asked for a game's uploads
 type GameUploadsResponse struct {
 	Uploads []*Upload `json:"uploads"`
@@ -30,6 +41,11 @@ type UploadDownloadResponse struct {
 // an account develops.
 type ListMyGamesResponse struct {
 	Games []*Game `json:"games"`
+}
+
+// ListMyCollectionsResponse is the response for /my-collections
+type ListMyCollectionsResponse struct {
+	Collections []*Collection `json:"collections"`
 }
 
 // NewBuildResponse is what the API replies with when we create a new build

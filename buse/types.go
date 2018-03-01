@@ -186,6 +186,80 @@ type FetchGameYieldNotification struct {
 type FetchGameResult struct {
 }
 
+// Fetches information about a collection and the games it
+// contains.
+//
+// Sends @@FetchCollectionYieldNotification.
+//
+// @name Fetch.Collection
+// @category Fetch
+// @caller client
+type FetchCollectionParams struct {
+	// Credentials to use for fetching
+	Credentials *FetchCredentials `json:"credentials"`
+	// Identifier of the collection to look for
+	CollectionID int64 `json:"collectionId"`
+}
+
+// Contains general info about a collection
+//
+// @name Fetch.Collection.Yield
+// @category Fetch
+type FetchCollectionYieldNotification struct {
+	Collection *itchio.Collection `json:"collection"`
+}
+
+// Contains a range of games associated with a collection.
+// The same ranges may be sent several times: once from
+// the cache, another time from the API.
+//
+// @name Fetch.Collection.YieldGames
+// @category Fetch
+type FetchCollectionYieldGamesNotification struct {
+	Offset int64             `json:"offset"`
+	Total  int64             `json:"total"`
+	Items  []*CollectionGame `json:"items"`
+}
+
+// Association between a @@Game and a @@Collection
+// @category Fetch
+type CollectionGame struct {
+	Order int64        `json:"order"`
+	Game  *itchio.Game `json:"game"`
+}
+
+type FetchCollectionResult struct {
+}
+
+// @name Fetch.MyCollections
+// @category Fetch
+// @caller client
+type FetchMyCollectionsParams struct {
+	// Credentials to use for fetching
+	Credentials *FetchCredentials `json:"credentials"`
+}
+
+// Sent during @@FetchMyCollectionsParams whenever new info is
+// available.
+//
+// @name Fetch.MyCollections.Yield
+// @category Fetch
+type FetchMyCollectionsYieldNotification struct {
+	Offset int64                `json:"offset"`
+	Total  int64                `json:"total"`
+	Items  []*CollectionSummary `json:"items"`
+}
+
+// Information about a collection + a few games
+// @category Fetch
+type CollectionSummary struct {
+	Collection *itchio.Collection `json:"collection"`
+	Items      []*CollectionGame  `json:"items"`
+}
+
+type FetchMyCollectionsResult struct {
+}
+
 //----------------------------------------------------------------------
 // Game
 //----------------------------------------------------------------------
