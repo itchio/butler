@@ -30,6 +30,9 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 	}
 
 	sendDBKeys := func() error {
+		// TODO: remove
+		return nil
+
 		var keys []*itchio.DownloadKey
 		err := db.Model(profile).Related(&keys, "OwnedKeys").Error
 		if err != nil {
@@ -59,32 +62,103 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var keys []interface{}
-	for _, k := range ownedRes.OwnedKeys {
-		k.OwnerID = profile.UserID
-		keys = append(keys, k)
-	}
+	consumer.Infof("Saving %d keys", len(ownedRes.OwnedKeys))
 
-	consumer.Infof("Saving %d keys", len(keys))
-
-	{
+	beforeDiff := time.Now()
+	err = func() error {
 		tx := db.Begin()
+		success := false
 
-		beforeQueue := time.Now()
-		err := tx.Model(profile).Association("OwnedKeys").Replace(keys...).Error
-		if err != nil {
-			tx.Rollback()
-			return nil, errors.Wrap(err, 0)
-		}
-		consumer.Logf("Queuing took %s", time.Since(beforeQueue))
+		defer func() {
+			if success {
+				tx.Commit()
+			} else {
+				tx.Rollback()
+			}
+		}()
 
-		beforeCommit := time.Now()
-		err = tx.Commit().Error
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
+		var newGames []*itchio.Game
+		for _, k := range ownedRes.OwnedKeys {
+			newGames = append(newGames, k.Game)
 		}
-		consumer.Logf("Commit took %s", time.Since(beforeCommit))
+
+		// diff(tx, newGames)
+
+		gameIDMap := make(map[int64]bool)
+		var gameIDs []int64
+		for _, k := range ownedRes.OwnedKeys {
+			id := k.Game.ID
+			if _, ok := gameIDMap[id]; !ok {
+				gameIDs = append(gameIDs, id)
+				gameIDMap[id] = true
+			}
+		}
+
+		var oldGames []*itchio.Game
+		err := tx.Where("id in (?)", gameIDs).Find(&oldGames).Error
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		consumer.Infof("Already have %d/%d games", len(oldGames), len(gameIDs))
+
+		gameMap := make(map[int64]*itchio.Game)
+		for _, g := range oldGames {
+			gameMap[g.ID] = g
+		}
+
+		numChanged := 0
+		for _, k := range ownedRes.OwnedKeys {
+			if g, ok := gameMap[k.Game.ID]; ok {
+				h := k.Game
+
+				if !RecordEqual(*g, *h) {
+					consumer.Infof("Game %s has changed:", g.Title)
+					numChanged++
+				}
+			}
+		}
+
+		consumer.Infof("%d/%d records have changed", numChanged, len(ownedRes.OwnedKeys))
+
+		success = true
+		return nil
+	}()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
+
+	consumer.Infof("Diff ran in %s", time.Since(beforeDiff))
+
+	// {
+	// 	var keys []interface{}
+	// 	for _, k := range ownedRes.OwnedKeys {
+	// 		k.OwnerID = profile.UserID
+	// 		keys = append(keys, k)
+	// 	}
+	// 	tx := db.Begin()
+
+	// 	beforeQueue := time.Now()
+	// 	err := tx.Model(profile).Association("OwnedKeys").Clear().Error
+	// 	if err != nil {
+	// 		tx.Rollback()
+	// 		return nil, errors.Wrap(err, 0)
+	// 	}
+
+	// 	err = tx.Model(profile).Association("OwnedKeys").Append(keys...).Error
+	// 	if err != nil {
+	// 		tx.Rollback()
+	// 		return nil, errors.Wrap(err, 0)
+	// 	}
+	// 	consumer.Logf("Queuing took %s", time.Since(beforeQueue))
+
+	// 	beforeCommit := time.Now()
+	// 	err = tx.Commit().Error
+	// 	if err != nil {
+	// 		return nil, errors.Wrap(err, 0)
+	// 	}
+	// 	consumer.Logf("Commit took %s", time.Since(beforeCommit))
+	// }
 
 	err = sendDBKeys()
 	if err != nil {

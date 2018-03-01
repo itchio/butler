@@ -121,14 +121,9 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 		}
 
 		// TODO: don't do that, use the upload's hashes instead
+		consumer.Infof("→ Upload updated at (%s)", freshUpload.UpdatedAt)
 
-		updatedAt, err := itchio.ParseDate(freshUpload.UpdatedAt)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-		consumer.Infof("→ Upload updated at (%s)", installedAt)
-
-		if updatedAt.After(installedAt) {
+		if freshUpload.UpdatedAt.After(installedAt) {
 			consumer.Statf("↑ Upload was updated after last install, it's an update!")
 			res := &buse.GameUpdate{
 				ItemID: item.ItemID,

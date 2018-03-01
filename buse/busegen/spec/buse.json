@@ -1230,12 +1230,12 @@
         {
           "name": "createdAt",
           "doc": "Date the game was created",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "publishedAt",
           "doc": "Date the game was published, empty if not currently published",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "minPrice",
@@ -1443,12 +1443,12 @@
         {
           "name": "createdAt",
           "doc": "Date this upload was created at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "updatedAt",
           "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
-          "type": "string"
+          "type": "Date"
         }
       ]
     },
@@ -1469,12 +1469,12 @@
         {
           "name": "createdAt",
           "doc": "Date this collection was created at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "updatedAt",
           "doc": "Date this collection was last updated at (item added, title set, etc.)",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "gamesCount",
@@ -1520,12 +1520,12 @@
         {
           "name": "createdAt",
           "doc": "Date this key was created at (often coincides with purchase time)",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "updatedAt",
           "doc": "Date this key was last updated at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "ownerId",
@@ -1576,12 +1576,12 @@
         {
           "name": "createdAt",
           "doc": "Timestamp the build was created at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "updatedAt",
           "doc": "Timestamp the build was last updated at",
-          "type": "string"
+          "type": "Date"
         }
       ]
     },
@@ -1617,12 +1617,12 @@
         {
           "name": "createdAt",
           "doc": "Date this build file was created at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "updatedAt",
           "doc": "Date this build file was last updated at",
-          "type": "string"
+          "type": "Date"
         }
       ]
     },
@@ -2019,5 +2019,5 @@
     }
   ],
   "enumTypes": null,
-  "versionNote": "Generated on Mar  1 18:47:05 against butler@82ae2b6a14c996ae1430909d84575414d0bc81f4"
+  "versionNote": "Generated on Mar  1 20:56:05 against butler@960687b6a8be2f489305b9f7d3a9c4c2271dcdac"
 }

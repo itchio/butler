@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  1 18:47:05 against [butler@82ae2b6](https://github.com/itchio/butler/commit/82ae2b6a14c996ae1430909d84575414d0bc81f4)
+This documentation was generated on Mar  1 20:56:04 against [butler@960687b](https://github.com/itchio/butler/commit/960687b6a8be2f489305b9f7d3a9c4c2271dcdac)
 
 
 ## Starting the service
@@ -4141,13 +4141,13 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date the game was created</p>
 </td>
 </tr>
 <tr>
 <td><code>publishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date the game was published, empty if not currently published</p>
 </td>
 </tr>
@@ -4288,11 +4288,11 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>publishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>minPrice</code></td>
@@ -4779,13 +4779,13 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this upload was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this upload was last updated at (order changed, display name set, etc.)</p>
 </td>
 </tr>
@@ -4857,11 +4857,11 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 </table>
 
@@ -4895,13 +4895,13 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this collection was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this collection was last updated at (item added, title set, etc.)</p>
 </td>
 </tr>
@@ -4951,11 +4951,11 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>gamesCount</code></td>
@@ -5013,13 +5013,13 @@ for free.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this key was last updated at</p>
 </td>
 </tr>
@@ -5057,11 +5057,11 @@ for free.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>ownerId</code></td>
@@ -5133,13 +5133,13 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp the build was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp the build was last updated at</p>
 </td>
 </tr>
@@ -5185,11 +5185,11 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 </table>
 
@@ -5310,13 +5310,13 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this build file was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Date this build file was last updated at</p>
 </td>
 </tr>
@@ -5355,11 +5355,11 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 </table>
 

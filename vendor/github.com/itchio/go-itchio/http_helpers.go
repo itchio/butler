@@ -186,6 +186,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		Result:  dst,
 		// see https://github.com/itchio/itch/issues/1549
 		WeaklyTypedInput: true,
+		DecodeHook:       mapstructure.StringToTimeHookFunc(APIDateFormat),
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)

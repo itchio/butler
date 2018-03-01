@@ -265,7 +265,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "3b2b51bb5094b19648b223fd340a48fcee12ffa8",
+			"revision": "5e0f58d3d47df8b9bbd9c282c3d6176e3f43cce9",
 			"branch": "master",
 			"notests": true
 		},
@@ -386,7 +386,7 @@
 			"importpath": "github.com/mitchellh/mapstructure",
 			"repository": "https://github.com/mitchellh/mapstructure",
 			"vcs": "git",
-			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"revision": "00c29f56e2386353d58c599509e8dc3801b0d716",
 			"branch": "master",
 			"notests": true
 		},

@@ -690,7 +690,3 @@ func (c *Client) Subkey(params *SubkeyParams) (*SubkeyResponse, error) {
 // Dates
 
 const APIDateFormat = "2006-01-02 15:04:05"
-
-func ParseDate(s string) (time.Time, error) {
-	return time.Parse(APIDateFormat, s)
-}
