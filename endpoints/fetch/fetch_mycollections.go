@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
@@ -22,6 +23,9 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
+	database.SetLogger(db, consumer)
+	db.LogMode(true)
+
 	profile := &models.Profile{}
 	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
@@ -30,14 +34,9 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 
 	sendDBCollections := func() error {
 		var collections []*itchio.Collection
-		err = db.Model(profile).Related(&collections, "Collections").Error
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
-		err = db.Preload("Games", func(db *gorm.DB) *gorm.DB {
+		err = db.Model(profile).Preload("Games", func(db *gorm.DB) *gorm.DB {
 			return db.Order(`"order" ASC`).Limit(8)
-		}).Error
+		}).Related(&collections, "Collections").Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -58,6 +57,7 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 						Game:  g,
 					})
 				}
+				c.Games = nil
 
 				yn.Items = append(yn.Items, cs)
 			}

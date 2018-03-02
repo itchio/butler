@@ -22,6 +22,7 @@ var _db *gorm.DB
 // Models contains all the tables contained in butler's database
 var Models = []interface{}{
 	&models.Profile{},
+	&models.ProfileCollection{},
 	&itchio.DownloadKey{},
 	&itchio.Collection{},
 	&models.CollectionGame{},
