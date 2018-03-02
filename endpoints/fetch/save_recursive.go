@@ -12,10 +12,41 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+type Assoc int
+
+const (
+	AssocNone = iota
+	AssocBelongsTo
+	AssocHasOne
+	AssocHasMany
+	AssocManyToMany
+)
+
+func (a Assoc) String() string {
+	switch a {
+	case AssocNone:
+		return "AssocNone"
+	case AssocBelongsTo:
+		return "AssocBelongsTo"
+	case AssocHasOne:
+		return "AssocHasOne"
+	case AssocHasMany:
+		return "AssocHasMany"
+	case AssocManyToMany:
+		return "AssocManyToMany"
+	default:
+		return "<invalid assoc value>"
+	}
+}
+
 type RecordInfo struct {
-	Name     string
-	Type     reflect.Type
-	Children []*RecordInfo
+	Name       string
+	Type       reflect.Type
+	Children   []*RecordInfo
+	Assoc      Assoc
+	JoinTable  string
+	ForeignKey string
+	Scope      *gorm.Scope
 }
 
 func (ri *RecordInfo) String() string {
@@ -50,10 +81,10 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 	val := reflect.ValueOf(rec)
 
-	modelTyps := make(map[reflect.Type]bool)
+	modelTyps := make(map[reflect.Type]*gorm.Scope)
 	for _, m := range database.Models {
 		mtyp := reflect.TypeOf(m)
-		modelTyps[mtyp] = true
+		modelTyps[mtyp] = db.NewScope(m)
 	}
 
 	var walkType func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error)
@@ -64,8 +95,9 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		}
 
 		ri := &RecordInfo{
-			Type: atyp,
-			Name: name,
+			Type:  atyp,
+			Name:  name,
+			Scope: modelTyps[atyp],
 		}
 
 		if atyp.Kind() == reflect.Ptr {
@@ -79,8 +111,10 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		visitField := func(f reflect.StructField, explicit bool) error {
 			fieldTyp := f.Type
 			fieldName := f.Name
+			wasSlice := false
 
 			if fieldTyp.Kind() == reflect.Slice {
+				wasSlice = true
 				fieldTyp = fieldTyp.Elem()
 			}
 
@@ -90,6 +124,76 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 					return errors.Wrap(err, 0)
 				}
 				if child != nil {
+					elTyp := fieldTyp.Elem()
+					gormtag := f.Tag.Get("gorm")
+					tokens := strings.Split(gormtag, ";")
+					var many2manyTable = ""
+					var foreignKey = ""
+					for _, t := range tokens {
+						token := strings.ToLower(strings.TrimSpace(t))
+						if strings.HasPrefix(token, "many2many:") {
+							many2manyTable = strings.TrimPrefix(token, "many2many:")
+						} else if strings.HasPrefix(token, "foreignkey:") {
+							foreignKey = strings.TrimPrefix(token, "foreignkey:")
+						}
+					}
+
+					if wasSlice {
+						if foreignKey == "" {
+							foreignKey = gorm.ToDBName(atyp.Name() + "ID")
+						}
+
+						if many2manyTable != "" {
+							consumer.Infof("%s <many to many> %s (join table %s)", atyp.Name(), elTyp.Name(), many2manyTable)
+							child.Assoc = AssocManyToMany
+						} else {
+							consumer.Infof("%s <has many> %s (via %s)", atyp.Name(), elTyp.Name(), foreignKey)
+							child.Assoc = AssocHasMany
+						}
+					} else if _, ok := atyp.FieldByName(fieldName + "ID"); ok {
+						if foreignKey == "" {
+							foreignKey = gorm.ToDBName(fieldName + "ID")
+						}
+
+						consumer.Infof("%s <belongs to> %s (via %s)", atyp.Name(), elTyp.Name(), foreignKey)
+						child.Assoc = AssocBelongsTo
+					} else if _, ok := elTyp.FieldByName(atyp.Name() + "ID"); ok {
+						if foreignKey == "" {
+							foreignKey = gorm.ToDBName(atyp.Name() + "ID")
+						}
+
+						consumer.Infof("%s <has one> %s (via %s)", atyp.Name(), elTyp.Name(), foreignKey)
+						child.Assoc = AssocHasOne
+					}
+
+					if child.Assoc != AssocNone {
+						child.JoinTable = many2manyTable
+
+						var fktyp reflect.Type
+						switch child.Assoc {
+						case AssocHasOne, AssocHasMany:
+							fktyp = elTyp
+						case AssocBelongsTo:
+							fktyp = atyp
+						}
+
+						if fktyp != nil {
+							foundFK := false
+							for i := 0; i < fktyp.NumField(); i++ {
+								ff := fktyp.Field(i)
+								if gorm.ToDBName(ff.Name) == foreignKey {
+									child.ForeignKey = ff.Name
+									foundFK = true
+									break
+								}
+							}
+
+							if !foundFK {
+								return fmt.Errorf("For %v, didn't find field for foreign key %s", fktyp, foreignKey)
+							}
+						}
+					}
+
 					ri.Children = append(ri.Children, child)
 				}
 			} else {
@@ -102,7 +206,6 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 		if assocs != nil {
 			for _, fieldName := range assocs {
-				consumer.Debugf("looking at assoc %s", fieldName)
 				f, ok := atyp.FieldByName(fieldName)
 				if !ok {
 					return nil, fmt.Errorf("No field '%s' in %s", fieldName, atyp)
@@ -139,11 +242,29 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		return nil
 	}
 
-	var walk func(v reflect.Value, ri *RecordInfo, persist bool) error
+	var walk func(parent reflect.Value, v reflect.Value, ri *RecordInfo, persist bool) error
 
 	var numVisited int64
-	visit := func(v reflect.Value, ri *RecordInfo, persist bool) error {
+	visit := func(parent reflect.Value, v reflect.Value, ri *RecordInfo, persist bool) error {
+		ov := v
+
 		if persist {
+			if ri.Assoc != AssocNone {
+				p := parent
+				switch ri.Assoc {
+				case AssocHasMany, AssocHasOne:
+					pkField := p.Elem().FieldByName("ID")
+					fkField := v.Elem().FieldByName(ri.ForeignKey)
+					fkField.Set(pkField)
+				case AssocBelongsTo:
+					pkField := v.Elem().FieldByName("ID")
+					fkField := p.Elem().FieldByName(ri.ForeignKey)
+					fkField.Set(pkField)
+				case AssocManyToMany:
+					consumer.Warnf("Dunno how to handle %v <ManyToMany> %v yet :(", p.Type(), v.Type())
+				}
+			}
+
 			numVisited++
 			err := addEntity(v)
 			if err != nil {
@@ -151,11 +272,13 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 			}
 		}
 
-		if v.Kind() == reflect.Ptr {
-			v = reflect.Indirect(v)
+		if v.Kind() != reflect.Ptr {
+			return fmt.Errorf("expected a pointer, but got with %v", v)
 		}
+		v = reflect.Indirect(v)
+
 		if v.Kind() != reflect.Struct {
-			return fmt.Errorf("expected a struct, but stuck with %v", v)
+			return fmt.Errorf("expected a struct, but got with %v", v)
 		}
 
 		for _, child := range ri.Children {
@@ -169,7 +292,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 			}
 
 			// always persist children
-			err := walk(field, child, true)
+			err := walk(ov, field, child, true)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -177,16 +300,16 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		return nil
 	}
 
-	walk = func(v reflect.Value, ri *RecordInfo, persist bool) error {
+	walk = func(parent reflect.Value, v reflect.Value, ri *RecordInfo, persist bool) error {
 		if v.Kind() == reflect.Slice {
 			for i := 0; i < v.Len(); i++ {
-				err := visit(v.Index(i), ri, persist)
+				err := visit(parent, v.Index(i), ri, persist)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
 			}
 		} else {
-			err := visit(v, ri, persist)
+			err := visit(parent, v, ri, persist)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -195,7 +318,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 	}
 
 	persistRoot := assocs == nil
-	err = walk(val, tree, persistRoot)
+	err = walk(reflect.Zero(reflect.TypeOf(0)), val, tree, persistRoot)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
