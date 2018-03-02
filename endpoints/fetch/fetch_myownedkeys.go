@@ -81,7 +81,7 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 			}
 		}()
 
-		var newGames []*itchio.Game
+		var newGames []interface{}
 		for _, k := range ownedRes.OwnedKeys {
 			newGames = append(newGames, k.Game)
 		}

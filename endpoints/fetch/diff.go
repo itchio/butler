@@ -10,19 +10,25 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func diff(tx *gorm.DB, consumer *state.Consumer, freshIface interface{}) error {
-	fresh := reflect.ValueOf(freshIface)
-	if fresh.Kind() != reflect.Slice {
+func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
+	input := reflect.ValueOf(inputIface)
+	if input.Kind() != reflect.Slice {
 		return errors.New("diff needs a slice")
 	}
 
-	if fresh.Len() == 0 {
-		consumer.Infof("Nothing to persist (0 fresh records)")
+	if input.Len() == 0 {
+		consumer.Infof("Nothing to persist (0 input records)")
 		return nil
 	}
 
-	first := fresh.Index(0).Interface()
-	scope := tx.NewScope(first)
+	first := input.Index(0).Elem()
+	fresh := reflect.MakeSlice(reflect.SliceOf(first.Type()), input.Len(), input.Len())
+	for i := 0; i < input.Len(); i++ {
+		record := input.Index(i).Elem()
+		fresh.Index(i).Set(record)
+	}
+
+	scope := tx.NewScope(first.Interface())
 
 	modelName := scope.GetModelStruct().ModelType.Name()
 	var pkColumns []string
@@ -53,7 +59,7 @@ func diff(tx *gorm.DB, consumer *state.Consumer, freshIface interface{}) error {
 
 	var err error
 
-	cacheAddr := reflect.New(reflect.TypeOf(freshIface))
+	cacheAddr := reflect.New(fresh.Type())
 	err = tx.Where(fmt.Sprintf("%s in (?)", pkColumn), pks).Find(cacheAddr.Interface()).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
