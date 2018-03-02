@@ -4,14 +4,245 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/database"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 )
 
-func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
-	tx = tx.Set("gorm:save_associations", false)
+type RecordInfo struct {
+	Name     string
+	Type     reflect.Type
+	Children []*RecordInfo
+}
+
+func (ri *RecordInfo) String() string {
+	var lines []string
+	lines = append(lines, fmt.Sprintf("- %s: %s", ri.Name, ri.Type.String()))
+	for _, c := range ri.Children {
+		for _, cl := range strings.Split(c.String(), "\n") {
+			lines = append(lines, "  "+cl)
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+type AllEntities map[reflect.Type]EntityMap
+type EntityMap []interface{}
+
+func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assocs []string) error {
+	startTime := time.Now()
+
+	tx := db.Begin()
+	success := false
+
+	database.SetLogger(tx, consumer)
+
+	defer func() {
+		if success {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	val := reflect.ValueOf(rec)
+	typ := val.Type()
+
+	wasModel := false
+	modelTyps := make(map[reflect.Type]bool)
+	for _, m := range database.Models {
+		mtyp := reflect.TypeOf(m)
+		modelTyps[mtyp] = true
+		if typ == mtyp {
+			wasModel = true
+		}
+	}
+
+	if !wasModel {
+		return fmt.Errorf("%s is not a model", typ)
+	}
+
+	var walkType func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error)
+	walkType = func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error) {
+		consumer.Debugf("walking type %s: %v, assocs = %v", name, atyp, assocs)
+		if atyp.Kind() == reflect.Slice {
+			atyp = atyp.Elem()
+		}
+
+		ri := &RecordInfo{
+			Type: atyp,
+			Name: name,
+		}
+
+		if atyp.Kind() == reflect.Ptr {
+			atyp = atyp.Elem()
+		}
+
+		if atyp.Kind() != reflect.Struct {
+			return nil, nil
+		}
+
+		visitField := func(f reflect.StructField, explicit bool) error {
+			fieldTyp := f.Type
+			fieldName := f.Name
+
+			if fieldTyp.Kind() == reflect.Slice {
+				fieldTyp = fieldTyp.Elem()
+			}
+
+			if _, ok := modelTyps[fieldTyp]; ok {
+				child, err := walkType(f.Name, fieldTyp, nil)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+				if child != nil {
+					ri.Children = append(ri.Children, child)
+				}
+			} else {
+				if explicit {
+					return fmt.Errorf("Type of assoc '%s' (%v) is not a model", fieldName, fieldTyp)
+				}
+			}
+			return nil
+		}
+
+		if assocs != nil {
+			for _, fieldName := range assocs {
+				consumer.Debugf("looking at assoc %s", fieldName)
+				f, ok := atyp.FieldByName(fieldName)
+				if !ok {
+					return nil, fmt.Errorf("No field '%s' in %s", fieldName, atyp)
+				}
+				err := visitField(f, true)
+				if err != nil {
+					return nil, errors.Wrap(err, 0)
+				}
+			}
+		} else {
+			for i := 0; i < atyp.NumField(); i++ {
+				f := atyp.Field(i)
+				err := visitField(f, false)
+				if err != nil {
+					return nil, errors.Wrap(err, 0)
+				}
+			}
+		}
+		return ri, nil
+	}
+	tree, err := walkType("<root>", val.Type(), assocs)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	consumer.Debugf("record tree:\n%s", tree)
+
+	entities := make(AllEntities)
+	addEntity := func(v reflect.Value) error {
+		typ := v.Type()
+		if _, ok := modelTyps[typ]; !ok {
+			return fmt.Errorf("not a model type: %s", typ)
+		}
+		entities[typ] = append(entities[typ], v.Interface())
+		return nil
+	}
+
+	var walk func(v reflect.Value, ri *RecordInfo, persist bool) error
+
+	var numVisited int64
+	visit := func(v reflect.Value, ri *RecordInfo, persist bool) error {
+		if persist {
+			numVisited++
+			err := addEntity(v)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+
+		if v.Kind() == reflect.Ptr {
+			v = reflect.Indirect(v)
+		}
+		if v.Kind() != reflect.Struct {
+			return fmt.Errorf("expected a struct, but stuck with %v", v)
+		}
+
+		for _, child := range ri.Children {
+			field := v.FieldByName(child.Name)
+			if !field.IsValid() {
+				continue
+			}
+
+			if field.Kind() == reflect.Ptr && field.IsNil() {
+				continue
+			}
+
+			// always persist children
+			err := walk(field, child, true)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+		return nil
+	}
+
+	walk = func(v reflect.Value, ri *RecordInfo, persist bool) error {
+		if v.Kind() == reflect.Slice {
+			for i := 0; i < v.Len(); i++ {
+				err := visit(v.Index(i), ri, persist)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+			}
+		} else {
+			err := visit(v, ri, persist)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+		return nil
+	}
+
+	persistRoot := assocs == nil
+	err = walk(val, tree, persistRoot)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Visited %d records in %s", numVisited, time.Since(startTime))
+	for typ, m := range entities {
+		consumer.Debugf("Found %d %s", len(m), typ)
+	}
+
+	startTime = time.Now()
+
+	stats := &SaveManyStats{}
+	for _, m := range entities {
+		err := SaveMany(tx, consumer, m, stats)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	consumer.Infof("Inserted %d, Updated %d, Current %d in %s",
+		stats.Inserted,
+		stats.Updated,
+		stats.Current,
+		time.Since(startTime),
+	)
+
+	success = true
+	return nil
+}
+
+type SaveManyStats struct {
+	Inserted int64
+	Updated  int64
+	Current  int64
+}
+
+func SaveMany(db *gorm.DB, consumer *state.Consumer, inputIface interface{}, stats *SaveManyStats) error {
+	db = db.Set("gorm:save_associations", false)
 
 	// inputIFace is a `[]interface{}`
 	input := reflect.ValueOf(inputIface)
@@ -34,7 +265,7 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 	}
 
 	// use gorm facilities to find the primary keys
-	scope := tx.NewScope(first.Interface())
+	scope := db.NewScope(first.Interface())
 	modelName := scope.GetModelStruct().ModelType.Name()
 	var pkColumns []string
 	fs := scope.Fields()
@@ -44,7 +275,7 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 		}
 	}
 
-	consumer.Infof("Persisting %d records for %s, primary keys: (%s)", fresh.Len(), modelName, strings.Join(pkColumns, ", "))
+	consumer.Debugf("Persisting %d records for %s, primary keys: (%s)", fresh.Len(), modelName, strings.Join(pkColumns, ", "))
 
 	// this will happen for associations, we should have another codepath for that
 	if len(pkColumns) != 1 {
@@ -71,7 +302,7 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 	// for some reason, reflect.New returns a &[]*SomeModel instead,
 	// I'm guessing slices can't be interfaces, but pointers to slices can?
 	cacheAddr := reflect.New(fresh.Type())
-	err = tx.Where(fmt.Sprintf("%s in (?)", pkColumn), pks).Find(cacheAddr.Interface()).Error
+	err = db.Where(fmt.Sprintf("%s in (?)", pkColumn), pks).Find(cacheAddr.Interface()).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -90,9 +321,15 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 	var inserts []reflect.Value
 	var updates = make(map[interface{}]ChangedFields)
 
+	donePK := make(map[interface{}]bool)
 	for i := 0; i < fresh.Len(); i++ {
 		frec := fresh.Index(i)
 		pk := getPk(frec)
+		if _, ok := donePK[pk]; ok {
+			continue
+		}
+		donePK[pk] = true
+
 		if crec, ok := cacheByPK[pk]; ok {
 			// frec and crec are *SomeModel, but `RecordEqual` ignores pointer
 			// equality - we want to compare the contents of the struct
@@ -113,13 +350,13 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 		}
 	}
 
-	consumer.Statf("%d records to insert", len(inserts))
-	consumer.Statf("%d records to update", len(updates))
-	consumer.Statf("%d records valid in cache", fresh.Len()-len(updates)-len(inserts))
+	stats.Inserted += int64(len(inserts))
+	stats.Updated += int64(len(updates))
+	stats.Current += int64(fresh.Len() - len(updates) - len(inserts))
 
 	if len(inserts) > 0 {
 		for _, rec := range inserts {
-			err := tx.Debug().Create(rec.Interface()).Error
+			err := db.Create(rec.Interface()).Error
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -128,7 +365,7 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 
 	if len(updates) > 0 {
 		for pk, rec := range updates {
-			err := tx.Debug().Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkColumn), pk).Updates(rec).Error
+			err := db.Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkColumn), pk).Updates(rec).Error
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}

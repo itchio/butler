@@ -41,6 +41,11 @@ func DiffRecord(x, y interface{}) (ChangedFields, error) {
 			continue
 		}
 
+		if f.Type.Kind() == reflect.Slice {
+			// ignore
+			continue
+		}
+
 		iseq, err := eq(v1.Field(i), v2.Field(i))
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
