@@ -71,7 +71,6 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 		success := false
 
 		database.SetLogger(tx, consumer)
-		tx.LogMode(true)
 
 		defer func() {
 			if success {
@@ -81,12 +80,31 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 			}
 		}()
 
+		var err error
+
+		err = diff(tx, consumer, ownedRes.OwnedKeys)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
 		var newGames []interface{}
 		for _, k := range ownedRes.OwnedKeys {
 			newGames = append(newGames, k.Game)
 		}
 
-		err := diff(tx, consumer, newGames)
+		err = diff(tx, consumer, newGames)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		var newUsers []interface{}
+		for _, k := range ownedRes.OwnedKeys {
+			if k.Game != nil && k.Game.User != nil {
+				newUsers = append(newUsers, k.Game.User)
+			}
+		}
+
+		err = diff(tx, consumer, newUsers)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

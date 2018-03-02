@@ -11,6 +11,8 @@ import (
 )
 
 func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
+	tx = tx.Set("gorm:save_associations", false)
+
 	// inputIFace is a `[]interface{}`
 	input := reflect.ValueOf(inputIface)
 	if input.Kind() != reflect.Slice {
@@ -85,8 +87,8 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 	}
 
 	// compare cached records with fresh records
-	var insertPKs []interface{}
-	var updatePKs []interface{}
+	var inserts []reflect.Value
+	var updates = make(map[interface{}]ChangedFields)
 
 	for i := 0; i < fresh.Len(); i++ {
 		frec := fresh.Index(i)
@@ -97,19 +99,41 @@ func diff(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}) error {
 			// so we indirect to SomeModel here.
 			ifrec := reflect.Indirect(frec).Interface()
 			icrec := reflect.Indirect(crec).Interface()
-			if !RecordEqual(ifrec, icrec) {
-				updatePKs = append(updatePKs, pk)
+
+			cf, err := DiffRecord(ifrec, icrec)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if cf != nil {
+				updates[pk] = cf
 			}
 		} else {
-			insertPKs = append(insertPKs, pk)
+			inserts = append(inserts, frec)
 		}
 	}
 
-	consumer.Statf("%d records to insert", len(insertPKs))
-	consumer.Statf("%d records to update", len(updatePKs))
-	consumer.Statf("%d records valid in cache", fresh.Len()-len(updatePKs)-len(insertPKs))
+	consumer.Statf("%d records to insert", len(inserts))
+	consumer.Statf("%d records to update", len(updates))
+	consumer.Statf("%d records valid in cache", fresh.Len()-len(updates)-len(inserts))
 
-	// persistAddr := reflect.New(reflect.TypeOf(freshIface))
+	if len(inserts) > 0 {
+		for _, rec := range inserts {
+			err := tx.Debug().Create(rec.Interface()).Error
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+	}
+
+	if len(updates) > 0 {
+		for pk, rec := range updates {
+			err := tx.Debug().Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkColumn), pk).Updates(rec).Error
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+	}
 
 	return nil
 }

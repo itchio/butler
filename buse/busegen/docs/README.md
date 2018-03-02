@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  2 10:17:05 against [butler@ffc8e26](https://github.com/itchio/butler/commit/ffc8e2653d3b08cd7a65602d3542ccf6306f4ffa)
+This documentation was generated on Mar  2 12:11:08 against [butler@a6da827](https://github.com/itchio/butler/commit/a6da827d65d3bafe7f6d3924d312358fbd949bda)
 
 
 ## Starting the service
