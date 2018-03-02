@@ -4,10 +4,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
-	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollectionsParams) (*buse.FetchMyCollectionsResult, error) {
@@ -23,9 +21,6 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	database.SetLogger(db, consumer)
-	db.LogMode(true)
-
 	profile := &models.Profile{}
 	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
@@ -34,11 +29,43 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 
 	sendDBCollections := func() error {
 		var collections []*itchio.Collection
-		err = db.Model(profile).Preload("Games", func(db *gorm.DB) *gorm.DB {
-			return db.Order(`"order" ASC`).Limit(8)
-		}).Related(&collections, "Collections").Error
+		err = db.Model(profile).Related(&collections, "Collections").Error
 		if err != nil {
 			return errors.Wrap(err, 0)
+		}
+
+		var collectionIDs []int64
+		collectionsByIDs := make(map[int64]*itchio.Collection)
+		for _, c := range collections {
+			collectionIDs = append(collectionIDs, c.ID)
+			collectionsByIDs[c.ID] = c
+		}
+
+		var cgs []struct {
+			CollectionID int64
+			itchio.Game
+		}
+		err := db.Raw(`
+			SELECT games.*, collection_games.collection_id
+			FROM collections
+			JOIN collection_games ON collection_games.collection_id = collections.id
+			JOIN games ON games.id = collection_games.game_id
+			WHERE collections.id IN (?)
+			AND collection_games.game_id IN (
+				SELECT game_id
+				FROM collection_games
+				WHERE collection_games.collection_id = collections.id
+				ORDER BY "order"
+				LIMIT 8
+			)
+		`, collectionIDs).Scan(&cgs).Error
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		for _, cg := range cgs {
+			c := collectionsByIDs[cg.CollectionID]
+			c.Games = append(c.Games, &cg.Game)
 		}
 
 		if len(collections) > 0 {

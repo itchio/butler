@@ -83,7 +83,7 @@ type Game struct {
 
 	// The best current sale for this game
 	// @optional
-	Sale *Sale `json:"sale"`
+	Sale *Sale `json:"sale,omitempty"`
 
 	// Owner-only fields
 

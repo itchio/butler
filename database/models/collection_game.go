@@ -1,11 +1,19 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	itchio "github.com/itchio/go-itchio"
+)
 
 type CollectionGame struct {
 	CollectionID int64 `json:"collectionId"`
-	GameID       int64 `json:"gameId"`
-	Position     int64 `json:"position"`
+	Collection   *itchio.Collection
+
+	GameID int64 `json:"gameId"`
+	Game   *itchio.Game
+
+	Position int64 `json:"position"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

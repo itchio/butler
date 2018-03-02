@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/itchio/butler/database"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
@@ -77,6 +79,8 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 					if err != nil {
 						return nil, errors.Wrap(err, 0)
 					}
+
+					database.SetLogger(db, consumer)
 
 					_db = db
 				}

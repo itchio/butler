@@ -28,11 +28,8 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 	}
 
 	sendDBKeys := func() error {
-		// TODO: remove
-		return nil
-
 		var keys []*itchio.DownloadKey
-		err := db.Model(profile).Related(&keys, "OwnedKeys").Error
+		err := db.Model(profile).Preload("Game").Related(&keys, "OwnedKeys").Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

@@ -213,7 +213,6 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 								return errors.Wrap(err, 0)
 							}
 							child.ManyToMany = mtm
-							consumer.Infof("Made mtm: %#v", *child.ManyToMany)
 						} else {
 							consumer.Infof("%s <has many> %s (via %s)", atyp.Name(), elTyp.Name(), foreignKey)
 							child.Assoc = AssocHasMany
@@ -330,7 +329,6 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 					fkField.Set(pkField)
 				case AssocManyToMany:
 					ri.ManyToMany.Add(p, v)
-					consumer.Infof("MTM is now: %s", ri.ManyToMany)
 				}
 			}
 
@@ -577,8 +575,6 @@ func SaveMany(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 
 func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 	joinType := reflect.PtrTo(mtm.Scope.GetModelStruct().ModelType)
-	consumer.Infof("Handling join table %s", mtm.JoinTable)
-	consumer.Infof("joinType = %v", joinType)
 
 	getRpk := func(v reflect.Value) interface{} {
 		// TODO: handle different PKs
@@ -587,26 +583,21 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 
 	for lpk, rpks := range mtm.Values {
 		cacheAddr := reflect.New(reflect.SliceOf(joinType))
-		consumer.Infof("cache type: %v", cacheAddr.Type())
 
-		consumer.Infof("Handling lpk %v", lpk)
-		err := tx.Debug().
-			Where(
-				fmt.Sprintf("%s = ?", gorm.ToDBName(mtm.LPKColumn)),
-				lpk,
-			).
+		err := tx.Where(
+			fmt.Sprintf("%s = ?", gorm.ToDBName(mtm.LPKColumn)),
+			lpk,
+		).
 			Find(cacheAddr.Interface()).Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		cache := cacheAddr.Elem()
-		consumer.Infof("Found %d rows", cache.Len())
 
 		cacheByRPK := make(map[interface{}]reflect.Value)
 		for i := 0; i < cache.Len(); i++ {
 			rec := cache.Index(i)
-			consumer.Infof("rec = %v", rec)
 			cacheByRPK[getRpk(rec)] = rec
 		}
 
@@ -632,11 +623,9 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 			}
 		}
 
-		consumer.Infof("%d Inserts, %d Deletes", len(inserts), len(deletes))
-
 		if len(deletes) > 0 {
 			rec := reflect.New(joinType.Elem())
-			err := tx.Debug().
+			err := tx.
 				Delete(
 					rec.Interface(),
 					fmt.Sprintf(
@@ -657,7 +646,7 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 			rec.Elem().FieldByName(mtm.LPKColumn).Set(reflect.ValueOf(lpk))
 			rec.Elem().FieldByName(mtm.RPKColumn).Set(reflect.ValueOf(rpk))
 
-			err := tx.Debug().Create(rec.Interface()).Error
+			err := tx.Create(rec.Interface()).Error
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
