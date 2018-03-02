@@ -13,38 +13,40 @@ import (
 )
 
 func Register(router *buse.Router) {
-	messages.CheckUpdate.Register(router, func(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
-		consumer := rc.Consumer
-		res := &buse.CheckUpdateResult{}
+	messages.CheckUpdate.Register(router, CheckUpdate)
+}
 
-		for _, item := range params.Items {
-			ml := memorylogger.New()
-			update, err := checkUpdateItem(rc, ml.Consumer(), item)
-			if err != nil {
-				res.Warnings = append(res.Warnings, err.Error())
-				if se, ok := err.(*errors.Error); ok {
-					consumer.Warnf("An update check failed: %s", se.ErrorStack())
-				} else {
-					consumer.Warnf("An update check failed: %s", err.Error())
-				}
-				consumer.Warnf("Log follows:")
-				ml.Copy(consumer)
-				consumer.Warnf("End of log")
+func CheckUpdate(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
+	consumer := rc.Consumer
+	res := &buse.CheckUpdateResult{}
+
+	for _, item := range params.Items {
+		ml := memorylogger.New()
+		update, err := checkUpdateItem(rc, ml.Consumer(), item)
+		if err != nil {
+			res.Warnings = append(res.Warnings, err.Error())
+			if se, ok := err.(*errors.Error); ok {
+				consumer.Warnf("An update check failed: %s", se.ErrorStack())
 			} else {
-				if update != nil {
-					res.Updates = append(res.Updates, update)
-					err := messages.GameUpdateAvailable.Notify(rc, &buse.GameUpdateAvailableNotification{
-						Update: update,
-					})
-					if err != nil {
-						consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
-					}
+				consumer.Warnf("An update check failed: %s", err.Error())
+			}
+			consumer.Warnf("Log follows:")
+			ml.Copy(consumer)
+			consumer.Warnf("End of log")
+		} else {
+			if update != nil {
+				res.Updates = append(res.Updates, update)
+				err := messages.GameUpdateAvailable.Notify(rc, &buse.GameUpdateAvailableNotification{
+					Update: update,
+				})
+				if err != nil {
+					consumer.Warnf("Could not send GameUpdateAvailable notification: %s", err.Error())
 				}
 			}
 		}
+	}
 
-		return res, nil
-	})
+	return res, nil
 }
 
 func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *buse.CheckUpdateItem) (*buse.GameUpdate, error) {
