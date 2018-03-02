@@ -138,7 +138,7 @@ const (
 // Presentation information for embed games
 type GameEmbedData struct {
 	// Game this embed info is for
-	GameID int64 `json:"gameId"`
+	GameID int64 `json:"gameId" gorm:"primary_key"`
 
 	// width of the initial viewport, in pixels
 	Width int64 `json:"width"`

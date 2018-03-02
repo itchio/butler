@@ -7,16 +7,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/go-errors/errors"
 )
 
 type ChangedFields map[string]interface{}
 
-func DiffRecord(x, y interface{}) (ChangedFields, error) {
+func DiffRecord(x, y interface{}, scope *gorm.Scope) (ChangedFields, error) {
 	if x == nil || y == nil {
 		return nil, errors.New("DiffRecord: arguments must not be nil")
 	}
+	// v1 is the fresh record (from API)
 	v1 := reflect.ValueOf(x)
+	// v2 is the cached record (from DB)
 	v2 := reflect.ValueOf(y)
 	if v1.Type() != v2.Type() {
 		return nil, errors.New("DiffRecord: arguments are not the same type")
@@ -31,6 +35,7 @@ func DiffRecord(x, y interface{}) (ChangedFields, error) {
 	for i, n := 0, v1.NumField(); i < n; i++ {
 		f := typ.Field(i)
 		fieldName := f.Name
+
 		if strings.HasSuffix(fieldName, "ID") {
 			// ignore
 			continue
@@ -43,6 +48,15 @@ func DiffRecord(x, y interface{}) (ChangedFields, error) {
 
 		if f.Type.Kind() == reflect.Slice {
 			// ignore
+			continue
+		}
+
+		if sf, ok := scope.FieldByName(fieldName); ok {
+			if sf.IsIgnored {
+				continue
+			}
+		} else {
+			// not listed as a field? ignore
 			continue
 		}
 

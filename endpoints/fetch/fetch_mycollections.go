@@ -80,14 +80,8 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var colls []interface{}
-	for _, c := range collRes.Collections {
-		colls = append(colls, c)
-	}
-
-	consumer.Logf("Saving %d collections", len(colls))
-
-	err = db.Model(profile).Association("Collections").Replace(colls...).Error
+	profile.Collections = collRes.Collections
+	err = SaveRecursive(db, consumer, profile, []string{"Collections"})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

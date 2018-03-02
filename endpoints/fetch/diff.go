@@ -49,20 +49,11 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 	}()
 
 	val := reflect.ValueOf(rec)
-	typ := val.Type()
 
-	wasModel := false
 	modelTyps := make(map[reflect.Type]bool)
 	for _, m := range database.Models {
 		mtyp := reflect.TypeOf(m)
 		modelTyps[mtyp] = true
-		if typ == mtyp {
-			wasModel = true
-		}
-	}
-
-	if !wasModel {
-		return fmt.Errorf("%s is not a model", typ)
 	}
 
 	var walkType func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error)
@@ -209,10 +200,12 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		return errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Visited %d records in %s", numVisited, time.Since(startTime))
+	var modelNames []string
 	for typ, m := range entities {
 		consumer.Debugf("Found %d %s", len(m), typ)
+		modelNames = append(modelNames, fmt.Sprintf("%v", typ))
 	}
+	consumer.Infof("Visited %d records (from %s) in %s", numVisited, strings.Join(modelNames, ", "), time.Since(startTime))
 
 	startTime = time.Now()
 
@@ -267,26 +260,32 @@ func SaveMany(db *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 	// use gorm facilities to find the primary keys
 	scope := db.NewScope(first.Interface())
 	modelName := scope.GetModelStruct().ModelType.Name()
-	var pkColumns []string
+	var pkFields []*gorm.Field
+	var pkColumnNames []string
 	fs := scope.Fields()
 	for _, f := range fs {
 		if f.IsPrimaryKey {
-			pkColumns = append(pkColumns, f.Name)
+			pkFields = append(pkFields, f)
+			pkColumnNames = append(pkColumnNames, f.DBName)
 		}
 	}
 
-	consumer.Debugf("Persisting %d records for %s, primary keys: (%s)", fresh.Len(), modelName, strings.Join(pkColumns, ", "))
+	consumer.Debugf("Persisting %d records for %s, primary keys: (%s)", fresh.Len(), modelName, strings.Join(pkColumnNames, ", "))
 
 	// this will happen for associations, we should have another codepath for that
-	if len(pkColumns) != 1 {
-		return fmt.Errorf("Have %d primary keys, don't know what to do", len(pkColumns))
+	if len(pkFields) != 1 {
+		return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
 	}
 
-	pkColumn := pkColumns[0]
+	pkField := pkFields[0]
 
-	// record should be a *SomeModel, we're effecctively doing (*record).<pkColumn>
+	// record should be a *SomeModel, we're effectively doing (*record).<pkColumn>
 	getPk := func(record reflect.Value) interface{} {
-		return reflect.Indirect(record).FieldByName(pkColumn).Interface()
+		f := reflect.Indirect(record).FieldByName(pkField.Name)
+		if !f.IsValid() {
+			return nil
+		}
+		return f.Interface()
 	}
 
 	// collect primary key values for all of input
@@ -302,7 +301,7 @@ func SaveMany(db *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 	// for some reason, reflect.New returns a &[]*SomeModel instead,
 	// I'm guessing slices can't be interfaces, but pointers to slices can?
 	cacheAddr := reflect.New(fresh.Type())
-	err = db.Where(fmt.Sprintf("%s in (?)", pkColumn), pks).Find(cacheAddr.Interface()).Error
+	err = db.Where(fmt.Sprintf("%s in (?)", pkField.DBName), pks).Find(cacheAddr.Interface()).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -337,7 +336,7 @@ func SaveMany(db *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 			ifrec := reflect.Indirect(frec).Interface()
 			icrec := reflect.Indirect(crec).Interface()
 
-			cf, err := DiffRecord(ifrec, icrec)
+			cf, err := DiffRecord(ifrec, icrec, scope)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -365,7 +364,7 @@ func SaveMany(db *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 
 	if len(updates) > 0 {
 		for pk, rec := range updates {
-			err := db.Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkColumn), pk).Updates(rec).Error
+			err := db.Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkField.DBName), pk).Updates(rec).Error
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
