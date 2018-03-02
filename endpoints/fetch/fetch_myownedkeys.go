@@ -77,49 +77,52 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 			}
 		}()
 
-		var newGames []*itchio.Game
+		var newGames []interface{}
 		for _, k := range ownedRes.OwnedKeys {
 			newGames = append(newGames, k.Game)
 		}
 
-		// diff(tx, newGames)
-
-		gameIDMap := make(map[int64]bool)
-		var gameIDs []int64
-		for _, k := range ownedRes.OwnedKeys {
-			id := k.Game.ID
-			if _, ok := gameIDMap[id]; !ok {
-				gameIDs = append(gameIDs, id)
-				gameIDMap[id] = true
-			}
-		}
-
-		var oldGames []*itchio.Game
-		err := tx.Where("id in (?)", gameIDs).Find(&oldGames).Error
+		err := diff(tx, newGames)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		consumer.Infof("Already have %d/%d games", len(oldGames), len(gameIDs))
+		// gameIDMap := make(map[int64]bool)
+		// var gameIDs []int64
+		// for _, k := range ownedRes.OwnedKeys {
+		// 	id := k.Game.ID
+		// 	if _, ok := gameIDMap[id]; !ok {
+		// 		gameIDs = append(gameIDs, id)
+		// 		gameIDMap[id] = true
+		// 	}
+		// }
 
-		gameMap := make(map[int64]*itchio.Game)
-		for _, g := range oldGames {
-			gameMap[g.ID] = g
-		}
+		// var oldGames []*itchio.Game
+		// err := tx.Where("id in (?)", gameIDs).Find(&oldGames).Error
+		// if err != nil {
+		// 	return errors.Wrap(err, 0)
+		// }
 
-		numChanged := 0
-		for _, k := range ownedRes.OwnedKeys {
-			if g, ok := gameMap[k.Game.ID]; ok {
-				h := k.Game
+		// consumer.Infof("Already have %d/%d games", len(oldGames), len(gameIDs))
 
-				if !RecordEqual(*g, *h) {
-					consumer.Infof("Game %s has changed:", g.Title)
-					numChanged++
-				}
-			}
-		}
+		// gameMap := make(map[int64]*itchio.Game)
+		// for _, g := range oldGames {
+		// 	gameMap[g.ID] = g
+		// }
 
-		consumer.Infof("%d/%d records have changed", numChanged, len(ownedRes.OwnedKeys))
+		// numChanged := 0
+		// for _, k := range ownedRes.OwnedKeys {
+		// 	if g, ok := gameMap[k.Game.ID]; ok {
+		// 		h := k.Game
+
+		// 		if !RecordEqual(*g, *h) {
+		// 			consumer.Infof("Game %s has changed:", g.Title)
+		// 			numChanged++
+		// 		}
+		// 	}
+		// }
+
+		// consumer.Infof("%d/%d records have changed", numChanged, len(ownedRes.OwnedKeys))
 
 		success = true
 		return nil
