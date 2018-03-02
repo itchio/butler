@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -69,6 +70,9 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 		tx := db.Begin()
 		success := false
 
+		database.SetLogger(tx, consumer)
+		tx.LogMode(true)
+
 		defer func() {
 			if success {
 				tx.Commit()
@@ -77,12 +81,12 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 			}
 		}()
 
-		var newGames []interface{}
+		var newGames []*itchio.Game
 		for _, k := range ownedRes.OwnedKeys {
 			newGames = append(newGames, k.Game)
 		}
 
-		err := diff(tx, newGames)
+		err := diff(tx, consumer, newGames)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

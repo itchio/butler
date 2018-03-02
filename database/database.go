@@ -1,12 +1,15 @@
 package database
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 	// enable sqlite3 dialect for gorm
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -58,4 +61,22 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+// logging
+
+func SetLogger(db *gorm.DB, consumer *state.Consumer) {
+	db.SetLogger(&gorm.Logger{&consumerLogWriter{consumer}})
+}
+
+type consumerLogWriter struct {
+	consumer *state.Consumer
+}
+
+func (clw *consumerLogWriter) Println(args ...interface{}) {
+	var tokens []string
+	for _, arg := range args {
+		tokens = append(tokens, fmt.Sprintf("%v", arg))
+	}
+	clw.consumer.Infof("%s", strings.Join(tokens, " "))
 }
