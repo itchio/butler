@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  5 12:18:43 against [butler@8133872](https://github.com/itchio/butler/commit/8133872c5fe99cd17606ab2af7958e0e4f3949dc)
+This documentation was generated on Mar  5 13:50:25 against [butler@7f0134a](https://github.com/itchio/butler/commit/7f0134a7fd8eff2996128256c7a7cb3781e372a8)
 
 
 ## Starting the service
@@ -702,67 +702,6 @@ contains.</p>
 
 </div>
 
-### <em class="notification"></em>Fetch.Collection.YieldGames
-
-
-<p>
-<p>Contains a range of games associated with a collection.
-The same ranges may be sent several times: once from
-the cache, another time from the API.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>offset</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchCollectionYieldGamesNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.Collection.YieldGames <a href="#/?id=fetchcollectionyieldgames">(Go to definition)</a></p>
-
-<p>
-<p>Contains a range of games associated with a collection.
-The same ranges may be sent several times: once from
-the cache, another time from the API.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>offset</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
 ### <em class="struct-type"></em>CollectionGame
 
 
@@ -778,9 +717,11 @@ the cache, another time from the API.</p>
 
 <table class="field-table">
 <tr>
-<td><code>order</code></td>
+<td><code>position</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p>Position in collection, use if you want to display them in the
+canonical itch.io order</p>
+</td>
 </tr>
 <tr>
 <td><code>game</code></td>
@@ -800,7 +741,7 @@ the cache, another time from the API.</p>
 
 <table class="field-table">
 <tr>
-<td><code>order</code></td>
+<td><code>position</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
@@ -876,7 +817,7 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionSummary__TypeHint">CollectionSummary</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
 <td></td>
 </tr>
 </table>
@@ -902,55 +843,7 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionSummary</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>CollectionSummary
-
-
-<p>
-<p>Information about a collection + a few games</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="CollectionSummary__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CollectionSummary <a href="#/?id=collectionsummary">(Go to definition)</a></p>
-
-<p>
-<p>Information about a collection + a few games</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span>[]</code></td>
 </tr>
 </table>
 
@@ -3472,9 +3365,10 @@ ie. that we can connect as, etc.</p>
 <td></td>
 </tr>
 <tr>
-<td><code>order</code></td>
+<td><code>position</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p>Position on profile, from 0 to N</p>
+</td>
 </tr>
 <tr>
 <td><code>viewsCount</code></td>
@@ -3513,7 +3407,7 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type struct-type">User</span></code></td>
 </tr>
 <tr>
-<td><code>order</code></td>
+<td><code>position</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>

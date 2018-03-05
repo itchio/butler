@@ -5,6 +5,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/jinzhu/gorm"
 )
 
 func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams) (*buse.FetchCollectionResult, error) {
@@ -24,20 +25,29 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.Wrap(err, 0)
 	}
 
-	hadLocal := false
-	collection := &itchio.Collection{}
-	req := db.Where("id = ?", params.CollectionID).First(collection)
-	if req.Error != nil {
-		if !req.RecordNotFound() {
-			return nil, errors.Wrap(req.Error, 0)
+	sendDBCollection := func() error {
+		collection := &itchio.Collection{}
+		req := db.Preload("CollectionGames", func(db *gorm.DB) *gorm.DB {
+			return db.Order(`"position" ASC`)
+		}).Preload("CollectionGames.Game").Where("id = ?", params.CollectionID).First(collection)
+		if req.Error != nil {
+			if req.RecordNotFound() {
+				return nil
+			}
+			return errors.Wrap(req.Error, 0)
 		}
-	} else {
-		hadLocal = true
-		consumer.Infof("Yielding cached collection")
+
 		err = messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collection})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
+
+		return nil
+	}
+
+	err = sendDBCollection()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("Querying API...")
@@ -48,14 +58,20 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collRes.Collection})
+	collection := collRes.Collection
+	collection.Games = nil
+	collection.CollectionGames = nil
+	err = SaveRecursive(db, consumer, &SaveParams{
+		Record: collRes.Collection,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	if hadLocal {
-		// TODO: persist
-		consumer.Infof("should persist collection: stub")
+	// after collection metadata update
+	err = sendDBCollection()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	var offset int64
@@ -75,17 +91,19 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 			break
 		}
 
-		ygn := &buse.FetchCollectionYieldGamesNotification{}
-		ygn.Offset = offset
-		ygn.Total = offset + numPageGames
 		for i, game := range gamesRes.Games {
-			cg := &buse.CollectionGame{
-				Order: offset + int64(i),
-				Game:  game,
-			}
-			ygn.Items = append(ygn.Items, cg)
+			collection.CollectionGames = append(collection.CollectionGames, &itchio.CollectionGame{
+				Position: offset + int64(i),
+				Game:     game,
+			})
 		}
-		err = messages.FetchCollectionYieldGames.Notify(rc, ygn)
+
+		err = SaveRecursive(db, consumer, &SaveParams{
+			Record: collection,
+			Assocs: []string{"CollectionGames"},
+
+			PartialJoins: []string{"CollectionGames"},
+		})
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
@@ -93,13 +111,34 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		offset += numPageGames
 
 		if offset >= collection.GamesCount {
+			// already fetched all or more?!
 			break
 		}
 
-		if hadLocal {
-			// TODO: persist
-			consumer.Infof("should persist collection games: stub")
+		if numPageGames < gamesRes.PerPage {
+			// that probably means there's no more pages
+			break
 		}
+
+		// after each page of games fetched
+		err = sendDBCollection()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
+	err = SaveRecursive(db, consumer, &SaveParams{
+		Record: collection,
+		Assocs: []string{"CollectionGames"},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	// after all pages are fetched
+	err = sendDBCollection()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	res := &buse.FetchCollectionResult{}

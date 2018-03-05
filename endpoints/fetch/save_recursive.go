@@ -137,7 +137,35 @@ func (ri *RecordInfo) String() string {
 type AllEntities map[reflect.Type]EntityMap
 type EntityMap []interface{}
 
-func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assocs []string) error {
+type SaveParams struct {
+	// Record to save
+	Record interface{}
+
+	// Fields to save instead of the top-level record
+	Assocs []string
+
+	// Disable deleting join table entries (useful for partial data)
+	PartialJoins []string
+}
+
+type VisitMap map[reflect.Type]bool
+
+func (vm VisitMap) CopyAndMark(t reflect.Type) VisitMap {
+	vv := make(VisitMap)
+	for k, v := range vm {
+		vv[k] = v
+	}
+	vv[t] = true
+	return vv
+}
+
+func SaveRecursive(db *gorm.DB, consumer *state.Consumer, params *SaveParams) error {
+	if params == nil {
+		return errors.New("SaveRecursive: params cannot be nil")
+	}
+	rec := params.Record
+	assocs := params.Assocs
+
 	startTime := time.Now()
 
 	tx := db.Begin()
@@ -162,14 +190,14 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 	}
 
 	riMap := make(map[reflect.Type]*RecordInfo)
-	visited := make(map[reflect.Type]bool)
 
-	var walkType func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error)
-	walkType = func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error) {
+	var walkType func(name string, atyp reflect.Type, visited VisitMap, assocs []string) (*RecordInfo, error)
+	walkType = func(name string, atyp reflect.Type, visited VisitMap, assocs []string) (*RecordInfo, error) {
 		if visited[atyp] {
+			consumer.Debugf("Already visited %v, not recursing.", atyp)
 			return nil, nil
 		}
-		visited[atyp] = true
+		visited = visited.CopyAndMark(atyp)
 
 		consumer.Debugf("walking type %s: %v, assocs = %v", name, atyp, assocs)
 		if atyp.Kind() == reflect.Slice {
@@ -202,7 +230,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 			}
 
 			if _, ok := scopeMap[fieldTyp]; ok {
-				child, err := walkType(f.Name, fieldTyp, nil)
+				child, err := walkType(f.Name, fieldTyp, visited, nil)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
@@ -314,7 +342,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		riMap[refAtyp] = ri
 		return ri, nil
 	}
-	tree, err := walkType("<root>", val.Type(), assocs)
+	tree, err := walkType("<root>", val.Type(), make(VisitMap), assocs)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -422,7 +450,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 	stats := &SaveManyStats{}
 	for _, m := range entities {
-		err := SaveMany(tx, consumer, scopeMap, m, stats)
+		err := SaveMany(params, tx, consumer, scopeMap, m, stats)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -430,7 +458,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 	for _, ri := range riMap {
 		if ri.ManyToMany != nil {
-			err := SaveJoins(tx, consumer, ri.ManyToMany)
+			err := SaveJoins(params, tx, consumer, ri.ManyToMany)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -454,7 +482,7 @@ type SaveManyStats struct {
 	Current  int64
 }
 
-func SaveMany(tx *gorm.DB, consumer *state.Consumer, scopeMap ScopeMap, inputIface interface{}, stats *SaveManyStats) error {
+func SaveMany(params *SaveParams, tx *gorm.DB, consumer *state.Consumer, scopeMap ScopeMap, inputIface interface{}, stats *SaveManyStats) error {
 	tx = tx.Set("gorm:save_associations", false)
 
 	// inputIFace is a `[]interface{}`
@@ -569,7 +597,7 @@ func SaveMany(tx *gorm.DB, consumer *state.Consumer, scopeMap ScopeMap, inputIfa
 			}
 		}
 
-		err = SaveJoins(tx, consumer, mtm)
+		err = SaveJoins(params, tx, consumer, mtm)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -681,7 +709,15 @@ func SaveMany(tx *gorm.DB, consumer *state.Consumer, scopeMap ScopeMap, inputIfa
 	return nil
 }
 
-func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
+func SaveJoins(params *SaveParams, tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
+	partial := false
+	for _, pj := range params.PartialJoins {
+		if mtm.Scope.TableName() == gorm.ToDBName(pj) {
+			consumer.Debugf("Saving partial joins for %s", mtm.Scope.TableName())
+			partial = true
+		}
+	}
+
 	joinType := reflect.PtrTo(mtm.Scope.GetModelStruct().ModelType)
 
 	getRpk := func(v reflect.Value) interface{} {
@@ -750,21 +786,25 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 
 		consumer.Debugf("SaveJoins: %d Inserts, %d Updates, %d Deletes", len(inserts), len(updates), len(deletes))
 
-		if len(deletes) > 0 {
-			rec := reflect.New(joinType.Elem())
-			err := tx.
-				Delete(
-					rec.Interface(),
-					fmt.Sprintf(
-						`"%s" = ? and "%s" in (?)`,
-						gorm.ToDBName(mtm.LPKColumn),
-						gorm.ToDBName(mtm.RPKColumn),
-					),
-					lpk,
-					deletes,
-				).Error
-			if err != nil {
-				return errors.Wrap(err, 0)
+		if partial {
+			// Not deleting extra join records, as requested
+		} else {
+			if len(deletes) > 0 {
+				rec := reflect.New(joinType.Elem())
+				err := tx.
+					Delete(
+						rec.Interface(),
+						fmt.Sprintf(
+							`"%s" = ? and "%s" in (?)`,
+							gorm.ToDBName(mtm.LPKColumn),
+							gorm.ToDBName(mtm.RPKColumn),
+						),
+						lpk,
+						deletes,
+					).Error
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
 			}
 		}
 
@@ -801,8 +841,6 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 				return errors.Wrap(err, 0)
 			}
 		}
-
-		return nil
 	}
 
 	return nil

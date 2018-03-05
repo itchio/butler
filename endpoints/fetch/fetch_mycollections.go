@@ -28,25 +28,31 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 	}
 
 	sendDBCollections := func() error {
-		var collections []*itchio.Collection
-		err = db.Model(profile).Related(&collections, "Collections").Error
+		var profileCollections []*models.ProfileCollection
+		err = db.Model(profile).
+			Preload("Collection").
+			Order(`"position" DESC`).
+			Related(&profileCollections, "ProfileCollections").
+			Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		var collectionIDs []int64
 		collectionsByIDs := make(map[int64]*itchio.Collection)
-		for _, c := range collections {
+		for _, pc := range profileCollections {
+			c := pc.Collection
 			collectionIDs = append(collectionIDs, c.ID)
 			collectionsByIDs[c.ID] = c
 		}
 
+		// TODO: figure out if we can't just pass `itchio.CollectionGame` here
 		var cgs []struct {
-			CollectionID int64
+			itchio.CollectionGame
 			itchio.Game
 		}
 		err := db.Raw(`
-			SELECT games.*, collection_games.collection_id
+			SELECT collection_games.*, games.*
 			FROM collections
 			JOIN collection_games ON collection_games.collection_id = collections.id
 			JOIN games ON games.id = collection_games.game_id
@@ -55,7 +61,7 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 				SELECT game_id
 				FROM collection_games
 				WHERE collection_games.collection_id = collections.id
-				ORDER BY "order"
+				ORDER BY "position" ASC
 				LIMIT 8
 			)
 		`, collectionIDs).Scan(&cgs).Error
@@ -64,29 +70,18 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		}
 
 		for _, cg := range cgs {
-			c := collectionsByIDs[cg.CollectionID]
-			c.Games = append(c.Games, &cg.Game)
+			c := collectionsByIDs[cg.CollectionGame.CollectionID]
+			cg.CollectionGame.Game = &cg.Game
+			c.CollectionGames = append(c.CollectionGames, &cg.CollectionGame)
 		}
 
-		if len(collections) > 0 {
+		if len(profileCollections) > 0 {
 			yn := &buse.FetchMyCollectionsYieldNotification{}
 			yn.Offset = 0
-			yn.Total = int64(len(collections))
+			yn.Total = int64(len(profileCollections))
 
-			for _, c := range collections {
-				cs := &buse.CollectionSummary{
-					Collection: c,
-				}
-
-				for i, g := range c.Games {
-					cs.Items = append(cs.Items, &buse.CollectionGame{
-						Order: int64(i),
-						Game:  g,
-					})
-				}
-				c.Games = nil
-
-				yn.Items = append(yn.Items, cs)
+			for _, pc := range profileCollections {
+				yn.Items = append(yn.Items, pc.Collection)
 			}
 
 			err = messages.FetchMyCollectionsYield.Notify(rc, yn)
@@ -107,8 +102,29 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	profile.Collections = collRes.Collections
-	err = SaveRecursive(db, consumer, profile, []string{"Collections"})
+	profile.ProfileCollections = nil
+	for i, c := range collRes.Collections {
+		for j, g := range c.Games {
+			c.CollectionGames = append(c.CollectionGames, &itchio.CollectionGame{
+				Position: int64(j),
+				Game:     g,
+			})
+		}
+		c.Games = nil
+
+		profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
+			// Other fields are set when saving the association
+			Collection: c,
+			Position:   int64(i),
+		})
+	}
+
+	err = SaveRecursive(db, consumer, &SaveParams{
+		Record: profile,
+		Assocs: []string{"ProfileCollections"},
+
+		PartialJoins: []string{"CollectionGames"},
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

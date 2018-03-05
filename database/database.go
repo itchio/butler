@@ -61,6 +61,12 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 		db.LogMode(true)
 	}
 
+	// disable default gorm timestamp behavior, since our
+	// "created_at/updated_at" fields typically come from
+	// the API.
+	db.Callback().Create().Remove("gorm:update_time_stamp")
+	db.Callback().Update().Remove("gorm:update_time_stamp")
+
 	return db, nil
 }
 

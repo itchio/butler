@@ -203,23 +203,13 @@ type FetchCollectionYieldNotification struct {
 	Collection *itchio.Collection `json:"collection"`
 }
 
-// Contains a range of games associated with a collection.
-// The same ranges may be sent several times: once from
-// the cache, another time from the API.
-//
-// @name Fetch.Collection.YieldGames
-// @category Fetch
-type FetchCollectionYieldGamesNotification struct {
-	Offset int64             `json:"offset"`
-	Total  int64             `json:"total"`
-	Items  []*CollectionGame `json:"items"`
-}
-
 // Association between a @@Game and a @@Collection
 // @category Fetch
 type CollectionGame struct {
-	Order int64        `json:"order"`
-	Game  *itchio.Game `json:"game"`
+	// Position in collection, use if you want to display them in the
+	// canonical itch.io order
+	Position int64        `json:"position"`
+	Game     *itchio.Game `json:"game"`
 }
 
 type FetchCollectionResult struct {
@@ -241,14 +231,7 @@ type FetchMyCollectionsParams struct {
 type FetchMyCollectionsYieldNotification struct {
 	Offset int64                `json:"offset"`
 	Total  int64                `json:"total"`
-	Items  []*CollectionSummary `json:"items"`
-}
-
-// Information about a collection + a few games
-// @category Fetch
-type CollectionSummary struct {
-	Collection *itchio.Collection `json:"collection"`
-	Items      []*CollectionGame  `json:"items"`
+	Items  []*itchio.Collection `json:"items"`
 }
 
 type FetchMyCollectionsResult struct {
@@ -266,7 +249,8 @@ type MyGame struct {
 	Game *itchio.Game `json:"game,omitempty"`
 	User *itchio.User `json:"user,omitempty"`
 
-	Order int64 `json:"order"`
+	// Position on profile, from 0 to N
+	Position int64 `json:"position"`
 
 	ViewsCount     int64 `json:"viewsCount"`
 	DownloadsCount int64 `json:"downloadsCount"`

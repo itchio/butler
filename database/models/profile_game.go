@@ -17,7 +17,7 @@ type ProfileGame struct {
 	UserID int64        `json:"userId"`
 	User   *itchio.User `json:"user,omitempty"`
 
-	Order int64 `json:"order"`
+	Position int64 `json:"position"`
 
 	// Stats
 

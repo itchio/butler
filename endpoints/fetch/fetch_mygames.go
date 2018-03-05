@@ -42,7 +42,7 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 		for _, pg := range profileGames {
 			yn.Items = append(yn.Items, &buse.MyGame{
 				Game:           pg.Game,
-				Order:          pg.Order,
+				Position:       pg.Position,
 				ViewsCount:     pg.ViewsCount,
 				DownloadsCount: pg.DownloadsCount,
 				PurchasesCount: pg.PurchasesCount,
@@ -73,9 +73,8 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 	profile.ProfileGames = nil
 	for i, g := range gamesRes.Games {
 		profile.ProfileGames = append(profile.ProfileGames, &models.ProfileGame{
-			// NB: UserID is set automatically when saving profile
-			GameID:         g.ID,
-			Order:          int64(i),
+			Game:           g,
+			Position:       int64(i),
 			Published:      g.Published,
 			ViewsCount:     g.ViewsCount,
 			PurchasesCount: g.PurchasesCount,
@@ -83,7 +82,10 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 		})
 	}
 
-	err = SaveRecursive(db, consumer, profile, []string{"ProfileGames"})
+	err = SaveRecursive(db, consumer, &SaveParams{
+		Record: profile,
+		Assocs: []string{"ProfileGames"},
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

@@ -235,10 +235,10 @@ type Collection struct {
 }
 
 type CollectionGame struct {
-	CollectionID int64       `json:"collectionId"`
+	CollectionID int64       `json:"collectionId" gorm:"primary_key"`
 	Collection   *Collection `json:"collection,omitempty"`
 
-	GameID int64 `json:"gameId"`
+	GameID int64 `json:"gameId" gorm:"primary_key"`
 	Game   *Game `json:"game,omitempty"`
 
 	Position int64 `json:"position"`

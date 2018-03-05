@@ -13,7 +13,7 @@ type Download struct {
 	Reason     string    `json:"reason"`
 	Progress   float64   `json:"progress"`
 	Finished   bool      `json:"finished"`
-	Order      int64     `json:"order"`
+	Position   int64     `json:"position"`
 	BPS        float64   `json:"bps"`
 	ETA        float64   `json:"eta"`
 	StartedAt  time.Time `json:"startedAt"`

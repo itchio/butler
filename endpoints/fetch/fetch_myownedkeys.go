@@ -58,7 +58,10 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 	}
 
 	profile.OwnedKeys = ownedRes.OwnedKeys
-	err = SaveRecursive(db, consumer, profile, []string{"OwnedKeys"})
+	err = SaveRecursive(db, consumer, &SaveParams{
+		Record: profile,
+		Assocs: []string{"OwnedKeys"},
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

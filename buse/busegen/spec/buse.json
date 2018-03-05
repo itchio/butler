@@ -749,29 +749,6 @@
       }
     },
     {
-      "method": "Fetch.Collection.YieldGames",
-      "doc": "Contains a range of games associated with a collection.\nThe same ranges may be sent several times: once from\nthe cache, another time from the API.",
-      "params": {
-        "fields": [
-          {
-            "name": "offset",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "total",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "items",
-            "doc": "",
-            "type": "CollectionGame[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "Fetch.MyCollections.Yield",
       "doc": "Sent during @@FetchMyCollectionsParams whenever new info is\navailable.",
       "params": {
@@ -789,7 +766,7 @@
           {
             "name": "items",
             "doc": "",
-            "type": "CollectionSummary[]"
+            "type": "Collection[]"
           }
         ]
       }
@@ -1037,8 +1014,8 @@
           "type": "User"
         },
         {
-          "name": "order",
-          "doc": "",
+          "name": "position",
+          "doc": "Position on profile, from 0 to N",
           "type": "number"
         },
         {
@@ -1925,30 +1902,14 @@
       "doc": "Association between a @@Game and a @@Collection",
       "fields": [
         {
-          "name": "order",
-          "doc": "",
+          "name": "position",
+          "doc": "Position in collection, use if you want to display them in the\ncanonical itch.io order",
           "type": "number"
         },
         {
           "name": "game",
           "doc": "",
           "type": "Game"
-        }
-      ]
-    },
-    {
-      "name": "CollectionSummary",
-      "doc": "Information about a collection + a few games",
-      "fields": [
-        {
-          "name": "collection",
-          "doc": "",
-          "type": "Collection"
-        },
-        {
-          "name": "items",
-          "doc": "",
-          "type": "CollectionGame[]"
         }
       ]
     },
@@ -2116,5 +2077,5 @@
     }
   ],
   "enumTypes": null,
-  "versionNote": "Generated on Mar  5 12:18:44 against butler@8133872c5fe99cd17606ab2af7958e0e4f3949dc"
+  "versionNote": "Generated on Mar  5 13:50:26 against butler@7f0134a7fd8eff2996128256c7a7cb3781e372a8"
 }
