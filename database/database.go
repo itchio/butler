@@ -17,8 +17,6 @@ import (
 
 var debugSql = os.Getenv("BUTLER_SQL") == "1"
 
-var _db *gorm.DB
-
 // Models contains all the tables contained in butler's database
 var Models = []interface{}{
 	&models.Profile{},
@@ -52,13 +50,13 @@ func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
 
 // Prepare synchronizes schemas, runs migrations etc.
 func Prepare(db *gorm.DB) (*gorm.DB, error) {
+	if debugSql {
+		db.LogMode(true)
+	}
+
 	err := db.AutoMigrate(Models...).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
-	}
-
-	if debugSql {
-		db.LogMode(true)
 	}
 
 	// disable default gorm timestamp behavior, since our

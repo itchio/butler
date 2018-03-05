@@ -138,7 +138,7 @@ const (
 // Presentation information for embed games
 type GameEmbedData struct {
 	// Game this embed info is for
-	GameID int64 `json:"gameId" gorm:"primary_key"`
+	GameID int64 `json:"gameId" gorm:"primary_key;auto_increment:false"`
 
 	// width of the initial viewport, in pixels
 	Width int64 `json:"width"`
@@ -235,10 +235,10 @@ type Collection struct {
 }
 
 type CollectionGame struct {
-	CollectionID int64       `json:"collectionId" gorm:"primary_key"`
+	CollectionID int64       `json:"collectionId" gorm:"primary_key;auto_increment:false"`
 	Collection   *Collection `json:"collection,omitempty"`
 
-	GameID int64 `json:"gameId" gorm:"primary_key"`
+	GameID int64 `json:"gameId" gorm:"primary_key;auto_increment:false"`
 	Game   *Game `json:"game,omitempty"`
 
 	Position int64 `json:"position"`
