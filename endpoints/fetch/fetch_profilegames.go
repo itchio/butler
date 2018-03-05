@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
@@ -19,6 +20,8 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
+
+	c := hades.NewContext(db, consumer)
 
 	sendDBGames := func() error {
 		var profileGames []*models.ProfileGame
@@ -76,7 +79,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		})
 	}
 
-	err = SaveRecursive(db, consumer, &SaveParams{
+	err = c.Save(db, &hades.SaveParams{
 		Record: profile,
 		Assocs: []string{"ProfileGames"},
 	})

@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/hades"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
 )
@@ -61,7 +62,10 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 	collection := collRes.Collection
 	collection.Games = nil
 	collection.CollectionGames = nil
-	err = SaveRecursive(db, consumer, &SaveParams{
+
+	c := hades.NewContext(db, consumer)
+
+	err = c.Save(db, &hades.SaveParams{
 		Record: collRes.Collection,
 	})
 	if err != nil {
@@ -98,7 +102,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 			})
 		}
 
-		err = SaveRecursive(db, consumer, &SaveParams{
+		err = c.Save(db, &hades.SaveParams{
 			Record: collection,
 			Assocs: []string{"CollectionGames"},
 
@@ -127,7 +131,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		}
 	}
 
-	err = SaveRecursive(db, consumer, &SaveParams{
+	err = c.Save(db, &hades.SaveParams{
 		Record: collection,
 		Assocs: []string{"CollectionGames"},
 	})

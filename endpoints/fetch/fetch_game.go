@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -53,7 +54,11 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = db.Save(gameRes.Game).Error
+	c := hades.NewContext(db, consumer)
+
+	err = c.Save(db, &hades.SaveParams{
+		Record: gameRes.Game,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

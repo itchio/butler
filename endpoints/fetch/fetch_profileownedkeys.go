@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/hades"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -50,8 +51,10 @@ func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwn
 		return nil, errors.Wrap(err, 0)
 	}
 
+	c := hades.NewContext(db, consumer)
+
 	profile.OwnedKeys = ownedRes.OwnedKeys
-	err = SaveRecursive(db, consumer, &SaveParams{
+	err = c.Save(db, &hades.SaveParams{
 		Record: profile,
 		Assocs: []string{"OwnedKeys"},
 	})

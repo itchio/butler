@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
 )
@@ -112,7 +113,9 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		})
 	}
 
-	err = SaveRecursive(db, consumer, &SaveParams{
+	c := hades.NewContext(db, consumer)
+
+	err = c.Save(db, &hades.SaveParams{
 		Record: profile,
 		Assocs: []string{"ProfileCollections"},
 

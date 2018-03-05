@@ -1,4 +1,4 @@
-package fetch
+package hades
 
 import (
 	"fmt"
