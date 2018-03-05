@@ -87,11 +87,11 @@ type Game struct {
 
 	// Owner-only fields
 
-	ViewsCount     int64 `json:"viewsCount" gorm:"-"`
-	DownloadsCount int64 `json:"downloadsCount" gorm:"-"`
-	PurchasesCount int64 `json:"purchasesCount" gorm:"-"`
+	ViewsCount     int64 `json:"viewsCount,omitempty" gorm:"-"`
+	DownloadsCount int64 `json:"downloadsCount,omitempt" gorm:"-"`
+	PurchasesCount int64 `json:"purchasesCount,omitempt" gorm:"-"`
 
-	Published bool `json:"published" gorm:"-"`
+	Published bool `json:"published,omitempty" gorm:"-"`
 }
 
 // Type of an itch.io game page, mostly related to
@@ -224,11 +224,30 @@ type Collection struct {
 	// page deleted, visibility level changed, etc.)
 	GamesCount int64 `json:"gamesCount"`
 
-	// The first few games of this collection
+	// Games in this collection: filled in API response
 	Games []*Game `json:"games,omitempty" gorm:"many2many:collection_games"`
+
+	// Games in this collection, with additional info
+	CollectionGames []*CollectionGame `json:"collectionGames,omitempty"`
 
 	UserID int64 `json:"userId"`
 	User   *User `json:"user,omitempty"`
+}
+
+type CollectionGame struct {
+	CollectionID int64       `json:"collectionId"`
+	Collection   *Collection `json:"collection,omitempty"`
+
+	GameID int64 `json:"gameId"`
+	Game   *Game `json:"game,omitempty"`
+
+	Position int64 `json:"position"`
+
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Blurb  string `json:"blurb"`
+	UserID int64  `json:"userId"`
 }
 
 // A download key is often generated when a purchase is made, it

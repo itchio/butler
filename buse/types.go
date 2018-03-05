@@ -262,12 +262,25 @@ type FetchMyGamesParams struct {
 	SessionID int64 `json:"sessionId"`
 }
 
+type MyGame struct {
+	Game *itchio.Game `json:"game,omitempty"`
+	User *itchio.User `json:"user,omitempty"`
+
+	Order int64 `json:"order"`
+
+	ViewsCount     int64 `json:"viewsCount"`
+	DownloadsCount int64 `json:"downloadsCount"`
+	PurchasesCount int64 `json:"purchasesCount"`
+
+	Published bool `json:"published"`
+}
+
 // @name Fetch.MyGames.Yield
 // @category Fetch
 type FetchMyGamesYieldNotification struct {
-	Offset int64          `json:"offset"`
-	Total  int64          `json:"total"`
-	Items  []*itchio.Game `json:"items"`
+	Offset int64     `json:"offset"`
+	Total  int64     `json:"total"`
+	Items  []*MyGame `json:"items"`
 }
 
 type FetchMyGamesResult struct {

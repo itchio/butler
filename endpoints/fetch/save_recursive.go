@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 	"time"
@@ -39,6 +40,11 @@ func (a Assoc) String() string {
 	}
 }
 
+type JoinRec struct {
+	RPK    interface{}
+	Record reflect.Value
+}
+
 type ManyToMany struct {
 	JoinTable string
 	Scope     *gorm.Scope
@@ -47,7 +53,7 @@ type ManyToMany struct {
 	RPKColumn string
 
 	// LPK => []RPK
-	Values map[interface{}][]interface{}
+	Values map[interface{}][]JoinRec
 
 	initialized bool
 }
@@ -72,7 +78,7 @@ func NewManyToMany(ScopeMap ScopeMap, JoinTable string, L reflect.Type, R reflec
 		// TODO: handle different FKs
 		LPKColumn: L.Name() + "ID",
 		RPKColumn: R.Name() + "ID",
-		Values:    make(map[interface{}][]interface{}),
+		Values:    make(map[interface{}][]JoinRec),
 	}
 	return mtm, nil
 }
@@ -81,7 +87,16 @@ func (mtm *ManyToMany) Add(L reflect.Value, R reflect.Value) {
 	// TODO: handle different PKs
 	lpk := L.Elem().FieldByName("ID").Interface()
 	rpk := R.Elem().FieldByName("ID").Interface()
-	mtm.Values[lpk] = append(mtm.Values[lpk], rpk)
+	mtm.Values[lpk] = append(mtm.Values[lpk], JoinRec{
+		RPK: rpk,
+	})
+}
+
+func (mtm *ManyToMany) AddPKs(lpk interface{}, rpk interface{}, record reflect.Value) {
+	mtm.Values[lpk] = append(mtm.Values[lpk], JoinRec{
+		RPK:    rpk,
+		Record: record,
+	})
 }
 
 func (mtm *ManyToMany) String() string {
@@ -140,16 +155,22 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 	val := reflect.ValueOf(rec)
 
-	modelTyps := make(ScopeMap)
+	scopeMap := make(ScopeMap)
 	for _, m := range database.Models {
 		mtyp := reflect.TypeOf(m)
-		modelTyps[mtyp] = db.NewScope(m)
+		scopeMap[mtyp] = db.NewScope(m)
 	}
 
 	riMap := make(map[reflect.Type]*RecordInfo)
+	visited := make(map[reflect.Type]bool)
 
 	var walkType func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error)
 	walkType = func(name string, atyp reflect.Type, assocs []string) (*RecordInfo, error) {
+		if visited[atyp] {
+			return nil, nil
+		}
+		visited[atyp] = true
+
 		consumer.Debugf("walking type %s: %v, assocs = %v", name, atyp, assocs)
 		if atyp.Kind() == reflect.Slice {
 			atyp = atyp.Elem()
@@ -159,7 +180,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 		ri := &RecordInfo{
 			Type:  atyp,
 			Name:  name,
-			Scope: modelTyps[atyp],
+			Scope: scopeMap[atyp],
 		}
 
 		if atyp.Kind() == reflect.Ptr {
@@ -180,7 +201,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 				fieldTyp = fieldTyp.Elem()
 			}
 
-			if _, ok := modelTyps[fieldTyp]; ok {
+			if _, ok := scopeMap[fieldTyp]; ok {
 				child, err := walkType(f.Name, fieldTyp, nil)
 				if err != nil {
 					return errors.Wrap(err, 0)
@@ -208,7 +229,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 						if many2manyTable != "" {
 							consumer.Infof("%s <many to many> %s (join table %s)", atyp.Name(), elTyp.Name(), many2manyTable)
 							child.Assoc = AssocManyToMany
-							mtm, err := NewManyToMany(modelTyps, many2manyTable, atyp, elTyp)
+							mtm, err := NewManyToMany(scopeMap, many2manyTable, atyp, elTyp)
 							if err != nil {
 								return errors.Wrap(err, 0)
 							}
@@ -302,7 +323,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 	entities := make(AllEntities)
 	addEntity := func(v reflect.Value) error {
 		typ := v.Type()
-		if _, ok := modelTyps[typ]; !ok {
+		if _, ok := scopeMap[typ]; !ok {
 			return fmt.Errorf("not a model type: %s", typ)
 		}
 		entities[typ] = append(entities[typ], v.Interface())
@@ -401,7 +422,7 @@ func SaveRecursive(db *gorm.DB, consumer *state.Consumer, rec interface{}, assoc
 
 	stats := &SaveManyStats{}
 	for _, m := range entities {
-		err := SaveMany(tx, consumer, m, stats)
+		err := SaveMany(tx, consumer, scopeMap, m, stats)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -433,7 +454,7 @@ type SaveManyStats struct {
 	Current  int64
 }
 
-func SaveMany(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}, stats *SaveManyStats) error {
+func SaveMany(tx *gorm.DB, consumer *state.Consumer, scopeMap ScopeMap, inputIface interface{}, stats *SaveManyStats) error {
 	tx = tx.Set("gorm:save_associations", false)
 
 	// inputIFace is a `[]interface{}`
@@ -473,7 +494,87 @@ func SaveMany(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 
 	// this will happen for associations, we should have another codepath for that
 	if len(pkFields) != 1 {
-		return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
+		if len(pkFields) != 2 {
+			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
+		}
+
+		bfm := make(map[*gorm.Field]map[interface{}][]reflect.Value)
+
+		for _, pkf := range pkFields {
+			rm := make(map[interface{}][]reflect.Value)
+
+			for i := 0; i < fresh.Len(); i++ {
+				rec := fresh.Index(i)
+				v := rec.Elem().FieldByName(pkf.Name).Interface()
+				rm[v] = append(rm[v], rec)
+			}
+			bfm[pkf] = rm
+		}
+
+		var bestLPK *gorm.Field
+		var bestNumGroups int64 = math.MaxInt64
+		var valueMap map[interface{}][]reflect.Value
+		for pk, recs := range bfm {
+			numGroups := len(recs)
+			if int64(numGroups) < bestNumGroups {
+				bestLPK = pk
+				bestNumGroups = int64(numGroups)
+				valueMap = recs
+			}
+		}
+
+		if bestLPK == nil {
+			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
+		}
+
+		var bestRPK *gorm.Field
+		for pk, _ := range bfm {
+			if pk != bestLPK {
+				bestRPK = pk
+				break
+			}
+		}
+		if bestRPK == nil {
+			return errors.New("Internal error: could not find bestRPK")
+		}
+
+		lpkName := strings.TrimSuffix(bestLPK.Name, "ID")
+		rpkName := strings.TrimSuffix(bestRPK.Name, "ID")
+		var L, R reflect.Type
+		for _, pkf := range scope.Fields() {
+			if pkf.Name == lpkName {
+				L = pkf.Struct.Type.Elem()
+			}
+			if pkf.Name == rpkName {
+				R = pkf.Struct.Type.Elem()
+			}
+		}
+
+		if L == nil {
+			return fmt.Errorf("Internal error: could not find LPK %s in %s", lpkName, scope.TableName())
+		}
+		if R == nil {
+			return fmt.Errorf("Internal error: could not find RPK %s in %s", rpkName, scope.TableName())
+		}
+
+		mtm, err := NewManyToMany(scopeMap, scope.TableName(), L, R)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		for lpk, recs := range valueMap {
+			for _, rec := range recs {
+				rpk := rec.Elem().FieldByName(bestRPK.Name).Interface()
+				mtm.AddPKs(lpk, rpk, rec)
+			}
+		}
+
+		err = SaveJoins(tx, consumer, mtm)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		return nil
 	}
 
 	pkField := pkFields[0]
@@ -561,12 +662,19 @@ func SaveMany(tx *gorm.DB, consumer *state.Consumer, inputIface interface{}, sta
 		}
 	}
 
-	if len(updates) > 0 {
-		for pk, rec := range updates {
-			err := tx.Table(scope.TableName()).Where(fmt.Sprintf("%s = ?", pkField.DBName), pk).Updates(rec).Error
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
+	for pk, rec := range updates {
+		err := tx.Table(scope.TableName()).
+			Where(
+				fmt.Sprintf(
+					`"%s" = ?`,
+					pkField.DBName,
+				),
+				pk,
+			).
+			Updates(rec).
+			Error
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -581,11 +689,11 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 		return v.Elem().FieldByName(mtm.RPKColumn).Interface()
 	}
 
-	for lpk, rpks := range mtm.Values {
+	for lpk, joinRecs := range mtm.Values {
 		cacheAddr := reflect.New(reflect.SliceOf(joinType))
 
 		err := tx.Where(
-			fmt.Sprintf("%s = ?", gorm.ToDBName(mtm.LPKColumn)),
+			fmt.Sprintf(`"%s" = ?`, gorm.ToDBName(mtm.LPKColumn)),
 			lpk,
 		).
 			Find(cacheAddr.Interface()).Error
@@ -601,27 +709,46 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 			cacheByRPK[getRpk(rec)] = rec
 		}
 
-		freshByRPK := make(map[interface{}]bool)
-		for _, rpk := range rpks {
-			freshByRPK[rpk] = true
+		freshByRPK := make(map[interface{}]reflect.Value)
+		for _, joinRec := range joinRecs {
+			freshByRPK[joinRec.RPK] = joinRec.Record
 		}
 
 		var deletes []interface{}
-		var inserts []interface{}
+		updates := make(map[interface{}]ChangedFields)
+		var inserts []JoinRec
 
+		// compare with cache: will result in delete or update
 		for i := 0; i < cache.Len(); i++ {
-			rec := cache.Index(i)
-			rpk := getRpk(rec)
-			if _, ok := freshByRPK[rpk]; !ok {
+			crec := cache.Index(i)
+			rpk := getRpk(crec)
+			if frec, ok := freshByRPK[rpk]; ok {
+				if frec.IsValid() {
+					// compare to maybe update
+					ifrec := frec.Elem().Interface()
+					icrec := crec.Elem().Interface()
+
+					cf, err := DiffRecord(ifrec, icrec, mtm.Scope)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+
+					if cf != nil {
+						updates[rpk] = cf
+					}
+				}
+			} else {
 				deletes = append(deletes, rpk)
 			}
 		}
 
-		for _, rpk := range rpks {
-			if _, ok := cacheByRPK[rpk]; !ok {
-				inserts = append(inserts, rpk)
+		for _, joinRec := range joinRecs {
+			if _, ok := cacheByRPK[joinRec.RPK]; !ok {
+				inserts = append(inserts, joinRec)
 			}
 		}
+
+		consumer.Debugf("SaveJoins: %d Inserts, %d Updates, %d Deletes", len(inserts), len(updates), len(deletes))
 
 		if len(deletes) > 0 {
 			rec := reflect.New(joinType.Elem())
@@ -629,7 +756,7 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 				Delete(
 					rec.Interface(),
 					fmt.Sprintf(
-						"%s = ? and %s in (?)",
+						`"%s" = ? and "%s" in (?)`,
 						gorm.ToDBName(mtm.LPKColumn),
 						gorm.ToDBName(mtm.RPKColumn),
 					),
@@ -641,12 +768,35 @@ func SaveJoins(tx *gorm.DB, consumer *state.Consumer, mtm *ManyToMany) error {
 			}
 		}
 
-		for _, rpk := range inserts {
-			rec := reflect.New(joinType.Elem())
-			rec.Elem().FieldByName(mtm.LPKColumn).Set(reflect.ValueOf(lpk))
-			rec.Elem().FieldByName(mtm.RPKColumn).Set(reflect.ValueOf(rpk))
+		for _, joinRec := range inserts {
+			rec := joinRec.Record
+
+			if !rec.IsValid() {
+				// if not passed an explicit record, make it ourselves
+				// that typically means the join table doesn't have additional
+				// columns and is a simple many2many
+				rec = reflect.New(joinType.Elem())
+				rec.Elem().FieldByName(mtm.LPKColumn).Set(reflect.ValueOf(lpk))
+				rec.Elem().FieldByName(mtm.RPKColumn).Set(reflect.ValueOf(joinRec.RPK))
+			}
 
 			err := tx.Create(rec.Interface()).Error
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+		}
+
+		for rpk, rec := range updates {
+			err := tx.Table(mtm.Scope.TableName()).
+				Where(
+					fmt.Sprintf(
+						`"%s" = ? and "%s" = ?`,
+						gorm.ToDBName(mtm.LPKColumn),
+						gorm.ToDBName(mtm.RPKColumn),
+					),
+					lpk,
+					rpk,
+				).Updates(rec).Error
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}

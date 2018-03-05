@@ -5,7 +5,6 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/database/models"
-	itchio "github.com/itchio/go-itchio"
 )
 
 func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*buse.FetchMyGamesResult, error) {
@@ -28,17 +27,29 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 	}
 
 	sendDBGames := func() error {
-		var games []*itchio.Game
-		err := db.Model(profile).Related(&games, "Games").Error
+		var profileGames []*models.ProfileGame
+		err := db.Model(profile).Preload("Game").Related(&profileGames, "ProfileGames").Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		yn := &buse.FetchMyGamesYieldNotification{
 			Offset: 0,
-			Total:  int64(len(games)),
-			Items:  games,
+			Total:  int64(len(profileGames)),
+			Items:  nil,
 		}
+
+		for _, pg := range profileGames {
+			yn.Items = append(yn.Items, &buse.MyGame{
+				Game:           pg.Game,
+				Order:          pg.Order,
+				ViewsCount:     pg.ViewsCount,
+				DownloadsCount: pg.DownloadsCount,
+				PurchasesCount: pg.PurchasesCount,
+				Published:      pg.Published,
+			})
+		}
+
 		err = messages.FetchMyGamesYield.Notify(rc, yn)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -59,7 +70,20 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = SaveRecursive(db, consumer, gamesRes.Games, nil)
+	profile.ProfileGames = nil
+	for i, g := range gamesRes.Games {
+		profile.ProfileGames = append(profile.ProfileGames, &models.ProfileGame{
+			// NB: UserID is set automatically when saving profile
+			GameID:         g.ID,
+			Order:          int64(i),
+			Published:      g.Published,
+			ViewsCount:     g.ViewsCount,
+			PurchasesCount: g.PurchasesCount,
+			DownloadsCount: g.DownloadsCount,
+		})
+	}
+
+	err = SaveRecursive(db, consumer, profile, []string{"ProfileGames"})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

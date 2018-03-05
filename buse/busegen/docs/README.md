@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  3 00:05:50 against [butler@8e42637](https://github.com/itchio/butler/commit/8e42637434da3d383892809ad9c8388c18310b55)
+This documentation was generated on Mar  5 12:18:43 against [butler@8133872](https://github.com/itchio/butler/commit/8133872c5fe99cd17606ab2af7958e0e4f3949dc)
 
 
 ## Starting the service
@@ -1016,7 +1016,7 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#MyGame__TypeHint">MyGame</span>[]</code></td>
 <td></td>
 </tr>
 </table>
@@ -1037,7 +1037,7 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type">MyGame</span>[]</code></td>
 </tr>
 </table>
 
@@ -3451,6 +3451,91 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
+### <em class="struct-type"></em>MyGame
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="MyGame__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>MyGame <a href="#/?id=mygame">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="struct-type"></em>GameCredentials
 
 
@@ -4916,7 +5001,13 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>games</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td><p>The first few games of this collection</p>
+<td><p>Games in this collection: filled in API response</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionGames</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td><p>Games in this collection, with additional info</p>
 </td>
 </tr>
 <tr>
@@ -4966,12 +5057,119 @@ page deleted, visibility level changed, etc.)</p>
 <td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 <tr>
+<td><code>collectionGames</code></td>
+<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+</tr>
+<tr>
 <td><code>userId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CollectionGame
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CollectionGame__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CollectionGame <a href="#/?id=collectiongame">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
