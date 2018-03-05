@@ -628,11 +628,47 @@ func SaveMany(params *SaveParams, tx *gorm.DB, consumer *state.Consumer, scopeMa
 	// retrieve cached items in a []*SomeModel
 	// for some reason, reflect.New returns a &[]*SomeModel instead,
 	// I'm guessing slices can't be interfaces, but pointers to slices can?
-	cacheAddr := reflect.New(fresh.Type())
-	err = tx.Where(fmt.Sprintf("%s in (?)", pkField.DBName), pks).Find(cacheAddr.Interface()).Error
+	pagedByPK := func(pkDBName string, pks []interface{}, sliceType reflect.Type) (reflect.Value, error) {
+		// actually defaults to 999, but let's get some breathing room
+		const maxSqlVars = 900
+		// returns a pointer to slice
+		result := reflect.New(sliceType)
+
+		remainingItems := pks
+		consumer.Debugf("%d items to fetch by PK", len(pks))
+
+		for len(remainingItems) > 0 {
+			var pageSize int
+			if len(remainingItems) > maxSqlVars {
+				pageSize = maxSqlVars
+			} else {
+				pageSize = len(remainingItems)
+			}
+
+			consumer.Debugf("Fetching %d items", pageSize)
+			page := reflect.New(sliceType)
+			err = tx.Where(fmt.Sprintf("%s in (?)", pkDBName), remainingItems[:pageSize]).Find(page.Interface()).Error
+			if err != nil {
+				return result, errors.Wrap(err, 0)
+			}
+
+			result = reflect.AppendSlice(result.Elem(), page.Elem())
+			remainingItems = remainingItems[pageSize:]
+		}
+
+		return result, nil
+	}
+
+	cacheAddr, err := pagedByPK(pkField.DBName, pks, fresh.Type())
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
+
+	// cacheAddr := reflect.New(fresh.Type())
+	// err = tx.Where(fmt.Sprintf("%s in (?)", pkField.DBName), pks).Find(cacheAddr.Interface()).Error
+	// if err != nil {
+	// 	return errors.Wrap(err, 0)
+	// }
 
 	cache := cacheAddr.Elem()
 
