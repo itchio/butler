@@ -95,26 +95,48 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 			return errors.New("Internal error: could not find bestRPK")
 		}
 
-		lpkName := strings.TrimSuffix(bestLPK.Name, "ID")
-		rpkName := strings.TrimSuffix(bestRPK.Name, "ID")
-		var L, R reflect.Type
-		for _, pkf := range scope.Fields() {
-			if pkf.Name == lpkName {
-				L = pkf.Struct.Type.Elem()
+		LPKModelName := strings.TrimSuffix(bestLPK.Name, "ID")
+		RPKModelName := strings.TrimSuffix(bestRPK.Name, "ID")
+		var LPKScope, RPKScope *gorm.Scope
+
+		for _, s := range c.ScopeMap {
+			if s.GetModelStruct().ModelType.Name() == LPKModelName {
+				LPKScope = s
 			}
-			if pkf.Name == rpkName {
-				R = pkf.Struct.Type.Elem()
+			if s.GetModelStruct().ModelType.Name() == RPKModelName {
+				RPKScope = s
 			}
 		}
 
-		if L == nil {
-			return fmt.Errorf("Internal error: could not find LPK %s in %s", lpkName, scope.TableName())
+		if LPKScope == nil {
+			return fmt.Errorf("Could not find LPKModel %s", LPKModelName)
 		}
-		if R == nil {
-			return fmt.Errorf("Internal error: could not find RPK %s in %s", rpkName, scope.TableName())
+		if RPKScope == nil {
+			return fmt.Errorf("Could not find RPKModel %s", RPKModelName)
 		}
 
-		mtm, err := c.NewManyToMany(scope.TableName(), L, R)
+		if len(LPKScope.PrimaryFields()) != 1 {
+			return fmt.Errorf("Expected LPK model %s to have 1 primary field, but it has %d", LPKModelName, len(LPKScope.PrimaryFields()))
+		}
+		if len(RPKScope.PrimaryFields()) != 1 {
+			return fmt.Errorf("Expected RPK model %s to have 1 primary field, but it has %d", LPKModelName, len(RPKScope.PrimaryFields()))
+		}
+
+		mtm, err := c.NewManyToMany(
+			scope.TableName(),
+			[]gorm.JoinTableForeignKey{
+				gorm.JoinTableForeignKey{
+					DBName:            gorm.ToDBName(bestLPK.Name),
+					AssociationDBName: LPKScope.PrimaryField().DBName,
+				},
+			},
+			[]gorm.JoinTableForeignKey{
+				gorm.JoinTableForeignKey{
+					DBName:            gorm.ToDBName(bestRPK.Name),
+					AssociationDBName: LPKScope.PrimaryField().DBName,
+				},
+			},
+		)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -122,7 +144,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		for lpk, recs := range valueMap {
 			for _, rec := range recs {
 				rpk := rec.Elem().FieldByName(bestRPK.Name).Interface()
-				mtm.AddPKs(lpk, rpk, rec)
+				mtm.AddKeys(lpk, rpk, rec)
 			}
 		}
 

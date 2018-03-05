@@ -10,69 +10,90 @@ import (
 )
 
 type JoinRec struct {
-	RPK    interface{}
-	Record reflect.Value
+	DestinKey interface{}
+	Record    reflect.Value
 }
 
 type ManyToMany struct {
+	Scope *gorm.Scope
+
 	JoinTable string
-	Scope     *gorm.Scope
 
-	LPKColumn string
-	RPKColumn string
+	SourceName        string
+	SourceAssocName   string
+	SourceDBName      string
+	SourceAssocDBName string
 
-	// LPK => []RPK
+	DestinName        string
+	DestinAssocName   string
+	DestinDBName      string
+	DestinAssocDBName string
+
+	// SourceKey => []JoinRec{DestinKey, Record}
 	Values map[interface{}][]JoinRec
 }
 
-func (c *Context) NewManyToMany(JoinTable string, L reflect.Type, R reflect.Type) (*ManyToMany, error) {
-	var scope *gorm.Scope
-	for _, s := range c.ScopeMap {
-		if s.TableName() == JoinTable {
-			scope = s
-		}
-	}
-
+func (c *Context) NewManyToMany(JoinTable string, SourceForeignKeys, DestinationForeignKeys []gorm.JoinTableForeignKey) (*ManyToMany, error) {
+	scope := c.ScopeMap.ByDBName(JoinTable)
 	if scope == nil {
 		return nil, fmt.Errorf("Could not find model struct for %s: list it explicitly in Models", JoinTable)
 	}
 
+	if len(SourceForeignKeys) != 1 {
+		return nil, fmt.Errorf("For join table %s, expected 1 source foreign keys but got %d",
+			JoinTable, len(SourceForeignKeys))
+	}
+	if len(DestinationForeignKeys) != 1 {
+		return nil, fmt.Errorf("For join table %s, expected 1 destination foreign keys but got %d",
+			JoinTable, len(DestinationForeignKeys))
+	}
+
+	sfk := SourceForeignKeys[0]
+	dfk := DestinationForeignKeys[0]
+
 	mtm := &ManyToMany{
 		JoinTable: JoinTable,
 		Scope:     scope,
-		// TODO: handle different FKs
-		LPKColumn: L.Name() + "ID",
-		RPKColumn: R.Name() + "ID",
-		Values:    make(map[interface{}][]JoinRec),
+
+		SourceName:        FromDBName(sfk.DBName),
+		SourceAssocName:   FromDBName(sfk.AssociationDBName),
+		SourceDBName:      sfk.DBName,
+		SourceAssocDBName: sfk.AssociationDBName,
+
+		DestinName:        FromDBName(dfk.DBName),
+		DestinAssocName:   FromDBName(dfk.AssociationDBName),
+		DestinDBName:      dfk.DBName,
+		DestinAssocDBName: dfk.AssociationDBName,
+
+		Values: make(map[interface{}][]JoinRec),
 	}
 	return mtm, nil
 }
 
-func (mtm *ManyToMany) Add(L reflect.Value, R reflect.Value) {
-	// TODO: handle different PKs
-	lpk := L.Elem().FieldByName("ID").Interface()
-	rpk := R.Elem().FieldByName("ID").Interface()
-	mtm.Values[lpk] = append(mtm.Values[lpk], JoinRec{
-		RPK: rpk,
+func (mtm *ManyToMany) Add(Source reflect.Value, Destin reflect.Value) {
+	sourceKey := Source.Elem().FieldByName(mtm.SourceAssocName).Interface()
+	destinKey := Destin.Elem().FieldByName(mtm.DestinAssocName).Interface()
+	mtm.Values[sourceKey] = append(mtm.Values[sourceKey], JoinRec{
+		DestinKey: destinKey,
 	})
 }
 
-func (mtm *ManyToMany) AddPKs(lpk interface{}, rpk interface{}, record reflect.Value) {
-	mtm.Values[lpk] = append(mtm.Values[lpk], JoinRec{
-		RPK:    rpk,
-		Record: record,
+func (mtm *ManyToMany) AddKeys(sourceKey interface{}, destinKey interface{}, record reflect.Value) {
+	mtm.Values[sourceKey] = append(mtm.Values[sourceKey], JoinRec{
+		DestinKey: destinKey,
+		Record:    record,
 	})
 }
 
 func (mtm *ManyToMany) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("JoinTable: %s", mtm.JoinTable))
-	lines = append(lines, fmt.Sprintf("LPKColumn: %s", mtm.LPKColumn))
-	lines = append(lines, fmt.Sprintf("RPKColumn: %s", mtm.RPKColumn))
-	for lpk, rpks := range mtm.Values {
-		lines = append(lines, fmt.Sprintf("LPK %v", lpk))
-		for _, rpk := range rpks {
-			lines = append(lines, fmt.Sprintf("  - RPK %v", rpk))
+	lines = append(lines, fmt.Sprintf("SourceForeignKey: %s / %s", mtm.SourceName, mtm.SourceAssocName))
+	lines = append(lines, fmt.Sprintf("DestinForeignKey: %s / %s", mtm.DestinName, mtm.DestinAssocName))
+	for sourceKey, destinKeys := range mtm.Values {
+		lines = append(lines, fmt.Sprintf("SourceKey %v", sourceKey))
+		for _, destinKey := range destinKeys {
+			lines = append(lines, fmt.Sprintf("  - DestinKey %v", destinKey))
 		}
 	}
 	return strings.Join(lines, "\n")
@@ -174,6 +195,21 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 		}
 
 		child.Relationship = sf.Relationship
+		consumer.Infof("%v %s %v", ms.ModelType.Name(), child.Relationship.Kind, sf.Name)
+
+		if sf.Relationship.Kind == "many_to_many" {
+			jth := sf.Relationship.JoinTableHandler
+			djth, ok := jth.(*gorm.JoinTableHandler)
+			if !ok {
+				return errors.Wrap(fmt.Errorf("Expected sf.Relationship.JoinTableHandler to be the default JoinTableHandler type, but it's %v", reflect.TypeOf(jth)), 0)
+			}
+
+			mtm, err := c.NewManyToMany(djth.TableName, jth.SourceForeignKeys(), jth.DestinationForeignKeys())
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			child.ManyToMany = mtm
+		}
 
 		ri.Children = append(ri.Children, child)
 		return nil

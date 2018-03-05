@@ -11,6 +11,15 @@ import (
 
 type ScopeMap map[reflect.Type]*gorm.Scope
 
+func (sm ScopeMap) ByDBName(dbName string) *gorm.Scope {
+	for _, s := range sm {
+		if s.TableName() == dbName {
+			return s
+		}
+	}
+	return nil
+}
+
 type Context struct {
 	Consumer *state.Consumer
 	ScopeMap ScopeMap
