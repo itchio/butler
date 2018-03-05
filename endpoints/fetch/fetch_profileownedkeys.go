@@ -4,25 +4,18 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
-	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysParams) (*buse.FetchMyOwnedKeysResult, error) {
+func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwnedKeysParams) (*buse.FetchProfileOwnedKeysResult, error) {
 	consumer := rc.Consumer
 
-	client, err := rc.SessionClient(params.SessionID)
+	profile, client, err := rc.ProfileClient(params.ProfileID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
 	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	profile := &models.Profile{}
-	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -34,12 +27,12 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 			return errors.Wrap(err, 0)
 		}
 
-		yn := &buse.FetchMyOwnedKeysYieldNotification{
+		yn := &buse.FetchProfileOwnedKeysYieldNotification{
 			Offset: 0,
 			Total:  int64(len(keys)),
 			Items:  keys,
 		}
-		err = messages.FetchMyOwnedKeysYield.Notify(rc, yn)
+		err = messages.FetchProfileOwnedKeysYield.Notify(rc, yn)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -71,6 +64,6 @@ func FetchMyOwnedKeys(rc *buse.RequestContext, params *buse.FetchMyOwnedKeysPara
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchMyOwnedKeysResult{}
+	res := &buse.FetchProfileOwnedKeysResult{}
 	return res, nil
 }

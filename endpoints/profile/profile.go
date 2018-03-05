@@ -1,4 +1,4 @@
-package session
+package profile
 
 import (
 	"github.com/go-errors/errors"
@@ -9,13 +9,13 @@ import (
 )
 
 func Register(router *buse.Router) {
-	messages.SessionList.Register(router, List)
-	messages.SessionLoginWithPassword.Register(router, LoginWithPassword)
-	messages.SessionUseSavedLogin.Register(router, UseSavedLogin)
-	messages.SessionForget.Register(router, Forget)
+	messages.ProfileList.Register(router, List)
+	messages.ProfileLoginWithPassword.Register(router, LoginWithPassword)
+	messages.ProfileUseSavedLogin.Register(router, UseSavedLogin)
+	messages.ProfileForget.Register(router, Forget)
 }
 
-func List(rc *buse.RequestContext, params *buse.SessionListParams) (*buse.SessionListResult, error) {
+func List(rc *buse.RequestContext, params *buse.ProfileListParams) (*buse.ProfileListResult, error) {
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -27,32 +27,32 @@ func List(rc *buse.RequestContext, params *buse.SessionListParams) (*buse.Sessio
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var sessions []*buse.Session
+	var formattedProfiles []*buse.Profile
 	for _, profile := range profiles {
-		p, err := profileToSession(profile)
-		if err != nil {
-			rc.Consumer.Warnf(err.Error())
-			rc.Consumer.Warnf("...skipping one profile")
-			return nil, errors.Wrap(err, 0)
-		}
-		sessions = append(sessions, p)
+		formattedProfiles = append(formattedProfiles, formatProfile(profile))
 	}
 
-	return &buse.SessionListResult{
-		Sessions: sessions,
+	return &buse.ProfileListResult{
+		Profiles: formattedProfiles,
 	}, nil
 }
 
-func profileToSession(p *models.Profile) (*buse.Session, error) {
-	s := &buse.Session{
+func formatProfile(p *models.Profile) *buse.Profile {
+	return &buse.Profile{
 		ID:            p.ID,
 		LastConnected: p.LastConnected,
 		User:          p.User,
 	}
-	return s, nil
 }
 
-func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPasswordParams) (*buse.SessionLoginWithPasswordResult, error) {
+func LoginWithPassword(rc *buse.RequestContext, params *buse.ProfileLoginWithPasswordParams) (*buse.ProfileLoginWithPasswordResult, error) {
+	if params.Username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	if params.Password == "" {
+		return nil, errors.New("password cannot be empty")
+	}
+
 	rootClient, err := rc.RootClient()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -72,7 +72,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 
 		if loginRes.RecaptchaNeeded {
 			// Captcha flow
-			recaptchaRes, err := messages.SessionRequestCaptcha.Call(rc, &buse.SessionRequestCaptchaParams{
+			recaptchaRes, err := messages.ProfileRequestCaptcha.Call(rc, &buse.ProfileRequestCaptchaParams{
 				RecaptchaURL: loginRes.RecaptchaURL,
 			})
 			if err != nil {
@@ -95,7 +95,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 
 		if loginRes.Token != "" {
 			// TOTP flow
-			totpRes, err := messages.SessionRequestTOTP.Call(rc, &buse.SessionRequestTOTPParams{})
+			totpRes, err := messages.ProfileRequestTOTP.Call(rc, &buse.ProfileRequestTOTPParams{})
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
@@ -147,43 +147,27 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.SessionLoginWithPas
 		return nil, errors.Wrap(err, 0)
 	}
 
-	session, err := profileToSession(profile)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	res := &buse.SessionLoginWithPasswordResult{
+	res := &buse.ProfileLoginWithPasswordResult{
 		Cookie:  cookie,
-		Session: session,
+		Profile: formatProfile(profile),
 	}
 	return res, nil
 }
 
-func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginParams) (*buse.SessionUseSavedLoginResult, error) {
-	if params.SessionID == 0 {
-		return nil, errors.New("SessionID must be non-zero")
-	}
-
+func UseSavedLogin(rc *buse.RequestContext, params *buse.ProfileUseSavedLoginParams) (*buse.ProfileUseSavedLoginResult, error) {
 	consumer := rc.Consumer
-	consumer.Opf("Fetching saved info...")
+
+	profile, client, err := rc.ProfileClient(params.ProfileID)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
 
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	profile := &models.Profile{}
-	err = db.Where("id = ?", params.SessionID).First(profile).Error
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	consumer.Opf("Validating credentials...")
-
-	client, err := rc.MansionContext.NewClient(profile.APIKey)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
 
 	meRes, err := client.GetMe()
 	if err != nil {
@@ -200,32 +184,27 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.SessionUseSavedLoginPar
 		return nil, errors.Wrap(err, 0)
 	}
 
-	session, err := profileToSession(profile)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	consumer.Opf("Logged in!")
 
-	res := &buse.SessionUseSavedLoginResult{
-		Session: session,
+	res := &buse.ProfileUseSavedLoginResult{
+		Profile: formatProfile(profile),
 	}
 	return res, nil
 }
 
-func Forget(rc *buse.RequestContext, params *buse.SessionForgetParams) (*buse.SessionForgetResult, error) {
+func Forget(rc *buse.RequestContext, params *buse.ProfileForgetParams) (*buse.ProfileForgetResult, error) {
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = db.Where("id = ?", params.SessionID).Delete(&models.Profile{}).Error
+	err = db.Where("id = ?", params.ProfileID).Delete(&models.Profile{}).Error
 	success := db.RowsAffected > 1
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.SessionForgetResult{
+	res := &buse.ProfileForgetResult{
 		Success: success,
 	}
 	return res, nil

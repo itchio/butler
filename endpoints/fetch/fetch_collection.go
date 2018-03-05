@@ -15,7 +15,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.New("collectionId must be non-zero")
 	}
 
-	client, err := rc.SessionClient(params.SessionID)
+	_, client, err := rc.ProfileClient(params.ProfileID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

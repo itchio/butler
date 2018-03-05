@@ -79,12 +79,9 @@ func DiffRecord(x, y interface{}, scope *gorm.Scope) (ChangedFields, error) {
 // Comparison.
 // Taken from text/template
 
-// TODO: Perhaps allow comparison between signed and unsigned integers.
-
 var (
-	errBadComparisonType = errors.New("invalid type for comparison")
-	errBadComparison     = errors.New("incompatible types for comparison")
-	errNoComparison      = errors.New("missing argument for comparison")
+	errBadComparison = errors.New("incompatible types for comparison")
+	errNoComparison  = errors.New("missing argument for comparison")
 )
 
 type kind int

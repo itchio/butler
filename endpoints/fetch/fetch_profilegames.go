@@ -7,21 +7,15 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*buse.FetchMyGamesResult, error) {
+func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesParams) (*buse.FetchProfileGamesResult, error) {
 	consumer := rc.Consumer
 
-	client, err := rc.SessionClient(params.SessionID)
+	profile, client, err := rc.ProfileClient(params.ProfileID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
 	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	profile := &models.Profile{}
-	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -33,14 +27,14 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 			return errors.Wrap(err, 0)
 		}
 
-		yn := &buse.FetchMyGamesYieldNotification{
+		yn := &buse.FetchProfileGamesYieldNotification{
 			Offset: 0,
 			Total:  int64(len(profileGames)),
 			Items:  nil,
 		}
 
 		for _, pg := range profileGames {
-			yn.Items = append(yn.Items, &buse.MyGame{
+			yn.Items = append(yn.Items, &buse.ProfileGame{
 				Game:           pg.Game,
 				Position:       pg.Position,
 				ViewsCount:     pg.ViewsCount,
@@ -50,7 +44,7 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 			})
 		}
 
-		err = messages.FetchMyGamesYield.Notify(rc, yn)
+		err = messages.FetchProfileGamesYield.Notify(rc, yn)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -95,6 +89,6 @@ func FetchMyGames(rc *buse.RequestContext, params *buse.FetchMyGamesParams) (*bu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchMyGamesResult{}
+	res := &buse.FetchProfileGamesResult{}
 	return res, nil
 }

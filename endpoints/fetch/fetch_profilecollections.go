@@ -8,21 +8,15 @@ import (
 	"github.com/itchio/go-itchio"
 )
 
-func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollectionsParams) (*buse.FetchMyCollectionsResult, error) {
+func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileCollectionsParams) (*buse.FetchProfileCollectionsResult, error) {
 	consumer := rc.Consumer
 
-	client, err := rc.SessionClient(params.SessionID)
+	profile, client, err := rc.ProfileClient(params.ProfileID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
 	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	profile := &models.Profile{}
-	err = db.Where("id = ?", params.SessionID).First(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -46,7 +40,6 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 			collectionsByIDs[c.ID] = c
 		}
 
-		// TODO: figure out if we can't just pass `itchio.CollectionGame` here
 		var cgs []struct {
 			itchio.CollectionGame
 			itchio.Game
@@ -76,7 +69,7 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		}
 
 		if len(profileCollections) > 0 {
-			yn := &buse.FetchMyCollectionsYieldNotification{}
+			yn := &buse.FetchProfileCollectionsYieldNotification{}
 			yn.Offset = 0
 			yn.Total = int64(len(profileCollections))
 
@@ -84,7 +77,7 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 				yn.Items = append(yn.Items, pc.Collection)
 			}
 
-			err = messages.FetchMyCollectionsYield.Notify(rc, yn)
+			err = messages.FetchProfileCollectionsYield.Notify(rc, yn)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -134,6 +127,6 @@ func FetchMyCollections(rc *buse.RequestContext, params *buse.FetchMyCollections
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchMyCollectionsResult{}
+	res := &buse.FetchProfileCollectionsResult{}
 	return res, nil
 }

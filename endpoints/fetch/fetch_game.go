@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -14,7 +15,7 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.New("gameId must be non-zero")
 	}
 
-	client, err := rc.SessionClient(params.SessionID)
+	_, client, err := rc.ProfileClient(params.ProfileID)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -25,13 +26,12 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 	}
 
 	sendDBGame := func() error {
-		game := &itchio.Game{}
-		req := db.Where("id = ?", params.GameID).First(game)
-		if req.Error != nil {
-			if !req.RecordNotFound() {
-				return errors.Wrap(req.Error, 0)
-			}
-		} else {
+		game, err := models.GameByID(db, params.GameID)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if game != nil {
 			err = messages.FetchGameYield.Notify(rc, &buse.FetchGameYieldNotification{Game: game})
 			if err != nil {
 				return errors.Wrap(err, 0)

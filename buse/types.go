@@ -37,26 +37,26 @@ type VersionGetResult struct {
 }
 
 //----------------------------------------------------------------------
-// Session
+// Profile
 //----------------------------------------------------------------------
 
-// Lists remembered sessions
+// Lists remembered profiles
 //
-// @name Session.List
-// @category Session
+// @name Profile.List
+// @category Profile
 // @caller client
-type SessionListParams struct {
+type ProfileListParams struct {
 }
 
-type SessionListResult struct {
-	// A list of remembered sessions
-	Sessions []*Session `json:"sessions"`
+type ProfileListResult struct {
+	// A list of remembered profiles
+	Profiles []*Profile `json:"profiles"`
 }
 
-// Represents a user for which we have session information,
+// Represents a user for which we have profile information,
 // ie. that we can connect as, etc.
-type Session struct {
-	// itch.io user ID, doubling as session ID
+type Profile struct {
+	// itch.io user ID, doubling as profile ID
 	ID int64 `json:"id"`
 
 	// Timestamp the user last connected at (to the client)
@@ -66,12 +66,12 @@ type Session struct {
 	User *itchio.User `json:"user"`
 }
 
-// Add a new session by password login
+// Add a new profile by password login
 //
-// @name Session.LoginWithPassword
-// @category Session
+// @name Profile.LoginWithPassword
+// @category Profile
 // @caller client
-type SessionLoginWithPasswordParams struct {
+type ProfileLoginWithPasswordParams struct {
 	// The username (or e-mail) to use for login
 	Username string `json:"username"`
 
@@ -79,72 +79,72 @@ type SessionLoginWithPasswordParams struct {
 	Password string `json:"password"`
 }
 
-type SessionLoginWithPasswordResult struct {
-	// Information for the new session, now remembered
-	Session *Session `json:"session"`
+type ProfileLoginWithPasswordResult struct {
+	// Information for the new profile, now remembered
+	Profile *Profile `json:"profile"`
 
-	// Session cookie for website
+	// Profile cookie for website
 	Cookie map[string]string `json:"cookie"`
 }
 
 // Ask the user to solve a captcha challenge
-// Sent during @@SessionLoginWithPasswordParams if certain
+// Sent during @@ProfileLoginWithPasswordParams if certain
 // conditions are met.
 //
-// @name Session.RequestCaptcha
-// @category Session
+// @name Profile.RequestCaptcha
+// @category Profile
 // @caller server
-type SessionRequestCaptchaParams struct {
+type ProfileRequestCaptchaParams struct {
 	// Address of page containing a recaptcha widget
 	RecaptchaURL string `json:"recaptchaUrl"`
 }
 
-type SessionRequestCaptchaResult struct {
+type ProfileRequestCaptchaResult struct {
 	// The response given by recaptcha after it's been filled
 	RecaptchaResponse string `json:"recaptchaResponse"`
 }
 
 // Ask the user to provide a TOTP token.
-// Sent during @@SessionLoginWithPasswordParams if the user has
+// Sent during @@ProfileLoginWithPasswordParams if the user has
 // two-factor authentication enabled.
 //
-// @name Session.RequestTOTP
-// @category Session
+// @name Profile.RequestTOTP
+// @category Profile
 // @caller server
-type SessionRequestTOTPParams struct {
+type ProfileRequestTOTPParams struct {
 }
 
-type SessionRequestTOTPResult struct {
+type ProfileRequestTOTPResult struct {
 	// The TOTP code entered by the user
 	Code string `json:"code"`
 }
 
-// Use saved login credentials to validate a session.
+// Use saved login credentials to validate a profile.
 //
-// @name Session.UseSavedLogin
-// @category Session
+// @name Profile.UseSavedLogin
+// @category Profile
 // @caller client
-type SessionUseSavedLoginParams struct {
-	SessionID int64 `json:"sessionId"`
+type ProfileUseSavedLoginParams struct {
+	ProfileID int64 `json:"profileId"`
 }
 
-type SessionUseSavedLoginResult struct {
-	// Information for the now validated session
-	Session *Session `json:"session"`
+type ProfileUseSavedLoginResult struct {
+	// Information for the now validated profile
+	Profile *Profile `json:"profile"`
 }
 
-// Forgets a remembered session - it won't appear in the
-// @@SessionListParams results anymore.
+// Forgets a remembered profile - it won't appear in the
+// @@ProfileListParams results anymore.
 //
-// @name Session.Forget
-// @category Session
+// @name Profile.Forget
+// @category Profile
 // @caller client
-type SessionForgetParams struct {
-	SessionID int64 `json:"sessionId"`
+type ProfileForgetParams struct {
+	ProfileID int64 `json:"profileId"`
 }
 
-type SessionForgetResult struct {
-	// True if the session did exist (and was successfully forgotten)
+type ProfileForgetResult struct {
+	// True if the profile did exist (and was successfully forgotten)
 	Success bool `json:"success"`
 }
 
@@ -161,8 +161,8 @@ type SessionForgetResult struct {
 // @category Fetch
 // @caller client
 type FetchGameParams struct {
-	// Session to use to fetch game
-	SessionID int64 `json:"sessionId"`
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
 	// Identifier of game to look for
 	GameID int64 `json:"gameId"`
 }
@@ -189,8 +189,8 @@ type FetchGameResult struct {
 // @category Fetch
 // @caller client
 type FetchCollectionParams struct {
-	// Session to use to fetch game
-	SessionID int64 `json:"sessionId"`
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
 	// Identifier of the collection to look for
 	CollectionID int64 `json:"collectionId"`
 }
@@ -215,37 +215,37 @@ type CollectionGame struct {
 type FetchCollectionResult struct {
 }
 
-// @name Fetch.MyCollections
+// @name Fetch.ProfileCollections
 // @category Fetch
 // @caller client
-type FetchMyCollectionsParams struct {
-	// Session to use to fetch game
-	SessionID int64 `json:"sessionId"`
+type FetchProfileCollectionsParams struct {
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
 }
 
-// Sent during @@FetchMyCollectionsParams whenever new info is
+// Sent during @@FetchProfileCollectionsParams whenever new info is
 // available.
 //
-// @name Fetch.MyCollections.Yield
+// @name Fetch.ProfileCollections.Yield
 // @category Fetch
-type FetchMyCollectionsYieldNotification struct {
+type FetchProfileCollectionsYieldNotification struct {
 	Offset int64                `json:"offset"`
 	Total  int64                `json:"total"`
 	Items  []*itchio.Collection `json:"items"`
 }
 
-type FetchMyCollectionsResult struct {
+type FetchProfileCollectionsResult struct {
 }
 
-// @name Fetch.MyGames
+// @name Fetch.ProfileGames
 // @category Fetch
 // @caller client
-type FetchMyGamesParams struct {
-	// Session to use to fetch game
-	SessionID int64 `json:"sessionId"`
+type FetchProfileGamesParams struct {
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
 }
 
-type MyGame struct {
+type ProfileGame struct {
 	Game *itchio.Game `json:"game,omitempty"`
 	User *itchio.User `json:"user,omitempty"`
 
@@ -259,34 +259,34 @@ type MyGame struct {
 	Published bool `json:"published"`
 }
 
-// @name Fetch.MyGames.Yield
+// @name Fetch.ProfileGames.Yield
 // @category Fetch
-type FetchMyGamesYieldNotification struct {
-	Offset int64     `json:"offset"`
-	Total  int64     `json:"total"`
-	Items  []*MyGame `json:"items"`
+type FetchProfileGamesYieldNotification struct {
+	Offset int64          `json:"offset"`
+	Total  int64          `json:"total"`
+	Items  []*ProfileGame `json:"items"`
 }
 
-type FetchMyGamesResult struct {
+type FetchProfileGamesResult struct {
 }
 
-// @name Fetch.MyOwnedKeys
+// @name Fetch.ProfileOwnedKeys
 // @category Fetch
 // @caller client
-type FetchMyOwnedKeysParams struct {
-	// Session to use to fetch game
-	SessionID int64 `json:"sessionId"`
+type FetchProfileOwnedKeysParams struct {
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
 }
 
-// @name Fetch.MyOwnedKeys.Yield
+// @name Fetch.ProfileOwnedKeys.Yield
 // @category Fetch
-type FetchMyOwnedKeysYieldNotification struct {
+type FetchProfileOwnedKeysYieldNotification struct {
 	Offset int64                 `json:"offset"`
 	Total  int64                 `json:"total"`
 	Items  []*itchio.DownloadKey `json:"items"`
 }
 
-type FetchMyOwnedKeysResult struct {
+type FetchProfileOwnedKeysResult struct {
 }
 
 //----------------------------------------------------------------------

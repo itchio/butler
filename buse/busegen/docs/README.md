@@ -10,7 +10,7 @@ as of version v25.
 
 ## Version
 
-This documentation was generated on Mar  5 15:52:06 against [butler@1b33d8c](https://github.com/itchio/butler/commit/1b33d8cb9ccdba38d3e92b58cf6f9f221239b71b)
+This documentation was generated on Mar  5 16:14:36 against [butler@bb93b31](https://github.com/itchio/butler/commit/bb93b31265111455b3d1f1ea30f027c9626f6799)
 
 
 ## Starting the service
@@ -168,13 +168,13 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </div>
 
 
-## Session
+## Profile
 
-### <em class="request-client-caller"></em>Session.List
+### <em class="request-client-caller"></em>Profile.List
 
 
 <p>
-<p>Lists remembered sessions</p>
+<p>Lists remembered profiles</p>
 
 </p>
 
@@ -191,28 +191,28 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 
 <table class="field-table">
 <tr>
-<td><code>sessions</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span>[]</code></td>
-<td><p>A list of remembered sessions</p>
+<td><code>profiles</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span>[]</code></td>
+<td><p>A list of remembered profiles</p>
 </td>
 </tr>
 </table>
 
 
-<div id="SessionListParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Session.List <a href="#/?id=sessionlist">(Go to definition)</a></p>
+<div id="ProfileListParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Profile.List <a href="#/?id=profilelist">(Go to definition)</a></p>
 
 <p>
-<p>Lists remembered sessions</p>
+<p>Lists remembered profiles</p>
 
 </p>
 </div>
 
-### <em class="request-client-caller"></em>Session.LoginWithPassword
+### <em class="request-client-caller"></em>Profile.LoginWithPassword
 
 
 <p>
-<p>Add a new session by password login</p>
+<p>Add a new profile by password login</p>
 
 </p>
 
@@ -245,25 +245,25 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 
 <table class="field-table">
 <tr>
-<td><code>session</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span></code></td>
-<td><p>Information for the new session, now remembered</p>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
 <tr>
 <td><code>cookie</code></td>
 <td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type builtin-type">string</span>&gt;</code></td>
-<td><p>Session cookie for website</p>
+<td><p>Profile cookie for website</p>
 </td>
 </tr>
 </table>
 
 
-<div id="SessionLoginWithPasswordParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Session.LoginWithPassword <a href="#/?id=sessionloginwithpassword">(Go to definition)</a></p>
+<div id="ProfileLoginWithPasswordParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Profile.LoginWithPassword <a href="#/?id=profileloginwithpassword">(Go to definition)</a></p>
 
 <p>
-<p>Add a new session by password login</p>
+<p>Add a new profile by password login</p>
 
 </p>
 
@@ -280,12 +280,12 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 
 </div>
 
-### <em class="request-server-caller"></em>Session.RequestCaptcha
+### <em class="request-server-caller"></em>Profile.RequestCaptcha
 
 
 <p>
 <p>Ask the user to solve a captcha challenge
-Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionLoginWithPasswordParams__TypeHint">Session.LoginWithPassword</span></code> if certain
+Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if certain
 conditions are met.</p>
 
 </p>
@@ -321,12 +321,12 @@ conditions are met.</p>
 </table>
 
 
-<div id="SessionRequestCaptchaParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Session.RequestCaptcha <a href="#/?id=sessionrequestcaptcha">(Go to definition)</a></p>
+<div id="ProfileRequestCaptchaParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Profile.RequestCaptcha <a href="#/?id=profilerequestcaptcha">(Go to definition)</a></p>
 
 <p>
 <p>Ask the user to solve a captcha challenge
-Sent during <code class="typename"><span class="type request-client-caller">Session.LoginWithPassword</span></code> if certain
+Sent during <code class="typename"><span class="type request-client-caller">Profile.LoginWithPassword</span></code> if certain
 conditions are met.</p>
 
 </p>
@@ -340,12 +340,12 @@ conditions are met.</p>
 
 </div>
 
-### <em class="request-server-caller"></em>Session.RequestTOTP
+### <em class="request-server-caller"></em>Profile.RequestTOTP
 
 
 <p>
 <p>Ask the user to provide a TOTP token.
-Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionLoginWithPasswordParams__TypeHint">Session.LoginWithPassword</span></code> if the user has
+Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if the user has
 two-factor authentication enabled.</p>
 
 </p>
@@ -371,22 +371,22 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="SessionRequestTOTPParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Session.RequestTOTP <a href="#/?id=sessionrequesttotp">(Go to definition)</a></p>
+<div id="ProfileRequestTOTPParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Profile.RequestTOTP <a href="#/?id=profilerequesttotp">(Go to definition)</a></p>
 
 <p>
 <p>Ask the user to provide a TOTP token.
-Sent during <code class="typename"><span class="type request-client-caller">Session.LoginWithPassword</span></code> if the user has
+Sent during <code class="typename"><span class="type request-client-caller">Profile.LoginWithPassword</span></code> if the user has
 two-factor authentication enabled.</p>
 
 </p>
 </div>
 
-### <em class="request-client-caller"></em>Session.UseSavedLogin
+### <em class="request-client-caller"></em>Profile.UseSavedLogin
 
 
 <p>
-<p>Use saved login credentials to validate a session.</p>
+<p>Use saved login credentials to validate a profile.</p>
 
 </p>
 
@@ -397,7 +397,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
@@ -412,37 +412,37 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>session</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Session__TypeHint">Session</span></code></td>
-<td><p>Information for the now validated session</p>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><p>Information for the now validated profile</p>
 </td>
 </tr>
 </table>
 
 
-<div id="SessionUseSavedLoginParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Session.UseSavedLogin <a href="#/?id=sessionusesavedlogin">(Go to definition)</a></p>
+<div id="ProfileUseSavedLoginParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Profile.UseSavedLogin <a href="#/?id=profileusesavedlogin">(Go to definition)</a></p>
 
 <p>
-<p>Use saved login credentials to validate a session.</p>
+<p>Use saved login credentials to validate a profile.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Session.Forget
+### <em class="request-client-caller"></em>Profile.Forget
 
 
 <p>
-<p>Forgets a remembered session - it won&rsquo;t appear in the
-<code class="typename"><span class="type request-client-caller" data-tip-selector="#SessionListParams__TypeHint">Session.List</span></code> results anymore.</p>
+<p>Forgets a remembered profile - it won&rsquo;t appear in the
+<code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileListParams__TypeHint">Profile.List</span></code> results anymore.</p>
 
 </p>
 
@@ -453,7 +453,7 @@ two-factor authentication enabled.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
@@ -470,24 +470,24 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>success</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>True if the session did exist (and was successfully forgotten)</p>
+<td><p>True if the profile did exist (and was successfully forgotten)</p>
 </td>
 </tr>
 </table>
 
 
-<div id="SessionForgetParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Session.Forget <a href="#/?id=sessionforget">(Go to definition)</a></p>
+<div id="ProfileForgetParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Profile.Forget <a href="#/?id=profileforget">(Go to definition)</a></p>
 
 <p>
-<p>Forgets a remembered session - it won&rsquo;t appear in the
-<code class="typename"><span class="type request-client-caller">Session.List</span></code> results anymore.</p>
+<p>Forgets a remembered profile - it won&rsquo;t appear in the
+<code class="typename"><span class="type request-client-caller">Profile.List</span></code> results anymore.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -515,9 +515,9 @@ second from API if we&rsquo;re online.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Session to use to fetch game</p>
+<td><p>Profile to use to fetch game</p>
 </td>
 </tr>
 <tr>
@@ -548,7 +548,7 @@ second from API if we&rsquo;re online.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
@@ -619,9 +619,9 @@ contains.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Session to use to fetch game</p>
+<td><p>Profile to use to fetch game</p>
 </td>
 </tr>
 <tr>
@@ -652,7 +652,7 @@ contains.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
@@ -752,7 +752,7 @@ canonical itch.io order</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.MyCollections
+### <em class="request-client-caller"></em>Fetch.ProfileCollections
 
 
 
@@ -763,9 +763,9 @@ canonical itch.io order</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Session to use to fetch game</p>
+<td><p>Profile to use to fetch game</p>
 </td>
 </tr>
 </table>
@@ -777,24 +777,24 @@ canonical itch.io order</p>
 </p>
 
 
-<div id="FetchMyCollectionsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.MyCollections <a href="#/?id=fetchmycollections">(Go to definition)</a></p>
+<div id="FetchProfileCollectionsParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.ProfileCollections <a href="#/?id=fetchprofilecollections">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Fetch.MyCollections.Yield
+### <em class="notification"></em>Fetch.ProfileCollections.Yield
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchMyCollectionsParams__TypeHint">Fetch.MyCollections</span></code> whenever new info is
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchProfileCollectionsParams__TypeHint">Fetch.ProfileCollections</span></code> whenever new info is
 available.</p>
 
 </p>
@@ -823,11 +823,11 @@ available.</p>
 </table>
 
 
-<div id="FetchMyCollectionsYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.MyCollections.Yield <a href="#/?id=fetchmycollectionsyield">(Go to definition)</a></p>
+<div id="FetchProfileCollectionsYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.ProfileCollections.Yield <a href="#/?id=fetchprofilecollectionsyield">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.MyCollections</span></code> whenever new info is
+<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.ProfileCollections</span></code> whenever new info is
 available.</p>
 
 </p>
@@ -849,7 +849,7 @@ available.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.MyGames
+### <em class="request-client-caller"></em>Fetch.ProfileGames
 
 
 
@@ -860,9 +860,9 @@ available.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Session to use to fetch game</p>
+<td><p>Profile to use to fetch game</p>
 </td>
 </tr>
 </table>
@@ -874,20 +874,20 @@ available.</p>
 </p>
 
 
-<div id="FetchMyGamesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.MyGames <a href="#/?id=fetchmygames">(Go to definition)</a></p>
+<div id="FetchProfileGamesParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.ProfileGames <a href="#/?id=fetchprofilegames">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Fetch.MyGames.Yield
+### <em class="notification"></em>Fetch.ProfileGames.Yield
 
 
 
@@ -909,14 +909,14 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#MyGame__TypeHint">MyGame</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="FetchMyGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.MyGames.Yield <a href="#/?id=fetchmygamesyield">(Go to definition)</a></p>
+<div id="FetchProfileGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.ProfileGames.Yield <a href="#/?id=fetchprofilegamesyield">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -930,13 +930,13 @@ available.</p>
 </tr>
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">MyGame</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type">ProfileGame</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.MyOwnedKeys
+### <em class="request-client-caller"></em>Fetch.ProfileOwnedKeys
 
 
 
@@ -947,9 +947,9 @@ available.</p>
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Session to use to fetch game</p>
+<td><p>Profile to use to fetch game</p>
 </td>
 </tr>
 </table>
@@ -961,20 +961,20 @@ available.</p>
 </p>
 
 
-<div id="FetchMyOwnedKeysParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.MyOwnedKeys <a href="#/?id=fetchmyownedkeys">(Go to definition)</a></p>
+<div id="FetchProfileOwnedKeysParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.ProfileOwnedKeys <a href="#/?id=fetchprofileownedkeys">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
-<td><code>sessionId</code></td>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Fetch.MyOwnedKeys.Yield
+### <em class="notification"></em>Fetch.ProfileOwnedKeys.Yield
 
 
 
@@ -1002,8 +1002,8 @@ available.</p>
 </table>
 
 
-<div id="FetchMyOwnedKeysYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.MyOwnedKeys.Yield <a href="#/?id=fetchmyownedkeysyield">(Go to definition)</a></p>
+<div id="FetchProfileOwnedKeysYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Fetch.ProfileOwnedKeys.Yield <a href="#/?id=fetchprofileownedkeysyield">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3282,11 +3282,11 @@ use <code class="typename"><span class="type request-client-caller">Test.DoubleT
 
 ## Miscellaneous
 
-### <em class="struct-type"></em>Session
+### <em class="struct-type"></em>Profile
 
 
 <p>
-<p>Represents a user for which we have session information,
+<p>Represents a user for which we have profile information,
 ie. that we can connect as, etc.</p>
 
 </p>
@@ -3300,7 +3300,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>itch.io user ID, doubling as session ID</p>
+<td><p>itch.io user ID, doubling as profile ID</p>
 </td>
 </tr>
 <tr>
@@ -3318,11 +3318,11 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="Session__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Session <a href="#/?id=session">(Go to definition)</a></p>
+<div id="Profile__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Profile <a href="#/?id=profile">(Go to definition)</a></p>
 
 <p>
-<p>Represents a user for which we have session information,
+<p>Represents a user for which we have profile information,
 ie. that we can connect as, etc.</p>
 
 </p>
@@ -3344,7 +3344,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>MyGame
+### <em class="struct-type"></em>ProfileGame
 
 
 
@@ -3393,8 +3393,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="MyGame__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>MyGame <a href="#/?id=mygame">(Go to definition)</a></p>
+<div id="ProfileGame__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>ProfileGame <a href="#/?id=profilegame">(Go to definition)</a></p>
 
 
 <table class="field-table">

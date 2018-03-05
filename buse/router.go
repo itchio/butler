@@ -187,27 +187,31 @@ func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
 	return rc.MansionContext.NewClient(key)
 }
 
-func (rc *RequestContext) SessionClient(sessionID int64) (*itchio.Client, error) {
-	if sessionID == 0 {
-		return nil, errors.New("sessionId must be non-zero")
+func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itchio.Client, error) {
+	if profileID == 0 {
+		return nil, nil, errors.New("profileId must be non-zero")
 	}
 
 	db, err := rc.DB()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, nil, errors.Wrap(err, 0)
 	}
 
-	profile := &models.Profile{}
-	req := db.Where("id = ?", sessionID).First(profile)
-	err = req.Error
+	profile, err := models.ProfileByID(db, profileID)
 	if err != nil {
-		if req.RecordNotFound() {
-			return nil, fmt.Errorf("Could not find session %d", sessionID)
-		}
-		return nil, errors.Wrap(err, 0)
+		return nil, nil, errors.Wrap(err, 0)
 	}
 
-	return rc.MansionContext.NewClient(profile.APIKey)
+	if profile == nil {
+		return nil, nil, fmt.Errorf("Could not find profile %d", profileID)
+	}
+
+	client, err := rc.MansionContext.NewClient(profile.APIKey)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, 0)
+	}
+
+	return profile, client, nil
 }
 
 type CancelFuncs struct {

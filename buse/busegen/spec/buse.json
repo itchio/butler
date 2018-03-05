@@ -23,8 +23,8 @@
       }
     },
     {
-      "method": "Session.List",
-      "doc": "Lists remembered sessions",
+      "method": "Profile.List",
+      "doc": "Lists remembered profiles",
       "caller": "client",
       "params": {
         "fields": null
@@ -32,16 +32,16 @@
       "result": {
         "fields": [
           {
-            "name": "sessions",
-            "doc": "A list of remembered sessions",
-            "type": "Session[]"
+            "name": "profiles",
+            "doc": "A list of remembered profiles",
+            "type": "Profile[]"
           }
         ]
       }
     },
     {
-      "method": "Session.LoginWithPassword",
-      "doc": "Add a new session by password login",
+      "method": "Profile.LoginWithPassword",
+      "doc": "Add a new profile by password login",
       "caller": "client",
       "params": {
         "fields": [
@@ -60,21 +60,21 @@
       "result": {
         "fields": [
           {
-            "name": "session",
-            "doc": "Information for the new session, now remembered",
-            "type": "Session"
+            "name": "profile",
+            "doc": "Information for the new profile, now remembered",
+            "type": "Profile"
           },
           {
             "name": "cookie",
-            "doc": "Session cookie for website",
+            "doc": "Profile cookie for website",
             "type": "Map\u003cstring, string\u003e"
           }
         ]
       }
     },
     {
-      "method": "Session.RequestCaptcha",
-      "doc": "Ask the user to solve a captcha challenge\nSent during @@SessionLoginWithPasswordParams if certain\nconditions are met.",
+      "method": "Profile.RequestCaptcha",
+      "doc": "Ask the user to solve a captcha challenge\nSent during @@ProfileLoginWithPasswordParams if certain\nconditions are met.",
       "caller": "server",
       "params": {
         "fields": [
@@ -96,8 +96,8 @@
       }
     },
     {
-      "method": "Session.RequestTOTP",
-      "doc": "Ask the user to provide a TOTP token.\nSent during @@SessionLoginWithPasswordParams if the user has\ntwo-factor authentication enabled.",
+      "method": "Profile.RequestTOTP",
+      "doc": "Ask the user to provide a TOTP token.\nSent during @@ProfileLoginWithPasswordParams if the user has\ntwo-factor authentication enabled.",
       "caller": "server",
       "params": {
         "fields": null
@@ -113,13 +113,13 @@
       }
     },
     {
-      "method": "Session.UseSavedLogin",
-      "doc": "Use saved login credentials to validate a session.",
+      "method": "Profile.UseSavedLogin",
+      "doc": "Use saved login credentials to validate a profile.",
       "caller": "client",
       "params": {
         "fields": [
           {
-            "name": "sessionId",
+            "name": "profileId",
             "doc": "",
             "type": "number"
           }
@@ -128,21 +128,21 @@
       "result": {
         "fields": [
           {
-            "name": "session",
-            "doc": "Information for the now validated session",
-            "type": "Session"
+            "name": "profile",
+            "doc": "Information for the now validated profile",
+            "type": "Profile"
           }
         ]
       }
     },
     {
-      "method": "Session.Forget",
-      "doc": "Forgets a remembered session - it won't appear in the\n@@SessionListParams results anymore.",
+      "method": "Profile.Forget",
+      "doc": "Forgets a remembered profile - it won't appear in the\n@@ProfileListParams results anymore.",
       "caller": "client",
       "params": {
         "fields": [
           {
-            "name": "sessionId",
+            "name": "profileId",
             "doc": "",
             "type": "number"
           }
@@ -152,7 +152,7 @@
         "fields": [
           {
             "name": "success",
-            "doc": "True if the session did exist (and was successfully forgotten)",
+            "doc": "True if the profile did exist (and was successfully forgotten)",
             "type": "boolean"
           }
         ]
@@ -165,8 +165,8 @@
       "params": {
         "fields": [
           {
-            "name": "sessionId",
-            "doc": "Session to use to fetch game",
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
             "type": "number"
           },
           {
@@ -187,8 +187,8 @@
       "params": {
         "fields": [
           {
-            "name": "sessionId",
-            "doc": "Session to use to fetch game",
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
             "type": "number"
           },
           {
@@ -203,14 +203,14 @@
       }
     },
     {
-      "method": "Fetch.MyCollections",
+      "method": "Fetch.ProfileCollections",
       "doc": "",
       "caller": "client",
       "params": {
         "fields": [
           {
-            "name": "sessionId",
-            "doc": "Session to use to fetch game",
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
             "type": "number"
           }
         ]
@@ -220,14 +220,14 @@
       }
     },
     {
-      "method": "Fetch.MyGames",
+      "method": "Fetch.ProfileGames",
       "doc": "",
       "caller": "client",
       "params": {
         "fields": [
           {
-            "name": "sessionId",
-            "doc": "Session to use to fetch game",
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
             "type": "number"
           }
         ]
@@ -237,14 +237,14 @@
       }
     },
     {
-      "method": "Fetch.MyOwnedKeys",
+      "method": "Fetch.ProfileOwnedKeys",
       "doc": "",
       "caller": "client",
       "params": {
         "fields": [
           {
-            "name": "sessionId",
-            "doc": "Session to use to fetch game",
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
             "type": "number"
           }
         ]
@@ -749,8 +749,8 @@
       }
     },
     {
-      "method": "Fetch.MyCollections.Yield",
-      "doc": "Sent during @@FetchMyCollectionsParams whenever new info is\navailable.",
+      "method": "Fetch.ProfileCollections.Yield",
+      "doc": "Sent during @@FetchProfileCollectionsParams whenever new info is\navailable.",
       "params": {
         "fields": [
           {
@@ -772,7 +772,7 @@
       }
     },
     {
-      "method": "Fetch.MyGames.Yield",
+      "method": "Fetch.ProfileGames.Yield",
       "doc": "",
       "params": {
         "fields": [
@@ -789,13 +789,13 @@
           {
             "name": "items",
             "doc": "",
-            "type": "MyGame[]"
+            "type": "ProfileGame[]"
           }
         ]
       }
     },
     {
-      "method": "Fetch.MyOwnedKeys.Yield",
+      "method": "Fetch.ProfileOwnedKeys.Yield",
       "doc": "",
       "params": {
         "fields": [
@@ -979,12 +979,12 @@
   ],
   "structTypes": [
     {
-      "name": "Session",
-      "doc": "Represents a user for which we have session information,\nie. that we can connect as, etc.",
+      "name": "Profile",
+      "doc": "Represents a user for which we have profile information,\nie. that we can connect as, etc.",
       "fields": [
         {
           "name": "id",
-          "doc": "itch.io user ID, doubling as session ID",
+          "doc": "itch.io user ID, doubling as profile ID",
           "type": "number"
         },
         {
@@ -1000,7 +1000,7 @@
       ]
     },
     {
-      "name": "MyGame",
+      "name": "ProfileGame",
       "doc": "",
       "fields": [
         {
@@ -2077,5 +2077,5 @@
     }
   ],
   "enumTypes": null,
-  "versionNote": "Generated on Mar  5 15:52:06 against butler@1b33d8cb9ccdba38d3e92b58cf6f9f221239b71b"
+  "versionNote": "Generated on Mar  5 16:14:37 against butler@bb93b31265111455b3d1f1ea30f027c9626f6799"
 }

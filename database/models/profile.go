@@ -3,7 +3,9 @@ package models
 import (
 	"time"
 
+	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/jinzhu/gorm"
 )
 
 type Profile struct {
@@ -28,4 +30,16 @@ func (p *Profile) UpdateFromUser(user *itchio.User) {
 	p.Developer = user.Developer
 	p.PressUser = user.PressUser
 	p.LastConnected = time.Now().UTC()
+}
+
+func ProfileByID(db *gorm.DB, id int64) (*Profile, error) {
+	p := &Profile{}
+	req := db.Where("id = ?", id).First(p)
+	if req.Error != nil {
+		if req.RecordNotFound() {
+			return nil, nil
+		}
+		return nil, errors.Wrap(req.Error, 0)
+	}
+	return p, nil
 }
