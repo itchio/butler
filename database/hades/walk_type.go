@@ -195,7 +195,7 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 		}
 
 		child.Relationship = sf.Relationship
-		consumer.Infof("%v %s %v", ms.ModelType.Name(), child.Relationship.Kind, sf.Name)
+		consumer.Debugf("%v %s %v", ms.ModelType.Name(), child.Relationship.Kind, sf.Name)
 
 		if sf.Relationship.Kind == "many_to_many" {
 			jth := sf.Relationship.JoinTableHandler

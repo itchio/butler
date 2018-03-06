@@ -23,15 +23,19 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 	}
 
 	sendDBCollections := func() error {
-		var profileCollections []*models.ProfileCollection
-		err = db.Model(profile).
-			Preload("Collection").
-			Order(`"position" DESC`).
-			Related(&profileCollections, "ProfileCollections").
-			Error
+		c := hades.NewContext(db, consumer)
+		err := c.Preload(db, &hades.PreloadParams{
+			Record: profile,
+			Fields: []string{
+				"ProfileCollections",
+				"ProfileCollections.Collection",
+			},
+		})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
+
+		profileCollections := profile.ProfileCollections
 
 		var collectionIDs []int64
 		collectionsByIDs := make(map[int64]*itchio.Collection)
@@ -45,7 +49,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 			itchio.CollectionGame
 			itchio.Game
 		}
-		err := db.Raw(`
+		err = db.Raw(`
 			SELECT collection_games.*, games.*
 			FROM collections
 			JOIN collection_games ON collection_games.collection_id = collections.id

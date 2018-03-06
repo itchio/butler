@@ -21,7 +21,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	}
 
 	if input.Len() == 0 {
-		consumer.Infof("Nothing to persist (0 input records)")
+		consumer.Debugf("Nothing to persist (0 input records)")
 		return nil
 	}
 
@@ -37,114 +37,106 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	// use gorm facilities to find the primary keys
 	scope := tx.NewScope(first.Interface())
 	modelName := scope.GetModelStruct().ModelType.Name()
-	var pkFields []*gorm.Field
-	var pkColumnNames []string
-	fs := scope.Fields()
-	for _, f := range fs {
-		if f.IsPrimaryKey {
-			pkFields = append(pkFields, f)
-			pkColumnNames = append(pkColumnNames, f.DBName)
-		}
-	}
+	primaryFields := scope.PrimaryFields()
 
-	consumer.Debugf("Persisting %d records for %s, primary keys: (%s)", fresh.Len(), modelName, strings.Join(pkColumnNames, ", "))
+	consumer.Debugf("Persisting %d records for %s", fresh.Len(), modelName)
 
-	// this will happen for associations, we should have another codepath for that
-	if len(pkFields) != 1 {
-		if len(pkFields) != 2 {
-			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
+	// this will happen for associations
+	if len(primaryFields) != 1 {
+		if len(primaryFields) != 2 {
+			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
 		}
 
-		bfm := make(map[*gorm.Field]map[interface{}][]reflect.Value)
+		recordsGroupedByPrimaryField := make(map[*gorm.Field]map[interface{}][]reflect.Value)
 
-		for _, pkf := range pkFields {
-			rm := make(map[interface{}][]reflect.Value)
+		for _, primaryField := range primaryFields {
+			recordsByKey := make(map[interface{}][]reflect.Value)
 
 			for i := 0; i < fresh.Len(); i++ {
 				rec := fresh.Index(i)
-				v := rec.Elem().FieldByName(pkf.Name).Interface()
-				rm[v] = append(rm[v], rec)
+				key := rec.Elem().FieldByName(primaryField.Name).Interface()
+				recordsByKey[key] = append(recordsByKey[key], rec)
 			}
-			bfm[pkf] = rm
+			recordsGroupedByPrimaryField[primaryField] = recordsByKey
 		}
 
-		var bestLPK *gorm.Field
+		var bestSourcePrimaryField *gorm.Field
 		var bestNumGroups int64 = math.MaxInt64
 		var valueMap map[interface{}][]reflect.Value
-		for pk, recs := range bfm {
+		for primaryField, recs := range recordsGroupedByPrimaryField {
 			numGroups := len(recs)
 			if int64(numGroups) < bestNumGroups {
-				bestLPK = pk
+				bestSourcePrimaryField = primaryField
 				bestNumGroups = int64(numGroups)
 				valueMap = recs
 			}
 		}
 
-		if bestLPK == nil {
-			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(pkFields), modelName)
+		if bestSourcePrimaryField == nil {
+			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
 		}
 
-		var bestRPK *gorm.Field
-		for pk, _ := range bfm {
-			if pk != bestLPK {
-				bestRPK = pk
+		var bestDestinPrimaryField *gorm.Field
+		for primaryField, _ := range recordsGroupedByPrimaryField {
+			if primaryField != bestSourcePrimaryField {
+				bestDestinPrimaryField = primaryField
 				break
 			}
 		}
-		if bestRPK == nil {
-			return errors.New("Internal error: could not find bestRPK")
+		if bestDestinPrimaryField == nil {
+			return errors.New("Internal error: could not find bestDestinPrimaryField")
 		}
 
-		LPKModelName := strings.TrimSuffix(bestLPK.Name, "ID")
-		RPKModelName := strings.TrimSuffix(bestRPK.Name, "ID")
-		var LPKScope, RPKScope *gorm.Scope
-
-		for _, s := range c.ScopeMap {
-			if s.GetModelStruct().ModelType.Name() == LPKModelName {
-				LPKScope = s
-			}
-			if s.GetModelStruct().ModelType.Name() == RPKModelName {
-				RPKScope = s
-			}
+		sourceRelField, ok := scope.FieldByName(strings.TrimSuffix(bestSourcePrimaryField.Name, "ID"))
+		if !ok {
+			return fmt.Errorf("Could not find assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
+		}
+		destinRelField, ok := scope.FieldByName(strings.TrimSuffix(bestDestinPrimaryField.Name, "ID"))
+		if !ok {
+			return fmt.Errorf("Could not find assoc for %s.%s", modelName, bestDestinPrimaryField.Name)
 		}
 
-		if LPKScope == nil {
-			return fmt.Errorf("Could not find LPKModel %s", LPKModelName)
+		sourceScope, ok := c.ScopeMap[sourceRelField.Struct.Type]
+		if !ok {
+			return fmt.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
 		}
-		if RPKScope == nil {
-			return fmt.Errorf("Could not find RPKModel %s", RPKModelName)
+		destinScope, ok := c.ScopeMap[destinRelField.Struct.Type]
+		if !ok {
+			return fmt.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
 		}
 
-		if len(LPKScope.PrimaryFields()) != 1 {
-			return fmt.Errorf("Expected LPK model %s to have 1 primary field, but it has %d", LPKModelName, len(LPKScope.PrimaryFields()))
+		if len(sourceScope.PrimaryFields()) != 1 {
+			return fmt.Errorf("Expected Source model %s to have 1 primary field, but it has %d",
+				sourceScope.GetModelStruct().ModelType, len(sourceScope.PrimaryFields()))
 		}
-		if len(RPKScope.PrimaryFields()) != 1 {
-			return fmt.Errorf("Expected RPK model %s to have 1 primary field, but it has %d", LPKModelName, len(RPKScope.PrimaryFields()))
+		if len(destinScope.PrimaryFields()) != 1 {
+			return fmt.Errorf("Expected Destin model %s to have 1 primary field, but it has %d",
+				destinScope.GetModelStruct().ModelType, len(destinScope.PrimaryFields()))
+		}
+
+		sourceJTFK := gorm.JoinTableForeignKey{
+			DBName:            gorm.ToDBName(bestSourcePrimaryField.Name),
+			AssociationDBName: sourceScope.PrimaryField().DBName,
+		}
+
+		destinJTFK := gorm.JoinTableForeignKey{
+			DBName:            gorm.ToDBName(bestDestinPrimaryField.Name),
+			AssociationDBName: destinScope.PrimaryField().DBName,
 		}
 
 		mtm, err := c.NewManyToMany(
 			scope.TableName(),
-			[]gorm.JoinTableForeignKey{
-				gorm.JoinTableForeignKey{
-					DBName:            gorm.ToDBName(bestLPK.Name),
-					AssociationDBName: LPKScope.PrimaryField().DBName,
-				},
-			},
-			[]gorm.JoinTableForeignKey{
-				gorm.JoinTableForeignKey{
-					DBName:            gorm.ToDBName(bestRPK.Name),
-					AssociationDBName: LPKScope.PrimaryField().DBName,
-				},
-			},
+			[]gorm.JoinTableForeignKey{sourceJTFK},
+			[]gorm.JoinTableForeignKey{destinJTFK},
 		)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		for lpk, recs := range valueMap {
+		for sourceKey, recs := range valueMap {
 			for _, rec := range recs {
-				rpk := rec.Elem().FieldByName(bestRPK.Name).Interface()
-				mtm.AddKeys(lpk, rpk, rec)
+				destinKey := rec.Elem().FieldByName(bestDestinPrimaryField.Name).Interface()
+				mtm.AddKeys(sourceKey, destinKey, rec)
 			}
 		}
 
@@ -156,11 +148,11 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		return nil
 	}
 
-	pkField := pkFields[0]
+	primaryField := primaryFields[0]
 
 	// record should be a *SomeModel, we're effectively doing (*record).<pkColumn>
-	getPk := func(record reflect.Value) interface{} {
-		f := record.Elem().FieldByName(pkField.Name)
+	getKey := func(record reflect.Value) interface{} {
+		f := record.Elem().FieldByName(primaryField.Name)
 		if !f.IsValid() {
 			return nil
 		}
@@ -168,50 +160,13 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	}
 
 	// collect primary key values for all of input
-	var pks []interface{}
+	var keys []interface{}
 	for i := 0; i < fresh.Len(); i++ {
 		record := fresh.Index(i)
-		pks = append(pks, getPk(record))
+		keys = append(keys, getKey(record))
 	}
 
-	var err error
-
-	// retrieve cached items in a []*SomeModel
-	// for some reason, reflect.New returns a &[]*SomeModel instead,
-	// I'm guessing slices can't be interfaces, but pointers to slices can?
-	pagedByPK := func(pkDBName string, pks []interface{}, sliceType reflect.Type) (reflect.Value, error) {
-		// actually defaults to 999, but let's get some breathing room
-		const maxSqlVars = 900
-		result := reflect.New(sliceType)
-		resultVal := result.Elem()
-
-		remainingItems := pks
-		consumer.Debugf("%d items to fetch by PK", len(pks))
-
-		for len(remainingItems) > 0 {
-			var pageSize int
-			if len(remainingItems) > maxSqlVars {
-				pageSize = maxSqlVars
-			} else {
-				pageSize = len(remainingItems)
-			}
-
-			consumer.Debugf("Fetching %d items", pageSize)
-			pageAddr := reflect.New(sliceType)
-			err = tx.Where(fmt.Sprintf("%s in (?)", pkDBName), remainingItems[:pageSize]).Find(pageAddr.Interface()).Error
-			if err != nil {
-				return result, errors.Wrap(err, 0)
-			}
-
-			appended := reflect.AppendSlice(resultVal, pageAddr.Elem())
-			resultVal.Set(appended)
-			remainingItems = remainingItems[pageSize:]
-		}
-
-		return result, nil
-	}
-
-	cacheAddr, err := pagedByPK(pkField.DBName, pks, fresh.Type())
+	cacheAddr, err := c.pagedByKeys(tx, primaryField.DBName, keys, fresh.Type())
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -223,23 +178,23 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	cacheByPK := make(map[interface{}]reflect.Value)
 	for i := 0; i < cache.Len(); i++ {
 		record := cache.Index(i)
-		cacheByPK[getPk(record)] = record
+		cacheByPK[getKey(record)] = record
 	}
 
 	// compare cached records with fresh records
 	var inserts []reflect.Value
 	var updates = make(map[interface{}]ChangedFields)
 
-	donePK := make(map[interface{}]bool)
+	doneKeys := make(map[interface{}]bool)
 	for i := 0; i < fresh.Len(); i++ {
 		frec := fresh.Index(i)
-		pk := getPk(frec)
-		if _, ok := donePK[pk]; ok {
+		key := getKey(frec)
+		if _, ok := doneKeys[key]; ok {
 			continue
 		}
-		donePK[pk] = true
+		doneKeys[key] = true
 
-		if crec, ok := cacheByPK[pk]; ok {
+		if crec, ok := cacheByPK[key]; ok {
 			// frec and crec are *SomeModel, but `RecordEqual` ignores pointer
 			// equality - we want to compare the contents of the struct
 			// so we indirect to SomeModel here.
@@ -252,7 +207,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 			}
 
 			if cf != nil {
-				updates[pk] = cf
+				updates[key] = cf
 			}
 		} else {
 			inserts = append(inserts, frec)
@@ -272,14 +227,14 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		}
 	}
 
-	for pk, rec := range updates {
+	for key, rec := range updates {
 		err := tx.Table(scope.TableName()).
 			Where(
 				fmt.Sprintf(
 					`"%s" = ?`,
-					pkField.DBName,
+					primaryField.DBName,
 				),
-				pk,
+				key,
 			).
 			Updates(rec).
 			Error

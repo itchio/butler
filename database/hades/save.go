@@ -187,7 +187,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 		consumer.Debugf("Found %d %s", len(m), typ)
 		modelNames = append(modelNames, fmt.Sprintf("%v", typ))
 	}
-	consumer.Infof("Visited %d records (from %s) in %s", numVisited, strings.Join(modelNames, ", "), time.Since(startTime))
+	consumer.Debugf("Visited %d records (from %s) in %s", numVisited, strings.Join(modelNames, ", "), time.Since(startTime))
 
 	startTime = time.Now()
 
@@ -207,7 +207,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 		}
 	}
 
-	consumer.Infof("Inserted %d, Updated %d, Deleted %d, Current %d in %s",
+	consumer.Debugf("Inserted %d, Updated %d, Deleted %d, Current %d in %s",
 		c.Stats.Inserts,
 		c.Stats.Updates,
 		c.Stats.Deletes,

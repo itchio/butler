@@ -5,8 +5,8 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/database/hades"
+	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams) (*buse.FetchCollectionResult, error) {
@@ -27,15 +27,24 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 	}
 
 	sendDBCollection := func() error {
-		collection := &itchio.Collection{}
-		req := db.Preload("CollectionGames", func(db *gorm.DB) *gorm.DB {
-			return db.Order(`"position" ASC`)
-		}).Preload("CollectionGames.Game").Where("id = ?", params.CollectionID).First(collection)
-		if req.Error != nil {
-			if req.RecordNotFound() {
-				return nil
-			}
-			return errors.Wrap(req.Error, 0)
+		collection, err := models.CollectionByID(db, params.CollectionID)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if collection == nil {
+			return nil
+		}
+
+		err = hades.NewContext(db, consumer).Preload(db, &hades.PreloadParams{
+			Record: collection,
+			Fields: []string{
+				"CollectionGames", // TODO: order by "position" ASC
+				"CollectionGames.Game",
+			},
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
 
 		err = messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collection})

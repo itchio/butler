@@ -31,8 +31,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 		err := tx.Where(
 			fmt.Sprintf(`"%s" = ?`, mtm.SourceDBName),
 			sourceKey,
-		).
-			Find(cacheAddr.Interface()).Error
+		).Find(cacheAddr.Interface()).Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
