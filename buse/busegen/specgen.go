@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -14,11 +13,7 @@ func (bc *BuseContext) GenerateSpec() error {
 
 	doc := bc.NewBusegenRelativeDoc("spec/buse.json")
 
-	rev := bc.Revision()
-	versionNote := fmt.Sprintf("Generated on %s against butler@%s", bc.Timestamp(), rev)
-	s := &spec.Spec{
-		VersionNote: versionNote,
-	}
+	s := &spec.Spec{}
 
 	scope := newScope(bc)
 	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))

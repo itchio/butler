@@ -8,11 +8,6 @@
 buse is butler's JSON-RPC 2.0 service. It is used heavily by the [itch.io app](https://itch.io/app)
 as of version v25.
 
-## Version
-
-This documentation was generated on Mar  6 18:21:48 against [butler@9638476](https://github.com/itchio/butler/commit/9638476e21b7fdb25bfd44671ddc25a923fcf01e)
-
-
 ## Starting the service
 
 To start butler service, run:

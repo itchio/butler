@@ -5,7 +5,6 @@ type Spec struct {
 	Notifications []*NotificationSpec `json:"notifications"`
 	StructTypes   []*StructTypeSpec   `json:"structTypes"`
 	EnumTypes     []*EnumTypeSpec     `json:"enumTypes"`
-	VersionNote   string              `json:"versionNote"`
 }
 
 type RequestSpec struct {
