@@ -166,7 +166,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		keys = append(keys, getKey(record))
 	}
 
-	cacheAddr, err := c.pagedByKeys(tx, primaryField.DBName, keys, fresh.Type())
+	cacheAddr, err := c.pagedByKeys(tx, primaryField.DBName, keys, fresh.Type(), nil)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

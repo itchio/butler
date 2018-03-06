@@ -13,12 +13,28 @@ type PreloadParams struct {
 	Record interface{}
 
 	// Fields to preload, for example []string{"CollectionGames", "CollectionGames.Game"}
-	Fields []string
+	Fields []PreloadField
+}
+
+type PreloadCB func(db *gorm.DB) *gorm.DB
+
+type PreloadField struct {
+	Name    string
+	OrderBy string
 }
 
 type Node struct {
 	Name     string
+	Field    PreloadField
 	Children map[string]*Node
+}
+
+func (n *Node) cb(db *gorm.DB) *gorm.DB {
+	f := n.Field
+	if f.OrderBy != "" {
+		db = db.Order(f.OrderBy)
+	}
+	return db
 }
 
 func NewNode(name string) *Node {
@@ -30,7 +46,11 @@ func NewNode(name string) *Node {
 
 func (n *Node) String() string {
 	var res []string
-	res = append(res, fmt.Sprintf("- %s", n.Name))
+	var orderByStr string
+	if n.Field.OrderBy != "" {
+		orderByStr = fmt.Sprintf(" ORDER BY %s", n.Field.OrderBy)
+	}
+	res = append(res, fmt.Sprintf("- %s%s", n.Name, orderByStr))
 	for _, c := range n.Children {
 		for _, cl := range strings.Split(c.String(), "\n") {
 			res = append(res, "  "+cl)
@@ -39,8 +59,8 @@ func (n *Node) String() string {
 	return strings.Join(res, "\n")
 }
 
-func (n *Node) AddPath(path string) {
-	tokens := strings.Split(path, ".")
+func (n *Node) Add(pf PreloadField) {
+	tokens := strings.Split(pf.Name, ".")
 	name := tokens[0]
 
 	c, ok := n.Children[name]
@@ -50,7 +70,11 @@ func (n *Node) AddPath(path string) {
 	}
 
 	if len(tokens) > 1 {
-		c.AddPath(strings.Join(tokens[1:], "."))
+		pfc := pf
+		pfc.Name = strings.Join(tokens[1:], ".")
+		c.Add(pfc)
+	} else {
+		c.Field = pf
 	}
 }
 
@@ -79,7 +103,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 
 	valTree := NewNode("<root>")
 	for _, field := range params.Fields {
-		valTree.AddPath(field)
+		valTree.Add(field)
 	}
 
 	consumer.Debugf("valTree:\n%s", valTree)
@@ -143,10 +167,12 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				}
 
 				var err error
-				freshAddr, err = c.pagedByKeys(db, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type))
+				freshAddr, err = c.pagedByKeys(db, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
+
+				consumer.Infof("In has_many, found %d values (for ps of len %d)", freshAddr.Elem().Len(), ps.Len())
 
 				pByFK := make(map[interface{}]reflect.Value)
 				for i := 0; i < ps.Len(); i++ {
@@ -170,7 +196,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				}
 
 				var err error
-				freshAddr, err = c.pagedByKeys(db, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type))
+				freshAddr, err = c.pagedByKeys(db, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}

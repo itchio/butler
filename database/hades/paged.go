@@ -10,10 +10,12 @@ import (
 
 const maxSqlVars = 900
 
+type DBCB func(db *gorm.DB) *gorm.DB
+
 // retrieve cached items in a []*SomeModel
 // for some reason, reflect.New returns a &[]*SomeModel instead,
 // I'm guessing slices can't be interfaces, but pointers to slices can?
-func (c *Context) pagedByKeys(tx *gorm.DB, keyFieldName string, keys []interface{}, sliceType reflect.Type) (reflect.Value, error) {
+func (c *Context) pagedByKeys(tx *gorm.DB, keyFieldName string, keys []interface{}, sliceType reflect.Type, cb DBCB) (reflect.Value, error) {
 	consumer := c.Consumer
 
 	// actually defaults to 999, but let's get some breathing room
@@ -34,7 +36,12 @@ func (c *Context) pagedByKeys(tx *gorm.DB, keyFieldName string, keys []interface
 
 		consumer.Debugf("Fetching %d items", pageSize)
 		pageAddr := reflect.New(sliceType)
-		err := tx.Where(query, remainingItems[:pageSize]).Find(pageAddr.Interface()).Error
+		req := tx.Where(query, remainingItems[:pageSize])
+		if cb != nil {
+			req = cb(req)
+		}
+
+		err := req.Find(pageAddr.Interface()).Error
 		if err != nil {
 			return result, errors.Wrap(err, 0)
 		}

@@ -38,9 +38,9 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 
 		err = hades.NewContext(db, consumer).Preload(db, &hades.PreloadParams{
 			Record: collection,
-			Fields: []string{
-				"CollectionGames", // TODO: order by "position" ASC
-				"CollectionGames.Game",
+			Fields: []hades.PreloadField{
+				hades.PreloadField{Name: "CollectionGames", OrderBy: `"position" ASC`},
+				hades.PreloadField{Name: "CollectionGames.Game"},
 			},
 		})
 		if err != nil {

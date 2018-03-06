@@ -26,9 +26,9 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		c := hades.NewContext(db, consumer)
 		err := c.Preload(db, &hades.PreloadParams{
 			Record: profile,
-			Fields: []string{
-				"ProfileCollections",
-				"ProfileCollections.Collection",
+			Fields: []hades.PreloadField{
+				{Name: "ProfileCollections", OrderBy: `"position" ASC`},
+				{Name: "ProfileCollections.Collection"},
 			},
 		})
 		if err != nil {
