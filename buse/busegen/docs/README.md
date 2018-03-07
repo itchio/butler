@@ -1103,6 +1103,52 @@ available.</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Fetch.CavesByGameID
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caves</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchCavesByGameIDParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.CavesByGameID <a href="#/?id=fetchcavesbygameid">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Install
 

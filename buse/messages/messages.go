@@ -522,6 +522,36 @@ func (r *FetchCaveType) Register(router *buse.Router, f func(*buse.RequestContex
 
 var FetchCave *FetchCaveType
 
+// Fetch.CavesByGameID (Request)
+
+type FetchCavesByGameIDType struct {}
+
+var _ RequestMessage = (*FetchCavesByGameIDType)(nil)
+
+func (r *FetchCavesByGameIDType) Method() string {
+  return "Fetch.CavesByGameID"
+}
+
+func (r *FetchCavesByGameIDType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.FetchCavesByGameIDParams) (*buse.FetchCavesByGameIDResult, error)) {
+  router.Register("Fetch.CavesByGameID", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.FetchCavesByGameIDParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.CavesByGameID")
+    }
+    return res, nil
+  })
+}
+
+var FetchCavesByGameID *FetchCavesByGameIDType
+
 
 //==============================
 // Install
@@ -1125,6 +1155,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
+  if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Operation.Start"]; !ok { panic("missing request handler for (Operation.Start)") }
   if _, ok := router.Handlers["Operation.Cancel"]; !ok { panic("missing request handler for (Operation.Cancel)") }

@@ -49,13 +49,22 @@ func (c *Cave) SetVerdict(verdict *configurator.Verdict) error {
 func (c *Cave) GetVerdict() (*configurator.Verdict, error) { return UnmarshalVerdict(c.Verdict) }
 
 func CaveByID(db *gorm.DB, id string) (*Cave, error) {
-	g := &Cave{}
-	req := db.Where("id = ?", id).First(g)
+	c := &Cave{}
+	req := db.Where("id = ?", id).First(c)
 	if req.Error != nil {
 		if req.RecordNotFound() {
 			return nil, nil
 		}
 		return nil, errors.Wrap(req.Error, 0)
 	}
-	return g, nil
+	return c, nil
+}
+
+func CavesByGameID(db *gorm.DB, gameID int64) ([]*Cave, error) {
+	var cs []*Cave
+	err := db.Where("game_id = ?", gameID).Find(&cs).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+	return cs, nil
 }

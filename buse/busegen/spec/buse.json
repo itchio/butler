@@ -304,6 +304,29 @@
       }
     },
     {
+      "method": "Fetch.CavesByGameID",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "caves",
+            "doc": "",
+            "type": "Cave[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "Game.FindUploads",
       "doc": "Finds uploads compatible with the current runtime, for a given game.",
       "caller": "client",

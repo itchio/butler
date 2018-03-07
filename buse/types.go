@@ -360,6 +360,17 @@ type FetchCaveResult struct {
 	Cave *Cave `json:"cave"`
 }
 
+// @name Fetch.CavesByGameID
+// @category Fetch
+// @caller client
+type FetchCavesByGameIDParams struct {
+	GameID int64 `json:"gameId"`
+}
+
+type FetchCavesByGameIDResult struct {
+	Caves []*Cave `json:"caves"`
+}
+
 //----------------------------------------------------------------------
 // Game
 //----------------------------------------------------------------------
