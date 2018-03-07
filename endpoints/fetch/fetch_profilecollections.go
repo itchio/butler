@@ -45,7 +45,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 			collectionsByIDs[c.ID] = c
 		}
 
-		var cgs []struct {
+		var rows []struct {
 			itchio.CollectionGame
 			itchio.Game
 		}
@@ -62,15 +62,17 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 				ORDER BY "position" ASC
 				LIMIT 8
 			)
-		`, collectionIDs).Scan(&cgs).Error
+		`, collectionIDs).Scan(&rows).Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		for _, cg := range cgs {
-			c := collectionsByIDs[cg.CollectionGame.CollectionID]
-			cg.CollectionGame.Game = &cg.Game
-			c.CollectionGames = append(c.CollectionGames, &cg.CollectionGame)
+		for _, row := range rows {
+			c := collectionsByIDs[row.CollectionGame.CollectionID]
+			cg := row.CollectionGame
+			game := row.Game
+			cg.Game = &game
+			c.CollectionGames = append(c.CollectionGames, &cg)
 		}
 
 		if len(profileCollections) > 0 {
