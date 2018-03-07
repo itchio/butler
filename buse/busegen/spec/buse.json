@@ -483,29 +483,9 @@
       "params": {
         "fields": [
           {
-            "name": "installFolder",
-            "doc": "The folder the game was installed to",
+            "name": "caveId",
+            "doc": "The ID of the cave to launch",
             "type": "string"
-          },
-          {
-            "name": "game",
-            "doc": "The itch.io game that was installed",
-            "type": "Game"
-          },
-          {
-            "name": "upload",
-            "doc": "The itch.io upload that was installed",
-            "type": "Upload"
-          },
-          {
-            "name": "build",
-            "doc": "The itch.io build that was installed",
-            "type": "Build"
-          },
-          {
-            "name": "verdict",
-            "doc": "The stored verdict from when the folder was last configured (can be null)",
-            "type": "Verdict"
           },
           {
             "name": "prereqsDir",
@@ -521,11 +501,6 @@
             "name": "sandbox",
             "doc": "Enable sandbox (regardless of manifest opt-in)",
             "type": "boolean"
-          },
-          {
-            "name": "credentials",
-            "doc": "itch.io credentials to use for any necessary API\nrequests (prereqs downloads, subkeying, etc.)",
-            "type": "GameCredentials"
           }
         ]
       },
@@ -615,23 +590,6 @@
             "name": "url",
             "doc": "URL to open, e.g. `https://itch.io/community`",
             "type": "string"
-          }
-        ]
-      },
-      "result": {
-        "fields": null
-      }
-    },
-    {
-      "method": "SaveVerdict",
-      "doc": "Ask the client to save verdict information after a reconfiguration.\n\nSent during @@LaunchParams.",
-      "caller": "server",
-      "params": {
-        "fields": [
-          {
-            "name": "verdict",
-            "doc": "",
-            "type": "Verdict"
           }
         ]
       },

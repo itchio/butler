@@ -149,6 +149,10 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		}
 
 		runDuration := time.Since(startTime)
+		err = params.RecordPlayTime(runDuration)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 
 		if exitCode != 0 {
 			var signedExitCode = int64(exitCode)

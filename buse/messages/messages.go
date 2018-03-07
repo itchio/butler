@@ -921,24 +921,6 @@ func (r *URLLaunchType) Call(rc *buse.RequestContext, params *buse.URLLaunchPara
 
 var URLLaunch *URLLaunchType
 
-// SaveVerdict (Request)
-
-type SaveVerdictType struct {}
-
-var _ RequestMessage = (*SaveVerdictType)(nil)
-
-func (r *SaveVerdictType) Method() string {
-  return "SaveVerdict"
-}
-
-func (r *SaveVerdictType) Call(rc *buse.RequestContext, params *buse.SaveVerdictParams) (*buse.SaveVerdictResult, error) {
-  var result buse.SaveVerdictResult
-  err := rc.Call("SaveVerdict", params, &result)
-  return &result, err
-}
-
-var SaveVerdict *SaveVerdictType
-
 // AllowSandboxSetup (Request)
 
 type AllowSandboxSetupType struct {}

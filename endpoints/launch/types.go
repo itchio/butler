@@ -1,6 +1,8 @@
 package launch
 
 import (
+	"time"
+
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/manager"
 
@@ -45,7 +47,11 @@ type LauncherParams struct {
 	Credentials   *buse.GameCredentials
 	InstallFolder string
 	Runtime       *manager.Runtime
+
+	RecordPlayTime RecordPlayTimeFunc
 }
+
+type RecordPlayTimeFunc func(playTime time.Duration) error
 
 type Launcher interface {
 	Do(params *LauncherParams) error

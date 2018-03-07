@@ -3,13 +3,10 @@ package fetch
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
 func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.FetchCaveResult, error) {
-	consumer := rc.Consumer
-
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -21,14 +18,7 @@ func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.Fet
 	}
 
 	if cave != nil {
-		err = hades.NewContext(db, consumer).Preload(db, &hades.PreloadParams{
-			Record: cave,
-			Fields: []hades.PreloadField{
-				hades.PreloadField{Name: "Game"},
-				hades.PreloadField{Name: "Upload"},
-				hades.PreloadField{Name: "Build"},
-			},
-		})
+		err = PreloadCaves(db, rc.Consumer, cave)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}

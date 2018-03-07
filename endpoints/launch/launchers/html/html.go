@@ -2,6 +2,7 @@ package html
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/itchio/butler/buse/messages"
 
@@ -25,12 +26,22 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		return errors.Wrap(err, 0)
 	}
 
+	startTime := time.Now()
+
+	messages.LaunchRunning.Notify(params.RequestContext, &buse.LaunchRunningNotification{})
 	_, err = messages.HTMLLaunch.Call(params.RequestContext, &buse.HTMLLaunchParams{
 		RootFolder: rootFolder,
 		IndexPath:  indexPath,
 		Args:       params.Args,
 		Env:        params.Env,
 	})
+	messages.LaunchExited.Notify(params.RequestContext, &buse.LaunchExitedNotification{})
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	runDuration := time.Since(startTime)
+	err = params.RecordPlayTime(runDuration)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

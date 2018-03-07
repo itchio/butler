@@ -1,6 +1,10 @@
 package models
 
-import itchio "github.com/itchio/go-itchio"
+import (
+	"github.com/go-errors/errors"
+	itchio "github.com/itchio/go-itchio"
+	"github.com/jinzhu/gorm"
+)
 
 // Join table for Profile <has many> Games
 type ProfileGame struct {
@@ -26,4 +30,14 @@ type ProfileGame struct {
 	PurchasesCount int64 `json:"purchasesCount"`
 
 	Published bool `json:"published"`
+}
+
+func ProfileGamesByGameID(db *gorm.DB, gameID int64) ([]*ProfileGame, error) {
+	var pgs []*ProfileGame
+	err := db.Where("game_id = ?", gameID).Find(&pgs).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return pgs, nil
 }

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/itchio/butler/database/models"
 
 	goerrors "errors"
 
@@ -13,6 +16,7 @@ import (
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -29,19 +33,56 @@ func Register(router *buse.Router) {
 func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchResult, error) {
 	consumer := rc.Consumer
 
-	if params.InstallFolder == "" {
-		return nil, errors.New("InstallFolder must be specified")
+	if params.CaveID == "" {
+		return nil, errors.New("CaveID must be specified")
+	}
+
+	db, err := rc.DB()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	cave, err := models.CaveByID(db, params.CaveID)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	err = fetch.PreloadCaves(db, rc.Consumer, cave)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	if cave == nil {
+		return nil, fmt.Errorf("Cave not found for ID (%s)", params.CaveID)
+	}
+
+	var installFolder string
+	if true {
+		return nil, errors.New("Determining installfolder: stub")
+	}
+
+	game := cave.Game
+	upload := cave.Upload
+	build := cave.Build
+	verdict, err := cave.GetVerdict()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	credentials, err := fetch.CredentialsForGame(db, consumer, game)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	runtime := manager.CurrentRuntime()
 
-	consumer.Infof("→ Launching %s", operate.GameToString(params.Game))
+	consumer.Infof("→ Launching %s", operate.GameToString(game))
 	consumer.Infof("   on runtime %s", runtime)
-	consumer.Infof("   (%s) is our install folder", params.InstallFolder)
+	consumer.Infof("   (%s) is our install folder", installFolder)
 	consumer.Infof("Passed:")
-	operate.LogUpload(consumer, params.Upload, params.Build)
+	operate.LogUpload(consumer, upload, build)
 
-	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
+	receiptIn, err := bfs.ReadReceipt(installFolder)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -50,15 +91,15 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 	if receiptIn != nil {
 		if receiptIn.Upload != nil {
-			if params.Upload == nil || params.Upload.ID != receiptIn.Upload.ID {
+			if upload == nil || upload.ID != receiptIn.Upload.ID {
 				receiptSaidOtherwise = true
-				params.Upload = receiptIn.Upload
+				upload = receiptIn.Upload
 			}
 
 			if receiptIn.Build != nil {
-				if params.Build == nil || params.Build.ID != receiptIn.Build.ID {
+				if build == nil || build.ID != receiptIn.Build.ID {
 					receiptSaidOtherwise = true
-					params.Build = receiptIn.Build
+					build = receiptIn.Build
 				}
 			}
 		}
@@ -66,7 +107,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 	if receiptSaidOtherwise {
 		consumer.Warnf("Receipt had different data, switching to:")
-		operate.LogUpload(consumer, params.Upload, params.Build)
+		operate.LogUpload(consumer, upload, build)
 	}
 
 	var fullTargetPath string
@@ -74,7 +115,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	var candidate *configurator.Candidate
 	var manifestAction *buse.Action
 
-	appManifest, err := manifest.Read(params.InstallFolder)
+	appManifest, err := manifest.Read(installFolder)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -83,7 +124,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		var err error
 
 		if appManifest == nil {
-			consumer.Infof("No manifest found at (%s)", manifest.Path(params.InstallFolder))
+			consumer.Infof("No manifest found at (%s)", manifest.Path(installFolder))
 			return nil
 		}
 
@@ -122,7 +163,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		}
 
 		// is it a path?
-		res, err := DetermineStrategy(runtime, params.InstallFolder, manifestAction)
+		res, err := DetermineStrategy(runtime, installFolder, manifestAction)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -138,18 +179,18 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	}
 
 	pickFromVerdict := func() error {
-		consumer.Infof("→ Using verdict: %s", params.Verdict)
+		consumer.Infof("→ Using verdict: %s", verdict)
 
-		switch len(params.Verdict.Candidates) {
+		switch len(verdict.Candidates) {
 		case 0:
 			return ErrNoCandidates
 		case 1:
-			candidate = params.Verdict.Candidates[0]
+			candidate = verdict.Candidates[0]
 		default:
 			nameMap := make(map[string]*configurator.Candidate)
 
 			fakeActions := []*buse.Action{}
-			for _, c := range params.Verdict.Candidates {
+			for _, c := range verdict.Candidates {
 				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
 				nameMap[name] = c
 				fakeActions = append(fakeActions, &buse.Action{
@@ -172,7 +213,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			candidate = nameMap[r.Name]
 		}
 
-		fullPath := filepath.Join(params.InstallFolder, candidate.Path)
+		fullPath := filepath.Join(installFolder, candidate.Path)
 		_, err := os.Stat(fullPath)
 		if err != nil {
 			return errors.Wrap(err, 0)
@@ -185,18 +226,16 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	if fullTargetPath == "" {
 		consumer.Infof("Switching to verdict!")
 
-		if params.Verdict == nil {
+		if verdict == nil {
 			consumer.Infof("No verdict, configuring now")
 
-			verdict, err := configurator.Configure(params.InstallFolder, false)
+			newVerdict, err := configurator.Configure(installFolder, false)
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
-			params.Verdict = verdict
+			verdict = newVerdict
 
-			_, err = messages.SaveVerdict.Call(rc, &buse.SaveVerdictParams{
-				Verdict: verdict,
-			})
+			err = cave.SetVerdict(verdict)
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
@@ -221,15 +260,13 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 				if redoReason != "" {
 					consumer.Warnf("%s Re-configuring...", redoReason)
 
-					verdict, err := configurator.Configure(params.InstallFolder, false)
+					newVerdict, err := configurator.Configure(installFolder, false)
 					if err != nil {
 						return nil, errors.Wrap(err, 0)
 					}
-					params.Verdict = verdict
+					verdict = newVerdict
 
-					_, err = messages.SaveVerdict.Call(rc, &buse.SaveVerdictParams{
-						Verdict: verdict,
-					})
+					err = cave.SetVerdict(verdict)
 					if err != nil {
 						return nil, errors.Wrap(err, 0)
 					}
@@ -244,10 +281,10 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 		}
 	}
-	if params.Upload != nil {
-		switch params.Upload.Type {
+	if upload != nil {
+		switch upload.Type {
 		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
-			consumer.Infof("Forcing shell strategy because upload is of type (%s)", params.Upload.Type)
+			consumer.Infof("Forcing shell strategy because upload is of type (%s)", upload.Type)
 			fullTargetPath = "."
 			strategy = LaunchStrategyShell
 		}
@@ -290,13 +327,13 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 				return nil, errors.Wrap(err, 0)
 			}
 
-			client, err := operate.ClientFromCredentials(params.Credentials)
+			client, err := operate.ClientFromCredentials(credentials)
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
 
 			res, err := client.Subkey(&itchio.SubkeyParams{
-				GameID: params.Game.ID,
+				GameID: game.ID,
 				Scope:  manifestAction.Scope,
 			})
 			if err != nil {
@@ -328,9 +365,24 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		Env:            env,
 
 		PrereqsDir:    params.PrereqsDir,
-		Credentials:   params.Credentials,
-		InstallFolder: params.InstallFolder,
+		Credentials:   credentials,
+		InstallFolder: installFolder,
 		Runtime:       runtime,
+
+		RecordPlayTime: func(playTime time.Duration) error {
+			cave.RecordPlayTime(playTime)
+			err = db.Save(cave).Error
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+			return nil
+		},
+	}
+
+	cave.Touch()
+	err = db.Save(cave).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
 	err = launcher.Do(launcherParams)

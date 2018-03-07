@@ -57,6 +57,7 @@ func CaveByID(db *gorm.DB, id string) (*Cave, error) {
 		}
 		return nil, errors.Wrap(req.Error, 0)
 	}
+
 	return c, nil
 }
 
@@ -67,4 +68,13 @@ func CavesByGameID(db *gorm.DB, gameID int64) ([]*Cave, error) {
 		return nil, errors.Wrap(err, 0)
 	}
 	return cs, nil
+}
+
+func (c *Cave) Touch() {
+	c.LastTouchedAt = time.Now().UTC()
+}
+
+func (c *Cave) RecordPlayTime(playTime time.Duration) {
+	c.SecondsRun += int64(playTime.Seconds())
+	c.Touch()
 }

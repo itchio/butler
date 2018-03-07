@@ -17,6 +17,11 @@ func FetchCavesByGameID(rc *buse.RequestContext, params *buse.FetchCavesByGameID
 		return nil, errors.Wrap(err, 0)
 	}
 
+	err = PreloadCaves(db, rc.Consumer, caves)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	var formattedCaves []*buse.Cave
 	for _, c := range caves {
 		formattedCaves = append(formattedCaves, formatCave(c))

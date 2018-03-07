@@ -60,7 +60,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Querying API...")
+	consumer.Debugf("Querying API...")
 
 	gamesRes, err := client.ListMyGames()
 	if err != nil {

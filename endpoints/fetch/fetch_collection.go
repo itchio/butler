@@ -60,7 +60,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Querying API...")
+	consumer.Debugf("Querying API...")
 	collRes, err := client.GetCollection(&itchio.GetCollectionParams{
 		CollectionID: params.CollectionID,
 	})

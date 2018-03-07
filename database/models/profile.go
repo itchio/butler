@@ -43,3 +43,13 @@ func ProfileByID(db *gorm.DB, id int64) (*Profile, error) {
 	}
 	return p, nil
 }
+
+func AllProfiles(db *gorm.DB) ([]*Profile, error) {
+	var profiles []*Profile
+	err := db.Find(&profiles).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return profiles, nil
+}

@@ -88,6 +88,10 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 	val := reflect.ValueOf(rec)
 	valtyp := val.Type()
 	if valtyp.Kind() == reflect.Slice {
+		if val.Len() == 0 {
+			consumer.Debugf("nothing to preload (0-len slice passed)")
+			return nil
+		}
 		valtyp = valtyp.Elem()
 	}
 	if valtyp.Kind() != reflect.Ptr {

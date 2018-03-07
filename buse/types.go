@@ -3,7 +3,6 @@ package buse
 import (
 	"time"
 
-	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -688,16 +687,8 @@ type GameUpdate struct {
 // @category Launch
 // @caller client
 type LaunchParams struct {
-	// The folder the game was installed to
-	InstallFolder string `json:"installFolder"`
-	// The itch.io game that was installed
-	Game *itchio.Game `json:"game"`
-	// The itch.io upload that was installed
-	Upload *itchio.Upload `json:"upload"`
-	// The itch.io build that was installed
-	Build *itchio.Build `json:"build"`
-	// The stored verdict from when the folder was last configured (can be null)
-	Verdict *configurator.Verdict `json:"verdict"`
+	// The ID of the cave to launch
+	CaveID string `json:"caveId"`
 
 	// The directory to use to store installer files for prerequisites
 	PrereqsDir string `json:"prereqsDir"`
@@ -707,10 +698,6 @@ type LaunchParams struct {
 
 	// Enable sandbox (regardless of manifest opt-in)
 	Sandbox bool `json:"sandbox,omitempty"`
-
-	// itch.io credentials to use for any necessary API
-	// requests (prereqs downloads, subkeying, etc.)
-	Credentials *GameCredentials `json:"credentials"`
 }
 
 type LaunchResult struct {
@@ -794,18 +781,6 @@ type URLLaunchParams struct {
 }
 
 type URLLaunchResult struct{}
-
-// Ask the client to save verdict information after a reconfiguration.
-//
-// Sent during @@LaunchParams.
-//
-// @category Launch
-// @tags Deprecated
-// @caller server
-type SaveVerdictParams struct {
-	Verdict *configurator.Verdict `json:"verdict"`
-}
-type SaveVerdictResult struct{}
 
 // Ask the user to allow sandbox setup. Will be followed by
 // a UAC prompt (on Windows) or a pkexec dialog (on Linux) if

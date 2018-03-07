@@ -46,7 +46,7 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Querying API...")
+	consumer.Debugf("Querying API...")
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
 		GameID: params.GameID,
 	})

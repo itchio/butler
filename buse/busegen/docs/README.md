@@ -2274,33 +2274,9 @@ updates as they are found is not a requirement for the client.</p>
 
 <table class="field-table">
 <tr>
-<td><code>installFolder</code></td>
+<td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The folder the game was installed to</p>
-</td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The itch.io game that was installed</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The itch.io upload that was installed</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>The itch.io build that was installed</p>
-</td>
-</tr>
-<tr>
-<td><code>verdict</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Verdict__TypeHint">Verdict</span></code></td>
-<td><p>The stored verdict from when the folder was last configured (can be null)</p>
+<td><p>The ID of the cave to launch</p>
 </td>
 </tr>
 <tr>
@@ -2319,13 +2295,6 @@ updates as they are found is not a requirement for the client.</p>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p>Enable sandbox (regardless of manifest opt-in)</p>
-</td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>itch.io credentials to use for any necessary API
-requests (prereqs downloads, subkeying, etc.)</p>
 </td>
 </tr>
 </table>
@@ -2347,24 +2316,8 @@ requests (prereqs downloads, subkeying, etc.)</p>
 
 <table class="field-table">
 <tr>
-<td><code>installFolder</code></td>
+<td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>verdict</code></td>
-<td><code class="typename"><span class="type struct-type">Verdict</span></code></td>
 </tr>
 <tr>
 <td><code>prereqsDir</code></td>
@@ -2377,10 +2330,6 @@ requests (prereqs downloads, subkeying, etc.)</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
 </tr>
 </table>
 
@@ -2673,55 +2622,6 @@ with the system browser or appropriate.</p>
 <tr>
 <td><code>url</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-server-caller"></em>SaveVerdict
-
-
-<p>
-<p>Ask the client to save verdict information after a reconfiguration.</p>
-
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>verdict</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Verdict__TypeHint">Verdict</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> <em>none</em>
-</p>
-
-
-<div id="SaveVerdictParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>SaveVerdict <a href="#/?id=saveverdict">(Go to definition)</a></p>
-
-<p>
-<p>Ask the client to save verdict information after a reconfiguration.</p>
-
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>verdict</code></td>
-<td><code class="typename"><span class="type struct-type">Verdict</span></code></td>
 </tr>
 </table>
 
