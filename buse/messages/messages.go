@@ -587,19 +587,19 @@ func (r *GameFindUploadsType) Register(router *buse.Router, f func(*buse.Request
 
 var GameFindUploads *GameFindUploadsType
 
-// Operation.Start (Request)
+// Install.Queue (Request)
 
-type OperationStartType struct {}
+type InstallQueueType struct {}
 
-var _ RequestMessage = (*OperationStartType)(nil)
+var _ RequestMessage = (*InstallQueueType)(nil)
 
-func (r *OperationStartType) Method() string {
-  return "Operation.Start"
+func (r *InstallQueueType) Method() string {
+  return "Install.Queue"
 }
 
-func (r *OperationStartType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.OperationStartParams) (*buse.OperationStartResult, error)) {
-  router.Register("Operation.Start", func (rc *buse.RequestContext) (interface{}, error) {
-    var params buse.OperationStartParams
+func (r *InstallQueueType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallQueueParams) (*buse.InstallQueueResult, error)) {
+  router.Register("Install.Queue", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallQueueParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -609,27 +609,27 @@ func (r *OperationStartType) Register(router *buse.Router, f func(*buse.RequestC
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Operation.Start")
+    	return nil, errors.New("internal error: nil result for Install.Queue")
     }
     return res, nil
   })
 }
 
-var OperationStart *OperationStartType
+var InstallQueue *InstallQueueType
 
-// Operation.Cancel (Request)
+// Install.Perform (Request)
 
-type OperationCancelType struct {}
+type InstallPerformType struct {}
 
-var _ RequestMessage = (*OperationCancelType)(nil)
+var _ RequestMessage = (*InstallPerformType)(nil)
 
-func (r *OperationCancelType) Method() string {
-  return "Operation.Cancel"
+func (r *InstallPerformType) Method() string {
+  return "Install.Perform"
 }
 
-func (r *OperationCancelType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.OperationCancelParams) (*buse.OperationCancelResult, error)) {
-  router.Register("Operation.Cancel", func (rc *buse.RequestContext) (interface{}, error) {
-    var params buse.OperationCancelParams
+func (r *InstallPerformType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallPerformParams) (*buse.InstallPerformResult, error)) {
+  router.Register("Install.Perform", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallPerformParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -639,13 +639,73 @@ func (r *OperationCancelType) Register(router *buse.Router, f func(*buse.Request
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Operation.Cancel")
+    	return nil, errors.New("internal error: nil result for Install.Perform")
     }
     return res, nil
   })
 }
 
-var OperationCancel *OperationCancelType
+var InstallPerform *InstallPerformType
+
+// Install.Cancel (Request)
+
+type InstallCancelType struct {}
+
+var _ RequestMessage = (*InstallCancelType)(nil)
+
+func (r *InstallCancelType) Method() string {
+  return "Install.Cancel"
+}
+
+func (r *InstallCancelType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallCancelParams) (*buse.InstallCancelResult, error)) {
+  router.Register("Install.Cancel", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallCancelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Cancel")
+    }
+    return res, nil
+  })
+}
+
+var InstallCancel *InstallCancelType
+
+// Uninstall.Perform (Request)
+
+type UninstallPerformType struct {}
+
+var _ RequestMessage = (*UninstallPerformType)(nil)
+
+func (r *UninstallPerformType) Method() string {
+  return "Uninstall.Perform"
+}
+
+func (r *UninstallPerformType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.UninstallPerformParams) (*buse.UninstallPerformResult, error)) {
+  router.Register("Uninstall.Perform", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.UninstallPerformParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Uninstall.Perform")
+    }
+    return res, nil
+  })
+}
+
+var UninstallPerform *UninstallPerformType
 
 // PickUpload (Request)
 
@@ -1139,8 +1199,10 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
-  if _, ok := router.Handlers["Operation.Start"]; !ok { panic("missing request handler for (Operation.Start)") }
-  if _, ok := router.Handlers["Operation.Cancel"]; !ok { panic("missing request handler for (Operation.Cancel)") }
+  if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
+  if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }
+  if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
+  if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }

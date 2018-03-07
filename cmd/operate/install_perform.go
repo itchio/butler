@@ -1,10 +1,13 @@
 package operate
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/itchio/butler/buse/messages"
 
 	"github.com/itchio/go-itchio"
 
@@ -18,114 +21,46 @@ import (
 	"github.com/go-errors/errors"
 )
 
-func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResult, error) {
+func InstallPerform(ctx context.Context, rc *buse.RequestContext, performParams *buse.InstallPerformParams) error {
+	if performParams.StagingFolder == "" {
+		return errors.New("No staging folder specified")
+	}
+
+	oc, err := LoadContext(ctx, rc, performParams.StagingFolder)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	meta := NewMetaSubcontext()
+	oc.Load(meta)
+
+	err = doInstallPerform(oc, meta, rc)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	rc.Consumer.Infof("Install successful, retiring context")
+
+	err = oc.Retire()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	return nil
+}
+
+func doInstallPerform(oc *OperationContext, meta *MetaSubcontext, rc *buse.RequestContext) error {
+	params := meta.data
 	consumer := oc.Consumer()
 
-	params := meta.data.InstallParams
-
-	if params == nil {
-		return nil, errors.New("Missing install params")
-	}
-
-	if params.Game == nil {
-		return nil, errors.New("Missing game in install")
-	}
-
-	if params.InstallFolder == "" {
-		return nil, errors.New("Missing install folder in install")
+	client, err := ClientFromCredentials(params.Credentials)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("→ Installing %s", GameToString(params.Game))
 	consumer.Infof("  (%s) is our destination", params.InstallFolder)
 	consumer.Infof("  (%s) is our stage", oc.StageFolder())
-
-	client, err := ClientFromCredentials(params.Credentials)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	if params.Upload == nil {
-		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploadsFilterResult, err := GetFilteredUploads(client, params.Game, params.Credentials, consumer)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
-		if len(uploadsFilterResult.Uploads) == 0 {
-			consumer.Errorf("Didn't find a compatible upload.")
-			consumer.Errorf("The initial %d uploads were:", len(uploadsFilterResult.InitialUploads))
-			for _, upload := range uploadsFilterResult.InitialUploads {
-				LogUpload(consumer, upload, upload.Build)
-			}
-
-			return nil, (&OperationError{
-				Code:      "noCompatibleUploads",
-				Message:   "No compatible uploads",
-				Operation: "install",
-			}).Throw()
-		}
-
-		if len(uploadsFilterResult.Uploads) == 1 {
-			params.Upload = uploadsFilterResult.Uploads[0]
-		} else {
-			var r buse.PickUploadResult
-			err := oc.conn.Call(oc.ctx, "PickUpload", &buse.PickUploadParams{
-				Uploads: uploadsFilterResult.Uploads,
-			}, &r)
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
-			}
-
-			if r.Index < 0 {
-				return nil, &buse.ErrAborted{}
-			}
-
-			params.Upload = uploadsFilterResult.Uploads[r.Index]
-		}
-
-		if params.Upload.Build != nil {
-			// if we reach this point, we *just now* queried for an upload,
-			// so we know the build object is the latest
-			params.Build = params.Upload.Build
-		}
-
-		oc.Save(meta)
-	}
-
-	// params.Upload can't be nil by now
-	if params.Build == nil {
-		// We were passed an upload but not a build:
-		// Let's refresh upload info so we can settle on a build we want to install (if any)
-
-		listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-			GameID:        params.Game.ID,
-			DownloadKeyID: params.Credentials.DownloadKey,
-		})
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
-		found := true
-		for _, u := range listUploadsRes.Uploads {
-			if u.ID == params.Upload.ID {
-				if u.Build == nil {
-					consumer.Infof("Upload is not wharf-enabled")
-				} else {
-					consumer.Infof("Latest build for upload is %d", u.Build.ID)
-					params.Build = u.Build
-				}
-				break
-			}
-		}
-
-		if !found {
-			consumer.Errorf("Uh oh, we didn't find that upload on the server:")
-			LogUpload(consumer, params.Upload, nil)
-			return nil, errors.New("Upload not found")
-		}
-
-		oc.Save(meta)
-	}
 
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
@@ -136,8 +71,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	if receiptIn == nil {
 		consumer.Infof("No receipt found, asking client for info...")
 
-		var r buse.GetReceiptResult
-		err := oc.conn.Call(oc.ctx, "GetReceipt", &buse.GetReceiptParams{}, &r)
+		r, err := messages.GetReceipt.Call(oc.rc, &buse.GetReceiptParams{})
 		if err != nil {
 			consumer.Warnf("Could not get receipt from client: %s", err.Error())
 		}
@@ -163,7 +97,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			DownloadKeyID: params.Credentials.DownloadKey,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 		istate.DownloadSessionId = res.UUID
 		oc.Save(isub)
@@ -241,13 +175,13 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	// (just copy it first). see DownloadInstallSource later on.
 	file, err := eos.Open(installSourceURL)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 	defer file.Close()
 
 	stats, err := file.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	if istate.InstallerInfo == nil {
@@ -255,13 +189,13 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		installerInfo, err := installer.GetInstallerInfo(consumer, file)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
 		// sniffing may have read parts of the file, so seek back to beginning
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
 		if params.IgnoreInstallers {
@@ -287,7 +221,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 	manager := installer.GetManager(string(installerInfo.Type))
 	if manager == nil {
 		msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
-		return nil, errors.New(msg)
+		return errors.New(msg)
 	}
 
 	managerInstallParams := &installer.InstallParams{
@@ -313,7 +247,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			// keep going!
 		}
 
-		err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+		err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
 			Reason:    buse.TaskReasonInstall,
 			Type:      buse.TaskTypeInstall,
 			Game:      params.Game,
@@ -325,9 +259,9 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return nil, errors.Wrap(err, 0)
 		}
 
-		oc.StartProgress()
+		oc.rc.StartProgress()
 		res, err := manager.Install(managerInstallParams)
-		oc.EndProgress()
+		oc.rc.EndProgress()
 
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
@@ -336,8 +270,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		return res, nil
 	}
 
-	var firstInstallResult *installer.InstallResult
-	firstInstallResult = istate.FirstInstallResult
+	var firstInstallResult = istate.FirstInstallResult
 
 	if firstInstallResult != nil {
 		consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
@@ -354,7 +287,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 				consumer.Infof("Install source needs to be available locally, copying to disk...")
 
 				dlErr := func() error {
-					err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+					err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
 						Reason:    buse.TaskReasonInstall,
 						Type:      buse.TaskTypeDownload,
 						Game:      params.Game,
@@ -366,15 +299,15 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 						return errors.Wrap(err, 0)
 					}
 
-					oc.StartProgress()
+					oc.rc.StartProgress()
 					err := DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
-					oc.EndProgress()
+					oc.rc.EndProgress()
 					oc.consumer.Progress(0)
 					if err != nil {
 						return errors.Wrap(err, 0)
 					}
 
-					err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+					err = messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
 						Type: buse.TaskTypeDownload,
 					})
 					if err != nil {
@@ -384,7 +317,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 				}()
 
 				if dlErr != nil {
-					return nil, errors.Wrap(dlErr, 0)
+					return errors.Wrap(dlErr, 0)
 				}
 
 				istate.IsAvailableLocally = true
@@ -395,7 +328,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			{
 				lf, err := os.Open(destPath)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return errors.Wrap(err, 0)
 				}
 				managerInstallParams.File = lf
 			}
@@ -404,7 +337,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 		}
 
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 
 		consumer.Infof("Install successful")
@@ -496,7 +429,7 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 			return err
 		}()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return errors.Wrap(err, 0)
 		}
 	}
 
@@ -510,26 +443,4 @@ func Install(oc *OperationContext, meta *MetaSubcontext) (*installer.InstallResu
 
 		InstallResult: finalInstallResult,
 	})
-}
-
-type InstallSubcontextState struct {
-	DownloadSessionId   string                   `json:"downloadSessionId,omitempty"`
-	InstallerInfo       *installer.InstallerInfo `json:"installerInfo,omitempty"`
-	IsAvailableLocally  bool                     `json:"isAvailableLocally,omitempty"`
-	FirstInstallResult  *installer.InstallResult `json:"firstInstallResult,omitempty"`
-	SecondInstallerInfo *installer.InstallerInfo `json:"secondInstallerInfo,omitempty"`
-}
-
-type InstallSubcontext struct {
-	data *InstallSubcontextState
-}
-
-var _ Subcontext = (*InstallSubcontext)(nil)
-
-func (mt *InstallSubcontext) Key() string {
-	return "install"
-}
-
-func (mt *InstallSubcontext) Data() interface{} {
-	return &mt.data
 }

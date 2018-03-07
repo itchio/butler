@@ -7,6 +7,8 @@ import (
 
 func Register(router *buse.Router) {
 	messages.GameFindUploads.Register(router, GameFindUploads)
-	messages.OperationStart.Register(router, OperationStart)
-	messages.OperationCancel.Register(router, OperationCancel)
+	messages.InstallQueue.Register(router, InstallQueue)
+	messages.InstallPerform.Register(router, InstallPerform)
+	messages.InstallCancel.Register(router, InstallCancel)
+	messages.UninstallPerform.Register(router, UninstallPerform)
 }

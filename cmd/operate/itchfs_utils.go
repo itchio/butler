@@ -9,7 +9,7 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func sourceURL(consumer *state.Consumer, istate *InstallSubcontextState, params *buse.InstallParams, fileType string) string {
+func sourceURL(consumer *state.Consumer, istate *InstallSubcontextState, params *InstallParams, fileType string) string {
 	var buildID int64
 	if params.Build != nil {
 		buildID = params.Build.ID

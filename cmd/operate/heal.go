@@ -15,14 +15,14 @@ import (
 	"github.com/itchio/wharf/pwr"
 )
 
-func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) (*installer.InstallResult, error) {
+func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) error {
 	consumer := oc.Consumer()
 	istate := isub.data
 
-	params := meta.data.InstallParams
+	params := meta.data
 
 	if params.Build == nil {
-		return nil, errors.New("heal: missing build")
+		return errors.New("heal: missing build")
 	}
 
 	signatureURL := sourceURL(consumer, istate, params, "signature")
@@ -38,13 +38,13 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	signatureFile, err := eos.Open(signatureURL)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 	defer signatureFile.Close()
 
 	stat, err := signatureFile.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("Fetching + parsing %s signature...",
@@ -57,12 +57,12 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	_, err = signatureSource.Resume(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	sigInfo, err := pwr.ReadSignature(signatureSource)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("✓ Fetched signature in %s, dealing with %s container",
@@ -74,12 +74,12 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	timeBeforeHeal := time.Now()
 
-	oc.StartProgress()
+	oc.rc.StartProgress()
 	err = vc.Validate(params.InstallFolder, sigInfo)
-	oc.EndProgress()
+	oc.rc.EndProgress()
 
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	healDuration := time.Since(timeBeforeHeal)
@@ -125,7 +125,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		Consumer: consumer,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	return commitInstall(oc, &CommitInstallParams{

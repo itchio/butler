@@ -355,8 +355,55 @@
       }
     },
     {
-      "method": "Operation.Start",
-      "doc": "Start a new operation (installing or uninstalling).\n\nCan be cancelled by passing the same `ID` to @@OperationCancelParams.",
+      "method": "Install.Queue",
+      "doc": "Queues an install operation to be later performed\nvia @@InstallPerformParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "stagingFolder",
+            "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
+            "type": "string"
+          },
+          {
+            "name": "game",
+            "doc": "Which game to install",
+            "type": "Game"
+          },
+          {
+            "name": "installFolder",
+            "doc": "TODO: specify InstallLocation instead\nAn absolute path where to install the game",
+            "type": "string"
+          },
+          {
+            "name": "upload",
+            "doc": "Which upload to install",
+            "type": "Upload"
+          },
+          {
+            "name": "build",
+            "doc": "Which build to install",
+            "type": "Build"
+          },
+          {
+            "name": "ignoreInstallers",
+            "doc": "If true, do not run windows installers, just extract\nwhatever to the install folder.",
+            "type": "boolean"
+          },
+          {
+            "name": "credentials",
+            "doc": "",
+            "type": "GameCredentials"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Install.Perform",
+      "doc": "Perform an install that was previously queued via\n@@InstallQueueParams.\n\nCan be cancelled by passing the same `ID` to @@InstallCancelParams.",
       "caller": "client",
       "params": {
         "fields": [
@@ -369,21 +416,6 @@
             "name": "stagingFolder",
             "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
             "type": "string"
-          },
-          {
-            "name": "operation",
-            "doc": "Which operation to perform",
-            "type": "Operation"
-          },
-          {
-            "name": "installParams",
-            "doc": "Must be set if Operation is `install`",
-            "type": "InstallParams"
-          },
-          {
-            "name": "uninstallParams",
-            "doc": "Must be set if Operation is `uninstall`",
-            "type": "UninstallParams"
           }
         ]
       },
@@ -392,7 +424,7 @@
       }
     },
     {
-      "method": "Operation.Cancel",
+      "method": "Install.Cancel",
       "doc": "Attempt to gracefully cancel an ongoing operation.",
       "caller": "client",
       "params": {
@@ -401,6 +433,23 @@
             "name": "id",
             "doc": "The UUID of the task to cancel, as passed to @@OperationStartParams",
             "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Uninstall.Perform",
+      "doc": "UninstallParams contains all the parameters needed to perform\nan uninstallation for a game via @@OperationStartParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "The cave to uninstall",
+            "type": "number"
           }
         ]
       },
@@ -2087,53 +2136,6 @@
           "name": "game",
           "doc": "",
           "type": "Game"
-        }
-      ]
-    },
-    {
-      "name": "InstallParams",
-      "doc": "InstallParams contains all the parameters needed to perform\nan installation for a game via @@OperationStartParams.",
-      "fields": [
-        {
-          "name": "game",
-          "doc": "Which game to install",
-          "type": "Game"
-        },
-        {
-          "name": "installFolder",
-          "doc": "An absolute path where to install the game",
-          "type": "string"
-        },
-        {
-          "name": "upload",
-          "doc": "Which upload to install",
-          "type": "Upload"
-        },
-        {
-          "name": "build",
-          "doc": "Which build to install",
-          "type": "Build"
-        },
-        {
-          "name": "credentials",
-          "doc": "Which credentials to use to install the game",
-          "type": "GameCredentials"
-        },
-        {
-          "name": "ignoreInstallers",
-          "doc": "If true, do not run windows installers, just extract\nwhatever to the install folder.",
-          "type": "boolean"
-        }
-      ]
-    },
-    {
-      "name": "UninstallParams",
-      "doc": "UninstallParams contains all the parameters needed to perform\nan uninstallation for a game via @@OperationStartParams.",
-      "fields": [
-        {
-          "name": "installFolder",
-          "doc": "Absolute path of the folder butler should uninstall",
-          "type": "string"
         }
       ]
     },

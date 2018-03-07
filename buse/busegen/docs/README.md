@@ -1218,13 +1218,125 @@ available.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Operation.Start
+### <em class="request-client-caller"></em>Install.Queue
 
 
 <p>
-<p>Start a new operation (installing or uninstalling).</p>
+<p>Queues an install operation to be later performed
+via <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code>.</p>
 
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationCancelParams__TypeHint">Operation.Cancel</span></code>.</p>
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A folder that butler can use to store temporary files, like
+partial downloads, checkpoint files, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Which game to install</p>
+</td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>TODO: specify InstallLocation instead
+An absolute path where to install the game</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p><span class="tag">Optional</span> Which upload to install</p>
+</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><span class="tag">Optional</span> Which build to install</p>
+</td>
+</tr>
+<tr>
+<td><code>ignoreInstallers</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, do not run windows installers, just extract
+whatever to the install folder.</p>
+</td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="InstallQueueParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Queue <a href="#/?id=installqueue">(Go to definition)</a></p>
+
+<p>
+<p>Queues an install operation to be later performed
+via <code class="typename"><span class="type request-client-caller">Install.Perform</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>ignoreInstallers</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>credentials</code></td>
+<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Install.Perform
+
+
+<p>
+<p>Perform an install that was previously queued via
+<code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code>.</p>
+
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code>.</p>
 
 </p>
 
@@ -1248,24 +1360,6 @@ task when cancelling it, for instance.</p>
 partial downloads, checkpoint files, etc.</p>
 </td>
 </tr>
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Operation__TypeHint">Operation</span></code></td>
-<td><p>Which operation to perform</p>
-</td>
-</tr>
-<tr>
-<td><code>installParams</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallParams__TypeHint">InstallParams</span></code></td>
-<td><p><span class="tag">Optional</span> Must be set if Operation is <code>install</code></p>
-</td>
-</tr>
-<tr>
-<td><code>uninstallParams</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#UninstallParams__TypeHint">UninstallParams</span></code></td>
-<td><p><span class="tag">Optional</span> Must be set if Operation is <code>uninstall</code></p>
-</td>
-</tr>
 </table>
 
 
@@ -1275,13 +1369,14 @@ partial downloads, checkpoint files, etc.</p>
 </p>
 
 
-<div id="OperationStartParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Operation.Start <a href="#/?id=operationstart">(Go to definition)</a></p>
+<div id="InstallPerformParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Perform <a href="#/?id=installperform">(Go to definition)</a></p>
 
 <p>
-<p>Start a new operation (installing or uninstalling).</p>
+<p>Perform an install that was previously queued via
+<code class="typename"><span class="type request-client-caller">Install.Queue</span></code>.</p>
 
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller">Operation.Cancel</span></code>.</p>
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller">Install.Cancel</span></code>.</p>
 
 </p>
 
@@ -1294,61 +1389,11 @@ partial downloads, checkpoint files, etc.</p>
 <td><code>stagingFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type enum-type">Operation</span></code></td>
-</tr>
-<tr>
-<td><code>installParams</code></td>
-<td><code class="typename"><span class="type struct-type">InstallParams</span></code></td>
-</tr>
-<tr>
-<td><code>uninstallParams</code></td>
-<td><code class="typename"><span class="type struct-type">UninstallParams</span></code></td>
-</tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>Operation
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-<td><p>Install a game (includes upgrades, heals, etc.)</p>
-</td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-<td><p>Uninstall a game</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Operation__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Operation <a href="#/?id=operation">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"install"</code></td>
-</tr>
-<tr>
-<td><code>"uninstall"</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-client-caller"></em>Operation.Cancel
+### <em class="request-client-caller"></em>Install.Cancel
 
 
 <p>
@@ -1365,7 +1410,7 @@ partial downloads, checkpoint files, etc.</p>
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The UUID of the task to cancel, as passed to <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code></p>
+<td><p>The UUID of the task to cancel, as passed to <code class="typename"><span class="type builtin-type">OperationStartParams</span></code></p>
 </td>
 </tr>
 </table>
@@ -1377,8 +1422,8 @@ partial downloads, checkpoint files, etc.</p>
 </p>
 
 
-<div id="OperationCancelParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Operation.Cancel <a href="#/?id=operationcancel">(Go to definition)</a></p>
+<div id="InstallCancelParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Cancel <a href="#/?id=installcancel">(Go to definition)</a></p>
 
 <p>
 <p>Attempt to gracefully cancel an ongoing operation.</p>
@@ -1394,136 +1439,49 @@ partial downloads, checkpoint files, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>InstallParams
-
-
-<p>
-<p>InstallParams contains all the parameters needed to perform
-an installation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to install</p>
-</td>
-</tr>
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>An absolute path where to install the game</p>
-</td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> Which upload to install</p>
-</td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span> Which build to install</p>
-</td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>Which credentials to use to install the game</p>
-</td>
-</tr>
-<tr>
-<td><code>ignoreInstallers</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> If true, do not run windows installers, just extract
-whatever to the install folder.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="InstallParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallParams <a href="#/?id=installparams">(Go to definition)</a></p>
-
-<p>
-<p>InstallParams contains all the parameters needed to perform
-an installation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
-</tr>
-<tr>
-<td><code>ignoreInstallers</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>UninstallParams
+### <em class="request-client-caller"></em>Uninstall.Perform
 
 
 <p>
 <p>UninstallParams contains all the parameters needed to perform
-an uninstallation for a game via <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
+an uninstallation for a game via <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
 </p>
 
 <p>
-<span class="header">Fields</span> 
+<span class="header">Parameters</span> 
 </p>
 
 
 <table class="field-table">
 <tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Absolute path of the folder butler should uninstall</p>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>The cave to uninstall</p>
 </td>
 </tr>
 </table>
 
 
-<div id="UninstallParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>UninstallParams <a href="#/?id=uninstallparams">(Go to definition)</a></p>
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="UninstallPerformParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Uninstall.Perform <a href="#/?id=uninstallperform">(Go to definition)</a></p>
 
 <p>
 <p>UninstallParams contains all the parameters needed to perform
-an uninstallation for a game via <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
+an uninstallation for a game via <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>installFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -1627,7 +1585,7 @@ or a negative value to cancel.</p>
 
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> to inform on the current state an operation.</p>
+<p>Sent periodically during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> to inform on the current state an operation.</p>
 
 </p>
 
@@ -1662,7 +1620,7 @@ or a negative value to cancel.</p>
 <p><em class="notification"></em>Operation.Progress <a href="#/?id=operationprogress">(Go to definition)</a></p>
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> to inform on the current state an operation.</p>
+<p>Sent periodically during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> to inform on the current state an operation.</p>
 
 </p>
 
@@ -1788,7 +1746,7 @@ or a negative value to cancel.</p>
 
 <p>
 <p>Each operation is made up of one or more tasks. This notification
-is sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a specific task starts.</p>
+is sent during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> whenever a specific task starts.</p>
 
 </p>
 
@@ -1842,7 +1800,7 @@ is sent during <code class="typename"><span class="type request-client-caller" d
 
 <p>
 <p>Each operation is made up of one or more tasks. This notification
-is sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a specific task starts.</p>
+is sent during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> whenever a specific task starts.</p>
 
 </p>
 
@@ -1879,7 +1837,7 @@ is sent during <code class="typename"><span class="type request-client-caller">O
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
+<p>Sent during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> whenever a task succeeds for an operation.</p>
 
 </p>
 
@@ -1908,7 +1866,7 @@ info about the game, upload, build that were installed</p>
 <p><em class="notification"></em>TaskSucceeded <a href="#/?id=tasksucceeded">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Operation.Start</span></code> whenever a task succeeds for an operation.</p>
+<p>Sent during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> whenever a task succeeds for an operation.</p>
 
 </p>
 
@@ -1929,7 +1887,7 @@ info about the game, upload, build that were installed</p>
 
 
 <p>
-<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller" data-tip-selector="#OperationStartParams__TypeHint">Operation.Start</span></code>.</p>
+<p>What was installed by a subtask of <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
 <p>See <code class="typename"><span class="type notification" data-tip-selector="#TaskSucceededNotification__TypeHint">TaskSucceeded</span></code>.</p>
 
@@ -1966,7 +1924,7 @@ info about the game, upload, build that were installed</p>
 <p><em class="struct-type"></em>InstallResult <a href="#/?id=installresult">(Go to definition)</a></p>
 
 <p>
-<p>What was installed by a subtask of <code class="typename"><span class="type request-client-caller">Operation.Start</span></code>.</p>
+<p>What was installed by a subtask of <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
 <p>See <code class="typename"><span class="type notification">TaskSucceeded</span></code>.</p>
 

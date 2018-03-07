@@ -3,6 +3,8 @@ package operate
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,19 +15,16 @@ import (
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/pb"
-	"github.com/itchio/butler/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 )
 
 type OperationContext struct {
-	conn        buse.Conn
+	rc          *buse.RequestContext
 	ctx         context.Context
 	consumer    *state.Consumer
 	stageFolder string
 	logFile     *os.File
-
-	counter *progress.Counter
 
 	root map[string]interface{}
 
@@ -34,7 +33,9 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(conn buse.Conn, ctx context.Context, parentConsumer *state.Consumer, stageFolder string) (*OperationContext, error) {
+func LoadContext(ctx context.Context, rc *buse.RequestContext, stageFolder string) (*OperationContext, error) {
+	parentConsumer := rc.Consumer
+
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
 		parentConsumer.Warnf("Could not create operate directory: %s", err.Error())
@@ -57,51 +58,16 @@ func LoadContext(conn buse.Conn, ctx context.Context, parentConsumer *state.Cons
 		logFile:     logFile,
 		stageFolder: stageFolder,
 		ctx:         ctx,
-		conn:        conn,
+		rc:          rc,
 		root:        make(map[string]interface{}),
 		loaded:      make(map[string]struct{}),
 	}
-
-	consumer, err := buse.NewStateConsumer(&buse.NewStateConsumerParams{
-		Conn:    conn,
-		Ctx:     ctx,
-		LogFile: logFile,
-	})
-
-	consumer.OnProgress = func(alpha float64) {
-		if oc.counter == nil {
-			// skip
-			return
-		}
-
-		oc.counter.SetProgress(alpha)
-		notif := &buse.OperationProgressNotification{
-			Progress: alpha,
-			ETA:      oc.counter.ETA().Seconds(),
-			BPS:      oc.counter.BPS(),
-		}
-
-		oc.conn.Notify(ctx, "Operation.Progress", notif)
-	}
-	consumer.OnProgressLabel = func(label string) {
-		// muffin
-	}
-	consumer.OnPauseProgress = func() {
-		if oc.counter != nil {
-			oc.counter.Pause()
-		}
-	}
-	consumer.OnResumeProgress = func() {
-		if oc.counter != nil {
-			oc.counter.Resume()
-		}
-	}
-
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
-	oc.consumer = consumer
 
+	consumer := TeeConsumer(parentConsumer, logFile)
+	oc.consumer = consumer
 	path := contextPath(stageFolder)
 
 	f, err := os.Open(path)
@@ -123,36 +89,6 @@ func LoadContext(conn buse.Conn, ctx context.Context, parentConsumer *state.Cons
 	return oc, nil
 }
 
-func (oc *OperationContext) StartProgress() {
-	oc.StartProgressWithTotalBytes(0)
-}
-
-func (oc *OperationContext) StartProgressWithTotalBytes(totalBytes int64) {
-	oc.StartProgressWithInitialAndTotal(0.0, totalBytes)
-}
-
-func (oc *OperationContext) StartProgressWithInitialAndTotal(initialProgress float64, totalBytes int64) {
-	if oc.counter != nil {
-		oc.consumer.Warnf("Asked to start progress but already tracking progress!")
-		return
-	}
-
-	oc.counter = progress.NewCounter()
-	oc.counter.SetSilent(true)
-	oc.counter.SetProgress(initialProgress)
-	oc.counter.SetTotalBytes(totalBytes)
-	oc.counter.Start()
-}
-
-func (oc *OperationContext) EndProgress() {
-	if oc.counter != nil {
-		oc.counter.Finish()
-		oc.counter = nil
-	} else {
-		oc.consumer.Warnf("Asked to stop progress but wasn't tracking progress!")
-	}
-}
-
 func (oc *OperationContext) Load(s Subcontext) {
 	if _, ok := oc.loaded[s.Key()]; ok {
 		oc.consumer.Warnf("Refusing to load subcontext %s a second time", s.Key())
@@ -162,8 +98,10 @@ func (oc *OperationContext) Load(s Subcontext) {
 	// only load if there's actually something there
 	if val, ok := oc.root[s.Key()]; ok {
 		dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-			TagName: "json",
-			Result:  s.Data(),
+			TagName:          "json",
+			Result:           s.Data(),
+			WeaklyTypedInput: true,
+			DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
 		})
 		if err != nil {
 			oc.consumer.Warnf("Could not load subcontext %s: while configuring decoder, %s", s.Key(), err.Error())
@@ -242,4 +180,53 @@ type Subcontext interface {
 	// Data should return a pointer to the underlying struct
 	// of the subcontext
 	Data() interface{}
+}
+
+func TeeConsumer(c *state.Consumer, logFile io.Writer) *state.Consumer {
+	originalConsumer := *c
+	newConsumer := *c
+
+	newConsumer.OnMessage = func(level string, msg string) {
+		originalConsumer.OnMessage(level, msg)
+
+		payload, err := json.Marshal(map[string]interface{}{
+			"time":  currentTimeMillis(),
+			"name":  "butler",
+			"level": butlerLevelToItchLevel(level),
+			"msg":   msg,
+		})
+		if err == nil {
+			fmt.Fprintf(logFile, "%s\n", string(payload))
+		} else {
+			fmt.Fprintf(logFile, "could not marshal json log entry: %s\n", err.Error())
+		}
+	}
+	return &newConsumer
+}
+
+func butlerLevelToItchLevel(level string) int {
+	switch level {
+	case "fatal":
+		return 60
+	case "error":
+		return 50
+	case "warning":
+		return 40
+	case "info":
+		return 30
+	case "debug":
+		return 20
+	case "trace":
+		return 10
+	default:
+		return 30 // default
+	}
+}
+
+func currentTimeMillis() int64 {
+	timeUtc := time.Now().UTC()
+	nanos := timeUtc.Nanosecond()
+	millis := timeUtc.Unix() * 1000
+	millis += int64(nanos) / 1000000
+	return millis
 }

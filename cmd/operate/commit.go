@@ -3,6 +3,7 @@ package operate
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
@@ -19,12 +20,12 @@ type CommitInstallParams struct {
 	InstallResult *installer.InstallResult
 }
 
-func commitInstall(oc *OperationContext, params *CommitInstallParams) (*installer.InstallResult, error) {
+func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 	consumer := oc.Consumer()
 
 	res := params.InstallResult
 
-	err := oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+	err := messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
 		Type: buse.TaskTypeInstall,
 		InstallResult: &buse.InstallResult{
 			Game:   params.Game,
@@ -33,7 +34,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) (*installe
 		},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("Writing receipt...")
@@ -51,8 +52,8 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) (*installe
 
 	err = receipt.WriteReceipt(params.InstallFolder)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 
-	return res, nil
+	return nil
 }

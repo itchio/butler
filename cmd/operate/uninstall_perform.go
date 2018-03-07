@@ -1,31 +1,29 @@
 package operate
 
 import (
+	"context"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
 
-func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
-	consumer := oc.Consumer()
+func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse.UninstallPerformParams) error {
+	consumer := rc.Consumer
 
-	params := meta.data.UninstallParams
-
-	if params == nil {
-		return errors.New("Missing uninstall params")
+	var installFolder string
+	if true {
+		return errors.New("determining install folder: stub!")
 	}
 
-	if params.InstallFolder == "" {
-		return errors.New("Missing install folder in uninstall")
-	}
-
-	consumer.Infof("→ Uninstalling %s", params.InstallFolder)
+	consumer.Infof("→ Uninstalling %s", installFolder)
 
 	var installerType = installer.InstallerTypeUnknown
 
-	receipt, err := bfs.ReadReceipt(params.InstallFolder)
+	receipt, err := bfs.ReadReceipt(installFolder)
 	if err != nil {
 		consumer.Warnf("Could not read receipt: %s", err.Error())
 	}
@@ -47,12 +45,12 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 	}
 
 	managerUninstallParams := &installer.UninstallParams{
-		InstallFolderPath: params.InstallFolder,
+		InstallFolderPath: installFolder,
 		Consumer:          consumer,
 		Receipt:           receipt,
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskStarted", &buse.TaskStartedNotification{
+	err = messages.TaskStarted.Notify(rc, &buse.TaskStartedNotification{
 		Reason: buse.TaskReasonUninstall,
 		Type:   buse.TaskTypeUninstall,
 	})
@@ -60,22 +58,22 @@ func uninstall(oc *OperationContext, meta *MetaSubcontext) error {
 		return errors.Wrap(err, 0)
 	}
 
-	oc.StartProgress()
+	rc.StartProgress()
 	err = manager.Uninstall(managerUninstallParams)
-	oc.EndProgress()
+	rc.EndProgress()
 
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	err = oc.conn.Notify(oc.ctx, "TaskSucceeded", &buse.TaskSucceededNotification{
+	err = messages.TaskSucceeded.Notify(rc, &buse.TaskSucceededNotification{
 		Type: buse.TaskTypeUninstall,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	err = wipe.Do(consumer, params.InstallFolder)
+	err = wipe.Do(consumer, installFolder)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

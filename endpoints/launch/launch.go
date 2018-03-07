@@ -69,7 +69,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, errors.Wrap(err, 0)
 	}
 
-	credentials, err := fetch.CredentialsForGame(db, consumer, game)
+	credentials, err := operate.CredentialsForGame(db, consumer, game)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
