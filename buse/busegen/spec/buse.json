@@ -366,14 +366,29 @@
             "type": "string"
           },
           {
-            "name": "game",
-            "doc": "Which game to install",
-            "type": "Game"
+            "name": "caveId",
+            "doc": "ID of the cave to perform the install for.\nIf not specified, will create a new cave",
+            "type": "string"
+          },
+          {
+            "name": "installLocation",
+            "doc": "If CaveID is not specified, ID of an install location\nto install to.",
+            "type": "string"
+          },
+          {
+            "name": "noCave",
+            "doc": "If set, InstallFolder can be set and no cave\nrecord will be read or modified",
+            "type": "boolean"
           },
           {
             "name": "installFolder",
-            "doc": "TODO: specify InstallLocation instead\nAn absolute path where to install the game",
+            "doc": "",
             "type": "string"
+          },
+          {
+            "name": "game",
+            "doc": "Which game to install",
+            "type": "Game"
           },
           {
             "name": "upload",
@@ -481,23 +496,6 @@
       }
     },
     {
-      "method": "GetReceipt",
-      "doc": "Retrieves existing receipt information for an install",
-      "caller": "server",
-      "params": {
-        "fields": null
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "receipt",
-            "doc": "",
-            "type": "Receipt"
-          }
-        ]
-      }
-    },
-    {
       "method": "CheckUpdate",
       "doc": "Looks for one or more game updates.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
       "caller": "client",
@@ -573,9 +571,9 @@
       "result": {
         "fields": [
           {
-            "name": "name",
-            "doc": "Name of the action picked by user, or empty is we're aborting.",
-            "type": "string"
+            "name": "index",
+            "doc": "Index of action picked by user, or negative if aborting",
+            "type": "number"
           }
         ]
       }

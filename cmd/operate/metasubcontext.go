@@ -7,7 +7,14 @@ import (
 
 type InstallParams struct {
 	StagingFolder string `json:"stagingFolder"`
+
+	CaveID              string `json:"caveId"`
+	InstallFolderName   string `json:"installFolderName"`
+	InstallLocationName string `json:"installLocationName"`
+
 	InstallFolder string `json:"installFolder"`
+
+	NoCave bool `json:"noCave"`
 
 	Game   *itchio.Game   `json:"game"`
 	Upload *itchio.Upload `json:"upload"`

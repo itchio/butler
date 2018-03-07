@@ -3,7 +3,6 @@ package buse
 import (
 	"time"
 
-	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -406,12 +405,26 @@ type InstallQueueParams struct {
 	// partial downloads, checkpoint files, etc.
 	StagingFolder string `json:"stagingFolder"`
 
+	// ID of the cave to perform the install for.
+	// If not specified, will create a new cave
+	// @optional
+	CaveID string `json:"caveId"`
+
+	// If CaveID is not specified, ID of an install location
+	// to install to.
+	// @optional
+	InstallLocation string `json:"installLocation"`
+
+	// If set, InstallFolder can be set and no cave
+	// record will be read or modified
+	// @optional
+	NoCave bool `json:"noCave"`
+
+	// @optional
+	InstallFolder string `json:"installFolder"`
+
 	// Which game to install
 	Game *itchio.Game `json:"game"`
-
-	// TODO: specify InstallLocation instead
-	// An absolute path where to install the game
-	InstallFolder string `json:"installFolder"`
 
 	// Which upload to install
 	// @optional
@@ -505,19 +518,6 @@ type PickUploadResult struct {
 	// The index (in the original array) of the upload that was picked,
 	// or a negative value to cancel.
 	Index int64 `json:"index"`
-}
-
-// Retrieves existing receipt information for an install
-//
-// @category Install
-// @tags Deprecated
-// @caller server
-type GetReceiptParams struct {
-	// muffin
-}
-
-type GetReceiptResult struct {
-	Receipt *bfs.Receipt `json:"receipt"`
 }
 
 // Sent periodically during @@OperationStartParams to inform on the current state an operation.
@@ -718,8 +718,8 @@ type PickManifestActionParams struct {
 }
 
 type PickManifestActionResult struct {
-	// Name of the action picked by user, or empty is we're aborting.
-	Name string `json:"name"`
+	// Index of action picked by user, or negative if aborting
+	Index int `json:"index"`
 }
 
 // Ask the client to perform a shell launch, ie. open an item

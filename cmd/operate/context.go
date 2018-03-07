@@ -14,12 +14,14 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/pb"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 )
 
 type OperationContext struct {
+	cave        *models.Cave
 	rc          *buse.RequestContext
 	ctx         context.Context
 	consumer    *state.Consumer

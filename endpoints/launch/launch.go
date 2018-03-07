@@ -47,6 +47,10 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, errors.Wrap(err, 0)
 	}
 
+	if cave == nil {
+		return nil, fmt.Errorf("Cave not found: (%s)", params.CaveID)
+	}
+
 	err = fetch.PreloadCaves(db, rc.Consumer, cave)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -56,11 +60,16 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, fmt.Errorf("Cave not found for ID (%s)", params.CaveID)
 	}
 
-	var installFolder string
-	if true {
-		return nil, errors.New("Determining installfolder: stub")
+	installLocation, err := models.InstallLocationByID(db, cave.InstallLocation)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
 	}
 
+	if installLocation == nil {
+		return nil, fmt.Errorf("Could not find install location (%s)", cave.InstallLocation)
+	}
+
+	installFolder := installLocation.AbsoluteFolderPath(cave.InstallFolder)
 	game := cave.Game
 	upload := cave.Upload
 	build := cave.Build
@@ -145,16 +154,11 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 				return errors.Wrap(err, 0)
 			}
 
-			if r.Name == "" {
+			if r.Index < 0 {
 				return &buse.ErrAborted{}
 			}
 
-			for _, action := range actions {
-				if action.Name == r.Name {
-					manifestAction = action
-					break
-				}
-			}
+			manifestAction = actions[r.Index]
 		}
 
 		if manifestAction == nil {
@@ -187,12 +191,9 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		case 1:
 			candidate = verdict.Candidates[0]
 		default:
-			nameMap := make(map[string]*configurator.Candidate)
-
 			fakeActions := []*buse.Action{}
 			for _, c := range verdict.Candidates {
 				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
-				nameMap[name] = c
 				fakeActions = append(fakeActions, &buse.Action{
 					Name: name,
 					Path: c.Path,
@@ -206,11 +207,10 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 				return errors.Wrap(err, 0)
 			}
 
-			if r.Name == "" {
+			if r.Index < 0 {
 				return &buse.ErrAborted{}
 			}
-
-			candidate = nameMap[r.Name]
+			candidate = verdict.Candidates[r.Index]
 		}
 
 		fullPath := filepath.Join(installFolder, candidate.Path)

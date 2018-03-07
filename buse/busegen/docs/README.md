@@ -1241,16 +1241,36 @@ partial downloads, checkpoint files, etc.</p>
 </td>
 </tr>
 <tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to install</p>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> ID of the cave to perform the install for.
+If not specified, will create a new cave</p>
+</td>
+</tr>
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> If CaveID is not specified, ID of an install location
+to install to.</p>
+</td>
+</tr>
+<tr>
+<td><code>noCave</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, InstallFolder can be set and no cave
+record will be read or modified</p>
 </td>
 </tr>
 <tr>
 <td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>TODO: specify InstallLocation instead
-An absolute path where to install the game</p>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Which game to install</p>
 </td>
 </tr>
 <tr>
@@ -1302,12 +1322,24 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>noCave</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
@@ -1542,43 +1574,6 @@ or a negative value to cancel.</p>
 </tr>
 </table>
 
-</div>
-
-### <em class="request-server-caller"></em>GetReceipt
-
-
-<p>
-<p>Retrieves existing receipt information for an install</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> <em>none</em>
-</p>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>receipt</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Receipt__TypeHint">Receipt</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="GetReceiptParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>GetReceipt <a href="#/?id=getreceipt">(Go to definition)</a></p>
-
-<p>
-<p>Retrieves existing receipt information for an install</p>
-
-</p>
 </div>
 
 ### <em class="notification"></em>Operation.Progress
@@ -2372,9 +2367,9 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 
 <table class="field-table">
 <tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Name of the action picked by user, or empty is we&rsquo;re aborting.</p>
+<td><code>index</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Index of action picked by user, or negative if aborting</p>
 </td>
 </tr>
 </table>

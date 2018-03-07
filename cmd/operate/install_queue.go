@@ -2,6 +2,13 @@ package operate
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"regexp"
+
+	"github.com/itchio/butler/database/models"
+	"github.com/itchio/wharf/state"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
@@ -24,20 +31,63 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 	params := meta.data
 
 	params.StagingFolder = queueParams.StagingFolder
-	params.Game = queueParams.Game
-	params.InstallFolder = queueParams.InstallFolder
 
+	params.Game = queueParams.Game
 	if params.Game == nil {
 		return errors.New("Missing game in install")
-	}
-
-	if params.InstallFolder == "" {
-		return errors.New("Missing install folder in install")
 	}
 
 	db, err := rc.DB()
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	if queueParams.NoCave {
+		if queueParams.InstallFolder == "" {
+			return errors.New("When NoCave is specified, InstallFolder cannot be empty")
+		}
+
+		params.NoCave = true
+		params.InstallFolder = queueParams.InstallFolder
+	} else {
+		params.CaveID = uuid.NewV4().String()
+
+		var installLocationName string
+		var installFolderName string
+		if queueParams.CaveID != "" {
+			cave, err := models.CaveByID(db, queueParams.CaveID)
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			if cave == nil {
+				return fmt.Errorf("Cave not found: (%s)", queueParams.CaveID)
+			}
+			params.CaveID = cave.ID
+			installLocationName = cave.InstallLocation
+			installFolderName = cave.InstallFolder
+		} else {
+			if queueParams.InstallLocation == "" {
+				return errors.New("Must specify either CaveID or InstallLocation")
+			}
+			installLocationName = queueParams.InstallLocation
+		}
+
+		installLocation, err := models.InstallLocationByID(db, installLocationName)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if installLocation == nil {
+			return fmt.Errorf("Install location not found: (%s)", installLocationName)
+		}
+
+		if installFolderName == "" {
+			installFolderName = makeInstallFolderName(params.Game, consumer)
+		}
+		params.InstallFolder = installLocation.AbsoluteFolderPath(installFolderName)
+		params.InstallLocationName = installLocationName
+		params.InstallFolderName = installFolderName
 	}
 
 	params.Credentials = queueParams.Credentials
@@ -100,8 +150,6 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 			// so we know the build object is the latest
 			params.Build = params.Upload.Build
 		}
-
-		oc.Save(meta)
 	}
 
 	// params.Upload can't be nil by now
@@ -135,9 +183,41 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 			LogUpload(consumer, params.Upload, nil)
 			return errors.New("Upload not found")
 		}
-
-		oc.Save(meta)
 	}
 
+	oc.Save(meta)
 	return nil
+}
+
+func makeInstallFolderName(game *itchio.Game, consumer *state.Consumer) string {
+	name := makeInstallFolderNameFromSlug(game, consumer)
+	if name == "" {
+		name = makeInstallFolderNameFromID(game, consumer)
+	}
+	return name
+}
+
+var slugRe = regexp.MustCompile(`^\/([^\/]+)`)
+
+func makeInstallFolderNameFromSlug(game *itchio.Game, consumer *state.Consumer) string {
+	if game.URL == "" {
+		return ""
+	}
+
+	u, err := url.Parse(game.URL)
+	if err != nil {
+		consumer.Warnf("Could not parse game URL (%s): %s", game.URL, err.Error())
+		return ""
+	}
+
+	matches := slugRe.FindStringSubmatch(u.Path)
+	if len(matches) == 2 {
+		return matches[1]
+	}
+
+	return ""
+}
+
+func makeInstallFolderNameFromID(game *itchio.Game, consumer *state.Consumer) string {
+	return fmt.Sprintf("game-%d", game.ID)
 }

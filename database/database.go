@@ -31,6 +31,9 @@ var Models = []interface{}{
 	&models.Cave{},
 	&itchio.GameEmbedData{},
 	&itchio.Sale{},
+	&models.InstallLocation{},
+	&itchio.Upload{},
+	&itchio.Build{},
 }
 
 // OpenAndPrepare returns a connection to butler's sqlite database
@@ -71,7 +74,11 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 // logging
 
 func SetLogger(db *gorm.DB, consumer *state.Consumer) {
-	db.SetLogger(&gorm.Logger{&consumerLogWriter{consumer}})
+	db.SetLogger(&gorm.Logger{
+		LogWriter: &consumerLogWriter{
+			consumer: consumer,
+		},
+	})
 }
 
 type consumerLogWriter struct {

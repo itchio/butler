@@ -725,24 +725,6 @@ func (r *PickUploadType) Call(rc *buse.RequestContext, params *buse.PickUploadPa
 
 var PickUpload *PickUploadType
 
-// GetReceipt (Request)
-
-type GetReceiptType struct {}
-
-var _ RequestMessage = (*GetReceiptType)(nil)
-
-func (r *GetReceiptType) Method() string {
-  return "GetReceipt"
-}
-
-func (r *GetReceiptType) Call(rc *buse.RequestContext, params *buse.GetReceiptParams) (*buse.GetReceiptResult, error) {
-  var result buse.GetReceiptResult
-  err := rc.Call("GetReceipt", params, &result)
-  return &result, err
-}
-
-var GetReceipt *GetReceiptType
-
 // Operation.Progress (Notification)
 
 type OperationProgressType struct {}

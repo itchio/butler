@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/database/models"
+
 	"github.com/itchio/butler/buse/messages"
 
 	"github.com/itchio/go-itchio"
@@ -34,7 +36,7 @@ func InstallPerform(ctx context.Context, rc *buse.RequestContext, performParams 
 	meta := NewMetaSubcontext()
 	oc.Load(meta)
 
-	err = doInstallPerform(oc, meta, rc)
+	err = doInstallPerform(oc, meta)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -49,9 +51,36 @@ func InstallPerform(ctx context.Context, rc *buse.RequestContext, performParams 
 	return nil
 }
 
-func doInstallPerform(oc *OperationContext, meta *MetaSubcontext, rc *buse.RequestContext) error {
+func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
+	rc := oc.rc
 	params := meta.data
 	consumer := oc.Consumer()
+
+	db, err := rc.DB()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	if !params.NoCave {
+		if params.CaveID == "" {
+			return errors.New("CaveID cannot be null if NoCave is not set")
+		}
+
+		cave, err := models.CaveByID(db, params.CaveID)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if cave == nil {
+			cave = &models.Cave{
+				ID:              params.CaveID,
+				InstallFolder:   params.InstallFolderName,
+				InstallLocation: params.InstallLocationName,
+			}
+		}
+
+		oc.cave = cave
+	}
 
 	client, err := ClientFromCredentials(params.Credentials)
 	if err != nil {
@@ -69,19 +98,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext, rc *buse.Reque
 	}
 
 	if receiptIn == nil {
-		consumer.Infof("No receipt found, asking client for info...")
-
-		r, err := messages.GetReceipt.Call(oc.rc, &buse.GetReceiptParams{})
-		if err != nil {
-			consumer.Warnf("Could not get receipt from client: %s", err.Error())
-		}
-
-		if r.Receipt == nil {
-			consumer.Infof("Client returned nil receipt")
-		} else {
-			consumer.Infof("Got receipt from client")
-			receiptIn = r.Receipt
-		}
+		consumer.Infof("No receipt found.")
 	}
 
 	istate := &InstallSubcontextState{}
@@ -91,6 +108,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext, rc *buse.Reque
 	}
 	oc.Load(isub)
 
+	// TODO: move that to queue
 	if istate.DownloadSessionId == "" {
 		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
 			GameID:        params.Game.ID,

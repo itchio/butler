@@ -1,9 +1,12 @@
 package operate
 
 import (
+	"time"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
@@ -53,6 +56,35 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 	err = receipt.WriteReceipt(params.InstallFolder)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	cave := oc.cave
+	if cave != nil {
+		consumer.Infof("Configuring...")
+		verdict, err := configurator.Configure(params.InstallFolder, false)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		err = cave.SetVerdict(verdict)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		cave.InstalledSize = verdict.TotalSize
+
+		consumer.Infof("Saving cave...")
+		db, err := oc.rc.DB()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		cave.Game = params.Game
+		cave.Upload = params.Upload
+		cave.Build = params.Build
+		cave.InstalledAt = time.Now().UTC()
+		err = db.Save(cave).Error
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	return nil
