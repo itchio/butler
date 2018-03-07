@@ -14,10 +14,11 @@ import (
 )
 
 type PrereqsContext struct {
-	Credentials *buse.GameCredentials
-	Runtime     *manager.Runtime
-	Consumer    *state.Consumer
-	PrereqsDir  string
+	RequestContext *buse.RequestContext
+	Credentials    *buse.GameCredentials
+	Runtime        *manager.Runtime
+	Consumer       *state.Consumer
+	PrereqsDir     string
 
 	library  Library
 	registry *redist.RedistRegistry

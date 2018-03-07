@@ -37,11 +37,16 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		listed = append(listed, firejailName)
 	}
 
+	if params.PrereqsDir == "" {
+		return errors.New("PrereqsDir cannot be empty")
+	}
+
 	pc := &prereqs.PrereqsContext{
-		Credentials: params.Credentials,
-		Runtime:     params.Runtime,
-		Consumer:    params.RequestContext.Consumer,
-		PrereqsDir:  params.PrereqsDir,
+		RequestContext: params.RequestContext,
+		Credentials:    params.Credentials,
+		Runtime:        params.Runtime,
+		Consumer:       params.RequestContext.Consumer,
+		PrereqsDir:     params.PrereqsDir,
 	}
 
 	var pending []string

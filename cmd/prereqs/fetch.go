@@ -74,11 +74,10 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return nil
 		})
 
-		rc := &buse.RequestContext{
-			Conn: conn,
-		}
+		rcc := *pc.RequestContext
+		rcc.Conn = conn
 
-		err = operate.InstallQueue(ctx, rc, &buse.InstallQueueParams{
+		err = operate.InstallQueue(ctx, &rcc, &buse.InstallQueueParams{
 			StagingFolder: stagingFolder,
 
 			Game:          RedistsGame,
@@ -86,12 +85,14 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			Upload:        upload,
 			Build:         nil, // just go with the latest
 			Credentials:   library.GetCredentials(),
+
+			NoCave: true,
 		})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		err = operate.InstallPerform(ctx, rc, &buse.InstallPerformParams{
+		err = operate.InstallPerform(ctx, &rcc, &buse.InstallPerformParams{
 			ID:            "install-prereqs",
 			StagingFolder: stagingFolder,
 		})
