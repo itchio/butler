@@ -50,7 +50,12 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 		params.NoCave = true
 		params.InstallFolder = queueParams.InstallFolder
 	} else {
-		params.CaveID = uuid.NewV4().String()
+		caveID, err := uuid.NewV4()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		params.CaveID = caveID.String()
 
 		var installLocationName string
 		var installFolderName string

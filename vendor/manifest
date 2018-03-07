@@ -423,6 +423,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/satori/go.uuid",
+			"repository": "https://github.com/satori/go.uuid",
+			"vcs": "git",
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/skratchdot/open-golang",
 			"repository": "https://github.com/skratchdot/open-golang",
 			"vcs": "git",
