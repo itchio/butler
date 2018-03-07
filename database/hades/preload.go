@@ -172,13 +172,18 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 					return errors.Wrap(err, 0)
 				}
 
-				consumer.Infof("In has_many, found %d values (for ps of len %d)", freshAddr.Elem().Len(), ps.Len())
+				consumer.Debugf("In has_many, found %d values (for ps of len %d)", freshAddr.Elem().Len(), ps.Len())
 
 				pByFK := make(map[interface{}]reflect.Value)
 				for i := 0; i < ps.Len(); i++ {
 					rec := ps.Index(i)
 					fk := rec.Elem().FieldByName(cri.Relationship.AssociationForeignFieldNames[0]).Interface()
 					pByFK[fk] = rec
+
+					// reset slices so if preload is called more than once,
+					// it doesn't keep appending
+					field := rec.Elem().FieldByName(cvt.Name)
+					field.Set(reflect.New(field.Type()).Elem())
 				}
 
 				fresh := freshAddr.Elem()
