@@ -3,8 +3,10 @@ package models
 import (
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/configurator"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/jinzhu/gorm"
 )
 
 type Cave struct {
@@ -43,3 +45,15 @@ func (c *Cave) SetVerdict(verdict *configurator.Verdict) error {
 	return MarshalVerdict(verdict, &c.Verdict)
 }
 func (c *Cave) GetVerdict() (*configurator.Verdict, error) { return UnmarshalVerdict(c.Verdict) }
+
+func CaveByID(db *gorm.DB, id string) (*Cave, error) {
+	g := &Cave{}
+	req := db.Where("id = ?", id).First(g)
+	if req.Error != nil {
+		if req.RecordNotFound() {
+			return nil, nil
+		}
+		return nil, errors.Wrap(req.Error, 0)
+	}
+	return g, nil
+}

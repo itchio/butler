@@ -462,6 +462,66 @@ func (r *FetchProfileOwnedKeysYieldType) Notify(rc *buse.RequestContext, params 
 
 var FetchProfileOwnedKeysYield *FetchProfileOwnedKeysYieldType
 
+// Fetch.Commons (Request)
+
+type FetchCommonsType struct {}
+
+var _ RequestMessage = (*FetchCommonsType)(nil)
+
+func (r *FetchCommonsType) Method() string {
+  return "Fetch.Commons"
+}
+
+func (r *FetchCommonsType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.FetchCommonsParams) (*buse.FetchCommonsResult, error)) {
+  router.Register("Fetch.Commons", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.FetchCommonsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.Commons")
+    }
+    return res, nil
+  })
+}
+
+var FetchCommons *FetchCommonsType
+
+// Fetch.Cave (Request)
+
+type FetchCaveType struct {}
+
+var _ RequestMessage = (*FetchCaveType)(nil)
+
+func (r *FetchCaveType) Method() string {
+  return "Fetch.Cave"
+}
+
+func (r *FetchCaveType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.FetchCaveParams) (*buse.FetchCaveResult, error)) {
+  router.Register("Fetch.Cave", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.FetchCaveParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.Cave")
+    }
+    return res, nil
+  })
+}
+
+var FetchCave *FetchCaveType
+
 
 //==============================
 // Install
@@ -1063,6 +1123,8 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }
   if _, ok := router.Handlers["Fetch.ProfileGames"]; !ok { panic("missing request handler for (Fetch.ProfileGames)") }
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
+  if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
+  if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Operation.Start"]; !ok { panic("missing request handler for (Operation.Start)") }
   if _, ok := router.Handlers["Operation.Cancel"]; !ok { panic("missing request handler for (Operation.Cancel)") }

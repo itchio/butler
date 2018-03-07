@@ -11,4 +11,6 @@ func Register(router *buse.Router) {
 	messages.FetchProfileCollections.Register(router, FetchProfileCollections)
 	messages.FetchProfileGames.Register(router, FetchProfileGames)
 	messages.FetchProfileOwnedKeys.Register(router, FetchProfileOwnedKeys)
+	messages.FetchCommons.Register(router, FetchCommons)
+	messages.FetchCave.Register(router, FetchCave)
 }
