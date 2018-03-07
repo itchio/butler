@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/itchio/butler/configurator"
-	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -315,11 +314,34 @@ type DownloadKeySummary struct {
 type CaveSummary struct {
 	ID string `json:"id"`
 
-	GameID        int64     `json:"gameId"`
+	GameID int64 `json:"gameId"`
+
 	LastTouchedAt time.Time `json:"lastTouchedAt"`
 	SecondsRun    int64     `json:"secondsRun"`
+	InstalledSize int64     `json:"installedSize"`
+}
 
-	InstalledSize int64 `json:"installedSize"`
+type Cave struct {
+	ID string `json:"id"`
+
+	Game   *itchio.Game   `json:"game"`
+	Upload *itchio.Upload `json:"upload"`
+	Build  *itchio.Build  `json:"build"`
+
+	Stats       *CaveStats       `json:"stats"`
+	InstallInfo *CaveInstallInfo `json:"installInfo"`
+}
+
+type CaveStats struct {
+	InstalledAt   time.Time `json:"installedAt"`
+	LastTouchedAt time.Time `json:"lastTouchedAt"`
+	SecondsRun    int64     `json:"secondsRun"`
+}
+
+type CaveInstallInfo struct {
+	InstalledSize         int64  `json:"installedSize"`
+	InstallLocation       string `json:"installLocation"`
+	AbsoluteInstallFolder string `json:"absoluteInstallFolder"`
 }
 
 type InstallLocationSummary struct {
@@ -335,7 +357,7 @@ type FetchCaveParams struct {
 }
 
 type FetchCaveResult struct {
-	Cave *models.Cave `json:"cave"`
+	Cave *Cave `json:"cave"`
 }
 
 //----------------------------------------------------------------------

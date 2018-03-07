@@ -3,10 +3,13 @@ package fetch
 import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
 func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.FetchCaveResult, error) {
+	consumer := rc.Consumer
+
 	db, err := rc.DB()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -17,8 +20,45 @@ func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.Fet
 		return nil, errors.Wrap(err, 0)
 	}
 
+	if cave == nil {
+		res := &buse.FetchCaveResult{
+			Cave: nil,
+		}
+		return res, nil
+	}
+
+	err = hades.NewContext(db, consumer).Preload(db, &hades.PreloadParams{
+		Record: cave,
+		Fields: []hades.PreloadField{
+			hades.PreloadField{Name: "Game"},
+			hades.PreloadField{Name: "Upload"},
+			hades.PreloadField{Name: "Build"},
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
 	res := &buse.FetchCaveResult{
-		Cave: cave,
+		Cave: &buse.Cave{
+			ID: cave.ID,
+
+			Game:   cave.Game,
+			Upload: cave.Upload,
+			Build:  cave.Build,
+
+			InstallInfo: &buse.CaveInstallInfo{
+				AbsoluteInstallFolder: "<stub>",
+				InstalledSize:         cave.InstalledSize,
+				InstallLocation:       cave.InstallLocation,
+			},
+
+			Stats: &buse.CaveStats{
+				InstalledAt:   cave.InstalledAt,
+				LastTouchedAt: cave.LastTouchedAt,
+				SecondsRun:    cave.SecondsRun,
+			},
+		},
 	}
 	return res, nil
 }

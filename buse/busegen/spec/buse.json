@@ -1143,6 +1143,84 @@
       ]
     },
     {
+      "name": "Cave",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "",
+          "type": "Build"
+        },
+        {
+          "name": "stats",
+          "doc": "",
+          "type": "CaveStats"
+        },
+        {
+          "name": "installInfo",
+          "doc": "",
+          "type": "CaveInstallInfo"
+        }
+      ]
+    },
+    {
+      "name": "CaveStats",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installedAt",
+          "doc": "",
+          "type": "Date"
+        },
+        {
+          "name": "lastTouchedAt",
+          "doc": "",
+          "type": "Date"
+        },
+        {
+          "name": "secondsRun",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CaveInstallInfo",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installedSize",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "installLocation",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "absoluteInstallFolder",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "InstallLocationSummary",
       "doc": "",
       "fields": [

@@ -12,7 +12,9 @@ import (
 type Cave struct {
 	ID string `json:"id"`
 
-	GameID         int64 `json:"gameId"`
+	GameID int64        `json:"gameId"`
+	Game   *itchio.Game `json:"game"`
+
 	ExternalGameID int64 `json:"externalGameId"`
 
 	UploadID int64          `json:"uploadId"`

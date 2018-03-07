@@ -1084,7 +1084,7 @@ available.</p>
 <table class="field-table">
 <tr>
 <td><code>cave</code></td>
-<td><code class="typename"><span class="type builtin-type">Cave</span></code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
 <td></td>
 </tr>
 </table>
@@ -3624,6 +3624,180 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>installedSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Cave
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stats</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CaveStats__TypeHint">CaveStats</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installInfo</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CaveInstallInfo__TypeHint">CaveInstallInfo</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Cave__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Cave <a href="#/?id=cave">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>stats</code></td>
+<td><code class="typename"><span class="type struct-type">CaveStats</span></code></td>
+</tr>
+<tr>
+<td><code>installInfo</code></td>
+<td><code class="typename"><span class="type struct-type">CaveInstallInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CaveStats
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lastTouchedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>secondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CaveStats__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CaveStats <a href="#/?id=cavestats">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>lastTouchedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>secondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CaveInstallInfo
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>absoluteInstallFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CaveInstallInfo__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CaveInstallInfo <a href="#/?id=caveinstallinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>absoluteInstallFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
