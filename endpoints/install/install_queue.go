@@ -3,6 +3,7 @@ package install
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"regexp"
 
 	"github.com/go-errors/errors"
@@ -12,6 +13,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
+	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -73,6 +75,22 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	}
 
 	params.Game = queueParams.Game
+	params.Credentials = operate.CredentialsForGame(rc.DB(), consumer, params.Game)
+
+	client, err := operate.ClientFromCredentials(params.Credentials)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	{
+		// attempt to refresh game info
+		gameRes, err := client.GetGame(&itchio.GetGameParams{GameID: params.Game.ID})
+		if err != nil {
+			consumer.Warnf("Could not refresh game info: %s", err.Error())
+		} else {
+			params.Game = gameRes.Game
+		}
+	}
 
 	if queueParams.NoCave {
 		if queueParams.InstallFolder == "" {
@@ -96,30 +114,13 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		params.CaveID = cave.ID
 
 		if cave.InstallFolderName == "" {
-			consumer.Warnf("TODO: ensure unique install folder")
 			cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
+			ensureUniqueFolderName(rc.DB(), cave)
 		}
 
 		params.InstallFolder = cave.GetInstallFolder(rc.DB())
 		params.InstallLocationID = cave.InstallLocationID
 		params.InstallFolderName = cave.InstallFolderName
-	}
-
-	params.Credentials = operate.CredentialsForGame(rc.DB(), consumer, params.Game)
-
-	client, err := operate.ClientFromCredentials(params.Credentials)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	{
-		// attempt to refresh game info
-		gameRes, err := client.GetGame(&itchio.GetGameParams{GameID: params.Game.ID})
-		if err != nil {
-			consumer.Warnf("Could not refresh game info: %s", err.Error())
-		} else {
-			params.Game = gameRes.Game
-		}
 	}
 
 	params.Upload = queueParams.Upload
@@ -246,4 +247,30 @@ func makeInstallFolderNameFromSlug(game *itchio.Game, consumer *state.Consumer) 
 
 func makeInstallFolderNameFromID(game *itchio.Game, consumer *state.Consumer) string {
 	return fmt.Sprintf("game-%d", game.ID)
+}
+
+func ensureUniqueFolderName(db *gorm.DB, cave *models.Cave) {
+	// Once we reach "Overland 200", it's time to stop
+	const uniqueMaxTries = 200
+	base := cave.InstallFolderName
+	suffix := 2
+
+	for i := 0; i < uniqueMaxTries; i++ {
+		folder := cave.GetInstallFolder(db)
+		_, err := os.Stat(folder)
+		alreadyExists := (err == nil)
+
+		if !alreadyExists {
+			// coolio
+			return
+		}
+
+		// uh oh, it exists
+		cave.InstallFolderName = fmt.Sprintf("%s %d", base, suffix)
+		suffix++
+	}
+
+	cave.InstallFolderName = base
+	err := errors.Errorf("Could not ensure unique install folder starting with (%s)", cave.GetInstallFolder(db))
+	panic(err)
 }

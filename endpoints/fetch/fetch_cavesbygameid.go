@@ -1,11 +1,16 @@
 package fetch
 
 import (
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/database/models"
 )
 
 func FetchCavesByGameID(rc *buse.RequestContext, params *buse.FetchCavesByGameIDParams) (*buse.FetchCavesByGameIDResult, error) {
+	if params.GameID == 0 {
+		return nil, errors.New("gameId must be set")
+	}
+
 	caves := models.CavesByGameID(rc.DB(), params.GameID)
 	models.PreloadCaves(rc.DB(), caves)
 
