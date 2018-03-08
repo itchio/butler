@@ -455,6 +455,11 @@
       "result": {
         "fields": [
           {
+            "name": "caveId",
+            "doc": "",
+            "type": "string"
+          },
+          {
             "name": "game",
             "doc": "",
             "type": "Game"
@@ -609,6 +614,68 @@
             "type": "number"
           }
         ]
+      }
+    },
+    {
+      "method": "Downloads.Queue",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "item",
+            "doc": "",
+            "type": "InstallQueueResult"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Downloads.Prioritize",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "downloadId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Downloads.List",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "downloads",
+            "doc": "",
+            "type": "Download[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.Drive",
+      "doc": "Drive downloads, which is: perform them one at a time,\nuntil they're all finished.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
       }
     },
     {
@@ -898,6 +965,37 @@
     }
   ],
   "notifications": [
+    {
+      "method": "Downloads.Drive.Progress",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "download",
+            "doc": "",
+            "type": "Download"
+          },
+          {
+            "name": "progress",
+            "doc": "",
+            "type": "DownloadProgress"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.Drive.Finished",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "download",
+            "doc": "",
+            "type": "Download"
+          }
+        ]
+      }
+    },
     {
       "method": "Log",
       "doc": "Sent any time butler needs to send a log message. The client should\nrelay them in their own stdout / stderr, and collect them so they\ncan be part of an issue report if something goes wrong.",
@@ -1397,6 +1495,58 @@
         {
           "name": "downloadKey",
           "doc": "A download key identifier, or 0 if no download key is available",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Download",
+      "doc": "Represents a download queued, which will be\nperformed whenever @@DownloadsDriveParams is called.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "",
+          "type": "Build"
+        }
+      ]
+    },
+    {
+      "name": "DownloadProgress",
+      "doc": "",
+      "fields": [
+        {
+          "name": "stage",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "progress",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "eta",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "bps",
+          "doc": "",
           "type": "number"
         }
       ]

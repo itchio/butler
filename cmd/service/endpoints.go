@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/endpoints/cleandownloads"
+	"github.com/itchio/butler/endpoints/downloads"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/endpoints/install"
 	"github.com/itchio/butler/endpoints/launch"
@@ -43,6 +44,7 @@ func getRouter(mansionContext *mansion.Context) *buse.Router {
 	cleandownloads.Register(mainRouter)
 	profile.Register(mainRouter)
 	fetch.Register(mainRouter)
+	downloads.Register(mainRouter)
 
 	messages.EnsureAllRequests(mainRouter)
 

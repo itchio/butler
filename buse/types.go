@@ -479,6 +479,7 @@ type InstallQueueParams struct {
 }
 
 type InstallQueueResult struct {
+	CaveID        string         `json:"caveId"`
 	Game          *itchio.Game   `json:"game"`
 	Upload        *itchio.Upload `json:"upload"`
 	Build         *itchio.Build  `json:"build"`
@@ -671,6 +672,79 @@ type InstallResult struct {
 	// @optional
 	Build *itchio.Build `json:"build"`
 	// TODO: verdict ?
+}
+
+//----------------------------------------------------------------------
+// Downloads
+//----------------------------------------------------------------------
+
+// @name Downloads.Queue
+// @category Downloads
+// @caller client
+type DownloadsQueueParams struct {
+	Item *InstallQueueResult `json:"item"`
+}
+
+type DownloadsQueueResult struct {
+}
+
+// @name Downloads.Prioritize
+// @category Downloads
+// @caller client
+type DownloadsPrioritizeParams struct {
+	DownloadID string `json:"downloadId"`
+}
+
+type DownloadsPrioritizeResult struct {
+}
+
+// @name Downloads.List
+// @category Downloads
+// @caller client
+type DownloadsListParams struct {
+}
+
+type DownloadsListResult struct {
+	Downloads []*Download `json:"downloads"`
+}
+
+// Drive downloads, which is: perform them one at a time,
+// until they're all finished.
+//
+// @name Downloads.Drive
+// @category Downloads
+// @caller client
+type DownloadsDriveParams struct{}
+
+type DownloadsDriveResult struct{}
+
+// @name Downloads.Drive.Progress
+type DownloadsDriveProgressNotification struct {
+	Download *Download         `json:"download"`
+	Progress *DownloadProgress `json:"progress"`
+}
+
+// @name Downloads.Drive.Finished
+type DownloadsDriveFinishedNotification struct {
+	Download *Download `json:"download"`
+}
+
+// TODO: add 'reason' to Download struct?
+
+// Represents a download queued, which will be
+// performed whenever @@DownloadsDriveParams is called.
+type Download struct {
+	CaveID string         `json:"caveId"`
+	Game   *itchio.Game   `json:"game"`
+	Upload *itchio.Upload `json:"upload"`
+	Build  *itchio.Build  `json:"build"`
+}
+
+type DownloadProgress struct {
+	Stage    string  `json:"stage"`
+	Progress float64 `json:"progress"`
+	ETA      float64 `json:"eta"`
+	BPS      float64 `json:"bps"`
 }
 
 //----------------------------------------------------------------------

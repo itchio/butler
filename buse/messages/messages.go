@@ -50,6 +50,38 @@ var VersionGet *VersionGetType
 // Miscellaneous
 //==============================
 
+// Downloads.Drive.Progress (Notification)
+
+type DownloadsDriveProgressType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveProgressType)(nil)
+
+func (r *DownloadsDriveProgressType) Method() string {
+  return "Downloads.Drive.Progress"
+}
+
+func (r *DownloadsDriveProgressType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveProgressNotification) (error) {
+  return rc.Notify("Downloads.Drive.Progress", params)
+}
+
+var DownloadsDriveProgress *DownloadsDriveProgressType
+
+// Downloads.Drive.Finished (Notification)
+
+type DownloadsDriveFinishedType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveFinishedType)(nil)
+
+func (r *DownloadsDriveFinishedType) Method() string {
+  return "Downloads.Drive.Finished"
+}
+
+func (r *DownloadsDriveFinishedType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveFinishedNotification) (error) {
+  return rc.Notify("Downloads.Drive.Finished", params)
+}
+
+var DownloadsDriveFinished *DownloadsDriveFinishedType
+
 // Log (Notification)
 
 type LogType struct {}
@@ -883,6 +915,131 @@ var TaskSucceeded *TaskSucceededType
 
 
 //==============================
+// Downloads
+//==============================
+
+// Downloads.Queue (Request)
+
+type DownloadsQueueType struct {}
+
+var _ RequestMessage = (*DownloadsQueueType)(nil)
+
+func (r *DownloadsQueueType) Method() string {
+  return "Downloads.Queue"
+}
+
+func (r *DownloadsQueueType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsQueueParams) (*buse.DownloadsQueueResult, error)) {
+  router.Register("Downloads.Queue", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsQueueParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Queue")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsQueue *DownloadsQueueType
+
+// Downloads.Prioritize (Request)
+
+type DownloadsPrioritizeType struct {}
+
+var _ RequestMessage = (*DownloadsPrioritizeType)(nil)
+
+func (r *DownloadsPrioritizeType) Method() string {
+  return "Downloads.Prioritize"
+}
+
+func (r *DownloadsPrioritizeType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsPrioritizeParams) (*buse.DownloadsPrioritizeResult, error)) {
+  router.Register("Downloads.Prioritize", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsPrioritizeParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Prioritize")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsPrioritize *DownloadsPrioritizeType
+
+// Downloads.List (Request)
+
+type DownloadsListType struct {}
+
+var _ RequestMessage = (*DownloadsListType)(nil)
+
+func (r *DownloadsListType) Method() string {
+  return "Downloads.List"
+}
+
+func (r *DownloadsListType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsListParams) (*buse.DownloadsListResult, error)) {
+  router.Register("Downloads.List", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsListParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.List")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsList *DownloadsListType
+
+// Downloads.Drive (Request)
+
+type DownloadsDriveType struct {}
+
+var _ RequestMessage = (*DownloadsDriveType)(nil)
+
+func (r *DownloadsDriveType) Method() string {
+  return "Downloads.Drive"
+}
+
+func (r *DownloadsDriveType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsDriveParams) (*buse.DownloadsDriveResult, error)) {
+  router.Register("Downloads.Drive", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsDriveParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Drive")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsDrive *DownloadsDriveType
+
+
+//==============================
 // Update
 //==============================
 
@@ -1296,6 +1453,10 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
   if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }
   if _, ok := router.Handlers["Install.VersionSwitch.Queue"]; !ok { panic("missing request handler for (Install.VersionSwitch.Queue)") }
+  if _, ok := router.Handlers["Downloads.Queue"]; !ok { panic("missing request handler for (Downloads.Queue)") }
+  if _, ok := router.Handlers["Downloads.Prioritize"]; !ok { panic("missing request handler for (Downloads.Prioritize)") }
+  if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }
+  if _, ok := router.Handlers["Downloads.Drive"]; !ok { panic("missing request handler for (Downloads.Drive)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }

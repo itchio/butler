@@ -1416,6 +1416,11 @@ partial downloads, checkpoint files, etc.</p>
 
 <table class="field-table">
 <tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
@@ -2191,6 +2196,142 @@ info about the game, upload, build that were installed</p>
 </tr>
 </table>
 
+</div>
+
+
+## Downloads
+
+### <em class="request-client-caller"></em>Downloads.Queue
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>item</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallQueueResult__TypeHint">InstallQueue</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsQueueParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Queue <a href="#/?id=downloadsqueue">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>item</code></td>
+<td><code class="typename"><span class="type struct-type">InstallQueue</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Downloads.Prioritize
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsPrioritizeParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Prioritize <a href="#/?id=downloadsprioritize">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Downloads.List
+
+
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloads</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsListParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.List <a href="#/?id=downloadslist">(Go to definition)</a></p>
+
+</div>
+
+### <em class="request-client-caller"></em>Downloads.Drive
+
+
+<p>
+<p>Drive downloads, which is: perform them one at a time,
+until they&rsquo;re all finished.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsDriveParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Drive <a href="#/?id=downloadsdrive">(Go to definition)</a></p>
+
+<p>
+<p>Drive downloads, which is: perform them one at a time,
+until they&rsquo;re all finished.</p>
+
+</p>
 </div>
 
 
@@ -4039,6 +4180,203 @@ including the download key if any.</p>
 </tr>
 <tr>
 <td><code>downloadKey</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Downloads.Drive.Progress
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveProgressNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Progress <a href="#/?id=downloadsdriveprogress">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type struct-type">DownloadProgress</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Downloads.Drive.Finished
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveFinishedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Finished <a href="#/?id=downloadsdrivefinished">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>Download
+
+
+<p>
+<p>Represents a download queued, which will be
+performed whenever <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> is called.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Download__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>Download <a href="#/?id=download">(Go to definition)</a></p>
+
+<p>
+<p>Represents a download queued, which will be
+performed whenever <code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code> is called.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>DownloadProgress
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>stage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadProgress__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>DownloadProgress <a href="#/?id=downloadprogress">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>stage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
