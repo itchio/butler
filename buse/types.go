@@ -381,7 +381,9 @@ type FetchCavesByInstallLocationIDParams struct {
 }
 
 type FetchCavesByInstallLocationIDResult struct {
-	Caves []*Cave `json:"caves"`
+	InstallLocationPath string  `json:"installLocationPath"`
+	InstallLocationSize int64   `json:"installLocationSize"`
+	Caves               []*Cave `json:"caves"`
 }
 
 //----------------------------------------------------------------------

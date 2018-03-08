@@ -10,6 +10,8 @@ type InstallLocation struct {
 	ID string `json:"id" gorm:"primary_key"`
 
 	Path string `json:"path"`
+
+	Caves []*Cave `json:"caves"`
 }
 
 func InstallLocationByID(db *gorm.DB, id string) *InstallLocation {
@@ -26,4 +28,9 @@ func InstallLocationByID(db *gorm.DB, id string) *InstallLocation {
 
 func (il *InstallLocation) GetInstallFolder(folderName string) string {
 	return filepath.Join(il.Path, folderName)
+}
+
+func (il *InstallLocation) GetCaves(db *gorm.DB) []*Cave {
+	MustPreloadSimple(db, il, "Caves")
+	return il.Caves
 }

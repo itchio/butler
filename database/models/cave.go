@@ -76,15 +76,6 @@ func CavesByGameID(db *gorm.DB, gameID int64) []*Cave {
 	return cs
 }
 
-func CavesByInstallLocationID(db *gorm.DB, installLocationID string) []*Cave {
-	var cs []*Cave
-	err := db.Where("install_location_id = ?", installLocationID).Find(&cs).Error
-	if err != nil {
-		panic(err)
-	}
-	return cs
-}
-
 func (c *Cave) Touch() {
 	c.LastTouchedAt = time.Now().UTC()
 }
