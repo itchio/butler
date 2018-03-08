@@ -12,7 +12,7 @@ func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCa
 		return nil, errors.Errorf("Install location not found (%s)", params.InstallLocationID)
 	}
 
-	caves := installLocation.GetCaves()
+	caves := installLocation.GetCaves(rc.DB())
 	models.PreloadCaves(rc.DB(), caves)
 
 	var formattedCaves []*buse.Cave
@@ -27,7 +27,7 @@ func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCa
 
 	res := &buse.FetchCavesByInstallLocationIDResult{
 		InstallLocationPath: installLocation.Path,
-		InstallLocationSize: installLocationSize,
+		InstallLocationSize: totalSize,
 		Caves:               formattedCaves,
 	}
 	return res, nil
