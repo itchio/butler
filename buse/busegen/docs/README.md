@@ -1187,6 +1187,16 @@ available.</p>
 
 <table class="field-table">
 <tr>
+<td><code>installLocationPath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installLocationSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>caves</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
 <td></td>
@@ -1306,11 +1316,11 @@ partial downloads, checkpoint files, etc.</p>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> ID of the cave to perform the install for.
-If not specified, will create a new cave</p>
+If not specified, will create a new cave.</p>
 </td>
 </tr>
 <tr>
-<td><code>installLocation</code></td>
+<td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> If CaveID is not specified, ID of an install location
 to install to.</p>
@@ -1326,25 +1336,31 @@ record will be read or modified</p>
 <tr>
 <td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> When NoCave is set, exactly where to install</p>
 </td>
 </tr>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to install</p>
+<td><p><span class="tag">Optional</span> Which game to install.</p>
+
+<p>If unspecified and caveId is specified, the same game will be used.</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> Which upload to install</p>
+<td><p><span class="tag">Optional</span> Which upload to install.</p>
+
+<p>If unspecified and caveId is specified, the same upload will be used.</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p><span class="tag">Optional</span> Which build to install</p>
+
+<p>If unspecified and caveId is specified, the same build will be used.</p>
 </td>
 </tr>
 <tr>
@@ -1354,19 +1370,42 @@ record will be read or modified</p>
 whatever to the install folder.</p>
 </td>
 </tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
-</tr>
 </table>
 
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="InstallQueueParams__TypeHint" style="display: none;" class="tip-content">
@@ -1388,7 +1427,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>installLocation</code></td>
+<td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
@@ -1415,10 +1454,6 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td><code>ignoreInstallers</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
-</tr>
 </table>
 
 </div>
@@ -1443,15 +1478,13 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A UUID, generated by the client, used for referring to the
-task when cancelling it, for instance.</p>
+<td><p>ID that can be later used in <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code></p>
 </td>
 </tr>
 <tr>
 <td><code>stagingFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A folder that butler can use to store temporary files, like
-partial downloads, checkpoint files, etc.</p>
+<td><p>The folder turned by <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code></p>
 </td>
 </tr>
 </table>

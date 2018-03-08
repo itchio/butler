@@ -53,16 +53,16 @@ func InstallPerform(ctx context.Context, rc *buse.RequestContext, performParams 
 
 func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	rc := oc.rc
-	params := meta.data
+	params := meta.Data
 	consumer := oc.Consumer()
 
 	if !params.NoCave {
-		cave := ValidateCave(rc, params.CaveID)
+		cave := models.CaveByID(rc.DB(), params.CaveID)
 		if cave == nil {
 			cave = &models.Cave{
 				ID:                params.CaveID,
 				InstallFolderName: params.InstallFolderName,
-				InstallLocationID: params.InstallLocationName,
+				InstallLocationID: params.InstallLocationID,
 			}
 		}
 
@@ -91,7 +91,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	istate := &InstallSubcontextState{}
 
 	isub := &InstallSubcontext{
-		data: istate,
+		Data: istate,
 	}
 	oc.Load(isub)
 

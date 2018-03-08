@@ -101,7 +101,7 @@ func (oc *OperationContext) Load(s Subcontext) {
 	if val, ok := oc.root[s.Key()]; ok {
 		dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 			TagName:          "json",
-			Result:           s.Data(),
+			Result:           s.GetData(),
 			WeaklyTypedInput: true,
 			DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
 		})
@@ -121,7 +121,7 @@ func (oc *OperationContext) Load(s Subcontext) {
 }
 
 func (oc *OperationContext) Save(s Subcontext) error {
-	oc.root[s.Key()] = s.Data()
+	oc.root[s.Key()] = s.GetData()
 
 	path := contextPath(oc.stageFolder)
 
@@ -181,7 +181,7 @@ type Subcontext interface {
 
 	// Data should return a pointer to the underlying struct
 	// of the subcontext
-	Data() interface{}
+	GetData() interface{}
 }
 
 func TeeConsumer(c *state.Consumer, logFile io.Writer) *state.Consumer {

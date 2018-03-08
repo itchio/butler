@@ -17,9 +17,8 @@ import (
 
 func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) error {
 	consumer := oc.Consumer()
-	istate := isub.data
-
-	params := meta.data
+	istate := isub.Data
+	params := meta.Data
 
 	if params.Build == nil {
 		return errors.New("heal: missing build")

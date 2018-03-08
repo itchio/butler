@@ -30,6 +30,10 @@ func (il *InstallLocation) GetInstallFolder(folderName string) string {
 	return filepath.Join(il.Path, folderName)
 }
 
+func (il *InstallLocation) GetStagingFolder(installID string) string {
+	return filepath.Join(il.Path, "downloads", installID)
+}
+
 func (il *InstallLocation) GetCaves(db *gorm.DB) []*Cave {
 	MustPreloadSimple(db, il, "Caves")
 	return il.Caves

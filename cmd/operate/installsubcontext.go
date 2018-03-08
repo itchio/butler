@@ -11,7 +11,7 @@ type InstallSubcontextState struct {
 }
 
 type InstallSubcontext struct {
-	data *InstallSubcontextState
+	Data *InstallSubcontextState
 }
 
 var _ Subcontext = (*InstallSubcontext)(nil)
@@ -20,6 +20,6 @@ func (mt *InstallSubcontext) Key() string {
 	return "install"
 }
 
-func (mt *InstallSubcontext) Data() interface{} {
-	return &mt.data
+func (mt *InstallSubcontext) GetData() interface{} {
+	return &mt.Data
 }

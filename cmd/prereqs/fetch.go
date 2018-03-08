@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
+	"github.com/itchio/butler/endpoints/install"
 	itchio "github.com/itchio/go-itchio"
 
 	"github.com/itchio/butler/buse"
@@ -77,16 +78,14 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		rcc := *pc.RequestContext
 		rcc.Conn = conn
 
-		err = operate.InstallQueue(ctx, &rcc, &buse.InstallQueueParams{
+		_, err = install.InstallQueue(&rcc, &buse.InstallQueueParams{
+			Game:   RedistsGame,
+			Upload: upload,
+			Build:  nil, // just go with the latest
+
+			NoCave:        true,
 			StagingFolder: stagingFolder,
-
-			Game:          RedistsGame,
 			InstallFolder: destDir,
-			Upload:        upload,
-			Build:         nil, // just go with the latest
-			Credentials:   library.GetCredentials(),
-
-			NoCave: true,
 		})
 		if err != nil {
 			return errors.Wrap(err, 0)

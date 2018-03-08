@@ -30,7 +30,7 @@ type Cave struct {
 	Verdict       JSON  `json:"verdict"`
 	InstalledSize int64 `json:"installedSize"`
 
-	InstallLocationID string           `json:"installLocationID"`
+	InstallLocationID string           `json:"installLocationId"`
 	InstallLocation   *InstallLocation `json:"installLocation"`
 
 	InstallFolderName string `json:"installFolderName"`

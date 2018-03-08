@@ -1,17 +1,249 @@
 package install
 
 import (
+	"fmt"
+	"net/url"
+	"regexp"
+
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/database/models"
+	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/state"
+	uuid "github.com/satori/go.uuid"
 )
 
-func InstallQueue(rc *buse.RequestContext, params *buse.InstallQueueParams) (*buse.InstallQueueResult, error) {
-	err := operate.InstallQueue(rc.Ctx, rc, params)
+func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams) (*buse.InstallQueueResult, error) {
+	var stagingFolder string
+
+	var cave *models.Cave
+	var installLocation *models.InstallLocation
+
+	freshInstallID, err := uuid.NewV4()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.InstallQueueResult{}
+	id := freshInstallID.String()
+
+	if queueParams.NoCave {
+		if queueParams.StagingFolder == "" {
+			return nil, errors.New("With noCave, installFolder must be specified")
+		}
+		stagingFolder = queueParams.StagingFolder
+	} else {
+		if queueParams.CaveID == "" {
+			if queueParams.InstallLocationID == "" {
+				return nil, errors.New("When caveId is unspecified, installLocationId must be set")
+			}
+			installLocation = models.InstallLocationByID(rc.DB(), queueParams.InstallLocationID)
+		} else {
+			cave = operate.ValidateCave(rc, queueParams.CaveID)
+			if queueParams.Game == nil {
+				queueParams.Game = cave.Game
+			}
+			if queueParams.Upload == nil {
+				queueParams.Upload = cave.Upload
+			}
+			if queueParams.Build == nil {
+				queueParams.Build = cave.Build
+			}
+
+			installLocation = cave.GetInstallLocation(rc.DB())
+		}
+
+		stagingFolder = installLocation.GetStagingFolder(id)
+	}
+
+	oc, err := operate.LoadContext(rc.Ctx, rc, stagingFolder)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	consumer := oc.Consumer()
+	meta := operate.NewMetaSubcontext()
+	params := meta.Data
+
+	params.StagingFolder = stagingFolder
+
+	if queueParams.Game == nil {
+		return nil, errors.New("Missing game in install")
+	}
+
+	params.Game = queueParams.Game
+
+	if queueParams.NoCave {
+		if queueParams.InstallFolder == "" {
+			return nil, errors.New("With noCave is specified, InstallFolder cannot be empty")
+		}
+
+		params.NoCave = true
+		params.InstallFolder = queueParams.InstallFolder
+	} else {
+		if cave == nil {
+			freshCaveID, err := uuid.NewV4()
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			cave = &models.Cave{
+				ID:                freshCaveID.String(),
+				InstallLocationID: queueParams.InstallLocationID,
+			}
+		}
+		params.CaveID = cave.ID
+
+		if cave.InstallFolderName == "" {
+			consumer.Warnf("TODO: ensure unique install folder")
+			cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
+		}
+
+		params.InstallFolder = cave.GetInstallFolder(rc.DB())
+		params.InstallLocationID = cave.InstallLocationID
+		params.InstallFolderName = cave.InstallFolderName
+	}
+
+	params.Credentials = operate.CredentialsForGame(rc.DB(), consumer, params.Game)
+
+	client, err := operate.ClientFromCredentials(params.Credentials)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	{
+		// attempt to refresh game info
+		gameRes, err := client.GetGame(&itchio.GetGameParams{GameID: params.Game.ID})
+		if err != nil {
+			consumer.Warnf("Could not refresh game info: %s", err.Error())
+		} else {
+			params.Game = gameRes.Game
+		}
+	}
+
+	params.Upload = queueParams.Upload
+	params.Build = queueParams.Build
+
+	if params.Upload == nil {
+		consumer.Infof("No upload specified, looking for compatible ones...")
+		uploadsFilterResult, err := operate.GetFilteredUploads(client, params.Game, params.Credentials, consumer)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if len(uploadsFilterResult.Uploads) == 0 {
+			consumer.Errorf("Didn't find a compatible upload.")
+			consumer.Errorf("The initial %d uploads were:", len(uploadsFilterResult.InitialUploads))
+			for _, upload := range uploadsFilterResult.InitialUploads {
+				operate.LogUpload(consumer, upload, upload.Build)
+			}
+
+			return nil, (&operate.OperationError{
+				Code:      "noCompatibleUploads",
+				Message:   "No compatible uploads",
+				Operation: "install",
+			}).Throw()
+		}
+
+		if len(uploadsFilterResult.Uploads) == 1 {
+			params.Upload = uploadsFilterResult.Uploads[0]
+		} else {
+			r, err := messages.PickUpload.Call(rc, &buse.PickUploadParams{
+				Uploads: uploadsFilterResult.Uploads,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, 0)
+			}
+
+			if r.Index < 0 {
+				return nil, &buse.ErrAborted{}
+			}
+
+			params.Upload = uploadsFilterResult.Uploads[r.Index]
+		}
+
+		if params.Upload.Build != nil {
+			// if we reach this point, we *just now* queried for an upload,
+			// so we know the build object is the latest
+			params.Build = params.Upload.Build
+		}
+	}
+
+	// params.Upload can't be nil by now
+	if params.Build == nil {
+		// We were passed an upload but not a build:
+		// Let's refresh upload info so we can settle on a build we want to install (if any)
+
+		listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+			GameID:        params.Game.ID,
+			DownloadKeyID: params.Credentials.DownloadKey,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		found := true
+		for _, u := range listUploadsRes.Uploads {
+			if u.ID == params.Upload.ID {
+				if u.Build == nil {
+					consumer.Infof("Upload is not wharf-enabled")
+				} else {
+					consumer.Infof("Latest build for upload is %d", u.Build.ID)
+					params.Build = u.Build
+				}
+				break
+			}
+		}
+
+		if !found {
+			consumer.Errorf("Uh oh, we didn't find that upload on the server:")
+			operate.LogUpload(consumer, params.Upload, nil)
+			return nil, errors.New("Upload not found")
+		}
+	}
+
+	oc.Save(meta)
+
+	res := &buse.InstallQueueResult{
+		Game:          params.Game,
+		Upload:        params.Upload,
+		Build:         params.Build,
+		InstallFolder: params.InstallFolder,
+		StagingFolder: params.StagingFolder,
+	}
 	return res, nil
+}
+
+func makeInstallFolderName(game *itchio.Game, consumer *state.Consumer) string {
+	name := makeInstallFolderNameFromSlug(game, consumer)
+	if name == "" {
+		name = makeInstallFolderNameFromID(game, consumer)
+	}
+	return name
+}
+
+var slugRe = regexp.MustCompile(`^\/([^\/]+)`)
+
+func makeInstallFolderNameFromSlug(game *itchio.Game, consumer *state.Consumer) string {
+	if game.URL == "" {
+		return ""
+	}
+
+	u, err := url.Parse(game.URL)
+	if err != nil {
+		consumer.Warnf("Could not parse game URL (%s): %s", game.URL, err.Error())
+		return ""
+	}
+
+	matches := slugRe.FindStringSubmatch(u.Path)
+	if len(matches) == 2 {
+		return matches[1]
+	}
+
+	return ""
+}
+
+func makeInstallFolderNameFromID(game *itchio.Game, consumer *state.Consumer) string {
+	return fmt.Sprintf("game-%d", game.ID)
 }

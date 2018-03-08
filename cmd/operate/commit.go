@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -40,7 +41,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		return errors.Wrap(err, 0)
 	}
 
-	consumer.Infof("Writing receipt...")
+	consumer.Opf("Writing receipt...")
 	receipt := &bfs.Receipt{
 		InstallerName: params.InstallerName,
 		Game:          params.Game,
@@ -60,13 +61,17 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 
 	cave := oc.cave
 	if cave != nil {
-		consumer.Infof("Configuring...")
+		consumer.Opf("Configuring...")
 		verdict, err := configurator.Configure(params.InstallFolder, false)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
-		consumer.Infof("Saving cave...")
+		runtime := manager.CurrentRuntime()
+		consumer.Opf("Filtering for %s...", runtime)
+		verdict.FilterPlatform(runtime.OS(), runtime.Arch())
+
+		consumer.Opf("Saving cave...")
 		cave.SetVerdict(verdict)
 		cave.InstalledSize = verdict.TotalSize
 		cave.Game = params.Game

@@ -8,9 +8,9 @@ import (
 type InstallParams struct {
 	StagingFolder string `json:"stagingFolder"`
 
-	CaveID              string `json:"caveId"`
-	InstallFolderName   string `json:"installFolderName"`
-	InstallLocationName string `json:"installLocationName"`
+	CaveID            string `json:"caveId"`
+	InstallFolderName string `json:"installFolderName"`
+	InstallLocationID string `json:"installLocationID"`
 
 	InstallFolder string `json:"installFolder"`
 
@@ -26,12 +26,12 @@ type InstallParams struct {
 }
 
 type MetaSubcontext struct {
-	data *InstallParams
+	Data *InstallParams
 }
 
 func NewMetaSubcontext() *MetaSubcontext {
 	return &MetaSubcontext{
-		data: &InstallParams{},
+		Data: &InstallParams{},
 	}
 }
 
@@ -41,6 +41,6 @@ func (mt *MetaSubcontext) Key() string {
 	return "meta"
 }
 
-func (mt *MetaSubcontext) Data() interface{} {
-	return &mt.data
+func (mt *MetaSubcontext) GetData() interface{} {
+	return &mt.Data
 }
