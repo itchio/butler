@@ -347,6 +347,20 @@ type InstallLocationSummary struct {
 	Size            int64  `json:"size"`
 }
 
+// Retrieve info for all caves.
+//
+// @name Fetch.Caves
+// @category Fetch
+// @caller client
+type FetchCavesParams struct {
+}
+
+type FetchCavesResult struct {
+	Caves []*Cave `json:"caves"`
+}
+
+// Retrieve info on a cave by ID.
+//
 // @name Fetch.Cave
 // @category Fetch
 // @caller client
@@ -398,8 +412,6 @@ type FetchCavesByInstallLocationIDResult struct {
 type GameFindUploadsParams struct {
 	// Which game to find uploads for
 	Game *itchio.Game `json:"game"`
-	// The credentials to use to list uploads
-	Credentials *GameCredentials `json:"credentials"`
 }
 
 type GameFindUploadsResult struct {
@@ -418,10 +430,6 @@ type GameFindUploadsResult struct {
 // @category Install
 // @caller client
 type InstallQueueParams struct {
-	// A folder that butler can use to store temporary files, like
-	// partial downloads, checkpoint files, etc.
-	StagingFolder string `json:"stagingFolder"`
-
 	// ID of the cave to perform the install for.
 	// If not specified, will create a new cave.
 	// @optional
@@ -463,6 +471,11 @@ type InstallQueueParams struct {
 	// whatever to the install folder.
 	// @optional
 	IgnoreInstallers bool `json:"ignoreInstallers,omitempty"`
+
+	// A folder that butler can use to store temporary files, like
+	// partial downloads, checkpoint files, etc.
+	// @optional
+	StagingFolder string `json:"stagingFolder"`
 }
 
 type InstallQueueResult struct {
@@ -575,11 +588,11 @@ type PickUploadResult struct {
 	Index int64 `json:"index"`
 }
 
-// Sent periodically during @@OperationStartParams to inform on the current state an operation.
+// Sent periodically during @@InstallPerformParams to inform on the current state of an install
 //
-// @name Operation.Progress
+// @name Progress
 // @category Install
-type OperationProgressNotification struct {
+type ProgressNotification struct {
 	// An overall progress value between 0 and 1
 	Progress float64 `json:"progress"`
 	// Estimated completion time for the operation, in seconds (floating)
@@ -682,15 +695,13 @@ type CheckUpdateItem struct {
 	// results to its own items.
 	ItemID string `json:"itemId"`
 	// Timestamp of the last successful install operation
-	InstalledAt string `json:"installedAt"`
+	InstalledAt time.Time `json:"installedAt"`
 	// Game for which to look for an update
 	Game *itchio.Game `json:"game"`
 	// Currently installed upload
 	Upload *itchio.Upload `json:"upload"`
 	// Currently installed build
 	Build *itchio.Build `json:"build,omitempty"`
-	// Credentials to use to list uploads
-	Credentials *GameCredentials `json:"credentials"`
 }
 
 type CheckUpdateResult struct {

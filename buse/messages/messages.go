@@ -492,6 +492,36 @@ func (r *FetchCommonsType) Register(router *buse.Router, f func(*buse.RequestCon
 
 var FetchCommons *FetchCommonsType
 
+// Fetch.Caves (Request)
+
+type FetchCavesType struct {}
+
+var _ RequestMessage = (*FetchCavesType)(nil)
+
+func (r *FetchCavesType) Method() string {
+  return "Fetch.Caves"
+}
+
+func (r *FetchCavesType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.FetchCavesParams) (*buse.FetchCavesResult, error)) {
+  router.Register("Fetch.Caves", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.FetchCavesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.Caves")
+    }
+    return res, nil
+  })
+}
+
+var FetchCaves *FetchCavesType
+
 // Fetch.Cave (Request)
 
 type FetchCaveType struct {}
@@ -803,21 +833,21 @@ func (r *PickUploadType) Call(rc *buse.RequestContext, params *buse.PickUploadPa
 
 var PickUpload *PickUploadType
 
-// Operation.Progress (Notification)
+// Progress (Notification)
 
-type OperationProgressType struct {}
+type ProgressType struct {}
 
-var _ NotificationMessage = (*OperationProgressType)(nil)
+var _ NotificationMessage = (*ProgressType)(nil)
 
-func (r *OperationProgressType) Method() string {
-  return "Operation.Progress"
+func (r *ProgressType) Method() string {
+  return "Progress"
 }
 
-func (r *OperationProgressType) Notify(rc *buse.RequestContext, params *buse.OperationProgressNotification) (error) {
-  return rc.Notify("Operation.Progress", params)
+func (r *ProgressType) Notify(rc *buse.RequestContext, params *buse.ProgressNotification) (error) {
+  return rc.Notify("Progress", params)
 }
 
-var OperationProgress *OperationProgressType
+var Progress *ProgressType
 
 // TaskStarted (Notification)
 
@@ -1256,6 +1286,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Fetch.ProfileGames"]; !ok { panic("missing request handler for (Fetch.ProfileGames)") }
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
+  if _, ok := router.Handlers["Fetch.Caves"]; !ok { panic("missing request handler for (Fetch.Caves)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
   if _, ok := router.Handlers["Fetch.CavesByInstallLocationID"]; !ok { panic("missing request handler for (Fetch.CavesByInstallLocationID)") }

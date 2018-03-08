@@ -3,6 +3,11 @@ package update_test
 import (
 	"context"
 	"testing"
+	"time"
+
+	"github.com/itchio/butler/database"
+	"github.com/itchio/butler/database/models"
+	"github.com/jinzhu/gorm"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -23,7 +28,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		update.Register(router)
 
 		item := &buse.CheckUpdateItem{
-			InstalledAt: "2017-04-04T09:32:00Z",
+			InstalledAt: time.Date(2017, 04, 04, 9, 32, 00, 0, time.UTC),
 		}
 		consumer := &state.Consumer{
 			OnMessage: func(level string, message string) {
@@ -33,6 +38,15 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		ctx := context.Background()
 		conn := loopbackconn.New(consumer)
 
+		db, err := database.OpenAndPrepare(":memory:")
+		wtest.Must(t, err)
+
+		var testCredentials = &models.Profile{
+			ID:     1,
+			APIKey: "KEY",
+		}
+		wtest.Must(t, db.Save(testCredentials).Error)
+
 		checkUpdate := func(params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
 			rc := &buse.RequestContext{
 				Ctx:            ctx,
@@ -40,6 +54,9 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 				Consumer:       consumer,
 				MansionContext: router.MansionContext,
 				Harness:        harness,
+				DB: func() *gorm.DB {
+					return db
+				},
 			}
 			return update.CheckUpdate(rc, params)
 		}
@@ -59,14 +76,6 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 
 		{
 			item.ItemID = "foo-bar"
-			res, err := checkUpdate(params)
-			assert.NoError(t, err)
-			assert.Equal(t, 1, len(res.Warnings))
-			assert.Contains(t, res.Warnings[0], "missing credentials")
-		}
-
-		{
-			item.Credentials = testCredentials
 			res, err := checkUpdate(params)
 			assert.NoError(t, err)
 			assert.Equal(t, 1, len(res.Warnings))
@@ -259,26 +268,6 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 			assert.Equal(t, 0, len(res.Updates))
 		}
 
-		{
-			t.Logf("Same upload exactly, but installedAt is invalid")
-			item.Build = nil
-			item.InstalledAt = "some weird date format"
-			httpmock.Reset()
-			freshUpload := testUpload()
-			otherUpload := testUpload()
-			otherUpload["id"] = 235987
-			httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
-				"uploads": []interface{}{
-					freshUpload,
-					otherUpload,
-				},
-			}))
-			res, err := checkUpdate(params)
-			assert.NoError(t, err)
-			assert.Equal(t, 0, len(res.Warnings))
-			assert.Equal(t, 1, len(res.Updates))
-		}
-
 		return nil
 	}))
 }
@@ -293,11 +282,6 @@ var testGame = &itchio.Game{
 	ID:    123,
 	Title: "Not plausible",
 	URL:   "https://insanity.itch.io/not-plausible",
-}
-
-var testCredentials = &buse.GameCredentials{
-	DownloadKey: 0,
-	APIKey:      "KEY",
 }
 
 func testUpload() map[string]interface{} {

@@ -17,6 +17,7 @@ func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwn
 			Record: profile,
 			Fields: []hades.PreloadField{
 				hades.PreloadField{Name: "OwnedKeys", OrderBy: `"created_at" DESC`},
+				hades.PreloadField{Name: "OwnedKeys.Game"},
 			},
 		})
 		if err != nil {

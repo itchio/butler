@@ -20,6 +20,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 			Record: profile,
 			Fields: []hades.PreloadField{
 				{Name: "ProfileGames", OrderBy: `"position" ASC`},
+				{Name: "ProfileGames.Game"},
 			},
 		})
 		profileGames := profile.ProfileGames

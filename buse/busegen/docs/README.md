@@ -1057,9 +1057,50 @@ available.</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Fetch.Caves
+
+
+<p>
+<p>Retrieve info for all caves.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caves</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchCavesParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Caves <a href="#/?id=fetchcaves">(Go to definition)</a></p>
+
+<p>
+<p>Retrieve info for all caves.</p>
+
+</p>
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Cave
 
 
+<p>
+<p>Retrieve info on a cave by ID.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> 
@@ -1093,6 +1134,10 @@ available.</p>
 <div id="FetchCaveParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Fetch.Cave <a href="#/?id=fetchcave">(Go to definition)</a></p>
 
+<p>
+<p>Retrieve info on a cave by ID.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -1244,12 +1289,6 @@ available.</p>
 <td><p>Which game to find uploads for</p>
 </td>
 </tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>The credentials to use to list uploads</p>
-</td>
-</tr>
 </table>
 
 
@@ -1282,10 +1321,6 @@ available.</p>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type struct-type">Game</span></code></td>
 </tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
-</tr>
 </table>
 
 </div>
@@ -1305,13 +1340,6 @@ via <code class="typename"><span class="type request-client-caller" data-tip-sel
 
 
 <table class="field-table">
-<tr>
-<td><code>stagingFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A folder that butler can use to store temporary files, like
-partial downloads, checkpoint files, etc.</p>
-</td>
-</tr>
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
@@ -1370,6 +1398,13 @@ record will be read or modified</p>
 whatever to the install folder.</p>
 </td>
 </tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> A folder that butler can use to store temporary files, like
+partial downloads, checkpoint files, etc.</p>
+</td>
+</tr>
 </table>
 
 
@@ -1419,10 +1454,6 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 <table class="field-table">
 <tr>
-<td><code>stagingFolder</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
@@ -1453,6 +1484,10 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>ignoreInstallers</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -1792,11 +1827,11 @@ or a negative value to cancel.</p>
 
 </div>
 
-### <em class="notification"></em>Operation.Progress
+### <em class="notification"></em>Progress
 
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> to inform on the current state an operation.</p>
+<p>Sent periodically during <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code> to inform on the current state of an install</p>
 
 </p>
 
@@ -1827,11 +1862,11 @@ or a negative value to cancel.</p>
 </table>
 
 
-<div id="OperationProgressNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Operation.Progress <a href="#/?id=operationprogress">(Go to definition)</a></p>
+<div id="ProgressNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Progress <a href="#/?id=progress">(Go to definition)</a></p>
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> to inform on the current state an operation.</p>
+<p>Sent periodically during <code class="typename"><span class="type request-client-caller">Install.Perform</span></code> to inform on the current state of an install</p>
 
 </p>
 
@@ -2248,7 +2283,7 @@ results to its own items.</p>
 </tr>
 <tr>
 <td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp of the last successful install operation</p>
 </td>
 </tr>
@@ -2270,12 +2305,6 @@ results to its own items.</p>
 <td><p>Currently installed build</p>
 </td>
 </tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameCredentials__TypeHint">GameCredentials</span></code></td>
-<td><p>Credentials to use to list uploads</p>
-</td>
-</tr>
 </table>
 
 
@@ -2290,7 +2319,7 @@ results to its own items.</p>
 </tr>
 <tr>
 <td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>game</code></td>
@@ -2303,10 +2332,6 @@ results to its own items.</p>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type struct-type">Build</span></code></td>
-</tr>
-<tr>
-<td><code>credentials</code></td>
-<td><code class="typename"><span class="type struct-type">GameCredentials</span></code></td>
 </tr>
 </table>
 

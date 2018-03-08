@@ -63,8 +63,8 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		conn.OnNotification("TaskStarted", loopbackconn.NoopNotificationHandler)
 		conn.OnNotification("TaskSucceeded", loopbackconn.NoopNotificationHandler)
 
-		conn.OnNotification("Operation.Progress", func(ctx context.Context, method string, params interface{}) error {
-			progress := params.(*buse.OperationProgressNotification)
+		conn.OnNotification("Progress", func(ctx context.Context, method string, params interface{}) error {
+			progress := params.(*buse.ProgressNotification)
 			tsc.OnState(&buse.PrereqsTaskStateNotification{
 				Name:     name,
 				Status:   buse.PrereqStatusDownloading,

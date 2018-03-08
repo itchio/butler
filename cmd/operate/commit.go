@@ -67,6 +67,15 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 			return errors.Wrap(err, 0)
 		}
 
+		consumer.Opf("Fixing permissions...")
+		fixed, err := verdict.FixPermissions(false)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+		for _, f := range fixed {
+			consumer.Statf("Fixed (%s)", f)
+		}
+
 		runtime := manager.CurrentRuntime()
 		consumer.Opf("Filtering for %s...", runtime)
 		verdict.FilterPlatform(runtime.OS(), runtime.Arch())

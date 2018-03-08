@@ -1,8 +1,6 @@
 package update
 
 import (
-	"time"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
@@ -56,10 +54,6 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 		return nil, errors.New("missing itemId")
 	}
 
-	if item.Credentials == nil {
-		return nil, errors.New("missing credentials")
-	}
-
 	if item.Game == nil {
 		return nil, errors.New("missing game")
 	}
@@ -73,21 +67,17 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 	consumer.Infof("→ Cached upload:")
 	operate.LogUpload(consumer, item.Upload, item.Build)
 
-	if item.Credentials.DownloadKey > 0 {
+	credentials := operate.CredentialsForGame(rc.DB(), consumer, item.Game)
+
+	if credentials.DownloadKey > 0 {
 		consumer.Infof("→ Has download key (game is owned)")
 	} else {
 		consumer.Infof("→ Searching without download key")
 	}
 
-	installedAt, err := buse.FromDateTime(item.InstalledAt)
-	if err != nil {
-		consumer.Warnf("Could not parse installedAt: %s", err.Error())
-		installedAt = time.Unix(0, 0)
-		consumer.Warnf("Assuming unix 0 time")
-	}
-	consumer.Infof("→ Last install operation at (%s)", installedAt)
+	consumer.Infof("→ Last install operation at (%s)", item.InstalledAt)
 
-	client, err := rc.Harness.ClientFromCredentials(item.Credentials)
+	client, err := rc.Harness.ClientFromCredentials(credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -125,7 +115,7 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 		// TODO: don't do that, use the upload's hashes instead
 		consumer.Infof("→ Upload updated at (%s)", freshUpload.UpdatedAt)
 
-		if freshUpload.UpdatedAt.After(installedAt) {
+		if freshUpload.UpdatedAt.After(item.InstalledAt) {
 			consumer.Statf("↑ Upload was updated after last install, it's an update!")
 			res := &buse.GameUpdate{
 				ItemID: item.ItemID,

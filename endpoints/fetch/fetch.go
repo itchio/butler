@@ -13,6 +13,7 @@ func Register(router *buse.Router) {
 	messages.FetchProfileOwnedKeys.Register(router, FetchProfileOwnedKeys)
 	messages.FetchCommons.Register(router, FetchCommons)
 	messages.FetchCave.Register(router, FetchCave)
+	messages.FetchCaves.Register(router, FetchCaves)
 	messages.FetchCavesByGameID.Register(router, FetchCavesByGameID)
 	messages.FetchCavesByInstallLocationID.Register(router, FetchCavesByInstallLocationID)
 }

@@ -114,7 +114,7 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 				}
 
 				rc.counter.SetProgress(alpha)
-				notif := &OperationProgressNotification{
+				notif := &ProgressNotification{
 					Progress: alpha,
 					ETA:      rc.counter.ETA().Seconds(),
 					BPS:      rc.counter.BPS(),

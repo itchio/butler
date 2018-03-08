@@ -110,7 +110,7 @@ func (c *Cave) Preload(db *gorm.DB) {
 }
 
 func PreloadCaves(db *gorm.DB, caveOrCaves interface{}) {
-	MustPreloadSimple(db, caveOrCaves, "Game", "Upload", "Build")
+	MustPreloadSimple(db, caveOrCaves, "Game", "Upload", "Build", "InstallLocation")
 }
 
 func (c *Cave) Save(db *gorm.DB) {
