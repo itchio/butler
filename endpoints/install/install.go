@@ -11,4 +11,5 @@ func Register(router *buse.Router) {
 	messages.InstallPerform.Register(router, InstallPerform)
 	messages.InstallCancel.Register(router, InstallCancel)
 	messages.UninstallPerform.Register(router, UninstallPerform)
+	messages.InstallVersionSwitchQueue.Register(router, InstallVersionSwitchQueue)
 }

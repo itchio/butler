@@ -10,16 +10,13 @@ type Download struct {
 	// An UUID
 	ID string `json:"id"`
 
-	Reason     string    `json:"reason"`
-	Progress   float64   `json:"progress"`
-	Finished   bool      `json:"finished"`
-	Position   int64     `json:"position"`
-	BPS        float64   `json:"bps"`
-	ETA        float64   `json:"eta"`
-	StartedAt  time.Time `json:"startedAt"`
-	FinishedAt time.Time `json:"finishedAt"`
-	Err        string    `json:"err"`
-	ErrStack   string    `json:"errStack"`
+	Reason     string     `json:"reason"`
+	Finished   bool       `json:"finished"`
+	Position   int64      `json:"position"`
+	StartedAt  *time.Time `json:"startedAt"`
+	FinishedAt *time.Time `json:"finishedAt"`
+	Err        string     `json:"err"`
+	ErrStack   string     `json:"errStack"`
 
 	CaveID          string         `json:"caveId"`
 	GameID          int64          `json:"gameId"`

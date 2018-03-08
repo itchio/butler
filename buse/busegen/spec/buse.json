@@ -464,12 +464,62 @@
           {
             "name": "caveId",
             "doc": "The cave to uninstall",
-            "type": "number"
+            "type": "string"
           }
         ]
       },
       "result": {
         "fields": null
+      }
+    },
+    {
+      "method": "Install.VersionSwitch.Queue",
+      "doc": "Prepare to queue a version switch. The client will\nreceive an @@InstallVersionSwitchPickParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "The cave to switch to a different version",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "InstallVersionSwitchPick",
+      "doc": "Let the user pick which version to switch to.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "cave",
+            "doc": "",
+            "type": "Cave"
+          },
+          {
+            "name": "upload",
+            "doc": "",
+            "type": "Upload"
+          },
+          {
+            "name": "builds",
+            "doc": "",
+            "type": "Build[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "index",
+            "doc": "A negative index aborts the version switch",
+            "type": "number"
+          }
+        ]
       }
     },
     {

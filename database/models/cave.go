@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -77,4 +78,17 @@ func (c *Cave) Touch() {
 func (c *Cave) RecordPlayTime(playTime time.Duration) {
 	c.SecondsRun += int64(playTime.Seconds())
 	c.Touch()
+}
+
+func (c *Cave) AbsoluteInstallFolder(db *gorm.DB) (string, error) {
+	il, err := InstallLocationByID(db, c.InstallLocation)
+	if err != nil {
+		return "", errors.Wrap(err, 0)
+	}
+
+	if il == nil {
+		return "", fmt.Errorf("Install location not found: %s", c.InstallLocation)
+	}
+
+	return il.AbsoluteFolderPath(c.InstallFolder), nil
 }

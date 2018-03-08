@@ -14,9 +14,14 @@ import (
 func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse.UninstallPerformParams) error {
 	consumer := rc.Consumer
 
-	var installFolder string
-	if true {
-		return errors.New("determining install folder: stub!")
+	cave, db, err := ValidateCave(rc, params.CaveID)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	installFolder, err := cave.AbsoluteInstallFolder(db)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
 
 	consumer.Infof("→ Uninstalling %s", installFolder)
@@ -58,6 +63,7 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 		return errors.Wrap(err, 0)
 	}
 
+	consumer.Infof("Running uninstall manager...")
 	rc.StartProgress()
 	err = manager.Uninstall(managerUninstallParams)
 	rc.EndProgress()
@@ -73,6 +79,13 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 		return errors.Wrap(err, 0)
 	}
 
+	consumer.Infof("Deleting cave...")
+	err = db.Delete(cave).Error
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Wiping install folder...")
 	err = wipe.Do(consumer, installFolder)
 	if err != nil {
 		return errors.Wrap(err, 0)

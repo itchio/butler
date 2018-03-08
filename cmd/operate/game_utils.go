@@ -230,3 +230,25 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 		return creds, nil
 	}
 }
+
+func ValidateCave(rc *buse.RequestContext, caveID string) (*models.Cave, *gorm.DB, error) {
+	if caveID == "" {
+		return nil, nil, errors.New("caveId must be set")
+	}
+
+	db, err := rc.DB()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, 0)
+	}
+
+	cave, err := models.CaveByID(db, caveID)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, 0)
+	}
+
+	if cave == nil {
+		return nil, nil, fmt.Errorf("cave not found: (%s)", caveID)
+	}
+
+	return cave, db, nil
+}

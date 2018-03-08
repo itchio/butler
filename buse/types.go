@@ -486,10 +486,39 @@ type InstallCancelResult struct{}
 // @caller client
 type UninstallPerformParams struct {
 	// The cave to uninstall
-	CaveID int64 `json:"caveId"`
+	CaveID string `json:"caveId"`
 }
 
 type UninstallPerformResult struct{}
+
+// Prepare to queue a version switch. The client will
+// receive an @@InstallVersionSwitchPickParams.
+//
+// @name Install.VersionSwitch.Queue
+// @category Install
+// @caller client
+type InstallVersionSwitchQueueParams struct {
+	// The cave to switch to a different version
+	CaveID string `json:"caveId"`
+}
+
+type InstallVersionSwitchQueueResult struct {
+}
+
+// Let the user pick which version to switch to.
+//
+// @category Install
+// @caller server
+type InstallVersionSwitchPickParams struct {
+	Cave   *Cave           `json:"cave"`
+	Upload *itchio.Upload  `json:"upload"`
+	Builds []*itchio.Build `json:"builds"`
+}
+
+type InstallVersionSwitchPickResult struct {
+	// A negative index aborts the version switch
+	Index int64 `json:"index"`
+}
 
 // GameCredentials contains all the credentials required to make API requests
 // including the download key if any.

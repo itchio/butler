@@ -1488,7 +1488,7 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 <table class="field-table">
 <tr>
 <td><code>caveId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p>The cave to uninstall</p>
 </td>
 </tr>
@@ -1513,7 +1513,128 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 <table class="field-table">
 <tr>
 <td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Install.VersionSwitch.Queue
+
+
+<p>
+<p>Prepare to queue a version switch. The client will
+receive an <code class="typename"><span class="type request-server-caller" data-tip-selector="#InstallVersionSwitchPickParams__TypeHint">InstallVersionSwitchPick</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The cave to switch to a different version</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="InstallVersionSwitchQueueParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.VersionSwitch.Queue <a href="#/?id=installversionswitchqueue">(Go to definition)</a></p>
+
+<p>
+<p>Prepare to queue a version switch. The client will
+receive an <code class="typename"><span class="type request-server-caller">InstallVersionSwitchPick</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-server-caller"></em>InstallVersionSwitchPick
+
+
+<p>
+<p>Let the user pick which version to switch to.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>cave</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>index</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>A negative index aborts the version switch</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallVersionSwitchPickParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>InstallVersionSwitchPick <a href="#/?id=installversionswitchpick">(Go to definition)</a></p>
+
+<p>
+<p>Let the user pick which version to switch to.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>cave</code></td>
+<td><code class="typename"><span class="type struct-type">Cave</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span>[]</code></td>
 </tr>
 </table>
 

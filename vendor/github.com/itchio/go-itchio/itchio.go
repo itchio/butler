@@ -561,6 +561,29 @@ func (c *Client) ListGameUploads(params *ListGameUploadsParams) (*ListGameUpload
 	return r, nil
 }
 
+type ListUploadBuildsParams struct {
+	UploadID      int64
+	DownloadKeyID int64
+}
+
+func (c *Client) ListUploadBuilds(params *ListUploadBuildsParams) (*ListUploadBuildsResponse, error) {
+	r := &ListUploadBuildsResponse{}
+
+	form := url.Values{}
+	if params.DownloadKeyID != 0 {
+		form.Add("download_key_id", fmt.Sprintf("%d", params.DownloadKeyID))
+	}
+
+	path := c.MakePath("upload/%d/builds?%s", params.UploadID, form.Encode())
+
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 type FindUpgradeParams struct {
 	UploadID       int64
 	CurrentBuildID int64

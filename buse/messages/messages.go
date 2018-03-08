@@ -707,6 +707,54 @@ func (r *UninstallPerformType) Register(router *buse.Router, f func(*buse.Reques
 
 var UninstallPerform *UninstallPerformType
 
+// Install.VersionSwitch.Queue (Request)
+
+type InstallVersionSwitchQueueType struct {}
+
+var _ RequestMessage = (*InstallVersionSwitchQueueType)(nil)
+
+func (r *InstallVersionSwitchQueueType) Method() string {
+  return "Install.VersionSwitch.Queue"
+}
+
+func (r *InstallVersionSwitchQueueType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallVersionSwitchQueueParams) (*buse.InstallVersionSwitchQueueResult, error)) {
+  router.Register("Install.VersionSwitch.Queue", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallVersionSwitchQueueParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.VersionSwitch.Queue")
+    }
+    return res, nil
+  })
+}
+
+var InstallVersionSwitchQueue *InstallVersionSwitchQueueType
+
+// InstallVersionSwitchPick (Request)
+
+type InstallVersionSwitchPickType struct {}
+
+var _ RequestMessage = (*InstallVersionSwitchPickType)(nil)
+
+func (r *InstallVersionSwitchPickType) Method() string {
+  return "InstallVersionSwitchPick"
+}
+
+func (r *InstallVersionSwitchPickType) Call(rc *buse.RequestContext, params *buse.InstallVersionSwitchPickParams) (*buse.InstallVersionSwitchPickResult, error) {
+  var result buse.InstallVersionSwitchPickResult
+  err := rc.Call("InstallVersionSwitchPick", params, &result)
+  return &result, err
+}
+
+var InstallVersionSwitchPick *InstallVersionSwitchPickType
+
 // PickUpload (Request)
 
 type PickUploadType struct {}
@@ -1185,6 +1233,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }
   if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
   if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }
+  if _, ok := router.Handlers["Install.VersionSwitch.Queue"]; !ok { panic("missing request handler for (Install.VersionSwitch.Queue)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }
