@@ -8,13 +8,10 @@ import (
 )
 
 func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*buse.FetchCommonsResult, error) {
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	var err error
 
 	var caves []*buse.CaveSummary
-	err = db.Model(&models.Cave{}).
+	err = rc.DB().Model(&models.Cave{}).
 		Select("id, game_id, last_touched_at, seconds_run, installed_size").
 		Scan(&caves).Error
 	if err != nil {
@@ -22,7 +19,7 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 	}
 
 	var downloadKeys []*buse.DownloadKeySummary
-	err = db.Model(&itchio.DownloadKey{}).
+	err = rc.DB().Model(&itchio.DownloadKey{}).
 		Select("id, game_id, created_at").
 		Scan(&downloadKeys).Error
 	if err != nil {
@@ -30,7 +27,7 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 	}
 
 	var installLocations []*buse.InstallLocationSummary
-	err = db.Raw(`
+	err = rc.DB().Raw(`
 		SELECT sum(coalesce(installed_size, 0)) as size, install_location
 		FROM caves
 		GROUP BY install_location

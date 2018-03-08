@@ -16,38 +16,17 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.New("collectionId must be non-zero")
 	}
 
-	_, client, err := rc.ProfileClient(params.ProfileID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	_, client := rc.ProfileClient(params.ProfileID)
 
 	sendDBCollection := func() error {
-		collection, err := models.CollectionByID(db, params.CollectionID)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
+		collection := models.CollectionByID(rc.DB(), params.CollectionID)
 		if collection == nil {
 			return nil
 		}
 
-		err = hades.NewContext(db, consumer).Preload(db, &hades.PreloadParams{
-			Record: collection,
-			Fields: []hades.PreloadField{
-				hades.PreloadField{Name: "CollectionGames", OrderBy: `"position" ASC`},
-				hades.PreloadField{Name: "CollectionGames.Game"},
-			},
-		})
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+		models.CollectionExt(collection).PreloadCollectionGames(rc.DB())
 
-		err = messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collection})
+		err := messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collection})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -55,7 +34,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil
 	}
 
-	err = sendDBCollection()
+	err := sendDBCollection()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -72,9 +51,9 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 	collection.Games = nil
 	collection.CollectionGames = nil
 
-	c := hades.NewContext(db, consumer)
+	c := HadesContext(rc)
 
-	err = c.Save(db, &hades.SaveParams{
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: collRes.Collection,
 	})
 	if err != nil {
@@ -111,7 +90,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 			})
 		}
 
-		err = c.Save(db, &hades.SaveParams{
+		err = c.Save(rc.DB(), &hades.SaveParams{
 			Record: collection,
 			Assocs: []string{"CollectionGames"},
 
@@ -140,7 +119,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		}
 	}
 
-	err = c.Save(db, &hades.SaveParams{
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: collection,
 		Assocs: []string{"CollectionGames"},
 	})

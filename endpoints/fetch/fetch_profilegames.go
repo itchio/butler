@@ -11,24 +11,18 @@ import (
 func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesParams) (*buse.FetchProfileGamesResult, error) {
 	consumer := rc.Consumer
 
-	profile, client, err := rc.ProfileClient(params.ProfileID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	profile, client := rc.ProfileClient(params.ProfileID)
 
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	c := hades.NewContext(db, consumer)
+	c := HadesContext(rc)
 
 	sendDBGames := func() error {
-		var profileGames []*models.ProfileGame
-		err := db.Model(profile).Preload("Game").Related(&profileGames, "ProfileGames").Error
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+		c.Preload(rc.DB(), &hades.PreloadParams{
+			Record: profile,
+			Fields: []hades.PreloadField{
+				{Name: "ProfileGames", OrderBy: `"position" ASC`},
+			},
+		})
+		profileGames := profile.ProfileGames
 
 		yn := &buse.FetchProfileGamesYieldNotification{
 			Offset: 0,
@@ -47,7 +41,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 			})
 		}
 
-		err = messages.FetchProfileGamesYield.Notify(rc, yn)
+		err := messages.FetchProfileGamesYield.Notify(rc, yn)
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -55,7 +49,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		return nil
 	}
 
-	err = sendDBGames()
+	err := sendDBGames()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -79,7 +73,7 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		})
 	}
 
-	err = c.Save(db, &hades.SaveParams{
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: profile,
 		Assocs: []string{"ProfileGames"},
 	})

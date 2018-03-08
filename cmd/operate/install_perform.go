@@ -56,26 +56,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	params := meta.data
 	consumer := oc.Consumer()
 
-	db, err := rc.DB()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
 	if !params.NoCave {
-		if params.CaveID == "" {
-			return errors.New("CaveID cannot be null if NoCave is not set")
-		}
-
-		cave, err := models.CaveByID(db, params.CaveID)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
+		cave := ValidateCave(rc, params.CaveID)
 		if cave == nil {
 			cave = &models.Cave{
-				ID:              params.CaveID,
-				InstallFolder:   params.InstallFolderName,
-				InstallLocation: params.InstallLocationName,
+				ID:                params.CaveID,
+				InstallFolderName: params.InstallFolderName,
+				InstallLocationID: params.InstallLocationName,
 			}
 		}
 

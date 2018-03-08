@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/database/models"
-	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 	// enable sqlite3 dialect for gorm
@@ -16,25 +15,6 @@ import (
 )
 
 var debugSql = os.Getenv("BUTLER_SQL") == "1"
-
-// Models contains all the tables contained in butler's database
-var Models = []interface{}{
-	&models.Profile{},
-	&models.ProfileCollection{},
-	&itchio.DownloadKey{},
-	&itchio.Collection{},
-	&itchio.CollectionGame{},
-	&models.ProfileGame{},
-	&itchio.Game{},
-	&itchio.User{},
-	&models.Download{},
-	&models.Cave{},
-	&itchio.GameEmbedData{},
-	&itchio.Sale{},
-	&models.InstallLocation{},
-	&itchio.Upload{},
-	&itchio.Build{},
-}
 
 // OpenAndPrepare returns a connection to butler's sqlite database
 func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
@@ -57,7 +37,7 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 		db.LogMode(true)
 	}
 
-	err := db.AutoMigrate(Models...).Error
+	err := db.AutoMigrate(models.AllModels...).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

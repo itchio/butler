@@ -16,24 +16,12 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.New("gameId must be non-zero")
 	}
 
-	_, client, err := rc.ProfileClient(params.ProfileID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	_, client := rc.ProfileClient(params.ProfileID)
 
 	sendDBGame := func() error {
-		game, err := models.GameByID(db, params.GameID)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
+		game := models.GameByID(rc.DB(), params.GameID)
 		if game != nil {
-			err = messages.FetchGameYield.Notify(rc, &buse.FetchGameYieldNotification{Game: game})
+			err := messages.FetchGameYield.Notify(rc, &buse.FetchGameYieldNotification{Game: game})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -41,7 +29,7 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil
 	}
 
-	err = sendDBGame()
+	err := sendDBGame()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -54,9 +42,9 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.Wrap(err, 0)
 	}
 
-	c := hades.NewContext(db, consumer)
+	c := HadesContext(rc)
 
-	err = c.Save(db, &hades.SaveParams{
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: gameRes.Game,
 	})
 	if err != nil {

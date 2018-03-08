@@ -10,21 +10,12 @@ import (
 )
 
 func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileCollectionsParams) (*buse.FetchProfileCollectionsResult, error) {
-	consumer := rc.Consumer
+	profile, client := rc.ProfileClient(params.ProfileID)
 
-	profile, client, err := rc.ProfileClient(params.ProfileID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	c := HadesContext(rc)
 
 	sendDBCollections := func() error {
-		c := hades.NewContext(db, consumer)
-		err := c.Preload(db, &hades.PreloadParams{
+		err := c.Preload(rc.DB(), &hades.PreloadParams{
 			Record: profile,
 			Fields: []hades.PreloadField{
 				{Name: "ProfileCollections", OrderBy: `"position" ASC`},
@@ -49,7 +40,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 			itchio.CollectionGame
 			itchio.Game
 		}
-		err = db.Raw(`
+		err = rc.DB().Raw(`
 			SELECT collection_games.*, games.*
 			FROM collections
 			JOIN collection_games ON collection_games.collection_id = collections.id
@@ -92,7 +83,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		return nil
 	}
 
-	err = sendDBCollections()
+	err := sendDBCollections()
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -119,9 +110,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		})
 	}
 
-	c := hades.NewContext(db, consumer)
-
-	err = c.Save(db, &hades.SaveParams{
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: profile,
 		Assocs: []string{"ProfileCollections"},
 

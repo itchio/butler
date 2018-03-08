@@ -65,26 +65,16 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
-		err = cave.SetVerdict(verdict)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		cave.InstalledSize = verdict.TotalSize
 
 		consumer.Infof("Saving cave...")
-		db, err := oc.rc.DB()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
+		cave.SetVerdict(verdict)
+		cave.InstalledSize = verdict.TotalSize
 		cave.Game = params.Game
 		cave.Upload = params.Upload
 		cave.Build = params.Build
 		cave.InstalledAt = time.Now().UTC()
-		err = db.Save(cave).Error
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
+
+		cave.Save(oc.rc.DB())
 	}
 
 	return nil

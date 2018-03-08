@@ -16,13 +16,8 @@ func Register(router *buse.Router) {
 }
 
 func List(rc *buse.RequestContext, params *buse.ProfileListParams) (*buse.ProfileListResult, error) {
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	var profiles []*models.Profile
-	err = db.Preload("User").Order("last_connected desc").Find(&profiles).Error
+	err := rc.DB().Preload("User").Order("last_connected desc").Find(&profiles).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -131,18 +126,13 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.ProfileLoginWithPas
 		return nil, errors.Wrap(err, 0)
 	}
 
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
 	profile := &models.Profile{
 		ID:     meRes.User.ID,
 		APIKey: key.Key,
 	}
 	profile.UpdateFromUser(meRes.User)
 
-	err = db.Save(profile).Error
+	err = rc.DB().Save(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -157,15 +147,7 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.ProfileLoginWithPas
 func UseSavedLogin(rc *buse.RequestContext, params *buse.ProfileUseSavedLoginParams) (*buse.ProfileUseSavedLoginResult, error) {
 	consumer := rc.Consumer
 
-	profile, client, err := rc.ProfileClient(params.ProfileID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	profile, client := rc.ProfileClient(params.ProfileID)
 
 	consumer.Opf("Validating credentials...")
 
@@ -179,7 +161,7 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.ProfileUseSavedLoginPar
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = db.Save(profile).Error
+	err = rc.DB().Save(profile).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
@@ -193,15 +175,19 @@ func UseSavedLogin(rc *buse.RequestContext, params *buse.ProfileUseSavedLoginPar
 }
 
 func Forget(rc *buse.RequestContext, params *buse.ProfileForgetParams) (*buse.ProfileForgetResult, error) {
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
+	if params.ProfileID == 0 {
+		return nil, errors.New("profileId must be set")
 	}
 
-	err = db.Where("id = ?", params.ProfileID).Delete(&models.Profile{}).Error
-	success := db.RowsAffected > 1
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
+	success := false
+
+	profile := models.ProfileByID(rc.DB(), params.ProfileID)
+	if profile != nil {
+		err := rc.DB().Delete(profile).Error
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		success = true
 	}
 
 	res := &buse.ProfileForgetResult{

@@ -149,106 +149,84 @@ func formatUploadType(uploadType string) string {
 	}
 }
 
-func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game) (*buse.GameCredentials, error) {
+func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game) *buse.GameCredentials {
 	// look for owner access
 	{
 		pgs, err := models.ProfileGamesByGameID(db, game.ID)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			panic(err)
 		}
 		if len(pgs) > 0 {
 			pg := pgs[0]
 			consumer.Infof("%s is owned by user #%d, so they must have full access", GameToString, pg.UserID)
-			p, err := models.ProfileByID(db, pg.UserID)
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
-			}
+			p := models.ProfileByID(db, pg.UserID)
 
 			creds := &buse.GameCredentials{
 				APIKey: p.APIKey,
 			}
-			return creds, nil
+			return creds
 		}
 	}
 
 	// look for press access
 	if game.InPressSystem {
-		profiles, err := models.AllProfiles(db)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
-		for _, p := range profiles {
-			if p.PressUser {
-				consumer.Infof("%s is in press system and user #%d is a press user", GameToString(game), p.UserID)
+		for _, profile := range models.AllProfiles(db) {
+			if profile.PressUser {
+				consumer.Infof("%s is in press system and user #%d is a press user", GameToString(game), profile.UserID)
 				creds := &buse.GameCredentials{
-					APIKey: p.APIKey,
+					APIKey: profile.APIKey,
 				}
-				return creds, nil
+				return creds
 			}
 		}
 	}
 
 	// look for a download key
 	{
-		dks, err := models.DownloadKeysByGameID(db, game.ID)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+		dks := models.DownloadKeysByGameID(db, game.ID)
 
-		if len(dks) > 0 {
-			dk := dks[0]
-			p, err := models.ProfileByID(db, dk.OwnerID)
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
+		for _, dk := range dks {
+			profile := models.ProfileByID(db, dk.OwnerID)
+			if profile == nil {
+				continue
 			}
 
-			consumer.Infof("%s has a download key belonging to user #%d", GameToString(game), p.UserID)
+			consumer.Infof("%s has a download key belonging to user #%d", GameToString(game), profile.UserID)
 			creds := &buse.GameCredentials{
-				APIKey:      p.APIKey,
+				APIKey:      profile.APIKey,
 				DownloadKey: dk.ID,
 			}
-			return creds, nil
+			return creds
 		}
 	}
 
 	// no special credentials
 	{
 		consumer.Infof("%s is not related to any known profiles", GameToString(game))
-		profiles, err := models.AllProfiles(db)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
+		profiles := models.AllProfiles(db)
 		if len(profiles) == 0 {
-			return nil, errors.New("No profiles found")
+			panic(errors.New("No profiles found"))
 		}
 
-		p := profiles[0]
+		profile := profiles[0]
 		creds := &buse.GameCredentials{
-			APIKey: p.APIKey,
+			APIKey: profile.APIKey,
 		}
-		return creds, nil
+		return creds
 	}
 }
 
-func ValidateCave(rc *buse.RequestContext, caveID string) (*models.Cave, *gorm.DB, error) {
+func ValidateCave(rc *buse.RequestContext, caveID string) *models.Cave {
 	if caveID == "" {
-		return nil, nil, errors.New("caveId must be set")
+		panic(errors.New("caveId must be set"))
 	}
 
-	db, err := rc.DB()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, 0)
-	}
-
-	cave, err := models.CaveByID(db, caveID)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, 0)
-	}
-
+	cave := models.CaveByID(rc.DB(), caveID)
 	if cave == nil {
-		return nil, nil, fmt.Errorf("cave not found: (%s)", caveID)
+		panic(fmt.Errorf("cave not found: (%s)", caveID))
 	}
 
-	return cave, db, nil
+	cave.Preload(rc.DB())
+
+	return cave
 }

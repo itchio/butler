@@ -1106,6 +1106,10 @@ available.</p>
 ### <em class="request-client-caller"></em>Fetch.CavesByGameID
 
 
+<p>
+<p>Retrieve all caves for a given game.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> 
@@ -1139,11 +1143,69 @@ available.</p>
 <div id="FetchCavesByGameIDParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Fetch.CavesByGameID <a href="#/?id=fetchcavesbygameid">(Go to definition)</a></p>
 
+<p>
+<p>Retrieve all caves for a given game.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.CavesByInstallLocationID
+
+
+<p>
+<p>Retrieve all caves installed to a given location.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caves</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="FetchCavesByInstallLocationIDParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.CavesByInstallLocationID <a href="#/?id=fetchcavesbyinstalllocationid">(Go to definition)</a></p>
+
+<p>
+<p>Retrieve all caves installed to a given location.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -3795,7 +3857,7 @@ ie. that we can connect as, etc.</p>
 <td></td>
 </tr>
 <tr>
-<td><code>absoluteInstallFolder</code></td>
+<td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
@@ -3816,7 +3878,7 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>absoluteInstallFolder</code></td>
+<td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>

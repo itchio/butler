@@ -1,36 +1,22 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/database/models"
+	"github.com/jinzhu/gorm"
 )
 
 func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.FetchCaveResult, error) {
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	cave, err := models.CaveByID(db, params.CaveID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	if cave != nil {
-		err = PreloadCaves(db, rc.Consumer, cave)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-	}
+	cave := models.CaveByID(rc.DB(), params.CaveID)
+	cave.Preload(rc.DB())
 
 	res := &buse.FetchCaveResult{
-		Cave: formatCave(cave),
+		Cave: formatCave(rc.DB(), cave),
 	}
 	return res, nil
 }
 
-func formatCave(cave *models.Cave) *buse.Cave {
+func formatCave(db *gorm.DB, cave *models.Cave) *buse.Cave {
 	if cave == nil {
 		return nil
 	}
@@ -43,9 +29,9 @@ func formatCave(cave *models.Cave) *buse.Cave {
 		Build:  cave.Build,
 
 		InstallInfo: &buse.CaveInstallInfo{
-			AbsoluteInstallFolder: "<stub>",
-			InstalledSize:         cave.InstalledSize,
-			InstallLocation:       cave.InstallLocation,
+			InstallFolder:   cave.GetInstallFolder(db),
+			InstalledSize:   cave.InstalledSize,
+			InstallLocation: cave.InstallLocationID,
 		},
 
 		Stats: &buse.CaveStats{

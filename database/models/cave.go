@@ -1,10 +1,8 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/configurator"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
@@ -32,43 +30,59 @@ type Cave struct {
 	Verdict       JSON  `json:"verdict"`
 	InstalledSize int64 `json:"installedSize"`
 
-	InstallLocation string     `json:"installLocation"`
-	InstallFolder   string     `json:"installFolder"`
-	PathScheme      PathScheme `json:"pathScheme"`
+	InstallLocationID string           `json:"installLocationID"`
+	InstallLocation   *InstallLocation `json:"installLocation"`
+
+	InstallFolderName string `json:"installFolderName"`
+
+	// If set, InstallLocationID is empty and this is used
+	// for all operations instead
+	CustomInstallFolder string `json:"customInstallFolder"`
 }
 
-type PathScheme int64
-
-const (
-	PathSchemeLegacyPerUser PathScheme = 1
-	ModernShared            PathScheme = 2
-)
-
-func (c *Cave) SetVerdict(verdict *configurator.Verdict) error {
-	return MarshalVerdict(verdict, &c.Verdict)
+func (c *Cave) SetVerdict(verdict *configurator.Verdict) {
+	err := MarshalVerdict(verdict, &c.Verdict)
+	if err != nil {
+		panic(err)
+	}
 }
-func (c *Cave) GetVerdict() (*configurator.Verdict, error) { return UnmarshalVerdict(c.Verdict) }
+func (c *Cave) GetVerdict() *configurator.Verdict {
+	v, err := UnmarshalVerdict(c.Verdict)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
-func CaveByID(db *gorm.DB, id string) (*Cave, error) {
-	c := &Cave{}
-	req := db.Where("id = ?", id).First(c)
+func CaveByID(db *gorm.DB, id string) *Cave {
+	var c Cave
+	req := db.Where("id = ?", id).First(&c)
 	if req.Error != nil {
 		if req.RecordNotFound() {
-			return nil, nil
+			return nil
 		}
-		return nil, errors.Wrap(req.Error, 0)
+		panic(req.Error)
 	}
 
-	return c, nil
+	return &c
 }
 
-func CavesByGameID(db *gorm.DB, gameID int64) ([]*Cave, error) {
+func CavesByGameID(db *gorm.DB, gameID int64) []*Cave {
 	var cs []*Cave
 	err := db.Where("game_id = ?", gameID).Find(&cs).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		panic(err)
 	}
-	return cs, nil
+	return cs
+}
+
+func CavesByInstallLocationID(db *gorm.DB, installLocationID string) []*Cave {
+	var cs []*Cave
+	err := db.Where("install_location_id = ?", installLocationID).Find(&cs).Error
+	if err != nil {
+		panic(err)
+	}
+	return cs
 }
 
 func (c *Cave) Touch() {
@@ -80,15 +94,37 @@ func (c *Cave) RecordPlayTime(playTime time.Duration) {
 	c.Touch()
 }
 
-func (c *Cave) AbsoluteInstallFolder(db *gorm.DB) (string, error) {
-	il, err := InstallLocationByID(db, c.InstallLocation)
+func (c *Cave) GetInstallLocation(db *gorm.DB) *InstallLocation {
+	if c.InstallLocation != nil {
+		return c.InstallLocation
+	}
+
+	MustPreloadSimple(db, c, "InstallLocation")
+	return c.InstallLocation
+}
+
+func (c *Cave) GetInstallFolder(db *gorm.DB) string {
+	if c.CustomInstallFolder != "" {
+		return c.CustomInstallFolder
+	}
+
+	return c.GetInstallLocation(db).GetInstallFolder(c.InstallFolderName)
+}
+
+func (c *Cave) Preload(db *gorm.DB) {
+	if c == nil {
+		return
+	}
+	PreloadCaves(db, c)
+}
+
+func PreloadCaves(db *gorm.DB, caveOrCaves interface{}) {
+	MustPreloadSimple(db, caveOrCaves, "Game", "Upload", "Build")
+}
+
+func (c *Cave) Save(db *gorm.DB) {
+	err := db.Save(c).Error
 	if err != nil {
-		return "", errors.Wrap(err, 0)
+		panic(err)
 	}
-
-	if il == nil {
-		return "", fmt.Errorf("Install location not found: %s", c.InstallLocation)
-	}
-
-	return il.AbsoluteFolderPath(c.InstallFolder), nil
 }

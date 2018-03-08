@@ -337,9 +337,9 @@ type CaveStats struct {
 }
 
 type CaveInstallInfo struct {
-	InstalledSize         int64  `json:"installedSize"`
-	InstallLocation       string `json:"installLocation"`
-	AbsoluteInstallFolder string `json:"absoluteInstallFolder"`
+	InstalledSize   int64  `json:"installedSize"`
+	InstallLocation string `json:"installLocation"`
+	InstallFolder   string `json:"installFolder"`
 }
 
 type InstallLocationSummary struct {
@@ -358,6 +358,8 @@ type FetchCaveResult struct {
 	Cave *Cave `json:"cave"`
 }
 
+// Retrieve all caves for a given game.
+//
 // @name Fetch.CavesByGameID
 // @category Fetch
 // @caller client
@@ -366,6 +368,19 @@ type FetchCavesByGameIDParams struct {
 }
 
 type FetchCavesByGameIDResult struct {
+	Caves []*Cave `json:"caves"`
+}
+
+// Retrieve all caves installed to a given location.
+//
+// @name Fetch.CavesByInstallLocationID
+// @category Fetch
+// @caller client
+type FetchCavesByInstallLocationIDParams struct {
+	InstallLocationID string `json:"installLocationId"`
+}
+
+type FetchCavesByInstallLocationIDResult struct {
 	Caves []*Cave `json:"caves"`
 }
 

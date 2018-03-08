@@ -305,7 +305,7 @@
     },
     {
       "method": "Fetch.CavesByGameID",
-      "doc": "",
+      "doc": "Retrieve all caves for a given game.",
       "caller": "client",
       "params": {
         "fields": [
@@ -313,6 +313,29 @@
             "name": "gameId",
             "doc": "",
             "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "caves",
+            "doc": "",
+            "type": "Cave[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.CavesByInstallLocationID",
+      "doc": "Retrieve all caves installed to a given location.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "installLocationId",
+            "doc": "",
+            "type": "string"
           }
         ]
       },
@@ -1292,7 +1315,7 @@
           "type": "string"
         },
         {
-          "name": "absoluteInstallFolder",
+          "name": "installFolder",
           "doc": "",
           "type": "string"
         }

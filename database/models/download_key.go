@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
 )
@@ -19,12 +18,11 @@ type DownloadKey struct {
 	Owner   *itchio.User `json:"owner,omitempty"`
 }
 
-func DownloadKeysByGameID(db *gorm.DB, gameID int64) ([]*DownloadKey, error) {
+func DownloadKeysByGameID(db *gorm.DB, gameID int64) []*DownloadKey {
 	var keys []*DownloadKey
 	err := db.Where("game_id = ?", gameID).Find(&keys).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		panic(err)
 	}
-
-	return keys, nil
+	return keys
 }

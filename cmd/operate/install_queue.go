@@ -37,11 +37,6 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 		return errors.New("Missing game in install")
 	}
 
-	db, err := rc.DB()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
 	if queueParams.NoCave {
 		if queueParams.InstallFolder == "" {
 			return errors.New("When NoCave is specified, InstallFolder cannot be empty")
@@ -60,17 +55,13 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 		var installLocationName string
 		var installFolderName string
 		if queueParams.CaveID != "" {
-			cave, err := models.CaveByID(db, queueParams.CaveID)
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-
+			cave := models.CaveByID(oc.rc.DB(), queueParams.CaveID)
 			if cave == nil {
 				return fmt.Errorf("Cave not found: (%s)", queueParams.CaveID)
 			}
 			params.CaveID = cave.ID
-			installLocationName = cave.InstallLocation
-			installFolderName = cave.InstallFolder
+			installLocationName = cave.InstallLocationID
+			installFolderName = cave.InstallFolderName
 		} else {
 			if queueParams.InstallLocation == "" {
 				return errors.New("Must specify either CaveID or InstallLocation")
@@ -78,11 +69,7 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 			installLocationName = queueParams.InstallLocation
 		}
 
-		installLocation, err := models.InstallLocationByID(db, installLocationName)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-
+		installLocation := models.InstallLocationByID(oc.rc.DB(), installLocationName)
 		if installLocation == nil {
 			return fmt.Errorf("Install location not found: (%s)", installLocationName)
 		}
@@ -90,18 +77,14 @@ func InstallQueue(ctx context.Context, rc *buse.RequestContext, queueParams *bus
 		if installFolderName == "" {
 			installFolderName = makeInstallFolderName(params.Game, consumer)
 		}
-		params.InstallFolder = installLocation.AbsoluteFolderPath(installFolderName)
+		params.InstallFolder = installLocation.GetInstallFolder(installFolderName)
 		params.InstallLocationName = installLocationName
 		params.InstallFolderName = installFolderName
 	}
 
 	params.Credentials = queueParams.Credentials
 	if params.Credentials == nil {
-		credentials, err := CredentialsForGame(db, consumer, params.Game)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		params.Credentials = credentials
+		params.Credentials = CredentialsForGame(oc.rc.DB(), consumer, params.Game)
 	}
 
 	client, err := ClientFromCredentials(params.Credentials)

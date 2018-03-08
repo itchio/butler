@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/database"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 )
@@ -33,11 +32,15 @@ type Stats struct {
 	Current int64
 }
 
-func NewContext(db *gorm.DB, consumer *state.Consumer) *Context {
+func NewContext(db *gorm.DB, models []interface{}, consumer *state.Consumer) *Context {
 	scopeMap := make(ScopeMap)
-	for _, m := range database.Models {
+	for _, m := range models {
 		mtyp := reflect.TypeOf(m)
 		scopeMap[mtyp] = db.NewScope(m)
+	}
+
+	if consumer == nil {
+		consumer = &state.Consumer{}
 	}
 
 	return &Context{

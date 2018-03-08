@@ -5,8 +5,8 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func FetchCavesByGameID(rc *buse.RequestContext, params *buse.FetchCavesByGameIDParams) (*buse.FetchCavesByGameIDResult, error) {
-	caves := models.CavesByGameID(rc.DB(), params.GameID)
+func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCavesByInstallLocationIDParams) (*buse.FetchCavesByInstallLocationIDResult, error) {
+	caves := models.CavesByInstallLocationID(rc.DB(), params.InstallLocationID)
 	models.PreloadCaves(rc.DB(), caves)
 
 	var formattedCaves []*buse.Cave
@@ -14,7 +14,7 @@ func FetchCavesByGameID(rc *buse.RequestContext, params *buse.FetchCavesByGameID
 		formattedCaves = append(formattedCaves, formatCave(rc.DB(), c))
 	}
 
-	res := &buse.FetchCavesByGameIDResult{
+	res := &buse.FetchCavesByInstallLocationIDResult{
 		Caves: formattedCaves,
 	}
 	return res, nil

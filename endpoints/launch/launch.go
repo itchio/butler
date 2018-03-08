@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/butler/database/models"
-
 	goerrors "errors"
 
 	humanize "github.com/dustin/go-humanize"
@@ -16,7 +14,6 @@ import (
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
-	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -33,55 +30,13 @@ func Register(router *buse.Router) {
 func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchResult, error) {
 	consumer := rc.Consumer
 
-	if params.CaveID == "" {
-		return nil, errors.New("CaveID must be specified")
-	}
-
-	db, err := rc.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	cave, err := models.CaveByID(db, params.CaveID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	if cave == nil {
-		return nil, fmt.Errorf("Cave not found: (%s)", params.CaveID)
-	}
-
-	err = fetch.PreloadCaves(db, rc.Consumer, cave)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	if cave == nil {
-		return nil, fmt.Errorf("Cave not found for ID (%s)", params.CaveID)
-	}
-
-	installLocation, err := models.InstallLocationByID(db, cave.InstallLocation)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	if installLocation == nil {
-		return nil, fmt.Errorf("Could not find install location (%s)", cave.InstallLocation)
-	}
-
-	installFolder := installLocation.AbsoluteFolderPath(cave.InstallFolder)
+	cave := operate.ValidateCave(rc, params.CaveID)
+	installFolder := cave.GetInstallFolder(rc.DB())
 	game := cave.Game
 	upload := cave.Upload
 	build := cave.Build
-	verdict, err := cave.GetVerdict()
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
-	credentials, err := operate.CredentialsForGame(db, consumer, game)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	verdict := cave.GetVerdict()
+	credentials := operate.CredentialsForGame(rc.DB(), consumer, game)
 
 	runtime := manager.CurrentRuntime()
 
@@ -235,10 +190,8 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 			verdict = newVerdict
 
-			err = cave.SetVerdict(verdict)
-			if err != nil {
-				return nil, errors.Wrap(err, 0)
-			}
+			cave.SetVerdict(verdict)
+			cave.Save(rc.DB())
 
 			err = pickFromVerdict()
 			if err != nil {
@@ -266,10 +219,8 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 					}
 					verdict = newVerdict
 
-					err = cave.SetVerdict(verdict)
-					if err != nil {
-						return nil, errors.Wrap(err, 0)
-					}
+					cave.SetVerdict(verdict)
+					cave.Save(rc.DB())
 
 					err = pickFromVerdict()
 					if err != nil {
@@ -370,20 +321,20 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		Runtime:       runtime,
 
 		RecordPlayTime: func(playTime time.Duration) error {
+			defer func() {
+				if e := recover(); e != nil {
+					consumer.Warnf("Could not record play time: %s", e)
+				}
+			}()
+
 			cave.RecordPlayTime(playTime)
-			err = db.Save(cave).Error
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
+			cave.Save(rc.DB())
 			return nil
 		},
 	}
 
 	cave.Touch()
-	err = db.Save(cave).Error
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	cave.Save(rc.DB())
 
 	err = launcher.Do(launcherParams)
 	if err != nil {

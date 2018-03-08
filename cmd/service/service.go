@@ -23,14 +23,8 @@ func do(ctx *mansion.Context) {
 }
 
 type handler struct {
-	ctx              *mansion.Context
-	operationHandles map[string]*operationHandle
-	router           *buse.Router
-}
-
-type operationHandle struct {
-	id         string
-	cancelFunc context.CancelFunc
+	ctx    *mansion.Context
+	router *buse.Router
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
@@ -58,9 +52,8 @@ func Do(ctx *mansion.Context) error {
 	s := buse.NewServer()
 
 	ha := &handler{
-		ctx:              ctx,
-		operationHandles: make(map[string]*operationHandle),
-		router:           getRouter(ctx),
+		ctx:    ctx,
+		router: getRouter(ctx),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
 

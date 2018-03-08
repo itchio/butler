@@ -14,15 +14,8 @@ import (
 func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse.UninstallPerformParams) error {
 	consumer := rc.Consumer
 
-	cave, db, err := ValidateCave(rc, params.CaveID)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	installFolder, err := cave.AbsoluteInstallFolder(db)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	cave := ValidateCave(rc, params.CaveID)
+	installFolder := cave.GetInstallFolder(rc.DB())
 
 	consumer.Infof("→ Uninstalling %s", installFolder)
 
@@ -80,7 +73,7 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 	}
 
 	consumer.Infof("Deleting cave...")
-	err = db.Delete(cave).Error
+	err = rc.DB().Delete(cave).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

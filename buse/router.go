@@ -74,19 +74,18 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 
 		if h, ok := r.Handlers[method]; ok {
 			var _db *gorm.DB
-			getDB := func() (*gorm.DB, error) {
+			getDB := func() *gorm.DB {
 				if _db == nil {
 					db, err := r.openDB()
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						panic(err)
 					}
 
 					database.SetLogger(db, consumer)
 
 					_db = db
 				}
-
-				return _db, nil
+				return _db
 			}
 			defer func() {
 				if _db != nil {
@@ -188,7 +187,7 @@ type RequestContext struct {
 	counter *progress.Counter
 }
 
-type DBGetter func() (*gorm.DB, error)
+type DBGetter func() *gorm.DB
 
 type WithParamsFunc func() (interface{}, error)
 
@@ -220,31 +219,26 @@ func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
 	return rc.MansionContext.NewClient(key)
 }
 
-func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itchio.Client, error) {
+func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itchio.Client) {
 	if profileID == 0 {
-		return nil, nil, errors.New("profileId must be non-zero")
+		panic(errors.New("profileId must be non-zero"))
 	}
 
-	db, err := rc.DB()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, 0)
-	}
-
-	profile, err := models.ProfileByID(db, profileID)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, 0)
-	}
-
+	profile := models.ProfileByID(rc.DB(), profileID)
 	if profile == nil {
-		return nil, nil, fmt.Errorf("Could not find profile %d", profileID)
+		panic(errors.Errorf("Could not find profile %d", profileID))
+	}
+
+	if profile.APIKey == "" {
+		panic(errors.Errorf("Profile %d lacks API key", profileID))
 	}
 
 	client, err := rc.MansionContext.NewClient(profile.APIKey)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 0)
+		panic(errors.Wrap(err, 0))
 	}
 
-	return profile, client, nil
+	return profile, client
 }
 
 func (rc *RequestContext) StartProgress() {

@@ -14,10 +14,7 @@ import (
 func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVersionSwitchQueueParams) (*buse.InstallVersionSwitchQueueResult, error) {
 	consumer := rc.Consumer
 
-	cave, db, err := operate.ValidateCave(rc, params.CaveID)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	cave := operate.ValidateCave(rc, params.CaveID)
 
 	consumer.Infof("Looking for other versions of %s", operate.GameToString(cave.Game))
 
@@ -26,10 +23,7 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 		return nil, fmt.Errorf("No other versions available for %s", operate.GameToString(cave.Game))
 	}
 
-	credentials, err := operate.CredentialsForGame(db, consumer, cave.Game)
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
+	credentials := operate.CredentialsForGame(rc.DB(), consumer, cave.Game)
 
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {

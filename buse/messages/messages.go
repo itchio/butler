@@ -552,6 +552,36 @@ func (r *FetchCavesByGameIDType) Register(router *buse.Router, f func(*buse.Requ
 
 var FetchCavesByGameID *FetchCavesByGameIDType
 
+// Fetch.CavesByInstallLocationID (Request)
+
+type FetchCavesByInstallLocationIDType struct {}
+
+var _ RequestMessage = (*FetchCavesByInstallLocationIDType)(nil)
+
+func (r *FetchCavesByInstallLocationIDType) Method() string {
+  return "Fetch.CavesByInstallLocationID"
+}
+
+func (r *FetchCavesByInstallLocationIDType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.FetchCavesByInstallLocationIDParams) (*buse.FetchCavesByInstallLocationIDResult, error)) {
+  router.Register("Fetch.CavesByInstallLocationID", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.FetchCavesByInstallLocationIDParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.CavesByInstallLocationID")
+    }
+    return res, nil
+  })
+}
+
+var FetchCavesByInstallLocationID *FetchCavesByInstallLocationIDType
+
 
 //==============================
 // Install
@@ -1228,6 +1258,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
+  if _, ok := router.Handlers["Fetch.CavesByInstallLocationID"]; !ok { panic("missing request handler for (Fetch.CavesByInstallLocationID)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }

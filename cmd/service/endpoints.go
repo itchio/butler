@@ -1,7 +1,7 @@
 package service
 
 import (
-	"errors"
+	"github.com/go-errors/errors"
 
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
