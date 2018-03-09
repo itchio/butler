@@ -4420,6 +4420,12 @@ including the download key if any.</p>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>speedHistory</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p>BPS values for the last minute</p>
+</td>
+</tr>
 </table>
 
 
@@ -4435,6 +4441,10 @@ including the download key if any.</p>
 <tr>
 <td><code>progress</code></td>
 <td><code class="typename"><span class="type struct-type">DownloadProgress</span></code></td>
+</tr>
+<tr>
+<td><code>speedHistory</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
 </tr>
 </table>
 

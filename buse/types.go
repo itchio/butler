@@ -763,6 +763,8 @@ type DownloadsDriveCancelResult struct{}
 type DownloadsDriveProgressNotification struct {
 	Download *Download         `json:"download"`
 	Progress *DownloadProgress `json:"progress"`
+	// BPS values for the last minute
+	SpeedHistory []float64 `json:"speedHistory"`
 }
 
 // @name Downloads.Drive.Finished

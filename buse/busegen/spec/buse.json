@@ -1061,6 +1061,11 @@
             "name": "progress",
             "doc": "",
             "type": "DownloadProgress"
+          },
+          {
+            "name": "speedHistory",
+            "doc": "BPS values for the last minute",
+            "type": "number[]"
           }
         ]
       }

@@ -158,6 +158,8 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 
 	var stage = "prepare"
 	var progress, eta, bps float64
+	const maxSpeedDatapoints = 60
+	speedHistory := make([]float64, maxSpeedDatapoints)
 
 	lastProgress := time.Now()
 
@@ -166,6 +168,11 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			return nil
 		}
 		lastProgress = time.Now()
+
+		speedHistory = append(speedHistory, bps)
+		if len(speedHistory) > maxSpeedDatapoints {
+			speedHistory = speedHistory[len(speedHistory)-maxSpeedDatapoints:]
+		}
 
 		// TODO: send BPS history in here too
 		return messages.DownloadsDriveProgress.Notify(rc, &buse.DownloadsDriveProgressNotification{
@@ -176,6 +183,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 				ETA:      eta,
 				BPS:      bps,
 			},
+			SpeedHistory: speedHistory,
 		})
 	}
 
