@@ -158,13 +158,17 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 		}
 		if len(pgs) > 0 {
 			pg := pgs[0]
-			consumer.Infof("%s is owned by user #%d, so they must have full access", GameToString, pg.UserID)
-			p := models.ProfileByID(db, pg.UserID)
+			consumer.Infof("%s is owned by user #%d, so they must have full access", GameToString(game), pg.ProfileID)
+			p := models.ProfileByID(db, pg.ProfileID)
 
-			creds := &buse.GameCredentials{
-				APIKey: p.APIKey,
+			if p == nil {
+				consumer.Infof("Ah, we dont have a profile for #%d, nevermind", pg.ProfileID)
+			} else {
+				creds := &buse.GameCredentials{
+					APIKey: p.APIKey,
+				}
+				return creds
 			}
-			return creds
 		}
 	}
 

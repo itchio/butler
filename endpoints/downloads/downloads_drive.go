@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
 )
 
@@ -34,10 +35,16 @@ poll:
 			// let's keep going
 		}
 
-		err := performOne(ctx, rc)
+		err := cleanDiscarded(rc)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
+
+		err = performOne(ctx, rc)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
 		time.Sleep(1 * time.Second)
 	}
 
@@ -45,13 +52,54 @@ poll:
 	return res, nil
 }
 
-func performOne(ctx context.Context, rc *buse.RequestContext) error {
-	// TODO: cancel context if a download is discarded
+func cleanDiscarded(rc *buse.RequestContext) error {
+	consumer := rc.Consumer
 
+	var discardedDownloads []*models.Download
+	err := rc.DB().Where(`discarded`).Find(&discardedDownloads).Error
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	models.PreloadDownloads(rc.DB(), discardedDownloads)
+	for _, download := range discardedDownloads {
+		consumer.Opf("Cleaning up download for %s", operate.GameToString(download.Game))
+
+		if download.StagingFolder == "" {
+			consumer.Warnf("No staging folder specified, can't wipe")
+		} else {
+			consumer.Opf("Wiping staging folder...")
+			err := wipe.Do(consumer, download.StagingFolder)
+			if err != nil {
+				consumer.Warnf("While wiping staging folder: %s", err.Error())
+			}
+		}
+
+		if download.Fresh {
+			if download.StagingFolder == "" {
+				consumer.Warnf("No (fresh) install folder specified, can't wipe")
+			} else {
+				consumer.Opf("Wiping (fresh) install folder...")
+				err := wipe.Do(consumer, download.InstallFolder)
+				if err != nil {
+					consumer.Warnf("While wiping (fresh) install folder: %s", err.Error())
+				}
+			}
+		}
+
+		err := rc.DB().Delete(download).Error
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+	return nil
+}
+
+func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 	consumer := rc.Consumer
 
 	var pendingDownloads []*models.Download
-	err := rc.DB().Where(`finished_at IS NULL`).Order(`position ASC`).Find(&pendingDownloads).Error
+	err := rc.DB().Where(`finished_at IS NULL AND NOT discarded`).Order(`position ASC`).Find(&pendingDownloads).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -63,6 +111,31 @@ func performOne(ctx context.Context, rc *buse.RequestContext) error {
 	download := pendingDownloads[0]
 	download.Preload(rc.DB())
 	consumer.Infof("%d pending downloads, performing for %s", len(pendingDownloads), operate.GameToString(download.Game))
+
+	ctx, cancelFunc := context.WithCancel(parentCtx)
+	defer cancelFunc()
+	goGadgetoDiscardWatcher := func() {
+		for {
+			select {
+			case <-time.After(5 * time.Second):
+				var row = struct {
+					Discarded bool
+				}{}
+				err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
+				if err != nil {
+					consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+				}
+
+				if row.Discarded {
+					consumer.Infof("Download was cancelled from under us, bailing out!")
+					cancelFunc()
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+	go goGadgetoDiscardWatcher()
 
 	var stage = "prepare"
 	var progress, eta, bps float64

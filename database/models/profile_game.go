@@ -17,10 +17,6 @@ type ProfileGame struct {
 	ProfileID int64    `json:"profileId" gorm:"primary_key;auto_increment:false"`
 	Profile   *Profile `json:"profile,omitempty"`
 
-	// ID of the itch.io user this game actually belongs to
-	UserID int64        `json:"userId"`
-	User   *itchio.User `json:"user,omitempty"`
-
 	Position int64 `json:"position"`
 
 	// Stats

@@ -31,11 +31,15 @@ type Download struct {
 	Build   *itchio.Build `json:"build"`
 
 	StagingFolder string `json:"stagingFolder"`
+	InstallFolder string `json:"installFolder"`
+
+	Discarded bool `json:"discarded"`
+	Fresh     bool `json:"fresh"`
 }
 
 func AllDownloads(db *gorm.DB) []*Download {
 	var dls []*Download
-	err := db.Order(`"position" ASC`).Find(&dls).Error
+	err := db.Where(`NOT "discarded"`).Order(`"position" ASC`).Find(&dls).Error
 	if err != nil {
 		panic(err)
 	}
