@@ -112,36 +112,36 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	}
 }
 
-func formatUploadType(uploadType string) string {
+func formatUploadType(uploadType itchio.UploadType) string {
 	switch uploadType {
-	case "default":
+	case itchio.UploadTypeDefault:
 		return "Executable"
 
-	case "flash":
+	case itchio.UploadTypeFlash:
 		return "Flash object"
-	case "unity":
+	case itchio.UploadTypeUnity:
 		return "Legacy Unity Web"
-	case "java":
+	case itchio.UploadTypeJava:
 		return "Java applet"
 
-	case "soundtrack":
+	case itchio.UploadTypeSoundtrack:
 		return "Soundtrack"
-	case "book":
+	case itchio.UploadTypeBook:
 		return "Book"
-	case "video":
+	case itchio.UploadTypeVideo:
 		return "Video"
-	case "documentation":
+	case itchio.UploadTypeDocumentation:
 		return "Documentation"
-	case "mod":
+	case itchio.UploadTypeMod:
 		return "Mod"
-	case "audio_assets":
+	case itchio.UploadTypeAudioAssets:
 		return "Audio assets"
-	case "graphical_assets":
+	case itchio.UploadTypeGraphicalAssets:
 		return "Graphical assets"
-	case "sourcecode":
+	case itchio.UploadTypeSourcecode:
 		return "Source code"
 
-	case "other":
+	case itchio.UploadTypeOther:
 		return "Other"
 
 	default:

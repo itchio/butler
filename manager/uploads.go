@@ -114,8 +114,8 @@ func scoreUpload(upload *itchio.Upload, runtime *Runtime) *scoredUpload {
 	}
 
 	// Native uploads are preferred
-	if upload.Type == "html" {
-		score -= 400
+	if upload.Type == "default" {
+		score += 400
 	}
 
 	// Demos are penalized (if we have access to non-demo files)

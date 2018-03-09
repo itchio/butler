@@ -221,6 +221,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		Build:         params.Build,
 		InstallFolder: params.InstallFolder,
 		StagingFolder: params.StagingFolder,
+		Reason:        params.Reason,
 	}
 
 	if queueParams.QueueDownload {

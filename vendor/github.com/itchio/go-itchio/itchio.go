@@ -259,20 +259,20 @@ func (c *Client) GetChannel(target string, channel string) (*GetChannelResponse,
 	return r, nil
 }
 
-// UploadType describes which strategy is used for uploading to storage
+// FileUploadType describes which strategy is used for uploading to storage
 // some types allow for uploading in blocks (which is resumable), some
 // expect the whole payload in one request.
-type UploadType string
+type FileUploadType string
 
 const (
-	// UploadTypeMultipart lets you send metadata + all the content in a single request
-	UploadTypeMultipart UploadType = "multipart"
-	// UploadTypeResumable lets you send blocks of N*128KB at a time. The upload session is
+	// FileUploadTypeMultipart lets you send metadata + all the content in a single request
+	FileUploadTypeMultipart FileUploadType = "multipart"
+	// FileUploadTypeResumable lets you send blocks of N*128KB at a time. The upload session is
 	// started from the API server, so the ingest point will be anchored wherever the API server is.
-	UploadTypeResumable = "resumable"
-	// UploadTypeDeferredResumable also lets you send blocks of N*128KB at a time, but it
+	FileUploadTypeResumable FileUploadType = "resumable"
+	// FileUploadTypeDeferredResumable also lets you send blocks of N*128KB at a time, but it
 	// lets you start the upload session from the client, which means you might get a closer ingest point.
-	UploadTypeDeferredResumable = "deferred_resumable"
+	FileUploadTypeDeferredResumable FileUploadType = "deferred_resumable"
 )
 
 // ListBuildFiles returns a list of files associated to a build
@@ -289,7 +289,7 @@ func (c *Client) ListBuildFiles(buildID int64) (*ListBuildFilesResponse, error) 
 }
 
 // CreateBuildFile creates a new build file for a build
-func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType) (*CreateBuildFileResponse, error) {
+func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType FileUploadType) (*CreateBuildFileResponse, error) {
 	r := &CreateBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files", buildID)
 
@@ -311,7 +311,7 @@ func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType 
 }
 
 // CreateBuildFileWithName creates a new build file for a build, with a specific name
-func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType UploadType, name string) (*CreateBuildFileResponse, error) {
+func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, subType BuildFileSubType, uploadType FileUploadType, name string) (*CreateBuildFileResponse, error) {
 	r := &CreateBuildFileResponse{}
 	path := c.MakePath("wharf/builds/%d/files", buildID)
 

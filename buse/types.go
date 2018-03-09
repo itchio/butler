@@ -314,9 +314,9 @@ type CaveSummary struct {
 
 	GameID int64 `json:"gameId"`
 
-	LastTouchedAt time.Time `json:"lastTouchedAt"`
-	SecondsRun    int64     `json:"secondsRun"`
-	InstalledSize int64     `json:"installedSize"`
+	LastTouchedAt *time.Time `json:"lastTouchedAt"`
+	SecondsRun    int64      `json:"secondsRun"`
+	InstalledSize int64      `json:"installedSize"`
 }
 
 type Cave struct {
@@ -331,9 +331,9 @@ type Cave struct {
 }
 
 type CaveStats struct {
-	InstalledAt   time.Time `json:"installedAt"`
-	LastTouchedAt time.Time `json:"lastTouchedAt"`
-	SecondsRun    int64     `json:"secondsRun"`
+	InstalledAt   *time.Time `json:"installedAt"`
+	LastTouchedAt *time.Time `json:"lastTouchedAt"`
+	SecondsRun    int64      `json:"secondsRun"`
 }
 
 type CaveInstallInfo struct {

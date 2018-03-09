@@ -6,24 +6,24 @@ type ClassificationAction string
 
 const (
 	ClassificationActionOpen   ClassificationAction = "open"
-	ClassificationActionLaunch                      = "launch"
+	ClassificationActionLaunch ClassificationAction = "launch"
 )
 
-var knownClassificationActions = map[string]ClassificationAction{
-	"game": ClassificationActionLaunch,
-	"tool": ClassificationActionLaunch,
+var knownClassificationActions = map[itchio.GameClassification]ClassificationAction{
+	itchio.GameClassificationGame: ClassificationActionLaunch,
+	itchio.GameClassificationTool: ClassificationActionLaunch,
 
-	"assets":        ClassificationActionOpen,
-	"game_mod":      ClassificationActionOpen,
-	"physical_game": ClassificationActionOpen,
-	"soundtrack":    ClassificationActionOpen,
-	"other":         ClassificationActionOpen,
-	"comic":         ClassificationActionOpen,
-	"book":          ClassificationActionOpen,
+	itchio.GameClassificationAssets:       ClassificationActionOpen,
+	itchio.GameClassificationGameMod:      ClassificationActionOpen,
+	itchio.GameClassificationPhysicalGame: ClassificationActionOpen,
+	itchio.GameClassificationSoundtrack:   ClassificationActionOpen,
+	itchio.GameClassificationOther:        ClassificationActionOpen,
+	itchio.GameClassificationComic:        ClassificationActionOpen,
+	itchio.GameClassificationBook:         ClassificationActionOpen,
 }
 
 func actionForGame(game *itchio.Game) ClassificationAction {
-	knownAction, ok := knownClassificationActions[string(game.Classification)]
+	knownAction, ok := knownClassificationActions[game.Classification]
 	if ok {
 		return knownAction
 	}

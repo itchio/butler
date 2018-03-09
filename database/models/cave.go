@@ -23,9 +23,9 @@ type Cave struct {
 
 	Morphing bool `json:"morphing"`
 
-	InstalledAt   time.Time `json:"installedAt"`
-	LastTouchedAt time.Time `json:"lastTouchedAt"`
-	SecondsRun    int64     `json:"secondsRun"`
+	InstalledAt   *time.Time `json:"installedAt"`
+	LastTouchedAt *time.Time `json:"lastTouchedAt"`
+	SecondsRun    int64      `json:"secondsRun"`
 
 	Verdict       JSON  `json:"verdict"`
 	InstalledSize int64 `json:"installedSize"`
@@ -77,7 +77,8 @@ func CavesByGameID(db *gorm.DB, gameID int64) []*Cave {
 }
 
 func (c *Cave) Touch() {
-	c.LastTouchedAt = time.Now().UTC()
+	lastTouchedAt := time.Now().UTC()
+	c.LastTouchedAt = &lastTouchedAt
 }
 
 func (c *Cave) RecordPlayTime(playTime time.Duration) {

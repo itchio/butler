@@ -32,5 +32,6 @@ func formatDownload(download *models.Download) *buse.Download {
 		StartedAt:     download.StartedAt,
 		FinishedAt:    download.FinishedAt,
 		StagingFolder: download.StagingFolder,
+		Reason:        buse.DownloadReason(download.Reason),
 	}
 }

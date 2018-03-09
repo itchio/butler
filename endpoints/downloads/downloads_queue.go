@@ -7,6 +7,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
@@ -37,6 +38,19 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 		consumer.Infof("Downloading over existing folder")
 	}
 
+	if item.CaveID != "" {
+		// remove other downloads for this cave
+		var downloadsForCaveCount int
+		err := rc.DB().Model(&models.Download{}).Where("cave_id = ? AND finished_at IS NULL", item.CaveID).Count(&downloadsForCaveCount).Error
+		if err != nil {
+			panic(err)
+		}
+
+		if downloadsForCaveCount > 0 {
+			return nil, errors.Errorf("Already have downloads in progress for %s, refusing to queue another one", operate.GameToString(item.Game))
+		}
+	}
+
 	d := &models.Download{
 		ID:            item.ID,
 		Reason:        string(item.Reason),
@@ -56,6 +70,11 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
+	}
+
+	if item.CaveID != "" {
+		// remove other downloads for this cave
+		rc.DB().Delete(&models.Download{}, "cave_id = ? and id != ?", item.CaveID, d.ID)
 	}
 
 	res := &buse.DownloadsQueueResult{}

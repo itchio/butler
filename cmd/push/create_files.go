@@ -16,7 +16,7 @@ type fileSlot struct {
 
 func createBothFiles(client *itchio.Client, buildID int64) (patch *itchio.CreateBuildFileResponse, signature *itchio.CreateBuildFileResponse, err error) {
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
-		res, err := client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.UploadTypeDeferredResumable)
+		res, err := client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.FileUploadTypeDeferredResumable)
 		if err != nil {
 			errs <- errors.Wrap(err, 1)
 		}

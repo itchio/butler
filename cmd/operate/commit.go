@@ -86,7 +86,8 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		cave.Game = params.Game
 		cave.Upload = params.Upload
 		cave.Build = params.Build
-		cave.InstalledAt = time.Now().UTC()
+		installedAt := time.Now().UTC()
+		cave.InstalledAt = &installedAt
 
 		cave.Save(oc.rc.DB())
 	}

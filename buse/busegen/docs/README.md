@@ -5946,7 +5946,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadType__TypeHint">UploadType</span></code></td>
 <td><p>Upload type: default, soundtrack, etc.</p>
 </td>
 </tr>
@@ -6034,7 +6034,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type enum-type">UploadType</span></code></td>
 </tr>
 <tr>
 <td><code>pOsx</code></td>
@@ -6059,6 +6059,136 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>UploadType
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+<td><hr />
+
+<p>embed types</p>
+
+<hr />
+</td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"java"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"soundtrack"</code></td>
+<td><hr />
+
+<p>asorted types</p>
+
+<hr />
+</td>
+</tr>
+<tr>
+<td><code>"book"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"video"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"documentation"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"mod"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"audio_assets"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"graphical_assets"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"sourcecode"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"other"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="UploadType__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>UploadType <a href="#/?id=uploadtype">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"default"</code></td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+</tr>
+<tr>
+<td><code>"java"</code></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+</tr>
+<tr>
+<td><code>"soundtrack"</code></td>
+</tr>
+<tr>
+<td><code>"book"</code></td>
+</tr>
+<tr>
+<td><code>"video"</code></td>
+</tr>
+<tr>
+<td><code>"documentation"</code></td>
+</tr>
+<tr>
+<td><code>"mod"</code></td>
+</tr>
+<tr>
+<td><code>"audio_assets"</code></td>
+</tr>
+<tr>
+<td><code>"graphical_assets"</code></td>
+</tr>
+<tr>
+<td><code>"sourcecode"</code></td>
+</tr>
+<tr>
+<td><code>"other"</code></td>
 </tr>
 </table>
 

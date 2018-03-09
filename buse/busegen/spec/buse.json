@@ -2043,7 +2043,7 @@
         {
           "name": "type",
           "doc": "Upload type: default, soundtrack, etc.",
-          "type": "string"
+          "type": "UploadType"
         },
         {
           "name": "pOsx",

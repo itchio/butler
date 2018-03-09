@@ -189,7 +189,7 @@ type Upload struct {
 	Preorder bool `json:"preorder"`
 
 	// Upload type: default, soundtrack, etc.
-	Type string `json:"type"`
+	Type UploadType `json:"type"`
 
 	// Is this upload tagged with 'macOS compatible'? (creator-controlled)
 	OSX bool `json:"pOsx"`
@@ -205,6 +205,33 @@ type Upload struct {
 	// Date this upload was last updated at (order changed, display name set, etc.)
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type UploadType string
+
+const (
+	DefaultUploadType UploadType = "default"
+
+	//----------------
+	// embed types
+	//----------------
+	FlashUploadType UploadType = "flash"
+	UnityUploadType UploadType = "unity"
+	JavaUploadType  UploadType = "java"
+	HTMLUploadType  UploadType = "html"
+
+	//----------------
+	// asorted types
+	//----------------
+	SoundtrackUploadType      UploadType = "soundtrack"
+	BookUploadType            UploadType = "book"
+	VideoUploadType           UploadType = "video"
+	DocumentationUploadType   UploadType = "documentation"
+	ModUploadType             UploadType = "mod"
+	AudioAssetsUploadType     UploadType = "audio_assets"
+	GraphicalAssetsUploadType UploadType = "graphical_assets"
+	SourcecodeUploadType      UploadType = "sourcecode"
+	OtherUploadType           UploadType = "other"
+)
 
 // A Collection is a set of games, curated by humans.
 type Collection struct {
