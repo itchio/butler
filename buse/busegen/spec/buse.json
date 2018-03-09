@@ -411,6 +411,11 @@
             "type": "string"
           },
           {
+            "name": "reason",
+            "doc": "If unspecified, will default to 'install'",
+            "type": "DownloadReason"
+          },
+          {
             "name": "installLocationId",
             "doc": "If CaveID is not specified, ID of an install location\nto install to.",
             "type": "string"
@@ -449,6 +454,11 @@
             "name": "stagingFolder",
             "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
             "type": "string"
+          },
+          {
+            "name": "queueDownload",
+            "doc": "If set, and the install operation is successfully disambiguated,\nwill queue it as a download for butler to drive.\nSee @@DownloadsDriveParams.",
+            "type": "boolean"
           }
         ]
       },
@@ -458,6 +468,11 @@
             "name": "id",
             "doc": "",
             "type": "string"
+          },
+          {
+            "name": "reason",
+            "doc": "",
+            "type": "DownloadReason"
           },
           {
             "name": "caveId",
@@ -692,6 +707,17 @@
     {
       "method": "Downloads.Drive",
       "doc": "Drive downloads, which is: perform them one at a time,\nuntil they're all finished.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Downloads.Drive.Cancel",
+      "doc": "Stop driving downloads gracefully.",
       "caller": "client",
       "params": {
         "fields": null
@@ -1526,6 +1552,21 @@
       "doc": "Represents a download queued, which will be\nperformed whenever @@DownloadsDriveParams is called.",
       "fields": [
         {
+          "name": "id",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "doc": "",
+          "type": "DownloadReason"
+        },
+        {
+          "name": "position",
+          "doc": "",
+          "type": "number"
+        },
+        {
           "name": "caveId",
           "doc": "",
           "type": "string"
@@ -1554,6 +1595,11 @@
           "name": "finishedAt",
           "doc": "",
           "type": "Date"
+        },
+        {
+          "name": "stagingFolder",
+          "doc": "",
+          "type": "string"
         }
       ]
     },

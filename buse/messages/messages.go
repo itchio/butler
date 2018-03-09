@@ -1068,6 +1068,36 @@ func (r *DownloadsDriveType) Register(router *buse.Router, f func(*buse.RequestC
 
 var DownloadsDrive *DownloadsDriveType
 
+// Downloads.Drive.Cancel (Request)
+
+type DownloadsDriveCancelType struct {}
+
+var _ RequestMessage = (*DownloadsDriveCancelType)(nil)
+
+func (r *DownloadsDriveCancelType) Method() string {
+  return "Downloads.Drive.Cancel"
+}
+
+func (r *DownloadsDriveCancelType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsDriveCancelParams) (*buse.DownloadsDriveCancelResult, error)) {
+  router.Register("Downloads.Drive.Cancel", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsDriveCancelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Drive.Cancel")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsDriveCancel *DownloadsDriveCancelType
+
 
 //==============================
 // Update
@@ -1488,6 +1518,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }
   if _, ok := router.Handlers["Downloads.ClearFinished"]; !ok { panic("missing request handler for (Downloads.ClearFinished)") }
   if _, ok := router.Handlers["Downloads.Drive"]; !ok { panic("missing request handler for (Downloads.Drive)") }
+  if _, ok := router.Handlers["Downloads.Drive.Cancel"]; !ok { panic("missing request handler for (Downloads.Drive.Cancel)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }

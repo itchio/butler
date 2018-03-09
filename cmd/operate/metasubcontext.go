@@ -8,6 +8,8 @@ import (
 type InstallParams struct {
 	StagingFolder string `json:"stagingFolder"`
 
+	Reason buse.DownloadReason `json:"reason"`
+
 	CaveID            string `json:"caveId"`
 	InstallFolderName string `json:"installFolderName"`
 	InstallLocationID string `json:"installLocationID"`

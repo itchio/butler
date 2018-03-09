@@ -17,6 +17,8 @@ type Download struct {
 	StartedAt  *time.Time `json:"startedAt"`
 	FinishedAt *time.Time `json:"finishedAt"`
 
+	Error *string `json:"error"`
+
 	CaveID string `json:"caveId"`
 
 	GameID int64        `json:"gameId"`
@@ -82,4 +84,11 @@ func downloadExtremePosition(db *gorm.DB, extreme string) int64 {
 		panic(err)
 	}
 	return row.Position
+}
+
+func (d *Download) Save(db *gorm.DB) {
+	err := db.Save(d).Error
+	if err != nil {
+		panic(err)
+	}
 }

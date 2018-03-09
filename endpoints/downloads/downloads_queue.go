@@ -19,6 +19,7 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 	startedAt := time.Now().UTC()
 	d := &models.Download{
 		ID:            item.ID,
+		Reason:        string(item.Reason),
 		CaveID:        item.CaveID,
 		Position:      models.DownloadMaxPosition(rc.DB()) + 1,
 		Game:          item.Game,

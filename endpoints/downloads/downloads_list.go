@@ -22,11 +22,14 @@ func DownloadsList(rc *buse.RequestContext, params *buse.DownloadsListParams) (*
 
 func formatDownload(download *models.Download) *buse.Download {
 	return &buse.Download{
-		CaveID:     download.CaveID,
-		Game:       download.Game,
-		Upload:     download.Upload,
-		Build:      download.Build,
-		StartedAt:  download.StartedAt,
-		FinishedAt: download.FinishedAt,
+		ID:            download.ID,
+		Position:      download.Position,
+		CaveID:        download.CaveID,
+		Game:          download.Game,
+		Upload:        download.Upload,
+		Build:         download.Build,
+		StartedAt:     download.StartedAt,
+		FinishedAt:    download.FinishedAt,
+		StagingFolder: download.StagingFolder,
 	}
 }

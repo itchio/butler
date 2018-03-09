@@ -435,6 +435,10 @@ type InstallQueueParams struct {
 	// @optional
 	CaveID string `json:"caveId"`
 
+	// If unspecified, will default to 'install'
+	// @optional
+	Reason DownloadReason `json:"reason"`
+
 	// If CaveID is not specified, ID of an install location
 	// to install to.
 	// @optional
@@ -476,10 +480,17 @@ type InstallQueueParams struct {
 	// partial downloads, checkpoint files, etc.
 	// @optional
 	StagingFolder string `json:"stagingFolder"`
+
+	// If set, and the install operation is successfully disambiguated,
+	// will queue it as a download for butler to drive.
+	// See @@DownloadsDriveParams.
+	// @optional
+	QueueDownload bool `json:"queueDownload"`
 }
 
 type InstallQueueResult struct {
 	ID            string         `json:"id"`
+	Reason        DownloadReason `json:"reason"`
 	CaveID        string         `json:"caveId"`
 	Game          *itchio.Game   `json:"game"`
 	Upload        *itchio.Upload `json:"upload"`
@@ -739,6 +750,15 @@ type DownloadsDriveParams struct{}
 
 type DownloadsDriveResult struct{}
 
+// Stop driving downloads gracefully.
+//
+// @name Downloads.Drive.Cancel
+// @category Downloads
+// @caller client
+type DownloadsDriveCancelParams struct{}
+
+type DownloadsDriveCancelResult struct{}
+
 // @name Downloads.Drive.Progress
 type DownloadsDriveProgressNotification struct {
 	Download *Download         `json:"download"`
@@ -750,17 +770,28 @@ type DownloadsDriveFinishedNotification struct {
 	Download *Download `json:"download"`
 }
 
-// TODO: add 'reason' to Download struct?
+type DownloadReason string
+
+const (
+	DownloadReasonInstall       DownloadReason = "install"
+	DownloadReasonReinstall     DownloadReason = "reinstall"
+	DownloadReasonUpdate        DownloadReason = "update"
+	DownloadReasonVersionSwitch DownloadReason = "version-switch"
+)
 
 // Represents a download queued, which will be
 // performed whenever @@DownloadsDriveParams is called.
 type Download struct {
-	CaveID     string         `json:"caveId"`
-	Game       *itchio.Game   `json:"game"`
-	Upload     *itchio.Upload `json:"upload"`
-	Build      *itchio.Build  `json:"build"`
-	StartedAt  *time.Time     `json:"startedAt"`
-	FinishedAt *time.Time     `json:"finishedAt"`
+	ID            string         `json:"id"`
+	Reason        DownloadReason `json:"reason"`
+	Position      int64          `json:"position"`
+	CaveID        string         `json:"caveId"`
+	Game          *itchio.Game   `json:"game"`
+	Upload        *itchio.Upload `json:"upload"`
+	Build         *itchio.Build  `json:"build"`
+	StartedAt     *time.Time     `json:"startedAt"`
+	FinishedAt    *time.Time     `json:"finishedAt"`
+	StagingFolder string         `json:"stagingFolder"`
 }
 
 type DownloadProgress struct {

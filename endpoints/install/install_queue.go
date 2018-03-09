@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/downloads"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
@@ -29,6 +30,11 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	}
 
 	id := freshInstallID.String()
+
+	reason := queueParams.Reason
+	if reason == "" {
+		reason = buse.DownloadReasonInstall
+	}
 
 	if queueParams.NoCave {
 		if queueParams.StagingFolder == "" {
@@ -69,6 +75,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	params := meta.Data
 
 	params.StagingFolder = stagingFolder
+	params.Reason = reason
 
 	if queueParams.Game == nil {
 		return nil, errors.New("Missing game in install")
@@ -215,6 +222,16 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		InstallFolder: params.InstallFolder,
 		StagingFolder: params.StagingFolder,
 	}
+
+	if queueParams.QueueDownload {
+		_, err := downloads.DownloadsQueue(rc, &buse.DownloadsQueueParams{
+			Item: res,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+	}
+
 	return res, nil
 }
 

@@ -1348,6 +1348,12 @@ If not specified, will create a new cave.</p>
 </td>
 </tr>
 <tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
+<td><p><span class="tag">Optional</span> If unspecified, will default to &lsquo;install&rsquo;</p>
+</td>
+</tr>
+<tr>
 <td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> If CaveID is not specified, ID of an install location
@@ -1405,6 +1411,14 @@ whatever to the install folder.</p>
 partial downloads, checkpoint files, etc.</p>
 </td>
 </tr>
+<tr>
+<td><code>queueDownload</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, and the install operation is successfully disambiguated,
+will queue it as a download for butler to drive.
+See <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
+</td>
+</tr>
 </table>
 
 
@@ -1418,6 +1432,11 @@ partial downloads, checkpoint files, etc.</p>
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -1468,6 +1487,10 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+</tr>
+<tr>
 <td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
@@ -1498,6 +1521,10 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>stagingFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>queueDownload</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -2399,6 +2426,34 @@ until they&rsquo;re all finished.</p>
 <p>
 <p>Drive downloads, which is: perform them one at a time,
 until they&rsquo;re all finished.</p>
+
+</p>
+</div>
+
+### <em class="request-client-caller"></em>Downloads.Drive.Cancel
+
+
+<p>
+<p>Stop driving downloads gracefully.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsDriveCancelParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Drive.Cancel <a href="#/?id=downloadsdrivecancel">(Go to definition)</a></p>
+
+<p>
+<p>Stop driving downloads gracefully.</p>
 
 </p>
 </div>
@@ -4326,6 +4381,56 @@ including the download key if any.</p>
 
 </div>
 
+### <em class="enum-type"></em>DownloadReason
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"reinstall"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"update"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"version-switch"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadReason__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>DownloadReason <a href="#/?id=downloadreason">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"reinstall"</code></td>
+</tr>
+<tr>
+<td><code>"update"</code></td>
+</tr>
+<tr>
+<td><code>"version-switch"</code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="struct-type"></em>Download
 
 
@@ -4341,6 +4446,21 @@ performed whenever <code class="typename"><span class="type request-client-calle
 
 
 <table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
@@ -4371,6 +4491,11 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -4384,6 +4509,18 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </p>
 
 <table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
@@ -4407,6 +4544,10 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <tr>
 <td><code>finishedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 

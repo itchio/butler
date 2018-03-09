@@ -151,7 +151,7 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 		return
 	}
 
-	if ee, ok := asBuseError(err); ok {
+	if ee, ok := AsBuseError(err); ok {
 		origConn.ReplyWithError(ctx, req.ID, ee.AsJsonRpc2())
 		return
 	}
@@ -184,30 +184,40 @@ type RequestContext struct {
 	CancelFuncs    *CancelFuncs
 	DB             DBGetter
 
-	counter *progress.Counter
+	notificationInterceptors map[string]NotificationInterceptor
+	counter                  *progress.Counter
 }
 
 type DBGetter func() *gorm.DB
 
 type WithParamsFunc func() (interface{}, error)
 
-func (rc *RequestContext) WithParams(params interface{}, cb WithParamsFunc) (interface{}, error) {
-	err := json.Unmarshal(*rc.Params, params)
-	if err != nil {
-		return nil, &RpcError{
-			Code:    jsonrpc2.CodeParseError,
-			Message: err.Error(),
-		}
-	}
-
-	return cb()
-}
+type NotificationInterceptor func(method string, params interface{}) error
 
 func (rc *RequestContext) Call(method string, params interface{}, res interface{}) error {
 	return rc.Conn.Call(rc.Ctx, method, params, res)
 }
 
+func (rc *RequestContext) InterceptNotification(method string, interceptor NotificationInterceptor) {
+	if rc.notificationInterceptors == nil {
+		rc.notificationInterceptors = make(map[string]NotificationInterceptor)
+	}
+	rc.notificationInterceptors[method] = interceptor
+}
+
+func (rc *RequestContext) StopInterceptingNotification(method string) {
+	if rc.notificationInterceptors == nil {
+		return
+	}
+	delete(rc.notificationInterceptors, method)
+}
+
 func (rc *RequestContext) Notify(method string, params interface{}) error {
+	if rc.notificationInterceptors != nil {
+		if ni, ok := rc.notificationInterceptors[method]; ok {
+			return ni(method, params)
+		}
+	}
 	return rc.Conn.Notify(rc.Ctx, method, params)
 }
 
@@ -250,6 +260,8 @@ func (rc *RequestContext) StartProgressWithTotalBytes(totalBytes int64) {
 }
 
 func (rc *RequestContext) StartProgressWithInitialAndTotal(initialProgress float64, totalBytes int64) {
+	rc.Consumer.Infof("Starting progress (initial %.2f, totalBytes %d)", initialProgress, totalBytes)
+
 	if rc.counter != nil {
 		rc.Consumer.Warnf("Asked to start progress but already tracking progress!")
 		return

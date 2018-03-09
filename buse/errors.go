@@ -83,13 +83,13 @@ func (e *ErrCancelled) Error() string {
 
 //
 
-func asBuseError(err error) (Error, bool) {
+func AsBuseError(err error) (Error, bool) {
 	if err == nil {
 		return nil, false
 	}
 
 	if se, ok := err.(*errors.Error); ok {
-		return asBuseError(se.Err)
+		return AsBuseError(se.Err)
 	}
 
 	if ee, ok := err.(Error); ok {
