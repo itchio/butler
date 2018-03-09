@@ -455,6 +455,11 @@
       "result": {
         "fields": [
           {
+            "name": "id",
+            "doc": "",
+            "type": "string"
+          },
+          {
             "name": "caveId",
             "doc": "",
             "type": "string"
@@ -618,7 +623,7 @@
     },
     {
       "method": "Downloads.Queue",
-      "doc": "",
+      "doc": "Queue a download that will be performed later by\n@@DownloadsDriveParams.",
       "caller": "client",
       "params": {
         "fields": [
@@ -635,7 +640,7 @@
     },
     {
       "method": "Downloads.Prioritize",
-      "doc": "",
+      "doc": "Put a download on top of the queue.",
       "caller": "client",
       "params": {
         "fields": [
@@ -652,7 +657,7 @@
     },
     {
       "method": "Downloads.List",
-      "doc": "",
+      "doc": "List all known downloads.",
       "caller": "client",
       "params": {
         "fields": null
@@ -663,6 +668,23 @@
             "name": "downloads",
             "doc": "",
             "type": "Download[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.ClearFinished",
+      "doc": "Removes all finished downloads from the queue.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "removedCount",
+            "doc": "The number of removed downloads",
+            "type": "number"
           }
         ]
       }
@@ -1522,6 +1544,16 @@
           "name": "build",
           "doc": "",
           "type": "Build"
+        },
+        {
+          "name": "startedAt",
+          "doc": "",
+          "type": "Date"
+        },
+        {
+          "name": "finishedAt",
+          "doc": "",
+          "type": "Date"
         }
       ]
     },

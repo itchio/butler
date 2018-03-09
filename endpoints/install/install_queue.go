@@ -207,6 +207,8 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	oc.Save(meta)
 
 	res := &buse.InstallQueueResult{
+		ID:            id,
+		CaveID:        params.CaveID,
 		Game:          params.Game,
 		Upload:        params.Upload,
 		Build:         params.Build,

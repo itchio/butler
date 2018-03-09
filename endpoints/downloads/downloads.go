@@ -10,4 +10,5 @@ func Register(router *buse.Router) {
 	messages.DownloadsPrioritize.Register(router, DownloadsPrioritize)
 	messages.DownloadsList.Register(router, DownloadsList)
 	messages.DownloadsDrive.Register(router, DownloadsDrive)
+	messages.DownloadsClearFinished.Register(router, DownloadsClearFinished)
 }

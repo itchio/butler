@@ -479,6 +479,7 @@ type InstallQueueParams struct {
 }
 
 type InstallQueueResult struct {
+	ID            string         `json:"id"`
 	CaveID        string         `json:"caveId"`
 	Game          *itchio.Game   `json:"game"`
 	Upload        *itchio.Upload `json:"upload"`
@@ -678,6 +679,9 @@ type InstallResult struct {
 // Downloads
 //----------------------------------------------------------------------
 
+// Queue a download that will be performed later by
+// @@DownloadsDriveParams.
+//
 // @name Downloads.Queue
 // @category Downloads
 // @caller client
@@ -688,6 +692,8 @@ type DownloadsQueueParams struct {
 type DownloadsQueueResult struct {
 }
 
+// Put a download on top of the queue.
+//
 // @name Downloads.Prioritize
 // @category Downloads
 // @caller client
@@ -698,6 +704,8 @@ type DownloadsPrioritizeParams struct {
 type DownloadsPrioritizeResult struct {
 }
 
+// List all known downloads.
+//
 // @name Downloads.List
 // @category Downloads
 // @caller client
@@ -706,6 +714,19 @@ type DownloadsListParams struct {
 
 type DownloadsListResult struct {
 	Downloads []*Download `json:"downloads"`
+}
+
+// Removes all finished downloads from the queue.
+//
+// @name Downloads.ClearFinished
+// @category Downloads
+// @caller client
+type DownloadsClearFinishedParams struct {
+}
+
+type DownloadsClearFinishedResult struct {
+	// The number of removed downloads
+	RemovedCount int64 `json:"removedCount"`
 }
 
 // Drive downloads, which is: perform them one at a time,
@@ -734,10 +755,12 @@ type DownloadsDriveFinishedNotification struct {
 // Represents a download queued, which will be
 // performed whenever @@DownloadsDriveParams is called.
 type Download struct {
-	CaveID string         `json:"caveId"`
-	Game   *itchio.Game   `json:"game"`
-	Upload *itchio.Upload `json:"upload"`
-	Build  *itchio.Build  `json:"build"`
+	CaveID     string         `json:"caveId"`
+	Game       *itchio.Game   `json:"game"`
+	Upload     *itchio.Upload `json:"upload"`
+	Build      *itchio.Build  `json:"build"`
+	StartedAt  *time.Time     `json:"startedAt"`
+	FinishedAt *time.Time     `json:"finishedAt"`
 }
 
 type DownloadProgress struct {

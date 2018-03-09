@@ -294,7 +294,7 @@ type Build struct {
 	Files []*BuildFile `json:"files"`
 
 	// User who pushed the build
-	User User `json:"user"`
+	User *User `json:"user"`
 	// Timestamp the build was created at
 	CreatedAt time.Time `json:"createdAt"`
 	// Timestamp the build was last updated at

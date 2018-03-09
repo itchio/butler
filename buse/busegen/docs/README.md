@@ -1416,6 +1416,11 @@ partial downloads, checkpoint files, etc.</p>
 
 <table class="field-table">
 <tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
@@ -2204,6 +2209,11 @@ info about the game, upload, build that were installed</p>
 ### <em class="request-client-caller"></em>Downloads.Queue
 
 
+<p>
+<p>Queue a download that will be performed later by
+<code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> 
@@ -2228,6 +2238,11 @@ info about the game, upload, build that were installed</p>
 <div id="DownloadsQueueParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Downloads.Queue <a href="#/?id=downloadsqueue">(Go to definition)</a></p>
 
+<p>
+<p>Queue a download that will be performed later by
+<code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code>.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -2241,6 +2256,10 @@ info about the game, upload, build that were installed</p>
 ### <em class="request-client-caller"></em>Downloads.Prioritize
 
 
+<p>
+<p>Put a download on top of the queue.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> 
@@ -2265,6 +2284,10 @@ info about the game, upload, build that were installed</p>
 <div id="DownloadsPrioritizeParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Downloads.Prioritize <a href="#/?id=downloadsprioritize">(Go to definition)</a></p>
 
+<p>
+<p>Put a download on top of the queue.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -2278,6 +2301,10 @@ info about the game, upload, build that were installed</p>
 ### <em class="request-client-caller"></em>Downloads.List
 
 
+<p>
+<p>List all known downloads.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> <em>none</em>
@@ -2302,6 +2329,48 @@ info about the game, upload, build that were installed</p>
 <div id="DownloadsListParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Downloads.List <a href="#/?id=downloadslist">(Go to definition)</a></p>
 
+<p>
+<p>List all known downloads.</p>
+
+</p>
+</div>
+
+### <em class="request-client-caller"></em>Downloads.ClearFinished
+
+
+<p>
+<p>Removes all finished downloads from the queue.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>removedCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>The number of removed downloads</p>
+</td>
+</tr>
+</table>
+
+
+<div id="DownloadsClearFinishedParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.ClearFinished <a href="#/?id=downloadsclearfinished">(Go to definition)</a></p>
+
+<p>
+<p>Removes all finished downloads from the queue.</p>
+
+</p>
 </div>
 
 ### <em class="request-client-caller"></em>Downloads.Drive
@@ -4292,6 +4361,16 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>startedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>finishedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -4320,6 +4399,14 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>startedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>finishedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 </table>
 

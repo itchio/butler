@@ -1008,6 +1008,36 @@ func (r *DownloadsListType) Register(router *buse.Router, f func(*buse.RequestCo
 
 var DownloadsList *DownloadsListType
 
+// Downloads.ClearFinished (Request)
+
+type DownloadsClearFinishedType struct {}
+
+var _ RequestMessage = (*DownloadsClearFinishedType)(nil)
+
+func (r *DownloadsClearFinishedType) Method() string {
+  return "Downloads.ClearFinished"
+}
+
+func (r *DownloadsClearFinishedType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsClearFinishedParams) (*buse.DownloadsClearFinishedResult, error)) {
+  router.Register("Downloads.ClearFinished", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsClearFinishedParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.ClearFinished")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsClearFinished *DownloadsClearFinishedType
+
 // Downloads.Drive (Request)
 
 type DownloadsDriveType struct {}
@@ -1456,6 +1486,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Downloads.Queue"]; !ok { panic("missing request handler for (Downloads.Queue)") }
   if _, ok := router.Handlers["Downloads.Prioritize"]; !ok { panic("missing request handler for (Downloads.Prioritize)") }
   if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }
+  if _, ok := router.Handlers["Downloads.ClearFinished"]; !ok { panic("missing request handler for (Downloads.ClearFinished)") }
   if _, ok := router.Handlers["Downloads.Drive"]; !ok { panic("missing request handler for (Downloads.Drive)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
