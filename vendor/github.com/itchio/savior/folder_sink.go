@@ -139,9 +139,18 @@ func (fs *FolderSink) Preallocate(entry *Entry) error {
 
 	defer f.Close()
 
-	err = f.Truncate(entry.UncompressedSize)
+	endOffset, err := f.Seek(0, io.SeekEnd)
 	if err != nil {
 		return errors.Wrap(err, 0)
+	}
+
+	// N.B: we can't use f.Truncate as that doesn't actually reserve blocks
+	allocSize := entry.UncompressedSize - endOffset
+	if allocSize > 0 {
+		_, err := io.CopyN(f, &zeroReader{}, allocSize)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	return nil
@@ -245,4 +254,23 @@ func (ew *entryWriter) Sync() error {
 	}
 
 	return ew.f.Sync()
+}
+
+//
+
+type zeroReader struct{}
+
+var _ io.Reader = (*zeroReader)(nil)
+
+func (zr *zeroReader) Read(p []byte) (int, error) {
+	// p can be *anything* - it can be preallocated and
+	// already used in previous I/O operations. So we
+	// really do need to clear it.
+
+	// that code seems slow, but luckily it's optimized:
+	// https://github.com/golang/go/wiki/CompilerOptimizations#optimized-memclr
+	for i := range p {
+		p[i] = 0
+	}
+	return len(p), nil
 }
