@@ -118,17 +118,36 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 		for {
 			select {
 			case <-time.After(5 * time.Second):
-				var row = struct {
-					Discarded bool
-				}{}
-				err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
-				if err != nil {
-					consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+				// have we been discarded?
+				{
+					var row = struct {
+						Discarded bool
+					}{}
+					err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
+					if err != nil {
+						consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+					}
+
+					if row.Discarded {
+						consumer.Infof("Download was cancelled from under us, bailing out!")
+						cancelFunc()
+					}
 				}
 
-				if row.Discarded {
-					consumer.Infof("Download was cancelled from under us, bailing out!")
-					cancelFunc()
+				// has something else been prioritized?
+				{
+					var row = struct {
+						ID string
+					}{}
+					err := rc.DB().Raw(`SELECT id FROM downloads WHERE finished_at IS NULL AND NOT discarded ORDER BY position ASC LIMIT 1`).Scan(&row).Error
+					if err != nil {
+						consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+					}
+
+					if row.ID != download.ID {
+						consumer.Infof("%s deprioritized (for %s), bailing out!", download.ID, row.ID)
+						cancelFunc()
+					}
 				}
 			case <-ctx.Done():
 				return
@@ -140,7 +159,14 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 	var stage = "prepare"
 	var progress, eta, bps float64
 
+	lastProgress := time.Now()
+
 	sendProgress := func() error {
+		if time.Since(lastProgress).Seconds() < 1 {
+			return nil
+		}
+		lastProgress = time.Now()
+
 		// TODO: send BPS history in here too
 		return messages.DownloadsDriveProgress.Notify(rc, &buse.DownloadsDriveProgressNotification{
 			Download: formatDownload(download),
