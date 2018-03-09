@@ -32,6 +32,15 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 	cave := operate.ValidateCave(rc, params.CaveID)
 	installFolder := cave.GetInstallFolder(rc.DB())
+
+	_, err := os.Stat(installFolder)
+	if err != nil && os.IsNotExist(err) {
+		return nil, &buse.RpcError{
+			Code:    int64(buse.CodeInstallFolderDisappeared),
+			Message: fmt.Sprintf("Could not find install folder (%s)", installFolder),
+		}
+	}
+
 	game := cave.Game
 	upload := cave.Upload
 	build := cave.Build

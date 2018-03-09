@@ -156,21 +156,22 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 		return
 	}
 
-	var errStack *json.RawMessage
+	var rawData *json.RawMessage
 	if se, ok := err.(*errors.Error); ok {
 		input := map[string]interface{}{
-			"stack": se.ErrorStack(),
+			"stack":         se.ErrorStack(),
+			"butlerVersion": r.MansionContext.VersionString,
 		}
 		es, err := json.Marshal(input)
 		if err == nil {
 			rm := json.RawMessage(es)
-			errStack = &rm
+			rawData = &rm
 		}
 	}
 	origConn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeInternalError,
 		Message: err.Error(),
-		Data:    errStack,
+		Data:    rawData,
 	})
 }
 

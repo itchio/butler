@@ -1212,11 +1212,17 @@ const (
 // Buse JSON-RPC 2.0 error codes
 type Code int64
 
+// Note: codes -32000 to -32099 are reserved for the JSON-RPC
+// protocol.
+
 const (
 	// An operation was cancelled gracefully
 	CodeOperationCancelled Code = 499
 	// An operation was aborted by the user
 	CodeOperationAborted Code = 410
+
+	// We tried to launch something, but the install folder just wasn't there
+	CodeInstallFolderDisappeared Code = 404
 )
 
 //==================================

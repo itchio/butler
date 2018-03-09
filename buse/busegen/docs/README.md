@@ -4894,6 +4894,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>An operation was aborted by the user</p>
 </td>
 </tr>
+<tr>
+<td><code>404</code></td>
+<td><p>We tried to launch something, but the install folder just wasn&rsquo;t there</p>
+</td>
+</tr>
 </table>
 
 
@@ -4911,6 +4916,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>410</code></td>
+</tr>
+<tr>
+<td><code>404</code></td>
 </tr>
 </table>
 
