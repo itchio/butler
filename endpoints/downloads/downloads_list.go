@@ -23,6 +23,7 @@ func DownloadsList(rc *buse.RequestContext, params *buse.DownloadsListParams) (*
 func formatDownload(download *models.Download) *buse.Download {
 	return &buse.Download{
 		ID:            download.ID,
+		Error:         download.Error,
 		Position:      download.Position,
 		CaveID:        download.CaveID,
 		Game:          download.Game,

@@ -12,4 +12,6 @@ func Register(router *buse.Router) {
 	messages.DownloadsDrive.Register(router, DownloadsDrive)
 	messages.DownloadsDriveCancel.Register(router, DownloadsDriveCancel)
 	messages.DownloadsClearFinished.Register(router, DownloadsClearFinished)
+	messages.DownloadsDiscard.Register(router, DownloadsDiscard)
+	messages.DownloadsRetry.Register(router, DownloadsRetry)
 }

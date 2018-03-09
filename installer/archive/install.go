@@ -41,11 +41,9 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		}
 	}()
 
-	checkpoint := &savior.ExtractorCheckpoint{}
-	err = sc.Load(checkpoint)
+	checkpoint, err := sc.Load()
 	if err != nil {
-		consumer.Warnf("Could not load checkpoint, ignoring: %s", err.Error())
-		checkpoint = nil
+		consumer.Warnf("Could not load checkpoint: %s", err.Error())
 	}
 
 	sink := &savior.FolderSink{

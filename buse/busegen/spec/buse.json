@@ -727,6 +727,40 @@
       }
     },
     {
+      "method": "Downloads.Retry",
+      "doc": "Retries a download that has errored",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "downloadId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Downloads.Discard",
+      "doc": "Attempts to discard a download",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "downloadId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "CheckUpdate",
       "doc": "Looks for one or more game updates.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
       "caller": "client",
@@ -1553,6 +1587,11 @@
       "fields": [
         {
           "name": "id",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "error",
           "doc": "",
           "type": "string"
         },

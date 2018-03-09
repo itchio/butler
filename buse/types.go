@@ -783,6 +783,7 @@ const (
 // performed whenever @@DownloadsDriveParams is called.
 type Download struct {
 	ID            string         `json:"id"`
+	Error         *string        `json:"error"`
 	Reason        DownloadReason `json:"reason"`
 	Position      int64          `json:"position"`
 	CaveID        string         `json:"caveId"`
@@ -800,6 +801,28 @@ type DownloadProgress struct {
 	ETA      float64 `json:"eta"`
 	BPS      float64 `json:"bps"`
 }
+
+// Retries a download that has errored
+//
+// @name Downloads.Retry
+// @category Downloads
+// @caller client
+type DownloadsRetryParams struct {
+	DownloadID string `json:"downloadId"`
+}
+
+type DownloadsRetryResult struct{}
+
+// Attempts to discard a download
+//
+// @name Downloads.Discard
+// @category Downloads
+// @caller client
+type DownloadsDiscardParams struct {
+	DownloadID string `json:"downloadId"`
+}
+
+type DownloadsDiscardResult struct{}
 
 //----------------------------------------------------------------------
 // CheckUpdate

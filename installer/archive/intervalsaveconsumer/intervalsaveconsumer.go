@@ -36,19 +36,25 @@ func New(statePath string, interval time.Duration, consumer *state.Consumer, ctx
 	}
 }
 
-func (sc *saveConsumer) Load(state interface{}) error {
+func (sc *saveConsumer) Load() (*savior.ExtractorCheckpoint, error) {
+	state := &savior.ExtractorCheckpoint{}
+
 	stateFile, err := os.Open(sc.statePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// that's ok
-			return nil
+			return nil, nil
 		}
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 	defer stateFile.Close()
 
 	dec := gob.NewDecoder(stateFile)
-	return dec.Decode(state)
+	err = dec.Decode(state)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return state, nil
 }
 
 func (sc *saveConsumer) ShouldSave(n int64) bool {

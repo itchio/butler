@@ -21,11 +21,9 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 	statePath := filepath.Join(stageFolder, "download-state.dat")
 	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, ctx)
 
-	checkpoint := &savior.ExtractorCheckpoint{}
-	err := sc.Load(checkpoint)
+	checkpoint, err := sc.Load()
 	if err != nil {
-		consumer.Warnf("Could not load checkpoint, ignoring: %s", err.Error())
-		checkpoint = nil
+		consumer.Warnf("Could not load checkpoint: %s", err.Error())
 	}
 
 	destName := filepath.Base(destPath)

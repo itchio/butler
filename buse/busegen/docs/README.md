@@ -2458,6 +2458,96 @@ until they&rsquo;re all finished.</p>
 </p>
 </div>
 
+### <em class="request-client-caller"></em>Downloads.Retry
+
+
+<p>
+<p>Retries a download that has errored</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsRetryParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Retry <a href="#/?id=downloadsretry">(Go to definition)</a></p>
+
+<p>
+<p>Retries a download that has errored</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Downloads.Discard
+
+
+<p>
+<p>Attempts to discard a download</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="DownloadsDiscardParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Downloads.Discard <a href="#/?id=downloadsdiscard">(Go to definition)</a></p>
+
+<p>
+<p>Attempts to discard a download</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>downloadId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Update
 
@@ -4452,6 +4542,11 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <td></td>
 </tr>
 <tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>reason</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
@@ -4511,6 +4606,10 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <table class="field-table">
 <tr>
 <td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>

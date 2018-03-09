@@ -1098,6 +1098,66 @@ func (r *DownloadsDriveCancelType) Register(router *buse.Router, f func(*buse.Re
 
 var DownloadsDriveCancel *DownloadsDriveCancelType
 
+// Downloads.Retry (Request)
+
+type DownloadsRetryType struct {}
+
+var _ RequestMessage = (*DownloadsRetryType)(nil)
+
+func (r *DownloadsRetryType) Method() string {
+  return "Downloads.Retry"
+}
+
+func (r *DownloadsRetryType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsRetryParams) (*buse.DownloadsRetryResult, error)) {
+  router.Register("Downloads.Retry", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsRetryParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Retry")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsRetry *DownloadsRetryType
+
+// Downloads.Discard (Request)
+
+type DownloadsDiscardType struct {}
+
+var _ RequestMessage = (*DownloadsDiscardType)(nil)
+
+func (r *DownloadsDiscardType) Method() string {
+  return "Downloads.Discard"
+}
+
+func (r *DownloadsDiscardType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.DownloadsDiscardParams) (*buse.DownloadsDiscardResult, error)) {
+  router.Register("Downloads.Discard", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.DownloadsDiscardParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Downloads.Discard")
+    }
+    return res, nil
+  })
+}
+
+var DownloadsDiscard *DownloadsDiscardType
+
 
 //==============================
 // Update
@@ -1519,6 +1579,8 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Downloads.ClearFinished"]; !ok { panic("missing request handler for (Downloads.ClearFinished)") }
   if _, ok := router.Handlers["Downloads.Drive"]; !ok { panic("missing request handler for (Downloads.Drive)") }
   if _, ok := router.Handlers["Downloads.Drive.Cancel"]; !ok { panic("missing request handler for (Downloads.Drive.Cancel)") }
+  if _, ok := router.Handlers["Downloads.Retry"]; !ok { panic("missing request handler for (Downloads.Retry)") }
+  if _, ok := router.Handlers["Downloads.Discard"]; !ok { panic("missing request handler for (Downloads.Discard)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }

@@ -46,10 +46,12 @@ poll:
 }
 
 func performOne(ctx context.Context, rc *buse.RequestContext) error {
+	// TODO: cancel context if a download is discarded
+
 	consumer := rc.Consumer
 
 	var pendingDownloads []*models.Download
-	err := rc.DB().Where(`finished_at IS NULL AND error IS NULL`).Order(`position ASC`).Find(&pendingDownloads).Error
+	err := rc.DB().Where(`finished_at IS NULL`).Order(`position ASC`).Find(&pendingDownloads).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -66,6 +68,7 @@ func performOne(ctx context.Context, rc *buse.RequestContext) error {
 	var progress, eta, bps float64
 
 	sendProgress := func() error {
+		// TODO: send BPS history in here too
 		return messages.DownloadsDriveProgress.Notify(rc, &buse.DownloadsDriveProgressNotification{
 			Download: formatDownload(download),
 			Progress: &buse.DownloadProgress{
@@ -134,6 +137,8 @@ func performOne(ctx context.Context, rc *buse.RequestContext) error {
 
 		consumer.Warnf("Download failed: %s", errString)
 		download.Error = &errString
+		finishedAt := time.Now().UTC()
+		download.FinishedAt = &finishedAt
 		download.Save(rc.DB())
 		return nil
 	}
@@ -142,6 +147,10 @@ func performOne(ctx context.Context, rc *buse.RequestContext) error {
 	finishedAt := time.Now().UTC()
 	download.FinishedAt = &finishedAt
 	download.Save(rc.DB())
+
+	messages.DownloadsDriveFinished.Notify(rc, &buse.DownloadsDriveFinishedNotification{
+		Download: formatDownload(download),
+	})
 
 	return nil
 }
