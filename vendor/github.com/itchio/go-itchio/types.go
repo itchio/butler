@@ -209,28 +209,28 @@ type Upload struct {
 type UploadType string
 
 const (
-	DefaultUploadType UploadType = "default"
+	UploadTypeDefault UploadType = "default"
 
 	//----------------
 	// embed types
 	//----------------
-	FlashUploadType UploadType = "flash"
-	UnityUploadType UploadType = "unity"
-	JavaUploadType  UploadType = "java"
-	HTMLUploadType  UploadType = "html"
+	UploadTypeFlash UploadType = "flash"
+	UploadTypeUnity UploadType = "unity"
+	UploadTypeJava  UploadType = "java"
+	UploadTypeHTML  UploadType = "html"
 
 	//----------------
 	// asorted types
 	//----------------
-	SoundtrackUploadType      UploadType = "soundtrack"
-	BookUploadType            UploadType = "book"
-	VideoUploadType           UploadType = "video"
-	DocumentationUploadType   UploadType = "documentation"
-	ModUploadType             UploadType = "mod"
-	AudioAssetsUploadType     UploadType = "audio_assets"
-	GraphicalAssetsUploadType UploadType = "graphical_assets"
-	SourcecodeUploadType      UploadType = "sourcecode"
-	OtherUploadType           UploadType = "other"
+	UploadTypeSoundtrack      UploadType = "soundtrack"
+	UploadTypeBook            UploadType = "book"
+	UploadTypeVideo           UploadType = "video"
+	UploadTypeDocumentation   UploadType = "documentation"
+	UploadTypeMod             UploadType = "mod"
+	UploadTypeAudioAssets     UploadType = "audio_assets"
+	UploadTypeGraphicalAssets UploadType = "graphical_assets"
+	UploadTypeSourcecode      UploadType = "sourcecode"
+	UploadTypeOther           UploadType = "other"
 )
 
 // A Collection is a set of games, curated by humans.
