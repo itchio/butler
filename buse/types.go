@@ -6,9 +6,6 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-// must be kept in sync with clients, see for example
-// https://github.com/itchio/node-butler
-
 //----------------------------------------------------------------------
 // Version
 //----------------------------------------------------------------------
@@ -144,6 +141,50 @@ type ProfileForgetParams struct {
 type ProfileForgetResult struct {
 	// True if the profile did exist (and was successfully forgotten)
 	Success bool `json:"success"`
+}
+
+//----------------------------------------------------------------------
+// Search
+//----------------------------------------------------------------------
+
+// Searches for games. Returns data from the local
+// database and the API, via @@SearchGamesYieldNotification.
+//
+// @name Search.Games
+// @category Fetch
+// @caller client
+type SearchGamesParams struct {
+	ProfileID int64 `json:"profileId"`
+
+	Query string `json:"query"`
+}
+
+type SearchGamesResult struct {
+}
+
+// Sent during @@SearchGamesParams
+type SearchGamesYieldNotification struct {
+	Games []*itchio.Game `json:"games"`
+}
+
+// Searches for users. Returns data from the local
+// database and the API, via @@SearchUsersYieldNotification.
+//
+// @name Search.Users
+// @category Fetch
+// @caller client
+type SearchUsersParams struct {
+	ProfileID int64 `json:"profileId"`
+
+	Query string `json:"query"`
+}
+
+// Sent during @@SearchUsersParams when results are available
+type SearchUsersYieldNotification struct {
+	Users []*itchio.User `json:"users"`
+}
+
+type SearchUsersResult struct {
 }
 
 //----------------------------------------------------------------------

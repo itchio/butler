@@ -50,6 +50,38 @@ var VersionGet *VersionGetType
 // Miscellaneous
 //==============================
 
+// SearchGamesYield (Notification)
+
+type SearchGamesYieldType struct {}
+
+var _ NotificationMessage = (*SearchGamesYieldType)(nil)
+
+func (r *SearchGamesYieldType) Method() string {
+  return "SearchGamesYield"
+}
+
+func (r *SearchGamesYieldType) Notify(rc *buse.RequestContext, params *buse.SearchGamesYieldNotification) (error) {
+  return rc.Notify("SearchGamesYield", params)
+}
+
+var SearchGamesYield *SearchGamesYieldType
+
+// SearchUsersYield (Notification)
+
+type SearchUsersYieldType struct {}
+
+var _ NotificationMessage = (*SearchUsersYieldType)(nil)
+
+func (r *SearchUsersYieldType) Method() string {
+  return "SearchUsersYield"
+}
+
+func (r *SearchUsersYieldType) Notify(rc *buse.RequestContext, params *buse.SearchUsersYieldNotification) (error) {
+  return rc.Notify("SearchUsersYield", params)
+}
+
+var SearchUsersYield *SearchUsersYieldType
+
 // Downloads.Drive.Progress (Notification)
 
 type DownloadsDriveProgressType struct {}
@@ -263,6 +295,66 @@ var ProfileForget *ProfileForgetType
 //==============================
 // Fetch
 //==============================
+
+// Search.Games (Request)
+
+type SearchGamesType struct {}
+
+var _ RequestMessage = (*SearchGamesType)(nil)
+
+func (r *SearchGamesType) Method() string {
+  return "Search.Games"
+}
+
+func (r *SearchGamesType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.SearchGamesParams) (*buse.SearchGamesResult, error)) {
+  router.Register("Search.Games", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.SearchGamesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Search.Games")
+    }
+    return res, nil
+  })
+}
+
+var SearchGames *SearchGamesType
+
+// Search.Users (Request)
+
+type SearchUsersType struct {}
+
+var _ RequestMessage = (*SearchUsersType)(nil)
+
+func (r *SearchUsersType) Method() string {
+  return "Search.Users"
+}
+
+func (r *SearchUsersType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.SearchUsersParams) (*buse.SearchUsersResult, error)) {
+  router.Register("Search.Users", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.SearchUsersParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Search.Users")
+    }
+    return res, nil
+  })
+}
+
+var SearchUsers *SearchUsersType
 
 // Fetch.Game (Request)
 
@@ -1557,6 +1649,8 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
   if _, ok := router.Handlers["Profile.UseSavedLogin"]; !ok { panic("missing request handler for (Profile.UseSavedLogin)") }
   if _, ok := router.Handlers["Profile.Forget"]; !ok { panic("missing request handler for (Profile.Forget)") }
+  if _, ok := router.Handlers["Search.Games"]; !ok { panic("missing request handler for (Search.Games)") }
+  if _, ok := router.Handlers["Search.Users"]; !ok { panic("missing request handler for (Search.Users)") }
   if _, ok := router.Handlers["Fetch.Game"]; !ok { panic("missing request handler for (Fetch.Game)") }
   if _, ok := router.Handlers["Fetch.Collection"]; !ok { panic("missing request handler for (Fetch.Collection)") }
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }

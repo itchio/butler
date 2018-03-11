@@ -125,6 +125,52 @@ func (c *Client) GetCollectionGames(params *GetCollectionGamesParams) (*GetColle
 	return r, nil
 }
 
+type SearchGamesParams struct {
+	Query string `json:"query"`
+	Page  int64  `json:"page"`
+}
+
+func (c *Client) SearchGames(params *SearchGamesParams) (*SearchGamesResponse, error) {
+	r := &SearchGamesResponse{}
+
+	values := url.Values{}
+	values.Add("query", params.Query)
+	if params.Page != 0 {
+		values.Add("page", fmt.Sprintf("%d", params.Page))
+	}
+
+	path := c.MakePath("search/games?%s", values.Encode())
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
+type SearchUsersParams struct {
+	Query string `json:"query"`
+	Page  int64  `json:"page"`
+}
+
+func (c *Client) SearchUsers(params *SearchUsersParams) (*SearchUsersResponse, error) {
+	r := &SearchUsersResponse{}
+
+	values := url.Values{}
+	values.Add("query", params.Query)
+	if params.Page != 0 {
+		values.Add("page", fmt.Sprintf("%d", params.Page))
+	}
+
+	path := c.MakePath("search/users?%s", values.Encode())
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	return r, nil
+}
+
 // ListMyGames lists the games one develops (ie. can edit)
 func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
 	r := &ListMyGamesResponse{}

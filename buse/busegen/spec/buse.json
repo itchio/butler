@@ -159,6 +159,50 @@
       }
     },
     {
+      "method": "Search.Games",
+      "doc": "Searches for games. Returns data from the local\ndatabase and the API, via @@SearchGamesYieldNotification.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "query",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Search.Users",
+      "doc": "Searches for users. Returns data from the local\ndatabase and the API, via @@SearchUsersYieldNotification.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "query",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Fetch.Game",
       "doc": "Fetches information for an itch.io game.\n\nSends @@FetchGameYieldNotification twice at most: first from cache,\nsecond from API if we're online.",
       "caller": "client",
@@ -1047,6 +1091,32 @@
     }
   ],
   "notifications": [
+    {
+      "method": "SearchGamesYield",
+      "doc": "Sent during @@SearchGamesParams",
+      "params": {
+        "fields": [
+          {
+            "name": "games",
+            "doc": "",
+            "type": "Game[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "SearchUsersYield",
+      "doc": "Sent during @@SearchUsersParams when results are available",
+      "params": {
+        "fields": [
+          {
+            "name": "users",
+            "doc": "",
+            "type": "User[]"
+          }
+        ]
+      }
+    },
     {
       "method": "Downloads.Drive.Progress",
       "doc": "",

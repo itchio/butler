@@ -27,6 +27,18 @@ type GetCollectionGamesResponse struct {
 	Games   []*Game `json:"games"`
 }
 
+type SearchGamesResponse struct {
+	Page    int64   `json:"page"`
+	PerPage int64   `json:"perPage"`
+	Games   []*Game `json:"games"`
+}
+
+type SearchUsersResponse struct {
+	Page    int64   `json:"page"`
+	PerPage int64   `json:"perPage"`
+	Users   []*User `json:"users"`
+}
+
 // GameUploadsResponse is what the server replies with when asked for a game's uploads
 type GameUploadsResponse struct {
 	Uploads []*Upload `json:"uploads"`

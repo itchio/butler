@@ -492,6 +492,118 @@ two-factor authentication enabled.</p>
 
 ## Fetch
 
+### <em class="request-client-caller"></em>Search.Games
+
+
+<p>
+<p>Searches for games. Returns data from the local
+database and the API, via <code class="typename"><span class="type notification" data-tip-selector="#SearchGamesYieldNotification__TypeHint">SearchGamesYield</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="SearchGamesParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Search.Games <a href="#/?id=searchgames">(Go to definition)</a></p>
+
+<p>
+<p>Searches for games. Returns data from the local
+database and the API, via <code class="typename"><span class="type notification">SearchGamesYield</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Search.Users
+
+
+<p>
+<p>Searches for users. Returns data from the local
+database and the API, via <code class="typename"><span class="type notification" data-tip-selector="#SearchUsersYieldNotification__TypeHint">SearchUsersYield</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="SearchUsersParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Search.Users <a href="#/?id=searchusers">(Go to definition)</a></p>
+
+<p>
+<p>Searches for users. Returns data from the local
+database and the API, via <code class="typename"><span class="type notification">SearchUsersYield</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Game
 
 
@@ -3914,6 +4026,84 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>SearchGamesYield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchGamesParams__TypeHint">Search.Games</span></code></p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SearchGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>SearchGamesYield <a href="#/?id=searchgamesyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Games</span></code></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>SearchUsersYield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchUsersParams__TypeHint">Search.Users</span></code> when results are available</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>users</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SearchUsersYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>SearchUsersYield <a href="#/?id=searchusersyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Users</span></code> when results are available</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>users</code></td>
+<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
 </tr>
 </table>
 
