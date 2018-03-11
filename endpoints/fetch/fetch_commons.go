@@ -28,9 +28,9 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 
 	var installLocations []*buse.InstallLocationSummary
 	err = rc.DB().Raw(`
-		SELECT sum(coalesce(installed_size, 0)) as size, install_location
+		SELECT sum(coalesce(installed_size, 0)) as size, install_location_id
 		FROM caves
-		GROUP BY install_location
+		GROUP BY install_location_id
 	`).Scan(&installLocations).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
