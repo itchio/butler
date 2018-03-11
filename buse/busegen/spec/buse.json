@@ -159,6 +159,66 @@
       }
     },
     {
+      "method": "Profile.Data.Put",
+      "doc": "Stores some data associated to a profile, by key.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "key",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Profile.Data.Get",
+      "doc": "Retrieves some data associated to a profile, by key.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "key",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "ok",
+            "doc": "True if the value existed",
+            "type": "boolean"
+          },
+          {
+            "name": "value",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Search.Games",
       "doc": "Searches for games. Returns data from the local\ndatabase and the API, via @@SearchGamesYieldNotification.",
       "caller": "client",

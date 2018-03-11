@@ -291,6 +291,66 @@ func (r *ProfileForgetType) Register(router *buse.Router, f func(*buse.RequestCo
 
 var ProfileForget *ProfileForgetType
 
+// Profile.Data.Put (Request)
+
+type ProfileDataPutType struct {}
+
+var _ RequestMessage = (*ProfileDataPutType)(nil)
+
+func (r *ProfileDataPutType) Method() string {
+  return "Profile.Data.Put"
+}
+
+func (r *ProfileDataPutType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.ProfileDataPutParams) (*buse.ProfileDataPutResult, error)) {
+  router.Register("Profile.Data.Put", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.ProfileDataPutParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.Data.Put")
+    }
+    return res, nil
+  })
+}
+
+var ProfileDataPut *ProfileDataPutType
+
+// Profile.Data.Get (Request)
+
+type ProfileDataGetType struct {}
+
+var _ RequestMessage = (*ProfileDataGetType)(nil)
+
+func (r *ProfileDataGetType) Method() string {
+  return "Profile.Data.Get"
+}
+
+func (r *ProfileDataGetType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.ProfileDataGetParams) (*buse.ProfileDataGetResult, error)) {
+  router.Register("Profile.Data.Get", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.ProfileDataGetParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.Data.Get")
+    }
+    return res, nil
+  })
+}
+
+var ProfileDataGet *ProfileDataGetType
+
 
 //==============================
 // Fetch
@@ -1649,6 +1709,8 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
   if _, ok := router.Handlers["Profile.UseSavedLogin"]; !ok { panic("missing request handler for (Profile.UseSavedLogin)") }
   if _, ok := router.Handlers["Profile.Forget"]; !ok { panic("missing request handler for (Profile.Forget)") }
+  if _, ok := router.Handlers["Profile.Data.Put"]; !ok { panic("missing request handler for (Profile.Data.Put)") }
+  if _, ok := router.Handlers["Profile.Data.Get"]; !ok { panic("missing request handler for (Profile.Data.Get)") }
   if _, ok := router.Handlers["Search.Games"]; !ok { panic("missing request handler for (Search.Games)") }
   if _, ok := router.Handlers["Search.Users"]; !ok { panic("missing request handler for (Search.Users)") }
   if _, ok := router.Handlers["Fetch.Game"]; !ok { panic("missing request handler for (Fetch.Game)") }

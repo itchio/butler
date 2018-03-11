@@ -21,4 +21,5 @@ var AllModels = []interface{}{
 	&InstallLocation{},
 	&itchio.Upload{},
 	&itchio.Build{},
+	&ProfileData{},
 }

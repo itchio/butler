@@ -13,6 +13,8 @@ func Register(router *buse.Router) {
 	messages.ProfileLoginWithPassword.Register(router, LoginWithPassword)
 	messages.ProfileUseSavedLogin.Register(router, UseSavedLogin)
 	messages.ProfileForget.Register(router, Forget)
+	messages.ProfileDataPut.Register(router, DataPut)
+	messages.ProfileDataGet.Register(router, DataGet)
 }
 
 func List(rc *buse.RequestContext, params *buse.ProfileListParams) (*buse.ProfileListResult, error) {

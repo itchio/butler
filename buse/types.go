@@ -143,6 +143,36 @@ type ProfileForgetResult struct {
 	Success bool `json:"success"`
 }
 
+// Stores some data associated to a profile, by key.
+//
+// @name Profile.Data.Put
+// @category Profile
+// @caller client
+type ProfileDataPutParams struct {
+	ProfileID int64  `json:"profileId"`
+	Key       string `json:"key"`
+	Value     string `json:"value"`
+}
+
+type ProfileDataPutResult struct {
+}
+
+// Retrieves some data associated to a profile, by key.
+//
+// @name Profile.Data.Get
+// @category Profile
+// @caller client
+type ProfileDataGetParams struct {
+	ProfileID int64  `json:"profileId"`
+	Key       string `json:"key"`
+}
+
+type ProfileDataGetResult struct {
+	// True if the value existed
+	OK    bool   `json:"ok"`
+	Value string `json:"value"`
+}
+
 //----------------------------------------------------------------------
 // Search
 //----------------------------------------------------------------------
