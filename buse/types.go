@@ -181,7 +181,7 @@ type ProfileDataGetResult struct {
 // database and the API, via @@SearchGamesYieldNotification.
 //
 // @name Search.Games
-// @category Fetch
+// @category Search
 // @caller client
 type SearchGamesParams struct {
 	ProfileID int64 `json:"profileId"`
@@ -193,6 +193,8 @@ type SearchGamesResult struct {
 }
 
 // Sent during @@SearchGamesParams
+//
+// @category Search
 type SearchGamesYieldNotification struct {
 	Games []*itchio.Game `json:"games"`
 }
@@ -201,7 +203,7 @@ type SearchGamesYieldNotification struct {
 // database and the API, via @@SearchUsersYieldNotification.
 //
 // @name Search.Users
-// @category Fetch
+// @category Search
 // @caller client
 type SearchUsersParams struct {
 	ProfileID int64 `json:"profileId"`
@@ -209,12 +211,14 @@ type SearchUsersParams struct {
 	Query string `json:"query"`
 }
 
-// Sent during @@SearchUsersParams when results are available
-type SearchUsersYieldNotification struct {
-	Users []*itchio.User `json:"users"`
+type SearchUsersResult struct {
 }
 
-type SearchUsersResult struct {
+// Sent during @@SearchUsersParams when results are available
+//
+// @category Search
+type SearchUsersYieldNotification struct {
+	Users []*itchio.User `json:"users"`
 }
 
 //----------------------------------------------------------------------
@@ -414,8 +418,20 @@ type CaveInstallInfo struct {
 }
 
 type InstallLocationSummary struct {
-	InstallLocation string `json:"installLocation"`
-	Size            int64  `json:"size"`
+	ID       string                   `json:"id"`
+	Path     string                   `json:"path"`
+	SizeInfo *InstallLocationSizeInfo `json:"sizeInfo,omitempty"`
+}
+
+type InstallLocationSizeInfo struct {
+	// Number of bytes used by caves installed in this location
+	InstalledSize int64 `json:"installedSize"`
+	// Free space at this location (depends on the partition/disk on which
+	// it is), or a negative value if we can't find it
+	FreeSize int64 `json:"freeSize"`
+	// Total space of this location (depends on the partition/disk on which
+	// it is), or a negative value if we can't find it
+	TotalSize int64 `json:"totalSize"`
 }
 
 // Retrieve info for all caves.
@@ -755,6 +771,41 @@ type InstallResult struct {
 	// @optional
 	Build *itchio.Build `json:"build"`
 	// TODO: verdict ?
+}
+
+// @name Install.Locations.List
+// @category Install
+// @caller client
+type InstallLocationsListParams struct {
+}
+
+type InstallLocationsListResult struct {
+	InstallLocations []*InstallLocationSummary `json:"installLocations"`
+}
+
+// @name Install.Locations.Add
+// @category Install
+// @caller client
+type InstallLocationsAddParams struct {
+	// identifier of the new install location
+	ID string `json:"id"`
+
+	// path of the new install location
+	Path string `json:"path"`
+}
+
+type InstallLocationsAddResult struct {
+}
+
+// @name Install.Locations.Remove
+// @category Install
+// @caller client
+type InstallLocationsRemoveParams struct {
+	// identifier of the install location to remove
+	ID string `json:"id"`
+}
+
+type InstallLocationsRemoveResult struct {
 }
 
 //----------------------------------------------------------------------

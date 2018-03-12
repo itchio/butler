@@ -50,38 +50,6 @@ var VersionGet *VersionGetType
 // Miscellaneous
 //==============================
 
-// SearchGamesYield (Notification)
-
-type SearchGamesYieldType struct {}
-
-var _ NotificationMessage = (*SearchGamesYieldType)(nil)
-
-func (r *SearchGamesYieldType) Method() string {
-  return "SearchGamesYield"
-}
-
-func (r *SearchGamesYieldType) Notify(rc *buse.RequestContext, params *buse.SearchGamesYieldNotification) (error) {
-  return rc.Notify("SearchGamesYield", params)
-}
-
-var SearchGamesYield *SearchGamesYieldType
-
-// SearchUsersYield (Notification)
-
-type SearchUsersYieldType struct {}
-
-var _ NotificationMessage = (*SearchUsersYieldType)(nil)
-
-func (r *SearchUsersYieldType) Method() string {
-  return "SearchUsersYield"
-}
-
-func (r *SearchUsersYieldType) Notify(rc *buse.RequestContext, params *buse.SearchUsersYieldNotification) (error) {
-  return rc.Notify("SearchUsersYield", params)
-}
-
-var SearchUsersYield *SearchUsersYieldType
-
 // Downloads.Drive.Progress (Notification)
 
 type DownloadsDriveProgressType struct {}
@@ -353,7 +321,7 @@ var ProfileDataGet *ProfileDataGetType
 
 
 //==============================
-// Fetch
+// Search
 //==============================
 
 // Search.Games (Request)
@@ -386,6 +354,22 @@ func (r *SearchGamesType) Register(router *buse.Router, f func(*buse.RequestCont
 
 var SearchGames *SearchGamesType
 
+// SearchGamesYield (Notification)
+
+type SearchGamesYieldType struct {}
+
+var _ NotificationMessage = (*SearchGamesYieldType)(nil)
+
+func (r *SearchGamesYieldType) Method() string {
+  return "SearchGamesYield"
+}
+
+func (r *SearchGamesYieldType) Notify(rc *buse.RequestContext, params *buse.SearchGamesYieldNotification) (error) {
+  return rc.Notify("SearchGamesYield", params)
+}
+
+var SearchGamesYield *SearchGamesYieldType
+
 // Search.Users (Request)
 
 type SearchUsersType struct {}
@@ -415,6 +399,27 @@ func (r *SearchUsersType) Register(router *buse.Router, f func(*buse.RequestCont
 }
 
 var SearchUsers *SearchUsersType
+
+// SearchUsersYield (Notification)
+
+type SearchUsersYieldType struct {}
+
+var _ NotificationMessage = (*SearchUsersYieldType)(nil)
+
+func (r *SearchUsersYieldType) Method() string {
+  return "SearchUsersYield"
+}
+
+func (r *SearchUsersYieldType) Notify(rc *buse.RequestContext, params *buse.SearchUsersYieldNotification) (error) {
+  return rc.Notify("SearchUsersYield", params)
+}
+
+var SearchUsersYield *SearchUsersYieldType
+
+
+//==============================
+// Fetch
+//==============================
 
 // Fetch.Game (Request)
 
@@ -1064,6 +1069,96 @@ func (r *TaskSucceededType) Notify(rc *buse.RequestContext, params *buse.TaskSuc
 }
 
 var TaskSucceeded *TaskSucceededType
+
+// Install.Locations.List (Request)
+
+type InstallLocationsListType struct {}
+
+var _ RequestMessage = (*InstallLocationsListType)(nil)
+
+func (r *InstallLocationsListType) Method() string {
+  return "Install.Locations.List"
+}
+
+func (r *InstallLocationsListType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallLocationsListParams) (*buse.InstallLocationsListResult, error)) {
+  router.Register("Install.Locations.List", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallLocationsListParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.List")
+    }
+    return res, nil
+  })
+}
+
+var InstallLocationsList *InstallLocationsListType
+
+// Install.Locations.Add (Request)
+
+type InstallLocationsAddType struct {}
+
+var _ RequestMessage = (*InstallLocationsAddType)(nil)
+
+func (r *InstallLocationsAddType) Method() string {
+  return "Install.Locations.Add"
+}
+
+func (r *InstallLocationsAddType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallLocationsAddParams) (*buse.InstallLocationsAddResult, error)) {
+  router.Register("Install.Locations.Add", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallLocationsAddParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.Add")
+    }
+    return res, nil
+  })
+}
+
+var InstallLocationsAdd *InstallLocationsAddType
+
+// Install.Locations.Remove (Request)
+
+type InstallLocationsRemoveType struct {}
+
+var _ RequestMessage = (*InstallLocationsRemoveType)(nil)
+
+func (r *InstallLocationsRemoveType) Method() string {
+  return "Install.Locations.Remove"
+}
+
+func (r *InstallLocationsRemoveType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallLocationsRemoveParams) (*buse.InstallLocationsRemoveResult, error)) {
+  router.Register("Install.Locations.Remove", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallLocationsRemoveParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.Remove")
+    }
+    return res, nil
+  })
+}
+
+var InstallLocationsRemove *InstallLocationsRemoveType
 
 
 //==============================
@@ -1729,6 +1824,9 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
   if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }
   if _, ok := router.Handlers["Install.VersionSwitch.Queue"]; !ok { panic("missing request handler for (Install.VersionSwitch.Queue)") }
+  if _, ok := router.Handlers["Install.Locations.List"]; !ok { panic("missing request handler for (Install.Locations.List)") }
+  if _, ok := router.Handlers["Install.Locations.Add"]; !ok { panic("missing request handler for (Install.Locations.Add)") }
+  if _, ok := router.Handlers["Install.Locations.Remove"]; !ok { panic("missing request handler for (Install.Locations.Remove)") }
   if _, ok := router.Handlers["Downloads.Queue"]; !ok { panic("missing request handler for (Downloads.Queue)") }
   if _, ok := router.Handlers["Downloads.Prioritize"]; !ok { panic("missing request handler for (Downloads.Prioritize)") }
   if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }

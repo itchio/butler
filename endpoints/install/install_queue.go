@@ -47,6 +47,9 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 				return nil, errors.New("When caveId is unspecified, installLocationId must be set")
 			}
 			installLocation = models.InstallLocationByID(rc.DB(), queueParams.InstallLocationID)
+			if installLocation == nil {
+				return nil, errors.Errorf("Install location not found (%s)", queueParams.InstallLocationID)
+			}
 		} else {
 			cave = operate.ValidateCave(rc, queueParams.CaveID)
 			if queueParams.Game == nil {

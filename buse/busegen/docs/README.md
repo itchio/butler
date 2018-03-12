@@ -622,7 +622,7 @@ two-factor authentication enabled.</p>
 </div>
 
 
-## Fetch
+## Search
 
 ### <em class="request-client-caller"></em>Search.Games
 
@@ -675,6 +675,45 @@ database and the API, via <code class="typename"><span class="type notification"
 <tr>
 <td><code>query</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>SearchGamesYield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchGamesParams__TypeHint">Search.Games</span></code></p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SearchGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>SearchGamesYield <a href="#/?id=searchgamesyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Games</span></code></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 </table>
 
@@ -735,6 +774,48 @@ database and the API, via <code class="typename"><span class="type notification"
 </table>
 
 </div>
+
+### <em class="notification"></em>SearchUsersYield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchUsersParams__TypeHint">Search.Users</span></code> when results are available</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>users</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SearchUsersYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>SearchUsersYield <a href="#/?id=searchusersyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Users</span></code> when results are available</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>users</code></td>
+<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+
+## Fetch
 
 ### <em class="request-client-caller"></em>Fetch.Game
 
@@ -2474,6 +2555,121 @@ info about the game, upload, build that were installed</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Install.Locations.List
+
+
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocations</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallLocationsListParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Locations.List <a href="#/?id=installlocationslist">(Go to definition)</a></p>
+
+</div>
+
+### <em class="request-client-caller"></em>Install.Locations.Add
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>identifier of the new install location</p>
+</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>path of the new install location</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="InstallLocationsAddParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Locations.Add <a href="#/?id=installlocationsadd">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Install.Locations.Remove
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>identifier of the install location to remove</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="InstallLocationsRemoveParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Locations.Remove <a href="#/?id=installlocationsremove">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Downloads
 
@@ -4163,84 +4359,6 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="notification"></em>SearchGamesYield
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchGamesParams__TypeHint">Search.Games</span></code></p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="SearchGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>SearchGamesYield <a href="#/?id=searchgamesyield">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Games</span></code></p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>SearchUsersYield
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchUsersParams__TypeHint">Search.Users</span></code> when results are available</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="SearchUsersYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>SearchUsersYield <a href="#/?id=searchusersyield">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Users</span></code> when results are available</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
 ### <em class="struct-type"></em>ProfileGame
 
 
@@ -4631,13 +4749,18 @@ ie. that we can connect as, etc.</p>
 
 <table class="field-table">
 <tr>
-<td><code>installLocation</code></td>
+<td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
 <tr>
-<td><code>size</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sizeInfo</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSizeInfo__TypeHint">InstallLocationSizeInfo</span></code></td>
 <td></td>
 </tr>
 </table>
@@ -4649,11 +4772,69 @@ ie. that we can connect as, etc.</p>
 
 <table class="field-table">
 <tr>
-<td><code>installLocation</code></td>
+<td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>size</code></td>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sizeInfo</code></td>
+<td><code class="typename"><span class="type struct-type">InstallLocationSizeInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>InstallLocationSizeInfo
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of bytes used by caves installed in this location</p>
+</td>
+</tr>
+<tr>
+<td><code>freeSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Free space at this location (depends on the partition/disk on which
+it is), or a negative value if we can&rsquo;t find it</p>
+</td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total space of this location (depends on the partition/disk on which
+it is), or a negative value if we can&rsquo;t find it</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallLocationSizeInfo__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>InstallLocationSizeInfo <a href="#/?id=installlocationsizeinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>freeSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>

@@ -26,14 +26,33 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var installLocations []*buse.InstallLocationSummary
+	var rows []struct {
+		InstalledSize int64
+		ID            string
+	}
 	err = rc.DB().Raw(`
-		SELECT sum(coalesce(installed_size, 0)) as size, install_location_id
+		SELECT
+			sum(coalesce(installed_size, 0)) AS installed_size,
+			install_location_id AS id
 		FROM caves
 		GROUP BY install_location_id
-	`).Scan(&installLocations).Error
+	`).Scan(&rows).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
+	}
+
+	var installLocations []*buse.InstallLocationSummary
+	for _, row := range rows {
+		installLocations = append(installLocations, &buse.InstallLocationSummary{
+			ID: row.ID,
+			// TODO: what about path?
+			SizeInfo: &buse.InstallLocationSizeInfo{
+				InstalledSize: row.InstalledSize,
+				// TODO: fill in
+				TotalSize: -1,
+				FreeSize:  -1,
+			},
+		})
 	}
 
 	res := &buse.FetchCommonsResult{

@@ -741,6 +741,62 @@
       }
     },
     {
+      "method": "Install.Locations.List",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "installLocations",
+            "doc": "",
+            "type": "InstallLocationSummary[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.Locations.Add",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "identifier of the new install location",
+            "type": "string"
+          },
+          {
+            "name": "path",
+            "doc": "path of the new install location",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Install.Locations.Remove",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "identifier of the install location to remove",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Downloads.Queue",
       "doc": "Queue a download that will be performed later by\n@@DownloadsDriveParams.",
       "caller": "client",
@@ -1152,32 +1208,6 @@
   ],
   "notifications": [
     {
-      "method": "SearchGamesYield",
-      "doc": "Sent during @@SearchGamesParams",
-      "params": {
-        "fields": [
-          {
-            "name": "games",
-            "doc": "",
-            "type": "Game[]"
-          }
-        ]
-      }
-    },
-    {
-      "method": "SearchUsersYield",
-      "doc": "Sent during @@SearchUsersParams when results are available",
-      "params": {
-        "fields": [
-          {
-            "name": "users",
-            "doc": "",
-            "type": "User[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "Downloads.Drive.Progress",
       "doc": "",
       "params": {
@@ -1227,6 +1257,32 @@
             "name": "message",
             "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "SearchGamesYield",
+      "doc": "Sent during @@SearchGamesParams",
+      "params": {
+        "fields": [
+          {
+            "name": "games",
+            "doc": "",
+            "type": "Game[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "SearchUsersYield",
+      "doc": "Sent during @@SearchUsersParams when results are available",
+      "params": {
+        "fields": [
+          {
+            "name": "users",
+            "doc": "",
+            "type": "User[]"
           }
         ]
       }
@@ -1684,13 +1740,39 @@
       "doc": "",
       "fields": [
         {
-          "name": "installLocation",
+          "name": "id",
           "doc": "",
           "type": "string"
         },
         {
-          "name": "size",
+          "name": "path",
           "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "sizeInfo",
+          "doc": "",
+          "type": "InstallLocationSizeInfo"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationSizeInfo",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installedSize",
+          "doc": "Number of bytes used by caves installed in this location",
+          "type": "number"
+        },
+        {
+          "name": "freeSize",
+          "doc": "Free space at this location (depends on the partition/disk on which\nit is), or a negative value if we can't find it",
+          "type": "number"
+        },
+        {
+          "name": "totalSize",
+          "doc": "Total space of this location (depends on the partition/disk on which\nit is), or a negative value if we can't find it",
           "type": "number"
         }
       ]
