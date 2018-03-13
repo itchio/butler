@@ -18,8 +18,8 @@ func StatFS(path string) (*buse.SystemStatFSResult, error) {
 
 	// XXX: bad cast hygiene. For very, very, very, very
 	// large volumes, this will overflow.
-	var freeSize int64 = int64(stats.Bavail) * stats.Bsize
-	var totalSize int64 = int64(stats.Blocks) * stats.Bsize
+	var freeSize int64 = int64(stats.Bavail) * int64(stats.Bsize)
+	var totalSize int64 = int64(stats.Blocks) * int64(stats.Bsize)
 
 	res := &buse.SystemStatFSResult{
 		FreeSize:  freeSize,
