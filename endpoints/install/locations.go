@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -17,19 +18,8 @@ func InstallLocationsGetByID(rc *buse.RequestContext, params *buse.InstallLocati
 		return nil, errors.Errorf("install location (%s) not found", params.ID)
 	}
 
-	// TODO: fill disk space etc.
-
 	res := &buse.InstallLocationsGetByIDResult{
-		InstallLocation: &buse.InstallLocationSummary{
-			ID:   il.ID,
-			Path: il.Path,
-			SizeInfo: &buse.InstallLocationSizeInfo{
-				// TODO: fill in
-				InstalledSize: -1,
-				FreeSize:      -1,
-				TotalSize:     -1,
-			},
-		},
+		InstallLocation: fetch.FormatInstallLocation(rc, il),
 	}
 	return res, nil
 }
@@ -43,16 +33,7 @@ func InstallLocationsList(rc *buse.RequestContext, params *buse.InstallLocations
 
 	var flocs []*buse.InstallLocationSummary
 	for _, il := range locations {
-		flocs = append(flocs, &buse.InstallLocationSummary{
-			ID:   il.ID,
-			Path: il.Path,
-			SizeInfo: &buse.InstallLocationSizeInfo{
-				// TODO: fill in
-				InstalledSize: -1,
-				FreeSize:      -1,
-				TotalSize:     -1,
-			},
-		})
+		flocs = append(flocs, fetch.FormatInstallLocation(rc, il))
 	}
 
 	res := &buse.InstallLocationsListResult{
