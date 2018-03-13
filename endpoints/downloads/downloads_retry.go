@@ -14,6 +14,7 @@ func DownloadsRetry(rc *buse.RequestContext, params *buse.DownloadsRetryParams) 
 		consumer.Warnf("No error, can't retry download")
 	} else {
 		download.Error = nil
+		download.FinishedAt = nil
 		download.Save(rc.DB())
 
 		consumer.Statf("Queued a retry for download for %s", operate.GameToString(download.Game))
