@@ -91,6 +91,16 @@ func InstallLocationsRemove(rc *buse.RequestContext, params *buse.InstallLocatio
 		return nil, errors.Errorf("Refusing to remove install location (%s) because it is not empty", params.ID)
 	}
 
+	var locationCount int64
+	err = rc.DB().Model(&models.InstallLocation{}).Count(&locationCount).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	if locationCount == 1 {
+		return nil, errors.Errorf("Refusing to remove last install location")
+	}
+
 	err = rc.DB().Delete(il).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
