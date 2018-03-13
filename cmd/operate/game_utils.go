@@ -234,3 +234,18 @@ func ValidateCave(rc *buse.RequestContext, caveID string) *models.Cave {
 
 	return cave
 }
+
+func UploadIsProbablyExternal(u *itchio.Upload) bool {
+	if u.ChannelName != "" {
+		// wharf uploads are definitely not external uploads
+		return false
+	}
+
+	if u.Size != 0 {
+		// uploads with a size are definitely not external uploads
+		return false
+	}
+
+	// everything else though... we don't know.
+	return true
+}

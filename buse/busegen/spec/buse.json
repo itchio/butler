@@ -612,6 +612,29 @@
       }
     },
     {
+      "method": "ExternalUploadsAreBad",
+      "doc": "Sent during @@InstallQueueParams.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "upload",
+            "doc": "",
+            "type": "Upload"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "whatever",
+            "doc": "If true, will proceed with install anyway. Otherwise aborts.",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Install.Perform",
       "doc": "Perform an install that was previously queued via\n@@InstallQueueParams.\n\nCan be cancelled by passing the same `ID` to @@InstallCancelParams.",
       "caller": "client",

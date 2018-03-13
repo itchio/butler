@@ -72,7 +72,7 @@ func (c *Copier) Do(params *CopyParams) error {
 				// cool, we're done!
 				return nil
 			}
-			return errors.Wrap(err, 0)
+			return errors.Wrap(readErr, 0)
 		}
 
 		if c.SaveConsumer.ShouldSave(int64(n)) {

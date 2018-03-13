@@ -273,7 +273,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "aecadb31b7471123ad4ab7cb48ce7c0faf9ce166",
+			"revision": "539929e4d64d2d5693eeffe85e2460e865075f13",
 			"branch": "master",
 			"notests": true
 		},
@@ -297,7 +297,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "2014ab6e854e4e0e2dc4cda82916d4f9d9b44ba7",
+			"revision": "61743c9c002d37931529a3432135c87ad7b2f44c",
 			"branch": "master",
 			"notests": true
 		},

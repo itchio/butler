@@ -1855,6 +1855,61 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+### <em class="request-server-caller"></em>ExternalUploadsAreBad
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>whatever</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>If true, will proceed with install anyway. Otherwise aborts.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ExternalUploadsAreBadParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>ExternalUploadsAreBad <a href="#/?id=externaluploadsarebad">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Install.Queue</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Perform
 
 

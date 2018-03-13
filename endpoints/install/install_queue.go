@@ -214,6 +214,21 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		}
 	}
 
+	if operate.UploadIsProbablyExternal(params.Upload) {
+		res, err := messages.ExternalUploadsAreBad.Call(rc, &buse.ExternalUploadsAreBadParams{
+			Upload: params.Upload,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if res.Whatever {
+			// let's keep going then.
+		} else {
+			return nil, &buse.ErrAborted{}
+		}
+	}
+
 	oc.Save(meta)
 
 	res := &buse.InstallQueueResult{

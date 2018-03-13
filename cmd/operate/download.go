@@ -4,6 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/itchio/httpkit/httpfile"
+
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/savior"
 
@@ -61,6 +63,15 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 				continue
 			}
 
+			if se, ok := asServerError(err); ok {
+				if se.Code == httpfile.ServerErrorCodeNoRangeSupport {
+					consumer.Warnf("%s does not support range requests (boo, hiss), we have to start over", se.Host)
+					checkpoint = nil
+					retryCtx.Retry(err.Error())
+					continue
+				}
+			}
+
 			// if it's not an integrity error, just bubble it up
 			return err
 		}
@@ -69,4 +80,20 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 	}
 
 	return errors.New("download: too many errors, giving up")
+}
+
+func asServerError(err error) (*httpfile.ServerError, bool) {
+	if err == nil {
+		return nil, false
+	}
+
+	if se, ok := err.(*errors.Error); ok {
+		return asServerError(se.Err)
+	}
+
+	if se, ok := err.(*httpfile.ServerError); ok {
+		return se, true
+	}
+
+	return nil, false
 }

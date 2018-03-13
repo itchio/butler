@@ -866,6 +866,24 @@ func (r *InstallQueueType) Register(router *buse.Router, f func(*buse.RequestCon
 
 var InstallQueue *InstallQueueType
 
+// ExternalUploadsAreBad (Request)
+
+type ExternalUploadsAreBadType struct {}
+
+var _ RequestMessage = (*ExternalUploadsAreBadType)(nil)
+
+func (r *ExternalUploadsAreBadType) Method() string {
+  return "ExternalUploadsAreBad"
+}
+
+func (r *ExternalUploadsAreBadType) Call(rc *buse.RequestContext, params *buse.ExternalUploadsAreBadParams) (*buse.ExternalUploadsAreBadResult, error) {
+  var result buse.ExternalUploadsAreBadResult
+  err := rc.Call("ExternalUploadsAreBad", params, &result)
+  return &result, err
+}
+
+var ExternalUploadsAreBad *ExternalUploadsAreBadType
+
 // Install.Perform (Request)
 
 type InstallPerformType struct {}

@@ -88,6 +88,7 @@ type HTTPFile struct {
 	currentURL string
 	urlMutex   sync.Mutex
 	header     http.Header
+	requestURL *url.URL
 
 	stats *hstats
 
@@ -188,13 +189,21 @@ func (nre *NeedsRenewalError) Error() string {
 	return "url has expired and needs renewal"
 }
 
+type ServerErrorCode int64
+
+const (
+	ServerErrorCodeUnknown ServerErrorCode = iota
+	ServerErrorCodeNoRangeSupport
+)
+
 type ServerError struct {
-	host    string
-	message string
+	Host    string
+	Message string
+	Code    ServerErrorCode
 }
 
 func (se *ServerError) Error() string {
-	return fmt.Sprintf("server error: for host %s: %s", se.host, se.message)
+	return fmt.Sprintf("server error: for host %s: %s", se.Host, se.Message)
 }
 
 func (hr *httpReader) Connect() error {
@@ -228,7 +237,7 @@ func (hr *httpReader) Connect() error {
 		if res.StatusCode == 200 && hr.offset > 0 {
 			hf.log("Connect.tryURL: HTTP range header not supported")
 			defer res.Body.Close()
-			return &ServerError{host: req.Host, message: fmt.Sprintf("HTTP Range header not supported")}
+			return &ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP Range header not supported"), Code: ServerErrorCodeNoRangeSupport}
 		}
 
 		if res.StatusCode/100 != 2 {
@@ -247,7 +256,7 @@ func (hr *httpReader) Connect() error {
 			}
 
 			hf.log("Connect.tryURL: no renewal")
-			return &ServerError{host: req.Host, message: fmt.Sprintf("HTTP %d received, body = %s", res.StatusCode, string(body))}
+			return &ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP %d received, body = %s", res.StatusCode, string(body))}
 		}
 
 		hr.reader = bufio.NewReaderSize(res.Body, int(maxDiscard))
@@ -381,12 +390,6 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			return nil, err
 		}
 
-		parsedURL, err := url.Parse(urlStr)
-		if err != nil {
-			// can't recover from a bad url
-			return nil, err
-		}
-
 		// This used to be `HEAD`, but some servers (looking at you Amazon S3)
 		// didn't like it.
 
@@ -411,6 +414,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		}
 
 		hf.header = res.Header
+		hf.requestURL = res.Request.URL
 
 		err = res.Body.Close()
 		if err != nil {
@@ -458,7 +462,12 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		}
 
 		hf.currentURL = urlStr
-		hf.name = parsedURL.Path
+
+		// we have to use requestURL because we want the URL after
+		// redirect (for hosts like sourceforge)
+		pathTokens := strings.Split(hf.requestURL.Path, "/")
+		hf.name = pathTokens[len(pathTokens)-1]
+
 		dispHeader := res.Header.Get("content-disposition")
 		if dispHeader != "" {
 			_, mimeParams, err := mime.ParseMediaType(dispHeader)
@@ -835,6 +844,10 @@ func (hf *HTTPFile) log2(format string, args ...interface{}) {
 // which could be used for integrity checking.
 func (hf *HTTPFile) GetHeader() http.Header {
 	return hf.header
+}
+
+func (hf *HTTPFile) GetRequestURL() *url.URL {
+	return hf.requestURL
 }
 
 func generateID() int64 {

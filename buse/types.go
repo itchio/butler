@@ -586,6 +586,20 @@ type InstallQueueResult struct {
 	StagingFolder string         `json:"stagingFolder"`
 }
 
+// Sent during @@InstallQueueParams.
+//
+// @name ExternalUploadsAreBad
+// @category Install
+// @caller server
+type ExternalUploadsAreBadParams struct {
+	Upload *itchio.Upload `json:"upload"`
+}
+
+type ExternalUploadsAreBadResult struct {
+	// If true, will proceed with install anyway. Otherwise aborts.
+	Whatever bool `json:"whatever"`
+}
+
 // Perform an install that was previously queued via
 // @@InstallQueueParams.
 //

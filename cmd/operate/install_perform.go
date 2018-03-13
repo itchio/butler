@@ -189,7 +189,74 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		return errors.Wrap(err, 0)
 	}
 
-	if istate.InstallerInfo == nil {
+	doForceLocal := func() (eos.File, error) {
+		destName := filepath.Base(stats.Name())
+		destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
+
+		if istate.IsAvailableLocally {
+			consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
+		} else {
+			consumer.Infof("Install source needs to be available locally, copying to disk...")
+
+			dlErr := func() error {
+				err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
+					Reason:    buse.TaskReasonInstall,
+					Type:      buse.TaskTypeDownload,
+					Game:      params.Game,
+					Upload:    params.Upload,
+					Build:     params.Build,
+					TotalSize: stats.Size(),
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				oc.rc.StartProgress()
+				err := DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
+				oc.rc.EndProgress()
+				oc.consumer.Progress(0)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+
+				err = messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
+					Type: buse.TaskTypeDownload,
+				})
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
+				return nil
+			}()
+
+			if dlErr != nil {
+				return nil, errors.Wrap(dlErr, 0)
+			}
+
+			istate.IsAvailableLocally = true
+			oc.Save(isub)
+		}
+
+		ret, err := eos.Open(destPath)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		return ret, nil
+	}
+
+	if params.Build == nil && UploadIsProbablyExternal(params.Upload) {
+		consumer.Warnf("Dealing with an external upload, all bets are off.")
+		consumer.Warnf("Forcing download before we check anything else.")
+
+		lf, err := doForceLocal()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		file.Close()
+		file = lf
+	}
+
+	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == installer.InstallerTypeUnknown {
 		consumer.Infof("Determining source information...")
 
 		installerInfo, err := installer.GetInstallerInfo(consumer, file)
@@ -283,60 +350,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		var err error
 		firstInstallResult, err = tryInstall()
 		if err != nil && errors.Is(err, installer.ErrNeedLocal) {
-			destName := filepath.Base(stats.Name())
-			destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
-
-			if istate.IsAvailableLocally {
-				consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
-			} else {
-				consumer.Infof("Install source needs to be available locally, copying to disk...")
-
-				dlErr := func() error {
-					err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
-						Reason:    buse.TaskReasonInstall,
-						Type:      buse.TaskTypeDownload,
-						Game:      params.Game,
-						Upload:    params.Upload,
-						Build:     params.Build,
-						TotalSize: stats.Size(),
-					})
-					if err != nil {
-						return errors.Wrap(err, 0)
-					}
-
-					oc.rc.StartProgress()
-					err := DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
-					oc.rc.EndProgress()
-					oc.consumer.Progress(0)
-					if err != nil {
-						return errors.Wrap(err, 0)
-					}
-
-					err = messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
-						Type: buse.TaskTypeDownload,
-					})
-					if err != nil {
-						return errors.Wrap(err, 0)
-					}
-					return nil
-				}()
-
-				if dlErr != nil {
-					return errors.Wrap(dlErr, 0)
-				}
-
-				istate.IsAvailableLocally = true
-				oc.Save(isub)
+			lf, localErr := doForceLocal()
+			if localErr != nil {
+				return errors.Wrap(err, 0)
 			}
 
 			consumer.Infof("Re-invoking manager with local file...")
-			{
-				lf, err := os.Open(destPath)
-				if err != nil {
-					return errors.Wrap(err, 0)
-				}
-				managerInstallParams.File = lf
-			}
+			managerInstallParams.File = lf
 
 			firstInstallResult, err = tryInstall()
 		}
