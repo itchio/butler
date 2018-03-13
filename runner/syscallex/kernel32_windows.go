@@ -26,8 +26,9 @@ var (
 	procQueryInformationJobObject = modkernel32.NewProc("QueryInformationJobObject")
 	procAssignProcessToJobObject  = modkernel32.NewProc("AssignProcessToJobObject")
 
-	procGetCurrentThread = modkernel32.NewProc("GetCurrentThread")
-	procOpenThreadToken  = modkernel32.NewProc("OpenThreadToken")
+	procGetCurrentThread    = modkernel32.NewProc("GetCurrentThread")
+	procOpenThreadToken     = modkernel32.NewProc("OpenThreadToken")
+	procGetDiskFreeSpaceExW = modkernel32.NewProc("GetDiskFreeSpaceExW")
 )
 
 func CreateJobObject(
@@ -172,4 +173,33 @@ func OpenThreadToken(
 		}
 	}
 	return
+}
+
+type DiskFreeSpace struct {
+	FreeBytesAvailable     uint64
+	TotalNumberOfBytes     uint64
+	TotalNumberOfFreeBytes uint64
+}
+
+func GetDiskFreeSpaceEx(path *uint16) (dfs *DiskFreeSpace, err error) {
+	var buf DiskFreeSpace
+	dfs = &buf
+
+	r1, _, e1 := syscall.Syscall6(
+		procGetDiskFreeSpaceExW.Addr(),
+		4,
+		uintptr(unsafe.Pointer(path)),
+		uintptr(unsafe.Pointer(&buf.FreeBytesAvailable)),
+		uintptr(unsafe.Pointer(&buf.TotalNumberOfBytes)),
+		uintptr(unsafe.Pointer(&buf.TotalNumberOfFreeBytes)),
+		0, 0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return dfs, err
 }
