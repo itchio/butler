@@ -6,6 +6,33 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
+func InstallLocationsGetByID(rc *buse.RequestContext, params *buse.InstallLocationsGetByIDParams) (*buse.InstallLocationsGetByIDResult, error) {
+	if params.ID == "" {
+		return nil, errors.Errorf("id must be set")
+	}
+
+	il := models.InstallLocationByID(rc.DB(), params.ID)
+	if il == nil {
+		return nil, errors.Errorf("install location (%s) not found", params.ID)
+	}
+
+	// TODO: fill disk space etc.
+
+	res := &buse.InstallLocationsGetByIDResult{
+		InstallLocation: &buse.InstallLocationSummary{
+			ID:   il.ID,
+			Path: il.Path,
+			SizeInfo: &buse.InstallLocationSizeInfo{
+				// TODO: fill in
+				InstalledSize: -1,
+				FreeSize:      -1,
+				TotalSize:     -1,
+			},
+		},
+	}
+	return res, nil
+}
+
 func InstallLocationsList(rc *buse.RequestContext, params *buse.InstallLocationsListParams) (*buse.InstallLocationsListResult, error) {
 	var locations []*models.InstallLocation
 	err := rc.DB().Find(&locations).Error
@@ -14,10 +41,10 @@ func InstallLocationsList(rc *buse.RequestContext, params *buse.InstallLocations
 	}
 
 	var flocs []*buse.InstallLocationSummary
-	for _, loc := range locations {
+	for _, il := range locations {
 		flocs = append(flocs, &buse.InstallLocationSummary{
-			ID:   loc.ID,
-			Path: loc.Path,
+			ID:   il.ID,
+			Path: il.Path,
 			SizeInfo: &buse.InstallLocationSizeInfo{
 				// TODO: fill in
 				InstalledSize: -1,

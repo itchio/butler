@@ -797,6 +797,29 @@
       }
     },
     {
+      "method": "Install.Locations.GetByID",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "identifier of the install location to remove",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "installLocation",
+            "doc": "",
+            "type": "InstallLocationSummary"
+          }
+        ]
+      }
+    },
+    {
       "method": "Downloads.Queue",
       "doc": "Queue a download that will be performed later by\n@@DownloadsDriveParams.",
       "caller": "client",

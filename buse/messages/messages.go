@@ -1160,6 +1160,36 @@ func (r *InstallLocationsRemoveType) Register(router *buse.Router, f func(*buse.
 
 var InstallLocationsRemove *InstallLocationsRemoveType
 
+// Install.Locations.GetByID (Request)
+
+type InstallLocationsGetByIDType struct {}
+
+var _ RequestMessage = (*InstallLocationsGetByIDType)(nil)
+
+func (r *InstallLocationsGetByIDType) Method() string {
+  return "Install.Locations.GetByID"
+}
+
+func (r *InstallLocationsGetByIDType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallLocationsGetByIDParams) (*buse.InstallLocationsGetByIDResult, error)) {
+  router.Register("Install.Locations.GetByID", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallLocationsGetByIDParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.GetByID")
+    }
+    return res, nil
+  })
+}
+
+var InstallLocationsGetByID *InstallLocationsGetByIDType
+
 
 //==============================
 // Downloads
@@ -1827,6 +1857,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Install.Locations.List"]; !ok { panic("missing request handler for (Install.Locations.List)") }
   if _, ok := router.Handlers["Install.Locations.Add"]; !ok { panic("missing request handler for (Install.Locations.Add)") }
   if _, ok := router.Handlers["Install.Locations.Remove"]; !ok { panic("missing request handler for (Install.Locations.Remove)") }
+  if _, ok := router.Handlers["Install.Locations.GetByID"]; !ok { panic("missing request handler for (Install.Locations.GetByID)") }
   if _, ok := router.Handlers["Downloads.Queue"]; !ok { panic("missing request handler for (Downloads.Queue)") }
   if _, ok := router.Handlers["Downloads.Prioritize"]; !ok { panic("missing request handler for (Downloads.Prioritize)") }
   if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }

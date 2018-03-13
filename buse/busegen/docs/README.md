@@ -2670,6 +2670,53 @@ info about the game, upload, build that were installed</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Install.Locations.GetByID
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>identifier of the install location to remove</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallLocationsGetByIDParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Locations.GetByID <a href="#/?id=installlocationsgetbyid">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Downloads
 

@@ -808,6 +808,18 @@ type InstallLocationsRemoveParams struct {
 type InstallLocationsRemoveResult struct {
 }
 
+// @name Install.Locations.GetByID
+// @category Install
+// @caller client
+type InstallLocationsGetByIDParams struct {
+	// identifier of the install location to remove
+	ID string `json:"id"`
+}
+
+type InstallLocationsGetByIDResult struct {
+	InstallLocation *InstallLocationSummary `json:"installLocation"`
+}
+
 //----------------------------------------------------------------------
 // Downloads
 //----------------------------------------------------------------------
