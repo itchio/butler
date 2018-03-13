@@ -787,7 +787,9 @@ type InstallLocationsListResult struct {
 // @category Install
 // @caller client
 type InstallLocationsAddParams struct {
-	// identifier of the new install location
+	// identifier of the new install location.
+	// if not specified, will be generated.
+	// @optional
 	ID string `json:"id"`
 
 	// path of the new install location

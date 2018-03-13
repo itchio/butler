@@ -2597,7 +2597,8 @@ info about the game, upload, build that were installed</p>
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>identifier of the new install location</p>
+<td><p><span class="tag">Optional</span> identifier of the new install location.
+if not specified, will be generated.</p>
 </td>
 </tr>
 <tr>

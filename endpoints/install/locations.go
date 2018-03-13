@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/database/models"
+	uuid "github.com/satori/go.uuid"
 )
 
 func InstallLocationsGetByID(rc *buse.RequestContext, params *buse.InstallLocationsGetByIDParams) (*buse.InstallLocationsGetByIDResult, error) {
@@ -63,21 +64,29 @@ func InstallLocationsList(rc *buse.RequestContext, params *buse.InstallLocations
 func InstallLocationsAdd(rc *buse.RequestContext, params *buse.InstallLocationsAddParams) (*buse.InstallLocationsAddResult, error) {
 	consumer := rc.Consumer
 
+	hadID := false
 	if params.ID == "" {
-		return nil, errors.New("id must be set")
+		hadID = true
+		freshUuid, err := uuid.NewV4()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		params.ID = freshUuid.String()
 	}
 	if params.Path == "" {
 		return nil, errors.New("path must be set")
 	}
 
-	existing := models.InstallLocationByID(rc.DB(), params.ID)
-	if existing != nil {
-		if existing.Path == params.Path {
-			consumer.Statf("(%s) exists, and has same path (%s), doing nothing", params.ID, params.Path)
-			res := &buse.InstallLocationsAddResult{}
-			return res, nil
+	if hadID {
+		existing := models.InstallLocationByID(rc.DB(), params.ID)
+		if existing != nil {
+			if existing.Path == params.Path {
+				consumer.Statf("(%s) exists, and has same path (%s), doing nothing", params.ID, params.Path)
+				res := &buse.InstallLocationsAddResult{}
+				return res, nil
+			}
+			return nil, errors.Errorf("(%s) exists but has path (%s) - we were passed (%s)", params.ID, existing.Path, params.Path)
 		}
-		return nil, errors.Errorf("(%s) exists but has path (%s) - we were passed (%s)", params.ID, existing.Path, params.Path)
 	}
 
 	il := &models.InstallLocation{

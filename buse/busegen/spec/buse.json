@@ -765,7 +765,7 @@
         "fields": [
           {
             "name": "id",
-            "doc": "identifier of the new install location",
+            "doc": "identifier of the new install location.\nif not specified, will be generated.",
             "type": "string"
           },
           {
