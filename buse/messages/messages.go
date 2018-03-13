@@ -1776,6 +1776,41 @@ var CleanDownloadsApply *CleanDownloadsApplyType
 
 
 //==============================
+// System
+//==============================
+
+// System.StatFS (Request)
+
+type SystemStatFSType struct {}
+
+var _ RequestMessage = (*SystemStatFSType)(nil)
+
+func (r *SystemStatFSType) Method() string {
+  return "System.StatFS"
+}
+
+func (r *SystemStatFSType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.SystemStatFSParams) (*buse.SystemStatFSResult, error)) {
+  router.Register("System.StatFS", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.SystemStatFSParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for System.StatFS")
+    }
+    return res, nil
+  })
+}
+
+var SystemStatFS *SystemStatFSType
+
+
+//==============================
 // Test
 //==============================
 
@@ -1870,6 +1905,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
+  if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }
   if _, ok := router.Handlers["Test.DoubleTwice"]; !ok { panic("missing request handler for (Test.DoubleTwice)") }
 }
 

@@ -1183,6 +1183,34 @@
       }
     },
     {
+      "method": "System.StatFS",
+      "doc": "Get information on a filesystem.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "path",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "freeSize",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "totalSize",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
       "method": "Test.DoubleTwice",
       "doc": "Test request: asks butler to double a number twice.\nFirst by calling @@TestDoubleParams, then by\nreturning the result of that call doubled.\n\nUse that to try out your JSON-RPC 2.0 over TCP implementation.",
       "caller": "client",

@@ -1273,6 +1273,24 @@ type CleanDownloadsApplyParams struct {
 type CleanDownloadsApplyResult struct{}
 
 //----------------------------------------------------------------------
+// System
+//----------------------------------------------------------------------
+
+// Get information on a filesystem.
+//
+// @name System.StatFS
+// @category System
+// @caller client
+type SystemStatFSParams struct {
+	Path string `json:"path"`
+}
+
+type SystemStatFSResult struct {
+	FreeSize  int64 `json:"freeSize"`
+	TotalSize int64 `json:"totalSize"`
+}
+
+//----------------------------------------------------------------------
 // Misc.
 //----------------------------------------------------------------------
 

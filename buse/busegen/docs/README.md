@@ -4214,6 +4214,68 @@ we know about.</p>
 </div>
 
 
+## System
+
+### <em class="request-client-caller"></em>System.StatFS
+
+
+<p>
+<p>Get information on a filesystem.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>freeSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SystemStatFSParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>System.StatFS <a href="#/?id=systemstatfs">(Go to definition)</a></p>
+
+<p>
+<p>Get information on a filesystem.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
 ## Test
 
 ### <em class="request-client-caller"></em>Test.DoubleTwice
