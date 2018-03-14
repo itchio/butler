@@ -209,6 +209,11 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 		return sendProgress()
 	})
 
+	defer rc.StopInterceptingNotification(messages.TaskSucceeded.Method())
+	rc.InterceptNotification(messages.TaskSucceeded.Method(), func(method string, paramsIn interface{}) error {
+		return nil
+	})
+
 	err = func() (err error) {
 		defer func() {
 			if r := recover(); r != nil {
