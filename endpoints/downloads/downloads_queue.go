@@ -39,7 +39,6 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 	}
 
 	if item.CaveID != "" {
-		// remove other downloads for this cave
 		var downloadsForCaveCount int
 		err := rc.DB().Model(&models.Download{}).Where("cave_id = ? AND finished_at IS NULL", item.CaveID).Count(&downloadsForCaveCount).Error
 		if err != nil {
@@ -49,6 +48,12 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 		if downloadsForCaveCount > 0 {
 			return nil, errors.Errorf("Already have downloads in progress for %s, refusing to queue another one", operate.GameToString(item.Game))
 		}
+	}
+
+	// remove other downloads for this cave or this upload
+	err = rc.DB().Delete(&models.Download{}, "cave_id = ? OR upload_id = ?", item.CaveID, item.Upload.ID).Error
+	if err != nil {
+		panic(err)
 	}
 
 	d := &models.Download{
