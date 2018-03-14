@@ -114,40 +114,47 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 
 	ctx, cancelFunc := context.WithCancel(parentCtx)
 	defer cancelFunc()
+
+	wasDiscarded := func() bool {
+		// have we been discarded?
+		{
+			var row = struct {
+				Discarded bool
+			}{}
+			err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
+			if err != nil {
+				consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+			}
+
+			if row.Discarded {
+				consumer.Infof("Download was cancelled from under us, bailing out!")
+				return true
+			}
+		}
+
+		// has something else been prioritized?
+		{
+			var row = struct {
+				ID string
+			}{}
+			err := rc.DB().Raw(`SELECT id FROM downloads WHERE finished_at IS NULL AND NOT discarded ORDER BY position ASC LIMIT 1`).Scan(&row).Error
+			if err != nil {
+				consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
+			}
+
+			if row.ID != download.ID {
+				consumer.Infof("%s deprioritized (for %s), bailing out!", download.ID, row.ID)
+				return true
+			}
+		}
+		return false
+	}
 	goGadgetoDiscardWatcher := func() {
 		for {
 			select {
 			case <-time.After(5 * time.Second):
-				// have we been discarded?
-				{
-					var row = struct {
-						Discarded bool
-					}{}
-					err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
-					if err != nil {
-						consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
-					}
-
-					if row.Discarded {
-						consumer.Infof("Download was cancelled from under us, bailing out!")
-						cancelFunc()
-					}
-				}
-
-				// has something else been prioritized?
-				{
-					var row = struct {
-						ID string
-					}{}
-					err := rc.DB().Raw(`SELECT id FROM downloads WHERE finished_at IS NULL AND NOT discarded ORDER BY position ASC LIMIT 1`).Scan(&row).Error
-					if err != nil {
-						consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
-					}
-
-					if row.ID != download.ID {
-						consumer.Infof("%s deprioritized (for %s), bailing out!", download.ID, row.ID)
-						cancelFunc()
-					}
+				if wasDiscarded() {
+					cancelFunc()
 				}
 			case <-ctx.Done():
 				return
@@ -221,6 +228,11 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 		return
 	}()
 	if err != nil {
+		if wasDiscarded() {
+			consumer.Infof("Download errored, but it was already discarded, ignoring.")
+			return nil
+		}
+
 		if be, ok := buse.AsBuseError(err); ok {
 			switch buse.Code(be.AsJsonRpc2().Code) {
 			case buse.CodeOperationCancelled:
