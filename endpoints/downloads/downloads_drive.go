@@ -174,7 +174,6 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			speedHistory = speedHistory[len(speedHistory)-maxSpeedDatapoints:]
 		}
 
-		// TODO: send BPS history in here too
 		return messages.DownloadsDriveProgress.Notify(rc, &buse.DownloadsDriveProgressNotification{
 			Download: formatDownload(download),
 			Progress: &buse.DownloadProgress{
