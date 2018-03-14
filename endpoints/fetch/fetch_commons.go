@@ -50,6 +50,11 @@ func FormatInstallLocation(rc *buse.RequestContext, il *models.InstallLocation) 
 	sum := &buse.InstallLocationSummary{
 		ID:   il.ID,
 		Path: il.Path,
+		SizeInfo: &buse.InstallLocationSizeInfo{
+			InstalledSize: -1,
+			FreeSize:      -1,
+			TotalSize:     -1,
+		},
 	}
 
 	var row struct {
@@ -61,18 +66,18 @@ func FormatInstallLocation(rc *buse.RequestContext, il *models.InstallLocation) 
 		WHERE install_location_id = ?
 	`, il.ID).Scan(&row).Error
 	if err != nil {
-		panic(err)
+		rc.Consumer.Warnf("Could not compute installed size: %s", err.Error())
+	} else {
+		sum.SizeInfo.InstalledSize = row.InstalledSize
 	}
 
 	stats, err := system.StatFS(il.Path)
 	if err != nil {
-		panic(err)
+		rc.Consumer.Warnf("Could not statFS (%s): %s", il.Path, err.Error())
+	} else {
+		sum.SizeInfo.FreeSize = stats.FreeSize
+		sum.SizeInfo.TotalSize = stats.TotalSize
 	}
 
-	sum.SizeInfo = &buse.InstallLocationSizeInfo{
-		InstalledSize: row.InstalledSize,
-		TotalSize:     stats.TotalSize,
-		FreeSize:      stats.FreeSize,
-	}
 	return sum
 }
