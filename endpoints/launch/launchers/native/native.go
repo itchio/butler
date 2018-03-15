@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/butler/configurator"
+
 	"github.com/itchio/butler/buse/messages"
 
 	"github.com/go-errors/errors"
@@ -108,16 +110,27 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	stdout := newOutputCollector(maxLines)
 	stderr := newOutputCollector(maxLines)
 
+	fullTargetPath := params.FullTargetPath
+	name := params.FullTargetPath
+	args := params.Args
+
+	if params.Candidate != nil && params.Candidate.Flavor == configurator.FlavorLove {
+		// TODO: add prereqs when that happens
+		args = append([]string{name}, args...)
+		name = "love"
+		fullTargetPath = "love"
+	}
+
 	runParams := &runner.RunnerParams{
 		RequestContext: params.RequestContext,
 
 		Sandbox: params.Sandbox,
 
-		FullTargetPath: params.FullTargetPath,
+		FullTargetPath: fullTargetPath,
 
-		Name:   params.FullTargetPath,
+		Name:   name,
 		Dir:    cwd,
-		Args:   params.Args,
+		Args:   args,
 		Env:    envBlock,
 		Stdout: stdout,
 		Stderr: stderr,

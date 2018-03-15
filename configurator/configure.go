@@ -128,7 +128,7 @@ func sniffScript(r io.ReadSeeker, size int64) (*Candidate, error) {
 		ScriptInfo: &ScriptInfo{},
 	}
 
-	_, err := r.Seek(0, os.SEEK_SET)
+	_, err := r.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, err
 	}
@@ -231,6 +231,13 @@ func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 		}, nil
 	case "conf.lua":
 		return sniffLove(r, size, dir)
+	}
+
+	if strings.HasSuffix(lowerPath, ".love") {
+		return &Candidate{
+			Flavor: FlavorLove,
+			Path:   path,
+		}, nil
 	}
 
 	// if it ends in .exe, it's probably an .exe
@@ -447,7 +454,7 @@ type readerAtFromSeeker struct {
 var _ io.ReaderAt = (*readerAtFromSeeker)(nil)
 
 func (r *readerAtFromSeeker) ReadAt(b []byte, off int64) (int, error) {
-	_, err := r.rs.Seek(off, os.SEEK_SET)
+	_, err := r.rs.Seek(off, io.SeekStart)
 	if err != nil {
 		return 0, err
 	}
