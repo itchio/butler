@@ -65,6 +65,15 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		return nil, errors.Wrap(err, 0)
 	}
 
+	aRes, err = archiveInfo.ApplyStageTwo(consumer, aRes, params.InstallFolderPath)
+	if err != nil {
+		if errors.Is(err, savior.ErrStop) {
+			cancelled = true
+			return nil, &buse.ErrCancelled{}
+		}
+		return nil, errors.Wrap(err, 0)
+	}
+
 	for _, entry := range aRes.Entries {
 		res.Files = append(res.Files, entry.CanonicalPath)
 	}

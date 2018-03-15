@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/configurator"
 
 	"github.com/itchio/butler/archive/szextractor"
+	"github.com/itchio/butler/archive/szextractor/xzsource"
 	"github.com/itchio/savior/bzip2source"
 	"github.com/itchio/savior/gzipsource"
 	"github.com/itchio/savior/seeksource"
@@ -31,14 +32,39 @@ const (
 	ArchiveStrategyTar    ArchiveStrategy = 200
 	ArchiveStrategyTarGz  ArchiveStrategy = 201
 	ArchiveStrategyTarBz2 ArchiveStrategy = 202
+	ArchiveStrategyTarXz  ArchiveStrategy = 203
 
 	ArchiveStrategySevenZip ArchiveStrategy = 300
 )
 
+type StageTwoStrategy int
+
+const (
+	StageTwoStrategyNone StageTwoStrategy = 0
+
+	StageTwoStrategyMojoSetup StageTwoStrategy = 666
+)
+
+func (sts StageTwoStrategy) String() string {
+	switch sts {
+	case StageTwoStrategyNone:
+		return "none"
+	case StageTwoStrategyMojoSetup:
+		return "MojoSetup"
+	}
+	return "<unknown stage two strategy>"
+}
+
+type EntriesLister interface {
+	Entries() []*savior.Entry
+}
+
 type ArchiveInfo struct {
-	Strategy ArchiveStrategy
-	Features savior.ExtractorFeatures
-	Format   string
+	Strategy         ArchiveStrategy
+	Features         savior.ExtractorFeatures
+	Format           string
+	StageTwoStrategy StageTwoStrategy
+	PostExtract      []string
 }
 
 func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
@@ -72,6 +98,75 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 		info.Format = info.Strategy.String()
 	}
 
+	var entries []*savior.Entry
+	stageTwoStrategy := StageTwoStrategyNone
+	if el, ok := ex.(EntriesLister); ok {
+		entries = el.Entries()
+	}
+
+	if len(entries) > 0 {
+		stageTwoMarkers := map[string]StageTwoStrategy{
+			"scripts/mojosetup_init.lua":  StageTwoStrategyMojoSetup,
+			"scripts/mojosetup_init.luac": StageTwoStrategyMojoSetup,
+		}
+
+		params.Consumer.Infof("Scanning %d entries for a stage two marker...", len(entries))
+		for _, e := range entries {
+			if strat, ok := stageTwoMarkers[e.CanonicalPath]; ok {
+				stageTwoStrategy = strat
+				break
+			}
+		}
+
+		consumer := params.Consumer
+		if stageTwoStrategy != StageTwoStrategyNone {
+			consumer.Infof("Will apply stage-two strategy %s", stageTwoStrategy)
+			switch stageTwoStrategy {
+			case StageTwoStrategyMojoSetup:
+				info.StageTwoStrategy = stageTwoStrategy
+
+				// Note: canonical paths are slash-separated on all platforms
+				// Also, MojoSetup lets folks specify a different data-prefix,
+				// but *strongly* suggests staying with the default. The code that
+				// follows is probably just one of the many reasons why.
+				dataPrefix := "data/"
+				var dataFiles []string
+				for _, e := range entries {
+					if e.Kind == savior.EntryKindFile {
+						if strings.HasPrefix(e.CanonicalPath, dataPrefix) {
+							dataFiles = append(dataFiles, e.CanonicalPath)
+						}
+					}
+				}
+
+				consumer.Infof("Found %d data files:", len(dataFiles))
+				knownSuffixes := []string{
+					".tar.gz",
+					".tar.bz2",
+					".tar.xz",
+					".zip",
+				}
+
+				for _, df := range dataFiles {
+					for _, suffix := range knownSuffixes {
+						if strings.HasSuffix(strings.ToLower(df), suffix) {
+							info.PostExtract = append(info.PostExtract, df)
+						}
+					}
+				}
+
+				if len(info.PostExtract) > 0 {
+					consumer.Infof("Found %d post-extract files: ", len(info.PostExtract))
+					for _, pe := range info.PostExtract {
+						consumer.Infof("- %s", pe)
+					}
+				} else {
+					consumer.Infof("No post-extract files (crossing fingers)")
+				}
+			}
+		}
+	}
+
 	return info, nil
 }
 
@@ -97,6 +192,8 @@ func getStrategy(file eos.File, consumer *state.Consumer) ArchiveStrategy {
 		return ArchiveStrategyTarGz
 	case ".tar.bz2":
 		return ArchiveStrategyTarBz2
+	case ".tar.xz":
+		return ArchiveStrategyTarXz
 	case ".7z", ".rar", ".dmg", ".exe":
 		return ArchiveStrategySevenZip
 	}
@@ -124,6 +221,12 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 		return tarextractor.New(gzipsource.New(seeksource.FromFile(file))), nil
 	case ArchiveStrategyTarBz2:
 		return tarextractor.New(bzip2source.New(seeksource.FromFile(file))), nil
+	case ArchiveStrategyTarXz:
+		xs, err := xzsource.New(file, consumer)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		return tarextractor.New(xs), nil
 	case ArchiveStrategySevenZip:
 		szex, err := szextractor.New(file, consumer)
 		if err != nil {

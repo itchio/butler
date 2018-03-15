@@ -306,6 +306,14 @@ func (ze *ZipExtractor) Features() savior.ExtractorFeatures {
 	}
 }
 
+func (ze *ZipExtractor) Entries() []*savior.Entry {
+	var entries []*savior.Entry
+	for _, zf := range ze.zr.File {
+		entries = append(entries, zipFileEntry(zf))
+	}
+	return entries
+}
+
 func zipFileEntry(zf *zip.File) *savior.Entry {
 	entry := &savior.Entry{
 		CanonicalPath:    filepath.ToSlash(zf.Name),
