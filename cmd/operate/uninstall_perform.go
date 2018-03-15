@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
 	"github.com/itchio/butler/cmd/wipe"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -80,6 +81,12 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 
 	consumer.Infof("Wiping install folder...")
 	err = wipe.Do(consumer, installFolder)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	consumer.Infof("Clearing out downloads...")
+	err = rc.DB().Model(&models.Download{}).Where("cave_id = ?", cave.ID).Update("discarded", true).Error
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

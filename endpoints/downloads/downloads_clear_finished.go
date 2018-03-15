@@ -7,7 +7,7 @@ import (
 )
 
 func DownloadsClearFinished(rc *buse.RequestContext, params *buse.DownloadsClearFinishedParams) (*buse.DownloadsClearFinishedResult, error) {
-	req := rc.DB().Delete(&models.Download{}, `"finished_at" is not null`)
+	req := rc.DB().Model(&models.Download{}).Where(`finished_at IS NOT NULL`).Update("discarded", true)
 	err := req.Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
