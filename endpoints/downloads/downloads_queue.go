@@ -22,11 +22,11 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 
 	startedAt := time.Now().UTC()
 
-	Fresh := true
+	Fresh := false
 	_, err := os.Stat(item.InstallFolder)
 	if err != nil {
 		if os.IsNotExist(err) {
-			Fresh = false
+			Fresh = true
 		} else {
 			return nil, errors.Wrap(err, 0)
 		}
