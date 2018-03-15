@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/itchio/butler/configurator"
+
 	"github.com/itchio/butler/archive/szextractor"
 	"github.com/itchio/savior/bzip2source"
 	"github.com/itchio/savior/gzipsource"
@@ -40,7 +42,14 @@ type ArchiveInfo struct {
 }
 
 func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
-	strategy := getStrategy(params.File, params.Consumer)
+	var strategy ArchiveStrategy
+
+	if params.Candidate != nil && params.Candidate.Flavor == configurator.FlavorNativeLinux {
+		// might be a mojosetup installer - if not, we won't know what to do with it
+		strategy = ArchiveStrategyZip
+	} else {
+		strategy = getStrategy(params.File, params.Consumer)
+	}
 
 	if strategy == ArchiveStrategyNone {
 		return nil, ErrUnrecognizedArchiveType

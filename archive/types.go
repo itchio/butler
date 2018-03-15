@@ -3,6 +3,7 @@ package archive
 import (
 	"errors"
 
+	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
@@ -26,8 +27,9 @@ type ExtractParams struct {
 }
 
 type TryOpenParams struct {
-	File     eos.File
-	Consumer *state.Consumer
+	File      eos.File
+	Consumer  *state.Consumer
+	Candidate *configurator.Candidate
 }
 
 type Contents struct {

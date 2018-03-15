@@ -74,8 +74,9 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		}
 
 		archiveInfo, err := archive.Probe(&archive.TryOpenParams{
-			File:     file,
-			Consumer: consumer,
+			File:      file,
+			Consumer:  consumer,
+			Candidate: candidate,
 		})
 		consumer.Debugf("  (took %s)", time.Since(beforeArchiveProbe))
 		if err == nil {
