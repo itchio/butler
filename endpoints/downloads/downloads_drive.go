@@ -171,7 +171,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 	lastProgress := time.Now()
 
 	sendProgress := func() error {
-		if time.Since(lastProgress).Seconds() < 1 {
+		if time.Since(lastProgress).Seconds() < 0.5 {
 			return nil
 		}
 		lastProgress = time.Now()
