@@ -869,6 +869,7 @@ type InstallLocationsScanConfirmImportResult struct {
 }
 
 type InstallLocationsScanResult struct {
+	NumFoundItems    int64 `json:"numFoundItems"`
 	NumImportedItems int64 `json:"numImportedItems"`
 }
 

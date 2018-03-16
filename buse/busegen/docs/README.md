@@ -2800,6 +2800,11 @@ if not specified, will be generated.</p>
 
 <table class="field-table">
 <tr>
+<td><code>numFoundItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>numImportedItems</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>

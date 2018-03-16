@@ -59,34 +59,41 @@ func InstallLocationsScan(rc *buse.RequestContext, params *buse.InstallLocations
 		return nil, errors.Wrap(err, 0)
 	}
 
-	confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &buse.InstallLocationsScanConfirmImportParams{
-		NumItems: int64(len(sc.newByID)),
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, 0)
-	}
-
+	numFound := int64(len(sc.newByID))
 	var numSaved int64
-	if confirmRes.Confirm {
-		for _, ic := range sc.newByID {
-			err := rc.DB().Save(ic.cave).Error
-			if err != nil {
-				consumer.Errorf("Could not import: %s", err.Error())
-			} else {
-				numSaved++
-			}
 
-			InstallFolder := sc.getInstallLocation(ic.cave.InstallLocationID).GetInstallFolder(ic.cave.InstallFolderName)
-			err = ic.receipt.WriteReceipt(InstallFolder)
-			if err != nil {
-				consumer.Errorf("Could not write receipt: %s", err.Error())
+	if numFound > 0 {
+		confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &buse.InstallLocationsScanConfirmImportParams{
+			NumItems: numFound,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		if confirmRes.Confirm {
+			for _, ic := range sc.newByID {
+				err := rc.DB().Save(ic.cave).Error
+				if err != nil {
+					consumer.Errorf("Could not import: %s", err.Error())
+				} else {
+					numSaved++
+				}
+
+				InstallFolder := sc.getInstallLocation(ic.cave.InstallLocationID).GetInstallFolder(ic.cave.InstallFolderName)
+				err = ic.receipt.WriteReceipt(InstallFolder)
+				if err != nil {
+					consumer.Errorf("Could not write receipt: %s", err.Error())
+				}
 			}
+		} else {
+			consumer.Infof("Not importing anything by user's request")
 		}
 	} else {
-		consumer.Infof("Not importing anything by user's request")
+		consumer.Infof("No items found")
 	}
 
 	res := &buse.InstallLocationsScanResult{
+		NumFoundItems:    numFound,
 		NumImportedItems: numSaved,
 	}
 	return res, nil

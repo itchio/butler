@@ -858,6 +858,11 @@
       "result": {
         "fields": [
           {
+            "name": "numFoundItems",
+            "doc": "",
+            "type": "number"
+          },
+          {
             "name": "numImportedItems",
             "doc": "",
             "type": "number"
