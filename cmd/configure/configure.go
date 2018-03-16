@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/wharf/state"
 )
 
 var args = struct {
@@ -34,57 +35,55 @@ type Params struct {
 	OsFilter   string
 	ArchFilter string
 	NoFilter   bool
+	Consumer   *state.Consumer
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(&Params{
+	verdict, err := Do(&Params{
 		Path:       *args.path,
 		ShowSpell:  *args.showSpell,
 		OsFilter:   *args.osFilter,
 		ArchFilter: *args.archFilter,
 		NoFilter:   *args.noFilter,
-	}))
-}
-
-func Do(params *Params) error {
-	root := params.Path
-
-	startTime := time.Now()
-
-	comm.Opf("Collecting initial candidates")
-
-	verdict, err := configurator.Configure(root, params.ShowSpell)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	comm.Statf("Initial candidates are:\n%s", verdict)
-
-	fixedExecs, err := verdict.FixPermissions(false /* not dry run */)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	if len(fixedExecs) > 0 {
-		comm.Statf("Fixed permissions of %d executables:", len(fixedExecs))
-		for _, fixedExec := range fixedExecs {
-			comm.Logf("  - %s", fixedExec)
-		}
-	}
-
-	if params.NoFilter {
-		comm.Opf("Not filtering, by request")
-	} else {
-		comm.Opf("Filtering for os %s, arch %s", params.OsFilter, params.ArchFilter)
-
-		verdict.FilterPlatform(params.OsFilter, params.ArchFilter)
-	}
-
-	comm.Statf("Configured in %s", time.Since(startTime))
+		Consumer:   comm.NewStateConsumer(),
+	})
+	ctx.Must(err)
 
 	comm.ResultOrPrint(verdict, func() {
 		comm.Statf("Final candidates are:\n%s", verdict)
 	})
+}
 
-	return nil
+func Do(params *Params) (*configurator.Verdict, error) {
+	consumer := params.Consumer
+
+	root := params.Path
+
+	startTime := time.Now()
+
+	verdict, err := configurator.Configure(root, params.ShowSpell)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	fixedExecs, err := verdict.FixPermissions(false /* not dry run */)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	if len(fixedExecs) > 0 {
+		consumer.Statf("Fixed permissions of %d executables:", len(fixedExecs))
+		for _, fixedExec := range fixedExecs {
+			consumer.Logf("  - %s", fixedExec)
+		}
+	}
+
+	if params.NoFilter {
+		consumer.Opf("Not filtering, by request")
+	} else {
+		verdict.FilterPlatform(params.OsFilter, params.ArchFilter)
+	}
+	consumer.Statf("Configured in %s", time.Since(startTime))
+
+	return verdict, nil
 }

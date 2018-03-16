@@ -11,12 +11,12 @@ func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.Fet
 	cave.Preload(rc.DB())
 
 	res := &buse.FetchCaveResult{
-		Cave: formatCave(rc.DB(), cave),
+		Cave: FormatCave(rc.DB(), cave),
 	}
 	return res, nil
 }
 
-func formatCave(db *gorm.DB, cave *models.Cave) *buse.Cave {
+func FormatCave(db *gorm.DB, cave *models.Cave) *buse.Cave {
 	if cave == nil {
 		return nil
 	}

@@ -2773,6 +2773,149 @@ if not specified, will be generated.</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Install.Locations.Scan
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>legacyMarketPath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> path to a legacy marketDB</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numImportedItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallLocationsScanParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Locations.Scan <a href="#/?id=installlocationsscan">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>legacyMarketPath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Install.Locations.Scan.Yield
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code> whenever
+a game is found.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallLocationsScanYieldNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Install.Locations.Scan.Yield <a href="#/?id=installlocationsscanyield">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Install.Locations.Scan</span></code> whenever
+a game is found.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-server-caller"></em>Install.Locations.Scan.ConfirmImport
+
+
+<p>
+<p>Sent at the end of <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code></p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>number of items that will be imported</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>confirm</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallLocationsScanConfirmImportParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Install.Locations.Scan.ConfirmImport <a href="#/?id=installlocationsscanconfirmimport">(Go to definition)</a></p>
+
+<p>
+<p>Sent at the end of <code class="typename"><span class="type request-client-caller">Install.Locations.Scan</span></code></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>numItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Downloads
 

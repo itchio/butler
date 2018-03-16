@@ -207,12 +207,29 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 	// no special credentials
 	{
 		consumer.Infof("%s is not related to any known profiles", GameToString(game))
-		profiles := models.AllProfiles(db)
+		var profiles []*models.Profile
+		err := db.Order("last_connected DESC").Find(&profiles).Error
+		if err != nil {
+			panic(err)
+		}
 		if len(profiles) == 0 {
 			panic(errors.New("No profiles found"))
 		}
 
+		// prefer press user
+		for _, profile := range profiles {
+			if profile.PressUser {
+				consumer.Infof("Picking profile %d, who is a press user", profile.ID)
+				creds := &buse.GameCredentials{
+					APIKey: profile.APIKey,
+				}
+				return creds
+			}
+		}
+
+		// just take the most recent then
 		profile := profiles[0]
+		consumer.Infof("Picking most recently connected profile %d", profile.ID)
 		creds := &buse.GameCredentials{
 			APIKey: profile.APIKey,
 		}

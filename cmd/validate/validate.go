@@ -106,13 +106,10 @@ func Validate(consumer *state.Consumer) error {
 		consumer.Infof("")
 		consumer.Infof("Heuristics will be used to launch your project.")
 		if hasDir {
-			consumer.Opf("Configuring...")
-			verdict, err := configurator.Configure(dir, false)
+			verdict, err := manager.Configure(consumer, dir, runtime)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
-			consumer.Opf("Filtering for %s...", runtime)
-			verdict.FilterPlatform(runtime.OS(), runtime.Arch())
 
 			consumer.Infof("")
 			consumer.Statf("Heuristic results (best first):")

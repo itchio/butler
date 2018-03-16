@@ -17,7 +17,7 @@ func FetchCaves(rc *buse.RequestContext, params *buse.FetchCavesParams) (*buse.F
 
 	var formattedCaves []*buse.Cave
 	for _, cave := range caves {
-		formattedCaves = append(formattedCaves, formatCave(rc.DB(), cave))
+		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), cave))
 	}
 
 	res := &buse.FetchCavesResult{

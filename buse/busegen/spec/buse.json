@@ -843,6 +843,52 @@
       }
     },
     {
+      "method": "Install.Locations.Scan",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "legacyMarketPath",
+            "doc": "path to a legacy marketDB",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "numImportedItems",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.Locations.Scan.ConfirmImport",
+      "doc": "Sent at the end of @@InstallLocationsScanParams",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "numItems",
+            "doc": "number of items that will be imported",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "confirm",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Downloads.Queue",
       "doc": "Queue a download that will be performed later by\n@@DownloadsDriveParams.",
       "caller": "client",
@@ -1531,6 +1577,19 @@
             "name": "installResult",
             "doc": "If the task installed something, then this contains\ninfo about the game, upload, build that were installed",
             "type": "InstallResult"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.Locations.Scan.Yield",
+      "doc": "Sent during @@InstallLocationsScanParams whenever\na game is found.",
+      "params": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "",
+            "type": "Game"
           }
         ]
       }

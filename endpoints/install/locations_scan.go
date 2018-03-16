@@ -1,0 +1,638 @@
+package install
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"time"
+
+	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/butler/manager"
+	itchio "github.com/itchio/go-itchio"
+	uuid "github.com/satori/go.uuid"
+
+	"github.com/go-errors/errors"
+	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/database/models"
+)
+
+type scanContext struct {
+	rc               *buse.RequestContext
+	legacyMarketPath string
+	newByID          map[string]*importedCave
+
+	existingCaves []*existingCave
+	existingByID  map[string]*models.Cave
+
+	installLocations []*models.InstallLocation
+
+	numScanned int64
+	tasks      []*task
+}
+
+type importedCave struct {
+	cave    *models.Cave
+	receipt *bfs.Receipt
+}
+
+type existingCave struct {
+	ID                string
+	InstallLocationID string
+	InstallFolderName string
+}
+
+func InstallLocationsScan(rc *buse.RequestContext, params *buse.InstallLocationsScanParams) (*buse.InstallLocationsScanResult, error) {
+	consumer := rc.Consumer
+	sc := &scanContext{
+		rc:               rc,
+		legacyMarketPath: params.LegacyMarketPath,
+		newByID:          make(map[string]*importedCave),
+		existingByID:     make(map[string]*models.Cave),
+	}
+	err := sc.Do()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &buse.InstallLocationsScanConfirmImportParams{
+		NumItems: int64(len(sc.newByID)),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	var numSaved int64
+	if confirmRes.Confirm {
+		for _, ic := range sc.newByID {
+			err := rc.DB().Save(ic.cave).Error
+			if err != nil {
+				consumer.Errorf("Could not import: %s", err.Error())
+			} else {
+				numSaved++
+			}
+
+			InstallFolder := sc.getInstallLocation(ic.cave.InstallLocationID).GetInstallFolder(ic.cave.InstallFolderName)
+			err = ic.receipt.WriteReceipt(InstallFolder)
+			if err != nil {
+				consumer.Errorf("Could not write receipt: %s", err.Error())
+			}
+		}
+	} else {
+		consumer.Infof("Not importing anything by user's request")
+	}
+
+	res := &buse.InstallLocationsScanResult{
+		NumImportedItems: numSaved,
+	}
+	return res, nil
+}
+
+func (sc *scanContext) Do() error {
+	startTime := time.Now()
+
+	rc := sc.rc
+	consumer := rc.Consumer
+
+	err := sc.rc.DB().Find(&sc.installLocations).Error
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = rc.DB().
+		Table("caves").
+		Select([]string{
+			"id",
+			"install_location_id",
+			"install_folder_name",
+		}).
+		Scan(&sc.existingCaves).Error
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	if sc.legacyMarketPath != "" {
+		err := sc.DoMarket()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	err = sc.DoInstallLocations()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	if len(sc.tasks) == 0 {
+		return nil
+	}
+
+	consumer.Opf("Scanning %d entries", len(sc.tasks))
+
+	rc.StartProgress()
+	for i, t := range sc.tasks {
+		consumer.Progress(float64(i) / float64(len(sc.tasks)))
+		err := sc.importLegacyCave(t.legacyCave, t.files)
+		if err != nil {
+			consumer.Warnf(err.Error())
+		}
+	}
+	rc.EndProgress()
+
+	consumer.Statf("Scanned %d entries in %s", sc.numScanned, time.Since(startTime))
+	consumer.Statf("Found %d caves to import", len(sc.newByID))
+	for _, ic := range sc.newByID {
+		c := ic.cave
+		consumer.Infof("- %s", operate.GameToString(c.Game))
+		operate.LogUpload(consumer, c.Upload, c.Build)
+		consumer.Infof("  %s @ %s",
+			humanize.IBytes(uint64(c.InstalledSize)),
+			sc.getInstallLocation(c.InstallLocationID).GetInstallFolder(c.InstallFolderName),
+		)
+		consumer.Infof("")
+	}
+
+	return nil
+}
+
+func (sc *scanContext) DoMarket() error {
+	rc := sc.rc
+	consumer := rc.Consumer
+
+	cavesPath := filepath.Join(sc.legacyMarketPath, "caves")
+	entries, err := ioutil.ReadDir(cavesPath)
+	if err != nil {
+		consumer.Infof("Could not list caves path, skipping: %s", err.Error())
+		return nil
+
+	}
+
+	handleEntryPanics := func(entry os.FileInfo) error {
+		legCaveBytes, err := ioutil.ReadFile(filepath.Join(cavesPath, entry.Name()))
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		legCave := &legacyCave{}
+		err = json.Unmarshal(legCaveBytes, legCave)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		if sc.hasCave(legCave.ID) {
+			return nil
+		}
+
+		sc.queue(&task{legCave, nil})
+		return nil
+	}
+
+	handleEntry := func(entry os.FileInfo) (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				if rErr, ok := r.(error); ok {
+					err = errors.Wrap(rErr, 0)
+				} else {
+					err = errors.New(r)
+				}
+			}
+		}()
+		err = handleEntryPanics(entry)
+		return
+	}
+
+	for _, entry := range entries {
+		err := handleEntry(entry)
+		if err != nil {
+			consumer.Errorf("While handling entry %s: %s", entry.Name(), err.Error())
+		}
+	}
+	return nil
+}
+
+func (sc *scanContext) DoInstallLocations() error {
+	for _, il := range sc.installLocations {
+		err := sc.DoInstallLocation(il)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	return nil
+}
+
+func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
+	rc := sc.rc
+	consumer := rc.Consumer
+
+	entries, err := ioutil.ReadDir(il.Path)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	handleEntryPanics := func(entry os.FileInfo) error {
+		InstallFolderName := entry.Name()
+		InstallFolder := filepath.Join(il.Path, InstallFolderName)
+
+		if InstallFolderName == "downloads" {
+			// definitely not a cave folder, skip
+			return nil
+		}
+
+		if sc.hasCaveAtLoc(il.ID, InstallFolderName) {
+			// already have cave, skip
+			return nil
+		}
+
+		dotItchPath := filepath.Join(InstallFolder, ".itch")
+		_, err := os.Stat(dotItchPath)
+		if err != nil {
+			// no .itch folder, skip
+			return nil
+		}
+
+		receipt, err := bfs.ReadReceipt(InstallFolder)
+		if err != nil {
+			consumer.Warnf("While reading receipt in (%s): %s", InstallFolder, err.Error())
+		}
+
+		legacyReceiptPath := filepath.Join(dotItchPath, "receipt.json")
+		legacyReceiptBytes, _ := ioutil.ReadFile(legacyReceiptPath)
+
+		if receipt != nil {
+			var buildID int64
+			if receipt.Build != nil {
+				buildID = receipt.Build.ID
+			}
+
+			freshUuid, err := uuid.NewV4()
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			receiptStats, err := os.Stat(bfs.ReceiptPath(InstallFolder))
+			if err != nil {
+				return errors.Wrap(err, 0)
+			}
+
+			legCave := &legacyCave{
+				ID:       freshUuid.String(),
+				GameID:   receipt.Game.ID,
+				UploadID: receipt.Upload.ID,
+				BuildID:  buildID,
+
+				// no play stats unfortunately
+				LastTouched: 0,
+				SecondsRun:  0,
+
+				InstalledAt: receiptStats.ModTime().Format(time.RFC3339),
+
+				PathScheme:      2,
+				InstallLocation: il.ID,
+				InstallFolder:   InstallFolderName,
+			}
+			sc.queue(&task{legCave, receipt.Files})
+		} else {
+			lr := &legacyReceipt{}
+			err := json.Unmarshal(legacyReceiptBytes, lr)
+			if err != nil {
+				consumer.Errorf("Could not unmarshal legacy itch receipt: %s", err.Error())
+				consumer.Infof("Skipping...")
+				return nil
+			}
+
+			if lr.Cave != nil && sc.hasCave(lr.Cave.ID) {
+				return nil
+			}
+			sc.queue(&task{lr.Cave, lr.Files})
+		}
+
+		return nil
+	}
+
+	handleEntry := func(entry os.FileInfo) (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				if rErr, ok := r.(error); ok {
+					err = errors.Wrap(rErr, 0)
+				} else {
+					err = errors.New(r)
+				}
+			}
+		}()
+		err = handleEntryPanics(entry)
+		return
+	}
+
+	for _, entry := range entries {
+		err := handleEntry(entry)
+		if err != nil {
+			consumer.Errorf("While handling entry %s: %s", entry.Name(), err.Error())
+		}
+	}
+	return nil
+}
+
+func (sc *scanContext) importLegacyCave(legacyCave *legacyCave, files []string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if rErr, ok := r.(error); ok {
+				err = errors.Wrap(rErr, 0)
+			} else {
+				err = errors.New(r)
+			}
+		}
+	}()
+	err = sc.importLegacyCavePanics(legacyCave, files)
+	return
+}
+
+func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []string) error {
+	sc.numScanned++
+	rc := sc.rc
+	consumer := rc.Consumer
+
+	if legacyCave == nil {
+		consumer.Errorf("Nil cave, skipping...")
+		return nil
+	}
+	if legacyCave.ID == "" {
+		consumer.Errorf("No cave ID, skipping...")
+		return nil
+	}
+	if sc.hasCave(legacyCave.ID) {
+		// skip
+		return nil
+	}
+	if legacyCave.UploadID == 0 {
+		consumer.Errorf("No upload ID, skipping...")
+		return nil
+	}
+	if legacyCave.InstallLocation == "" {
+		consumer.Errorf("No install location, skipping...")
+		return nil
+	}
+	if legacyCave.InstallFolder == "" {
+		consumer.Errorf("No folder, skipping...")
+		return nil
+	}
+	if legacyCave.PathScheme != 2 {
+		consumer.Errorf("Unsupported path scheme, skipping...")
+		return nil
+	}
+	if sc.hasCaveAtLoc(legacyCave.InstallLocation, legacyCave.InstallFolder) {
+		// skip
+		return nil
+	}
+
+	il := sc.getInstallLocation(legacyCave.InstallLocation)
+	if il == nil {
+		consumer.Errorf("Cave refers to non-existent install location (%s), skipping", legacyCave.InstallLocation)
+		return nil
+	}
+
+	InstallFolderName := legacyCave.InstallFolder
+	InstallFolder := il.GetInstallFolder(InstallFolderName)
+	if _, err := os.Stat(InstallFolder); err != nil {
+		consumer.Errorf("Skipping: %s", err.Error())
+		return nil
+	}
+
+	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
+
+	gameStub := &itchio.Game{
+		Title: fmt.Sprintf("Game #%d", legacyCave.GameID),
+		ID:    legacyCave.GameID,
+	}
+	creds := operate.CredentialsForGame(rc.DB(), consumer, gameStub)
+	client, err := operate.ClientFromCredentials(creds)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	gameRes, err := client.GetGame(&itchio.GetGameParams{
+		GameID: legacyCave.GameID,
+	})
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	game := gameRes.Game
+
+	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+		GameID:        game.ID,
+		DownloadKeyID: creds.DownloadKey,
+	})
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	var upload *itchio.Upload
+	for _, u := range uploadsRes.Uploads {
+		if u.ID == legacyCave.UploadID {
+			upload = u
+			break
+		}
+	}
+
+	if upload == nil {
+		consumer.Errorf("Could not find upload %d on server, skipping...", legacyCave.UploadID)
+		return nil
+	}
+
+	var build *itchio.Build
+	if legacyCave.BuildID != 0 {
+		buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
+			UploadID:      upload.ID,
+			DownloadKeyID: creds.DownloadKey,
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		for _, b := range buildsRes.Builds {
+			if b.ID == legacyCave.BuildID {
+				build = b
+				break
+			}
+		}
+
+		if build == nil {
+			consumer.Warnf("Could not find build %d, an update will automatically be queued", legacyCave.BuildID)
+		}
+	}
+
+	var LastTouchedAt *time.Time
+	if legacyCave.LastTouched != 0 {
+		LastTouchedAt = fromJSTimestamp(legacyCave.LastTouched)
+	}
+
+	var InstalledAt *time.Time
+	switch installedAt := legacyCave.InstalledAt.(type) {
+	case float64:
+		// as of itch v18.3.0
+		// JSON numbers unmarshal to float by default
+		consumer.Infof("Reading installed at from timestamp %v", installedAt)
+		InstalledAt = fromJSTimestamp(installedAt)
+	case string:
+		// as of itch v18.0.0
+		consumer.Infof("Reading installed at from date %v", installedAt)
+		InstalledAt = fromJSDate(installedAt)
+	default:
+		// before itch v18.0.0
+		consumer.Warnf("Unable to get installed at timestamp, going with legacy receipt mtime")
+		legacyReceiptStats, err := os.Stat(legacyReceiptPath)
+		if err == nil {
+			receiptModTime := legacyReceiptStats.ModTime()
+			InstalledAt = &receiptModTime
+		}
+	}
+
+	cave := &models.Cave{
+		ID:                legacyCave.ID,
+		InstallLocationID: il.ID,
+		InstallFolderName: InstallFolderName,
+		Game:              game,
+		Upload:            upload,
+		Build:             build,
+		SecondsRun:        int64(legacyCave.SecondsRun),
+		LastTouchedAt:     LastTouchedAt,
+		InstalledAt:       InstalledAt,
+	}
+
+	runtime := manager.CurrentRuntime()
+	consumer.Opf("Configuring cave for %s", runtime)
+	verdict, err := manager.Configure(consumer, InstallFolder, runtime)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	cave.SetVerdict(verdict)
+	cave.InstalledSize = verdict.TotalSize
+
+	receipt := &bfs.Receipt{
+		Game:   game,
+		Upload: upload,
+		Build:  build,
+		// it's ok if len(files) == 0, we have a fallback
+		Files: files,
+		// that's ok too, we have a fallback
+		InstallerName: "",
+	}
+	sc.addCave(cave, receipt)
+
+	return nil
+}
+
+func (sc *scanContext) addCave(cave *models.Cave, receipt *bfs.Receipt) {
+	sc.newByID[cave.ID] = &importedCave{
+		cave:    cave,
+		receipt: receipt,
+	}
+
+	messages.InstallLocationsScanYield.Notify(sc.rc, &buse.InstallLocationsScanYieldNotification{
+		Game: cave.Game,
+	})
+}
+
+func (sc *scanContext) hasCave(caveID string) bool {
+	if _, ok := sc.existingByID[caveID]; ok {
+		return true
+	}
+	if _, ok := sc.newByID[caveID]; ok {
+		return true
+	}
+	return false
+}
+
+func (sc *scanContext) hasCaveAtLoc(installLocationID string, installFolderName string) bool {
+	for _, c := range sc.existingCaves {
+		if c.InstallLocationID == installLocationID && c.InstallFolderName == installFolderName {
+			return true
+		}
+	}
+
+	for _, ic := range sc.newByID {
+		c := ic.cave
+		if c.InstallLocationID == installLocationID && c.InstallFolderName == installFolderName {
+			return true
+		}
+	}
+	return false
+}
+
+func (sc *scanContext) getInstallLocation(id string) *models.InstallLocation {
+	for _, il := range sc.installLocations {
+		if il.ID == id {
+			return il
+		}
+	}
+	return nil
+}
+
+func (sc *scanContext) queue(task *task) {
+	sc.tasks = append(sc.tasks, task)
+}
+
+type legacyReceipt struct {
+	Cave *legacyCave `json:"cave"`
+
+	// Introduced in v0.12.0 (January 2016!!)
+	// See https://github.com/itchio/itch/commit/1a550b52cb250b2b60b9c32b7f09fb8fc0bdc647#diff-2c5c1d50b675bd97c2b17e7fba3e5eeaR190
+	Files []string `json:"files"`
+}
+
+type legacyCave struct {
+	// These have been here since v0.14.0 at least,
+	// see https://github.com/itchio/itch/blob/v0.14.0/appsrc/tasks/install.js#L42
+	ID       string `json:"id"`
+	GameID   int64  `json:"gameId"`
+	UploadID int64  `json:"uploadId"`
+	// see https://github.com/itchio/itch/blob/v0.14.0/appsrc/tasks/install.js#L103
+	// and https://github.com/itchio/itch/commit/7f76cecbbae0a22bb574f8557b642acd24ee91d4#diff-0fcbef7d4100ec13581b447ef7050e7fL99
+	BuildID int64 `json:"buildId"`
+
+	// Introduced in v0.14.0
+	// See https://github.com/itchio/itch/commit/62ac56a107ffe0a5d64e9574248a97761db0af8f#diff-edc50cd9cd6f10a0854f25aa2e3ea52dR35
+	LastTouched float64 `json:"lastTouched"`
+	SecondsRun  float64 `json:"secondsRun"`
+
+	// Introduced in v18.0.0 as a `new Date()` (coerced to an RFC3339 string when
+	// passed through JSON.stringify).
+	// See https://github.com/itchio/itch/commit/eb046948d528053628a8b5dcd2860446223a8541#diff-0fcbef7d4100ec13581b447ef7050e7fR104
+	// Changed to a number in v18.3.0,
+	// See https://github.com/itchio/itch/commit/d3ad339a58c3763cef216015cce6c2b8084a89c2#diff-0fcbef7d4100ec13581b447ef7050e7fR114
+	InstalledAt interface{} `json:"installedAt"`
+
+	// Introduced in v18.5.0 (1 year 7 months ago at the time of this writing)
+	// Prior to that, it was a mess, so let's just not import their caves.
+	// See https://github.com/itchio/itch/commit/9cfc5c14184c506afff282ab50f19a7a774197a6#diff-b57d301bc67d78b1004baedc3472f13b
+	PathScheme int `json:"pathScheme"`
+
+	InstallLocation string `json:"installLocation"`
+	InstallFolder   string `json:"installFolder"`
+}
+
+func fromJSTimestamp(timestamp float64) *time.Time {
+	// javascript's Date.now() returns milliseconds since epoch
+	// this assumes UTC timestamp
+	secondsSinceEpoch := int64(timestamp / 1000.0)
+	t := time.Unix(secondsSinceEpoch, 0)
+	return &t
+}
+
+func fromJSDate(date string) *time.Time {
+	t, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return nil
+	}
+	return &t
+}
+
+type task struct {
+	legacyCave *legacyCave
+	files      []string
+}

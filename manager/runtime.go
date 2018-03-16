@@ -37,6 +37,7 @@ func (r *Runtime) String() string {
 	return fmt.Sprintf("%s %s", arch, platform)
 }
 
+// OS returns the operating system in GOOS format
 func (r *Runtime) OS() string {
 	switch r.Platform {
 	case buse.ItchPlatformLinux:
@@ -50,6 +51,7 @@ func (r *Runtime) OS() string {
 	}
 }
 
+// Arch returns the architecture in GOARCH format
 func (r *Runtime) Arch() string {
 	if r.Is64 {
 		return "amd64"

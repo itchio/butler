@@ -836,6 +836,42 @@ type InstallLocationsGetByIDResult struct {
 	InstallLocation *InstallLocationSummary `json:"installLocation"`
 }
 
+// @name Install.Locations.Scan
+// @category Install
+// @caller client
+type InstallLocationsScanParams struct {
+	// path to a legacy marketDB
+	// @optional
+	LegacyMarketPath string `json:"legacyMarketPath"`
+}
+
+// Sent during @@InstallLocationsScanParams whenever
+// a game is found.
+//
+// @name Install.Locations.Scan.Yield
+// @category Install
+type InstallLocationsScanYieldNotification struct {
+	Game *itchio.Game `json:"game"`
+}
+
+// Sent at the end of @@InstallLocationsScanParams
+//
+// @name Install.Locations.Scan.ConfirmImport
+// @category Install
+// @caller server
+type InstallLocationsScanConfirmImportParams struct {
+	// number of items that will be imported
+	NumItems int64 `json:"numItems"`
+}
+
+type InstallLocationsScanConfirmImportResult struct {
+	Confirm bool `json:"confirm"`
+}
+
+type InstallLocationsScanResult struct {
+	NumImportedItems int64 `json:"numImportedItems"`
+}
+
 //----------------------------------------------------------------------
 // Downloads
 //----------------------------------------------------------------------

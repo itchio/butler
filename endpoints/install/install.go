@@ -16,4 +16,5 @@ func Register(router *buse.Router) {
 	messages.InstallLocationsList.Register(router, InstallLocationsList)
 	messages.InstallLocationsAdd.Register(router, InstallLocationsAdd)
 	messages.InstallLocationsRemove.Register(router, InstallLocationsRemove)
+	messages.InstallLocationsScan.Register(router, InstallLocationsScan)
 }

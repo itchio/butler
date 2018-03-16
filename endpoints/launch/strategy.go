@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/wharf/state"
 )
 
 type StrategyResult struct {
@@ -89,7 +90,7 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 		return res, nil
 	}
 
-	verdict, err := configurator.Configure(fullPath, false)
+	verdict, err := manager.Configure(&state.Consumer{}, fullPath, runtime)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

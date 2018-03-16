@@ -1,12 +1,9 @@
 package operate
 
 import (
-	"time"
-
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/buse"
 	"github.com/itchio/butler/buse/messages"
-	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -61,24 +58,11 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 
 	cave := oc.cave
 	if cave != nil {
-		consumer.Opf("Configuring...")
-		verdict, err := configurator.Configure(params.InstallFolder, false)
+		// TODO: pass runtime in params?
+		verdict, err := manager.Configure(consumer, params.InstallFolder, manager.CurrentRuntime())
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
-
-		consumer.Opf("Fixing permissions...")
-		fixed, err := verdict.FixPermissions(false)
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-		for _, f := range fixed {
-			consumer.Statf("Fixed (%s)", f)
-		}
-
-		runtime := manager.CurrentRuntime()
-		consumer.Opf("Filtering for %s...", runtime)
-		verdict.FilterPlatform(runtime.OS(), runtime.Arch())
 
 		consumer.Opf("Saving cave...")
 		cave.SetVerdict(verdict)
@@ -86,9 +70,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		cave.Game = params.Game
 		cave.Upload = params.Upload
 		cave.Build = params.Build
-		installedAt := time.Now().UTC()
-		cave.InstalledAt = &installedAt
-
+		cave.UpdateInstallTime()
 		cave.Save(oc.rc.DB())
 	}
 

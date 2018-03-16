@@ -193,7 +193,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		if verdict == nil {
 			consumer.Infof("No verdict, configuring now")
 
-			newVerdict, err := configurator.Configure(installFolder, false)
+			newVerdict, err := manager.Configure(consumer, installFolder, runtime)
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
@@ -222,7 +222,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 				if redoReason != "" {
 					consumer.Warnf("%s Re-configuring...", redoReason)
 
-					newVerdict, err := configurator.Configure(installFolder, false)
+					newVerdict, err := manager.Configure(consumer, installFolder, runtime)
 					if err != nil {
 						return nil, errors.Wrap(err, 0)
 					}

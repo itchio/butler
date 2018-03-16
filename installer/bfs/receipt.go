@@ -66,6 +66,11 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 }
 
 func (r *Receipt) WriteReceipt(InstallFolder string) error {
+	if _, err := os.Stat(InstallFolder); err != nil {
+		// don't create the install folder if it doesn't exist
+		return errors.Errorf("Refusing to write receipt to non-existent directory: %s", err.Error())
+	}
+
 	path := ReceiptPath(InstallFolder)
 
 	err := Mkdir(filepath.Dir(path))

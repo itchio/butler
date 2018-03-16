@@ -1208,6 +1208,70 @@ func (r *InstallLocationsGetByIDType) Register(router *buse.Router, f func(*buse
 
 var InstallLocationsGetByID *InstallLocationsGetByIDType
 
+// Install.Locations.Scan (Request)
+
+type InstallLocationsScanType struct {}
+
+var _ RequestMessage = (*InstallLocationsScanType)(nil)
+
+func (r *InstallLocationsScanType) Method() string {
+  return "Install.Locations.Scan"
+}
+
+func (r *InstallLocationsScanType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.InstallLocationsScanParams) (*buse.InstallLocationsScanResult, error)) {
+  router.Register("Install.Locations.Scan", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.InstallLocationsScanParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.Scan")
+    }
+    return res, nil
+  })
+}
+
+var InstallLocationsScan *InstallLocationsScanType
+
+// Install.Locations.Scan.Yield (Notification)
+
+type InstallLocationsScanYieldType struct {}
+
+var _ NotificationMessage = (*InstallLocationsScanYieldType)(nil)
+
+func (r *InstallLocationsScanYieldType) Method() string {
+  return "Install.Locations.Scan.Yield"
+}
+
+func (r *InstallLocationsScanYieldType) Notify(rc *buse.RequestContext, params *buse.InstallLocationsScanYieldNotification) (error) {
+  return rc.Notify("Install.Locations.Scan.Yield", params)
+}
+
+var InstallLocationsScanYield *InstallLocationsScanYieldType
+
+// Install.Locations.Scan.ConfirmImport (Request)
+
+type InstallLocationsScanConfirmImportType struct {}
+
+var _ RequestMessage = (*InstallLocationsScanConfirmImportType)(nil)
+
+func (r *InstallLocationsScanConfirmImportType) Method() string {
+  return "Install.Locations.Scan.ConfirmImport"
+}
+
+func (r *InstallLocationsScanConfirmImportType) Call(rc *buse.RequestContext, params *buse.InstallLocationsScanConfirmImportParams) (*buse.InstallLocationsScanConfirmImportResult, error) {
+  var result buse.InstallLocationsScanConfirmImportResult
+  err := rc.Call("Install.Locations.Scan.ConfirmImport", params, &result)
+  return &result, err
+}
+
+var InstallLocationsScanConfirmImport *InstallLocationsScanConfirmImportType
+
 
 //==============================
 // Downloads
@@ -1911,6 +1975,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Install.Locations.Add"]; !ok { panic("missing request handler for (Install.Locations.Add)") }
   if _, ok := router.Handlers["Install.Locations.Remove"]; !ok { panic("missing request handler for (Install.Locations.Remove)") }
   if _, ok := router.Handlers["Install.Locations.GetByID"]; !ok { panic("missing request handler for (Install.Locations.GetByID)") }
+  if _, ok := router.Handlers["Install.Locations.Scan"]; !ok { panic("missing request handler for (Install.Locations.Scan)") }
   if _, ok := router.Handlers["Downloads.Queue"]; !ok { panic("missing request handler for (Downloads.Queue)") }
   if _, ok := router.Handlers["Downloads.Prioritize"]; !ok { panic("missing request handler for (Downloads.Prioritize)") }
   if _, ok := router.Handlers["Downloads.List"]; !ok { panic("missing request handler for (Downloads.List)") }

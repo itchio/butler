@@ -34,6 +34,7 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 	consumer.Infof("Will use installer %s", installerType)
 	manager := installer.GetManager(string(installerType))
 	if manager == nil {
+		// TODO: detect common uninstallers?
 		consumer.Warnf("No manager for installer %s", installerType)
 		consumer.Infof("Falling back to archive")
 

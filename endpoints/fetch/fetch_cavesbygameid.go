@@ -16,7 +16,7 @@ func FetchCavesByGameID(rc *buse.RequestContext, params *buse.FetchCavesByGameID
 
 	var formattedCaves []*buse.Cave
 	for _, c := range caves {
-		formattedCaves = append(formattedCaves, formatCave(rc.DB(), c))
+		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), c))
 	}
 
 	res := &buse.FetchCavesByGameIDResult{

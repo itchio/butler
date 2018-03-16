@@ -81,6 +81,11 @@ func (c *Cave) Touch() {
 	c.LastTouchedAt = &lastTouchedAt
 }
 
+func (c *Cave) UpdateInstallTime() {
+	installedAt := time.Now().UTC()
+	c.InstalledAt = &installedAt
+}
+
 func (c *Cave) RecordPlayTime(playTime time.Duration) {
 	c.SecondsRun += int64(playTime.Seconds())
 	c.Touch()
