@@ -143,6 +143,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
 				var totalUpgradeSize int64
 				for _, item := range upgradePath.UpgradePath {
+					if item.ID == oldID {
+						continue
+					}
+
 					consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
 					totalUpgradeSize += item.PatchSize
 				}
