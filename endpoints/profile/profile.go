@@ -11,6 +11,7 @@ import (
 func Register(router *buse.Router) {
 	messages.ProfileList.Register(router, List)
 	messages.ProfileLoginWithPassword.Register(router, LoginWithPassword)
+	messages.ProfileLoginWithAPIKey.Register(router, LoginWithAPIKey)
 	messages.ProfileUseSavedLogin.Register(router, UseSavedLogin)
 	messages.ProfileForget.Register(router, Forget)
 	messages.ProfileDataPut.Register(router, DataPut)
@@ -141,6 +142,38 @@ func LoginWithPassword(rc *buse.RequestContext, params *buse.ProfileLoginWithPas
 
 	res := &buse.ProfileLoginWithPasswordResult{
 		Cookie:  cookie,
+		Profile: formatProfile(profile),
+	}
+	return res, nil
+}
+
+func LoginWithAPIKey(rc *buse.RequestContext, params *buse.ProfileLoginWithAPIKeyParams) (*buse.ProfileLoginWithAPIKeyResult, error) {
+	if params.APIKey == "" {
+		return nil, errors.New("apiKey cannot be empty")
+	}
+
+	client, err := rc.KeyClient(params.APIKey)
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	meRes, err := client.GetMe()
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	profile := &models.Profile{
+		ID:     meRes.User.ID,
+		APIKey: params.APIKey,
+	}
+	profile.UpdateFromUser(meRes.User)
+
+	err = rc.DB().Save(profile).Error
+	if err != nil {
+		return nil, errors.Wrap(err, 0)
+	}
+
+	res := &buse.ProfileLoginWithAPIKeyResult{
 		Profile: formatProfile(profile),
 	}
 	return res, nil

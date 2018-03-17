@@ -275,6 +275,66 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 
 </div>
 
+### <em class="request-client-caller"></em>Profile.LoginWithAPIKey
+
+
+<p>
+<p>Add a new profile by API key login. This can be used
+for integration tests, for example. Note that no cookies
+are returned for this kind of login.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>apiKey</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The API token to use</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><p>Information for the new profile, now remembered</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithAPIKeyParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Profile.LoginWithAPIKey <a href="#/?id=profileloginwithapikey">(Go to definition)</a></p>
+
+<p>
+<p>Add a new profile by API key login. This can be used
+for integration tests, for example. Note that no cookies
+are returned for this kind of login.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>apiKey</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>Profile.RequestCaptcha
 
 

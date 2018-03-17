@@ -82,6 +82,23 @@ type ProfileLoginWithPasswordResult struct {
 	Cookie map[string]string `json:"cookie"`
 }
 
+// Add a new profile by API key login. This can be used
+// for integration tests, for example. Note that no cookies
+// are returned for this kind of login.
+//
+// @name Profile.LoginWithAPIKey
+// @category Profile
+// @caller client
+type ProfileLoginWithAPIKeyParams struct {
+	// The API token to use
+	APIKey string `json:"apiKey"`
+}
+
+type ProfileLoginWithAPIKeyResult struct {
+	// Information for the new profile, now remembered
+	Profile *Profile `json:"profile"`
+}
+
 // Ask the user to solve a captcha challenge
 // Sent during @@ProfileLoginWithPasswordParams if certain
 // conditions are met.

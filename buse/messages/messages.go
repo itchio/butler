@@ -163,6 +163,36 @@ func (r *ProfileLoginWithPasswordType) Register(router *buse.Router, f func(*bus
 
 var ProfileLoginWithPassword *ProfileLoginWithPasswordType
 
+// Profile.LoginWithAPIKey (Request)
+
+type ProfileLoginWithAPIKeyType struct {}
+
+var _ RequestMessage = (*ProfileLoginWithAPIKeyType)(nil)
+
+func (r *ProfileLoginWithAPIKeyType) Method() string {
+  return "Profile.LoginWithAPIKey"
+}
+
+func (r *ProfileLoginWithAPIKeyType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.ProfileLoginWithAPIKeyParams) (*buse.ProfileLoginWithAPIKeyResult, error)) {
+  router.Register("Profile.LoginWithAPIKey", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.ProfileLoginWithAPIKeyParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.LoginWithAPIKey")
+    }
+    return res, nil
+  })
+}
+
+var ProfileLoginWithAPIKey *ProfileLoginWithAPIKeyType
+
 // Profile.RequestCaptcha (Request)
 
 type ProfileRequestCaptchaType struct {}
@@ -1949,6 +1979,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Profile.List"]; !ok { panic("missing request handler for (Profile.List)") }
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
+  if _, ok := router.Handlers["Profile.LoginWithAPIKey"]; !ok { panic("missing request handler for (Profile.LoginWithAPIKey)") }
   if _, ok := router.Handlers["Profile.UseSavedLogin"]; !ok { panic("missing request handler for (Profile.UseSavedLogin)") }
   if _, ok := router.Handlers["Profile.Forget"]; !ok { panic("missing request handler for (Profile.Forget)") }
   if _, ok := router.Handlers["Profile.Data.Put"]; !ok { panic("missing request handler for (Profile.Data.Put)") }

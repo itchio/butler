@@ -73,6 +73,29 @@
       }
     },
     {
+      "method": "Profile.LoginWithAPIKey",
+      "doc": "Add a new profile by API key login. This can be used\nfor integration tests, for example. Note that no cookies\nare returned for this kind of login.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "apiKey",
+            "doc": "The API token to use",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "profile",
+            "doc": "Information for the new profile, now remembered",
+            "type": "Profile"
+          }
+        ]
+      }
+    },
+    {
       "method": "Profile.RequestCaptcha",
       "doc": "Ask the user to solve a captcha challenge\nSent during @@ProfileLoginWithPasswordParams if certain\nconditions are met.",
       "caller": "server",
