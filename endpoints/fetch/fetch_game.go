@@ -34,10 +34,7 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 	}
 
 	consumer.Debugf("Querying API...")
-	fakeGame := &itchio.Game{
-		ID: params.GameID,
-	}
-	creds := operate.CredentialsForGame(rc.DB(), consumer, fakeGame)
+	creds := operate.CredentialsForGameID(rc.DB(), params.GameID)
 
 	client, err := operate.ClientFromCredentials(creds)
 	if err != nil {

@@ -15,7 +15,7 @@ func GameFindUploads(rc *buse.RequestContext, params *buse.GameFindUploadsParams
 
 	consumer.Infof("Looking for compatible uploads for game %s", operate.GameToString(params.Game))
 
-	credentials := operate.CredentialsForGame(rc.DB(), rc.Consumer, params.Game)
+	credentials := operate.CredentialsForGameID(rc.DB(), params.Game.ID)
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)

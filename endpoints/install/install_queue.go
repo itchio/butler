@@ -85,7 +85,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	}
 
 	params.Game = queueParams.Game
-	params.Credentials = operate.CredentialsForGame(rc.DB(), consumer, params.Game)
+	params.Credentials = operate.CredentialsForGameID(rc.DB(), params.Game.ID)
 
 	client, err := operate.ClientFromCredentials(params.Credentials)
 	if err != nil {

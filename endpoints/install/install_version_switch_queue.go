@@ -23,7 +23,7 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 		return nil, fmt.Errorf("No other versions available for %s", operate.GameToString(cave.Game))
 	}
 
-	credentials := operate.CredentialsForGame(rc.DB(), consumer, cave.Game)
+	credentials := operate.CredentialsForGameID(rc.DB(), cave.Game.ID)
 
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {

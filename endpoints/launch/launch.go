@@ -45,7 +45,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	upload := cave.Upload
 	build := cave.Build
 	verdict := cave.GetVerdict()
-	credentials := operate.CredentialsForGame(rc.DB(), consumer, game)
+	credentials := operate.CredentialsForGameID(rc.DB(), game.ID)
 
 	runtime := manager.CurrentRuntime()
 

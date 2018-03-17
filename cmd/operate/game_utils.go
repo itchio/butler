@@ -149,20 +149,20 @@ func formatUploadType(uploadType itchio.UploadType) string {
 	}
 }
 
-func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game) *buse.GameCredentials {
+func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
+	// TODO: write unit test for this
+
 	// look for owner access
 	{
-		pgs, err := models.ProfileGamesByGameID(db, game.ID)
+		pgs, err := models.ProfileGamesByGameID(db, gameID)
 		if err != nil {
 			panic(err)
 		}
 		if len(pgs) > 0 {
 			pg := pgs[0]
-			consumer.Infof("%s is owned by user #%d, so they must have full access", GameToString(game), pg.ProfileID)
 			p := models.ProfileByID(db, pg.ProfileID)
 
 			if p == nil {
-				consumer.Infof("Ah, we dont have a profile for #%d, nevermind", pg.ProfileID)
 			} else {
 				creds := &buse.GameCredentials{
 					APIKey: p.APIKey,
@@ -172,22 +172,9 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 		}
 	}
 
-	// look for press access
-	if game.InPressSystem {
-		for _, profile := range models.AllProfiles(db) {
-			if profile.PressUser {
-				consumer.Infof("%s is in press system and user #%d is a press user", GameToString(game), profile.UserID)
-				creds := &buse.GameCredentials{
-					APIKey: profile.APIKey,
-				}
-				return creds
-			}
-		}
-	}
-
 	// look for a download key
 	{
-		dks := models.DownloadKeysByGameID(db, game.ID)
+		dks := models.DownloadKeysByGameID(db, gameID)
 
 		for _, dk := range dks {
 			profile := models.ProfileByID(db, dk.OwnerID)
@@ -195,7 +182,6 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 				continue
 			}
 
-			consumer.Infof("%s has a download key belonging to user #%d", GameToString(game), profile.UserID)
 			creds := &buse.GameCredentials{
 				APIKey:      profile.APIKey,
 				DownloadKey: dk.ID,
@@ -206,7 +192,6 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 
 	// no special credentials
 	{
-		consumer.Infof("%s is not related to any known profiles", GameToString(game))
 		var profiles []*models.Profile
 		err := db.Order("last_connected DESC").Find(&profiles).Error
 		if err != nil {
@@ -219,7 +204,6 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 		// prefer press user
 		for _, profile := range profiles {
 			if profile.PressUser {
-				consumer.Infof("Picking profile %d, who is a press user", profile.ID)
 				creds := &buse.GameCredentials{
 					APIKey: profile.APIKey,
 				}
@@ -229,7 +213,6 @@ func CredentialsForGame(db *gorm.DB, consumer *state.Consumer, game *itchio.Game
 
 		// just take the most recent then
 		profile := profiles[0]
-		consumer.Infof("Picking most recently connected profile %d", profile.ID)
 		creds := &buse.GameCredentials{
 			APIKey: profile.APIKey,
 		}

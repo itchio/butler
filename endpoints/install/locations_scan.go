@@ -2,7 +2,6 @@ package install
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -411,11 +410,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
 
-	gameStub := &itchio.Game{
-		Title: fmt.Sprintf("Game #%d", legacyCave.GameID),
-		ID:    legacyCave.GameID,
-	}
-	creds := operate.CredentialsForGame(rc.DB(), consumer, gameStub)
+	creds := operate.CredentialsForGameID(rc.DB(), legacyCave.GameID)
 	client, err := operate.ClientFromCredentials(creds)
 	if err != nil {
 		return errors.Wrap(err, 0)

@@ -67,7 +67,7 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 	consumer.Infof("→ Cached upload:")
 	operate.LogUpload(consumer, item.Upload, item.Build)
 
-	credentials := operate.CredentialsForGame(rc.DB(), consumer, item.Game)
+	credentials := operate.CredentialsForGameID(rc.DB(), item.Game.ID)
 
 	if credentials.DownloadKey > 0 {
 		consumer.Infof("→ Has download key (game is owned)")
