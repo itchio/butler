@@ -292,11 +292,6 @@
       "params": {
         "fields": [
           {
-            "name": "profileId",
-            "doc": "Profile to use to fetch game",
-            "type": "number"
-          },
-          {
             "name": "gameId",
             "doc": "Identifier of game to look for",
             "type": "number"
@@ -315,7 +310,7 @@
         "fields": [
           {
             "name": "profileId",
-            "doc": "Profile to use to fetch game",
+            "doc": "Profile to use to fetch collection",
             "type": "number"
           },
           {

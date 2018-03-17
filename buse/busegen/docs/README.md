@@ -895,12 +895,6 @@ second from API if we&rsquo;re online.</p>
 
 <table class="field-table">
 <tr>
-<td><code>profileId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Profile to use to fetch game</p>
-</td>
-</tr>
-<tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Identifier of game to look for</p>
@@ -927,10 +921,6 @@ second from API if we&rsquo;re online.</p>
 </p>
 
 <table class="field-table">
-<tr>
-<td><code>profileId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
@@ -1001,7 +991,7 @@ contains.</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Profile to use to fetch game</p>
+<td><p>Profile to use to fetch collection</p>
 </td>
 </tr>
 <tr>

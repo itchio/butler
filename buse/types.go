@@ -251,8 +251,6 @@ type SearchUsersYieldNotification struct {
 // @category Fetch
 // @caller client
 type FetchGameParams struct {
-	// Profile to use to fetch game
-	ProfileID int64 `json:"profileId"`
 	// Identifier of game to look for
 	GameID int64 `json:"gameId"`
 }
@@ -279,7 +277,7 @@ type FetchGameResult struct {
 // @category Fetch
 // @caller client
 type FetchCollectionParams struct {
-	// Profile to use to fetch game
+	// Profile to use to fetch collection
 	ProfileID int64 `json:"profileId"`
 	// Identifier of the collection to look for
 	CollectionID int64 `json:"collectionId"`
