@@ -58,7 +58,7 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 		se.free()
 	})
 
-	err := ensureDeps(consumer)
+	err := EnsureDeps(consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

@@ -34,7 +34,7 @@ type tempLockfileErr interface {
 	Temporary() bool
 }
 
-func ensureDeps(consumer *state.Consumer) error {
+func EnsureDeps(consumer *state.Consumer) error {
 	if dontEnsureDeps {
 		consumer.Debugf("Asked not to ensure dependencies, skipping...")
 		return nil

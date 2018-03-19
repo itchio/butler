@@ -26,6 +26,13 @@ func Register(ctx *mansion.Context) {
 	args.file = cmd.Arg("file", "Path of the archive to extract").Required().String()
 	args.dir = cmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String()
 	ctx.Register(cmd, do)
+
+	fetch7zLibsCmd := ctx.App.Command("fetch-7z-libs", "Fetch 7-zip dependencies").Hidden()
+	ctx.Register(fetch7zLibsCmd, doFetch7zLibs)
+}
+
+func doFetch7zLibs(ctx *mansion.Context) {
+	ctx.Must(szextractor.EnsureDeps(comm.NewStateConsumer()))
 }
 
 func do(ctx *mansion.Context) {

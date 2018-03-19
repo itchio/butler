@@ -80,11 +80,16 @@ if [ "$CI_OS" = "darwin" ]; then
 fi
 
 # verify
-file $TARGET
-./$TARGET -V
+mkdir -p built
+mv $TARGET built/$TARGET
 
-7za a butler.7z $TARGET
-7za a butler.gz $TARGET
+file built/$TARGET
+./built/$TARGET -V
+./built/$TARGET fetch-7z-libs
+
+7za a butler.7z built/*
+7za a butler.zip built/*
+7za a butler.gz built/$TARGET
 
 # set up a file hierarchy that ibrew can consume, ie:
 #
@@ -102,7 +107,8 @@ BINARIES_DIR="binaries/$CI_OS-$CI_ARCH"
 mkdir -p $BINARIES_DIR/$CI_VERSION
 mv butler.7z $BINARIES_DIR/$CI_VERSION
 mv butler.gz $BINARIES_DIR/$CI_VERSION
-mv $TARGET $BINARIES_DIR/$CI_VERSION
+mv butler.zip $BINARIES_DIR/$CI_VERSION
+mv built/* $BINARIES_DIR/$CI_VERSION
 
 (cd $BINARIES_DIR/$CI_VERSION && sha1sum * > SHA1SUMS && sha256sum * > SHA256SUMS)
 
