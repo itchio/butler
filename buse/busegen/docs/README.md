@@ -106,6 +106,48 @@ sent (but the other peer may fail to process it before it exits).
 # Messages
 
 
+## Connection
+
+### <em class="request-client-caller"></em>Connection.New
+
+
+<p>
+<p>Ask butler to listen for a new connection, so commands can
+be sent to it.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>address</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="ConnectionNewParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Connection.New <a href="#/?id=connectionnew">(Go to definition)</a></p>
+
+<p>
+<p>Ask butler to listen for a new connection, so commands can
+be sent to it.</p>
+
+</p>
+</div>
+
+
 ## Utilities
 
 ### <em class="request-client-caller"></em>Version.Get

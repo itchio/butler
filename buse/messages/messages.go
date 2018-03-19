@@ -12,22 +12,22 @@ import (
 
 
 //==============================
-// Utilities
+// Connection
 //==============================
 
-// Version.Get (Request)
+// Connection.New (Request)
 
-type VersionGetType struct {}
+type ConnectionNewType struct {}
 
-var _ RequestMessage = (*VersionGetType)(nil)
+var _ RequestMessage = (*ConnectionNewType)(nil)
 
-func (r *VersionGetType) Method() string {
-  return "Version.Get"
+func (r *ConnectionNewType) Method() string {
+  return "Connection.New"
 }
 
-func (r *VersionGetType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.VersionGetParams) (*buse.VersionGetResult, error)) {
-  router.Register("Version.Get", func (rc *buse.RequestContext) (interface{}, error) {
-    var params buse.VersionGetParams
+func (r *ConnectionNewType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.ConnectionNewParams) (*buse.ConnectionNewResult, error)) {
+  router.Register("Connection.New", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.ConnectionNewParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -37,13 +37,13 @@ func (r *VersionGetType) Register(router *buse.Router, f func(*buse.RequestConte
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Version.Get")
+    	return nil, errors.New("internal error: nil result for Connection.New")
     }
     return res, nil
   })
 }
 
-var VersionGet *VersionGetType
+var ConnectionNew *ConnectionNewType
 
 
 //==============================
@@ -97,6 +97,41 @@ func (r *LogType) Notify(rc *buse.RequestContext, params *buse.LogNotification) 
 }
 
 var Log *LogType
+
+
+//==============================
+// Utilities
+//==============================
+
+// Version.Get (Request)
+
+type VersionGetType struct {}
+
+var _ RequestMessage = (*VersionGetType)(nil)
+
+func (r *VersionGetType) Method() string {
+  return "Version.Get"
+}
+
+func (r *VersionGetType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.VersionGetParams) (*buse.VersionGetResult, error)) {
+  router.Register("Version.Get", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.VersionGetParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Version.Get")
+    }
+    return res, nil
+  })
+}
+
+var VersionGet *VersionGetType
 
 
 //==============================
@@ -1976,6 +2011,7 @@ var TestDouble *TestDoubleType
 
 
 func EnsureAllRequests(router *buse.Router) {
+  if _, ok := router.Handlers["Connection.New"]; !ok { panic("missing request handler for (Connection.New)") }
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Profile.List"]; !ok { panic("missing request handler for (Profile.List)") }
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }

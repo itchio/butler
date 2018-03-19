@@ -48,7 +48,7 @@ func (r *Router) Register(method string, rh RequestHandler) {
 	r.Handlers[method] = rh
 }
 
-func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	method := req.Method
 	var res interface{}
 
@@ -98,6 +98,7 @@ func (r Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *json
 
 			rc := &RequestContext{
 				Ctx:            ctx,
+				Router:         r,
 				Harness:        NewProductionHarness(),
 				Consumer:       consumer,
 				Params:         req.Params,
@@ -184,6 +185,7 @@ type RequestContext struct {
 	MansionContext *mansion.Context
 	CancelFuncs    *CancelFuncs
 	DB             DBGetter
+	Router         *Router
 
 	notificationInterceptors map[string]NotificationInterceptor
 	counter                  *progress.Counter

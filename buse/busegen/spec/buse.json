@@ -1,6 +1,23 @@
 {
   "requests": [
     {
+      "method": "Connection.New",
+      "doc": "Ask butler to listen for a new connection, so commands can\nbe sent to it.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "address",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",

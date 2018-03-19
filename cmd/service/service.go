@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 	"net"
 
 	"github.com/itchio/butler/buse"
@@ -19,7 +18,12 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx))
+	ctx.Must(Do(ctx, ctx.Context(), func(addr string) {
+		comm.Result(map[string]interface{}{
+			"type":    "server-listening",
+			"address": addr,
+		})
+	}))
 }
 
 type handler struct {
@@ -29,35 +33,32 @@ type handler struct {
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	if req.Notif {
-		log.Printf("Got a notif! method = %#v, params = %#v", req.Method, req.Params)
 		return
 	}
 
 	h.router.Dispatch(ctx, conn, req)
 }
 
-func Do(ctx *mansion.Context) error {
-	port := "127.0.0.1:"
+type OnListenFunc func(addr string)
 
-	lis, err := net.Listen("tcp", port)
+func Do(mansionContext *mansion.Context, ctx context.Context, onListen OnListenFunc) error {
+	listenSpec := "127.0.0.1:"
+
+	lis, err := net.Listen("tcp", listenSpec)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	comm.Result(map[string]interface{}{
-		"type":    "server-listening",
-		"address": lis.Addr().String(),
-	})
-
+	onListen(lis.Addr().String())
 	s := buse.NewServer()
 
 	ha := &handler{
-		ctx:    ctx,
-		router: getRouter(ctx),
+		ctx:    mansionContext,
+		router: getRouter(mansionContext),
 	}
 	aha := jsonrpc2.AsyncHandler(ha)
 
-	err = s.Serve(context.Background(), lis, aha)
+	err = s.Serve(ctx, lis, aha, comm.NewStateConsumer())
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

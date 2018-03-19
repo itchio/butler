@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/comm"
+	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -19,16 +19,16 @@ func NewServer() *Server {
 	return &Server{}
 }
 
-func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler, opt ...jsonrpc2.ConnOpt) error {
+func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler, consumer *state.Consumer, opt ...jsonrpc2.ConnOpt) error {
 	conn, err := lis.Accept()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
 	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), h, opt...)
-	comm.Debugf("buse: Accepted connection!")
+	consumer.Debugf("buse: Accepted connection!")
 	<-jc.DisconnectNotify()
-	comm.Debugf("buse: Disconected!")
+	consumer.Debugf("buse: Disconnected!")
 	return nil
 }
 

@@ -7,6 +7,22 @@ import (
 )
 
 //----------------------------------------------------------------------
+// Connection
+//----------------------------------------------------------------------
+
+// Ask butler to listen for a new connection, so commands can
+// be sent to it.
+//
+// @name Connection.New
+// @category Connection
+// @caller client
+type ConnectionNewParams struct{}
+
+type ConnectionNewResult struct {
+	Address string `json:"address"`
+}
+
+//----------------------------------------------------------------------
 // Version
 //----------------------------------------------------------------------
 
