@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 
@@ -31,6 +30,7 @@ var args = struct {
 
 var doArgs = struct {
 	file *string
+	rfc  *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -41,12 +41,8 @@ func Register(ctx *mansion.Context) {
 
 	doCmd := ctx.App.Command("mkprotozip", "Make a zip with all supported entry types")
 	doArgs.file = doCmd.Arg("file", ".zip file to make").Required().String()
+	doArgs.rfc = doCmd.Flag("rfc", "If set, only use STORE and DEFLATE methods").Bool()
 	ctx.Register(doCmd, doMk)
-}
-
-type waitOnClose struct {
-	pw  io.WriteCloser
-	cmd *exec.Cmd
 }
 
 type lzmaWriter struct {
@@ -100,7 +96,6 @@ func (lw *lzmaWriter) Close() error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	log.Printf("lzmaProps = %x", lzmaProps)
 
 	lzmaSize := make([]byte, 8)
 	_, err = io.ReadFull(outReader, lzmaSize)
@@ -113,7 +108,6 @@ func (lw *lzmaWriter) Close() error {
 		b := lzmaSize[i]
 		unpackSize = unpackSize | uint64(b)<<uint64(8*i)
 	}
-	log.Printf("lzmaSize = %x (%d)", lzmaSize, unpackSize)
 
 	_, err = lw.w.Write(lzmaProps)
 	if err != nil {
@@ -130,10 +124,10 @@ func (lw *lzmaWriter) Close() error {
 
 func doMk(ctx *mansion.Context) {
 	consumer := comm.NewStateConsumer()
-	ctx.Must(DoMk(consumer, *doArgs.file))
+	ctx.Must(DoMk(consumer, *doArgs.file, *doArgs.rfc))
 }
 
-func DoMk(consumer *state.Consumer, file string) error {
+func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 	f, err := os.Create(file)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -182,7 +176,7 @@ func DoMk(consumer *state.Consumer, file string) error {
 		}
 	}
 
-	{
+	if !rfc {
 		bs := []byte("I'm an LZMA-compressed file")
 		ew, err := w.CreateHeader(&itchiozip.FileHeader{
 			Name:               "lzma-item",
@@ -204,10 +198,10 @@ func DoMk(consumer *state.Consumer, file string) error {
 
 func do(ctx *mansion.Context) {
 	consumer := comm.NewStateConsumer()
-	ctx.Must(Do(consumer, *args.file))
+	ctx.Must(Do(consumer, *args.file, *args.upstream))
 }
 
-func Do(consumer *state.Consumer, file string) error {
+func Do(consumer *state.Consumer, file string, upstream bool) error {
 	f, err := eos.Open(file)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -222,7 +216,7 @@ func Do(consumer *state.Consumer, file string) error {
 	consumer.Opf("Auditing (%s)...", stats.Name())
 
 	var impl ZipImpl
-	if *args.upstream {
+	if upstream {
 		consumer.Opf("Using upstream zip implementation")
 		impl = &upstreamImpl{}
 	} else {

@@ -1014,7 +1014,7 @@ func (z *encoder) encoder(r io.Reader, w io.Writer, size int64, level int) (err 
 		z.writeEndMark = true
 	}
 
-	header := make([]byte, lzmaPropSize + lzmaLengthSize)
+	header := make([]byte, lzmaHeaderSize)
 	header[0] = byte((z.cl.posStateBits*5+z.cl.litPosStateBits)*9 + z.cl.litContextBits)
 	for i := uint32(0); i < 4; i++ {
 		header[i+1] = byte(z.cl.dictSize >> (8 * i))
