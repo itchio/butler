@@ -58,14 +58,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/dsnet/compress",
-			"repository": "https://github.com/dsnet/compress",
-			"vcs": "git",
-			"revision": "cc9eb1d7ad760af14e8f918698f745e80377af4f",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/dsnet/golib/unitconv",
 			"repository": "https://github.com/dsnet/golib",
 			"vcs": "git",
@@ -297,7 +289,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "ca9e7c8db7224dd202eb6631054462b24bda8a99",
+			"revision": "fd3bb51f3a84955024cb6e1c3373b2d73716f214",
 			"branch": "master",
 			"notests": true
 		},
