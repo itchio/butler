@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
+	"os/exec"
 
 	upstreamzip "archive/zip"
 
@@ -24,11 +26,135 @@ var args = struct {
 	upstream *bool
 }{}
 
+var doArgs = struct {
+	file *string
+}{}
+
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("auditzip", "Audit a zip file for common errors")
 	args.file = cmd.Arg("file", ".zip file to audit").Required().String()
 	args.upstream = cmd.Flag("upstream", "Use upstream zip implementation (archive/zip)").Bool()
 	ctx.Register(cmd, do)
+
+	doCmd := ctx.App.Command("mkprotozip", "Make a zip with all supported entry types")
+	doArgs.file = doCmd.Arg("file", ".zip file to make").Required().String()
+	ctx.Register(doCmd, doMk)
+}
+
+type waitOnClose struct {
+	pw  io.WriteCloser
+	cmd *exec.Cmd
+}
+
+func (woc *waitOnClose) Write(buf []byte) (int, error) {
+	n, err := woc.pw.Write(buf)
+	return n, err
+}
+
+func (woc *waitOnClose) Close() error {
+	err := woc.pw.Close()
+	if err != nil {
+		return err
+	}
+	err = woc.cmd.Wait()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func doMk(ctx *mansion.Context) {
+	consumer := comm.NewStateConsumer()
+	ctx.Must(DoMk(consumer, *doArgs.file))
+}
+
+func DoMk(consumer *state.Consumer, file string) error {
+	f, err := os.Create(file)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	defer f.Close()
+
+	itchiozip.RegisterCompressor(itchiozip.LZMA, func(w io.Writer) (io.WriteCloser, error) {
+		_, err := w.Write([]byte{0, 0, 0, 0})
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		cmd := exec.Command("lzma", "-z", "-c")
+		pr, pw, err := os.Pipe()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		cmd.Stdin = pr
+		cmd.Stdout = w
+		cmd.Stderr = os.Stderr
+		err = cmd.Start()
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		return &waitOnClose{pw, cmd}, nil
+	})
+
+	w := itchiozip.NewWriter(f)
+	defer w.Close()
+
+	{
+		bs := []byte("I'm a stored file")
+		ew, err := w.CreateHeader(&itchiozip.FileHeader{
+			Name:               "store-item",
+			Method:             itchiozip.Store,
+			UncompressedSize:   uint32(len(bs)),
+			UncompressedSize64: uint64(len(bs)),
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		_, err = ew.Write(bs)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	{
+		bs := []byte("I'm a deflated file")
+		ew, err := w.CreateHeader(&itchiozip.FileHeader{
+			Name:               "deflate-item",
+			Method:             itchiozip.Deflate,
+			UncompressedSize:   uint32(len(bs)),
+			UncompressedSize64: uint64(len(bs)),
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		_, err = ew.Write(bs)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	{
+		bs := []byte("I'm an LZMA-compressed file")
+		ew, err := w.CreateHeader(&itchiozip.FileHeader{
+			Name:               "lzma-item",
+			Method:             itchiozip.LZMA,
+			UncompressedSize:   uint32(len(bs)),
+			UncompressedSize64: uint64(len(bs)),
+		})
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+
+		ew.Write(bs)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	return nil
 }
 
 func do(ctx *mansion.Context) {
@@ -158,6 +284,11 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 		rc, err := entry.Open()
 		if err != nil {
 			return errors.Wrap(err, 0)
+		}
+
+		offset, err := entry.DataOffset()
+		if err == nil {
+			comm.Debugf("(%s) offset = %d, compressed data size = %d", entry.Name, offset, entry.CompressedSize64)
 		}
 
 		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
