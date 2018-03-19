@@ -80,6 +80,7 @@ if [ "$CI_OS" = "darwin" ]; then
 fi
 
 # verify
+rm -rf built
 mkdir -p built
 mv $TARGET built/$TARGET
 
@@ -87,9 +88,9 @@ file built/$TARGET
 ./built/$TARGET -V
 ./built/$TARGET fetch-7z-libs
 
-7za a butler.7z built/*
-7za a butler.zip built/*
-7za a butler.gz built/$TARGET
+(cd built/ && 7za a ../butler.7z *)
+(cd built/ && 7za a ../butler.zip *)
+(cd built/ && 7za a ../butler.gz $TARGET)
 
 # set up a file hierarchy that ibrew can consume, ie:
 #
