@@ -110,7 +110,7 @@
 			"importpath": "github.com/fasterthanlime/wizardry/wizardry",
 			"repository": "https://github.com/fasterthanlime/wizardry",
 			"vcs": "git",
-			"revision": "c6e01a1782fd781a81cddcc19593dfdd292390e9",
+			"revision": "db66cbf56eefdd787db4af835b08e11303402bd7",
 			"branch": "master",
 			"path": "/wizardry",
 			"notests": true
@@ -447,30 +447,30 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/stretchr/testify/\\vendor\\github.com\\davecgh\\go-spew\\spew",
-			"repository": "https://github.com/stretchr/testify",
-			"vcs": "git",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
-			"branch": "master",
-			"path": "\\vendor\\github.com\\davecgh\\go-spew\\spew",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/stretchr/testify/\\vendor\\github.com\\pmezard\\go-difflib\\difflib",
-			"repository": "https://github.com/stretchr/testify",
-			"vcs": "git",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
-			"branch": "master",
-			"path": "\\vendor\\github.com\\pmezard\\go-difflib\\difflib",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/stretchr/testify/assert",
 			"repository": "https://github.com/stretchr/testify",
 			"vcs": "git",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"revision": "380174f817a09abe5982a82f94ad50938a8df65d",
 			"branch": "master",
 			"path": "/assert",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "380174f817a09abe5982a82f94ad50938a8df65d",
+			"branch": "master",
+			"path": "vendor/github.com/davecgh/go-spew/spew",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "380174f817a09abe5982a82f94ad50938a8df65d",
+			"branch": "master",
+			"path": "vendor/github.com/pmezard/go-difflib/difflib",
 			"notests": true
 		},
 		{
