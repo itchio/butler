@@ -5,6 +5,8 @@
 package zip
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -104,11 +106,64 @@ func (r *pooledFlateReader) Close() error {
 	return err
 }
 
-func newLZMAReader(r io.Reader, f *File) io.ReadCloser {
-	// Skip version information & properties size
-	io.CopyN(ioutil.Discard, r, 4)
+//
 
-	var lzr = lzma.NewReaderWithSize(r, f.UncompressedSize64)
+type concatReader struct {
+	readers []io.Reader
+	index   int
+}
+
+func (cr *concatReader) Read(buf []byte) (int, error) {
+	n, err := cr.readers[cr.index].Read(buf)
+	for err != nil || n < len(buf) {
+		if err == io.EOF {
+			if cr.index == len(cr.readers)-1 {
+				return n, err
+			}
+			cr.index++
+			err = nil
+		}
+
+		var m int
+		m, err = cr.readers[cr.index].Read(buf[n:])
+		n += m
+	}
+	return n, err
+}
+
+func newLZMAReader(r io.Reader, f *File) io.ReadCloser {
+	var versionInfo uint16
+	err := binary.Read(r, binary.LittleEndian, &versionInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	var propSize uint16
+	err = binary.Read(r, binary.LittleEndian, &propSize)
+	if err != nil {
+		panic(err)
+	}
+
+	lzmaProps := make([]byte, propSize)
+	_, err = io.ReadFull(r, lzmaProps)
+	if err != nil {
+		panic(err)
+	}
+
+	lzmaSize := make([]byte, 8)
+	for i := uint32(0); i < 8; i++ {
+		lzmaSize[i] = byte(f.UncompressedSize64 >> (8 * i))
+	}
+
+	cr := &concatReader{
+		readers: []io.Reader{
+			bytes.NewReader(lzmaProps),
+			bytes.NewReader(lzmaSize),
+			r,
+		},
+	}
+
+	var lzr = lzma.NewReader(cr)
 	return lzr
 }
 

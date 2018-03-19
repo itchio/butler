@@ -1,9 +1,12 @@
 package auditzip
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 
@@ -46,20 +49,82 @@ type waitOnClose struct {
 	cmd *exec.Cmd
 }
 
-func (woc *waitOnClose) Write(buf []byte) (int, error) {
-	n, err := woc.pw.Write(buf)
+type lzmaWriter struct {
+	buf *bytes.Buffer
+	w   io.Writer
+}
+
+func (lw *lzmaWriter) Write(buf []byte) (int, error) {
+	n, err := lw.buf.Write(buf)
 	return n, err
 }
 
-func (woc *waitOnClose) Close() error {
-	err := woc.pw.Close()
+func (lw *lzmaWriter) Close() error {
+	f, err := ioutil.TempFile("", "lzma-in")
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
-	err = woc.cmd.Wait()
+	defer f.Close()
+	defer os.Remove(f.Name())
+
+	_, err = f.Write(lw.buf.Bytes())
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
+	f.Close()
+
+	cmd := exec.Command("lzma", "--compress", f.Name(), "--stdout")
+	outBuf := new(bytes.Buffer)
+	cmd.Stdout = outBuf
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	var versionInfo uint16 = 5129
+	var propSize uint16 = 5
+	err = binary.Write(lw.w, binary.LittleEndian, versionInfo)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	err = binary.Write(lw.w, binary.LittleEndian, propSize)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	outReader := bytes.NewReader(outBuf.Bytes())
+
+	lzmaProps := make([]byte, 5)
+	_, err = io.ReadFull(outReader, lzmaProps)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	log.Printf("lzmaProps = %x", lzmaProps)
+
+	lzmaSize := make([]byte, 8)
+	_, err = io.ReadFull(outReader, lzmaSize)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	var unpackSize uint64
+	for i := 0; i < 8; i++ {
+		b := lzmaSize[i]
+		unpackSize = unpackSize | uint64(b)<<uint64(8*i)
+	}
+	log.Printf("lzmaSize = %x (%d)", lzmaSize, unpackSize)
+
+	_, err = lw.w.Write(lzmaProps)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	_, err = io.Copy(lw.w, outReader)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
 	return nil
 }
 
@@ -76,25 +141,8 @@ func DoMk(consumer *state.Consumer, file string) error {
 	defer f.Close()
 
 	itchiozip.RegisterCompressor(itchiozip.LZMA, func(w io.Writer) (io.WriteCloser, error) {
-		_, err := w.Write([]byte{0, 0, 0, 0})
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
-		cmd := exec.Command("lzma", "-z", "-c")
-		pr, pw, err := os.Pipe()
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-		cmd.Stdin = pr
-		cmd.Stdout = w
-		cmd.Stderr = os.Stderr
-		err = cmd.Start()
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-
-		return &waitOnClose{pw, cmd}, nil
+		buf := new(bytes.Buffer)
+		return &lzmaWriter{buf, w}, nil
 	})
 
 	w := itchiozip.NewWriter(f)
@@ -105,7 +153,6 @@ func DoMk(consumer *state.Consumer, file string) error {
 		ew, err := w.CreateHeader(&itchiozip.FileHeader{
 			Name:               "store-item",
 			Method:             itchiozip.Store,
-			UncompressedSize:   uint32(len(bs)),
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
@@ -123,7 +170,6 @@ func DoMk(consumer *state.Consumer, file string) error {
 		ew, err := w.CreateHeader(&itchiozip.FileHeader{
 			Name:               "deflate-item",
 			Method:             itchiozip.Deflate,
-			UncompressedSize:   uint32(len(bs)),
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
@@ -141,7 +187,6 @@ func DoMk(consumer *state.Consumer, file string) error {
 		ew, err := w.CreateHeader(&itchiozip.FileHeader{
 			Name:               "lzma-item",
 			Method:             itchiozip.LZMA,
-			UncompressedSize:   uint32(len(bs)),
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
@@ -286,9 +331,11 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 			return errors.Wrap(err, 0)
 		}
 
-		offset, err := entry.DataOffset()
-		if err == nil {
-			comm.Debugf("(%s) offset = %d, compressed data size = %d", entry.Name, offset, entry.CompressedSize64)
+		if entry.Method == itchiozip.LZMA {
+			offset, err := entry.DataOffset()
+			if err == nil {
+				comm.Debugf("(%s) offset = %d, compressed data size = %d, flags = %x, reader version = %d", entry.Name, offset, entry.CompressedSize64, entry.Flags, entry.ReaderVersion)
+			}
 		}
 
 		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
