@@ -66,6 +66,38 @@ func (r *DownloadsDriveProgressType) Notify(rc *buse.RequestContext, params *bus
 
 var DownloadsDriveProgress *DownloadsDriveProgressType
 
+// Downloads.Drive.Started (Notification)
+
+type DownloadsDriveStartedType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveStartedType)(nil)
+
+func (r *DownloadsDriveStartedType) Method() string {
+  return "Downloads.Drive.Started"
+}
+
+func (r *DownloadsDriveStartedType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveStartedNotification) (error) {
+  return rc.Notify("Downloads.Drive.Started", params)
+}
+
+var DownloadsDriveStarted *DownloadsDriveStartedType
+
+// Downloads.Drive.Errored (Notification)
+
+type DownloadsDriveErroredType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveErroredType)(nil)
+
+func (r *DownloadsDriveErroredType) Method() string {
+  return "Downloads.Drive.Errored"
+}
+
+func (r *DownloadsDriveErroredType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveErroredNotification) (error) {
+  return rc.Notify("Downloads.Drive.Errored", params)
+}
+
+var DownloadsDriveErrored *DownloadsDriveErroredType
+
 // Downloads.Drive.Finished (Notification)
 
 type DownloadsDriveFinishedType struct {}
@@ -81,6 +113,22 @@ func (r *DownloadsDriveFinishedType) Notify(rc *buse.RequestContext, params *bus
 }
 
 var DownloadsDriveFinished *DownloadsDriveFinishedType
+
+// Downloads.Drive.Cleared (Notification)
+
+type DownloadsDriveClearedType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveClearedType)(nil)
+
+func (r *DownloadsDriveClearedType) Method() string {
+  return "Downloads.Drive.Cleared"
+}
+
+func (r *DownloadsDriveClearedType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveClearedNotification) (error) {
+  return rc.Notify("Downloads.Drive.Cleared", params)
+}
+
+var DownloadsDriveCleared *DownloadsDriveClearedType
 
 // Log (Notification)
 

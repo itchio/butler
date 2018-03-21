@@ -1391,7 +1391,51 @@
       }
     },
     {
+      "method": "Downloads.Drive.Started",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "download",
+            "doc": "",
+            "type": "Download"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.Drive.Errored",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "download",
+            "doc": "",
+            "type": "Download"
+          },
+          {
+            "name": "error",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Downloads.Drive.Finished",
+      "doc": "",
+      "params": {
+        "fields": [
+          {
+            "name": "download",
+            "doc": "",
+            "type": "Download"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.Drive.Cleared",
       "doc": "",
       "params": {
         "fields": [

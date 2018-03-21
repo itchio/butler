@@ -985,8 +985,24 @@ type DownloadsDriveProgressNotification struct {
 	SpeedHistory []float64 `json:"speedHistory"`
 }
 
+// @name Downloads.Drive.Started
+type DownloadsDriveStartedNotification struct {
+	Download *Download `json:"download"`
+}
+
+// @name Downloads.Drive.Errored
+type DownloadsDriveErroredNotification struct {
+	Download *Download `json:"download"`
+	Error    string    `json:"error"`
+}
+
 // @name Downloads.Drive.Finished
 type DownloadsDriveFinishedNotification struct {
+	Download *Download `json:"download"`
+}
+
+// @name Downloads.Drive.Cleared
+type DownloadsDriveClearedNotification struct {
 	Download *Download `json:"download"`
 }
 

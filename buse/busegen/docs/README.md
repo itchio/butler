@@ -5358,6 +5358,77 @@ including the download key if any.</p>
 
 </div>
 
+### <em class="notification"></em>Downloads.Drive.Started
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveStartedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Started <a href="#/?id=downloadsdrivestarted">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Downloads.Drive.Errored
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveErroredNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Errored <a href="#/?id=downloadsdriveerrored">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="notification"></em>Downloads.Drive.Finished
 
 
@@ -5378,6 +5449,37 @@ including the download key if any.</p>
 
 <div id="DownloadsDriveFinishedNotification__TypeHint" style="display: none;" class="tip-content">
 <p><em class="notification"></em>Downloads.Drive.Finished <a href="#/?id=downloadsdrivefinished">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Downloads.Drive.Cleared
+
+
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveClearedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Cleared <a href="#/?id=downloadsdrivecleared">(Go to definition)</a></p>
 
 
 <table class="field-table">

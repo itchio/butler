@@ -258,11 +258,17 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			errString = se.ErrorStack()
 		}
 
-		consumer.Warnf("Download failed: %s", errString)
+		consumer.Warnf("Download errored: %s", errString)
 		download.Error = &errString
 		finishedAt := time.Now().UTC()
 		download.FinishedAt = &finishedAt
 		download.Save(rc.DB())
+
+		messages.DownloadsDriveErrored.Notify(rc, &buse.DownloadsDriveErroredNotification{
+			Download: formatDownload(download),
+			Error:    errString,
+		})
+
 		return nil
 	}
 
