@@ -114,21 +114,21 @@ func (r *DownloadsDriveFinishedType) Notify(rc *buse.RequestContext, params *bus
 
 var DownloadsDriveFinished *DownloadsDriveFinishedType
 
-// Downloads.Drive.Cleared (Notification)
+// Downloads.Drive.Discarded (Notification)
 
-type DownloadsDriveClearedType struct {}
+type DownloadsDriveDiscardedType struct {}
 
-var _ NotificationMessage = (*DownloadsDriveClearedType)(nil)
+var _ NotificationMessage = (*DownloadsDriveDiscardedType)(nil)
 
-func (r *DownloadsDriveClearedType) Method() string {
-  return "Downloads.Drive.Cleared"
+func (r *DownloadsDriveDiscardedType) Method() string {
+  return "Downloads.Drive.Discarded"
 }
 
-func (r *DownloadsDriveClearedType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveClearedNotification) (error) {
-  return rc.Notify("Downloads.Drive.Cleared", params)
+func (r *DownloadsDriveDiscardedType) Notify(rc *buse.RequestContext, params *buse.DownloadsDriveDiscardedNotification) (error) {
+  return rc.Notify("Downloads.Drive.Discarded", params)
 }
 
-var DownloadsDriveCleared *DownloadsDriveClearedType
+var DownloadsDriveDiscarded *DownloadsDriveDiscardedType
 
 // Log (Notification)
 

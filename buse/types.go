@@ -1001,8 +1001,8 @@ type DownloadsDriveFinishedNotification struct {
 	Download *Download `json:"download"`
 }
 
-// @name Downloads.Drive.Cleared
-type DownloadsDriveClearedNotification struct {
+// @name Downloads.Drive.Discarded
+type DownloadsDriveDiscardedNotification struct {
 	Download *Download `json:"download"`
 }
 

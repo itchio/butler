@@ -87,10 +87,16 @@ func cleanDiscarded(rc *buse.RequestContext) error {
 			}
 		}
 
+		formattedDownload := formatDownload(download)
+
 		err := rc.DB().Delete(download).Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
+
+		messages.DownloadsDriveDiscarded.Notify(rc, &buse.DownloadsDriveDiscardedNotification{
+			Download: formattedDownload,
+		})
 	}
 	return nil
 }

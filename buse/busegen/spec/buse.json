@@ -1435,7 +1435,7 @@
       }
     },
     {
-      "method": "Downloads.Drive.Cleared",
+      "method": "Downloads.Drive.Discarded",
       "doc": "",
       "params": {
         "fields": [

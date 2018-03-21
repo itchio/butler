@@ -5460,7 +5460,7 @@ including the download key if any.</p>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Cleared
+### <em class="notification"></em>Downloads.Drive.Discarded
 
 
 
@@ -5478,8 +5478,8 @@ including the download key if any.</p>
 </table>
 
 
-<div id="DownloadsDriveClearedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Cleared <a href="#/?id=downloadsdrivecleared">(Go to definition)</a></p>
+<div id="DownloadsDriveDiscardedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.Discarded <a href="#/?id=downloadsdrivediscarded">(Go to definition)</a></p>
 
 
 <table class="field-table">
