@@ -87,15 +87,13 @@ func cleanDiscarded(rc *buse.RequestContext) error {
 			}
 		}
 
-		formattedDownload := formatDownload(download)
-
 		err := rc.DB().Delete(download).Error
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		messages.DownloadsDriveDiscarded.Notify(rc, &buse.DownloadsDriveDiscardedNotification{
-			Download: formattedDownload,
+			Download: formatDownload(download),
 		})
 	}
 	return nil
@@ -231,6 +229,10 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 				}
 			}
 		}()
+
+		messages.DownloadsDriveStarted.Notify(rc, &buse.DownloadsDriveStartedNotification{
+			Download: formatDownload(download),
+		})
 
 		err = operate.InstallPerform(ctx, rc, &buse.InstallPerformParams{
 			ID:            download.ID,
