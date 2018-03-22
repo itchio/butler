@@ -113,6 +113,9 @@ type VsBlock struct {
 	ValueLength uint16
 	Type        uint16
 	Key         []byte
+	EndOffset   int64
+
+	ReadSeekerAt
 }
 
 func DecodeUTF16(bs []byte) string {
@@ -244,14 +247,15 @@ func Do(path string, consumer *state.Consumer) error {
 
 					switch resourceType {
 					case ResourceTypeManifest:
-						// actually not utf-16 for some
-						// reason
+						// actually not utf-16,
+						// but TODO: figure out
+						// codepage
 						stringData := string(rawData)
-						// log("=========================")
-						// for _, l := range strings.Split(stringData, "\n") {
-						// 	log("%s", l)
-						// }
-						// log("=========================")
+						log("=========================")
+						for _, l := range strings.Split(stringData, "\n") {
+							log("%s", l)
+						}
+						log("=========================")
 						props.Manifest = stringData
 					case ResourceTypeVersion:
 						err := parseVersion(consumer, rawData)
@@ -274,19 +278,28 @@ func Do(path string, consumer *state.Consumer) error {
 	return nil
 }
 
+type ReadSeekerAt interface {
+	io.ReadSeeker
+	io.ReaderAt
+}
+
 func parseVersion(consumer *state.Consumer, rawData []byte) error {
 	br := bytes.NewReader(rawData)
 	buf := make([]byte, 2)
 
-	skipPadding := func() error {
+	skipPadding := func(r ReadSeekerAt) error {
 		for {
-			_, err := br.Read(buf)
+			_, err := r.Read(buf)
 			if err != nil {
+				if err == io.EOF {
+					// alles gut
+					return nil
+				}
 				return errors.Wrap(err, 0)
 			}
 
 			if buf[0] != 0 || buf[1] != 0 {
-				_, err = br.Seek(-2, io.SeekCurrent)
+				_, err = r.Seek(-2, io.SeekCurrent)
 				if err != nil {
 					return errors.Wrap(err, 0)
 				}
@@ -296,11 +309,11 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 		return nil
 	}
 
-	parseNullTerminatedString := func() ([]byte, error) {
+	parseNullTerminatedString := func(r ReadSeekerAt) ([]byte, error) {
 		var res []byte
 
 		for {
-			_, err := br.Read(buf)
+			_, err := r.Read(buf)
 			if err != nil {
 				return nil, errors.Wrap(err, 0)
 			}
@@ -314,48 +327,54 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 		return res, nil
 	}
 
-	parseVSBlock := func() (*VsBlock, error) {
-		var wLength uint16
-		err := binary.Read(br, binary.LittleEndian, &wLength)
+	parseVSBlock := func(r ReadSeekerAt) (*VsBlock, error) {
+		startOffset, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
-		consumer.Logf("wLength = %d", wLength)
+		var wLength uint16
+		err = binary.Read(r, binary.LittleEndian, &wLength)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		endOffset := startOffset + int64(wLength)
+		sr := io.NewSectionReader(r, startOffset+2, int64(wLength)-2 /* we already read the wLength uint16 */)
 
 		var wValueLength uint16
-		err = binary.Read(br, binary.LittleEndian, &wValueLength)
+		err = binary.Read(sr, binary.LittleEndian, &wValueLength)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
-		consumer.Logf("wValueLength = %d", wValueLength)
 
 		var wType uint16
-		err = binary.Read(br, binary.LittleEndian, &wType)
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-		consumer.Logf("wType = %d", wType)
-
-		szKey, err := parseNullTerminatedString()
+		err = binary.Read(sr, binary.LittleEndian, &wType)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
-		err = skipPadding()
+		szKey, err := parseNullTerminatedString(sr)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+
+		err = skipPadding(sr)
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
 		return &VsBlock{
-			Length:      wLength,
-			ValueLength: wValueLength,
-			Type:        wType,
-			Key:         szKey,
+			Length:       wLength,
+			ValueLength:  wValueLength,
+			Type:         wType,
+			Key:          szKey,
+			EndOffset:    endOffset,
+			ReadSeekerAt: sr,
 		}, nil
 	}
 
-	vsVersionInfo, err := parseVSBlock()
+	vsVersionInfo, err := parseVSBlock(br)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -367,7 +386,7 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 	}
 
 	ffi := new(VsFixedFileInfo)
-	err = binary.Read(br, binary.LittleEndian, ffi)
+	err = binary.Read(vsVersionInfo, binary.LittleEndian, ffi)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -378,43 +397,69 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 		return nil
 	}
 
-	var fileVersion = int64(ffi.DwFileVersionMS)<<32 + int64(ffi.DwFileVersionLS)
-	consumer.Logf("file version:    %d", fileVersion)
-	var productVersion = int64(ffi.DwProductVersionMS)<<32 + int64(ffi.DwProductVersionLS)
-	consumer.Logf("product version: %d", productVersion)
-
-	err = skipPadding()
+	err = skipPadding(vsVersionInfo)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	child, err := parseVSBlock()
-	consumer.Logf("child key: %s", child.KeyString())
-	switch child.KeyString() {
-	case "StringFileInfo":
-		stable, err := parseVSBlock()
+	for {
+		fileInfo, err := parseVSBlock(vsVersionInfo)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			return errors.Wrap(err, 0)
 		}
 
-		consumer.Logf("found string table of length %d, key = %s", stable.Length, stable.KeyString())
+		switch fileInfo.KeyString() {
+		case "StringFileInfo":
+			for {
+				stable, err := parseVSBlock(fileInfo)
+				if err != nil {
+					if errors.Is(err, io.EOF) {
+						break
+					}
+					return errors.Wrap(err, 0)
+				}
 
-		for {
-			str, err := parseVSBlock()
-			if err != nil {
-				return errors.Wrap(err, 0)
-			}
-			consumer.Logf("found string, key = %s", str.KeyString())
+				for {
+					str, err := parseVSBlock(stable)
+					if err != nil {
+						if errors.Is(err, io.EOF) {
+							break
+						}
+						return errors.Wrap(err, 0)
+					}
 
-			val, err := parseNullTerminatedString()
-			if err != nil {
-				return errors.Wrap(err, 0)
+					val, err := parseNullTerminatedString(str)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+					consumer.Logf("-> %s: %s", str.KeyString(), DecodeUTF16(val))
+					_, err = stable.Seek(str.EndOffset, io.SeekStart)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+
+					err = skipPadding(stable)
+					if err != nil {
+						return errors.Wrap(err, 0)
+					}
+				}
+
+				_, err = fileInfo.Seek(stable.EndOffset, io.SeekStart)
+				if err != nil {
+					return errors.Wrap(err, 0)
+				}
 			}
-			consumer.Logf("value = %s", DecodeUTF16(val))
+		case "VarFileInfo":
+			// skip
 		}
-	case "VarFileInfo":
-		consumer.Logf("not supported, skipping")
-		return nil
+
+		_, err = vsVersionInfo.Seek(fileInfo.EndOffset, io.SeekStart)
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
 	}
 
 	return nil
