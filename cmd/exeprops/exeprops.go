@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"debug/pe"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
 	"unicode/utf16"
 
+	xj "github.com/basgys/goxml2json"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
@@ -28,8 +30,48 @@ func Register(ctx *mansion.Context) {
 	ctx.Register(cmd, do)
 }
 
+// ExeProps contains the architecture of a binary file
+//
+// For command `exeprops`
+type ExeProps struct {
+	Arch                string              `json:"arch"`
+	VersionProperties   map[string]string   `json:"versionProperties"`
+	AssemblyInfo        *AssemblyInfo       `json:"assemblyInfo"`
+	DependentAssemblies []*AssemblyIdentity `json:"dependentAssemblies"`
+}
+
+type AssemblyInfo struct {
+	Identity    *AssemblyIdentity `json:"identity"`
+	Description string            `json:"description"`
+
+	RequestedExecutionLevel string `json:"requestedExecutionLevel,omitempty"`
+}
+
+type AssemblyIdentity struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Type    string `json:"type"`
+
+	ProcessorArchitecture string `json:"processorArchitecture,omitempty"`
+	Language              string `json:"language,omitempty"`
+	PublicKeyToken        string `json:"publicKeyToken,omitempty"`
+}
+
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.path, comm.NewStateConsumer()))
+	f, err := eos.Open(*args.path)
+	ctx.Must(err)
+	defer f.Close()
+
+	props, err := Do(f, comm.NewStateConsumer())
+	ctx.Must(err)
+
+	comm.ResultOrPrint(props, func() {
+		js, err := json.MarshalIndent(props, "", "  ")
+		if err == nil {
+			comm.Logf(string(js))
+		}
+	})
+
 }
 
 type ImageResourceDirectory struct {
@@ -146,20 +188,16 @@ type VsFixedFileInfo struct {
 	DwFileDateLS       uint32
 }
 
-func Do(path string, consumer *state.Consumer) error {
-	f, err := eos.Open(path)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	defer f.Close()
-
+func Do(f eos.File, consumer *state.Consumer) (*ExeProps, error) {
 	pf, err := pe.NewFile(f)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, 0)
 	}
 	defer pf.Close()
 
-	props := &mansion.ExePropsResult{}
+	props := &ExeProps{
+		VersionProperties: make(map[string]string),
+	}
 
 	switch pf.Machine {
 	case pe.IMAGE_FILE_MACHINE_I386:
@@ -170,18 +208,18 @@ func Do(path string, consumer *state.Consumer) error {
 
 	rsrcSection := pf.Section(".rsrc")
 	if rsrcSection != nil {
-		consumer.Logf("Found resource section")
+		consumer.Debugf("Found resource section")
 		data, err := rsrcSection.Data()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, 0)
 		}
-		consumer.Logf("Section data size: %s (%d bytes)", humanize.IBytes(uint64(len(data))), len(data))
+		consumer.Debugf("Section data size: %s (%d bytes)", humanize.IBytes(uint64(len(data))), len(data))
 
 		var readDirectory func(offset uint32, level int, resourceType ResourceType) error
 		readDirectory = func(offset uint32, level int, resourceType ResourceType) error {
 			prefix := strings.Repeat("  ", level)
 			log := func(msg string, args ...interface{}) {
-				consumer.Logf("%s%s", prefix, fmt.Sprintf(msg, args...))
+				consumer.Debugf("%s%s", prefix, fmt.Sprintf(msg, args...))
 			}
 
 			br := bytes.NewReader(data[offset:])
@@ -256,9 +294,18 @@ func Do(path string, consumer *state.Consumer) error {
 							log("%s", l)
 						}
 						log("=========================")
-						props.Manifest = stringData
+
+						js, err := xj.Convert(strings.NewReader(stringData))
+						if err != nil {
+							log("could not convert xml to json: %s", err.Error())
+						} else {
+							err := interpretManifest(props, js.Bytes())
+							if err != nil {
+								log("could not interpret manifest: %s", err.Error())
+							}
+						}
 					case ResourceTypeVersion:
-						err := parseVersion(consumer, rawData)
+						err := parseVersion(props, consumer, rawData)
 						if err != nil {
 							return errors.Wrap(err, 0)
 						}
@@ -269,13 +316,28 @@ func Do(path string, consumer *state.Consumer) error {
 		}
 		err = readDirectory(0, 0, 0)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, 0)
 		}
 	}
 
-	comm.Result(props)
+	return props, nil
+}
 
-	return nil
+// see
+// https://msdn.microsoft.com/en-us/library/windows/desktop/dd318693(v=vs.85).aspx
+func isLanguageWhitelisted(key string) bool {
+	localeID := key[:4]
+	primaryLangID := localeID[2:]
+
+	switch primaryLangID {
+	// neutral
+	case "00":
+		return true
+	// english
+	case "09":
+		return true
+	}
+	return false
 }
 
 type ReadSeekerAt interface {
@@ -283,7 +345,7 @@ type ReadSeekerAt interface {
 	io.ReaderAt
 }
 
-func parseVersion(consumer *state.Consumer, rawData []byte) error {
+func parseVersion(props *ExeProps, consumer *state.Consumer, rawData []byte) error {
 	br := bytes.NewReader(rawData)
 	buf := make([]byte, 2)
 
@@ -378,10 +440,8 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	consumer.Logf("vsVersionInfo key = %s", vsVersionInfo.KeyString())
 
 	if vsVersionInfo.ValueLength == 0 {
-		consumer.Logf("no value, skipping")
 		return nil
 	}
 
@@ -390,10 +450,9 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	consumer.Logf("ffi: %#v", *ffi)
 
 	if ffi.DwSignature != 0xFEEF04BD {
-		consumer.Logf("invalid signature, either the version block is invalid or we messed up")
+		consumer.Debugf("invalid signature, either the version block is invalid or we messed up")
 		return nil
 	}
 
@@ -422,28 +481,35 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 					return errors.Wrap(err, 0)
 				}
 
-				for {
-					str, err := parseVSBlock(stable)
-					if err != nil {
-						if errors.Is(err, io.EOF) {
-							break
+				if isLanguageWhitelisted(stable.KeyString()) {
+					for {
+						str, err := parseVSBlock(stable)
+						if err != nil {
+							if errors.Is(err, io.EOF) {
+								break
+							}
+							return errors.Wrap(err, 0)
 						}
-						return errors.Wrap(err, 0)
-					}
 
-					val, err := parseNullTerminatedString(str)
-					if err != nil {
-						return errors.Wrap(err, 0)
-					}
-					consumer.Logf("-> %s: %s", str.KeyString(), DecodeUTF16(val))
-					_, err = stable.Seek(str.EndOffset, io.SeekStart)
-					if err != nil {
-						return errors.Wrap(err, 0)
-					}
+						keyString := str.KeyString()
 
-					err = skipPadding(stable)
-					if err != nil {
-						return errors.Wrap(err, 0)
+						val, err := parseNullTerminatedString(str)
+						if err != nil {
+							return errors.Wrap(err, 0)
+						}
+						valString := strings.TrimSpace(DecodeUTF16(val))
+
+						consumer.Debugf("%s: %s", keyString, valString)
+						props.VersionProperties[keyString] = valString
+						_, err = stable.Seek(str.EndOffset, io.SeekStart)
+						if err != nil {
+							return errors.Wrap(err, 0)
+						}
+
+						err = skipPadding(stable)
+						if err != nil {
+							return errors.Wrap(err, 0)
+						}
 					}
 				}
 
@@ -461,6 +527,89 @@ func parseVersion(consumer *state.Consumer, rawData []byte) error {
 			return errors.Wrap(err, 0)
 		}
 	}
+
+	return nil
+}
+
+type node = map[string]interface{}
+
+func visit(n node, key string, f func(c node)) {
+	if c, ok := n[key].(node); ok {
+		f(c)
+	}
+}
+
+func visitMany(n node, key string, f func(c node)) {
+	if cs, ok := n[key].([]node); ok {
+		for _, c := range cs {
+			f(c)
+		}
+	}
+	if c, ok := n[key].(node); ok {
+		f(c)
+	}
+}
+
+func getString(n node, key string, f func(s string)) {
+	if s, ok := n[key].(string); ok {
+		f(s)
+	}
+}
+
+func interpretManifest(props *ExeProps, manifest []byte) error {
+	intermediate := make(node)
+	err := json.Unmarshal([]byte(manifest), &intermediate)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	info := &AssemblyInfo{}
+
+	interpretIdentity := func(id node, f func(id *AssemblyIdentity)) {
+		ai := &AssemblyIdentity{}
+		getString(id, "-name", func(s string) { ai.Name = s })
+		getString(id, "-version", func(s string) { ai.Version = s })
+		getString(id, "-type", func(s string) { ai.Type = s })
+
+		getString(id, "-processorArchitecture", func(s string) { ai.ProcessorArchitecture = s })
+		getString(id, "-publicKeyToken", func(s string) { ai.PublicKeyToken = s })
+		getString(id, "-language", func(s string) { ai.Language = s })
+		f(ai)
+	}
+
+	visit(intermediate, "assembly", func(assembly node) {
+		visit(assembly, "assemblyIdentity", func(id node) {
+			interpretIdentity(id, func(ai *AssemblyIdentity) {
+				info.Identity = ai
+			})
+		})
+
+		getString(assembly, "description", func(s string) { info.Description = s })
+
+		visit(assembly, "trustInfo", func(ti node) {
+			visit(ti, "security", func(sec node) {
+				visit(sec, "requestedPrivileges", func(rp node) {
+					visit(rp, "requestedExecutionLevel", func(rel node) {
+						getString(rel, "-level", func(s string) {
+							info.RequestedExecutionLevel = s
+						})
+					})
+				})
+			})
+		})
+
+		visit(assembly, "dependency", func(dep node) {
+			visitMany(dep, "dependentAssembly", func(da node) {
+				visit(da, "assemblyIdentity", func(id node) {
+					interpretIdentity(id, func(ai *AssemblyIdentity) {
+						props.DependentAssemblies = append(props.DependentAssemblies, ai)
+					})
+				})
+			})
+		})
+	})
+
+	props.AssemblyInfo = info
 
 	return nil
 }
