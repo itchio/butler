@@ -206,14 +206,9 @@ func Do(f eos.File, consumer *state.Consumer) (*ExeProps, error) {
 		props.Arch = "amd64"
 	}
 
-	rsrcSection := pf.Section(".rsrc")
-	if rsrcSection != nil {
-		consumer.Debugf("Found resource section")
-		data, err := rsrcSection.Data()
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
-		}
-		consumer.Debugf("Section data size: %s (%d bytes)", humanize.IBytes(uint64(len(data))), len(data))
+	sect := pf.Section(".rsrc")
+	if sect != nil {
+		consumer.Debugf("Found resource section (%s)", humanize.IBytes(uint64(sect.Size)))
 
 		var readDirectory func(offset uint32, level int, resourceType ResourceType) error
 		readDirectory = func(offset uint32, level int, resourceType ResourceType) error {
@@ -222,7 +217,7 @@ func Do(f eos.File, consumer *state.Consumer) (*ExeProps, error) {
 				consumer.Debugf("%s%s", prefix, fmt.Sprintf(msg, args...))
 			}
 
-			br := bytes.NewReader(data[offset:])
+			br := io.NewSectionReader(sect, int64(offset), int64(sect.Size)-int64(offset))
 			ird := new(ImageResourceDirectory)
 			err = binary.Read(br, binary.LittleEndian, ird)
 			if err != nil {
@@ -266,7 +261,7 @@ func Do(f eos.File, consumer *state.Consumer) (*ExeProps, error) {
 					continue
 				}
 
-				dbr := bytes.NewReader(data[irde.Data:])
+				dbr := io.NewSectionReader(sect, int64(irde.Data), int64(sect.Size)-int64(irde.Data))
 
 				irda := new(ImageResourceDataEntry)
 				err = binary.Read(dbr, binary.LittleEndian, irda)
@@ -277,7 +272,7 @@ func Do(f eos.File, consumer *state.Consumer) (*ExeProps, error) {
 				if resourceType == ResourceTypeManifest || resourceType == ResourceTypeVersion {
 					log("@ %x (%s, %d bytes)", irda.Data, humanize.IBytes(uint64(irda.Size)), irda.Size)
 
-					sr := io.NewSectionReader(f, int64(rsrcSection.Offset+irda.Data-rsrcSection.VirtualAddress), int64(irda.Size))
+					sr := io.NewSectionReader(f, int64(sect.Offset+irda.Data-sect.VirtualAddress), int64(irda.Size))
 					rawData, err := ioutil.ReadAll(sr)
 					if err != nil {
 						return errors.Wrap(err, 0)
@@ -377,6 +372,9 @@ func parseVersion(props *ExeProps, consumer *state.Consumer, rawData []byte) err
 		for {
 			_, err := r.Read(buf)
 			if err != nil {
+				if errors.Is(err, io.EOF) {
+					return res, nil
+				}
 				return nil, errors.Wrap(err, 0)
 			}
 
