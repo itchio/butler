@@ -51,11 +51,18 @@ type Source interface {
 	// the stream is unknown), then Progress returns a negative value (typically -1).
 	Progress() float64
 
+	Features() SourceFeatures
+
 	io.Reader
 
 	// io.ByteReader is embedded in Source so it can be used by the `flate` package
 	// without it wrapping it in a `bufio.Reader`
 	io.ByteReader
+}
+
+type SourceFeatures struct {
+	Name          string
+	ResumeSupport ResumeSupport
 }
 
 // SeekSource is a Source with extra powers: you can know its size,

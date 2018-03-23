@@ -289,7 +289,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "fd3bb51f3a84955024cb6e1c3373b2d73716f214",
+			"revision": "758bbdd704cacd95736a9bb3698e5104893831c4",
 			"branch": "master",
 			"notests": true
 		},
@@ -305,7 +305,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "b03a1769bf647b675354ce0e0788a0c01e8b62d3",
+			"revision": "035a9862fef7d13a49c31d6402e30bed4cc5bb40",
 			"branch": "master",
 			"notests": true
 		},

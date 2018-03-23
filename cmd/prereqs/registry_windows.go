@@ -53,5 +53,5 @@ func getRootKey(name string) (registry.Key, error) {
 		return registry.CURRENT_USER, nil
 	}
 
-	return 0, fmt.Errorf("Unknown root key (%s)")
+	return 0, fmt.Errorf("Unknown root key (%s)", name)
 }

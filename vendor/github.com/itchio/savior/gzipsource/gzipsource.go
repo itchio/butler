@@ -41,6 +41,13 @@ func New(source savior.Source) *gzipSource {
 	}
 }
 
+func (gs *gzipSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "gzip",
+		ResumeSupport: savior.ResumeSupportBlock,
+	}
+}
+
 func (gs *gzipSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	gs.ssc = ssc
 	gs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{

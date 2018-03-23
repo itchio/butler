@@ -253,12 +253,24 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 }
 
 func (te *tarExtractor) Features() savior.ExtractorFeatures {
-	// tar has great resume support but cannot preallocate or grant random access.
+	sf := te.source.Features()
+
+	// tar's resume support depends on the underlying source
+	var resumeSupport savior.ResumeSupport
+	switch sf.ResumeSupport {
+	case savior.ResumeSupportBlock:
+		resumeSupport = savior.ResumeSupportBlock
+	default:
+		resumeSupport = savior.ResumeSupportNone
+	}
+
+	// but we cannot preallocate or grant random access.
 	return savior.ExtractorFeatures{
-		Name:          "tar",
-		ResumeSupport: savior.ResumeSupportBlock,
-		Preallocate:   false,
-		RandomAccess:  false,
+		Name:           "tar",
+		ResumeSupport:  resumeSupport,
+		Preallocate:    false,
+		RandomAccess:   false,
+		SourceFeatures: &sf,
 	}
 }
 

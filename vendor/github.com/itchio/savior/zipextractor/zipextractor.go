@@ -29,6 +29,7 @@ type ZipExtractor struct {
 	consumer     *state.Consumer
 
 	flateThreshold int64
+	resumeSupport  savior.ResumeSupport
 }
 
 var _ savior.Extractor = (*ZipExtractor)(nil)
@@ -43,9 +44,21 @@ func New(reader io.ReaderAt, readerSize int64) (*ZipExtractor, error) {
 		reader: reader,
 		zr:     zr,
 
-		saveConsumer: savior.NopSaveConsumer(),
-		consumer:     savior.NopConsumer(),
+		saveConsumer:  savior.NopSaveConsumer(),
+		consumer:      savior.NopConsumer(),
+		resumeSupport: savior.ResumeSupportBlock,
 	}
+
+	for _, f := range zr.File {
+		switch f.Method {
+		case zip.Store, zip.Deflate:
+			// all good
+		case zip.LZMA:
+			// no block resume for you
+			ex.resumeSupport = savior.ResumeSupportEntry
+		}
+	}
+
 	return ex, nil
 }
 
@@ -298,9 +311,10 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 func (ze *ZipExtractor) Features() savior.ExtractorFeatures {
 	// zip has great resume support and is random access!
+	// (we only have entry resume if lzma is enabled)
 	return savior.ExtractorFeatures{
 		Name:          "zip",
-		ResumeSupport: savior.ResumeSupportBlock,
+		ResumeSupport: ze.resumeSupport,
 		Preallocate:   true,
 		RandomAccess:  true,
 	}

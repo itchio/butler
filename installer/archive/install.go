@@ -20,9 +20,19 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Files: []string{},
 	}
 
-	archiveInfo := params.InstallerInfo.ArchiveInfo
+	f := params.File
 
-	ex, err := archiveInfo.GetExtractor(params.File, consumer)
+	archiveInfo := params.InstallerInfo.ArchiveInfo
+	if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
+		consumer.Infof("Forcing local for %s", archiveInfo.Features)
+		localFile, err := installer.AsLocalFile(f)
+		if err != nil {
+			return nil, errors.Wrap(err, 0)
+		}
+		f = localFile
+	}
+
+	ex, err := archiveInfo.GetExtractor(f, consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}

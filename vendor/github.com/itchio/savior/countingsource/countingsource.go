@@ -24,6 +24,10 @@ func New(source savior.SeekSource, cc CountingCallback) savior.SeekSource {
 	}
 }
 
+func (cs *countingSource) Features() savior.SourceFeatures {
+	return cs.source.Features()
+}
+
 func (cs *countingSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error) {
 	return cs.source.Resume(checkpoint)
 }

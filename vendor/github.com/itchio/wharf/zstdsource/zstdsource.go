@@ -34,6 +34,13 @@ func New(source savior.Source) savior.Source {
 	return zs
 }
 
+func (zs *zstdSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "zsrd",
+		ResumeSupport: savior.ResumeSupportNone,
+	}
+}
+
 func finalizer(zs *zstdSource) {
 	if zs.zd != nil {
 		zs.zd.Close()

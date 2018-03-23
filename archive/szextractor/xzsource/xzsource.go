@@ -44,6 +44,13 @@ func New(file eos.File, consumer *state.Consumer) (*xzSource, error) {
 	return xs, nil
 }
 
+func (xs *xzSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "xz",
+		ResumeSupport: savior.ResumeSupportNone,
+	}
+}
+
 func (xs *xzSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	// we don't support checkpoints
 }

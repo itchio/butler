@@ -37,6 +37,13 @@ func New(source savior.Source) *flateSource {
 	}
 }
 
+func (fs *flateSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "flate",
+		ResumeSupport: savior.ResumeSupportBlock,
+	}
+}
+
 func (fs *flateSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	fs.ssc = ssc
 	fs.source.SetSourceSaveConsumer(&savior.CallbackSourceSaveConsumer{

@@ -261,9 +261,9 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 func (se *szExtractor) Features() savior.ExtractorFeatures {
 	return savior.ExtractorFeatures{
 		Name:          "sz",
-		Preallocate:   true,             // some formats might have a 0 UncompressedSize?
-		RandomAccess:  true,             // that's not true for .tar, but we don't use sz for that
-		ResumeSupport: se.resumeSupport, // we pass an array of entry indices to extract
+		Preallocate:   true, // some formats might have a 0 UncompressedSize?
+		RandomAccess:  true, // that's not true for .tar, but we don't use sz for that
+		ResumeSupport: se.resumeSupport,
 	}
 }
 

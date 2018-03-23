@@ -52,6 +52,13 @@ func NewWithSize(rs io.ReadSeeker, size int64) savior.SeekSource {
 	}
 }
 
+func (ss *seekSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "seek",
+		ResumeSupport: savior.ResumeSupportBlock,
+	}
+}
+
 func (ss *seekSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	savior.Debugf("seeksource: set source save consumer!")
 	ss.ssc = ssc

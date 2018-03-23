@@ -36,6 +36,13 @@ func New(source savior.Source) *brotliSource {
 	}
 }
 
+func (bs *brotliSource) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "brotli",
+		ResumeSupport: savior.ResumeSupportBlock,
+	}
+}
+
 func (bs *brotliSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	savior.Debugf("brotlisource: set source save consumer!")
 	bs.ssc = ssc

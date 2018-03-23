@@ -48,10 +48,11 @@ func (er *ExtractorResult) Size() int64 {
 }
 
 type ExtractorFeatures struct {
-	Name          string
-	ResumeSupport ResumeSupport
-	Preallocate   bool
-	RandomAccess  bool
+	Name           string
+	ResumeSupport  ResumeSupport
+	Preallocate    bool
+	RandomAccess   bool
+	SourceFeatures *SourceFeatures
 }
 
 func (ef ExtractorFeatures) String() string {
@@ -63,6 +64,11 @@ func (ef ExtractorFeatures) String() string {
 	if ef.RandomAccess {
 		res += " +randomaccess"
 	}
+
+	if ef.SourceFeatures != nil {
+		res += fmt.Sprintf(" (via source %s: resume=%s)", ef.SourceFeatures.Name, ef.SourceFeatures.ResumeSupport)
+	}
+
 	return res
 }
 

@@ -38,6 +38,13 @@ func New(source savior.Source) *bzip2Source {
 	}
 }
 
+func (bs *bzip2Source) Features() savior.SourceFeatures {
+	return savior.SourceFeatures{
+		Name:          "bzip2",
+		ResumeSupport: savior.ResumeSupportBlock,
+	}
+}
+
 func (bs *bzip2Source) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 	savior.Debugf("bzip2: set source save consumer!")
 	bs.ssc = ssc
