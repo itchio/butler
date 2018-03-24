@@ -2,8 +2,10 @@ package runner
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/itchio/butler/buse/messages"
 
@@ -15,7 +17,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
 	"github.com/itchio/wharf/state"
@@ -123,29 +124,34 @@ func (wr *winsandboxRunner) Run() error {
 
 	defer sp.Revoke(consumer)
 
-	err = SetupJobObject(consumer)
+	token, err := winutil.Logon(pd.Username, ".", pd.Password)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
+	defer syscall.CloseHandle(token)
 
-	cmd := execas.CommandContext(params.RequestContext.Ctx, params.FullTargetPath, params.Args...)
-	cmd.Username = pd.Username
-	cmd.Domain = "."
-	cmd.Password = pd.Password
+	ctx := params.Ctx
+	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = params.Dir
 	cmd.Env = env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 	cmd.SysProcAttr = &syscallex.SysProcAttr{
 		LogonFlags: syscallex.LOGON_WITH_PROFILE,
+		Token:      token,
 	}
 
-	err = cmd.Run()
+	err = SetupProcessGroup(consumer, cmd)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	err = WaitJobObject(consumer)
+	err = cmd.Start()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = WaitProcessGroup(consumer, cmd, ctx)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

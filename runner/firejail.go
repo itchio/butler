@@ -57,13 +57,24 @@ func (fr *firejailRunner) Run() error {
 	args = append(args, params.FullTargetPath)
 	args = append(args, params.Args...)
 
-	cmd := exec.CommandContext(params.RequestContext.Ctx, firejailPath, args...)
+	ctx := params.Ctx
+	cmd := exec.Command(firejailPath, args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
-	err = cmd.Run()
+	err = SetupProcessGroup(consumer, cmd)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = WaitProcessGroup(consumer, cmd, ctx)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

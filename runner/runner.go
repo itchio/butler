@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"runtime"
@@ -11,6 +12,7 @@ import (
 
 type RunnerParams struct {
 	RequestContext *buse.RequestContext
+	Ctx            context.Context
 
 	Sandbox bool
 

@@ -28,23 +28,24 @@ func (sr *simpleRunner) Run() error {
 	params := sr.params
 	consumer := params.RequestContext.Consumer
 
-	err := SetupJobObject(consumer)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-
-	cmd := exec.CommandContext(params.RequestContext.Ctx, params.FullTargetPath, params.Args...)
+	ctx := params.Ctx
+	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
-	err = cmd.Run()
+	err := SetupProcessGroup(consumer, cmd)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
 
-	err = WaitJobObject(consumer)
+	err = cmd.Start()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = WaitProcessGroup(consumer, cmd, ctx)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

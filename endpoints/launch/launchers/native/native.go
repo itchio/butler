@@ -123,6 +123,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	runParams := &runner.RunnerParams{
 		RequestContext: params.RequestContext,
+		Ctx:            params.Ctx,
 
 		Sandbox: params.Sandbox,
 

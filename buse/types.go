@@ -655,7 +655,9 @@ type InstallCancelParams struct {
 	ID string `json:"id"`
 }
 
-type InstallCancelResult struct{}
+type InstallCancelResult struct {
+	DidCancel bool `json:"didCancel"`
+}
 
 // UninstallParams contains all the parameters needed to perform
 // an uninstallation for a game via @@OperationStartParams.
@@ -970,7 +972,9 @@ type DownloadsDriveResult struct{}
 // @caller client
 type DownloadsDriveCancelParams struct{}
 
-type DownloadsDriveCancelResult struct{}
+type DownloadsDriveCancelResult struct {
+	DidCancel bool `json:"didCancel"`
+}
 
 // @name Downloads.Drive.Progress
 type DownloadsDriveProgressNotification struct {
@@ -1123,6 +1127,7 @@ type GameUpdate struct {
 
 // Attempt to launch an installed game.
 //
+// @name Launch
 // @category Launch
 // @caller client
 type LaunchParams struct {
@@ -1140,6 +1145,18 @@ type LaunchParams struct {
 }
 
 type LaunchResult struct {
+}
+
+// Close a running game or cancel launching it
+//
+// @name Launch.Cancel
+// @category Launch
+// @caller client
+type LaunchCancelParams struct {
+}
+
+type LaunchCancelResult struct {
+	DidCancel bool `json:"didCancel"`
 }
 
 // Sent during @@LaunchParams, when the game is configured, prerequisites are installed

@@ -2096,8 +2096,17 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="InstallCancelParams__TypeHint" style="display: none;" class="tip-content">
@@ -3235,8 +3244,17 @@ until they&rsquo;re all finished.</p>
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="DownloadsDriveCancelParams__TypeHint" style="display: none;" class="tip-content">
@@ -3672,6 +3690,43 @@ updates as they are found is not a requirement for the client.</p>
 </tr>
 </table>
 
+</div>
+
+### <em class="request-client-caller"></em>Launch.Cancel
+
+
+<p>
+<p>Close a running game or cancel launching it</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="LaunchCancelParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Launch.Cancel <a href="#/?id=launchcancel">(Go to definition)</a></p>
+
+<p>
+<p>Close a running game or cancel launching it</p>
+
+</p>
 </div>
 
 ### <em class="notification"></em>LaunchRunning

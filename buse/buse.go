@@ -72,11 +72,15 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 			}
 			agh := jsonrpc2.AsyncHandler(gh)
 
-			jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), agh, opt...)
+			connCtx, cancelFunc := context.WithCancel(ctx)
+
+			jc := jsonrpc2.NewConn(connCtx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), agh, opt...)
 			numClients++
 			consumer.Debugf("buse: Accepted connection! (%d clients now)", numClients)
 			go func() {
 				<-jc.DisconnectNotify()
+				consumer.Debugf("buse: Got disconnect notify, cancelling context")
+				cancelFunc()
 				disconnects <- struct{}{}
 			}()
 

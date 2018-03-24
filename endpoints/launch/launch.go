@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,10 +26,25 @@ var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Register(router *buse.Router) {
 	messages.Launch.Register(router, Launch)
+	messages.LaunchCancel.Register(router, LaunchCancel)
+}
+
+var launchCancelID = "Launch"
+
+func LaunchCancel(rc *buse.RequestContext, params *buse.LaunchCancelParams) (*buse.LaunchCancelResult, error) {
+	didCancel := rc.CancelFuncs.Call(launchCancelID)
+	return &buse.LaunchCancelResult{
+		DidCancel: didCancel,
+	}, nil
 }
 
 func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchResult, error) {
 	consumer := rc.Consumer
+
+	ctx, cancelFunc := context.WithCancel(rc.Ctx)
+
+	rc.CancelFuncs.Add(launchCancelID, cancelFunc)
+	defer rc.CancelFuncs.Remove(launchCancelID)
 
 	cave := operate.ValidateCave(rc, params.CaveID)
 	installFolder := cave.GetInstallFolder(rc.DB())
@@ -315,6 +331,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 	launcherParams := &LauncherParams{
 		RequestContext: rc,
+		Ctx:            ctx,
 
 		FullTargetPath: fullTargetPath,
 		Candidate:      candidate,

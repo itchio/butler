@@ -711,7 +711,13 @@
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {
@@ -1021,7 +1027,13 @@
         "fields": null
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {
@@ -1116,6 +1128,23 @@
       },
       "result": {
         "fields": null
+      }
+    },
+    {
+      "method": "Launch.Cancel",
+      "doc": "Close a running game or cancel launching it",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {

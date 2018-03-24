@@ -3,6 +3,8 @@
 package runner
 
 import (
+	"context"
+	"os/exec"
 	"syscall"
 	"time"
 	"unsafe"
@@ -15,7 +17,7 @@ import (
 var setupDone = false
 var butlerJobObject syscall.Handle
 
-func SetupJobObject(consumer *state.Consumer) error {
+func SetupProcessGroup(consumer *state.Consumer, cmd *exec.Cmd) error {
 	if setupDone {
 		return nil
 	}
@@ -58,7 +60,25 @@ func SetupJobObject(consumer *state.Consumer) error {
 	return nil
 }
 
-func WaitJobObject(consumer *state.Consumer) error {
+func WaitProcessGroup(consumer *state.Consumer, cmd *exec.Cmd, ctx context.Context) error {
+	waitDone := make(chan error)
+	go func() {
+		waitDone <- cmd.Wait()
+	}()
+
+	select {
+	case <-ctx.Done():
+		err := cmd.Process.Kill()
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	case err := <-waitDone:
+		if err != nil {
+			return errors.Wrap(err, 0)
+		}
+	}
+
+	// now wait for rest of jobobject if needed
 	if butlerJobObject == 0 {
 		return nil
 	}

@@ -1704,6 +1704,36 @@ func (r *LaunchType) Register(router *buse.Router, f func(*buse.RequestContext, 
 
 var Launch *LaunchType
 
+// Launch.Cancel (Request)
+
+type LaunchCancelType struct {}
+
+var _ RequestMessage = (*LaunchCancelType)(nil)
+
+func (r *LaunchCancelType) Method() string {
+  return "Launch.Cancel"
+}
+
+func (r *LaunchCancelType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.LaunchCancelParams) (*buse.LaunchCancelResult, error)) {
+  router.Register("Launch.Cancel", func (rc *buse.RequestContext) (interface{}, error) {
+    var params buse.LaunchCancelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Launch.Cancel")
+    }
+    return res, nil
+  })
+}
+
+var LaunchCancel *LaunchCancelType
+
 // LaunchRunning (Notification)
 
 type LaunchRunningType struct {}
@@ -2088,6 +2118,7 @@ func EnsureAllRequests(router *buse.Router) {
   if _, ok := router.Handlers["Downloads.Discard"]; !ok { panic("missing request handler for (Downloads.Discard)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
+  if _, ok := router.Handlers["Launch.Cancel"]; !ok { panic("missing request handler for (Launch.Cancel)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }

@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"time"
 
 	"github.com/itchio/butler/buse"
@@ -21,6 +22,7 @@ const (
 
 type LauncherParams struct {
 	RequestContext *buse.RequestContext
+	Ctx            context.Context
 
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
