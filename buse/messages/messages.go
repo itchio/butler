@@ -12,38 +12,26 @@ import (
 
 
 //==============================
-// Connection
+// Protocol
 //==============================
 
-// Connection.New (Request)
+// Handshake (Request)
 
-type ConnectionNewType struct {}
+type HandshakeType struct {}
 
-var _ RequestMessage = (*ConnectionNewType)(nil)
+var _ RequestMessage = (*HandshakeType)(nil)
 
-func (r *ConnectionNewType) Method() string {
-  return "Connection.New"
+func (r *HandshakeType) Method() string {
+  return "Handshake"
 }
 
-func (r *ConnectionNewType) Register(router *buse.Router, f func(*buse.RequestContext, *buse.ConnectionNewParams) (*buse.ConnectionNewResult, error)) {
-  router.Register("Connection.New", func (rc *buse.RequestContext) (interface{}, error) {
-    var params buse.ConnectionNewParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &buse.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    res, err := f(rc, &params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Connection.New")
-    }
-    return res, nil
-  })
+func (r *HandshakeType) Call(rc *buse.RequestContext, params *buse.HandshakeParams) (*buse.HandshakeResult, error) {
+  var result buse.HandshakeResult
+  err := rc.Call("Handshake", params, &result)
+  return &result, err
 }
 
-var ConnectionNew *ConnectionNewType
+var Handshake *HandshakeType
 
 
 //==============================
@@ -2059,7 +2047,6 @@ var TestDouble *TestDoubleType
 
 
 func EnsureAllRequests(router *buse.Router) {
-  if _, ok := router.Handlers["Connection.New"]; !ok { panic("missing request handler for (Connection.New)") }
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Profile.List"]; !ok { panic("missing request handler for (Profile.List)") }
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }

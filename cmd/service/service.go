@@ -1,8 +1,12 @@
 package service
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"net"
+	"os"
+	"time"
 
 	"github.com/itchio/butler/buse"
 	"github.com/sourcegraph/jsonrpc2"
@@ -17,8 +21,42 @@ func Register(ctx *mansion.Context) {
 	ctx.Register(cmd, do)
 }
 
+const minSecretLength = 256
+
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, ctx.Context(), func(addr string) {
+	comm.Result(map[string]interface{}{
+		"type":      "secret-request",
+		"minLength": minSecretLength,
+	})
+
+	secretChan := make(chan string)
+	go func() {
+		secret := ""
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			line := scanner.Bytes()
+			m := make(map[string]interface{})
+			ctx.Must(json.Unmarshal(line, &m))
+			if s, ok := m["secret"].(string); ok {
+				secret = s
+				secretChan <- secret
+			}
+		}
+	}()
+
+	var secret string
+	select {
+	case secret = <-secretChan:
+		// woo
+	case <-time.After(1 * time.Second):
+		comm.Dief("timed out while waiting for secret")
+	}
+
+	if len(secret) < minSecretLength {
+		comm.Dief("secret too short (must be %d chars) or more", minSecretLength)
+	}
+
+	ctx.Must(Do(ctx, ctx.Context(), secret, func(addr string) {
 		comm.Result(map[string]interface{}{
 			"type":    "server-listening",
 			"address": addr,
@@ -41,7 +79,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 type OnListenFunc func(addr string)
 
-func Do(mansionContext *mansion.Context, ctx context.Context, onListen OnListenFunc) error {
+func Do(mansionContext *mansion.Context, ctx context.Context, secret string, onListen OnListenFunc) error {
 	listenSpec := "127.0.0.1:"
 
 	lis, err := net.Listen("tcp", listenSpec)
@@ -50,15 +88,13 @@ func Do(mansionContext *mansion.Context, ctx context.Context, onListen OnListenF
 	}
 
 	onListen(lis.Addr().String())
-	s := buse.NewServer()
+	s := buse.NewServer(secret)
 
-	ha := &handler{
+	h := &handler{
 		ctx:    mansionContext,
 		router: getRouter(mansionContext),
 	}
-	aha := jsonrpc2.AsyncHandler(ha)
-
-	err = s.Serve(ctx, lis, aha, comm.NewStateConsumer())
+	err = s.Serve(ctx, lis, h, comm.NewStateConsumer())
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

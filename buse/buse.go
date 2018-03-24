@@ -3,32 +3,147 @@ package buse
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	uuid "github.com/satori/go.uuid"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
 type Server struct {
+	secret string
 }
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(secret string) *Server {
+	return &Server{secret: secret}
+}
+
+type gatedHandler struct {
+	h        jsonrpc2.Handler
+	c        chan struct{}
+	unlocked bool
+}
+
+func (gh *gatedHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	if !gh.unlocked {
+		select {
+		case <-gh.c:
+			gh.unlocked = true
+		case <-ctx.Done():
+			return
+		}
+	}
+	gh.h.Handle(ctx, conn, req)
 }
 
 func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler, consumer *state.Consumer, opt ...jsonrpc2.ConnOpt) error {
-	conn, err := lis.Accept()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	cancel := make(chan struct{})
+	conns := make(chan net.Conn)
+	disconnects := make(chan struct{})
+	defer close(cancel)
 
-	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), h, opt...)
-	consumer.Debugf("buse: Accepted connection!")
-	<-jc.DisconnectNotify()
-	consumer.Debugf("buse: Disconnected!")
+	numClients := 0
+
+	go func() {
+		defer close(conns)
+
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				consumer.Warnf("While accepting: %s", err.Error())
+			}
+			conns <- conn
+		}
+	}()
+
+	for {
+		select {
+		case conn := <-conns:
+			handshakeDone := make(chan struct{})
+			gh := &gatedHandler{
+				h: h,
+				c: handshakeDone,
+			}
+			agh := jsonrpc2.AsyncHandler(gh)
+
+			jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), agh, opt...)
+			numClients++
+			consumer.Debugf("buse: Accepted connection! (%d clients now)", numClients)
+			go func() {
+				<-jc.DisconnectNotify()
+				disconnects <- struct{}{}
+			}()
+
+			generateMessage := func() (string, error) {
+				msg := ""
+				for i := 0; i < 4; i++ {
+					u, err := uuid.NewV4()
+					if err != nil {
+						return "", errors.Wrap(err, 0)
+					}
+					msg += u.String()
+				}
+				return msg, nil
+			}
+
+			go func() {
+				die := func(msg string, args ...interface{}) {
+					fmsg := fmt.Sprintf(msg, args...)
+					consumer.Debugf("%s", fmsg)
+					jc.Notify(ctx, "Log", &LogNotification{
+						Level:   "error",
+						Message: fmsg,
+					})
+					jc.Close()
+				}
+
+				hres := &HandshakeResult{}
+				message, err := generateMessage()
+				if err != nil {
+					die("buse: Message generation error: %s", err.Error())
+					return
+				}
+
+				err = jc.Call(ctx, "Handshake", &HandshakeParams{
+					Message: message,
+				}, hres)
+				if err != nil {
+					die("buse: Handshake error: %s", err.Error())
+					return
+				}
+
+				expectedSigBytes := sha256.Sum256([]byte(s.secret + message))
+				expectedSig := fmt.Sprintf("%x", expectedSigBytes)
+				if expectedSig != hres.Signature {
+					die("buse: Handshake failed")
+					return
+				}
+
+				close(handshakeDone)
+			}()
+
+			select {
+			case <-handshakeDone:
+				// good!
+			case <-time.After(1 * time.Second):
+				consumer.Debugf("buse: Handshake timed out!")
+				jc.Close()
+			}
+		case <-disconnects:
+			numClients--
+			consumer.Debugf("buse: Client disconnected! (%d clients left)", numClients)
+			if numClients == 0 {
+				consumer.Debugf("buse: Last client left, shutting down")
+				return nil
+			}
+		}
+	}
 	return nil
 }
 

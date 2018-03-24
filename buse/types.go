@@ -6,20 +6,15 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-//----------------------------------------------------------------------
-// Connection
-//----------------------------------------------------------------------
+// @name Handshake
+// @category Protocol
+// @caller server
+type HandshakeParams struct {
+	Message string `json:"message"`
+}
 
-// Ask butler to listen for a new connection, so commands can
-// be sent to it.
-//
-// @name Connection.New
-// @category Connection
-// @caller client
-type ConnectionNewParams struct{}
-
-type ConnectionNewResult struct {
-	Address string `json:"address"`
+type HandshakeResult struct {
+	Signature string `json:"signature"`
 }
 
 //----------------------------------------------------------------------

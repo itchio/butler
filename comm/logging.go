@@ -233,6 +233,9 @@ func send(msgType string, obj jsonMessage) {
 
 		sendJSON(obj)
 		if msgType == "error" {
+			if msg, ok := obj["message"].(string); ok {
+				fmt.Fprintf(os.Stderr, "bailing out: %s\n", msg)
+			}
 			os.Exit(1)
 		}
 	} else {

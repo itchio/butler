@@ -106,20 +106,24 @@ sent (but the other peer may fail to process it before it exits).
 # Messages
 
 
-## Connection
+## Protocol
 
-### <em class="request-client-caller"></em>Connection.New
+### <em class="request-server-caller"></em>Handshake
 
 
-<p>
-<p>Ask butler to listen for a new connection, so commands can
-be sent to it.</p>
-
-</p>
 
 <p>
-<span class="header">Parameters</span> <em>none</em>
+<span class="header">Parameters</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 
@@ -130,21 +134,24 @@ be sent to it.</p>
 
 <table class="field-table">
 <tr>
-<td><code>address</code></td>
+<td><code>signature</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="ConnectionNewParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Connection.New <a href="#/?id=connectionnew">(Go to definition)</a></p>
+<div id="HandshakeParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>Handshake <a href="#/?id=handshake">(Go to definition)</a></p>
 
-<p>
-<p>Ask butler to listen for a new connection, so commands can
-be sent to it.</p>
 
-</p>
+<table class="field-table">
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
 </div>
 
 

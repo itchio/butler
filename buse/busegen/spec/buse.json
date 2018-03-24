@@ -1,16 +1,22 @@
 {
   "requests": [
     {
-      "method": "Connection.New",
-      "doc": "Ask butler to listen for a new connection, so commands can\nbe sent to it.",
-      "caller": "client",
+      "method": "Handshake",
+      "doc": "",
+      "caller": "server",
       "params": {
-        "fields": null
+        "fields": [
+          {
+            "name": "message",
+            "doc": "",
+            "type": "string"
+          }
+        ]
       },
       "result": {
         "fields": [
           {
-            "name": "address",
+            "name": "signature",
             "doc": "",
             "type": "string"
           }
