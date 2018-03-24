@@ -353,8 +353,8 @@ func (ec *errorCoalescer) Result() error {
 	return nil
 }
 
-func GetImpersonationToken(username string, domain string, password string) (syscall.Handle, error) {
-	var impersonationToken syscall.Handle
+func GetImpersonationToken(username string, domain string, password string) (syscall.Token, error) {
+	var impersonationToken syscall.Token
 	err := Impersonate(username, domain, password, func() error {
 		currentThread := syscallex.GetCurrentThread()
 
@@ -376,7 +376,7 @@ func GetImpersonationToken(username string, domain string, password string) (sys
 	return impersonationToken, nil
 }
 
-func UserHasPermission(impersonationToken syscall.Handle, accessDesired uint32, path string) (bool, error) {
+func UserHasPermission(impersonationToken syscall.Token, accessDesired uint32, path string) (bool, error) {
 	// cf. http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
 	// (more or less)
 

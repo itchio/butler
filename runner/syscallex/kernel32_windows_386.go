@@ -23,3 +23,9 @@ type JobObjectBasicLimitInformation struct {
 	SchedulingClass         uint32  // DWORD
 	_                       [4]byte // padding
 }
+
+type JobObjectBasicProcessIdList struct {
+	NumberOfAssignedProcesses uint32
+	NumberOfProcessIdsInList  uint32
+	ProcessIdList             [32]uint32 // ULONG_PTR[1]
+}

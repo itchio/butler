@@ -30,7 +30,7 @@ var (
 func SHGetFolderPath(
 	owner syscall.Handle,
 	folder uint32,
-	token syscall.Handle,
+	token syscall.Token,
 	flags uint32,
 ) (s string, err error) {
 	buffer := make([]uint16, MAX_PATH+1)

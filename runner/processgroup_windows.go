@@ -4,27 +4,35 @@ package runner
 
 import (
 	"context"
-	"os/exec"
 	"syscall"
-	"time"
 	"unsafe"
 
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/wharf/state"
 )
 
-var setupDone = false
-var butlerJobObject syscall.Handle
+type processGroup struct {
+	consumer  *state.Consumer
+	cmd       *execas.Cmd
+	ctx       context.Context
+	jobObject syscall.Handle
+}
 
-func SetupProcessGroup(consumer *state.Consumer, cmd *exec.Cmd) error {
-	if setupDone {
-		return nil
+func NewProcessGroup(consumer *state.Consumer, cmd *execas.Cmd, ctx context.Context) (*processGroup, error) {
+	pg := &processGroup{
+		consumer:  consumer,
+		cmd:       cmd,
+		ctx:       ctx,
+		jobObject: syscall.InvalidHandle,
 	}
+	return pg, nil
+}
 
-	setupDone = true
-
-	jobObject, err := syscallex.CreateJobObject(nil, nil)
+func (pg *processGroup) AfterStart() error {
+	var err error
+	pg.jobObject, err = syscallex.CreateJobObject(nil, nil)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -35,7 +43,7 @@ func SetupProcessGroup(consumer *state.Consumer, cmd *exec.Cmd) error {
 	jobObjectInfoSize := unsafe.Sizeof(*jobObjectInfo)
 
 	err = syscallex.SetInformationJobObject(
-		jobObject,
+		pg.jobObject,
 		syscallex.JobObjectInfoClass_JobObjectExtendedLimitInformation,
 		jobObjectInfoPtr,
 		jobObjectInfoSize,
@@ -44,82 +52,99 @@ func SetupProcessGroup(consumer *state.Consumer, cmd *exec.Cmd) error {
 		return errors.Wrap(err, 0)
 	}
 
-	currentProcess, err := syscall.GetCurrentProcess()
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
+	processHandle := pg.cmd.SysProcAttr.ProcessHandle
 
-	err = syscallex.AssignProcessToJobObject(jobObject, currentProcess)
+	pg.consumer.Infof("process handle: %x", uintptr(processHandle))
+	err = syscallex.AssignProcessToJobObject(pg.jobObject, processHandle)
 	if err != nil {
-		consumer.Warnf("No job object support (%s)", err.Error())
-		consumer.Warnf("The 'Running...' indicator and 'Force close' functionality will not work as expected, and ")
+		pg.consumer.Warnf("No job object support (%s)", err.Error())
+		pg.consumer.Warnf("The 'Running...' indicator and 'Force close' functionality will not work as expected, and ")
+		syscall.CloseHandle(pg.jobObject)
+		pg.jobObject = syscall.InvalidHandle
 		return nil
 	}
 
-	butlerJobObject = jobObject
 	return nil
 }
 
-func WaitProcessGroup(consumer *state.Consumer, cmd *exec.Cmd, ctx context.Context) error {
+func (pg *processGroup) Wait() error {
 	waitDone := make(chan error)
 	go func() {
-		waitDone <- cmd.Wait()
+		if pg.jobObject == syscall.InvalidHandle {
+			pg.consumer.Infof("Waiting on single process...")
+			waitDone <- pg.cmd.Wait()
+		} else {
+			pg.consumer.Infof("Waiting on whole job object...")
+			_, err := syscall.WaitForSingleObject(pg.jobObject, syscall.INFINITE)
+			waitDone <- err
+		}
 	}()
 
 	select {
-	case <-ctx.Done():
-		err := cmd.Process.Kill()
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-	case err := <-waitDone:
-		if err != nil {
-			return errors.Wrap(err, 0)
-		}
-	}
+	case <-pg.ctx.Done():
+		if pg.jobObject == syscall.InvalidHandle {
+			pid := uint32(pg.cmd.Process.Pid)
+			pg.consumer.Infof("Killing single process %d", pid)
+			pg.cmd.Process.Kill()
+		} else {
+			pg.consumer.Infof("Attempting to kill entire job object...")
+			var processIdList syscallex.JobObjectBasicProcessIdList
+			processIdListPtr := uintptr(unsafe.Pointer(&processIdList))
+			processIdListSize := unsafe.Sizeof(processIdList)
 
-	// now wait for rest of jobobject if needed
-	if butlerJobObject == 0 {
-		return nil
-	}
+			pg.consumer.Infof("Querying job object...")
+			err := syscallex.QueryInformationJobObject(
+				pg.jobObject,
+				syscallex.JobObjectInfoClass_JobObjectBasicProcessIdList,
+				processIdListPtr,
+				processIdListSize,
+				0,
+			)
+			if err != nil {
+				pg.consumer.Infof("Querying job object error (!)")
+				ignoreError := false
+				if en, ok := err.(syscall.Errno); ok {
+					if en == syscall.ERROR_MORE_DATA {
+						// that's expected, the struct we pass has only room for 1 process
+						ignoreError = true
+					}
+				}
 
-	var processIdList syscallex.JobObjectBasicProcessIdList
-	processIdListPtr := uintptr(unsafe.Pointer(&processIdList))
-	processIdListSize := unsafe.Sizeof(processIdList)
-
-	var rounds int64
-
-	for {
-		err := syscallex.QueryInformationJobObject(
-			butlerJobObject,
-			syscallex.JobObjectInfoClass_JobObjectBasicProcessIdList,
-			processIdListPtr,
-			processIdListSize,
-			0,
-		)
-		if err != nil {
-			ignoreError := false
-			if en, ok := err.(syscall.Errno); ok {
-				if en == syscall.ERROR_MORE_DATA {
-					// that's expected, the struct we pass has only room for 1 process
-					ignoreError = true
+				if !ignoreError {
+					return errors.Wrap(err, 0)
 				}
 			}
 
-			if !ignoreError {
-				return errors.Wrap(err, 0)
+			pg.consumer.Infof("%d processes still in job object", processIdList.NumberOfAssignedProcesses)
+			pg.consumer.Infof("%d processes in our list", processIdList.NumberOfProcessIdsInList)
+			for i := uint32(0); i < processIdList.NumberOfProcessIdsInList; i++ {
+				pid := uint32(processIdList.ProcessIdList[i])
+				pg.consumer.Infof("- PID %d", pid)
+				err := terminateProcess(pid, 0)
+				if err != nil {
+					pg.consumer.Warnf("Could not kill pid %d: %s", pid, err.Error())
+				}
 			}
 		}
-
-		if processIdList.NumberOfAssignedProcesses <= 1 {
-			// it's just us left? quit!
-			consumer.Infof("Done waiting for job object after %d rounds", rounds)
-			return nil
+	case err := <-waitDone:
+		pg.consumer.Infof("Wait done")
+		if err != nil {
+			return errors.Wrap(err, 0)
 		}
-
-		// don't busywait - 500ms is enough
-		time.Sleep(500 * time.Millisecond)
-
-		rounds++
 	}
+
+	return nil
+}
+
+func terminateProcess(pid uint32, exitcode int) error {
+	h, err := syscall.OpenProcess(syscall.PROCESS_TERMINATE, false, pid)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	defer syscall.CloseHandle(h)
+	err = syscall.TerminateProcess(h, uint32(exitcode))
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	return nil
 }

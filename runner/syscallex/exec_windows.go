@@ -121,6 +121,8 @@ type SysProcAttr struct {
 	CmdLine       string // used if non-empty, else the windows command line is built by escaping the arguments passed to StartProcess
 	CreationFlags uint32
 	LogonFlags    uint32
+	ProcessHandle syscall.Handle
+	ThreadHandle  syscall.Handle
 }
 
 var zeroProcAttr ProcAttr
@@ -219,20 +221,31 @@ func StartProcessWithLogon(argv0 string, argv []string, username string, domain 
 
 	pi := new(syscall.ProcessInformation)
 
-	usernamep := syscall.StringToUTF16Ptr(username)
-	domainp := syscall.StringToUTF16Ptr(domain)
-	passwordp := syscall.StringToUTF16Ptr(password)
+	if username == "" {
+		creationFlags := sys.CreationFlags | syscall.CREATE_UNICODE_ENVIRONMENT
+		err = syscall.CreateProcess(
+			argv0p, argvp, nil, nil, true, creationFlags, createEnvBlock(attr.Env), dirp, si, pi,
+		)
+		if err != nil {
+			return 0, 0, err
+		}
+	} else {
+		usernamep := syscall.StringToUTF16Ptr(username)
+		domainp := syscall.StringToUTF16Ptr(domain)
+		passwordp := syscall.StringToUTF16Ptr(password)
 
-	creationFlags := sys.CreationFlags | syscall.CREATE_UNICODE_ENVIRONMENT
-	logonFlags := sys.LogonFlags
-	err = CreateProcessWithLogon(
-		usernamep, domainp, passwordp, logonFlags,
-		argv0p, argvp, creationFlags, createEnvBlock(attr.Env), dirp, si, pi,
-	)
-	if err != nil {
-		return 0, 0, err
+		creationFlags := sys.CreationFlags | syscall.CREATE_UNICODE_ENVIRONMENT
+		logonFlags := sys.LogonFlags
+		err = CreateProcessWithLogon(
+			usernamep, domainp, passwordp, logonFlags,
+			argv0p, argvp, creationFlags, createEnvBlock(attr.Env), dirp, si, pi,
+		)
+		if err != nil {
+			return 0, 0, err
+		}
 	}
-	defer syscall.CloseHandle(syscall.Handle(pi.Thread))
+	attr.Sys.ThreadHandle = syscall.Handle(pi.Thread)
+	attr.Sys.ProcessHandle = syscall.Handle(pi.Process)
 
 	return int(pi.ProcessId), uintptr(pi.Process), nil
 }

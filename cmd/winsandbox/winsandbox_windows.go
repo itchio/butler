@@ -126,7 +126,7 @@ func Check(consumer *state.Consumer) error {
 			return errors.Wrap(err, 0)
 		}
 	}
-	defer syscall.CloseHandle(syscall.Handle(token))
+	defer winutil.SafeRelease(uintptr(token))
 
 	consumer.Statf("Everything looks good!")
 

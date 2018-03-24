@@ -18,6 +18,22 @@ const (
 	JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
 )
 
+const (
+	CREATE_SUSPENDED      = 0x00000004
+	PROCESS_ALL_ACCESS    = syscall.STANDARD_RIGHTS_REQUIRED | syscall.SYNCHRONIZE | 0xfff
+	THREAD_SUSPEND_RESUME = 0x0002
+)
+
+type ThreadEntry32 struct {
+	Size           uint32
+	TUsage         uint32
+	ThreadID       uint32
+	OwnerProcessID uint32
+	BasePri        int32
+	DeltaPri       int32
+	Flags          uint32
+}
+
 var (
 	modkernel32 = windows.NewLazySystemDLL("kernel32.dll")
 
@@ -29,6 +45,11 @@ var (
 	procGetCurrentThread    = modkernel32.NewProc("GetCurrentThread")
 	procOpenThreadToken     = modkernel32.NewProc("OpenThreadToken")
 	procGetDiskFreeSpaceExW = modkernel32.NewProc("GetDiskFreeSpaceExW")
+
+	procOpenThread    = modkernel32.NewProc("OpenThread")
+	procResumeThread  = modkernel32.NewProc("ResumeThread")
+	procThread32First = modkernel32.NewProc("Thread32First")
+	procThread32Next  = modkernel32.NewProc("Thread32Next")
 )
 
 func CreateJobObject(
@@ -51,12 +72,6 @@ func CreateJobObject(
 		}
 	}
 	return
-}
-
-type JobObjectBasicProcessIdList struct {
-	NumberOfAssignedProcesses uint32
-	NumberOfProcessIdsInList  uint32
-	ProcessIdList             [1]uint64
 }
 
 type IoCounters struct {
@@ -154,7 +169,7 @@ func OpenThreadToken(
 	threadHandle syscall.Handle,
 	desiredAccess uint32,
 	openAsSelf uint32,
-	tokenHandle *syscall.Handle,
+	tokenHandle *syscall.Token,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall6(
 		procOpenThreadToken.Addr(),
@@ -202,4 +217,93 @@ func GetDiskFreeSpaceEx(path *uint16) (dfs *DiskFreeSpace, err error) {
 		}
 	}
 	return dfs, err
+}
+
+func OpenThread(
+	desiredAccess uint32,
+	inheritHandle uint32,
+	threadId uint32,
+) (handle syscall.Handle, err error) {
+	r1, _, e1 := syscall.Syscall(
+		procOpenThread.Addr(),
+		3,
+		uintptr(desiredAccess),
+		uintptr(inheritHandle),
+		uintptr(threadId),
+	)
+	handle = syscall.Handle(r1)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func ResumeThread(
+	thread syscall.Handle,
+) (retCount uint32, err error) {
+	r1, _, e1 := syscall.Syscall(
+		procResumeThread.Addr(),
+		1,
+		uintptr(thread),
+		0,
+		0,
+	)
+
+	minusOne := int(-1)
+	if r1 == uintptr(minusOne) {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	} else {
+		retCount = uint32(r1)
+	}
+	return
+}
+
+func Thread32First(
+	snapshot syscall.Handle,
+	pThreadEntry *ThreadEntry32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procThread32First.Addr(),
+		2,
+		uintptr(snapshot),
+		uintptr(unsafe.Pointer(pThreadEntry)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func Thread32Next(
+	snapshot syscall.Handle,
+	pThreadEntry *ThreadEntry32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procThread32Next.Addr(),
+		2,
+		uintptr(snapshot),
+		uintptr(unsafe.Pointer(pThreadEntry)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
 }

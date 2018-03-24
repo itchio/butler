@@ -1,11 +1,11 @@
-// +build !windows
+// +build windows
 
 package runner
 
 import (
-	"os/exec"
-
 	"github.com/go-errors/errors"
+	"github.com/itchio/butler/runner/execas"
+	"github.com/itchio/butler/runner/syscallex"
 )
 
 type simpleRunner struct {
@@ -30,11 +30,15 @@ func (sr *simpleRunner) Run() error {
 	params := sr.params
 	consumer := params.RequestContext.Consumer
 
-	cmd := exec.Command(params.FullTargetPath, params.Args...)
+	cmd := execas.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
+
+	cmd.SysProcAttr = &syscallex.SysProcAttr{
+		CreationFlags: syscallex.CREATE_SUSPENDED,
+	}
 
 	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {

@@ -23,6 +23,20 @@ const (
 	LOGON32_PROVIDER_DEFAULT = 0
 )
 
+// security impersonation level
+const (
+	SecurityAnonymous = iota
+	SecurityIdentification
+	SecurityImpersonation
+	SecurityDelegation
+)
+
+// token types
+const (
+	TokenPrimary       = 1
+	TokenImpersonation = 2
+)
+
 var (
 	modadvapi32 = windows.NewLazySystemDLL("advapi32.dll")
 
@@ -610,7 +624,7 @@ type GenericMapping struct {
 
 func AccessCheck(
 	securityDescriptor uintptr,
-	clientToken syscall.Handle,
+	clientToken syscall.Token,
 	desiredAccess uint32,
 	genericMapping *GenericMapping,
 	privilegeSet uintptr,

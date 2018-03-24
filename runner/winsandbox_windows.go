@@ -2,10 +2,8 @@ package runner
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/itchio/butler/buse/messages"
 
@@ -17,6 +15,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
 	"github.com/itchio/wharf/state"
@@ -124,23 +123,21 @@ func (wr *winsandboxRunner) Run() error {
 
 	defer sp.Revoke(consumer)
 
-	token, err := winutil.Logon(pd.Username, ".", pd.Password)
-	if err != nil {
-		return errors.Wrap(err, 0)
-	}
-	defer syscall.CloseHandle(syscall.Handle(token))
-
-	ctx := params.Ctx
-	cmd := exec.Command(params.FullTargetPath, params.Args...)
+	cmd := execas.Command(params.FullTargetPath, params.Args...)
+	cmd.Username = pd.Username
+	cmd.Domain = "."
+	cmd.Password = pd.Password
 	cmd.Dir = params.Dir
 	cmd.Env = env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Token: syscall.Token(token),
+
+	cmd.SysProcAttr = &syscallex.SysProcAttr{
+		CreationFlags: syscallex.CREATE_SUSPENDED,
+		LogonFlags:    syscallex.LOGON_WITH_PROFILE,
 	}
 
-	err = SetupProcessGroup(consumer, cmd)
+	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -150,7 +147,19 @@ func (wr *winsandboxRunner) Run() error {
 		return errors.Wrap(err, 0)
 	}
 
-	err = WaitProcessGroup(consumer, cmd, ctx)
+	err = pg.AfterStart()
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	// ok that SysProcAttr thing is 110% a hack but who are you
+	// to judge me and how did you get into my home
+	_, err = syscallex.ResumeThread(cmd.SysProcAttr.ThreadHandle)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = pg.Wait()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

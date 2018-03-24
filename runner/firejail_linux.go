@@ -1,3 +1,5 @@
+// +build linux
+
 package runner
 
 import (
@@ -57,14 +59,18 @@ func (fr *firejailRunner) Run() error {
 	args = append(args, params.FullTargetPath)
 	args = append(args, params.Args...)
 
-	ctx := params.Ctx
 	cmd := exec.Command(firejailPath, args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
-	err = SetupProcessGroup(consumer, cmd)
+	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+
+	err = pg.AfterStart()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
@@ -74,7 +80,7 @@ func (fr *firejailRunner) Run() error {
 		return errors.Wrap(err, 0)
 	}
 
-	err = WaitProcessGroup(consumer, cmd, ctx)
+	err = pg.Wait()
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

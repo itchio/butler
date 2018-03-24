@@ -22,3 +22,9 @@ type JobObjectBasicLimitInformation struct {
 	PriorityClass           uint32  // DWORD
 	SchedulingClass         uint32  // DWORD
 }
+
+type JobObjectBasicProcessIdList struct {
+	NumberOfAssignedProcesses uint32
+	NumberOfProcessIdsInList  uint32
+	ProcessIdList             [32]uint64 // ULONG_PTR[1]
+}

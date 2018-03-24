@@ -11,23 +11,41 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func SetupProcessGroup(consumer *state.Consumer, cmd *exec.Cmd) error {
+type processGroup struct {
+	consumer *state.Consumer
+	cmd      *exec.Cmd
+	ctx      context.Context
+}
+
+func NewProcessGroup(consumer *state.Consumer, cmd *exec.Cmd, ctx context.Context) (*processGroup, error) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
+	pg := &processGroup{
+		consumer: consumer,
+		cmd:      cmd,
+		ctx:      ctx,
+	}
+	return pg, nil
+}
+
+func (pg *processGroup) AfterStart() error {
 	return nil
 }
 
-func WaitProcessGroup(consumer *state.Consumer, cmd *exec.Cmd, ctx context.Context) error {
+func (pg *processGroup) Wait() error {
 	waitDone := make(chan error)
 	go func() {
-		waitDone <- cmd.Wait()
+		waitDone <- pg.cmd.Wait()
 	}()
 
+	pid := pg.cmd.Process.Pid
+
 	select {
-	case <-ctx.Done():
-		consumer.Infof("Force closing...")
-		pgid, err := syscall.Getpgid(cmd.Process.Pid)
+	case <-pg.ctx.Done():
+		pg.consumer.Infof("Force closing...")
+		pgid, err := syscall.Getpgid(pid)
 		if err == nil && pgid != 0 {
-			consumer.Infof("Killing all processes in group %d", pgid)
+			pg.consumer.Infof("Killing all processes in group %d", pgid)
 			err = syscall.Kill(-pgid, syscall.SIGTERM)
 			if err != nil {
 				return errors.Wrap(err, 0)
@@ -36,12 +54,12 @@ func WaitProcessGroup(consumer *state.Consumer, cmd *exec.Cmd, ctx context.Conte
 			return errors.Wrap(err, 0)
 		} else {
 			if err != nil {
-				consumer.Infof("Could not get group of process %d: %s", err.Error())
+				pg.consumer.Infof("Could not get group of process %d: %s", err.Error())
 			} else {
-				consumer.Infof("Process %d had no group", cmd.Process.Pid)
+				pg.consumer.Infof("Process %d had no group", pid)
 			}
-			consumer.Infof("Killing single process %d", cmd.Process.Pid)
-			err = syscall.Kill(cmd.Process.Pid, syscall.SIGTERM)
+			pg.consumer.Infof("Killing single process %d", pid)
+			err = syscall.Kill(pid, syscall.SIGTERM)
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
