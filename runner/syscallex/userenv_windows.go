@@ -36,7 +36,7 @@ type ProfileInfo struct {
 }
 
 func LoadUserProfile(
-	token syscall.Handle,
+	token syscall.Token,
 	profileInfo *ProfileInfo,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall(
@@ -57,7 +57,7 @@ func LoadUserProfile(
 }
 
 func UnloadUserProfile(
-	token syscall.Handle,
+	token syscall.Token,
 	profile syscall.Handle,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall(

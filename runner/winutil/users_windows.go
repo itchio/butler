@@ -44,8 +44,8 @@ func GetFolderPath(folderType FolderType) (string, error) {
 
 type ImpersonateCallback func() error
 
-func Logon(username string, domain string, password string) (syscall.Handle, error) {
-	var token syscall.Handle
+func Logon(username string, domain string, password string) (syscall.Token, error) {
+	var token syscall.Token
 	err := syscallex.LogonUser(
 		syscall.StringToUTF16Ptr(username),
 		syscall.StringToUTF16Ptr(domain),
@@ -66,7 +66,7 @@ func Impersonate(username string, domain string, password string, cb Impersonate
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer syscall.CloseHandle(token)
+	defer syscall.CloseHandle(syscall.Handle(token))
 
 	_, err = syscall.GetEnvironmentStrings()
 	if err != nil {
@@ -173,7 +173,7 @@ func LoadProfileOnce(username string, domain string, password string) error {
 		return errors.Wrap(err, 0)
 	}
 
-	defer syscall.CloseHandle(token)
+	defer syscall.CloseHandle(syscall.Handle(token))
 
 	var profileInfo syscallex.ProfileInfo
 	profileInfo.Size = uint32(unsafe.Sizeof(profileInfo))

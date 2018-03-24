@@ -128,7 +128,7 @@ func (wr *winsandboxRunner) Run() error {
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}
-	defer syscall.CloseHandle(token)
+	defer syscall.CloseHandle(syscall.Handle(token))
 
 	ctx := params.Ctx
 	cmd := exec.Command(params.FullTargetPath, params.Args...)
@@ -137,7 +137,7 @@ func (wr *winsandboxRunner) Run() error {
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Token: token,
+		Token: syscall.Token(token),
 	}
 
 	err = SetupProcessGroup(consumer, cmd)

@@ -90,7 +90,7 @@ func LogonUser(
 	password *uint16,
 	logonType uint32,
 	logonProvider uint32,
-	outToken *syscall.Handle,
+	outToken *syscall.Token,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall6(
 		procLogonUserW.Addr(),
@@ -113,7 +113,7 @@ func LogonUser(
 }
 
 func ImpersonateLoggedOnUser(
-	token syscall.Handle,
+	token syscall.Token,
 ) (err error) {
 	r1, _, e1 := syscall.Syscall(
 		procImpersonateLoggedOnUser.Addr(),
