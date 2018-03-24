@@ -136,9 +136,8 @@ func (wr *winsandboxRunner) Run() error {
 	cmd.Env = env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
-	cmd.SysProcAttr = &syscallex.SysProcAttr{
-		LogonFlags: syscallex.LOGON_WITH_PROFILE,
-		Token:      token,
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Token: token,
 	}
 
 	err = SetupProcessGroup(consumer, cmd)
