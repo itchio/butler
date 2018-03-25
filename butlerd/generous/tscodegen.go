@@ -14,7 +14,7 @@ func (gc *GenerousContext) GenerateTsCode(outPath string) error {
 	doc.Line("// See <https://docs.itch.ovh/butlerd/master/> for a human-friendly documentation")
 
 	doc.Line("")
-	doc.Line("import { createRequest, createNotification } from %#v;", "node-butlerd")
+	doc.Line("import { createRequest, createNotification } from %#v;", "butlerd")
 
 	scope := newScope(gc)
 	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
