@@ -134,7 +134,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 			select {
 			case <-handshakeDone:
 				// good!
-			case <-time.After(1 * time.Second):
+			case <-time.After(15 * time.Second):
 				consumer.Warnf("butlerd: Handshake timed out!")
 				jc.Close()
 			}

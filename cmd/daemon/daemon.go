@@ -68,7 +68,7 @@ func do(ctx *mansion.Context) {
 	select {
 	case secret = <-secretChan:
 		// woo
-	case <-time.After(1 * time.Second):
+	case <-time.After(15 * time.Second):
 		comm.Dief("butlerd: Timed out while waiting for secret")
 	}
 
