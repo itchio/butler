@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 
 	"github.com/itchio/butler/installer"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 
 	"github.com/go-errors/errors"
@@ -44,13 +44,13 @@ func (wr *winsandboxRunner) Prepare() error {
 	if err != nil {
 		consumer.Warnf("Sandbox check failed: %s", err.Error())
 
-		r, err := messages.AllowSandboxSetup.Call(wr.params.RequestContext, &buse.AllowSandboxSetupParams{})
+		r, err := messages.AllowSandboxSetup.Call(wr.params.RequestContext, &butlerd.AllowSandboxSetupParams{})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
 
 		if !r.Allow {
-			return &buse.ErrAborted{}
+			return &butlerd.ErrAborted{}
 		}
 		consumer.Infof("Proceeding with sandbox setup...")
 
@@ -68,7 +68,7 @@ func (wr *winsandboxRunner) Prepare() error {
 
 		if res.ExitCode != 0 {
 			if res.ExitCode == elevate.ExitCodeAccessDenied {
-				return &buse.ErrAborted{}
+				return &butlerd.ErrAborted{}
 			}
 		}
 

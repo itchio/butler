@@ -2,13 +2,13 @@ package install
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
 	uuid "github.com/satori/go.uuid"
 )
 
-func InstallLocationsGetByID(rc *buse.RequestContext, params *buse.InstallLocationsGetByIDParams) (*buse.InstallLocationsGetByIDResult, error) {
+func InstallLocationsGetByID(rc *butlerd.RequestContext, params *butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {
 	if params.ID == "" {
 		return nil, errors.Errorf("id must be set")
 	}
@@ -18,31 +18,31 @@ func InstallLocationsGetByID(rc *buse.RequestContext, params *buse.InstallLocati
 		return nil, errors.Errorf("install location (%s) not found", params.ID)
 	}
 
-	res := &buse.InstallLocationsGetByIDResult{
+	res := &butlerd.InstallLocationsGetByIDResult{
 		InstallLocation: fetch.FormatInstallLocation(rc, il),
 	}
 	return res, nil
 }
 
-func InstallLocationsList(rc *buse.RequestContext, params *buse.InstallLocationsListParams) (*buse.InstallLocationsListResult, error) {
+func InstallLocationsList(rc *butlerd.RequestContext, params *butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error) {
 	var locations []*models.InstallLocation
 	err := rc.DB().Find(&locations).Error
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var flocs []*buse.InstallLocationSummary
+	var flocs []*butlerd.InstallLocationSummary
 	for _, il := range locations {
 		flocs = append(flocs, fetch.FormatInstallLocation(rc, il))
 	}
 
-	res := &buse.InstallLocationsListResult{
+	res := &butlerd.InstallLocationsListResult{
 		InstallLocations: flocs,
 	}
 	return res, nil
 }
 
-func InstallLocationsAdd(rc *buse.RequestContext, params *buse.InstallLocationsAddParams) (*buse.InstallLocationsAddResult, error) {
+func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error) {
 	consumer := rc.Consumer
 
 	hadID := false
@@ -63,7 +63,7 @@ func InstallLocationsAdd(rc *buse.RequestContext, params *buse.InstallLocationsA
 		if existing != nil {
 			if existing.Path == params.Path {
 				consumer.Statf("(%s) exists, and has same path (%s), doing nothing", params.ID, params.Path)
-				res := &buse.InstallLocationsAddResult{}
+				res := &butlerd.InstallLocationsAddResult{}
 				return res, nil
 			}
 			return nil, errors.Errorf("(%s) exists but has path (%s) - we were passed (%s)", params.ID, existing.Path, params.Path)
@@ -79,11 +79,11 @@ func InstallLocationsAdd(rc *buse.RequestContext, params *buse.InstallLocationsA
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.InstallLocationsAddResult{}
+	res := &butlerd.InstallLocationsAddResult{}
 	return res, nil
 }
 
-func InstallLocationsRemove(rc *buse.RequestContext, params *buse.InstallLocationsRemoveParams) (*buse.InstallLocationsRemoveResult, error) {
+func InstallLocationsRemove(rc *butlerd.RequestContext, params *butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error) {
 	consumer := rc.Consumer
 
 	if params.ID == "" {
@@ -93,7 +93,7 @@ func InstallLocationsRemove(rc *buse.RequestContext, params *buse.InstallLocatio
 	il := models.InstallLocationByID(rc.DB(), params.ID)
 	if il == nil {
 		consumer.Statf("Install location (%s) does not exist, doing nothing")
-		res := &buse.InstallLocationsRemoveResult{}
+		res := &butlerd.InstallLocationsRemoveResult{}
 		return res, nil
 	}
 
@@ -123,6 +123,6 @@ func InstallLocationsRemove(rc *buse.RequestContext, params *buse.InstallLocatio
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.InstallLocationsRemoveResult{}
+	res := &butlerd.InstallLocationsRemoveResult{}
 	return res, nil
 }

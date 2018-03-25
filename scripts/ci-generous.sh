@@ -13,8 +13,8 @@ mkdir -p src/$PKG
 # rsync will complain about vanishing files sometimes, who knows where they come from
 rsync -a --exclude 'src' . src/$PKG || echo "rsync complained (code $?)"
 
-go get -v -x $PKG/buse/busegen
-busegen godocs
+go get -v -x $PKG/butlerd/generous
+generous godocs
 
-gsutil cp -r -a public-read src/$PKG/buse/busegen/docs/* gs://docs.itch.ovh/buse/$CI_BUILD_REF_NAME/
+gsutil cp -r -a public-read src/$PKG/butlerd/generous/docs/* gs://docs.itch.ovh/butlerd/$CI_BUILD_REF_NAME/
 

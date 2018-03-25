@@ -2,11 +2,11 @@ package profile
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )
 
-func DataPut(rc *buse.RequestContext, params *buse.ProfileDataPutParams) (*buse.ProfileDataPutResult, error) {
+func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 
@@ -22,11 +22,11 @@ func DataPut(rc *buse.RequestContext, params *buse.ProfileDataPutParams) (*buse.
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.ProfileDataPutResult{}
+	res := &butlerd.ProfileDataPutResult{}
 	return res, nil
 }
 
-func DataGet(rc *buse.RequestContext, params *buse.ProfileDataGetParams) (*buse.ProfileDataGetResult, error) {
+func DataGet(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error) {
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 
@@ -36,7 +36,7 @@ func DataGet(rc *buse.RequestContext, params *buse.ProfileDataGetParams) (*buse.
 	req := db.Where("profile_id = ? AND key = ?", params.ProfileID, params.Key).Find(pd)
 	if req.Error != nil {
 		if req.RecordNotFound() {
-			res := &buse.ProfileDataGetResult{
+			res := &butlerd.ProfileDataGetResult{
 				OK: false,
 			}
 			return res, nil
@@ -44,7 +44,7 @@ func DataGet(rc *buse.RequestContext, params *buse.ProfileDataGetParams) (*buse.
 		return nil, errors.Wrap(req.Error, 0)
 	}
 
-	res := &buse.ProfileDataGetResult{
+	res := &butlerd.ProfileDataGetResult{
 		OK:    true,
 		Value: pd.Value,
 	}

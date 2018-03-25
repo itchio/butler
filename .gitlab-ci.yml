@@ -11,12 +11,12 @@ book:
   script:
     - scripts/ci-book.sh
 
-busedocs:
+generous:
   stage: test
   tags:
     - dropsy
   script:
-    - scripts/ci-busedocs.sh
+    - scripts/ci-generous.sh
 
 test:linux:
   stage: test

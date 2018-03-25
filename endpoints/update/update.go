@@ -2,21 +2,21 @@ package update
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/memorylogger"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.CheckUpdate.Register(router, CheckUpdate)
 }
 
-func CheckUpdate(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
+func CheckUpdate(rc *butlerd.RequestContext, params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
 	consumer := rc.Consumer
-	res := &buse.CheckUpdateResult{}
+	res := &butlerd.CheckUpdateResult{}
 
 	for _, item := range params.Items {
 		ml := memorylogger.New()
@@ -34,7 +34,7 @@ func CheckUpdate(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse
 		} else {
 			if update != nil {
 				res.Updates = append(res.Updates, update)
-				err := messages.GameUpdateAvailable.Notify(rc, &buse.GameUpdateAvailableNotification{
+				err := messages.GameUpdateAvailable.Notify(rc, &butlerd.GameUpdateAvailableNotification{
 					Update: update,
 				})
 				if err != nil {
@@ -47,7 +47,7 @@ func CheckUpdate(rc *buse.RequestContext, params *buse.CheckUpdateParams) (*buse
 	return res, nil
 }
 
-func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *buse.CheckUpdateItem) (*buse.GameUpdate, error) {
+func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item *butlerd.CheckUpdateItem) (*butlerd.GameUpdate, error) {
 	// TODO: respect upload successors, use upcoming check-update endpoint
 
 	if item.ItemID == "" {
@@ -117,7 +117,7 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 
 		if freshUpload.UpdatedAt.After(item.InstalledAt) {
 			consumer.Statf("↑ Upload was updated after last install, it's an update!")
-			res := &buse.GameUpdate{
+			res := &butlerd.GameUpdate{
 				ItemID: item.ItemID,
 				Game:   item.Game,
 				Upload: freshUpload,
@@ -140,7 +140,7 @@ func checkUpdateItem(rc *buse.RequestContext, consumer *state.Consumer, item *bu
 				freshUpload.Build.ID,
 				item.Build.ID,
 			)
-			res := &buse.GameUpdate{
+			res := &butlerd.GameUpdate{
 				ItemID: item.ItemID,
 				Game:   item.Game,
 				Upload: freshUpload,

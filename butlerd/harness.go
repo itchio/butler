@@ -1,4 +1,4 @@
-package buse
+package butlerd
 
 import (
 	itchio "github.com/itchio/go-itchio"

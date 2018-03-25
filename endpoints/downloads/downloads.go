@@ -1,11 +1,11 @@
 package downloads
 
 import (
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.DownloadsQueue.Register(router, DownloadsQueue)
 	messages.DownloadsPrioritize.Register(router, DownloadsPrioritize)
 	messages.DownloadsList.Register(router, DownloadsList)

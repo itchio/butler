@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 )
 
-func InstallPerform(rc *buse.RequestContext, params *buse.InstallPerformParams) (*buse.InstallPerformResult, error) {
+func InstallPerform(rc *butlerd.RequestContext, params *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
 	if params.ID == "" {
 		return nil, errors.New("Missing ID")
 	}
@@ -24,5 +24,5 @@ func InstallPerform(rc *buse.RequestContext, params *buse.InstallPerformParams) 
 		return nil, errors.Wrap(err, 0)
 	}
 
-	return &buse.InstallPerformResult{}, nil
+	return &butlerd.InstallPerformResult{}, nil
 }

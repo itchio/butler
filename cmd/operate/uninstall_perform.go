@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
 
-func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse.UninstallPerformParams) error {
+func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *butlerd.UninstallPerformParams) error {
 	consumer := rc.Consumer
 
 	cave := ValidateCave(rc, params.CaveID)
@@ -50,9 +50,9 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 		Receipt:           receipt,
 	}
 
-	err = messages.TaskStarted.Notify(rc, &buse.TaskStartedNotification{
-		Reason: buse.TaskReasonUninstall,
-		Type:   buse.TaskTypeUninstall,
+	err = messages.TaskStarted.Notify(rc, &butlerd.TaskStartedNotification{
+		Reason: butlerd.TaskReasonUninstall,
+		Type:   butlerd.TaskTypeUninstall,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -67,8 +67,8 @@ func UninstallPerform(ctx context.Context, rc *buse.RequestContext, params *buse
 		return errors.Wrap(err, 0)
 	}
 
-	err = messages.TaskSucceeded.Notify(rc, &buse.TaskSucceededNotification{
-		Type: buse.TaskTypeUninstall,
+	err = messages.TaskSucceeded.Notify(rc, &butlerd.TaskSucceededNotification{
+		Type: butlerd.TaskTypeUninstall,
 	})
 	if err != nil {
 		return errors.Wrap(err, 0)

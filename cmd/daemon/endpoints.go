@@ -1,10 +1,10 @@
-package service
+package daemon
 
 import (
 	"github.com/go-errors/errors"
 
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/endpoints/cleandownloads"
 	"github.com/itchio/butler/endpoints/downloads"
@@ -21,9 +21,9 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var mainRouter *buse.Router
+var mainRouter *butlerd.Router
 
-func getRouter(mansionContext *mansion.Context) *buse.Router {
+func getRouter(mansionContext *mansion.Context) *butlerd.Router {
 	if mainRouter != nil {
 		return mainRouter
 	}
@@ -37,7 +37,7 @@ func getRouter(mansionContext *mansion.Context) *buse.Router {
 		return database.OpenAndPrepare(dbPath)
 	}
 
-	mainRouter = buse.NewRouter(mansionContext, getDB)
+	mainRouter = butlerd.NewRouter(mansionContext, getDB)
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
 	update.Register(mainRouter)

@@ -5,18 +5,18 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse/busegen/spec"
+	"github.com/itchio/butler/butlerd/generous/spec"
 )
 
-func (bc *BuseContext) GenerateSpec() error {
-	bc.Task("Generating JSON spec")
+func (gc *GenerousContext) GenerateSpec() error {
+	gc.Task("Generating JSON spec")
 
-	doc := bc.NewBusegenRelativeDoc("spec/buse.json")
+	doc := gc.NewGenerousRelativeDoc("spec/butlerd.json")
 
 	s := &spec.Spec{}
 
-	scope := newScope(bc)
-	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
+	scope := newScope(gc)
+	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))

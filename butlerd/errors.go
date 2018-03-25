@@ -1,4 +1,4 @@
-package buse
+package butlerd
 
 import (
 	"fmt"
@@ -83,13 +83,13 @@ func (e *ErrCancelled) Error() string {
 
 //
 
-func AsBuseError(err error) (Error, bool) {
+func AsButlerdError(err error) (Error, bool) {
 	if err == nil {
 		return nil, false
 	}
 
 	if se, ok := err.(*errors.Error); ok {
-		return AsBuseError(se.Err)
+		return AsButlerdError(se.Err)
 	}
 
 	if ee, ok := err.(Error); ok {

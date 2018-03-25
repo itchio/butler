@@ -2,12 +2,12 @@ package downloads
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsDiscard(rc *buse.RequestContext, params *buse.DownloadsDiscardParams) (*buse.DownloadsDiscardResult, error) {
+func DownloadsDiscard(rc *butlerd.RequestContext, params *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {
 	consumer := rc.Consumer
 	download := ValidateDownload(rc, params.DownloadID)
 
@@ -21,11 +21,11 @@ func DownloadsDiscard(rc *buse.RequestContext, params *buse.DownloadsDiscardPara
 		download.Save(rc.DB())
 	}
 
-	res := &buse.DownloadsDiscardResult{}
+	res := &butlerd.DownloadsDiscardResult{}
 	return res, nil
 }
 
-func ValidateDownload(rc *buse.RequestContext, downloadID string) *models.Download {
+func ValidateDownload(rc *butlerd.RequestContext, downloadID string) *models.Download {
 	if downloadID == "" {
 		panic(errors.Errorf("downloadId must be set"))
 	}

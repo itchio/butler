@@ -8,7 +8,7 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -16,12 +16,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )
 
 type scanContext struct {
-	rc               *buse.RequestContext
+	rc               *butlerd.RequestContext
 	legacyMarketPath string
 	newByID          map[string]*importedCave
 
@@ -45,7 +45,7 @@ type existingCave struct {
 	InstallFolderName string
 }
 
-func InstallLocationsScan(rc *buse.RequestContext, params *buse.InstallLocationsScanParams) (*buse.InstallLocationsScanResult, error) {
+func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
 	consumer := rc.Consumer
 	sc := &scanContext{
 		rc:               rc,
@@ -62,7 +62,7 @@ func InstallLocationsScan(rc *buse.RequestContext, params *buse.InstallLocations
 	var numSaved int64
 
 	if numFound > 0 {
-		confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &buse.InstallLocationsScanConfirmImportParams{
+		confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &butlerd.InstallLocationsScanConfirmImportParams{
 			NumItems: numFound,
 		})
 		if err != nil {
@@ -91,7 +91,7 @@ func InstallLocationsScan(rc *buse.RequestContext, params *buse.InstallLocations
 		consumer.Infof("No items found")
 	}
 
-	res := &buse.InstallLocationsScanResult{
+	res := &butlerd.InstallLocationsScanResult{
 		NumFoundItems:    numFound,
 		NumImportedItems: numSaved,
 	}
@@ -535,7 +535,7 @@ func (sc *scanContext) addCave(cave *models.Cave, receipt *bfs.Receipt) {
 		receipt: receipt,
 	}
 
-	messages.InstallLocationsScanYield.Notify(sc.rc, &buse.InstallLocationsScanYieldNotification{
+	messages.InstallLocationsScanYield.Notify(sc.rc, &butlerd.InstallLocationsScanYieldNotification{
 		Game: cave.Game,
 	})
 }

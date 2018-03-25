@@ -2,15 +2,15 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.FetchGameResult, error) {
+func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error) {
 	consumer := rc.Consumer
 
 	if params.GameID == 0 {
@@ -20,7 +20,7 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 	sendDBGame := func() error {
 		game := models.GameByID(rc.DB(), params.GameID)
 		if game != nil {
-			err := messages.FetchGameYield.Notify(rc, &buse.FetchGameYieldNotification{Game: game})
+			err := messages.FetchGameYield.Notify(rc, &butlerd.FetchGameYieldNotification{Game: game})
 			if err != nil {
 				return errors.Wrap(err, 0)
 			}
@@ -62,6 +62,6 @@ func FetchGame(rc *buse.RequestContext, params *buse.FetchGameParams) (*buse.Fet
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchGameResult{}
+	res := &butlerd.FetchGameResult{}
 	return res, nil
 }

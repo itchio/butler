@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer"
 	"github.com/mitchellh/mapstructure"
@@ -20,13 +20,13 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	needElevation := false
 	for _, task := range plan.Tasks {
 		switch pc.Runtime.Platform {
-		case buse.ItchPlatformWindows:
+		case butlerd.ItchPlatformWindows:
 			block := task.Info.Windows
 			if block.Elevate {
 				consumer.Infof("Will perform prereqs installation elevated because of (%s)", task.Name)
 				needElevation = true
 			}
-		case buse.ItchPlatformLinux:
+		case butlerd.ItchPlatformLinux:
 			block := task.Info.Linux
 			if len(block.EnsureSuidRoot) > 0 {
 				consumer.Infof("Will perform prereqs installation elevated because (%s) has SUID binaries", task.Name)
@@ -83,7 +83,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 						return
 					}
 
-					tsc.OnState(&buse.PrereqsTaskStateNotification{
+					tsc.OnState(&butlerd.PrereqsTaskStateNotification{
 						Name:   ps.Name,
 						Status: ps.Status,
 					})
@@ -97,7 +97,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	if res.ExitCode != 0 {
 		if res.ExitCode == elevate.ExitCodeAccessDenied {
-			return &buse.ErrAborted{}
+			return &butlerd.ErrAborted{}
 		}
 	}
 
@@ -109,7 +109,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	// now to run some sanity checks (as regular user)
 	for _, task := range plan.Tasks {
 		switch pc.Runtime.Platform {
-		case buse.ItchPlatformLinux:
+		case butlerd.ItchPlatformLinux:
 			block := task.Info.Linux
 			for _, sc := range block.SanityChecks {
 				err := pc.RunSanityCheck(task.Name, task.Info, sc)

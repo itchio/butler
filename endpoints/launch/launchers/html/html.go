@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/endpoints/launch"
 )
 
@@ -28,14 +28,14 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	startTime := time.Now()
 
-	messages.LaunchRunning.Notify(params.RequestContext, &buse.LaunchRunningNotification{})
-	_, err = messages.HTMLLaunch.Call(params.RequestContext, &buse.HTMLLaunchParams{
+	messages.LaunchRunning.Notify(params.RequestContext, &butlerd.LaunchRunningNotification{})
+	_, err = messages.HTMLLaunch.Call(params.RequestContext, &butlerd.HTMLLaunchParams{
 		RootFolder: rootFolder,
 		IndexPath:  indexPath,
 		Args:       params.Args,
 		Env:        params.Env,
 	})
-	messages.LaunchExited.Notify(params.RequestContext, &buse.LaunchExitedNotification{})
+	messages.LaunchExited.Notify(params.RequestContext, &butlerd.LaunchExitedNotification{})
 	if err != nil {
 		return errors.Wrap(err, 0)
 	}

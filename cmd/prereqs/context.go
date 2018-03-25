@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
@@ -14,8 +14,8 @@ import (
 )
 
 type PrereqsContext struct {
-	RequestContext *buse.RequestContext
-	Credentials    *buse.GameCredentials
+	RequestContext *butlerd.RequestContext
+	Credentials    *butlerd.GameCredentials
 	Runtime        *manager.Runtime
 	Consumer       *state.Consumer
 	PrereqsDir     string

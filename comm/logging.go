@@ -49,10 +49,14 @@ func Configure(noProgress, quiet, verbose, json, panic bool, assumeYes bool, ada
 	}
 }
 
-type jsonMessage map[string]interface{}
+type JsonMessage map[string]interface{}
 
 type yesNoResponse struct {
 	Response bool
+}
+
+func JsonEnabled() bool {
+	return settings.json
 }
 
 // YesNo asks the user whether to proceed or not
@@ -63,7 +67,7 @@ func YesNo(question string) bool {
 			return true
 		}
 
-		send("yesno", jsonMessage{"question": question})
+		send("yesno", JsonMessage{"question": question})
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		input := scanner.Text()
@@ -154,10 +158,14 @@ func Debugf(format string, args ...interface{}) {
 
 // Logl logs a message of a given level
 func Logl(level string, msg string) {
-	send("log", jsonMessage{
+	send("log", JsonMessage{
 		"message": msg,
 		"level":   level,
 	})
+}
+
+func Object(typ string, msg JsonMessage) {
+	send(typ, msg)
 }
 
 // Loglf logs a formatted message of a given level
@@ -167,14 +175,14 @@ func Loglf(level string, format string, args ...interface{}) {
 
 // Die exits with a non-zero exit code after giving a reson to the client
 func Die(msg string) {
-	send("error", jsonMessage{
+	send("error", JsonMessage{
 		"message": msg,
 	})
 }
 
 // Result sends a result
 func Result(value interface{}) {
-	send("result", jsonMessage{
+	send("result", JsonMessage{
 		"value": value,
 	})
 }
@@ -190,7 +198,7 @@ func ResultOrPrint(value interface{}, p printerFunc) {
 }
 
 func Request(operation string, request string, params interface{}) {
-	send("request", jsonMessage{
+	send("request", JsonMessage{
 		"operation": operation,
 		"request":   request,
 		"params":    params,
@@ -198,7 +206,7 @@ func Request(operation string, request string, params interface{}) {
 }
 
 func OperationError(operation string, code string, value interface{}) {
-	send("operation-error", jsonMessage{
+	send("operation-error", JsonMessage{
 		"operation": operation,
 		"code":      code,
 	})
@@ -210,13 +218,13 @@ func Dief(format string, args ...interface{}) {
 }
 
 func Login(uri string) {
-	send("login", jsonMessage{
+	send("login", JsonMessage{
 		"uri": uri,
 	})
 }
 
 // sends a message to the client
-func send(msgType string, obj jsonMessage) {
+func send(msgType string, obj JsonMessage) {
 	if settings.json {
 		obj["type"] = msgType
 		obj["time"] = time.Now().UTC().Unix()
@@ -290,7 +298,7 @@ func showLogin(uri string) {
 }
 
 // sends a JSON-encoded message to the client
-func sendJSON(obj jsonMessage) {
+func sendJSON(obj JsonMessage) {
 	json, _ := json.Marshal(obj)
 	fmt.Println(string(json))
 }

@@ -28,7 +28,7 @@ import (
 	"github.com/itchio/butler/cmd/push"
 	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/run"
-	"github.com/itchio/butler/cmd/service"
+	"github.com/itchio/butler/cmd/daemon"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
@@ -106,7 +106,7 @@ func registerCommands(ctx *mansion.Context) {
 
 	apply2.Register(ctx)
 
-	service.Register(ctx)
+	daemon.Register(ctx)
 
 	winsandbox.Register(ctx)
 	validate.Register(ctx)

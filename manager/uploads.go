@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -172,7 +172,7 @@ func excludeWrongArch(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Uplo
 
 	filtered := false
 
-	if runtime.Platform == buse.ItchPlatformWindows || runtime.Platform == buse.ItchPlatformLinux {
+	if runtime.Platform == butlerd.ItchPlatformWindows || runtime.Platform == butlerd.ItchPlatformLinux {
 		comm.Logf("Got %d uploads, we're on %s, let's sniff architectures", len(uploads), runtime)
 
 		if runtime.Is64 {

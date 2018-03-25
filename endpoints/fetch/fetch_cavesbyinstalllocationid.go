@@ -2,11 +2,11 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )
 
-func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCavesByInstallLocationIDParams) (*buse.FetchCavesByInstallLocationIDResult, error) {
+func FetchCavesByInstallLocationID(rc *butlerd.RequestContext, params *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
 	installLocation := models.InstallLocationByID(rc.DB(), params.InstallLocationID)
 	if installLocation == nil {
 		return nil, errors.Errorf("Install location not found (%s)", params.InstallLocationID)
@@ -15,7 +15,7 @@ func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCa
 	caves := installLocation.GetCaves(rc.DB())
 	models.PreloadCaves(rc.DB(), caves)
 
-	var formattedCaves []*buse.Cave
+	var formattedCaves []*butlerd.Cave
 	for _, c := range caves {
 		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), c))
 	}
@@ -25,7 +25,7 @@ func FetchCavesByInstallLocationID(rc *buse.RequestContext, params *buse.FetchCa
 		totalSize += cave.InstalledSize
 	}
 
-	res := &buse.FetchCavesByInstallLocationIDResult{
+	res := &butlerd.FetchCavesByInstallLocationIDResult{
 		InstallLocationPath: installLocation.Path,
 		InstallLocationSize: totalSize,
 		Caves:               formattedCaves,

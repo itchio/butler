@@ -3,15 +3,15 @@ package system
 import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.SystemStatFS.Register(router, StatFSHandler)
 }
 
-func StatFSHandler(rc *buse.RequestContext, params *buse.SystemStatFSParams) (*buse.SystemStatFSResult, error) {
+func StatFSHandler(rc *butlerd.RequestContext, params *butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error) {
 	if params.Path == "" {
 		return nil, errors.Errorf("path must be set")
 	}

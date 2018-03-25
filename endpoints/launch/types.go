@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 
 	"github.com/itchio/butler/configurator"
@@ -21,7 +21,7 @@ const (
 )
 
 type LauncherParams struct {
-	RequestContext *buse.RequestContext
+	RequestContext *butlerd.RequestContext
 	Ctx            context.Context
 
 	// If relative, it's relative to the WorkingDirectory
@@ -31,10 +31,10 @@ type LauncherParams struct {
 	Candidate *configurator.Candidate
 
 	// May be nil
-	AppManifest *buse.Manifest
+	AppManifest *butlerd.Manifest
 
 	// May be nil
-	Action *buse.Action
+	Action *butlerd.Action
 
 	// If true, enable sandbox
 	Sandbox bool
@@ -46,7 +46,7 @@ type LauncherParams struct {
 	Env map[string]string
 
 	PrereqsDir    string
-	Credentials   *buse.GameCredentials
+	Credentials   *butlerd.GameCredentials
 	InstallFolder string
 	Runtime       *manager.Runtime
 

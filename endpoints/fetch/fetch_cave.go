@@ -1,40 +1,40 @@
 package fetch
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/jinzhu/gorm"
 )
 
-func FetchCave(rc *buse.RequestContext, params *buse.FetchCaveParams) (*buse.FetchCaveResult, error) {
+func FetchCave(rc *butlerd.RequestContext, params *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
 	cave := models.CaveByID(rc.DB(), params.CaveID)
 	cave.Preload(rc.DB())
 
-	res := &buse.FetchCaveResult{
+	res := &butlerd.FetchCaveResult{
 		Cave: FormatCave(rc.DB(), cave),
 	}
 	return res, nil
 }
 
-func FormatCave(db *gorm.DB, cave *models.Cave) *buse.Cave {
+func FormatCave(db *gorm.DB, cave *models.Cave) *butlerd.Cave {
 	if cave == nil {
 		return nil
 	}
 
-	return &buse.Cave{
+	return &butlerd.Cave{
 		ID: cave.ID,
 
 		Game:   cave.Game,
 		Upload: cave.Upload,
 		Build:  cave.Build,
 
-		InstallInfo: &buse.CaveInstallInfo{
+		InstallInfo: &butlerd.CaveInstallInfo{
 			InstallFolder:   cave.GetInstallFolder(db),
 			InstalledSize:   cave.InstalledSize,
 			InstallLocation: cave.InstallLocationID,
 		},
 
-		Stats: &buse.CaveStats{
+		Stats: &butlerd.CaveStats{
 			InstalledAt:   cave.InstalledAt,
 			LastTouchedAt: cave.LastTouchedAt,
 			SecondsRun:    cave.SecondsRun,

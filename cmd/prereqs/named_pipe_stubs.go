@@ -3,7 +3,7 @@
 package prereqs
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/state"
 )
@@ -21,7 +21,7 @@ func (np NamedPipe) Consumer() *state.Consumer {
 	return comm.NewStateConsumer()
 }
 
-func (np NamedPipe) WriteState(taskName string, status buse.PrereqStatus) error {
+func (np NamedPipe) WriteState(taskName string, status butlerd.PrereqStatus) error {
 	msg := PrereqState{
 		Type:   "state",
 		Name:   taskName,

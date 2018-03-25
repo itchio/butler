@@ -1,10 +1,10 @@
 package install
 
-import "github.com/itchio/butler/buse"
+import "github.com/itchio/butler/butlerd"
 
-func InstallCancel(rc *buse.RequestContext, params *buse.InstallCancelParams) (*buse.InstallCancelResult, error) {
+func InstallCancel(rc *butlerd.RequestContext, params *butlerd.InstallCancelParams) (*butlerd.InstallCancelResult, error) {
 	didCancel := rc.CancelFuncs.Call(params.ID)
-	return &buse.InstallCancelResult{
+	return &butlerd.InstallCancelResult{
 		DidCancel: didCancel,
 	}, nil
 }

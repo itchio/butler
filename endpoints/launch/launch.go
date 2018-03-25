@@ -11,8 +11,8 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
@@ -24,21 +24,21 @@ import (
 var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.Launch.Register(router, Launch)
 	messages.LaunchCancel.Register(router, LaunchCancel)
 }
 
 var launchCancelID = "Launch"
 
-func LaunchCancel(rc *buse.RequestContext, params *buse.LaunchCancelParams) (*buse.LaunchCancelResult, error) {
+func LaunchCancel(rc *butlerd.RequestContext, params *butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error) {
 	didCancel := rc.CancelFuncs.Call(launchCancelID)
-	return &buse.LaunchCancelResult{
+	return &butlerd.LaunchCancelResult{
 		DidCancel: didCancel,
 	}, nil
 }
 
-func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchResult, error) {
+func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
 	consumer := rc.Consumer
 
 	ctx, cancelFunc := context.WithCancel(rc.Ctx)
@@ -51,8 +51,8 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 
 	_, err := os.Stat(installFolder)
 	if err != nil && os.IsNotExist(err) {
-		return nil, &buse.RpcError{
-			Code:    int64(buse.CodeInstallFolderDisappeared),
+		return nil, &butlerd.RpcError{
+			Code:    int64(butlerd.CodeInstallFolderDisappeared),
 			Message: fmt.Sprintf("Could not find install folder (%s)", installFolder),
 		}
 	}
@@ -102,7 +102,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 	var fullTargetPath string
 	var strategy = LaunchStrategyUnknown
 	var candidate *configurator.Candidate
-	var manifestAction *buse.Action
+	var manifestAction *butlerd.Action
 
 	appManifest, err := manifest.Read(installFolder)
 	if err != nil {
@@ -127,7 +127,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		if len(actions) == 1 {
 			manifestAction = actions[0]
 		} else {
-			r, err := messages.PickManifestAction.Call(rc, &buse.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, &butlerd.PickManifestActionParams{
 				Actions: actions,
 			})
 			if err != nil {
@@ -135,7 +135,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 
 			if r.Index < 0 {
-				return &buse.ErrAborted{}
+				return &butlerd.ErrAborted{}
 			}
 
 			manifestAction = actions[r.Index]
@@ -171,16 +171,16 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		case 1:
 			candidate = verdict.Candidates[0]
 		default:
-			fakeActions := []*buse.Action{}
+			fakeActions := []*butlerd.Action{}
 			for _, c := range verdict.Candidates {
 				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
-				fakeActions = append(fakeActions, &buse.Action{
+				fakeActions = append(fakeActions, &butlerd.Action{
 					Name: name,
 					Path: c.Path,
 				})
 			}
 
-			r, err := messages.PickManifestAction.Call(rc, &buse.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, &butlerd.PickManifestActionParams{
 				Actions: fakeActions,
 			})
 			if err != nil {
@@ -188,7 +188,7 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 			}
 
 			if r.Index < 0 {
-				return &buse.ErrAborted{}
+				return &butlerd.ErrAborted{}
 			}
 			candidate = verdict.Candidates[r.Index]
 		}
@@ -367,5 +367,5 @@ func Launch(rc *buse.RequestContext, params *buse.LaunchParams) (*buse.LaunchRes
 		return nil, errors.Wrap(err, 0)
 	}
 
-	return &buse.LaunchResult{}, nil
+	return &butlerd.LaunchResult{}, nil
 }

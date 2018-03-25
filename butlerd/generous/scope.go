@@ -20,7 +20,7 @@ type Scope struct {
 	categories   map[string]*Category
 	categoryList []string
 	entries      map[string]*Entry
-	bc           *BuseContext
+	gc           *GenerousContext
 }
 
 type Category struct {
@@ -84,12 +84,12 @@ const (
 	EntryKindInvalid
 )
 
-func newScope(bc *BuseContext) *Scope {
+func newScope(gc *GenerousContext) *Scope {
 	return &Scope{
 		categories:   make(map[string]*Category),
 		categoryList: nil,
 		entries:      make(map[string]*Entry),
-		bc:           bc,
+		gc:           gc,
 	}
 }
 
@@ -98,7 +98,7 @@ const butlerPkg = "github.com/itchio/butler"
 func (s *Scope) Assimilate(pkg string, file string) error {
 	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
 
-	var rootPath = filepath.Join(s.bc.Dir, "..", "..")
+	var rootPath = filepath.Join(s.gc.Dir, "..", "..")
 
 	var relativePath string
 	if strings.HasPrefix(pkg, butlerPkg) {

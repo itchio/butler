@@ -7,14 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/database/models"
-
-	"github.com/itchio/butler/buse/messages"
-
 	"github.com/itchio/go-itchio"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
 
@@ -23,7 +21,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-func InstallPerform(ctx context.Context, rc *buse.RequestContext, performParams *buse.InstallPerformParams) error {
+func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams *butlerd.InstallPerformParams) error {
 	if performParams.StagingFolder == "" {
 		return errors.New("No staging folder specified")
 	}
@@ -203,9 +201,9 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			consumer.Infof("Install source needs to be available locally, copying to disk...")
 
 			dlErr := func() error {
-				err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
-					Reason:    buse.TaskReasonInstall,
-					Type:      buse.TaskTypeDownload,
+				err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+					Reason:    butlerd.TaskReasonInstall,
+					Type:      butlerd.TaskTypeDownload,
 					Game:      params.Game,
 					Upload:    params.Upload,
 					Build:     params.Build,
@@ -223,8 +221,8 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 					return errors.Wrap(err, 0)
 				}
 
-				err = messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
-					Type: buse.TaskTypeDownload,
+				err = messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
+					Type: butlerd.TaskTypeDownload,
 				})
 				if err != nil {
 					return errors.Wrap(err, 0)
@@ -318,14 +316,14 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 		select {
 		case <-oc.ctx.Done():
-			return nil, &buse.ErrCancelled{}
+			return nil, &butlerd.ErrCancelled{}
 		default:
 			// keep going!
 		}
 
-		err = messages.TaskStarted.Notify(oc.rc, &buse.TaskStartedNotification{
-			Reason:    buse.TaskReasonInstall,
-			Type:      buse.TaskTypeInstall,
+		err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+			Reason:    butlerd.TaskReasonInstall,
+			Type:      butlerd.TaskTypeInstall,
 			Game:      params.Game,
 			Upload:    params.Upload,
 			Build:     params.Build,

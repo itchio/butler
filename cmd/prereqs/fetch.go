@@ -9,7 +9,7 @@ import (
 	"github.com/itchio/butler/endpoints/install"
 	itchio "github.com/itchio/go-itchio"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 
 	"github.com/go-errors/errors"
 )
@@ -24,7 +24,7 @@ var RedistsGame = &itchio.Game{
 }
 
 type TaskStateConsumer struct {
-	OnState func(state *buse.PrereqsTaskStateNotification)
+	OnState func(state *butlerd.PrereqsTaskStateNotification)
 }
 
 func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
@@ -64,10 +64,10 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		conn.OnNotification("TaskSucceeded", loopbackconn.NoopNotificationHandler)
 
 		conn.OnNotification("Progress", func(ctx context.Context, method string, params interface{}) error {
-			progress := params.(*buse.ProgressNotification)
-			tsc.OnState(&buse.PrereqsTaskStateNotification{
+			progress := params.(*butlerd.ProgressNotification)
+			tsc.OnState(&butlerd.PrereqsTaskStateNotification{
 				Name:     name,
-				Status:   buse.PrereqStatusDownloading,
+				Status:   butlerd.PrereqStatusDownloading,
 				Progress: progress.Progress,
 				ETA:      progress.ETA,
 				BPS:      progress.BPS,
@@ -78,7 +78,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		rcc := *pc.RequestContext
 		rcc.Conn = conn
 
-		_, err = install.InstallQueue(&rcc, &buse.InstallQueueParams{
+		_, err = install.InstallQueue(&rcc, &butlerd.InstallQueueParams{
 			Game:   RedistsGame,
 			Upload: upload,
 			Build:  nil, // just go with the latest
@@ -91,7 +91,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return errors.Wrap(err, 0)
 		}
 
-		err = operate.InstallPerform(ctx, &rcc, &buse.InstallPerformParams{
+		err = operate.InstallPerform(ctx, &rcc, &butlerd.InstallPerformParams{
 			ID:            "install-prereqs",
 			StagingFolder: stagingFolder,
 		})
@@ -99,9 +99,9 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return errors.Wrap(err, 0)
 		}
 
-		tsc.OnState(&buse.PrereqsTaskStateNotification{
+		tsc.OnState(&butlerd.PrereqsTaskStateNotification{
 			Name:   name,
-			Status: buse.PrereqStatusReady,
+			Status: butlerd.PrereqStatusReady,
 		})
 
 		return nil

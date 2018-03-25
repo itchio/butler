@@ -13,7 +13,7 @@ import (
 	"github.com/go-errors/errors"
 )
 
-type BuseContext struct {
+type GenerousContext struct {
 	Dir string
 }
 
@@ -21,7 +21,9 @@ func main() {
 	log.SetFlags(0)
 
 	if len(os.Args) < 2 {
-		log.Printf("Usage: busegen (godocs|ts [OUT])")
+		log.Printf("generous is a documentation & bindings generator for butlerd")
+		log.Printf("")
+		log.Printf("Usage: generous (godocs|ts [OUT])")
 		log.Printf("  - godocs: generate directly in the $GOPATH tree")
 		log.Printf("  - ts: give a target path to generate")
 		os.Exit(1)
@@ -33,54 +35,54 @@ func main() {
 		log.Fatalf("$GOPATH must be set")
 	}
 
-	baseDir := filepath.Join(gopath, "src", "github.com", "itchio", "butler", "buse", "busegen")
+	baseDir := filepath.Join(gopath, "src", "github.com", "itchio", "butler", "butlerd", "generous")
 	_, err := os.Stat(baseDir)
 	must(err)
 	log.Printf("Base dir: (%s)", baseDir)
 
-	bc := &BuseContext{
+	gc := &GenerousContext{
 		Dir: baseDir,
 	}
 
 	switch mode {
 	case "godocs":
-		must(bc.GenerateDocs())
-		must(bc.GenerateGoCode())
-		must(bc.GenerateSpec())
+		must(gc.GenerateDocs())
+		must(gc.GenerateGoCode())
+		must(gc.GenerateSpec())
 	case "ts":
 		if len(os.Args) < 2 {
-			log.Printf("busegen ts: missing output path")
+			log.Printf("generous ts: missing output path")
 			os.Exit(1)
 		}
 		tsOut := os.Args[2]
-		must(bc.GenerateTsCode(tsOut))
+		must(gc.GenerateTsCode(tsOut))
 	}
 }
 
-func (bc *BuseContext) Task(task string) {
+func (gc *GenerousContext) Task(task string) {
 	log.Printf("")
 	log.Printf("=========================")
 	log.Printf(">> %s", task)
 	log.Printf("=========================")
 }
 
-func (bc *BuseContext) ReadFile(file string) string {
-	bs, err := ioutil.ReadFile(filepath.Join(bc.Dir, file))
+func (gc *GenerousContext) ReadFile(file string) string {
+	bs, err := ioutil.ReadFile(filepath.Join(gc.Dir, file))
 	must(err)
 	return string(bs)
 }
 
-func (bc *BuseContext) NewPathDoc(name string) *Doc {
+func (gc *GenerousContext) NewPathDoc(name string) *Doc {
 	return &Doc{
-		bc:   bc,
+		gc:   gc,
 		name: name,
 	}
 }
 
-func (bc *BuseContext) NewBusegenRelativeDoc(relname string) *Doc {
-	name := filepath.Join(bc.Dir, filepath.FromSlash(relname))
+func (gc *GenerousContext) NewGenerousRelativeDoc(relname string) *Doc {
+	name := filepath.Join(gc.Dir, filepath.FromSlash(relname))
 	return &Doc{
-		bc:   bc,
+		gc:   gc,
 		name: name,
 	}
 }
@@ -99,7 +101,7 @@ func must(err error) {
 
 type Doc struct {
 	name string
-	bc   *BuseContext
+	gc   *GenerousContext
 
 	doc string
 	buf string
@@ -131,13 +133,13 @@ func (b *Doc) Write() {
 	must(ioutil.WriteFile(dest, bs, 0644))
 }
 
-func (bc *BuseContext) Timestamp() string {
+func (gc *GenerousContext) Timestamp() string {
 	return time.Now().Format(time.Stamp)
 }
 
-func (bc *BuseContext) Revision() string {
+func (gc *GenerousContext) Revision() string {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = bc.Dir
+	cmd.Dir = gc.Dir
 	rev, err := cmd.CombinedOutput()
 	must(err)
 	return strings.TrimSpace(string(rev))

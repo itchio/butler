@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/manager"
@@ -43,7 +43,7 @@ func (sr *StrategyResult) String() string {
 	return strings.Join(lines, "\n")
 }
 
-func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestAction *buse.Action) (*StrategyResult, error) {
+func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
 	// is it a path?
 	fullPath := manifest.ExpandPath(manifestAction, runtime, installFolder)
 	stats, err := os.Stat(fullPath)
@@ -73,7 +73,7 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 
 	if stats.IsDir() {
 		// is it an app bundle?
-		if runtime.Platform == buse.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+		if runtime.Platform == butlerd.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
 			res := &StrategyResult{
 				Strategy:       LaunchStrategyNative,
 				FullTargetPath: fullPath,

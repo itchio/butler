@@ -2,16 +2,16 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/system"
 	"github.com/itchio/go-itchio"
 )
 
-func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*buse.FetchCommonsResult, error) {
+func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
 	var err error
 
-	var caves []*buse.CaveSummary
+	var caves []*butlerd.CaveSummary
 	err = rc.DB().Model(&models.Cave{}).
 		Select("id, game_id, last_touched_at, seconds_run, installed_size").
 		Scan(&caves).Error
@@ -19,7 +19,7 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var downloadKeys []*buse.DownloadKeySummary
+	var downloadKeys []*butlerd.DownloadKeySummary
 	err = rc.DB().Model(&itchio.DownloadKey{}).
 		Select("id, game_id, created_at").
 		Scan(&downloadKeys).Error
@@ -33,12 +33,12 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 		return nil, errors.Wrap(err, 0)
 	}
 
-	var flocs []*buse.InstallLocationSummary
+	var flocs []*butlerd.InstallLocationSummary
 	for _, il := range installLocations {
 		flocs = append(flocs, FormatInstallLocation(rc, il))
 	}
 
-	res := &buse.FetchCommonsResult{
+	res := &butlerd.FetchCommonsResult{
 		Caves:            caves,
 		DownloadKeys:     downloadKeys,
 		InstallLocations: flocs,
@@ -46,11 +46,11 @@ func FetchCommons(rc *buse.RequestContext, params *buse.FetchCommonsParams) (*bu
 	return res, nil
 }
 
-func FormatInstallLocation(rc *buse.RequestContext, il *models.InstallLocation) *buse.InstallLocationSummary {
-	sum := &buse.InstallLocationSummary{
+func FormatInstallLocation(rc *butlerd.RequestContext, il *models.InstallLocation) *butlerd.InstallLocationSummary {
+	sum := &butlerd.InstallLocationSummary{
 		ID:   il.ID,
 		Path: il.Path,
-		SizeInfo: &buse.InstallLocationSizeInfo{
+		SizeInfo: &butlerd.InstallLocationSizeInfo{
 			InstalledSize: -1,
 			FreeSize:      -1,
 			TotalSize:     -1,

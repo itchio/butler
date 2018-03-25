@@ -2,14 +2,14 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams) (*buse.FetchCollectionResult, error) {
+func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
 	consumer := rc.Consumer
 
 	if params.CollectionID == 0 {
@@ -26,7 +26,7 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 
 		models.CollectionExt(collection).PreloadCollectionGames(rc.DB())
 
-		err := messages.FetchCollectionYield.Notify(rc, &buse.FetchCollectionYieldNotification{Collection: collection})
+		err := messages.FetchCollectionYield.Notify(rc, &butlerd.FetchCollectionYieldNotification{Collection: collection})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}
@@ -133,6 +133,6 @@ func FetchCollection(rc *buse.RequestContext, params *buse.FetchCollectionParams
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchCollectionResult{}
+	res := &butlerd.FetchCollectionResult{}
 	return res, nil
 }

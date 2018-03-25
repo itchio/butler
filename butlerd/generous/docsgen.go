@@ -6,14 +6,14 @@ import (
 	"strings"
 )
 
-func (bc *BuseContext) GenerateDocs() error {
+func (bc *GenerousContext) GenerateDocs() error {
 	bc.Task("Generating docs")
 
-	doc := bc.NewBusegenRelativeDoc("docs/README.md")
+	doc := bc.NewGenerousRelativeDoc("docs/README.md")
 	doc.Load(bc.ReadFile("layout.md"))
 
 	scope := newScope(bc)
-	must(scope.Assimilate("github.com/itchio/butler/buse", "types.go"))
+	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))

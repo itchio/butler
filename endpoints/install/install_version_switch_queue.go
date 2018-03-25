@@ -3,15 +3,15 @@ package install
 import (
 	"fmt"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 )
 
-func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVersionSwitchQueueParams) (*buse.InstallVersionSwitchQueueResult, error) {
+func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error) {
 	consumer := rc.Consumer
 
 	cave := operate.ValidateCave(rc, params.CaveID)
@@ -38,7 +38,7 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 		return nil, errors.Wrap(err, 0)
 	}
 
-	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &buse.InstallVersionSwitchPickParams{
+	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &butlerd.InstallVersionSwitchPickParams{
 		Upload: upload,
 		Builds: buildsRes.Builds,
 	})
@@ -47,7 +47,7 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 	}
 
 	if pickRes.Index < 0 {
-		return nil, &buse.ErrAborted{}
+		return nil, &butlerd.ErrAborted{}
 	}
 
 	build := buildsRes.Builds[pickRes.Index]
@@ -56,7 +56,7 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 		return nil, errors.New("We're up to InstallQueue and butler doesn't fully handle downloads yet :o")
 	}
 
-	_, err = InstallQueue(rc, &buse.InstallQueueParams{
+	_, err = InstallQueue(rc, &butlerd.InstallQueueParams{
 		CaveID: params.CaveID,
 		Game:   cave.Game,
 		Upload: cave.Upload,
@@ -66,6 +66,6 @@ func InstallVersionSwitchQueue(rc *buse.RequestContext, params *buse.InstallVers
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.InstallVersionSwitchQueueResult{}
+	res := &butlerd.InstallVersionSwitchQueueResult{}
 	return res, nil
 }

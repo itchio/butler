@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/endpoints/launch"
 )
@@ -32,7 +32,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	// append built-in params if we need some
 	runtime := params.Runtime
-	if runtime.Platform == buse.ItchPlatformLinux && params.Sandbox {
+	if runtime.Platform == butlerd.ItchPlatformLinux && params.Sandbox {
 		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
 		listed = append(listed, firejailName)
 	}
@@ -89,8 +89,8 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	consumer.Infof("→ %d Prereqs to install: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
 
 	{
-		psn := &buse.PrereqsStartedNotification{
-			Tasks: make(map[string]*buse.PrereqTask),
+		psn := &butlerd.PrereqsStartedNotification{
+			Tasks: make(map[string]*butlerd.PrereqTask),
 		}
 		for i, name := range pa.Todo {
 			entry, err := pc.GetEntry(name)
@@ -98,7 +98,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 				return errors.Wrap(err, 0)
 			}
 
-			psn.Tasks[name] = &buse.PrereqTask{
+			psn.Tasks[name] = &butlerd.PrereqTask{
 				FullName: entry.FullName,
 				Order:    i,
 			}
@@ -111,7 +111,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	}
 
 	tsc := &prereqs.TaskStateConsumer{
-		OnState: func(state *buse.PrereqsTaskStateNotification) {
+		OnState: func(state *butlerd.PrereqsTaskStateNotification) {
 			err = messages.PrereqsTaskState.Notify(params.RequestContext, state)
 			if err != nil {
 				consumer.Warnf(err.Error())
@@ -141,7 +141,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		}
 	}
 
-	err = messages.PrereqsEnded.Notify(params.RequestContext, &buse.PrereqsEndedNotification{})
+	err = messages.PrereqsEnded.Notify(params.RequestContext, &butlerd.PrereqsEndedNotification{})
 	if err != nil {
 		consumer.Warnf(err.Error())
 	}

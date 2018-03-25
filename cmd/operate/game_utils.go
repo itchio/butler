@@ -11,7 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
 )
 
@@ -23,7 +23,7 @@ func GameToString(game *itchio.Game) string {
 	return fmt.Sprintf("%s - %s", game.Title, game.URL)
 }
 
-func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *buse.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
+func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *butlerd.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
 	uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID:        game.ID,
 		DownloadKeyID: credentials.DownloadKey,
@@ -149,7 +149,7 @@ func formatUploadType(uploadType itchio.UploadType) string {
 	}
 }
 
-func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
+func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
 	// TODO: write unit test for this
 
 	// look for owner access
@@ -164,7 +164,7 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
 
 			if p == nil {
 			} else {
-				creds := &buse.GameCredentials{
+				creds := &butlerd.GameCredentials{
 					APIKey: p.APIKey,
 				}
 				return creds
@@ -182,7 +182,7 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
 				continue
 			}
 
-			creds := &buse.GameCredentials{
+			creds := &butlerd.GameCredentials{
 				APIKey:      profile.APIKey,
 				DownloadKey: dk.ID,
 			}
@@ -204,7 +204,7 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
 		// prefer press user
 		for _, profile := range profiles {
 			if profile.PressUser {
-				creds := &buse.GameCredentials{
+				creds := &butlerd.GameCredentials{
 					APIKey: profile.APIKey,
 				}
 				return creds
@@ -213,14 +213,14 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *buse.GameCredentials {
 
 		// just take the most recent then
 		profile := profiles[0]
-		creds := &buse.GameCredentials{
+		creds := &butlerd.GameCredentials{
 			APIKey: profile.APIKey,
 		}
 		return creds
 	}
 }
 
-func ValidateCave(rc *buse.RequestContext, caveID string) *models.Cave {
+func ValidateCave(rc *butlerd.RequestContext, caveID string) *models.Cave {
 	if caveID == "" {
 		panic(errors.New("caveId must be set"))
 	}

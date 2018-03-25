@@ -1,10 +1,10 @@
 package downloads
 
-import "github.com/itchio/butler/buse"
+import "github.com/itchio/butler/butlerd"
 
-func DownloadsDriveCancel(rc *buse.RequestContext, params *buse.DownloadsDriveCancelParams) (*buse.DownloadsDriveCancelResult, error) {
+func DownloadsDriveCancel(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveCancelParams) (*butlerd.DownloadsDriveCancelResult, error) {
 	didCancel := rc.CancelFuncs.Call(downloadsDriveCancelID)
-	return &buse.DownloadsDriveCancelResult{
+	return &butlerd.DownloadsDriveCancelResult{
 		DidCancel: didCancel,
 	}, nil
 }

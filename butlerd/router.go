@@ -1,4 +1,4 @@
-package buse
+package butlerd
 
 import (
 	"context"
@@ -152,7 +152,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		return
 	}
 
-	if ee, ok := AsBuseError(err); ok {
+	if ee, ok := AsButlerdError(err); ok {
 		origConn.ReplyWithError(ctx, req.ID, ee.AsJsonRpc2())
 		return
 	}

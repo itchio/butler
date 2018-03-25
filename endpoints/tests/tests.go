@@ -2,24 +2,24 @@ package tests
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
-func Register(router *buse.Router) {
-	messages.TestDoubleTwice.Register(router, func(rc *buse.RequestContext, params *buse.TestDoubleTwiceParams) (*buse.TestDoubleTwiceResult, error) {
+func Register(router *butlerd.Router) {
+	messages.TestDoubleTwice.Register(router, func(rc *butlerd.RequestContext, params *butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error) {
 		if params.Number == 0 {
 			return nil, errors.New("number must be non-zero")
 		}
 
-		res, err := messages.TestDouble.Call(rc, &buse.TestDoubleParams{
+		res, err := messages.TestDouble.Call(rc, &butlerd.TestDoubleParams{
 			Number: params.Number,
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, 0)
 		}
 
-		return &buse.TestDoubleTwiceResult{
+		return &butlerd.TestDoubleTwiceResult{
 			Number: res.Number * 2,
 		}, nil
 	})

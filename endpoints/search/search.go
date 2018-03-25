@@ -4,17 +4,17 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.SearchGames.Register(router, SearchGames)
 	messages.SearchUsers.Register(router, SearchUsers)
 }
 
-func SearchGames(rc *buse.RequestContext, params *buse.SearchGamesParams) (*buse.SearchGamesResult, error) {
+func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
 	var games []*itchio.Game
 	db := rc.DB()
 	q := fmt.Sprintf("%%%s%%", params.Query)
@@ -23,7 +23,7 @@ func SearchGames(rc *buse.RequestContext, params *buse.SearchGamesParams) (*buse
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = messages.SearchGamesYield.Notify(rc, &buse.SearchGamesYieldNotification{
+	err = messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
 		Games: games,
 	})
 	if err != nil {
@@ -56,18 +56,18 @@ func SearchGames(rc *buse.RequestContext, params *buse.SearchGamesParams) (*buse
 		}
 	}
 
-	err = messages.SearchGamesYield.Notify(rc, &buse.SearchGamesYieldNotification{
+	err = messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
 		Games: games,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.SearchGamesResult{}
+	res := &butlerd.SearchGamesResult{}
 	return res, nil
 }
 
-func SearchUsers(rc *buse.RequestContext, params *buse.SearchUsersParams) (*buse.SearchUsersResult, error) {
+func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
 	var users []*itchio.User
 	db := rc.DB()
 	q := fmt.Sprintf("%%%s%%", params.Query)
@@ -77,7 +77,7 @@ func SearchUsers(rc *buse.RequestContext, params *buse.SearchUsersParams) (*buse
 		return nil, errors.Wrap(err, 0)
 	}
 
-	err = messages.SearchUsersYield.Notify(rc, &buse.SearchUsersYieldNotification{
+	err = messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
 		Users: users,
 	})
 	if err != nil {
@@ -110,13 +110,13 @@ func SearchUsers(rc *buse.RequestContext, params *buse.SearchUsersParams) (*buse
 		}
 	}
 
-	err = messages.SearchUsersYield.Notify(rc, &buse.SearchUsersYieldNotification{
+	err = messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
 		Users: users,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.SearchUsersResult{}
+	res := &butlerd.SearchUsersResult{}
 	return res, nil
 }

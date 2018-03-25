@@ -5,20 +5,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/wipe"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.CleanDownloadsSearch.Register(router, CleanDownloadsSearch)
 	messages.CleanDownloadsApply.Register(router, CleanDownloadsApply)
 }
 
-func CleanDownloadsSearch(rc *buse.RequestContext, params *buse.CleanDownloadsSearchParams) (*buse.CleanDownloadsSearchResult, error) {
+func CleanDownloadsSearch(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error) {
 	consumer := rc.Consumer
 
 	// struct{} trick to use map as a set with 0-sized values
@@ -27,7 +27,7 @@ func CleanDownloadsSearch(rc *buse.RequestContext, params *buse.CleanDownloadsSe
 		whitemap[whitelistPath] = struct{}{}
 	}
 
-	var entries []*buse.CleanDownloadsEntry
+	var entries []*butlerd.CleanDownloadsEntry
 
 	for _, root := range params.Roots {
 		folders, err := ioutil.ReadDir(root)
@@ -57,20 +57,20 @@ func CleanDownloadsSearch(rc *buse.RequestContext, params *buse.CleanDownloadsSe
 				consumer.Warnf("Could not determine folder size: %s", err.Error())
 			}
 
-			entries = append(entries, &buse.CleanDownloadsEntry{
+			entries = append(entries, &butlerd.CleanDownloadsEntry{
 				Path: absoluteFolderPath,
 				Size: folderSize,
 			})
 		}
 	}
 
-	res := &buse.CleanDownloadsSearchResult{
+	res := &butlerd.CleanDownloadsSearchResult{
 		Entries: entries,
 	}
 	return res, nil
 }
 
-func CleanDownloadsApply(rc *buse.RequestContext, params *buse.CleanDownloadsApplyParams) (*buse.CleanDownloadsApplyResult, error) {
+func CleanDownloadsApply(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error) {
 	consumer := rc.Consumer
 
 	for _, entry := range params.Entries {
@@ -81,6 +81,6 @@ func CleanDownloadsApply(rc *buse.RequestContext, params *buse.CleanDownloadsApp
 		}
 	}
 
-	res := &buse.CleanDownloadsApplyResult{}
+	res := &butlerd.CleanDownloadsApplyResult{}
 	return res, nil
 }

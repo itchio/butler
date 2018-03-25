@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 
 	"github.com/itchio/wharf/state"
 )
@@ -19,7 +19,7 @@ var NoopNotificationHandler NotificationHandler = func(ctx context.Context, meth
 }
 
 type LoopbackConn interface {
-	buse.Conn
+	butlerd.Conn
 
 	OnNotification(method string, handler NotificationHandler)
 	OnCall(method string, handler CallHandler)
@@ -39,7 +39,7 @@ func New(consumer *state.Consumer) LoopbackConn {
 	}
 
 	lc.OnNotification("Log", func(ctx context.Context, method string, params interface{}) error {
-		log := params.(*buse.LogNotification)
+		log := params.(*butlerd.LogNotification)
 		lc.consumer.OnMessage(string(log.Level), log.Message)
 		return nil
 	})
@@ -47,7 +47,7 @@ func New(consumer *state.Consumer) LoopbackConn {
 	return lc
 }
 
-var _ buse.Conn = (*loopbackConn)(nil)
+var _ butlerd.Conn = (*loopbackConn)(nil)
 
 func (lc *loopbackConn) OnNotification(method string, handler NotificationHandler) {
 	lc.notificationHandlers[method] = handler

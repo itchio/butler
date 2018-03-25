@@ -1,11 +1,11 @@
 package downloads
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 )
 
-func DownloadsRetry(rc *buse.RequestContext, params *buse.DownloadsRetryParams) (*buse.DownloadsRetryResult, error) {
+func DownloadsRetry(rc *butlerd.RequestContext, params *butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error) {
 	consumer := rc.Consumer
 
 	download := ValidateDownload(rc, params.DownloadID)
@@ -20,6 +20,6 @@ func DownloadsRetry(rc *buse.RequestContext, params *buse.DownloadsRetryParams) 
 		consumer.Statf("Queued a retry for download for %s", operate.GameToString(download.Game))
 	}
 
-	res := &buse.DownloadsRetryResult{}
+	res := &butlerd.DownloadsRetryResult{}
 	return res, nil
 }

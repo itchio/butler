@@ -1,11 +1,11 @@
 package install
 
 import (
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.GameFindUploads.Register(router, GameFindUploads)
 	messages.InstallQueue.Register(router, InstallQueue)
 	messages.InstallPerform.Register(router, InstallPerform)

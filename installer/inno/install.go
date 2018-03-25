@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 )
@@ -87,7 +87,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			}
 
 			if exitCodeIsAborted(exitCode) {
-				return &buse.ErrAborted{}
+				return &butlerd.ErrAborted{}
 			}
 
 			return errors.Wrap(errors.New(msg), 0)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/dchest/safefile"
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
@@ -22,7 +22,7 @@ import (
 
 type OperationContext struct {
 	cave        *models.Cave
-	rc          *buse.RequestContext
+	rc          *butlerd.RequestContext
 	ctx         context.Context
 	consumer    *state.Consumer
 	stageFolder string
@@ -35,7 +35,7 @@ type OperationContext struct {
 	loaded map[string]struct{}
 }
 
-func LoadContext(ctx context.Context, rc *buse.RequestContext, stageFolder string) (*OperationContext, error) {
+func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder string) (*OperationContext, error) {
 	parentConsumer := rc.Consumer
 
 	err := os.MkdirAll(stageFolder, 0755)

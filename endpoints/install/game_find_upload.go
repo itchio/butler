@@ -2,11 +2,11 @@ package install
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 )
 
-func GameFindUploads(rc *buse.RequestContext, params *buse.GameFindUploadsParams) (*buse.GameFindUploadsResult, error) {
+func GameFindUploads(rc *butlerd.RequestContext, params *butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error) {
 	consumer := rc.Consumer
 
 	if params.Game == nil {
@@ -26,7 +26,7 @@ func GameFindUploads(rc *buse.RequestContext, params *buse.GameFindUploadsParams
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.GameFindUploadsResult{
+	res := &butlerd.GameFindUploadsResult{
 		Uploads: uploads.Uploads,
 	}
 	return res, nil

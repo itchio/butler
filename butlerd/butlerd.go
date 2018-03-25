@@ -1,4 +1,4 @@
-package buse
+package butlerd
 
 import (
 	"bufio"
@@ -76,10 +76,9 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 
 			jc := jsonrpc2.NewConn(connCtx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), agh, opt...)
 			numClients++
-			consumer.Debugf("buse: Accepted connection! (%d clients now)", numClients)
+			consumer.Infof("butlerd: Accepted connection! (%d clients now)", numClients)
 			go func() {
 				<-jc.DisconnectNotify()
-				consumer.Debugf("buse: Got disconnect notify, cancelling context")
 				cancelFunc()
 				disconnects <- struct{}{}
 			}()
@@ -99,7 +98,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 			go func() {
 				die := func(msg string, args ...interface{}) {
 					fmsg := fmt.Sprintf(msg, args...)
-					consumer.Debugf("%s", fmsg)
+					consumer.Warnf("%s", fmsg)
 					jc.Notify(ctx, "Log", &LogNotification{
 						Level:   "error",
 						Message: fmsg,
@@ -110,7 +109,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 				hres := &HandshakeResult{}
 				message, err := generateMessage()
 				if err != nil {
-					die("buse: Message generation error: %s", err.Error())
+					die("butlerd: Message generation error: %s", err.Error())
 					return
 				}
 
@@ -118,14 +117,14 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 					Message: message,
 				}, hres)
 				if err != nil {
-					die("buse: Handshake error: %s", err.Error())
+					die("butlerd: Handshake error: %s", err.Error())
 					return
 				}
 
 				expectedSigBytes := sha256.Sum256([]byte(s.secret + message))
 				expectedSig := fmt.Sprintf("%x", expectedSigBytes)
 				if expectedSig != hres.Signature {
-					die("buse: Handshake failed")
+					die("butlerd: Handshake failed")
 					return
 				}
 
@@ -136,14 +135,14 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 			case <-handshakeDone:
 				// good!
 			case <-time.After(1 * time.Second):
-				consumer.Debugf("buse: Handshake timed out!")
+				consumer.Warnf("butlerd: Handshake timed out!")
 				jc.Close()
 			}
 		case <-disconnects:
 			numClients--
-			consumer.Debugf("buse: Client disconnected! (%d clients left)", numClients)
+			consumer.Infof("butlerd: Client disconnected! (%d clients left)", numClients)
 			if numClients == 0 {
-				consumer.Debugf("buse: Last client left, shutting down")
+				consumer.Infof("butlerd: Last client left, shutting down")
 				return nil
 			}
 		}

@@ -104,7 +104,7 @@ func Progress(alpha float64) {
 
 	if printDuration > maxJsonPrintDuration {
 		lastJsonPrintTime = time.Now()
-		send("progress", jsonMessage{
+		send("progress", JsonMessage{
 			"progress":   alpha,
 			"percentage": alpha * 100.0,
 			"eta":        counter.ETA().Seconds(),

@@ -2,7 +2,7 @@ package prereqs
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
 )
 
@@ -30,7 +30,7 @@ func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
 	return result, nil
 }
 
-func RedistHasPlatform(redist *redist.RedistEntry, platform buse.ItchPlatform) bool {
+func RedistHasPlatform(redist *redist.RedistEntry, platform butlerd.ItchPlatform) bool {
 	for _, p := range redist.Platforms {
 		if p == string(platform) {
 			return true

@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-errors/errors"
 
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
@@ -15,7 +15,7 @@ import (
 
 var downloadsDriveCancelID = "Downloads.Drive"
 
-func DownloadsDrive(rc *buse.RequestContext, params *buse.DownloadsDriveParams) (*buse.DownloadsDriveResult, error) {
+func DownloadsDrive(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
 	consumer := rc.Consumer
 	consumer.Infof("Now driving downloads...")
 
@@ -48,11 +48,11 @@ poll:
 		time.Sleep(1 * time.Second)
 	}
 
-	res := &buse.DownloadsDriveResult{}
+	res := &butlerd.DownloadsDriveResult{}
 	return res, nil
 }
 
-func cleanDiscarded(rc *buse.RequestContext) error {
+func cleanDiscarded(rc *butlerd.RequestContext) error {
 	consumer := rc.Consumer
 
 	var discardedDownloads []*models.Download
@@ -92,14 +92,14 @@ func cleanDiscarded(rc *buse.RequestContext) error {
 			return errors.Wrap(err, 0)
 		}
 
-		messages.DownloadsDriveDiscarded.Notify(rc, &buse.DownloadsDriveDiscardedNotification{
+		messages.DownloadsDriveDiscarded.Notify(rc, &butlerd.DownloadsDriveDiscardedNotification{
 			Download: formatDownload(download),
 		})
 	}
 	return nil
 }
 
-func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
+func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	consumer := rc.Consumer
 
 	var pendingDownloads []*models.Download
@@ -185,9 +185,9 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			speedHistory = speedHistory[len(speedHistory)-maxSpeedDatapoints:]
 		}
 
-		return messages.DownloadsDriveProgress.Notify(rc, &buse.DownloadsDriveProgressNotification{
+		return messages.DownloadsDriveProgress.Notify(rc, &butlerd.DownloadsDriveProgressNotification{
 			Download: formatDownload(download),
-			Progress: &buse.DownloadProgress{
+			Progress: &butlerd.DownloadProgress{
 				Stage:    stage,
 				Progress: progress,
 				ETA:      eta,
@@ -199,7 +199,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 
 	defer rc.StopInterceptingNotification(messages.Progress.Method())
 	rc.InterceptNotification(messages.Progress.Method(), func(method string, paramsIn interface{}) error {
-		params := paramsIn.(*buse.ProgressNotification)
+		params := paramsIn.(*butlerd.ProgressNotification)
 		progress = params.Progress
 		eta = params.ETA
 		bps = params.BPS
@@ -208,7 +208,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 
 	defer rc.StopInterceptingNotification(messages.TaskStarted.Method())
 	rc.InterceptNotification(messages.TaskStarted.Method(), func(method string, paramsIn interface{}) error {
-		params := paramsIn.(*buse.TaskStartedNotification)
+		params := paramsIn.(*butlerd.TaskStartedNotification)
 		stage = string(params.Type)
 		return sendProgress()
 	})
@@ -230,11 +230,11 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			}
 		}()
 
-		messages.DownloadsDriveStarted.Notify(rc, &buse.DownloadsDriveStartedNotification{
+		messages.DownloadsDriveStarted.Notify(rc, &butlerd.DownloadsDriveStartedNotification{
 			Download: formatDownload(download),
 		})
 
-		err = operate.InstallPerform(ctx, rc, &buse.InstallPerformParams{
+		err = operate.InstallPerform(ctx, rc, &butlerd.InstallPerformParams{
 			ID:            download.ID,
 			StagingFolder: download.StagingFolder,
 		})
@@ -246,12 +246,12 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 			return nil
 		}
 
-		if be, ok := buse.AsBuseError(err); ok {
-			switch buse.Code(be.AsJsonRpc2().Code) {
-			case buse.CodeOperationCancelled:
+		if be, ok := butlerd.AsButlerdError(err); ok {
+			switch butlerd.Code(be.AsJsonRpc2().Code) {
+			case butlerd.CodeOperationCancelled:
 				// the whole drive was probably cancelled?
 				return nil
-			case buse.CodeOperationAborted:
+			case butlerd.CodeOperationAborted:
 				consumer.Warnf("Download aborted, cleaning it out.")
 				err := rc.DB().Delete(download).Error
 				if err != nil {
@@ -272,7 +272,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 		download.FinishedAt = &finishedAt
 		download.Save(rc.DB())
 
-		messages.DownloadsDriveErrored.Notify(rc, &buse.DownloadsDriveErroredNotification{
+		messages.DownloadsDriveErrored.Notify(rc, &butlerd.DownloadsDriveErroredNotification{
 			Download: formatDownload(download),
 			Error:    errString,
 		})
@@ -285,7 +285,7 @@ func performOne(parentCtx context.Context, rc *buse.RequestContext) error {
 	download.FinishedAt = &finishedAt
 	download.Save(rc.DB())
 
-	messages.DownloadsDriveFinished.Notify(rc, &buse.DownloadsDriveFinishedNotification{
+	messages.DownloadsDriveFinished.Notify(rc, &butlerd.DownloadsDriveFinishedNotification{
 		Download: formatDownload(download),
 	})
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -12,17 +12,17 @@ import (
 type Library interface {
 	GetURL(name string, fileType string) (string, error)
 	GetUpload(name string) *itchio.Upload
-	GetCredentials() *buse.GameCredentials
+	GetCredentials() *butlerd.GameCredentials
 }
 
 type library struct {
-	credentials *buse.GameCredentials
+	credentials *butlerd.GameCredentials
 	uploads     []*itchio.Upload
 }
 
 var _ Library = (*library)(nil)
 
-func NewLibrary(credentials *buse.GameCredentials) (Library, error) {
+func NewLibrary(credentials *butlerd.GameCredentials) (Library, error) {
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {
 		return nil, errors.Wrap(err, 0)
@@ -68,6 +68,6 @@ func (l *library) GetUpload(name string) *itchio.Upload {
 	return nil
 }
 
-func (l *library) GetCredentials() *buse.GameCredentials {
+func (l *library) GetCredentials() *butlerd.GameCredentials {
 	return l.credentials
 }

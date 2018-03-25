@@ -1,14 +1,14 @@
 package operate
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
 )
 
 type InstallParams struct {
 	StagingFolder string `json:"stagingFolder"`
 
-	Reason buse.DownloadReason `json:"reason"`
+	Reason butlerd.DownloadReason `json:"reason"`
 
 	CaveID            string `json:"caveId"`
 	InstallFolderName string `json:"installFolderName"`
@@ -24,7 +24,7 @@ type InstallParams struct {
 
 	IgnoreInstallers bool `json:"ignoreInstallers,omitempty"`
 
-	Credentials *buse.GameCredentials `json:"credentials"`
+	Credentials *butlerd.GameCredentials `json:"credentials"`
 }
 
 type MetaSubcontext struct {

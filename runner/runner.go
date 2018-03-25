@@ -6,12 +6,12 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 )
 
 type RunnerParams struct {
-	RequestContext *buse.RequestContext
+	RequestContext *butlerd.RequestContext
 	Ctx            context.Context
 
 	Sandbox bool
@@ -26,7 +26,7 @@ type RunnerParams struct {
 	Stderr io.Writer
 
 	PrereqsDir    string
-	Credentials   *buse.GameCredentials
+	Credentials   *butlerd.GameCredentials
 	InstallFolder string
 	Runtime       *manager.Runtime
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 )
@@ -36,7 +36,7 @@ func sourceURL(consumer *state.Consumer, istate *InstallSubcontextState, params 
 }
 
 type ItchfsURLParams struct {
-	Credentials *buse.GameCredentials
+	Credentials *butlerd.GameCredentials
 	UploadID    int64
 	BuildID     int64
 	FileType    string

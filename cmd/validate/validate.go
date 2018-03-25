@@ -16,7 +16,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/endpoints/launch/manifest"
@@ -35,7 +35,7 @@ var args = struct {
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("validate", "Validate a build folder, including its maniest if any")
 	args.dir = cmd.Arg("dir", "Path of build folder to validate").Required().String()
-	args.platform = cmd.Flag("platform", "Platform to validate for").Enum(string(buse.ItchPlatformLinux), string(buse.ItchPlatformOSX), string(buse.ItchPlatformWindows))
+	args.platform = cmd.Flag("platform", "Platform to validate for").Enum(string(butlerd.ItchPlatformLinux), string(butlerd.ItchPlatformOSX), string(butlerd.ItchPlatformWindows))
 	args.arch = cmd.Flag("arch", "Architecture to validate for").Enum(string(configurator.Arch386), string(configurator.ArchAmd64))
 	ctx.Register(cmd, doValidate)
 }
@@ -84,7 +84,7 @@ func Validate(consumer *state.Consumer) error {
 
 	runtime := manager.CurrentRuntime()
 	if *args.platform != "" {
-		runtime.Platform = buse.ItchPlatform(*args.platform)
+		runtime.Platform = butlerd.ItchPlatform(*args.platform)
 	}
 	if *args.arch != "" {
 		runtime.Is64 = (*args.arch == string(configurator.ArchAmd64))
@@ -158,7 +158,7 @@ func Validate(consumer *state.Consumer) error {
 	}
 	consumer.Debugf("Intermediate:\n%s", string(jsonIntermediate))
 
-	appManifest := &buse.Manifest{}
+	appManifest := &butlerd.Manifest{}
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:      appManifest,
 		ErrorUnused: true,
@@ -211,11 +211,11 @@ func Validate(consumer *state.Consumer) error {
 			consumer.Infof("  → Action '%s' (%s)", action.Name, action.Path)
 			if action.Platform != "" {
 				switch action.Platform {
-				case buse.ItchPlatformLinux:
+				case butlerd.ItchPlatformLinux:
 					consumer.Infof("    Only for Linux")
-				case buse.ItchPlatformOSX:
+				case butlerd.ItchPlatformOSX:
 					consumer.Infof("    Only for macOS")
-				case buse.ItchPlatformWindows:
+				case butlerd.ItchPlatformWindows:
 					consumer.Infof("    Only for Windows")
 				default:
 					showError("Unknown platform specified: (%s)", action.Platform)

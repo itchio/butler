@@ -11,8 +11,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/mockharness"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/mockharness"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	"github.com/itchio/butler/endpoints/update"
 	itchio "github.com/itchio/go-itchio"
@@ -23,11 +23,11 @@ import (
 )
 
 func TestCheckUpdateMissingFields(t *testing.T) {
-	wtest.Must(t, mockharness.With(func(harness buse.Harness) error {
-		router := buse.NewRouter(nil, nil)
+	wtest.Must(t, mockharness.With(func(harness butlerd.Harness) error {
+		router := butlerd.NewRouter(nil, nil)
 		update.Register(router)
 
-		item := &buse.CheckUpdateItem{
+		item := &butlerd.CheckUpdateItem{
 			InstalledAt: time.Date(2017, 04, 04, 9, 32, 00, 0, time.UTC),
 		}
 		consumer := &state.Consumer{
@@ -47,8 +47,8 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		}
 		wtest.Must(t, db.Save(testCredentials).Error)
 
-		checkUpdate := func(params *buse.CheckUpdateParams) (*buse.CheckUpdateResult, error) {
-			rc := &buse.RequestContext{
+		checkUpdate := func(params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
+			rc := &butlerd.RequestContext{
 				Ctx:            ctx,
 				Conn:           conn,
 				Consumer:       consumer,
@@ -61,8 +61,8 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 			return update.CheckUpdate(rc, params)
 		}
 
-		params := &buse.CheckUpdateParams{
-			Items: []*buse.CheckUpdateItem{
+		params := &butlerd.CheckUpdateParams{
+			Items: []*butlerd.CheckUpdateItem{
 				item,
 			},
 		}

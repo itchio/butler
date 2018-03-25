@@ -7,8 +7,8 @@ import (
 	"regexp"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/downloads"
@@ -18,7 +18,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams) (*buse.InstallQueueResult, error) {
+func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
 	var stagingFolder string
 
 	var cave *models.Cave
@@ -33,7 +33,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 
 	reason := queueParams.Reason
 	if reason == "" {
-		reason = buse.DownloadReasonInstall
+		reason = butlerd.DownloadReasonInstall
 	}
 
 	if queueParams.NoCave {
@@ -160,7 +160,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		if len(uploadsFilterResult.Uploads) == 1 {
 			params.Upload = uploadsFilterResult.Uploads[0]
 		} else {
-			r, err := messages.PickUpload.Call(rc, &buse.PickUploadParams{
+			r, err := messages.PickUpload.Call(rc, &butlerd.PickUploadParams{
 				Uploads: uploadsFilterResult.Uploads,
 			})
 			if err != nil {
@@ -168,7 +168,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 			}
 
 			if r.Index < 0 {
-				return nil, &buse.ErrAborted{}
+				return nil, &butlerd.ErrAborted{}
 			}
 
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
@@ -215,7 +215,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	}
 
 	if operate.UploadIsProbablyExternal(params.Upload) {
-		res, err := messages.ExternalUploadsAreBad.Call(rc, &buse.ExternalUploadsAreBadParams{
+		res, err := messages.ExternalUploadsAreBad.Call(rc, &butlerd.ExternalUploadsAreBadParams{
 			Upload: params.Upload,
 		})
 		if err != nil {
@@ -225,13 +225,13 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 		if res.Whatever {
 			// let's keep going then.
 		} else {
-			return nil, &buse.ErrAborted{}
+			return nil, &butlerd.ErrAborted{}
 		}
 	}
 
 	oc.Save(meta)
 
-	res := &buse.InstallQueueResult{
+	res := &butlerd.InstallQueueResult{
 		ID:            id,
 		CaveID:        params.CaveID,
 		Game:          params.Game,
@@ -243,7 +243,7 @@ func InstallQueue(rc *buse.RequestContext, queueParams *buse.InstallQueueParams)
 	}
 
 	if queueParams.QueueDownload {
-		_, err := downloads.DownloadsQueue(rc, &buse.DownloadsQueueParams{
+		_, err := downloads.DownloadsQueue(rc, &butlerd.DownloadsQueueParams{
 			Item: res,
 		})
 		if err != nil {

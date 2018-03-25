@@ -1,7 +1,7 @@
 package prereqs
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
 )
@@ -54,7 +54,7 @@ type PrereqPlan struct {
 type PrereqState struct {
 	Type   string            `json:"type"`
 	Name   string            `json:"name"`
-	Status buse.PrereqStatus `json:"status"`
+	Status butlerd.PrereqStatus `json:"status"`
 }
 
 // PrereqLogEntry sends an information to the caller on the progress of the task

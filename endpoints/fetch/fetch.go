@@ -1,11 +1,11 @@
 package fetch
 
 import (
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
-func Register(router *buse.Router) {
+func Register(router *butlerd.Router) {
 	messages.FetchGame.Register(router, FetchGame)
 	messages.FetchCollection.Register(router, FetchCollection)
 	messages.FetchProfileCollections.Register(router, FetchProfileCollections)

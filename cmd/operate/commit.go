@@ -2,8 +2,8 @@ package operate
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
@@ -26,9 +26,9 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 
 	res := params.InstallResult
 
-	err := messages.TaskSucceeded.Notify(oc.rc, &buse.TaskSucceededNotification{
-		Type: buse.TaskTypeInstall,
-		InstallResult: &buse.InstallResult{
+	err := messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
+		Type: butlerd.TaskTypeInstall,
+		InstallResult: &butlerd.InstallResult{
 			Game:   params.Game,
 			Upload: params.Upload,
 			Build:  params.Build,

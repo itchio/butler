@@ -1,27 +1,27 @@
 package downloads
 
 import (
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsList(rc *buse.RequestContext, params *buse.DownloadsListParams) (*buse.DownloadsListResult, error) {
+func DownloadsList(rc *butlerd.RequestContext, params *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error) {
 	downloads := models.AllDownloads(rc.DB())
 	models.PreloadDownloads(rc.DB(), downloads)
 
-	var fdls []*buse.Download
+	var fdls []*butlerd.Download
 	for _, d := range downloads {
 		fdls = append(fdls, formatDownload(d))
 	}
 
-	res := &buse.DownloadsListResult{
+	res := &butlerd.DownloadsListResult{
 		Downloads: fdls,
 	}
 	return res, nil
 }
 
-func formatDownload(download *models.Download) *buse.Download {
-	return &buse.Download{
+func formatDownload(download *models.Download) *butlerd.Download {
+	return &butlerd.Download{
 		ID:            download.ID,
 		Error:         download.Error,
 		Position:      download.Position,
@@ -32,6 +32,6 @@ func formatDownload(download *models.Download) *buse.Download {
 		StartedAt:     download.StartedAt,
 		FinishedAt:    download.FinishedAt,
 		StagingFolder: download.StagingFolder,
-		Reason:        buse.DownloadReason(download.Reason),
+		Reason:        butlerd.DownloadReason(download.Reason),
 	}
 }

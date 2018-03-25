@@ -6,13 +6,13 @@ import (
 
 	"github.com/go-errors/errors"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) (*buse.DownloadsQueueResult, error) {
+func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
 	consumer := rc.Consumer
 
 	item := params.Item
@@ -82,6 +82,6 @@ func DownloadsQueue(rc *buse.RequestContext, params *buse.DownloadsQueueParams) 
 		rc.DB().Delete(&models.Download{}, "cave_id = ? and id != ?", item.CaveID, d.ID)
 	}
 
-	res := &buse.DownloadsQueueResult{}
+	res := &butlerd.DownloadsQueueResult{}
 	return res, nil
 }

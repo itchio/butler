@@ -12,10 +12,10 @@ import (
 
 	"github.com/itchio/butler/configurator"
 
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd/messages"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/runner"
@@ -48,7 +48,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	err = handlePrereqs(params)
 	if err != nil {
-		if errors.Is(err, &buse.ErrAborted{}) {
+		if errors.Is(err, &butlerd.ErrAborted{}) {
 			return err
 		}
 
@@ -59,7 +59,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 			errorStack = se.ErrorStack()
 		}
 
-		r, err := messages.PrereqsFailed.Call(params.RequestContext, &buse.PrereqsFailedParams{
+		r, err := messages.PrereqsFailed.Call(params.RequestContext, &butlerd.PrereqsFailedParams{
 			Error:      err.Error(),
 			ErrorStack: errorStack,
 		})
@@ -73,7 +73,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		} else {
 			// abort
 			consumer.Warnf("Giving up after prereqs failure because user asked us to")
-			return &buse.ErrAborted{}
+			return &butlerd.ErrAborted{}
 		}
 	}
 
@@ -155,9 +155,9 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	err = func() error {
 		startTime := time.Now()
 
-		messages.LaunchRunning.Notify(params.RequestContext, &buse.LaunchRunningNotification{})
+		messages.LaunchRunning.Notify(params.RequestContext, &butlerd.LaunchRunningNotification{})
 		exitCode, err := interpretRunError(run.Run())
-		messages.LaunchExited.Notify(params.RequestContext, &buse.LaunchExitedNotification{})
+		messages.LaunchExited.Notify(params.RequestContext, &butlerd.LaunchExitedNotification{})
 		if err != nil {
 			return errors.Wrap(err, 0)
 		}

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
 
 	"github.com/itchio/butler/manager"
@@ -59,9 +59,9 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 
 		var err error
 		switch runtime.Platform {
-		case buse.ItchPlatformWindows:
+		case butlerd.ItchPlatformWindows:
 			err = installWindowsPrereq(consumer, task)
-		case buse.ItchPlatformLinux:
+		case butlerd.ItchPlatformLinux:
 			err = installLinuxPrereq(consumer, task)
 		default:
 			return fmt.Errorf("Don't know how to install prereqs for platform %s", runtime.Platform)

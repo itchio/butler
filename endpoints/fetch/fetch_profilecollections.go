@@ -2,14 +2,14 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
 )
 
-func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileCollectionsParams) (*buse.FetchProfileCollectionsResult, error) {
+func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 
 	c := HadesContext(rc)
@@ -67,7 +67,7 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		}
 
 		if len(profileCollections) > 0 {
-			yn := &buse.FetchProfileCollectionsYieldNotification{}
+			yn := &butlerd.FetchProfileCollectionsYieldNotification{}
 			yn.Offset = 0
 			yn.Total = int64(len(profileCollections))
 
@@ -125,6 +125,6 @@ func FetchProfileCollections(rc *buse.RequestContext, params *buse.FetchProfileC
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchProfileCollectionsResult{}
+	res := &butlerd.FetchProfileCollectionsResult{}
 	return res, nil
 }

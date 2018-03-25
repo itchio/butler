@@ -6,10 +6,10 @@ import (
 	"syscall"
 
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 )
 
-func StatFS(path string) (*buse.SystemStatFSResult, error) {
+func StatFS(path string) (*butlerd.SystemStatFSResult, error) {
 	var stats syscall.Statfs_t
 	err := syscall.Statfs(path, &stats)
 	if err != nil {
@@ -21,7 +21,7 @@ func StatFS(path string) (*buse.SystemStatFSResult, error) {
 	var freeSize int64 = int64(stats.Bavail) * int64(stats.Bsize)
 	var totalSize int64 = int64(stats.Blocks) * int64(stats.Bsize)
 
-	res := &buse.SystemStatFSResult{
+	res := &butlerd.SystemStatFSResult{
 		FreeSize:  freeSize,
 		TotalSize: totalSize,
 	}

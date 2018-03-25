@@ -2,13 +2,13 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
-func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesParams) (*buse.FetchProfileGamesResult, error) {
+func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
 	consumer := rc.Consumer
 
 	profile, client := rc.ProfileClient(params.ProfileID)
@@ -25,14 +25,14 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		})
 		profileGames := profile.ProfileGames
 
-		yn := &buse.FetchProfileGamesYieldNotification{
+		yn := &butlerd.FetchProfileGamesYieldNotification{
 			Offset: 0,
 			Total:  int64(len(profileGames)),
 			Items:  nil,
 		}
 
 		for _, pg := range profileGames {
-			yn.Items = append(yn.Items, &buse.ProfileGame{
+			yn.Items = append(yn.Items, &butlerd.ProfileGame{
 				Game:           pg.Game,
 				Position:       pg.Position,
 				ViewsCount:     pg.ViewsCount,
@@ -87,6 +87,6 @@ func FetchProfileGames(rc *buse.RequestContext, params *buse.FetchProfileGamesPa
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchProfileGamesResult{}
+	res := &butlerd.FetchProfileGamesResult{}
 	return res, nil
 }

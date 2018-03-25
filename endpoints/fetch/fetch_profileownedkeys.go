@@ -2,12 +2,12 @@ package fetch
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
-	"github.com/itchio/butler/buse/messages"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 )
 
-func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwnedKeysParams) (*buse.FetchProfileOwnedKeysResult, error) {
+func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 
 	c := HadesContext(rc)
@@ -26,7 +26,7 @@ func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwn
 
 		keys := profile.OwnedKeys
 
-		yn := &buse.FetchProfileOwnedKeysYieldNotification{
+		yn := &butlerd.FetchProfileOwnedKeysYieldNotification{
 			Offset: 0,
 			Total:  int64(len(keys)),
 			Items:  keys,
@@ -63,6 +63,6 @@ func FetchProfileOwnedKeys(rc *buse.RequestContext, params *buse.FetchProfileOwn
 		return nil, errors.Wrap(err, 0)
 	}
 
-	res := &buse.FetchProfileOwnedKeysResult{}
+	res := &butlerd.FetchProfileOwnedKeysResult{}
 	return res, nil
 }

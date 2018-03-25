@@ -2,7 +2,7 @@ package mockharness
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/itchio/butler/buse"
+	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 )
@@ -10,18 +10,18 @@ import (
 // mockHarness
 
 type mockHarness struct {
-	ph buse.Harness
+	ph butlerd.Harness
 }
 
-var _ buse.Harness = (*mockHarness)(nil)
+var _ butlerd.Harness = (*mockHarness)(nil)
 
-type WithHarnessFunc func(h buse.Harness) error
+type WithHarnessFunc func(h butlerd.Harness) error
 
 func With(cb WithHarnessFunc) error {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	th := &mockHarness{buse.NewProductionHarness()}
+	th := &mockHarness{butlerd.NewProductionHarness()}
 	err := cb(th)
 	if err != nil {
 		return errors.Wrap(err, 0)
@@ -30,6 +30,6 @@ func With(cb WithHarnessFunc) error {
 	return nil
 }
 
-func (mh *mockHarness) ClientFromCredentials(credentials *buse.GameCredentials) (*itchio.Client, error) {
+func (mh *mockHarness) ClientFromCredentials(credentials *butlerd.GameCredentials) (*itchio.Client, error) {
 	return mh.ph.ClientFromCredentials(credentials)
 }

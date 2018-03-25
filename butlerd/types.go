@@ -1,4 +1,4 @@
-package buse
+package butlerd
 
 import (
 	"time"
@@ -1475,7 +1475,7 @@ const (
 	ItchPlatformUnknown ItchPlatform = "unknown"
 )
 
-// Buse JSON-RPC 2.0 error codes
+// butlerd JSON-RPC 2.0 error codes
 type Code int64
 
 // Note: codes -32000 to -32099 are reserved for the JSON-RPC
