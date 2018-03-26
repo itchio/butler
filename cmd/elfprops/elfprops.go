@@ -1,10 +1,11 @@
 package elfprops
 
 import (
-	"debug/elf"
-
+	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/elefant"
+	"github.com/itchio/wharf/eos"
 )
 
 var args = struct {
@@ -22,23 +23,16 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(path string) error {
-	f, err := elf.Open(path)
+	f, err := eos.Open(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err, 0)
 	}
 	defer f.Close()
 
-	props := &mansion.ElfPropsResult{}
-
-	switch f.Machine {
-	case elf.EM_386:
-		props.Arch = "386"
-	case elf.EM_X86_64:
-		props.Arch = "amd64"
+	props, err := elefant.Probe(f, nil)
+	if err != nil {
+		return errors.Wrap(err, 0)
 	}
-
-	// ignoring error on purpose
-	props.Libraries, _ = f.ImportedLibraries()
 
 	comm.Result(props)
 

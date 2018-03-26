@@ -246,6 +246,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/elefant",
+			"repository": "https://github.com/itchio/elefant",
+			"vcs": "git",
+			"revision": "93cb9689f6bcacf6e9597386f4489cacb03c876f",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/go-brotli",
 			"repository": "https://github.com/itchio/go-brotli",
 			"vcs": "git",
