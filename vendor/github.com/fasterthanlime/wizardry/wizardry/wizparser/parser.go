@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // LogFunc prints a debug message
@@ -25,28 +25,28 @@ type ParseContext struct {
 func (ctx *ParseContext) ParseAll(magdir string, book Spellbook) error {
 	files, err := ioutil.ReadDir(magdir)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	for _, magicFile := range files {
 		err = func() error {
 			f, err := os.Open(filepath.Join(magdir, magicFile.Name()))
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			defer f.Close()
 
 			err = ctx.Parse(f, book)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			return nil
 		}()
 
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

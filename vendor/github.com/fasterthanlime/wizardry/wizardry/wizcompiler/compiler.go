@@ -10,7 +10,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/fasterthanlime/wizardry/wizardry/wizparser"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type indentCallback func()
@@ -34,7 +34,7 @@ func Compile(book wizparser.Spellbook, output string, chatty bool, emitComments 
 
 	f, err := os.Create(output)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	fmt.Println("Generating into:", output)
