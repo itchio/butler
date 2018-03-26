@@ -42,6 +42,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/basgys/goxml2json",
+			"repository": "https://github.com/basgys/goxml2json",
+			"vcs": "git",
+			"revision": "652b277a9313806ef04f7c0cb0205dd455c4f344",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/dchest/safefile",
 			"repository": "https://github.com/dchest/safefile",
 			"vcs": "git",
@@ -249,7 +257,7 @@
 			"importpath": "github.com/itchio/elefant",
 			"repository": "https://github.com/itchio/elefant",
 			"vcs": "git",
-			"revision": "93cb9689f6bcacf6e9597386f4489cacb03c876f",
+			"revision": "937ca912a5e8f92177bd2d86b72a8f03e02d38e5",
 			"branch": "master",
 			"notests": true
 		},
@@ -290,6 +298,14 @@
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
 			"revision": "0f05402911fc72ce08c77990f18aa2c20023f036",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/pelican",
+			"repository": "https://github.com/itchio/pelican",
+			"vcs": "git",
+			"revision": "0cbfae197a5f9aec5a3bddb6e957890fac296882",
 			"branch": "master",
 			"notests": true
 		},

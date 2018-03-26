@@ -15,7 +15,7 @@ const (
 )
 
 type ElfInfo struct {
-	Arch Arch
+	Arch Arch `json:"arch"`
 }
 
 type ProbeParams struct {
