@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"os/signal"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/macutil"
+	"github.com/pkg/errors"
 )
 
 type appRunner struct {
@@ -50,7 +50,7 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 
 	binaryPath, err := macutil.GetExecutablePath(bundlePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Actual binary is (%s)", binaryPath)
@@ -94,7 +94,7 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 	err = cmd.Run()
 	close(processDone)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

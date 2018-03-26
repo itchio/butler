@@ -9,7 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type ChangedFields map[string]interface{}
@@ -62,7 +62,7 @@ func DiffRecord(x, y interface{}, scope *gorm.Scope) (ChangedFields, error) {
 
 		iseq, err := eq(v1.Field(i), v2.Field(i))
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "while comparing fields")
 		}
 
 		if !iseq {

@@ -3,10 +3,10 @@ package prereqs
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 type Library interface {
@@ -25,14 +25,14 @@ var _ Library = (*library)(nil)
 func NewLibrary(credentials *butlerd.GameCredentials) (Library, error) {
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: RedistsGame.ID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	l := &library{

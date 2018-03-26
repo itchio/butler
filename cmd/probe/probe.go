@@ -9,7 +9,6 @@ import (
 	"github.com/itchio/savior/countingsource"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
@@ -18,6 +17,7 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -41,13 +41,13 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, patch string) error {
 	patchStats, err := doPrimaryAnalysis(ctx, patch)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if *args.deep {
 		err = doDeepAnalysis(ctx, patch, patchStats)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -57,7 +57,7 @@ func Do(ctx *mansion.Context, patch string) error {
 func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) {
 	patchReader, err := eos.Open(patch)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	defer patchReader.Close()
@@ -72,36 +72,36 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	_, err = cs.Resume(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	rctx := wire.NewReadContext(cs)
 	err = rctx.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	header := &pwr.PatchHeader{}
 	err = rctx.ReadMessage(header)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	rctx, err = pwr.DecompressWire(rctx, header.Compression)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	target := &tlc.Container{}
 	err = rctx.ReadMessage(target)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	source := &tlc.Container{}
 	err = rctx.ReadMessage(source)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	comm.Logf("  before: %s in %s", humanize.IBytes(uint64(target.Size)), target.Stats())
@@ -123,7 +123,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 		sh.Reset()
 		err = rctx.ReadMessage(sh)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		stat := patchStat{
@@ -148,7 +148,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 					err = rctx.ReadMessage(rop)
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						return nil, errors.WithStack(err)
 					}
 
 					switch rop.Type {
@@ -181,7 +181,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 				bh := &pwr.BsdiffHeader{}
 				err = rctx.ReadMessage(bh)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.WithStack(err)
 				}
 
 				for readingOps {
@@ -189,7 +189,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 					err = rctx.ReadMessage(bc)
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						return nil, errors.WithStack(err)
 					}
 
 					for _, b := range bc.Add {
@@ -205,7 +205,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 				err = rctx.ReadMessage(rop)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.WithStack(err)
 				}
 
 				if rop.Type != pwr.SyncOp_HEY_YOU_DID_IT {
@@ -312,7 +312,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 
 	patchReader, err := eos.Open(patch)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	defer patchReader.Close()
@@ -328,30 +328,30 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 	rctx := wire.NewReadContext(cs)
 	err = rctx.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	header := &pwr.PatchHeader{}
 	err = rctx.ReadMessage(header)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	rctx, err = pwr.DecompressWire(rctx, header.Compression)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	target := &tlc.Container{}
 	err = rctx.ReadMessage(target)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	source := &tlc.Container{}
 	err = rctx.ReadMessage(source)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ddc := &deepDiveContext{
@@ -366,7 +366,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 		sh.Reset()
 		err = rctx.ReadMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if sh.FileIndex != int64(fileIndex) {
@@ -379,7 +379,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 		} else {
 			err = ddc.skipSeries(sh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -426,7 +426,7 @@ func (ddc *deepDiveContext) analyzeRsync(sh *pwr.SyncHeader) error {
 
 		err := rctx.ReadMessage(rop)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		switch rop.Type {
@@ -479,7 +479,7 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	bh := &pwr.BsdiffHeader{}
 	err := rctx.ReadMessage(bh)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	tf := ddc.target.Files[bh.TargetIndex]
@@ -515,7 +515,7 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 
 		err = rctx.ReadMessage(bc)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if bc.Eof {
@@ -564,7 +564,7 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 
 	err = rctx.ReadMessage(rop)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if rop.Type != pwr.SyncOp_HEY_YOU_DID_IT {
@@ -596,7 +596,7 @@ func (ddc *deepDiveContext) skipSeries(sh *pwr.SyncHeader) error {
 
 				err := rctx.ReadMessage(rop)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if rop.Type == pwr.SyncOp_HEY_YOU_DID_IT {
@@ -610,7 +610,7 @@ func (ddc *deepDiveContext) skipSeries(sh *pwr.SyncHeader) error {
 			bh := &pwr.BsdiffHeader{}
 			err := rctx.ReadMessage(bh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			readingOps := true
@@ -619,7 +619,7 @@ func (ddc *deepDiveContext) skipSeries(sh *pwr.SyncHeader) error {
 
 				err := rctx.ReadMessage(bc)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if bc.Eof {
@@ -630,7 +630,7 @@ func (ddc *deepDiveContext) skipSeries(sh *pwr.SyncHeader) error {
 			rop.Reset()
 			err = rctx.ReadMessage(rop)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if rop.Type != pwr.SyncOp_HEY_YOU_DID_IT {

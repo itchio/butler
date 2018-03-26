@@ -11,13 +11,13 @@ import (
 
 	"github.com/fasterthanlime/spellbook"
 	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
-	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 func spellHas(spell []string, token string) bool {
@@ -210,7 +210,7 @@ func sniffFatMach(r io.ReadSeeker, size int64) (*Candidate, error) {
 func sniffPoolEntry(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidate, error) {
 	r, err := pool.GetReadSeeker(fileIndex)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "while getting read seeker for pool entry")
 	}
 
 	size := pool.GetSize(fileIndex)
@@ -244,7 +244,7 @@ func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 	if strings.HasSuffix(lowerPath, ".exe") {
 		subRes, subErr := sniffPE(r, size)
 		if subErr != nil {
-			return nil, errors.Wrap(subErr, 0)
+			return nil, errors.Wrap(subErr, "sniffing PE file")
 		}
 		if subRes != nil {
 			// it was an exe!
@@ -335,7 +335,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 	if pool == nil {
 		pool, err = pools.New(container, root)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating pool to configure folder")
 		}
 	}
 
@@ -377,7 +377,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 
 		res, err := sniffPoolEntry(pool, int64(fileIndex), f)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "sniffing pool entry")
 		}
 
 		if res != nil {

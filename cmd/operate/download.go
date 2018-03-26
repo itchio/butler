@@ -9,7 +9,6 @@ import (
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/savior"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/cmd/operate/downloadextractor"
@@ -17,6 +16,7 @@ import (
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx context.Context, file eos.File, destPath string) error {
@@ -43,7 +43,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 		ex.SetSaveConsumer(sc)
 		_, err := ex.Resume(checkpoint, sink)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		return nil
@@ -52,7 +52,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 	for retryCtx.ShouldTry() {
 		err := tryDownload()
 		if err != nil {
-			if errors.Is(err, savior.ErrStop) {
+			if errors.Cause(err) == savior.ErrStop {
 				return &butlerd.ErrCancelled{}
 			}
 
@@ -82,13 +82,17 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 	return errors.New("download: too many errors, giving up")
 }
 
+type causer interface {
+	Cause() error
+}
+
 func asServerError(err error) (*httpfile.ServerError, bool) {
 	if err == nil {
 		return nil, false
 	}
 
-	if se, ok := err.(*errors.Error); ok {
-		return asServerError(se.Err)
+	if se, ok := err.(causer); ok {
+		return asServerError(se.Cause())
 	}
 
 	if se, ok := err.(*httpfile.ServerError); ok {

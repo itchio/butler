@@ -5,12 +5,12 @@ import (
 
 	"github.com/itchio/wharf/tlc"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/pkg/errors"
 )
 
 func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
@@ -20,7 +20,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	// and the caller is in charge of downloading it and calling us again.
 	f, err := installer.AsLocalFile(params.File)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	angelParams := &bfs.SaveAngelsParams{
@@ -35,7 +35,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 	infoRes, err := msi.Info(consumer, f.Name())
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	msiProductCode := infoRes.ProductCode
@@ -55,7 +55,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			Args:     args,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if res.ExitCode != 0 {
@@ -75,7 +75,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			Filter: bfs.DotItchFilter(),
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if len(container.Files) == 0 {
@@ -98,7 +98,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &installer.InstallResult{

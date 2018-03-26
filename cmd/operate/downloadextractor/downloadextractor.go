@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/savior"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 // a dummy extractor that only copies from the source
@@ -69,7 +69,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 	if checkpoint == nil {
 		stats, err := de.file.Stat()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "stat'ing file to download")
 		}
 		entry := &savior.Entry{
 			CanonicalPath:    de.destName,
@@ -81,7 +81,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 		consumer.Infof("⇓ Pre-allocating %s on disk", humanize.IBytes(uint64(entry.UncompressedSize)))
 		err = sink.Preallocate(entry)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "preallocating")
 		}
 
 		checkpoint = &savior.ExtractorCheckpoint{
@@ -103,7 +103,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 
 	dest, err := sink.GetWriter(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "getting writer")
 	}
 	defer dest.Close()
 
@@ -115,14 +115,14 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 
 			err = dest.Sync()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "syncing file")
 			}
 
 			checkpoint.Progress = src.Progress()
 
 			action, err := de.sc.Save(checkpoint)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "saving checkpoint")
 			}
 
 			if action == savior.AfterSaveStop {
@@ -145,7 +145,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 		},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "downloading")
 	}
 
 	if stopError != nil {
@@ -176,7 +176,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 		// the caller may (should tbh) retry in case of integrity failures
 		err = dl.CheckIntegrity(consumer, header, entry.UncompressedSize, targetPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "checking size, hashes etc.")
 		}
 
 		return nil
@@ -184,7 +184,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 
 	err = integrityCheck()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "performing integrity checks")
 	}
 
 	res := &savior.ExtractorResult{

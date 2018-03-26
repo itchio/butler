@@ -5,10 +5,10 @@ import (
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 // A WoundsConsumer takes file corruption information as input,
@@ -118,33 +118,33 @@ func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 			var err error
 			fw, err = os.Create(ww.WoundsPath)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			wc = wire.NewWriteContext(fw)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			err = wc.WriteMagic(WoundsMagic)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			err = wc.WriteMessage(&WoundsHeader{})
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			err = wc.WriteMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 		}
 
 		err := wc.WriteMessage(wound)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		return nil

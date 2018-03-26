@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -31,14 +31,14 @@ func Do(planPath string) error {
 
 	contents, err := ioutil.ReadFile(planPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	plan := CleanPlan{}
 
 	err = json.Unmarshal(contents, &plan)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Logf("Cleaning %d entries from %s", len(plan.Entries), plan.BasePath)
@@ -52,7 +52,7 @@ func Do(planPath string) error {
 				// good, it's already gone!
 				continue
 			} else {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -64,7 +64,7 @@ func Do(planPath string) error {
 			// files on the other hand, we really do want to remove
 			err := os.Remove(fullPath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}

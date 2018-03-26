@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 type JoinRec struct {
@@ -187,7 +187,7 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 
 		child, err := c.WalkType(riMap, sf.Name, fieldTyp, visited, nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "walking type of child")
 		}
 
 		if child == nil {
@@ -201,12 +201,12 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 			jth := sf.Relationship.JoinTableHandler
 			djth, ok := jth.(*gorm.JoinTableHandler)
 			if !ok {
-				return errors.Wrap(fmt.Errorf("Expected sf.Relationship.JoinTableHandler to be the default JoinTableHandler type, but it's %v", reflect.TypeOf(jth)), 0)
+				return errors.Errorf("Expected sf.Relationship.JoinTableHandler to be the default JoinTableHandler type, but it's %v", reflect.TypeOf(jth))
 			}
 
 			mtm, err := c.NewManyToMany(djth.TableName, jth.SourceForeignKeys(), jth.DestinationForeignKeys())
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "creating ManyToMany relation")
 			}
 			child.ManyToMany = mtm
 		}
@@ -229,7 +229,7 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 			}
 			err := visitField(sf, true)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.Wrapf(err, "visiting field %s", fieldName)
 			}
 		}
 	} else {
@@ -237,7 +237,7 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 		for _, sf := range ms.StructFields {
 			err := visitField(sf, false)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.Wrapf(err, "visiting field %s", sf.Name)
 			}
 		}
 	}

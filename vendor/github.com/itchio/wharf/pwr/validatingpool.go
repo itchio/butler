@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr/drip"
 	"github.com/itchio/wharf/pwr/onclose"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 type OnCloseFunc func(fileIndex int64)
@@ -83,14 +83,14 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	if vp.hashGroups == nil {
 		err := vp.makeHashGroups()
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		vp.sctx = wsync.NewContext(int(BlockSize))
 	}
 
 	w, err := vp.Pool.GetWriter(fileIndex)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	hashGroup := vp.hashGroups[fileIndex]
@@ -107,7 +107,7 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 			if wounds == nil {
 				err := fmt.Errorf("%s: too large (%d blocks, tried to look up hash %d)",
 					file.Path, len(hashGroup), blockIndex)
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			wounds <- &Wound{
@@ -122,7 +122,7 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 			if bh.WeakHash != weakHash {
 				if wounds == nil {
 					err := fmt.Errorf("%s: at block %d, expected weak hash %x, got %x", file.Path, blockIndex, bh.WeakHash, weakHash)
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 
 				wounds <- &Wound{
@@ -134,7 +134,7 @@ func (vp *ValidatingPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 			} else if !bytes.Equal(bh.StrongHash, strongHash) {
 				if wounds == nil {
 					err := fmt.Errorf("%s: at block %d, expected strong hash %x, got %x", file.Path, blockIndex, bh.StrongHash, strongHash)
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 
 				wounds <- &Wound{
@@ -209,7 +209,7 @@ func (vp *ValidatingPool) makeHashGroups() error {
 
 	if hashIndex != int64(len(vp.Signature.Hashes)) {
 		err := fmt.Errorf("expected to have %d hashes in signature, had %d", hashIndex, len(vp.Signature.Hashes))
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil

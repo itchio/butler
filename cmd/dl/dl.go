@@ -8,11 +8,11 @@ import (
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -53,7 +53,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 	req.Header.Set("Range", byteRange)
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 
@@ -97,7 +97,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 
 		resp, err = client.Do(req)
 		if err != nil {
-			return 0, errors.Wrap(err, 1)
+			return 0, errors.WithStack(err)
 		}
 		// immediately close new request, we're only interested
 		// in headers.
@@ -121,7 +121,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 		}
 		err = appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {
-			return 0, errors.Wrap(err, 1)
+			return 0, errors.WithStack(err)
 		}
 	} else {
 		comm.Log("Already fully downloaded")
@@ -131,7 +131,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.WithStack(err)
 	}
 
 	return totalBytes, nil
@@ -158,7 +158,7 @@ func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes
 
 	_, err := io.Copy(counter, src)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	comm.EndProgress()

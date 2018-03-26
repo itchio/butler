@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type resumableUpload2 struct {
@@ -203,7 +203,7 @@ aggregate:
 
 				_, err := sendBuf.Write(block.data)
 				if err != nil {
-					ru.err = errors.Wrap(err, 0)
+					ru.err = errors.WithStack(err)
 					return
 				}
 				chunkGroupSize++
@@ -230,7 +230,7 @@ aggregate:
 
 				_, err := sendBuf.Write(block.data)
 				if err != nil {
-					ru.err = errors.Wrap(err, 0)
+					ru.err = errors.WithStack(err)
 					return
 				}
 				chunkGroupSize++
@@ -250,7 +250,7 @@ aggregate:
 		ru.debugf("Uploading %d chunks", chunkGroupSize)
 		err := ru.chunkUploader.put(sendBuf.Bytes(), false)
 		if err != nil {
-			ru.err = errors.Wrap(err, 0)
+			ru.err = errors.WithStack(err)
 			return
 		}
 	}
@@ -259,7 +259,7 @@ aggregate:
 	ru.debugf("Uploading last %d chunks", chunkGroupSize)
 	err := ru.chunkUploader.put(sendBuf.Bytes(), true)
 	if err != nil {
-		ru.err = errors.Wrap(err, 0)
+		ru.err = errors.WithStack(err)
 		return
 	}
 }

@@ -10,7 +10,6 @@ import (
 	goerrors "errors"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -19,6 +18,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 var ErrNoCandidates = goerrors.New("no candidates")
@@ -73,7 +73,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 	receiptIn, err := bfs.ReadReceipt(installFolder)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	receiptSaidOtherwise := false
@@ -106,7 +106,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 	appManifest, err := manifest.Read(installFolder)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	pickManifestAction := func() error {
@@ -131,7 +131,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 				Actions: actions,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if r.Index < 0 {
@@ -149,7 +149,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		// is it a path?
 		res, err := DetermineStrategy(runtime, installFolder, manifestAction)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		strategy = res.Strategy
@@ -159,7 +159,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	}
 	err = pickManifestAction()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	pickFromVerdict := func() error {
@@ -184,7 +184,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 				Actions: fakeActions,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if r.Index < 0 {
@@ -196,7 +196,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		fullPath := filepath.Join(installFolder, candidate.Path)
 		_, err := os.Stat(fullPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		fullTargetPath = fullPath
@@ -211,7 +211,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 			newVerdict, err := manager.Configure(consumer, installFolder, runtime)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 			verdict = newVerdict
 
@@ -220,8 +220,8 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 			err = pickFromVerdict()
 			if err != nil {
-				if !errors.Is(err, ErrNoCandidates) {
-					return nil, errors.Wrap(err, 0)
+				if errors.Cause(err) == ErrNoCandidates {
+					return nil, errors.WithStack(err)
 				}
 			}
 		} else {
@@ -229,9 +229,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			err = pickFromVerdict()
 			if err != nil {
 				redoReason := ""
-				if errors.Is(err, ErrCandidateDisappeared) {
+				if errors.Cause(err) == ErrCandidateDisappeared {
 					redoReason = "Candidate disappeared!"
-				} else if errors.Is(err, ErrNoCandidates) {
+				} else if errors.Cause(err) == ErrNoCandidates {
 					redoReason = "No candidates!"
 				}
 
@@ -240,7 +240,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 					newVerdict, err := manager.Configure(consumer, installFolder, runtime)
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						return nil, errors.WithStack(err)
 					}
 					verdict = newVerdict
 
@@ -249,10 +249,10 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 					err = pickFromVerdict()
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						return nil, errors.WithStack(err)
 					}
 				} else {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.WithStack(err)
 				}
 			}
 		}
@@ -275,7 +275,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	if strategy == LaunchStrategyUnknown {
 		if candidate == nil {
 			err := fmt.Errorf("could not determine launch strategy for %s", fullTargetPath)
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		strategy = flavorToStrategy(candidate.Flavor)
@@ -287,7 +287,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	launcher := launchers[strategy]
 	if launcher == nil {
 		err := fmt.Errorf("no launcher for strategy (%s)", strategy)
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var args = []string{}
@@ -300,12 +300,12 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			const onlyPermittedScope = "profile:me"
 			if manifestAction.Scope != onlyPermittedScope {
 				err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			client, err := operate.ClientFromCredentials(credentials)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			res, err := client.Subkey(&itchio.SubkeyParams{
@@ -313,7 +313,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 				Scope:  manifestAction.Scope,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
@@ -364,7 +364,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 	err = launcher.Do(launcherParams)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return &butlerd.LaunchResult{}, nil

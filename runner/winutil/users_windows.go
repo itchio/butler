@@ -6,8 +6,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/syscallex"
+	"github.com/pkg/errors"
 )
 
 type FolderType int
@@ -37,7 +37,7 @@ func GetFolderPath(folderType FolderType) (string, error) {
 		syscallex.SHGFP_TYPE_CURRENT,
 	)
 	if err != nil {
-		return "", errors.Wrap(err, 0)
+		return "", errors.WithStack(err)
 	}
 	return ret, nil
 }
@@ -55,7 +55,7 @@ func Logon(username string, domain string, password string) (syscall.Token, erro
 		&token,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	return token, nil
@@ -64,18 +64,18 @@ func Logon(username string, domain string, password string) (syscall.Token, erro
 func Impersonate(username string, domain string, password string, cb ImpersonateCallback) error {
 	token, err := Logon(username, domain, password)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer syscall.CloseHandle(syscall.Handle(token))
 
 	_, err = syscall.GetEnvironmentStrings()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = syscallex.ImpersonateLoggedOnUser(token)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	defer syscallex.RevertToSelf()
@@ -99,7 +99,7 @@ func AddUser(username string, password string, comment string) error {
 		nil,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func RemoveUserFromUsersGroup(username string) error {
 		&sidSize,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var cchName = uint32(arbitrarySize)
@@ -139,7 +139,7 @@ func RemoveUserFromUsersGroup(username string) error {
 		&sidUse,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	usersGroupName := &name[0]
@@ -161,7 +161,7 @@ func RemoveUserFromUsersGroup(username string) error {
 				return nil
 			}
 		}
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -170,7 +170,7 @@ func RemoveUserFromUsersGroup(username string) error {
 func LoadProfileOnce(username string, domain string, password string) error {
 	token, err := Logon(username, password, password)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	defer syscall.CloseHandle(syscall.Handle(token))
@@ -182,12 +182,12 @@ func LoadProfileOnce(username string, domain string, password string) error {
 
 	err = syscallex.LoadUserProfile(token, &profileInfo)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = syscallex.UnloadUserProfile(token, profileInfo.Profile)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

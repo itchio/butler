@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/crc32c"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 // BadSizeErr is returned when the size of a file on disk doesn't match what we expected it to be
@@ -40,15 +40,13 @@ func (bhe *BadHashErr) Error() string {
 // IsIntegrityError returns true if the error is a size or a hash mismatch.
 // Simple reference equality cannot be used because the error might be wrapped (for stack traces)
 func IsIntegrityError(err error) bool {
-	if _, ok := err.(*BadSizeErr); ok {
-		return true
-	}
-	if _, ok := err.(*BadHashErr); ok {
-		return true
-	}
+	cause := errors.Cause(err)
 
-	if original, ok := err.(*errors.Error); ok {
-		return IsIntegrityError(original.Err)
+	if _, ok := cause.(*BadSizeErr); ok {
+		return true
+	}
+	if _, ok := cause.(*BadHashErr); ok {
+		return true
 	}
 
 	return false
@@ -93,7 +91,7 @@ func checkHashes(consumer *state.Consumer, header http.Header, file string) erro
 		checked, err := checkHash(hashType, hashValue, file)
 		if err != nil {
 			consumer.Warnf("%10s fail: %s", hashType, err.Error())
-			return errors.Wrap(err, 1)
+			return errors.Wrapf(err, "checking %s hash", hashType)
 		}
 
 		if checked {
@@ -117,7 +115,7 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 	}
 
 	if err != nil {
-		err = errors.Wrap(err, 1)
+		err = errors.WithStack(err)
 	}
 	return
 }
@@ -125,7 +123,7 @@ func checkHash(hashType string, hashValue []byte, file string) (checked bool, er
 func checkHashCRC32C(hashValue []byte, file string) error {
 	fr, err := os.Open(file)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	defer fr.Close()
 

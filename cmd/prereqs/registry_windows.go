@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -31,7 +31,7 @@ func RegistryKeyExists(consumer *state.Consumer, path string) bool {
 
 	key, err := registry.OpenKey(rootKey, pathName, registry.QUERY_VALUE)
 	if err != nil {
-		if errors.Is(err, registry.ErrNotExist) {
+		if errors.Cause(err) == registry.ErrNotExist {
 			// cool, the key does not exist!
 			return false
 		}

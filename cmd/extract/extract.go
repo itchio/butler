@@ -8,12 +8,12 @@ import (
 	"github.com/itchio/savior"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -63,13 +63,13 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 
 	file, err := eos.Open(params.File)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "opening archive file")
 	}
 	defer file.Close()
 
 	stats, err := file.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "stat'ing archive file")
 	}
 
 	consumer.Opf("Extracting %s to %s", stats.Name(), params.Dir)
@@ -79,13 +79,13 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 		Consumer: consumer,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "probing archive")
 	}
 	consumer.Opf("Using %s", archiveInfo.Features)
 
 	ex, err := archiveInfo.GetExtractor(file, consumer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "getting extractor for archive")
 	}
 
 	if szex, ok := ex.(szextractor.SzExtractor); ok {
@@ -105,7 +105,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	comm.EndProgress()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "extracting archive")
 	}
 
 	duration := time.Since(startTime)

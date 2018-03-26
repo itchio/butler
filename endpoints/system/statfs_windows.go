@@ -5,15 +5,15 @@ package system
 import (
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/runner/syscallex"
+	"github.com/pkg/errors"
 )
 
 func StatFS(path string) (*butlerd.SystemStatFSResult, error) {
 	dfs, err := syscallex.GetDiskFreeSpaceEx(syscall.StringToUTF16Ptr(path))
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.SystemStatFSResult{

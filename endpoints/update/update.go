@@ -1,13 +1,13 @@
 package update
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/memorylogger"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 func Register(router *butlerd.Router) {
@@ -23,11 +23,7 @@ func CheckUpdate(rc *butlerd.RequestContext, params *butlerd.CheckUpdateParams) 
 		update, err := checkUpdateItem(rc, ml.Consumer(), item)
 		if err != nil {
 			res.Warnings = append(res.Warnings, err.Error())
-			if se, ok := err.(*errors.Error); ok {
-				consumer.Warnf("An update check failed: %s", se.ErrorStack())
-			} else {
-				consumer.Warnf("An update check failed: %s", err.Error())
-			}
+			consumer.Warnf("An update check failed: %+v", err)
 			consumer.Warnf("Log follows:")
 			ml.Copy(consumer)
 			consumer.Warnf("End of log")
@@ -79,14 +75,14 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 
 	client, err := rc.Harness.ClientFromCredentials(credentials)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: item.Game.ID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var freshUpload *itchio.Upload

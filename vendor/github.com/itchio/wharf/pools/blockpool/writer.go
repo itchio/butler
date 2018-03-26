@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // A Writer provides an io.Writer on top of a blockpool, storing data until
@@ -47,7 +47,7 @@ func (npw *Writer) Write(buf []byte) (int, error) {
 		if writeEnd%BigBlockSize == 0 {
 			err := npw.Pool.Downstream.Store(BlockLocation{FileIndex: npw.FileIndex, BlockIndex: blockIndex}, npw.blockBuf)
 			if err != nil {
-				return 0, errors.Wrap(err, 1)
+				return 0, errors.WithStack(err)
 			}
 		}
 
@@ -74,7 +74,7 @@ func (npw *Writer) Close() error {
 		blockIndex := npw.offset / BigBlockSize
 		err := npw.Pool.Downstream.Store(BlockLocation{FileIndex: npw.FileIndex, BlockIndex: blockIndex}, npw.blockBuf[:blockBufOffset])
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 

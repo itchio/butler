@@ -7,10 +7,10 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type ProgressListenerFunc func(count int64)
@@ -45,7 +45,7 @@ func (cu *chunkUploader) put(buf []byte, last bool) error {
 				retryCtx.Retry("Having troubles uploading some blocks")
 				continue
 			} else {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		} else {
 			cu.offset += int64(len(buf))
@@ -61,7 +61,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 	if !last && buflen%gcsChunkSize != 0 {
 		err := fmt.Errorf("internal error: trying to upload non-last buffer of %d bytes (not a multiple of chunk size %d)",
 			buflen, gcsChunkSize)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	body := bytes.NewReader(buf)
@@ -74,7 +74,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 	req, err := http.NewRequest("PUT", cu.uploadURL, countingReader)
 	if err != nil {
 		// does not include HTTP errors, more like golang API usage errors
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	start := cu.offset
@@ -193,7 +193,7 @@ func (cu *chunkUploader) tryQueryStatus() (*http.Response, error) {
 	req, err := http.NewRequest("PUT", cu.uploadURL, nil)
 	if err != nil {
 		// does not include HTTP errors, more like golang API usage errors
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// for resumable uploads of unknown size, the length is unknown,
@@ -202,7 +202,7 @@ func (cu *chunkUploader) tryQueryStatus() (*http.Response, error) {
 
 	res, err := cu.httpClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	status := interpretGcsStatusCode(res.StatusCode)

@@ -1,11 +1,11 @@
 package elfprops
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/elefant"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -25,13 +25,13 @@ func do(ctx *mansion.Context) {
 func Do(path string) error {
 	f, err := eos.Open(path)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer f.Close()
 
 	props, err := elefant.Probe(f, nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Result(props)

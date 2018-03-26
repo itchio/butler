@@ -1,8 +1,8 @@
 package nsis
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/installer"
 )
@@ -21,7 +21,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	// and the caller is in charge of downloading it and calling us again.
 	f, err := installer.AsLocalFile(params.File)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	angelParams := &bfs.SaveAngelsParams{
@@ -49,14 +49,14 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
 		err = installer.CheckExitCode(exitCode, err)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "making sure nsis installer ran correctly")
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "running nsis installer")
 	}
 
 	res := &installer.InstallResult{

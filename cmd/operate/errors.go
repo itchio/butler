@@ -3,9 +3,11 @@ package operate
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
+	"github.com/pkg/errors"
 )
+
+// TODO: deprecate, replace with known butler exit codes
 
 type OperationError struct {
 	Type      string `json:"type"`
@@ -22,5 +24,5 @@ func (oe *OperationError) Throw() error {
 	oe.Type = "command-error"
 	comm.Result(oe)
 
-	return errors.Wrap(oe, 1)
+	return errors.WithStack(oe)
 }

@@ -3,9 +3,9 @@ package hades
 import (
 	"reflect"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 type ScopeMap map[reflect.Type]*gorm.Scope
@@ -57,7 +57,7 @@ func (c *Context) InTransaction(db *gorm.DB, itf InTransactionFunc) error {
 	err := itf(c, tx)
 	if err != nil {
 		tx.Rollback()
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "in db transaction")
 	} else {
 		tx.Commit()
 	}

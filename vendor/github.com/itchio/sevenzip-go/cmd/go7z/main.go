@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/sevenzip-go/sz"
+	"github.com/pkg/errors"
 )
 
 type ecs struct {
@@ -193,7 +193,7 @@ func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
 
 		err := os.MkdirAll(absoluteOutPath, 0755)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		// is a dir, just skip it
@@ -202,17 +202,17 @@ func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
 
 	err := os.MkdirAll(filepath.Dir(absoluteOutPath), 0755)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	of, err := os.Create(absoluteOutPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	os, err := sz.NewOutStream(of)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return os, nil

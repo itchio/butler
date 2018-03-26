@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type processGroup struct {
@@ -48,10 +48,10 @@ func (pg *processGroup) Wait() error {
 			pg.consumer.Infof("Killing all processes in group %d", pgid)
 			err = syscall.Kill(-pgid, syscall.SIGTERM)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		} else {
 			if err != nil {
 				pg.consumer.Infof("Could not get group of process %d: %s", err.Error())
@@ -61,12 +61,12 @@ func (pg *processGroup) Wait() error {
 			pg.consumer.Infof("Killing single process %d", pid)
 			err = syscall.Kill(pid, syscall.SIGTERM)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	case err := <-waitDone:
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

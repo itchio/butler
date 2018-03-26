@@ -6,11 +6,11 @@ import (
 
 	"github.com/itchio/savior"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/pkg/errors"
 )
 
 func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
@@ -27,14 +27,14 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		consumer.Infof("Forcing local for %s", archiveInfo.Features)
 		localFile, err := installer.AsLocalFile(f)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		f = localFile
 	}
 
 	ex, err := archiveInfo.GetExtractor(f, consumer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	ex.SetConsumer(consumer)
@@ -63,25 +63,25 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 
 	aRes, err := ex.Resume(checkpoint, sink)
 	if err != nil {
-		if errors.Is(err, savior.ErrStop) {
+		if errors.Cause(err) == savior.ErrStop {
 			cancelled = true
 			return nil, &butlerd.ErrCancelled{}
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = sink.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	aRes, err = archiveInfo.ApplyStageTwo(consumer, aRes, params.InstallFolderPath)
 	if err != nil {
-		if errors.Is(err, savior.ErrStop) {
+		if errors.Cause(err) == savior.ErrStop {
 			cancelled = true
 			return nil, &butlerd.ErrCancelled{}
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	for _, entry := range aRes.Entries {
@@ -96,7 +96,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Consumer: params.Consumer,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return &res, nil

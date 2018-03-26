@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 type PreloadParams struct {
@@ -101,7 +101,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 	riMap := make(RecordInfoMap)
 	typeTree, err := c.WalkType(riMap, "<root>", valtyp, make(VisitMap), nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "waking type tree")
 	}
 	consumer.Debugf("typeTree:\n%s", typeTree)
 
@@ -173,7 +173,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				var err error
 				freshAddr, err = c.pagedByKeys(db, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.Wrap(err, "fetching has_many records (paginated)")
 				}
 
 				consumer.Debugf("In has_many, found %d values (for ps of len %d)", freshAddr.Elem().Len(), ps.Len())
@@ -207,7 +207,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				var err error
 				freshAddr, err = c.pagedByKeys(db, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.Wrap(err, "fetching has_one/belongs_to records (paginated)")
 				}
 
 				fresh := freshAddr.Elem()
@@ -231,14 +231,14 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 
 			err = walk(fresh, cri, cvt)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 		return nil
 	}
 	err = walk(val, typeTree, valTree)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

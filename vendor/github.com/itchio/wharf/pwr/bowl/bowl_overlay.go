@@ -10,10 +10,10 @@ import (
 
 	"github.com/itchio/wharf/pwr/overlay"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 var debugBrokenRename = os.Getenv("BOWL_DEBUG_BROKEN_RENAME") == "1"
@@ -71,7 +71,7 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 	{
 		stats, err := os.Stat(params.OutputFolder)
 		if err != nil {
-			return nil, errors.Wrap(fmt.Errorf("overlaybowl: OutputFolder must exist, but got: %s", err.Error()), 0)
+			return nil, errors.Errorf("overlaybowl: OutputFolder must exist, but got: %s", err.Error())
 		}
 
 		if !stats.IsDir() {
@@ -87,12 +87,12 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 
 	err = os.MkdirAll(params.OutputFolder, 0755)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = os.MkdirAll(params.StageFolder, 0755)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	stagePool := fspool.New(params.SourceContainer, params.StageFolder)
@@ -119,7 +119,7 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 func (ob *overlayBowl) GetWriter(index int64) (EntryWriter, error) {
 	sourceFile := ob.SourceContainer.Files[index]
 	if sourceFile == nil {
-		return nil, errors.Wrap(fmt.Errorf("overlayBowl: unknown source file %d", index), 0)
+		return nil, errors.Errorf("overlayBowl: unknown source file %d", index)
 	}
 
 	if targetIndex, ok := ob.targetFilesByPath[sourceFile.Path]; ok {
@@ -130,7 +130,7 @@ func (ob *overlayBowl) GetWriter(index int64) (EntryWriter, error) {
 
 		r, err := ob.TargetPool.GetReadSeeker(targetIndex)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		wPath := ob.stagePool.GetPath(index)
@@ -194,37 +194,37 @@ func (ob *overlayBowl) Commit() error {
 	// - close the target pool, in case it still has a reader open!
 	err = ob.TargetPool.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// - ensure dirs and symlinks
 	err = ob.ensureDirsAndSymlinks()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// - apply transpositions
 	err = ob.applyTranspositions()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// - move files we need to move
 	err = ob.applyMoves()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// - merge overlays
 	err = ob.applyOverlays()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// - delete ghosts
 	err = ob.deleteGhosts()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -333,7 +333,7 @@ func (ob *overlayBowl) applyTranspositions() error {
 			newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.OutputPath))
 			err := ob.copy(oldAbsolutePath, newAbsolutePath, mkdirBehaviorIfNeeded)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -344,7 +344,7 @@ func (ob *overlayBowl) applyTranspositions() error {
 			newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.OutputPath))
 			err := ob.move(oldAbsolutePath, newAbsolutePath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		} else {
 			// muffin!
@@ -394,13 +394,13 @@ func (ob *overlayBowl) applyTranspositions() error {
 				newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.OutputPath))
 				err := ob.move(oldAbsolutePath, newAbsolutePath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			}
 		} else {
 			err := applyMultipleTranspositions(groupTargetPath, group)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -410,7 +410,7 @@ func (ob *overlayBowl) applyTranspositions() error {
 		newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(rename.OutputPath))
 		err := ob.move(oldAbsolutePath, newAbsolutePath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -422,31 +422,31 @@ func (ob *overlayBowl) copy(oldAbsolutePath string, newAbsolutePath string, mkdi
 	if mkdirBehavior == mkdirBehaviorIfNeeded {
 		err := os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
 	// fall back to copy + remove
 	reader, err := os.Open(oldAbsolutePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer reader.Close()
 
 	stats, err := reader.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	writer, err := os.OpenFile(newAbsolutePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, stats.Mode()|tlc.ModeMask)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer writer.Close()
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -458,13 +458,13 @@ func (ob *overlayBowl) move(oldAbsolutePath string, newAbsolutePath string) erro
 	err := os.Remove(newAbsolutePath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
 	err = os.MkdirAll(filepath.Dir(newAbsolutePath), os.FileMode(0755))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if debugBrokenRename {
@@ -496,7 +496,7 @@ func (ob *overlayBowl) applyMoves() error {
 	for _, moveIndex := range ob.moveFiles {
 		file := ob.SourceContainer.Files[moveIndex]
 		if file == nil {
-			return errors.Wrap(fmt.Errorf("overlaybowl: applyMoves: no such file %d", moveIndex), 0)
+			return errors.Errorf("overlaybowl: applyMoves: no such file %d", moveIndex)
 		}
 		debugf("applying move '%s'", file.Path)
 		nativePath := filepath.FromSlash(file.Path)
@@ -505,7 +505,7 @@ func (ob *overlayBowl) applyMoves() error {
 		outputPath := filepath.Join(ob.OutputFolder, nativePath)
 		err := ob.move(stagePath, outputPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -518,7 +518,7 @@ func (ob *overlayBowl) applyOverlays() error {
 	handleOverlay := func(overlayIndex int64) error {
 		file := ob.SourceContainer.Files[overlayIndex]
 		if file == nil {
-			return errors.Wrap(fmt.Errorf("overlaybowl: applyOverlays: no such file %d", overlayIndex), 0)
+			return errors.Errorf("overlaybowl: applyOverlays: no such file %d", overlayIndex)
 		}
 		debugf("applying overlay '%s'", file.Path)
 		nativePath := filepath.FromSlash(file.Path)
@@ -526,30 +526,30 @@ func (ob *overlayBowl) applyOverlays() error {
 		stagePath := filepath.Join(ob.StageFolder, nativePath)
 		r, err := os.Open(stagePath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		defer r.Close()
 
 		outputPath := filepath.Join(ob.OutputFolder, nativePath)
 		w, err := os.OpenFile(outputPath, os.O_WRONLY, 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		defer w.Close()
 
 		err = ctx.Patch(r, w)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		finalSize, err := w.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		err = w.Truncate(finalSize)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		return nil
@@ -558,7 +558,7 @@ func (ob *overlayBowl) applyOverlays() error {
 	for _, overlayIndex := range ob.overlayFiles {
 		err := handleOverlay(overlayIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -661,7 +661,7 @@ func (ob *overlayBowl) deleteGhosts() error {
 				// sometimes we can't delete directories, it's okay
 				debugf("ghost dir left behind '%s'", ghost.Path)
 			} else {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -696,7 +696,7 @@ func (nwc *notifyWriteCloser) Close() (rErr error) {
 
 	err := nwc.w.Close()
 	if err != nil {
-		rErr = errors.Wrap(err, 0)
+		rErr = errors.WithStack(err)
 		return
 	}
 
@@ -729,12 +729,12 @@ func (oew *overlayEntryWriter) Tell() int64 {
 func (oew *overlayEntryWriter) Save() (*Checkpoint, error) {
 	err := oew.ow.Flush()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	readOffset, err := oew.readSeeker.Seek(0, io.SeekCurrent)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	c := &Checkpoint{
@@ -749,12 +749,12 @@ func (oew *overlayEntryWriter) Save() (*Checkpoint, error) {
 func (oew *overlayEntryWriter) Resume(c *Checkpoint) (int64, error) {
 	err := os.MkdirAll(filepath.Dir(oew.path), 0755)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	w, err := os.OpenFile(oew.path, os.O_CREATE|os.O_WRONLY, os.FileMode(0644))
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if c != nil {
@@ -767,13 +767,13 @@ func (oew *overlayEntryWriter) Resume(c *Checkpoint) (int64, error) {
 		// seek the reader first
 		_, err = oew.readSeeker.Seek(oewc.ReadOffset, io.SeekStart)
 		if err != nil {
-			return 0, errors.Wrap(err, 0)
+			return 0, errors.WithStack(err)
 		}
 
 		// now the writer
 		_, err = w.Seek(c.Offset, io.SeekStart)
 		if err != nil {
-			return 0, errors.Wrap(err, 0)
+			return 0, errors.WithStack(err)
 		}
 
 		oew.writeOffset = c.Offset
@@ -805,7 +805,7 @@ func (oew *overlayEntryWriter) Close() error {
 	oew.ow = nil
 	err := ow.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

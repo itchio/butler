@@ -13,10 +13,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/art"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 // read+write for owner, no permissions for others
@@ -134,7 +134,7 @@ func readKeyFile(path string) (string, error) {
 
 	buf, err := ioutil.ReadFile(path)
 	if err != nil && !os.IsNotExist(err) {
-		return "", errors.Wrap(err, 1)
+		return "", errors.WithStack(err)
 	}
 
 	return strings.TrimSpace(string(buf)), nil
@@ -163,7 +163,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 
 	key, err = readKeyFile(identity)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.Wrap(err, "reading key file")
 	}
 
 	if key == "" {
@@ -196,7 +196,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 			var listener net.Listener
 			listener, err = net.Listen("tcp", "127.0.0.1:0")
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, "listening on local address for oauth process")
 			}
 
 			addr = listener.Addr().String()
@@ -204,7 +204,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 			go func() {
 				err = http.Serve(listener, nil)
 				if err != nil {
-					errs <- errors.Wrap(err, 1)
+					errs <- errors.Wrap(err, "serving local http server for oauth process")
 				}
 			}()
 		}
@@ -240,26 +240,26 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 
 		select {
 		case err = <-errs:
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		case key = <-done:
 			err = nil
 
 			client := makeClient(key)
 			_, err = client.WharfStatus()
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.Wrap(err, "retrieving wharf status")
 			}
 
 			comm.Logf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
 			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0755))
 			if err != nil {
-				comm.Logf("\nCould not create directory for storing API key: %s\n\n", errors.Wrap(err, 1).Error())
+				comm.Logf("\nCould not create directory for storing API key: %s\n\n", err)
 				err = nil
 			} else {
 				err = writeKeyFile(identity, key)
 				if err != nil {
-					comm.Logf("\nCould not save API key: %s\n\n", errors.Wrap(err, 1).Error())
+					comm.Logf("\nCould not save API key: %s\n\n", err)
 					err = nil
 				}
 			}
@@ -267,7 +267,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 	}
 
 	if err != nil {
-		err = errors.Wrap(err, 1)
+		err = errors.WithStack(err)
 	}
 	return makeClient(key), nil
 }

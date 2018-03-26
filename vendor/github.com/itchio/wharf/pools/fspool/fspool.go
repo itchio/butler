@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -80,12 +80,12 @@ func (cfp *FsPool) GetPath(fileIndex int64) string {
 func (cfp *FsPool) GetReader(fileIndex int64) (io.Reader, error) {
 	rs, err := cfp.GetReadSeeker(fileIndex)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	_, err = rs.Seek(0, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return rs, nil
@@ -101,7 +101,7 @@ func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 			cfp.reader = nil
 		}
@@ -123,7 +123,7 @@ func (cfp *FsPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		cfp.reader = nil
@@ -138,7 +138,7 @@ func (cfp *FsPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	outputFile := cfp.container.Files[fileIndex]

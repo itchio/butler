@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd/generous/spec"
+	"github.com/pkg/errors"
 )
 
 func (gc *GenerousContext) GenerateSpec() error {
@@ -106,7 +106,7 @@ func (gc *GenerousContext) GenerateSpec() error {
 
 	js, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	doc.Line(string(js))

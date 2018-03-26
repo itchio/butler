@@ -1,10 +1,10 @@
 package msi
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer"
+	"github.com/pkg/errors"
 )
 
 func (m *Manager) Uninstall(params *installer.UninstallParams) error {
@@ -30,7 +30,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 		Args:     args,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if res.ExitCode != 0 {
@@ -43,7 +43,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 				Args:     args,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if res.ExitCode != 0 {

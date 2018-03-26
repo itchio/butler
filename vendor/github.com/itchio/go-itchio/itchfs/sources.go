@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/httpfile"
+	"github.com/pkg/errors"
 )
 
 // over-engineering follows
@@ -91,12 +91,12 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 	case SourceType_DownloadBuild:
 		uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		buildID, err := strconv.ParseInt(tokens[5], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		downloadKey := s.QueryValues.Get("download_key_id")
@@ -117,12 +117,12 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 
 		uploadID, err := strconv.ParseInt(tokens[4], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		buildID, err := strconv.ParseInt(tokens[6], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		fileType := tokens[7]
@@ -138,12 +138,12 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 	case SourceType_WharfDownloadBuild:
 		buildID, err := strconv.ParseInt(tokens[3], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		buildFileID, err := strconv.ParseInt(tokens[5], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		getter = func() (string, error) {
@@ -158,7 +158,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 	case SourceType_DownloadUpload:
 		uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		downloadKey := s.QueryValues.Get("download_key_id")
@@ -178,7 +178,7 @@ func (s *Source) makeGetURL() (httpfile.GetURLFunc, error) {
 
 		uploadID, err := strconv.ParseInt(tokens[4], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		getter = func() (string, error) {

@@ -15,9 +15,9 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/pkg/errors"
 )
 
 type scanContext struct {
@@ -55,7 +55,7 @@ func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 	}
 	err := sc.Do()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	numFound := int64(len(sc.newByID))
@@ -66,7 +66,7 @@ func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 			NumItems: numFound,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if confirmRes.Confirm {
@@ -106,7 +106,7 @@ func (sc *scanContext) Do() error {
 
 	err := sc.rc.DB().Find(&sc.installLocations).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = rc.DB().
@@ -118,19 +118,19 @@ func (sc *scanContext) Do() error {
 		}).
 		Scan(&sc.existingCaves).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if sc.legacyMarketPath != "" {
 		err := sc.DoMarket()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
 	err = sc.DoInstallLocations()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(sc.tasks) == 0 {
@@ -180,13 +180,13 @@ func (sc *scanContext) DoMarket() error {
 	handleEntryPanics := func(entry os.FileInfo) error {
 		legCaveBytes, err := ioutil.ReadFile(filepath.Join(cavesPath, entry.Name()))
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		legCave := &legacyCave{}
 		err = json.Unmarshal(legCaveBytes, legCave)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if sc.hasCave(legCave.ID) {
@@ -201,9 +201,9 @@ func (sc *scanContext) DoMarket() error {
 		defer func() {
 			if r := recover(); r != nil {
 				if rErr, ok := r.(error); ok {
-					err = errors.Wrap(rErr, 0)
+					err = errors.WithStack(rErr)
 				} else {
-					err = errors.New(r)
+					err = errors.Errorf("%v", r)
 				}
 			}
 		}()
@@ -224,7 +224,7 @@ func (sc *scanContext) DoInstallLocations() error {
 	for _, il := range sc.installLocations {
 		err := sc.DoInstallLocation(il)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -237,7 +237,7 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 
 	entries, err := ioutil.ReadDir(il.Path)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	handleEntryPanics := func(entry os.FileInfo) error {
@@ -277,12 +277,12 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 
 			freshUuid, err := uuid.NewV4()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			receiptStats, err := os.Stat(bfs.ReceiptPath(InstallFolder))
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			legCave := &legacyCave{
@@ -324,9 +324,9 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 		defer func() {
 			if r := recover(); r != nil {
 				if rErr, ok := r.(error); ok {
-					err = errors.Wrap(rErr, 0)
+					err = errors.WithStack(rErr)
 				} else {
-					err = errors.New(r)
+					err = errors.Errorf("%v", r)
 				}
 			}
 		}()
@@ -347,9 +347,9 @@ func (sc *scanContext) importLegacyCave(legacyCave *legacyCave, files []string) 
 	defer func() {
 		if r := recover(); r != nil {
 			if rErr, ok := r.(error); ok {
-				err = errors.Wrap(rErr, 0)
+				err = errors.WithStack(rErr)
 			} else {
-				err = errors.New(r)
+				err = errors.Errorf("%v", r)
 			}
 		}
 	}()
@@ -413,14 +413,14 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 	creds := operate.CredentialsForGameID(rc.DB(), legacyCave.GameID)
 	client, err := operate.ClientFromCredentials(creds)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
 		GameID: legacyCave.GameID,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	game := gameRes.Game
@@ -430,7 +430,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 		DownloadKeyID: creds.DownloadKey,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var upload *itchio.Upload
@@ -453,7 +453,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 			DownloadKeyID: creds.DownloadKey,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		for _, b := range buildsRes.Builds {
@@ -510,7 +510,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 	consumer.Opf("Configuring cave for %s", runtime)
 	verdict, err := manager.Configure(consumer, InstallFolder, runtime)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	cave.SetVerdict(verdict)
 	cave.InstalledSize = verdict.TotalSize

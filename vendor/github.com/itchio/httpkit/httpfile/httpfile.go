@@ -21,8 +21,8 @@ import (
 	goerrors "errors"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
+	"github.com/pkg/errors"
 )
 
 var forbidBacktracking = os.Getenv("HTTPFILE_NO_BACKTRACK") == "1"
@@ -424,7 +424,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		if res.StatusCode != 206 && res.StatusCode != 200 {
 			if res.StatusCode == 404 {
 				// no need to retry - it's not coming back
-				return nil, errors.Wrap(ErrNotFound, 1)
+				return nil, errors.WithStack(ErrNotFound)
 			}
 
 			body, _ := ioutil.ReadAll(res.Body)
@@ -731,10 +731,10 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 }
 
 func (hf *HTTPFile) shouldRetry(err error) bool {
-	if errors.Is(err, io.ErrUnexpectedEOF) {
+	if errors.Cause(err) == io.ErrUnexpectedEOF {
 		hf.log("shouldRetry: retrying unexpected EOF")
 		return true
-	} else if errors.Is(err, io.EOF) {
+	} else if errors.Cause(err) == io.EOF {
 		// don't retry EOF, it's a perfectly expected error
 		return false
 	} else if opError, ok := err.(*net.OpError); ok {
@@ -752,7 +752,7 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 		// examples: "dial tcp: [...] on port 53: timed out"
 		if urlError.Timeout() ||
 			urlError.Temporary() ||
-			errors.Is(urlError.Err, io.EOF) ||
+			errors.Cause(urlError.Err) == io.EOF ||
 			strings.HasPrefix(urlError.Err.Error(), "dial tcp") {
 			hf.log("shouldRetry: retrying url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
 			return true

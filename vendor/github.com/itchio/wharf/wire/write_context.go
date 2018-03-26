@@ -6,8 +6,8 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
 // WriteContext holds state of a wharf wire format writer
@@ -32,7 +32,7 @@ func (w *WriteContext) Close() error {
 	if c, ok := w.writer.(io.Closer); ok {
 		err := c.Close()
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -52,21 +52,21 @@ func (w *WriteContext) WriteMessage(msg proto.Message) error {
 
 	buf, err := proto.Marshal(msg)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	vibuflen := binary.PutUvarint(w.varintBuffer, uint64(len(buf)))
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	_, err = w.writer.Write(w.varintBuffer[:vibuflen])
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	_, err = w.writer.Write(buf)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil

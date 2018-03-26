@@ -10,9 +10,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos/option"
+	"github.com/pkg/errors"
 )
 
 var httpFileLogLevel = os.Getenv("HTTPFILE_DEBUG")
@@ -97,7 +97,7 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 
 	u, err := url.Parse(name)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	switch u.Scheme {
@@ -122,7 +122,7 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 
 		getURL, needsRenewal, err := handler.MakeResource(u)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		hf, err := httpfile.New(getURL, needsRenewal, &httpfile.Settings{

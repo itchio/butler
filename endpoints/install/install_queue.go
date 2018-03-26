@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -15,6 +14,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -26,7 +26,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	freshInstallID, err := uuid.NewV4()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	id := freshInstallID.String()
@@ -70,7 +70,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	oc, err := operate.LoadContext(rc.Ctx, rc, stagingFolder)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer := oc.Consumer()
@@ -89,7 +89,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	client, err := operate.ClientFromCredentials(params.Credentials)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	{
@@ -113,7 +113,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		if cave == nil {
 			freshCaveID, err := uuid.NewV4()
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			cave = &models.Cave{
@@ -140,7 +140,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		consumer.Infof("No upload specified, looking for compatible ones...")
 		uploadsFilterResult, err := operate.GetFilteredUploads(client, params.Game, params.Credentials, consumer)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if len(uploadsFilterResult.Uploads) == 0 {
@@ -164,7 +164,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 				Uploads: uploadsFilterResult.Uploads,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			if r.Index < 0 {
@@ -191,7 +191,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			DownloadKeyID: params.Credentials.DownloadKey,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		found := true
@@ -219,7 +219,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			Upload: params.Upload,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if res.Whatever {
@@ -247,7 +247,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			Item: res,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 

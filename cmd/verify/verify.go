@@ -4,12 +4,12 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -50,7 +50,7 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 
 	signatureReader, err := eos.Open(signaturePath)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "opening signature file")
 	}
 	defer signatureReader.Close()
 
@@ -58,12 +58,12 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 
 	_, err = signatureSource.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	signature, err := pwr.ReadSignature(signatureSource)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "reading signature file")
 	}
 
 	vc := &pwr.ValidatorContext{
@@ -76,7 +76,7 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 
 	err = vc.Validate(dir, signature)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "while validating")
 	}
 
 	comm.EndProgress()

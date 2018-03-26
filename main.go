@@ -14,7 +14,6 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/efarrer/iothrottler"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
@@ -114,11 +113,10 @@ func defaultKeyPath() string {
 
 func must(err error) {
 	if err != nil {
-		switch err := err.(type) {
-		case *errors.Error:
-			comm.Die(err.ErrorStack())
-		default:
-			comm.Die(err.Error())
+		if *appArgs.verbose {
+			comm.Dief("%+v", err)
+		} else {
+			comm.Dief("%s", err)
 		}
 	}
 }

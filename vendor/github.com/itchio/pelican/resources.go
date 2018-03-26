@@ -10,8 +10,8 @@ import (
 
 	xj "github.com/basgys/goxml2json"
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type imageResourceDirectory struct {
@@ -104,14 +104,14 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 		ird := new(imageResourceDirectory)
 		err := binary.Read(br, binary.LittleEndian, ird)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		for i := uint16(0); i < ird.NumberOfNamedEntries+ird.NumberOfIdEntries; i++ {
 			irde := new(imageResourceDirectoryEntry)
 			err = binary.Read(br, binary.LittleEndian, irde)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if irde.NameId&0x80000000 > 0 {
@@ -139,7 +139,7 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 
 				err := readDirectory(offset, level+1, recResourceType)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				continue
 			}
@@ -149,7 +149,7 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 			irda := new(imageResourceDataEntry)
 			err = binary.Read(dbr, binary.LittleEndian, irda)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if resourceType == ResourceTypeManifest || resourceType == ResourceTypeVersion {
@@ -158,7 +158,7 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 				sr := io.NewSectionReader(sect, int64(irda.Data-sect.VirtualAddress), int64(irda.Size))
 				rawData, err := ioutil.ReadAll(sr)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				switch resourceType {
@@ -185,7 +185,7 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 				case ResourceTypeVersion:
 					err := parseVersion(info, consumer, rawData)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return errors.WithStack(err)
 					}
 				}
 			}
@@ -195,7 +195,7 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 
 	err := readDirectory(0, 0, 0)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

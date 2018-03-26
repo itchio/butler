@@ -10,12 +10,12 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/sevenzip-go/sz"
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var dontEnsureDeps = os.Getenv("BUTLER_NO_DEPS") == "1"
@@ -60,25 +60,25 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 
 	err := EnsureDeps(consumer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "ensuring 7-zip deps")
 	}
 
 	lib, err := sz.NewLib()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "opening 7-zip library")
 	}
 	se.lib = lib
 
 	stats, err := file.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "stat'ing file")
 	}
 
 	ext := nameToExt(stats.Name())
 
 	in, err := sz.NewInStream(file, ext, stats.Size())
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "creating 7-zip input stream")
 	}
 	se.in = in
 
@@ -89,7 +89,7 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 		// try by signature next
 		_, err = in.Seek(0, io.SeekStart)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		consumer.Debugf("Trying by signature")
@@ -110,16 +110,16 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 
 				in, err := sz.NewInStream(file, ext, stats.Size())
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.Wrap(err, "creating input stream")
 				}
 
 				a, err = lib.OpenArchive(in, false) // by ext
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.Wrap(err, "opening archive with 7-zip")
 				}
 			} else {
 				// well, we're out of options
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.Errorf("could not open with 7-zip: %s", stats.Name())
 			}
 		}
 	}
@@ -168,7 +168,7 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 
 	numEntries, err := se.archive.GetItemCount()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "getting item count")
 	}
 
 	var totalBytes int64
@@ -199,7 +199,7 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 				if entry.Kind == savior.EntryKindFile {
 					err = sink.Preallocate(entry)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return errors.Wrap(err, "preallocating entries")
 					}
 				}
 				return nil
@@ -209,7 +209,7 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 			for i := int64(0); i < numEntries; i++ {
 				err = preallocateItem(i)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.Wrapf(err, "preallocating item %d", i)
 				}
 			}
 			preallocateDuration := time.Since(preallocateStart)
@@ -222,12 +222,12 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 		}
 		ec, err := sz.NewExtractCallback(sc)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating extract callback")
 		}
 
 		err = se.archive.ExtractSeveral(indices, ec)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "extracting several files")
 		}
 
 		if sc.stopped {
@@ -307,7 +307,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	if entry.Kind == savior.EntryKindDir {
 		err := sc.sink.Mkdir(entry)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating directory")
 		}
 
 		// don't give a stream for a dir
@@ -319,7 +319,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			// cool, it was in the metadata, let's just do it now
 			err := sc.sink.Symlink(entry, entry.Linkname)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.Wrap(err, "creating symbolic link (metadata)")
 			}
 
 			// and not give a stream to 7-zip
@@ -334,7 +334,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			OnClose: func(totalBytes int64) error {
 				err := sc.sink.Symlink(entry, buf.String())
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.Wrap(err, "creating symbolic link (contents)")
 				}
 
 				return nil
@@ -347,7 +347,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 	// if we reached this point, it's a regular file
 	writer, err := sc.sink.GetWriter(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "getting writer for regular file")
 	}
 
 	nc := &notifyCloser{

@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
@@ -114,7 +114,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 	var fset token.FileSet
 	f, err := parser.ParseFile(&fset, absoluteFilePath, nil, parser.ParseComments)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrapf(err, "parsing %s", absoluteFilePath)
 	}
 
 	for _, decl := range f.Decls {

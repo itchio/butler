@@ -9,9 +9,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/installer/loggerwriter"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type Any map[string]interface{}
@@ -33,7 +33,7 @@ type RunSelfParams struct {
 func RunSelf(params *RunSelfParams) (*RunSelfResult, error) {
 	selfPath, err := os.Executable()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "getting path to own binary")
 	}
 
 	consumer := params.Consumer

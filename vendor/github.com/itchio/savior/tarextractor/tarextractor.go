@@ -6,10 +6,10 @@ import (
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/tar"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type tarExtractor struct {
@@ -56,7 +56,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				}
 				offset, err := te.source.Resume(checkpoint.SourceCheckpoint)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.WithStack(err)
 				}
 
 				tarCheckpoint := stateCheckpoint.TarCheckpoint
@@ -66,13 +66,13 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 					savior.Debugf("tarextractor: source was at %d, tar checkpoint was at %d", offset, tarCheckpoint.Roffset)
 					err = savior.DiscardByRead(te.source, delta)
 					if err != nil {
-						return nil, errors.Wrap(err, 0)
+						return nil, errors.WithStack(err)
 					}
 				}
 
 				sr, err = tarCheckpoint.Resume(te.source)
 				if err != nil {
-					return nil, errors.Wrap(err, 0)
+					return nil, errors.WithStack(err)
 				}
 
 				state = stateCheckpoint
@@ -91,7 +91,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 		_, err := te.source.Resume(nil)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		checkpoint = &savior.ExtractorCheckpoint{
@@ -100,7 +100,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 		sr, err = tar.NewSaverReader(te.source)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -122,7 +122,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 			tarCheckpoint, err := sr.Save()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			savior.Debugf("tarextractor: at checkpoint, tar read offset is %s", humanize.IBytes(uint64(tarCheckpoint.Roffset)))
 
@@ -136,7 +136,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 
 			action, err := te.saveConsumer.Save(checkpoint)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			if action == savior.AfterSaveStop {
 				copier.Stop()
@@ -162,7 +162,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 						stopError = io.EOF
 						return nil
 					}
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				entry := &savior.Entry{
@@ -194,19 +194,19 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 				savior.Debugf(`tar: extracting dir %s`, entry.CanonicalPath)
 				err := sink.Mkdir(entry)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			case savior.EntryKindSymlink:
 				savior.Debugf(`tar: extracting symlink %s`, entry.CanonicalPath)
 				err := sink.Symlink(entry, entry.Linkname)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			case savior.EntryKindFile:
 				savior.Debugf(`tar: extracting file %s`, entry.CanonicalPath)
 				w, err := sink.GetWriter(entry)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				defer w.Close()
 
@@ -222,7 +222,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 					},
 				})
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				state.Result.Entries = append(state.Result.Entries, entry)
@@ -236,7 +236,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 			return nil
 		}()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 

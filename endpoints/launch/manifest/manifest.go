@@ -11,7 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // TODO: linter
@@ -50,7 +50,7 @@ func Read(folder string) (*butlerd.Manifest, error) {
 			// no manifest!
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	defer f.Close()
@@ -59,7 +59,7 @@ func Read(folder string) (*butlerd.Manifest, error) {
 	_, err = toml.DecodeReader(f, &intermediate)
 	if err != nil {
 		// invalid TOML
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	manifest := &butlerd.Manifest{}
@@ -68,13 +68,13 @@ func Read(folder string) (*butlerd.Manifest, error) {
 	})
 	if err != nil {
 		// internal error
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = decoder.Decode(intermediate)
 	if err != nil {
 		// invalid manifest structure
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return manifest, nil

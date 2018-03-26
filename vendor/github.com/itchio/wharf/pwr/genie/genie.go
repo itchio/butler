@@ -3,11 +3,11 @@ package genie
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 type CompositionListener func(comp *Composition)
@@ -30,31 +30,31 @@ func (g *Genie) ParseHeader(patchReader savior.SeekSource) error {
 	rawPatchWire := wire.NewReadContext(patchReader)
 	err := rawPatchWire.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	header := &pwr.PatchHeader{}
 	err = rawPatchWire.ReadMessage(header)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	patchWire, err := pwr.DecompressWire(rawPatchWire, header.Compression)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	g.PatchWire = patchWire
 
 	g.TargetContainer = &tlc.Container{}
 	err = patchWire.ReadMessage(g.TargetContainer)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	g.SourceContainer = &tlc.Container{}
 	err = patchWire.ReadMessage(g.SourceContainer)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -71,17 +71,17 @@ func (g *Genie) ParseContents(onComp CompositionListener) error {
 		sh.Reset()
 		err := patchWire.ReadMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		if sh.FileIndex != int64(fileIndex) {
 			fmt.Printf("expected fileIndex = %d, got fileIndex %d\n", fileIndex, sh.FileIndex)
-			return errors.Wrap(pwr.ErrMalformedPatch, 1)
+			return errors.WithStack(pwr.ErrMalformedPatch)
 		}
 
 		err = g.analyzeFile(patchWire, int64(fileIndex), f.Size, onComp)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -103,7 +103,7 @@ func (g *Genie) analyzeFile(patchWire *wire.ReadContext, fileIndex int64, fileSi
 		rop.Reset()
 		pErr := patchWire.ReadMessage(rop)
 		if pErr != nil {
-			return errors.Wrap(pErr, 1)
+			return errors.WithStack(pErr)
 		}
 
 		switch rop.Type {

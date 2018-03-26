@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -43,7 +43,7 @@ func Do() error {
 				os.Exit(status.ExitStatus())
 			}
 		}
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "while running command")
 	}
 
 	return nil

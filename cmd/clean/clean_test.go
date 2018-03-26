@@ -7,27 +7,27 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/clean"
 	"github.com/itchio/wharf/wtest"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func withTestDirectory(f func(testDir string) error) error {
 	testDir, err := ioutil.TempDir("", "cmd-clean-tests")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = os.MkdirAll(testDir, 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer os.RemoveAll(testDir)
 
 	err = f(testDir)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	return nil
 }
@@ -43,7 +43,7 @@ func TestBadJSON(t *testing.T) {
 		invalidJSON := "this is not valid json { { { ] ] ] ]- - -"
 		err := ioutil.WriteFile(planPath, []byte(invalidJSON), 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		assert.Error(t, clean.Do(planPath))
@@ -62,7 +62,7 @@ func TestAlreadyRemoved(t *testing.T) {
 		}`, testDir)
 		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		assert.NoError(t, clean.Do(planPath))
@@ -83,12 +83,12 @@ func TestRemoveFail(t *testing.T) {
 		}`, testDir)
 		pf, err := os.OpenFile(planPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		_, err = pf.Write([]byte(planContents))
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// Well, since it fails on some platforms and succeeds on others,
@@ -111,20 +111,20 @@ func TestHappyPath(t *testing.T) {
 		}`, testDir)
 		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// prepare files to be cleaned
 		aFilePath := filepath.Join(testDir, "exists.txt")
 		err = ioutil.WriteFile(aFilePath, []byte{'P', 'K'}, 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		aDirPath := filepath.Join(testDir, "a-directory")
 		err = os.Mkdir(aDirPath, 0755)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		assert.NoError(t, clean.Do(planPath))

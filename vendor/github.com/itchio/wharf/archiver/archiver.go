@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -52,7 +52,7 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 
 	file, err := eos.Open(archive)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	if _, ok := file.(*httpfile.HTTPFile); ok {
@@ -62,19 +62,19 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	defer func() {
 		if cErr := file.Close(); cErr != nil && err == nil {
-			err = errors.Wrap(cErr, 1)
+			err = errors.WithStack(cErr)
 		}
 	}()
 
 	result, err = Extract(file, stat.Size(), destPath, settings)
 
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 	return result, nil
 }
@@ -82,7 +82,7 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 func Extract(readerAt io.ReaderAt, size int64, destPath string, settings ExtractSettings) (*ExtractResult, error) {
 	result, err := ExtractZip(readerAt, size, destPath, settings)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 	return result, nil
 }
@@ -93,7 +93,7 @@ func Mkdir(dstpath string) error {
 		// main case - dir doesn't exist yet
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 		return nil
 	}
@@ -104,11 +104,11 @@ func Mkdir(dstpath string) error {
 		// is a file or symlink for example, turn into a dir
 		err = os.Remove(dstpath)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -120,18 +120,18 @@ func Symlink(linkname string, filename string, consumer *state.Consumer) error {
 
 	err := os.RemoveAll(filename)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	dirname := filepath.Dir(filename)
 	err = os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = os.Symlink(linkname, filename)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	return nil
 }
@@ -139,29 +139,29 @@ func Symlink(linkname string, filename string, consumer *state.Consumer) error {
 func CopyFile(filename string, mode os.FileMode, fileReader io.Reader) error {
 	err := os.RemoveAll(filename)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	dirname := filepath.Dir(filename)
 	err = os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	writer, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	defer writer.Close()
 
 	_, err = io.Copy(writer, fileReader)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = os.Chmod(filename, mode)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	return nil
 }

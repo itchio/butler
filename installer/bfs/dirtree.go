@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type dirnode map[string]dirnode
@@ -37,7 +37,7 @@ func (dt *DirTree) EnsureParents(filePath string) error {
 	err := os.MkdirAll(filepath.Join(dt.basePath, dirPath), 0755)
 	if err != nil {
 		// mkdirall will return `ENOTDIR` if one of the elements is not a directory
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "dirtree ensuring parents for file")
 	}
 
 	dt.commitPath(filePath)

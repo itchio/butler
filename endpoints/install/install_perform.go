@@ -3,9 +3,9 @@ package install
 import (
 	"context"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/pkg/errors"
 )
 
 func InstallPerform(rc *butlerd.RequestContext, params *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
@@ -21,7 +21,7 @@ func InstallPerform(rc *butlerd.RequestContext, params *butlerd.InstallPerformPa
 
 	err := operate.InstallPerform(ctx, rc, params)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return &butlerd.InstallPerformResult{}, nil

@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 )
 
 func Test(ctx *mansion.Context, prereqs []string) error {
@@ -27,11 +27,11 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 	infoURL := fmt.Sprintf("%s/info.json?t=%d", baseURL, time.Now().Unix())
 	res, err := http.Get(infoURL)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if res.StatusCode != 200 {
-		return errors.Wrap(fmt.Errorf("While getting redist registry, got HTTP %d", res.StatusCode), 0)
+		return errors.Errorf("While getting redist registry, got HTTP %d", res.StatusCode)
 	}
 
 	dec := json.NewDecoder(res.Body)
@@ -39,7 +39,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 	registry := &redist.RedistRegistry{}
 	err = dec.Decode(registry)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(prereqs) == 0 {
@@ -82,7 +82,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 
 	err = os.MkdirAll(tempDir, 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	for _, name := range prereqs {
@@ -97,7 +97,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		workDir := filepath.Join(tempDir, name)
 		err = os.MkdirAll(workDir, 0755)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		task := &PrereqTask{
@@ -111,7 +111,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		_, err = dl.Do(ctx, url, dest)
 		if err != nil {
 			comm.Logf("Could not download prereq %s", name)
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		plan.Tasks = append(plan.Tasks, task)
@@ -122,19 +122,19 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 
 	planContents, err := json.Marshal(plan)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = ioutil.WriteFile(planPath, planContents, 0644)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Opf("Handing off to install-prereqs...")
 
 	err = Install(ctx, planPath, "")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

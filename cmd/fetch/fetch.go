@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -33,12 +33,12 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, specStr string, outPath string) error {
 	err := os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	outFiles, err := ioutil.ReadDir(outPath)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	if len(outFiles) > 0 {
@@ -47,24 +47,24 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = spec.EnsureChannel()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	comm.Opf("Getting last build of channel %s", spec.Channel)
 
 	channelResponse, err := client.GetChannel(spec.Target, spec.Channel)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	if channelResponse.Channel.Head == nil {
@@ -90,12 +90,12 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	remoteFile, err := eos.Open(url)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	stats, err := remoteFile.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	settings := archiver.ExtractSettings{
@@ -109,13 +109,13 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 	result, err := archiver.Extract(remoteFile, stats.Size(), outPath, settings)
 	comm.EndProgress()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	comm.Statf("Extracted %d dirs, %d files, %d links into %s", result.Dirs, result.Files, result.Symlinks, outPath)
 
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 	return nil
 }

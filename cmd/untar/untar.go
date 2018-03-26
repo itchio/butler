@@ -1,10 +1,10 @@
 package untar
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -33,7 +33,7 @@ func Do(ctx *mansion.Context, file string, dir string) error {
 	comm.EndProgress()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	comm.Logf("Extracted %d dirs, %d files, %d symlinks", res.Dirs, res.Files, res.Symlinks)
 

@@ -27,7 +27,7 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type ReaderAtCloser interface {
@@ -81,7 +81,7 @@ func lazyInit() error {
 
 	execPath, err := os.Executable()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	libPath = filepath.Join(filepath.Dir(execPath), libPath)
@@ -101,7 +101,7 @@ func lazyInit() error {
 func NewLib() (*Lib, error) {
 	err := lazyInit()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	lib := C.libc7zip_lib_new()
@@ -248,7 +248,7 @@ func (lib *Lib) OpenArchive(in *InStream, bySignature bool) (*Archive, error) {
 	arch := C.libc7zip_archive_open(lib.lib, in.strm, cBySignature)
 	if arch == nil {
 		err := coalesceErrors(in.Error(), lib.Error(), ErrUnknownError)
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	a := &Archive{
@@ -281,7 +281,7 @@ func (a *Archive) GetItemCount() (int64, error) {
 	res := int64(C.libc7zip_archive_get_item_count(a.arch))
 	if res < 0 {
 		err := coalesceErrors(a.in.Error(), a.lib.Error(), ErrUnknownError)
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 	return res, nil
 }
@@ -418,7 +418,7 @@ func (a *Archive) Extract(i *Item, out *OutStream) error {
 	success := C.libc7zip_archive_extract_item(a.arch, i.item, out.strm)
 	if success == 0 {
 		err := coalesceErrors(a.in.Error(), out.Error(), a.lib.Error(), ErrUnknownError)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -479,7 +479,7 @@ func (a *Archive) ExtractSeveral(indices []int64, ec *ExtractCallback) error {
 	ec.archive = nil
 	if success == 0 {
 		err := coalesceErrors(a.in.Error(), a.lib.Error(), ErrUnknownError)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -651,7 +651,7 @@ func ecSetOperationResultGo(id int64, result int32) {
 	if ec.out != nil {
 		err := ec.out.Close()
 		if err != nil {
-			ec.errors = append(ec.errors, errors.Wrap(err, 0))
+			ec.errors = append(ec.errors, errors.WithStack(err))
 		}
 		ec.out.Free()
 		ec.out = nil
@@ -662,6 +662,6 @@ func ecSetOperationResultGo(id int64, result int32) {
 	// GetLastError() and append it somewhere ?
 	if result != 0 {
 		err := coalesceErrors(ec.archive.lib.Error(), ErrUnknownError)
-		ec.errors = append(ec.errors, errors.Wrap(err, 0))
+		ec.errors = append(ec.errors, errors.WithStack(err))
 	}
 }

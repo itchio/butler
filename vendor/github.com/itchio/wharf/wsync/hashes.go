@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/splitfunc"
+	"github.com/pkg/errors"
 )
 
 // CreateSignature calculate the signature of target.
@@ -34,7 +34,7 @@ func (ctx *Context) CreateSignature(fileIndex int64, fileReader io.Reader, write
 
 		err := writeHash(blockHash)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 		blockIndex++
 		return nil
@@ -43,20 +43,20 @@ func (ctx *Context) CreateSignature(fileIndex int64, fileReader io.Reader, write
 	for s.Scan() {
 		err := hashBlock(s.Bytes())
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 
 	err := s.Err()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	// let empty files have a 0-length shortblock
 	if blockIndex == 0 {
 		err := hashBlock([]byte{})
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 

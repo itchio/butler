@@ -3,7 +3,7 @@ package drip
 import (
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type ValidateFunc func(data []byte) error
@@ -42,13 +42,13 @@ func (dw *Writer) Write(data []byte) (int, error) {
 			if dw.Validate != nil {
 				err := dw.Validate(buf)
 				if err != nil {
-					return 0, errors.Wrap(err, 1)
+					return 0, errors.WithStack(err)
 				}
 			}
 
 			_, err := dw.Writer.Write(buf)
 			if err != nil {
-				return 0, errors.Wrap(err, 1)
+				return 0, errors.WithStack(err)
 			}
 			dw.offset = 0
 		}

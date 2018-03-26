@@ -4,11 +4,11 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -89,7 +89,7 @@ func Do(ctx *mansion.Context, params *UnzipParams) error {
 	bytesPerSec := float64(zipUncompressedSize) / duration.Seconds()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "unzipping")
 	}
 	comm.Logf("Extracted %d dirs, %d files, %d symlinks, %s at %s/s", res.Dirs, res.Files, res.Symlinks,
 		humanize.IBytes(uint64(zipUncompressedSize)), humanize.IBytes(uint64(bytesPerSec)))

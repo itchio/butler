@@ -6,8 +6,8 @@ import (
 	"log"
 	"math"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 // TODO: check that everything has been extracted once properly
@@ -83,7 +83,7 @@ func (cs *Sink) Symlink(entry *savior.Entry, linkname string) error {
 		// that's about it
 		if item.Entry.Linkname != linkname {
 			err := fmt.Errorf("%s: expected dest '%s', got '%s'", entry.CanonicalPath, item.Entry.Linkname, linkname)
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		di.Linkname = linkname
@@ -102,7 +102,7 @@ func (cs *Sink) GetWriter(entry *savior.Entry) (savior.EntryWriter, error) {
 		if entry.WriteOffset != 0 {
 			_, err := checkingWriter.Seek(entry.WriteOffset, io.SeekStart)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -113,7 +113,7 @@ func (cs *Sink) GetWriter(entry *savior.Entry) (savior.EntryWriter, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return ew, nil
@@ -139,13 +139,13 @@ func (cs *Sink) withItem(entry *savior.Entry, actualKind savior.EntryKind, cb wi
 	item, ok := cs.Items[entry.CanonicalPath]
 	if !ok {
 		err := fmt.Errorf("%s: no such item", entry.CanonicalPath)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	expectedKind := item.Entry.Kind
 	if item.Entry.Kind != actualKind {
 		err := fmt.Errorf("%s: expected kind %v, got %v", entry.CanonicalPath, expectedKind, actualKind)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	di := cs.DoneItems[entry.CanonicalPath]

@@ -8,9 +8,9 @@ import (
 
 	"github.com/itchio/arkive/zip"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 type ZipWriterPool struct {
@@ -52,7 +52,7 @@ func (zwp *ZipWriterPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 
 	w, err := zwp.zw.CreateHeader(&fh)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	return &nopWriteCloser{w}, nil
@@ -69,7 +69,7 @@ func (zwp *ZipWriterPool) Close() error {
 
 		entryWriter, eErr := zwp.zw.CreateHeader(&fh)
 		if eErr != nil {
-			return errors.Wrap(eErr, 1)
+			return errors.WithStack(eErr)
 		}
 
 		entryWriter.Write([]byte(symlink.Dest))
@@ -84,13 +84,13 @@ func (zwp *ZipWriterPool) Close() error {
 
 		_, hErr := zwp.zw.CreateHeader(&fh)
 		if hErr != nil {
-			return errors.Wrap(hErr, 1)
+			return errors.WithStack(hErr)
 		}
 	}
 
 	err := zwp.zw.Close()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil

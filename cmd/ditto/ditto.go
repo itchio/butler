@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -51,7 +51,7 @@ func Do(src string, dst string) error {
 
 		rel, err := filepath.Rel(src, path)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		comm.Result(&mansion.FileMirroredResult{
@@ -66,19 +66,19 @@ func Do(src string, dst string) error {
 		case mode.IsDir():
 			err := dittoMkdir(dstpath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 		case mode.IsRegular():
 			err := dittoReg(path, dstpath, os.FileMode(f.Mode()&archiver.LuckyMode|archiver.ModeMask))
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 		case (mode&os.ModeSymlink > 0):
 			err := dittoSymlink(path, dstpath, f)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -97,7 +97,7 @@ func Do(src string, dst string) error {
 
 	rootinfo, err := os.Lstat(src)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if rootinfo.IsDir() {
@@ -108,13 +108,13 @@ func Do(src string, dst string) error {
 		comm.Logf("Mirroring...")
 		err = filepath.Walk(src, onFile)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	} else {
 		totalSize = rootinfo.Size()
 		err = onFile(src, rootinfo, nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -126,7 +126,7 @@ func dittoMkdir(dstpath string) error {
 	comm.Debugf("mkdir %s", dstpath)
 	err := archiver.Mkdir(dstpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	return nil
 }
@@ -135,29 +135,29 @@ func dittoReg(srcpath string, dstpath string, mode os.FileMode) error {
 	comm.Debugf("cp -f %s %s", srcpath, dstpath)
 	err := os.RemoveAll(dstpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	writer, err := os.OpenFile(dstpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer writer.Close()
 
 	reader, err := os.Open(srcpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer reader.Close()
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = os.Chmod(dstpath, mode)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -166,18 +166,18 @@ func dittoReg(srcpath string, dstpath string, mode os.FileMode) error {
 func dittoSymlink(srcpath string, dstpath string, f os.FileInfo) error {
 	err := os.RemoveAll(dstpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	linkname, err := os.Readlink(srcpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Debugf("ln -s %s %s", linkname, dstpath)
 	err = os.Symlink(linkname, dstpath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

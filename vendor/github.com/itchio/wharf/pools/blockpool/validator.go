@@ -5,12 +5,12 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 // A ValidatingSink only stores blocks if they match the signature provided
@@ -39,7 +39,7 @@ func (vs *ValidatingSink) Store(loc BlockLocation, data []byte) error {
 		vs.log("making hash groups")
 		err := vs.makeHashGroups()
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		vs.blockBuf = make([]byte, pwr.BlockSize)
@@ -65,12 +65,12 @@ func (vs *ValidatingSink) Store(loc BlockLocation, data []byte) error {
 
 		if bh.WeakHash != weakHash {
 			err := fmt.Errorf("at %+v, expected weak hash %x, got %x", loc, bh.WeakHash, weakHash)
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		if !bytes.Equal(bh.StrongHash, strongHash) {
 			err := fmt.Errorf("at %+v, expected strong hash %x, got %x", loc, bh.StrongHash, strongHash)
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 

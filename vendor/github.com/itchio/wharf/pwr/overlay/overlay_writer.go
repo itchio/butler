@@ -3,10 +3,9 @@ package overlay
 import (
 	"bufio"
 	"encoding/gob"
-	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 const overlayBufSize = 128 * 1024     // 128KiB
@@ -79,7 +78,7 @@ func (op *overlayProcessor) Write(buf []byte) (int, error) {
 		written += blockWritten
 
 		if err != nil {
-			return written, errors.Wrap(err, 0)
+			return written, errors.WithStack(err)
 		}
 	}
 
@@ -97,10 +96,10 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 	// time to compare!
 	rbuflen, err := ow.r.Read(rbuf[:len(buf)])
 	if err != nil {
-		if errors.Is(err, io.EOF) {
+		if errors.Cause(err) == io.EOF {
 			// EOF is fine, new file might be larger
 		} else {
-			return 0, errors.Wrap(err, 0)
+			return 0, errors.WithStack(err)
 		}
 	}
 
@@ -114,7 +113,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 			if freshLen > 0 {
 				err = ow.fresh(buf[lastOp : i-same])
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				lastOp = i - same
 			}
@@ -122,7 +121,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 			lastOp = i
 			err = ow.skip(int64(same))
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			return nil
@@ -136,7 +135,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 				if same > overlaySameThreshold {
 					err := commit(i)
 					if err != nil {
-						return 0, errors.Wrap(err, 0)
+						return 0, errors.WithStack(err)
 					}
 				}
 				same = 0
@@ -149,7 +148,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 		if same > overlaySameThreshold {
 			err := commit(i)
 			if err != nil {
-				return 0, errors.Wrap(err, 0)
+				return 0, errors.WithStack(err)
 			}
 		}
 
@@ -157,7 +156,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 		if lastOp < i {
 			err := ow.fresh(buf[lastOp:rbuflen])
 			if err != nil {
-				return 0, errors.Wrap(err, 0)
+				return 0, errors.WithStack(err)
 			}
 		}
 	}
@@ -166,7 +165,7 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 	if rbuflen < len(buf) {
 		err = ow.fresh(buf[rbuflen:])
 		if err != nil {
-			return 0, errors.Wrap(err, 0)
+			return 0, errors.WithStack(err)
 		}
 	}
 
@@ -180,16 +179,16 @@ func (ow *overlayWriter) fresh(data []byte) error {
 
 	err := ow.encoder.Encode(op)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	written, err := ow.w.Write(data)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if written < len(data) {
-		return errors.Wrap(fmt.Errorf("expected to write %d bytes, wrote %d", len(data), written), 0)
+		return errors.Errorf("expected to write %d bytes, wrote %d", len(data), written)
 	}
 
 	ow.offset += int64(len(data))
@@ -204,7 +203,7 @@ func (ow *overlayWriter) skip(skip int64) error {
 
 	err := ow.encoder.Encode(op)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ow.offset += skip
@@ -215,7 +214,7 @@ func (ow *overlayWriter) skip(skip int64) error {
 func (ow *overlayWriter) Close() error {
 	err := ow.Flush()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	op := &OverlayOp{
@@ -224,7 +223,7 @@ func (ow *overlayWriter) Close() error {
 
 	err = ow.encoder.Encode(op)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

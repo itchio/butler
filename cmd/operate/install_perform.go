@@ -18,7 +18,7 @@ import (
 
 	"github.com/itchio/butler/installer"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams *butlerd.InstallPerformParams) error {
@@ -28,7 +28,7 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 
 	oc, err := LoadContext(ctx, rc, performParams.StagingFolder)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	meta := NewMetaSubcontext()
@@ -36,14 +36,14 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 
 	err = doInstallPerform(oc, meta)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	rc.Consumer.Infof("Install successful, retiring context")
 
 	err = oc.Retire()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -69,7 +69,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 	client, err := ClientFromCredentials(params.Credentials)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("→ Installing %s", GameToString(params.Game))
@@ -100,7 +100,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			DownloadKeyID: params.Credentials.DownloadKey,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		istate.DownloadSessionId = res.UUID
 		oc.Save(isub)
@@ -182,13 +182,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	// (just copy it first). see DownloadInstallSource later on.
 	file, err := eos.Open(installSourceURL)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer file.Close()
 
 	stats, err := file.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	doForceLocal := func() (eos.File, error) {
@@ -210,7 +210,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 					TotalSize: stats.Size(),
 				})
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				oc.rc.StartProgress()
@@ -218,20 +218,20 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				oc.rc.EndProgress()
 				oc.consumer.Progress(0)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				err = messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
 					Type: butlerd.TaskTypeDownload,
 				})
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				return nil
 			}()
 
 			if dlErr != nil {
-				return nil, errors.Wrap(dlErr, 0)
+				return nil, errors.Wrap(dlErr, "downloading install source")
 			}
 
 			istate.IsAvailableLocally = true
@@ -240,7 +240,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 		ret, err := eos.Open(destPath)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		return ret, nil
 	}
@@ -251,7 +251,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 		lf, err := doForceLocal()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		file.Close()
@@ -263,13 +263,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 		installerInfo, err := installer.GetInstallerInfo(consumer, file)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// sniffing may have read parts of the file, so seek back to beginning
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if params.IgnoreInstallers {
@@ -330,7 +330,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			TotalSize: stats.Size(),
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		oc.rc.StartProgress()
@@ -338,7 +338,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		oc.rc.EndProgress()
 
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		return res, nil
@@ -351,10 +351,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	} else {
 		var err error
 		firstInstallResult, err = tryInstall()
-		if err != nil && errors.Is(err, installer.ErrNeedLocal) {
+		if err != nil && errors.Cause(err) == installer.ErrNeedLocal {
 			lf, localErr := doForceLocal()
 			if localErr != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			consumer.Infof("Re-invoking manager with local file...")
@@ -364,7 +364,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		}
 
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		consumer.Infof("Install successful")
@@ -390,7 +390,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Infof("Probing (%s)...", single)
 				sf, err := os.Open(singlePath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				defer sf.Close()
 
@@ -430,23 +430,23 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 				err = os.MkdirAll(filepath.Dir(destPath), 0755)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				err = os.RemoveAll(destPath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				err = os.Rename(singlePath, destPath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			}
 
 			lf, err := os.Open(destPath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			managerInstallParams.File = lf
@@ -456,7 +456,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			return err
 		}()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

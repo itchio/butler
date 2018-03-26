@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/manager"
+	"github.com/pkg/errors"
 )
 
 type StrategyResult struct {
@@ -66,9 +66,9 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 
 		if os.IsNotExist(err) {
 			err = fmt.Errorf("Manifest action '%s' refers to non-existent path (%s)", manifestAction.Name, fullPath)
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if stats.IsDir() {
@@ -91,7 +91,7 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 
 	verdict, err := configurator.Configure(fullPath, false)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if len(verdict.Candidates) > 0 {

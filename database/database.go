@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	// enable sqlite3 dialect for gorm
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
@@ -20,12 +20,12 @@ var debugSql = os.Getenv("BUTLER_SQL") == "1"
 func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
 	err := os.MkdirAll(filepath.Dir(dbPath), 0755)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "creating db directory")
 	}
 
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "opening SQLite database")
 	}
 
 	return Prepare(db)
@@ -39,7 +39,7 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 
 	err := db.AutoMigrate(models.AllModels...).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "performing automatic DB migration")
 	}
 
 	// disable default gorm timestamp behavior, since our

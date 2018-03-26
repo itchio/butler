@@ -15,12 +15,12 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -58,14 +58,14 @@ func (lw *lzmaWriter) Write(buf []byte) (int, error) {
 func (lw *lzmaWriter) Close() error {
 	f, err := ioutil.TempFile("", "lzma-in")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer f.Close()
 	defer os.Remove(f.Name())
 
 	_, err = f.Write(lw.buf.Bytes())
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	f.Close()
 
@@ -75,18 +75,18 @@ func (lw *lzmaWriter) Close() error {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var versionInfo uint16 = 5129
 	var propSize uint16 = 5
 	err = binary.Write(lw.w, binary.LittleEndian, versionInfo)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	err = binary.Write(lw.w, binary.LittleEndian, propSize)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	outReader := bytes.NewReader(outBuf.Bytes())
@@ -94,13 +94,13 @@ func (lw *lzmaWriter) Close() error {
 	lzmaProps := make([]byte, 5)
 	_, err = io.ReadFull(outReader, lzmaProps)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	lzmaSize := make([]byte, 8)
 	_, err = io.ReadFull(outReader, lzmaSize)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var unpackSize uint64
@@ -111,12 +111,12 @@ func (lw *lzmaWriter) Close() error {
 
 	_, err = lw.w.Write(lzmaProps)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	_, err = io.Copy(lw.w, outReader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func doMk(ctx *mansion.Context) {
 func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 	f, err := os.Create(file)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer f.Close()
 
@@ -150,12 +150,12 @@ func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		_, err = ew.Write(bs)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -167,12 +167,12 @@ func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		_, err = ew.Write(bs)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -184,12 +184,12 @@ func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 			UncompressedSize64: uint64(len(bs)),
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		ew.Write(bs)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -204,13 +204,13 @@ func do(ctx *mansion.Context) {
 func Do(consumer *state.Consumer, file string, upstream bool) error {
 	f, err := eos.Open(file)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer f.Close()
 
 	stats, err := f.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Opf("Auditing (%s)...", stats.Name())
@@ -265,13 +265,13 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 				humanize.IBytes(uint64(actualSize)),
 				actualSize,
 			)
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		return nil
 	})
 	comm.EndProgress()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(foundErrors) > 0 {
@@ -301,7 +301,7 @@ var _ ZipImpl = (*itchioImpl)(nil)
 func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int64, cb EachEntryFunc) error {
 	zr, err := itchiozip.NewReader(r, size)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var compressedSize int64
@@ -322,7 +322,7 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 	for index, entry := range zr.File {
 		rc, err := entry.Open()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if entry.Method == itchiozip.LZMA {
@@ -335,7 +335,7 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
 		rc.Close()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -351,7 +351,7 @@ var _ ZipImpl = (*upstreamImpl)(nil)
 func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int64, cb EachEntryFunc) error {
 	zr, err := upstreamzip.NewReader(r, size)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var compressedSize int64
@@ -372,13 +372,13 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 	for index, entry := range zr.File {
 		rc, err := entry.Open()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
 		rc.Close()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

@@ -8,13 +8,13 @@ import (
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/progress"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -65,9 +65,9 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		defer func() {
 			if r := recover(); r != nil {
 				if rErr, ok := r.(error); ok {
-					err = errors.Wrap(rErr, 0)
+					err = errors.WithStack(rErr)
 				} else {
-					err = errors.New(r)
+					err = errors.Errorf("panic: %v", r)
 				}
 			}
 		}()
@@ -158,16 +158,14 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 	}
 
 	var rawData *json.RawMessage
-	if se, ok := err.(*errors.Error); ok {
-		input := map[string]interface{}{
-			"stack":         se.ErrorStack(),
-			"butlerVersion": r.MansionContext.VersionString,
-		}
-		es, err := json.Marshal(input)
-		if err == nil {
-			rm := json.RawMessage(es)
-			rawData = &rm
-		}
+	input := map[string]interface{}{
+		"stack":         fmt.Sprintf("%+v", err),
+		"butlerVersion": r.MansionContext.VersionString,
+	}
+	es, err := json.Marshal(input)
+	if err == nil {
+		rm := json.RawMessage(es)
+		rawData = &rm
 	}
 	origConn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeInternalError,
@@ -248,7 +246,7 @@ func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itch
 
 	client, err := rc.MansionContext.NewClient(profile.APIKey)
 	if err != nil {
-		panic(errors.Wrap(err, 0))
+		panic(errors.WithStack(err))
 	}
 
 	return profile, client

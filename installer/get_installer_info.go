@@ -5,17 +5,17 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, error) {
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	target := stat.Name()
@@ -45,7 +45,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	beforeConfiguratorProbe := time.Now()
 	candidate, err := configurator.Sniff(file, target, stat.Size())
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	consumer.Debugf("  (took %s)", time.Since(beforeConfiguratorProbe))
 
@@ -68,7 +68,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		// seek to start first because configurator may have seeked itself
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		archiveInfo, err := archive.Probe(&archive.TryOpenParams{
@@ -87,7 +87,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 

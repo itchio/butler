@@ -4,9 +4,9 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/dskompress/brotli"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 type brotliSource struct {
@@ -68,7 +68,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 		if ourCheckpoint, ok := checkpoint.Data.(*BrotliSourceCheckpoint); ok {
 			sourceOffset, err := bs.source.Resume(ourCheckpoint.SourceCheckpoint)
 			if err != nil {
-				return 0, errors.Wrap(err, 0)
+				return 0, errors.WithStack(err)
 			}
 
 			bc := ourCheckpoint.BrotliCheckpoint
@@ -77,7 +77,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 				savior.Debugf(`brotlisource: discarding %d bytes to align source with decompressor`, delta)
 				err = savior.DiscardByRead(bs.source, delta)
 				if err != nil {
-					return 0, errors.Wrap(err, 0)
+					return 0, errors.WithStack(err)
 				}
 				sourceOffset += delta
 			}
@@ -89,7 +89,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 					// well, let's start over
 					_, err = bs.source.Resume(nil)
 					if err != nil {
-						return 0, errors.Wrap(err, 0)
+						return 0, errors.WithStack(err)
 					}
 				} else {
 					bs.offset = bc.OutputOffset
@@ -104,7 +104,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 	// start from beginning
 	sourceOffset, err := bs.source.Resume(nil)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if sourceOffset != 0 {
@@ -114,7 +114,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 
 	br, err := brotli.NewSaverReader(bs.source)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 	bs.br = br
 	bs.offset = 0
@@ -124,7 +124,7 @@ func (bs *brotliSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, erro
 
 func (bs *brotliSource) Read(buf []byte) (int, error) {
 	if bs.br == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := bs.br.Read(buf)
@@ -164,7 +164,7 @@ func (bs *brotliSource) Read(buf []byte) (int, error) {
 
 func (bs *brotliSource) ReadByte() (byte, error) {
 	if bs.br == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := bs.Read(bs.bytebuf)

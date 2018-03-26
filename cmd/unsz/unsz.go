@@ -8,11 +8,11 @@ import (
 	"github.com/itchio/butler/archive/szextractor"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -55,20 +55,20 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 
 	file, err := eos.Open(params.File)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer file.Close()
 
 	stats, err := file.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Opf("Extracting %s to %s", stats.Name(), params.Dir)
 
 	ex, err := szextractor.New(file, consumer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	startTime := time.Now()
@@ -82,7 +82,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 	comm.EndProgress()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	duration := time.Since(startTime)

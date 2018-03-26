@@ -1,13 +1,13 @@
 package operate
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 type CommitInstallParams struct {
@@ -35,7 +35,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		},
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Opf("Writing receipt...")
@@ -53,7 +53,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 
 	err = receipt.WriteReceipt(params.InstallFolder)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	cave := oc.cave
@@ -61,7 +61,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		// TODO: pass runtime in params?
 		verdict, err := manager.Configure(consumer, params.InstallFolder, manager.CurrentRuntime())
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		consumer.Opf("Saving cave...")

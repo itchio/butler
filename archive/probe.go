@@ -13,9 +13,9 @@ import (
 	"github.com/itchio/savior/gzipsource"
 	"github.com/itchio/savior/seeksource"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior/tarextractor"
 	"github.com/itchio/savior/zipextractor"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
@@ -88,7 +88,7 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 	// now actually try to open it
 	ex, err := info.GetExtractor(params.File, params.Consumer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "getting extractor for file")
 	}
 
 	info.Features = ex.Features()
@@ -207,12 +207,12 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	case ArchiveStrategyZip:
 		stats, err := file.Stat()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "stat'ing file to open as zip archive")
 		}
 
 		ex, err := zipextractor.New(file, stats.Size())
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating zip extractor")
 		}
 		return ex, nil
 	case ArchiveStrategyTar:
@@ -224,13 +224,13 @@ func (ai *ArchiveInfo) GetExtractor(file eos.File, consumer *state.Consumer) (sa
 	case ArchiveStrategyTarXz:
 		xs, err := xzsource.New(file, consumer)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating xz extractor")
 		}
 		return tarextractor.New(xs), nil
 	case ArchiveStrategySevenZip:
 		szex, err := szextractor.New(file, consumer)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "creating 7-zip extractor")
 		}
 
 		// apply blacklist

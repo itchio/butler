@@ -7,8 +7,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -121,7 +121,7 @@ func Test_SaveAngels(t *testing.T) {
 		must(t, os.RemoveAll(dest))
 		_, err := SaveAngels(params, failingTask)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, taskFailedErr))
+		assert.True(t, errors.Cause(err) == taskFailedErr)
 		assert.True(t, taskCalled)
 	}
 
@@ -142,7 +142,7 @@ func Test_SaveAngels(t *testing.T) {
 		must(t, cleanAndMakeFolder(oldFs, dest))
 		_, err := SaveAngels(params, failingTask)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, taskFailedErr))
+		assert.True(t, errors.Cause(err) == taskFailedErr)
 		assert.True(t, taskCalled)
 		checkFolder(t, oldFs, dest)
 	}
@@ -167,7 +167,7 @@ func Test_SaveAngels(t *testing.T) {
 		must(t, cleanAndMakeFolder(oldFs, dest))
 		_, err := SaveAngels(params, failingTask)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, taskFailedErr))
+		assert.True(t, errors.Cause(err) == taskFailedErr)
 		assert.True(t, taskCalled)
 		checkFolder(t, oldFs, dest)
 	}

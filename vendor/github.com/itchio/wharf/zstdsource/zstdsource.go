@@ -1,13 +1,12 @@
 package zstdsource
 
 import (
-	"fmt"
 	"io"
 	"runtime"
 
 	"github.com/Datadog/zstd"
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 type zstdSource struct {
@@ -55,11 +54,11 @@ func (zs *zstdSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 
 	offset, err := zs.source.Resume(nil)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if offset != 0 {
-		return 0, errors.Wrap(fmt.Errorf("expected underlying source to resume at 0, but got %d", offset), 0)
+		return 0, errors.Errorf("expected underlying source to resume at 0, but got %d", offset)
 	}
 
 	if zs.zd != nil {
@@ -75,7 +74,7 @@ func (zs *zstdSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 
 func (zs *zstdSource) Read(buf []byte) (int, error) {
 	if zs.zd == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	return zs.zd.Read(buf)
@@ -83,7 +82,7 @@ func (zs *zstdSource) Read(buf []byte) (int, error) {
 
 func (zs *zstdSource) ReadByte() (byte, error) {
 	if zs.zd == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	_, err := zs.zd.Read(zs.bytebuf)

@@ -1,10 +1,10 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
+	"github.com/pkg/errors"
 )
 
 func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
@@ -21,7 +21,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 			},
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		keys := profile.OwnedKeys
@@ -33,7 +33,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 		}
 		err = messages.FetchProfileOwnedKeysYield.Notify(rc, yn)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		return nil
@@ -41,12 +41,12 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 
 	err := sendDBKeys()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	ownedRes, err := client.ListMyOwnedKeys()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	profile.OwnedKeys = ownedRes.OwnedKeys
@@ -55,12 +55,12 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 		Assocs: []string{"OwnedKeys"},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = sendDBKeys()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.FetchProfileOwnedKeysResult{}

@@ -6,9 +6,9 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -85,18 +85,18 @@ func (r *ReadContext) Resume(checkpoint *MessageReaderCheckpoint) error {
 
 		sourceOffset, err := r.source.Resume(sourceCheckpoint)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		delta := checkpoint.Offset - sourceOffset
 		if delta < 0 {
-			return errors.Wrap(fmt.Errorf("wire.ReadContext: source (%d) resumed after our offset (%d), can't recover from that", sourceOffset, checkpoint.Offset), 0)
+			return errors.Errorf("wire.ReadContext: source (%d) resumed after our offset (%d), can't recover from that", sourceOffset, checkpoint.Offset)
 		}
 		if delta > 0 {
 			savior.Debugf("wire.ReadContext: Discarding %d to align source (%d) with our offset (%d)", delta, sourceOffset, checkpoint.Offset)
 			err = savior.DiscardByRead(r.source, delta)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			savior.Debugf("wire.ReadContext: Discarded %d successfully!", delta)
 		}
@@ -108,11 +108,11 @@ func (r *ReadContext) Resume(checkpoint *MessageReaderCheckpoint) error {
 
 	sourceOffset, err := r.source.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if sourceOffset != 0 {
-		return errors.Wrap(fmt.Errorf("ReadContext: expected source to resume at 0 but got %d", sourceOffset), 0)
+		return errors.Errorf("ReadContext: expected source to resume at 0 but got %d", sourceOffset)
 	}
 
 	r.offset = 0
@@ -148,11 +148,11 @@ func (r *ReadContext) ExpectMagic(magic int32) error {
 	var readMagic int32
 	err := binary.Read(r.countingReader, Endianness, &readMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if magic != readMagic {
-		return errors.Wrap(ErrFormat, 0)
+		return errors.WithStack(ErrFormat)
 	}
 
 	return nil
@@ -164,7 +164,7 @@ func (r *ReadContext) ReadMessage(msg proto.Message) error {
 
 	length, err := binary.ReadUvarint(r.countingReader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	msgBuf := r.protoBuffer.Bytes()
@@ -174,7 +174,7 @@ func (r *ReadContext) ReadMessage(msg proto.Message) error {
 
 	_, err = io.ReadFull(r.countingReader, msgBuf[:length])
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	r.protoBuffer.SetBuf(msgBuf[:length])
 
@@ -182,7 +182,7 @@ func (r *ReadContext) ReadMessage(msg proto.Message) error {
 
 	err = r.protoBuffer.Unmarshal(msg)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if DebugWire {

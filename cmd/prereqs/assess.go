@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
+	"github.com/pkg/errors"
 )
 
 type PrereqAssessment struct {
@@ -33,12 +33,14 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 		switch pc.Runtime.Platform {
 		case butlerd.ItchPlatformWindows:
 			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
+			if err != nil {
+				return nil, errors.Wrap(err, "assessing windows prereq")
+			}
 		case butlerd.ItchPlatformLinux:
 			alreadyGood, err = pc.AssessLinuxPrereq(name, entry)
-		}
-
-		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			if err != nil {
+				return nil, errors.Wrap(err, "assessing linux prereq")
+			}
 		}
 
 		if alreadyGood {
@@ -53,7 +55,7 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 	for _, name := range pa.Done {
 		err := pc.MarkInstalled(name)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrapf(err, "marking %s as installed", name)
 		}
 		continue
 	}
@@ -81,12 +83,12 @@ func (pc *PrereqsContext) MarkInstalled(name string) error {
 	path := pc.MarkerPath(name)
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating marker dir")
 	}
 
 	err = ioutil.WriteFile(path, []byte(contents), os.FileMode(0644))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "writing marker file")
 	}
 
 	return nil
@@ -131,7 +133,7 @@ func (pc *PrereqsContext) RunSanityCheck(name string, entry *redist.RedistEntry,
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		pc.Consumer.Debugf("Sanity check failed:%s\n%s", err.Error(), string(output))
-		return errors.Wrap(err, 0)
+		return errors.Wrapf(err, "performing sanity check for %s", name)
 	}
 
 	return nil

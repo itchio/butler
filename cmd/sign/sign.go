@@ -5,7 +5,6 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -14,6 +13,7 @@ import (
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -40,12 +40,12 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 
 	container, err := tlc.WalkAny(output, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "walking directory to sign")
 	}
 
 	pool, err := pools.New(container, output)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "creating pool for directory to sign")
 	}
 
 	if fixPerms {
@@ -54,7 +54,7 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 
 	signatureWriter, err := os.Create(signature)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "creating signature file")
 	}
 	defer signatureWriter.Close()
 
@@ -67,7 +67,7 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 
 	sigWire, err := pwr.CompressWire(rawSigWire, &compression)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "setting up compression for signature file")
 	}
 	sigWire.WriteMessage(container)
 
@@ -80,12 +80,12 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 	})
 	comm.EndProgress()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "computing signature")
 	}
 
 	err = sigWire.Close()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "finalizing signature file")
 	}
 
 	prettySize := humanize.IBytes(uint64(container.Size))

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
 )
@@ -28,12 +27,12 @@ type ProfileGame struct {
 	Published bool `json:"published"`
 }
 
-func ProfileGamesByGameID(db *gorm.DB, gameID int64) ([]*ProfileGame, error) {
+func ProfileGamesByGameID(db *gorm.DB, gameID int64) []*ProfileGame {
 	var pgs []*ProfileGame
 	err := db.Where("game_id = ?", gameID).Find(&pgs).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		panic(err)
 	}
 
-	return pgs, nil
+	return pgs
 }

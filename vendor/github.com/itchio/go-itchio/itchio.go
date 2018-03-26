@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // A Client allows consuming the itch.io API
@@ -55,7 +55,7 @@ func (c *Client) WharfStatus() (*WharfStatusResponse, error) {
 
 	err := c.GetResponse(c.MakePath("wharf/status"), r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -67,7 +67,7 @@ func (c *Client) GetMe() (*GetMeResponse, error) {
 
 	err := c.GetResponse(c.MakePath("me"), r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -83,7 +83,7 @@ func (c *Client) GetGame(params *GetGameParams) (*GetGameResponse, error) {
 	path := c.MakePath("game/%d", params.GameID)
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -99,7 +99,7 @@ func (c *Client) GetCollection(params *GetCollectionParams) (*GetCollectionRespo
 	path := c.MakePath("collection/%d", params.CollectionID)
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -119,7 +119,7 @@ func (c *Client) GetCollectionGames(params *GetCollectionGamesParams) (*GetColle
 	path := c.MakePath("collection/%d/games?%s", params.CollectionID, values.Encode())
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -142,7 +142,7 @@ func (c *Client) SearchGames(params *SearchGamesParams) (*SearchGamesResponse, e
 	path := c.MakePath("search/games?%s", values.Encode())
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -165,7 +165,7 @@ func (c *Client) SearchUsers(params *SearchUsersParams) (*SearchUsersResponse, e
 	path := c.MakePath("search/users?%s", values.Encode())
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -177,7 +177,7 @@ func (c *Client) ListMyGames() (*ListMyGamesResponse, error) {
 
 	err := c.GetResponse(c.MakePath("my-games"), r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -189,7 +189,7 @@ func (c *Client) ListMyOwnedKeys() (*ListMyOwnedKeysResponse, error) {
 
 	err := c.GetResponse(c.MakePath("my-owned-keys"), r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -201,7 +201,7 @@ func (c *Client) ListMyCollections() (*ListMyCollectionsResponse, error) {
 
 	err := c.GetResponse(c.MakePath("my-collections"), r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -214,7 +214,7 @@ func (c *Client) GameUploads(gameID int64) (*GameUploadsResponse, error) {
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -248,7 +248,7 @@ func (c *Client) UploadDownloadWithKeyAndValues(downloadKey string, uploadID int
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -269,7 +269,7 @@ func (c *Client) CreateBuild(target string, channel string, userVersion string) 
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -284,7 +284,7 @@ func (c *Client) ListChannels(target string) (*ListChannelsResponse, error) {
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -299,7 +299,7 @@ func (c *Client) GetChannel(target string, channel string) (*GetChannelResponse,
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -328,7 +328,7 @@ func (c *Client) ListBuildFiles(buildID int64) (*ListBuildFilesResponse, error) 
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -350,7 +350,7 @@ func (c *Client) CreateBuildFile(buildID int64, fileType BuildFileType, subType 
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -375,7 +375,7 @@ func (c *Client) CreateBuildFileWithName(buildID int64, fileType BuildFileType, 
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -391,7 +391,7 @@ func (c *Client) FinalizeBuildFile(buildID int64, fileID int64, size int64) (*Fi
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -417,7 +417,7 @@ func (c *Client) GetBuildFileDownloadURLWithValues(buildID int64, fileID int64, 
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -431,18 +431,18 @@ func (c *Client) DownloadBuildFile(buildID int64, fileID int64) (io.ReadCloser, 
 	r := &DownloadBuildFileResponse{}
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	req, err := http.NewRequest("GET", r.URL, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// not an API request, going directly with http's DefaultClient
 	dlResp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if dlResp.StatusCode == 200 {
@@ -487,7 +487,7 @@ func (c *Client) DownloadUploadBuildWithKeyAndValues(downloadKey string, uploadI
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -515,13 +515,13 @@ func (c *Client) CreateBuildEvent(buildID int64, eventType BuildEventType, messa
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	form.Add("data", string(jsonData))
 
 	err = c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -541,7 +541,7 @@ func (c *Client) CreateBuildFailure(buildID int64, message string, fatal bool) (
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -557,7 +557,7 @@ func (c *Client) CreateRediffBuildFailure(buildID int64, message string) (*Creat
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -570,7 +570,7 @@ func (c *Client) ListBuildEvents(buildID int64) (*ListBuildEventsResponse, error
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -601,7 +601,7 @@ func (c *Client) ListGameUploads(params *ListGameUploadsParams) (*ListGameUpload
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -624,7 +624,7 @@ func (c *Client) ListUploadBuilds(params *ListUploadBuildsParams) (*ListUploadBu
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -659,7 +659,7 @@ func (c *Client) FindUpgrade(params *FindUpgradeParams) (*FindUpgradeResponse, e
 
 	err := c.GetResponse(path, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -681,7 +681,7 @@ func (c *Client) NewDownloadSession(params *NewDownloadSessionParams) (*NewDownl
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -708,7 +708,7 @@ func (c *Client) LoginWithPassword(params *LoginWithPasswordParams) (*LoginWithP
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -729,7 +729,7 @@ func (c *Client) TOTPVerify(params *TOTPVerifyParams) (*TOTPVerifyResponse, erro
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil
@@ -750,7 +750,7 @@ func (c *Client) Subkey(params *SubkeyParams) (*SubkeyResponse, error) {
 
 	err := c.PostFormResponse(path, form, r)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return r, nil

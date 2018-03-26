@@ -11,8 +11,8 @@ import (
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/tlc"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
+	"github.com/pkg/errors"
 )
 
 func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, receiptIn *bfs.Receipt) error {
@@ -37,13 +37,13 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	signatureFile, err := eos.Open(signatureURL)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer signatureFile.Close()
 
 	stat, err := signatureFile.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Fetching + parsing %s signature...",
@@ -56,12 +56,12 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	_, err = signatureSource.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sigInfo, err := pwr.ReadSignature(signatureSource)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("✓ Fetched signature in %s, dealing with %s container",
@@ -78,7 +78,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	oc.rc.EndProgress()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	healDuration := time.Since(timeBeforeHeal)
@@ -124,7 +124,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		Consumer: consumer,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return commitInstall(oc, &CommitInstallParams{

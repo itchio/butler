@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/macutil"
 	"github.com/itchio/butler/runner/policies"
+	"github.com/pkg/errors"
 )
 
 var investigateSandbox = os.Getenv("INVESTIGATE_SANDBOX") == "1"
@@ -54,7 +54,7 @@ func (ser *sandboxExecRunner) Run() error {
 
 	binaryPath, err := macutil.GetExecutablePath(realBundlePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	binaryName := filepath.Base(binaryPath)
 
@@ -62,12 +62,12 @@ func (ser *sandboxExecRunner) Run() error {
 	consumer.Opf("Writing sandbox profile to (%s)", sandboxProfilePath)
 	err = os.MkdirAll(filepath.Dir(sandboxProfilePath), 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	userLibrary, err := macutil.GetLibraryPath()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sandboxSource := policies.SandboxExecTemplate
@@ -86,12 +86,12 @@ func (ser *sandboxExecRunner) Run() error {
 
 	err = ioutil.WriteFile(sandboxProfilePath, []byte(sandboxSource), 0644)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	workDir, err := ioutil.TempDir("", "butler-shim-bundle")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer os.RemoveAll(workDir)
 
@@ -109,7 +109,7 @@ func (ser *sandboxExecRunner) Run() error {
 	)
 	err = os.MkdirAll(filepath.Dir(shimBinaryPath), 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	shimBinaryContents := fmt.Sprintf(`#!/bin/bash
@@ -123,7 +123,7 @@ func (ser *sandboxExecRunner) Run() error {
 
 	err = ioutil.WriteFile(shimBinaryPath, []byte(shimBinaryContents), 0744)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = os.Symlink(
@@ -131,7 +131,7 @@ func (ser *sandboxExecRunner) Run() error {
 		filepath.Join(shimBundlePath, "Contents", "Resources"),
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = os.Symlink(
@@ -139,7 +139,7 @@ func (ser *sandboxExecRunner) Run() error {
 		filepath.Join(shimBundlePath, "Contents", "Info.plist"),
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if investigateSandbox {

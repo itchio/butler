@@ -15,16 +15,16 @@ import (
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 	planReader, err := os.Open(planPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	decoder := json.NewDecoder(planReader)
@@ -32,12 +32,12 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 	plan := &PrereqPlan{}
 	err = decoder.Decode(plan)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	namedPipe, err := NewNamedPipe(pipePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer := namedPipe.Consumer()
@@ -68,11 +68,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 		}
 
 		if err != nil {
-			if se, ok := err.(*errors.Error); ok {
-				consumer.Errorf("For prereq (%s): %s", task.Name, se.ErrorStack())
-			} else {
-				consumer.Errorf("For prereq (%s): %s", task.Name, err.Error())
-			}
+			consumer.Errorf("For prereq (%s): %+v", task.Name, err)
 			failed = append(failed, task.Name)
 		}
 
@@ -84,7 +80,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 	if len(failed) > 0 {
 		errMsg := fmt.Sprintf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
 		consumer.Errorf(errMsg)
-		return errors.Wrap(errors.New(errMsg), 0)
+		return errors.New(errMsg)
 	}
 
 	consumer.Statf("All done! (Spent %s total)", time.Since(startTime))
@@ -100,7 +96,7 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 	if strings.HasSuffix(strings.ToLower(task.Info.Command), ".msi") {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		defer func() {
@@ -117,7 +113,7 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 		cmdTokens := append([]string{commandPath}, args...)
 		signedCode, err := installer.RunCommand(consumer, cmdTokens)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if signedCode != 0 {
@@ -150,7 +146,7 @@ func installLinuxPrereq(consumer *state.Consumer, task *PrereqTask) error {
 			consumer.Infof("Making (%s) executable", path)
 			err := os.Chmod(path, 0755)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -160,12 +156,12 @@ func installLinuxPrereq(consumer *state.Consumer, task *PrereqTask) error {
 
 			err := os.Chown(path, 0, 0)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			err = os.Chmod(path, 0755|os.ModeSetuid)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	default:

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 // DiskSource reads blocks from disk by their hash and length. It's hard-coded
@@ -43,13 +43,13 @@ func (ds *DiskSource) Clone() Source {
 func (ds *DiskSource) Fetch(loc BlockLocation, data []byte) (int, error) {
 	addr := ds.BlockAddresses.Get(loc)
 	if addr == "" {
-		return 0, errors.Wrap(fmt.Errorf("no address for block %+v", loc), 1)
+		return 0, errors.WithStack(fmt.Errorf("no address for block %+v", loc))
 	}
 	path := filepath.Join(ds.BasePath, addr)
 
 	fr, err := os.Open(path)
 	if err != nil {
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.WithStack(err)
 	}
 
 	defer fr.Close()
@@ -60,7 +60,7 @@ func (ds *DiskSource) Fetch(loc BlockLocation, data []byte) (int, error) {
 			if err == io.ErrUnexpectedEOF {
 				// all good
 			} else {
-				return 0, errors.Wrap(err, 1)
+				return 0, errors.WithStack(err)
 			}
 		}
 

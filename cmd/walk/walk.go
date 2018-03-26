@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -35,7 +35,7 @@ func Do(ctx *mansion.Context, dir string, dereference bool) error {
 		Dereference: dereference,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "walking")
 	}
 
 	totalEntries := 0

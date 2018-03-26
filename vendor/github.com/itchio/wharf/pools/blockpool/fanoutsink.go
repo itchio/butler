@@ -3,8 +3,8 @@ package blockpool
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 type storeOp struct {
@@ -41,7 +41,7 @@ func (fos *FanOutSink) Clone() Sink {
 // NewFanOutSink returns a newly initialized FanOutSink
 func NewFanOutSink(templateSink Sink, numSinks int) (*FanOutSink, error) {
 	if numSinks <= 0 {
-		return nil, errors.Wrap(fmt.Errorf("numSinks must > 0, was %d", numSinks), 1)
+		return nil, errors.WithStack(fmt.Errorf("numSinks must > 0, was %d", numSinks))
 	}
 
 	stores := make(chan storeOp)
@@ -115,7 +115,7 @@ func (fos *FanOutSink) Close() error {
 // To retrieve errors, one has to call Close explicitly
 func (fos *FanOutSink) Store(loc BlockLocation, data []byte) error {
 	if fos.closed {
-		return errors.Wrap(fmt.Errorf("writing to closed FanOutSink"), 1)
+		return errors.WithStack(fmt.Errorf("writing to closed FanOutSink"))
 	}
 
 	op := storeOp{

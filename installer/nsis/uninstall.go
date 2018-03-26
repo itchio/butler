@@ -3,9 +3,9 @@ package nsis
 import (
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer"
+	"github.com/pkg/errors"
 )
 
 func (m *Manager) Uninstall(params *installer.UninstallParams) error {
@@ -16,7 +16,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 
 	verdict, err := configurator.Configure(folder, false)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "looking for nsis uninstaller")
 	}
 
 	var chosen *configurator.Candidate
@@ -59,7 +59,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	exitCode, err := installer.RunElevatedCommand(consumer, cmdTokens)
 	err = installer.CheckExitCode(exitCode, err)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "making sure nsis uninstaller ran correctly")
 	}
 
 	return nil

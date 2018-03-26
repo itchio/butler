@@ -11,7 +11,6 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools/fspool"
@@ -19,6 +18,7 @@ import (
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 // An ArchiveHealer can repair from a .zip file (remote or local)
@@ -164,7 +164,7 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 		if err != nil {
 			close(fileIndices)
 			close(cancelled)
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -176,7 +176,7 @@ func (ah *ArchiveHealer) Do(container *tlc.Container, wounds chan *Wound) error 
 	for i := 0; i < ah.NumWorkers; i++ {
 		err := <-errs
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (ah *ArchiveHealer) heal(container *tlc.Container, targetPool wsync.Writabl
 
 				file, err := eos.Open(ah.ArchivePath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				defer file.Close()
@@ -220,7 +220,7 @@ func (ah *ArchiveHealer) heal(container *tlc.Container, targetPool wsync.Writabl
 
 				zipReader, err := zip.NewReader(file, stat.Size())
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				sourcePool = zippool.New(container, zipReader)
@@ -231,7 +231,7 @@ func (ah *ArchiveHealer) heal(container *tlc.Container, targetPool wsync.Writabl
 
 			err = ah.healOne(sourcePool, targetPool, fileIndex, chunkHealed)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}

@@ -2,9 +2,9 @@ package system
 
 import (
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/pkg/errors"
 )
 
 func Register(router *butlerd.Router) {
@@ -18,7 +18,7 @@ func StatFSHandler(rc *butlerd.RequestContext, params *butlerd.SystemStatFSParam
 
 	res, err := StatFS(params.Path)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer := rc.Consumer

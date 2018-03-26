@@ -15,7 +15,6 @@ import (
 	"github.com/BurntSushi/toml"
 	humanize "github.com/dustin/go-humanize"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/endpoints/launch"
@@ -24,6 +23,7 @@ import (
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -69,7 +69,7 @@ func Validate(consumer *state.Consumer) error {
 	var manifestPath string
 	dirStats, err := os.Stat(dir)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrapf(err, "stat'ing %s", dir)
 	}
 
 	consumer.Infof("")
@@ -108,7 +108,7 @@ func Validate(consumer *state.Consumer) error {
 		if hasDir {
 			verdict, err := manager.Configure(consumer, dir, runtime)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrapf(err, "automatically determing launch targets for %s", dir)
 			}
 
 			consumer.Infof("")
@@ -136,11 +136,11 @@ func Validate(consumer *state.Consumer) error {
 			consumer.Infof("No manifest found (expected it to be at %s)", manifestPath)
 			err := showHeuristics()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "showing heuristics")
 			}
 			return nil
 		}
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "stat'ing manifest file")
 	}
 
 	consumer.Opf("Validating %s manifest at (%s)", humanize.IBytes(uint64(stats.Size())), manifestPath)
@@ -149,12 +149,12 @@ func Validate(consumer *state.Consumer) error {
 	_, err = toml.DecodeFile(manifestPath, &intermediate)
 	if err != nil {
 		consumer.Errorf("Parse error:")
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "parsing manifest")
 	}
 
 	jsonIntermediate, err := json.MarshalIndent(intermediate, "", "  ")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "marshalling manifest as json")
 	}
 	consumer.Debugf("Intermediate:\n%s", string(jsonIntermediate))
 
@@ -165,7 +165,7 @@ func Validate(consumer *state.Consumer) error {
 	})
 	if err != nil {
 		consumer.Errorf("Internal error:")
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "decoding manifest from json form")
 	}
 
 	err = decoder.Decode(intermediate)
@@ -187,18 +187,18 @@ func Validate(consumer *state.Consumer) error {
 			showWarning("%s", err.Error())
 		} else {
 			consumer.Errorf("Decoding error:")
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "decoding manifest")
 		}
 	}
 
 	_, err = toml.DecodeFile(manifestPath, appManifest)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "parsing toml manifest")
 	}
 
 	jsonManifest, err := json.MarshalIndent(appManifest, "", "  ")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "marshalling manifest as json")
 	}
 
 	consumer.Debugf("Manifest:\n%s", string(jsonManifest))
@@ -246,7 +246,7 @@ func Validate(consumer *state.Consumer) error {
 		consumer.Statf("No actions found.")
 		err := showHeuristics()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "showing heuristics")
 		}
 	}
 
@@ -257,13 +257,13 @@ func Validate(consumer *state.Consumer) error {
 
 		regFile, err := eos.Open("https://dl.itch.ovh/itch-redists/info.json")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "opening prereqs registry")
 		}
 
 		reg := &redist.RedistRegistry{}
 		err = json.NewDecoder(regFile).Decode(reg)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "decoding prereqs registry")
 		}
 
 		for _, p := range appManifest.Prereqs {

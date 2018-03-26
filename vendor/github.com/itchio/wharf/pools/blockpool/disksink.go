@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -68,12 +68,12 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 	ds.shake.Reset()
 	_, err := ds.shake.Write(data)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	_, err = io.ReadFull(ds.shake, ds.hashBuf)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	if ds.BlockHashes != nil {
@@ -88,7 +88,7 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 
 	err = os.MkdirAll(filepath.Dir(path), 0755)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	// create file only if it doesn't exist yet
@@ -98,7 +98,7 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 			// block's already there!
 			return nil
 		}
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	defer file.Close()
@@ -106,12 +106,12 @@ func (ds *DiskSink) Store(loc BlockLocation, data []byte) error {
 	if ds.Compressor == nil {
 		_, err = io.Copy(file, bytes.NewReader(data))
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	} else {
 		err = ds.Compressor.Compress(file, data)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 

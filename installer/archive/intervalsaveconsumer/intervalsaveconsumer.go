@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/dchest/safefile"
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type saveConsumer struct {
@@ -44,21 +44,26 @@ func (sc *saveConsumer) Load() (*savior.ExtractorCheckpoint, error) {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "opening extractor checkpoint file")
 	}
 	defer stateFile.Close()
 
 	dec := gob.NewDecoder(stateFile)
 	err = dec.Decode(state)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "decoding extractor checkpoint")
 	}
 
 	return state, nil
 }
 
 func (sc *saveConsumer) ShouldSave(n int64) bool {
-	return time.Since(sc.lastSave) >= sc.interval
+	select {
+	case <-sc.ctx.Done():
+		return true
+	default:
+		return time.Since(sc.lastSave) >= sc.interval
+	}
 }
 
 func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSaveAction, error) {
@@ -67,19 +72,19 @@ func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSav
 	err := func() error {
 		stateFile, err := safefile.Create(sc.statePath, 0644)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "creating checkpoint file")
 		}
 		defer stateFile.Close()
 
 		enc := gob.NewEncoder(stateFile)
 		err = enc.Encode(state)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "encoding checkpoint file")
 		}
 
 		err = stateFile.Commit()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "committing checkpoint file")
 		}
 
 		return nil
@@ -91,7 +96,6 @@ func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSav
 	var action savior.AfterSaveAction
 	select {
 	case <-sc.ctx.Done():
-		sc.consumer.Warnf("saveconsumer: Stopping extractor")
 		action = savior.AfterSaveStop
 	default:
 		action = savior.AfterSaveContinue

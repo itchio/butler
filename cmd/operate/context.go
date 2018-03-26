@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/dchest/safefile"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/comm"
@@ -18,6 +17,7 @@ import (
 	"github.com/itchio/butler/pb"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 type OperationContext struct {
@@ -65,7 +65,7 @@ func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder st
 		loaded:      make(map[string]struct{}),
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer := TeeConsumer(parentConsumer, logFile)
@@ -127,17 +127,17 @@ func (oc *OperationContext) Save(s Subcontext) error {
 
 	f, err := safefile.Create(path, 0644)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = json.NewEncoder(f).Encode(&oc.root)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = f.Commit()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	defer f.Close()
@@ -151,12 +151,12 @@ func (oc *OperationContext) Retire() error {
 	consumer.Infof("Retiring stage folder...")
 	err := oc.logFile.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = wipe.Do(comm.NewStateConsumer(), oc.StageFolder())
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

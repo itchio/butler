@@ -7,10 +7,10 @@ import (
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/itchio/wharf/bsdiff/lrufile"
 	"github.com/itchio/wharf/counter"
+	"github.com/pkg/errors"
 )
 
 // ErrCorrupt indicates that a patch is corrupted, most often that it would produce a longer file
@@ -57,13 +57,13 @@ func (ctx *PatchContext) NewIndividualPatchContext(old io.ReadSeeker, oldOffset 
 		ctx.lf, err = lrufile.New(lruChunkSize, lruNumEntries)
 
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
 	err := ctx.lf.Reset(old)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	ipc := &IndividualPatchContext{
@@ -80,7 +80,7 @@ func (ipc *IndividualPatchContext) Apply(ctrl *Control) error {
 	old := ipc.parent.lf
 	_, err := old.Seek(ipc.OldOffset, io.SeekStart)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// Add old data to diff string
@@ -93,11 +93,11 @@ func (ipc *IndividualPatchContext) Apply(ctrl *Control) error {
 
 		copied, err := io.CopyBuffer(ipc.out, io.LimitReader(ar, int64(addlen)), buffer)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if copied != int64(addlen) {
-			return errors.Wrap(fmt.Errorf("bsdiff-add: expected to copy %d bytes but copied %d", addlen, copied), 0)
+			return errors.Errorf("bsdiff-add: expected to copy %d bytes but copied %d", addlen, copied)
 		}
 
 		ipc.OldOffset += int64(addlen)
@@ -108,11 +108,11 @@ func (ipc *IndividualPatchContext) Apply(ctrl *Control) error {
 	if copylen > 0 {
 		copied, err := ipc.out.Write(ctrl.Copy)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if copied != copylen {
-			return errors.Wrap(fmt.Errorf("bsdiff-copy: expected to copy %d bytes but copied %d", addlen, copied), 0)
+			return errors.Errorf("bsdiff-copy: expected to copy %d bytes but copied %d", addlen, copied)
 		}
 	}
 
@@ -128,7 +128,7 @@ func (ctx *PatchContext) Patch(old io.ReadSeeker, out io.Writer, newSize int64, 
 
 	ipc, err := ctx.NewIndividualPatchContext(old, 0, countingOut)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ctrl := &Control{}
@@ -136,7 +136,7 @@ func (ctx *PatchContext) Patch(old io.ReadSeeker, out io.Writer, newSize int64, 
 	for {
 		err = readMessage(ctrl)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if ctrl.Eof {
@@ -145,7 +145,7 @@ func (ctx *PatchContext) Patch(old io.ReadSeeker, out io.Writer, newSize int64, 
 
 		err := ipc.Apply(ctrl)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

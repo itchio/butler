@@ -8,11 +8,11 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 // MaxWoundSize is how large AggregateWounds will let an aggregat
@@ -255,7 +255,7 @@ func (vctx *ValidatorContext) validate(target string, signature *SignatureInfo, 
 	defer func() {
 		err := targetPool.Close()
 		if err != nil {
-			retErr = errors.Wrap(err, 1)
+			retErr = errors.WithStack(err)
 			return
 		}
 
@@ -377,8 +377,5 @@ func AssertValid(target string, signature *SignatureInfo) error {
 
 // IsNotExist is a variant of os.IsNotExist that works with nested errors
 func IsNotExist(err error) bool {
-	if se, ok := err.(*errors.Error); ok {
-		return IsNotExist(se.Err)
-	}
-	return os.IsNotExist(err)
+	return os.IsNotExist(errors.Cause(err))
 }

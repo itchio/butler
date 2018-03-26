@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	"github.com/winlabs/gowin32"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
@@ -27,25 +27,25 @@ func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error) {
 
 	msiPath, err := filepath.Abs(msiPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	pkg, err := gowin32.OpenInstallerPackage(msiPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	defer pkg.Close()
 
 	productCode, err := pkg.GetProductProperty("ProductCode")
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	consumer.Debugf("Product code for %s: %s", msiPath, productCode)
 
 	state := gowin32.GetInstalledProductState(productCode)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer.Debugf("Installed product state: %s", installStateToString(state))
@@ -86,7 +86,7 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 
 	msiPath, err := filepath.Abs(msiPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Debugf("Assessing state of %s", msiPath)
@@ -96,14 +96,14 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 	err = func() error {
 		pkg, err := gowin32.OpenInstallerPackage(msiPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		defer pkg.Close()
 
 		productCode, err = pkg.GetProductProperty("ProductCode")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		consumer.Debugf("Product code for %s: %s", msiPath, productCode)
 		return nil
@@ -114,7 +114,7 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 
 	state := gowin32.GetInstalledProductState(productCode)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	repair := false
@@ -143,7 +143,7 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 		//   - `C:\msys64\home\john\dir`
 		absTarget, err := filepath.Abs(target)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// throw everything we got to try and get a local install
@@ -160,14 +160,14 @@ func Install(consumer *state.Consumer, msiPath string, logPathIn string, target 
 			istate := gowin32.InstallStateDefault
 			err := gowin32.ConfigureInstalledProduct(productCode, ilvl, istate, commandLine)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			consumer.Statf("Repaired in %s", time.Since(startTime))
 		} else {
 			err := gowin32.InstallProduct(msiPath, commandLine)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			consumer.Statf("Installed in %s", time.Since(startTime))
@@ -185,19 +185,19 @@ func Uninstall(consumer *state.Consumer, productCode string, onError MSIErrorCal
 		err := func() error {
 			msiPath, err := filepath.Abs(productCode)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			pkg, err := gowin32.OpenInstallerPackage(msiPath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			defer pkg.Close()
 
 			fileProductCode, err := pkg.GetProductProperty("ProductCode")
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			productCode = fileProductCode
 			return nil
@@ -214,7 +214,7 @@ func Uninstall(consumer *state.Consumer, productCode string, onError MSIErrorCal
 	return withMsiLogging(consumer, "", func() error {
 		err := gowin32.UninstallProduct(productCode)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		consumer.Statf("Uninstalled in %s", time.Since(startTime))
@@ -228,7 +228,7 @@ func withMsiLogging(consumer *state.Consumer, logPath string, task MSITaskFunc, 
 	if logPath == "" {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		defer func() {
@@ -244,7 +244,7 @@ func withMsiLogging(consumer *state.Consumer, logPath string, task MSITaskFunc, 
 		logAttr := gowin32.InstallLogAttributesFlushEachLine
 		err := gowin32.EnableInstallerLog(logMode, logPath, logAttr)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		defer func() {
 			gowin32.DisableInstallerLog()

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 var dumpApiCalls = os.Getenv("GO_ITCHIO_DEBUG") == "1"
@@ -30,12 +30,12 @@ func (c *Client) Get(url string) (*http.Response, error) {
 func (c *Client) GetResponse(url string, dst interface{}) error {
 	resp, err := c.Get(url)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = ParseAPIResponse(dst, resp)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -54,12 +54,12 @@ func (c *Client) PostForm(url string, data url.Values) (*http.Response, error) {
 func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) error {
 	resp, err := c.PostForm(url, data)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = ParseAPIResponse(dst, resp)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -144,7 +144,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 
 	body, err := ioutil.ReadAll(bodyReader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if dumpApiCalls {
@@ -189,7 +189,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		DecodeHook:       mapstructure.StringToTimeHookFunc(APIDateFormat),
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = decoder.Decode(intermediate)

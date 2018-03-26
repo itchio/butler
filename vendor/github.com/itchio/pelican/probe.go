@@ -3,9 +3,9 @@ package pelican
 import (
 	"debug/pe"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type ProbeParams struct {
@@ -21,7 +21,7 @@ func Probe(file eos.File, params *ProbeParams) (*PeInfo, error) {
 
 	pf, err := pe.NewFile(file)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	info := &PeInfo{

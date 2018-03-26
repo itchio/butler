@@ -7,7 +7,6 @@ import (
 	"os"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -16,6 +15,7 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -35,7 +35,7 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, inPath string) error {
 	reader, err := eos.Open(inPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	path := eos.Redact(inPath)
@@ -47,7 +47,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 		comm.Dief("%s: no such file or directory", path)
 	}
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if stats.IsDir() {
@@ -68,13 +68,13 @@ func Do(ctx *mansion.Context, inPath string) error {
 
 	_, err = source.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var magic int32
 	err = binary.Read(source, wire.Endianness, &magic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "reading magic number")
 	}
 
 	switch magic {
@@ -84,17 +84,17 @@ func Do(ctx *mansion.Context, inPath string) error {
 			rctx := wire.NewReadContext(source)
 			err = rctx.ReadMessage(h)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rctx, err = pwr.DecompressWire(rctx, h.GetCompression())
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			container := &tlc.Container{}
 			err = rctx.ReadMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			log("pre-patch container:")
@@ -103,7 +103,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 			container.Reset()
 			err = rctx.ReadMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			log("================================")
@@ -117,17 +117,17 @@ func Do(ctx *mansion.Context, inPath string) error {
 			rctx := wire.NewReadContext(source)
 			err := rctx.ReadMessage(h)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rctx, err = pwr.DecompressWire(rctx, h.GetCompression())
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			container := &tlc.Container{}
 			err = rctx.ReadMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			container.Print(log)
 		}
@@ -138,18 +138,18 @@ func Do(ctx *mansion.Context, inPath string) error {
 			rctx := wire.NewReadContext(source)
 			err := rctx.ReadMessage(h)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rctx, err = pwr.DecompressWire(rctx, h.GetCompression())
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			container := &tlc.Container{}
 			err = rctx.ReadMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			container.Print(log)
 		}
@@ -160,13 +160,13 @@ func Do(ctx *mansion.Context, inPath string) error {
 			rctx := wire.NewReadContext(source)
 			err := rctx.ReadMessage(wh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			container := &tlc.Container{}
 			err = rctx.ReadMessage(container)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 			container.Print(log)
 
@@ -174,10 +174,10 @@ func Do(ctx *mansion.Context, inPath string) error {
 				wound := &pwr.Wound{}
 				err = rctx.ReadMessage(wound)
 				if err != nil {
-					if errors.Is(err, io.EOF) {
+					if errors.Cause(err) == io.EOF {
 						break
 					} else {
-						return errors.Wrap(err, 0)
+						return errors.WithStack(err)
 					}
 				}
 				comm.Logf(wound.PrettyString(container))
@@ -187,7 +187,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	default:
 		_, err := reader.Seek(0, io.SeekStart)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		wasZip := func() bool {

@@ -3,13 +3,13 @@ package operate
 import (
 	"context"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/pkg/errors"
 )
 
 func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *butlerd.UninstallPerformParams) error {
@@ -55,7 +55,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 		Type:   butlerd.TaskTypeUninstall,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Running uninstall manager...")
@@ -64,32 +64,32 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 	rc.EndProgress()
 
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = messages.TaskSucceeded.Notify(rc, &butlerd.TaskSucceededNotification{
 		Type: butlerd.TaskTypeUninstall,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Deleting cave...")
 	err = rc.DB().Delete(cave).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Wiping install folder...")
 	err = wipe.Do(consumer, installFolder)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Clearing out downloads...")
 	err = rc.DB().Model(&models.Download{}).Where("cave_id = ?", cave.ID).Update("discarded", true).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

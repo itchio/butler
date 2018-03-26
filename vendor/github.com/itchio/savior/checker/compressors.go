@@ -8,24 +8,24 @@ import (
 	"github.com/itchio/kompress/flate"
 	"github.com/itchio/kompress/gzip"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 func GzipCompress(input []byte) ([]byte, error) {
 	compressedBuf := new(bytes.Buffer)
 	w, err := gzip.NewWriterLevel(compressedBuf, 9)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	_, err = w.Write(input)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = w.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return compressedBuf.Bytes(), nil
@@ -35,17 +35,17 @@ func FlateCompress(input []byte) ([]byte, error) {
 	compressedBuf := new(bytes.Buffer)
 	w, err := flate.NewWriter(compressedBuf, 9)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	_, err = w.Write(input)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = w.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return compressedBuf.Bytes(), nil
@@ -59,7 +59,7 @@ func Bzip2Compress(input []byte) ([]byte, error) {
 
 	err := cmd.Run()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return outbuf.Bytes(), nil
@@ -74,12 +74,12 @@ func BrotliCompress(input []byte, level int) ([]byte, error) {
 
 	_, err := w.Write(input)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = w.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return compressedBuf.Bytes(), nil

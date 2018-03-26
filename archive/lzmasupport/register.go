@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/lzma"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -25,19 +25,19 @@ func lzmaDecompressor(r io.Reader, f *zip.File) io.ReadCloser {
 			var versionInfo uint16
 			err := binary.Read(r, binary.LittleEndian, &versionInfo)
 			if err != nil {
-				return nil, errors.WrapPrefix(err, "while reading LZMA zip entry version info", 0)
+				return nil, errors.Wrap(err, "while reading LZMA zip entry version info")
 			}
 
 			var propSize uint16
 			err = binary.Read(r, binary.LittleEndian, &propSize)
 			if err != nil {
-				return nil, errors.WrapPrefix(err, "while reading LZMA zip entry properties size", 0)
+				return nil, errors.Wrap(err, "while reading LZMA zip entry properties size")
 			}
 
 			lzmaProps := make([]byte, propSize)
 			_, err = io.ReadFull(r, lzmaProps)
 			if err != nil {
-				return nil, errors.WrapPrefix(err, "while reading LZMA zip entry properties", 0)
+				return nil, errors.Wrap(err, "while reading LZMA zip entry properties")
 			}
 
 			lzmaSize := make([]byte, 8)

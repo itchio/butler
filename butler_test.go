@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
@@ -28,9 +27,6 @@ import (
 // reverse must
 func mist(t *testing.T, err error) {
 	if err != nil {
-		if se, ok := err.(*errors.Error); ok {
-			t.Logf("Full stack: %s", se.ErrorStack())
-		}
 		assert.NoError(t, err)
 		t.FailNow()
 	}

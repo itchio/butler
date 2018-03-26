@@ -1,17 +1,18 @@
 package containerarchiver
 
 import (
-	"github.com/itchio/arkive/zip"
 	"io"
 	"os"
 	"time"
 
-	"github.com/go-errors/errors"
+	"github.com/itchio/arkive/zip"
+
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.Pool, consumer *state.Consumer) (*archiver.CompressResult, error) {
@@ -26,7 +27,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 	defer func() {
 		if zipWriter != nil {
 			if zErr := zipWriter.Close(); err == nil && zErr != nil {
-				err = errors.Wrap(zErr, 1)
+				err = errors.WithStack(zErr)
 			}
 		}
 	}()
@@ -40,7 +41,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 
 		_, hErr := zipWriter.CreateHeader(&fh)
 		if hErr != nil {
-			return nil, errors.Wrap(hErr, 1)
+			return nil, errors.WithStack(hErr)
 		}
 	}
 
@@ -55,17 +56,17 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 
 		entryWriter, eErr := zipWriter.CreateHeader(&fh)
 		if eErr != nil {
-			return nil, errors.Wrap(eErr, 1)
+			return nil, errors.WithStack(eErr)
 		}
 
 		entryReader, eErr := pool.GetReader(int64(fileIndex))
 		if eErr != nil {
-			return nil, errors.Wrap(eErr, 1)
+			return nil, errors.WithStack(eErr)
 		}
 
 		copiedBytes, eErr := io.Copy(entryWriter, entryReader)
 		if eErr != nil {
-			return nil, errors.Wrap(eErr, 1)
+			return nil, errors.WithStack(eErr)
 		}
 
 		uncompressedSize += copiedBytes
@@ -79,7 +80,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 
 		entryWriter, eErr := zipWriter.CreateHeader(&fh)
 		if eErr != nil {
-			return nil, errors.Wrap(eErr, 1)
+			return nil, errors.WithStack(eErr)
 		}
 
 		entryWriter.Write([]byte(symlink.Dest))
@@ -87,7 +88,7 @@ func CompressZip(archiveWriter io.Writer, container *tlc.Container, pool wsync.P
 
 	err = zipWriter.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 	zipWriter = nil
 

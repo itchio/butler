@@ -4,7 +4,7 @@ package messages
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/sourcegraph/jsonrpc2"

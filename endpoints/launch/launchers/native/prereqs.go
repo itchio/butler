@@ -6,10 +6,10 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/endpoints/launch"
+	"github.com/pkg/errors"
 )
 
 func handlePrereqs(params *launch.LauncherParams) error {
@@ -65,7 +65,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	var err error
 	pending, err = pc.FilterPrereqs(pending)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(pending) == 0 {
@@ -75,7 +75,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	pa, err := pc.AssessPrereqs(pending)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(pa.Done) > 0 {
@@ -95,7 +95,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		for i, name := range pa.Todo {
 			entry, err := pc.GetEntry(name)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			psn.Tasks[name] = &butlerd.PrereqTask{
@@ -121,23 +121,23 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	err = pc.FetchPrereqs(tsc, pa.Todo)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	plan, err := pc.BuildPlan(pa.Todo)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pc.InstallPrereqs(tsc, plan)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	for _, name := range pa.Todo {
 		err = pc.MarkInstalled(name)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

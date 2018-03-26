@@ -11,7 +11,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
@@ -33,7 +33,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 	doPrereq := func(name string) error {
 		entry, err := pc.GetEntry(name)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrapf(err, "getting info about prereq %s", name)
 		}
 
 		if entry == nil {
@@ -44,7 +44,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 
 		library, err := pc.GetLibrary()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "opening prereqs library")
 		}
 
 		upload := library.GetUpload(name)
@@ -56,7 +56,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		ctx := context.Background()
 		stagingFolder, err := ioutil.TempDir("", "prereqs-install-stage")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "creating temporary directory for prereqs installation")
 		}
 		conn := loopbackconn.New(consumer)
 
@@ -88,7 +88,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			InstallFolder: destDir,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrapf(err, "queueing download+extract for prereq %s", name)
 		}
 
 		err = operate.InstallPerform(ctx, &rcc, &butlerd.InstallPerformParams{
@@ -96,7 +96,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			StagingFolder: stagingFolder,
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrapf(err, "downloading+extracting prereq %s", name)
 		}
 
 		tsc.OnState(&butlerd.PrereqsTaskStateNotification{
@@ -110,7 +110,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 	for _, name := range names {
 		err := doPrereq(name)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrapf(err, "handling prereq %s", name)
 		}
 	}
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 // A BlockPool implements a pool that maps reads, seeks, and writes to blocks
@@ -34,7 +34,7 @@ func (np *BlockPool) GetReader(fileIndex int64) (io.Reader, error) {
 
 func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 	if np.Upstream == nil {
-		return nil, errors.Wrap(fmt.Errorf("BlockPool: no upstream"), 1)
+		return nil, errors.WithStack(fmt.Errorf("BlockPool: no upstream"))
 	}
 
 	if np.reader != nil {
@@ -67,7 +67,7 @@ func (np *BlockPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 
 func (np *BlockPool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 	if np.Downstream == nil {
-		return nil, errors.Wrap(fmt.Errorf("BlockPool: no downstream"), 1)
+		return nil, errors.WithStack(fmt.Errorf("BlockPool: no downstream"))
 	}
 
 	npw := &Writer{

@@ -1,7 +1,6 @@
 package zippool
 
 import (
-	"github.com/itchio/arkive/zip"
 	"bytes"
 	"fmt"
 	"io"
@@ -9,9 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
+	"github.com/itchio/arkive/zip"
+
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 // ZipPool implements the wsync.ZipPool interface based on a Container
@@ -90,7 +91,7 @@ func (cfp *ZipPool) GetReader(fileIndex int64) (io.Reader, error) {
 		if cfp.reader != nil {
 			err := cfp.reader.Close()
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.WithStack(err)
 			}
 			cfp.reader = nil
 			cfp.fileIndex = -1
@@ -106,13 +107,13 @@ func (cfp *ZipPool) GetReader(fileIndex int64) (io.Reader, error) {
 				}
 				fmt.Println()
 			}
-			return nil, errors.WrapPrefix(os.ErrNotExist, relPath, 1)
+			return nil, errors.Wrap(os.ErrNotExist, relPath)
 		}
 
 		reader, err := f.Open()
 
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		cfp.reader = reader
 		cfp.fileIndex = fileIndex
@@ -127,7 +128,7 @@ func (cfp *ZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		if cfp.readSeeker != nil {
 			err := cfp.readSeeker.Close()
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.WithStack(err)
 			}
 			cfp.readSeeker = nil
 			cfp.seekFileIndex = -1
@@ -136,18 +137,18 @@ func (cfp *ZipPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 		key := cfp.GetRelativePath(fileIndex)
 		f := cfp.fmap[key]
 		if f == nil {
-			return nil, errors.Wrap(os.ErrNotExist, 1)
+			return nil, errors.WithStack(os.ErrNotExist)
 		}
 
 		reader, err := f.Open()
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		defer reader.Close()
 
 		buf, err := ioutil.ReadAll(reader)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		cfp.readSeeker = &closableBuf{bytes.NewReader(buf)}
@@ -162,7 +163,7 @@ func (cfp *ZipPool) Close() error {
 	if cfp.reader != nil {
 		err := cfp.reader.Close()
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		cfp.reader = nil
@@ -172,7 +173,7 @@ func (cfp *ZipPool) Close() error {
 	if cfp.readSeeker != nil {
 		err := cfp.readSeeker.Close()
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		cfp.readSeeker = nil

@@ -1,12 +1,11 @@
 package push
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 type fileSlot struct {
@@ -18,14 +17,14 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch *itchio.Create
 	createFile := func(buildType itchio.BuildFileType, done chan fileSlot, errs chan error) {
 		res, err := client.CreateBuildFile(buildID, buildType, itchio.BuildFileSubTypeDefault, itchio.FileUploadTypeDeferredResumable)
 		if err != nil {
-			errs <- errors.Wrap(err, 1)
+			errs <- errors.Wrap(err, "creating build file on server")
 		}
 		comm.Debugf("Created %s build file: %+v", buildType, res.File)
 
 		// TODO: resumable upload session creation sounds like it belongs in an external lib, go-itchio maybe?
 		req, reqErr := http.NewRequest("POST", res.File.UploadURL, nil)
 		if reqErr != nil {
-			errs <- errors.Wrap(reqErr, 1)
+			errs <- errors.Wrap(reqErr, "getting resumable upload session parameters")
 		}
 
 		req.ContentLength = 0
@@ -36,11 +35,11 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch *itchio.Create
 
 		gcsRes, gcsErr := client.HTTPClient.Do(req)
 		if gcsErr != nil {
-			errs <- errors.Wrap(gcsErr, 1)
+			errs <- errors.Wrap(gcsErr, "creating resumable upload session")
 		}
 
 		if gcsRes.StatusCode != 201 {
-			errs <- errors.Wrap(fmt.Errorf("could not create resumable upload session (got HTTP %d)", gcsRes.StatusCode), 1)
+			errs <- errors.Errorf("while creating resumable upload session, got HTTP %d", gcsRes.StatusCode)
 		}
 
 		comm.Debugf("Started resumable upload session %s", gcsRes.Header.Get("Location"))
@@ -60,7 +59,7 @@ func createBothFiles(client *itchio.Client, buildID int64) (patch *itchio.Create
 	for i := 0; i < 2; i++ {
 		select {
 		case err = <-errs:
-			err = errors.Wrap(err, 1)
+			err = errors.WithStack(err)
 			return
 		case slot := <-done:
 			switch slot.Type {

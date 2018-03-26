@@ -1,9 +1,9 @@
 package tests
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/pkg/errors"
 )
 
 func Register(router *butlerd.Router) {
@@ -16,7 +16,7 @@ func Register(router *butlerd.Router) {
 			Number: params.Number,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		return &butlerd.TestDoubleTwiceResult{

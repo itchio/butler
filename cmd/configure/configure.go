@@ -4,11 +4,11 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -63,12 +63,12 @@ func Do(params *Params) (*configurator.Verdict, error) {
 
 	verdict, err := configurator.Configure(root, params.ShowSpell)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	fixedExecs, err := verdict.FixPermissions(false /* not dry run */)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if len(fixedExecs) > 0 {

@@ -7,12 +7,12 @@ import (
 
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
@@ -22,12 +22,12 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 
 	fr, err := eos.Open(basePath)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	targetInfo, err := fr.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	if targetInfo.IsDir() {
@@ -42,7 +42,7 @@ func New(c *tlc.Container, basePath string) (wsync.Pool, error) {
 	if strings.HasSuffix(strings.ToLower(targetInfo.Name()), ".zip") {
 		zr, err := zip.NewReader(fr, targetInfo.Size())
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		return zippool.New(c, zr), nil
 	}

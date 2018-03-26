@@ -7,18 +7,18 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 func Elevate(params *ElevateParams) (int, error) {
 	butlerExe, err := os.Executable()
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 
 	dir, err := os.Getwd()
 	if err != nil {
-		return 1, errors.Wrap(err, 0)
+		return 1, errors.WithStack(err)
 	}
 
 	// we use 'butler run' because pkexec loses the CWD,

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 func Register(ctx *mansion.Context) {
@@ -46,7 +46,7 @@ func Do(ctx *mansion.Context) error {
 
 	err = os.Remove(identity)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "deleting identity file")
 	}
 
 	comm.Log("You've successfully erased the API key that was saved on your computer.")

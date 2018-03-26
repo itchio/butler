@@ -4,8 +4,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -37,7 +37,7 @@ func Do(command []string) error {
 		Stderr:  os.Stderr,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "while elevating")
 	}
 
 	os.Exit(ret)

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/countingsource"
@@ -18,6 +17,7 @@ import (
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -86,13 +86,13 @@ func Do(params *Params) error {
 
 	dr, err := eos.Open(params.InPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer dr.Close()
 
 	stats, err := dr.Stat()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	source := seeksource.FromFile(dr)
@@ -103,7 +103,7 @@ func Do(params *Params) error {
 
 	_, err = cs.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var dw io.Writer
@@ -112,7 +112,7 @@ func Do(params *Params) error {
 	} else {
 		dw, err = os.Create(params.OutPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 	w := counter.NewWriter(dw)
@@ -121,25 +121,25 @@ func Do(params *Params) error {
 
 	err = rawInWire.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	header := &pwr.PatchHeader{}
 	err = rawInWire.ReadMessage(header)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	inWire, err := pwr.DecompressWire(rawInWire, header.Compression)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	rawOutWire := wire.NewWriteContext(w)
 
 	err = rawOutWire.WriteMagic(pwr.PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if !bench {
@@ -151,7 +151,7 @@ func Do(params *Params) error {
 
 	err = rawOutWire.WriteMessage(header)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var megaBytesPerSec float64
@@ -159,7 +159,7 @@ func Do(params *Params) error {
 	err = func() error {
 		outWire, err := pwr.CompressWire(rawOutWire, header.Compression)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		defer outWire.Close()
 
@@ -168,7 +168,7 @@ func Do(params *Params) error {
 		wr := outWire.Writer()
 		numBytes, err := io.Copy(wr, rd)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		duration := time.Since(startTime)
 
@@ -183,7 +183,7 @@ func Do(params *Params) error {
 		return nil
 	}()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	inSize := source.Size()

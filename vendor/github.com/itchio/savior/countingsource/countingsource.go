@@ -1,8 +1,8 @@
 package countingsource
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 type CountingCallback func(offset int64)
@@ -77,7 +77,7 @@ func (cs *countingSource) SetSourceSaveConsumer(ssc savior.SourceSaveConsumer) {
 func (cs *countingSource) Section(start int64, size int64) (savior.SeekSource, error) {
 	ss, err := cs.source.Section(start, size)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// this avoids the count jumping back

@@ -4,10 +4,10 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/kompress/flate"
 	"github.com/itchio/kompress/gzip"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 type gzipSource struct {
@@ -68,7 +68,7 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 		if ourCheckpoint, ok := checkpoint.Data.(*GzipSourceCheckpoint); ok {
 			sourceOffset, err := gs.source.Resume(ourCheckpoint.SourceCheckpoint)
 			if err != nil {
-				return 0, errors.Wrap(err, 0)
+				return 0, errors.WithStack(err)
 			}
 
 			gc := ourCheckpoint.GzipCheckpoint
@@ -77,7 +77,7 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 				savior.Debugf(`gzipsource: discarding %d bytes to align source with decompressor`, delta)
 				err = savior.DiscardByRead(gs.source, delta)
 				if err != nil {
-					return 0, errors.Wrap(err, 0)
+					return 0, errors.WithStack(err)
 				}
 				sourceOffset += delta
 			}
@@ -89,7 +89,7 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 					// well, let's start over
 					_, err = gs.source.Resume(nil)
 					if err != nil {
-						return 0, errors.Wrap(err, 0)
+						return 0, errors.WithStack(err)
 					}
 				} else {
 					gs.offset = ourCheckpoint.Offset
@@ -104,7 +104,7 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 	// start from beginning
 	sourceOffset, err := gs.source.Resume(nil)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if sourceOffset != 0 {
@@ -123,7 +123,7 @@ func (gs *gzipSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error)
 
 func (gs *gzipSource) Read(buf []byte) (int, error) {
 	if gs.sr == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := gs.sr.Read(buf)
@@ -164,7 +164,7 @@ func (gs *gzipSource) Read(buf []byte) (int, error) {
 
 func (gs *gzipSource) ReadByte() (byte, error) {
 	if gs.sr == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := gs.Read(gs.bytebuf)

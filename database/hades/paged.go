@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 const maxSqlVars = 900
@@ -43,7 +43,7 @@ func (c *Context) pagedByKeys(tx *gorm.DB, keyFieldName string, keys []interface
 
 		err := req.Find(pageAddr.Interface()).Error
 		if err != nil {
-			return result, errors.Wrap(err, 0)
+			return result, errors.Wrap(err, "performing page fetch")
 		}
 
 		appended := reflect.AppendSlice(resultVal, pageAddr.Elem())

@@ -4,13 +4,13 @@ import (
 	"io"
 	"os"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -48,13 +48,13 @@ func Do(params *Params) error {
 
 	reader, err := os.Open(woundsPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "opening wounds")
 	}
 	defer reader.Close()
 
 	healer, err := pwr.NewHealer(spec, dir)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating healer")
 	}
 
 	consumer := comm.NewStateConsumer()
@@ -65,26 +65,26 @@ func Do(params *Params) error {
 
 	_, err = source.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "reading wounds")
 	}
 
 	rctx := wire.NewReadContext(source)
 
 	err = rctx.ExpectMagic(pwr.WoundsMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "reading wounds magic")
 	}
 
 	wh := &pwr.WoundsHeader{}
 	err = rctx.ReadMessage(wh)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "reading wounds header")
 	}
 
 	container := &tlc.Container{}
 	err = rctx.ReadMessage(container)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "reading container from wounds file")
 	}
 
 	wounds := make(chan *pwr.Wound)
@@ -111,7 +111,7 @@ func Do(params *Params) error {
 		case wounds <- wound:
 			// all good
 		case healErr := <-errs:
-			return errors.Wrap(healErr, 0)
+			return errors.WithStack(healErr)
 		}
 	}
 
@@ -121,7 +121,7 @@ func Do(params *Params) error {
 	comm.EndProgress()
 
 	if healErr != nil {
-		return errors.Wrap(healErr, 0)
+		return errors.WithStack(healErr)
 	}
 
 	comm.Opf("All healed!")

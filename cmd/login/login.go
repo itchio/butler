@@ -1,9 +1,9 @@
 package login
 
 import (
-	"github.com/go-errors/errors"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 func Register(ctx *mansion.Context) {
@@ -19,12 +19,12 @@ func Do(ctx *mansion.Context) error {
 	if ctx.HasSavedCredentials() {
 		client, err := ctx.AuthenticateViaOauth()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "authenticating with saved credentials")
 		}
 
 		_, err = client.WharfStatus()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "validating credentials")
 		}
 
 		comm.Logf("Your local credentials are valid!\n")
@@ -34,7 +34,7 @@ func Do(ctx *mansion.Context) error {
 		// this does the full login flow + saves
 		_, err := ctx.AuthenticateViaOauth()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "authenticating (no saved credentials)")
 		}
 		comm.Result(map[string]string{"status": "success"})
 		return nil

@@ -7,11 +7,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/kardianos/osext"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -134,7 +134,7 @@ func applyUpgrade(ctx *mansion.Context, before string, after string) error {
 		comm.Opf("Falling back to %s", execURL)
 		_, err = dl.Do(ctx, execURL, newPath)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

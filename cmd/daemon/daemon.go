@@ -11,9 +11,9 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/sourcegraph/jsonrpc2"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/pkg/errors"
 )
 
 func Register(ctx *mansion.Context) {
@@ -103,7 +103,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, secret string, onL
 
 	lis, err := net.Listen("tcp", listenSpec)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	onListen(lis.Addr().String())
@@ -115,7 +115,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, secret string, onL
 	}
 	err = s.Serve(ctx, lis, h, comm.NewStateConsumer())
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

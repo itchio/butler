@@ -10,9 +10,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/win32"
 	"github.com/natefinch/npipe"
+	"github.com/pkg/errors"
 )
 
 func Elevate(params *ElevateParams) (int, error) {
@@ -24,12 +24,12 @@ func Elevate(params *ElevateParams) (int, error) {
 
 	butlerExe, err := os.Executable()
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 
 	commandExe, err := findInPath(command[0])
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 	commandArgs := command[1:]
 
@@ -38,7 +38,7 @@ func Elevate(params *ElevateParams) (int, error) {
 	stdoutPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stdout`, pid)
 	stdoutListener, err := npipe.Listen(stdoutPath)
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 	defer stdoutListener.Close()
 	go relay(stdoutListener, params.Stdout)
@@ -46,7 +46,7 @@ func Elevate(params *ElevateParams) (int, error) {
 	stderrPath := fmt.Sprintf(`\\.\pipe\elevate\%d\stderr`, pid)
 	stderrListener, err := npipe.Listen(stderrPath)
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 	defer stderrListener.Close()
 	go relay(stderrListener, params.Stderr)
@@ -57,7 +57,7 @@ func Elevate(params *ElevateParams) (int, error) {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 
 	err, code := win32.ShellExecuteAndWait(0, "runas", butlerExe, makeCmdLine(args), wd, syscall.SW_HIDE)
@@ -65,7 +65,7 @@ func Elevate(params *ElevateParams) (int, error) {
 		if strings.Contains(err.Error(), "The operating system denied access to the specified file") {
 			return ExitCodeAccessDenied, nil
 		}
-		return -1, errors.Wrap(err, 0)
+		return -1, errors.WithStack(err)
 	}
 
 	return int(code), nil

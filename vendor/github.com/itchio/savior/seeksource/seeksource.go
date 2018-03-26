@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 type seekSource struct {
@@ -81,7 +81,7 @@ func (ss *seekSource) Resume(c *savior.SourceCheckpoint) (int64, error) {
 
 	newOffset, err := ss.rs.Seek(ss.sectionStart+ss.offset, io.SeekStart)
 	if err != nil {
-		return newOffset, errors.Wrap(err, 0)
+		return newOffset, errors.WithStack(err)
 	}
 
 	if ss.br == nil {
@@ -103,15 +103,15 @@ func (ss *seekSource) Size() int64 {
 
 func (ss *seekSource) Section(start int64, size int64) (savior.SeekSource, error) {
 	if start < 0 {
-		return nil, errors.Wrap(fmt.Errorf("can't make section with negative start"), 0)
+		return nil, errors.WithStack(fmt.Errorf("can't make section with negative start"))
 	}
 
 	if size < 0 {
-		return nil, errors.Wrap(fmt.Errorf("can't make section with negative size"), 0)
+		return nil, errors.WithStack(fmt.Errorf("can't make section with negative size"))
 	}
 
 	if start+size > ss.size {
-		return nil, errors.Wrap(fmt.Errorf("section too large: start+size (%d) > original size (%d)", start+size, ss.size), 0)
+		return nil, errors.WithStack(fmt.Errorf("section too large: start+size (%d) > original size (%d)", start+size, ss.size))
 	}
 
 	sectionSeekSource := &seekSource{
@@ -124,7 +124,7 @@ func (ss *seekSource) Section(start int64, size int64) (savior.SeekSource, error
 
 func (ss *seekSource) Read(buf []byte) (int, error) {
 	if ss.br == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	if len(buf) == 0 {
@@ -147,7 +147,7 @@ func (ss *seekSource) Read(buf []byte) (int, error) {
 
 func (ss *seekSource) ReadByte() (byte, error) {
 	if ss.br == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	if ss.offset == ss.size {

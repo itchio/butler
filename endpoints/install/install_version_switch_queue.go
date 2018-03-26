@@ -6,9 +6,9 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/pkg/errors"
 )
 
 func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error) {
@@ -27,7 +27,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 
 	client, err := operate.ClientFromCredentials(credentials)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
@@ -35,7 +35,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		DownloadKeyID: credentials.DownloadKey,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &butlerd.InstallVersionSwitchPickParams{
@@ -43,7 +43,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		Builds: buildsRes.Builds,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if pickRes.Index < 0 {
@@ -63,7 +63,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		Build:  build,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.InstallVersionSwitchQueueResult{}

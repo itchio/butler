@@ -3,8 +3,8 @@ package elefant
 import (
 	"debug/elf"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 type Arch string
@@ -26,7 +26,7 @@ type ProbeParams struct {
 func Probe(file eos.File, params *ProbeParams) (*ElfInfo, error) {
 	ef, err := elf.NewFile(file)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &ElfInfo{}

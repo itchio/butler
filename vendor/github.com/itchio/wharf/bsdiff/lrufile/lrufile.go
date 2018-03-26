@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/golang-lru/simplelru"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 var lruFileDumpStats = os.Getenv("LRU_FILE_DUMP_STATS") == "1"
@@ -56,7 +56,7 @@ func New(chunkSize int64, numEntries int) (File, error) {
 	}
 	lru, err := simplelru.NewLRU(numEntries, lf.onEvict)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	lf.lru = lru
 
@@ -66,7 +66,7 @@ func New(chunkSize int64, numEntries int) (File, error) {
 func (lf *lruFile) Reset(rs io.ReadSeeker) error {
 	size, err := rs.Seek(0, io.SeekEnd)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	lf.size = size
 	lf.offset = 0
@@ -98,7 +98,7 @@ func (lf *lruFile) Read(buf []byte) (int, error) {
 
 		chunk, err := lf.getChunk(chunkIndex)
 		if err != nil {
-			return readBytes, errors.Wrap(err, 0)
+			return readBytes, errors.WithStack(err)
 		}
 
 		start := lf.offset % lf.chunkSize
@@ -211,7 +211,7 @@ func (lf *lruFile) getChunk(chunkIndex int64) ([]byte, error) {
 
 	_, err := lf.rs.Seek(inputOffset, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// by contract, an io.Reader reads the entire buffer
@@ -221,7 +221,7 @@ func (lf *lruFile) getChunk(chunkIndex int64) ([]byte, error) {
 		if err == io.EOF {
 			// that's expected! input is rarely a multiple of chunk size
 		} else {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 

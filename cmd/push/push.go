@@ -8,7 +8,6 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
@@ -20,6 +19,7 @@ import (
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -77,23 +77,23 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrapf(err, "parsing push target '%s'", specStr)
 	}
 
 	err = spec.EnsureChannel()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return err
 	}
 
 	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "authenticating")
 	}
 
 	getSignature := func(ID int64) (*pwr.SignatureInfo, error) {
 		buildFiles, err := client.ListBuildFiles(ID)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.Wrap(err, "listing build files")
 		}
 
 		signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
@@ -109,7 +109,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 		signatureReader, err := eos.Open(signatureURL)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.Wrap(err, "opening signature")
 		}
 		defer signatureReader.Close()
 
@@ -117,12 +117,12 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 		_, err = signatureSource.Resume(nil)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "opening signature")
 		}
 
 		signature, err := pwr.ReadSignature(signatureSource)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.Wrap(err, "reading signature")
 		}
 
 		return signature, nil
@@ -134,7 +134,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.Opf("Comparing against previous build...")
 			sig, err := getSignature(chanInfo.Channel.Head.ID)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "getting previous build signature")
 			}
 
 			err = pwr.AssertValid(buildPath, sig)
@@ -146,7 +146,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			if _, ok := err.(*pwr.ErrHasWound); ok {
 				// cool, that's what we expected
 			} else {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "checking for differences")
 			}
 		} else {
 			comm.Opf("No previous build to compare against, pushing unconditionally")
@@ -155,7 +155,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	newBuildRes, err := client.CreateBuild(spec.Target, spec.Channel, userVersion)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "creating build on remote server")
 	}
 
 	buildID := newBuildRes.Build.ID
@@ -174,13 +174,13 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		var err error
 		targetSignature, err = getSignature(parentID)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "searching for parent build signature")
 		}
 	}
 
 	newPatchRes, newSignatureRes, err := createBothFiles(client, buildID)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "creating remote patch and signature files")
 	}
 
 	consumer := comm.NewStateConsumer()
@@ -207,9 +207,8 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.Debugf("Waiting for source container")
 	select {
 	case walkErr := <-walkErrs:
-		return errors.Wrap(walkErr, 1)
+		return errors.Wrap(walkErr, "walking directory to push")
 	case walkies := <-sourceContainerChan:
-		comm.Debugf("Got sourceContainer!")
 		sourceContainer = walkies.container
 		sourcePool = walkies.pool
 		break
@@ -304,7 +303,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.ProgressScale(0.0)
 	err = dctx.WritePatch(patchCounter, signatureCounter)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "computing and writing patch")
 	}
 
 	// close both files concurrently
@@ -322,7 +321,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		for i := 0; i < 2; i++ {
 			err := <-errs
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}
@@ -346,7 +345,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		for i := 0; i < 2; i++ {
 			err := <-errs
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}

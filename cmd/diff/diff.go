@@ -6,7 +6,6 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -19,6 +18,7 @@ import (
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -80,7 +80,7 @@ func Do(params *Params) error {
 		// Signature file perhaps?
 		signatureReader, err := eos.Open(params.Target)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "opening target")
 		}
 		defer signatureReader.Close()
 
@@ -92,12 +92,12 @@ func Do(params *Params) error {
 		signatureSource := seeksource.FromFile(signatureReader)
 		_, err = signatureSource.Resume(nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "opening target")
 		}
 
 		readSignature, err := pwr.ReadSignature(signatureSource)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "reading target as signature")
 		}
 
 		targetSignature = readSignature
@@ -110,7 +110,7 @@ func Do(params *Params) error {
 	err = readAsSignature()
 
 	if err != nil {
-		if errors.Is(err, wire.ErrFormat) || errors.Is(err, io.EOF) {
+		if errors.Cause(err) == wire.ErrFormat || errors.Cause(err) == io.EOF {
 			// must be a container then
 			targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 			// Container (dir, archive, etc.)
@@ -120,13 +120,13 @@ func Do(params *Params) error {
 			var targetPool wsync.Pool
 			targetPool, err = pools.New(targetSignature.Container, params.Target)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "opening target as directory")
 			}
 
 			targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
 			comm.EndProgress()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "computing target signature")
 			}
 
 			{
@@ -135,7 +135,7 @@ func Do(params *Params) error {
 				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
 			}
 		} else {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "determining if target is signature or directory")
 		}
 	}
 
@@ -144,25 +144,25 @@ func Do(params *Params) error {
 	var sourceContainer *tlc.Container
 	sourceContainer, err = tlc.WalkAny(params.Source, &tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "walking source as directory")
 	}
 
 	var sourcePool wsync.Pool
 	sourcePool, err = pools.New(sourceContainer, params.Source)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "walking source as directory")
 	}
 
 	patchWriter, err := os.Create(params.Patch)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating patch file")
 	}
 	defer patchWriter.Close()
 
 	signaturePath := params.Patch + ".sig"
 	signatureWriter, err := os.Create(signaturePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating signature file")
 	}
 	defer signatureWriter.Close()
 
@@ -184,7 +184,7 @@ func Do(params *Params) error {
 	comm.StartProgress()
 	err = dctx.WritePatch(patchCounter, signatureCounter)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "computing and writing patch and signature")
 	}
 	comm.EndProgress()
 
@@ -209,19 +209,19 @@ func Do(params *Params) error {
 		comm.Opf("Applying patch to verify it...")
 		_, err := signatureWriter.Seek(0, io.SeekStart)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "seeking to beginning of fresh signature file")
 		}
 
 		signatureSource := seeksource.FromFile(signatureWriter)
 
 		_, err = signatureSource.Resume(nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "reading fresh signature file")
 		}
 
 		signature, err := pwr.ReadSignature(signatureSource)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "decoding fresh signature file")
 		}
 
 		actx := &pwr.ApplyContext{
@@ -242,14 +242,14 @@ func Do(params *Params) error {
 
 		_, err = patchSource.Resume(nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "creating source for patch")
 		}
 
 		comm.StartProgress()
 		err = actx.ApplyPatch(patchSource)
 		comm.EndProgress()
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "applying patch")
 		}
 
 		comm.Statf("Patch applies cleanly!")

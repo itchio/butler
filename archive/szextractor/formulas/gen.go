@@ -138,7 +138,7 @@ func main() {
 
 func must(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("+v", err)
 	}
 }
 

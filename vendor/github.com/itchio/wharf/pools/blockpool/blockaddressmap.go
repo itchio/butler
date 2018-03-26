@@ -3,8 +3,8 @@ package blockpool
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 // A BlockAddressMap translates a location ({fileIndex, blockIndex}) to an address (":algo/:hash/:size").
@@ -39,7 +39,7 @@ func (bam BlockAddressMap) TranslateFileIndices(currentContainer *tlc.Container,
 	pathToIndex := make(map[string]int)
 
 	if len(desiredContainer.Files) != len(currentContainer.Files) {
-		return nil, errors.Wrap(fmt.Errorf("current container has %d files, desired has %d", len(currentContainer.Files), len(desiredContainer.Files)), 1)
+		return nil, errors.WithStack(fmt.Errorf("current container has %d files, desired has %d", len(currentContainer.Files), len(desiredContainer.Files)))
 	}
 
 	for i, f := range desiredContainer.Files {

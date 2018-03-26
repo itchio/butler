@@ -12,13 +12,13 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/archive/szextractor/formulas"
 	"github.com/itchio/butler/archive/szextractor/types"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 	"github.com/nightlyone/lockfile"
+	"github.com/pkg/errors"
 )
 
 func getDepSpec() *types.DepSpec {
@@ -53,14 +53,14 @@ func EnsureDeps(consumer *state.Consumer) error {
 
 	execPath, err := os.Executable()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	execDir := filepath.Dir(execPath)
 
 	lockFilePath := filepath.Join(execDir, ".butler-deps.lock")
 	lf, err := lockfile.New(lockFilePath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = lf.TryLock()
@@ -166,18 +166,18 @@ func EnsureDeps(consumer *state.Consumer) error {
 			err = func() error {
 				f, err := eos.Open(source)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				defer f.Close()
 
 				stats, err := f.Stat()
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				zr, err := zip.NewReader(f, stats.Size())
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				foundFiles := 0
@@ -192,19 +192,19 @@ func EnsureDeps(consumer *state.Consumer) error {
 							err = func() error {
 								zer, err := zf.Open()
 								if err != nil {
-									return errors.Wrap(err, 0)
+									return errors.WithStack(err)
 								}
 								defer zer.Close()
 
 								of, err := os.Create(entryPath)
 								if err != nil {
-									return errors.Wrap(err, 0)
+									return errors.WithStack(err)
 								}
 								defer of.Close()
 
 								writtenBytes, err := io.Copy(of, zer)
 								if err != nil {
-									return errors.Wrap(err, 0)
+									return errors.WithStack(err)
 								}
 
 								installedSize += writtenBytes
@@ -212,14 +212,14 @@ func EnsureDeps(consumer *state.Consumer) error {
 							}()
 
 							if err != nil {
-								return errors.Wrap(err, 0)
+								return errors.WithStack(err)
 							}
 						}
 					}
 				}
 
 				if foundFiles < len(toFetch) {
-					return errors.Wrap(fmt.Errorf("Found only %d files of the required %d", foundFiles, len(toFetch)), 0)
+					return errors.Errorf("Found only %d files of the required %d", foundFiles, len(toFetch))
 				}
 				consumer.Statf("Installed %s's worth of dependencies", humanize.IBytes(uint64(installedSize)))
 

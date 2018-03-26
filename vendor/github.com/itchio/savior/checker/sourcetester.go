@@ -8,16 +8,13 @@ import (
 	"testing"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func must(t *testing.T, err error) {
 	if err != nil {
-		if se, ok := err.(*errors.Error); ok {
-			t.Logf("Full stack: %s", se.ErrorStack())
-		}
 		assert.NoError(t, err)
 		t.FailNow()
 	}

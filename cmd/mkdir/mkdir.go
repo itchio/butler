@@ -3,10 +3,10 @@ package mkdir
 import (
 	"os"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -28,7 +28,7 @@ func Do(ctx *mansion.Context, dir string) error {
 
 	err := os.MkdirAll(dir, archiver.DirMode)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

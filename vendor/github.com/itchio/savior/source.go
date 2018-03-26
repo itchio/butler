@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 // SourceCheckpoint contains all the information needed for a source
@@ -111,7 +111,7 @@ func DiscardByRead(source Source, delta int64) error {
 
 		n, err := source.Read(buf[:toRead])
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		delta -= int64(n)

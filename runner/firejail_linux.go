@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/policies"
+	"github.com/pkg/errors"
 )
 
 type firejailRunner struct {
@@ -42,13 +42,13 @@ func (fr *firejailRunner) Run() error {
 	consumer.Opf("Writing sandbox profile to (%s)", sandboxProfilePath)
 	err := os.MkdirAll(filepath.Dir(sandboxProfilePath), 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sandboxSource := policies.FirejailTemplate
 	err = ioutil.WriteFile(sandboxProfilePath, []byte(sandboxSource), 0644)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Opf("Running (%s) through firejail", params.FullTargetPath)
@@ -67,22 +67,22 @@ func (fr *firejailRunner) Run() error {
 
 	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.AfterStart()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.Wait()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

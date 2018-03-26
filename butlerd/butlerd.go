@@ -10,8 +10,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -88,7 +88,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 				for i := 0; i < 4; i++ {
 					u, err := uuid.NewV4()
 					if err != nil {
-						return "", errors.Wrap(err, 0)
+						return "", errors.Wrap(err, "generating UUID")
 					}
 					msg += u.String()
 				}
@@ -147,7 +147,6 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 			}
 		}
 	}
-	return nil
 }
 
 type LFObjectCodec struct{}

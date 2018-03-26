@@ -1,12 +1,12 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
@@ -28,7 +28,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 
 		err := messages.FetchCollectionYield.Notify(rc, &butlerd.FetchCollectionYieldNotification{Collection: collection})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		return nil
@@ -36,7 +36,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 
 	err := sendDBCollection()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer.Debugf("Querying API...")
@@ -44,7 +44,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		CollectionID: params.CollectionID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	collection := collRes.Collection
@@ -57,13 +57,13 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		Record: collRes.Collection,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// after collection metadata update
 	err = sendDBCollection()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var offset int64
@@ -75,7 +75,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			Page:         page,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		numPageGames := int64(len(gamesRes.Games))
 
@@ -97,7 +97,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			PartialJoins: []string{"CollectionGames"},
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		offset += numPageGames
@@ -115,7 +115,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		// after each page of games fetched
 		err = sendDBCollection()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -124,13 +124,13 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		Assocs: []string{"CollectionGames"},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// after all pages are fetched
 	err = sendDBCollection()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.FetchCollectionResult{}

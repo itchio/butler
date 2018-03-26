@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/pwr"
@@ -57,11 +56,10 @@ func (ctx *Context) Register(clause *kingpin.CmdClause, do DoCommand) {
 
 func (ctx *Context) Must(err error) {
 	if err != nil {
-		switch err := err.(type) {
-		case *errors.Error:
-			comm.Die(err.ErrorStack())
-		default:
-			comm.Die(err.Error())
+		if ctx.Verbose {
+			comm.Dief("%+v", err)
+		} else {
+			comm.Dief("%s", err)
 		}
 	}
 }

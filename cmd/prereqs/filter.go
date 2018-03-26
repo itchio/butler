@@ -1,9 +1,9 @@
 package prereqs
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
+	"github.com/pkg/errors"
 )
 
 func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
@@ -13,7 +13,7 @@ func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
 	for _, name := range names {
 		entry, err := pc.GetEntry(name)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if entry == nil {

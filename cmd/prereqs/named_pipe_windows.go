@@ -5,11 +5,11 @@ package prereqs
 import (
 	"encoding/json"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/wharf/state"
 	"github.com/natefinch/npipe"
+	"github.com/pkg/errors"
 )
 
 type NamedPipe struct {
@@ -64,7 +64,7 @@ func (np NamedPipe) WriteState(taskName string, status butlerd.PrereqStatus) err
 
 	contents, err := json.Marshal(&msg)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return np.writeLine(contents)
@@ -79,7 +79,7 @@ func (np NamedPipe) writeLine(contents []byte) error {
 
 	_, err := np.conn.Write(contents)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

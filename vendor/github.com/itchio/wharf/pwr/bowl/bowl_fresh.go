@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 type freshBowl struct {
@@ -60,7 +60,7 @@ func NewFreshBowl(params *FreshBowlParams) (Bowl, error) {
 
 	err := params.SourceContainer.Prepare(params.OutputFolder)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return &freshBowl{
@@ -81,19 +81,19 @@ func (fb *freshBowl) Transpose(t Transposition) (rErr error) {
 
 	r, err := fb.TargetPool.GetReader(t.TargetIndex)
 	if err != nil {
-		rErr = errors.Wrap(err, 0)
+		rErr = errors.WithStack(err)
 		return
 	}
 
 	w, err := fb.OutputPool.GetWriter(t.SourceIndex)
 	if err != nil {
-		rErr = errors.Wrap(err, 0)
+		rErr = errors.WithStack(err)
 		return
 	}
 	defer func() {
 		cErr := w.Close()
 		if cErr != nil && rErr == nil {
-			rErr = errors.Wrap(cErr, 0)
+			rErr = errors.WithStack(cErr)
 		}
 	}()
 
@@ -103,7 +103,7 @@ func (fb *freshBowl) Transpose(t Transposition) (rErr error) {
 
 	_, err = io.CopyBuffer(w, r, fb.buf)
 	if err != nil {
-		rErr = errors.Wrap(err, 0)
+		rErr = errors.WithStack(err)
 		return
 	}
 
@@ -132,18 +132,18 @@ func (few *freshEntryWriter) Tell() int64 {
 func (few *freshEntryWriter) Resume(c *Checkpoint) (int64, error) {
 	err := os.MkdirAll(filepath.Dir(few.path), 0755)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	f, err := os.OpenFile(few.path, os.O_CREATE|os.O_WRONLY, os.FileMode(0644))
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if c != nil && c.Offset != 0 {
 		_, err = f.Seek(c.Offset, io.SeekStart)
 		if err != nil {
-			return 0, errors.Wrap(err, 0)
+			return 0, errors.WithStack(err)
 		}
 
 		few.offset = c.Offset
@@ -161,7 +161,7 @@ func (few *freshEntryWriter) Save() (*Checkpoint, error) {
 
 func (few *freshEntryWriter) Write(buf []byte) (int, error) {
 	if few.f == nil {
-		return 0, errors.Wrap(ErrUninitializedWriter, 0)
+		return 0, errors.WithStack(ErrUninitializedWriter)
 	}
 
 	n, err := few.f.Write(buf)
@@ -179,7 +179,7 @@ func (few *freshEntryWriter) Close() error {
 
 	err := f.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

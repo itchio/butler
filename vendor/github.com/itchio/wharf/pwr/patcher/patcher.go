@@ -13,9 +13,9 @@ import (
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 type savingPatcher struct {
@@ -45,11 +45,11 @@ func New(patchReader savior.SeekSource, consumer *state.Consumer) (Patcher, erro
 
 	startOffset, err := patchReader.Resume(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if startOffset != 0 {
-		return nil, errors.Wrap(fmt.Errorf("expected source to resume at 0, got %d", startOffset), 0)
+		return nil, errors.WithStack(fmt.Errorf("expected source to resume at 0, got %d", startOffset))
 	}
 
 	rawWire := wire.NewReadContext(patchReader)
@@ -58,7 +58,7 @@ func New(patchReader savior.SeekSource, consumer *state.Consumer) (Patcher, erro
 
 	err = rawWire.ExpectMagic(pwr.PatchMagic)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// Read header & decompress if needed
@@ -66,12 +66,12 @@ func New(patchReader savior.SeekSource, consumer *state.Consumer) (Patcher, erro
 	header := &pwr.PatchHeader{}
 	err = rawWire.ReadMessage(header)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	rctx, err := pwr.DecompressWire(rawWire, header.Compression)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	// Read both containers
@@ -79,13 +79,13 @@ func New(patchReader savior.SeekSource, consumer *state.Consumer) (Patcher, erro
 	targetContainer := &tlc.Container{}
 	err = rctx.ReadMessage(targetContainer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	sourceContainer := &tlc.Container{}
 	err = rctx.ReadMessage(sourceContainer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer.Debugf("→ Created patcher")
@@ -114,7 +114,7 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bowl bowl.
 	if c != nil {
 		err := sp.rctx.Resume(c.MessageCheckpoint)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	} else {
 		c = &Checkpoint{
@@ -139,11 +139,11 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bowl bowl.
 
 			err := sp.rctx.ReadMessage(sh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if sh.FileIndex != c.FileIndex {
-				return errors.Wrap(fmt.Errorf("corrupted patch or internal error: expected file %d, got file %d", c.FileIndex, sh.FileIndex), 0)
+				return errors.WithStack(fmt.Errorf("corrupted patch or internal error: expected file %d, got file %d", c.FileIndex, sh.FileIndex))
 			}
 
 			switch sh.Type {
@@ -152,13 +152,13 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bowl bowl.
 			case pwr.SyncHeader_BSDIFF:
 				c.FileKind = FileKindBsdiff
 			default:
-				return errors.Wrap(fmt.Errorf("unknown patch series kind %d for '%s'", sh.Type, f.Path), 0)
+				return errors.WithStack(fmt.Errorf("unknown patch series kind %d for '%s'", sh.Type, f.Path))
 			}
 		}
 
 		err := sp.processFile(c, targetPool, sh, bowl)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// reset checkpoint and increment
@@ -179,7 +179,7 @@ func (sp *savingPatcher) processFile(c *Checkpoint, targetPool wsync.Pool, sh *p
 	case FileKindBsdiff:
 		return sp.processBsdiff(c, targetPool, sh, bwl)
 	default:
-		return errors.Wrap(fmt.Errorf("unknown file kind %d", sh.Type), 0)
+		return errors.WithStack(fmt.Errorf("unknown file kind %d", sh.Type))
 	}
 }
 
@@ -194,7 +194,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 		// alrighty let's do it
 		writer, err = bwl.GetWriter(sh.FileIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// FIXME: swallowed error
@@ -202,7 +202,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		_, err = writer.Resume(c.RsyncCheckpoint.BowlCheckpoint)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		f := sp.sourceContainer.Files[sh.FileIndex]
@@ -217,7 +217,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 		op = &pwr.SyncOp{}
 		err := sp.rctx.ReadMessage(op)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if sp.isFullFileOp(sh, op) {
@@ -234,17 +234,17 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 				TargetIndex: op.FileIndex,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			// however, we do have to read the end marker
 			err = sp.rctx.ReadMessage(op)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if op.Type != pwr.SyncOp_HEY_YOU_DID_IT {
-				return errors.Wrap(fmt.Errorf("corrupt patch: expected sentinel SyncOp after rsync series, got %s", op.Type), 0)
+				return errors.WithStack(fmt.Errorf("corrupt patch: expected sentinel SyncOp after rsync series, got %s", op.Type))
 			}
 
 			return nil
@@ -253,7 +253,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 		// not a full-file op, let's patch!
 		writer, err = bwl.GetWriter(sh.FileIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// FIXME: swallowed error
@@ -261,7 +261,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		_, err = writer.Resume(nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -279,7 +279,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		wop, err := makeWop(op)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		err = sp.rsyncCtx.ApplySingle(
@@ -288,7 +288,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 			wop,
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -301,7 +301,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 			if messageCheckpoint != nil {
 				bowlCheckpoint, err := writer.Save()
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				// oh damn it's our time
@@ -316,19 +316,19 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 				}
 				action, err := sp.sc.Save(checkpoint)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				switch action {
 				case AfterSaveStop:
-					return errors.Wrap(ErrStop, 0)
+					return errors.WithStack(ErrStop)
 				}
 			}
 		}
 
 		err := sp.rctx.ReadMessage(op)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if op.Type == pwr.SyncOp_HEY_YOU_DID_IT {
@@ -339,7 +339,7 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		wop, err := makeWop(op)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		err = sp.rsyncCtx.ApplySingle(
@@ -348,12 +348,9 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 			wop,
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
-
-	// ohey, we're done!
-	return nil
 }
 
 func makeWop(op *pwr.SyncOp) (wsync.Operation, error) {
@@ -371,7 +368,7 @@ func makeWop(op *pwr.SyncOp) (wsync.Operation, error) {
 			Data: op.Data,
 		}, nil
 	default:
-		return wsync.Operation{}, errors.Wrap(fmt.Errorf("unknown sync op type: %s", op.Type), 0)
+		return wsync.Operation{}, errors.WithStack(fmt.Errorf("unknown sync op type: %s", op.Type))
 	}
 }
 
@@ -418,13 +415,13 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 
 		old, err = targetPool.GetReadSeeker(targetIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// alrighty let's do it
 		writer, err = bwl.GetWriter(sh.FileIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// FIXME: swallowed error
@@ -432,7 +429,7 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 
 		_, err = writer.Resume(c.BsdiffCheckpoint.BowlCheckpoint)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		f := sp.sourceContainer.Files[sh.FileIndex]
@@ -447,20 +444,20 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 		bh := &pwr.BsdiffHeader{}
 		err = sp.rctx.ReadMessage(bh)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		targetIndex = bh.TargetIndex
 
 		old, err = targetPool.GetReadSeeker(targetIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// let's patch!
 		writer, err = bwl.GetWriter(sh.FileIndex)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// FIXME: swallowed error
@@ -468,7 +465,7 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 
 		_, err = writer.Resume(nil)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -482,7 +479,7 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 		writer,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ctrl := &bsdiff.Control{}
@@ -494,7 +491,7 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 			if messageCheckpoint != nil {
 				bowlCheckpoint, err := writer.Save()
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				// aw yeah let's save this state
@@ -511,19 +508,19 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 				}
 				action, err := sp.sc.Save(checkpoint)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				switch action {
 				case AfterSaveStop:
-					return errors.Wrap(ErrStop, 0)
+					return errors.WithStack(ErrStop)
 				}
 			}
 		}
 
 		err = sp.rctx.ReadMessage(ctrl)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if ctrl.Eof {
@@ -538,11 +535,11 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 	op := &pwr.SyncOp{}
 	err = sp.rctx.ReadMessage(op)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if op.Type != pwr.SyncOp_HEY_YOU_DID_IT {
-		return errors.Wrap(fmt.Errorf("corrupt patch: expected sentinel SyncOp after bsdiff series, got %s", op.Type), 0)
+		return errors.WithStack(fmt.Errorf("corrupt patch: expected sentinel SyncOp after bsdiff series, got %s", op.Type))
 	}
 
 	// now check the final size
@@ -554,7 +551,7 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 			humanize.IBytes(uint64(f.Size)),
 			humanize.IBytes(uint64(finalSize)),
 		)
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// and we're done!

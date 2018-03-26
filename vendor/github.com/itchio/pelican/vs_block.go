@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 // PE version block utilities
@@ -59,13 +59,13 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 					// alles gut
 					return nil
 				}
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			if buf[0] != 0 || buf[1] != 0 {
 				_, err = r.Seek(-2, io.SeekCurrent)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				break
 			}
@@ -79,10 +79,10 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 		for {
 			_, err := r.Read(buf)
 			if err != nil {
-				if errors.Is(err, io.EOF) {
+				if errors.Cause(err) == io.EOF {
 					return res, nil
 				}
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			if buf[0] == 0 && buf[1] == 0 {
@@ -97,13 +97,13 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 	parseVSBlock := func(r ReadSeekerAt) (*VsBlock, error) {
 		startOffset, err := r.Seek(0, io.SeekCurrent)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		var wLength uint16
 		err = binary.Read(r, binary.LittleEndian, &wLength)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		endOffset := startOffset + int64(wLength)
@@ -112,23 +112,23 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 		var wValueLength uint16
 		err = binary.Read(sr, binary.LittleEndian, &wValueLength)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		var wType uint16
 		err = binary.Read(sr, binary.LittleEndian, &wType)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		szKey, err := parseNullTerminatedString(sr)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		err = skipPadding(sr)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		return &VsBlock{
@@ -143,7 +143,7 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 
 	vsVersionInfo, err := parseVSBlock(br)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if vsVersionInfo.ValueLength == 0 {
@@ -153,7 +153,7 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 	ffi := new(VsFixedFileInfo)
 	err = binary.Read(vsVersionInfo, binary.LittleEndian, ffi)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if ffi.DwSignature != 0xFEEF04BD {
@@ -163,16 +163,16 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 
 	err = skipPadding(vsVersionInfo)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	for {
 		fileInfo, err := parseVSBlock(vsVersionInfo)
 		if err != nil {
-			if errors.Is(err, io.EOF) {
+			if errors.Cause(err) == io.EOF {
 				break
 			}
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		switch fileInfo.KeyString() {
@@ -180,27 +180,27 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 			for {
 				stable, err := parseVSBlock(fileInfo)
 				if err != nil {
-					if errors.Is(err, io.EOF) {
+					if errors.Cause(err) == io.EOF {
 						break
 					}
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if isLanguageWhitelisted(stable.KeyString()) {
 					for {
 						str, err := parseVSBlock(stable)
 						if err != nil {
-							if errors.Is(err, io.EOF) {
+							if errors.Cause(err) == io.EOF {
 								break
 							}
-							return errors.Wrap(err, 0)
+							return errors.WithStack(err)
 						}
 
 						keyString := str.KeyString()
 
 						val, err := parseNullTerminatedString(str)
 						if err != nil {
-							return errors.Wrap(err, 0)
+							return errors.WithStack(err)
 						}
 						valString := strings.TrimSpace(DecodeUTF16(val))
 
@@ -208,19 +208,19 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 						info.VersionProperties[keyString] = valString
 						_, err = stable.Seek(str.EndOffset, io.SeekStart)
 						if err != nil {
-							return errors.Wrap(err, 0)
+							return errors.WithStack(err)
 						}
 
 						err = skipPadding(stable)
 						if err != nil {
-							return errors.Wrap(err, 0)
+							return errors.WithStack(err)
 						}
 					}
 				}
 
 				_, err = fileInfo.Seek(stable.EndOffset, io.SeekStart)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			}
 		case "VarFileInfo":
@@ -229,7 +229,7 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 
 		_, err = vsVersionInfo.Seek(fileInfo.EndOffset, io.SeekStart)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

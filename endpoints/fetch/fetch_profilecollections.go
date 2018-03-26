@@ -1,12 +1,12 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
@@ -23,7 +23,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 			},
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		profileCollections := profile.ProfileCollections
@@ -55,7 +55,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 			)
 		`, collectionIDs).Scan(&rows).Error
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		for _, row := range rows {
@@ -77,7 +77,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 			err = messages.FetchProfileCollectionsYield.Notify(rc, yn)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 		return nil
@@ -85,12 +85,12 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 	err := sendDBCollections()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	collRes, err := client.ListMyCollections()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	profile.ProfileCollections = nil
@@ -117,12 +117,12 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		PartialJoins: []string{"CollectionGames"},
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = sendDBCollections()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.FetchProfileCollectionsResult{}

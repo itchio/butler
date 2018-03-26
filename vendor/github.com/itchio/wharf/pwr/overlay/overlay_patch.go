@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type OverlayPatchContext struct {
@@ -30,7 +30,7 @@ func (ctx *OverlayPatchContext) Patch(r io.Reader, w io.WriteSeeker) error {
 
 		err := decoder.Decode(op)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		switch {
@@ -41,7 +41,7 @@ func (ctx *OverlayPatchContext) Patch(r io.Reader, w io.WriteSeeker) error {
 		case op.Skip > 0:
 			_, err = w.Seek(op.Skip, io.SeekCurrent)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 		case op.Fresh > 0:
@@ -51,7 +51,7 @@ func (ctx *OverlayPatchContext) Patch(r io.Reader, w io.WriteSeeker) error {
 
 			_, err = io.CopyBuffer(w, io.LimitReader(br, op.Fresh), ctx.buf)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 	}

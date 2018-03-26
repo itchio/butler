@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) error {
@@ -33,7 +33,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 			sourceKey,
 		).Find(cacheAddr.Interface()).Error
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "fetching cached records to compare later")
 		}
 
 		cache := cacheAddr.Elem()
@@ -65,7 +65,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 
 					cf, err := DiffRecord(ifrec, icrec, mtm.Scope)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return errors.Wrap(err, "diffing database records")
 					}
 
 					if cf != nil {
@@ -103,7 +103,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 						deletes,
 					).Error
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.Wrap(err, "deleting extraneous relations")
 				}
 			}
 		}
@@ -122,7 +122,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 
 			err := tx.Create(rec.Interface()).Error
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "creating new relation records")
 			}
 		}
 
@@ -138,7 +138,7 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 					destinKey,
 				).Updates(rec).Error
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "updating related records")
 			}
 		}
 	}

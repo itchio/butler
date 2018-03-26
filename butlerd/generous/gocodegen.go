@@ -16,7 +16,7 @@ func (bc *GenerousContext) GenerateGoCode() error {
 	doc.Line("")
 	doc.Line("import (")
 	doc.Line("	%#v", "encoding/json")
-	doc.Line("	%#v", "errors")
+	doc.Line("	%#v", "github.com/pkg/errors")
 	doc.Line("")
 	doc.Line("	%#v", "github.com/itchio/butler/butlerd")
 	doc.Line("	%#v", "github.com/sourcegraph/jsonrpc2")

@@ -1,7 +1,7 @@
 package operate
 
 import (
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
 )

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	osync "sync"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 // A BlockHashMap maps a location ({fileIndex, blockIndex}) to a hash.
@@ -53,7 +53,7 @@ func (bhm *BlockHashMap) ToAddressMap(container *tlc.Container, algorithm pwr.Ha
 	defer bhm.mutex.Unlock()
 
 	if algorithm != pwr.HashAlgorithm_SHAKE128_32 {
-		return nil, errors.Wrap(fmt.Errorf("unsuported hash algorithm, want shake128-32, got %d", algorithm), 1)
+		return nil, errors.WithStack(fmt.Errorf("unsuported hash algorithm, want shake128-32, got %d", algorithm))
 	}
 
 	bam := make(BlockAddressMap)

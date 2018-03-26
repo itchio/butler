@@ -1,10 +1,10 @@
 package install
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -28,7 +28,7 @@ func InstallLocationsList(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 	var locations []*models.InstallLocation
 	err := rc.DB().Find(&locations).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var flocs []*butlerd.InstallLocationSummary
@@ -50,7 +50,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLoca
 		hadID = true
 		freshUuid, err := uuid.NewV4()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		params.ID = freshUuid.String()
 	}
@@ -76,7 +76,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLoca
 	}
 	err := rc.DB().Save(il).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.InstallLocationsAddResult{}
@@ -100,7 +100,7 @@ func InstallLocationsRemove(rc *butlerd.RequestContext, params *butlerd.InstallL
 	var caveCount int64
 	err := rc.DB().Model(&models.Cave{}).Where("install_location_id = ?", il.ID).Count(&caveCount).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if caveCount > 0 {
@@ -111,7 +111,7 @@ func InstallLocationsRemove(rc *butlerd.RequestContext, params *butlerd.InstallL
 	var locationCount int64
 	err = rc.DB().Model(&models.InstallLocation{}).Count(&locationCount).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if locationCount == 1 {
@@ -120,7 +120,7 @@ func InstallLocationsRemove(rc *butlerd.RequestContext, params *butlerd.InstallL
 
 	err = rc.DB().Delete(il).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.InstallLocationsRemoveResult{}

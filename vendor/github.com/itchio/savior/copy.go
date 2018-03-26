@@ -3,7 +3,7 @@ package savior
 import (
 	"io"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 var ErrStop = errors.New("copy was stopped after save!")
@@ -56,7 +56,7 @@ func (c *Copier) Do(params *CopyParams) error {
 
 		m, err := params.Dst.Write(c.buf[:n])
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		progressCounter += int64(m)
@@ -72,7 +72,7 @@ func (c *Copier) Do(params *CopyParams) error {
 				// cool, we're done!
 				return nil
 			}
-			return errors.Wrap(readErr, 0)
+			return errors.WithStack(readErr)
 		}
 
 		if c.SaveConsumer.ShouldSave(int64(n)) {

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 type AllEntities map[reflect.Type]EntityMap
@@ -52,7 +52,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 	riMap := make(RecordInfoMap)
 	tree, err := c.WalkType(riMap, "<root>", valtyp, make(VisitMap), assocs)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "walking records to be saved")
 	}
 	consumer.Debugf("RecordInfo tree:\n%s", tree)
 
@@ -126,7 +126,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 			numVisited++
 			err := addEntity(v)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "adding entity")
 			}
 		}
 
@@ -153,7 +153,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 			persistChildren := true
 			err := walk(v, vri, child, childRi, persistChildren)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "walking child entities to be saved")
 			}
 		}
 		return nil
@@ -164,13 +164,13 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 			for i := 0; i < v.Len(); i++ {
 				err := visit(p, pri, v.Index(i), vri, persist)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.Wrap(err, "walking slice of children")
 				}
 			}
 		} else {
 			err := visit(p, pri, v, vri, persist)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "walking single child")
 			}
 		}
 		return nil
@@ -179,7 +179,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 	persistRoot := assocs == nil
 	err = walk(reflect.Zero(reflect.TypeOf(0)), nil, val, tree, persistRoot)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "walking all records to be persisted")
 	}
 
 	var modelNames []string
@@ -194,7 +194,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 	for _, m := range entities {
 		err := c.saveRows(tx, params, m)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "saving rows")
 		}
 	}
 
@@ -202,7 +202,7 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 		if ri.ManyToMany != nil {
 			err := c.saveJoins(params, tx, ri.ManyToMany)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "saving joins")
 			}
 		}
 	}

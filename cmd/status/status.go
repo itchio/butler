@@ -6,12 +6,12 @@ import (
 	"sort"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -35,17 +35,17 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrapf(err, "parsing spec %s", spec)
 	}
 
 	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "authenticating")
 	}
 
 	listChannelsResp, err := client.ListChannels(spec.Target)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.Wrap(err, "listing channels")
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)

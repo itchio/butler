@@ -1,7 +1,7 @@
 package xzsource
 
 import (
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/archive/szextractor"
 	"github.com/itchio/butler/archive/szextractor/singlefilesink"
@@ -37,7 +37,7 @@ func New(file eos.File, consumer *state.Consumer) (*xzSource, error) {
 
 	se, err := szextractor.New(file, subConsumer)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "opening xz stream with 7-zip")
 	}
 	xs.se = se
 
@@ -81,7 +81,7 @@ func (xs *xzSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error) {
 func (xs *xzSource) do() error {
 	_, err := xs.se.Resume(nil, xs.sink)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "decompressing xz stream with 7-zip")
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (xs *xzSource) Read(buf []byte) (int, error) {
 	}
 
 	if xs.sink == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	return xs.sink.Read(buf)
@@ -109,7 +109,7 @@ func (xs *xzSource) ReadByte() (byte, error) {
 	}
 
 	if xs.sink == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := xs.sink.Read(xs.bytebuf)

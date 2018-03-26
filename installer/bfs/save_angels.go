@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 type SaveAngelsParams struct {
@@ -62,13 +62,13 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 	if switching {
 		err := os.Rename(destPath, previousPath)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "renaming destination to temporary name")
 		}
 	}
 
 	err := Mkdir(destPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "creating fresh destination folder")
 	}
 
 	innerErr := innerTask()
@@ -90,7 +90,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 			}
 		}
 
-		return nil, errors.Wrap(innerErr, 0)
+		return nil, errors.Wrap(innerErr, "performing inner task while saving angels")
 	}
 
 	// walk the freshly-installed dir now so we can store
@@ -100,7 +100,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 	if err != nil {
 		// if we can't walk it, we can't write a proper receipt,
 		// and we're kinda out of options
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "walking destination path to determine new files")
 	}
 
 	newPaths := ContainerPaths(newContainer)
@@ -111,7 +111,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 			var previousContainer *tlc.Container
 			previousContainer, err = Walk(previousPath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "walking previous destination to determine old files")
 			}
 
 			previousPaths := ContainerPaths(previousContainer)

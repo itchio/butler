@@ -3,7 +3,6 @@ package butlerd
 import (
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -83,13 +82,17 @@ func (e *ErrCancelled) Error() string {
 
 //
 
+type causer interface {
+	Cause() error
+}
+
 func AsButlerdError(err error) (Error, bool) {
 	if err == nil {
 		return nil, false
 	}
 
-	if se, ok := err.(*errors.Error); ok {
-		return AsButlerdError(se.Err)
+	if se, ok := err.(causer); ok {
+		return AsButlerdError(se.Cause())
 	}
 
 	if ee, ok := err.(Error); ok {

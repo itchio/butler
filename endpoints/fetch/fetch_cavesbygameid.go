@@ -1,7 +1,7 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )

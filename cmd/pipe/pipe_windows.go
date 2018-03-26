@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/mansion"
 	"github.com/natefinch/npipe"
+	"github.com/pkg/errors"
 )
 
 func Do(ctx *mansion.Context, command []string, stdin string, stdout string, stderr string) error {
@@ -40,7 +40,7 @@ func Do(ctx *mansion.Context, command []string, stdin string, stdout string, std
 		} else {
 			fmt.Fprintf(cmd.Stderr, "While running %s: %s", command[0], err.Error())
 			exitCode = 1
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 

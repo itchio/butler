@@ -2,16 +2,15 @@ package prereqs
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error {
@@ -37,7 +36,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	planFile, err := ioutil.TempFile("", "butler-prereqs-plan.json")
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	planPath := planFile.Name()
@@ -46,12 +45,12 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	enc := json.NewEncoder(planFile)
 	err = enc.Encode(plan)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = planFile.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var args []string
@@ -92,7 +91,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 		},
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if res.ExitCode != 0 {
@@ -103,7 +102,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	err = installer.CheckExitCode(res.ExitCode, err)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// now to run some sanity checks (as regular user)
@@ -114,8 +113,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 			for _, sc := range block.SanityChecks {
 				err := pc.RunSanityCheck(task.Name, task.Info, sc)
 				if err != nil {
-					retErr := fmt.Errorf("Sanity check failed for (%s): %s", task.Name, err.Error())
-					return errors.Wrap(retErr, 0)
+					return errors.Wrapf(err, "sanity check failed for (%s)", task.Name)
 				}
 				consumer.Infof("Sanity check (%s ::: %s) passed", sc.Command, strings.Join(sc.Args, " ::: "))
 			}

@@ -7,10 +7,10 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type processGroup struct {
@@ -34,7 +34,7 @@ func (pg *processGroup) AfterStart() error {
 	var err error
 	pg.jobObject, err = syscallex.CreateJobObject(nil, nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	jobObjectInfo := new(syscallex.JobObjectExtendedLimitInformation)
@@ -49,7 +49,7 @@ func (pg *processGroup) AfterStart() error {
 		jobObjectInfoSize,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	processHandle := pg.cmd.SysProcAttr.ProcessHandle
@@ -111,7 +111,7 @@ func (pg *processGroup) Wait() error {
 				}
 
 				if !ignoreError {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			}
 
@@ -129,7 +129,7 @@ func (pg *processGroup) Wait() error {
 	case err := <-waitDone:
 		pg.consumer.Infof("Wait done")
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -139,12 +139,12 @@ func (pg *processGroup) Wait() error {
 func terminateProcess(pid uint32, exitcode int) error {
 	h, err := syscall.OpenProcess(syscall.PROCESS_TERMINATE, false, pid)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer syscall.CloseHandle(h)
 	err = syscall.TerminateProcess(h, uint32(exitcode))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	return nil
 }

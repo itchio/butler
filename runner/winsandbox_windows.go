@@ -12,13 +12,13 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type winsandboxRunner struct {
@@ -46,7 +46,7 @@ func (wr *winsandboxRunner) Prepare() error {
 
 		r, err := messages.AllowSandboxSetup.Call(wr.params.RequestContext, &butlerd.AllowSandboxSetupParams{})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if !r.Allow {
@@ -63,7 +63,7 @@ func (wr *winsandboxRunner) Prepare() error {
 			},
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if res.ExitCode != 0 {
@@ -74,19 +74,19 @@ func (wr *winsandboxRunner) Prepare() error {
 
 		err = installer.CheckExitCode(res.ExitCode, err)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		consumer.Infof("Sandbox setup done, checking again...")
 		err = winsandbox.Check(nullConsumer)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
 	playerData, err := winsandbox.GetPlayerData()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	wr.playerData = playerData
@@ -105,12 +105,12 @@ func (wr *winsandboxRunner) Run() error {
 
 	env, err := wr.getEnvironment()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sp, err := wr.getSharingPolicy()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Infof("Sharing policy: %s", sp)
@@ -139,29 +139,29 @@ func (wr *winsandboxRunner) Run() error {
 
 	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.AfterStart()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// ok that SysProcAttr thing is 110% a hack but who are you
 	// to judge me and how did you get into my home
 	_, err = syscallex.ResumeThread(cmd.SysProcAttr.ThreadHandle)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.Wait()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -178,7 +178,7 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 
 	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	defer winutil.SafeRelease(uintptr(impersonationToken))
 
@@ -188,7 +188,7 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 		params.InstallFolder,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 	if !hasAccess {
 		sp.Entries = append(sp.Entries, &winutil.ShareEntry{
@@ -208,7 +208,7 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 			current,
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if !hasAccess {
@@ -246,7 +246,7 @@ func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
 	err := winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
 		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		// environment variables are case-insensitive on windows,
 		// and exec{,as}.Command do case-insensitive deduplication properly
@@ -259,20 +259,20 @@ func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
 
 		appDataDir, err := winutil.GetFolderPath(winutil.FolderTypeAppData)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		setEnv("appdata", appDataDir)
 
 		localAppDataDir, err := winutil.GetFolderPath(winutil.FolderTypeLocalAppData)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		setEnv("localappdata", localAppDataDir)
 
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	return env, nil

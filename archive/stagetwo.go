@@ -4,7 +4,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
@@ -31,7 +31,7 @@ func (ai *ArchiveInfo) applyMojoSetupStageTwo(consumer *state.Consumer, aRes *sa
 			absolutePath := filepath.Join(installFolder, pe)
 			file, err := eos.Open(absolutePath)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "opening stage-two file")
 			}
 			defer file.Close()
 
@@ -40,13 +40,13 @@ func (ai *ArchiveInfo) applyMojoSetupStageTwo(consumer *state.Consumer, aRes *sa
 				File:     file,
 			})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "probing stage-two file")
 			}
 			consumer.Infof("✓ Post-extract is a supported archive format (%s)", archiveInfo.Format)
 
 			ex, err := archiveInfo.GetExtractor(file, consumer)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "getting extractor for stage-two file")
 			}
 
 			sink := &savior.FolderSink{
@@ -60,12 +60,12 @@ func (ai *ArchiveInfo) applyMojoSetupStageTwo(consumer *state.Consumer, aRes *sa
 
 			nestedRes, err := ex.Resume(nil, sink)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "extracting stage-two file")
 			}
 
 			err = sink.Close()
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "closing sink after stage-two extraction")
 			}
 
 			for _, ne := range nestedRes.Entries {
@@ -77,7 +77,7 @@ func (ai *ArchiveInfo) applyMojoSetupStageTwo(consumer *state.Consumer, aRes *sa
 			return nil
 		}()
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.Wrap(err, "handling post-extract file (stage two)")
 		}
 	}
 

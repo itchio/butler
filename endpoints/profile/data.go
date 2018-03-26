@@ -1,9 +1,9 @@
 package profile
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/pkg/errors"
 )
 
 func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
@@ -19,7 +19,7 @@ func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (
 	}
 	err := db.Save(&pd).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.ProfileDataPutResult{}
@@ -41,7 +41,7 @@ func DataGet(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (
 			}
 			return res, nil
 		}
-		return nil, errors.Wrap(req.Error, 0)
+		return nil, errors.WithStack(req.Error)
 	}
 
 	res := &butlerd.ProfileDataGetResult{

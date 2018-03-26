@@ -1,10 +1,8 @@
 package bowl
 
 import (
-	"fmt"
-
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 )
 
 type dryBowl struct {
@@ -39,7 +37,7 @@ func NewDryBowl(params *DryBowlParams) (Bowl, error) {
 
 func (db *dryBowl) GetWriter(index int64) (EntryWriter, error) {
 	if index < 0 || index >= int64(len(db.SourceContainer.Files)) {
-		return nil, errors.Wrap(fmt.Errorf("drybowl: invalid source index %d", index), 0)
+		return nil, errors.Errorf("drybowl: invalid source index %d", index)
 	}
 
 	// throw away the writes. alll the writes.
@@ -48,10 +46,10 @@ func (db *dryBowl) GetWriter(index int64) (EntryWriter, error) {
 
 func (db *dryBowl) Transpose(t Transposition) error {
 	if t.SourceIndex < 0 || t.SourceIndex >= int64(len(db.SourceContainer.Files)) {
-		return errors.Wrap(fmt.Errorf("drybowl: invalid source index %d", t.SourceIndex), 0)
+		return errors.Errorf("drybowl: invalid source index %d", t.SourceIndex)
 	}
 	if t.TargetIndex < 0 || t.TargetIndex >= int64(len(db.TargetContainer.Files)) {
-		return errors.Wrap(fmt.Errorf("drybowl: invalid target index %d", t.TargetIndex), 0)
+		return errors.Errorf("drybowl: invalid target index %d", t.TargetIndex)
 	}
 
 	// muffin to do
@@ -93,7 +91,7 @@ func (new *nopEntryWriter) Save() (*Checkpoint, error) {
 
 func (new *nopEntryWriter) Write(buf []byte) (int, error) {
 	if !new.initialized {
-		return 0, errors.Wrap(ErrUninitializedWriter, 0)
+		return 0, errors.WithStack(ErrUninitializedWriter)
 	}
 
 	new.offset += int64(len(buf))

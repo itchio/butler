@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -44,7 +44,7 @@ func (fs *FolderSink) Mkdir(entry *Entry) error {
 		// main case - dir doesn't exist yet
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 		return nil
 	}
@@ -55,11 +55,11 @@ func (fs *FolderSink) Mkdir(entry *Entry) error {
 		// is a file or symlink for example, turn into a dir
 		err = os.Remove(dstpath)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 		err = os.MkdirAll(dstpath, DirMode)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -72,7 +72,7 @@ func (fs *FolderSink) createFile(entry *Entry) (*os.File, error) {
 	dirname := filepath.Dir(dstpath)
 	err := os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	stats, err := os.Lstat(dstpath)
@@ -81,7 +81,7 @@ func (fs *FolderSink) createFile(entry *Entry) (*os.File, error) {
 			// if it used to be a symlink, remove it
 			err = os.RemoveAll(dstpath)
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 		}
 	}
@@ -89,14 +89,14 @@ func (fs *FolderSink) createFile(entry *Entry) (*os.File, error) {
 	flag := os.O_CREATE | os.O_WRONLY
 	f, err := os.OpenFile(dstpath, flag, entry.Mode|ModeMask)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if stats != nil && !onWindows {
 		// if file already existed, chmod it, just in case
 		err = f.Chmod(entry.Mode | ModeMask)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -106,13 +106,13 @@ func (fs *FolderSink) createFile(entry *Entry) (*os.File, error) {
 func (fs *FolderSink) GetWriter(entry *Entry) (EntryWriter, error) {
 	f, err := fs.createFile(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if entry.WriteOffset > 0 {
 		_, err = f.Seek(entry.WriteOffset, io.SeekStart)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -134,14 +134,14 @@ func (fs *FolderSink) GetWriter(entry *Entry) (EntryWriter, error) {
 func (fs *FolderSink) Preallocate(entry *Entry) error {
 	f, err := fs.createFile(entry)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	defer f.Close()
 
 	endOffset, err := f.Seek(0, io.SeekEnd)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// N.B: we can't use f.Truncate as that doesn't actually reserve blocks
@@ -149,7 +149,7 @@ func (fs *FolderSink) Preallocate(entry *Entry) error {
 	if allocSize > 0 {
 		_, err := io.CopyN(f, &zeroReader{}, allocSize)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -161,13 +161,13 @@ func (fs *FolderSink) Symlink(entry *Entry, linkname string) error {
 		// on windows, write symlinks as regular files
 		w, err := fs.GetWriter(entry)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		defer w.Close()
 
 		_, err = w.Write([]byte(linkname))
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		return nil
@@ -178,18 +178,18 @@ func (fs *FolderSink) Symlink(entry *Entry, linkname string) error {
 
 	err := os.RemoveAll(dstpath)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	dirname := filepath.Dir(dstpath)
 	err = os.MkdirAll(dirname, LuckyMode)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = os.Symlink(linkname, dstpath)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -198,7 +198,7 @@ func (fs *FolderSink) Symlink(entry *Entry, linkname string) error {
 func (fs *FolderSink) Nuke() error {
 	err := fs.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	// TODO: retry logic, a-la butler
@@ -242,7 +242,7 @@ func (ew *entryWriter) Close() error {
 	err := ew.f.Close()
 	ew.f = nil
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

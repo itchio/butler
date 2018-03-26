@@ -5,8 +5,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/alecthomas/assert"
 	"github.com/itchio/butler/database/hades"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_FromDBName(t *testing.T) {

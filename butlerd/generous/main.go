@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/go-errors/errors"
 )
 
 type GenerousContext struct {
@@ -89,11 +87,7 @@ func (gc *GenerousContext) NewGenerousRelativeDoc(relname string) *Doc {
 
 func must(err error) {
 	if err != nil {
-		if se, ok := err.(*errors.Error); ok {
-			log.Fatal(se.ErrorStack())
-		} else {
-			log.Fatal(se.Error())
-		}
+		log.Fatalf("%+v", err)
 	}
 }
 

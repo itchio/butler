@@ -1,7 +1,7 @@
 package prereqs
 
 import (
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 func (pc *PrereqsContext) BuildPlan(names []string) (*PrereqPlan, error) {
@@ -10,7 +10,7 @@ func (pc *PrereqsContext) BuildPlan(names []string) (*PrereqPlan, error) {
 	for _, name := range names {
 		entry, err := pc.GetEntry(name)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		plan.Tasks = append(plan.Tasks, &PrereqTask{

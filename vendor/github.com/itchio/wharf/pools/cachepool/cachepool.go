@@ -3,9 +3,9 @@ package cachepool
 import (
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 type CachePool struct {
@@ -58,19 +58,19 @@ func (cp *CachePool) Preload(fileIndex int64) error {
 
 	reader, err := cp.source.GetReader(fileIndex)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer cp.source.Close()
 
 	writer, err := cp.cache.GetWriter(fileIndex)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer writer.Close()
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	success = true
@@ -102,12 +102,12 @@ func (cp *CachePool) GetSize(fileIndex int64) int64 {
 func (cp *CachePool) Close() error {
 	err := cp.source.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = cp.cache.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

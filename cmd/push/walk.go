@@ -1,11 +1,11 @@
 package push
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 type walkResult struct {
@@ -19,13 +19,13 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, de
 		Dereference: dereference,
 	})
 	if err != nil {
-		errs <- errors.Wrap(err, 1)
+		errs <- errors.WithStack(err)
 		return
 	}
 
 	pool, err := pools.New(container, path)
 	if err != nil {
-		errs <- errors.Wrap(err, 1)
+		errs <- errors.WithStack(err)
 		return
 	}
 
@@ -35,7 +35,11 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, de
 	}
 
 	if fixPerms {
-		result.container.FixPermissions(result.pool)
+		err := result.container.FixPermissions(result.pool)
+		if err != nil {
+			errs <- errors.WithStack(err)
+			return
+		}
 	}
 
 	if dereference {

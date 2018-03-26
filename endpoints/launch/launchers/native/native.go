@@ -14,11 +14,11 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/runner"
+	"github.com/pkg/errors"
 )
 
 func Register() {
@@ -43,28 +43,23 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	_, err = os.Stat(params.FullTargetPath)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = handlePrereqs(params)
 	if err != nil {
-		if errors.Is(err, &butlerd.ErrAborted{}) {
-			return err
+		if be, ok := butlerd.AsButlerdError(err); ok {
+			return errors.WithStack(be)
 		}
 
-		consumer.Warnf("While handling prereqs: %s", err.Error())
-
-		var errorStack string
-		if se, ok := err.(*errors.Error); ok {
-			errorStack = se.ErrorStack()
-		}
+		consumer.Warnf("While handling prereqs: %+v", err)
 
 		r, err := messages.PrereqsFailed.Call(params.RequestContext, &butlerd.PrereqsFailedParams{
 			Error:      err.Error(),
-			ErrorStack: errorStack,
+			ErrorStack: fmt.Sprintf("%+v", err),
 		})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if r.Continue {
@@ -144,12 +139,12 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 
 	run, err := runner.GetRunner(runParams)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = run.Prepare()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = func() error {
@@ -159,13 +154,13 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		exitCode, err := interpretRunError(run.Run())
 		messages.LaunchExited.Notify(params.RequestContext, &butlerd.LaunchExitedNotification{})
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		runDuration := time.Since(startTime)
 		err = params.RecordPlayTime(runDuration)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if exitCode != 0 {
@@ -216,7 +211,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 			consumer.Errorf("=================================")
 		}
 		consumer.Errorf("Relaying launch failure.")
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -236,13 +231,17 @@ func interpretRunError(err error) (int, error) {
 	return 0, nil
 }
 
+type causer interface {
+	Cause() error
+}
+
 func AsExitError(err error) (*exec.ExitError, bool) {
 	if err == nil {
 		return nil, false
 	}
 
-	if se, ok := err.(*errors.Error); ok {
-		return AsExitError(se.Err)
+	if se, ok := err.(causer); ok {
+		return AsExitError(se.Cause())
 	}
 
 	if ee, ok := err.(*exec.ExitError); ok {

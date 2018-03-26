@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/Datadog/zstd"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 /////////////////////////////
@@ -29,12 +29,12 @@ func (c *Compressor) Compress(writer io.Writer, in []byte) error {
 
 	compressedBuf, err := zstd.CompressLevel(c.compressedBuf, in, 9)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	_, err = writer.Write(compressedBuf)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -64,12 +64,12 @@ func (d *Decompressor) Decompress(out []byte, reader io.Reader) (int, error) {
 
 	compressedBytes, err := io.Copy(d.buffer, reader)
 	if err != nil {
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.WithStack(err)
 	}
 
 	decompressedBuf, err := zstd.Decompress(out, d.buffer.Bytes()[:compressedBytes])
 	if err != nil {
-		return 0, errors.Wrap(err, 1)
+		return 0, errors.WithStack(err)
 	}
 
 	return len(decompressedBuf), nil

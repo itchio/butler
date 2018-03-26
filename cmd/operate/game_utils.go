@@ -10,9 +10,9 @@ import (
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func GameToString(game *itchio.Game) string {
@@ -29,7 +29,7 @@ func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *b
 		DownloadKeyID: credentials.DownloadKey,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	numInputs := len(uploads.Uploads)
@@ -154,10 +154,7 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
 
 	// look for owner access
 	{
-		pgs, err := models.ProfileGamesByGameID(db, gameID)
-		if err != nil {
-			panic(err)
-		}
+		pgs := models.ProfileGamesByGameID(db, gameID)
 		if len(pgs) > 0 {
 			pg := pgs[0]
 			p := models.ProfileByID(db, pg.ProfileID)

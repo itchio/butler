@@ -16,10 +16,10 @@ import (
 
 	"github.com/itchio/butler/runner/syscallex"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/runner/winutil"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/mansion"
 )
@@ -74,7 +74,7 @@ func Check(consumer *state.Consumer) error {
 	consumer.Opf("Retrieving player data from registry...")
 	pd, err := GetPlayerData()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	consumer.Statf("Sandbox user is (%s)", pd.Username)
@@ -102,18 +102,18 @@ func Check(consumer *state.Consumer) error {
 					syscall.StringToUTF16Ptr(newPassword),
 				)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				pd.Password = newPassword
 				err = pd.Save()
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				token, err = winutil.Logon(pd.Username, ".", pd.Password)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				consumer.Statf("Set new password successfully!")
@@ -123,7 +123,7 @@ func Check(consumer *state.Consumer) error {
 		}
 
 		if !rescued {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 	defer winutil.SafeRelease(uintptr(token))
@@ -160,21 +160,21 @@ func Setup(consumer *state.Consumer) error {
 
 	err = winutil.AddUser(username, password, comment)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Opf("Removing from Users group (so it doesn't show up as a login option)...")
 
 	err = winutil.RemoveUserFromUsersGroup(username)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Opf("Loading profile for the first time (to create some directories)...")
 
 	err = winutil.LoadProfileOnce(username, ".", password)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Opf("Saving to credentials registry...")
@@ -185,7 +185,7 @@ func Setup(consumer *state.Consumer) error {
 	}
 	err = pd.Save()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.Statf("All done! (in %s)", time.Since(startTime))
@@ -233,13 +233,13 @@ func Setfilepermissions(consumer *state.Consumer) error {
 		consumer.Opf("Granting %s", policy)
 		err := policy.Grant(consumer)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	case "revoke":
 		consumer.Opf("Revoking %s", policy)
 		err := policy.Revoke(consumer)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	default:
 		return fmt.Errorf("unknown change: %s", *setfilepermissionsArgs.change)
@@ -269,12 +269,12 @@ var checkAccessSpecs = []checkAccessSpec{
 func CheckAccess(consumer *state.Consumer) error {
 	pd, err := GetPlayerData()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer winutil.SafeRelease(uintptr(impersonationToken))
 
@@ -285,7 +285,7 @@ func CheckAccess(consumer *state.Consumer) error {
 			*checkAccessArgs.file,
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if hasAccess {

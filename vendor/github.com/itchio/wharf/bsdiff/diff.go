@@ -10,10 +10,10 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/golang/protobuf/proto"
 	"github.com/itchio/wharf/state"
 	"github.com/jgallagher/gosaca"
+	"github.com/pkg/errors"
 )
 
 // A Match is a pair of two regions from the old and new file that have been
@@ -397,7 +397,7 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	err = ctx.writeMessages(obuf, nbuf, matches, writeMessage)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if ctx.Stats != nil {

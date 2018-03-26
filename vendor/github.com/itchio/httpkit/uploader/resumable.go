@@ -8,12 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/splitfunc"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var seed = 0
@@ -107,14 +107,14 @@ func (ru *ResumableUpload) Close() error {
 
 	err = ru.bufferedWriter.Flush()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	ru.Debugf("closing write end of pipe")
 
 	err = ru.pipeWriter.Close()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	ru.Debugf("all closed. uploaded / total = %d / %d", ru.UploadedBytes, ru.TotalBytes)
@@ -150,7 +150,7 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 	req, err := http.NewRequest("PUT", ru.uploadURL, nil)
 	if err != nil {
 		// does not include HTTP errors, more like golang API usage errors
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	// for resumable uploads of unknown size, the length is unknown,
@@ -198,7 +198,7 @@ func (ru *ResumableUpload) trySendBytes(buf []byte, offset int64, isLast bool) e
 	req, err := http.NewRequest("PUT", ru.uploadURL, countingReader)
 	if err != nil {
 		// does not include HTTP errors, more like golang API usage errors
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	start := offset
@@ -329,7 +329,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 					retryCtx.Retry("Having troubles uploading some blocks")
 					continue
 				} else {
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 			} else {
 				offset += int64(len(buf))
@@ -392,7 +392,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 				err := sendBytes(sendBuf, isLast)
 				if err != nil {
 					ru.Debugf("sender: send error, bailing out")
-					subErrs <- errors.Wrap(err, 1)
+					subErrs <- errors.WithStack(err)
 					return
 				}
 			}
@@ -458,7 +458,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 		err := s.Err()
 		if err != nil {
 			ru.Debugf("scanner error :(")
-			subErrs <- errors.Wrap(err, 1)
+			subErrs <- errors.WithStack(err)
 			return
 		}
 
@@ -481,7 +481,7 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			ru.Debugf("got sub error: %s, bailing", err.Error())
 			// any error that travels this far up cancels the whole upload
 			close(canceller)
-			errs <- errors.Wrap(err, 1)
+			errs <- errors.WithStack(err)
 			return
 		}
 	}

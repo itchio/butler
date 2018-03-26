@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-errors/errors"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface{}) error {
@@ -130,7 +130,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 			[]gorm.JoinTableForeignKey{destinJTFK},
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "creating ManyToMany relationship")
 		}
 
 		for sourceKey, recs := range valueMap {
@@ -142,7 +142,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 
 		err = c.saveJoins(params, tx, mtm)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "saving joins")
 		}
 
 		return nil
@@ -168,7 +168,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 
 	cacheAddr, err := c.pagedByKeys(tx, primaryField.DBName, keys, fresh.Type(), nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "getting existing rows")
 	}
 
 	cache := cacheAddr.Elem()
@@ -203,7 +203,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 
 			cf, err := DiffRecord(ifrec, icrec, scope)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "diffing db records")
 			}
 
 			if cf != nil {
@@ -222,7 +222,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		for _, rec := range inserts {
 			err := tx.Create(rec.Interface()).Error
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.Wrap(err, "inserting new DB records")
 			}
 		}
 	}
@@ -239,7 +239,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 			Updates(rec).
 			Error
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "updating DB records")
 		}
 	}
 

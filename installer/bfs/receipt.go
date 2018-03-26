@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 // A Receipt describes what was installed to a specific folder.
@@ -45,13 +45,13 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 			// that's ok, just return a nil receipt
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "reading receipt")
 	}
 	defer f.Close()
 
 	gzr, err := gzip.NewReader(f)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "creating decompressor for receipt")
 	}
 
 	dec := json.NewDecoder(gzr)
@@ -59,7 +59,7 @@ func ReadReceipt(InstallFolder string) (*Receipt, error) {
 	receipt := Receipt{}
 	err = dec.Decode(&receipt)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.Wrap(err, "decoding receipt")
 	}
 
 	return &receipt, nil
@@ -75,12 +75,12 @@ func (r *Receipt) WriteReceipt(InstallFolder string) error {
 
 	err := Mkdir(filepath.Dir(path))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating receipt parent directory")
 	}
 
 	f, err := os.Create(path)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating receipt file")
 	}
 	defer f.Close()
 	gzw := gzip.NewWriter(f)
@@ -89,7 +89,7 @@ func (r *Receipt) WriteReceipt(InstallFolder string) error {
 	enc := json.NewEncoder(gzw)
 	err = enc.Encode(r)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "encoding receipt")
 	}
 
 	return nil

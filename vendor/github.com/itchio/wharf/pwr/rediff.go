@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 // FileOrigin maps a target's file index to how many bytes it
@@ -101,31 +101,31 @@ func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 
 	err = rctx.ExpectMagic(PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ph := &PatchHeader{}
 	err = rctx.ReadMessage(ph)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	rctx, err = DecompressWire(rctx, ph.Compression)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	targetContainer := &tlc.Container{}
 	err = rctx.ReadMessage(targetContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	rc.TargetContainer = targetContainer
 
 	sourceContainer := &tlc.Container{}
 	err = rctx.ReadMessage(sourceContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	rc.SourceContainer = sourceContainer
 
@@ -146,11 +146,11 @@ func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 		sh.Reset()
 		err = rctx.ReadMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if sh.FileIndex != int64(sourceFileIndex) {
-			return errors.Wrap(fmt.Errorf("Malformed patch, expected index %d, got %d", sourceFileIndex, sh.FileIndex), 1)
+			return errors.WithStack(fmt.Errorf("Malformed patch, expected index %d, got %d", sourceFileIndex, sh.FileIndex))
 		}
 
 		rc.Consumer.ProgressLabel(sourceFile.Path)
@@ -165,7 +165,7 @@ func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 			rop.Reset()
 			err = rctx.ReadMessage(rop)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			switch rop.Type {
@@ -187,7 +187,7 @@ func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 				case SyncOp_HEY_YOU_DID_IT:
 					readingOps = false
 				default:
-					return errors.Wrap(ErrMalformedPatch, 1)
+					return errors.WithStack(ErrMalformedPatch)
 				}
 			}
 		}
@@ -241,15 +241,15 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 	var err error
 
 	if rc.SourcePool == nil {
-		return errors.Wrap(fmt.Errorf("SourcePool cannot be nil"), 1)
+		return errors.WithStack(fmt.Errorf("SourcePool cannot be nil"))
 	}
 
 	if rc.TargetPool == nil {
-		return errors.Wrap(fmt.Errorf("TargetPool cannot be nil"), 1)
+		return errors.WithStack(fmt.Errorf("TargetPool cannot be nil"))
 	}
 
 	if rc.DiffMappings == nil {
-		return errors.Wrap(fmt.Errorf("AnalyzePatch must be called before OptimizePatch"), 1)
+		return errors.WithStack(fmt.Errorf("AnalyzePatch must be called before OptimizePatch"))
 	}
 
 	rctx := wire.NewReadContext(patchReader)
@@ -257,18 +257,18 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 
 	err = wctx.WriteMagic(PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = rctx.ExpectMagic(PatchMagic)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	ph := &PatchHeader{}
 	err = rctx.ReadMessage(ph)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	compression := rc.Compression
@@ -281,39 +281,39 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 	}
 	err = wctx.WriteMessage(wph)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	rctx, err = DecompressWire(rctx, ph.Compression)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	wctx, err = CompressWire(wctx, wph.Compression)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	targetContainer := &tlc.Container{}
 	err = rctx.ReadMessage(targetContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = wctx.WriteMessage(targetContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sourceContainer := &tlc.Container{}
 	err = rctx.ReadMessage(sourceContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = wctx.WriteMessage(sourceContainer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	sh := &SyncHeader{}
@@ -356,11 +356,11 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 		sh.Reset()
 		err = rctx.ReadMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		if sh.FileIndex != int64(sourceFileIndex) {
-			return errors.Wrap(fmt.Errorf("Malformed patch, expected index %d, got %d", sourceFileIndex, sh.FileIndex), 1)
+			return errors.WithStack(fmt.Errorf("Malformed patch, expected index %d, got %d", sourceFileIndex, sh.FileIndex))
 		}
 
 		diffMapping := rc.DiffMappings[int64(sourceFileIndex)]
@@ -369,14 +369,14 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 			// if no mapping, just copy ops straight up
 			err = wctx.WriteMessage(sh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			for {
 				rop.Reset()
 				err = rctx.ReadMessage(rop)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if rop.Type == SyncOp_HEY_YOU_DID_IT {
@@ -385,7 +385,7 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 
 				err = wctx.WriteMessage(rop)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 			}
 		} else {
@@ -395,21 +395,21 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 			sh.Type = SyncHeader_BSDIFF
 			err = wctx.WriteMessage(sh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			bh.Reset()
 			bh.TargetIndex = diffMapping.TargetIndex
 			err = wctx.WriteMessage(bh)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			// throw away old ops
 			for {
 				err = rctx.ReadMessage(rop)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if rop.Type == SyncOp_HEY_YOU_DID_IT {
@@ -420,26 +420,26 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 			// then bsdiff
 			sourceFileReader, err := rc.SourcePool.GetReadSeeker(int64(sourceFileIndex))
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			targetFileReader, err := rc.TargetPool.GetReadSeeker(diffMapping.TargetIndex)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rc.Consumer.ProgressLabel(fmt.Sprintf(">%s", sourceFile.Path))
 
 			_, err = sourceFileReader.Seek(0, io.SeekStart)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rc.Consumer.ProgressLabel(fmt.Sprintf("<%s", sourceFile.Path))
 
 			_, err = targetFileReader.Seek(0, io.SeekStart)
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 
 			rc.Consumer.ProgressLabel(fmt.Sprintf("*%s", sourceFile.Path))
@@ -471,7 +471,7 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 
 		err = wctx.WriteMessage(rop)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		rc.Consumer.Progress(float64(doneSize) / float64(totalRediffSize))
@@ -479,7 +479,7 @@ func (rc *RediffContext) OptimizePatch(patchReader savior.SeekSource, patchWrite
 
 	err = wctx.Close()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

@@ -2,9 +2,10 @@ package downloads
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -37,12 +38,12 @@ poll:
 
 		err := cleanDiscarded(rc)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		err = performOne(ctx, rc)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		time.Sleep(1 * time.Second)
@@ -58,7 +59,7 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 	var discardedDownloads []*models.Download
 	err := rc.DB().Where(`discarded`).Find(&discardedDownloads).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	models.PreloadDownloads(rc.DB(), discardedDownloads)
@@ -89,7 +90,7 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 
 		err := rc.DB().Delete(download).Error
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		messages.DownloadsDriveDiscarded.Notify(rc, &butlerd.DownloadsDriveDiscardedNotification{
@@ -105,7 +106,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	var pendingDownloads []*models.Download
 	err := rc.DB().Where(`finished_at IS NULL AND NOT discarded`).Order(`position ASC`).Find(&pendingDownloads).Error
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if len(pendingDownloads) == 0 {
@@ -223,9 +224,9 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			if r := recover(); r != nil {
 				consumer.Warnf("Recovered from panic!")
 				if rErr, ok := r.(error); ok {
-					err = errors.Wrap(rErr, 0)
+					err = errors.WithStack(rErr)
 				} else {
-					err = errors.New(r)
+					err = errors.Errorf("%v", r)
 				}
 			}
 		}()
@@ -255,16 +256,13 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 				consumer.Warnf("Download aborted, cleaning it out.")
 				err := rc.DB().Delete(download).Error
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 				return nil
 			}
 		}
 
-		var errString = err.Error()
-		if se, ok := err.(*errors.Error); ok {
-			errString = se.ErrorStack()
-		}
+		var errString = fmt.Sprintf("%+v", err)
 
 		consumer.Warnf("Download errored: %s", errString)
 		download.Error = &errString

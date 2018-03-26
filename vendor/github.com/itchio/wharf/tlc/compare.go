@@ -71,7 +71,7 @@ func sortedDirs(c *Container) []string {
 	for _, d := range c.Dirs {
 		dirs = append(dirs, d.Path)
 	}
-	sort.Sort(sort.StringSlice(dirs))
+	sort.Strings(dirs)
 	return dirs
 }
 
@@ -82,7 +82,7 @@ func sortedLinks(c *Container) ([]string, map[string]string) {
 		links = append(links, s.Path)
 		linksmap[s.Path] = s.Dest
 	}
-	sort.Sort(sort.StringSlice(links))
+	sort.Strings(links)
 	return links, linksmap
 }
 
@@ -93,6 +93,6 @@ func sortedFiles(c *Container) ([]string, map[string]*File) {
 		files = append(files, f.Path)
 		filesmap[f.Path] = f
 	}
-	sort.Sort(sort.StringSlice(files))
+	sort.Strings(files)
 	return files, filesmap
 }

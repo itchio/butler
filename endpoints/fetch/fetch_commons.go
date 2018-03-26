@@ -1,11 +1,11 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/system"
 	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
@@ -16,7 +16,7 @@ func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams
 		Select("id, game_id, last_touched_at, seconds_run, installed_size").
 		Scan(&caves).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var downloadKeys []*butlerd.DownloadKeySummary
@@ -24,13 +24,13 @@ func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams
 		Select("id, game_id, created_at").
 		Scan(&downloadKeys).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var installLocations []*models.InstallLocation
 	err = rc.DB().Find(&installLocations).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var flocs []*butlerd.InstallLocationSummary

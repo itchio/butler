@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type PermissionChange int
@@ -92,7 +92,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 		uintptr(unsafe.Pointer(&pSD)), // ppSecurityDescriptor
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer SafeRelease(pSD)
 
@@ -114,7 +114,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 		&pNewDACL,
 	)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	defer SafeRelease(uintptr(unsafe.Pointer(pNewDACL)))
 
@@ -153,7 +153,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 			}
 
 			if !rescued {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 
@@ -180,7 +180,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 			&groupSize,
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		// Attach the new ACL as the object's DACL
@@ -191,7 +191,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 			0, // not defaulted
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		err = syscallex.SetFileSecurity(
 			objectName,
@@ -199,7 +199,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 			uintptr(unsafe.Pointer(&pAbsoluteSD[0])),
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	case InheritanceModeFull:
 		// use new SetNamedSecurityInfo call, which propagates
@@ -213,7 +213,7 @@ func SetFilePermissions(params *SetFilePermissionsParams) error {
 			nil,      // pSacl
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 	}
 
@@ -235,7 +235,7 @@ type ShareEntry struct {
 func (se *ShareEntry) Grant(trustee string) error {
 	err := SetFilePermissions(se.params(PermissionChangeGrant, trustee))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -244,7 +244,7 @@ func (se *ShareEntry) Grant(trustee string) error {
 func (se *ShareEntry) Revoke(trustee string) error {
 	err := SetFilePermissions(se.params(PermissionChangeRevoke, trustee))
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -365,12 +365,12 @@ func GetImpersonationToken(username string, domain string, password string) (sys
 			&impersonationToken,
 		)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 		return nil
 	})
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	return impersonationToken, nil
@@ -400,7 +400,7 @@ func UserHasPermission(impersonationToken syscall.Token, accessDesired uint32, p
 		&securityDescriptorLength,
 	)
 	if err != nil {
-		return false, errors.Wrap(err, 0)
+		return false, errors.WithStack(err)
 	}
 
 	var accessStatus bool
@@ -441,7 +441,7 @@ func UserHasPermission(impersonationToken syscall.Token, accessDesired uint32, p
 		&accessStatus,
 	)
 	if err != nil {
-		return false, errors.Wrap(err, 0)
+		return false, errors.WithStack(err)
 	}
 
 	return accessStatus, nil

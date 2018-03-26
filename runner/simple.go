@@ -5,7 +5,7 @@ package runner
 import (
 	"os/exec"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type simpleRunner struct {
@@ -38,22 +38,22 @@ func (sr *simpleRunner) Run() error {
 
 	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.AfterStart()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	err = pg.Wait()
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

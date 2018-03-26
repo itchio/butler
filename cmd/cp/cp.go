@@ -7,7 +7,6 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -16,6 +15,7 @@ import (
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type OnCopyStart func(initialProgress float64, totalBytes int64)
@@ -171,7 +171,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 			if err != nil {
 				comm.Log("Integrity checks failed, truncating")
 				os.Truncate(destPath, 0)
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 		} else {
 			comm.Debugf("Not performing integrity checks (no header)")

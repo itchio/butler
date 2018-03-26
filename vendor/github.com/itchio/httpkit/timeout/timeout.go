@@ -9,7 +9,7 @@ import (
 
 	"github.com/efarrer/iothrottler"
 	"github.com/getlantern/idletiming"
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -28,12 +28,12 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 		// if it takes too long to establish a connection, give up
 		timeoutConn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		// respect global throttle settings
 		throttledConn, err := ThrottlerPool.AddConn(timeoutConn)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 		// measure bps
 		monitorConn := &monitoringConn{

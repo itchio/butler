@@ -5,7 +5,7 @@ package runner
 import (
 	"runtime"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 func newFirejailRunner(params *RunnerParams) (Runner, error) {

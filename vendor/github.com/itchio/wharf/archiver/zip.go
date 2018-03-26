@@ -13,9 +13,9 @@ import (
 
 	"github.com/itchio/arkive/zip"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSettings) (*ExtractResult, error) {
@@ -25,7 +25,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 
 	reader, err := zip.NewReader(readerAt, size)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	var totalSize int64
@@ -43,7 +43,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 
 		resBytes, resErr := ioutil.ReadFile(settings.ResumeFrom)
 		if resErr != nil {
-			if !errors.Is(resErr, os.ErrNotExist) {
+			if errors.Cause(resErr) != os.ErrNotExist {
 				settings.Consumer.Warnf("Couldn't read resume file: %s", resErr.Error())
 			}
 			return
@@ -126,7 +126,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 		go func() {
 			reader, err := zip.NewReader(readerAt, size)
 			if err != nil {
-				errs <- errors.Wrap(err, 1)
+				errs <- errors.WithStack(err)
 				return
 			}
 
@@ -154,14 +154,14 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 						} else {
 							err = Mkdir(filename)
 							if err != nil {
-								return errors.Wrap(err, 1)
+								return errors.WithStack(err)
 							}
 						}
 						dirCount++
 					} else if mode&os.ModeSymlink > 0 && !windows {
 						fileReader, fErr := file.Open()
 						if fErr != nil {
-							return errors.Wrap(fErr, 1)
+							return errors.WithStack(fErr)
 						}
 						defer fileReader.Close()
 
@@ -171,7 +171,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 						} else {
 							lErr = Symlink(string(linkname), filename, settings.Consumer)
 							if lErr != nil {
-								return errors.Wrap(lErr, 1)
+								return errors.WithStack(lErr)
 							}
 						}
 						symlinkCount++
@@ -180,7 +180,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 
 						fileReader, fErr := file.Open()
 						if fErr != nil {
-							return errors.Wrap(fErr, 1)
+							return errors.WithStack(fErr)
 						}
 						defer fileReader.Close()
 
@@ -196,12 +196,12 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 						if settings.DryRun {
 							_, err = io.Copy(ioutil.Discard, countingReader)
 							if err != nil {
-								return errors.Wrap(err, 1)
+								return errors.WithStack(err)
 							}
 						} else {
 							err = CopyFile(filename, os.FileMode(mode&LuckyMode|ModeMask), countingReader)
 							if err != nil {
-								return errors.Wrap(err, 1)
+								return errors.WithStack(err)
 							}
 						}
 					}
@@ -209,7 +209,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 					return nil
 				}()
 				if err != nil {
-					errs <- errors.Wrap(err, 1)
+					errs <- errors.WithStack(err)
 					return
 				}
 				writeProgress(fileIndex)
@@ -258,7 +258,7 @@ func CompressZip(archiveWriter io.Writer, dir string, consumer *state.Consumer) 
 	defer func() {
 		if zipWriter != nil {
 			if zErr := zipWriter.Close(); err == nil && zErr != nil {
-				err = errors.Wrap(zErr, 1)
+				err = errors.WithStack(zErr)
 			}
 		}
 	}()
@@ -320,7 +320,7 @@ func CompressZip(archiveWriter io.Writer, dir string, consumer *state.Consumer) 
 
 	err = zipWriter.Close()
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 	zipWriter = nil
 

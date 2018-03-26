@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/tlc"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ type entrySpec struct {
 func cleanAndMakeFolder(fs *folderSpec, dest string) error {
 	err := os.RemoveAll(dest)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "cleaning up test folder")
 	}
 
 	return makeFolder(fs, dest)
@@ -32,7 +32,7 @@ func cleanAndMakeFolder(fs *folderSpec, dest string) error {
 func makeFolder(fs *folderSpec, dest string) error {
 	err := os.MkdirAll(dest, 0755)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating test folder")
 	}
 
 	for _, e := range fs.entries {
@@ -41,12 +41,12 @@ func makeFolder(fs *folderSpec, dest string) error {
 
 		err = os.MkdirAll(entryDir, 0755)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "creating test folder directory entry")
 		}
 
 		err = ioutil.WriteFile(entryPath, e.data, os.FileMode(0644))
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "writing test folder file entry")
 		}
 	}
 

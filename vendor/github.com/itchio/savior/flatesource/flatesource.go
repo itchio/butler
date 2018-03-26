@@ -4,9 +4,9 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/kompress/flate"
 	"github.com/itchio/savior"
+	"github.com/pkg/errors"
 )
 
 type flateSource struct {
@@ -66,7 +66,7 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 		if ourCheckpoint, ok := checkpoint.Data.(*FlateSourceCheckpoint); ok {
 			sourceOffset, err := fs.source.Resume(ourCheckpoint.SourceCheckpoint)
 			if err != nil {
-				return 0, errors.Wrap(err, 0)
+				return 0, errors.WithStack(err)
 			}
 
 			fc := ourCheckpoint.FlateCheckpoint
@@ -75,7 +75,7 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 				savior.Debugf(`flatesource: discarding %d bytes to align source with decompressor`, delta)
 				err = savior.DiscardByRead(fs.source, delta)
 				if err != nil {
-					return 0, errors.Wrap(err, 0)
+					return 0, errors.WithStack(err)
 				}
 				sourceOffset += delta
 			}
@@ -87,7 +87,7 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 					// well, let's start over
 					_, err = fs.source.Resume(nil)
 					if err != nil {
-						return 0, errors.Wrap(err, 0)
+						return 0, errors.WithStack(err)
 					}
 				} else {
 					fs.offset = fc.Woffset
@@ -102,7 +102,7 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 	// start from beginning
 	sourceOffset, err := fs.source.Resume(nil)
 	if err != nil {
-		return 0, errors.Wrap(err, 0)
+		return 0, errors.WithStack(err)
 	}
 
 	if sourceOffset != 0 {
@@ -117,7 +117,7 @@ func (fs *flateSource) Resume(checkpoint *savior.SourceCheckpoint) (int64, error
 
 func (fs *flateSource) Read(buf []byte) (int, error) {
 	if fs.sr == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := fs.sr.Read(buf)
@@ -157,7 +157,7 @@ func (fs *flateSource) Read(buf []byte) (int, error) {
 
 func (fs *flateSource) ReadByte() (byte, error) {
 	if fs.sr == nil {
-		return 0, errors.Wrap(savior.ErrUninitializedSource, 0)
+		return 0, errors.WithStack(savior.ErrUninitializedSource)
 	}
 
 	n, err := fs.Read(fs.bytebuf)

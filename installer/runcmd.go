@@ -6,10 +6,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer/loggerwriter"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 // RunCommand starts and waits for an *exec.Cmd to finish,
@@ -52,7 +52,7 @@ func RunElevatedCommand(consumer *state.Consumer, cmdTokens []string) (int, erro
 
 func CheckExitCode(exitCode int, err error) error {
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	if exitCode != 0 {

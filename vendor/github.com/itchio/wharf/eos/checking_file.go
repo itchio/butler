@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 )
 
 type CheckingFile struct {
@@ -42,20 +42,20 @@ func (cf *CheckingFile) Read(tBuf []byte) (int, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Wrap(fmt.Errorf("reference had error %s, trainee had no error", rErr.Error()), 0))
+			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Wrap(fmt.Errorf("reference had no error, trainee had error %s", tErr.Error()), 0))
+			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
 		}
 	}
 
 	if rReadBytes != tReadBytes {
-		must(errors.Wrap(fmt.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes), 0))
+		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
 	}
 
 	if !bytes.Equal(rBuf[:rReadBytes], tBuf[:rReadBytes]) {
-		must(errors.Wrap(fmt.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes), 0))
+		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
 	}
 
 	return tReadBytes, tErr
@@ -73,16 +73,16 @@ func (cf *CheckingFile) ReadAt(tBuf []byte, offset int64) (int, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that later
 		} else {
-			must(errors.Wrap(fmt.Errorf("reference had error %s, trainee had no error", rErr.Error()), 0))
+			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Wrap(fmt.Errorf("reference had no error, trainee had error %s", tErr.Error()), 0))
+			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
 		}
 	}
 
 	if rReadBytes != tReadBytes {
-		must(errors.Wrap(fmt.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes), 0))
+		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
 	}
 
 	if !bytes.Equal(rBuf[:rReadBytes], tBuf[:rReadBytes]) {
@@ -101,7 +101,7 @@ func (cf *CheckingFile) ReadAt(tBuf []byte, offset int64) (int, error) {
 			}
 		}
 
-		must(errors.Wrap(fmt.Errorf("reference & trainee read different bytes at %d, first different is at %d / %d, %d bytes are different", offset, firstDifferent, rReadBytes, numDifferent), 0))
+		must(errors.Errorf("reference & trainee read different bytes at %d, first different is at %d / %d, %d bytes are different", offset, firstDifferent, rReadBytes, numDifferent))
 	}
 
 	return tReadBytes, tErr
@@ -117,16 +117,16 @@ func (cf *CheckingFile) Seek(offset int64, whence int) (int64, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Wrap(fmt.Errorf("reference had error %s, trainee had no error", rErr.Error()), 0))
+			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Wrap(fmt.Errorf("reference had no error, trainee had error %s", tErr.Error()), 0))
+			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
 		}
 	}
 
 	if rOffset != tOffset {
-		must(errors.Wrap(fmt.Errorf("reference seeked to %d, trainee seeked to %d", rOffset, tOffset), 0))
+		must(errors.Errorf("reference seeked to %d, trainee seeked to %d", rOffset, tOffset))
 	}
 
 	return tOffset, tErr
@@ -142,11 +142,11 @@ func (cf *CheckingFile) Stat() (os.FileInfo, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Wrap(fmt.Errorf("reference had error %s, trainee had no error", rErr.Error()), 0))
+			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Wrap(fmt.Errorf("reference had no error, trainee had error %s", tErr.Error()), 0))
+			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
 		}
 	}
 
@@ -155,11 +155,6 @@ func (cf *CheckingFile) Stat() (os.FileInfo, error) {
 
 func must(err error) {
 	if err != nil {
-		switch err := err.(type) {
-		case *errors.Error:
-			panic(err.ErrorStack())
-		default:
-			panic(err.Error())
-		}
+		panic(fmt.Sprintf("%+v", err))
 	}
 }

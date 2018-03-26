@@ -3,8 +3,8 @@ package tlc
 import (
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/wsync"
+	"github.com/pkg/errors"
 )
 
 const minScannedFileSize = 4
@@ -20,12 +20,12 @@ func (c *Container) FixPermissions(pool wsync.Pool) error {
 
 		r, err := pool.GetReader(int64(index))
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		_, err = io.ReadFull(r, buf)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		if isExecutable(buf) {

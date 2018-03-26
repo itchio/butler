@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-errors/errors"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
@@ -28,7 +28,7 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 		if os.IsNotExist(err) {
 			Fresh = true
 		} else {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -74,7 +74,7 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 		Record: d,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	if item.CaveID != "" {

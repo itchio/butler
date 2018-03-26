@@ -6,21 +6,21 @@ import (
 	"path"
 
 	"github.com/dchest/safefile"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
-	patch  *string
-	dir    *string
-	old    *string
+	patch *string
+	dir   *string
+	old   *string
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -33,16 +33,16 @@ func Register(ctx *mansion.Context) {
 
 func do(ctx *mansion.Context) {
 	ctx.Must(Do(&Params{
-		Patch:  *args.patch,
-		Old:    *args.old,
-		Dir:    *args.dir,
+		Patch: *args.patch,
+		Old:   *args.old,
+		Dir:   *args.dir,
 	}))
 }
 
 type Params struct {
-	Patch  string
-	Old    string
-	Dir    string
+	Patch string
+	Old   string
+	Dir   string
 }
 
 func Do(params *Params) error {
@@ -58,18 +58,18 @@ func Do(params *Params) error {
 
 	patchReader, err := eos.Open(patch)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "opening patch")
 	}
 
 	patchSource := seeksource.FromFile(patchReader)
 	_, err = patchSource.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating patch source")
 	}
 
 	p, err := patcher.New(patchSource, consumer)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating patcher")
 	}
 
 	// comm.StartProgressWithTotalBytes(patchSource.Size())
@@ -80,7 +80,7 @@ func Do(params *Params) error {
 	checkpointFile, err := os.Open(checkpointPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "opening checkpoint")
 		}
 	} else {
 		defer checkpointFile.Close()
@@ -90,7 +90,7 @@ func Do(params *Params) error {
 		dec := gob.NewDecoder(checkpointFile)
 		err := dec.Decode(checkpoint)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.Wrap(err, "decoding checkpoint")
 		}
 
 		// yay, we have a checkpoint!
@@ -104,19 +104,19 @@ func Do(params *Params) error {
 		save: func(c *patcher.Checkpoint) (patcher.AfterSaveAction, error) {
 			checkpointFile, err := safefile.Create(checkpointPath, 0644)
 			if err != nil {
-				return patcher.AfterSaveStop, errors.Wrap(err, 0)
+				return patcher.AfterSaveStop, errors.Wrap(err, "creating checkpoint file")
 			}
 			defer checkpointFile.Close()
 
 			enc := gob.NewEncoder(checkpointFile)
 			err = enc.Encode(c)
 			if err != nil {
-				return patcher.AfterSaveStop, errors.Wrap(err, 0)
+				return patcher.AfterSaveStop, errors.Wrap(err, "encoding checkpoint")
 			}
 
 			err = checkpointFile.Commit()
 			if err != nil {
-				return patcher.AfterSaveStop, errors.Wrap(err, 0)
+				return patcher.AfterSaveStop, errors.Wrap(err, "committing checkpoint file")
 			}
 
 			return patcher.AfterSaveContinue, nil
@@ -132,12 +132,12 @@ func Do(params *Params) error {
 		OutputFolder:    dir,
 	})
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "creating fresh bowl")
 	}
 
 	err = p.Resume(checkpoint, targetPool, bowl)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.Wrap(err, "patching")
 	}
 	comm.EndProgress()
 

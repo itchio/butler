@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/pkg/errors"
 )
 
 /*
@@ -22,7 +22,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	// and the caller is in charge of downloading it and calling us again.
 	f, err := installer.AsLocalFile(params.File)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	angelParams := &bfs.SaveAngelsParams{
@@ -55,7 +55,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		// N.B: InnoSetup installers are smart enough to elevate themselves.
 		exitCode, err := installer.RunCommand(consumer, cmdTokens)
 		if err != nil {
-			return errors.Wrap(err, 0)
+			return errors.WithStack(err)
 		}
 
 		err = installer.CheckExitCode(exitCode, err)
@@ -76,7 +76,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 					lines = append(lines, s.Text())
 					if len(lines) > maxLines {
 						// this is extremely wasteful but hey, we don't care that much
-						lines = lines[len(lines)-maxLines : len(lines)]
+						lines = lines[len(lines)-maxLines:]
 					}
 				}
 				consumer.Warnf("==== last %d lines of inno installation log ====", maxLines)
@@ -90,14 +90,14 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 				return &butlerd.ErrAborted{}
 			}
 
-			return errors.Wrap(errors.New(msg), 0)
+			return errors.New(msg)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &installer.InstallResult{

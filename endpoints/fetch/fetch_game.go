@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error) {
@@ -22,7 +22,7 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 		if game != nil {
 			err := messages.FetchGameYield.Notify(rc, &butlerd.FetchGameYieldNotification{Game: game})
 			if err != nil {
-				return errors.Wrap(err, 0)
+				return errors.WithStack(err)
 			}
 		}
 		return nil
@@ -30,7 +30,7 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 
 	err := sendDBGame()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer.Debugf("Querying API...")
@@ -38,14 +38,14 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 
 	client, err := operate.ClientFromCredentials(creds)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
 		GameID: params.GameID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	c := HadesContext(rc)
@@ -54,12 +54,12 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 		Record: gameRes.Game,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = sendDBGame()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.FetchGameResult{}

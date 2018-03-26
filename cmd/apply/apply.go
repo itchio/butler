@@ -6,12 +6,12 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
+	"github.com/pkg/errors"
 )
 
 var args = struct {
@@ -103,26 +103,26 @@ func Do(params *Params) error {
 
 	patchReader, err := eos.Open(patch)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var signature *pwr.SignatureInfo
 	if signaturePath != "" {
 		sigReader, sigErr := eos.Open(signaturePath)
 		if sigErr != nil {
-			return errors.Wrap(sigErr, 0)
+			return errors.Wrap(sigErr, "opening signature")
 		}
 		defer sigReader.Close()
 
 		sigSource := seeksource.FromFile(sigReader)
 		_, sigErr = sigSource.Resume(nil)
 		if sigErr != nil {
-			return errors.Wrap(sigErr, 0)
+			return errors.Wrap(sigErr, "creating source for signature")
 		}
 
 		signature, sigErr = pwr.ReadSignature(sigSource)
 		if sigErr != nil {
-			return errors.Wrap(sigErr, 0)
+			return errors.Wrap(sigErr, "decoding signature")
 		}
 	}
 
@@ -143,13 +143,13 @@ func Do(params *Params) error {
 
 	_, err = patchSource.Resume(nil)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	comm.StartProgressWithTotalBytes(patchSource.Size())
 	err = actx.ApplyPatch(patchSource)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 	comm.EndProgress()
 

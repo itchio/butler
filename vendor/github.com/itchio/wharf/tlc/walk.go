@@ -11,8 +11,8 @@ import (
 
 	"github.com/itchio/arkive/zip"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/wharf/eos"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -54,14 +54,14 @@ func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 
 	file, err := eos.Open(containerPath)
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	defer file.Close()
 
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, 1)
+		return nil, errors.WithStack(err)
 	}
 
 	if stat.IsDir() {
@@ -73,7 +73,7 @@ func WalkAny(containerPath string, opts *WalkOpts) (*Container, error) {
 	if strings.HasSuffix(strings.ToLower(stat.Name()), ".zip") {
 		zr, err := zip.NewReader(file, stat.Size())
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		return WalkZip(zr, opts)
 	}
@@ -90,7 +90,7 @@ func WalkSingle(file eos.File) (*Container, error) {
 	}
 
 	if !stats.Mode().IsRegular() {
-		return nil, errors.Wrap(fmt.Errorf("%s: not a regular file, can only WalkSingle regular files", stats.Name()), 0)
+		return nil, errors.Errorf("%s: not a regular file, can only WalkSingle regular files", stats.Name())
 	}
 
 	container := &Container{
@@ -133,13 +133,13 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 					// ...except permission errors, those are fine
 					log.Printf("Permission error: %s\n", err.Error())
 				} else {
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 			}
 
 			Path, err := filepath.Rel(BasePath, FullPath)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			Path = filepath.Join(LocationPath, Path)
@@ -155,13 +155,13 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 			if opts.Dereference && fileInfo.Mode()&os.ModeSymlink > 0 {
 				fileInfo, err = os.Stat(FullPath)
 				if err != nil {
-					return errors.Wrap(err, 0)
+					return errors.WithStack(err)
 				}
 
 				if fileInfo.Mode().IsDir() {
 					Dest, err := os.Readlink(FullPath)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return errors.WithStack(err)
 					}
 
 					var JoinedDest string
@@ -175,14 +175,14 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 
 					if currentlyWalking[CleanDest] {
 						err := fmt.Errorf("symlinks recurse onto %s, cowardly refusing to walk infinite container", CleanDest)
-						return errors.Wrap(err, 0)
+						return errors.WithStack(err)
 					}
 
 					currentlyWalking[CleanDest] = true
 					err = filepath.Walk(CleanDest, makeEntryCallback(CleanDest, Path))
 					delete(currentlyWalking, CleanDest)
 					if err != nil {
-						return errors.Wrap(err, 0)
+						return errors.WithStack(err)
 					}
 				}
 			}
@@ -209,7 +209,7 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 			} else if Mode&os.ModeSymlink > 0 {
 				Dest, err := os.Readlink(FullPath)
 				if err != nil {
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 
 				Dest = filepath.ToSlash(Dest)
@@ -225,22 +225,22 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 	} else {
 		basePathIn, err := filepath.Abs(basePathIn)
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		fi, err := os.Lstat(basePathIn)
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 
 		if !fi.IsDir() {
-			return nil, errors.Wrap(fmt.Errorf("can't walk non-directory %s", basePathIn), 1)
+			return nil, errors.Errorf("can't walk non-directory %s", basePathIn)
 		}
 
 		currentlyWalking[basePathIn] = true
 		err = filepath.Walk(basePathIn, makeEntryCallback(basePathIn, "."))
 		if err != nil {
-			return nil, errors.Wrap(err, 1)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -292,19 +292,19 @@ func WalkZip(zr *zip.Reader, opts *WalkOpts) (*Container, error) {
 			err := func() error {
 				reader, err := file.Open()
 				if err != nil {
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 				defer reader.Close()
 
 				linkname, err = ioutil.ReadAll(reader)
 				if err != nil {
-					return errors.Wrap(err, 1)
+					return errors.WithStack(err)
 				}
 				return nil
 			}()
 
 			if err != nil {
-				return nil, errors.Wrap(err, 1)
+				return nil, errors.WithStack(err)
 			}
 
 			Symlinks = append(Symlinks, &Symlink{

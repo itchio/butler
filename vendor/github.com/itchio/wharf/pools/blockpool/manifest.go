@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/pkg/errors"
 )
 
 // WriteManifest writes container info and block addresses in wharf's manifest format
@@ -17,7 +17,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 	rawWire := wire.NewWriteContext(manifestWriter)
 	err := rawWire.WriteMagic(pwr.ManifestMagic)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = rawWire.WriteMessage(&pwr.ManifestHeader{
@@ -25,17 +25,17 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 		Algorithm:   pwr.HashAlgorithm_SHAKE128_32,
 	})
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	wire, err := pwr.CompressWire(rawWire, compression)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	err = wire.WriteMessage(container)
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	sh := &pwr.SyncHeader{}
@@ -46,7 +46,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 		sh.FileIndex = int64(fileIndex)
 		err = wire.WriteMessage(sh)
 		if err != nil {
-			return errors.Wrap(err, 1)
+			return errors.WithStack(err)
 		}
 
 		numBlocks := ComputeNumBlocks(f.Size)
@@ -56,7 +56,7 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 			hash := blockHashes.Get(loc)
 			if hash == nil {
 				err = fmt.Errorf("missing BlockHash for block %+v", loc)
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 
 			mbh.Reset()
@@ -64,14 +64,14 @@ func WriteManifest(manifestWriter io.Writer, compression *pwr.CompressionSetting
 
 			err = wire.WriteMessage(mbh)
 			if err != nil {
-				return errors.Wrap(err, 1)
+				return errors.WithStack(err)
 			}
 		}
 	}
 
 	err = wire.Close()
 	if err != nil {
-		return errors.Wrap(err, 1)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -85,28 +85,28 @@ func ReadManifest(manifestReader savior.SeekSource) (*tlc.Container, *BlockHashM
 	rawWire := wire.NewReadContext(manifestReader)
 	err := rawWire.ExpectMagic(pwr.ManifestMagic)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	mh := &pwr.ManifestHeader{}
 	err = rawWire.ReadMessage(mh)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	if mh.Algorithm != pwr.HashAlgorithm_SHAKE128_32 {
 		err = fmt.Errorf("Manifest has unsupported hash algorithm %d, expected %d", mh.Algorithm, pwr.HashAlgorithm_SHAKE128_32)
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	wire, err := pwr.DecompressWire(rawWire, mh.GetCompression())
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	err = wire.ReadMessage(container)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, 1)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	sh := &pwr.SyncHeader{}
@@ -116,12 +116,12 @@ func ReadManifest(manifestReader savior.SeekSource) (*tlc.Container, *BlockHashM
 		sh.Reset()
 		err = wire.ReadMessage(sh)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, 1)
+			return nil, nil, errors.WithStack(err)
 		}
 
 		if int64(fileIndex) != sh.FileIndex {
 			err = fmt.Errorf("manifest format error: expected file %d, got %d", fileIndex, sh.FileIndex)
-			return nil, nil, errors.Wrap(err, 1)
+			return nil, nil, errors.WithStack(err)
 		}
 
 		numBlocks := ComputeNumBlocks(f.Size)
@@ -129,7 +129,7 @@ func ReadManifest(manifestReader savior.SeekSource) (*tlc.Container, *BlockHashM
 			mbh.Reset()
 			err = wire.ReadMessage(mbh)
 			if err != nil {
-				return nil, nil, errors.Wrap(err, 1)
+				return nil, nil, errors.WithStack(err)
 			}
 
 			loc := BlockLocation{FileIndex: int64(fileIndex), BlockIndex: blockIndex}

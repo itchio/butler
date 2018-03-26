@@ -1,11 +1,11 @@
 package profile
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 func Register(router *butlerd.Router) {
@@ -22,7 +22,7 @@ func List(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butle
 	var profiles []*models.Profile
 	err := rc.DB().Preload("User").Order("last_connected desc").Find(&profiles).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var formattedProfiles []*butlerd.Profile
@@ -53,7 +53,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 	rootClient, err := rc.RootClient()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	var key *itchio.APIKey
@@ -65,7 +65,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 			Password: params.Password,
 		})
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 
 		if loginRes.RecaptchaNeeded {
@@ -74,7 +74,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 				RecaptchaURL: loginRes.RecaptchaURL,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			if recaptchaRes.RecaptchaResponse == "" {
@@ -87,7 +87,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 				RecaptchaResponse: recaptchaRes.RecaptchaResponse,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 		}
 
@@ -95,7 +95,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 			// TOTP flow
 			totpRes, err := messages.ProfileRequestTOTP.Call(rc, &butlerd.ProfileRequestTOTPParams{})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			if totpRes.Code == "" {
@@ -107,7 +107,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 				Code:  totpRes.Code,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, 0)
+				return nil, errors.WithStack(err)
 			}
 
 			key = verifyRes.Key
@@ -121,12 +121,12 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 	client, err := rc.KeyClient(key.Key)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	meRes, err := client.GetMe()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	profile := &models.Profile{
@@ -137,7 +137,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 	err = rc.DB().Save(profile).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.ProfileLoginWithPasswordResult{
@@ -154,12 +154,12 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 
 	client, err := rc.KeyClient(params.APIKey)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	meRes, err := client.GetMe()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	profile := &models.Profile{
@@ -170,7 +170,7 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 
 	err = rc.DB().Save(profile).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.ProfileLoginWithAPIKeyResult{
@@ -188,17 +188,17 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 
 	meRes, err := client.GetMe()
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	profile.UpdateFromUser(meRes.User)
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	err = rc.DB().Save(profile).Error
 	if err != nil {
-		return nil, errors.Wrap(err, 0)
+		return nil, errors.WithStack(err)
 	}
 
 	consumer.Opf("Logged in!")
@@ -220,7 +220,7 @@ func Forget(rc *butlerd.RequestContext, params *butlerd.ProfileForgetParams) (*b
 	if profile != nil {
 		err := rc.DB().Delete(profile).Error
 		if err != nil {
-			return nil, errors.Wrap(err, 0)
+			return nil, errors.WithStack(err)
 		}
 		success = true
 	}

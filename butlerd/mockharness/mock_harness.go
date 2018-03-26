@@ -1,9 +1,9 @@
 package mockharness
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 )
 
@@ -24,7 +24,7 @@ func With(cb WithHarnessFunc) error {
 	th := &mockHarness{butlerd.NewProductionHarness()}
 	err := cb(th)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil

@@ -3,9 +3,9 @@ package inno
 import (
 	"path/filepath"
 
-	"github.com/go-errors/errors"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/installer"
+	"github.com/pkg/errors"
 )
 
 func (m *Manager) Uninstall(params *installer.UninstallParams) error {
@@ -16,7 +16,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 
 	verdict, err := configurator.Configure(folder, false)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	var chosen *configurator.Candidate
@@ -57,7 +57,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	exitCode, err := installer.RunCommand(consumer, cmdTokens)
 	err = installer.CheckExitCode(exitCode, err)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return errors.WithStack(err)
 	}
 
 	return nil
