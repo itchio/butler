@@ -17,7 +17,7 @@ UPLOADER_VERSION=`curl https://dl.itch.ovh/butler/linux-amd64/LATEST`
 mkdir -p tools/
 curl -sLo ./tools/butler "https://dl.itch.ovh/butler/linux-amd64/${UPLOADER_VERSION}/butler"
 chmod +x ./tools/butler
-export PATH=$CWD/tools:$PATH
+export PATH=$PWD/tools:$PATH
 butler -V
 
 USER_VERSION=`echo ${CI_BUILD_TAG} | tr -d "v"`
