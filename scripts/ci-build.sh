@@ -94,26 +94,36 @@ file built/$TARGET
 
 # set up a file hierarchy that ibrew can consume, ie:
 #
-# - dl.itch.ovh
-#   - butler
-#     - windows-amd64
-#       - LATEST
-#       - v0.11.0
-#         - butler.7z
-#         - butler.gz
-#         - butler.exe
-#         - SHA1SUMS
+# - windows-amd64
+#   - LATEST
+#   - v0.11.0
+#     - butler.7z
+#     - butler.gz
+#     - butler.exe
+#     - SHA1SUMS
+#     - SHA256SUMS
 
-BINARIES_DIR="binaries/$CI_OS-$CI_ARCH"
-mkdir -p $BINARIES_DIR/$CI_VERSION
-mv butler.7z $BINARIES_DIR/$CI_VERSION
-mv butler.gz $BINARIES_DIR/$CI_VERSION
-mv butler.zip $BINARIES_DIR/$CI_VERSION
-mv built/* $BINARIES_DIR/$CI_VERSION
+IBREW_DIR="ibrew/$CI_OS-$CI_ARCH"
+mkdir -p $IBREW_DIR/$CI_VERSION
+mv butler.7z $IBREW_DIR/$CI_VERSION
+mv butler.gz $IBREW_DIR/$CI_VERSION
+mv butler.zip $IBREW_DIR/$CI_VERSION
+cp built/* $IBREW_DIR/$CI_VERSION
 
-(cd $BINARIES_DIR/$CI_VERSION && sha1sum * > SHA1SUMS && sha256sum * > SHA256SUMS)
+(cd $IBREW_DIR/$CI_VERSION && sha1sum * > SHA1SUMS && sha256sum * > SHA256SUMS)
 
 if [ -n "$CI_BUILD_TAG" ]; then
-  echo $CI_VERSION > $BINARIES_DIR/LATEST
+  echo $CI_VERSION > $IBREW_DIR/LATEST
 fi
+
+# set up a file hierarchy we can push with butler, ie.
+#
+# - windows-amd64
+#   - butler.exe
+#   - c7zip.dll
+#   - 7z.dll
+
+BROTH_DIR="broth/$CI_OS-$CI_ARCH"
+mkdir -p $BROTH_DIR
+cp built/* $BROTH_DIR/
 

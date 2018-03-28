@@ -50,7 +50,8 @@ build:linux:386:
   artifacts:
     expire_in: 1 week
     paths:
-      - binaries
+      - ibrew
+      - broth
 
 build:linux:amd64:
   stage: build
@@ -63,7 +64,8 @@ build:linux:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - binaries
+      - ibrew
+      - broth
 
 build:darwin:amd64:
   stage: build
@@ -76,7 +78,8 @@ build:darwin:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - binaries
+      - ibrew
+      - broth
 
 build:windows:386:
   stage: build
@@ -89,7 +92,8 @@ build:windows:386:
   artifacts:
     expire_in: 1 week
     paths:
-      - binaries
+      - ibrew
+      - broth
 
 build:windows:amd64:
   stage: build
@@ -102,13 +106,19 @@ build:windows:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - binaries
+      - ibrew
+      - broth
 
 deploy:
   stage: deploy
   tags:
     - dropsy
   script:
-    - scripts/ci-deploy.sh
+    - scripts/ci-deploy-ibrew.sh
 
-  
+deploy:
+  stage: deploy
+  tags:
+    - dropsy
+  script:
+    - scripts/ci-deploy-itchio.sh
