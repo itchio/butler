@@ -334,11 +334,7 @@ type errorCoalescer struct {
 func (ec *errorCoalescer) Record(err error) {
 	if err != nil {
 		ec.errors = append(ec.errors, err)
-		if se, ok := err.(*errors.Error); ok {
-			ec.consumer.Warnf("While %s: %s", ec.operation, se.ErrorStack())
-		} else {
-			ec.consumer.Warnf("While %s: %s", ec.operation, err.Error())
-		}
+		ec.consumer.Warnf("While %s: %+v", ec.operation, err)
 	}
 }
 

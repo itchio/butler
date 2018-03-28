@@ -193,9 +193,13 @@ func LoadProfileOnce(username string, domain string, password string) error {
 	return nil
 }
 
+type causer interface {
+	Cause() error
+}
+
 func AsErrno(err error) (syscall.Errno, bool) {
-	if se, ok := err.(*errors.Error); ok {
-		return AsErrno(se.Err)
+	if se, ok := err.(causer); ok {
+		return AsErrno(se.Cause())
 	}
 
 	en, ok := err.(syscall.Errno)
