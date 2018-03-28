@@ -14,15 +14,17 @@ fi
 
 # upload to itch.io
 UPLOADER_VERSION=`curl https://dl.itch.ovh/butler/linux-amd64/LATEST`
-curl -sLo ./butler "https://dl.itch.ovh/butler/linux-amd64/${UPLOADER_VERSION}/butler"
-chmod +x ./butler
-./butler -V
+mkdir -p tools/
+curl -sLo ./tools/butler "https://dl.itch.ovh/butler/linux-amd64/${UPLOADER_VERSION}/butler"
+chmod +x ./tools/butler
+export PATH=$CWD/tools:$PATH
+butler -V
 
 USER_VERSION=`echo ${CI_BUILD_TAG} | tr -d "v"`
 
 pushd broth
 for i in *; do
     CHANNEL_NAME="${i}-${CHANNEL_SUFFIX}"
-    ./butler push --userversion "${USER_VERSION}" ./$i "fasterthanlime/butler:${CHANNEL_NAME}"
+    butler push --userversion "${USER_VERSION}" ./$i "fasterthanlime/butler:${CHANNEL_NAME}"
 done
 popd
