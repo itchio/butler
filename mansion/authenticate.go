@@ -93,11 +93,11 @@ const (
 
 var callbackRe = regexp.MustCompile(`^\/oauth\/callback\/(.*)$`)
 
-const environmentApiKey = "BUTLER_API_KEY"
+const environmentApiKeyVariable = "BUTLER_API_KEY"
 
 func (ctx *Context) HasSavedCredentials() bool {
 	// environment has priority
-	if os.Getenv(environmentApiKey) != "" {
+	if os.Getenv(environmentApiKeyVariable) != "" {
 		return true
 	}
 
@@ -156,17 +156,29 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		return client
 	}
 
-	envKey := os.Getenv(environmentApiKey)
+	envKey := os.Getenv(environmentApiKeyVariable)
 	if envKey != "" {
 		return makeClient(envKey), nil
 	}
 
+	if os.Getenv("CI") != "" {
+		comm.Logf(" ~~~ ")
+		comm.Logf("It looks like you're running butler on a CI server.")
+		comm.Logf("It's strongly recommended to pass credentials via the %s environment variable.", environmentApiKeyVariable)
+		comm.Logf("See https://itch.io/docs/butler/login.html for more info.")
+		comm.Logf(" ~~~ ")
+	}
 	key, err = readKeyFile(identity)
 	if err != nil {
 		return nil, errors.Wrap(err, "reading key file")
 	}
 
 	if key == "" {
+		if !IsTerminal() {
+			comm.Logf("Please set %s to your API key, see https://itch.io/docs/butler/login.html for more info.", environmentApiKeyVariable)
+			comm.Dief("No credentials and stdin is not a terminal - terminating.")
+		}
+
 		done := make(chan string)
 		errs := make(chan error)
 

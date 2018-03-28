@@ -1,6 +1,6 @@
 // +build linux darwin freebsd netbsd openbsd dragonfly
 
-package main
+package mansion
 
 import (
 	"syscall"
@@ -8,6 +8,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func isTerminal() bool {
+func IsTerminal() bool {
 	return terminal.IsTerminal(syscall.Stdin)
 }

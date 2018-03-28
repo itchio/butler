@@ -190,11 +190,11 @@ func doMain(args []string) {
 		*appArgs.verbose = false
 	}
 
-	if !isTerminal() {
+	if !mansion.IsTerminal() {
 		*appArgs.noProgress = true
 	}
 	comm.Configure(*appArgs.noProgress, *appArgs.quiet, *appArgs.verbose, *appArgs.json, *appArgs.panic, *appArgs.assumeYes, *appArgs.beeps4Life)
-	if !isTerminal() {
+	if !mansion.IsTerminal() {
 		comm.Debug("Not a terminal, disabling progress indicator")
 	}
 
