@@ -7,7 +7,7 @@ if [ -n "${CI_COMMIT_TAG}" ]; then
 elif [ "master" == "${CI_COMMIT_REF_NAME}" ]; then
   # pushing head
   export CHANNEL_SUFFIX="-head"
-  export USER_VERSION="${CI_COMMIT_REF_NAME}"
+  export USER_VERSION="${CI_COMMIT_SHA}"
 else
   # pushing a branch that isn't master
   echo "Not pushing non-master branch ${CI_COMMIT_REF_NAME}"
