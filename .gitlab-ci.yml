@@ -109,14 +109,14 @@ build:windows:amd64:
       - ibrew
       - broth
 
-deploy:
+deploy-ibrew:
   stage: deploy
   tags:
     - dropsy
   script:
     - scripts/ci-deploy-ibrew.sh
 
-deploy:
+deploy-itchio:
   stage: deploy
   tags:
     - dropsy
