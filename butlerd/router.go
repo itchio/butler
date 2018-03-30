@@ -162,8 +162,8 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		"stack":         fmt.Sprintf("%+v", err),
 		"butlerVersion": r.MansionContext.VersionString,
 	}
-	es, err := json.Marshal(input)
-	if err == nil {
+	es, marshalErr := json.Marshal(input)
+	if marshalErr == nil {
 		rm := json.RawMessage(es)
 		rawData = &rm
 	}
