@@ -13,6 +13,12 @@ import (
 )
 
 func handlePrereqs(params *launch.LauncherParams) error {
+	var err error
+	err = handleUE4Prereqs(params)
+	if err != nil {
+		return errors.WithMessage(err, "While handling UE4 prereqs")
+	}
+
 	consumer := params.RequestContext.Consumer
 
 	var listed []string
@@ -62,7 +68,6 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		pending = append(pending, name)
 	}
 
-	var err error
 	pending, err = pc.FilterPrereqs(pending)
 	if err != nil {
 		return errors.WithStack(err)

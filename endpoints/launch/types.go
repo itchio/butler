@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/pelican"
 
 	"github.com/itchio/butler/configurator"
 )
@@ -28,6 +29,9 @@ type LauncherParams struct {
 	FullTargetPath string
 
 	// May be nil
+	PeInfo *pelican.PeInfo
+
+	// May be nil
 	Candidate *configurator.Candidate
 
 	// May be nil
@@ -46,6 +50,7 @@ type LauncherParams struct {
 	Env map[string]string
 
 	PrereqsDir    string
+	ForcePrereqs  bool
 	Credentials   *butlerd.GameCredentials
 	InstallFolder string
 	Runtime       *manager.Runtime

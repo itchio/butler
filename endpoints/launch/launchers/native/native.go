@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/pelican"
+
 	"github.com/itchio/butler/configurator"
 
 	"github.com/itchio/butler/butlerd/messages"
@@ -44,6 +46,16 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	_, err = os.Stat(params.FullTargetPath)
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	err = configureTargetIfNeeded(params)
+	if err != nil {
+		consumer.Warnf("Could not configure launch target: %s", err.Error())
+	}
+
+	err = fillPeInfoIfNeeded(params)
+	if err != nil {
+		consumer.Warnf("Could not determine PE info: %s", err.Error())
 	}
 
 	err = handlePrereqs(params)
@@ -211,6 +223,54 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 			consumer.Errorf("=================================")
 		}
 		consumer.Errorf("Relaying launch failure.")
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+func configureTargetIfNeeded(params *launch.LauncherParams) error {
+	if params.Candidate != nil {
+		// already configured
+		return nil
+	}
+
+	v, err := configurator.Configure(params.FullTargetPath, false)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if len(v.Candidates) == 0 {
+		return errors.Errorf("0 candidates after configure")
+	}
+
+	params.Candidate = v.Candidates[0]
+	return nil
+}
+
+func fillPeInfoIfNeeded(params *launch.LauncherParams) error {
+	c := params.Candidate
+	if c == nil {
+		// no candidate for some reason?
+		return nil
+	}
+
+	if c.Flavor != configurator.FlavorNativeWindows {
+		// not an .exe, ignore
+		return nil
+	}
+
+	var err error
+	f, err := os.Open(params.FullTargetPath)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer f.Close()
+
+	params.PeInfo, err = pelican.Probe(f, &pelican.ProbeParams{
+		Consumer: params.RequestContext.Consumer,
+	})
+	if err != nil {
 		return errors.WithStack(err)
 	}
 

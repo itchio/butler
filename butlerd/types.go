@@ -1136,6 +1136,7 @@ type LaunchParams struct {
 
 	// The directory to use to store installer files for prerequisites
 	PrereqsDir string `json:"prereqsDir"`
+
 	// Force installing all prerequisites, even if they're already marked as installed
 	// @optional
 	ForcePrereqs bool `json:"forcePrereqs,omitempty"`

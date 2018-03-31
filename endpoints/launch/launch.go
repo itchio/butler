@@ -162,17 +162,73 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		return nil, errors.WithStack(err)
 	}
 
+	filterCandidates := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
+		if len(candidatesIn) <= 1 {
+			return candidatesIn
+		}
+
+		var nativeFlavor configurator.Flavor
+		var nativeArch configurator.Arch
+		switch runtime.Platform {
+		case butlerd.ItchPlatformWindows:
+			nativeFlavor = configurator.FlavorNativeWindows
+		case butlerd.ItchPlatformLinux:
+			nativeFlavor = configurator.FlavorNativeLinux
+		}
+		if runtime.Is64 {
+			nativeArch = configurator.ArchAmd64
+		} else {
+			nativeArch = configurator.Arch386
+		}
+
+		for _, c := range candidatesIn {
+			if c.Flavor != nativeFlavor {
+				consumer.Infof("Not filtering candidates, we found non-native (%s) flavor", c.Flavor)
+				return candidatesIn
+			}
+		}
+
+		hasNativeArch := false
+		for _, c := range candidatesIn {
+			if c.Arch == nativeArch {
+				hasNativeArch = true
+				break
+			}
+		}
+
+		if !hasNativeArch {
+			consumer.Infof("Not filtering candidates, none of them are native arch (%s)", nativeArch)
+			return candidatesIn
+		}
+
+		var candidatesOut []*configurator.Candidate
+		consumer.Infof("Filtering %d candidates by preferring native arch (%s)", len(candidatesIn), nativeArch)
+		for _, c := range candidatesIn {
+			if c.Arch == nativeArch {
+				candidatesOut = append(candidatesOut, c)
+			}
+		}
+
+		return candidatesOut
+	}
+
 	pickFromVerdict := func() error {
 		consumer.Infof("→ Using verdict: %s", verdict)
 
-		switch len(verdict.Candidates) {
+		candidates := filterCandidates(verdict.Candidates)
+		numCandidatesElimineated := len(verdict.Candidates) - len(candidates)
+		if numCandidatesElimineated > 0 {
+			consumer.Infof("Eliminated %d candidates via filtering", numCandidatesElimineated)
+		}
+
+		switch len(candidates) {
 		case 0:
 			return ErrNoCandidates
 		case 1:
-			candidate = verdict.Candidates[0]
+			candidate = candidates[0]
 		default:
 			fakeActions := []*butlerd.Action{}
-			for _, c := range verdict.Candidates {
+			for _, c := range candidates {
 				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
 				fakeActions = append(fakeActions, &butlerd.Action{
 					Name: name,
@@ -190,7 +246,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			if r.Index < 0 {
 				return &butlerd.ErrAborted{}
 			}
-			candidate = verdict.Candidates[r.Index]
+			candidate = candidates[r.Index]
 		}
 
 		fullPath := filepath.Join(installFolder, candidate.Path)
@@ -342,6 +398,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		Env:            env,
 
 		PrereqsDir:    params.PrereqsDir,
+		ForcePrereqs:  params.ForcePrereqs,
 		Credentials:   credentials,
 		InstallFolder: installFolder,
 		Runtime:       runtime,
