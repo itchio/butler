@@ -1,21 +1,20 @@
 package upgrade
 
 import (
-	"compress/gzip"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
-	"runtime"
+	"path/filepath"
 
-	"github.com/itchio/butler/cmd/dl"
+	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/kardianos/osext"
 	"github.com/pkg/errors"
 )
 
 var args = struct {
-	head *bool
+	head   *bool
+	stable *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -23,145 +22,88 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("upgrade", "Upgrades butler to the latest version").Alias("ugprade").Alias("update")
 	ctx.Register(cmd, do)
 
-	args.head = cmd.Flag("head", "Install bleeding-edge version").Bool()
+	args.head = cmd.Flag("head", "Force bleeding-edge version").Bool()
+	args.stable = cmd.Flag("stable", "Force stable version").Bool()
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.head))
+	ctx.Must(Do(ctx, *args.head, *args.stable))
 }
 
-func Do(ctx *mansion.Context, head bool) error {
+func Do(ctx *mansion.Context, head bool, stable bool) error {
+	variant := ctx.CurrentVariant()
 	if head {
-		if !comm.YesNo("Do you want to upgrade to the bleeding-edge version? Things may break!") {
-			comm.Logf("Okay, not upgrading. Bye!")
-			return nil
-		}
-
-		return applyUpgrade(ctx, "head", "head")
+		variant = mansion.VersionVariantHead
+	} else if stable {
+		variant = mansion.VersionVariantStable
 	}
 
-	if ctx.Version == "head" {
-		comm.Statf("Bleeding-edge, not upgrading unless told to.")
-		comm.Logf("(Use `--head` if you want to upgrade to the latest bleeding-edge version)")
-		return nil
-	}
+	comm.Opf("Looking for %s upgrades...", variant)
 
-	comm.Opf("Looking for upgrades...")
-
-	currentVer, latestVer, err := ctx.QueryLatestVersion()
+	vinfo, err := ctx.QueryLatestVersion(variant)
 	if err != nil {
 		return fmt.Errorf("Version check failed: %s", err.Error())
 	}
 
-	if latestVer == nil || currentVer.GTE(*latestVer) {
+	if vinfo.Latest.Equal(vinfo.Current) {
 		comm.Statf("Your butler is up-to-date. Have a nice day!")
 		return nil
 	}
 
-	comm.Statf("Current version: %s", currentVer.String())
-	comm.Statf("Latest version : %s", latestVer.String())
+	comm.Statf("Current version: %s", vinfo.Current)
+	comm.Statf("Latest version : %s", vinfo.Latest)
 
 	if !comm.YesNo("Do you want to upgrade now?") {
 		comm.Logf("Okay, not upgrading. Bye!")
 		return nil
 	}
 
-	return applyUpgrade(ctx, currentVer.String(), latestVer.String())
+	return applyUpgrade(ctx, vinfo)
 }
 
-func applyUpgrade(ctx *mansion.Context, before string, after string) error {
-	execPath, err := osext.Executable()
+func applyUpgrade(ctx *mansion.Context, vinfo *mansion.VersionCheckResult) error {
+	before := vinfo.Current
+	after := vinfo.Latest
+
+	updateDir, err := ioutil.TempDir("", "butler-self-upgrade")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer os.RemoveAll(updateDir)
+
+	execPath, err := os.Executable()
 	if err != nil {
 		return err
 	}
 
-	oldPath := execPath + ".old"
-	newPath := execPath + ".new"
-	gzPath := newPath + ".gz"
+	execDir := filepath.Dir(execPath)
 
-	err = os.RemoveAll(newPath)
+	archiveURL := fmt.Sprintf("%s/%s/.zip", ctx.UpdateBaseURL(after.Variant), after.Name)
+	comm.Opf("%s", archiveURL)
+
+	extractRes, err := archive.SimpleExtract(&archive.SimpleExtractParams{
+		ArchivePath:       archiveURL,
+		DestinationFolder: updateDir,
+		Consumer:          comm.NewStateConsumer(),
+	})
 	if err != nil {
 		return err
 	}
 
-	err = os.RemoveAll(gzPath)
-	if err != nil {
-		return err
+	var oldPaths []string
+
+	for _, entry := range extractRes.Entries {
+		srcPath := filepath.Join(updateDir, entry.CanonicalPath)
+		dstPath := filepath.Join(execDir, entry.CanonicalPath)
+		oldPath := dstPath + ".old"
+
+		oldPaths = append(oldPaths, oldPath)
+		os.Rename(dstPath, oldPath)
+		os.Rename(srcPath, dstPath)
 	}
 
-	ext := ""
-	if runtime.GOOS == "windows" {
-		ext = ".exe"
-	}
-
-	fragment := fmt.Sprintf("v%s", after)
-	if after == "head" {
-		fragment = "head"
-	}
-	execURL := fmt.Sprintf("%s/%s/butler%s", ctx.UpdateBaseURL(), fragment, ext)
-
-	gzURL := fmt.Sprintf("%s/%s/butler.gz", ctx.UpdateBaseURL(), fragment)
-	comm.Opf("%s", gzURL)
-
-	err = func() error {
-		_, gErr := dl.Do(ctx, gzURL, gzPath)
-		if gErr != nil {
-			return gErr
-		}
-
-		fr, gErr := os.Open(gzPath)
-		if gErr != nil {
-			return gErr
-		}
-		defer fr.Close()
-
-		gr, gErr := gzip.NewReader(fr)
-		if gErr != nil {
-			return gErr
-		}
-
-		fw, gErr := os.Create(newPath)
-		if gErr != nil {
-			return gErr
-		}
-		defer fw.Close()
-
-		_, gErr = io.Copy(fw, gr)
-		return gErr
-	}()
-
-	if err != nil {
-		comm.Opf("Falling back to %s", execURL)
-		_, err = dl.Do(ctx, execURL, newPath)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	}
-
-	err = os.Chmod(newPath, os.FileMode(0755))
-	if err != nil {
-		return err
-	}
-
-	comm.Opf("Backing up current version to %s just in case...", oldPath)
-	err = os.Rename(execPath, oldPath)
-	if err != nil {
-		return err
-	}
-
-	err = os.Rename(newPath, execPath)
-	if err != nil {
-		return err
-	}
-
-	err = os.Remove(oldPath)
-	if err != nil {
-		if os.IsPermission(err) && runtime.GOOS == "windows" {
-			// poor windows doesn't like us removing executables from under it
-			// I vote we move on and let butler.exe.old hang around.
-		} else {
-			return err
-		}
+	for _, oldPath := range oldPaths {
+		err = os.Remove(oldPath)
 	}
 
 	comm.Statf("Upgraded butler from %s to %s. Have a nice day!", before, after)

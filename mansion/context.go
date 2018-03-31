@@ -28,6 +28,9 @@ type Context struct {
 	// Version is just the version number, as a string
 	Version string
 
+	// The git commit hash
+	Commit string
+
 	// Quiet silences all output
 	Quiet bool
 
