@@ -30,6 +30,10 @@ func (ctx *Context) DoVersionCheck() {
 		return
 	}
 
+	if vinfo.Current.Equal(vinfo.Latest) {
+		return
+	}
+
 	if vinfo.Current != vinfo.Latest {
 		comm.Notice("New version available",
 			[]string{
