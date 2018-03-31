@@ -23,7 +23,7 @@ func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
 		return nil, errors.Wrap(err, "creating db directory")
 	}
 
-	db, err := gorm.Open("sqlite3", dbPath)
+	db, err := gorm.Open("sqlite3", dbPath+"?_busy_timeout=5000")
 	if err != nil {
 		return nil, errors.Wrap(err, "opening SQLite database")
 	}
