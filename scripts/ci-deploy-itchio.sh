@@ -15,16 +15,18 @@ else
 fi
 
 # upload to itch.io
-UPLOADER_VERSION=`curl https://dl.itch.ovh/butler/linux-amd64/LATEST`
-mkdir -p tools/
-curl -sLo ./tools/butler "https://dl.itch.ovh/butler/linux-amd64/${UPLOADER_VERSION}/butler"
-chmod +x ./tools/butler
-export PATH=$PWD/tools:$PATH
-butler -V
+export TOOLS_DIR=$PWD/tools/
+mkdir -p ${TOOLS_DIR}
+pushd ${TOOLS_DIR}
+curl -sLo butler.zip "https://broth.itch.ovh/butler/linux-amd64/LATEST/.zip"
+unzip butler.zip
+popd
+
+${TOOLS_DIR}/butler -V
 
 pushd broth
 for i in *; do
     CHANNEL_NAME="${i}${CHANNEL_SUFFIX}"
-    butler push --userversion "${USER_VERSION}" ./$i "fasterthanlime/butler:${CHANNEL_NAME}"
+    ${TOOLS_DIR}/butler push --userversion "${USER_VERSION}" ./$i "fasterthanlime/butler:${CHANNEL_NAME}"
 done
 popd
