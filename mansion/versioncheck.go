@@ -23,6 +23,7 @@ func (ctx *Context) DoVersionCheck() {
 	vinfo, err := ctx.QueryLatestVersion(ctx.CurrentVariant())
 	if err != nil {
 		comm.Logf("Version check failed: %s", err.Error())
+		return
 	}
 
 	if vinfo.Current == nil || vinfo.Latest == nil {
