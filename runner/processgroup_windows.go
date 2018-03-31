@@ -13,11 +13,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const magicCompletionKey uint32 = 0xf00d
+
 type processGroup struct {
 	consumer  *state.Consumer
 	cmd       *execas.Cmd
 	ctx       context.Context
 	jobObject syscall.Handle
+	ioPort    syscall.Handle
 }
 
 func NewProcessGroup(consumer *state.Consumer, cmd *execas.Cmd, ctx context.Context) (*processGroup, error) {
@@ -51,22 +54,47 @@ func (pg *processGroup) tryAssignJobObject() error {
 	var err error
 	pg.jobObject, err = syscallex.CreateJobObject(nil, nil)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "CreateJobObject")
 	}
 
-	jobObjectInfo := new(syscallex.JobObjectExtendedLimitInformation)
-	jobObjectInfo.BasicLimitInformation.LimitFlags = syscallex.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-	jobObjectInfoPtr := uintptr(unsafe.Pointer(jobObjectInfo))
-	jobObjectInfoSize := unsafe.Sizeof(*jobObjectInfo)
+	{
+		jobObjectInfo := new(syscallex.JobObjectExtendedLimitInformation)
+		jobObjectInfo.BasicLimitInformation.LimitFlags = syscallex.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+		jobObjectInfoPtr := uintptr(unsafe.Pointer(jobObjectInfo))
+		jobObjectInfoSize := unsafe.Sizeof(*jobObjectInfo)
 
-	err = syscallex.SetInformationJobObject(
-		pg.jobObject,
-		syscallex.JobObjectInfoClass_JobObjectExtendedLimitInformation,
-		jobObjectInfoPtr,
-		jobObjectInfoSize,
-	)
-	if err != nil {
-		return errors.WithStack(err)
+		err = syscallex.SetInformationJobObject(
+			pg.jobObject,
+			syscallex.JobObjectInfoClass_JobObjectExtendedLimitInformation,
+			jobObjectInfoPtr,
+			jobObjectInfoSize,
+		)
+		if err != nil {
+			return errors.WithMessage(err, "Setting KILL_ON_JOB_CLOSE")
+		}
+	}
+
+	{
+		pg.ioPort, err = syscall.CreateIoCompletionPort(syscall.InvalidHandle, 0, 0, 1)
+		if err != nil {
+			return errors.WithMessage(err, "CreateIoCompletionPort")
+		}
+
+		jobObjectInfo := new(syscallex.JobObjectAssociateCompletionPort)
+		jobObjectInfo.CompletionKey = syscall.Handle(magicCompletionKey)
+		jobObjectInfo.CompletionPort = pg.ioPort
+		jobObjectInfoPtr := uintptr(unsafe.Pointer(jobObjectInfo))
+		jobObjectInfoSize := unsafe.Sizeof(*jobObjectInfo)
+
+		err = syscallex.SetInformationJobObject(
+			pg.jobObject,
+			syscallex.JobObjectInfoClass_JobObjectAssociateCompletionPortInformation,
+			jobObjectInfoPtr,
+			jobObjectInfoSize,
+		)
+		if err != nil {
+			return errors.WithMessage(err, "Setting completion port")
+		}
 	}
 
 	processHandle := pg.cmd.SysProcAttr.ProcessHandle
@@ -86,9 +114,23 @@ func (pg *processGroup) Wait() error {
 			pg.consumer.Infof("Waiting on single process...")
 			waitDone <- pg.cmd.Wait()
 		} else {
-			pg.consumer.Infof("Waiting on whole job object...")
-			_, err := syscall.WaitForSingleObject(pg.jobObject, syscall.INFINITE)
-			waitDone <- err
+			pg.consumer.Infof("Waiting on job object via completion port...")
+
+			var completionCode uint32
+			var completionKey uint32
+			var overlapped *syscall.Overlapped
+			for {
+				err := syscall.GetQueuedCompletionStatus(pg.ioPort, &completionCode, &completionKey, &overlapped, syscall.INFINITE)
+				if err != nil {
+					waitDone <- err
+					return
+				}
+
+				if completionKey == magicCompletionKey && completionCode == syscallex.JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO {
+					waitDone <- nil
+					return
+				}
+			}
 		}
 	}()
 

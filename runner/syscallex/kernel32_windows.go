@@ -8,15 +8,36 @@ import (
 )
 
 // JobObjectInfoClass
+// cf. https://msdn.microsoft.com/en-us/library/windows/desktop/ms686216%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
 const (
-	JobObjectInfoClass_JobObjectBasicProcessIdList       = 3
-	JobObjectInfoClass_JobObjectExtendedLimitInformation = 9
+	JobObjectInfoClass_JobObjectBasicProcessIdList                 = 3
+	JobObjectInfoClass_JobObjectAssociateCompletionPortInformation = 7
+	JobObjectInfoClass_JobObjectExtendedLimitInformation           = 9
 )
 
 // JobObjectBasicLimitInformation.LimitFlags
 const (
 	JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
 )
+
+// job object completion statuses, thanks wine!
+// cf. https://www.winehq.org/pipermail/wine-cvs/2013-October/097834.html
+const (
+	JOB_OBJECT_MSG_END_OF_JOB_TIME       = 1
+	JOB_OBJECT_MSG_END_OF_PROCESS_TIME   = 2
+	JOB_OBJECT_MSG_ACTIVE_PROCESS_LIMIT  = 3
+	JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO   = 4
+	JOB_OBJECT_MSG_NEW_PROCESS           = 6
+	JOB_OBJECT_MSG_EXIT_PROCESS          = 7
+	JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS = 8
+	JOB_OBJECT_MSG_PROCESS_MEMORY_LIMIT  = 9
+	JOB_OBJECT_MSG_JOB_MEMORY_LIMIT      = 10
+)
+
+type JobObjectAssociateCompletionPort struct {
+	CompletionKey  syscall.Handle
+	CompletionPort syscall.Handle
+}
 
 const (
 	CREATE_SUSPENDED      = 0x00000004
