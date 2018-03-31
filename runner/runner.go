@@ -37,6 +37,16 @@ type Runner interface {
 }
 
 func GetRunner(params *RunnerParams) (Runner, error) {
+	consumer := params.RequestContext.Consumer
+
+	attachRunner, err := getAttachRunner(params)
+	if attachRunner != nil {
+		return attachRunner, nil
+	}
+	if err != nil {
+		consumer.Warnf("Could not determine if app is aslready running: %s", err.Error())
+	}
+
 	switch runtime.GOOS {
 	case "windows":
 		if params.Sandbox {

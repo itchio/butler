@@ -22,6 +22,8 @@ const (
 	CREATE_SUSPENDED      = 0x00000004
 	PROCESS_ALL_ACCESS    = syscall.STANDARD_RIGHTS_REQUIRED | syscall.SYNCHRONIZE | 0xfff
 	THREAD_SUSPEND_RESUME = 0x0002
+
+	TH32CS_SNAPPROCESS = 0x00000002
 )
 
 type ThreadEntry32 struct {
@@ -32,6 +34,19 @@ type ThreadEntry32 struct {
 	BasePri        int32
 	DeltaPri       int32
 	Flags          uint32
+}
+
+type ProcessEntry32 struct {
+	Size              uint32
+	CntUsage          uint32
+	ProcessID         uint32
+	DefaultHeapID     uintptr
+	ModuleID          uint32
+	CntThreads        uint32
+	ParentProcessID   uint32
+	PriorityClassBase int32
+	Flags             uint32
+	ExeFile           [MAX_PATH]uint16
 }
 
 var (
@@ -50,6 +65,12 @@ var (
 	procResumeThread  = modkernel32.NewProc("ResumeThread")
 	procThread32First = modkernel32.NewProc("Thread32First")
 	procThread32Next  = modkernel32.NewProc("Thread32Next")
+
+	procCreateToolhelp32Snapshot = modkernel32.NewProc("CreateToolhelp32Snapshot")
+	procProcess32FirstW          = modkernel32.NewProc("Process32FirstW")
+	procProcess32NextW           = modkernel32.NewProc("Process32NextW")
+
+	procQueryFullProcessImageNameW = modkernel32.NewProc("QueryFullProcessImageNameW")
 )
 
 func CreateJobObject(
@@ -304,6 +325,100 @@ func Thread32Next(
 		} else {
 			err = syscall.EINVAL
 		}
+	}
+	return
+}
+
+func CreateToolhelp32Snapshot(
+	flags uint32,
+	processID uint32,
+) (handle syscall.Handle, err error) {
+	r1, _, e1 := syscall.Syscall(
+		procCreateToolhelp32Snapshot.Addr(),
+		2,
+		uintptr(flags),
+		uintptr(processID),
+		0,
+	)
+	handle = syscall.Handle(r1)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func Process32First(
+	snapshot syscall.Handle,
+	pProcessEntry *ProcessEntry32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procProcess32FirstW.Addr(),
+		2,
+		uintptr(snapshot),
+		uintptr(unsafe.Pointer(pProcessEntry)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func Process32Next(
+	snapshot syscall.Handle,
+	pProcessEntry *ProcessEntry32,
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procProcess32NextW.Addr(),
+		2,
+		uintptr(snapshot),
+		uintptr(unsafe.Pointer(pProcessEntry)),
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func QueryFullProcessImageName(
+	process syscall.Handle,
+	flags uint32,
+) (s string, err error) {
+	var bufferSize uint32 = 32 * 1024
+	buffer := make([]uint16, bufferSize)
+
+	r1, _, e1 := syscall.Syscall6(
+		procQueryFullProcessImageNameW.Addr(),
+		4,
+		uintptr(process),
+		uintptr(flags),
+		uintptr(unsafe.Pointer(&buffer[0])),
+		uintptr(unsafe.Pointer(&bufferSize)),
+		0,
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = e1
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	if err == nil {
+		s = syscall.UTF16ToString(buffer[:bufferSize])
 	}
 	return
 }

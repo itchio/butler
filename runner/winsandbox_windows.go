@@ -13,7 +13,6 @@ import (
 	"github.com/itchio/butler/cmd/elevate"
 
 	"github.com/itchio/butler/cmd/winsandbox"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
@@ -117,8 +116,8 @@ func (wr *winsandboxRunner) Run() error {
 
 	err = sp.Grant(consumer)
 	if err != nil {
-		comm.Warnf(err.Error())
-		comm.Warnf("Attempting launch anyway...")
+		consumer.Warnf(err.Error())
+		consumer.Warnf("Attempting launch anyway...")
 	}
 
 	defer sp.Revoke(consumer)
@@ -148,13 +147,6 @@ func (wr *winsandboxRunner) Run() error {
 	}
 
 	err = pg.AfterStart()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	// ok that SysProcAttr thing is 110% a hack but who are you
-	// to judge me and how did you get into my home
-	_, err = syscallex.ResumeThread(cmd.SysProcAttr.ThreadHandle)
 	if err != nil {
 		return errors.WithStack(err)
 	}

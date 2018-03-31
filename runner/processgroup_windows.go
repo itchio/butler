@@ -31,6 +31,23 @@ func NewProcessGroup(consumer *state.Consumer, cmd *execas.Cmd, ctx context.Cont
 }
 
 func (pg *processGroup) AfterStart() error {
+	err := pg.tryAssignJobObject()
+	if err != nil {
+		pg.consumer.Warnf("No job object support (%s)", err.Error())
+		pg.consumer.Warnf("The 'Running...' indicator and 'Force close' functionality will not work as expected, and ")
+	}
+
+	// ok that SysProcAttr thing is 110% a hack but who are you
+	// to judge me and how did you get into my home
+	pg.consumer.Debugf("Resuming %x", pg.cmd.SysProcAttr.ThreadHandle)
+	_, err = syscallex.ResumeThread(pg.cmd.SysProcAttr.ThreadHandle)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func (pg *processGroup) tryAssignJobObject() error {
 	var err error
 	pg.jobObject, err = syscallex.CreateJobObject(nil, nil)
 	if err != nil {
@@ -54,17 +71,12 @@ func (pg *processGroup) AfterStart() error {
 
 	processHandle := pg.cmd.SysProcAttr.ProcessHandle
 
-	pg.consumer.Infof("process handle: %x", uintptr(processHandle))
 	err = syscallex.AssignProcessToJobObject(pg.jobObject, processHandle)
 	if err != nil {
-		pg.consumer.Warnf("No job object support (%s)", err.Error())
-		pg.consumer.Warnf("The 'Running...' indicator and 'Force close' functionality will not work as expected, and ")
 		syscall.CloseHandle(pg.jobObject)
 		pg.jobObject = syscall.InvalidHandle
-		return nil
 	}
-
-	return nil
+	return err
 }
 
 func (pg *processGroup) Wait() error {
