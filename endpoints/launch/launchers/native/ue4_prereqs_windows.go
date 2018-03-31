@@ -5,6 +5,7 @@ package native
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,8 +14,12 @@ import (
 	"github.com/itchio/pelican"
 	"github.com/itchio/wharf/eos"
 
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch"
+	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/runner/winutil"
 	"github.com/pkg/errors"
 )
 
@@ -22,8 +27,12 @@ type UE4Marker struct {
 	SHA256 string
 }
 
+func getMarkerPath(params *launch.LauncherParams) string {
+	return filepath.Join(params.InstallFolder, ".itch", "ue4-prereqs-marker.txt")
+}
+
 func readUE4Marker(params *launch.LauncherParams) (*UE4Marker, error) {
-	markerPath := filepath.Join(params.InstallFolder, ".itch", "ue4-prereqs-done.txt")
+	markerPath := getMarkerPath(params)
 	markerBytes, err := ioutil.ReadFile(markerPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -40,6 +49,26 @@ func readUE4Marker(params *launch.LauncherParams) (*UE4Marker, error) {
 	}
 
 	return marker, nil
+}
+
+func writeUE4Marker(params *launch.LauncherParams, marker *UE4Marker) error {
+	payload, err := json.Marshal(marker)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	markerPath := getMarkerPath(params)
+	err = os.MkdirAll(filepath.Dir(markerPath), 0755)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = ioutil.WriteFile(markerPath, payload, 0644)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 func handleUE4Prereqs(params *launch.LauncherParams) error {
@@ -73,14 +102,14 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	res, err := configurator.Configure(params.InstallFolder, false)
+	configureRes, err := configurator.Configure(params.InstallFolder, false)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var prereqCandidate *configurator.Candidate
 
-	for _, c := range res.Candidates {
+	for _, c := range configureRes.Candidates {
 		base := filepath.Base(c.Path)
 		if base == needle {
 			prereqCandidate = c
@@ -139,13 +168,63 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 	}
 
 	sha256Bytes := hash.Sum(nil)
+	sha256String := fmt.Sprintf("%x", sha256Bytes)
 
 	if marker == nil {
-		consumer.Infof("SHA256 of UE4 prereq: %x", sha256Bytes)
+		consumer.Infof("SHA256 of UE4 prereq: %s", sha256String)
 		consumer.Infof("No marker")
 	} else {
-		consumer.Infof("SHA256 of UE4 prereq: %x", sha256Bytes)
+		consumer.Infof("SHA256 of UE4 prereq: %s", sha256String)
 		consumer.Infof("SHA256 of UE4 marker: %s", marker.SHA256)
+		if sha256String == marker.SHA256 {
+			consumer.Infof("UE4 prereqs already installed!")
+			if params.ForcePrereqs {
+				consumer.Infof("Prereqs forced, installing anyway...")
+			} else {
+				return nil
+			}
+		}
+	}
+
+	err = winutil.VerifyTrust(prereqCandidatePath)
+	if err != nil {
+		return errors.WithMessage(err, "while verifying UE4 prereqs signature")
+	}
+
+	consumer.Infof("Authenticate signature verified.")
+	args := []string{
+		"elevate",
+		"--",
+		prereqCandidatePath,
+		"/quiet",
+		"/norestart",
+	}
+
+	consumer.Infof("Attempting elevated UE4 prereqs install")
+	installRes, err := installer.RunSelf(&installer.RunSelfParams{
+		Consumer: consumer,
+		Args:     args,
+	})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if installRes.ExitCode != 0 {
+		if installRes.ExitCode == elevate.ExitCodeAccessDenied {
+			msg := "User or system did not grant elevation privileges"
+			consumer.Errorf(msg)
+			return &butlerd.ErrAborted{}
+		}
+
+		consumer.Errorf("UE4 prereq install failed (code %d, 0x%x), we're out of options", installRes.ExitCode, installRes.ExitCode)
+		return errors.New("UE4 prereq installation failed")
+	}
+
+	err = writeUE4Marker(params, &UE4Marker{
+		SHA256: fmt.Sprintf("%x", sha256Bytes),
+	})
+	if err != nil {
+		return errors.WithMessage(err, "while writing ue4 marker")
 	}
 
 	return nil
