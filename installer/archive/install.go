@@ -65,7 +65,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	if err != nil {
 		if errors.Cause(err) == savior.ErrStop {
 			cancelled = true
-			return nil, &butlerd.ErrCancelled{}
+			return nil, errors.WithStack(butlerd.CodeOperationCancelled)
 		}
 		return nil, errors.WithStack(err)
 	}
@@ -79,7 +79,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	if err != nil {
 		if errors.Cause(err) == savior.ErrStop {
 			cancelled = true
-			return nil, &butlerd.ErrCancelled{}
+			return nil, errors.WithStack(butlerd.CodeOperationCancelled)
 		}
 		return nil, errors.WithStack(err)
 	}

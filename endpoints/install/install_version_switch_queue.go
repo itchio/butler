@@ -47,7 +47,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 	}
 
 	if pickRes.Index < 0 {
-		return nil, &butlerd.ErrAborted{}
+		return nil, errors.WithStack(butlerd.CodeOperationAborted)
 	}
 
 	build := buildsRes.Builds[pickRes.Index]

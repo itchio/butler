@@ -87,7 +87,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			}
 
 			if exitCodeIsAborted(exitCode) {
-				return &butlerd.ErrAborted{}
+				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			return errors.New(msg)

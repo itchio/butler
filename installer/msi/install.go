@@ -62,7 +62,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			if res.ExitCode == elevate.ExitCodeAccessDenied {
 				msg := "User or system did not grant elevation privileges"
 				consumer.Errorf(msg)
-				return &butlerd.ErrAborted{}
+				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			consumer.Errorf("Elevated MSI install failed (code %d, 0x%x), we're out of options", res.ExitCode, res.ExitCode)

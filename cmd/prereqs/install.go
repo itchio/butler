@@ -96,7 +96,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	if res.ExitCode != 0 {
 		if res.ExitCode == elevate.ExitCodeAccessDenied {
-			return &butlerd.ErrAborted{}
+			return errors.WithStack(butlerd.CodeOperationAborted)
 		}
 	}
 

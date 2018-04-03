@@ -316,7 +316,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 		select {
 		case <-oc.ctx.Done():
-			return nil, &butlerd.ErrCancelled{}
+			return nil, errors.WithStack(butlerd.CodeOperationCancelled)
 		default:
 			// keep going!
 		}

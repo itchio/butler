@@ -78,7 +78,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 			}
 
 			if recaptchaRes.RecaptchaResponse == "" {
-				return nil, &butlerd.ErrAborted{}
+				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			loginRes, err = rootClient.LoginWithPassword(&itchio.LoginWithPasswordParams{
@@ -99,7 +99,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 			}
 
 			if totpRes.Code == "" {
-				return nil, &butlerd.ErrAborted{}
+				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			verifyRes, err := rootClient.TOTPVerify(&itchio.TOTPVerifyParams{

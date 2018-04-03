@@ -1490,6 +1490,9 @@ const (
 
 	// We tried to launch something, but the install folder just wasn't there
 	CodeInstallFolderDisappeared Code = 404
+
+	// We tried to install something, but could not find compatible uploads
+	CodeNoCompatibleUploads Code = 2001
 )
 
 //==================================

@@ -49,7 +49,7 @@ func (wr *winsandboxRunner) Prepare() error {
 		}
 
 		if !r.Allow {
-			return &butlerd.ErrAborted{}
+			return errors.WithStack(butlerd.CodeOperationAborted)
 		}
 		consumer.Infof("Proceeding with sandbox setup...")
 
@@ -67,7 +67,7 @@ func (wr *winsandboxRunner) Prepare() error {
 
 		if res.ExitCode != 0 {
 			if res.ExitCode == elevate.ExitCodeAccessDenied {
-				return &butlerd.ErrAborted{}
+				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 		}
 
