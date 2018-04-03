@@ -6,9 +6,15 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/state"
 )
+
+type uploadFilter struct {
+	consumer *state.Consumer
+	game     *itchio.Game
+	runtime  *Runtime
+}
 
 type NarrowDownUploadsResult struct {
 	InitialUploads []*itchio.Upload
@@ -17,8 +23,18 @@ type NarrowDownUploadsResult struct {
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Runtime) *NarrowDownUploadsResult {
-	if actionForGame(game) == "open" {
+func NarrowDownUploads(consumer *state.Consumer, uploads []*itchio.Upload, game *itchio.Game, runtime *Runtime) *NarrowDownUploadsResult {
+	uf := &uploadFilter{
+		consumer: consumer,
+		game:     game,
+		runtime:  runtime,
+	}
+
+	return uf.narrowDownUploads(uploads)
+}
+
+func (uf *uploadFilter) narrowDownUploads(uploads []*itchio.Upload) *NarrowDownUploadsResult {
+	if actionForGame(uf.game) == "open" {
 		// we don't need any filtering for "open" action
 		return &NarrowDownUploadsResult{
 			InitialUploads: uploads,
@@ -28,14 +44,14 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 		}
 	}
 
-	platformUploads := excludeWrongPlatform(uploads, runtime)
-	formatUploads := excludeWrongFormat(platformUploads)
+	platformUploads := uf.excludeWrongPlatform(uploads)
+	formatUploads := uf.excludeWrongFormat(platformUploads)
 	hadWrongFormat := len(formatUploads) < len(platformUploads)
 
-	archUploads := excludeWrongArch(formatUploads, runtime)
+	archUploads := uf.excludeWrongArch(formatUploads)
 	hadWrongArch := len(archUploads) < len(formatUploads)
 
-	sortedUploads := sortUploads(archUploads, runtime)
+	sortedUploads := uf.sortUploads(archUploads)
 
 	return &NarrowDownUploadsResult{
 		InitialUploads: uploads,
@@ -45,7 +61,7 @@ func NarrowDownUploads(uploads []*itchio.Upload, game *itchio.Game, runtime *Run
 	}
 }
 
-func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
+func (uf *uploadFilter) excludeWrongPlatform(uploads []*itchio.Upload) []*itchio.Upload {
 	var res []*itchio.Upload
 
 	for _, u := range uploads {
@@ -53,7 +69,7 @@ func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.
 
 		switch u.Type {
 		case "default":
-			if !p.IsCompatible(runtime) {
+			if !p.IsCompatible(uf.runtime) {
 				// executable and not compatible with us? that's a skip
 				continue
 			}
@@ -69,7 +85,7 @@ func excludeWrongPlatform(uploads []*itchio.Upload, runtime *Runtime) []*itchio.
 
 var knownBadFormatRegexp = regexp.MustCompile(`(?i)\.(rpm|deb|pkg)$`)
 
-func excludeWrongFormat(uploads []*itchio.Upload) []*itchio.Upload {
+func (uf *uploadFilter) excludeWrongFormat(uploads []*itchio.Upload) []*itchio.Upload {
 	var res []*itchio.Upload
 
 	for _, u := range uploads {
@@ -90,12 +106,11 @@ type scoredUpload struct {
 }
 
 var (
-	preferredFormatRegexp     = regexp.MustCompile(`\.(zip|7z)$`)
+	preferredFormatRegexp     = regexp.MustCompile(`\.(zip)$`)
 	usuallySourceFormatRegexp = regexp.MustCompile(`\.tar\.(gz|bz2|xz)$`)
-	soundtrackFormatRegexp    = regexp.MustCompile(`soundtrack`)
 )
 
-func scoreUpload(upload *itchio.Upload, runtime *Runtime) *scoredUpload {
+func (uf *uploadFilter) scoreUpload(upload *itchio.Upload) *scoredUpload {
 	filename := strings.ToLower(upload.Filename)
 	var score int64 = 500
 
@@ -107,13 +122,7 @@ func scoreUpload(upload *itchio.Upload, runtime *Runtime) *scoredUpload {
 		score -= 100
 	}
 
-	// Definitely not something we can launch
-	// Note: itch.io now has an upload type for soundtracks
-	if soundtrackFormatRegexp.MatchString(filename) {
-		score -= 1000
-	}
-
-	// Native uploads are preferred
+	// We prefer things we can launch
 	if upload.Type == "default" {
 		score += 400
 	}
@@ -124,7 +133,7 @@ func scoreUpload(upload *itchio.Upload, runtime *Runtime) *scoredUpload {
 	}
 
 	p := PlatformsForUpload(upload)
-	score += p.ExclusivityScore(runtime)
+	score += p.ExclusivityScore(uf.runtime)
 
 	return &scoredUpload{
 		score:  score,
@@ -150,11 +159,11 @@ func (hsf *highestScoreFirst) Swap(i, j int) {
 	hsf.els[i], hsf.els[j] = hsf.els[j], hsf.els[i]
 }
 
-func sortUploads(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
+func (uf *uploadFilter) sortUploads(uploads []*itchio.Upload) []*itchio.Upload {
 	var scoredUploads []*scoredUpload
 
 	for _, u := range uploads {
-		scoredUploads = append(scoredUploads, scoreUpload(u, runtime))
+		scoredUploads = append(scoredUploads, uf.scoreUpload(u))
 	}
 
 	sort.Stable(&highestScoreFirst{scoredUploads})
@@ -167,20 +176,21 @@ func sortUploads(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
 	return res
 }
 
-func excludeWrongArch(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Upload {
+// TODO: rely on server-side metadata instead
+func (uf *uploadFilter) excludeWrongArch(uploads []*itchio.Upload) []*itchio.Upload {
 	var res []*itchio.Upload
 
 	filtered := false
 
-	if runtime.Platform == butlerd.ItchPlatformWindows || runtime.Platform == butlerd.ItchPlatformLinux {
-		comm.Logf("Got %d uploads, we're on %s, let's sniff architectures", len(uploads), runtime)
+	if uf.runtime.Platform == butlerd.ItchPlatformWindows || uf.runtime.Platform == butlerd.ItchPlatformLinux {
+		uf.consumer.Logf("Got %d uploads, we're on %s, let's sniff architectures", len(uploads), uf.runtime)
 
-		if runtime.Is64 {
+		if uf.runtime.Is64 {
 			// on 64-bit, if we have 64-bit builds, exclude 32-bit builds
-			if anyUploadContainsString(uploads, "64") {
+			if hasUploadsMatching(uploads, uploadSeems64Bit) {
 				filtered = true
 				for _, u := range uploads {
-					if uploadContainsString(u, "32") {
+					if uploadSeems32Bit(u) && !uploadSeems64Bit(u) {
 						// exclude
 						continue
 					}
@@ -190,9 +200,10 @@ func excludeWrongArch(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Uplo
 			}
 		} else {
 			// on 32-bit, if we have 32-bit builds, exclude 64-bit builds
-			if anyUploadContainsString(uploads, "32") {
+			if hasUploadsMatching(uploads, uploadSeems32Bit) {
+				filtered = true
 				for _, u := range uploads {
-					if uploadContainsString(u, "64") {
+					if uploadSeems64Bit(u) && !uploadSeems32Bit(u) {
 						// exclude
 						continue
 					}
@@ -209,14 +220,33 @@ func excludeWrongArch(uploads []*itchio.Upload, runtime *Runtime) []*itchio.Uplo
 	return uploads
 }
 
-func uploadContainsString(upload *itchio.Upload, s string) bool {
-	return strings.Contains(strings.ToLower(upload.Filename), s) ||
-		strings.Contains(strings.ToLower(upload.DisplayName), s)
+func uploadSeems32Bit(upload *itchio.Upload) bool {
+	return uploadContainsAnyString(upload, []string{"386", "686", "x86", "32"})
 }
 
-func anyUploadContainsString(uploads []*itchio.Upload, s string) bool {
+func uploadSeems64Bit(upload *itchio.Upload) bool {
+	// covers amd64, x64, etc.
+	return uploadContainsAnyString(upload, []string{"64"})
+}
+
+func uploadContainsAnyString(upload *itchio.Upload, queries []string) bool {
+	lowerFileName := strings.ToLower(upload.Filename)
+	lowerDisplayName := strings.ToLower(upload.DisplayName)
+
+	for _, q := range queries {
+		if strings.Contains(lowerFileName, q) {
+			return true
+		}
+		if strings.Contains(lowerDisplayName, q) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasUploadsMatching(uploads []*itchio.Upload, f func(u *itchio.Upload) bool) bool {
 	for _, u := range uploads {
-		if uploadContainsString(u, s) {
+		if f(u) {
 			return true
 		}
 	}
