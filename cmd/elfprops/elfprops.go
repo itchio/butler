@@ -1,11 +1,13 @@
 package elfprops
 
 import (
+	"encoding/json"
+
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/elefant"
 	"github.com/itchio/wharf/eos"
-	"github.com/pkg/errors"
+	"github.com/itchio/wharf/state"
 )
 
 var args = struct {
@@ -19,22 +21,23 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.path))
-}
-
-func Do(path string) error {
-	f, err := eos.Open(path)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	f, err := eos.Open(*args.path)
+	ctx.Must(err)
 	defer f.Close()
 
-	props, err := elefant.Probe(f, nil)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	props, err := Do(f, comm.NewStateConsumer())
+	ctx.Must(err)
 
-	comm.Result(props)
+	comm.ResultOrPrint(props, func() {
+		js, err := json.MarshalIndent(props, "", "  ")
+		if err == nil {
+			comm.Logf(string(js))
+		}
+	})
+}
 
-	return nil
+func Do(f eos.File, consumer *state.Consumer) (*elefant.ElfInfo, error) {
+	return elefant.Probe(f, &elefant.ProbeParams{
+		// nothing so far
+	})
 }
