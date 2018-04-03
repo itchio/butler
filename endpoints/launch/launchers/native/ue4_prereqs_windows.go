@@ -191,7 +191,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return errors.WithMessage(err, "while verifying UE4 prereqs signature")
 	}
 
-	consumer.Infof("Authenticate signature verified.")
+	consumer.Infof("Authenticode signature verified.")
 	args := []string{
 		"elevate",
 		"--",
