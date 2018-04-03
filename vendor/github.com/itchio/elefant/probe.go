@@ -4,6 +4,7 @@ import (
 	"debug/elf"
 
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
@@ -15,11 +16,12 @@ const (
 )
 
 type ElfInfo struct {
-	Arch Arch `json:"arch"`
+	Arch    Arch     `json:"arch"`
+	Imports []string `json:"imports"`
 }
 
 type ProbeParams struct {
-	// nothing yet
+	Consumer *state.Consumer
 }
 
 // Probe retrieves information about an ELF file
@@ -37,5 +39,12 @@ func Probe(file eos.File, params *ProbeParams) (*ElfInfo, error) {
 	case elf.EM_X86_64:
 		res.Arch = ArchAmd64
 	}
+
+	libs, err := ef.ImportedLibraries()
+	if err != nil {
+		params.Consumer.Warnf("Could not get ELF imported libraries: %v", err)
+	}
+	res.Imports = libs
+
 	return res, nil
 }
