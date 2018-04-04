@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/pelican"
+	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/configurator"
 )
@@ -34,6 +35,9 @@ type LauncherParams struct {
 	// May be nil
 	Candidate *configurator.Candidate
 
+	// Lazily computed
+	unfilteredVerdict *configurator.Verdict
+
 	// May be nil
 	AppManifest *butlerd.Manifest
 
@@ -56,6 +60,17 @@ type LauncherParams struct {
 	Runtime       *manager.Runtime
 
 	RecordPlayTime RecordPlayTimeFunc
+}
+
+func (lp *LauncherParams) GetUnfilteredVerdict() (*configurator.Verdict, error) {
+	if lp.unfilteredVerdict == nil {
+		var err error
+		lp.unfilteredVerdict, err = configurator.Configure(lp.InstallFolder, false)
+		if err != nil {
+			return nil, errors.WithMessage(err, "while getting unfiltered verdict")
+		}
+	}
+	return lp.unfilteredVerdict, nil
 }
 
 type RecordPlayTimeFunc func(playTime time.Duration) error

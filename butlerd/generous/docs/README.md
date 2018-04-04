@@ -6066,6 +6066,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>We tried to launch something, but the install folder just wasn&rsquo;t there</p>
 </td>
 </tr>
+<tr>
+<td><code>2001</code></td>
+<td><p>We tried to install something, but could not find compatible uploads</p>
+</td>
+</tr>
 </table>
 
 
@@ -6086,6 +6091,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>404</code></td>
+</tr>
+<tr>
+<td><code>2001</code></td>
 </tr>
 </table>
 

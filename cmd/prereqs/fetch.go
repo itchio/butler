@@ -14,8 +14,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
-
 var RedistsGame = &itchio.Game{
 	ID:        222417,
 	Title:     "itch-redists",

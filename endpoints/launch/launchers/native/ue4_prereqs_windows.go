@@ -102,14 +102,14 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	configureRes, err := configurator.Configure(params.InstallFolder, false)
+	verdict, err := params.GetUnfilteredVerdict()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var prereqCandidate *configurator.Candidate
 
-	for _, c := range configureRes.Candidates {
+	for _, c := range verdict.Candidates {
 		base := filepath.Base(c.Path)
 		if base == needle {
 			prereqCandidate = c
