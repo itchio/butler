@@ -6071,6 +6071,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>We tried to install something, but could not find compatible uploads</p>
 </td>
 </tr>
+<tr>
+<td><code>3000</code></td>
+<td><p>This title is packaged in a way that is not supported.</p>
+</td>
+</tr>
 </table>
 
 
@@ -6094,6 +6099,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>2001</code></td>
+</tr>
+<tr>
+<td><code>3000</code></td>
 </tr>
 </table>
 

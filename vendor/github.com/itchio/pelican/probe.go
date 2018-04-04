@@ -10,6 +10,9 @@ import (
 
 type ProbeParams struct {
 	Consumer *state.Consumer
+	// Return errors instead of printing warnings when
+	// we can't parse some parts of the file
+	Strict bool
 }
 
 // Probe retrieves information about an PE file
@@ -36,11 +39,23 @@ func Probe(file eos.File, params *ProbeParams) (*PeInfo, error) {
 	}
 
 	imports, err := pf.ImportedLibraries()
+	if err != nil {
+		if params.Strict {
+			return nil, errors.WithMessage(err, "while parsing imported libraries")
+		}
+		consumer.Warnf("Could not parse imported libraries: %+v", err)
+	}
 	info.Imports = imports
 
 	sect := pf.Section(".rsrc")
 	if sect != nil {
-		parseResources(consumer, info, sect)
+		err = params.parseResources(info, sect)
+		if err != nil {
+			if params.Strict {
+				return nil, errors.WithMessage(err, "while parsing resources")
+			}
+			consumer.Warnf("Could not parse resources: %+v", err)
+		}
 	}
 
 	return info, nil

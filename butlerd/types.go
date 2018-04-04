@@ -1019,6 +1019,8 @@ const (
 type Download struct {
 	ID            string         `json:"id"`
 	Error         *string        `json:"error"`
+	ErrorMessage  *string        `json:"errorMessage"`
+	ErrorCode     *int64         `json:"errorCode"`
 	Reason        DownloadReason `json:"reason"`
 	Position      int64          `json:"position"`
 	CaveID        string         `json:"caveId"`
@@ -1493,6 +1495,12 @@ const (
 
 	// We tried to install something, but could not find compatible uploads
 	CodeNoCompatibleUploads Code = 2001
+
+	// This title is packaged in a way that is not supported.
+	CodeUnsupportedPackaging Code = 3000
+
+	// Nothing that can be launched was found
+	CodeNoLaunchCandidates Code = 5000
 )
 
 //==================================

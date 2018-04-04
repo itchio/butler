@@ -227,6 +227,21 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	oc.Save(meta)
 
+	istate := &operate.InstallSubcontextState{}
+	isub := &operate.InstallSubcontext{
+		Data: istate,
+	}
+	oc.Load(isub)
+
+	err = operate.InstallPrepare(oc, meta, isub, false /* disallow downloads */, func(res *operate.InstallPrepareResult) error {
+		// do muffin
+		return nil
+	})
+	if err != nil {
+		oc.Retire()
+		return nil, errors.WithStack(err)
+	}
+
 	res := &butlerd.InstallQueueResult{
 		ID:            id,
 		CaveID:        params.CaveID,

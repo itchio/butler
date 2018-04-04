@@ -19,6 +19,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		Runtime:        params.Runtime,
 		Consumer:       params.RequestContext.Consumer,
 		PrereqsDir:     params.PrereqsDir,
+		Force:          params.ForcePrereqs,
 	}
 
 	err := handleUE4Prereqs(params)

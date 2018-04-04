@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
@@ -47,27 +46,24 @@ type VsFixedFileInfo struct {
 	DwFileDateLS       uint32
 }
 
-func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error {
+func (params *ProbeParams) parseVersion(info *PeInfo, rawData []byte) error {
+	consumer := params.Consumer
 	br := bytes.NewReader(rawData)
 	buf := make([]byte, 2)
 
+	// cf. https://msdn.microsoft.com/en-us/library/windows/desktop/ms647001%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+	// Padding "contains as many zero words as necessary to align the Value member on a 32-bit boundary."
 	skipPadding := func(r ReadSeekerAt) error {
-		for {
-			_, err := r.Read(buf)
-			if err != nil {
-				if err == io.EOF {
-					// alles gut
-					return nil
-				}
-				return errors.WithStack(err)
-			}
+		offset, err := r.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return err
+		}
 
-			if buf[0] != 0 || buf[1] != 0 {
-				_, err = r.Seek(-2, io.SeekCurrent)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				break
+		mod4 := offset % 4
+		if mod4 > 0 {
+			_, err = r.Seek(4-mod4, io.SeekCurrent)
+			if err != nil {
+				return err
 			}
 		}
 		return nil
@@ -107,7 +103,9 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 		}
 
 		endOffset := startOffset + int64(wLength)
-		sr := io.NewSectionReader(r, startOffset+2, int64(wLength)-2 /* we already read the wLength uint16 */)
+		sr := io.NewSectionReader(r, startOffset, int64(wLength) /* we already read the wLength uint16 */)
+
+		sr.Seek(2, io.SeekCurrent)
 
 		var wValueLength uint16
 		err = binary.Read(sr, binary.LittleEndian, &wValueLength)
@@ -157,8 +155,7 @@ func parseVersion(info *PeInfo, consumer *state.Consumer, rawData []byte) error 
 	}
 
 	if ffi.DwSignature != 0xFEEF04BD {
-		consumer.Debugf("invalid signature, either the version block is invalid or we messed up")
-		return nil
+		return errors.Errorf("invalid version block signature (%08x)", ffi.DwSignature)
 	}
 
 	err = skipPadding(vsVersionInfo)

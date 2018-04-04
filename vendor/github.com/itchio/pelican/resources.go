@@ -11,7 +11,6 @@ import (
 
 	xj "github.com/basgys/goxml2json"
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
@@ -91,7 +90,8 @@ var ResourceTypeNames = map[ResourceType]string{
 	ResourceTypeManifest:     "Manifest",
 }
 
-func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) error {
+func (params *ProbeParams) parseResources(info *PeInfo, sect *pe.Section) error {
+	consumer := params.Consumer
 	consumer.Debugf("Found resource section (%s)", humanize.IBytes(uint64(sect.Size)))
 
 	var readDirectory func(offset uint32, level int, resourceType ResourceType) error
@@ -156,7 +156,10 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 			if resourceType == ResourceTypeManifest || resourceType == ResourceTypeVersion {
 				log("@ %x (%s, %d bytes)", irda.Data, humanize.IBytes(uint64(irda.Size)), irda.Size)
 
-				sr := io.NewSectionReader(sect, int64(irda.Data-sect.VirtualAddress), int64(irda.Size))
+				dataStart := int64(irda.Data - sect.VirtualAddress)
+				log("is dataStart 32-bit aligned? %v", dataStart%4 == 0)
+				sr := io.NewSectionReader(sect, dataStart, int64(irda.Size))
+
 				rawData, err := ioutil.ReadAll(sr)
 				if err != nil {
 					return errors.WithStack(err)
@@ -176,17 +179,26 @@ func parseResources(consumer *state.Consumer, info *PeInfo, sect *pe.Section) er
 
 					js, err := xj.Convert(strings.NewReader(stringData))
 					if err != nil {
-						log("could not convert xml to json: %s", err.Error())
+						if params.Strict {
+							return errors.WithMessage(err, "while converting manifest to json")
+						}
+						consumer.Warnf("Could not convert manifest to json: %+v", err)
 					} else {
 						err := interpretManifest(info, js.Bytes())
 						if err != nil {
-							log("could not interpret manifest: %s", err.Error())
+							if params.Strict {
+								return errors.WithMessage(err, "while intepreting manifest")
+							}
+							consumer.Warnf("Could not interpret manifest: %+v", err)
 						}
 					}
 				case ResourceTypeVersion:
-					err := parseVersion(info, consumer, rawData)
+					err := params.parseVersion(info, rawData)
 					if err != nil {
-						return errors.WithStack(err)
+						if params.Strict {
+							return errors.WithMessage(err, "while parsing version block")
+						}
+						consumer.Warnf("Could not parse resources: %+v", err)
 					}
 				}
 			}

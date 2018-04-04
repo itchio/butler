@@ -219,6 +219,17 @@ func sniffPoolEntry(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidat
 }
 
 func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
+	c, err := doSniff(r, path, size)
+	if c != nil {
+		c.Size = size
+		if c.Path == "" {
+			c.Path = path
+		}
+	}
+	return c, err
+}
+
+func doSniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 	lowerPath := strings.ToLower(path)
 
 	lowerBase := filepath.Base(lowerPath)
@@ -381,14 +392,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 		}
 
 		if res != nil {
-			res.Size = f.Size
-			if res.Path == "" {
-				res.Path = f.Path
-			}
 			res.Mode = f.Mode
-
-			res.Depth = pathToDepth(res.Path)
-
 			candidates = append(candidates, res)
 		}
 	}

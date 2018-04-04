@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/sourcegraph/jsonrpc2"
+
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
@@ -260,12 +262,23 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 				}
 				return nil
 			}
+
+			code := be.RpcErrorCode()
+			download.ErrorCode = &code
+			msg := be.RpcErrorMessage()
+			download.ErrorMessage = &msg
+		} else {
+			code := int64(jsonrpc2.CodeInternalError)
+			download.ErrorCode = &code
+			msg := err.Error()
+			download.ErrorMessage = &msg
 		}
 
 		var errString = fmt.Sprintf("%+v", err)
 
 		consumer.Warnf("Download errored: %s", errString)
 		download.Error = &errString
+
 		finishedAt := time.Now().UTC()
 		download.FinishedAt = &finishedAt
 		download.Save(rc.DB())

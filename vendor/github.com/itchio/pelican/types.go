@@ -18,6 +18,19 @@ type PeInfo struct {
 	Imports             []string            `json:"imports"`
 }
 
+func (pi *PeInfo) RequiresElevation() bool {
+	if pi.AssemblyInfo == nil {
+		return false
+	}
+
+	switch pi.AssemblyInfo.RequestedExecutionLevel {
+	case "requireAdministrator", "highestAvailable":
+		return true
+	default:
+		return false
+	}
+}
+
 type AssemblyInfo struct {
 	Identity    *AssemblyIdentity `json:"identity"`
 	Description string            `json:"description"`

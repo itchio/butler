@@ -14,6 +14,8 @@ func DownloadsRetry(rc *butlerd.RequestContext, params *butlerd.DownloadsRetryPa
 		consumer.Warnf("No error, can't retry download")
 	} else {
 		download.Error = nil
+		download.ErrorCode = nil
+		download.ErrorMessage = nil
 		download.FinishedAt = nil
 		download.Save(rc.DB())
 

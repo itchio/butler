@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/pelican"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
@@ -53,7 +54,10 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 
 	if candidate != nil {
 		consumer.Infof("  Candidate: %s", candidate.String())
-		typePerConfigurator = getInstallerTypeForCandidate(consumer, candidate)
+		typePerConfigurator, err = getInstallerTypeForCandidate(consumer, candidate, file)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
 	} else {
 		consumer.Infof("  No results from configurator")
 	}
@@ -97,40 +101,70 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	}, nil
 }
 
-func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *configurator.Candidate) InstallerType {
+func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *configurator.Candidate, file eos.File) (InstallerType, error) {
 	switch candidate.Flavor {
 
 	case configurator.FlavorNativeWindows:
 		if candidate.WindowsInfo != nil && candidate.WindowsInfo.InstallerType != "" {
 			typ := (InstallerType)(candidate.WindowsInfo.InstallerType)
 			consumer.Infof("  → Windows installer of type %s", typ)
-			return typ
+			return typ, nil
+		}
+
+		_, err := file.Seek(0, io.SeekStart)
+		if err != nil {
+			return InstallerTypeUnknown, errors.WithStack(err)
+		}
+
+		peInfo, err := pelican.Probe(file, &pelican.ProbeParams{
+			Consumer: consumer,
+		})
+		if err != nil {
+			return InstallerTypeUnknown, errors.WithStack(err)
+		}
+
+		if peInfo.AssemblyInfo != nil {
+			switch peInfo.AssemblyInfo.RequestedExecutionLevel {
+			case "highestAvailable", "requireAdministrator":
+				consumer.Infof("  → Unsupported Windows installer (requested execution level %s)", peInfo.AssemblyInfo.RequestedExecutionLevel)
+				return InstallerTypeUnsupported, nil
+			}
+		} else {
+			stats, err := file.Stat()
+			if err != nil {
+				return InstallerTypeUnknown, errors.WithStack(err)
+			}
+
+			if HasSuspiciouslySetupLikeName(stats.Name()) {
+				consumer.Infof("  → Unsupported Windows installer (no manifest, has name '%s')", stats.Name())
+				return InstallerTypeUnsupported, nil
+			}
 		}
 
 		consumer.Infof("  → Native windows executable, but not an installer")
-		return InstallerTypeNaked
+		return InstallerTypeNaked, nil
 
 	case configurator.FlavorNativeMacos:
 		consumer.Infof("  → Native macOS executable")
-		return InstallerTypeNaked
+		return InstallerTypeNaked, nil
 
 	case configurator.FlavorNativeLinux:
 		consumer.Infof("  → Native linux executable")
-		return InstallerTypeNaked
+		return InstallerTypeNaked, nil
 
 	case configurator.FlavorScript:
 		consumer.Infof("  → Script")
 		if candidate.ScriptInfo != nil && candidate.ScriptInfo.Interpreter != "" {
 			consumer.Infof("    with interpreter %s", candidate.ScriptInfo.Interpreter)
 		}
-		return InstallerTypeNaked
+		return InstallerTypeNaked, nil
 
 	case configurator.FlavorScriptWindows:
 		consumer.Infof("  → Windows script")
-		return InstallerTypeNaked
+		return InstallerTypeNaked, nil
 	}
 
-	return InstallerTypeUnknown
+	return InstallerTypeUnknown, nil
 }
 
 func IsWindowsInstaller(typ InstallerType) bool {
