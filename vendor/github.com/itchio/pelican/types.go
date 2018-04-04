@@ -15,6 +15,7 @@ type PeInfo struct {
 	VersionProperties   map[string]string   `json:"versionProperties"`
 	AssemblyInfo        *AssemblyInfo       `json:"assemblyInfo"`
 	DependentAssemblies []*AssemblyIdentity `json:"dependentAssemblies"`
+	Imports             []string            `json:"imports"`
 }
 
 type AssemblyInfo struct {

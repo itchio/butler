@@ -1,12 +1,13 @@
 package pelican
 
 import (
-	"debug/pe"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/itchio/pelican/pe"
 
 	xj "github.com/basgys/goxml2json"
 	humanize "github.com/dustin/go-humanize"

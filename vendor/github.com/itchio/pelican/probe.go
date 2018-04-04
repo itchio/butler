@@ -1,7 +1,7 @@
 package pelican
 
 import (
-	"debug/pe"
+	"github.com/itchio/pelican/pe"
 
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
@@ -34,6 +34,9 @@ func Probe(file eos.File, params *ProbeParams) (*PeInfo, error) {
 	case pe.IMAGE_FILE_MACHINE_AMD64:
 		info.Arch = "amd64"
 	}
+
+	imports, err := pf.ImportedLibraries()
+	info.Imports = imports
 
 	sect := pf.Section(".rsrc")
 	if sect != nil {

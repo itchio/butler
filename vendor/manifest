@@ -297,7 +297,7 @@
 			"importpath": "github.com/itchio/pelican",
 			"repository": "https://github.com/itchio/pelican",
 			"vcs": "git",
-			"revision": "d0a5c0b5aff69f77592ee3986c928395d5dc03d2",
+			"revision": "e31235538efd603d4f6872d1725cf297a7592e53",
 			"branch": "master",
 			"notests": true
 		},
