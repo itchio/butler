@@ -3,6 +3,8 @@ package manager_test
 import (
 	"testing"
 
+	"github.com/itchio/wharf/state"
+
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
@@ -10,6 +12,12 @@ import (
 )
 
 func Test_NarrowDownUploads(t *testing.T) {
+	consumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) {
+			t.Logf("[%s] %s", lvl, msg)
+		},
+	}
+
 	game := &itchio.Game{
 		ID:             123,
 		Classification: "game",
@@ -25,7 +33,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: nil,
-	}, manager.NarrowDownUploads(nil, game, linux64), "empty is empty")
+	}, manager.NarrowDownUploads(consumer, nil, game, linux64), "empty is empty")
 
 	debrpm := []*itchio.Upload{
 		&itchio.Upload{
@@ -44,7 +52,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: debrpm,
-	}, manager.NarrowDownUploads(debrpm, game, linux64), "blacklist .deb and .rpm files")
+	}, manager.NarrowDownUploads(consumer, debrpm, game, linux64), "blacklist .deb and .rpm files")
 
 	mac64 := &manager.Runtime{
 		Platform: butlerd.ItchPlatformOSX,
@@ -63,7 +71,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: blacklistpkg,
-	}, manager.NarrowDownUploads(blacklistpkg, game, mac64), "blacklist .pkg files")
+	}, manager.NarrowDownUploads(consumer, blacklistpkg, game, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
 		Linux:    true,
@@ -85,7 +93,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Uploads:        []*itchio.Upload{love},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(excludeuntagged, game, linux64), "exclude untagged, flag it")
+	}, manager.NarrowDownUploads(consumer, excludeuntagged, game, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
 		Linux:    true,
@@ -120,7 +128,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(preferlinuxbin, game, linux64), "prefer linux binary")
+	}, manager.NarrowDownUploads(consumer, preferlinuxbin, game, linux64), "prefer linux binary")
 
 	windowsNaked := &itchio.Upload{
 		Windows:  true,
@@ -153,7 +161,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(preferwinportable, game, windows32), "prefer windows portable, then naked")
+	}, manager.NarrowDownUploads(consumer, preferwinportable, game, windows32), "prefer windows portable, then naked")
 
 	windowsDemo := &itchio.Upload{
 		Windows:  true,
@@ -176,7 +184,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(penalizedemos, game, windows32), "penalize demos")
+	}, manager.NarrowDownUploads(consumer, penalizedemos, game, windows32), "penalize demos")
 
 	windows64 := &manager.Runtime{
 		Platform: butlerd.ItchPlatformWindows,
@@ -216,5 +224,87 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(preferexclusive, game, windows64), "prefer builds exclusive to platform")
+	}, manager.NarrowDownUploads(consumer, preferexclusive, game, windows64), "prefer builds exclusive to platform")
+
+	universalUpload := &itchio.Upload{
+		Linux:    true,
+		Filename: "Linux 32+64bit.tar.bz2",
+		Type:     "default",
+	}
+	dontExcludeUniversal := []*itchio.Upload{
+		universalUpload,
+	}
+	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: dontExcludeUniversal,
+		Uploads:        dontExcludeUniversal,
+	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, game, linux64), "don't exclude universal builds on 64-bit")
+
+	linux32 := &manager.Runtime{
+		Platform: butlerd.ItchPlatformLinux,
+		Is64:     false,
+	}
+	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		InitialUploads: dontExcludeUniversal,
+		Uploads:        dontExcludeUniversal,
+	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, game, linux32), "don't exclude universal builds on 32-bit")
+
+	{
+		linux32Upload := &itchio.Upload{
+			Linux:    true,
+			Filename: "linux-386.tar.bz2",
+			Type:     "default",
+		}
+		linux64Upload := &itchio.Upload{
+			Linux:    true,
+			Filename: "linux-amd64.tar.bz2",
+			Type:     "default",
+		}
+
+		bothLinuxUploads := []*itchio.Upload{
+			linux32Upload,
+			linux64Upload,
+		}
+
+		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+			InitialUploads: bothLinuxUploads,
+			Uploads:        []*itchio.Upload{linux64Upload},
+			HadWrongArch:   true,
+		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, game, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
+
+		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+			InitialUploads: bothLinuxUploads,
+			Uploads:        []*itchio.Upload{linux32Upload},
+			HadWrongArch:   true,
+		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, game, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
+	}
+
+	{
+		windows32Upload := &itchio.Upload{
+			Windows:  true,
+			Filename: "Super Duper UE4 Game x86.rar",
+			Type:     "default",
+		}
+		windows64Upload := &itchio.Upload{
+			Windows:  true,
+			Filename: "Super Duper UE4 Game x64.rar",
+			Type:     "default",
+		}
+
+		bothWindowsUploads := []*itchio.Upload{
+			windows32Upload,
+			windows64Upload,
+		}
+
+		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+			InitialUploads: bothWindowsUploads,
+			Uploads:        []*itchio.Upload{windows64Upload},
+			HadWrongArch:   true,
+		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, game, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
+
+		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+			InitialUploads: bothWindowsUploads,
+			Uploads:        []*itchio.Upload{windows32Upload},
+			HadWrongArch:   true,
+		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, game, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
+	}
 }

@@ -135,7 +135,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			}
 
 			if r.Index < 0 {
-				return &butlerd.ErrAborted{}
+				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			manifestAction = actions[r.Index]
@@ -244,7 +244,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			}
 
 			if r.Index < 0 {
-				return &butlerd.ErrAborted{}
+				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 			candidate = candidates[r.Index]
 		}

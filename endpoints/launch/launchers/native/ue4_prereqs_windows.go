@@ -191,7 +191,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return errors.WithMessage(err, "while verifying UE4 prereqs signature")
 	}
 
-	consumer.Infof("Authenticate signature verified.")
+	consumer.Infof("Authenticode signature verified.")
 	args := []string{
 		"elevate",
 		"--",
@@ -213,7 +213,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		if installRes.ExitCode == elevate.ExitCodeAccessDenied {
 			msg := "User or system did not grant elevation privileges"
 			consumer.Errorf(msg)
-			return &butlerd.ErrAborted{}
+			return errors.WithStack(butlerd.CodeOperationAborted)
 		}
 
 		consumer.Errorf("UE4 prereq install failed (code %d, 0x%x), we're out of options", installRes.ExitCode, installRes.ExitCode)

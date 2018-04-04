@@ -80,7 +80,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		} else {
 			// abort
 			consumer.Warnf("Giving up after prereqs failure because user asked us to")
-			return &butlerd.ErrAborted{}
+			return errors.WithStack(butlerd.CodeOperationAborted)
 		}
 	}
 

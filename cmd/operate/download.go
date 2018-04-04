@@ -53,7 +53,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 		err := tryDownload()
 		if err != nil {
 			if errors.Cause(err) == savior.ErrStop {
-				return &butlerd.ErrCancelled{}
+				return errors.WithStack(butlerd.CodeOperationCancelled)
 			}
 
 			if dl.IsIntegrityError(err) {

@@ -248,7 +248,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		}
 
 		if be, ok := butlerd.AsButlerdError(err); ok {
-			switch butlerd.Code(be.AsJsonRpc2().Code) {
+			switch butlerd.Code(be.RpcErrorCode()) {
 			case butlerd.CodeOperationCancelled:
 				// the whole drive was probably cancelled?
 				return nil

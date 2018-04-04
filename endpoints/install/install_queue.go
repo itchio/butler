@@ -150,11 +150,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 				operate.LogUpload(consumer, upload, upload.Build)
 			}
 
-			return nil, (&operate.OperationError{
-				Code:      "noCompatibleUploads",
-				Message:   "No compatible uploads",
-				Operation: "install",
-			}).Throw()
+			return nil, errors.WithStack(butlerd.CodeNoCompatibleUploads)
 		}
 
 		if len(uploadsFilterResult.Uploads) == 1 {
@@ -168,7 +164,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			}
 
 			if r.Index < 0 {
-				return nil, &butlerd.ErrAborted{}
+				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			params.Upload = uploadsFilterResult.Uploads[r.Index]
@@ -225,7 +221,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		if res.Whatever {
 			// let's keep going then.
 		} else {
-			return nil, &butlerd.ErrAborted{}
+			return nil, errors.WithStack(butlerd.CodeOperationAborted)
 		}
 	}
 

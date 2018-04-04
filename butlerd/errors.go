@@ -8,7 +8,9 @@ import (
 
 type Error interface {
 	error
-	AsJsonRpc2() *jsonrpc2.Error
+	RpcErrorCode() int64
+	RpcErrorMessage() string
+	RpcErrorData() map[string]interface{}
 }
 
 type RpcError struct {
@@ -35,49 +37,20 @@ func StandardRpcError(Code int64) Error {
 	return &RpcError{Code: Code, Message: message}
 }
 
-func (re *RpcError) AsJsonRpc2() *jsonrpc2.Error {
-	return &jsonrpc2.Error{
-		Code:    re.Code,
-		Message: re.Message,
-	}
+func (re *RpcError) RpcErrorCode() int64 {
+	return re.Code
+}
+
+func (re *RpcError) RpcErrorMessage() string {
+	return re.Message
+}
+
+func (re *RpcError) RpcErrorData() map[string]interface{} {
+	return nil
 }
 
 func (re *RpcError) Error() string {
 	return fmt.Sprintf("RPC error %d: %s", re.Code, re.Message)
-}
-
-//
-
-type ErrAborted struct{}
-
-var _ Error = (*ErrAborted)(nil)
-
-func (e *ErrAborted) AsJsonRpc2() *jsonrpc2.Error {
-	return &jsonrpc2.Error{
-		Code:    int64(CodeOperationAborted),
-		Message: "operation aborted",
-	}
-}
-
-func (e *ErrAborted) Error() string {
-	return "operation aborted"
-}
-
-//
-
-type ErrCancelled struct{}
-
-var _ Error = (*ErrCancelled)(nil)
-
-func (e *ErrCancelled) AsJsonRpc2() *jsonrpc2.Error {
-	return &jsonrpc2.Error{
-		Code:    int64(CodeOperationCancelled),
-		Message: "operation cancelled",
-	}
-}
-
-func (e *ErrCancelled) Error() string {
-	return "operation cancelled"
 }
 
 //

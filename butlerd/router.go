@@ -152,24 +152,35 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		return
 	}
 
+	var code int64
+	var message string
+	var data map[string]interface{}
+
 	if ee, ok := AsButlerdError(err); ok {
-		origConn.ReplyWithError(ctx, req.ID, ee.AsJsonRpc2())
-		return
+		code = ee.RpcErrorCode()
+		message = ee.RpcErrorMessage()
+		data = ee.RpcErrorData()
+	} else {
+		code = jsonrpc2.CodeInternalError
+		message = err.Error()
 	}
 
 	var rawData *json.RawMessage
-	input := map[string]interface{}{
-		"stack":         fmt.Sprintf("%+v", err),
-		"butlerVersion": r.MansionContext.VersionString,
+	if data == nil {
+		data = make(map[string]interface{})
 	}
-	es, marshalErr := json.Marshal(input)
+	data["stack"] = fmt.Sprintf("%+v", err)
+	data["butlerVersion"] = r.MansionContext.VersionString
+
+	marshalledData, marshalErr := json.Marshal(data)
 	if marshalErr == nil {
-		rm := json.RawMessage(es)
-		rawData = &rm
+		rawMessage := json.RawMessage(marshalledData)
+		rawData = &rawMessage
 	}
+
 	origConn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-		Code:    jsonrpc2.CodeInternalError,
-		Message: err.Error(),
+		Code:    code,
+		Message: message,
 		Data:    rawData,
 	})
 }

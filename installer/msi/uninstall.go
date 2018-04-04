@@ -50,7 +50,7 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 				if res.ExitCode == elevate.ExitCodeAccessDenied {
 					msg := "User or system did not grant elevation privileges"
 					consumer.Errorf(msg)
-					return &butlerd.ErrAborted{}
+					return errors.WithStack(butlerd.CodeOperationAborted)
 				}
 
 				consumer.Errorf("Elevated MSI uninstall failed (code %d, 0x%x), we're out of options", res.ExitCode, res.ExitCode)
