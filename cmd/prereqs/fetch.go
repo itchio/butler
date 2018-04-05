@@ -83,6 +83,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 						BPS:      counter.BPS(),
 					})
 				case <-cancel:
+					return
 				}
 			}
 		}()
