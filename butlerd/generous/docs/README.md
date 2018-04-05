@@ -6154,6 +6154,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>Nothing that can be launched was found</p>
 </td>
 </tr>
+<tr>
+<td><code>9000</code></td>
+<td><p>There is no Internet connection</p>
+</td>
+</tr>
 </table>
 
 
@@ -6183,6 +6188,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>5000</code></td>
+</tr>
+<tr>
+<td><code>9000</code></td>
 </tr>
 </table>
 

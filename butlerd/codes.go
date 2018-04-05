@@ -15,6 +15,8 @@ var codeMessages = map[Code]string{
 	CodeUnsupportedPackaging: "This title is packaged in a way that is not supported.",
 
 	CodeNoLaunchCandidates: "Nothing that can be launched was found.",
+
+	CodeNetworkDisconnected: "There is no internet connection",
 }
 
 func (code Code) RpcErrorMessage() string {

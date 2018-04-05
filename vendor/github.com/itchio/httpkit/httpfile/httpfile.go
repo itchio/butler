@@ -8,19 +8,18 @@ import (
 	"log"
 	"math"
 	"mime"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	goerrors "errors"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/pkg/errors"
 )
@@ -731,35 +730,16 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 }
 
 func (hf *HTTPFile) shouldRetry(err error) bool {
-	if errors.Cause(err) == io.ErrUnexpectedEOF {
-		hf.log("shouldRetry: retrying unexpected EOF")
-		return true
-	} else if errors.Cause(err) == io.EOF {
+	if errors.Cause(err) == io.EOF {
 		// don't retry EOF, it's a perfectly expected error
 		return false
-	} else if opError, ok := err.(*net.OpError); ok {
-		// examples (win): "read tcp [...]: wsarecv: An established connection was aborted by the software in your host machine"
-		if opError.Timeout() ||
-			opError.Temporary() ||
-			opError.Err.Error() == syscall.ECONNRESET.Error() ||
-			strings.HasPrefix(opError.Err.Error(), "read tcp") {
-			hf.log("shouldRetry: retrying net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
-			return true
-		}
-		hf.log("shouldRetry: bailing on net.OpError %s, nested error: %s", err.Error(), opError.Err.Error())
-	} else if urlError, ok := err.(*url.Error); ok {
-		// examples: "dial tcp: [...] on port 53: server misbehaving"
-		// examples: "dial tcp: [...] on port 53: timed out"
-		if urlError.Timeout() ||
-			urlError.Temporary() ||
-			errors.Cause(urlError.Err) == io.EOF ||
-			strings.HasPrefix(urlError.Err.Error(), "dial tcp") {
-			hf.log("shouldRetry: retrying url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
-			return true
-		}
-		hf.log("shouldRetry: bailing on url.Error %s, nested error: %s", err.Error(), urlError.Err.Error())
+	}
+
+	if neterr.IsNetworkError(err) {
+		hf.log("shouldRetry: retrying %v", err)
+		return true
 	} else {
-		hf.log("shouldRetry: bailing on unknown error %s", err.Error())
+		hf.log("shouldRetry: bailing on error %v", err)
 	}
 
 	return false

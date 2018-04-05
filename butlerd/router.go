@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/progress"
+	"github.com/itchio/httpkit/neterr"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
@@ -161,8 +162,13 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		message = ee.RpcErrorMessage()
 		data = ee.RpcErrorData()
 	} else {
-		code = jsonrpc2.CodeInternalError
-		message = err.Error()
+		if neterr.IsNetworkError(err) {
+			code = int64(CodeNetworkDisconnected)
+			message = CodeNetworkDisconnected.Error()
+		} else {
+			code = jsonrpc2.CodeInternalError
+			message = err.Error()
+		}
 	}
 
 	var rawData *json.RawMessage

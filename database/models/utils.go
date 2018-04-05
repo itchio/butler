@@ -13,12 +13,11 @@ func Preload(db *gorm.DB, params *hades.PreloadParams) error {
 	return HadesContext(db).Preload(db, params)
 }
 
-func MustPreload(db *gorm.DB, params *hades.PreloadParams) error {
+func MustPreload(db *gorm.DB, params *hades.PreloadParams) {
 	err := Preload(db, params)
 	if err != nil {
 		panic(err)
 	}
-	return nil
 }
 
 func PreloadSimple(db *gorm.DB, record interface{}, fields ...string) error {

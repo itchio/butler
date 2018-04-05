@@ -1516,6 +1516,9 @@ const (
 
 	// Nothing that can be launched was found
 	CodeNoLaunchCandidates Code = 5000
+
+	// There is no Internet connection
+	CodeNetworkDisconnected Code = 9000
 )
 
 //==================================
