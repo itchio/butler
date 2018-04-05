@@ -173,38 +173,46 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	filterSetupExes := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
 		var candidatesOut []*configurator.Candidate
 		for _, c := range candidatesIn {
-			if c.Flavor == configurator.FlavorNativeWindows {
-				err := func() error {
-					f, err := os.Open(filepath.Join(installFolder, c.Path))
-					if err != nil {
-						return errors.WithStack(err)
-					}
-					defer f.Close()
+			exclude := false
 
-					peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
-						Consumer: consumer,
-					})
-					if err != nil {
-						return errors.WithStack(err)
-					}
+			switch c.Flavor {
+			case configurator.FlavorNativeWindows:
+				{
+					err := func() error {
+						f, err := os.Open(filepath.Join(installFolder, c.Path))
+						if err != nil {
+							return errors.WithStack(err)
+						}
+						defer f.Close()
 
-					if peInfo.RequiresElevation() {
-						// filter out
+						peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+							Consumer: consumer,
+						})
+						if err != nil {
+							return errors.WithStack(err)
+						}
+
+						if peInfo.RequiresElevation() {
+							exclude = true
+							return nil
+						}
+
+						if peInfo.AssemblyInfo == nil && installer.HasSuspiciouslySetupLikeName(filepath.Base(c.Path)) {
+							exclude = false
+							return nil
+						}
+
 						return nil
+					}()
+					if err != nil {
+						consumer.Warnf("Could not filter elevated exes: %+v", err)
+						return candidatesIn
 					}
-
-					if peInfo.AssemblyInfo == nil && installer.HasSuspiciouslySetupLikeName(filepath.Base(c.Path)) {
-						// filter out
-						return nil
-					}
-
-					candidatesOut = append(candidatesOut, c)
-					return nil
-				}()
-				if err != nil {
-					consumer.Warnf("Could not filter elevated exes: %+v", err)
-					return candidatesIn
 				}
+			}
+
+			if !exclude {
+				candidatesOut = append(candidatesOut, c)
 			}
 		}
 		return candidatesOut
