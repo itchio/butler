@@ -38,7 +38,10 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		ctx := context.Background()
 		conn := loopbackconn.New(consumer)
 
-		db, err := database.OpenAndPrepare(":memory:")
+		db, err := database.Open(":memory:")
+		wtest.Must(t, err)
+
+		err = database.Prepare(db)
 		wtest.Must(t, err)
 
 		var testCredentials = &models.Profile{
