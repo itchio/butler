@@ -5714,6 +5714,16 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <td></td>
 </tr>
 <tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>reason</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
@@ -5778,6 +5788,14 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <tr>
 <td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>reason</code></td>
@@ -6076,6 +6094,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>This title is packaged in a way that is not supported.</p>
 </td>
 </tr>
+<tr>
+<td><code>5000</code></td>
+<td><p>Nothing that can be launched was found</p>
+</td>
+</tr>
 </table>
 
 
@@ -6102,6 +6125,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>3000</code></td>
+</tr>
+<tr>
+<td><code>5000</code></td>
 </tr>
 </table>
 

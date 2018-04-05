@@ -193,12 +193,12 @@ func (pg *processGroup) Wait() error {
 func terminateProcess(pid uint32, exitcode int) error {
 	h, err := syscall.OpenProcess(syscall.PROCESS_TERMINATE, false, pid)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "OpenProcess(PROCESS_TERMINATE)")
 	}
 	defer syscall.CloseHandle(h)
 	err = syscall.TerminateProcess(h, uint32(exitcode))
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "TerminateProcess")
 	}
 	return nil
 }
