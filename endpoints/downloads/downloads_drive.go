@@ -78,8 +78,8 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 			}
 		}
 
-		if download.Fresh {
-			if download.StagingFolder == "" {
+		if download.Fresh && (download.FinishedAt == nil || download.Error != nil) {
+			if download.InstallFolder == "" {
 				consumer.Warnf("No (fresh) install folder specified, can't wipe")
 			} else {
 				consumer.Opf("Wiping (fresh) install folder...")
