@@ -225,6 +225,7 @@ func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 		if c.Path == "" {
 			c.Path = path
 		}
+		c.Depth = PathDepth(c.Path)
 	}
 	return c, err
 }
@@ -326,10 +327,6 @@ func doSniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 	return nil, nil
 }
 
-func pathToDepth(path string) int {
-	return len(strings.Split(path, "/"))
-}
-
 func Configure(root string, showSpell bool) (*Verdict, error) {
 	verdict := &Verdict{
 		BasePath: root,
@@ -378,7 +375,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 				Path:   d.Path,
 				Mode:   d.Mode,
 			}
-			res.Depth = pathToDepth(res.Path)
+			res.Depth = PathDepth(res.Path)
 			candidates = append(candidates, res)
 		}
 	}
@@ -406,7 +403,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 				Size:   f.Size,
 				Path:   f.Path,
 				Mode:   f.Mode,
-				Depth:  pathToDepth(f.Path),
+				Depth:  PathDepth(f.Path),
 				Flavor: FlavorHTML,
 			}
 			candidates = append(candidates, candidate)
@@ -422,7 +419,7 @@ func Configure(root string, showSpell bool) (*Verdict, error) {
 					Size:   f.Size,
 					Path:   f.Path,
 					Mode:   f.Mode,
-					Depth:  pathToDepth(f.Path),
+					Depth:  PathDepth(f.Path),
 					Flavor: FlavorHTML,
 				}
 				candidates = append(candidates, candidate)
@@ -598,7 +595,7 @@ type ScoredCandidate struct {
 }
 
 func (v *Verdict) FilterPlatform(osFilter string, archFilter string) {
-	compatibleCandidates := make([]*Candidate, 0)
+	var compatibleCandidates []*Candidate
 
 	// exclude things we can't run at all
 	for _, c := range v.Candidates {
