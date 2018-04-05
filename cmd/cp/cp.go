@@ -61,6 +61,7 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
 	retryCtx := retrycontext.NewDefault()
 	retryCtx.Settings.Consumer = comm.NewStateConsumer()
+	retryCtx.Settings.MaxTries = 2
 
 	for retryCtx.ShouldTry() {
 		err := Try(ctx, params, srcPath, destPath, resume)

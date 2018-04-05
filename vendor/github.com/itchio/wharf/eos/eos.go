@@ -101,16 +101,20 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	switch u.Scheme {
-	case "http", "https":
-		res := &simpleHTTPResource{name}
-		hf, err := httpfile.New(res.GetURL, res.NeedsRenewal, &httpfile.Settings{
+	httpFileSettings := func() *httpfile.Settings {
+		return &httpfile.Settings{
 			Client: settings.HTTPClient,
 			RetrySettings: &retrycontext.Settings{
 				MaxTries: settings.MaxTries,
 				Consumer: settings.Consumer,
 			},
-		})
+		}
+	}
+
+	switch u.Scheme {
+	case "http", "https":
+		res := &simpleHTTPResource{name}
+		hf, err := httpfile.New(res.GetURL, res.NeedsRenewal, httpFileSettings())
 
 		if err != nil {
 			return nil, err
@@ -130,9 +134,7 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 			return nil, errors.WithStack(err)
 		}
 
-		hf, err := httpfile.New(getURL, needsRenewal, &httpfile.Settings{
-			Client: settings.HTTPClient,
-		})
+		hf, err := httpfile.New(getURL, needsRenewal, httpFileSettings())
 
 		if err != nil {
 			return nil, err

@@ -41,8 +41,6 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 		}
 		// if we stay idle too long, close
 		idleConn := idletiming.Conn(monitorConn, rwTimeout, func() {
-			// FIXME: this doesn't seem to be working
-			panic("timed out!")
 			monitorConn.Close()
 		})
 		return idleConn, nil
