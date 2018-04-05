@@ -11,6 +11,7 @@ var (
 	modnetapi32 = windows.NewLazySystemDLL("netapi32.dll")
 
 	procNetUserAdd              = modnetapi32.NewProc("NetUserAdd")
+	procNetUserSetInfo          = modnetapi32.NewProc("NetUserSetInfo")
 	procNetLocalGroupDelMembers = modnetapi32.NewProc("NetLocalGroupDelMembers")
 	procNetUserChangePassword   = modnetapi32.NewProc("NetUserChangePassword")
 )
@@ -26,6 +27,12 @@ type UserInfo1 struct {
 	Comment     *uint16
 	Flags       uint32
 	ScriptPath  *uint16
+}
+
+// struct _USER_INFO_1003, cf.
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa370963(v=vs.85).aspx
+type UserInfo1003 struct {
+	Password *uint16
 }
 
 // struct LOCALGROUP_MEMBERS_INFO_3, cf.
@@ -59,6 +66,29 @@ func NetUserAdd(
 		buf,
 		uintptr(unsafe.Pointer(parmErr)),
 		0, 0,
+	)
+	if r1 != 0 {
+		err = syscall.Errno(r1)
+	}
+	return
+}
+
+func NetUserSetInfo(
+	servername *uint16,
+	username *uint16,
+	level uint32,
+	buf uintptr,
+	parmErr *uint32,
+) (err error) {
+	r1, _, _ := syscall.Syscall6(
+		procNetUserSetInfo.Addr(),
+		5,
+		uintptr(unsafe.Pointer(servername)),
+		uintptr(unsafe.Pointer(username)),
+		uintptr(level),
+		buf,
+		uintptr(unsafe.Pointer(parmErr)),
+		0,
 	)
 	if r1 != 0 {
 		err = syscall.Errno(r1)

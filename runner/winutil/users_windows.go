@@ -99,7 +99,26 @@ func AddUser(username string, password string, comment string) error {
 		nil,
 	)
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "NetUserAdd")
+	}
+
+	return nil
+}
+
+func ForceSetPassword(username string, password string) error {
+	var usri1003 = syscallex.UserInfo1003{
+		Password: syscall.StringToUTF16Ptr(password),
+	}
+
+	err := syscallex.NetUserSetInfo(
+		nil,
+		syscall.StringToUTF16Ptr(username),
+		1003,
+		uintptr(unsafe.Pointer(&usri1003)),
+		nil,
+	)
+	if err != nil {
+		return errors.WithMessage(err, "NetUserSetInfo (password)")
 	}
 
 	return nil
