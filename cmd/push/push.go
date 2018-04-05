@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/itchio/wharf/eos/option"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -107,7 +109,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			client.Key,
 		)
 
-		signatureReader, err := eos.Open(signatureURL)
+		signatureReader, err := eos.Open(signatureURL, option.WithConsumer(comm.NewStateConsumer()))
 		if err != nil {
 			return nil, errors.Wrap(err, "opening signature")
 		}

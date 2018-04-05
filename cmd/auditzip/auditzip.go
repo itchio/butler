@@ -19,6 +19,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -202,7 +203,7 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(consumer *state.Consumer, file string, upstream bool) error {
-	f, err := eos.Open(file)
+	f, err := eos.Open(file, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

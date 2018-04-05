@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -69,7 +70,7 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 
 		if needFetch || wantFetch {
 			err := func() error {
-				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked")
+				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(pc.Consumer))
 				if err != nil {
 					return errors.Wrap(err, "opening remote registry file")
 				}

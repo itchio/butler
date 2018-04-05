@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -55,7 +56,9 @@ func Do(ctx *mansion.Context, patch string) error {
 }
 
 func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) {
-	patchReader, err := eos.Open(patch)
+	consumer := comm.NewStateConsumer()
+
+	patchReader, err := eos.Open(patch, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -298,6 +301,8 @@ type deepDiveContext struct {
 }
 
 func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) error {
+	consumer := comm.NewStateConsumer()
+
 	comm.Logf("")
 	var numTouched int
 	patchStatPerFileIndex := make(map[int64]patchStat)
@@ -310,7 +315,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 
 	comm.Statf("Now deep-diving into %d touched files", numTouched)
 
-	patchReader, err := eos.Open(patch)
+	patchReader, err := eos.Open(patch, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

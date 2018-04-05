@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/tlc"
 
 	"github.com/itchio/wharf/pwr"
@@ -35,7 +36,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		HealPath:   healSpec,
 	}
 
-	signatureFile, err := eos.Open(signatureURL)
+	signatureFile, err := eos.Open(signatureURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

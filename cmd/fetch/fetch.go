@@ -10,6 +10,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
 )
 
@@ -31,6 +32,8 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(ctx *mansion.Context, specStr string, outPath string) error {
+	consumer := comm.NewStateConsumer()
+
 	err := os.MkdirAll(outPath, os.FileMode(0755))
 	if err != nil {
 		return errors.WithStack(err)
@@ -88,7 +91,7 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	url := head.ItchfsURL(headArchive, client.Key)
 
-	remoteFile, err := eos.Open(url)
+	remoteFile, err := eos.Open(url, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

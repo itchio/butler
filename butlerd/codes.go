@@ -16,7 +16,7 @@ var codeMessages = map[Code]string{
 
 	CodeNoLaunchCandidates: "Nothing that can be launched was found.",
 
-	CodeNetworkDisconnected: "There is no internet connection",
+	CodeNetworkDisconnected: "There is no Internet connection",
 }
 
 func (code Code) RpcErrorMessage() string {

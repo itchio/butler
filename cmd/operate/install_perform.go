@@ -15,6 +15,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/butler/installer"
 
@@ -119,7 +120,7 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 		oc.Save(isub)
 	}
 
-	ret, err := eos.Open(destPath)
+	ret, err := eos.Open(destPath, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -246,7 +247,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 	installSourceURL := sourceURL(consumer, istate, params, "")
 
-	file, err := eos.Open(installSourceURL)
+	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

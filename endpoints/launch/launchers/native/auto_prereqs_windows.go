@@ -3,6 +3,7 @@
 package native
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/eos"
 	"github.com/pkg/errors"
 )
 
@@ -53,7 +53,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 
 		cPath := filepath.Join(params.InstallFolder, c.Path)
 
-		f, err := eos.Open(cPath)
+		f, err := os.Open(cPath)
 		if err != nil {
 			consumer.Warnf("For auto prereqs: could not open (%s): %s", cPath, err.Error())
 			return nil

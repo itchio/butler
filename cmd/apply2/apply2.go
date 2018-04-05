@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
@@ -56,7 +57,7 @@ func Do(params *Params) error {
 		},
 	}
 
-	patchReader, err := eos.Open(patch)
+	patchReader, err := eos.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
 		return errors.Wrap(err, "opening patch")
 	}

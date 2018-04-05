@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/nullpool"
 	"github.com/itchio/wharf/pwr"
@@ -78,7 +79,7 @@ func Do(params *Params) error {
 
 	readAsSignature := func() error {
 		// Signature file perhaps?
-		signatureReader, err := eos.Open(params.Target)
+		signatureReader, err := eos.Open(params.Target, option.WithConsumer(comm.NewStateConsumer()))
 		if err != nil {
 			return errors.Wrap(err, "opening target")
 		}

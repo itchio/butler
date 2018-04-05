@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 
 	goerrors "errors"
 
@@ -173,7 +175,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		for _, c := range candidatesIn {
 			if c.Flavor == configurator.FlavorNativeWindows {
 				err := func() error {
-					f, err := eos.Open(filepath.Join(installFolder, c.Path))
+					f, err := os.Open(filepath.Join(installFolder, c.Path))
 					if err != nil {
 						return errors.WithStack(err)
 					}
@@ -406,30 +408,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	if manifestAction != nil {
 		args = append(args, manifestAction.Args...)
 
-		if manifestAction.Scope != "" {
-			const onlyPermittedScope = "profile:me"
-			if manifestAction.Scope != onlyPermittedScope {
-				err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
-				return nil, errors.WithStack(err)
-			}
-
-			client, err := operate.ClientFromCredentials(credentials)
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
-			res, err := client.Subkey(&itchio.SubkeyParams{
-				GameID: game.ID,
-				Scope:  manifestAction.Scope,
-			})
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
-			consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
-
-			env["ITCHIO_API_KEY"] = res.Key
-			env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
+		err = requestAPIKeyIfNecessary(consumer, manifestAction, game, credentials, env)
+		if err != nil {
+			return nil, errors.WithMessage(err, "While requesting API key")
 		}
 	}
 
@@ -479,4 +460,40 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	}
 
 	return &butlerd.LaunchResult{}, nil
+}
+
+func requestAPIKeyIfNecessary(consumer *state.Consumer, manifestAction *butlerd.Action, game *itchio.Game, credentials *butlerd.GameCredentials, env map[string]string) error {
+	if manifestAction.Scope == "" {
+		// nothing to do
+		return nil
+	}
+
+	const onlyPermittedScope = "profile:me"
+	if manifestAction.Scope != onlyPermittedScope {
+		err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
+		return errors.WithStack(err)
+	}
+
+	client, err := operate.ClientFromCredentials(credentials)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	res, err := client.Subkey(&itchio.SubkeyParams{
+		GameID: game.ID,
+		Scope:  manifestAction.Scope,
+	})
+	if err != nil {
+		if neterr.IsNetworkError(err) {
+			consumer.Infof("No Internet connection, integration API won't be available")
+			env["ITCHIO_OFFLINE_MODE"] = "1"
+			return nil
+		}
+		return errors.WithStack(err)
+	}
+
+	consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
+	env["ITCHIO_API_KEY"] = res.Key
+	env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
+	return nil
 }

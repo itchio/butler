@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
 )
@@ -105,6 +106,10 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 		res := &simpleHTTPResource{name}
 		hf, err := httpfile.New(res.GetURL, res.NeedsRenewal, &httpfile.Settings{
 			Client: settings.HTTPClient,
+			RetrySettings: &retrycontext.Settings{
+				MaxTries: settings.MaxTries,
+				Consumer: settings.Consumer,
+			},
 		})
 
 		if err != nil {

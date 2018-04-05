@@ -3,6 +3,7 @@ package archive
 import (
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -14,7 +15,7 @@ type SimpleExtractParams struct {
 }
 
 func SimpleExtract(params *SimpleExtractParams) (*savior.ExtractorResult, error) {
-	f, err := eos.Open(params.ArchivePath)
+	f, err := eos.Open(params.ArchivePath, option.WithConsumer(params.Consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

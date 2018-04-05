@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/eos"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
@@ -124,7 +123,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 	consumer.Infof("Found UE4 prereq candidate:\n %s", prereqCandidate)
 
 	prereqCandidatePath := filepath.Join(params.InstallFolder, prereqCandidate.Path)
-	f, err := eos.Open(prereqCandidatePath)
+	f, err := os.Open(prereqCandidatePath)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
 	"github.com/pkg/errors"
@@ -84,7 +85,7 @@ func Do(params *Params) error {
 	bench := params.OutPath == ""
 	consumer := comm.NewStateConsumer()
 
-	dr, err := eos.Open(params.InPath)
+	dr, err := eos.Open(params.InPath, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

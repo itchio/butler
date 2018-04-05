@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 	"github.com/pkg/errors"
@@ -106,7 +105,7 @@ func (cfp *FsPool) GetReadSeeker(fileIndex int64) (io.ReadSeeker, error) {
 			cfp.reader = nil
 		}
 
-		reader, err := eos.Open(cfp.GetPath(fileIndex))
+		reader, err := os.Open(cfp.GetPath(fileIndex))
 		if err != nil {
 			return nil, err
 		}

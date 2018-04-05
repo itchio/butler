@@ -8,6 +8,8 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/itchio/wharf/eos/option"
+
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
@@ -22,7 +24,7 @@ func ExtractTar(archive string, dir string, settings ExtractSettings) (*ExtractR
 	regCount := 0
 	symlinkCount := 0
 
-	file, err := eos.Open(archive)
+	file, err := eos.Open(archive, option.WithConsumer(settings.Consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
