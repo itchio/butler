@@ -1,7 +1,6 @@
 package filtering
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -22,11 +21,7 @@ var IgnoredPaths = []string{
 func FilterPaths(fileInfo os.FileInfo) bool {
 	name := fileInfo.Name()
 	for _, pattern := range IgnoredPaths {
-		match, err := filepath.Match(pattern, name)
-		if err != nil {
-			panicMsg := fmt.Sprintf("Malformed ignore pattern '%s': %s", pattern, err.Error())
-			panic(panicMsg)
-		}
+		match, _ := filepath.Match(pattern, name)
 		if match {
 			return false
 		}

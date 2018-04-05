@@ -167,5 +167,13 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}
 	}
 
+	select {
+	case <-pc.RequestContext.Ctx.Done():
+		// uh oh
+		return butlerd.CodeOperationAborted
+	default:
+		// okay then
+	}
+
 	return nil
 }

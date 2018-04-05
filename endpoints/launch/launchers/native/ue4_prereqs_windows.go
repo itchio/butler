@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/itchio/pelican"
@@ -101,17 +102,20 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	verdict, err := params.GetUnfilteredVerdict()
+	installContainer, err := params.GetInstallContainer()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var prereqCandidate *configurator.Candidate
 
-	for _, c := range verdict.Candidates {
-		base := filepath.Base(c.Path)
-		if base == needle {
-			prereqCandidate = c
+	for _, fe := range installContainer.Files {
+		consumer.Infof("Reviewing (%s)", path.Base(fe.Path))
+		if path.Base(fe.Path) == needle {
+			prereqCandidate, err = params.SniffFile(fe)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 			break
 		}
 	}

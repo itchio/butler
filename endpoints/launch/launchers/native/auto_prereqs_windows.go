@@ -5,6 +5,7 @@ package native
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/itchio/butler/redist"
@@ -35,7 +36,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 
 	consumer.Opf("Determining dependencies for all (%s) executables in (%s)", candidateArch, params.InstallFolder)
 
-	verdict, err := params.GetUnfilteredVerdict()
+	installContainer, err := params.GetInstallContainer()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -73,22 +74,39 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 		return nil
 	}
 
-	for _, c := range verdict.Candidates {
-		err = handleCandidate(c)
-		if err != nil {
-			return nil, errors.WithStack(err)
+	for _, fe := range installContainer.Files {
+		if strings.HasSuffix(strings.ToLower(fe.Path), ".exe") {
+			c, err := params.SniffFile(fe)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+
+			err = handleCandidate(c)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
 		}
 	}
 
 	consumer.Opf("Mapping dependencies to prereqs...")
 
-	regist, err := pc.GetRegistry()
+	registry, err := pc.GetRegistry()
 	if err != nil {
 		return nil, err
 	}
 
 	dllToRedistMap := make(map[string]string)
-	for redistName, redist := range regist.Entries {
+
+	var redistNames []string
+	// map iteration is random in go (they mean it)
+	// so we have to sort it here. cf. https://github.com/itchio/itch/issues/1754
+	for redistName, _ := range registry.Entries {
+		redistNames = append(redistNames, redistName)
+	}
+	sort.Strings(redistNames)
+
+	for _, redistName := range redistNames {
+		redist := registry.Entries[redistName]
 		if redist.Windows != nil {
 			for _, dll := range redist.Windows.DLLs {
 				dllToRedistMap[strings.ToLower(dll)] = redistName
@@ -103,7 +121,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 		var bestEntryName string
 
 		if entryName, ok := dllToRedistMap[imp]; ok {
-			entry := regist.Entries[entryName]
+			entry := registry.Entries[entryName]
 			if bestEntry == nil {
 				bestEntry = entry
 				bestEntryName = entryName

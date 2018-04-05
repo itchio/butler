@@ -290,7 +290,7 @@ func (hr *httpReader) Connect() error {
 						if err != nil {
 							if hf.shouldRetry(err) {
 								hf.log("Connect.renew: got retriable error: %s", err.Error())
-								renewRetryCtx.Retry(err.Error())
+								renewRetryCtx.Retry(err)
 								continue
 							} else {
 								hf.log("Connect.renew: got non-retriable error: %s", err.Error())
@@ -300,7 +300,7 @@ func (hr *httpReader) Connect() error {
 
 						return nil
 					}
-					return errors.New("Connect.renew: too many errors, giving up")
+					return errors.WithMessage(renewRetryCtx.LastError, "httpfile renew")
 				}()
 				if err != nil {
 					return err
@@ -309,7 +309,7 @@ func (hr *httpReader) Connect() error {
 				continue
 			} else if hf.shouldRetry(err) {
 				hf.log("Connect: got retriable error: %s", err.Error())
-				retryCtx.Retry(err.Error())
+				retryCtx.Retry(err)
 				continue
 			} else {
 				hf.log("Connect: got non-renew, non-retriable error: %s", err.Error())
@@ -324,7 +324,7 @@ func (hr *httpReader) Connect() error {
 		return nil
 	}
 
-	return errors.New("HTTPFile.Connect: too many errors, giving up")
+	return errors.WithMessage(retryCtx.LastError, "httpfile connect")
 }
 
 func (hr *httpReader) Close() error {
@@ -391,7 +391,6 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		// This used to be `HEAD`, but some servers (looking at you Amazon S3)
 		// didn't like it.
-
 		req, err := http.NewRequest("GET", urlStr, nil)
 		if err != nil {
 			// internal error
@@ -405,7 +404,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			if hf.shouldRetry(err) {
 				// we can recover from some client errors
 				// (example: temporarily offline, DNS failure, etc.)
-				retryCtx.Retry(err.Error())
+				retryCtx.Retry(err)
 				continue
 			} else {
 				return nil, err
@@ -439,7 +438,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 			}
 
 			if res.StatusCode == 429 || res.StatusCode/100 == 5 {
-				retryCtx.Retry(fmt.Sprintf("HTTP %d (retrying)", res.StatusCode))
+				retryCtx.Retry(errors.Errorf("HTTP %d (retrying)", res.StatusCode))
 				continue
 			}
 
@@ -482,7 +481,7 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 		return hf, nil
 	}
 
-	return nil, fmt.Errorf("Could not access remote file. Last error: %s", retryCtx.LastMessage)
+	return nil, errors.WithMessage(retryCtx.LastError, "httpfile new")
 }
 
 func (hf *HTTPFile) newRetryContext() *retrycontext.Context {

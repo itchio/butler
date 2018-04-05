@@ -4,14 +4,16 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
 	"github.com/itchio/wharf/state"
 )
 
 type Context struct {
 	Settings Settings
 
-	Tries       int
-	LastMessage string
+	Tries     int
+	LastError error
 }
 
 type Settings struct {
@@ -61,13 +63,16 @@ func (rc *Context) ShouldTry() bool {
 	return rc.Tries < rc.Settings.MaxTries
 }
 
-func (rc *Context) Retry(message string) {
-	rc.LastMessage = message
+func (rc *Context) Retry(err error) {
+	rc.LastError = err
 
 	if rc.Settings.Consumer != nil {
 		rc.Settings.Consumer.PauseProgress()
-		rc.Settings.Consumer.Infof("")
-		rc.Settings.Consumer.Infof("%s", message)
+		if neterr.IsNetworkError(err) {
+			rc.Settings.Consumer.Infof("having network troubles...")
+		} else {
+			rc.Settings.Consumer.Infof("%v", err)
+		}
 	}
 
 	// exponential backoff: 1, 2, 4, 8 seconds...

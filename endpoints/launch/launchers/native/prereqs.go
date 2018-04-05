@@ -39,9 +39,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 			return errors.WithMessage(err, "While doing auto prereqs")
 		}
 
-		for _, ap := range autoPrereqs {
-			wanted = append(wanted, ap)
-		}
+		wanted = append(wanted, autoPrereqs...)
 	} else {
 		if len(params.AppManifest.Prereqs) == 0 {
 			consumer.Infof("Got manifest but no prereqs requested")

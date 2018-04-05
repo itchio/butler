@@ -59,7 +59,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 			if dl.IsIntegrityError(err) {
 				consumer.Warnf("Had integrity errors, we have to start over")
 				checkpoint = nil
-				retryCtx.Retry(err.Error())
+				retryCtx.Retry(err)
 				continue
 			}
 
@@ -67,7 +67,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 				if se.Code == httpfile.ServerErrorCodeNoRangeSupport {
 					consumer.Warnf("%s does not support range requests (boo, hiss), we have to start over", se.Host)
 					checkpoint = nil
-					retryCtx.Retry(err.Error())
+					retryCtx.Retry(err)
 					continue
 				}
 			}
@@ -79,7 +79,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 		return nil
 	}
 
-	return errors.New("download: too many errors, giving up")
+	return errors.WithMessage(retryCtx.LastError, "download")
 }
 
 type causer interface {

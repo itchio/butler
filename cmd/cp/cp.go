@@ -67,7 +67,7 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 		err := Try(ctx, params, srcPath, destPath, resume)
 		if err != nil {
 			if dl.IsIntegrityError(err) {
-				retryCtx.Retry(err.Error())
+				retryCtx.Retry(err)
 				continue
 			}
 
@@ -78,7 +78,7 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 		return nil
 	}
 
-	return errors.New("cp: too many errors, giving up")
+	return errors.WithMessage(retryCtx.LastError, "cp")
 }
 
 func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {

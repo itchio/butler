@@ -2,11 +2,15 @@ package launch
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/pelican"
+	"github.com/itchio/wharf/tlc"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/configurator"
@@ -36,7 +40,7 @@ type LauncherParams struct {
 	Candidate *configurator.Candidate
 
 	// Lazily computed
-	unfilteredVerdict *configurator.Verdict
+	installContainer *tlc.Container
 
 	// May be nil
 	AppManifest *butlerd.Manifest
@@ -62,15 +66,55 @@ type LauncherParams struct {
 	RecordPlayTime RecordPlayTimeFunc
 }
 
-func (lp *LauncherParams) GetUnfilteredVerdict() (*configurator.Verdict, error) {
-	if lp.unfilteredVerdict == nil {
+// cf. https://github.com/itchio/itch/issues/1751
+var ignoredInstallContainerPatterns = []string{
+	"node_modules",
+}
+
+func (lp *LauncherParams) GetInstallContainer() (*tlc.Container, error) {
+	if lp.installContainer == nil {
 		var err error
-		lp.unfilteredVerdict, err = configurator.Configure(lp.InstallFolder, false)
+		lp.installContainer, err = tlc.WalkDir(lp.InstallFolder, &tlc.WalkOpts{
+			Filter: func(fileInfo os.FileInfo) bool {
+				if !filtering.FilterPaths(fileInfo) {
+					return false
+				}
+
+				for _, pattern := range ignoredInstallContainerPatterns {
+					match, _ := filepath.Match(pattern, fileInfo.Name())
+					if match {
+						return false
+					}
+				}
+
+				return true
+			},
+		})
 		if err != nil {
-			return nil, errors.WithMessage(err, "while getting unfiltered verdict")
+			return nil, errors.WithStack(err)
 		}
 	}
-	return lp.unfilteredVerdict, nil
+	return lp.installContainer, nil
+}
+
+func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*configurator.Candidate, error) {
+	f, err := os.Open(filepath.Join(lp.InstallFolder, fileEntry.Path))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	defer f.Close()
+
+	stats, err := f.Stat()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	candidate, err := configurator.Sniff(f, fileEntry.Path, stats.Size())
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return candidate, nil
 }
 
 type RecordPlayTimeFunc func(playTime time.Duration) error
