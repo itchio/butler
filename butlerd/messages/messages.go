@@ -1734,6 +1734,22 @@ func (r *LaunchCancelType) Register(router *butlerd.Router, f func(*butlerd.Requ
 
 var LaunchCancel *LaunchCancelType
 
+// LaunchWindowShouldBeForeground (Notification)
+
+type LaunchWindowShouldBeForegroundType struct {}
+
+var _ NotificationMessage = (*LaunchWindowShouldBeForegroundType)(nil)
+
+func (r *LaunchWindowShouldBeForegroundType) Method() string {
+  return "LaunchWindowShouldBeForeground"
+}
+
+func (r *LaunchWindowShouldBeForegroundType) Notify(rc *butlerd.RequestContext, params *butlerd.LaunchWindowShouldBeForegroundNotification) (error) {
+  return rc.Notify("LaunchWindowShouldBeForeground", params)
+}
+
+var LaunchWindowShouldBeForeground *LaunchWindowShouldBeForegroundType
+
 // LaunchRunning (Notification)
 
 type LaunchRunningType struct {}

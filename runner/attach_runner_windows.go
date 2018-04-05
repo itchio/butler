@@ -10,6 +10,9 @@ import (
 	"github.com/itchio/butler/runner/syscallex"
 	"github.com/itchio/butler/runner/winutil"
 	"github.com/pkg/errors"
+
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 )
 
 func getAttachRunner(params *RunnerParams) (Runner, error) {
@@ -91,6 +94,41 @@ type attachRunner struct {
 var _ Runner = (*attachRunner)(nil)
 
 func (ar *attachRunner) Prepare() error {
+	rc := ar.params.RequestContext
+	consumer := rc.Consumer
+
+	// Note: using EnumThreadWindows sounds better at first glance,
+	// but then remember that this means using CreateToolhelp32Snapshot with
+	// TH32CS_SNAPTHREAD, going through all threads of all processes, just
+	// to avoid looping through a few windows.
+	// EnumWindows sounds just fine in comparison.
+
+	var numWindowsBroughtToForeground int
+
+	cb := syscall.NewCallback(func(hwnd syscall.Handle, lparam uintptr) uintptr {
+		var procId uint32
+		syscallex.GetWindowThreadProcessId(hwnd, &procId)
+		if procId == ar.pid {
+			consumer.Infof("Found window (%x)", hwnd)
+			// ignore error on purpose - chances are we don't have permissions
+			// to set foreground anyway
+			_ = syscallex.SetForegroundWindow(hwnd)
+			numWindowsBroughtToForeground++
+
+			// ignore error - it's not really essential
+			_ = messages.LaunchWindowShouldBeForeground.Notify(rc, &butlerd.LaunchWindowShouldBeForegroundNotification{
+				Hwnd: int64(hwnd),
+			})
+		}
+		return 1 // continue enumeration
+	})
+	err := syscallex.EnumWindows(cb, 999)
+	if err != nil {
+		consumer.Warnf("Could not enumerate windows: %v", err)
+	}
+
+	consumer.Infof("Brought %d windows to foreground", numWindowsBroughtToForeground)
+
 	return nil
 }
 
