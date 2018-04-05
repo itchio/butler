@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
 	"github.com/itchio/pelican"
 
 	"github.com/itchio/butler/configurator"
@@ -61,10 +63,17 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	err = handlePrereqs(params)
 	if err != nil {
 		if be, ok := butlerd.AsButlerdError(err); ok {
-			return errors.WithStack(be)
+			switch butlerd.Code(be.RpcErrorCode()) {
+			case butlerd.CodeOperationAborted, butlerd.CodeOperationCancelled:
+				return be
+			}
 		}
 
 		consumer.Warnf("While handling prereqs: %+v", err)
+
+		if neterr.IsNetworkError(err) {
+			err = butlerd.CodeNetworkDisconnected
+		}
 
 		r, err := messages.PrereqsFailed.Call(params.RequestContext, &butlerd.PrereqsFailedParams{
 			Error:      err.Error(),

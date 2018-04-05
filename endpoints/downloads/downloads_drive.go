@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/pkg/errors"
@@ -245,7 +247,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	}()
 	if err != nil {
 		if wasDiscarded() {
-			consumer.Infof("Download errored, but it was already discarded, ignoring.")
+			// download errored, but it was already discarded, ignoring.
 			return nil
 		}
 
@@ -268,9 +270,16 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			msg := be.RpcErrorMessage()
 			download.ErrorMessage = &msg
 		} else {
-			code := int64(jsonrpc2.CodeInternalError)
+			var code int64
+			var msg string
+			if neterr.IsNetworkError(err) {
+				code = int64(butlerd.CodeNetworkDisconnected)
+				msg = butlerd.CodeNetworkDisconnected.Error()
+			} else {
+				code = int64(jsonrpc2.CodeInternalError)
+				msg = err.Error()
+			}
 			download.ErrorCode = &code
-			msg := err.Error()
 			download.ErrorMessage = &msg
 		}
 
