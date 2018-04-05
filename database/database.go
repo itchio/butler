@@ -16,8 +16,8 @@ import (
 
 var debugSql = os.Getenv("BUTLER_SQL") == "1"
 
-// OpenAndPrepare returns a connection to butler's sqlite database
-func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
+// Open returns a connection to butler's sqlite database
+func Open(dbPath string) (*gorm.DB, error) {
 	err := os.MkdirAll(filepath.Dir(dbPath), 0755)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating db directory")
@@ -28,18 +28,8 @@ func OpenAndPrepare(dbPath string) (*gorm.DB, error) {
 		return nil, errors.Wrap(err, "opening SQLite database")
 	}
 
-	return Prepare(db)
-}
-
-// Prepare synchronizes schemas, runs migrations etc.
-func Prepare(db *gorm.DB) (*gorm.DB, error) {
 	if debugSql {
 		db.LogMode(true)
-	}
-
-	err := db.AutoMigrate(models.AllModels...).Error
-	if err != nil {
-		return nil, errors.Wrap(err, "performing automatic DB migration")
 	}
 
 	// disable default gorm timestamp behavior, since our
@@ -49,6 +39,16 @@ func Prepare(db *gorm.DB) (*gorm.DB, error) {
 	db.Callback().Update().Remove("gorm:update_time_stamp")
 
 	return db, nil
+}
+
+// Prepare synchronizes schemas, runs migrations etc.
+func Prepare(db *gorm.DB) error {
+	err := db.AutoMigrate(models.AllModels...).Error
+	if err != nil {
+		return errors.WithMessage(err, "performing automatic DB migration")
+	}
+
+	return nil
 }
 
 // logging

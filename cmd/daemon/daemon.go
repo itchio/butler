@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/database"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"
@@ -27,6 +28,22 @@ func do(ctx *mansion.Context) {
 	if !comm.JsonEnabled() {
 		comm.Notice("Hello from butler daemon", []string{"We can't do anything interesting without --json, bailing out", "", "Learn more: https://docs.itch.ovh/butlerd/master/"})
 		os.Exit(1)
+	}
+
+	if ctx.DBPath != "" {
+		db, err := database.Open(ctx.DBPath)
+		if err != nil {
+			ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
+		}
+
+		err = database.Prepare(db)
+		if err != nil {
+			ctx.Must(errors.WithMessage(err, "preparing DB"))
+		}
+
+		if db != nil {
+			db.Close()
+		}
 	}
 
 	comm.Object("butlerd/secret-request", map[string]interface{}{

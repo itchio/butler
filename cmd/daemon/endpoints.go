@@ -34,7 +34,11 @@ func getRouter(mansionContext *mansion.Context) *butlerd.Router {
 			return nil, errors.New("sqlite database path not set (use --dbpath)")
 		}
 
-		return database.OpenAndPrepare(dbPath)
+		db, err := database.Open(dbPath)
+		if err != nil {
+			return nil, err
+		}
+		return db, nil
 	}
 
 	mainRouter = butlerd.NewRouter(mansionContext, getDB)
