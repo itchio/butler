@@ -198,12 +198,22 @@ func Test_HasMany(t *testing.T) {
 			Qualities: []*Quality{
 				&Quality{ID: 9, Label: "Inspiration"},
 				&Quality{ID: 10, Label: "Creativity"},
-				&Quality{ID: 11, Label: "Inspiration again"},
+				&Quality{ID: 11, Label: "Ability to not repeat oneself"},
 			},
 		}
 		wtest.Must(t, c.Save(db, &hades.SaveParams{Record: p1}))
 		assertCount(&Programmer{}, 1)
 		assertCount(&Quality{}, 3)
+
+		p1.Qualities[2].Label = "Inspiration again"
+		wtest.Must(t, c.Save(db, &hades.SaveParams{Record: p1}))
+		assertCount(&Programmer{}, 1)
+		assertCount(&Quality{}, 3)
+		{
+			q := &Quality{}
+			wtest.Must(t, db.Find(q, "id = ?", 11).Error)
+			assert.EqualValues(t, "Inspiration again", q.Label)
+		}
 
 		p2 := &Programmer{
 			ID: 8,
@@ -262,12 +272,13 @@ type Language struct {
 
 type Word struct {
 	ID        string
+	Comment   string
 	Languages []*Language `gorm:"many2many:language_words"`
 }
 
 type LanguageWord struct {
-	LanguageID int64
-	WordID     string
+	LanguageID int64  `gorm:"primary_key;auto_increment:false"`
+	WordID     string `gorm:"primary_key;auto_increment:false"`
 }
 
 func Test_ManyToMany(t *testing.T) {
@@ -280,6 +291,7 @@ func Test_ManyToMany(t *testing.T) {
 				&Word{ID: "Week-end"},
 			},
 		}
+		t.Logf("saving just fr")
 		wtest.Must(t, c.Save(db, &hades.SaveParams{
 			Record: fr,
 		}))
@@ -301,6 +313,7 @@ func Test_ManyToMany(t *testing.T) {
 				&Word{ID: "Week-end"},
 			},
 		}
+		t.Logf("saving fr+en")
 		wtest.Must(t, c.Save(db, &hades.SaveParams{
 			Record: []*Language{fr, en},
 		}))
@@ -308,6 +321,45 @@ func Test_ManyToMany(t *testing.T) {
 		assertCount(&Language{}, 2)
 		assertCount(&Word{}, 2)
 		assertCount(&LanguageWord{}, 4)
+
+		t.Logf("saving partial joins ('add' words to english)")
+		en.Words = []*Word{
+			&Word{ID: "Wreck"},
+			&Word{ID: "Nervous"},
+		}
+		wtest.Must(t, c.Save(db, &hades.SaveParams{
+			Record:       []*Language{en},
+			PartialJoins: []string{"LanguageWords"},
+		}))
+
+		assertCount(&Language{}, 2)
+		assertCount(&Word{}, 4)
+		assertCount(&LanguageWord{}, 6)
+
+		t.Logf("replacing all english words")
+		wtest.Must(t, c.Save(db, &hades.SaveParams{
+			Record: []*Language{en},
+		}))
+
+		assertCount(&Language{}, 2)
+		assertCount(&Word{}, 4)
+		assertCount(&LanguageWord{}, 4)
+
+		t.Logf("adding commentary")
+		en.Words[0].Comment = "punk band reference"
+		wtest.Must(t, c.Save(db, &hades.SaveParams{
+			Record: []*Language{en},
+		}))
+
+		assertCount(&Language{}, 2)
+		assertCount(&Word{}, 4)
+		assertCount(&LanguageWord{}, 4)
+
+		{
+			w := &Word{}
+			wtest.Must(t, db.Find(w, "id = ?", "Wreck").Error)
+			assert.EqualValues(t, "punk band reference", w.Comment)
+		}
 
 		langs := []*Language{
 			&Language{ID: fr.ID},
@@ -321,6 +373,65 @@ func Test_ManyToMany(t *testing.T) {
 		})
 		// many_to_many preload is not implemented
 		assert.Error(t, err)
+	})
+}
+
+type Profile struct {
+	ID           int64
+	ProfileGames []*ProfileGame
+}
+
+type Game struct {
+	ID    int64
+	Title string
+}
+
+type ProfileGame struct {
+	ProfileID int64 `gorm:"primary_key;auto_increment:false"`
+	Profile   *Profile
+
+	GameID int64 `gorm:"primary_key;auto_increment:false"`
+	Game   *Game
+
+	Order int64
+}
+
+func Test_ManyToManyRevenge(t *testing.T) {
+	models := []interface{}{&Profile{}, &ProfileGame{}, &Game{}}
+
+	withContext(t, models, func(db *gorm.DB, c *hades.Context) {
+		makeProfile := func() *Profile {
+			return &Profile{
+				ID: 389,
+				ProfileGames: []*ProfileGame{
+					&ProfileGame{
+						Order: 1,
+						Game: &Game{
+							ID:    58372,
+							Title: "First offensive",
+						},
+					},
+					&ProfileGame{
+						Order: 5,
+						Game: &Game{
+							ID:    235971,
+							Title: "Seconds until midnight",
+						},
+					},
+					&ProfileGame{
+						Order: 7,
+						Game: &Game{
+							ID:    10598,
+							Title: "Three was company",
+						},
+					},
+				},
+			}
+		}
+		p := makeProfile()
+		c.Save(db, &hades.SaveParams{
+			Record: p,
+		})
 	})
 }
 

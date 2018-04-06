@@ -79,7 +79,6 @@ func (n *Node) Add(pf PreloadField) {
 }
 
 func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
-	consumer := c.Consumer
 	rec := params.Record
 	if len(params.Fields) == 0 {
 		return errors.New("Preload expects a non-empty list in Fields")
@@ -89,7 +88,6 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 	valtyp := val.Type()
 	if valtyp.Kind() == reflect.Slice {
 		if val.Len() == 0 {
-			consumer.Debugf("nothing to preload (0-len slice passed)")
 			return nil
 		}
 		valtyp = valtyp.Elem()
@@ -104,14 +102,11 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 	if err != nil {
 		return errors.Wrap(err, "waking type tree")
 	}
-	consumer.Debugf("typeTree:\n%s", typeTree)
 
 	valTree := NewNode(rootName)
 	for _, field := range params.Fields {
 		valTree.Add(field)
 	}
-
-	consumer.Debugf("valTree:\n%s", valTree)
 
 	var walk func(p reflect.Value, pri *RecordInfo, pvt *Node) error
 	walk = func(p reflect.Value, pri *RecordInfo, pvt *Node) error {
@@ -128,32 +123,13 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 			}
 
 			ptyp := p.Type()
-			wasSlice := false
-
 			if ptyp.Kind() == reflect.Slice {
-				wasSlice = true
 				ptyp = ptyp.Elem()
 			}
 			if ptyp.Kind() != reflect.Ptr {
 				return fmt.Errorf("walk expects a []*Model or *Model, but it was passed a %v instead", p.Type())
 			}
 
-			sourceKind := "single"
-			if wasSlice {
-				sourceKind = "many"
-			}
-
-			destKind := ""
-			switch cri.Relationship.Kind {
-			case "has_many":
-				destKind = "many"
-			case "has_one", "belongs_to":
-				destKind = "single"
-			default:
-				return fmt.Errorf("Preload doesn't know how to handle %s relationships", cri.Relationship.Kind)
-			}
-
-			consumer.Debugf("Preloading %s %s on %s %s", destKind, cri.Name, sourceKind, pvt.Name)
 			freshAddr := reflect.New(reflect.SliceOf(cri.Type))
 
 			var ps reflect.Value
@@ -176,8 +152,6 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				if err != nil {
 					return errors.Wrap(err, "fetching has_many records (paginated)")
 				}
-
-				consumer.Debugf("In has_many, found %d values (for ps of len %d)", freshAddr.Elem().Len(), ps.Len())
 
 				pByFK := make(map[interface{}]reflect.Value)
 				for i := 0; i < ps.Len(); i++ {
@@ -205,7 +179,6 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				for i := 0; i < ps.Len(); i++ {
 					keys = append(keys, ps.Index(i).Elem().FieldByName(cri.Relationship.AssociationForeignFieldNames[0]).Interface())
 				}
-				consumer.Debugf("keys = %v", keys)
 
 				var err error
 				freshAddr, err = c.pagedByKeys(db, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
@@ -256,6 +229,8 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 						prec.Elem().FieldByName(cvt.Name).Set(crec)
 					}
 				}
+			default:
+				return fmt.Errorf("Preload doesn't know how to handle %s relationships", cri.Relationship.Kind)
 			}
 
 			fresh := freshAddr.Elem()
