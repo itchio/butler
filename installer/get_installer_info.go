@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/pelican"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
@@ -75,10 +76,14 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 			return nil, errors.WithStack(err)
 		}
 
+		var entries []*savior.Entry
 		archiveInfo, err := archive.Probe(&archive.TryOpenParams{
 			File:      file,
 			Consumer:  consumer,
 			Candidate: candidate,
+			OnEntries: func(es []*savior.Entry) {
+				entries = es
+			},
 		})
 		consumer.Debugf("  (took %s)", time.Since(beforeArchiveProbe))
 		if err == nil {
@@ -86,6 +91,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 			return &InstallerInfo{
 				Type:        InstallerTypeArchive,
 				ArchiveInfo: archiveInfo,
+				Entries:     entries,
 			}, nil
 		}
 

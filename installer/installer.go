@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
@@ -63,6 +64,7 @@ type InstallResult struct {
 type InstallerInfo struct {
 	Type        InstallerType
 	ArchiveInfo *archive.ArchiveInfo
+	Entries     []*savior.Entry
 }
 
 type InstallerType string

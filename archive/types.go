@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/itchio/butler/configurator"
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/state"
 )
@@ -30,6 +31,7 @@ type TryOpenParams struct {
 	File      eos.File
 	Consumer  *state.Consumer
 	Candidate *configurator.Candidate
+	OnEntries func(entries []*savior.Entry)
 }
 
 type Contents struct {

@@ -102,6 +102,9 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 	stageTwoStrategy := StageTwoStrategyNone
 	if el, ok := ex.(EntriesLister); ok {
 		entries = el.Entries()
+		if params.OnEntries != nil {
+			params.OnEntries(entries)
+		}
 	}
 
 	if len(entries) > 0 {

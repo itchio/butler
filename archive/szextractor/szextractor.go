@@ -148,6 +148,26 @@ func (se *szExtractor) SetSaveConsumer(saveConsumer savior.SaveConsumer) {
 	se.saveConsumer = saveConsumer
 }
 
+func (se *szExtractor) Entries() []*savior.Entry {
+	if se.freed {
+		return nil
+	}
+
+	var entries []*savior.Entry
+
+	numEntries, err := se.archive.GetItemCount()
+	if err != nil {
+		return nil
+	}
+
+	for i := int64(0); i < numEntries; i++ {
+		item := se.archive.GetItem(int64(i))
+		entries = append(entries, szEntry(item))
+		item.Free()
+	}
+	return entries
+}
+
 func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savior.Sink) (*savior.ExtractorResult, error) {
 	if se.freed {
 		return nil, errors.New("cannot use freed szExtractor")

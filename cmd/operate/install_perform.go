@@ -299,6 +299,15 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 			}
 		}
 
+		dui, err := AssessDiskUsage(file, receiptIn, params.InstallFolder, installerInfo)
+		if err != nil {
+			return errors.WithMessage(err, "assessing disk usage")
+		}
+
+		consumer.Infof("Estimated disk usage (accuracy: %s)", dui.Accuracy)
+		consumer.Infof("  ✓ %s needed free space", humanize.IBytes(uint64(dui.NeededFreeSpace)))
+		consumer.Infof("  ✓ %s final disk usage", humanize.IBytes(uint64(dui.FinalDiskUsage)))
+
 		istate.InstallerInfo = installerInfo
 		oc.Save(isub)
 	} else {
