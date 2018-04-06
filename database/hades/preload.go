@@ -99,13 +99,14 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 	}
 
 	riMap := make(RecordInfoMap)
-	typeTree, err := c.WalkType(riMap, "<root>", valtyp, make(VisitMap), nil)
+	rootName := fmt.Sprintf("%v", valtyp)
+	typeTree, err := c.WalkType(riMap, rootName, valtyp, make(VisitMap), nil)
 	if err != nil {
 		return errors.Wrap(err, "waking type tree")
 	}
 	consumer.Debugf("typeTree:\n%s", typeTree)
 
-	valTree := NewNode("<root>")
+	valTree := NewNode(rootName)
 	for _, field := range params.Fields {
 		valTree.Add(field)
 	}
@@ -146,7 +147,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 			switch cri.Relationship.Kind {
 			case "has_many":
 				destKind = "many"
-			case "has_single", "belongs_to":
+			case "has_one", "belongs_to":
 				destKind = "single"
 			default:
 				return fmt.Errorf("Preload doesn't know how to handle %s relationships", cri.Relationship.Kind)
@@ -198,7 +199,37 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 						dest.Set(reflect.Append(dest, fresh.Index(i)))
 					}
 				}
-			case "has_one", "belongs_to":
+			case "has_one":
+				// child (c, cri) has a parent_id field (p)
+				var keys []interface{}
+				for i := 0; i < ps.Len(); i++ {
+					keys = append(keys, ps.Index(i).Elem().FieldByName(cri.Relationship.AssociationForeignFieldNames[0]).Interface())
+				}
+				consumer.Debugf("keys = %v", keys)
+
+				var err error
+				freshAddr, err = c.pagedByKeys(db, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
+				if err != nil {
+					return errors.Wrap(err, "fetching has_one records (paginated)")
+				}
+
+				fresh := freshAddr.Elem()
+				freshByFK := make(map[interface{}]reflect.Value)
+				for i := 0; i < fresh.Len(); i++ {
+					rec := fresh.Index(i)
+					fk := rec.Elem().FieldByName(cri.Relationship.ForeignFieldNames[0]).Interface()
+					freshByFK[fk] = rec
+				}
+
+				for i := 0; i < ps.Len(); i++ {
+					prec := ps.Index(i)
+					fk := prec.Elem().FieldByName(cri.Relationship.AssociationForeignFieldNames[0]).Interface()
+					if crec, ok := freshByFK[fk]; ok {
+						prec.Elem().FieldByName(cvt.Name).Set(crec)
+					}
+				}
+			case "belongs_to":
+				// parent (p) has a child_id field (c, cri)
 				var keys []interface{}
 				for i := 0; i < ps.Len(); i++ {
 					keys = append(keys, ps.Index(i).Elem().FieldByName(cri.Relationship.ForeignFieldNames[0]).Interface())
@@ -207,7 +238,7 @@ func (c *Context) Preload(db *gorm.DB, params *PreloadParams) error {
 				var err error
 				freshAddr, err = c.pagedByKeys(db, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.cb)
 				if err != nil {
-					return errors.Wrap(err, "fetching has_one/belongs_to records (paginated)")
+					return errors.Wrap(err, "fetching belongs_to records (paginated)")
 				}
 
 				fresh := freshAddr.Elem()
