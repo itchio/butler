@@ -105,6 +105,58 @@ func Test_BelongsTo(t *testing.T) {
 	})
 }
 
+func Test_HasOne(t *testing.T) {
+	type Drawback struct {
+		ID          int64
+		Comment     string
+		SpecialtyID string
+	}
+
+	type Specialty struct {
+		ID        string
+		CountryID int64
+		Drawback  *Drawback
+	}
+
+	type Country struct {
+		ID        int64
+		Desc      string
+		Specialty *Specialty
+	}
+
+	models := []interface{}{&Country{}, &Specialty{}, &Drawback{}}
+
+	withContext(t, models, func(db *gorm.DB, c *hades.Context) {
+		country := &Country{
+			ID:   324,
+			Desc: "Shmance",
+			Specialty: &Specialty{
+				ID: "complain",
+				Drawback: &Drawback{
+					ID:      1249,
+					Comment: "bitterness",
+				},
+			},
+		}
+		assertCount := func(model interface{}, expectedCount int64) {
+			t.Helper()
+			var count int64
+			wtest.Must(t, db.Model(model).Count(&count).Error)
+			assert.EqualValues(t, expectedCount, count)
+		}
+
+		wtest.Must(t, c.Save(db, &hades.SaveParams{Record: country, Assocs: []string{"Specialty"}}))
+		assertCount(&Country{}, 0)
+		assertCount(&Specialty{}, 1)
+		assertCount(&Drawback{}, 1)
+
+		wtest.Must(t, c.Save(db, &hades.SaveParams{Record: country}))
+		assertCount(&Country{}, 1)
+		assertCount(&Specialty{}, 1)
+		assertCount(&Drawback{}, 1)
+	})
+}
+
 func makeConsumer(t *testing.T) *state.Consumer {
 	return &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
