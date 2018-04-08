@@ -11,12 +11,14 @@ import (
 )
 
 var args = struct {
-	path *string
+	path  *string
+	trace *bool
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("elfprops", "(Advanced) Gives information about an ELF binary").Hidden()
 	args.path = cmd.Arg("path", "The ELF binary to analyze").Required().String()
+	args.trace = cmd.Flag("trace", "Also perform a dependency trace (will probably only work on Linux)").Bool()
 	ctx.Register(cmd, do)
 }
 
@@ -25,19 +27,26 @@ func do(ctx *mansion.Context) {
 	ctx.Must(err)
 	defer f.Close()
 
-	props, err := Do(f, comm.NewStateConsumer())
+	info, err := Do(f, comm.NewStateConsumer())
 	ctx.Must(err)
 
-	comm.ResultOrPrint(props, func() {
-		js, err := json.MarshalIndent(props, "", "  ")
+	comm.ResultOrPrint(info, func() {
+		js, err := json.MarshalIndent(info, "", "  ")
 		if err == nil {
 			comm.Logf(string(js))
 		}
 	})
+
+	if *args.trace {
+		root, err := elefant.Trace(info, *args.path)
+		ctx.Must(err)
+
+		comm.Logf("%s", root)
+	}
 }
 
 func Do(f eos.File, consumer *state.Consumer) (*elefant.ElfInfo, error) {
 	return elefant.Probe(f, &elefant.ProbeParams{
-		// nothing so far
+		Consumer: consumer,
 	})
 }

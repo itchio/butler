@@ -11,8 +11,9 @@ import (
 type Arch string
 
 const (
-	Arch386   = "386"
-	ArchAmd64 = "amd64"
+	Arch386     Arch = "386"
+	ArchAmd64   Arch = "amd64"
+	ArchUnknown Arch = ""
 )
 
 type ElfInfo struct {
