@@ -78,6 +78,7 @@ func Check(consumer *state.Consumer) error {
 	}
 
 	consumer.Statf("Sandbox user is (%s)", pd.Username)
+	consumer.Statf("Sandbox password is (%s)", pd.Password)
 
 	consumer.Opf("Trying to log in...")
 
@@ -148,19 +149,40 @@ func Setup(consumer *state.Consumer) error {
 		return nil
 	}
 
-	username := fmt.Sprintf("itch-player-%x", time.Now().Unix())
-	comm.Opf("Generated username (%s)", username)
+	var username string
+	var password string
 
-	password := generatePassword()
-	comm.Opf("Generated password (%s)", password)
-
-	comment := "itch.io sandbox user"
-
-	comm.Opf("Adding user...")
-
-	err = winutil.AddUser(username, password, comment)
+	username, err = getItchPlayerData("username")
 	if err != nil {
 		return errors.WithStack(err)
+	}
+	if username != "" {
+		comm.Opf("Trying to salvage existing account (%s)....", username)
+		password = generatePassword()
+		err = winutil.ForceSetPassword(username, password)
+		if err != nil {
+			consumer.Warnf("Could not force password: %+v", err)
+			username = ""
+		} else {
+			comm.Statf("Forced password successfully")
+		}
+	}
+
+	if username == "" {
+		username = fmt.Sprintf("itch-player-%x", time.Now().Unix())
+		comm.Opf("Generated username (%s)", username)
+
+		password = generatePassword()
+		comm.Opf("Generated password (%s)", password)
+
+		comment := "itch.io sandbox user"
+
+		comm.Opf("Adding user...")
+
+		err = winutil.AddUser(username, password, comment)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
 	comm.Opf("Removing from Users group (so it doesn't show up as a login option)...")

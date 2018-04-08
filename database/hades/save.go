@@ -3,8 +3,6 @@ package hades
 import (
 	"fmt"
 	"reflect"
-	"strings"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -36,9 +34,6 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 	}
 	rec := params.Record
 	assocs := params.Assocs
-	consumer := c.Consumer
-
-	startTime := time.Now()
 
 	val := reflect.ValueOf(rec)
 	valtyp := val.Type()
@@ -54,7 +49,6 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 	if err != nil {
 		return errors.Wrap(err, "walking records to be saved")
 	}
-	consumer.Debugf("RecordInfo tree:\n%s", tree)
 
 	entities := make(AllEntities)
 	addEntity := func(v reflect.Value) error {
@@ -182,15 +176,6 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 		return errors.Wrap(err, "walking all records to be persisted")
 	}
 
-	var modelNames []string
-	for typ, m := range entities {
-		consumer.Debugf("Found %d %s", len(m), typ)
-		modelNames = append(modelNames, fmt.Sprintf("%v", typ))
-	}
-	consumer.Debugf("Visited %d records (from %s) in %s", numVisited, strings.Join(modelNames, ", "), time.Since(startTime))
-
-	startTime = time.Now()
-
 	for _, m := range entities {
 		err := c.saveRows(tx, params, m)
 		if err != nil {
@@ -206,14 +191,6 @@ func (c *Context) SaveNoTransaction(tx *gorm.DB, params *SaveParams) error {
 			}
 		}
 	}
-
-	consumer.Debugf("Inserted %d, Updated %d, Deleted %d, Current %d in %s",
-		c.Stats.Inserts,
-		c.Stats.Updates,
-		c.Stats.Deletes,
-		c.Stats.Current,
-		time.Since(startTime),
-	)
 
 	return nil
 }

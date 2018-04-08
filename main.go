@@ -21,6 +21,7 @@ import (
 	"github.com/itchio/go-itchio/itchfs"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	shellquote "github.com/kballard/go-shellquote"
 
 	"net/http"
@@ -184,6 +185,7 @@ func doMain(args []string) {
 	eos.RegisterHandler(&itchfs.ItchFS{
 		ItchServer: *appArgs.address,
 	})
+	option.SetDefaultConsumer(comm.NewStateConsumer())
 
 	if *appArgs.quiet {
 		*appArgs.noProgress = true

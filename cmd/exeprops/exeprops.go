@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 )
 
@@ -22,7 +23,7 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	f, err := eos.Open(*args.path)
+	f, err := eos.Open(*args.path, option.WithConsumer(comm.NewStateConsumer()))
 	ctx.Must(err)
 	defer f.Close()
 

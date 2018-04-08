@@ -8,6 +8,7 @@ import (
 
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 )
 
@@ -29,7 +30,7 @@ func (ai *ArchiveInfo) applyMojoSetupStageTwo(consumer *state.Consumer, aRes *sa
 	for _, pe := range ai.PostExtract {
 		err := func() error {
 			absolutePath := filepath.Join(installFolder, pe)
-			file, err := eos.Open(absolutePath)
+			file, err := eos.Open(absolutePath, option.WithConsumer(consumer))
 			if err != nil {
 				return errors.Wrap(err, "opening stage-two file")
 			}

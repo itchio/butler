@@ -2,7 +2,6 @@ package hades
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"time"
@@ -66,7 +65,6 @@ func DiffRecord(x, y interface{}, scope *gorm.Scope) (ChangedFields, error) {
 		}
 
 		if !iseq {
-			log.Printf("struct: field %d (%s) not equal", i, fieldName)
 			if res == nil {
 				res = make(ChangedFields)
 			}

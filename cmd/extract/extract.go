@@ -12,6 +12,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -61,7 +62,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 
 	consumer := params.Consumer
 
-	file, err := eos.Open(params.File)
+	file, err := eos.Open(params.File, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.Wrap(err, "opening archive file")
 	}

@@ -15,6 +15,20 @@ type PeInfo struct {
 	VersionProperties   map[string]string   `json:"versionProperties"`
 	AssemblyInfo        *AssemblyInfo       `json:"assemblyInfo"`
 	DependentAssemblies []*AssemblyIdentity `json:"dependentAssemblies"`
+	Imports             []string            `json:"imports"`
+}
+
+func (pi *PeInfo) RequiresElevation() bool {
+	if pi.AssemblyInfo == nil {
+		return false
+	}
+
+	switch pi.AssemblyInfo.RequestedExecutionLevel {
+	case "requireAdministrator", "highestAvailable":
+		return true
+	default:
+		return false
+	}
 }
 
 type AssemblyInfo struct {

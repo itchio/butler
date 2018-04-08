@@ -133,8 +133,6 @@ func (vm VisitMap) CopyAndMark(ms *gorm.ModelStruct) VisitMap {
 type RecordInfoMap map[reflect.Type]*RecordInfo
 
 func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, visited VisitMap, assocs []string) (*RecordInfo, error) {
-	consumer := c.Consumer
-
 	if atyp.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("WalkType expects a *Model type, got %v", atyp)
 	}
@@ -149,12 +147,9 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 	ms := scope.GetModelStruct()
 
 	if visited[ms] {
-		consumer.Debugf("Already visited %v, not recursing.", ms.ModelType)
 		return nil, nil
 	}
 	visited = visited.CopyAndMark(ms)
-
-	consumer.Debugf("Walking type %s: %v, assocs = %v", name, ms.ModelType, assocs)
 
 	ri := &RecordInfo{
 		Type:        atyp,
@@ -195,7 +190,6 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 		}
 
 		child.Relationship = sf.Relationship
-		consumer.Debugf("%v %s %v", ms.ModelType.Name(), child.Relationship.Kind, sf.Name)
 
 		if sf.Relationship.Kind == "many_to_many" {
 			jth := sf.Relationship.JoinTableHandler

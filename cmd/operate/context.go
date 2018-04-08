@@ -189,7 +189,9 @@ func TeeConsumer(c *state.Consumer, logFile io.Writer) *state.Consumer {
 	newConsumer := *c
 
 	newConsumer.OnMessage = func(level string, msg string) {
-		originalConsumer.OnMessage(level, msg)
+		if originalConsumer.OnMessage != nil {
+			originalConsumer.OnMessage(level, msg)
+		}
 
 		payload, err := json.Marshal(map[string]interface{}{
 			"time":  currentTimeMillis(),

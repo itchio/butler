@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/itchio/wharf/eos/option"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
@@ -59,12 +61,13 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
 	retryCtx := retrycontext.NewDefault()
 	retryCtx.Settings.Consumer = comm.NewStateConsumer()
+	retryCtx.Settings.MaxTries = 2
 
 	for retryCtx.ShouldTry() {
 		err := Try(ctx, params, srcPath, destPath, resume)
 		if err != nil {
 			if dl.IsIntegrityError(err) {
-				retryCtx.Retry(err.Error())
+				retryCtx.Retry(err)
 				continue
 			}
 
@@ -75,13 +78,13 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 		return nil
 	}
 
-	return errors.New("cp: too many errors, giving up")
+	return errors.WithMessage(retryCtx.LastError, "cp")
 }
 
 func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
 	consumer := params.Consumer
 
-	src, err := eos.Open(srcPath)
+	src, err := eos.Open(srcPath, option.WithConsumer(consumer))
 	if err != nil {
 		return err
 	}
@@ -109,11 +112,19 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	}
 
 	totalBytes := int64(stats.Size())
+	if totalBytes == 0 {
+		totalBytes = -1
+	}
 	var startOffset int64
 	var copiedBytes int64
 	start := time.Now()
+	var inferredTotalSize int64
 
 	err = func() error {
+		if totalBytes == -1 {
+			resume = false
+		}
+
 		if resume {
 			startOffset, err = dest.Seek(0, io.SeekEnd)
 			if err != nil {
@@ -140,15 +151,27 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 				return err
 			}
 		} else {
-			consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+			if totalBytes > 0 {
+				consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+			} else {
+				consumer.Infof("Downloading (unknown size)")
+			}
 		}
 
-		initialProgress := float64(startOffset) / float64(totalBytes)
-		params.OnStart(initialProgress, totalBytes)
+		if totalBytes > 0 {
+			initialProgress := float64(startOffset) / float64(totalBytes)
+			params.OnStart(initialProgress, totalBytes)
+		} else {
+			params.OnStart(0, 0)
+		}
 
 		cw := counter.NewWriterCallback(func(count int64) {
-			alpha := float64(startOffset+count) / float64(totalBytes)
-			consumer.Progress(alpha)
+			if totalBytes > 0 {
+				alpha := float64(startOffset+count) / float64(totalBytes)
+				consumer.Progress(alpha)
+			} else {
+				consumer.Progress(0)
+			}
 		}, dest)
 
 		copiedBytes, err = io.Copy(cw, src)
@@ -157,7 +180,18 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 		}
 		params.OnStop()
 
-		return os.Truncate(destPath, totalBytes)
+		if totalBytes > 0 {
+			err = os.Truncate(destPath, totalBytes)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			inferredTotalSize = totalBytes
+		} else {
+			// this only works b/c we prevent resume
+			inferredTotalSize = copiedBytes
+		}
+
+		return nil
 	}()
 
 	if err != nil {
@@ -181,10 +215,15 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	}
 
 	totalDuration := time.Since(start)
-	prettyStartOffset := humanize.IBytes(uint64(startOffset))
 	prettySize := humanize.IBytes(uint64(copiedBytes))
-	perSecond := humanize.IBytes(uint64(float64(totalBytes-startOffset) / totalDuration.Seconds()))
-	comm.Statf("%s + %s copied @ %s/s\n", prettyStartOffset, prettySize, perSecond)
+	perSecond := humanize.IBytes(uint64(float64(inferredTotalSize-startOffset) / totalDuration.Seconds()))
+
+	if startOffset > 0 {
+		prettyStartOffset := humanize.IBytes(uint64(startOffset))
+		comm.Statf("%s + %s copied @ %s/s\n", prettyStartOffset, prettySize, perSecond)
+	} else {
+		comm.Statf("%s copied @ %s/s\n", prettySize, perSecond)
+	}
 
 	return nil
 }

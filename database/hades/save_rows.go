@@ -12,7 +12,6 @@ import (
 
 func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface{}) error {
 	tx = tx.Set("gorm:save_associations", false)
-	consumer := c.Consumer
 
 	// inputIFace is a `[]interface{}`
 	input := reflect.ValueOf(inputIface)
@@ -21,7 +20,6 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	}
 
 	if input.Len() == 0 {
-		consumer.Debugf("Nothing to persist (0 input records)")
 		return nil
 	}
 
@@ -38,8 +36,6 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 	scope := tx.NewScope(first.Interface())
 	modelName := scope.GetModelStruct().ModelType.Name()
 	primaryFields := scope.PrimaryFields()
-
-	consumer.Debugf("Persisting %d records for %s", fresh.Len(), modelName)
 
 	// this will happen for associations
 	if len(primaryFields) != 1 {

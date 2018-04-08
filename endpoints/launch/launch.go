@@ -7,6 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
+	"github.com/itchio/pelican"
+	"github.com/itchio/wharf/state"
+
 	goerrors "errors"
 
 	humanize "github.com/dustin/go-humanize"
@@ -15,13 +20,13 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
+	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
 )
 
-var ErrNoCandidates = goerrors.New("no candidates")
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Register(router *butlerd.Router) {
@@ -62,6 +67,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	build := cave.Build
 	verdict := cave.GetVerdict()
 	credentials := operate.CredentialsForGameID(rc.DB(), game.ID)
+	// these credentials will be used for prereqs, etc., we don't want
+	// a game-specific download key here
+	credentials.DownloadKey = 0
 
 	runtime := manager.CurrentRuntime()
 
@@ -162,6 +170,54 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		return nil, errors.WithStack(err)
 	}
 
+	filterSetupExes := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
+		var candidatesOut []*configurator.Candidate
+		for _, c := range candidatesIn {
+			exclude := false
+
+			switch c.Flavor {
+			case configurator.FlavorNativeWindows:
+				{
+					err := func() error {
+						f, err := os.Open(filepath.Join(installFolder, c.Path))
+						if err != nil {
+							return errors.WithStack(err)
+						}
+						defer f.Close()
+
+						peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+							Consumer: consumer,
+						})
+						if err != nil {
+							return errors.WithStack(err)
+						}
+
+						if peInfo.RequiresElevation() {
+							exclude = true
+							return nil
+						}
+
+						if peInfo.AssemblyInfo == nil && installer.HasSuspiciouslySetupLikeName(filepath.Base(c.Path)) {
+							exclude = false
+							return nil
+						}
+
+						return nil
+					}()
+					if err != nil {
+						consumer.Warnf("Could not filter elevated exes: %+v", err)
+						return candidatesIn
+					}
+				}
+			}
+
+			if !exclude {
+				candidatesOut = append(candidatesOut, c)
+			}
+		}
+		return candidatesOut
+	}
+
 	filterCandidates := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
 		if len(candidatesIn) <= 1 {
 			return candidatesIn
@@ -216,14 +272,23 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		consumer.Infof("→ Using verdict: %s", verdict)
 
 		candidates := filterCandidates(verdict.Candidates)
-		numCandidatesElimineated := len(verdict.Candidates) - len(candidates)
-		if numCandidatesElimineated > 0 {
-			consumer.Infof("Eliminated %d candidates via filtering", numCandidatesElimineated)
+		numCandidatesEliminated := len(verdict.Candidates) - len(candidates)
+		if numCandidatesEliminated > 0 {
+			consumer.Infof("Eliminated %d candidates via filtering", numCandidatesEliminated)
+		}
+
+		if len(candidates) >= 0 {
+			nonSetupCandidates := filterSetupExes(verdict.Candidates)
+			numCandidatesEliminated := len(candidates) - len(nonSetupCandidates)
+			if numCandidatesEliminated > 0 {
+				consumer.Infof("Eliminated %d candidates via setup filtering", numCandidatesEliminated)
+				candidates = nonSetupCandidates
+			}
 		}
 
 		switch len(candidates) {
 		case 0:
-			return ErrNoCandidates
+			return errors.WithStack(butlerd.CodeNoLaunchCandidates)
 		case 1:
 			candidate = candidates[0]
 		default:
@@ -259,6 +324,15 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		return nil
 	}
 
+	if upload != nil {
+		switch upload.Type {
+		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
+			consumer.Infof("Forcing shell strategy because upload is of type (%s)", upload.Type)
+			fullTargetPath = installFolder
+			strategy = LaunchStrategyShell
+		}
+	}
+
 	if fullTargetPath == "" {
 		consumer.Infof("Switching to verdict!")
 
@@ -276,9 +350,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 			err = pickFromVerdict()
 			if err != nil {
-				if errors.Cause(err) == ErrNoCandidates {
-					return nil, errors.WithStack(err)
-				}
+				return nil, errors.WithStack(err)
 			}
 		} else {
 			// pick from cached verdict
@@ -287,7 +359,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 				redoReason := ""
 				if errors.Cause(err) == ErrCandidateDisappeared {
 					redoReason = "Candidate disappeared!"
-				} else if errors.Cause(err) == ErrNoCandidates {
+				} else if errors.Cause(err) == butlerd.CodeNoLaunchCandidates {
 					redoReason = "No candidates!"
 				}
 
@@ -311,14 +383,6 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 					return nil, errors.WithStack(err)
 				}
 			}
-		}
-	}
-	if upload != nil {
-		switch upload.Type {
-		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
-			consumer.Infof("Forcing shell strategy because upload is of type (%s)", upload.Type)
-			fullTargetPath = "."
-			strategy = LaunchStrategyShell
 		}
 	}
 
@@ -352,30 +416,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	if manifestAction != nil {
 		args = append(args, manifestAction.Args...)
 
-		if manifestAction.Scope != "" {
-			const onlyPermittedScope = "profile:me"
-			if manifestAction.Scope != onlyPermittedScope {
-				err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
-				return nil, errors.WithStack(err)
-			}
-
-			client, err := operate.ClientFromCredentials(credentials)
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
-			res, err := client.Subkey(&itchio.SubkeyParams{
-				GameID: game.ID,
-				Scope:  manifestAction.Scope,
-			})
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
-			consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
-
-			env["ITCHIO_API_KEY"] = res.Key
-			env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
+		err = requestAPIKeyIfNecessary(consumer, manifestAction, game, credentials, env)
+		if err != nil {
+			return nil, errors.WithMessage(err, "While requesting API key")
 		}
 	}
 
@@ -425,4 +468,40 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	}
 
 	return &butlerd.LaunchResult{}, nil
+}
+
+func requestAPIKeyIfNecessary(consumer *state.Consumer, manifestAction *butlerd.Action, game *itchio.Game, credentials *butlerd.GameCredentials, env map[string]string) error {
+	if manifestAction.Scope == "" {
+		// nothing to do
+		return nil
+	}
+
+	const onlyPermittedScope = "profile:me"
+	if manifestAction.Scope != onlyPermittedScope {
+		err := fmt.Errorf("Game asked for scope (%s), asking for permission is unimplemented for now", manifestAction.Scope)
+		return errors.WithStack(err)
+	}
+
+	client, err := operate.ClientFromCredentials(credentials)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	res, err := client.Subkey(&itchio.SubkeyParams{
+		GameID: game.ID,
+		Scope:  manifestAction.Scope,
+	})
+	if err != nil {
+		if neterr.IsNetworkError(err) {
+			consumer.Infof("No Internet connection, integration API won't be available")
+			env["ITCHIO_OFFLINE_MODE"] = "1"
+			return nil
+		}
+		return errors.WithStack(err)
+	}
+
+	consumer.Infof("Got subkey (%d chars, expires %s)", len(res.Key), res.ExpiresAt)
+	env["ITCHIO_API_KEY"] = res.Key
+	env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
+	return nil
 }

@@ -162,7 +162,7 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 		res, err := ru.httpClient.Do(req)
 		if err != nil {
 			ru.Debugf("while querying status of upload: %s", err.Error())
-			retryCtx.Retry(err.Error())
+			retryCtx.Retry(err)
 			continue
 		}
 
@@ -173,7 +173,7 @@ func (ru *ResumableUpload) queryStatus() (*http.Response, error) {
 		}
 
 		if status == GcsNeedQuery {
-			retryCtx.Retry(fmt.Sprintf("while querying status, got HTTP %s (%s)", res.Status, status))
+			retryCtx.Retry(errors.Errorf("while querying status, got HTTP %s (%s)", res.Status, status))
 			continue
 		}
 
@@ -321,12 +321,12 @@ func (ru *ResumableUpload) uploadChunks(reader io.Reader, done chan bool, errs c
 			err := ru.trySendBytes(buf, offset, isLast)
 			if err != nil {
 				if ne, ok := err.(*netError); ok {
-					retryCtx.Retry(ne.Error())
+					retryCtx.Retry(ne)
 					continue
 				} else if re, ok := err.(*retryError); ok {
 					offset += re.committedBytes
 					buf = buf[re.committedBytes:]
-					retryCtx.Retry("Having troubles uploading some blocks")
+					retryCtx.Retry(errors.Errorf("Having troubles uploading some blocks"))
 					continue
 				} else {
 					return errors.WithStack(err)

@@ -1727,6 +1727,19 @@
       }
     },
     {
+      "method": "LaunchWindowShouldBeForeground",
+      "doc": "Sent during @@LaunchParams, when attaching to a running\ninstance, instead of launching a new one.\n\nbutlerd will also try to call SetForegroundWindow itself\nbut since it's not the foreground process, it'll just\nbe highlighted in the task bar.\n\nWindows only.",
+      "params": {
+        "fields": [
+          {
+            "name": "hwnd",
+            "doc": "An HWND of the window that should be brought to front\nusing SetForegrounWindow.",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
       "method": "LaunchRunning",
       "doc": "Sent during @@LaunchParams, when the game is configured, prerequisites are installed\nsandbox is set up (if enabled), and the game is actually running.",
       "params": {
@@ -2063,6 +2076,16 @@
           "name": "error",
           "doc": "",
           "type": "string"
+        },
+        {
+          "name": "errorMessage",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "errorCode",
+          "doc": "",
+          "type": "number"
         },
         {
           "name": "reason",

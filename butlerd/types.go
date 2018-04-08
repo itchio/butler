@@ -1019,6 +1019,8 @@ const (
 type Download struct {
 	ID            string         `json:"id"`
 	Error         *string        `json:"error"`
+	ErrorMessage  *string        `json:"errorMessage"`
+	ErrorCode     *int64         `json:"errorCode"`
 	Reason        DownloadReason `json:"reason"`
 	Position      int64          `json:"position"`
 	CaveID        string         `json:"caveId"`
@@ -1158,6 +1160,21 @@ type LaunchCancelParams struct {
 
 type LaunchCancelResult struct {
 	DidCancel bool `json:"didCancel"`
+}
+
+// Sent during @@LaunchParams, when attaching to a running
+// instance, instead of launching a new one.
+//
+// butlerd will also try to call SetForegroundWindow itself
+// but since it's not the foreground process, it'll just
+// be highlighted in the task bar.
+//
+// Windows only.
+// @category Launch
+type LaunchWindowShouldBeForegroundNotification struct {
+	// An HWND of the window that should be brought to front
+	// using SetForegrounWindow.
+	Hwnd int64 `json:"hwnd"`
 }
 
 // Sent during @@LaunchParams, when the game is configured, prerequisites are installed
@@ -1493,6 +1510,15 @@ const (
 
 	// We tried to install something, but could not find compatible uploads
 	CodeNoCompatibleUploads Code = 2001
+
+	// This title is packaged in a way that is not supported.
+	CodeUnsupportedPackaging Code = 3000
+
+	// Nothing that can be launched was found
+	CodeNoLaunchCandidates Code = 5000
+
+	// There is no Internet connection
+	CodeNetworkDisconnected Code = 9000
 )
 
 //==================================

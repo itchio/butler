@@ -11,6 +11,12 @@ var codeMessages = map[Code]string{
 	CodeInstallFolderDisappeared: "Launch was unsuccessful because install folder disappeared",
 
 	CodeNoCompatibleUploads: "No compatible uploads were found.",
+
+	CodeUnsupportedPackaging: "This title is packaged in a way that is not supported.",
+
+	CodeNoLaunchCandidates: "Nothing that can be launched was found.",
+
+	CodeNetworkDisconnected: "There is no Internet connection",
 }
 
 func (code Code) RpcErrorMessage() string {

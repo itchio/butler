@@ -15,6 +15,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/butler/installer"
 
@@ -49,32 +50,100 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 	return nil
 }
 
-func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
-	rc := oc.rc
-	params := meta.Data
-	consumer := oc.Consumer()
+type InstallPerformStrategy = int
 
-	if !params.NoCave {
-		cave := models.CaveByID(rc.DB(), params.CaveID)
-		if cave == nil {
-			cave = &models.Cave{
-				ID:                params.CaveID,
-				InstallFolderName: params.InstallFolderName,
-				InstallLocationID: params.InstallLocationID,
+const (
+	InstallPerformStrategyNone    InstallPerformStrategy = 0
+	InstallPerformStrategyInstall InstallPerformStrategy = 1
+	InstallPerformStrategyHeal    InstallPerformStrategy = 2
+)
+
+type InstallPrepareResult struct {
+	File      eos.File
+	ReceiptIn *bfs.Receipt
+	Strategy  InstallPerformStrategy
+}
+
+func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext) (eos.File, error) {
+	consumer := oc.rc.Consumer
+	params := meta.Data
+	istate := isub.Data
+
+	stats, err := file.Stat()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	destName := filepath.Base(stats.Name())
+	destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
+
+	if istate.IsAvailableLocally {
+		consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
+	} else {
+		consumer.Infof("Install source needs to be available locally, copying to disk...")
+
+		dlErr := func() error {
+			err := messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+				Reason:    butlerd.TaskReasonInstall,
+				Type:      butlerd.TaskTypeDownload,
+				Game:      params.Game,
+				Upload:    params.Upload,
+				Build:     params.Build,
+				TotalSize: stats.Size(),
+			})
+			if err != nil {
+				return errors.WithStack(err)
 			}
+
+			oc.rc.StartProgress()
+			err = DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
+			oc.rc.EndProgress()
+			oc.consumer.Progress(0)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			err = messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
+				Type: butlerd.TaskTypeDownload,
+			})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			return nil
+		}()
+
+		if dlErr != nil {
+			return nil, errors.Wrap(dlErr, "downloading install source")
 		}
 
-		oc.cave = cave
+		istate.IsAvailableLocally = true
+		oc.Save(isub)
 	}
+
+	ret, err := eos.Open(destPath, option.WithConsumer(consumer))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return ret, nil
+}
+
+type InstallTask func(res *InstallPrepareResult) error
+
+func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, allowDownloads bool, task InstallTask) error {
+	rc := oc.rc
+	params := meta.Data
+	consumer := rc.Consumer
 
 	client, err := ClientFromCredentials(params.Credentials)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	consumer.Infof("→ Installing %s", GameToString(params.Game))
+	consumer.Infof("→ Preparing install for %s", GameToString(params.Game))
 	consumer.Infof("  (%s) is our destination", params.InstallFolder)
 	consumer.Infof("  (%s) is our stage", oc.StageFolder())
+
+	res := &InstallPrepareResult{}
 
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
 	if err != nil {
@@ -86,14 +155,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		consumer.Infof("No receipt found.")
 	}
 
-	istate := &InstallSubcontextState{}
+	res.ReceiptIn = receiptIn
 
-	isub := &InstallSubcontext{
-		Data: istate,
-	}
-	oc.Load(isub)
+	istate := isub.Data
 
-	// TODO: move that to queue
 	if istate.DownloadSessionId == "" {
 		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
 			GameID:        params.Game.ID,
@@ -135,7 +200,8 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				if err != nil {
 					consumer.Warnf("Could not find upgrade path: %s", err.Error())
 					consumer.Infof("Falling back to heal...")
-					return heal(oc, meta, isub, receiptIn)
+					res.Strategy = InstallPerformStrategyHeal
+					return task(res)
 				}
 
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
@@ -162,100 +228,49 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 				if totalUpgradeSize > fullUploadSize {
 					consumer.Infof("Healing instead of patching")
-					return heal(oc, meta, isub, receiptIn)
+					res.Strategy = InstallPerformStrategyHeal
+					return task(res)
 				}
 
 				consumer.Warnf("TODO: update (falling back to install for now)")
 			} else if newID < oldID {
 				consumer.Infof("↓ Downgrading from build %d to %d", oldID, newID)
-				return heal(oc, meta, isub, receiptIn)
+				res.Strategy = InstallPerformStrategyHeal
+				return task(res)
 			}
 
 			consumer.Infof("↺ Re-installing build %d", newID)
-			return heal(oc, meta, isub, receiptIn)
+			res.Strategy = InstallPerformStrategyHeal
+			return task(res)
 		}
 	}
 
 	installSourceURL := sourceURL(consumer, istate, params, "")
 
-	// TODO: support http servers that don't have range request
-	// (just copy it first). see DownloadInstallSource later on.
-	file, err := eos.Open(installSourceURL)
+	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	res.File = file
 	defer file.Close()
-
-	stats, err := file.Stat()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	doForceLocal := func() (eos.File, error) {
-		destName := filepath.Base(stats.Name())
-		destPath := filepath.Join(oc.StageFolder(), "install-source", destName)
-
-		if istate.IsAvailableLocally {
-			consumer.Infof("Install source needs to be available locally, re-using previously-downloaded file")
-		} else {
-			consumer.Infof("Install source needs to be available locally, copying to disk...")
-
-			dlErr := func() error {
-				err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
-					Reason:    butlerd.TaskReasonInstall,
-					Type:      butlerd.TaskTypeDownload,
-					Game:      params.Game,
-					Upload:    params.Upload,
-					Build:     params.Build,
-					TotalSize: stats.Size(),
-				})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				oc.rc.StartProgress()
-				err := DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
-				oc.rc.EndProgress()
-				oc.consumer.Progress(0)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				err = messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
-					Type: butlerd.TaskTypeDownload,
-				})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				return nil
-			}()
-
-			if dlErr != nil {
-				return nil, errors.Wrap(dlErr, "downloading install source")
-			}
-
-			istate.IsAvailableLocally = true
-			oc.Save(isub)
-		}
-
-		ret, err := eos.Open(destPath)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return ret, nil
-	}
 
 	if params.Build == nil && UploadIsProbablyExternal(params.Upload) {
 		consumer.Warnf("Dealing with an external upload, all bets are off.")
-		consumer.Warnf("Forcing download before we check anything else.")
 
-		lf, err := doForceLocal()
+		if !allowDownloads {
+			consumer.Warnf("Can't determine source information at that time")
+			return nil
+		}
+
+		consumer.Warnf("Forcing download before we check anything else.")
+		lf, err := doForceLocal(file, oc, meta, isub)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		file.Close()
 		file = lf
+		res.File = lf
 	}
 
 	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == installer.InstallerTypeUnknown {
@@ -284,6 +299,15 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			}
 		}
 
+		dui, err := AssessDiskUsage(file, receiptIn, params.InstallFolder, installerInfo)
+		if err != nil {
+			return errors.WithMessage(err, "assessing disk usage")
+		}
+
+		consumer.Infof("Estimated disk usage (accuracy: %s)", dui.Accuracy)
+		consumer.Infof("  ✓ %s needed free space", humanize.IBytes(uint64(dui.NeededFreeSpace)))
+		consumer.Infof("  ✓ %s final disk usage", humanize.IBytes(uint64(dui.FinalDiskUsage)))
+
 		istate.InstallerInfo = installerInfo
 		oc.Save(isub)
 	} else {
@@ -291,183 +315,229 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	}
 
 	installerInfo := istate.InstallerInfo
-	consumer.Infof("Will use installer %s", installerInfo.Type)
-	manager := installer.GetManager(string(installerInfo.Type))
-	if manager == nil {
-		msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
-		return errors.New(msg)
+	if installerInfo.Type == installer.InstallerTypeUnsupported {
+		consumer.Errorf("Item is packaged in a way that isn't supported, refusing to install")
+		return errors.WithStack(butlerd.CodeUnsupportedPackaging)
 	}
 
-	managerInstallParams := &installer.InstallParams{
-		Consumer: consumer,
+	return task(res)
+}
 
-		File:              file,
-		InstallerInfo:     istate.InstallerInfo,
-		StageFolderPath:   oc.StageFolder(),
-		InstallFolderPath: params.InstallFolder,
+func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
+	rc := oc.rc
+	params := meta.Data
+	consumer := oc.Consumer()
 
-		ReceiptIn: receiptIn,
-
-		Context: oc.ctx,
+	istate := &InstallSubcontextState{}
+	isub := &InstallSubcontext{
+		Data: istate,
 	}
+	oc.Load(isub)
 
-	tryInstall := func() (*installer.InstallResult, error) {
-		defer managerInstallParams.File.Close()
-
-		select {
-		case <-oc.ctx.Done():
-			return nil, errors.WithStack(butlerd.CodeOperationCancelled)
-		default:
-			// keep going!
+	return InstallPrepare(oc, meta, isub, true, func(prepareRes *InstallPrepareResult) error {
+		if prepareRes.Strategy == InstallPerformStrategyHeal {
+			return heal(oc, meta, isub, prepareRes.ReceiptIn)
 		}
 
-		err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
-			Reason:    butlerd.TaskReasonInstall,
-			Type:      butlerd.TaskTypeInstall,
-			Game:      params.Game,
-			Upload:    params.Upload,
-			Build:     params.Build,
-			TotalSize: stats.Size(),
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		oc.rc.StartProgress()
-		res, err := manager.Install(managerInstallParams)
-		oc.rc.EndProgress()
-
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		return res, nil
-	}
-
-	var firstInstallResult = istate.FirstInstallResult
-
-	if firstInstallResult != nil {
-		consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
-	} else {
-		var err error
-		firstInstallResult, err = tryInstall()
-		if err != nil && errors.Cause(err) == installer.ErrNeedLocal {
-			lf, localErr := doForceLocal()
-			if localErr != nil {
-				return errors.WithStack(err)
-			}
-
-			consumer.Infof("Re-invoking manager with local file...")
-			managerInstallParams.File = lf
-
-			firstInstallResult, err = tryInstall()
-		}
-
+		stats, err := prepareRes.File.Stat()
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		consumer.Infof("Install successful")
+		installerInfo := istate.InstallerInfo
 
-		istate.FirstInstallResult = firstInstallResult
-		oc.Save(isub)
-	}
-
-	var finalInstallResult = firstInstallResult
-	var finalInstallerInfo = installerInfo
-
-	if len(firstInstallResult.Files) == 1 {
-		single := firstInstallResult.Files[0]
-		singlePath := filepath.Join(params.InstallFolder, single)
-
-		consumer.Infof("Installed a single file")
-
-		err = func() error {
-			secondInstallerInfo := istate.SecondInstallerInfo
-			if secondInstallerInfo != nil {
-				consumer.Infof("Using cached second installer info")
-			} else {
-				consumer.Infof("Probing (%s)...", single)
-				sf, err := os.Open(singlePath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				defer sf.Close()
-
-				secondInstallerInfo, err = installer.GetInstallerInfo(consumer, sf)
-				if err != nil {
-					consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
-					return nil
-				}
-
-				sf.Close()
-
-				istate.SecondInstallerInfo = secondInstallerInfo
-				oc.Save(isub)
-			}
-
-			if !installer.IsWindowsInstaller(secondInstallerInfo.Type) {
-				consumer.Infof("Installer type is (%s), ignoring", secondInstallerInfo.Type)
-				return nil
-			}
-
-			consumer.Infof("Will use nested installer (%s)", secondInstallerInfo.Type)
-			finalInstallerInfo = secondInstallerInfo
-			manager = installer.GetManager(string(secondInstallerInfo.Type))
-			if manager == nil {
-				return fmt.Errorf("Don't know how to install (%s) packages", secondInstallerInfo.Type)
-			}
-
-			destName := filepath.Base(single)
-			destPath := filepath.Join(oc.StageFolder(), "nested-install-source", destName)
-
-			_, err = os.Stat(destPath)
-			if err == nil {
-				// ah, it must already be there then
-				consumer.Infof("Using (%s) for nested install", destPath)
-			} else {
-				consumer.Infof("Moving (%s) to (%s) for nested install", singlePath, destPath)
-
-				err = os.MkdirAll(filepath.Dir(destPath), 0755)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				err = os.RemoveAll(destPath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				err = os.Rename(singlePath, destPath)
-				if err != nil {
-					return errors.WithStack(err)
+		if !params.NoCave {
+			cave := models.CaveByID(rc.DB(), params.CaveID)
+			if cave == nil {
+				cave = &models.Cave{
+					ID:                params.CaveID,
+					InstallFolderName: params.InstallFolderName,
+					InstallLocationID: params.InstallLocationID,
 				}
 			}
 
-			lf, err := os.Open(destPath)
+			oc.cave = cave
+		}
+
+		consumer.Infof("Will use installer %s", installerInfo.Type)
+		manager := installer.GetManager(string(installerInfo.Type))
+		if manager == nil {
+			msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
+			return errors.New(msg)
+		}
+
+		managerInstallParams := &installer.InstallParams{
+			Consumer: consumer,
+
+			File:              prepareRes.File,
+			InstallerInfo:     istate.InstallerInfo,
+			StageFolderPath:   oc.StageFolder(),
+			InstallFolderPath: params.InstallFolder,
+
+			ReceiptIn: prepareRes.ReceiptIn,
+
+			Context: oc.ctx,
+		}
+
+		tryInstall := func() (*installer.InstallResult, error) {
+			defer managerInstallParams.File.Close()
+
+			select {
+			case <-oc.ctx.Done():
+				return nil, errors.WithStack(butlerd.CodeOperationCancelled)
+			default:
+				// keep going!
+			}
+
+			err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+				Reason:    butlerd.TaskReasonInstall,
+				Type:      butlerd.TaskTypeInstall,
+				Game:      params.Game,
+				Upload:    params.Upload,
+				Build:     params.Build,
+				TotalSize: stats.Size(),
+			})
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+
+			oc.rc.StartProgress()
+			res, err := manager.Install(managerInstallParams)
+			oc.rc.EndProgress()
+
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+
+			return res, nil
+		}
+
+		var firstInstallResult = istate.FirstInstallResult
+
+		if firstInstallResult != nil {
+			consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
+		} else {
+			var err error
+			firstInstallResult, err = tryInstall()
+			if err != nil && errors.Cause(err) == installer.ErrNeedLocal {
+				lf, localErr := doForceLocal(prepareRes.File, oc, meta, isub)
+				if localErr != nil {
+					return errors.WithStack(err)
+				}
+
+				consumer.Infof("Re-invoking manager with local file...")
+				managerInstallParams.File = lf
+
+				firstInstallResult, err = tryInstall()
+			}
+
 			if err != nil {
 				return errors.WithStack(err)
 			}
 
-			managerInstallParams.File = lf
+			consumer.Infof("Install successful")
 
-			consumer.Infof("Invoking nested install manager, let's go!")
-			finalInstallResult, err = tryInstall()
-			return err
-		}()
-		if err != nil {
-			return errors.WithStack(err)
+			istate.FirstInstallResult = firstInstallResult
+			oc.Save(isub)
 		}
-	}
 
-	return commitInstall(oc, &CommitInstallParams{
-		InstallFolder: params.InstallFolder,
+		var finalInstallResult = firstInstallResult
+		var finalInstallerInfo = installerInfo
 
-		InstallerName: string(finalInstallerInfo.Type),
-		Game:          params.Game,
-		Upload:        params.Upload,
-		Build:         params.Build,
+		if len(firstInstallResult.Files) == 1 {
+			single := firstInstallResult.Files[0]
+			singlePath := filepath.Join(params.InstallFolder, single)
 
-		InstallResult: finalInstallResult,
+			consumer.Infof("Installed a single file")
+
+			err = func() error {
+				secondInstallerInfo := istate.SecondInstallerInfo
+				if secondInstallerInfo != nil {
+					consumer.Infof("Using cached second installer info")
+				} else {
+					consumer.Infof("Probing (%s)...", single)
+					sf, err := os.Open(singlePath)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+					defer sf.Close()
+
+					secondInstallerInfo, err = installer.GetInstallerInfo(consumer, sf)
+					if err != nil {
+						consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
+						return nil
+					}
+
+					sf.Close()
+
+					istate.SecondInstallerInfo = secondInstallerInfo
+					oc.Save(isub)
+				}
+
+				if !installer.IsWindowsInstaller(secondInstallerInfo.Type) {
+					consumer.Infof("Installer type is (%s), ignoring", secondInstallerInfo.Type)
+					return nil
+				}
+
+				consumer.Infof("Will use nested installer (%s)", secondInstallerInfo.Type)
+				finalInstallerInfo = secondInstallerInfo
+				manager = installer.GetManager(string(secondInstallerInfo.Type))
+				if manager == nil {
+					return fmt.Errorf("Don't know how to install (%s) packages", secondInstallerInfo.Type)
+				}
+
+				destName := filepath.Base(single)
+				destPath := filepath.Join(oc.StageFolder(), "nested-install-source", destName)
+
+				_, err = os.Stat(destPath)
+				if err == nil {
+					// ah, it must already be there then
+					consumer.Infof("Using (%s) for nested install", destPath)
+				} else {
+					consumer.Infof("Moving (%s) to (%s) for nested install", singlePath, destPath)
+
+					err = os.MkdirAll(filepath.Dir(destPath), 0755)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+
+					err = os.RemoveAll(destPath)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+
+					err = os.Rename(singlePath, destPath)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+				}
+
+				lf, err := os.Open(destPath)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+
+				managerInstallParams.File = lf
+
+				consumer.Infof("Invoking nested install manager, let's go!")
+				finalInstallResult, err = tryInstall()
+				return err
+			}()
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
+
+		return commitInstall(oc, &CommitInstallParams{
+			InstallFolder: params.InstallFolder,
+
+			InstallerName: string(finalInstallerInfo.Type),
+			Game:          params.Game,
+			Upload:        params.Upload,
+			Build:         params.Build,
+
+			InstallResult: finalInstallResult,
+		})
+
 	})
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/state"
@@ -206,7 +207,7 @@ func (ah *ArchiveHealer) heal(container *tlc.Container, targetPool wsync.Writabl
 					ah.Consumer.Debugf("opening archive for worker!")
 				}
 
-				file, err := eos.Open(ah.ArchivePath)
+				file, err := eos.Open(ah.ArchivePath, option.WithConsumer(ah.Consumer))
 				if err != nil {
 					return errors.WithStack(err)
 				}

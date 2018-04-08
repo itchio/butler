@@ -9,12 +9,9 @@ import (
 )
 
 func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) error {
-	consumer := c.Consumer
-
 	partial := false
 	for _, pj := range params.PartialJoins {
 		if mtm.JoinTable == gorm.ToDBName(pj) {
-			consumer.Debugf("Saving partial joins for %s", mtm.Scope.TableName())
 			partial = true
 		}
 	}
@@ -82,8 +79,6 @@ func (c *Context) saveJoins(params *SaveParams, tx *gorm.DB, mtm *ManyToMany) er
 				inserts = append(inserts, joinRec)
 			}
 		}
-
-		consumer.Debugf("SaveJoins: %d Inserts, %d Updates, %d Deletes", len(inserts), len(updates), len(deletes))
 
 		if partial {
 			// Not deleting extra join records, as requested

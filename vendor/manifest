@@ -273,7 +273,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "7c17a3276a5727772c1c5b0899d01dbda95b2063",
+			"revision": "46789c967853619d80c9887b4a378e6e3a446b97",
 			"branch": "master",
 			"notests": true
 		},
@@ -297,7 +297,7 @@
 			"importpath": "github.com/itchio/pelican",
 			"repository": "https://github.com/itchio/pelican",
 			"vcs": "git",
-			"revision": "d0a5c0b5aff69f77592ee3986c928395d5dc03d2",
+			"revision": "bd389ff974e120fe6ab2cc1964018cc942a12d93",
 			"branch": "master",
 			"notests": true
 		},
@@ -321,7 +321,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "6ff5a506015e512afef01a772d29bacd2ac067cc",
+			"revision": "8de26427e541f3691b5ee856fbbe7df5f10cdcea",
 			"branch": "master",
 			"notests": true
 		},

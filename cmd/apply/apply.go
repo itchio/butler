@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/itchio/wharf/eos/option"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -101,14 +103,14 @@ func Do(params *Params) error {
 
 	startTime := time.Now()
 
-	patchReader, err := eos.Open(patch)
+	patchReader, err := eos.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var signature *pwr.SignatureInfo
 	if signaturePath != "" {
-		sigReader, sigErr := eos.Open(signaturePath)
+		sigReader, sigErr := eos.Open(signaturePath, option.WithConsumer(comm.NewStateConsumer()))
 		if sigErr != nil {
 			return errors.Wrap(sigErr, "opening signature")
 		}

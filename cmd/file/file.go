@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -34,7 +35,9 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(ctx *mansion.Context, inPath string) error {
-	reader, err := eos.Open(inPath)
+	consumer := comm.NewStateConsumer()
+
+	reader, err := eos.Open(inPath, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

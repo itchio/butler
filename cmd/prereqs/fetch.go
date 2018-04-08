@@ -3,18 +3,20 @@ package prereqs
 import (
 	"context"
 	"io/ioutil"
+	"sync"
+	"time"
 
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	"github.com/itchio/butler/endpoints/install"
+	"github.com/itchio/butler/progress"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/wharf/state"
 
 	"github.com/itchio/butler/butlerd"
 
 	"github.com/pkg/errors"
 )
-
-const RedistsBaseURL = `https://dl.itch.ovh/itch-redists`
 
 var RedistsGame = &itchio.Game{
 	ID:        222417,
@@ -60,23 +62,41 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}
 		conn := loopbackconn.New(consumer)
 
-		conn.OnNotification("TaskStarted", loopbackconn.NoopNotificationHandler)
-		conn.OnNotification("TaskSucceeded", loopbackconn.NoopNotificationHandler)
+		counter := progress.NewCounter()
+		counter.Start()
 
-		conn.OnNotification("Progress", func(ctx context.Context, method string, params interface{}) error {
-			progress := params.(*butlerd.ProgressNotification)
-			tsc.OnState(&butlerd.PrereqsTaskStateNotification{
-				Name:     name,
-				Status:   butlerd.PrereqStatusDownloading,
-				Progress: progress.Progress,
-				ETA:      progress.ETA,
-				BPS:      progress.BPS,
-			})
-			return nil
+		cancel := make(chan struct{})
+		var once sync.Once
+		defer once.Do(func() {
+			close(cancel)
 		})
+
+		go func() {
+			for {
+				select {
+				case <-time.After(500 * time.Millisecond):
+					tsc.OnState(&butlerd.PrereqsTaskStateNotification{
+						Name:     name,
+						Status:   butlerd.PrereqStatusDownloading,
+						Progress: counter.Progress(),
+						ETA:      counter.ETA().Seconds(),
+						BPS:      counter.BPS(),
+					})
+				case <-cancel:
+					return
+				}
+			}
+		}()
+
+		taskConsumer := &state.Consumer{
+			OnProgress: func(progress float64) {
+				counter.SetProgress(progress)
+			},
+		}
 
 		rcc := *pc.RequestContext
 		rcc.Conn = conn
+		rcc.Consumer = taskConsumer
 
 		_, err = install.InstallQueue(&rcc, &butlerd.InstallQueueParams{
 			Game:   RedistsGame,
@@ -95,6 +115,9 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			ID:            "install-prereqs",
 			StagingFolder: stagingFolder,
 		})
+		once.Do(func() {
+			close(cancel)
+		})
 		if err != nil {
 			return errors.Wrapf(err, "downloading+extracting prereq %s", name)
 		}
@@ -107,11 +130,49 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		return nil
 	}
 
+	numWorkers := 2
+	todo := make(chan string)
+	done := make(chan error, numWorkers)
+
+	for i := 0; i < numWorkers; i++ {
+		go func() {
+			for name := range todo {
+				err := doPrereq(name)
+				if err != nil {
+					done <- errors.Wrapf(err, "handling prereq %s", name)
+					return
+				}
+			}
+			done <- nil
+		}()
+	}
+
 	for _, name := range names {
-		err := doPrereq(name)
-		if err != nil {
-			return errors.Wrapf(err, "handling prereq %s", name)
+		select {
+		case todo <- name:
+			// good
+		case err := <-done:
+			// not good
+			if err != nil {
+				return err
+			}
 		}
+	}
+	close(todo)
+
+	for i := 0; i < numWorkers; i++ {
+		err := <-done
+		if err != nil {
+			return err
+		}
+	}
+
+	select {
+	case <-pc.RequestContext.Ctx.Done():
+		// uh oh
+		return butlerd.CodeOperationAborted
+	default:
+		// okay then
 	}
 
 	return nil

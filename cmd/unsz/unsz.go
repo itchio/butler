@@ -3,6 +3,8 @@ package unsz
 import (
 	"time"
 
+	"github.com/itchio/wharf/eos/option"
+
 	"github.com/itchio/savior"
 
 	"github.com/itchio/butler/archive/szextractor"
@@ -53,7 +55,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 
 	consumer := params.Consumer
 
-	file, err := eos.Open(params.File)
+	file, err := eos.Open(params.File, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

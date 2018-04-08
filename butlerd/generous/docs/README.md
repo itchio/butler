@@ -3814,6 +3814,61 @@ updates as they are found is not a requirement for the client.</p>
 </p>
 </div>
 
+### <em class="notification"></em>LaunchWindowShouldBeForeground
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when attaching to a running
+instance, instead of launching a new one.</p>
+
+<p>butlerd will also try to call SetForegroundWindow itself
+but since it&rsquo;s not the foreground process, it&rsquo;ll just
+be highlighted in the task bar.</p>
+
+<p>Windows only.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>hwnd</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>An HWND of the window that should be brought to front
+using SetForegrounWindow.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchWindowShouldBeForegroundNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>LaunchWindowShouldBeForeground <a href="#/?id=launchwindowshouldbeforeground">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when attaching to a running
+instance, instead of launching a new one.</p>
+
+<p>butlerd will also try to call SetForegroundWindow itself
+but since it&rsquo;s not the foreground process, it&rsquo;ll just
+be highlighted in the task bar.</p>
+
+<p>Windows only.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>hwnd</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="notification"></em>LaunchRunning
 
 
@@ -5714,6 +5769,16 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <td></td>
 </tr>
 <tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>reason</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
@@ -5778,6 +5843,14 @@ performed whenever <code class="typename"><span class="type request-client-calle
 <tr>
 <td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>reason</code></td>
@@ -6066,6 +6139,26 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>We tried to launch something, but the install folder just wasn&rsquo;t there</p>
 </td>
 </tr>
+<tr>
+<td><code>2001</code></td>
+<td><p>We tried to install something, but could not find compatible uploads</p>
+</td>
+</tr>
+<tr>
+<td><code>3000</code></td>
+<td><p>This title is packaged in a way that is not supported.</p>
+</td>
+</tr>
+<tr>
+<td><code>5000</code></td>
+<td><p>Nothing that can be launched was found</p>
+</td>
+</tr>
+<tr>
+<td><code>9000</code></td>
+<td><p>There is no Internet connection</p>
+</td>
+</tr>
 </table>
 
 
@@ -6086,6 +6179,18 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>404</code></td>
+</tr>
+<tr>
+<td><code>2001</code></td>
+</tr>
+<tr>
+<td><code>3000</code></td>
+</tr>
+<tr>
+<td><code>5000</code></td>
+</tr>
+<tr>
+<td><code>9000</code></td>
 </tr>
 </table>
 

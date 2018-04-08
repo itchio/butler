@@ -2,6 +2,9 @@ package prereqs
 
 import (
 	"encoding/json"
+	"io"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -9,6 +12,7 @@ import (
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -19,6 +23,7 @@ type PrereqsContext struct {
 	Runtime        *manager.Runtime
 	Consumer       *state.Consumer
 	PrereqsDir     string
+	Force          bool
 
 	library  Library
 	registry *redist.RedistRegistry
@@ -42,36 +47,64 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 
 		consumer := pc.Consumer
 
-		library, err := pc.GetLibrary()
-		if err != nil {
-			return nil, errors.Wrap(err, "opening prereqs library")
-		}
-
 		consumer.Infof("Fetching prereqs registry...")
 		registry := &redist.RedistRegistry{}
 
-		err = func() error {
-			registryURL, err := library.GetURL("info", "unpacked")
-			if err != nil {
-				return errors.Wrap(err, "getting URL for redist registry")
-			}
+		needFetch := false
+		wantFetch := false
 
-			f, err := eos.Open(registryURL)
-			if err != nil {
-				return errors.Wrap(err, "opening remote registry file")
-			}
-			defer f.Close()
-
-			dec := json.NewDecoder(f)
-			err = dec.Decode(registry)
-			if err != nil {
-				return errors.Wrap(err, "decoding redist registry")
-			}
-
-			return nil
-		}()
+		cachedRegistryPath := filepath.Join(pc.PrereqsDir, "info.json")
+		stats, err := os.Stat(cachedRegistryPath)
 		if err != nil {
-			return nil, errors.Wrap(err, "fetching prereqs registry")
+			needFetch = true
+		} else {
+			sinceLastFetch := time.Since(stats.ModTime())
+			if sinceLastFetch > 24*time.Hour {
+				consumer.Infof("It's been %s since we fetched the redist registry, let's do it now", sinceLastFetch)
+				wantFetch = true
+			}
+		}
+		if pc.Force {
+			needFetch = true
+		}
+
+		if needFetch || wantFetch {
+			err := func() error {
+				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(pc.Consumer))
+				if err != nil {
+					return errors.Wrap(err, "opening remote registry file")
+				}
+				defer src.Close()
+
+				dst, err := os.Create(cachedRegistryPath)
+				if err != nil {
+					return errors.WithMessage(err, "creating local registry cache")
+				}
+				defer dst.Close()
+
+				_, err = io.Copy(dst, src)
+				if err != nil {
+					return errors.WithMessage(err, "downloading registry")
+				}
+				return nil
+			}()
+			if err != nil {
+				if needFetch {
+					return nil, errors.Wrap(err, "fetching prereqs registry")
+				} else {
+					consumer.Warnf("while fetching prereqs registry: %v", err)
+				}
+			}
+		}
+
+		registryBytes, err := ioutil.ReadFile(cachedRegistryPath)
+		if err != nil {
+			return nil, errors.WithMessage(err, "while reading registry from disk")
+		}
+
+		err = json.Unmarshal(registryBytes, registry)
+		if err != nil {
+			return nil, errors.WithMessage(err, "decoding redist registry")
 		}
 
 		registryFetchDuration := time.Since(beforeFetch)

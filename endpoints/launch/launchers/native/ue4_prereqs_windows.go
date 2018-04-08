@@ -9,10 +9,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/eos"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
@@ -102,17 +102,20 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	configureRes, err := configurator.Configure(params.InstallFolder, false)
+	installContainer, err := params.GetInstallContainer()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	var prereqCandidate *configurator.Candidate
 
-	for _, c := range configureRes.Candidates {
-		base := filepath.Base(c.Path)
-		if base == needle {
-			prereqCandidate = c
+	for _, fe := range installContainer.Files {
+		consumer.Infof("Reviewing (%s)", path.Base(fe.Path))
+		if path.Base(fe.Path) == needle {
+			prereqCandidate, err = params.SniffFile(fe)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 			break
 		}
 	}
@@ -124,7 +127,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 	consumer.Infof("Found UE4 prereq candidate:\n %s", prereqCandidate)
 
 	prereqCandidatePath := filepath.Join(params.InstallFolder, prereqCandidate.Path)
-	f, err := eos.Open(prereqCandidatePath)
+	f, err := os.Open(prereqCandidatePath)
 	if err != nil {
 		return errors.WithStack(err)
 	}

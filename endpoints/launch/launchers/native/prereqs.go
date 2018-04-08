@@ -13,25 +13,39 @@ import (
 )
 
 func handlePrereqs(params *launch.LauncherParams) error {
-	var err error
-	err = handleUE4Prereqs(params)
+	pc := &prereqs.PrereqsContext{
+		RequestContext: params.RequestContext,
+		Credentials:    params.Credentials,
+		Runtime:        params.Runtime,
+		Consumer:       params.RequestContext.Consumer,
+		PrereqsDir:     params.PrereqsDir,
+		Force:          params.ForcePrereqs,
+	}
+
+	err := handleUE4Prereqs(params)
 	if err != nil {
 		return errors.WithMessage(err, "While handling UE4 prereqs")
 	}
 
 	consumer := params.RequestContext.Consumer
 
-	var listed []string
+	var wanted []string
 
 	// add manifest prereqs
 	if params.AppManifest == nil {
 		consumer.Infof("No manifest, no prereqs")
+		autoPrereqs, err := handleAutoPrereqs(params, pc)
+		if err != nil {
+			return errors.WithMessage(err, "While doing auto prereqs")
+		}
+
+		wanted = append(wanted, autoPrereqs...)
 	} else {
 		if len(params.AppManifest.Prereqs) == 0 {
 			consumer.Infof("Got manifest but no prereqs requested")
 		} else {
 			for _, p := range params.AppManifest.Prereqs {
-				listed = append(listed, p.Name)
+				wanted = append(wanted, p.Name)
 			}
 		}
 	}
@@ -40,10 +54,10 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	runtime := params.Runtime
 	if runtime.Platform == butlerd.ItchPlatformLinux && params.Sandbox {
 		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
-		listed = append(listed, firejailName)
+		wanted = append(wanted, firejailName)
 	}
 
-	if len(listed) == 0 {
+	if len(wanted) == 0 {
 		return nil
 	}
 
@@ -51,16 +65,8 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		return errors.New("PrereqsDir cannot be empty")
 	}
 
-	pc := &prereqs.PrereqsContext{
-		RequestContext: params.RequestContext,
-		Credentials:    params.Credentials,
-		Runtime:        params.Runtime,
-		Consumer:       params.RequestContext.Consumer,
-		PrereqsDir:     params.PrereqsDir,
-	}
-
 	var pending []string
-	for _, name := range listed {
+	for _, name := range wanted {
 		if pc.HasInstallMarker(name) {
 			continue
 		}
@@ -74,7 +80,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	}
 
 	if len(pending) == 0 {
-		consumer.Infof("✓ %d Prereqs already installed or irrelevant: %s", len(listed), strings.Join(listed, ", "))
+		consumer.Infof("✓ %d Prereqs already installed or irrelevant: %s", len(wanted), strings.Join(wanted, ", "))
 		return nil
 	}
 

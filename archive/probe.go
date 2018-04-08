@@ -102,6 +102,9 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 	stageTwoStrategy := StageTwoStrategyNone
 	if el, ok := ex.(EntriesLister); ok {
 		entries = el.Entries()
+		if params.OnEntries != nil {
+			params.OnEntries(entries)
+		}
 	}
 
 	if len(entries) > 0 {
@@ -110,7 +113,7 @@ func Probe(params *TryOpenParams) (*ArchiveInfo, error) {
 			"scripts/mojosetup_init.luac": StageTwoStrategyMojoSetup,
 		}
 
-		params.Consumer.Infof("Scanning %d entries for a stage two marker...", len(entries))
+		params.Consumer.Debugf("Scanning %d entries for a stage two marker...", len(entries))
 		for _, e := range entries {
 			if strat, ok := stageTwoMarkers[e.CanonicalPath]; ok {
 				stageTwoStrategy = strat

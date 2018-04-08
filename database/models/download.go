@@ -17,7 +17,12 @@ type Download struct {
 	StartedAt  *time.Time `json:"startedAt"`
 	FinishedAt *time.Time `json:"finishedAt"`
 
+	// Full error, complete with stack trace etc.
 	Error *string `json:"error"`
+	// Standard butlerd error code
+	ErrorCode *int64 `json:"errorCode"`
+	// Short error message (hopefully human-readable)
+	ErrorMessage *string `json:"errorMessage"`
 
 	CaveID string `json:"caveId"`
 

@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/itchio/httpkit/neterr"
+
+	"github.com/sourcegraph/jsonrpc2"
+
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
@@ -76,8 +80,8 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 			}
 		}
 
-		if download.Fresh {
-			if download.StagingFolder == "" {
+		if download.Fresh && (download.FinishedAt == nil || download.Error != nil) {
+			if download.InstallFolder == "" {
 				consumer.Warnf("No (fresh) install folder specified, can't wipe")
 			} else {
 				consumer.Opf("Wiping (fresh) install folder...")
@@ -243,7 +247,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	}()
 	if err != nil {
 		if wasDiscarded() {
-			consumer.Infof("Download errored, but it was already discarded, ignoring.")
+			// download errored, but it was already discarded, ignoring.
 			return nil
 		}
 
@@ -260,12 +264,30 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 				}
 				return nil
 			}
+
+			code := be.RpcErrorCode()
+			download.ErrorCode = &code
+			msg := be.RpcErrorMessage()
+			download.ErrorMessage = &msg
+		} else {
+			var code int64
+			var msg string
+			if neterr.IsNetworkError(err) {
+				code = int64(butlerd.CodeNetworkDisconnected)
+				msg = butlerd.CodeNetworkDisconnected.Error()
+			} else {
+				code = int64(jsonrpc2.CodeInternalError)
+				msg = err.Error()
+			}
+			download.ErrorCode = &code
+			download.ErrorMessage = &msg
 		}
 
 		var errString = fmt.Sprintf("%+v", err)
 
 		consumer.Warnf("Download errored: %s", errString)
 		download.Error = &errString
+
 		finishedAt := time.Now().UTC()
 		download.FinishedAt = &finishedAt
 		download.Save(rc.DB())

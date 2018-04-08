@@ -24,6 +24,8 @@ func formatDownload(download *models.Download) *butlerd.Download {
 	return &butlerd.Download{
 		ID:            download.ID,
 		Error:         download.Error,
+		ErrorMessage:  download.ErrorMessage,
+		ErrorCode:     download.ErrorCode,
 		Position:      download.Position,
 		CaveID:        download.CaveID,
 		Game:          download.Game,

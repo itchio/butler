@@ -5,6 +5,7 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
 )
 
@@ -186,22 +187,38 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 
 	consumer.Opf("Validating credentials...")
 
-	meRes, err := client.GetMe()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	err := func() error {
+		meRes, err := client.GetMe()
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
-	profile.UpdateFromUser(meRes.User)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+		profile.UpdateFromUser(meRes.User)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
-	err = rc.DB().Save(profile).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+		err = rc.DB().Save(profile).Error
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
-	consumer.Opf("Logged in!")
+		return nil
+	}()
+	if err != nil {
+		if neterr.IsNetworkError(err) {
+			pErr := models.PreloadSimple(rc.DB(), profile, "User")
+			if pErr != nil || profile.User == nil {
+				consumer.Warnf("Could not get offline user: %v", pErr)
+				return nil, err
+			}
+			consumer.Opf("Logged in! (offline)")
+		} else {
+			return nil, err
+		}
+	} else {
+		consumer.Opf("Logged in! (online)")
+	}
 
 	res := &butlerd.ProfileUseSavedLoginResult{
 		Profile: formatProfile(profile),

@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/butler/archive/szextractor/formulas"
 	"github.com/itchio/butler/archive/szextractor/types"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/nightlyone/lockfile"
 	"github.com/pkg/errors"
@@ -164,7 +165,7 @@ func EnsureDeps(consumer *state.Consumer) error {
 
 			firstSource = false
 			err = func() error {
-				f, err := eos.Open(source)
+				f, err := eos.Open(source, option.WithConsumer(consumer))
 				if err != nil {
 					return errors.WithStack(err)
 				}

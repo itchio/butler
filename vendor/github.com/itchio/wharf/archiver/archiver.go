@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/httpkit/httpfile"
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -50,7 +51,7 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 	var result *ExtractResult
 	var err error
 
-	file, err := eos.Open(archive)
+	file, err := eos.Open(archive, option.WithConsumer(settings.Consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

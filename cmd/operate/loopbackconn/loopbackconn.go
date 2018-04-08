@@ -57,7 +57,6 @@ func (lc *loopbackConn) Notify(ctx context.Context, method string, params interf
 	if h, ok := lc.notificationHandlers[method]; ok {
 		return h(ctx, method, params)
 	}
-	lc.consumer.Warnf("No handler registered for notification (%s)", method)
 	return nil
 }
 
