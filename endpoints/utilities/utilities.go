@@ -8,8 +8,8 @@ import (
 func Register(router *butlerd.Router) {
 	messages.VersionGet.Register(router, func(rc *butlerd.RequestContext, params *butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
 		return &butlerd.VersionGetResult{
-			Version:       rc.MansionContext.Version,
-			VersionString: rc.MansionContext.VersionString,
+			Version:       rc.ButlerVersion,
+			VersionString: rc.ButlerVersionString,
 		}, nil
 	})
 }

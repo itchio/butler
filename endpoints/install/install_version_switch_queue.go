@@ -25,10 +25,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 
 	credentials := operate.CredentialsForGameID(rc.DB(), cave.Game.ID)
 
-	client, err := operate.ClientFromCredentials(credentials)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(credentials)
 
 	buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
 		UploadID:      upload.ID,

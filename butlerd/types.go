@@ -704,14 +704,17 @@ type InstallVersionSwitchPickResult struct {
 // GameCredentials contains all the credentials required to make API requests
 // including the download key if any.
 type GameCredentials struct {
-	// Defaults to `https://itch.io`
-	// @optional
-	Server string `json:"server"`
 	// A valid itch.io API key
 	APIKey string `json:"apiKey"`
 	// A download key identifier, or 0 if no download key is available
 	// @optional
 	DownloadKey int64 `json:"downloadKey"`
+}
+
+func (gc *GameCredentials) JustAPIKey() *GameCredentials {
+	return &GameCredentials{
+		APIKey: gc.APIKey,
+	}
 }
 
 // Asks the user to pick between multiple available uploads

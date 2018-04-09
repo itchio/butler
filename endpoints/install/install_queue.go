@@ -87,10 +87,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	params.Game = queueParams.Game
 	params.Credentials = operate.CredentialsForGameID(rc.DB(), params.Game.ID)
 
-	client, err := operate.ClientFromCredentials(params.Credentials)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(params.Credentials)
 
 	{
 		// attempt to refresh game info

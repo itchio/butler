@@ -52,10 +52,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 		return nil, errors.New("password cannot be empty")
 	}
 
-	rootClient, err := rc.RootClient()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rootClient := rc.RootClient()
 
 	var key *itchio.APIKey
 	var cookie itchio.Cookie
@@ -120,10 +117,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 		}
 	}
 
-	client, err := rc.KeyClient(key.Key)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	client := rc.Client(key.Key)
 
 	meRes, err := client.GetMe()
 	if err != nil {
@@ -153,10 +147,7 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 		return nil, errors.New("apiKey cannot be empty")
 	}
 
-	client, err := rc.KeyClient(params.APIKey)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	client := rc.Client(params.APIKey)
 
 	meRes, err := client.GetMe()
 	if err != nil {

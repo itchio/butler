@@ -149,16 +149,9 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 	var identity = ctx.Identity
 	var key string
 
-	makeClient := func(key string) *itchio.Client {
-		client := itchio.ClientWithKey(key)
-		client.SetServer(ctx.Address)
-		client.UserAgent = ctx.UserAgent()
-		return client
-	}
-
 	envKey := os.Getenv(environmentApiKeyVariable)
 	if envKey != "" {
-		return makeClient(envKey), nil
+		return ctx.NewClient(envKey), nil
 	}
 
 	if os.Getenv("CI") != "" {
@@ -185,7 +178,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		handler := func(w http.ResponseWriter, r *http.Request) {
 			matches := callbackRe.FindStringSubmatch(r.RequestURI)
 			if matches != nil {
-				client := makeClient(matches[1])
+				client := ctx.NewClient(matches[1])
 				client.WharfStatus()
 
 				w.Header().Set("Content-Type", "text/plain")
@@ -256,7 +249,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		case key = <-done:
 			err = nil
 
-			client := makeClient(key)
+			client := ctx.NewClient(key)
 			_, err = client.WharfStatus()
 			if err != nil {
 				return nil, errors.Wrap(err, "retrieving wharf status")
@@ -281,5 +274,5 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 	if err != nil {
 		err = errors.WithStack(err)
 	}
-	return makeClient(key), nil
+	return ctx.NewClient(key), nil
 }

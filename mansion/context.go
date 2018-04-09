@@ -97,9 +97,9 @@ func (ctx *Context) Context() context.Context {
 	return context.Background()
 }
 
-func (ctx *Context) NewClient(key string) (*itchio.Client, error) {
+func (ctx *Context) NewClient(key string) *itchio.Client {
 	client := itchio.ClientWithKey(key)
 	client.SetServer(ctx.Address)
 	client.UserAgent = ctx.UserAgent()
-	return client, nil
+	return client
 }

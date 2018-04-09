@@ -10,7 +10,6 @@ import (
 	"github.com/itchio/httpkit/neterr"
 
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/state"
 
 	goerrors "errors"
 
@@ -416,7 +415,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	if manifestAction != nil {
 		args = append(args, manifestAction.Args...)
 
-		err = requestAPIKeyIfNecessary(consumer, manifestAction, game, credentials, env)
+		err = requestAPIKeyIfNecessary(rc, manifestAction, game, credentials, env)
 		if err != nil {
 			return nil, errors.WithMessage(err, "While requesting API key")
 		}
@@ -470,7 +469,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	return &butlerd.LaunchResult{}, nil
 }
 
-func requestAPIKeyIfNecessary(consumer *state.Consumer, manifestAction *butlerd.Action, game *itchio.Game, credentials *butlerd.GameCredentials, env map[string]string) error {
+func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butlerd.Action, game *itchio.Game, credentials *butlerd.GameCredentials, env map[string]string) error {
+	consumer := rc.Consumer
+
 	if manifestAction.Scope == "" {
 		// nothing to do
 		return nil
@@ -482,10 +483,7 @@ func requestAPIKeyIfNecessary(consumer *state.Consumer, manifestAction *butlerd.
 		return errors.WithStack(err)
 	}
 
-	client, err := operate.ClientFromCredentials(credentials)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(credentials)
 
 	res, err := client.Subkey(&itchio.SubkeyParams{
 		GameID: game.ID,

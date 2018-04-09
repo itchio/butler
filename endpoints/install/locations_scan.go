@@ -411,10 +411,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
 
 	creds := operate.CredentialsForGameID(rc.DB(), legacyCave.GameID)
-	client, err := operate.ClientFromCredentials(creds)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(creds)
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
 		GameID: legacyCave.GameID,

@@ -73,10 +73,7 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 
 	consumer.Infof("→ Last install operation at (%s)", item.InstalledAt)
 
-	client, err := rc.Harness.ClientFromCredentials(credentials)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(credentials)
 
 	listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: item.Game.ID,

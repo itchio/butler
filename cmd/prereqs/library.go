@@ -22,11 +22,8 @@ type library struct {
 
 var _ Library = (*library)(nil)
 
-func NewLibrary(credentials *butlerd.GameCredentials) (Library, error) {
-	client, err := operate.ClientFromCredentials(credentials)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+func NewLibrary(rc *butlerd.RequestContext, credentials *butlerd.GameCredentials) (Library, error) {
+	client := rc.ClientFromCredentials(credentials)
 
 	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: RedistsGame.ID,

@@ -10,7 +10,6 @@ import (
 	"github.com/itchio/httpkit/neterr"
 
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
@@ -21,23 +20,28 @@ import (
 type RequestHandler func(rc *RequestContext) (interface{}, error)
 type NotificationHandler func(rc *RequestContext)
 
+type GetClientFunc func(key string) *itchio.Client
+
 type Router struct {
 	Handlers             map[string]RequestHandler
 	NotificationHandlers map[string]NotificationHandler
-	MansionContext       *mansion.Context
 	CancelFuncs          *CancelFuncs
 	db                   *gorm.DB
+	getClient            GetClientFunc
+
+	ButlerVersion       string
+	ButlerVersionString string
 }
 
-func NewRouter(db *gorm.DB, mansionContext *mansion.Context) *Router {
+func NewRouter(db *gorm.DB, getClient GetClientFunc) *Router {
 	return &Router{
 		Handlers:             make(map[string]RequestHandler),
 		NotificationHandlers: make(map[string]NotificationHandler),
-		MansionContext:       mansionContext,
 		CancelFuncs: &CancelFuncs{
 			Funcs: make(map[string]context.CancelFunc),
 		},
-		db: db,
+		db:        db,
+		getClient: getClient,
 	}
 }
 
@@ -90,14 +94,16 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		}
 
 		rc := &RequestContext{
-			Ctx:            ctx,
-			Harness:        NewProductionHarness(),
-			Consumer:       consumer,
-			Params:         req.Params,
-			Conn:           conn,
-			MansionContext: r.MansionContext,
-			CancelFuncs:    r.CancelFuncs,
-			DB:             getDB,
+			Ctx:         ctx,
+			Consumer:    consumer,
+			Params:      req.Params,
+			Conn:        conn,
+			CancelFuncs: r.CancelFuncs,
+			DB:          getDB,
+			Client:      r.getClient,
+
+			ButlerVersion:       r.ButlerVersion,
+			ButlerVersionString: r.ButlerVersionString,
 		}
 
 		if req.Notif {
@@ -178,7 +184,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		data = make(map[string]interface{})
 	}
 	data["stack"] = fmt.Sprintf("%+v", err)
-	data["butlerVersion"] = r.MansionContext.VersionString
+	data["butlerVersion"] = r.ButlerVersionString
 
 	marshalledData, marshalErr := json.Marshal(data)
 	if marshalErr == nil {
@@ -194,14 +200,16 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 }
 
 type RequestContext struct {
-	Ctx            context.Context
-	Harness        Harness
-	Consumer       *state.Consumer
-	Params         *json.RawMessage
-	Conn           Conn
-	MansionContext *mansion.Context
-	CancelFuncs    *CancelFuncs
-	DB             DBGetter
+	Ctx         context.Context
+	Consumer    *state.Consumer
+	Params      *json.RawMessage
+	Conn        Conn
+	CancelFuncs *CancelFuncs
+	DB          DBGetter
+	Client      GetClientFunc
+
+	ButlerVersion       string
+	ButlerVersionString string
 
 	notificationInterceptors map[string]NotificationInterceptor
 	counter                  *progress.Counter
@@ -240,12 +248,8 @@ func (rc *RequestContext) Notify(method string, params interface{}) error {
 	return rc.Conn.Notify(rc.Ctx, method, params)
 }
 
-func (rc *RequestContext) RootClient() (*itchio.Client, error) {
-	return rc.KeyClient("<keyless>")
-}
-
-func (rc *RequestContext) KeyClient(key string) (*itchio.Client, error) {
-	return rc.MansionContext.NewClient(key)
+func (rc *RequestContext) RootClient() *itchio.Client {
+	return rc.Client("<keyless>")
 }
 
 func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itchio.Client) {
@@ -262,12 +266,11 @@ func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itch
 		panic(errors.Errorf("Profile %d lacks API key", profileID))
 	}
 
-	client, err := rc.MansionContext.NewClient(profile.APIKey)
-	if err != nil {
-		panic(errors.WithStack(err))
-	}
+	return profile, rc.Client(profile.APIKey)
+}
 
-	return profile, client
+func (rc *RequestContext) ClientFromCredentials(credentials *GameCredentials) *itchio.Client {
+	return rc.Client(credentials.APIKey)
 }
 
 func (rc *RequestContext) StartProgress() {

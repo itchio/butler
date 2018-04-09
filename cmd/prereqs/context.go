@@ -31,7 +31,7 @@ type PrereqsContext struct {
 
 func (pc *PrereqsContext) GetLibrary() (Library, error) {
 	if pc.library == nil {
-		library, err := NewLibrary(pc.Credentials)
+		library, err := NewLibrary(pc.RequestContext, pc.Credentials)
 		if err != nil {
 			return nil, errors.Wrap(err, "opening prereqs library")
 		}

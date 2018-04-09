@@ -134,10 +134,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	params := meta.Data
 	consumer := rc.Consumer
 
-	client, err := ClientFromCredentials(params.Credentials)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	client := rc.ClientFromCredentials(params.Credentials)
 
 	consumer.Infof("→ Preparing install for %s", GameToString(params.Game))
 	consumer.Infof("  (%s) is our destination", params.InstallFolder)

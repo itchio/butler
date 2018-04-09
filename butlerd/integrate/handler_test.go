@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"net"
 	"testing"
 	"time"
@@ -72,7 +71,6 @@ func (h *handler) Register(method string, rh butlerd.RequestHandler) {
 }
 
 func (h *handler) RegisterNotification(method string, nh butlerd.NotificationHandler) {
-	log.Printf("registering notification handler for %s", method)
 	h.notificationHandlers[method] = nh
 }
 
@@ -102,7 +100,7 @@ func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFun
 		}
 	})
 
-	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), h)
+	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), jsonrpc2.AsyncHandler(h))
 	go func() {
 		<-ctx.Done()
 		<-time.After(1 * time.Second)

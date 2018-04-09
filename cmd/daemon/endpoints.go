@@ -25,7 +25,10 @@ func getRouter(db *gorm.DB, mansionContext *mansion.Context) *butlerd.Router {
 		return mainRouter
 	}
 
-	mainRouter = butlerd.NewRouter(db, mansionContext)
+	mainRouter = butlerd.NewRouter(db, mansionContext.NewClient)
+	mainRouter.ButlerVersion = mansionContext.Version
+	mainRouter.ButlerVersionString = mansionContext.VersionString
+
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
 	update.Register(mainRouter)
