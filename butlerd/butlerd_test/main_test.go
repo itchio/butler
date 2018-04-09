@@ -32,7 +32,8 @@ var (
 func TestMain(m *testing.M) {
 	flag.Parse()
 	if *butlerPath == "" {
-		log.Fatal("--butlerPath must be specified")
+		log.Println("Not running (--butlerPath must be specified)")
+		os.Exit(0)
 	}
 
 	ctx := context.Background()
