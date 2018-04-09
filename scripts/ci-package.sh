@@ -17,7 +17,7 @@ file built/$TARGET
 ./built/$TARGET fetch-7z-libs
 
 # run integration tests
-go test -v github.com/itchio/butler/butlerd/integrate --butlerPath=$PWD/built/$TARGET
+go test -v ./butlerd/integrate --butlerPath=$PWD/built/$TARGET
 
 (cd built/ && 7za a ../butler.7z *)
 (cd built/ && 7za a ../butler.zip *)
