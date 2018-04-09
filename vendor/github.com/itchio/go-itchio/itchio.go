@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/itchio/httpkit/timeout"
+
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +36,7 @@ func defaultRetryPatterns() []time.Duration {
 func ClientWithKey(key string) *Client {
 	c := &Client{
 		Key:           key,
-		HTTPClient:    http.DefaultClient,
+		HTTPClient:    timeout.NewDefaultClient(),
 		RetryPatterns: defaultRetryPatterns(),
 		UserAgent:     "go-itchio",
 	}
