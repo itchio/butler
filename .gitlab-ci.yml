@@ -5,14 +5,14 @@ stages:
   - deploy
 
 book:
-  stage: test
+  stage: deploy
   tags:
     - dropsy
   script:
     - scripts/ci-book.sh
 
 generous:
-  stage: test
+  stage: deploy
   tags:
     - dropsy
   script:
