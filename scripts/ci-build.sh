@@ -88,7 +88,7 @@ file built/$TARGET
 ./built/$TARGET -V
 ./built/$TARGET fetch-7z-libs
 
-go test -v github.com/itchio/butler/butlerd/butlerd_test --butlerPath=built/$TARGET
+go test -v github.com/itchio/butler/butlerd/butlerd_test --butlerPath=$PWD/built/$TARGET
 
 (cd built/ && 7za a ../butler.7z *)
 (cd built/ && 7za a ../butler.zip *)
