@@ -196,20 +196,20 @@ type Conn interface {
 
 //
 
-type jsonrpc2Conn struct {
-	conn *jsonrpc2.Conn
+type JsonRPC2Conn struct {
+	Conn *jsonrpc2.Conn
 }
 
-var _ Conn = (*jsonrpc2Conn)(nil)
+var _ Conn = (*JsonRPC2Conn)(nil)
 
-func (jc *jsonrpc2Conn) Notify(ctx context.Context, method string, params interface{}) error {
-	return jc.conn.Notify(ctx, method, params)
+func (jc *JsonRPC2Conn) Notify(ctx context.Context, method string, params interface{}) error {
+	return jc.Conn.Notify(ctx, method, params)
 }
 
-func (jc *jsonrpc2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
-	return jc.conn.Call(ctx, method, params, result)
+func (jc *JsonRPC2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
+	return jc.Conn.Call(ctx, method, params, result)
 }
 
-func (jc *jsonrpc2Conn) Close() error {
-	return jc.conn.Close()
+func (jc *JsonRPC2Conn) Close() error {
+	return jc.Conn.Close()
 }

@@ -1,28 +1,25 @@
-package butlerd_test
+package integrate
 
 import (
 	"bufio"
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
+
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
 	"github.com/stretchr/testify/assert"
 )
 
-var jc *jsonrpc2.Conn
-
+var secret = strings.Repeat("dummy", 58)
+var address string
 var cancelButler context.CancelFunc
 
 var (
@@ -31,9 +28,18 @@ var (
 
 func TestMain(m *testing.M) {
 	flag.Parse()
+
+	onCi := os.Getenv("CI") != ""
+
+	if !onCi {
+		*butlerPath = "butler"
+	}
+
 	if *butlerPath == "" {
-		log.Println("Not running (--butlerPath must be specified)")
-		os.Exit(0)
+		if onCi {
+			os.Exit(0)
+		}
+		gmust(errors.New("Not running (--butlerPath must be specified)"))
 	}
 
 	ctx := context.Background()
@@ -41,7 +47,7 @@ func TestMain(m *testing.M) {
 	defer cancel()
 	cancelButler = cancel
 
-	bExec := exec.CommandContext(ctx2, *butlerPath, "daemon", "-j")
+	bExec := exec.CommandContext(ctx2, *butlerPath, "daemon", "-j", "--dbpath", ":memory:")
 	stdin, err := bExec.StdinPipe()
 	gmust(err)
 
@@ -57,16 +63,17 @@ func TestMain(m *testing.M) {
 
 	addrChan := make(chan string)
 
-	secret := strings.Repeat("dummy", 58)
-
 	go func() {
 		s := bufio.NewScanner(stdout)
 		for s.Scan() {
 			line := s.Text()
-			log.Printf("butler => %s", line)
 
 			im := make(map[string]interface{})
-			gmust(json.Unmarshal([]byte(line), &im))
+			err := json.Unmarshal([]byte(line), &im)
+			if err != nil {
+				log.Printf("butler => %s", line)
+				continue
+			}
 
 			typ := im["type"].(string)
 			switch typ {
@@ -84,54 +91,21 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	address := <-addrChan
-	conn, err := net.DialTimeout("tcp", address, time.Second)
-	gmust(err)
-
-	h := &handler{
-		secret: secret,
-	}
-	jc = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), h)
-
+	address = <-addrChan
 	os.Exit(m.Run())
 }
 
 func Test_Version(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	rc := connect(t)
 
-	vgr := &butlerd.VersionGetResult{}
-	must(t, jc.Call(ctx, "Version.Get", &butlerd.VersionGetParams{}, vgr))
+	vgr, err := messages.VersionGet.TestCall(rc, nil)
+	must(t, err)
 
 	assert.EqualValues(t, vgr.Version, "head")
 }
 
-type handler struct {
-	secret string
-}
-
-var _ jsonrpc2.Handler = (*handler)(nil)
-
-func (h handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	switch req.Method {
-	case "Handshake":
-		im := make(map[string]interface{})
-		json.Unmarshal(*req.Params, &im)
-		msg := im["message"].(string)
-		signature := fmt.Sprintf("%x", sha256.Sum256([]byte(h.secret+msg)))
-		conn.Reply(ctx, req.ID, map[string]interface{}{
-			"signature": signature,
-		})
-		return
-	}
-
-	conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-		Code:    jsonrpc2.CodeInternalError,
-		Message: "Not implemented yet",
-	})
-}
-
 func must(t *testing.T, err error) {
+	t.Helper()
 	if err != nil {
 		cancelButler()
 		t.Fatalf("%+v", err)
@@ -141,6 +115,6 @@ func must(t *testing.T, err error) {
 func gmust(err error) {
 	if err != nil {
 		cancelButler()
-		log.Fatalf("%+v", err)
+		log.Fatalf("%+v", errors.WithStack(err))
 	}
 }

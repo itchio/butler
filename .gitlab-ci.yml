@@ -45,6 +45,7 @@ build:linux:386:
     - export CI_OS=linux
     - export CI_ARCH=386
     - scripts/ci-build.sh
+    - scripts/ci-package.sh
   tags:
     - dropsy
   artifacts:
@@ -59,6 +60,7 @@ build:linux:amd64:
     - export CI_OS=linux
     - export CI_ARCH=amd64
     - scripts/ci-build.sh
+    - scripts/ci-package.sh
   tags:
     - dropsy
   artifacts:
@@ -73,6 +75,7 @@ build:darwin:amd64:
     - export CI_OS=darwin
     - export CI_ARCH=amd64
     - scripts/ci-build.sh
+    - scripts/ci-package.sh
   tags:
     - darwin
   artifacts:
@@ -87,6 +90,7 @@ build:windows:386:
     - export CI_OS=windows
     - export CI_ARCH=386
     - scripts/ci-build.sh
+    - scripts/ci-package.sh
   tags:
     - windows
   artifacts:
@@ -101,6 +105,7 @@ build:windows:amd64:
     - export CI_OS=windows
     - export CI_ARCH=amd64
     - scripts/ci-build.sh
+    - scripts/ci-package.sh
   tags:
     - windows
   artifacts:

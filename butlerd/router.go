@@ -53,7 +53,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 	method := req.Method
 	var res interface{}
 
-	conn := &jsonrpc2Conn{origConn}
+	conn := &JsonRPC2Conn{origConn}
 	consumer, cErr := NewStateConsumer(&NewStateConsumerParams{
 		Ctx:  ctx,
 		Conn: conn,

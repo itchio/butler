@@ -10,6 +10,10 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+type router interface {
+  Register(method string, hf butlerd.RequestHandler)
+}
+
 
 //==============================
 // Protocol
@@ -23,6 +27,24 @@ var _ RequestMessage = (*HandshakeType)(nil)
 
 func (r *HandshakeType) Method() string {
   return "Handshake"
+}
+
+func (r *HandshakeType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.HandshakeParams) (*butlerd.HandshakeResult, error)) {
+  router.Register("Handshake", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.HandshakeParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Handshake")
+    }
+    return res, nil
+  })
 }
 
 func (r *HandshakeType) Call(rc *butlerd.RequestContext, params *butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
@@ -149,7 +171,7 @@ func (r *VersionGetType) Method() string {
   return "Version.Get"
 }
 
-func (r *VersionGetType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.VersionGetParams) (*butlerd.VersionGetResult, error)) {
+func (r *VersionGetType) Register(router router, f func(*butlerd.RequestContext, *butlerd.VersionGetParams) (*butlerd.VersionGetResult, error)) {
   router.Register("Version.Get", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.VersionGetParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -165,6 +187,12 @@ func (r *VersionGetType) Register(router *butlerd.Router, f func(*butlerd.Reques
     }
     return res, nil
   })
+}
+
+func (r *VersionGetType) TestCall(rc *butlerd.RequestContext, params *butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
+  var result butlerd.VersionGetResult
+  err := rc.Call("Version.Get", params, &result)
+  return &result, err
 }
 
 var VersionGet *VersionGetType
@@ -184,7 +212,7 @@ func (r *ProfileListType) Method() string {
   return "Profile.List"
 }
 
-func (r *ProfileListType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error)) {
+func (r *ProfileListType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error)) {
   router.Register("Profile.List", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileListParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -202,6 +230,12 @@ func (r *ProfileListType) Register(router *butlerd.Router, f func(*butlerd.Reque
   })
 }
 
+func (r *ProfileListType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error) {
+  var result butlerd.ProfileListResult
+  err := rc.Call("Profile.List", params, &result)
+  return &result, err
+}
+
 var ProfileList *ProfileListType
 
 // Profile.LoginWithPassword (Request)
@@ -214,7 +248,7 @@ func (r *ProfileLoginWithPasswordType) Method() string {
   return "Profile.LoginWithPassword"
 }
 
-func (r *ProfileLoginWithPasswordType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileLoginWithPasswordParams) (*butlerd.ProfileLoginWithPasswordResult, error)) {
+func (r *ProfileLoginWithPasswordType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileLoginWithPasswordParams) (*butlerd.ProfileLoginWithPasswordResult, error)) {
   router.Register("Profile.LoginWithPassword", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileLoginWithPasswordParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -232,6 +266,12 @@ func (r *ProfileLoginWithPasswordType) Register(router *butlerd.Router, f func(*
   })
 }
 
+func (r *ProfileLoginWithPasswordType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWithPasswordParams) (*butlerd.ProfileLoginWithPasswordResult, error) {
+  var result butlerd.ProfileLoginWithPasswordResult
+  err := rc.Call("Profile.LoginWithPassword", params, &result)
+  return &result, err
+}
+
 var ProfileLoginWithPassword *ProfileLoginWithPasswordType
 
 // Profile.LoginWithAPIKey (Request)
@@ -244,7 +284,7 @@ func (r *ProfileLoginWithAPIKeyType) Method() string {
   return "Profile.LoginWithAPIKey"
 }
 
-func (r *ProfileLoginWithAPIKeyType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileLoginWithAPIKeyParams) (*butlerd.ProfileLoginWithAPIKeyResult, error)) {
+func (r *ProfileLoginWithAPIKeyType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileLoginWithAPIKeyParams) (*butlerd.ProfileLoginWithAPIKeyResult, error)) {
   router.Register("Profile.LoginWithAPIKey", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileLoginWithAPIKeyParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -262,6 +302,12 @@ func (r *ProfileLoginWithAPIKeyType) Register(router *butlerd.Router, f func(*bu
   })
 }
 
+func (r *ProfileLoginWithAPIKeyType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWithAPIKeyParams) (*butlerd.ProfileLoginWithAPIKeyResult, error) {
+  var result butlerd.ProfileLoginWithAPIKeyResult
+  err := rc.Call("Profile.LoginWithAPIKey", params, &result)
+  return &result, err
+}
+
 var ProfileLoginWithAPIKey *ProfileLoginWithAPIKeyType
 
 // Profile.RequestCaptcha (Request)
@@ -272,6 +318,24 @@ var _ RequestMessage = (*ProfileRequestCaptchaType)(nil)
 
 func (r *ProfileRequestCaptchaType) Method() string {
   return "Profile.RequestCaptcha"
+}
+
+func (r *ProfileRequestCaptchaType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.ProfileRequestCaptchaParams) (*butlerd.ProfileRequestCaptchaResult, error)) {
+  router.Register("Profile.RequestCaptcha", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileRequestCaptchaParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.RequestCaptcha")
+    }
+    return res, nil
+  })
 }
 
 func (r *ProfileRequestCaptchaType) Call(rc *butlerd.RequestContext, params *butlerd.ProfileRequestCaptchaParams) (*butlerd.ProfileRequestCaptchaResult, error) {
@@ -292,6 +356,24 @@ func (r *ProfileRequestTOTPType) Method() string {
   return "Profile.RequestTOTP"
 }
 
+func (r *ProfileRequestTOTPType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.ProfileRequestTOTPParams) (*butlerd.ProfileRequestTOTPResult, error)) {
+  router.Register("Profile.RequestTOTP", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileRequestTOTPParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.RequestTOTP")
+    }
+    return res, nil
+  })
+}
+
 func (r *ProfileRequestTOTPType) Call(rc *butlerd.RequestContext, params *butlerd.ProfileRequestTOTPParams) (*butlerd.ProfileRequestTOTPResult, error) {
   var result butlerd.ProfileRequestTOTPResult
   err := rc.Call("Profile.RequestTOTP", params, &result)
@@ -310,7 +392,7 @@ func (r *ProfileUseSavedLoginType) Method() string {
   return "Profile.UseSavedLogin"
 }
 
-func (r *ProfileUseSavedLoginType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error)) {
+func (r *ProfileUseSavedLoginType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error)) {
   router.Register("Profile.UseSavedLogin", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileUseSavedLoginParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -328,6 +410,12 @@ func (r *ProfileUseSavedLoginType) Register(router *butlerd.Router, f func(*butl
   })
 }
 
+func (r *ProfileUseSavedLoginType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error) {
+  var result butlerd.ProfileUseSavedLoginResult
+  err := rc.Call("Profile.UseSavedLogin", params, &result)
+  return &result, err
+}
+
 var ProfileUseSavedLogin *ProfileUseSavedLoginType
 
 // Profile.Forget (Request)
@@ -340,7 +428,7 @@ func (r *ProfileForgetType) Method() string {
   return "Profile.Forget"
 }
 
-func (r *ProfileForgetType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileForgetParams) (*butlerd.ProfileForgetResult, error)) {
+func (r *ProfileForgetType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileForgetParams) (*butlerd.ProfileForgetResult, error)) {
   router.Register("Profile.Forget", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileForgetParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -358,6 +446,12 @@ func (r *ProfileForgetType) Register(router *butlerd.Router, f func(*butlerd.Req
   })
 }
 
+func (r *ProfileForgetType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileForgetParams) (*butlerd.ProfileForgetResult, error) {
+  var result butlerd.ProfileForgetResult
+  err := rc.Call("Profile.Forget", params, &result)
+  return &result, err
+}
+
 var ProfileForget *ProfileForgetType
 
 // Profile.Data.Put (Request)
@@ -370,7 +464,7 @@ func (r *ProfileDataPutType) Method() string {
   return "Profile.Data.Put"
 }
 
-func (r *ProfileDataPutType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error)) {
+func (r *ProfileDataPutType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error)) {
   router.Register("Profile.Data.Put", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileDataPutParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -388,6 +482,12 @@ func (r *ProfileDataPutType) Register(router *butlerd.Router, f func(*butlerd.Re
   })
 }
 
+func (r *ProfileDataPutType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
+  var result butlerd.ProfileDataPutResult
+  err := rc.Call("Profile.Data.Put", params, &result)
+  return &result, err
+}
+
 var ProfileDataPut *ProfileDataPutType
 
 // Profile.Data.Get (Request)
@@ -400,7 +500,7 @@ func (r *ProfileDataGetType) Method() string {
   return "Profile.Data.Get"
 }
 
-func (r *ProfileDataGetType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error)) {
+func (r *ProfileDataGetType) Register(router router, f func(*butlerd.RequestContext, *butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error)) {
   router.Register("Profile.Data.Get", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.ProfileDataGetParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -416,6 +516,12 @@ func (r *ProfileDataGetType) Register(router *butlerd.Router, f func(*butlerd.Re
     }
     return res, nil
   })
+}
+
+func (r *ProfileDataGetType) TestCall(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error) {
+  var result butlerd.ProfileDataGetResult
+  err := rc.Call("Profile.Data.Get", params, &result)
+  return &result, err
 }
 
 var ProfileDataGet *ProfileDataGetType
@@ -435,7 +541,7 @@ func (r *SearchGamesType) Method() string {
   return "Search.Games"
 }
 
-func (r *SearchGamesType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error)) {
+func (r *SearchGamesType) Register(router router, f func(*butlerd.RequestContext, *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error)) {
   router.Register("Search.Games", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.SearchGamesParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -451,6 +557,12 @@ func (r *SearchGamesType) Register(router *butlerd.Router, f func(*butlerd.Reque
     }
     return res, nil
   })
+}
+
+func (r *SearchGamesType) TestCall(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
+  var result butlerd.SearchGamesResult
+  err := rc.Call("Search.Games", params, &result)
+  return &result, err
 }
 
 var SearchGames *SearchGamesType
@@ -481,7 +593,7 @@ func (r *SearchUsersType) Method() string {
   return "Search.Users"
 }
 
-func (r *SearchUsersType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error)) {
+func (r *SearchUsersType) Register(router router, f func(*butlerd.RequestContext, *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error)) {
   router.Register("Search.Users", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.SearchUsersParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -497,6 +609,12 @@ func (r *SearchUsersType) Register(router *butlerd.Router, f func(*butlerd.Reque
     }
     return res, nil
   })
+}
+
+func (r *SearchUsersType) TestCall(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
+  var result butlerd.SearchUsersResult
+  err := rc.Call("Search.Users", params, &result)
+  return &result, err
 }
 
 var SearchUsers *SearchUsersType
@@ -532,7 +650,7 @@ func (r *FetchGameType) Method() string {
   return "Fetch.Game"
 }
 
-func (r *FetchGameType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error)) {
+func (r *FetchGameType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error)) {
   router.Register("Fetch.Game", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchGameParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -548,6 +666,12 @@ func (r *FetchGameType) Register(router *butlerd.Router, f func(*butlerd.Request
     }
     return res, nil
   })
+}
+
+func (r *FetchGameType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error) {
+  var result butlerd.FetchGameResult
+  err := rc.Call("Fetch.Game", params, &result)
+  return &result, err
 }
 
 var FetchGame *FetchGameType
@@ -578,7 +702,7 @@ func (r *FetchCollectionType) Method() string {
   return "Fetch.Collection"
 }
 
-func (r *FetchCollectionType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error)) {
+func (r *FetchCollectionType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error)) {
   router.Register("Fetch.Collection", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCollectionParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -594,6 +718,12 @@ func (r *FetchCollectionType) Register(router *butlerd.Router, f func(*butlerd.R
     }
     return res, nil
   })
+}
+
+func (r *FetchCollectionType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
+  var result butlerd.FetchCollectionResult
+  err := rc.Call("Fetch.Collection", params, &result)
+  return &result, err
 }
 
 var FetchCollection *FetchCollectionType
@@ -624,7 +754,7 @@ func (r *FetchProfileCollectionsType) Method() string {
   return "Fetch.ProfileCollections"
 }
 
-func (r *FetchProfileCollectionsType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error)) {
+func (r *FetchProfileCollectionsType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error)) {
   router.Register("Fetch.ProfileCollections", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchProfileCollectionsParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -640,6 +770,12 @@ func (r *FetchProfileCollectionsType) Register(router *butlerd.Router, f func(*b
     }
     return res, nil
   })
+}
+
+func (r *FetchProfileCollectionsType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
+  var result butlerd.FetchProfileCollectionsResult
+  err := rc.Call("Fetch.ProfileCollections", params, &result)
+  return &result, err
 }
 
 var FetchProfileCollections *FetchProfileCollectionsType
@@ -670,7 +806,7 @@ func (r *FetchProfileGamesType) Method() string {
   return "Fetch.ProfileGames"
 }
 
-func (r *FetchProfileGamesType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error)) {
+func (r *FetchProfileGamesType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error)) {
   router.Register("Fetch.ProfileGames", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchProfileGamesParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -686,6 +822,12 @@ func (r *FetchProfileGamesType) Register(router *butlerd.Router, f func(*butlerd
     }
     return res, nil
   })
+}
+
+func (r *FetchProfileGamesType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
+  var result butlerd.FetchProfileGamesResult
+  err := rc.Call("Fetch.ProfileGames", params, &result)
+  return &result, err
 }
 
 var FetchProfileGames *FetchProfileGamesType
@@ -716,7 +858,7 @@ func (r *FetchProfileOwnedKeysType) Method() string {
   return "Fetch.ProfileOwnedKeys"
 }
 
-func (r *FetchProfileOwnedKeysType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error)) {
+func (r *FetchProfileOwnedKeysType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error)) {
   router.Register("Fetch.ProfileOwnedKeys", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchProfileOwnedKeysParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -732,6 +874,12 @@ func (r *FetchProfileOwnedKeysType) Register(router *butlerd.Router, f func(*but
     }
     return res, nil
   })
+}
+
+func (r *FetchProfileOwnedKeysType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
+  var result butlerd.FetchProfileOwnedKeysResult
+  err := rc.Call("Fetch.ProfileOwnedKeys", params, &result)
+  return &result, err
 }
 
 var FetchProfileOwnedKeys *FetchProfileOwnedKeysType
@@ -762,7 +910,7 @@ func (r *FetchCommonsType) Method() string {
   return "Fetch.Commons"
 }
 
-func (r *FetchCommonsType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error)) {
+func (r *FetchCommonsType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error)) {
   router.Register("Fetch.Commons", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCommonsParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -780,6 +928,12 @@ func (r *FetchCommonsType) Register(router *butlerd.Router, f func(*butlerd.Requ
   })
 }
 
+func (r *FetchCommonsType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
+  var result butlerd.FetchCommonsResult
+  err := rc.Call("Fetch.Commons", params, &result)
+  return &result, err
+}
+
 var FetchCommons *FetchCommonsType
 
 // Fetch.Caves (Request)
@@ -792,7 +946,7 @@ func (r *FetchCavesType) Method() string {
   return "Fetch.Caves"
 }
 
-func (r *FetchCavesType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error)) {
+func (r *FetchCavesType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error)) {
   router.Register("Fetch.Caves", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCavesParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -810,6 +964,12 @@ func (r *FetchCavesType) Register(router *butlerd.Router, f func(*butlerd.Reques
   })
 }
 
+func (r *FetchCavesType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
+  var result butlerd.FetchCavesResult
+  err := rc.Call("Fetch.Caves", params, &result)
+  return &result, err
+}
+
 var FetchCaves *FetchCavesType
 
 // Fetch.Cave (Request)
@@ -822,7 +982,7 @@ func (r *FetchCaveType) Method() string {
   return "Fetch.Cave"
 }
 
-func (r *FetchCaveType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error)) {
+func (r *FetchCaveType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error)) {
   router.Register("Fetch.Cave", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCaveParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -840,6 +1000,12 @@ func (r *FetchCaveType) Register(router *butlerd.Router, f func(*butlerd.Request
   })
 }
 
+func (r *FetchCaveType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
+  var result butlerd.FetchCaveResult
+  err := rc.Call("Fetch.Cave", params, &result)
+  return &result, err
+}
+
 var FetchCave *FetchCaveType
 
 // Fetch.CavesByGameID (Request)
@@ -852,7 +1018,7 @@ func (r *FetchCavesByGameIDType) Method() string {
   return "Fetch.CavesByGameID"
 }
 
-func (r *FetchCavesByGameIDType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error)) {
+func (r *FetchCavesByGameIDType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error)) {
   router.Register("Fetch.CavesByGameID", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCavesByGameIDParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -870,6 +1036,12 @@ func (r *FetchCavesByGameIDType) Register(router *butlerd.Router, f func(*butler
   })
 }
 
+func (r *FetchCavesByGameIDType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error) {
+  var result butlerd.FetchCavesByGameIDResult
+  err := rc.Call("Fetch.CavesByGameID", params, &result)
+  return &result, err
+}
+
 var FetchCavesByGameID *FetchCavesByGameIDType
 
 // Fetch.CavesByInstallLocationID (Request)
@@ -882,7 +1054,7 @@ func (r *FetchCavesByInstallLocationIDType) Method() string {
   return "Fetch.CavesByInstallLocationID"
 }
 
-func (r *FetchCavesByInstallLocationIDType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error)) {
+func (r *FetchCavesByInstallLocationIDType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error)) {
   router.Register("Fetch.CavesByInstallLocationID", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.FetchCavesByInstallLocationIDParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -898,6 +1070,12 @@ func (r *FetchCavesByInstallLocationIDType) Register(router *butlerd.Router, f f
     }
     return res, nil
   })
+}
+
+func (r *FetchCavesByInstallLocationIDType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
+  var result butlerd.FetchCavesByInstallLocationIDResult
+  err := rc.Call("Fetch.CavesByInstallLocationID", params, &result)
+  return &result, err
 }
 
 var FetchCavesByInstallLocationID *FetchCavesByInstallLocationIDType
@@ -917,7 +1095,7 @@ func (r *GameFindUploadsType) Method() string {
   return "Game.FindUploads"
 }
 
-func (r *GameFindUploadsType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error)) {
+func (r *GameFindUploadsType) Register(router router, f func(*butlerd.RequestContext, *butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error)) {
   router.Register("Game.FindUploads", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.GameFindUploadsParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -935,6 +1113,12 @@ func (r *GameFindUploadsType) Register(router *butlerd.Router, f func(*butlerd.R
   })
 }
 
+func (r *GameFindUploadsType) TestCall(rc *butlerd.RequestContext, params *butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error) {
+  var result butlerd.GameFindUploadsResult
+  err := rc.Call("Game.FindUploads", params, &result)
+  return &result, err
+}
+
 var GameFindUploads *GameFindUploadsType
 
 // Install.Queue (Request)
@@ -947,7 +1131,7 @@ func (r *InstallQueueType) Method() string {
   return "Install.Queue"
 }
 
-func (r *InstallQueueType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error)) {
+func (r *InstallQueueType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error)) {
   router.Register("Install.Queue", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallQueueParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -965,6 +1149,12 @@ func (r *InstallQueueType) Register(router *butlerd.Router, f func(*butlerd.Requ
   })
 }
 
+func (r *InstallQueueType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
+  var result butlerd.InstallQueueResult
+  err := rc.Call("Install.Queue", params, &result)
+  return &result, err
+}
+
 var InstallQueue *InstallQueueType
 
 // ExternalUploadsAreBad (Request)
@@ -975,6 +1165,24 @@ var _ RequestMessage = (*ExternalUploadsAreBadType)(nil)
 
 func (r *ExternalUploadsAreBadType) Method() string {
   return "ExternalUploadsAreBad"
+}
+
+func (r *ExternalUploadsAreBadType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.ExternalUploadsAreBadParams) (*butlerd.ExternalUploadsAreBadResult, error)) {
+  router.Register("ExternalUploadsAreBad", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ExternalUploadsAreBadParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for ExternalUploadsAreBad")
+    }
+    return res, nil
+  })
 }
 
 func (r *ExternalUploadsAreBadType) Call(rc *butlerd.RequestContext, params *butlerd.ExternalUploadsAreBadParams) (*butlerd.ExternalUploadsAreBadResult, error) {
@@ -995,7 +1203,7 @@ func (r *InstallPerformType) Method() string {
   return "Install.Perform"
 }
 
-func (r *InstallPerformType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error)) {
+func (r *InstallPerformType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error)) {
   router.Register("Install.Perform", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallPerformParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1013,6 +1221,12 @@ func (r *InstallPerformType) Register(router *butlerd.Router, f func(*butlerd.Re
   })
 }
 
+func (r *InstallPerformType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
+  var result butlerd.InstallPerformResult
+  err := rc.Call("Install.Perform", params, &result)
+  return &result, err
+}
+
 var InstallPerform *InstallPerformType
 
 // Install.Cancel (Request)
@@ -1025,7 +1239,7 @@ func (r *InstallCancelType) Method() string {
   return "Install.Cancel"
 }
 
-func (r *InstallCancelType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallCancelParams) (*butlerd.InstallCancelResult, error)) {
+func (r *InstallCancelType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallCancelParams) (*butlerd.InstallCancelResult, error)) {
   router.Register("Install.Cancel", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallCancelParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1043,6 +1257,12 @@ func (r *InstallCancelType) Register(router *butlerd.Router, f func(*butlerd.Req
   })
 }
 
+func (r *InstallCancelType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallCancelParams) (*butlerd.InstallCancelResult, error) {
+  var result butlerd.InstallCancelResult
+  err := rc.Call("Install.Cancel", params, &result)
+  return &result, err
+}
+
 var InstallCancel *InstallCancelType
 
 // Uninstall.Perform (Request)
@@ -1055,7 +1275,7 @@ func (r *UninstallPerformType) Method() string {
   return "Uninstall.Perform"
 }
 
-func (r *UninstallPerformType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.UninstallPerformParams) (*butlerd.UninstallPerformResult, error)) {
+func (r *UninstallPerformType) Register(router router, f func(*butlerd.RequestContext, *butlerd.UninstallPerformParams) (*butlerd.UninstallPerformResult, error)) {
   router.Register("Uninstall.Perform", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.UninstallPerformParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1073,6 +1293,12 @@ func (r *UninstallPerformType) Register(router *butlerd.Router, f func(*butlerd.
   })
 }
 
+func (r *UninstallPerformType) TestCall(rc *butlerd.RequestContext, params *butlerd.UninstallPerformParams) (*butlerd.UninstallPerformResult, error) {
+  var result butlerd.UninstallPerformResult
+  err := rc.Call("Uninstall.Perform", params, &result)
+  return &result, err
+}
+
 var UninstallPerform *UninstallPerformType
 
 // Install.VersionSwitch.Queue (Request)
@@ -1085,7 +1311,7 @@ func (r *InstallVersionSwitchQueueType) Method() string {
   return "Install.VersionSwitch.Queue"
 }
 
-func (r *InstallVersionSwitchQueueType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error)) {
+func (r *InstallVersionSwitchQueueType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error)) {
   router.Register("Install.VersionSwitch.Queue", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallVersionSwitchQueueParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1103,6 +1329,12 @@ func (r *InstallVersionSwitchQueueType) Register(router *butlerd.Router, f func(
   })
 }
 
+func (r *InstallVersionSwitchQueueType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error) {
+  var result butlerd.InstallVersionSwitchQueueResult
+  err := rc.Call("Install.VersionSwitch.Queue", params, &result)
+  return &result, err
+}
+
 var InstallVersionSwitchQueue *InstallVersionSwitchQueueType
 
 // InstallVersionSwitchPick (Request)
@@ -1113,6 +1345,24 @@ var _ RequestMessage = (*InstallVersionSwitchPickType)(nil)
 
 func (r *InstallVersionSwitchPickType) Method() string {
   return "InstallVersionSwitchPick"
+}
+
+func (r *InstallVersionSwitchPickType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.InstallVersionSwitchPickParams) (*butlerd.InstallVersionSwitchPickResult, error)) {
+  router.Register("InstallVersionSwitchPick", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.InstallVersionSwitchPickParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for InstallVersionSwitchPick")
+    }
+    return res, nil
+  })
 }
 
 func (r *InstallVersionSwitchPickType) Call(rc *butlerd.RequestContext, params *butlerd.InstallVersionSwitchPickParams) (*butlerd.InstallVersionSwitchPickResult, error) {
@@ -1131,6 +1381,24 @@ var _ RequestMessage = (*PickUploadType)(nil)
 
 func (r *PickUploadType) Method() string {
   return "PickUpload"
+}
+
+func (r *PickUploadType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.PickUploadParams) (*butlerd.PickUploadResult, error)) {
+  router.Register("PickUpload", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PickUploadParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for PickUpload")
+    }
+    return res, nil
+  })
 }
 
 func (r *PickUploadType) Call(rc *butlerd.RequestContext, params *butlerd.PickUploadParams) (*butlerd.PickUploadResult, error) {
@@ -1199,7 +1467,7 @@ func (r *InstallLocationsListType) Method() string {
   return "Install.Locations.List"
 }
 
-func (r *InstallLocationsListType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error)) {
+func (r *InstallLocationsListType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error)) {
   router.Register("Install.Locations.List", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallLocationsListParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1217,6 +1485,12 @@ func (r *InstallLocationsListType) Register(router *butlerd.Router, f func(*butl
   })
 }
 
+func (r *InstallLocationsListType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error) {
+  var result butlerd.InstallLocationsListResult
+  err := rc.Call("Install.Locations.List", params, &result)
+  return &result, err
+}
+
 var InstallLocationsList *InstallLocationsListType
 
 // Install.Locations.Add (Request)
@@ -1229,7 +1503,7 @@ func (r *InstallLocationsAddType) Method() string {
   return "Install.Locations.Add"
 }
 
-func (r *InstallLocationsAddType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error)) {
+func (r *InstallLocationsAddType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error)) {
   router.Register("Install.Locations.Add", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallLocationsAddParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1247,6 +1521,12 @@ func (r *InstallLocationsAddType) Register(router *butlerd.Router, f func(*butle
   })
 }
 
+func (r *InstallLocationsAddType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error) {
+  var result butlerd.InstallLocationsAddResult
+  err := rc.Call("Install.Locations.Add", params, &result)
+  return &result, err
+}
+
 var InstallLocationsAdd *InstallLocationsAddType
 
 // Install.Locations.Remove (Request)
@@ -1259,7 +1539,7 @@ func (r *InstallLocationsRemoveType) Method() string {
   return "Install.Locations.Remove"
 }
 
-func (r *InstallLocationsRemoveType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error)) {
+func (r *InstallLocationsRemoveType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error)) {
   router.Register("Install.Locations.Remove", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallLocationsRemoveParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1277,6 +1557,12 @@ func (r *InstallLocationsRemoveType) Register(router *butlerd.Router, f func(*bu
   })
 }
 
+func (r *InstallLocationsRemoveType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error) {
+  var result butlerd.InstallLocationsRemoveResult
+  err := rc.Call("Install.Locations.Remove", params, &result)
+  return &result, err
+}
+
 var InstallLocationsRemove *InstallLocationsRemoveType
 
 // Install.Locations.GetByID (Request)
@@ -1289,7 +1575,7 @@ func (r *InstallLocationsGetByIDType) Method() string {
   return "Install.Locations.GetByID"
 }
 
-func (r *InstallLocationsGetByIDType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error)) {
+func (r *InstallLocationsGetByIDType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error)) {
   router.Register("Install.Locations.GetByID", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallLocationsGetByIDParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1307,6 +1593,12 @@ func (r *InstallLocationsGetByIDType) Register(router *butlerd.Router, f func(*b
   })
 }
 
+func (r *InstallLocationsGetByIDType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {
+  var result butlerd.InstallLocationsGetByIDResult
+  err := rc.Call("Install.Locations.GetByID", params, &result)
+  return &result, err
+}
+
 var InstallLocationsGetByID *InstallLocationsGetByIDType
 
 // Install.Locations.Scan (Request)
@@ -1319,7 +1611,7 @@ func (r *InstallLocationsScanType) Method() string {
   return "Install.Locations.Scan"
 }
 
-func (r *InstallLocationsScanType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error)) {
+func (r *InstallLocationsScanType) Register(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error)) {
   router.Register("Install.Locations.Scan", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.InstallLocationsScanParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1335,6 +1627,12 @@ func (r *InstallLocationsScanType) Register(router *butlerd.Router, f func(*butl
     }
     return res, nil
   })
+}
+
+func (r *InstallLocationsScanType) TestCall(rc *butlerd.RequestContext, params *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
+  var result butlerd.InstallLocationsScanResult
+  err := rc.Call("Install.Locations.Scan", params, &result)
+  return &result, err
 }
 
 var InstallLocationsScan *InstallLocationsScanType
@@ -1365,6 +1663,24 @@ func (r *InstallLocationsScanConfirmImportType) Method() string {
   return "Install.Locations.Scan.ConfirmImport"
 }
 
+func (r *InstallLocationsScanConfirmImportType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.InstallLocationsScanConfirmImportParams) (*butlerd.InstallLocationsScanConfirmImportResult, error)) {
+  router.Register("Install.Locations.Scan.ConfirmImport", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.InstallLocationsScanConfirmImportParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Locations.Scan.ConfirmImport")
+    }
+    return res, nil
+  })
+}
+
 func (r *InstallLocationsScanConfirmImportType) Call(rc *butlerd.RequestContext, params *butlerd.InstallLocationsScanConfirmImportParams) (*butlerd.InstallLocationsScanConfirmImportResult, error) {
   var result butlerd.InstallLocationsScanConfirmImportResult
   err := rc.Call("Install.Locations.Scan.ConfirmImport", params, &result)
@@ -1388,7 +1704,7 @@ func (r *DownloadsQueueType) Method() string {
   return "Downloads.Queue"
 }
 
-func (r *DownloadsQueueType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error)) {
+func (r *DownloadsQueueType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error)) {
   router.Register("Downloads.Queue", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsQueueParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1406,6 +1722,12 @@ func (r *DownloadsQueueType) Register(router *butlerd.Router, f func(*butlerd.Re
   })
 }
 
+func (r *DownloadsQueueType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
+  var result butlerd.DownloadsQueueResult
+  err := rc.Call("Downloads.Queue", params, &result)
+  return &result, err
+}
+
 var DownloadsQueue *DownloadsQueueType
 
 // Downloads.Prioritize (Request)
@@ -1418,7 +1740,7 @@ func (r *DownloadsPrioritizeType) Method() string {
   return "Downloads.Prioritize"
 }
 
-func (r *DownloadsPrioritizeType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error)) {
+func (r *DownloadsPrioritizeType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error)) {
   router.Register("Downloads.Prioritize", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsPrioritizeParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1436,6 +1758,12 @@ func (r *DownloadsPrioritizeType) Register(router *butlerd.Router, f func(*butle
   })
 }
 
+func (r *DownloadsPrioritizeType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error) {
+  var result butlerd.DownloadsPrioritizeResult
+  err := rc.Call("Downloads.Prioritize", params, &result)
+  return &result, err
+}
+
 var DownloadsPrioritize *DownloadsPrioritizeType
 
 // Downloads.List (Request)
@@ -1448,7 +1776,7 @@ func (r *DownloadsListType) Method() string {
   return "Downloads.List"
 }
 
-func (r *DownloadsListType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error)) {
+func (r *DownloadsListType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error)) {
   router.Register("Downloads.List", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsListParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1466,6 +1794,12 @@ func (r *DownloadsListType) Register(router *butlerd.Router, f func(*butlerd.Req
   })
 }
 
+func (r *DownloadsListType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error) {
+  var result butlerd.DownloadsListResult
+  err := rc.Call("Downloads.List", params, &result)
+  return &result, err
+}
+
 var DownloadsList *DownloadsListType
 
 // Downloads.ClearFinished (Request)
@@ -1478,7 +1812,7 @@ func (r *DownloadsClearFinishedType) Method() string {
   return "Downloads.ClearFinished"
 }
 
-func (r *DownloadsClearFinishedType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error)) {
+func (r *DownloadsClearFinishedType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error)) {
   router.Register("Downloads.ClearFinished", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsClearFinishedParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1496,6 +1830,12 @@ func (r *DownloadsClearFinishedType) Register(router *butlerd.Router, f func(*bu
   })
 }
 
+func (r *DownloadsClearFinishedType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error) {
+  var result butlerd.DownloadsClearFinishedResult
+  err := rc.Call("Downloads.ClearFinished", params, &result)
+  return &result, err
+}
+
 var DownloadsClearFinished *DownloadsClearFinishedType
 
 // Downloads.Drive (Request)
@@ -1508,7 +1848,7 @@ func (r *DownloadsDriveType) Method() string {
   return "Downloads.Drive"
 }
 
-func (r *DownloadsDriveType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error)) {
+func (r *DownloadsDriveType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error)) {
   router.Register("Downloads.Drive", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsDriveParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1526,6 +1866,12 @@ func (r *DownloadsDriveType) Register(router *butlerd.Router, f func(*butlerd.Re
   })
 }
 
+func (r *DownloadsDriveType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
+  var result butlerd.DownloadsDriveResult
+  err := rc.Call("Downloads.Drive", params, &result)
+  return &result, err
+}
+
 var DownloadsDrive *DownloadsDriveType
 
 // Downloads.Drive.Cancel (Request)
@@ -1538,7 +1884,7 @@ func (r *DownloadsDriveCancelType) Method() string {
   return "Downloads.Drive.Cancel"
 }
 
-func (r *DownloadsDriveCancelType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsDriveCancelParams) (*butlerd.DownloadsDriveCancelResult, error)) {
+func (r *DownloadsDriveCancelType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsDriveCancelParams) (*butlerd.DownloadsDriveCancelResult, error)) {
   router.Register("Downloads.Drive.Cancel", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsDriveCancelParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1556,6 +1902,12 @@ func (r *DownloadsDriveCancelType) Register(router *butlerd.Router, f func(*butl
   })
 }
 
+func (r *DownloadsDriveCancelType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveCancelParams) (*butlerd.DownloadsDriveCancelResult, error) {
+  var result butlerd.DownloadsDriveCancelResult
+  err := rc.Call("Downloads.Drive.Cancel", params, &result)
+  return &result, err
+}
+
 var DownloadsDriveCancel *DownloadsDriveCancelType
 
 // Downloads.Retry (Request)
@@ -1568,7 +1920,7 @@ func (r *DownloadsRetryType) Method() string {
   return "Downloads.Retry"
 }
 
-func (r *DownloadsRetryType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error)) {
+func (r *DownloadsRetryType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error)) {
   router.Register("Downloads.Retry", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsRetryParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1586,6 +1938,12 @@ func (r *DownloadsRetryType) Register(router *butlerd.Router, f func(*butlerd.Re
   })
 }
 
+func (r *DownloadsRetryType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error) {
+  var result butlerd.DownloadsRetryResult
+  err := rc.Call("Downloads.Retry", params, &result)
+  return &result, err
+}
+
 var DownloadsRetry *DownloadsRetryType
 
 // Downloads.Discard (Request)
@@ -1598,7 +1956,7 @@ func (r *DownloadsDiscardType) Method() string {
   return "Downloads.Discard"
 }
 
-func (r *DownloadsDiscardType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error)) {
+func (r *DownloadsDiscardType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error)) {
   router.Register("Downloads.Discard", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.DownloadsDiscardParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1614,6 +1972,12 @@ func (r *DownloadsDiscardType) Register(router *butlerd.Router, f func(*butlerd.
     }
     return res, nil
   })
+}
+
+func (r *DownloadsDiscardType) TestCall(rc *butlerd.RequestContext, params *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {
+  var result butlerd.DownloadsDiscardResult
+  err := rc.Call("Downloads.Discard", params, &result)
+  return &result, err
 }
 
 var DownloadsDiscard *DownloadsDiscardType
@@ -1633,7 +1997,7 @@ func (r *CheckUpdateType) Method() string {
   return "CheckUpdate"
 }
 
-func (r *CheckUpdateType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error)) {
+func (r *CheckUpdateType) Register(router router, f func(*butlerd.RequestContext, *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error)) {
   router.Register("CheckUpdate", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.CheckUpdateParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1649,6 +2013,12 @@ func (r *CheckUpdateType) Register(router *butlerd.Router, f func(*butlerd.Reque
     }
     return res, nil
   })
+}
+
+func (r *CheckUpdateType) TestCall(rc *butlerd.RequestContext, params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
+  var result butlerd.CheckUpdateResult
+  err := rc.Call("CheckUpdate", params, &result)
+  return &result, err
 }
 
 var CheckUpdate *CheckUpdateType
@@ -1684,7 +2054,7 @@ func (r *LaunchType) Method() string {
   return "Launch"
 }
 
-func (r *LaunchType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.LaunchParams) (*butlerd.LaunchResult, error)) {
+func (r *LaunchType) Register(router router, f func(*butlerd.RequestContext, *butlerd.LaunchParams) (*butlerd.LaunchResult, error)) {
   router.Register("Launch", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.LaunchParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1702,6 +2072,12 @@ func (r *LaunchType) Register(router *butlerd.Router, f func(*butlerd.RequestCon
   })
 }
 
+func (r *LaunchType) TestCall(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
+  var result butlerd.LaunchResult
+  err := rc.Call("Launch", params, &result)
+  return &result, err
+}
+
 var Launch *LaunchType
 
 // Launch.Cancel (Request)
@@ -1714,7 +2090,7 @@ func (r *LaunchCancelType) Method() string {
   return "Launch.Cancel"
 }
 
-func (r *LaunchCancelType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error)) {
+func (r *LaunchCancelType) Register(router router, f func(*butlerd.RequestContext, *butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error)) {
   router.Register("Launch.Cancel", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.LaunchCancelParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1730,6 +2106,12 @@ func (r *LaunchCancelType) Register(router *butlerd.Router, f func(*butlerd.Requ
     }
     return res, nil
   })
+}
+
+func (r *LaunchCancelType) TestCall(rc *butlerd.RequestContext, params *butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error) {
+  var result butlerd.LaunchCancelResult
+  err := rc.Call("Launch.Cancel", params, &result)
+  return &result, err
 }
 
 var LaunchCancel *LaunchCancelType
@@ -1792,6 +2174,24 @@ func (r *PickManifestActionType) Method() string {
   return "PickManifestAction"
 }
 
+func (r *PickManifestActionType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.PickManifestActionParams) (*butlerd.PickManifestActionResult, error)) {
+  router.Register("PickManifestAction", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PickManifestActionParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for PickManifestAction")
+    }
+    return res, nil
+  })
+}
+
 func (r *PickManifestActionType) Call(rc *butlerd.RequestContext, params *butlerd.PickManifestActionParams) (*butlerd.PickManifestActionResult, error) {
   var result butlerd.PickManifestActionResult
   err := rc.Call("PickManifestAction", params, &result)
@@ -1808,6 +2208,24 @@ var _ RequestMessage = (*ShellLaunchType)(nil)
 
 func (r *ShellLaunchType) Method() string {
   return "ShellLaunch"
+}
+
+func (r *ShellLaunchType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.ShellLaunchParams) (*butlerd.ShellLaunchResult, error)) {
+  router.Register("ShellLaunch", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ShellLaunchParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for ShellLaunch")
+    }
+    return res, nil
+  })
 }
 
 func (r *ShellLaunchType) Call(rc *butlerd.RequestContext, params *butlerd.ShellLaunchParams) (*butlerd.ShellLaunchResult, error) {
@@ -1828,6 +2246,24 @@ func (r *HTMLLaunchType) Method() string {
   return "HTMLLaunch"
 }
 
+func (r *HTMLLaunchType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error)) {
+  router.Register("HTMLLaunch", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.HTMLLaunchParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for HTMLLaunch")
+    }
+    return res, nil
+  })
+}
+
 func (r *HTMLLaunchType) Call(rc *butlerd.RequestContext, params *butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
   var result butlerd.HTMLLaunchResult
   err := rc.Call("HTMLLaunch", params, &result)
@@ -1846,6 +2282,24 @@ func (r *URLLaunchType) Method() string {
   return "URLLaunch"
 }
 
+func (r *URLLaunchType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.URLLaunchParams) (*butlerd.URLLaunchResult, error)) {
+  router.Register("URLLaunch", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.URLLaunchParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for URLLaunch")
+    }
+    return res, nil
+  })
+}
+
 func (r *URLLaunchType) Call(rc *butlerd.RequestContext, params *butlerd.URLLaunchParams) (*butlerd.URLLaunchResult, error) {
   var result butlerd.URLLaunchResult
   err := rc.Call("URLLaunch", params, &result)
@@ -1862,6 +2316,24 @@ var _ RequestMessage = (*AllowSandboxSetupType)(nil)
 
 func (r *AllowSandboxSetupType) Method() string {
   return "AllowSandboxSetup"
+}
+
+func (r *AllowSandboxSetupType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.AllowSandboxSetupParams) (*butlerd.AllowSandboxSetupResult, error)) {
+  router.Register("AllowSandboxSetup", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.AllowSandboxSetupParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for AllowSandboxSetup")
+    }
+    return res, nil
+  })
 }
 
 func (r *AllowSandboxSetupType) Call(rc *butlerd.RequestContext, params *butlerd.AllowSandboxSetupParams) (*butlerd.AllowSandboxSetupResult, error) {
@@ -1930,6 +2402,24 @@ func (r *PrereqsFailedType) Method() string {
   return "PrereqsFailed"
 }
 
+func (r *PrereqsFailedType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.PrereqsFailedParams) (*butlerd.PrereqsFailedResult, error)) {
+  router.Register("PrereqsFailed", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PrereqsFailedParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for PrereqsFailed")
+    }
+    return res, nil
+  })
+}
+
 func (r *PrereqsFailedType) Call(rc *butlerd.RequestContext, params *butlerd.PrereqsFailedParams) (*butlerd.PrereqsFailedResult, error) {
   var result butlerd.PrereqsFailedResult
   err := rc.Call("PrereqsFailed", params, &result)
@@ -1953,7 +2443,7 @@ func (r *CleanDownloadsSearchType) Method() string {
   return "CleanDownloads.Search"
 }
 
-func (r *CleanDownloadsSearchType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error)) {
+func (r *CleanDownloadsSearchType) Register(router router, f func(*butlerd.RequestContext, *butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error)) {
   router.Register("CleanDownloads.Search", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.CleanDownloadsSearchParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1971,6 +2461,12 @@ func (r *CleanDownloadsSearchType) Register(router *butlerd.Router, f func(*butl
   })
 }
 
+func (r *CleanDownloadsSearchType) TestCall(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error) {
+  var result butlerd.CleanDownloadsSearchResult
+  err := rc.Call("CleanDownloads.Search", params, &result)
+  return &result, err
+}
+
 var CleanDownloadsSearch *CleanDownloadsSearchType
 
 // CleanDownloads.Apply (Request)
@@ -1983,7 +2479,7 @@ func (r *CleanDownloadsApplyType) Method() string {
   return "CleanDownloads.Apply"
 }
 
-func (r *CleanDownloadsApplyType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error)) {
+func (r *CleanDownloadsApplyType) Register(router router, f func(*butlerd.RequestContext, *butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error)) {
   router.Register("CleanDownloads.Apply", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.CleanDownloadsApplyParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -1999,6 +2495,12 @@ func (r *CleanDownloadsApplyType) Register(router *butlerd.Router, f func(*butle
     }
     return res, nil
   })
+}
+
+func (r *CleanDownloadsApplyType) TestCall(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error) {
+  var result butlerd.CleanDownloadsApplyResult
+  err := rc.Call("CleanDownloads.Apply", params, &result)
+  return &result, err
 }
 
 var CleanDownloadsApply *CleanDownloadsApplyType
@@ -2018,7 +2520,7 @@ func (r *SystemStatFSType) Method() string {
   return "System.StatFS"
 }
 
-func (r *SystemStatFSType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error)) {
+func (r *SystemStatFSType) Register(router router, f func(*butlerd.RequestContext, *butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error)) {
   router.Register("System.StatFS", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.SystemStatFSParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -2034,6 +2536,12 @@ func (r *SystemStatFSType) Register(router *butlerd.Router, f func(*butlerd.Requ
     }
     return res, nil
   })
+}
+
+func (r *SystemStatFSType) TestCall(rc *butlerd.RequestContext, params *butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error) {
+  var result butlerd.SystemStatFSResult
+  err := rc.Call("System.StatFS", params, &result)
+  return &result, err
 }
 
 var SystemStatFS *SystemStatFSType
@@ -2053,7 +2561,7 @@ func (r *TestDoubleTwiceType) Method() string {
   return "Test.DoubleTwice"
 }
 
-func (r *TestDoubleTwiceType) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error)) {
+func (r *TestDoubleTwiceType) Register(router router, f func(*butlerd.RequestContext, *butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error)) {
   router.Register("Test.DoubleTwice", func (rc *butlerd.RequestContext) (interface{}, error) {
     var params butlerd.TestDoubleTwiceParams
     err := json.Unmarshal(*rc.Params, &params)
@@ -2071,6 +2579,12 @@ func (r *TestDoubleTwiceType) Register(router *butlerd.Router, f func(*butlerd.R
   })
 }
 
+func (r *TestDoubleTwiceType) TestCall(rc *butlerd.RequestContext, params *butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error) {
+  var result butlerd.TestDoubleTwiceResult
+  err := rc.Call("Test.DoubleTwice", params, &result)
+  return &result, err
+}
+
 var TestDoubleTwice *TestDoubleTwiceType
 
 // Test.Double (Request)
@@ -2081,6 +2595,24 @@ var _ RequestMessage = (*TestDoubleType)(nil)
 
 func (r *TestDoubleType) Method() string {
   return "Test.Double"
+}
+
+func (r *TestDoubleType) TestRegister(router router, f func(*butlerd.RequestContext, *butlerd.TestDoubleParams) (*butlerd.TestDoubleResult, error)) {
+  router.Register("Test.Double", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.TestDoubleParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Test.Double")
+    }
+    return res, nil
+  })
 }
 
 func (r *TestDoubleType) Call(rc *butlerd.RequestContext, params *butlerd.TestDoubleParams) (*butlerd.TestDoubleResult, error) {

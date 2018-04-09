@@ -23,6 +23,11 @@ func (bc *GenerousContext) GenerateGoCode() error {
 	doc.Line(")")
 	doc.Line("")
 
+	doc.Line("type router interface {")
+	doc.Line("  Register(method string, hf butlerd.RequestHandler)")
+	doc.Line("}")
+	doc.Line("")
+
 	scope := newScope(bc)
 	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
 
@@ -59,10 +64,13 @@ func (bc *GenerousContext) GenerateGoCode() error {
 				doc.Line("  return %#v", method)
 				doc.Line("}")
 
-				switch entry.caller {
-				case CallerClient:
+				{
+					helperPrefix := ""
+					if entry.caller == CallerServer {
+						helperPrefix = "Test"
+					}
 					doc.Line("")
-					doc.Line("func (r *%s) Register(router *butlerd.Router, f func(*butlerd.RequestContext, *%s) (*%s, error)) {", typeName, paramsTypeName, resultTypeName)
+					doc.Line("func (r *%s) %sRegister(router router, f func(*butlerd.RequestContext, *%s) (*%s, error)) {", typeName, helperPrefix, paramsTypeName, resultTypeName)
 					doc.Line("  router.Register(%#v, func (rc *butlerd.RequestContext) (interface{}, error) {", method)
 					doc.Line("    var params %s", paramsTypeName)
 					doc.Line("    err := json.Unmarshal(*rc.Params, &params)")
@@ -79,14 +87,21 @@ func (bc *GenerousContext) GenerateGoCode() error {
 					doc.Line("    return res, nil")
 					doc.Line("  })")
 					doc.Line("}")
-				case CallerServer:
+				}
+
+				{
+					helperPrefix := ""
+					if entry.caller == CallerClient {
+						helperPrefix = "Test"
+					}
 					doc.Line("")
-					doc.Line("func (r *%s) Call(rc *butlerd.RequestContext, params *%s) (*%s, error) {", typeName, paramsTypeName, resultTypeName)
+					doc.Line("func (r *%s) %sCall(rc *butlerd.RequestContext, params *%s) (*%s, error) {", typeName, helperPrefix, paramsTypeName, resultTypeName)
 					doc.Line("  var result %s", resultTypeName)
 					doc.Line("  err := rc.Call(%#v, params, &result)", method)
 					doc.Line("  return &result, err")
 					doc.Line("}")
 				}
+
 				doc.Line("")
 				doc.Line("var %s *%s", varName, typeName)
 				doc.Line("")
