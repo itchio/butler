@@ -1,4 +1,5 @@
 /butler
+/tmp
 *.exe
 *.pwr*
 .DS_Store

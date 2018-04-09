@@ -1,11 +1,8 @@
 package daemon
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/endpoints/cleandownloads"
 	"github.com/itchio/butler/endpoints/downloads"
 	"github.com/itchio/butler/endpoints/fetch"
@@ -23,25 +20,12 @@ import (
 
 var mainRouter *butlerd.Router
 
-func getRouter(mansionContext *mansion.Context) *butlerd.Router {
+func getRouter(db *gorm.DB, mansionContext *mansion.Context) *butlerd.Router {
 	if mainRouter != nil {
 		return mainRouter
 	}
 
-	getDB := func() (*gorm.DB, error) {
-		dbPath := mansionContext.DBPath
-		if dbPath == "" {
-			return nil, errors.New("sqlite database path not set (use --dbpath)")
-		}
-
-		db, err := database.Open(dbPath)
-		if err != nil {
-			return nil, err
-		}
-		return db, nil
-	}
-
-	mainRouter = butlerd.NewRouter(mansionContext, getDB)
+	mainRouter = butlerd.NewRouter(db, mansionContext)
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
 	update.Register(mainRouter)

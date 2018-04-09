@@ -4,36 +4,51 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
 type handler struct {
-	secret   string
-	handlers map[string]butlerd.RequestHandler
+	secret               string
+	handlers             map[string]butlerd.RequestHandler
+	notificationHandlers map[string]butlerd.NotificationHandler
+	consumer             *state.Consumer
 }
 
 var _ jsonrpc2.Handler = (*handler)(nil)
 
-func newHandler(secret string) *handler {
+func newHandler(secret string, consumer *state.Consumer) *handler {
 	return &handler{
-		secret:   secret,
-		handlers: make(map[string]butlerd.RequestHandler),
+		secret:               secret,
+		handlers:             make(map[string]butlerd.RequestHandler),
+		notificationHandlers: make(map[string]butlerd.NotificationHandler),
+		consumer:             consumer,
 	}
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	if rh, ok := h.handlers[req.Method]; ok {
-		rc := &butlerd.RequestContext{
-			Ctx:    ctx,
-			Conn:   &butlerd.JsonRPC2Conn{Conn: conn},
-			Params: req.Params,
+	rc := &butlerd.RequestContext{
+		Ctx:      ctx,
+		Conn:     &butlerd.JsonRPC2Conn{Conn: conn},
+		Params:   req.Params,
+		Consumer: h.consumer,
+	}
+
+	if req.Notif {
+		if nh, ok := h.notificationHandlers[req.Method]; ok {
+			nh(rc)
 		}
+		return
+	}
+
+	if rh, ok := h.handlers[req.Method]; ok {
 		res, err := rh(rc)
 		if err != nil {
 			gmust(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
@@ -56,12 +71,24 @@ func (h *handler) Register(method string, rh butlerd.RequestHandler) {
 	h.handlers[method] = rh
 }
 
-func connect(t *testing.T) *butlerd.RequestContext {
+func (h *handler) RegisterNotification(method string, nh butlerd.NotificationHandler) {
+	log.Printf("registering notification handler for %s", method)
+	h.notificationHandlers[method] = nh
+}
+
+func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFunc) {
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	gmust(err)
 
-	ctx := context.Background()
-	h := newHandler(secret)
+	consumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) {
+			t.Logf("[%s] %s", lvl, msg)
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	h := newHandler(secret, consumer)
 
 	messages.Handshake.TestRegister(h, func(rc *butlerd.RequestContext, params *butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
 		return &butlerd.HandshakeResult{
@@ -69,11 +96,22 @@ func connect(t *testing.T) *butlerd.RequestContext {
 		}, nil
 	})
 
-	ah := jsonrpc2.AsyncHandler(h)
+	messages.Log.Register(h, func(rc *butlerd.RequestContext, params *butlerd.LogNotification) {
+		if consumer != nil && consumer.OnMessage != nil {
+			consumer.OnMessage(string(params.Level), params.Message)
+		}
+	})
 
-	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), ah)
+	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), h)
+	go func() {
+		<-ctx.Done()
+		<-time.After(1 * time.Second)
+		jc.Close()
+	}()
+
 	return &butlerd.RequestContext{
-		Conn: &butlerd.JsonRPC2Conn{Conn: jc},
-		Ctx:  ctx,
-	}
+		Conn:     &butlerd.JsonRPC2Conn{Conn: jc},
+		Ctx:      ctx,
+		Consumer: consumer,
+	}, h, cancel
 }

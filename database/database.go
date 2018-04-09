@@ -2,6 +2,9 @@ package database
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +26,16 @@ func Open(dbPath string) (*gorm.DB, error) {
 		return nil, errors.Wrap(err, "creating db directory")
 	}
 
-	db, err := gorm.Open("sqlite3", dbPath+"?_busy_timeout=5000")
+	dbURL, err := url.Parse(dbPath)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	values := dbURL.Query()
+	values.Add("_busy_timeout", "5000")
+	dbURL.RawQuery = values.Encode()
+
+	db, err := gorm.Open("sqlite3", dbURL.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "opening SQLite database")
 	}
@@ -35,8 +47,10 @@ func Open(dbPath string) (*gorm.DB, error) {
 	// disable default gorm timestamp behavior, since our
 	// "created_at/updated_at" fields typically come from
 	// the API.
+	log.SetOutput(ioutil.Discard)
 	db.Callback().Create().Remove("gorm:update_time_stamp")
 	db.Callback().Update().Remove("gorm:update_time_stamp")
+	log.SetOutput(os.Stdout)
 
 	return db, nil
 }

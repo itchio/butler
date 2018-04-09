@@ -12,10 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/itchio/butler/butlerd/messages"
-
+	"github.com/onsi/gocleanup"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 var secret = strings.Repeat("dummy", 58)
@@ -47,7 +45,7 @@ func TestMain(m *testing.M) {
 	defer cancel()
 	cancelButler = cancel
 
-	bExec := exec.CommandContext(ctx2, *butlerPath, "daemon", "-j", "--dbpath", ":memory:")
+	bExec := exec.CommandContext(ctx2, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared")
 	stdin, err := bExec.StdinPipe()
 	gmust(err)
 
@@ -92,16 +90,7 @@ func TestMain(m *testing.M) {
 	}()
 
 	address = <-addrChan
-	os.Exit(m.Run())
-}
-
-func Test_Version(t *testing.T) {
-	rc := connect(t)
-
-	vgr, err := messages.VersionGet.TestCall(rc, nil)
-	must(t, err)
-
-	assert.EqualValues(t, vgr.Version, "head")
+	gocleanup.Exit(m.Run())
 }
 
 func must(t *testing.T, err error) {
@@ -115,6 +104,7 @@ func must(t *testing.T, err error) {
 func gmust(err error) {
 	if err != nil {
 		cancelButler()
-		log.Fatalf("%+v", errors.WithStack(err))
+		log.Printf("%+v", errors.WithStack(err))
+		gocleanup.Exit(1)
 	}
 }

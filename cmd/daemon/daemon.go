@@ -10,6 +10,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
+	"github.com/jinzhu/gorm"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"
@@ -30,20 +31,8 @@ func do(ctx *mansion.Context) {
 		os.Exit(1)
 	}
 
-	if ctx.DBPath != "" {
-		db, err := database.Open(ctx.DBPath)
-		if err != nil {
-			ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
-		}
-
-		err = database.Prepare(db)
-		if err != nil {
-			ctx.Must(errors.WithMessage(err, "preparing DB"))
-		}
-
-		if db != nil {
-			db.Close()
-		}
+	if ctx.DBPath == "" {
+		comm.Dief("butlerd: dbPath must be set")
 	}
 
 	comm.Object("butlerd/secret-request", map[string]interface{}{
@@ -93,7 +82,17 @@ func do(ctx *mansion.Context) {
 		comm.Dief("butlerd: Secret too short (must be %d chars, received %d chars) or more", minSecretLength, len(secret))
 	}
 
-	ctx.Must(Do(ctx, ctx.Context(), secret, func(addr string) {
+	db, err := database.Open(ctx.DBPath)
+	if err != nil {
+		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
+	}
+
+	err = database.Prepare(db)
+	if err != nil {
+		ctx.Must(errors.WithMessage(err, "preparing DB"))
+	}
+
+	ctx.Must(Do(ctx, ctx.Context(), db, secret, func(addr string) {
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
 			"address": addr,
 		})
@@ -115,7 +114,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 type OnListenFunc func(addr string)
 
-func Do(mansionContext *mansion.Context, ctx context.Context, secret string, onListen OnListenFunc) error {
+func Do(mansionContext *mansion.Context, ctx context.Context, db *gorm.DB, secret string, onListen OnListenFunc) error {
 	listenSpec := "127.0.0.1:"
 
 	lis, err := net.Listen("tcp", listenSpec)
@@ -128,7 +127,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, secret string, onL
 
 	h := &handler{
 		ctx:    mansionContext,
-		router: getRouter(mansionContext),
+		router: getRouter(db, mansionContext),
 	}
 	err = s.Serve(ctx, lis, h, comm.NewStateConsumer())
 	if err != nil {
