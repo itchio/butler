@@ -42,6 +42,29 @@ type VersionGetResult struct {
 	VersionString string `json:"versionString"`
 }
 
+// @name Network.SetSimulateOffline
+// @category Utilities
+// @caller client
+type NetworkSetSimulateOfflineParams struct {
+	// If true, all operations after this point will behave
+	// as if there were no network connections
+	Enabled bool `json:"enabled"`
+}
+
+type NetworkSetSimulateOfflineResult struct{}
+
+// @name Network.SetBandwidthThrottle
+// @category Utilities
+// @caller client
+type NetworkSetBandwidthThrottleParams struct {
+	// If true, will limit. If false, will clear any bandwidth throttles in place
+	Enabled bool `json:"enabled"`
+	// The target bandwidth, in kbps
+	Rate int64 `json:"rate"`
+}
+
+type NetworkSetBandwidthThrottleResult struct{}
+
 //----------------------------------------------------------------------
 // Profile
 //----------------------------------------------------------------------

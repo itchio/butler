@@ -71,7 +71,7 @@ func TestMain(m *testing.M) {
 		gmust(s.ListenAndServe())
 	}()
 
-	bExec := exec.CommandContext(ctx, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared", "--address", "http://localhost:8181", "--throttle", "8192")
+	bExec := exec.CommandContext(ctx, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared", "--address", "http://localhost:8181", "--throttle", "16384")
 	stdin, err := bExec.StdinPipe()
 	gmust(err)
 

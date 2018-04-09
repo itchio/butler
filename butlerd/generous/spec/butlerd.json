@@ -46,6 +46,45 @@
       }
     },
     {
+      "method": "Network.SetSimulateOffline",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "enabled",
+            "doc": "If true, all operations after this point will behave\nas if there were no network connections",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Network.SetBandwidthThrottle",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "enabled",
+            "doc": "",
+            "type": "boolean"
+          },
+          {
+            "name": "rate",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Profile.List",
       "doc": "Lists remembered profiles",
       "caller": "client",
@@ -2046,11 +2085,6 @@
       "name": "GameCredentials",
       "doc": "GameCredentials contains all the credentials required to make API requests\nincluding the download key if any.",
       "fields": [
-        {
-          "name": "server",
-          "doc": "Defaults to `https://itch.io`",
-          "type": "string"
-        },
         {
           "name": "apiKey",
           "doc": "A valid itch.io API key",

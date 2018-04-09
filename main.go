@@ -63,7 +63,8 @@ var appArgs = struct {
 	memstats   *bool
 	elevate    *bool
 
-	throttle *int64
+	throttle        *int64
+	simulateOffline *bool
 }{
 	app.Flag("json", "Enable machine-readable JSON-lines output").Hidden().Short('j').Bool(),
 	app.Flag("quiet", "Hide progress indicators & other extra info").Hidden().Bool(),
@@ -87,6 +88,7 @@ var appArgs = struct {
 	app.Flag("elevate", "Run butler as administrator").Hidden().Bool(),
 
 	app.Flag("throttle", "Use less than 'throttle' Kbps (kilobits per second) of bandwidth").Hidden().Default("-1").Int64(),
+	app.Flag("simulateOffline", "Simulate offline").Hidden().Default("false").Bool(),
 }
 
 var scriptArgs = struct {
@@ -219,6 +221,10 @@ func doMain(args []string) {
 		bwKiloBytes := throttle / 8 * 1024
 		comm.Logf("Throttling to %s/s bandwidth", humanize.IBytes(uint64(bwKiloBytes)))
 		timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(throttle) * iothrottler.Kbps)
+	}
+
+	if *appArgs.simulateOffline {
+		timeout.SetSimulateOffline(true)
 	}
 
 	fullCmd := kingpin.MustParse(cmd, err)

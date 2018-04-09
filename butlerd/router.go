@@ -143,7 +143,10 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 
 				res, err = h(rc)
 			} else {
-				err = StandardRpcError(jsonrpc2.CodeMethodNotFound)
+				err = &RpcError{
+					Code:    jsonrpc2.CodeMethodNotFound,
+					Message: fmt.Sprintf("Method '%s' not found", req.Method),
+				}
 			}
 		}
 		return

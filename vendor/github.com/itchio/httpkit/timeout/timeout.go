@@ -23,8 +23,22 @@ func init() {
 	ThrottlerPool = iothrottler.NewIOThrottlerPool(iothrottler.Unlimited)
 }
 
+var simulateOffline bool = false
+var conns = make(map[net.Conn]bool)
+
+func SetSimulateOffline(enabled bool) {
+	simulateOffline = enabled
+}
+
 func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (net.Conn, error) {
 	return func(netw, addr string) (net.Conn, error) {
+		if simulateOffline {
+			return nil, &net.OpError{
+				Op:  "dial",
+				Err: errors.New("simulated offline"),
+			}
+		}
+
 		// if it takes too long to establish a connection, give up
 		timeoutConn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {

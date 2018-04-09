@@ -136,10 +136,6 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 	client := rc.ClientFromCredentials(params.Credentials)
 
-	consumer.Infof("→ Preparing install for %s", GameToString(params.Game))
-	consumer.Infof("  (%s) is our destination", params.InstallFolder)
-	consumer.Infof("  (%s) is our stage", oc.StageFolder())
-
 	res := &InstallPrepareResult{}
 
 	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
@@ -330,6 +326,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		Data: istate,
 	}
 	oc.Load(isub)
+
+	consumer.Infof("→ Performing install for %s", GameToString(params.Game))
+	consumer.Infof("    to (%s)", params.InstallFolder)
+	consumer.Infof("    via (%s)", oc.StageFolder())
 
 	return InstallPrepare(oc, meta, isub, true, func(prepareRes *InstallPrepareResult) error {
 		if prepareRes.Strategy == InstallPerformStrategyHeal {

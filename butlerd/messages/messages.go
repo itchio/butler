@@ -270,6 +270,78 @@ func (r *VersionGetType) TestCall(rc *butlerd.RequestContext, params *butlerd.Ve
 
 var VersionGet *VersionGetType
 
+// Network.SetSimulateOffline (Request)
+
+type NetworkSetSimulateOfflineType struct {}
+
+var _ RequestMessage = (*NetworkSetSimulateOfflineType)(nil)
+
+func (r *NetworkSetSimulateOfflineType) Method() string {
+  return "Network.SetSimulateOffline"
+}
+
+func (r *NetworkSetSimulateOfflineType) Register(router router, f func(*butlerd.RequestContext, *butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error)) {
+  router.Register("Network.SetSimulateOffline", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.NetworkSetSimulateOfflineParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Network.SetSimulateOffline")
+    }
+    return res, nil
+  })
+}
+
+func (r *NetworkSetSimulateOfflineType) TestCall(rc *butlerd.RequestContext, params *butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
+  var result butlerd.NetworkSetSimulateOfflineResult
+  err := rc.Call("Network.SetSimulateOffline", params, &result)
+  return &result, err
+}
+
+var NetworkSetSimulateOffline *NetworkSetSimulateOfflineType
+
+// Network.SetBandwidthThrottle (Request)
+
+type NetworkSetBandwidthThrottleType struct {}
+
+var _ RequestMessage = (*NetworkSetBandwidthThrottleType)(nil)
+
+func (r *NetworkSetBandwidthThrottleType) Method() string {
+  return "Network.SetBandwidthThrottle"
+}
+
+func (r *NetworkSetBandwidthThrottleType) Register(router router, f func(*butlerd.RequestContext, *butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error)) {
+  router.Register("Network.SetBandwidthThrottle", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.NetworkSetBandwidthThrottleParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Network.SetBandwidthThrottle")
+    }
+    return res, nil
+  })
+}
+
+func (r *NetworkSetBandwidthThrottleType) TestCall(rc *butlerd.RequestContext, params *butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
+  var result butlerd.NetworkSetBandwidthThrottleResult
+  err := rc.Call("Network.SetBandwidthThrottle", params, &result)
+  return &result, err
+}
+
+var NetworkSetBandwidthThrottle *NetworkSetBandwidthThrottleType
+
 
 //==============================
 // Profile
@@ -2915,6 +2987,8 @@ var TestDouble *TestDoubleType
 
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
+  if _, ok := router.Handlers["Network.SetSimulateOffline"]; !ok { panic("missing request handler for (Network.SetSimulateOffline)") }
+  if _, ok := router.Handlers["Network.SetBandwidthThrottle"]; !ok { panic("missing request handler for (Network.SetBandwidthThrottle)") }
   if _, ok := router.Handlers["Profile.List"]; !ok { panic("missing request handler for (Profile.List)") }
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
   if _, ok := router.Handlers["Profile.LoginWithAPIKey"]; !ok { panic("missing request handler for (Profile.LoginWithAPIKey)") }

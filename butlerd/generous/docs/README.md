@@ -296,6 +296,91 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </p>
 </div>
 
+### <em class="request-client-caller"></em>Network.SetSimulateOffline
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>enabled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>If true, all operations after this point will behave
+as if there were no network connections</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="NetworkSetSimulateOfflineParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Network.SetSimulateOffline <a href="#/?id=networksetsimulateoffline">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>enabled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Network.SetBandwidthThrottle
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>enabled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="NetworkSetBandwidthThrottleParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Network.SetBandwidthThrottle <a href="#/?id=networksetbandwidththrottle">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>enabled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Profile
 
@@ -5464,12 +5549,6 @@ including the download key if any.</p>
 
 <table class="field-table">
 <tr>
-<td><code>server</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Defaults to <code>https://itch.io</code></p>
-</td>
-</tr>
-<tr>
 <td><code>apiKey</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p>A valid itch.io API key</p>
@@ -5494,10 +5573,6 @@ including the download key if any.</p>
 </p>
 
 <table class="field-table">
-<tr>
-<td><code>server</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
 <tr>
 <td><code>apiKey</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>

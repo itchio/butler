@@ -5,6 +5,8 @@ import (
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/savior/seeksource"
@@ -24,6 +26,14 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	if params.Build == nil {
 		return errors.New("heal: missing build")
 	}
+
+	messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+		Reason: butlerd.TaskReasonInstall,
+		Type:   butlerd.TaskTypeHeal,
+		Game:   params.Game,
+		Upload: params.Upload,
+		Build:  params.Build,
+	})
 
 	signatureURL := sourceURL(consumer, istate, params, "signature")
 	archiveURL := sourceURL(consumer, istate, params, "archive")

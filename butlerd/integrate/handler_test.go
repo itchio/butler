@@ -62,7 +62,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 	gmust(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,
-		Message: "Method not found",
+		Message: fmt.Sprintf("Method '%s' not found", req.Method),
 	}))
 }
 
