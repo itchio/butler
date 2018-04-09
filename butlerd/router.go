@@ -282,8 +282,6 @@ func (rc *RequestContext) StartProgressWithTotalBytes(totalBytes int64) {
 }
 
 func (rc *RequestContext) StartProgressWithInitialAndTotal(initialProgress float64, totalBytes int64) {
-	rc.Consumer.Infof("Starting progress (initial %.2f, totalBytes %d)", initialProgress, totalBytes)
-
 	if rc.counter != nil {
 		rc.Consumer.Warnf("Asked to start progress but already tracking progress!")
 		return

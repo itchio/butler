@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -127,6 +128,8 @@ func main() {
 }
 
 func doMain(args []string) {
+	rand.Seed(time.Now().UnixNano())
+
 	ctx := mansion.NewContext(app)
 	registerCommands(ctx)
 

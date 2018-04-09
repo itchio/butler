@@ -83,6 +83,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/dustinkirkland/golang-petname",
+			"repository": "https://github.com/dustinkirkland/golang-petname",
+			"vcs": "git",
+			"revision": "d3c2ba80e75eeef10c5cf2fc76d2c809637376b3",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/efarrer/iothrottler",
 			"repository": "https://github.com/efarrer/iothrottler",
 			"vcs": "git",

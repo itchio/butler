@@ -69,6 +69,10 @@ func Test_Install(t *testing.T) {
 			StagingFolder: queueRes.StagingFolder,
 		})
 		must(t, err)
+
+		messages.Launch.TestCall(rc, &butlerd.LaunchParams{
+			CaveID: queueRes.CaveID,
+		})
 	}
 
 	{

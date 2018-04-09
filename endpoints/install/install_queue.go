@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -24,23 +26,22 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	var cave *models.Cave
 	var installLocation *models.InstallLocation
 
-	freshInstallID, err := uuid.NewV4()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	id := freshInstallID.String()
-
 	reason := queueParams.Reason
 	if reason == "" {
 		reason = butlerd.DownloadReasonInstall
 	}
 
+	var id string
 	if queueParams.NoCave {
 		if queueParams.StagingFolder == "" {
 			return nil, errors.New("With noCave, installFolder must be specified")
 		}
 		stagingFolder = queueParams.StagingFolder
+		uu, err := uuid.NewV4()
+		if err != nil {
+			panic(err)
+		}
+		id = uu.String()
 	} else {
 		if queueParams.CaveID == "" {
 			if queueParams.InstallLocationID == "" {
@@ -65,6 +66,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			installLocation = cave.GetInstallLocation(rc.DB())
 		}
 
+		id = generateDownloadID(installLocation.Path)
 		stagingFolder = installLocation.GetStagingFolder(id)
 	}
 
@@ -319,4 +321,25 @@ func ensureUniqueFolderName(db *gorm.DB, cave *models.Cave) {
 	cave.InstallFolderName = base
 	err := errors.Errorf("Could not ensure unique install folder starting with (%s)", cave.GetInstallFolder(db))
 	panic(err)
+}
+
+func generateDownloadID(basePath string) string {
+	for tries := 100; tries > 0; tries-- {
+		id := petname.Generate(3, "-")
+		_, err := os.Stat(filepath.Join(basePath, id))
+		if err != nil && os.IsNotExist(err) {
+			return id
+		}
+	}
+
+	uu, err := uuid.NewV4()
+	if err != nil {
+		// i know watcha thinking - ooh, ah, don't panic!
+		// well, if we reach here, we don't have a good enough random
+		// source to generate an UUID, and we've also tried a hundred
+		// combination of cute animal names, so I don't know what to
+		// tell you. butlerd handlers catch panics anyway!
+		panic(err)
+	}
+	return uu.String()
 }
