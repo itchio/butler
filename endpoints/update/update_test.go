@@ -38,7 +38,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		ctx := context.Background()
 		conn := loopbackconn.New(consumer)
 
-		db, err := database.Open(":memory:")
+		db, err := database.Open("file::memory:?cache=shared")
 		wtest.Must(t, err)
 
 		err = database.Prepare(db)
