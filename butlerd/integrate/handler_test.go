@@ -75,12 +75,16 @@ func (h *handler) RegisterNotification(method string, nh butlerd.NotificationHan
 }
 
 func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFunc) {
+	return connectEx(t.Logf)
+}
+
+func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestContext, *handler, context.CancelFunc) {
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	gmust(err)
 
 	consumer := &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
-			t.Logf("[%s] %s", lvl, msg)
+			logf("[%s] %s", lvl, msg)
 		},
 	}
 

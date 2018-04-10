@@ -348,12 +348,14 @@ as if there were no network connections</p>
 <tr>
 <td><code>enabled</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p>If true, will limit. If false, will clear any bandwidth throttles in place</p>
+</td>
 </tr>
 <tr>
 <td><code>rate</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p>The target bandwidth, in kbps</p>
+</td>
 </tr>
 </table>
 
@@ -5763,6 +5765,84 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type struct-type">Download</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="notification"></em>Downloads.Drive.NetworkStatus
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> to inform on network
+status changes.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>status</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#NetworkStatus__TypeHint">NetworkStatus</span></code></td>
+<td><p>The current network status</p>
+</td>
+</tr>
+</table>
+
+
+<div id="DownloadsDriveNetworkStatusNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>Downloads.Drive.NetworkStatus <a href="#/?id=downloadsdrivenetworkstatus">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code> to inform on network
+status changes.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>status</code></td>
+<td><code class="typename"><span class="type enum-type">NetworkStatus</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>NetworkStatus
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"online"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"offline"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="NetworkStatus__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>NetworkStatus <a href="#/?id=networkstatus">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"online"</code></td>
+</tr>
+<tr>
+<td><code>"offline"</code></td>
 </tr>
 </table>
 

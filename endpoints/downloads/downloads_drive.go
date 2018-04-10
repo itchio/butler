@@ -3,7 +3,11 @@ package downloads
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"time"
+
+	"github.com/itchio/httpkit/timeout"
 
 	"github.com/itchio/httpkit/neterr"
 
@@ -20,6 +24,12 @@ import (
 
 var downloadsDriveCancelID = "Downloads.Drive"
 
+const pingURL = "https://itch.io/static/ping.txt"
+
+type Status struct {
+	Online bool
+}
+
 func DownloadsDrive(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
 	consumer := rc.Consumer
 	consumer.Infof("Now driving downloads...")
@@ -29,6 +39,10 @@ func DownloadsDrive(rc *butlerd.RequestContext, params *butlerd.DownloadsDrivePa
 
 	rc.CancelFuncs.Add(downloadsDriveCancelID, cancelFunc)
 	defer rc.CancelFuncs.Remove(downloadsDriveCancelID)
+
+	status := &Status{
+		Online: true,
+	}
 
 poll:
 	for {
@@ -42,12 +56,19 @@ poll:
 
 		err := cleanDiscarded(rc)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			consumer.Warnf("%+v", errors.WithMessage(err, "while cleaning discarded:"))
 		}
 
 		err = performOne(ctx, rc)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			if err == butlerd.CodeNetworkDisconnected {
+				err = waitForInternet(rc, status)
+				if err != nil {
+					consumer.Warnf("%+v", errors.WithMessage(err, "while waiting for internet:"))
+				}
+			} else {
+				consumer.Warnf("%+v", errors.WithMessage(err, "while performing download:"))
+			}
 		}
 
 		time.Sleep(1 * time.Second)
@@ -55,6 +76,43 @@ poll:
 
 	res := &butlerd.DownloadsDriveResult{}
 	return res, nil
+}
+
+func waitForInternet(rc *butlerd.RequestContext, status *Status) error {
+	consumer := rc.Consumer
+
+	// notify always, but only log once
+	messages.DownloadsDriveNetworkStatus.Notify(rc, &butlerd.DownloadsDriveNetworkStatusNotification{
+		Status: butlerd.NetworkStatusOffline,
+	})
+	if status.Online {
+		status.Online = false
+		consumer.Opf("Looks like we're offline! Waiting for an internet connection...")
+	}
+
+	client := timeout.NewDefaultClient()
+
+	// wait up to 120 rounds (2 minutes if tries take 0s,
+	// which they don't), then give up waiting
+	for i := 0; i < 120; i++ {
+		res, err := client.Get(pingURL)
+		if err != nil {
+			if neterr.IsNetworkError(err) {
+				// keep going...
+			}
+		} else {
+			payload, _ := ioutil.ReadAll(res.Body)
+			consumer.Statf("Looks like we're back online! (%s)", strings.TrimSpace(string(payload)))
+			messages.DownloadsDriveNetworkStatus.Notify(rc, &butlerd.DownloadsDriveNetworkStatusNotification{
+				Status: butlerd.NetworkStatusOnline,
+			})
+			status.Online = true
+			return nil
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 func cleanDiscarded(rc *butlerd.RequestContext) error {
@@ -253,6 +311,9 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 		if be, ok := butlerd.AsButlerdError(err); ok {
 			switch butlerd.Code(be.RpcErrorCode()) {
+			case butlerd.CodeNetworkDisconnected:
+				// propagate so we can wait for the connection to be re-established
+				return butlerd.CodeNetworkDisconnected
 			case butlerd.CodeOperationCancelled:
 				// the whole drive was probably cancelled?
 				return nil
@@ -273,8 +334,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			var code int64
 			var msg string
 			if neterr.IsNetworkError(err) {
-				code = int64(butlerd.CodeNetworkDisconnected)
-				msg = butlerd.CodeNetworkDisconnected.Error()
+				return butlerd.CodeNetworkDisconnected
 			} else {
 				code = int64(jsonrpc2.CodeInternalError)
 				msg = err.Error()
@@ -284,7 +344,6 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		}
 
 		var errString = fmt.Sprintf("%+v", err)
-
 		consumer.Warnf("Download errored: %s", errString)
 		download.Error = &errString
 
@@ -294,7 +353,6 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 		messages.DownloadsDriveErrored.Notify(rc, &butlerd.DownloadsDriveErroredNotification{
 			Download: formatDownload(download),
-			Error:    errString,
 		})
 
 		return nil

@@ -1017,8 +1017,10 @@ type DownloadsDriveStartedNotification struct {
 
 // @name Downloads.Drive.Errored
 type DownloadsDriveErroredNotification struct {
+	// The download that errored. It contains all the error
+	// information: a short message, a full stack trace,
+	// and a butlerd error code.
 	Download *Download `json:"download"`
-	Error    string    `json:"error"`
 }
 
 // @name Downloads.Drive.Finished
@@ -1030,6 +1032,22 @@ type DownloadsDriveFinishedNotification struct {
 type DownloadsDriveDiscardedNotification struct {
 	Download *Download `json:"download"`
 }
+
+// Sent during @@DownloadsDriveParams to inform on network
+// status changes.
+//
+// @name Downloads.Drive.NetworkStatus
+type DownloadsDriveNetworkStatusNotification struct {
+	// The current network status
+	Status NetworkStatus `json:"status"`
+}
+
+type NetworkStatus string
+
+const (
+	NetworkStatusOnline  NetworkStatus = "online"
+	NetworkStatusOffline NetworkStatus = "offline"
+)
 
 type DownloadReason string
 

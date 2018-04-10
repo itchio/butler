@@ -201,6 +201,34 @@ func (r *DownloadsDriveDiscardedType) Register(router router, f func(*butlerd.Re
 
 var DownloadsDriveDiscarded *DownloadsDriveDiscardedType
 
+// Downloads.Drive.NetworkStatus (Notification)
+
+type DownloadsDriveNetworkStatusType struct {}
+
+var _ NotificationMessage = (*DownloadsDriveNetworkStatusType)(nil)
+
+func (r *DownloadsDriveNetworkStatusType) Method() string {
+  return "Downloads.Drive.NetworkStatus"
+}
+
+func (r *DownloadsDriveNetworkStatusType) Notify(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveNetworkStatusNotification) (error) {
+  return rc.Notify("Downloads.Drive.NetworkStatus", params)
+}
+
+func (r *DownloadsDriveNetworkStatusType) Register(router router, f func(*butlerd.RequestContext, *butlerd.DownloadsDriveNetworkStatusNotification)) {
+  router.RegisterNotification("Downloads.Drive.NetworkStatus", func (rc *butlerd.RequestContext) {
+    var params butlerd.DownloadsDriveNetworkStatusNotification
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	// can't even propagate, just return
+    	return
+    }
+    f(rc, &params)
+  })
+}
+
+var DownloadsDriveNetworkStatus *DownloadsDriveNetworkStatusType
+
 // Log (Notification)
 
 type LogType struct {}

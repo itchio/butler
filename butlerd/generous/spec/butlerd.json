@@ -70,12 +70,12 @@
         "fields": [
           {
             "name": "enabled",
-            "doc": "",
+            "doc": "If true, will limit. If false, will clear any bandwidth throttles in place",
             "type": "boolean"
           },
           {
             "name": "rate",
-            "doc": "",
+            "doc": "The target bandwidth, in kbps",
             "type": "number"
           }
         ]
@@ -1517,6 +1517,19 @@
             "name": "download",
             "doc": "",
             "type": "Download"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Downloads.Drive.NetworkStatus",
+      "doc": "Sent during @@DownloadsDriveParams to inform on network\nstatus changes.",
+      "params": {
+        "fields": [
+          {
+            "name": "status",
+            "doc": "The current network status",
+            "type": "NetworkStatus"
           }
         ]
       }

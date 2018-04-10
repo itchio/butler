@@ -31,6 +31,7 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	defer oc.Release()
 
 	meta := NewMetaSubcontext()
 	oc.Load(meta)
@@ -40,12 +41,7 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 		return errors.WithStack(err)
 	}
 
-	rc.Consumer.Infof("Install successful, retiring context")
-
-	err = oc.Retire()
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	oc.Retire()
 
 	return nil
 }

@@ -7,9 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -22,7 +19,6 @@ import (
 var secret = strings.Repeat("dummy", 58)
 var address string
 var cancelButler context.CancelFunc
-var simulateOutage = false
 
 var (
 	butlerPath = flag.String("butlerPath", "", "path to butler binary to test")
@@ -48,30 +44,7 @@ func TestMain(m *testing.M) {
 	defer cancel()
 	cancelButler = cancel
 
-	go func() {
-		upstreamURL, err := url.Parse("https://itch.io")
-		gmust(err)
-		proxy := httputil.NewSingleHostReverseProxy(upstreamURL)
-
-		s := &http.Server{}
-
-		sm := http.NewServeMux()
-		sm.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			if simulateOutage {
-				w.WriteHeader(503)
-				return
-			}
-
-			proxy.ServeHTTP(w, r)
-		})
-
-		s.Addr = "localhost:8181"
-		s.Handler = sm
-
-		gmust(s.ListenAndServe())
-	}()
-
-	bExec := exec.CommandContext(ctx, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared", "--address", "http://localhost:8181", "--throttle", "16384")
+	bExec := exec.CommandContext(ctx, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared")
 	stdin, err := bExec.StdinPipe()
 	gmust(err)
 
@@ -116,6 +89,10 @@ func TestMain(m *testing.M) {
 	}()
 
 	address = <-addrChan
+
+	// keep a main connection going so it doesn't shut down
+	connectEx(log.Printf)
+
 	gocleanup.Exit(m.Run())
 }
 
@@ -133,12 +110,4 @@ func gmust(err error) {
 		log.Printf("%+v", errors.WithStack(err))
 		gocleanup.Exit(1)
 	}
-}
-
-func withOutage(f func()) {
-	simulateOutage = true
-	defer func() {
-		simulateOutage = false
-	}()
-	f()
 }

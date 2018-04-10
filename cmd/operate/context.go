@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -33,6 +34,12 @@ type OperationContext struct {
 	// keep track of what we've loaded so far
 	// loading more than once is not ok
 	loaded map[string]struct{}
+
+	pidFilePath string
+}
+
+type PidFileContents struct {
+	PID int64 `json:"pid"`
 }
 
 func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder string) (*OperationContext, error) {
@@ -40,7 +47,20 @@ func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder st
 
 	err := os.MkdirAll(stageFolder, 0755)
 	if err != nil {
-		parentConsumer.Warnf("Could not create operate directory: %s", err.Error())
+		return nil, errors.WithMessage(err, "creating staging folder")
+	}
+
+	pidFilePath := filepath.Join(stageFolder, "operate-pid.json")
+	pidContents := &PidFileContents{
+		PID: int64(os.Getpid()),
+	}
+	pidBytes, err := json.Marshal(pidContents)
+	if err != nil {
+		return nil, errors.WithMessage(err, "marshalling pid file")
+	}
+	err = ioutil.WriteFile(pidFilePath, pidBytes, 0644)
+	if err != nil {
+		parentConsumer.Warnf("Could not open write pid file: %s", err.Error())
 	}
 
 	logFilePath := filepath.Join(stageFolder, "operate-log.json")
@@ -63,6 +83,8 @@ func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder st
 		rc:          rc,
 		root:        make(map[string]interface{}),
 		loaded:      make(map[string]struct{}),
+
+		pidFilePath: pidFilePath,
 	}
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -145,21 +167,24 @@ func (oc *OperationContext) Save(s Subcontext) error {
 	return nil
 }
 
-func (oc *OperationContext) Retire() error {
-	consumer := oc.Consumer()
-
-	consumer.Infof("Retiring stage folder...")
-	err := oc.logFile.Close()
-	if err != nil {
-		return errors.WithStack(err)
+func (oc *OperationContext) Release() {
+	// defensive programming woo
+	if oc.pidFilePath != "" {
+		os.Remove(oc.pidFilePath)
 	}
 
-	err = wipe.Do(comm.NewStateConsumer(), oc.StageFolder())
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	oc.logFile.Close()
+}
 
-	return nil
+func (oc *OperationContext) Retire() {
+	consumer := oc.rc.Consumer
+	oc.Release()
+	oc.logFile.Close()
+
+	err := wipe.Do(comm.NewStateConsumer(), oc.StageFolder())
+	if err != nil {
+		consumer.Warnf("Could not wipe staging folder: %+v", err)
+	}
 }
 
 func (oc *OperationContext) StageFolder() string {

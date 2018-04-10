@@ -17,115 +17,25 @@ import (
 	itchio "github.com/itchio/go-itchio"
 )
 
-func Test_InstallSmall(t *testing.T) {
-	rc, h, cancel := connect(t)
-	defer cancel()
-
-	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
-
-	{
-		// itch-test-account/111-first
-		game := getGame(t, h, rc, 149766)
-
-		queueRes, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
-			Game:              game,
-			InstallLocationID: "tmp",
-		})
-		must(t, err)
-
-		t.Logf("Queued %s", queueRes.InstallFolder)
-
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
-			ID:            queueRes.ID,
-			StagingFolder: queueRes.StagingFolder,
-		})
-		must(t, err)
-
-		messages.Launch.TestCall(rc, &butlerd.LaunchParams{
-			CaveID: queueRes.CaveID,
-		})
-	}
-}
-
-func Test_InstallUpdate(t *testing.T) {
-	rc, h, cancel := connect(t)
-	defer cancel()
-
-	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
-
-	{
-		// fasterthanlime/butler
-		game := getGame(t, h, rc, 239683)
-
-		client := itchio.ClientWithKey(os.Getenv("ITCH_TEST_ACCOUNT_API_KEY"))
-		res, err := client.GameUploads(game.ID)
-		must(t, err)
-
-		var upload *itchio.Upload
-		for _, u := range res.Uploads {
-			if u.ChannelName == "darwin-amd64-head" {
-				upload = u
-				break
-			}
-		}
-		assert.NotNil(t, upload)
-
-		queue1Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
-			Game:              game,
-			InstallLocationID: "tmp",
-			Upload:            upload,
-			Build: &itchio.Build{
-				ID: 76706,
-			},
-		})
-		must(t, err)
-
-		caveId := queue1Res.CaveID
-		assert.NotEmpty(t, caveId)
-
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
-			ID:            queue1Res.ID,
-			StagingFolder: queue1Res.StagingFolder,
-		})
-		must(t, err)
-
-		{
-			_, err := os.Stat("./tmp/butler/.itch/receipt.json.gz")
-			assert.NoError(t, err, "has receipt")
-		}
-
-		t.Logf("Upgrading to next build")
-
-		queue2Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
-			Game:              game,
-			InstallLocationID: "tmp",
-			CaveID:            caveId,
-			Upload:            upload,
-			Build: &itchio.Build{
-				ID: 76741,
-			},
-		})
-		must(t, err)
-
-		assert.EqualValues(t, queue1Res.CaveID, queue2Res.CaveID, "installing for same cave")
-		assert.EqualValues(t, queue1Res.InstallFolder, queue2Res.InstallFolder, "using same install folder")
-
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
-			ID:            queue2Res.ID,
-			StagingFolder: queue2Res.StagingFolder,
-		})
-		must(t, err)
-	}
-}
-
 func Test_InstallCancel(t *testing.T) {
 	rc, h, cancel := connect(t)
 	defer cancel()
 
 	authenticate(t, rc)
 	setupTmpInstallLocation(t, h, rc)
+
+	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, &butlerd.NetworkSetBandwidthThrottleParams{
+		Enabled: true,
+		Rate:    16384,
+	})
+	must(t, err)
+
+	defer func() {
+		_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, &butlerd.NetworkSetBandwidthThrottleParams{
+			Enabled: false,
+		})
+		must(t, err)
+	}()
 
 	{
 		// itch-test-account/big-assets
@@ -136,6 +46,8 @@ func Test_InstallCancel(t *testing.T) {
 			InstallLocationID: "tmp",
 		})
 		must(t, err)
+
+		pidFilePath := filepath.Join(queueRes.StagingFolder, "operate-pid.json")
 
 		var lastProgressValue float64
 		printProgress := func(params *butlerd.ProgressNotification) {
@@ -149,6 +61,9 @@ func Test_InstallCancel(t *testing.T) {
 			printProgress(params)
 
 			if params.Progress > 0.2 {
+				_, err := os.Stat(pidFilePath)
+				assert.NoError(t, err, "pid file exists before we graceful cancel")
+
 				gracefulCancelOnce.Do(func() {
 					delete(h.notificationHandlers, messages.Progress.Method())
 
@@ -217,6 +132,19 @@ func Test_InstallCancel(t *testing.T) {
 
 		t.Logf("Last progress before hard cancel: %.2f%%", lastProgressValue*100)
 		assert.Error(t, err)
+
+		t.Logf("Waiting for pid file to disappear...")
+		pidFileDisappeared := false
+		for i := 0; i < 10; i++ {
+			_, err := os.Stat(pidFilePath)
+			if err != nil && os.IsNotExist(err) {
+				// good!
+				pidFileDisappeared = true
+				break
+			}
+			time.Sleep(1 * time.Second)
+		}
+		assert.True(t, pidFileDisappeared, "pid file should disappear after cancellation (even hard)")
 
 		t.Logf("Resuming after hard cancel...")
 		rc, h, cancel = connect(t)
