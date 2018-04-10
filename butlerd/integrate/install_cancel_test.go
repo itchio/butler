@@ -161,18 +161,22 @@ func Test_InstallCancel(t *testing.T) {
 	}
 }
 
+var setupTmpOnce sync.Once
+
 func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContext) {
-	wd, err := os.Getwd()
-	must(t, err)
+	setupTmpOnce.Do(func() {
+		wd, err := os.Getwd()
+		must(t, err)
 
-	tmpPath := filepath.Join(wd, "tmp")
-	must(t, os.RemoveAll(tmpPath))
+		tmpPath := filepath.Join(wd, "tmp")
+		must(t, os.RemoveAll(tmpPath))
 
-	_, err = messages.InstallLocationsAdd.TestCall(rc, &butlerd.InstallLocationsAddParams{
-		ID:   "tmp",
-		Path: filepath.Join(wd, "tmp"),
+		_, err = messages.InstallLocationsAdd.TestCall(rc, &butlerd.InstallLocationsAddParams{
+			ID:   "tmp",
+			Path: filepath.Join(wd, "tmp"),
+		})
+		must(t, err)
 	})
-	must(t, err)
 }
 
 func getGame(t *testing.T, h *handler, rc *butlerd.RequestContext, gameID int64) *itchio.Game {
