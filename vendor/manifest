@@ -431,6 +431,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/onsi/gocleanup",
+			"repository": "https://github.com/onsi/gocleanup",
+			"vcs": "git",
+			"revision": "c1a5478700b50f357e84d5991f5566a1826c4cf5",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/oxtoacart/bpool",
 			"repository": "https://github.com/oxtoacart/bpool",
 			"vcs": "git",
