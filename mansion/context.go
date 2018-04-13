@@ -3,6 +3,7 @@ package mansion
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
@@ -71,7 +72,12 @@ func (ctx *Context) Must(err error) {
 }
 
 func (ctx *Context) UserAgent() string {
-	res := fmt.Sprintf("butler/%s", ctx.VersionString)
+	version := ctx.Version
+	if version == "head" && ctx.Commit != "" {
+		version = ctx.Commit
+	}
+
+	res := fmt.Sprintf("butler/%s", version)
 	if ctx.UserAgentAddition != "" {
 		res = fmt.Sprintf("%s %s", res, ctx.UserAgentAddition)
 	}
@@ -109,4 +115,18 @@ func (ctx *Context) NewClient(key string) *itchio.Client {
 	client.SetServer(ctx.Address)
 	client.UserAgent = ctx.UserAgent()
 	return client
+}
+
+//
+
+type UserAgentSetter struct {
+	OriginalTransport http.RoundTripper
+	Context           *Context
+}
+
+var _ http.RoundTripper = (*UserAgentSetter)(nil)
+
+func (uas *UserAgentSetter) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", uas.Context.UserAgent())
+	return uas.OriginalTransport.RoundTrip(req)
 }

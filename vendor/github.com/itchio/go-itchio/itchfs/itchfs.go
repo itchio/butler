@@ -11,6 +11,7 @@ import (
 
 type ItchFS struct {
 	ItchServer string
+	UserAgent  string
 }
 
 func (ifs *ItchFS) Scheme() string {
@@ -48,6 +49,9 @@ func (ifs *ItchFS) MakeResource(u *url.URL) (httpfile.GetURLFunc, httpfile.Needs
 	itchClient := itchio.ClientWithKey(apiKey)
 	if ifs.ItchServer != "" {
 		itchClient.SetServer(ifs.ItchServer)
+	}
+	if ifs.UserAgent != "" {
+		itchClient.UserAgent = ifs.UserAgent
 	}
 
 	source, err := ObtainSource(itchClient, u.Path, vals)

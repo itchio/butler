@@ -34,10 +34,10 @@ import (
 import "C"
 
 var (
-	butlerVersion       = "head"           // set by command-line on CI release builds
-	butlerBuiltAt       = ""               // set by command-line on CI release builds
-	butlerCommit        = "<custom build>" // set by command-line on CI release builds
-	butlerVersionString = ""               // formatted on boot from 'version' and 'builtAt'
+	butlerVersion       = "head" // set by command-line on CI release builds
+	butlerBuiltAt       = ""     // set by command-line on CI release builds
+	butlerCommit        = ""     // set by command-line on CI release builds
+	butlerVersionString = ""     // formatted on boot from 'version' and 'builtAt'
 	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
@@ -189,11 +189,6 @@ func doMain(args []string) {
 	}
 	log.SetOutput(os.Stdout)
 
-	eos.RegisterHandler(&itchfs.ItchFS{
-		ItchServer: *appArgs.address,
-	})
-	option.SetDefaultConsumer(comm.NewStateConsumer())
-
 	if *appArgs.quiet {
 		*appArgs.noProgress = true
 		*appArgs.verbose = false
@@ -242,6 +237,22 @@ func doMain(args []string) {
 	ctx.Verbose = *appArgs.verbose
 	ctx.CompressionAlgorithm = *appArgs.compressionAlgorithm
 	ctx.CompressionQuality = *appArgs.compressionQuality
+
+	// set up eos
+	{
+		eos.RegisterHandler(&itchfs.ItchFS{
+			ItchServer: *appArgs.address,
+			UserAgent:  ctx.UserAgent(),
+		})
+		option.SetDefaultConsumer(comm.NewStateConsumer())
+		eosClient := timeout.NewDefaultClient()
+		originalTransport := eosClient.Transport
+		eosClient.Transport = &mansion.UserAgentSetter{
+			OriginalTransport: originalTransport,
+			Context:           ctx,
+		}
+		option.SetDefaultHTTPClient(eosClient)
+	}
 
 	switch fullCmd {
 	case scriptCmd.FullCommand():
