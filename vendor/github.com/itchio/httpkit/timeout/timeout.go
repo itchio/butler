@@ -3,14 +3,18 @@
 package timeout
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/efarrer/iothrottler"
 	"github.com/getlantern/idletiming"
 	"github.com/pkg/errors"
 )
+
+var IgnoreCertificateErrors = os.Getenv("HTTPKIT_IGNORE_CERTIFICATE_ERRORS") == "1"
 
 const (
 	DefaultConnectTimeout time.Duration = 30 * time.Second
@@ -62,11 +66,17 @@ func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, ad
 }
 
 func NewClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
+	}
+	if IgnoreCertificateErrors {
+		transport.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
 	return &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
-		},
+		Transport: transport,
 	}
 }
 
