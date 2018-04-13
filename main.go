@@ -55,6 +55,7 @@ var appArgs = struct {
 
 	identity             *string
 	address              *string
+	userAgentAddition    *string
 	dbPath               *string
 	compressionAlgorithm *string
 	compressionQuality   *int
@@ -77,6 +78,7 @@ var appArgs = struct {
 
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
+	app.Flag("user-agent", "string to include in user-agent for all http requests").Default("").Hidden().String(),
 	app.Flag("dbpath", "Path of the sqlite database path to use (for butlerd)").Default("").Hidden().String(),
 
 	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip", "zstd"),
@@ -231,6 +233,7 @@ func doMain(args []string) {
 
 	ctx.Identity = *appArgs.identity
 	ctx.Address = *appArgs.address
+	ctx.UserAgentAddition = *appArgs.userAgentAddition
 	ctx.DBPath = *appArgs.dbPath
 	ctx.VersionString = butlerVersionString
 	ctx.Version = butlerVersion

@@ -22,6 +22,9 @@ type Context struct {
 	// Address is the URL of the itch.io API server we're talking to
 	Address string
 
+	// String to include in our user-agent
+	UserAgentAddition string
+
 	// VersionString is the complete version string
 	VersionString string
 
@@ -68,7 +71,11 @@ func (ctx *Context) Must(err error) {
 }
 
 func (ctx *Context) UserAgent() string {
-	return fmt.Sprintf("butler/%s", ctx.VersionString)
+	res := fmt.Sprintf("butler/%s", ctx.VersionString)
+	if ctx.UserAgentAddition != "" {
+		res = fmt.Sprintf("%s %s", res, ctx.UserAgentAddition)
+	}
+	return res
 }
 
 func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
