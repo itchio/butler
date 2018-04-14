@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/itchio/wharf/werrors"
+
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/progress"
 	"github.com/itchio/httpkit/neterr"
@@ -176,6 +178,9 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		if neterr.IsNetworkError(err) {
 			code = int64(CodeNetworkDisconnected)
 			message = CodeNetworkDisconnected.Error()
+		} else if errors.Cause(err) == werrors.ErrCancelled {
+			code = int64(CodeOperationCancelled)
+			message = CodeOperationCancelled.Error()
 		} else {
 			code = jsonrpc2.CodeInternalError
 			message = err.Error()
