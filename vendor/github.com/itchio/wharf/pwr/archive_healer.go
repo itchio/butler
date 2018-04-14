@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
+	"github.com/itchio/wharf/ctxcopy"
+	"github.com/itchio/wharf/werrors"
+
 	"github.com/itchio/arkive/zip"
 
 	humanize "github.com/dustin/go-humanize"
@@ -164,10 +167,15 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 	}
 
 	for wound := range wounds {
+		select {
+		case <-ctx.Done():
+			return werrors.ErrCancelled
+		default:
+			// keep going!
+		}
+
 		err := processWound(wound)
 		if err != nil {
-			close(fileIndices)
-			cancel()
 			return errors.WithStack(err)
 		}
 	}
@@ -233,7 +241,7 @@ func (ah *ArchiveHealer) heal(ctx context.Context, container *tlc.Container, tar
 				defer sourcePool.Close()
 			}
 
-			err = ah.healOne(sourcePool, targetPool, fileIndex, chunkHealed)
+			err = ah.healOne(ctx, sourcePool, targetPool, fileIndex, chunkHealed)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -241,10 +249,15 @@ func (ah *ArchiveHealer) heal(ctx context.Context, container *tlc.Container, tar
 	}
 }
 
-func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.WritablePool, fileIndex int64, chunkHealed chunkHealedFunc) error {
+func (ah *ArchiveHealer) healOne(ctx context.Context, sourcePool wsync.Pool, targetPool wsync.WritablePool, fileIndex int64, chunkHealed chunkHealedFunc) error {
 	if ah.lockMap != nil {
 		lock := ah.lockMap[fileIndex]
-		<-lock
+		select {
+		case <-lock:
+			// keep going
+		case <-ctx.Done():
+			return werrors.ErrCancelled
+		}
 	}
 
 	var err error
@@ -265,6 +278,7 @@ func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.Writabl
 	if err != nil {
 		return err
 	}
+	defer writer.Close()
 
 	lastCount := int64(0)
 	cw := counter.NewWriterCallback(func(count int64) {
@@ -273,12 +287,7 @@ func (ah *ArchiveHealer) healOne(sourcePool wsync.Pool, targetPool wsync.Writabl
 		lastCount = count
 	}, writer)
 
-	_, err = io.Copy(cw, reader)
-	if err != nil {
-		return err
-	}
-
-	err = writer.Close()
+	_, err = ctxcopy.Do(ctx, cw, reader)
 	if err != nil {
 		return err
 	}
