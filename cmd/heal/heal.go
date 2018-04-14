@@ -1,6 +1,7 @@
 package heal
 
 import (
+	"context"
 	"io"
 	"os"
 
@@ -93,7 +94,7 @@ func Do(params *Params) error {
 	comm.StartProgress()
 
 	go func() {
-		errs <- healer.Do(container, wounds)
+		errs <- healer.Do(context.Background(), container, wounds)
 	}()
 
 	wound := &pwr.Wound{}

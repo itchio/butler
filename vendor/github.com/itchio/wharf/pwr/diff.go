@@ -1,10 +1,15 @@
 package pwr
 
 import (
+	"context"
 	"fmt"
 	"io"
 
 	"github.com/itchio/wharf/counter"
+
+	"github.com/itchio/wharf/multiread"
+	"github.com/itchio/wharf/taskgroup"
+
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -31,7 +36,7 @@ type DiffContext struct {
 }
 
 // WritePatch outputs a pwr patch to patchWriter
-func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Writer) error {
+func (dctx *DiffContext) WritePatch(ctx context.Context, patchWriter io.Writer, signatureWriter io.Writer) error {
 	if dctx.Compression == nil {
 		return errors.WithStack(fmt.Errorf("No compression settings specified, bailing out"))
 	}
@@ -140,52 +145,29 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 			return errors.WithStack(err)
 		}
 
-		//             / differ
-		// source file +
-		//             \ signer
-		diffReader, diffWriter := io.Pipe()
-		signReader, signWriter := io.Pipe()
-
-		done := make(chan bool)
-		errs := make(chan error)
-
 		var preferredFileIndex int64 = -1
 		if oldIndex, ok := targetContainerPathToIndex[f.Path]; ok {
 			preferredFileIndex = oldIndex
 		}
 
-		go diffFile(diffContext, dctx, blockLibrary, diffReader, opsWriter, preferredFileIndex, errs, done)
-		go signFile(signContext, fileIndex, signReader, sigWriter, errs, done)
+		mr := multiread.New(counter.NewReaderCallback(onSourceRead, sourceReader))
+		diffReader := mr.Reader()
+		signReader := mr.Reader()
 
-		go func() {
-			defer func() {
-				if dErr := diffWriter.Close(); dErr != nil {
-					errs <- errors.WithStack(dErr)
-				}
-			}()
-			defer func() {
-				if sErr := signWriter.Close(); sErr != nil {
-					errs <- errors.WithStack(sErr)
-				}
-			}()
-
-			mw := io.MultiWriter(diffWriter, signWriter)
-
-			sourceReadCounter := counter.NewReaderCallback(onSourceRead, sourceReader)
-			_, cErr := io.Copy(mw, sourceReadCounter)
-			if cErr != nil {
-				errs <- errors.WithStack(cErr)
-			}
-		}()
-
-		// wait until all are done
-		// or an error occurs
-		for c := 0; c < 2; c++ {
-			select {
-			case wErr := <-errs:
-				return errors.WithStack(wErr)
-			case <-done:
-			}
+		err := taskgroup.Do(
+			ctx,
+			func() error {
+				return diffContext.ComputeDiff(diffReader, blockLibrary, opsWriter, preferredFileIndex)
+			},
+			func() error {
+				return signContext.CreateSignature(ctx, int64(fileIndex), signReader, sigWriter)
+			},
+			func() error {
+				return mr.Do()
+			},
+		)
+		if err != nil {
+			return errors.WithStack(err)
 		}
 
 		err = patchWire.WriteMessage(syncDelimiter)
@@ -204,24 +186,6 @@ func (dctx *DiffContext) WritePatch(patchWriter io.Writer, signatureWriter io.Wr
 	}
 
 	return nil
-}
-
-func diffFile(sctx *wsync.Context, dctx *DiffContext, blockLibrary *wsync.BlockLibrary, reader io.Reader, opsWriter wsync.OperationWriter, preferredFileIndex int64, errs chan error, done chan bool) {
-	err := sctx.ComputeDiff(reader, blockLibrary, opsWriter, preferredFileIndex)
-	if err != nil {
-		errs <- errors.WithStack(err)
-	}
-
-	done <- true
-}
-
-func signFile(sctx *wsync.Context, fileIndex int, reader io.Reader, writeHash wsync.SignatureWriter, errs chan error, done chan bool) {
-	err := sctx.CreateSignature(int64(fileIndex), reader, writeHash)
-	if err != nil {
-		errs <- errors.WithStack(err)
-	}
-
-	done <- true
 }
 
 func makeSigWriter(wc *wire.WriteContext) wsync.SignatureWriter {

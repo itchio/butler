@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"context"
 	"io"
 	"os"
 	"time"
@@ -96,7 +97,7 @@ func Do(params *Params) error {
 			return errors.Wrap(err, "opening target")
 		}
 
-		readSignature, err := pwr.ReadSignature(signatureSource)
+		readSignature, err := pwr.ReadSignature(context.Background(), signatureSource)
 		if err != nil {
 			return errors.Wrap(err, "reading target as signature")
 		}
@@ -124,7 +125,7 @@ func Do(params *Params) error {
 				return errors.Wrap(err, "opening target as directory")
 			}
 
-			targetSignature.Hashes, err = pwr.ComputeSignature(targetSignature.Container, targetPool, comm.NewStateConsumer())
+			targetSignature.Hashes, err = pwr.ComputeSignature(context.Background(), targetSignature.Container, targetPool, comm.NewStateConsumer())
 			comm.EndProgress()
 			if err != nil {
 				return errors.Wrap(err, "computing target signature")
@@ -183,7 +184,7 @@ func Do(params *Params) error {
 
 	comm.Opf("Diffing %s", params.Source)
 	comm.StartProgress()
-	err = dctx.WritePatch(patchCounter, signatureCounter)
+	err = dctx.WritePatch(context.Background(), patchCounter, signatureCounter)
 	if err != nil {
 		return errors.Wrap(err, "computing and writing patch and signature")
 	}
@@ -220,7 +221,7 @@ func Do(params *Params) error {
 			return errors.Wrap(err, "reading fresh signature file")
 		}
 
-		signature, err := pwr.ReadSignature(signatureSource)
+		signature, err := pwr.ReadSignature(context.Background(), signatureSource)
 		if err != nil {
 			return errors.Wrap(err, "decoding fresh signature file")
 		}

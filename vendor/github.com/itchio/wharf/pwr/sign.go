@@ -1,12 +1,14 @@
 package pwr
 
 import (
+	"context"
 	"io"
 
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/wharf/werrors"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
 	"github.com/pkg/errors"
@@ -21,10 +23,10 @@ type SignatureInfo struct {
 // ComputeSignature compute the signature of all blocks of all files in a given container,
 // by reading them from disk, relative to `basePath`, and notifying `consumer` of its
 // progress
-func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *state.Consumer) ([]wsync.BlockHash, error) {
+func ComputeSignature(ctx context.Context, container *tlc.Container, pool wsync.Pool, consumer *state.Consumer) ([]wsync.BlockHash, error) {
 	var signature []wsync.BlockHash
 
-	err := ComputeSignatureToWriter(container, pool, consumer, func(bl wsync.BlockHash) error {
+	err := ComputeSignatureToWriter(ctx, container, pool, consumer, func(bl wsync.BlockHash) error {
 		signature = append(signature, bl)
 		return nil
 	})
@@ -37,7 +39,7 @@ func ComputeSignature(container *tlc.Container, pool wsync.Pool, consumer *state
 
 // ComputeSignatureToWriter is a variant of ComputeSignature that writes hashes
 // to a callback
-func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consumer *state.Consumer, sigWriter wsync.SignatureWriter) error {
+func ComputeSignatureToWriter(ctx context.Context, container *tlc.Container, pool wsync.Pool, consumer *state.Consumer, sigWriter wsync.SignatureWriter) error {
 	var err error
 
 	defer func() {
@@ -56,6 +58,13 @@ func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consume
 	}
 
 	for fileIndex, f := range container.Files {
+		select {
+		case <-ctx.Done():
+			return werrors.ErrCancelled
+		default:
+			// keep going!
+		}
+
 		consumer.ProgressLabel(f.Path)
 		fileOffset = f.Offset
 
@@ -66,7 +75,7 @@ func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consume
 		}
 
 		cr := counter.NewReaderCallback(onRead, reader)
-		err = sctx.CreateSignature(int64(fileIndex), cr, sigWriter)
+		err = sctx.CreateSignature(ctx, int64(fileIndex), cr, sigWriter)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -80,7 +89,7 @@ func ComputeSignatureToWriter(container *tlc.Container, pool wsync.Pool, consume
 
 // ReadSignature reads the hashes from all files of a given container, from a
 // wharf signature file.
-func ReadSignature(signatureReader savior.SeekSource) (*SignatureInfo, error) {
+func ReadSignature(ctx context.Context, signatureReader savior.SeekSource) (*SignatureInfo, error) {
 	rawSigWire := wire.NewReadContext(signatureReader)
 	err := rawSigWire.ExpectMagic(SignatureMagic)
 	if err != nil {
@@ -112,6 +121,13 @@ func ReadSignature(signatureReader savior.SeekSource) (*SignatureInfo, error) {
 	hash := &BlockHash{}
 
 	for fileIndex, f := range container.Files {
+		select {
+		case <-ctx.Done():
+			return nil, werrors.ErrCancelled
+		default:
+			// keep going!
+		}
+
 		numBlocks := ComputeNumBlocks(f.Size)
 		if numBlocks == 0 {
 			hash.Reset()

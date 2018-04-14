@@ -1,6 +1,7 @@
 package operate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -70,7 +71,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		return errors.WithStack(err)
 	}
 
-	sigInfo, err := pwr.ReadSignature(signatureSource)
+	sigInfo, err := pwr.ReadSignature(context.Background(), signatureSource)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -85,11 +86,17 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	timeBeforeHeal := time.Now()
 
 	oc.rc.StartProgress()
-	err = vc.Validate(params.InstallFolder, sigInfo)
+	err = vc.Validate(oc.ctx, params.InstallFolder, sigInfo)
 	oc.rc.EndProgress()
-
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	select {
+	case <-oc.ctx.Done():
+		return butlerd.CodeOperationCancelled
+	default:
+		// keep going!
 	}
 
 	healDuration := time.Since(timeBeforeHeal)

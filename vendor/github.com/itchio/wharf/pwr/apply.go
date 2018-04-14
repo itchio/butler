@@ -1,6 +1,7 @@
 package pwr
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -127,6 +128,10 @@ type Ghost struct {
 
 // ApplyPatch reads a patch, parses it, and generates the new file tree
 func (actx *ApplyContext) ApplyPatch(patchReader savior.SeekSource) error {
+	// XXX: this patch API does not support cancellation, so we just use a background
+	// context
+	ctx := context.Background()
+
 	actx.actualOutputPath = actx.OutputPath
 	if actx.OutputPool == nil {
 		if actx.DryRun {
@@ -217,7 +222,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader savior.SeekSource) error {
 		}
 	}
 
-	err = actx.patchAll(patchWire, actx.Signature)
+	err = actx.patchAll(ctx, patchWire, actx.Signature)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -245,7 +250,7 @@ func (actx *ApplyContext) ApplyPatch(patchReader savior.SeekSource) error {
 	return nil
 }
 
-func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
+func (actx *ApplyContext) patchAll(ctx context.Context, patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
 	sourceContainer := actx.SourceContainer
 
 	relayWoundsProgress := int64(0)
@@ -306,7 +311,7 @@ func (actx *ApplyContext) patchAll(patchWire *wire.ReadContext, signature *Signa
 
 		if actx.WoundsConsumer != nil {
 			go func() {
-				consumerErrs <- actx.WoundsConsumer.Do(signature.Container, validatingPool.Wounds)
+				consumerErrs <- actx.WoundsConsumer.Do(ctx, signature.Container, validatingPool.Wounds)
 			}()
 		}
 

@@ -1,6 +1,7 @@
 package verify
 
 import (
+	"context"
 	"time"
 
 	humanize "github.com/dustin/go-humanize"
@@ -61,7 +62,7 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 		return errors.WithStack(err)
 	}
 
-	signature, err := pwr.ReadSignature(signatureSource)
+	signature, err := pwr.ReadSignature(context.Background(), signatureSource)
 	if err != nil {
 		return errors.Wrap(err, "reading signature file")
 	}
@@ -74,7 +75,7 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 
 	comm.StartProgressWithTotalBytes(signature.Container.Size)
 
-	err = vc.Validate(dir, signature)
+	err = vc.Validate(context.Background(), dir, signature)
 	if err != nil {
 		return errors.Wrap(err, "while validating")
 	}

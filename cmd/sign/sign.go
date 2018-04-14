@@ -1,6 +1,7 @@
 package sign
 
 import (
+	"context"
 	"os"
 	"time"
 
@@ -72,7 +73,7 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
-	err = pwr.ComputeSignatureToWriter(container, pool, comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
+	err = pwr.ComputeSignatureToWriter(context.Background(), container, pool, comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
 		return sigWire.WriteMessage(&pwr.BlockHash{
 			WeakHash:   hash.WeakHash,
 			StrongHash: hash.StrongHash,

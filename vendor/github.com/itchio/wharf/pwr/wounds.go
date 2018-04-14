@@ -1,6 +1,7 @@
 package pwr
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -17,7 +18,7 @@ import (
 type WoundsConsumer interface {
 	// Do starts receiving wounds from the given channel, and returns
 	// on error or when wound processing is done.
-	Do(container *tlc.Container, wounds chan *Wound) error
+	Do(ctx context.Context, container *tlc.Container, wounds chan *Wound) error
 
 	// TotalCorrupted returns the total size of corrupted data seen by this consumer.
 	// If the only wounds are dir and symlink wounds, this may be 0, but HasWounds might
@@ -53,21 +54,29 @@ func (e *ErrHasWound) Error() string {
 
 // Do returns an error on the first wound received. If no wounds are ever received,
 // it returns nil (no error)
-func (wg *WoundsGuardian) Do(container *tlc.Container, wounds chan *Wound) error {
-	for wound := range wounds {
-		if wound.Healthy() {
-			continue
-		}
+func (wg *WoundsGuardian) Do(ctx context.Context, container *tlc.Container, wounds chan *Wound) error {
+	for {
+		select {
+		case wound := <-wounds:
+			if wound == nil {
+				// channel closed
+				return nil
+			}
 
-		wg.hasWounds = true
-		wg.totalCorrupted += wound.Size()
-		return &ErrHasWound{
-			Wound:     wound,
-			Container: container,
+			if wound.Healthy() {
+				continue
+			}
+
+			wg.hasWounds = true
+			wg.totalCorrupted += wound.Size()
+			return &ErrHasWound{
+				Wound:     wound,
+				Container: container,
+			}
+		case <-ctx.Done():
+			return nil
 		}
 	}
-
-	return nil
 }
 
 // TotalCorrupted is only ever 0 or the size of the first wound, since a guardian
@@ -97,7 +106,7 @@ var _ WoundsConsumer = (*WoundsWriter)(nil)
 
 // Do only create a file at WoundsPath when it receives the first wound.
 // If no wounds are ever received, Do will effectively be a no-op.
-func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
+func (ww *WoundsWriter) Do(ctx context.Context, container *tlc.Container, wounds chan *Wound) error {
 	var fw *os.File
 	var wc *wire.WriteContext
 
@@ -150,19 +159,28 @@ func (ww *WoundsWriter) Do(container *tlc.Container, wounds chan *Wound) error {
 		return nil
 	}
 
-	for wound := range wounds {
-		if wound.Healthy() {
-			continue
-		}
+	for {
+		select {
+		case wound := <-wounds:
+			if wound == nil {
+				// channel's closed, let's go home!
+				return nil
+			}
 
-		ww.hasWounds = true
-		err := writeWound(wound)
-		if err != nil {
-			return err
+			if wound.Healthy() {
+				continue
+			}
+
+			ww.hasWounds = true
+			err := writeWound(wound)
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			// cancelled, let's go home too
+			return nil
 		}
 	}
-
-	return nil
 }
 
 // TotalCorrupted returns the total size of wounds received by this wounds writer
@@ -190,22 +208,30 @@ type WoundsPrinter struct {
 var _ WoundsConsumer = (*WoundsPrinter)(nil)
 
 // Do starts printing wounds. It will return an error if a Consumer is not given
-func (wp *WoundsPrinter) Do(container *tlc.Container, wounds chan *Wound) error {
+func (wp *WoundsPrinter) Do(ctx context.Context, container *tlc.Container, wounds chan *Wound) error {
 	if wp.Consumer == nil {
 		return fmt.Errorf("Missing Consumer in WoundsPrinter")
 	}
 
-	for wound := range wounds {
-		if wound.Healthy() {
-			continue
+	for {
+		select {
+		case wound := <-wounds:
+			if wound == nil {
+				// channel's closed
+				return nil
+			}
+
+			if wound.Healthy() {
+				continue
+			}
+
+			wp.totalCorrupted += wound.Size()
+			wp.hasWounds = true
+			wp.Consumer.Debugf(wound.PrettyString(container))
+		case <-ctx.Done():
+			return nil
 		}
-
-		wp.totalCorrupted += wound.Size()
-		wp.hasWounds = true
-		wp.Consumer.Debugf(wound.PrettyString(container))
 	}
-
-	return nil
 }
 
 // TotalCorrupted returns the total size of wounds received by this wounds printer

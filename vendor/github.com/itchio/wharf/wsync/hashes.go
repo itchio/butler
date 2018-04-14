@@ -3,14 +3,17 @@ package wsync
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"io"
+
+	"github.com/itchio/wharf/werrors"
 
 	"github.com/itchio/wharf/splitfunc"
 	"github.com/pkg/errors"
 )
 
 // CreateSignature calculate the signature of target.
-func (ctx *Context) CreateSignature(fileIndex int64, fileReader io.Reader, writeHash SignatureWriter) error {
+func (ctx *Context) CreateSignature(cctx context.Context, fileIndex int64, fileReader io.Reader, writeHash SignatureWriter) error {
 	s := bufio.NewScanner(fileReader)
 	s.Buffer(make([]byte, ctx.blockSize), 0)
 	s.Split(splitfunc.New(ctx.blockSize))
@@ -40,10 +43,22 @@ func (ctx *Context) CreateSignature(fileIndex int64, fileReader io.Reader, write
 		return nil
 	}
 
+	cancelCounter := 0
 	for s.Scan() {
 		err := hashBlock(s.Bytes())
 		if err != nil {
 			return errors.WithStack(err)
+		}
+
+		cancelCounter++
+		if cancelCounter > 128 {
+			cancelCounter = 0
+			select {
+			case <-cctx.Done():
+				return werrors.ErrCancelled
+			default:
+				// keep going
+			}
 		}
 	}
 

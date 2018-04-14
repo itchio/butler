@@ -1,6 +1,7 @@
 package apply
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"time"
@@ -122,7 +123,7 @@ func Do(params *Params) error {
 			return errors.Wrap(sigErr, "creating source for signature")
 		}
 
-		signature, sigErr = pwr.ReadSignature(sigSource)
+		signature, sigErr = pwr.ReadSignature(context.Background(), sigSource)
 		if sigErr != nil {
 			return errors.Wrap(sigErr, "decoding signature")
 		}

@@ -1,6 +1,7 @@
 package pwr
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -46,7 +47,7 @@ type ValidatorContext struct {
 // Validate checks the directory at target using the container info and hashes
 // contained in signature. FailFast mode returns an error on the first corruption
 // seen, other modes write wounds to a file or for a wounds consumer, like a healer.
-func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) error {
+func (vctx *ValidatorContext) Validate(ctx context.Context, target string, signature *SignatureInfo) error {
 	if vctx.Consumer == nil {
 		vctx.Consumer = &state.Consumer{}
 	}
@@ -125,7 +126,7 @@ func (vctx *ValidatorContext) Validate(target string, signature *SignatureInfo) 
 	}
 
 	go func() {
-		consumerErrs <- vctx.WoundsConsumer.Do(signature.Container, vctx.Wounds)
+		consumerErrs <- vctx.WoundsConsumer.Do(ctx, signature.Container, vctx.Wounds)
 
 		// throw away wounds until closed
 		for range vctx.Wounds {
@@ -367,7 +368,7 @@ func AssertValid(target string, signature *SignatureInfo) error {
 		Consumer: &state.Consumer{},
 	}
 
-	err := vctx.Validate(target, signature)
+	err := vctx.Validate(context.Background(), target, signature)
 	if err != nil {
 		return err
 	}

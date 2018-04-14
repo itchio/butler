@@ -92,7 +92,7 @@ func do(ctx *mansion.Context) {
 		ctx.Must(errors.WithMessage(err, "preparing DB"))
 	}
 
-	ctx.Must(Do(ctx, ctx.Context(), db, secret, func(addr string) {
+	ctx.Must(Do(ctx, context.Background(), db, secret, func(addr string) {
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
 			"address": addr,
 		})

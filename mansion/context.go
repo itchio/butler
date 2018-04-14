@@ -1,7 +1,6 @@
 package mansion
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -104,10 +103,6 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 		Algorithm: algo,
 		Quality:   int32(ctx.CompressionQuality),
 	}
-}
-
-func (ctx *Context) Context() context.Context {
-	return context.Background()
 }
 
 func (ctx *Context) NewClient(key string) *itchio.Client {

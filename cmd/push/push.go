@@ -1,6 +1,7 @@
 package push
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -122,7 +123,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			return nil, errors.Wrap(err, "opening signature")
 		}
 
-		signature, err := pwr.ReadSignature(signatureSource)
+		signature, err := pwr.ReadSignature(context.Background(), signatureSource)
 		if err != nil {
 			return nil, errors.Wrap(err, "reading signature")
 		}
@@ -303,7 +304,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	comm.StartProgress()
 	comm.ProgressScale(0.0)
-	err = dctx.WritePatch(patchCounter, signatureCounter)
+	err = dctx.WritePatch(context.Background(), patchCounter, signatureCounter)
 	if err != nil {
 		return errors.Wrap(err, "computing and writing patch")
 	}
