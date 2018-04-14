@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -157,7 +158,7 @@ func TestAllTheThings(t *testing.T) {
 		_, err = sigSource.Resume(nil)
 		mist(t, err)
 
-		signature, err := pwr.ReadSignature(sigSource)
+		signature, err := pwr.ReadSignature(context.Background(), sigSource)
 		mist(t, err)
 
 		mist(t, sigReader.Close())
@@ -166,7 +167,7 @@ func TestAllTheThings(t *testing.T) {
 			FailFast: true,
 		}
 
-		mist(t, validator.Validate(filepath, signature))
+		mist(t, validator.Validate(context.Background(), filepath, signature))
 	}
 
 	// K windows you just sit this one out we'll catch you on the flip side
