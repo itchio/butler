@@ -132,7 +132,7 @@ func (hr *httpReader) tryConnect(offset int64) error {
 		return err
 	}
 
-	if res.StatusCode == 200 {
+	if res.StatusCode == 200 && offset > 0 {
 		defer res.Body.Close()
 		return errors.WithStack(&ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP Range header not supported"), Code: ServerErrorCodeNoRangeSupport, StatusCode: res.StatusCode})
 	}
