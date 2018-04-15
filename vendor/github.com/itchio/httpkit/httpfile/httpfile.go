@@ -1,10 +1,8 @@
 package httpfile
 
 import (
-	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"mime"
@@ -94,251 +92,7 @@ type HTTPFile struct {
 	ForbidBacktracking bool
 }
 
-type httpReader struct {
-	file      *HTTPFile
-	id        string
-	touchedAt time.Time
-	offset    int64
-	cache     []byte
-	cached    int
-	backtrack int
-	body      io.ReadCloser
-	reader    *bufio.Reader
-}
-
-// DefaultReaderStaleThreshold is the duration after which HTTPFile's readers
-// are considered stale, and are closed instead of reused. It's set to 10 seconds.
-const DefaultReaderStaleThreshold = time.Second * time.Duration(10)
-
 const DefaultLogLevel = 1
-
-func (hr *httpReader) Stale() bool {
-	return time.Since(hr.touchedAt) > hr.file.ReaderStaleThreshold
-}
-
-func (hr *httpReader) Read(data []byte) (int, error) {
-	if hr.backtrack > 0 {
-		readLen := len(data)
-		if readLen > hr.backtrack {
-			readLen = hr.backtrack
-		}
-
-		// hr.file.log2("asked to read %d, backtrack is %d, cached is %d", len(data), hr.backtrack, hr.cached)
-		cacheStartIndex := len(hr.cache) - hr.backtrack
-		// hr.file.log2("copying [%d:%d] to [0:%d]", cacheStartIndex, cacheStartIndex+readLen, readLen)
-		copy(data[:readLen], hr.cache[cacheStartIndex:cacheStartIndex+readLen])
-		hr.backtrack -= readLen
-
-		hr.file.stats.cachedBytes += int64(readLen)
-		hr.file.stats.numCacheHit++
-
-		return readLen, nil
-	}
-
-	hr.touchedAt = time.Now()
-	readBytes, err := hr.reader.Read(data)
-	hr.offset += int64(readBytes)
-
-	hr.file.stats.fetchedBytes += int64(readBytes)
-	hr.file.stats.numCacheMiss++
-
-	// offset cache to make room for the new data
-	remainingOldCacheSize := len(hr.cache) - readBytes
-	// hr.file.log2("moving [%d:] to [:%d]", readBytes, remainingOldCacheSize)
-	// hr.file.log2("caching %d bytes into [%d:]", readBytes, remainingOldCacheSize)
-	copy(hr.cache[:remainingOldCacheSize], hr.cache[readBytes:])
-	copy(hr.cache[remainingOldCacheSize:], data[:readBytes])
-	hr.cached += readBytes
-	if hr.cached > len(hr.cache) {
-		hr.cached = len(hr.cache)
-	}
-
-	if err != nil {
-		return readBytes, err
-	}
-	return readBytes, nil
-}
-
-func (hr *httpReader) Discard(n int) (int, error) {
-	// TODO: don't realloc that buf all the time
-	buf := make([]byte, 4096)
-
-	totalDiscarded := 0
-	for n > 0 {
-		readLen := n
-		if readLen > len(buf) {
-			readLen = len(buf)
-		}
-
-		discarded, err := hr.Read(buf[:readLen])
-		totalDiscarded += discarded
-		if err != nil {
-			return totalDiscarded, err
-		}
-		n -= discarded
-	}
-	return totalDiscarded, nil
-}
-
-type NeedsRenewalError struct {
-	url string
-}
-
-func (nre *NeedsRenewalError) Error() string {
-	return "url has expired and needs renewal"
-}
-
-type ServerErrorCode int64
-
-const (
-	ServerErrorCodeUnknown ServerErrorCode = iota
-	ServerErrorCodeNoRangeSupport
-)
-
-type ServerError struct {
-	Host    string
-	Message string
-	Code    ServerErrorCode
-}
-
-func (se *ServerError) Error() string {
-	return fmt.Sprintf("server error: for host %s: %s", se.Host, se.Message)
-}
-
-func (hr *httpReader) Connect() error {
-	hf := hr.file
-
-	if hr.body != nil {
-		err := hr.body.Close()
-		if err != nil {
-			return err
-		}
-
-		hr.body = nil
-		hr.reader = nil
-	}
-
-	tryURL := func(urlStr string) error {
-		req, err := http.NewRequest("GET", urlStr, nil)
-		if err != nil {
-			return err
-		}
-
-		byteRange := fmt.Sprintf("bytes=%d-", hr.offset)
-		req.Header.Set("Range", byteRange)
-
-		res, err := hf.client.Do(req)
-		if err != nil {
-			return err
-		}
-		hf.log("Connect.tryURL: HTTP %d", res.StatusCode)
-
-		if res.StatusCode == 200 && hr.offset > 0 {
-			hf.log("Connect.tryURL: HTTP range header not supported")
-			defer res.Body.Close()
-			return &ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP Range header not supported"), Code: ServerErrorCodeNoRangeSupport}
-		}
-
-		if res.StatusCode/100 != 2 {
-			hf.log("Connect.tryURL: HTTP non-200, reading error")
-			defer res.Body.Close()
-
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				body = []byte("could not read error body")
-				err = nil
-			}
-
-			if hf.needsRenewal(res, body) {
-				hf.log("Connect.tryURL: needs renewal")
-				return &NeedsRenewalError{url: urlStr}
-			}
-
-			hf.log("Connect.tryURL: no renewal")
-			return &ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP %d received, body = %s", res.StatusCode, string(body))}
-		}
-
-		hr.reader = bufio.NewReaderSize(res.Body, int(maxDiscard))
-		hr.body = res.Body
-		return nil
-	}
-
-	urlStr := hf.getCurrentURL()
-
-	retryCtx := hf.newRetryContext()
-	renewalTries := 0
-
-	for retryCtx.ShouldTry() {
-		startTime := time.Now()
-		hf.log("Connect: trying url...")
-		err := tryURL(urlStr)
-		if err != nil {
-			if _, ok := err.(*NeedsRenewalError); ok {
-				renewalTries++
-				if renewalTries >= maxRenewals {
-					return ErrTooManyRenewals
-				}
-
-				hf.log("Connect: got renew: %s", err.Error())
-
-				err = func() error {
-					renewRetryCtx := hf.newRetryContext()
-
-					for renewRetryCtx.ShouldTry() {
-						hf.stats.renews += 1
-						urlStr, err = hf.renewURL()
-						if err != nil {
-							if hf.shouldRetry(err) {
-								hf.log("Connect.renew: got retriable error: %s", err.Error())
-								renewRetryCtx.Retry(err)
-								continue
-							} else {
-								hf.log("Connect.renew: got non-retriable error: %s", err.Error())
-								return err
-							}
-						}
-
-						return nil
-					}
-					return errors.WithMessage(renewRetryCtx.LastError, "httpfile renew")
-				}()
-				if err != nil {
-					return err
-				}
-
-				continue
-			} else if hf.shouldRetry(err) {
-				hf.log("Connect: got retriable error: %s", err.Error())
-				retryCtx.Retry(err)
-				continue
-			} else {
-				hf.log("Connect: got non-renew, non-retriable error: %s", err.Error())
-				return err
-			}
-		}
-
-		totalConnDuration := time.Since(startTime)
-		hf.log("Connect: connected in %s!", totalConnDuration)
-		hf.stats.connections += 1
-		hf.stats.connectionWait += totalConnDuration
-		return nil
-	}
-
-	return errors.WithMessage(retryCtx.LastError, "httpfile connect")
-}
-
-func (hr *httpReader) Close() error {
-	if hr.body != nil {
-		err := hr.body.Close()
-		hr.body = nil
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 var _ io.Seeker = (*HTTPFile)(nil)
 var _ io.Reader = (*HTTPFile)(nil)
@@ -347,8 +101,11 @@ var _ io.Closer = (*HTTPFile)(nil)
 
 // Settings allows passing additional settings to an HTTPFile
 type Settings struct {
-	Client        *http.Client
-	RetrySettings *retrycontext.Settings
+	Client             *http.Client
+	RetrySettings      *retrycontext.Settings
+	Log                LogFunc
+	LogLevel           int
+	ForbidBacktracking bool
 }
 
 // New returns a new HTTPFile. Note that it differs from os.Open in that it does a first request
@@ -376,112 +133,60 @@ func New(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) (
 
 		ReaderStaleThreshold: DefaultReaderStaleThreshold,
 		LogLevel:             DefaultLogLevel,
+		ForbidBacktracking:   forbidBacktracking,
+	}
+	hf.Log = settings.Log
 
-		ForbidBacktracking: forbidBacktracking,
+	if settings.LogLevel != 0 {
+		hf.LogLevel = settings.LogLevel
+	}
+	if settings.ForbidBacktracking {
+		hf.ForbidBacktracking = true
 	}
 
-	renewalTries := 0
+	urlStr, err := getURL()
+	if err != nil {
+		return nil, errors.WithMessage(normalizeError(err), "httpfile.New (getting URL)")
+	}
+	hf.currentURL = urlStr
 
-	for retryCtx.ShouldTry() {
-		urlStr, err := getURL()
+	hr, err := hf.borrowReader(0)
+	if err != nil {
+		return nil, errors.WithMessage(normalizeError(err), "httpfile.New (initial request)")
+	}
+	hf.returnReader(hr)
+
+	hf.requestURL = hr.requestURL
+
+	if hr.statusCode == 206 {
+		rangeHeader := hr.header.Get("content-range")
+		rangeTokens := strings.Split(rangeHeader, "/")
+		totalBytesStr := rangeTokens[len(rangeTokens)-1]
+		hf.size, err = strconv.ParseInt(totalBytesStr, 10, 64)
 		if err != nil {
-			// this assumes getURL does its own retrying
-			return nil, err
+			return nil, fmt.Errorf("Could not parse file size: %s", err.Error())
 		}
-
-		// This used to be `HEAD`, but some servers (looking at you Amazon S3)
-		// didn't like it.
-		req, err := http.NewRequest("GET", urlStr, nil)
-		if err != nil {
-			// internal error
-			return nil, err
-		}
-
-		req.Header.Set("Range", "bytes=0-0")
-
-		res, err := client.Do(req)
-		if err != nil {
-			if hf.shouldRetry(err) {
-				// we can recover from some client errors
-				// (example: temporarily offline, DNS failure, etc.)
-				retryCtx.Retry(err)
-				continue
-			} else {
-				return nil, err
-			}
-		}
-
-		hf.header = res.Header
-		hf.requestURL = res.Request.URL
-
-		err = res.Body.Close()
-		if err != nil {
-			return nil, err
-		}
-
-		if res.StatusCode != 206 && res.StatusCode != 200 {
-			if res.StatusCode == 404 {
-				// no need to retry - it's not coming back
-				return nil, errors.WithStack(ErrNotFound)
-			}
-
-			body, _ := ioutil.ReadAll(res.Body)
-			if needsRenewal(res, body) {
-				// don't sleep for renewal
-				hf.log("Initial request needs renewal (HTTP %d). Good start, good start.", res.StatusCode)
-
-				renewalTries++
-				if renewalTries >= maxRenewals {
-					return nil, ErrTooManyRenewals
-				}
-				continue
-			}
-
-			if res.StatusCode == 429 || res.StatusCode/100 == 5 {
-				retryCtx.Retry(errors.Errorf("HTTP %d (retrying)", res.StatusCode))
-				continue
-			}
-
-			return nil, fmt.Errorf("Expected HTTP 206, got HTTP %d, not retrying", res.StatusCode)
-		}
-
-		var totalBytes int64
-
-		if res.StatusCode == 206 {
-			rangeHeader := res.Header.Get("content-range")
-			rangeTokens := strings.Split(rangeHeader, "/")
-			totalBytesStr := rangeTokens[len(rangeTokens)-1]
-			totalBytes, err = strconv.ParseInt(totalBytesStr, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("Could not parse file size: %s", err.Error())
-			}
-		} else if res.StatusCode == 200 {
-			totalBytes = res.ContentLength
-		}
-
-		hf.currentURL = urlStr
-
-		// we have to use requestURL because we want the URL after
-		// redirect (for hosts like sourceforge)
-		pathTokens := strings.Split(hf.requestURL.Path, "/")
-		hf.name = pathTokens[len(pathTokens)-1]
-
-		dispHeader := res.Header.Get("content-disposition")
-		if dispHeader != "" {
-			_, mimeParams, err := mime.ParseMediaType(dispHeader)
-			if err == nil {
-				filename := mimeParams["filename"]
-				if filename != "" {
-					hf.name = filename
-				}
-			}
-		}
-
-		hf.size = totalBytes
-		return hf, nil
+	} else if hr.statusCode == 200 {
+		hf.size = hr.contentLength
 	}
 
-	return nil, errors.WithMessage(retryCtx.LastError, "httpfile new")
+	// we have to use requestURL because we want the URL after
+	// redirect (for hosts like sourceforge)
+	pathTokens := strings.Split(hf.requestURL.Path, "/")
+	hf.name = pathTokens[len(pathTokens)-1]
+
+	dispHeader := hr.header.Get("content-disposition")
+	if dispHeader != "" {
+		_, mimeParams, err := mime.ParseMediaType(dispHeader)
+		if err == nil {
+			filename := mimeParams["filename"]
+			if filename != "" {
+				hf.name = filename
+			}
+		}
+	}
+
+	return hf, nil
 }
 
 func (hf *HTTPFile) newRetryContext() *retrycontext.Context {
@@ -520,8 +225,8 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 			continue
 		}
 
-		diff := offset - reader.offset
-		if diff < 0 && -diff < maxDiscard && -diff <= int64(reader.cached) {
+		diff := offset - reader.Offset()
+		if diff < 0 && -diff < maxDiscard && -diff <= reader.Cached() {
 			if -diff < bestBackDiff {
 				bestBackReader = reader.id
 				bestBackDiff = -diff
@@ -542,19 +247,17 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		delete(hf.readers, bestReader)
 
 		// clear backtrack if any
-		reader.backtrack = 0
+		reader.Backtrack(0)
 
 		// discard if needed
 		if bestDiff > 0 {
-			hf.log2("borrow: for %d, re-using %d by discarding %d bytes", offset, reader.offset, bestDiff)
+			hf.log2("[%9d-%9d] (Borrow) %d --> %d (%s)", offset, offset, reader.Offset(), reader.Offset()+bestDiff, reader.id)
 
-			// XXX: not int64-clean
-			_, err := reader.Discard(int(bestDiff))
+			err := reader.Discard(bestDiff)
 			if err != nil {
 				if hf.shouldRetry(err) {
-					hf.log2("borrow: for %d, discard failed because of retriable error, reconnecting", offset)
-					reader.offset = offset
-					err = reader.Connect()
+					hf.log2("[%9d-] (Borrow) discard failed, reconnecting", offset)
+					err = reader.Connect(offset)
 					if err != nil {
 						return nil, err
 					}
@@ -572,27 +275,28 @@ func (hf *HTTPFile) borrowReader(offset int64) (*httpReader, error) {
 		reader := hf.readers[bestBackReader]
 		delete(hf.readers, bestBackReader)
 
-		hf.log2("borrow: for %d, re-using %d by backtracking %d bytes", offset, reader.offset, bestBackDiff)
+		hf.log2("[%9d-%9d] (Borrow) %d <-- %d (%s)", offset, offset, reader.Offset()-bestBackDiff, reader.Offset(), reader.id)
 
 		// backtrack as needed
-		reader.backtrack = int(bestBackDiff)
+		err := reader.Backtrack(bestBackDiff)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
 		return reader, nil
 	}
 
 	// provision a new reader
-	hf.log("borrow: making fresh for offset %d", offset)
+	hf.log("[%9d-%9d] (Borrow) new connection", offset, offset)
 
 	id := generateID()
 	reader := &httpReader{
 		file:      hf,
 		id:        fmt.Sprintf("reader-%d", id),
 		touchedAt: time.Now(),
-		offset:    offset,
-		cache:     make([]byte, int(maxDiscard)),
-		backtrack: 0,
 	}
 
-	err := reader.Connect()
+	err := reader.Connect(offset)
 	if err != nil {
 		return nil, err
 	}
@@ -671,10 +375,15 @@ func (hf *HTTPFile) Read(buf []byte) (int, error) {
 	defer hf.lock.Unlock()
 
 	initialOffset := hf.offset
-	hf.log2("> Read(%d, %d)", len(buf), initialOffset)
 	bytesRead, err := hf.readAt(buf, hf.offset)
 	hf.offset += int64(bytesRead)
-	hf.log2("< Read(%d, %d) = %d, %+v", len(buf), initialOffset, bytesRead, err != nil)
+
+	if hf.LogLevel >= 2 {
+		bytesWanted := int64(len(buf))
+		start := initialOffset
+		end := initialOffset + bytesWanted
+		hf.log2("[%9d-%9d] (Read) %d/%d %v", start, end, bytesRead, bytesWanted, err)
+	}
 	return bytesRead, err
 }
 
@@ -686,10 +395,27 @@ func (hf *HTTPFile) ReadAt(buf []byte, offset int64) (int, error) {
 	hf.lock.Lock()
 	defer hf.lock.Unlock()
 
-	hf.log2("> ReadAt(%d, %d)", len(buf), offset)
-	n, err := hf.readAt(buf, offset)
-	hf.log2("< ReadAt(%d, %d) = %d, %+v", len(buf), offset, n, err != nil)
-	return n, err
+	bytesRead, err := hf.readAt(buf, offset)
+
+	if hf.LogLevel >= 2 {
+		bytesWanted := int64(len(buf))
+		start := offset
+		end := offset + bytesWanted
+
+		var readDesc string
+		if bytesWanted == int64(bytesRead) {
+			readDesc = "full"
+		} else if bytesRead == 0 {
+			readDesc = fmt.Sprintf("partial (%d of %d)", bytesRead, bytesWanted)
+		} else {
+			readDesc = "zero"
+		}
+		if err != nil {
+			readDesc += fmt.Sprintf(", with err %v", err)
+		}
+		hf.log2("[%9d-%9d] (ReadAt) %s", start, end, readDesc)
+	}
+	return bytesRead, err
 }
 
 func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
@@ -715,7 +441,7 @@ func (hf *HTTPFile) readAt(data []byte, offset int64) (int, error) {
 		if err != nil {
 			if hf.shouldRetry(err) {
 				hf.log("Got %s, retrying", err.Error())
-				err = reader.Connect()
+				err = reader.Connect(reader.Offset())
 				if err != nil {
 					return totalBytesRead, err
 				}
@@ -735,13 +461,39 @@ func (hf *HTTPFile) shouldRetry(err error) bool {
 	}
 
 	if neterr.IsNetworkError(err) {
-		hf.log("shouldRetry: retrying %v", err)
+		hf.log("Retrying: %v", err)
 		return true
-	} else {
-		hf.log("shouldRetry: bailing on error %v", err)
 	}
 
+	if se, ok := errors.Cause(err).(*ServerError); ok {
+		switch se.StatusCode {
+		case 429: /* Too Many Requests */
+			return true
+		case 500: /* Internal Server Error */
+			return true
+		case 502: /* Bad Gateway */
+			return true
+		case 503: /* Service Unavailable */
+			return true
+		}
+	}
+
+	hf.log("Bailing on error: %v", err)
 	return false
+}
+
+func isHTTPStatus(err error, statusCode int) bool {
+	if se, ok := errors.Cause(err).(*ServerError); ok {
+		return se.StatusCode == statusCode
+	}
+	return false
+}
+
+func normalizeError(err error) error {
+	if isHTTPStatus(err, 404) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (hf *HTTPFile) closeAllReaders() error {
