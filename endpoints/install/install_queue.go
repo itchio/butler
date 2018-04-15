@@ -74,6 +74,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	defer oc.Release()
 
 	consumer := oc.Consumer()
 	meta := operate.NewMetaSubcontext()

@@ -47,16 +47,13 @@ func Do(consumer *state.Consumer, path string) error {
 		if attempt == len(sleepPatterns) {
 			return fmt.Errorf("Could not wipe %s: %s", path, err.Error())
 		}
+		consumer.Warnf("Could not wipe %s, will retry: %s", path, err.Error())
 
-		consumer.Warnf("While wiping %s: %s", path, err.Error())
-
-		consumer.Infof("Trying to brute-force permissions, who knows...")
 		err = tryChmod(path)
 		if err != nil {
 			consumer.Warnf("While bruteforcing: %s", err.Error())
 		}
 
-		consumer.Infof("Sleeping for a bit before we retry...")
 		sleepDuration := sleepPatterns[attempt]
 		time.Sleep(sleepDuration)
 		attempt++

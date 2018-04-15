@@ -13,7 +13,6 @@ import (
 	"github.com/dchest/safefile"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
-	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/pb"
 	"github.com/itchio/wharf/state"
@@ -181,7 +180,7 @@ func (oc *OperationContext) Retire() {
 	oc.Release()
 	oc.logFile.Close()
 
-	err := wipe.Do(comm.NewStateConsumer(), oc.StageFolder())
+	err := wipe.Do(consumer, oc.StageFolder())
 	if err != nil {
 		consumer.Warnf("Could not wipe staging folder: %+v", err)
 	}
