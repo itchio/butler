@@ -210,6 +210,9 @@ func (pb *ProgressBar) SetWidth(width int) *ProgressBar {
 func (pb *ProgressBar) Finish() {
 	// Protect multiple calls
 	pb.finishOnce.Do(func() {
+		pb.mu.Lock()
+		defer pb.mu.Unlock()
+
 		close(pb.finish)
 		pb.write(atomic.LoadInt64(&pb.current))
 		if !pb.NotPrint {
