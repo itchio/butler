@@ -2,12 +2,16 @@
 
 go version
 
-export CURRENT_BUILD_PATH=$(pwd)
-export GOPATH=$CURRENT_BUILD_PATH
+export GOPATH=$PWD/gopath
+rm -rf $GOPATH
+
 export PKG=github.com/itchio/butler
+export PATH=$PATH:$GOPATH/bin
 
-mkdir -p src/$PKG
-rsync -a --exclude 'src' . src/$PKG || echo "rsync complained (code $?)"
+mkdir -p $GOPATH/src/$PKG
+rsync -a --exclude 'gopath' . $GOPATH/src/$PKG || echo "rsync complained (code $?)"
+
 go get -v -d -t $PKG/...
-go test -v $PKG/...
+go test -v -race -cover -coverprofile=coverage.txt $PKG/...
 
+curl -s https://codecov.io/bash | bash
