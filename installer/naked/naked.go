@@ -14,4 +14,3 @@ func (m *Manager) Name() string {
 func Register() {
 	installer.RegisterManager(&Manager{})
 }
-

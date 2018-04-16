@@ -1,10 +1,10 @@
 package downloads
 
 import (
-	"github.com/pkg/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
+	"github.com/pkg/errors"
 )
 
 func DownloadsDiscard(rc *butlerd.RequestContext, params *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {

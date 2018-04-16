@@ -7,4 +7,3 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 	// in particular to do here.
 	return nil
 }
-

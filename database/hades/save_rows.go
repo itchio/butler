@@ -73,7 +73,7 @@ func (c *Context) saveRows(tx *gorm.DB, params *SaveParams, inputIface interface
 		}
 
 		var bestDestinPrimaryField *gorm.Field
-		for primaryField, _ := range recordsGroupedByPrimaryField {
+		for primaryField := range recordsGroupedByPrimaryField {
 			if primaryField != bestSourcePrimaryField {
 				bestDestinPrimaryField = primaryField
 				break

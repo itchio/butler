@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 type NewStateConsumerParams struct {

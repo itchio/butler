@@ -52,8 +52,8 @@ type PrereqPlan struct {
 
 // PrereqState informs the caller on the current status of a prereq
 type PrereqState struct {
-	Type   string            `json:"type"`
-	Name   string            `json:"name"`
+	Type   string               `json:"type"`
+	Name   string               `json:"name"`
 	Status butlerd.PrereqStatus `json:"status"`
 }
 

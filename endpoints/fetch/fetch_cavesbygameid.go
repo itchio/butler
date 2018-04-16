@@ -1,9 +1,9 @@
 package fetch
 
 import (
-	"github.com/pkg/errors"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/pkg/errors"
 )
 
 func FetchCavesByGameID(rc *butlerd.RequestContext, params *butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error) {

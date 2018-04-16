@@ -32,11 +32,11 @@ func Test_SaveAngels(t *testing.T) {
 	dest := filepath.Join(dir, "sample-app")
 	oldFs := &folderSpec{
 		entries: []*entrySpec{
-			&entrySpec{
+			{
 				name: "text/shakespeare2000.txt",
 				data: []byte("There are more things in network and disk, Horatio,\nThan are dreamt of in your codebase."),
 			},
-			&entrySpec{
+			{
 				name: ".gitkeep",
 				data: []byte{},
 			},

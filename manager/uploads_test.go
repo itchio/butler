@@ -36,12 +36,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, nil, game, linux64), "empty is empty")
 
 	debrpm := []*itchio.Upload{
-		&itchio.Upload{
+		{
 			Linux:    true,
 			Filename: "wrong.deb",
 			Type:     "default",
 		},
-		&itchio.Upload{
+		{
 			Linux:    true,
 			Filename: "nope.rpm",
 			Type:     "default",
@@ -60,7 +60,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	blacklistpkg := []*itchio.Upload{
-		&itchio.Upload{
+		{
 			OSX:      true,
 			Filename: "super-mac-game.pkg",
 			Type:     "default",
@@ -83,7 +83,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	excludeuntagged := []*itchio.Upload{
 		love,
-		&itchio.Upload{
+		{
 			Filename: "untagged-all-platforms.zip",
 			Type:     "default",
 		},

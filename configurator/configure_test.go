@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/itchio/butler/configurator"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ConfigureWindows(t *testing.T) {

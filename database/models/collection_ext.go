@@ -34,8 +34,8 @@ func (ce collectionExt) PreloadCollectionGames(db *gorm.DB) {
 	MustPreload(db, &hades.PreloadParams{
 		Record: ce.Collection,
 		Fields: []hades.PreloadField{
-			hades.PreloadField{Name: "CollectionGames", OrderBy: `"position" ASC`},
-			hades.PreloadField{Name: "CollectionGames.Game"},
+			{Name: "CollectionGames", OrderBy: `"position" ASC`},
+			{Name: "CollectionGames.Game"},
 		},
 	})
 }

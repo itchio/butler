@@ -100,7 +100,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 	var redistNames []string
 	// map iteration is random in go (they mean it)
 	// so we have to sort it here. cf. https://github.com/itchio/itch/issues/1754
-	for redistName, _ := range registry.Entries {
+	for redistName := range registry.Entries {
 		redistNames = append(redistNames, redistName)
 	}
 	sort.Strings(redistNames)
@@ -116,7 +116,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 
 	wantedMap := make(map[string]bool)
 
-	for imp, _ := range importsMap {
+	for imp := range importsMap {
 		var bestEntry *redist.RedistEntry
 		var bestEntryName string
 
@@ -141,7 +141,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 	}
 
 	var wanted []string
-	for entryName, _ := range wantedMap {
+	for entryName := range wantedMap {
 		wanted = append(wanted, entryName)
 	}
 

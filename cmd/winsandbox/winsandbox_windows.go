@@ -282,10 +282,10 @@ type checkAccessSpec struct {
 }
 
 var checkAccessSpecs = []checkAccessSpec{
-	checkAccessSpec{"read", syscallex.GENERIC_READ},
-	checkAccessSpec{"write", syscallex.GENERIC_WRITE},
-	checkAccessSpec{"execute", syscallex.GENERIC_EXECUTE},
-	checkAccessSpec{"all", syscallex.GENERIC_ALL},
+	{"read", syscallex.GENERIC_READ},
+	{"write", syscallex.GENERIC_WRITE},
+	{"execute", syscallex.GENERIC_EXECUTE},
+	{"all", syscallex.GENERIC_ALL},
 }
 
 func CheckAccess(consumer *state.Consumer) error {

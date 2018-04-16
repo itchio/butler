@@ -16,8 +16,8 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 		err := c.Preload(rc.DB(), &hades.PreloadParams{
 			Record: profile,
 			Fields: []hades.PreloadField{
-				hades.PreloadField{Name: "OwnedKeys", OrderBy: `"created_at" DESC`},
-				hades.PreloadField{Name: "OwnedKeys.Game"},
+				{Name: "OwnedKeys", OrderBy: `"created_at" DESC`},
+				{Name: "OwnedKeys.Game"},
 			},
 		})
 		if err != nil {

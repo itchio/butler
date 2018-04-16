@@ -196,9 +196,9 @@ func Test_HasMany(t *testing.T) {
 		p1 := &Programmer{
 			ID: 3,
 			Qualities: []*Quality{
-				&Quality{ID: 9, Label: "Inspiration"},
-				&Quality{ID: 10, Label: "Creativity"},
-				&Quality{ID: 11, Label: "Ability to not repeat oneself"},
+				{ID: 9, Label: "Inspiration"},
+				{ID: 10, Label: "Creativity"},
+				{ID: 11, Label: "Ability to not repeat oneself"},
 			},
 		}
 		wtest.Must(t, c.Save(db, &hades.SaveParams{Record: p1}))
@@ -218,8 +218,8 @@ func Test_HasMany(t *testing.T) {
 		p2 := &Programmer{
 			ID: 8,
 			Qualities: []*Quality{
-				&Quality{ID: 40, Label: "Peace"},
-				&Quality{ID: 41, Label: "Serenity"},
+				{ID: 40, Label: "Peace"},
+				{ID: 41, Label: "Serenity"},
 			},
 		}
 		programmers := []*Programmer{p1, p2}
@@ -231,7 +231,7 @@ func Test_HasMany(t *testing.T) {
 		pp := &hades.PreloadParams{
 			Record: p1bis,
 			Fields: []hades.PreloadField{
-				hades.PreloadField{Name: "Qualities"},
+				{Name: "Qualities"},
 			},
 		}
 		wtest.Must(t, c.Preload(db, pp))
@@ -287,8 +287,8 @@ func Test_ManyToMany(t *testing.T) {
 		fr := &Language{
 			ID: 123,
 			Words: []*Word{
-				&Word{ID: "Plume"},
-				&Word{ID: "Week-end"},
+				{ID: "Plume"},
+				{ID: "Week-end"},
 			},
 		}
 		t.Logf("saving just fr")
@@ -309,8 +309,8 @@ func Test_ManyToMany(t *testing.T) {
 		en := &Language{
 			ID: 456,
 			Words: []*Word{
-				&Word{ID: "Plume"},
-				&Word{ID: "Week-end"},
+				{ID: "Plume"},
+				{ID: "Week-end"},
 			},
 		}
 		t.Logf("saving fr+en")
@@ -324,8 +324,8 @@ func Test_ManyToMany(t *testing.T) {
 
 		t.Logf("saving partial joins ('add' words to english)")
 		en.Words = []*Word{
-			&Word{ID: "Wreck"},
-			&Word{ID: "Nervous"},
+			{ID: "Wreck"},
+			{ID: "Nervous"},
 		}
 		wtest.Must(t, c.Save(db, &hades.SaveParams{
 			Record:       []*Language{en},
@@ -362,8 +362,8 @@ func Test_ManyToMany(t *testing.T) {
 		}
 
 		langs := []*Language{
-			&Language{ID: fr.ID},
-			&Language{ID: en.ID},
+			{ID: fr.ID},
+			{ID: en.ID},
 		}
 		err := c.Preload(db, &hades.PreloadParams{
 			Record: langs,
@@ -404,21 +404,21 @@ func Test_ManyToManyRevenge(t *testing.T) {
 			return &Profile{
 				ID: 389,
 				ProfileGames: []*ProfileGame{
-					&ProfileGame{
+					{
 						Order: 1,
 						Game: &Game{
 							ID:    58372,
 							Title: "First offensive",
 						},
 					},
-					&ProfileGame{
+					{
 						Order: 5,
 						Game: &Game{
 							ID:    235971,
 							Title: "Seconds until midnight",
 						},
 					},
-					&ProfileGame{
+					{
 						Order: 7,
 						Game: &Game{
 							ID:    10598,
