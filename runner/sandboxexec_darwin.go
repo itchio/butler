@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/runner/policies"
+	"github.com/itchio/ox/macox"
 	"github.com/pkg/errors"
 )
 

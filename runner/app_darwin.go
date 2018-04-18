@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 
+	"github.com/itchio/ox/macox"
 	"github.com/pkg/errors"
 )
 
