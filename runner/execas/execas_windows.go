@@ -14,7 +14,7 @@ import (
 	"sync"
 
 	"github.com/itchio/butler/runner/osex"
-	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/ox/syscallex"
 )
 
 // Cmd represents an external command being prepared or run.

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/butler/archive"
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/boar"
+	"github.com/itchio/dash"
 	"github.com/itchio/pelican"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
@@ -38,14 +38,14 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	}
 
 	// configurator is what we do first because it's generally fast:
-	// it shouldn't read *much* of the remote file, and with httpfile
+	// it shouldn't read *much* of the remote file, and with htfs
 	// caching, it's even faster. whereas 7-zip might read a *bunch*
 	// of an .exe file before it gives up
 
-	consumer.Infof("  Probing with configurator...")
+	consumer.Infof("  Probing with dash...")
 
 	beforeConfiguratorProbe := time.Now()
-	candidate, err := configurator.Sniff(file, target, stat.Size())
+	candidate, err := dash.Sniff(file, target, stat.Size())
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -77,7 +77,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		}
 
 		var entries []*savior.Entry
-		archiveInfo, err := archive.Probe(&archive.TryOpenParams{
+		archiveInfo, err := boar.Probe(&boar.ProbeParams{
 			File:      file,
 			Consumer:  consumer,
 			Candidate: candidate,
@@ -107,10 +107,10 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	}, nil
 }
 
-func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *configurator.Candidate, file eos.File) (InstallerType, error) {
+func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *dash.Candidate, file eos.File) (InstallerType, error) {
 	switch candidate.Flavor {
 
-	case configurator.FlavorNativeWindows:
+	case dash.FlavorNativeWindows:
 		if candidate.WindowsInfo != nil && candidate.WindowsInfo.InstallerType != "" {
 			typ := (InstallerType)(candidate.WindowsInfo.InstallerType)
 			consumer.Infof("  → Windows installer of type %s", typ)
@@ -150,22 +150,22 @@ func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *configura
 		consumer.Infof("  → Native windows executable, but not an installer")
 		return InstallerTypeNaked, nil
 
-	case configurator.FlavorNativeMacos:
+	case dash.FlavorNativeMacos:
 		consumer.Infof("  → Native macOS executable")
 		return InstallerTypeNaked, nil
 
-	case configurator.FlavorNativeLinux:
+	case dash.FlavorNativeLinux:
 		consumer.Infof("  → Native linux executable")
 		return InstallerTypeNaked, nil
 
-	case configurator.FlavorScript:
+	case dash.FlavorScript:
 		consumer.Infof("  → Script")
 		if candidate.ScriptInfo != nil && candidate.ScriptInfo.Interpreter != "" {
 			consumer.Infof("    with interpreter %s", candidate.ScriptInfo.Interpreter)
 		}
 		return InstallerTypeNaked, nil
 
-	case configurator.FlavorScriptWindows:
+	case dash.FlavorScriptWindows:
 		consumer.Infof("  → Windows script")
 		return InstallerTypeNaked, nil
 	}

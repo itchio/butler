@@ -8,16 +8,18 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/dash"
+	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
 type StrategyResult struct {
 	Strategy       LaunchStrategy
 	FullTargetPath string
-	Candidate      *configurator.Candidate
+	Candidate      *dash.Candidate
 }
 
 func (sr *StrategyResult) String() string {
@@ -43,7 +45,7 @@ func (sr *StrategyResult) String() string {
 	return strings.Join(lines, "\n")
 }
 
-func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
+func DetermineStrategy(consumer *state.Consumer, runtime *manager.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
 	// is it a path?
 	fullPath := manifest.ExpandPath(manifestAction, runtime, installFolder)
 	stats, err := os.Stat(fullPath)
@@ -89,7 +91,10 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 		return res, nil
 	}
 
-	verdict, err := configurator.Configure(fullPath, false)
+	verdict, err := dash.Configure(fullPath, &dash.ConfigureParams{
+		Consumer: consumer,
+		Filter:   filtering.FilterPaths,
+	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -106,7 +111,7 @@ func DetermineStrategy(runtime *manager.Runtime, installFolder string, manifestA
 	return res, nil
 }
 
-func DetermineCandidateStrategy(basePath string, candidate *configurator.Candidate) (*StrategyResult, error) {
+func DetermineCandidateStrategy(basePath string, candidate *dash.Candidate) (*StrategyResult, error) {
 	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
 
 	res := &StrategyResult{
@@ -117,27 +122,27 @@ func DetermineCandidateStrategy(basePath string, candidate *configurator.Candida
 	return res, nil
 }
 
-func flavorToStrategy(flavor configurator.Flavor) LaunchStrategy {
+func flavorToStrategy(flavor dash.Flavor) LaunchStrategy {
 	switch flavor {
 	// HTML
-	case configurator.FlavorHTML:
+	case dash.FlavorHTML:
 		return LaunchStrategyHTML
 	// Native
-	case configurator.FlavorNativeLinux:
+	case dash.FlavorNativeLinux:
 		return LaunchStrategyNative
-	case configurator.FlavorNativeMacos:
+	case dash.FlavorNativeMacos:
 		return LaunchStrategyNative
-	case configurator.FlavorNativeWindows:
+	case dash.FlavorNativeWindows:
 		return LaunchStrategyNative
-	case configurator.FlavorAppMacos:
+	case dash.FlavorAppMacos:
 		return LaunchStrategyNative
-	case configurator.FlavorScript:
+	case dash.FlavorScript:
 		return LaunchStrategyNative
-	case configurator.FlavorScriptWindows:
+	case dash.FlavorScriptWindows:
 		return LaunchStrategyNative
-	case configurator.FlavorJar:
+	case dash.FlavorJar:
 		return LaunchStrategyNative
-	case configurator.FlavorLove:
+	case dash.FlavorLove:
 		return LaunchStrategyNative
 	default:
 		return LaunchStrategyUnknown

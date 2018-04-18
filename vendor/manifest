@@ -246,6 +246,22 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/boar",
+			"repository": "https://github.com/itchio/boar",
+			"vcs": "git",
+			"revision": "bf14ef6541e9e6e36ebd739f2145b1fb43e80dce",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/dash",
+			"repository": "https://github.com/itchio/dash",
+			"vcs": "git",
+			"revision": "e04390a8a8ba1178a48a4bcead5bdb3a8c0f25b9",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/dskompress",
 			"repository": "https://github.com/itchio/dskompress",
 			"vcs": "git",
@@ -257,7 +273,7 @@
 			"importpath": "github.com/itchio/elefant",
 			"repository": "https://github.com/itchio/elefant",
 			"vcs": "git",
-			"revision": "3bc84d5e2426d4b89a1a12c13e07b060d7750124",
+			"revision": "24a98641fe67c4b4506793b197cb954717a85876",
 			"branch": "master",
 			"notests": true
 		},
@@ -273,7 +289,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "3586a761139ee4e6fa4c2c98a89611aeaa28be1d",
+			"revision": "8d1b85450fa0f30e08c39ab944f705afc546bda4",
 			"branch": "master",
 			"notests": true
 		},
@@ -281,7 +297,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "38029b22a17d69fcbb74bfafe68d4d061225cc82",
+			"revision": "90d559a20a306937f4710972f0dccdaf24f6fc6a",
 			"branch": "master",
 			"notests": true
 		},
@@ -302,10 +318,18 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/itchio/ox",
+			"repository": "https://github.com/itchio/ox",
+			"vcs": "git",
+			"revision": "127fccfbc13420bacbb3e4f3f50be7e1fee6add4",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/itchio/pelican",
 			"repository": "https://github.com/itchio/pelican",
 			"vcs": "git",
-			"revision": "bd389ff974e120fe6ab2cc1964018cc942a12d93",
+			"revision": "e4e31a726ae6c7a418140a1ef5fcf74bd38997e9",
 			"branch": "master",
 			"notests": true
 		},
@@ -313,7 +337,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "df27c6101134cb3ef3cc3dcfae7724765bb011ee",
+			"revision": "fff1baabd62cc6c405939c5a16136604357eb7d1",
 			"branch": "master",
 			"notests": true
 		},
@@ -321,7 +345,7 @@
 			"importpath": "github.com/itchio/sevenzip-go",
 			"repository": "https://github.com/itchio/sevenzip-go",
 			"vcs": "git",
-			"revision": "3312b93f1113c760bb7aaae3747f67501dfa5dec",
+			"revision": "2ba1ca2e89a9f2095354d319c57bd97b58638ca4",
 			"branch": "master",
 			"notests": true
 		},
@@ -329,7 +353,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "eed84ea744f475fe813931671db2d9c9ea97bfa5",
+			"revision": "9fc6570878cbf4aab12612ecf1564bc1069c7999",
 			"branch": "master",
 			"notests": true
 		},
@@ -447,6 +471,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"vcs": "git",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/satori/go.uuid",
 			"repository": "https://github.com/satori/go.uuid",
 			"vcs": "git",
@@ -557,6 +589,15 @@
 			"revision": "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb",
 			"branch": "master",
 			"path": "/html",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/windows",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "2f57af4873d00d535c5c9028850aa2152e6a5566",
+			"branch": "master",
+			"path": "/windows",
 			"notests": true
 		},
 		{

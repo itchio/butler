@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/archive"
+	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/pkg/errors"
@@ -81,7 +81,7 @@ func applyUpgrade(ctx *mansion.Context, vinfo *mansion.VersionCheckResult) error
 	archiveURL := fmt.Sprintf("%s/%s/.zip", ctx.UpdateBaseURL(after.Variant), after.Name)
 	comm.Opf("%s", archiveURL)
 
-	extractRes, err := archive.SimpleExtract(&archive.SimpleExtractParams{
+	extractRes, err := boar.SimpleExtract(&boar.SimpleExtractParams{
 		ArchivePath:       archiveURL,
 		DestinationFolder: updateDir,
 		Consumer:          comm.NewStateConsumer(),

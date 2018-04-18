@@ -44,7 +44,7 @@ butler is released under the MIT License. See the [LICENSE](LICENSE) file for de
 While butler built from source is fully MIT-licensed, some components it can use at runtime
 (if present) have other licenses:
 
-  * The 7-zip decompression engine (the `github.com/itchio/butler/archive/szextractor` package) opens
+  * The 7-zip decompression engine (the `github.com/itchio/boar/szextractor` package) opens
   dynamic libraries for [libc7zip][], and [7-zip][], which have components licensed under the LGPL 2.1 license
   and the MPL 2.0 license, along with specific terms for the RAR extraction code.
 

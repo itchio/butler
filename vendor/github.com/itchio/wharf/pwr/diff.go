@@ -163,7 +163,7 @@ func (dctx *DiffContext) WritePatch(ctx context.Context, patchWriter io.Writer, 
 				return signContext.CreateSignature(ctx, int64(fileIndex), signReader, sigWriter)
 			},
 			func() error {
-				return mr.Do()
+				return mr.Do(ctx)
 			},
 		)
 		if err != nil {

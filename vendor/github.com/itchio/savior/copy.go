@@ -6,6 +6,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrStop is returned when decompression has been stopped by a SaveConsumer returning
+// AfterActionStop.
 var ErrStop = errors.New("copy was stopped after save!")
 
 type EmitProgressFunc func()

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/itchio/butler/archive"
+	"github.com/itchio/boar"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/eos"
@@ -63,7 +63,7 @@ type InstallResult struct {
 
 type InstallerInfo struct {
 	Type        InstallerType
-	ArchiveInfo *archive.ArchiveInfo
+	ArchiveInfo *boar.Info
 	Entries     []*savior.Entry
 }
 
@@ -84,7 +84,7 @@ const (
 // If that fails, it returns `ErrNeedLocal`. Consumers of functions that
 // call + relay AsLocalFile's errors are expected to know how to
 // download a file to disk and call again with an *os.File instance instead
-// of, say, an httpfile.HTTPFile
+// of, say, an *htfs.File
 func AsLocalFile(f eos.File) (*os.File, error) {
 	if lf, ok := f.(*os.File); ok {
 		return lf, nil

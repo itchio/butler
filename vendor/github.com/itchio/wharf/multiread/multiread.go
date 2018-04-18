@@ -1,20 +1,24 @@
 package multiread
 
 import (
+	"context"
 	"errors"
 	"io"
+	"sync"
+
+	"github.com/itchio/wharf/ctxcopy"
 )
 
 type multiread struct {
 	upstream io.Reader
-	writers  []io.WriteCloser
+	writers  []*io.PipeWriter
 	doing    bool
 }
 
 // Multiread lets multiple readers read the same data
 type Multiread interface {
 	Reader() io.Reader
-	Do() error
+	Do(ctx context.Context) error
 }
 
 // New returns a new instance of Multiread
@@ -33,14 +37,16 @@ func (m *multiread) Reader() io.Reader {
 	return r
 }
 
-func (m *multiread) Do() error {
+func (m *multiread) Do(ctx context.Context) error {
 	m.doing = true
 
-	defer func() {
+	var closeOnce sync.Once
+
+	defer closeOnce.Do(func() {
 		for _, w := range m.writers {
 			w.Close()
 		}
-	}()
+	})
 
 	ww := make([]io.Writer, 0, len(m.writers))
 	for _, w := range m.writers {
@@ -48,7 +54,14 @@ func (m *multiread) Do() error {
 	}
 	mw := io.MultiWriter(ww...)
 
-	_, err := io.Copy(mw, m.upstream)
+	_, err := ctxcopy.Do(ctx, mw, m.upstream)
+	if err != nil {
+		closeOnce.Do(func() {
+			for _, w := range m.writers {
+				w.CloseWithError(err)
+			}
+		})
+	}
 	return err
 }
 

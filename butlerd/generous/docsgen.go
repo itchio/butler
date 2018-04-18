@@ -15,7 +15,7 @@ func (bc *GenerousContext) GenerateDocs() error {
 	scope := newScope(bc)
 	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
+	must(scope.Assimilate("github.com/itchio/dash", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
 
 	dumpStruct := func(header string, entry *Entry, showDesc bool) {

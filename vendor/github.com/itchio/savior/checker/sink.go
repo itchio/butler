@@ -12,6 +12,8 @@ import (
 
 // TODO: check that everything has been extracted once properly
 
+// Sink is a special kind of savior.Sink that records statistics
+// about what's written to assist in unit testing.
 type Sink struct {
 	Items     map[string]*Item
 	DoneItems map[string]*DoneItem
@@ -19,17 +21,20 @@ type Sink struct {
 
 var _ savior.Sink = (*Sink)(nil)
 
+// Item represents a savior.Entry + bytes pair
 type Item struct {
 	Entry *savior.Entry
 	Data  []byte
 }
 
+// DoneItem represents the result of an item having been written to
 type DoneItem struct {
 	MinWrite int64
 	MaxWrite int64
 	Linkname string
 }
 
+// NewSink returns a new checker sink
 func NewSink() *Sink {
 	cs := &Sink{
 		Items: make(map[string]*Item),

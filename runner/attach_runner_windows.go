@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/itchio/butler/runner/syscallex"
-	"github.com/itchio/butler/runner/winutil"
+	"github.com/itchio/ox/syscallex"
+	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
@@ -26,7 +26,7 @@ func getAttachRunner(params *RunnerParams) (Runner, error) {
 		return nil, errors.WithMessage(err, "could not create toolhelp32 snapshot")
 	}
 
-	defer winutil.SafeRelease(uintptr(snapshot))
+	defer winox.SafeRelease(uintptr(snapshot))
 
 	var entry syscallex.ProcessEntry32
 	entry.Size = uint32(unsafe.Sizeof(entry))
@@ -45,7 +45,7 @@ func getAttachRunner(params *RunnerParams) (Runner, error) {
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			defer winutil.SafeRelease(uintptr(process))
+			defer winox.SafeRelease(uintptr(process))
 
 			name, err := syscallex.QueryFullProcessImageName(process, 0)
 			if err != nil {
@@ -154,7 +154,7 @@ func (ar *attachRunner) Run() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer winutil.SafeRelease(uintptr(processHandle))
+	defer winox.SafeRelease(uintptr(processHandle))
 
 	consumer.Infof("Attached to PID (%d)", ar.pid)
 	_, err = syscall.WaitForSingleObject(processHandle, syscall.INFINITE)

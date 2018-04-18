@@ -14,10 +14,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/ox/syscallex"
 
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/runner/winutil"
+	"github.com/itchio/ox/winox"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 
@@ -82,12 +82,12 @@ func Check(consumer *state.Consumer) error {
 
 	consumer.Opf("Trying to log in...")
 
-	token, err := winutil.Logon(pd.Username, ".", pd.Password)
+	token, err := winox.Logon(pd.Username, ".", pd.Password)
 
 	if err != nil {
 		rescued := false
 
-		if en, ok := winutil.AsErrno(err); ok {
+		if en, ok := winox.AsErrno(err); ok {
 			switch en {
 			case syscallex.ERROR_PASSWORD_EXPIRED:
 			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
@@ -112,7 +112,7 @@ func Check(consumer *state.Consumer) error {
 					return errors.WithStack(err)
 				}
 
-				token, err = winutil.Logon(pd.Username, ".", pd.Password)
+				token, err = winox.Logon(pd.Username, ".", pd.Password)
 				if err != nil {
 					return errors.WithStack(err)
 				}
@@ -127,7 +127,7 @@ func Check(consumer *state.Consumer) error {
 			return errors.WithStack(err)
 		}
 	}
-	defer winutil.SafeRelease(uintptr(token))
+	defer winox.SafeRelease(uintptr(token))
 
 	consumer.Statf("Everything looks good!")
 
@@ -159,7 +159,7 @@ func Setup(consumer *state.Consumer) error {
 	if username != "" {
 		comm.Opf("Trying to salvage existing account (%s)....", username)
 		password = generatePassword()
-		err = winutil.ForceSetPassword(username, password)
+		err = winox.ForceSetPassword(username, password)
 		if err != nil {
 			consumer.Warnf("Could not force password: %+v", err)
 			username = ""
@@ -179,7 +179,7 @@ func Setup(consumer *state.Consumer) error {
 
 		comm.Opf("Adding user...")
 
-		err = winutil.AddUser(username, password, comment)
+		err = winox.AddUser(username, password, comment)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -187,14 +187,14 @@ func Setup(consumer *state.Consumer) error {
 
 	comm.Opf("Removing from Users group (so it doesn't show up as a login option)...")
 
-	err = winutil.RemoveUserFromUsersGroup(username)
+	err = winox.RemoveUserFromUsersGroup(username)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	comm.Opf("Loading profile for the first time (to create some directories)...")
 
-	err = winutil.LoadProfileOnce(username, ".", password)
+	err = winox.LoadProfileOnce(username, ".", password)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -220,34 +220,34 @@ func doSetfilepermissions(ctx *mansion.Context) {
 }
 
 func Setfilepermissions(consumer *state.Consumer) error {
-	entry := &winutil.ShareEntry{
+	entry := &winox.ShareEntry{
 		Path: *setfilepermissionsArgs.file,
 	}
 
 	if *setfilepermissionsArgs.inherit {
-		entry.Inheritance = winutil.InheritanceModeFull
+		entry.Inheritance = winox.InheritanceModeFull
 	} else {
-		entry.Inheritance = winutil.InheritanceModeNone
+		entry.Inheritance = winox.InheritanceModeNone
 	}
 
 	switch *setfilepermissionsArgs.rights {
 	case "read":
-		entry.Rights = winutil.RightsRead
+		entry.Rights = winox.RightsRead
 	case "write":
-		entry.Rights = winutil.RightsWrite
+		entry.Rights = winox.RightsWrite
 	case "execute":
-		entry.Rights = winutil.RightsExecute
+		entry.Rights = winox.RightsExecute
 	case "all":
-		entry.Rights = winutil.RightsAll
+		entry.Rights = winox.RightsAll
 	case "full":
-		entry.Rights = winutil.RightsFull
+		entry.Rights = winox.RightsFull
 	default:
 		return fmt.Errorf("unknown rights: %s", *setfilepermissionsArgs.rights)
 	}
 
-	policy := &winutil.SharingPolicy{
+	policy := &winox.SharingPolicy{
 		Trustee: *setfilepermissionsArgs.trustee,
-		Entries: []*winutil.ShareEntry{entry},
+		Entries: []*winox.ShareEntry{entry},
 	}
 
 	switch *setfilepermissionsArgs.change {
@@ -294,14 +294,14 @@ func CheckAccess(consumer *state.Consumer) error {
 		return errors.WithStack(err)
 	}
 
-	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
+	impersonationToken, err := winox.GetImpersonationToken(pd.Username, ".", pd.Password)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer winutil.SafeRelease(uintptr(impersonationToken))
+	defer winox.SafeRelease(uintptr(impersonationToken))
 
 	for _, spec := range checkAccessSpecs {
-		hasAccess, err := winutil.UserHasPermission(
+		hasAccess, err := winox.UserHasPermission(
 			impersonationToken,
 			spec.flags,
 			*checkAccessArgs.file,

@@ -4,7 +4,7 @@ import "fmt"
 
 type netError struct {
 	err    error
-	status gcsStatus
+	status gcs
 }
 
 func (ne *netError) Error() string {

@@ -12,7 +12,7 @@ import (
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/htfs"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
@@ -198,7 +198,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 		return err
 	}
 
-	if hf, ok := src.(*httpfile.HTTPFile); ok {
+	if hf, ok := src.(*htfs.File); ok {
 		header := hf.GetHeader()
 		if header != nil {
 			err = dl.CheckIntegrity(comm.NewStateConsumer(), header, totalBytes, destPath)

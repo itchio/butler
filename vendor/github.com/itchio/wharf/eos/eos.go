@@ -1,4 +1,4 @@
-// eos stands for 'enhanced os', it mostly supplies 'eos.Open', which supports
+// Package eos stands for 'enhanced os', it mostly supplies 'eos.Open', which supports
 // the 'itchfs://' scheme to access remote files
 package eos
 
@@ -10,14 +10,15 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/htfs"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
 )
 
-var httpFileLogLevel = os.Getenv("HTTPFILE_DEBUG")
-var httpFileCheck = os.Getenv("HTTPFILE_CHECK") == "1"
+var htfsLogLevel = os.Getenv("HTFS_DEBUG")
+var htfsCheck = os.Getenv("HTFS_CHECK") == "1"
+var hfSeed = 0
 
 type File interface {
 	io.Reader
@@ -30,7 +31,7 @@ type File interface {
 
 type Handler interface {
 	Scheme() string
-	MakeResource(u *url.URL) (httpfile.GetURLFunc, httpfile.NeedsRenewalFunc, error)
+	MakeResource(u *url.URL) (htfs.GetURLFunc, htfs.NeedsRenewalFunc, error)
 }
 
 var handlers = make(map[string]Handler)
@@ -68,7 +69,7 @@ func Open(name string, opts ...option.Option) (File, error) {
 		return nil, err
 	}
 
-	if hf, ok := f.(*httpfile.HTTPFile); ok && httpFileCheck {
+	if hf, ok := f.(*htfs.File); ok && htfsCheck {
 		hf.ForbidBacktracking = true
 
 		f2, err := realOpen(name, opts...)
@@ -101,26 +102,38 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	httpFileSettings := func() *httpfile.Settings {
-		return &httpfile.Settings{
+	htfsSettings := func() *htfs.Settings {
+		s := &htfs.Settings{
 			Client: settings.HTTPClient,
 			RetrySettings: &retrycontext.Settings{
 				MaxTries: settings.MaxTries,
 				Consumer: settings.Consumer,
 			},
 		}
+
+		if htfsLogLevel != "" {
+			hfSeed++
+			hfIndex := hfSeed
+
+			s.Log = func(msg string) {
+				fmt.Fprintf(os.Stderr, "[hf%d] %s\n", hfIndex, msg)
+			}
+			numericLevel, err := strconv.ParseInt(htfsLogLevel, 10, 64)
+			if err == nil {
+				s.LogLevel = int(numericLevel)
+			}
+		}
+		return s
 	}
 
 	switch u.Scheme {
 	case "http", "https":
 		res := &simpleHTTPResource{name}
-		hf, err := httpfile.New(res.GetURL, res.NeedsRenewal, httpFileSettings())
+		hf, err := htfs.Open(res.GetURL, res.NeedsRenewal, htfsSettings())
 
 		if err != nil {
 			return nil, err
 		}
-
-		setupHttpFileDebug(hf)
 
 		return hf, nil
 	default:
@@ -134,13 +147,11 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 			return nil, errors.WithStack(err)
 		}
 
-		hf, err := httpfile.New(getURL, needsRenewal, httpFileSettings())
+		hf, err := htfs.Open(getURL, needsRenewal, htfsSettings())
 
 		if err != nil {
 			return nil, err
 		}
-
-		setupHttpFileDebug(hf)
 
 		return hf, nil
 	}
@@ -153,21 +164,4 @@ func Redact(name string) string {
 	}
 
 	return u.Path
-}
-
-var hfSeed = 0
-
-func setupHttpFileDebug(hf *httpfile.HTTPFile) {
-	hfSeed += 1
-	hfIndex := hfSeed
-
-	if httpFileLogLevel != "" {
-		hf.Log = func(msg string) {
-			fmt.Fprintf(os.Stderr, "[hf%d] %s\n", hfIndex, msg)
-		}
-		numericLevel, err := strconv.ParseInt(httpFileLogLevel, 10, 64)
-		if err == nil {
-			hf.LogLevel = int(numericLevel)
-		}
-	}
 }

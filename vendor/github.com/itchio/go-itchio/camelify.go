@@ -14,7 +14,7 @@ func camelify(input interface{}) interface{} {
 
 // FIXME: this is bad, find another way to fix it
 var camelifyBlacklist = map[string]struct{}{
-	"upload_headers": struct{}{},
+	"upload_headers": {},
 }
 
 func camelifyArray(input []interface{}) []interface{} {

@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/jinzhu/gorm"
 )
@@ -40,13 +40,13 @@ type Cave struct {
 	CustomInstallFolder string `json:"customInstallFolder"`
 }
 
-func (c *Cave) SetVerdict(verdict *configurator.Verdict) {
+func (c *Cave) SetVerdict(verdict *dash.Verdict) {
 	err := MarshalVerdict(verdict, &c.Verdict)
 	if err != nil {
 		panic(err)
 	}
 }
-func (c *Cave) GetVerdict() *configurator.Verdict {
+func (c *Cave) GetVerdict() *dash.Verdict {
 	v, err := UnmarshalVerdict(c.Verdict)
 	if err != nil {
 		panic(err)

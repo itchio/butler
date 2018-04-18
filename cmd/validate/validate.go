@@ -10,7 +10,7 @@ import (
 
 	"github.com/itchio/butler/manager"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -38,7 +38,7 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("validate", "Validate a build folder, including its maniest if any")
 	args.dir = cmd.Arg("dir", "Path of build folder to validate").Required().String()
 	args.platform = cmd.Flag("platform", "Platform to validate for").Enum(string(butlerd.ItchPlatformLinux), string(butlerd.ItchPlatformOSX), string(butlerd.ItchPlatformWindows))
-	args.arch = cmd.Flag("arch", "Architecture to validate for").Enum(string(configurator.Arch386), string(configurator.ArchAmd64))
+	args.arch = cmd.Flag("arch", "Architecture to validate for").Enum(string(dash.Arch386), string(dash.ArchAmd64))
 	ctx.Register(cmd, doValidate)
 }
 
@@ -89,7 +89,7 @@ func Validate(consumer *state.Consumer) error {
 		runtime.Platform = butlerd.ItchPlatform(*args.platform)
 	}
 	if *args.arch != "" {
-		runtime.Is64 = (*args.arch == string(configurator.ArchAmd64))
+		runtime.Is64 = (*args.arch == string(dash.ArchAmd64))
 	}
 	consumer.Infof("For runtime %s (use --platform and --arch to simulate others)", runtime)
 	consumer.Infof("")
@@ -236,7 +236,7 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("    Passes arguments: %s", strings.Join(action.Args, " ::: "))
 			}
 			if hasDir {
-				sr, err := launch.DetermineStrategy(runtime, dir, action)
+				sr, err := launch.DetermineStrategy(consumer, runtime, dir, action)
 				if err != nil {
 					showError(err.Error())
 				} else {

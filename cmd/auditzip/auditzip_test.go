@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wtest"
 
-	_ "github.com/itchio/butler/archive/lzmasupport"
+	_ "github.com/itchio/boar/lzmasupport"
 )
 
 func TestProtoZip(t *testing.T) {

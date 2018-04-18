@@ -14,9 +14,10 @@ import (
 
 	"github.com/itchio/pelican"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/filtering"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
@@ -130,7 +131,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	name := params.FullTargetPath
 	args := params.Args
 
-	if params.Candidate != nil && params.Candidate.Flavor == configurator.FlavorLove {
+	if params.Candidate != nil && params.Candidate.Flavor == dash.FlavorLove {
 		// TODO: add prereqs when that happens
 		args = append([]string{name}, args...)
 		name = "love"
@@ -244,7 +245,10 @@ func configureTargetIfNeeded(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	v, err := configurator.Configure(params.FullTargetPath, false)
+	v, err := dash.Configure(params.FullTargetPath, &dash.ConfigureParams{
+		Consumer: params.RequestContext.Consumer,
+		Filter:   filtering.FilterPaths,
+	})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -264,7 +268,7 @@ func fillPeInfoIfNeeded(params *launch.LauncherParams) error {
 		return nil
 	}
 
-	if c.Flavor != configurator.FlavorNativeWindows {
+	if c.Flavor != dash.FlavorNativeWindows {
 		// not an .exe, ignore
 		return nil
 	}

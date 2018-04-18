@@ -1,43 +1,61 @@
-//go:generate stringer -type=gcsStatus
 package uploader
 
-type gcsStatus int
+// gcs represents the state of a google cloud
+// resumable upload session.
+type gcs int
 
 const (
-	GcsResume gcsStatus = iota
-	GcsNeedQuery
-	GcsUploadComplete
-	GcsSessionPoisonedOrExpired
-	GcsSessionNotFound
-	GcsUnknown
+	gcsResume gcs = iota
+	gcsNeedQuery
+	gcsUploadComplete
+	gcsSessionPoisonedOrExpired
+	gcsSessionNotFound
+	gcsUnknown
 )
 
-func interpretGcsStatusCode(status int) gcsStatus {
+func (g gcs) String() string {
+	switch g {
+	case gcsResume:
+		return "gcsResume"
+	case gcsNeedQuery:
+		return "gcsNeedQuery"
+	case gcsUploadComplete:
+		return "gcsUploadComplete"
+	case gcsSessionPoisonedOrExpired:
+		return "gcsSessionPoisonedOrExpired"
+	case gcsSessionNotFound:
+		return "gcsSessionNotFound"
+	default:
+		return "gcsUnknown"
+	}
+}
+
+func interpretGcsStatusCode(status int) gcs {
 	switch status / 100 {
 	case 2:
 		if status == 200 || status == 201 {
-			return GcsUploadComplete
+			return gcsUploadComplete
 		}
 	case 3:
 		if status == 308 {
-			return GcsResume
+			return gcsResume
 		}
 	case 4:
 		if status == 410 {
-			return GcsSessionPoisonedOrExpired
+			return gcsSessionPoisonedOrExpired
 		} else if status == 404 {
-			return GcsSessionNotFound
+			return gcsSessionNotFound
 		} else if status == 408 {
 			// sic. not a real 4xx error but a reverse-proxying oddity
 			// commit might still have been successful
-			return GcsNeedQuery
+			return gcsNeedQuery
 		}
 	case 5:
 		// internal server error, bad gateway, service unavailable,
 		// gateway timeout, all mean "maybe it did commit, maybe not",
 		// need query to find out what was actually committed.
-		return GcsNeedQuery
+		return gcsNeedQuery
 	}
 
-	return GcsUnknown
+	return gcsUnknown
 }

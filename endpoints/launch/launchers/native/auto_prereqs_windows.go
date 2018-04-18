@@ -12,7 +12,7 @@ import (
 
 	"github.com/itchio/butler/cmd/prereqs"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/pelican"
 	"github.com/pkg/errors"
@@ -27,7 +27,7 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 		return nil, nil
 	}
 
-	if candidate.Flavor != configurator.FlavorNativeWindows {
+	if candidate.Flavor != dash.FlavorNativeWindows {
 		// can only do auto prereqs on native executable
 		return nil, nil
 	}
@@ -43,8 +43,8 @@ func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext
 
 	importsMap := make(map[string]bool)
 
-	handleCandidate := func(c *configurator.Candidate) error {
-		if c.Flavor != configurator.FlavorNativeWindows {
+	handleCandidate := func(c *dash.Candidate) error {
+		if c.Flavor != dash.FlavorNativeWindows {
 			return nil
 		}
 

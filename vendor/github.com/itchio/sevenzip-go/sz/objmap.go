@@ -1,69 +1,53 @@
 package sz
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
+
+var seed int64 = 1
 
 //==========================
 // OutStream
 //==========================
 
-var outStreams = make(map[int64]*OutStream)
-var outStreamMutex sync.Mutex
-var outStreamSeed int64 = 1000
+var outStreams sync.Map
 
-func reserveOutStreamId(out *OutStream) {
-	outStreamMutex.Lock()
-	defer outStreamMutex.Unlock()
-	out.id = outStreamSeed
-	outStreamSeed += 1
-	outStreams[out.id] = out
+func reserveOutStreamId(obj *OutStream) {
+	obj.id = atomic.AddInt64(&seed, 1)
+	outStreams.Store(obj.id, obj)
 }
 
 func freeOutStreamId(id int64) {
-	outStreamMutex.Lock()
-	defer outStreamMutex.Unlock()
-	delete(outStreams, id)
+	outStreams.Delete(id)
 }
 
 //==========================
 // InStream
 //==========================
 
-var inStreams = make(map[int64]*InStream)
-var inStreamSeed int64 = 2000
-var inStreamMutex sync.Mutex
+var inStreams sync.Map
 
-func reserveInStreamId(in *InStream) {
-	inStreamMutex.Lock()
-	defer inStreamMutex.Unlock()
-	in.id = inStreamSeed
-	inStreamSeed += 1
-	inStreams[in.id] = in
+func reserveInStreamId(obj *InStream) {
+	obj.id = atomic.AddInt64(&seed, 1)
+	inStreams.Store(obj.id, obj)
 }
 
 func freeInStreamId(id int64) {
-	inStreamMutex.Lock()
-	defer inStreamMutex.Unlock()
-	delete(inStreams, id)
+	inStreams.Delete(id)
 }
 
 //==========================
 // ExtractCallback
 //==========================
 
-var extractCallbacks = make(map[int64]*ExtractCallback)
-var extractCallbackSeed int64 = 3000
-var extractCallbackMutex sync.Mutex
+var extractCallbacks sync.Map
 
-func reserveExtractCallbackId(ec *ExtractCallback) {
-	extractCallbackMutex.Lock()
-	defer extractCallbackMutex.Unlock()
-	ec.id = extractCallbackSeed
-	extractCallbackSeed += 1
-	extractCallbacks[ec.id] = ec
+func reserveExtractCallbackId(obj *ExtractCallback) {
+	obj.id = atomic.AddInt64(&seed, 1)
+	extractCallbacks.Store(obj.id, obj)
 }
 
 func freeExtractCallbackId(id int64) {
-	extractCallbackMutex.Lock()
-	defer extractCallbackMutex.Unlock()
-	delete(extractCallbacks, id)
+	extractCallbacks.Delete(id)
 }

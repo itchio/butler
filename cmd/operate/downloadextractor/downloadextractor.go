@@ -6,7 +6,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/cmd/dl"
-	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/htfs"
 	"github.com/itchio/savior"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
@@ -26,7 +26,9 @@ type downloadExtractor struct {
 
 var _ savior.Extractor = (*downloadExtractor)(nil)
 
-func New(file eos.File, destName string) *downloadExtractor {
+// New creates a new extractor that in fact just downloads a single file,
+// but also benefits from savior's resumable goodness.
+func New(file eos.File, destName string) savior.Extractor {
 	return &downloadExtractor{
 		file:     file,
 		destName: destName,
@@ -153,7 +155,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 	}
 
 	integrityCheck := func() error {
-		hf, ok := de.file.(*httpfile.HTTPFile)
+		hf, ok := de.file.(*htfs.File)
 		if !ok {
 			consumer.Infof("Not performing integrity checks (not an HTTP resource)")
 			return nil

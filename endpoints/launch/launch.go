@@ -17,11 +17,11 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/configurator"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
 )
@@ -108,7 +108,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 	var fullTargetPath string
 	var strategy = LaunchStrategyUnknown
-	var candidate *configurator.Candidate
+	var candidate *dash.Candidate
 	var manifestAction *butlerd.Action
 
 	appManifest, err := manifest.Read(installFolder)
@@ -154,7 +154,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		}
 
 		// is it a path?
-		res, err := DetermineStrategy(runtime, installFolder, manifestAction)
+		res, err := DetermineStrategy(consumer, runtime, installFolder, manifestAction)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -169,13 +169,13 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		return nil, errors.WithStack(err)
 	}
 
-	filterSetupExes := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
-		var candidatesOut []*configurator.Candidate
+	filterSetupExes := func(candidatesIn []*dash.Candidate) []*dash.Candidate {
+		var candidatesOut []*dash.Candidate
 		for _, c := range candidatesIn {
 			exclude := false
 
 			switch c.Flavor {
-			case configurator.FlavorNativeWindows:
+			case dash.FlavorNativeWindows:
 				{
 					err := func() error {
 						f, err := os.Open(filepath.Join(installFolder, c.Path))
@@ -217,23 +217,23 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		return candidatesOut
 	}
 
-	filterCandidates := func(candidatesIn []*configurator.Candidate) []*configurator.Candidate {
+	filterCandidates := func(candidatesIn []*dash.Candidate) []*dash.Candidate {
 		if len(candidatesIn) <= 1 {
 			return candidatesIn
 		}
 
-		var nativeFlavor configurator.Flavor
-		var nativeArch configurator.Arch
+		var nativeFlavor dash.Flavor
+		var nativeArch dash.Arch
 		switch runtime.Platform {
 		case butlerd.ItchPlatformWindows:
-			nativeFlavor = configurator.FlavorNativeWindows
+			nativeFlavor = dash.FlavorNativeWindows
 		case butlerd.ItchPlatformLinux:
-			nativeFlavor = configurator.FlavorNativeLinux
+			nativeFlavor = dash.FlavorNativeLinux
 		}
 		if runtime.Is64 {
-			nativeArch = configurator.ArchAmd64
+			nativeArch = dash.ArchAmd64
 		} else {
-			nativeArch = configurator.Arch386
+			nativeArch = dash.Arch386
 		}
 
 		for _, c := range candidatesIn {
@@ -256,7 +256,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			return candidatesIn
 		}
 
-		var candidatesOut []*configurator.Candidate
+		var candidatesOut []*dash.Candidate
 		consumer.Infof("Filtering %d candidates by preferring native arch (%s)", len(candidatesIn), nativeArch)
 		for _, c := range candidatesIn {
 			if c.Arch == nativeArch {

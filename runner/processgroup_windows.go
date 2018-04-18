@@ -8,7 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/itchio/butler/runner/execas"
-	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/ox/syscallex"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )

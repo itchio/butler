@@ -3,8 +3,10 @@ package nsis
 import (
 	"path/filepath"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/butler/filtering"
+
 	"github.com/itchio/butler/installer"
+	"github.com/itchio/dash"
 	"github.com/pkg/errors"
 )
 
@@ -14,14 +16,17 @@ func (m *Manager) Uninstall(params *installer.UninstallParams) error {
 
 	consumer.Infof("%s: probing with configurator", folder)
 
-	verdict, err := configurator.Configure(folder, false)
+	verdict, err := dash.Configure(folder, &dash.ConfigureParams{
+		Consumer: consumer,
+		Filter:   filtering.FilterPaths,
+	})
 	if err != nil {
 		return errors.Wrap(err, "looking for nsis uninstaller")
 	}
 
-	var chosen *configurator.Candidate
+	var chosen *dash.Candidate
 	for _, c := range verdict.Candidates {
-		if c.Flavor != configurator.FlavorNativeWindows {
+		if c.Flavor != dash.FlavorNativeWindows {
 			consumer.Infof("%s: ignoring (not native windows)", c.Path)
 			continue
 		}

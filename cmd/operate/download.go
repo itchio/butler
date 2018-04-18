@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/htfs"
 
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/savior"
@@ -64,7 +64,7 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 			}
 
 			if se, ok := asServerError(err); ok {
-				if se.Code == httpfile.ServerErrorCodeNoRangeSupport {
+				if se.Code == htfs.ServerErrorCodeNoRangeSupport {
 					consumer.Warnf("%s does not support range requests (boo, hiss), we have to start over", se.Host)
 					checkpoint = nil
 					retryCtx.Retry(err)
@@ -86,7 +86,7 @@ type causer interface {
 	Cause() error
 }
 
-func asServerError(err error) (*httpfile.ServerError, bool) {
+func asServerError(err error) (*htfs.ServerError, bool) {
 	if err == nil {
 		return nil, false
 	}
@@ -95,7 +95,7 @@ func asServerError(err error) (*httpfile.ServerError, bool) {
 		return asServerError(se.Cause())
 	}
 
-	if se, ok := err.(*httpfile.ServerError); ok {
+	if se, ok := err.(*htfs.ServerError); ok {
 		return se, true
 	}
 

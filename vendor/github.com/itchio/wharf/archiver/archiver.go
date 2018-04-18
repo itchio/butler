@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/httpkit/httpfile"
+	"github.com/itchio/httpkit/htfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
@@ -56,7 +56,7 @@ func ExtractPath(archive string, destPath string, settings ExtractSettings) (*Ex
 		return nil, errors.WithStack(err)
 	}
 
-	if _, ok := file.(*httpfile.HTTPFile); ok {
+	if _, ok := file.(*htfs.File); ok {
 		settings.Consumer.Infof("Extracting remote file, forcing concurrency to 1")
 		settings.Concurrency = 1
 	}

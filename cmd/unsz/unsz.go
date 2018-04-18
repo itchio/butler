@@ -7,7 +7,7 @@ import (
 
 	"github.com/itchio/savior"
 
-	"github.com/itchio/butler/archive/szextractor"
+	"github.com/itchio/boar/szextractor"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"

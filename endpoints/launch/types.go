@@ -13,7 +13,7 @@ import (
 	"github.com/itchio/wharf/tlc"
 	"github.com/pkg/errors"
 
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 )
 
 type LaunchStrategy string
@@ -37,7 +37,7 @@ type LauncherParams struct {
 	PeInfo *pelican.PeInfo
 
 	// May be nil
-	Candidate *configurator.Candidate
+	Candidate *dash.Candidate
 
 	// Lazily computed
 	installContainer *tlc.Container
@@ -97,7 +97,7 @@ func (lp *LauncherParams) GetInstallContainer() (*tlc.Container, error) {
 	return lp.installContainer, nil
 }
 
-func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*configurator.Candidate, error) {
+func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*dash.Candidate, error) {
 	f, err := os.Open(filepath.Join(lp.InstallFolder, fileEntry.Path))
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -109,7 +109,7 @@ func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*configurator.Candidat
 		return nil, errors.WithStack(err)
 	}
 
-	candidate, err := configurator.Sniff(f, fileEntry.Path, stats.Size())
+	candidate, err := dash.Sniff(f, fileEntry.Path, stats.Size())
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

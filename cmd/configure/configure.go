@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/dash"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -54,19 +55,31 @@ func do(ctx *mansion.Context) {
 	})
 }
 
-func Do(params *Params) (*configurator.Verdict, error) {
+func Do(params *Params) (*dash.Verdict, error) {
 	consumer := params.Consumer
 
 	root := params.Path
 
 	startTime := time.Now()
 
-	verdict, err := configurator.Configure(root, params.ShowSpell)
+	verdict, err := dash.Configure(root, &dash.ConfigureParams{
+		Consumer: consumer,
+		Filter:   filtering.FilterPaths,
+	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	fixedExecs, err := verdict.FixPermissions(false /* not dry run */)
+	if !params.ShowSpell {
+		for _, c := range verdict.Candidates {
+			c.Spell = nil
+		}
+	}
+
+	fixedExecs, err := dash.FixPermissions(verdict, &dash.FixPermissionsParams{
+		Consumer: consumer,
+		DryRun:   false,
+	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

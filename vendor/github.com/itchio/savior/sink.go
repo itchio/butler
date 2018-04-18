@@ -70,6 +70,10 @@ func (entry *Entry) String() string {
 // decompressing an archive) is only useful if we *know* that all
 // the data we say we've decompressed is actually on disk (and not
 // just stuck in a OS buffer somewhere).
+//
+// Note that the user of an EntryWriter is not responsible for closing it.
+// It will be closed on the next `sink.GetWriter()` call, or eventually at
+// `sink.Close()`
 type EntryWriter interface {
 	io.WriteCloser
 
@@ -82,8 +86,8 @@ type EntryWriter interface {
 // a folder on a filesystem, but it could be anything else: repackaging
 // as another archive type, uploading transparently as small blocks.
 //
-// Think of it as a very thin portion of `os.{Create,Mkdir,Symlink}` and
-// friends that can be implemented completely independently of the filesystem
+// Think of it as a very thin slice of the `os` package that can be
+// implemented completely independently of the filesystem.
 type Sink interface {
 	// Mkdir creates a directory (and parents if needed)
 	Mkdir(entry *Entry) error
@@ -91,7 +95,8 @@ type Sink interface {
 	// Symlink creates a symlink
 	Symlink(entry *Entry, linkname string) error
 
-	// GetWriter returns a writer at entry.WriteOffset
+	// GetWriter returns a writer at entry.WriteOffset. Any previously
+	// returned writer gets closed at this point.
 	GetWriter(entry *Entry) (EntryWriter, error)
 
 	// Preallocate space for a file based on the entry's UncompressedSize

@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ProgressListenerFunc is called with a total number of
+// bytes processed.
 type ProgressListenerFunc func(count int64)
 
 type chunkUploader struct {
@@ -100,19 +102,19 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 	res, err := cu.httpClient.Do(req)
 	if err != nil {
 		cu.debugf("while uploading %d-%d: \n%s", start, end, err.Error())
-		return &netError{err, GcsUnknown}
+		return &netError{err, gcsUnknown}
 	}
 
 	callDuration := time.Since(startTime)
 	cu.debugf("← %s (in %s)", res.Status, callDuration)
 
 	status := interpretGcsStatusCode(res.StatusCode)
-	if status == GcsUploadComplete && last {
+	if status == gcsUploadComplete && last {
 		cu.debugf("✓ %s upload complete!", humanize.IBytes(uint64(cu.offset+buflen)))
 		return nil
 	}
 
-	if status == GcsNeedQuery {
+	if status == gcsNeedQuery {
 		cu.debugf("  → Need to query upload status (because of HTTP %s)", res.Status)
 		statusRes, err := cu.queryStatus()
 		if err != nil {
@@ -123,7 +125,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 		if statusRes.StatusCode == 308 {
 			cu.debugf("  ← Got upload status, trying to resume")
 			res = statusRes
-			status = GcsResume
+			status = gcsResume
 		} else {
 			status = interpretGcsStatusCode(statusRes.StatusCode)
 			err = fmt.Errorf("expected upload status, got HTTP %s (%s) instead", statusRes.Status, status)
@@ -132,7 +134,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 		}
 	}
 
-	if status == GcsResume {
+	if status == gcsResume {
 		expectedOffset := cu.offset + buflen
 		rangeHeader := res.Header.Get("Range")
 		if rangeHeader == "" {
@@ -206,7 +208,7 @@ func (cu *chunkUploader) tryQueryStatus() (*http.Response, error) {
 	}
 
 	status := interpretGcsStatusCode(res.StatusCode)
-	if status == GcsResume {
+	if status == gcsResume {
 		// got what we wanted (Range header, etc.)
 		return res, nil
 	}

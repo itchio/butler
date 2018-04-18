@@ -12,10 +12,6 @@ var maxBucketDuration = 1 * time.Second
 var bps float64
 var lock sync.Mutex
 
-type BytesReadFunc func(bytesRead int64)
-
-var bytesReadCallback BytesReadFunc
-
 type monitoringConn struct {
 	Conn net.Conn
 }
@@ -78,6 +74,8 @@ func recordBytesRead(bytesRead int64) {
 	}
 }
 
+// GetBPS returns the last measured number of bytes transferred
+// in a 1-second interval as a floating point value.
 func GetBPS() float64 {
 	lock.Lock()
 	defer lock.Unlock()

@@ -6,7 +6,7 @@ import (
 	"syscall"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/runner/syscallex"
+	"github.com/itchio/ox/syscallex"
 	"github.com/pkg/errors"
 )
 

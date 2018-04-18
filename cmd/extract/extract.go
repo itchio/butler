@@ -3,12 +3,12 @@ package extract
 import (
 	"time"
 
-	"github.com/itchio/butler/archive/szextractor"
+	"github.com/itchio/boar"
+	"github.com/itchio/boar/szextractor"
 
 	"github.com/itchio/savior"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/itchio/butler/archive"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
@@ -75,7 +75,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 
 	consumer.Opf("Extracting %s to %s", stats.Name(), params.Dir)
 
-	archiveInfo, err := archive.Probe(&archive.TryOpenParams{
+	archiveInfo, err := boar.Probe(&boar.ProbeParams{
 		File:     file,
 		Consumer: consumer,
 	})

@@ -15,7 +15,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 
-	"github.com/itchio/butler/archive"
+	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
@@ -242,7 +242,7 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 			comm.StartProgress()
 			started = true
 		}
-		path := archive.CleanFileName(name)
+		path := boar.CleanFileName(name)
 
 		comm.Progress(float64(index) / float64(numEntries))
 		comm.ProgressLabel(path)

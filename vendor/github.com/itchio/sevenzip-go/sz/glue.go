@@ -163,6 +163,17 @@ func NewInStream(reader ReaderAtCloser, ext string, size int64) (*InStream, erro
 	return in, nil
 }
 
+func (in *InStream) SetExt(ext string) {
+	strm := in.strm
+	if strm == nil {
+		return
+	}
+
+	def := C.libc7zip_in_stream_get_def(strm)
+	def.ext = C.CString(ext)
+	C.libc7zip_in_stream_commit_def(strm)
+}
+
 func (in *InStream) Seek(offset int64, whence int) (int64, error) {
 	switch whence {
 	case io.SeekStart:
@@ -487,9 +498,12 @@ func (a *Archive) ExtractSeveral(indices []int64, ec *ExtractCallback) error {
 
 //export inSeekGo
 func inSeekGo(id int64, offset int64, whence int32, newPosition unsafe.Pointer) int {
-	in, ok := inStreams[id]
+	p, ok := inStreams.Load(id)
 	if !ok {
-		fmt.Fprintf(os.Stderr, "sz: no such InStream: %d", id)
+		return 1
+	}
+	in, ok := (p).(*InStream)
+	if !ok {
 		return 1
 	}
 
@@ -508,9 +522,12 @@ func inSeekGo(id int64, offset int64, whence int32, newPosition unsafe.Pointer) 
 
 //export inReadGo
 func inReadGo(id int64, data unsafe.Pointer, size int64, processedSize unsafe.Pointer) int {
-	in, ok := inStreams[id]
+	p, ok := inStreams.Load(id)
 	if !ok {
-		fmt.Fprintf(os.Stderr, "sz: no such InStream: %d", id)
+		return 1
+	}
+	in, ok := (p).(*InStream)
+	if !ok {
 		return 1
 	}
 
@@ -550,10 +567,12 @@ func inReadGo(id int64, data unsafe.Pointer, size int64, processedSize unsafe.Po
 
 //export outWriteGo
 func outWriteGo(id int64, data unsafe.Pointer, size int64, processedSize unsafe.Pointer) int {
-	out, ok := outStreams[id]
+	p, ok := outStreams.Load(id)
 	if !ok {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no such OutStream: %d", id)
+		return 1
+	}
+	out, ok := (p).(*OutStream)
+	if !ok {
 		return 1
 	}
 
@@ -583,10 +602,12 @@ func outWriteGo(id int64, data unsafe.Pointer, size int64, processedSize unsafe.
 
 //export ecSetTotalGo
 func ecSetTotalGo(id int64, size int64) {
-	ec, ok := extractCallbacks[id]
+	p, ok := extractCallbacks.Load(id)
 	if !ok {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no such ExtractCallback: %d", id)
+		return
+	}
+	ec, ok := (p).(*ExtractCallback)
+	if !ok {
 		return
 	}
 
@@ -595,10 +616,12 @@ func ecSetTotalGo(id int64, size int64) {
 
 //export ecSetCompletedGo
 func ecSetCompletedGo(id int64, completed int64) {
-	ec, ok := extractCallbacks[id]
+	p, ok := extractCallbacks.Load(id)
 	if !ok {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no such ExtractCallback: %d", id)
+		return
+	}
+	ec, ok := (p).(*ExtractCallback)
+	if !ok {
 		return
 	}
 
@@ -607,17 +630,18 @@ func ecSetCompletedGo(id int64, completed int64) {
 
 //export ecGetStreamGo
 func ecGetStreamGo(id int64, index int64) *C.out_stream {
-	ec, ok := extractCallbacks[id]
+	p, ok := extractCallbacks.Load(id)
 	if !ok {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no such ExtractCallback: %d", id)
+		return nil
+	}
+	ec, ok := (p).(*ExtractCallback)
+	if !ok {
 		return nil
 	}
 
 	ec.item = ec.archive.GetItem(int64(index))
 	if ec.item == nil {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no Item for index %d", index)
+		ec.errors = append(ec.errors, errors.Errorf("sz: no Item for index %d", index))
 		return nil
 	}
 
@@ -636,10 +660,12 @@ func ecGetStreamGo(id int64, index int64) *C.out_stream {
 
 //export ecSetOperationResultGo
 func ecSetOperationResultGo(id int64, result int32) {
-	ec, ok := extractCallbacks[id]
+	p, ok := extractCallbacks.Load(id)
 	if !ok {
-		// should never happen
-		fmt.Fprintf(os.Stderr, "sz: no such ExtractCallback: %d", id)
+		return
+	}
+	ec, ok := (p).(*ExtractCallback)
+	if !ok {
 		return
 	}
 
@@ -657,7 +683,7 @@ func ecSetOperationResultGo(id int64, result int32) {
 		ec.out = nil
 	}
 
-	// so, if result isn't NArchive::NExtract::NOperationResult::kOK
+	// TODO: so, if result isn't NArchive::NExtract::NOperationResult::kOK
 	// then something went wrong with the extraction, should we call
 	// GetLastError() and append it somewhere ?
 	if result != 0 {

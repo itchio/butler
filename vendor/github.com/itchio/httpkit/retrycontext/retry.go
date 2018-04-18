@@ -9,6 +9,8 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
+// Context stores state related to an operation that should
+// be retried.
 type Context struct {
 	Settings Settings
 
@@ -16,12 +18,16 @@ type Context struct {
 	LastError error
 }
 
+// Settings configures a retry context, allowing to specify
+// a maximum number of tries, whether to sleep or not, and
+// an optional consumer to log activity to.
 type Settings struct {
 	MaxTries int
 	Consumer *state.Consumer
 	NoSleep  bool
 }
 
+// New returns a new retry context with specific settings.
 func New(settings Settings) *Context {
 	return &Context{
 		Tries:    0,
@@ -29,40 +35,42 @@ func New(settings Settings) *Context {
 	}
 }
 
+// NewDefault returns a new retry context with default settings.
 func NewDefault() *Context {
 	return New(Settings{
 		MaxTries: 10,
 	})
 }
 
-/**
- ShouldTry must be used in a loop, like so:
-
- ----------------------------------------
- for rc.ShouldRetry() {
-	 err := someOperation()
-	 if err != nil {
-		 if isRetriable(err) {
-			 rc.Retry(err.Error())
-			 continue
-		 }
-	 }
-
-	 // succeeded!
-	 return nil // escape from loop
- }
-
- // THIS IS IMPORTANT
- return errors.New("task: too many failures, giving up")
- ----------------------------------------
-
- If you forget to return an error after the loop,
- if there are too many errors you'll just keep running
-*/
+// ShouldTry must be used in a loop, like so:
+//
+// ----------------------------------------
+// for rc.ShouldRetry() {
+//	 err := someOperation()
+//	 if err != nil {
+//		 if isRetriable(err) {
+//			 rc.Retry(err.Error())
+//			 continue
+//		 }
+//	 }
+//
+//	 // succeeded!
+//	 return nil // escape from loop
+// }
+//
+// // THIS IS IMPORTANT
+// return errors.New("task: too many failures, giving up")
+// ----------------------------------------
+//
+// If you forget to return an error after the loop,
+// if there are too many errors you'll just keep running.
 func (rc *Context) ShouldTry() bool {
 	return rc.Tries < rc.Settings.MaxTries
 }
 
+// Retry records an error that was retried (accessible in LastError)
+// If a consumer was passed, it'll pause progress, and log the error.
+// It's also in charge of sleeping (following exponential backoff)
 func (rc *Context) Retry(err error) {
 	rc.LastError = err
 

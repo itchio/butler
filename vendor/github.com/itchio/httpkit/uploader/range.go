@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type Range struct {
+type httpRange struct {
 	start int64
 	end   int64
 }
 
-func parseRangeHeader(rangeHeader string) (r *Range, err error) {
+func parseRangeHeader(rangeHeader string) (r *httpRange, err error) {
 	keyval := strings.Split(rangeHeader, "=")
 	if len(keyval) != 2 {
 		err = fmt.Errorf("invalid range header, expected \"key=val\", got \"%s\"", rangeHeader)
@@ -35,10 +35,10 @@ func parseRangeHeader(rangeHeader string) (r *Range, err error) {
 		return
 	}
 
-	r = &Range{start, end + 1}
+	r = &httpRange{start, end + 1}
 	return
 }
 
-func (r *Range) String() string {
+func (r *httpRange) String() string {
 	return fmt.Sprintf("bytes=%d-%d", r.start, r.end-1)
 }

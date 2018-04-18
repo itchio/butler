@@ -19,7 +19,7 @@ func (gc *GenerousContext) GenerateTsCode(outPath string) error {
 	scope := newScope(gc)
 	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.Assimilate("github.com/itchio/butler/configurator", "types.go"))
+	must(scope.Assimilate("github.com/itchio/dash", "types.go"))
 	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
 
 	bindType := func(entry *Entry) {

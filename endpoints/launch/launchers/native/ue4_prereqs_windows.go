@@ -16,10 +16,10 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
-	"github.com/itchio/butler/configurator"
+	"github.com/itchio/dash"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/runner/winutil"
+	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
 )
 
@@ -92,9 +92,9 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 
 	var needle string
 	switch params.Candidate.Arch {
-	case configurator.Arch386:
+	case dash.Arch386:
 		needle = "UE4PrereqSetup_x86.exe"
-	case configurator.ArchAmd64:
+	case dash.ArchAmd64:
 		needle = "UE4PrereqSetup_x64.exe"
 	}
 
@@ -107,7 +107,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		return errors.WithStack(err)
 	}
 
-	var prereqCandidate *configurator.Candidate
+	var prereqCandidate *dash.Candidate
 
 	for _, fe := range installContainer.Files {
 		consumer.Infof("Reviewing (%s)", path.Base(fe.Path))
@@ -147,9 +147,9 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 
 	var expectedFileDescription string
 	switch params.Candidate.Arch {
-	case configurator.Arch386:
+	case dash.Arch386:
 		expectedFileDescription = "UE4 Prerequisites (x86)"
-	case configurator.ArchAmd64:
+	case dash.ArchAmd64:
 		expectedFileDescription = "UE4 Prerequisites (x64)"
 	}
 
@@ -189,7 +189,7 @@ func handleUE4Prereqs(params *launch.LauncherParams) error {
 		}
 	}
 
-	err = winutil.VerifyTrust(prereqCandidatePath)
+	err = winox.VerifyTrust(prereqCandidatePath)
 	if err != nil {
 		return errors.WithMessage(err, "while verifying UE4 prereqs signature")
 	}

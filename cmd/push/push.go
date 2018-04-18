@@ -188,10 +188,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	consumer := comm.NewStateConsumer()
 
-	patchWriter := uploader.NewResumableUpload2(newPatchRes.File.UploadURL)
+	patchWriter := uploader.NewResumableUpload(newPatchRes.File.UploadURL)
 	patchWriter.SetConsumer(consumer)
 
-	signatureWriter := uploader.NewResumableUpload2(newSignatureRes.File.UploadURL)
+	signatureWriter := uploader.NewResumableUpload(newSignatureRes.File.UploadURL)
 	signatureWriter.SetConsumer(consumer)
 
 	comm.Debugf("Launching patch & signature channels")

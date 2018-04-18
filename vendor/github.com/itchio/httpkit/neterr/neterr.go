@@ -6,6 +6,9 @@ import (
 	"net/url"
 )
 
+// IsNetworkError returns true if the error's cause is: io.ErrUnexpectedEOF,
+// any *net.OpError, any *url.Error, any URL that implements `Temporary()`
+// (and returns true)
 func IsNetworkError(err error) bool {
 	if err == io.ErrUnexpectedEOF {
 		return true

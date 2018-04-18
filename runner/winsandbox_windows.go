@@ -1,3 +1,5 @@
+//+build windows
+
 package runner
 
 import (
@@ -14,8 +16,8 @@ import (
 
 	"github.com/itchio/butler/cmd/winsandbox"
 	"github.com/itchio/butler/runner/execas"
-	"github.com/itchio/butler/runner/syscallex"
-	"github.com/itchio/butler/runner/winutil"
+	"github.com/itchio/ox/syscallex"
+	"github.com/itchio/ox/winox"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -159,22 +161,22 @@ func (wr *winsandboxRunner) Run() error {
 	return nil
 }
 
-func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
+func (wr *winsandboxRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
 	params := wr.params
 	pd := wr.playerData
 	consumer := params.RequestContext.Consumer
 
-	sp := &winutil.SharingPolicy{
+	sp := &winox.SharingPolicy{
 		Trustee: pd.Username,
 	}
 
-	impersonationToken, err := winutil.GetImpersonationToken(pd.Username, ".", pd.Password)
+	impersonationToken, err := winox.GetImpersonationToken(pd.Username, ".", pd.Password)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	defer winutil.SafeRelease(uintptr(impersonationToken))
+	defer winox.SafeRelease(uintptr(impersonationToken))
 
-	hasAccess, err := winutil.UserHasPermission(
+	hasAccess, err := winox.UserHasPermission(
 		impersonationToken,
 		syscallex.GENERIC_ALL,
 		params.InstallFolder,
@@ -183,10 +185,10 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 		return nil, errors.WithStack(err)
 	}
 	if !hasAccess {
-		sp.Entries = append(sp.Entries, &winutil.ShareEntry{
+		sp.Entries = append(sp.Entries, &winox.ShareEntry{
 			Path:        params.InstallFolder,
-			Inheritance: winutil.InheritanceModeFull,
-			Rights:      winutil.RightsFull,
+			Inheritance: winox.InheritanceModeFull,
+			Rights:      winox.RightsFull,
 		})
 	}
 
@@ -194,7 +196,7 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 	current := filepath.Dir(params.InstallFolder)
 	for i := 0; i < 128; i++ { // dumb failsafe
 		consumer.Debugf("Checking access for (%s)...", current)
-		hasAccess, err := winutil.UserHasPermission(
+		hasAccess, err := winox.UserHasPermission(
 			impersonationToken,
 			syscallex.GENERIC_READ,
 			current,
@@ -205,10 +207,10 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winutil.SharingPolicy, error) {
 
 		if !hasAccess {
 			consumer.Debugf("Will need to grant temporary read permission to (%s)", current)
-			sp.Entries = append(sp.Entries, &winutil.ShareEntry{
+			sp.Entries = append(sp.Entries, &winox.ShareEntry{
 				Path:        current,
-				Inheritance: winutil.InheritanceModeNone,
-				Rights:      winutil.RightsRead,
+				Inheritance: winox.InheritanceModeNone,
+				Rights:      winox.RightsRead,
 			})
 		}
 		next := filepath.Dir(current)
@@ -235,8 +237,8 @@ func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
 	// since we expect those to be the same for the regular user
 	// and the sandbox user
 
-	err := winutil.Impersonate(pd.Username, ".", pd.Password, func() error {
-		profileDir, err := winutil.GetFolderPath(winutil.FolderTypeProfile)
+	err := winox.Impersonate(pd.Username, ".", pd.Password, func() error {
+		profileDir, err := winox.GetFolderPath(winox.FolderTypeProfile)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -249,13 +251,13 @@ func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
 		homePath := strings.TrimPrefix(profileDir, filepath.VolumeName(profileDir))
 		setEnv("homepath", homePath)
 
-		appDataDir, err := winutil.GetFolderPath(winutil.FolderTypeAppData)
+		appDataDir, err := winox.GetFolderPath(winox.FolderTypeAppData)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 		setEnv("appdata", appDataDir)
 
-		localAppDataDir, err := winutil.GetFolderPath(winutil.FolderTypeLocalAppData)
+		localAppDataDir, err := winox.GetFolderPath(winox.FolderTypeLocalAppData)
 		if err != nil {
 			return errors.WithStack(err)
 		}
