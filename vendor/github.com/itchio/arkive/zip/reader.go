@@ -12,14 +12,8 @@ import (
 	"hash"
 	"hash/crc32"
 	"io"
-	"io/ioutil"
 	"os"
-	"strings"
-
-	"github.com/gogits/chardet"
-	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/japanese"
-	"golang.org/x/text/transform"
+	"time"
 )
 
 var (
@@ -33,7 +27,6 @@ type Reader struct {
 	File          []*File
 	Comment       string
 	decompressors map[uint16]Decompressor
-	utfnames      bool
 }
 
 type ReadCloser struct {
@@ -51,10 +44,6 @@ type File struct {
 
 func (f *File) hasDataDescriptor() bool {
 	return f.Flags&0x8 != 0
-}
-
-func (f *File) hasLanguageEncodingFlag() bool {
-	return f.Flags&(1<<11) != 0
 }
 
 // OpenReader will open the Zip file specified by name and return a ReadCloser.
@@ -87,19 +76,6 @@ func NewReader(r io.ReaderAt, size int64) (*Reader, error) {
 	return zr, nil
 }
 
-func convertToUTF(str string, enc encoding.Encoding) (string, error) {
-	reader := transform.NewReader(strings.NewReader(str), enc.NewDecoder())
-	converted, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return "", err
-	}
-	return string(converted), nil
-}
-
-var encodingDict = map[string]encoding.Encoding{
-	"Shift_JIS": japanese.ShiftJIS,
-}
-
 func (z *Reader) init(r io.ReaderAt, size int64) error {
 	end, err := readDirectoryEnd(r, size)
 	if err != nil {
@@ -120,10 +96,8 @@ func (z *Reader) init(r io.ReaderAt, size int64) error {
 
 	// The count of files inside a zip is truncated to fit in a uint16.
 	// Gloss over this by reading headers until we encounter
-	// a bad one, and then only report a ErrFormat or UnexpectedEOF if
+	// a bad one, and then only report an ErrFormat or UnexpectedEOF if
 	// the file count modulo 65536 is incorrect.
-
-	paths := ""
 
 	for {
 		f := &File{zip: z, zipr: r, zipsize: size}
@@ -136,28 +110,7 @@ func (z *Reader) init(r io.ReaderAt, size int64) error {
 		}
 		f.headerOffset += int64(end.startSkipLen)
 
-		if f.hasLanguageEncodingFlag() {
-			z.utfnames = true
-		} else {
-			paths += f.Name
-		}
 		z.File = append(z.File, f)
-	}
-
-	if !z.utfnames {
-		detector := chardet.NewTextDetector()
-		result, err := detector.DetectBest([]byte(paths))
-		if err == nil {
-			encoding := encodingDict[result.Charset]
-			if encoding != nil {
-				for _, f := range z.File {
-					f.Name, err = convertToUTF(f.Name, encoding)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
 	}
 
 	if uint16(len(z.File)) != uint16(end.directoryRecords) { // only compare 16 bits here
@@ -333,52 +286,124 @@ func readDirectoryHeader(f *File, r io.Reader) error {
 	f.Extra = d[filenameLen : filenameLen+extraLen]
 	f.Comment = string(d[filenameLen+extraLen:])
 
+	// Determine the character encoding.
+	utf8Valid1, utf8Require1 := detectUTF8(f.Name)
+	utf8Valid2, utf8Require2 := detectUTF8(f.Comment)
+	switch {
+	case !utf8Valid1 || !utf8Valid2:
+		// Name and Comment definitely not UTF-8.
+		f.NonUTF8 = true
+	case !utf8Require1 && !utf8Require2:
+		// Name and Comment use only single-byte runes that overlap with UTF-8.
+		f.NonUTF8 = false
+	default:
+		// Might be UTF-8, might be some other encoding; preserve existing flag.
+		// Some ZIP writers use UTF-8 encoding without setting the UTF-8 flag.
+		// Since it is impossible to always distinguish valid UTF-8 from some
+		// other encoding (e.g., GBK or Shift-JIS), we trust the flag.
+		f.NonUTF8 = f.Flags&0x800 == 0
+	}
+
 	needUSize := f.UncompressedSize == ^uint32(0)
 	needCSize := f.CompressedSize == ^uint32(0)
 	needHeaderOffset := f.headerOffset == int64(^uint32(0))
 
-	if len(f.Extra) > 0 {
-		// Best effort to find what we need.
-		// Other zip authors might not even follow the basic format,
-		// and we'll just ignore the Extra content in that case.
-		b := readBuf(f.Extra)
-		for len(b) >= 4 { // need at least tag and size
-			tag := b.uint16()
-			size := b.uint16()
-			if int(size) > len(b) {
-				break
-			}
-			if tag == zip64ExtraId {
-				// update directory values from the zip64 extra block.
-				// They should only be consulted if the sizes read earlier
-				// are maxed out.
-				// See golang.org/issue/13367.
-				eb := readBuf(b[:size])
+	// Best effort to find what we need.
+	// Other zip authors might not even follow the basic format,
+	// and we'll just ignore the Extra content in that case.
+	var modified time.Time
+parseExtras:
+	for extra := readBuf(f.Extra); len(extra) >= 4; { // need at least tag and size
+		fieldTag := extra.uint16()
+		fieldSize := int(extra.uint16())
+		if len(extra) < fieldSize {
+			break
+		}
 
-				if needUSize {
-					needUSize = false
-					if len(eb) < 8 {
-						return ErrFormat
-					}
-					f.UncompressedSize64 = eb.uint64()
+		fieldBuf := extra.sub(fieldSize)
+
+		switch fieldTag {
+		case zip64ExtraID:
+			// update directory values from the zip64 extra block.
+			// They should only be consulted if the sizes read earlier
+			// are maxed out.
+			// See golang.org/issue/13367.
+
+			if needUSize {
+				needUSize = false
+				if len(fieldBuf) < 8 {
+					return ErrFormat
 				}
-				if needCSize {
-					needCSize = false
-					if len(eb) < 8 {
-						return ErrFormat
-					}
-					f.CompressedSize64 = eb.uint64()
-				}
-				if needHeaderOffset {
-					needHeaderOffset = false
-					if len(eb) < 8 {
-						return ErrFormat
-					}
-					f.headerOffset = int64(eb.uint64())
-				}
-				break
+				f.UncompressedSize64 = fieldBuf.uint64()
 			}
-			b = b[size:]
+			if needCSize {
+				needCSize = false
+				if len(fieldBuf) < 8 {
+					return ErrFormat
+				}
+				f.CompressedSize64 = fieldBuf.uint64()
+			}
+			if needHeaderOffset {
+				needHeaderOffset = false
+				if len(fieldBuf) < 8 {
+					return ErrFormat
+				}
+				f.headerOffset = int64(fieldBuf.uint64())
+			}
+		case ntfsExtraID:
+			if len(fieldBuf) < 4 {
+				continue parseExtras
+			}
+			fieldBuf.uint32()        // reserved (ignored)
+			for len(fieldBuf) >= 4 { // need at least tag and size
+				attrTag := fieldBuf.uint16()
+				attrSize := int(fieldBuf.uint16())
+				if len(fieldBuf) < attrSize {
+					continue parseExtras
+				}
+				attrBuf := fieldBuf.sub(attrSize)
+				if attrTag != 1 || attrSize != 24 {
+					continue // Ignore irrelevant attributes
+				}
+
+				const ticksPerSecond = 1e7    // Windows timestamp resolution
+				ts := int64(attrBuf.uint64()) // ModTime since Windows epoch
+				secs := int64(ts / ticksPerSecond)
+				nsecs := (1e9 / ticksPerSecond) * int64(ts%ticksPerSecond)
+				epoch := time.Date(1601, time.January, 1, 0, 0, 0, 0, time.UTC)
+				modified = time.Unix(epoch.Unix()+secs, nsecs)
+			}
+		case unixExtraID, infoZipUnixExtraID:
+			if len(fieldBuf) < 8 {
+				continue parseExtras
+			}
+			fieldBuf.uint32()              // AcTime (ignored)
+			ts := int64(fieldBuf.uint32()) // ModTime since Unix epoch
+			modified = time.Unix(ts, 0)
+		case extTimeExtraID:
+			if len(fieldBuf) < 5 || fieldBuf.uint8()&1 == 0 {
+				continue parseExtras
+			}
+			ts := int64(fieldBuf.uint32()) // ModTime since Unix epoch
+			modified = time.Unix(ts, 0)
+		}
+	}
+
+	msdosModified := msDosTimeToTime(f.ModifiedDate, f.ModifiedTime)
+	f.Modified = msdosModified
+	if !modified.IsZero() {
+		f.Modified = modified.UTC()
+
+		// If legacy MS-DOS timestamps are set, we can use the delta between
+		// the legacy and extended versions to estimate timezone offset.
+		//
+		// A non-UTC timezone is always used (even if offset is zero).
+		// Thus, FileHeader.Modified.Location() == time.UTC is useful for
+		// determining whether extended timestamps are present.
+		// This is necessary for users that need to do additional time
+		// calculations when dealing with legacy ZIP formats.
+		if f.ModifiedTime != 0 || f.ModifiedDate != 0 {
+			f.Modified = modified.In(timeZone(msdosModified.Sub(modified)))
 		}
 	}
 
@@ -628,6 +653,12 @@ func findSignatureInBlock(b []byte) int {
 
 type readBuf []byte
 
+func (b *readBuf) uint8() uint8 {
+	v := (*b)[0]
+	*b = (*b)[1:]
+	return v
+}
+
 func (b *readBuf) uint16() uint16 {
 	v := binary.LittleEndian.Uint16(*b)
 	*b = (*b)[2:]
@@ -644,4 +675,10 @@ func (b *readBuf) uint64() uint64 {
 	v := binary.LittleEndian.Uint64(*b)
 	*b = (*b)[8:]
 	return v
+}
+
+func (b *readBuf) sub(n int) readBuf {
+	b2 := (*b)[:n]
+	*b = (*b)[n:]
+	return b2
 }
