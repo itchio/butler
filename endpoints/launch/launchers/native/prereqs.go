@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/ox"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/prereqs"
@@ -52,7 +53,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 
 	// append built-in params if we need some
 	runtime := params.Runtime
-	if runtime.Platform == butlerd.ItchPlatformLinux && params.Sandbox {
+	if runtime.Platform == ox.PlatformLinux && params.Sandbox {
 		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
 		wanted = append(wanted, firejailName)
 	}

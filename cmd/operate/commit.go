@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -59,7 +60,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 	cave := oc.cave
 	if cave != nil {
 		// TODO: pass runtime in params?
-		verdict, err := manager.Configure(consumer, params.InstallFolder, manager.CurrentRuntime())
+		verdict, err := manager.Configure(consumer, params.InstallFolder, ox.CurrentRuntime())
 		if err != nil {
 			return errors.WithStack(err)
 		}

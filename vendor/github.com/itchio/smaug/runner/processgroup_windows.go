@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/ox/syscallex"
+	"github.com/itchio/ox/winox/execas"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )

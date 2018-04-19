@@ -1,10 +1,10 @@
-// +build windows
+// +build !windows
 
 package runner
 
 import (
-	"github.com/itchio/butler/runner/execas"
-	"github.com/itchio/ox/syscallex"
+	"os/exec"
+
 	"github.com/pkg/errors"
 )
 
@@ -28,17 +28,13 @@ func (sr *simpleRunner) Prepare() error {
 
 func (sr *simpleRunner) Run() error {
 	params := sr.params
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
-	cmd := execas.Command(params.FullTargetPath, params.Args...)
+	cmd := exec.Command(params.FullTargetPath, params.Args...)
 	cmd.Dir = params.Dir
 	cmd.Env = params.Env
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
-
-	cmd.SysProcAttr = &syscallex.SysProcAttr{
-		CreationFlags: syscallex.CREATE_SUSPENDED,
-	}
 
 	pg, err := NewProcessGroup(consumer, cmd, params.Ctx)
 	if err != nil {

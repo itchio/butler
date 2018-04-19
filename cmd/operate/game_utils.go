@@ -7,6 +7,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
 
@@ -36,7 +37,7 @@ func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *b
 	if numInputs == 0 {
 		consumer.Infof("No uploads found at all (that we can access)")
 	}
-	uploadsFilterResult := manager.NarrowDownUploads(consumer, uploads.Uploads, game, manager.CurrentRuntime())
+	uploadsFilterResult := manager.NarrowDownUploads(consumer, uploads.Uploads, game, ox.CurrentRuntime())
 
 	numResults := len(uploadsFilterResult.Uploads)
 

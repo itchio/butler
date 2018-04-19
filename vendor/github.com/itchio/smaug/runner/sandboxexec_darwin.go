@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/butler/runner/policies"
 	"github.com/itchio/ox/macox"
+	"github.com/itchio/smaug/runner/policies"
 	"github.com/pkg/errors"
 )
 
@@ -32,7 +32,7 @@ func newSandboxExecRunner(params *RunnerParams) (Runner, error) {
 }
 
 func (ser *sandboxExecRunner) Prepare() error {
-	consumer := ser.params.RequestContext.Consumer
+	consumer := ser.params.Consumer
 
 	// make sure we have sandbox-exec
 	{
@@ -49,7 +49,7 @@ func (ser *sandboxExecRunner) Prepare() error {
 
 func (ser *sandboxExecRunner) Run() error {
 	params := ser.params
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
 	consumer.Infof("Creating shim app bundle to enable sandboxing")
 	realBundlePath := params.FullTargetPath

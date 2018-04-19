@@ -313,7 +313,7 @@
 			"importpath": "github.com/itchio/ox",
 			"repository": "https://github.com/itchio/ox",
 			"vcs": "git",
-			"revision": "127fccfbc13420bacbb3e4f3f50be7e1fee6add4",
+			"revision": "cb0604888ff88c926870082e4d7773f8046d286d",
 			"branch": "master",
 			"notests": true
 		},
@@ -338,6 +338,14 @@
 			"repository": "https://github.com/itchio/sevenzip-go",
 			"vcs": "git",
 			"revision": "2ba1ca2e89a9f2095354d319c57bd97b58638ca4",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/smaug",
+			"repository": "https://github.com/itchio/smaug",
+			"vcs": "git",
+			"revision": "f04888cf1fe859ae3f8fb8373b412308c2331211",
 			"branch": "master",
 			"notests": true
 		},

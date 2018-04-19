@@ -10,13 +10,10 @@ import (
 	"github.com/itchio/ox/syscallex"
 	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
-
-	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 )
 
 func getAttachRunner(params *RunnerParams) (Runner, error) {
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
 	snapshot, err := syscallex.CreateToolhelp32Snapshot(
 		syscallex.TH32CS_SNAPPROCESS,
@@ -94,8 +91,12 @@ type attachRunner struct {
 var _ Runner = (*attachRunner)(nil)
 
 func (ar *attachRunner) Prepare() error {
-	rc := ar.params.RequestContext
-	consumer := rc.Consumer
+	ar.bringWindowsToForeground()
+	return nil
+}
+
+func (ar *attachRunner) bringWindowsToForeground() {
+	consumer := ar.params.Consumer
 
 	// Note: using EnumThreadWindows sounds better at first glance,
 	// but then remember that this means using CreateToolhelp32Snapshot with
@@ -103,37 +104,51 @@ func (ar *attachRunner) Prepare() error {
 	// to avoid looping through a few windows.
 	// EnumWindows sounds just fine in comparison.
 
-	var numWindowsBroughtToForeground int
+	var referenceLparam uintptr = 999
+	var hwnds []syscall.Handle
 
+	var cbErr error
 	cb := syscall.NewCallback(func(hwnd syscall.Handle, lparam uintptr) uintptr {
-		var procId uint32
-		syscallex.GetWindowThreadProcessId(hwnd, &procId)
-		if procId == ar.pid {
-			consumer.Infof("Found window (%x)", hwnd)
-			// ignore error on purpose - chances are we don't have permissions
-			// to set foreground anyway
-			_ = syscallex.SetForegroundWindow(hwnd)
-			numWindowsBroughtToForeground++
+		if lparam != referenceLparam {
+			cbErr = errors.Errorf("Internal error: expected lparam %d, but got %d", referenceLparam, lparam)
+			return 0
+		}
 
-			// ignore error - it's not really essential
-			_ = messages.LaunchWindowShouldBeForeground.Notify(rc, &butlerd.LaunchWindowShouldBeForegroundNotification{
-				Hwnd: int64(hwnd),
-			})
+		var procID uint32
+		syscallex.GetWindowThreadProcessId(hwnd, &procID)
+		if procID == ar.pid {
+			hwnds = append(hwnds, hwnd)
 		}
 		return 1 // continue enumeration
 	})
-	err := syscallex.EnumWindows(cb, 999)
+	err := syscallex.EnumWindows(cb, referenceLparam)
 	if err != nil {
 		consumer.Warnf("Could not enumerate windows: %v", err)
 	}
 
-	consumer.Infof("Brought %d windows to foreground", numWindowsBroughtToForeground)
+	if cbErr != nil {
+		consumer.Warnf("While enumerating windows: %v", err)
+	}
 
-	return nil
+	if len(hwnds) == 0 {
+		consumer.Warnf("Did not find any windows belonging to (%s), that's unexpected.", ar.params.FullTargetPath)
+		return
+	}
+
+	bwtf := ar.params.AttachParams.BringWindowToForeground
+	if bwtf == nil {
+		consumer.Warnf("Not bringing %d windows to foreground (null BringWindowToForeground)", len(hwnds))
+		return
+	}
+
+	for _, hwnd := range hwnds {
+		bwtf(int64(hwnd))
+	}
+	consumer.Infof("Brought %d windows to front", len(hwnds))
 }
 
 func (ar *attachRunner) Run() error {
-	consumer := ar.params.RequestContext.Consumer
+	consumer := ar.params.Consumer
 
 	cancel := make(chan struct{})
 	defer close(cancel)

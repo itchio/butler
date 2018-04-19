@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/itchio/butler/runner/policies"
+	"github.com/itchio/smaug/runner/policies"
 	"github.com/pkg/errors"
 )
 
@@ -20,9 +20,14 @@ type firejailRunner struct {
 var _ Runner = (*firejailRunner)(nil)
 
 func newFirejailRunner(params *RunnerParams) (Runner, error) {
+	if params.FirejailParams.BinaryPath == "" {
+		return nil, errors.Errorf("FirejailParams.BinaryPath must be set")
+	}
+
 	fr := &firejailRunner{
 		params: params,
 	}
+
 	return fr, nil
 }
 
@@ -33,10 +38,9 @@ func (fr *firejailRunner) Prepare() error {
 
 func (fr *firejailRunner) Run() error {
 	params := fr.params
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
-	firejailName := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
-	firejailPath := filepath.Join(params.PrereqsDir, firejailName, "firejail")
+	firejailPath := params.FirejailParams.BinaryPath
 
 	sandboxProfilePath := filepath.Join(params.InstallFolder, ".itch", "isolate-app.profile")
 	consumer.Opf("Writing sandbox profile to (%s)", sandboxProfilePath)

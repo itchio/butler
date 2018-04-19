@@ -9,10 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
+	"github.com/itchio/ox"
 
-	"github.com/itchio/butler/manager"
 	"github.com/itchio/wharf/state"
 
 	"github.com/itchio/butler/cmd/msi"
@@ -47,7 +46,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 
 	var failed []string
 
-	runtime := manager.CurrentRuntime()
+	runtime := ox.CurrentRuntime()
 
 	for _, task := range plan.Tasks {
 		taskStartTime := time.Now()
@@ -59,9 +58,9 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 
 		var err error
 		switch runtime.Platform {
-		case butlerd.ItchPlatformWindows:
+		case ox.PlatformWindows:
 			err = installWindowsPrereq(consumer, task)
-		case butlerd.ItchPlatformLinux:
+		case ox.PlatformLinux:
 			err = installLinuxPrereq(consumer, task)
 		default:
 			return fmt.Errorf("Don't know how to install prereqs for platform %s", runtime.Platform)

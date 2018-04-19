@@ -10,8 +10,8 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
-	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
@@ -45,7 +45,7 @@ func (sr *StrategyResult) String() string {
 	return strings.Join(lines, "\n")
 }
 
-func DetermineStrategy(consumer *state.Consumer, runtime *manager.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
+func DetermineStrategy(consumer *state.Consumer, runtime *ox.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
 	// is it a path?
 	fullPath := manifest.ExpandPath(manifestAction, runtime, installFolder)
 	stats, err := os.Stat(fullPath)
@@ -75,7 +75,7 @@ func DetermineStrategy(consumer *state.Consumer, runtime *manager.Runtime, insta
 
 	if stats.IsDir() {
 		// is it an app bundle?
-		if runtime.Platform == butlerd.ItchPlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+		if runtime.Platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
 			res := &StrategyResult{
 				Strategy:       LaunchStrategyNative,
 				FullTargetPath: fullPath,

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/butler/manager"
@@ -37,7 +38,7 @@ var args = struct {
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("validate", "Validate a build folder, including its maniest if any")
 	args.dir = cmd.Arg("dir", "Path of build folder to validate").Required().String()
-	args.platform = cmd.Flag("platform", "Platform to validate for").Enum(string(butlerd.ItchPlatformLinux), string(butlerd.ItchPlatformOSX), string(butlerd.ItchPlatformWindows))
+	args.platform = cmd.Flag("platform", "Platform to validate for").Enum(string(ox.PlatformLinux), string(ox.PlatformOSX), string(ox.PlatformWindows))
 	args.arch = cmd.Flag("arch", "Architecture to validate for").Enum(string(dash.Arch386), string(dash.ArchAmd64))
 	ctx.Register(cmd, doValidate)
 }
@@ -84,9 +85,9 @@ func Validate(consumer *state.Consumer) error {
 		manifestPath = dir
 	}
 
-	runtime := manager.CurrentRuntime()
+	runtime := ox.CurrentRuntime()
 	if *args.platform != "" {
-		runtime.Platform = butlerd.ItchPlatform(*args.platform)
+		runtime.Platform = ox.Platform(*args.platform)
 	}
 	if *args.arch != "" {
 		runtime.Is64 = (*args.arch == string(dash.ArchAmd64))
@@ -213,11 +214,11 @@ func Validate(consumer *state.Consumer) error {
 			consumer.Infof("  → Action '%s' (%s)", action.Name, action.Path)
 			if action.Platform != "" {
 				switch action.Platform {
-				case butlerd.ItchPlatformLinux:
+				case ox.PlatformLinux:
 					consumer.Infof("    Only for Linux")
-				case butlerd.ItchPlatformOSX:
+				case ox.PlatformOSX:
 					consumer.Infof("    Only for macOS")
-				case butlerd.ItchPlatformWindows:
+				case ox.PlatformWindows:
 					consumer.Infof("    Only for Windows")
 				default:
 					showError("Unknown platform specified: (%s)", action.Platform)

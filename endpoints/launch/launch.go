@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/ox"
 
 	"github.com/itchio/pelican"
 
@@ -70,7 +71,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	// a game-specific download key here
 	credentials.DownloadKey = 0
 
-	runtime := manager.CurrentRuntime()
+	runtime := ox.CurrentRuntime()
 
 	consumer.Infof("→ Launching %s", operate.GameToString(game))
 	consumer.Infof("   on runtime %s", runtime)
@@ -225,9 +226,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		var nativeFlavor dash.Flavor
 		var nativeArch dash.Arch
 		switch runtime.Platform {
-		case butlerd.ItchPlatformWindows:
+		case ox.PlatformWindows:
 			nativeFlavor = dash.FlavorNativeWindows
-		case butlerd.ItchPlatformLinux:
+		case ox.PlatformLinux:
 			nativeFlavor = dash.FlavorNativeLinux
 		}
 		if runtime.Is64 {

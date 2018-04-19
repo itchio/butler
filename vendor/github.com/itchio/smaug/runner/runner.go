@@ -6,13 +6,14 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/manager"
+	"github.com/itchio/ox"
+	"github.com/itchio/smaug/fuji"
+	"github.com/itchio/wharf/state"
 )
 
 type RunnerParams struct {
-	RequestContext *butlerd.RequestContext
-	Ctx            context.Context
+	Consumer *state.Consumer
+	Ctx      context.Context
 
 	Sandbox bool
 
@@ -25,10 +26,27 @@ type RunnerParams struct {
 	Stdout io.Writer
 	Stderr io.Writer
 
-	PrereqsDir    string
-	Credentials   *butlerd.GameCredentials
 	InstallFolder string
-	Runtime       *manager.Runtime
+	Runtime       *ox.Runtime
+
+	// runner-specific params
+
+	FirejailParams FirejailParams
+	FujiParams     FujiParams
+	AttachParams   AttachParams
+}
+
+type FirejailParams struct {
+	BinaryPath string
+}
+
+type FujiParams struct {
+	Instance             fuji.Instance
+	PerformElevatedSetup func() error
+}
+
+type AttachParams struct {
+	BringWindowToForeground func(hwnd int64)
 }
 
 type Runner interface {
@@ -37,20 +55,20 @@ type Runner interface {
 }
 
 func GetRunner(params *RunnerParams) (Runner, error) {
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
 	attachRunner, err := getAttachRunner(params)
 	if attachRunner != nil {
 		return attachRunner, nil
 	}
 	if err != nil {
-		consumer.Warnf("Could not determine if app is aslready running: %s", err.Error())
+		consumer.Warnf("Could not determine if app is already running: %s", err.Error())
 	}
 
 	switch runtime.GOOS {
 	case "windows":
 		if params.Sandbox {
-			return newWinSandboxRunner(params)
+			return newFujiRunner(params)
 		}
 		return newSimpleRunner(params)
 	case "linux":

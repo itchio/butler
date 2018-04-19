@@ -7,100 +7,69 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/itchio/butler/butlerd/messages"
-
-	"github.com/itchio/butler/installer"
-
-	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/cmd/elevate"
-
-	"github.com/itchio/butler/cmd/winsandbox"
-	"github.com/itchio/butler/runner/execas"
 	"github.com/itchio/ox/syscallex"
 	"github.com/itchio/ox/winox"
+	"github.com/itchio/ox/winox/execas"
+	"github.com/itchio/smaug/fuji"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
-type winsandboxRunner struct {
-	params *RunnerParams
-
-	playerData *winsandbox.PlayerData
+type fujiRunner struct {
+	params      *RunnerParams
+	Credentials *fuji.Credentials
 }
 
-var _ Runner = (*winsandboxRunner)(nil)
+var _ Runner = (*fujiRunner)(nil)
 
-func newWinSandboxRunner(params *RunnerParams) (Runner, error) {
-	wr := &winsandboxRunner{
+func newFujiRunner(params *RunnerParams) (Runner, error) {
+	if params.FujiParams.Instance == nil {
+		return nil, errors.Errorf("FujiParams.Instance should be set")
+	}
+
+	wr := &fujiRunner{
 		params: params,
 	}
 	return wr, nil
 }
 
-func (wr *winsandboxRunner) Prepare() error {
-	consumer := wr.params.RequestContext.Consumer
+func (wr *fujiRunner) Prepare() error {
+	consumer := wr.params.Consumer
+	fi := wr.params.FujiParams.Instance
 
 	nullConsumer := &state.Consumer{}
-	err := winsandbox.Check(nullConsumer)
+	err := fi.Check(nullConsumer)
 	if err != nil {
 		consumer.Warnf("Sandbox check failed: %s", err.Error())
 
-		r, err := messages.AllowSandboxSetup.Call(wr.params.RequestContext, &butlerd.AllowSandboxSetupParams{})
+		err := wr.params.FujiParams.PerformElevatedSetup()
 		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		if !r.Allow {
-			return errors.WithStack(butlerd.CodeOperationAborted)
-		}
-		consumer.Infof("Proceeding with sandbox setup...")
-
-		res, err := installer.RunSelf(&installer.RunSelfParams{
-			Consumer: consumer,
-			Args: []string{
-				"--elevate",
-				"winsandbox",
-				"setup",
-			},
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		if res.ExitCode != 0 {
-			if res.ExitCode == elevate.ExitCodeAccessDenied {
-				return errors.WithStack(butlerd.CodeOperationAborted)
-			}
-		}
-
-		err = installer.CheckExitCode(res.ExitCode, err)
-		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 
 		consumer.Infof("Sandbox setup done, checking again...")
-		err = winsandbox.Check(nullConsumer)
+		err = fi.Check(nullConsumer)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 	}
 
-	playerData, err := winsandbox.GetPlayerData()
+	Credentials, err := fi.GetCredentials()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	wr.playerData = playerData
+	wr.Credentials = Credentials
 
 	consumer.Infof("Sandbox is ready")
 	return nil
 }
 
-func (wr *winsandboxRunner) Run() error {
+func (wr *fujiRunner) Run() error {
 	var err error
 	params := wr.params
-	consumer := params.RequestContext.Consumer
-	pd := wr.playerData
+	consumer := params.Consumer
+	pd := wr.Credentials
 
 	consumer.Infof("Running as user (%s)", pd.Username)
 
@@ -161,10 +130,10 @@ func (wr *winsandboxRunner) Run() error {
 	return nil
 }
 
-func (wr *winsandboxRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
+func (wr *fujiRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
 	params := wr.params
-	pd := wr.playerData
-	consumer := params.RequestContext.Consumer
+	pd := wr.Credentials
+	consumer := params.Consumer
 
 	sp := &winox.SharingPolicy{
 		Trustee: pd.Username,
@@ -223,9 +192,9 @@ func (wr *winsandboxRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
 	return sp, nil
 }
 
-func (wr *winsandboxRunner) getEnvironment() ([]string, error) {
+func (wr *fujiRunner) getEnvironment() ([]string, error) {
 	params := wr.params
-	pd := wr.playerData
+	pd := wr.Credentials
 
 	env := params.Env
 	setEnv := func(key string, value string) {

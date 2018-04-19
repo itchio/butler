@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer"
+	"github.com/itchio/ox"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )
@@ -19,13 +20,13 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	needElevation := false
 	for _, task := range plan.Tasks {
 		switch pc.Runtime.Platform {
-		case butlerd.ItchPlatformWindows:
+		case ox.PlatformWindows:
 			block := task.Info.Windows
 			if block.Elevate {
 				consumer.Infof("Will perform prereqs installation elevated because of (%s)", task.Name)
 				needElevation = true
 			}
-		case butlerd.ItchPlatformLinux:
+		case ox.PlatformLinux:
 			block := task.Info.Linux
 			if len(block.EnsureSuidRoot) > 0 {
 				consumer.Infof("Will perform prereqs installation elevated because (%s) has SUID binaries", task.Name)
@@ -108,7 +109,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	// now to run some sanity checks (as regular user)
 	for _, task := range plan.Tasks {
 		switch pc.Runtime.Platform {
-		case butlerd.ItchPlatformLinux:
+		case ox.PlatformLinux:
 			block := task.Info.Linux
 			for _, sc := range block.SanityChecks {
 				err := pc.RunSanityCheck(task.Name, task.Info, sc)

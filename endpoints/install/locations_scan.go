@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/ox"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/itchio/butler/butlerd"
@@ -503,7 +504,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 		InstalledAt:       InstalledAt,
 	}
 
-	runtime := manager.CurrentRuntime()
+	runtime := ox.CurrentRuntime()
 	consumer.Opf("Configuring cave for %s", runtime)
 	verdict, err := manager.Configure(consumer, InstallFolder, runtime)
 	if err != nil {

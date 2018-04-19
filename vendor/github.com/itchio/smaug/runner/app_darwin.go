@@ -39,7 +39,7 @@ func (ar *appRunner) Run() error {
 }
 
 func RunAppBundle(params *RunnerParams, bundlePath string) error {
-	consumer := params.RequestContext.Consumer
+	consumer := params.Consumer
 
 	var args = []string{
 		"-W",

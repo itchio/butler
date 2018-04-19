@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -31,12 +31,12 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 		alreadyGood := false
 
 		switch pc.Runtime.Platform {
-		case butlerd.ItchPlatformWindows:
+		case ox.PlatformWindows:
 			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
 			if err != nil {
 				return nil, errors.Wrap(err, "assessing windows prereq")
 			}
-		case butlerd.ItchPlatformLinux:
+		case ox.PlatformLinux:
 			alreadyGood, err = pc.AssessLinuxPrereq(name, entry)
 			if err != nil {
 				return nil, errors.Wrap(err, "assessing linux prereq")

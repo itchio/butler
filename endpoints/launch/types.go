@@ -8,7 +8,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/filtering"
-	"github.com/itchio/butler/manager"
+	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
 	"github.com/itchio/wharf/tlc"
 	"github.com/pkg/errors"
@@ -61,7 +61,7 @@ type LauncherParams struct {
 	ForcePrereqs  bool
 	Credentials   *butlerd.GameCredentials
 	InstallFolder string
-	Runtime       *manager.Runtime
+	Runtime       *ox.Runtime
 
 	RecordPlayTime RecordPlayTimeFunc
 }

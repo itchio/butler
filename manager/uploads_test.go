@@ -23,8 +23,8 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Classification: "game",
 	}
 
-	linux64 := &manager.Runtime{
-		Platform: butlerd.ItchPlatformLinux,
+	linux64 := &ox.Runtime{
+		Platform: ox.PlatformLinux,
 		Is64:     true,
 	}
 
@@ -54,8 +54,8 @@ func Test_NarrowDownUploads(t *testing.T) {
 		InitialUploads: debrpm,
 	}, manager.NarrowDownUploads(consumer, debrpm, game, linux64), "blacklist .deb and .rpm files")
 
-	mac64 := &manager.Runtime{
-		Platform: butlerd.ItchPlatformOSX,
+	mac64 := &ox.Runtime{
+		Platform: ox.PlatformOSX,
 		Is64:     true,
 	}
 
@@ -142,8 +142,8 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Type:     "default",
 	}
 
-	windows32 := &manager.Runtime{
-		Platform: butlerd.ItchPlatformWindows,
+	windows32 := &ox.Runtime{
+		Platform: ox.PlatformWindows,
 		Is64:     false,
 	}
 
@@ -186,8 +186,8 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 	}, manager.NarrowDownUploads(consumer, penalizedemos, game, windows32), "penalize demos")
 
-	windows64 := &manager.Runtime{
-		Platform: butlerd.ItchPlatformWindows,
+	windows64 := &ox.Runtime{
+		Platform: ox.PlatformWindows,
 		Is64:     true,
 	}
 
@@ -239,8 +239,8 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Uploads:        dontExcludeUniversal,
 	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, game, linux64), "don't exclude universal builds on 64-bit")
 
-	linux32 := &manager.Runtime{
-		Platform: butlerd.ItchPlatformLinux,
+	linux32 := &ox.Runtime{
+		Platform: ox.PlatformLinux,
 		Is64:     false,
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{

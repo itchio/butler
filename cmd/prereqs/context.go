@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
@@ -20,7 +20,7 @@ import (
 type PrereqsContext struct {
 	RequestContext *butlerd.RequestContext
 	Credentials    *butlerd.GameCredentials
-	Runtime        *manager.Runtime
+	Runtime        *ox.Runtime
 	Consumer       *state.Consumer
 	PrereqsDir     string
 	Force          bool

@@ -5,15 +5,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
 )
 
 type uploadFilter struct {
 	consumer *state.Consumer
 	game     *itchio.Game
-	runtime  *Runtime
+	runtime  *ox.Runtime
 }
 
 type NarrowDownUploadsResult struct {
@@ -23,7 +23,7 @@ type NarrowDownUploadsResult struct {
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(consumer *state.Consumer, uploads []*itchio.Upload, game *itchio.Game, runtime *Runtime) *NarrowDownUploadsResult {
+func NarrowDownUploads(consumer *state.Consumer, uploads []*itchio.Upload, game *itchio.Game, runtime *ox.Runtime) *NarrowDownUploadsResult {
 	uf := &uploadFilter{
 		consumer: consumer,
 		game:     game,
@@ -182,7 +182,7 @@ func (uf *uploadFilter) excludeWrongArch(uploads []*itchio.Upload) []*itchio.Upl
 
 	filtered := false
 
-	if uf.runtime.Platform == butlerd.ItchPlatformWindows || uf.runtime.Platform == butlerd.ItchPlatformLinux {
+	if uf.runtime.Platform == ox.PlatformWindows || uf.runtime.Platform == ox.PlatformLinux {
 		uf.consumer.Logf("Got %d uploads, we're on %s, let's sniff architectures", len(uploads), uf.runtime)
 
 		if uf.runtime.Is64 {

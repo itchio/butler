@@ -4,6 +4,7 @@ import (
 	"time"
 
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/ox"
 )
 
 // @name Handshake
@@ -1528,15 +1529,6 @@ type TestDoubleResult struct {
 	Number int64 `json:"number"`
 }
 
-type ItchPlatform string
-
-const (
-	ItchPlatformOSX     ItchPlatform = "osx"
-	ItchPlatformWindows ItchPlatform = "windows"
-	ItchPlatformLinux   ItchPlatform = "linux"
-	ItchPlatformUnknown ItchPlatform = "unknown"
-)
-
 // butlerd JSON-RPC 2.0 error codes
 type Code int64
 
@@ -1606,7 +1598,7 @@ type Action struct {
 	Console bool `json:"console,omitempty"`
 
 	// platform to restrict this action too
-	Platform ItchPlatform `json:"platform,omitempty"`
+	Platform ox.Platform `json:"platform,omitempty"`
 
 	// localized action name
 	Locales map[string]*ActionLocale `json:"locales,omitempty"`

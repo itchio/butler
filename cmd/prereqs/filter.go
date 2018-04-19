@@ -1,8 +1,8 @@
 package prereqs
 
 import (
-	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -30,7 +30,7 @@ func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
 	return result, nil
 }
 
-func RedistHasPlatform(redist *redist.RedistEntry, platform butlerd.ItchPlatform) bool {
+func RedistHasPlatform(redist *redist.RedistEntry, platform ox.Platform) bool {
 	for _, p := range redist.Platforms {
 		if p == string(platform) {
 			return true

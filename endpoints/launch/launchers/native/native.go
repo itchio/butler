@@ -18,11 +18,14 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/mansion"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/endpoints/launch"
-	"github.com/itchio/butler/runner"
+	"github.com/itchio/smaug/runner"
 	"github.com/pkg/errors"
 )
 
@@ -139,8 +142,8 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	}
 
 	runParams := &runner.RunnerParams{
-		RequestContext: params.RequestContext,
-		Ctx:            params.Ctx,
+		Consumer: consumer,
+		Ctx:      params.Ctx,
 
 		Sandbox: params.Sandbox,
 
@@ -153,10 +156,12 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 		Stdout: stdout,
 		Stderr: stderr,
 
-		PrereqsDir:    params.PrereqsDir,
-		Credentials:   params.Credentials,
 		InstallFolder: params.InstallFolder,
 		Runtime:       params.Runtime,
+
+		AttachParams:   l.AttachParams(params),
+		FirejailParams: l.FirejailParams(params),
+		FujiParams:     l.FujiParams(params),
 	}
 
 	run, err := runner.GetRunner(runParams)
@@ -237,6 +242,71 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	}
 
 	return nil
+}
+
+func (l *Launcher) FirejailParams(params *launch.LauncherParams) runner.FirejailParams {
+	name := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
+	binaryPath := filepath.Join(params.PrereqsDir, name, "firejail")
+	return runner.FirejailParams{
+		BinaryPath: binaryPath,
+	}
+}
+
+func (l *Launcher) FujiParams(params *launch.LauncherParams) runner.FujiParams {
+	fi, err := mansion.GetFujiInstance()
+	if err != nil {
+		panic(err)
+	}
+	consumer := params.RequestContext.Consumer
+
+	return runner.FujiParams{
+		Instance: fi,
+		PerformElevatedSetup: func() error {
+			r, err := messages.AllowSandboxSetup.Call(params.RequestContext, &butlerd.AllowSandboxSetupParams{})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			if !r.Allow {
+				return errors.WithStack(butlerd.CodeOperationAborted)
+			}
+			consumer.Infof("Proceeding with sandbox setup...")
+
+			res, err := installer.RunSelf(&installer.RunSelfParams{
+				Consumer: consumer,
+				Args: []string{
+					"--elevate",
+					"fuji",
+					"setup",
+				},
+			})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			if res.ExitCode != 0 {
+				if res.ExitCode == elevate.ExitCodeAccessDenied {
+					return errors.WithStack(butlerd.CodeOperationAborted)
+				}
+			}
+
+			err = installer.CheckExitCode(res.ExitCode, err)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			return nil
+		},
+	}
+}
+
+func (l *Launcher) AttachParams(params *launch.LauncherParams) runner.AttachParams {
+	return runner.AttachParams{
+		BringWindowToForeground: func(hwnd int64) {
+			messages.LaunchWindowShouldBeForeground.Notify(params.RequestContext, &butlerd.LaunchWindowShouldBeForegroundNotification{
+				Hwnd: hwnd,
+			})
+		},
+	}
 }
 
 func configureTargetIfNeeded(params *launch.LauncherParams) error {

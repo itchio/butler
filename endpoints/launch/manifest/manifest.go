@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/manager"
+	"github.com/itchio/ox"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/BurntSushi/toml"
@@ -16,7 +16,7 @@ import (
 
 // TODO: linter
 
-func ListActions(m *butlerd.Manifest, runtime *manager.Runtime) []*butlerd.Action {
+func ListActions(m *butlerd.Manifest, runtime *ox.Runtime) []*butlerd.Action {
 	var result []*butlerd.Action
 
 	for _, a := range m.Actions {
@@ -80,7 +80,7 @@ func Read(folder string) (*butlerd.Manifest, error) {
 	return manifest, nil
 }
 
-func ExpandPath(a *butlerd.Action, runtime *manager.Runtime, baseFolder string) string {
+func ExpandPath(a *butlerd.Action, runtime *ox.Runtime, baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
@@ -89,9 +89,9 @@ func ExpandPath(a *butlerd.Action, runtime *manager.Runtime, baseFolder string) 
 	if strings.Contains(path, "{{EXT}}") {
 		var ext = ""
 		switch runtime.Platform {
-		case butlerd.ItchPlatformWindows:
+		case ox.PlatformWindows:
 			ext = ".exe"
-		case butlerd.ItchPlatformOSX:
+		case ox.PlatformOSX:
 			ext = ".app"
 		}
 		path = strings.Replace(path, "{{EXT}}", ext, 1)
