@@ -3,9 +3,9 @@ package manager_test
 import (
 	"testing"
 
+	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
 
-	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/stretchr/testify/assert"
