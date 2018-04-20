@@ -11,6 +11,10 @@ import (
 )
 
 func Test_InstallUpdate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test in short mode")
+	}
+
 	rc, h, cancel := connect(t)
 	defer cancel()
 

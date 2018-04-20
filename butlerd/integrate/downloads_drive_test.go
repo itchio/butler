@@ -12,6 +12,10 @@ import (
 )
 
 func Test_DownloadsDrive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test in short mode")
+	}
+
 	rc, h, cancel := connect(t)
 	defer cancel()
 
