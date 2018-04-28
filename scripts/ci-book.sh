@@ -5,4 +5,4 @@ npm install -g gitbook-cli
 
 (cd docs && npm install && gitbook build)
 
-gsutil cp -r -a public-read docs/_book/* gs://docs.itch.ovh/butler/$CI_BUILD_REF_NAME/
+gsutil -m cp -r -a public-read docs/_book/* gs://docs.itch.ovh/butler/$CI_BUILD_REF_NAME/
