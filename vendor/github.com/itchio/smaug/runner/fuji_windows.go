@@ -17,25 +17,32 @@ import (
 
 type fujiRunner struct {
 	params      *RunnerParams
-	Credentials *fuji.Credentials
+	fi          fuji.Instance
+	credentials *fuji.Credentials
 }
 
 var _ Runner = (*fujiRunner)(nil)
 
 func newFujiRunner(params *RunnerParams) (Runner, error) {
-	if params.FujiParams.Instance == nil {
+	if params.FujiParams.Settings == nil {
 		return nil, errors.Errorf("FujiParams.Instance should be set")
+	}
+
+	fi, err := fuji.NewInstance(params.FujiParams.Settings)
+	if err != nil {
+		return nil, err
 	}
 
 	wr := &fujiRunner{
 		params: params,
+		fi:     fi,
 	}
 	return wr, nil
 }
 
 func (wr *fujiRunner) Prepare() error {
 	consumer := wr.params.Consumer
-	fi := wr.params.FujiParams.Instance
+	fi := wr.fi
 
 	nullConsumer := &state.Consumer{}
 	err := fi.Check(nullConsumer)
@@ -54,12 +61,12 @@ func (wr *fujiRunner) Prepare() error {
 		}
 	}
 
-	Credentials, err := fi.GetCredentials()
+	credentials, err := fi.GetCredentials()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	wr.Credentials = Credentials
+	wr.credentials = credentials
 
 	consumer.Infof("Sandbox is ready")
 	return nil
@@ -69,9 +76,9 @@ func (wr *fujiRunner) Run() error {
 	var err error
 	params := wr.params
 	consumer := params.Consumer
-	pd := wr.Credentials
+	creds := wr.credentials
 
-	consumer.Infof("Running as user (%s)", pd.Username)
+	consumer.Infof("Running as user (%s)", creds.Username)
 
 	env, err := wr.getEnvironment()
 	if err != nil {
@@ -94,9 +101,9 @@ func (wr *fujiRunner) Run() error {
 	defer sp.Revoke(consumer)
 
 	cmd := execas.Command(params.FullTargetPath, params.Args...)
-	cmd.Username = pd.Username
+	cmd.Username = creds.Username
 	cmd.Domain = "."
-	cmd.Password = pd.Password
+	cmd.Password = creds.Password
 	cmd.Dir = params.Dir
 	cmd.Env = env
 	cmd.Stdout = params.Stdout
@@ -132,14 +139,14 @@ func (wr *fujiRunner) Run() error {
 
 func (wr *fujiRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
 	params := wr.params
-	pd := wr.Credentials
+	creds := wr.credentials
 	consumer := params.Consumer
 
 	sp := &winox.SharingPolicy{
-		Trustee: pd.Username,
+		Trustee: creds.Username,
 	}
 
-	impersonationToken, err := winox.GetImpersonationToken(pd.Username, ".", pd.Password)
+	impersonationToken, err := winox.GetImpersonationToken(creds.Username, ".", creds.Password)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -194,19 +201,19 @@ func (wr *fujiRunner) getSharingPolicy() (*winox.SharingPolicy, error) {
 
 func (wr *fujiRunner) getEnvironment() ([]string, error) {
 	params := wr.params
-	pd := wr.Credentials
+	creds := wr.credentials
 
 	env := params.Env
 	setEnv := func(key string, value string) {
 		env = append(env, fmt.Sprintf("%s=%s", key, value))
 	}
 
-	setEnv("username", pd.Username)
+	setEnv("username", creds.Username)
 	// we're not setting `userdomain` or `userdomain_roaming_profile`,
 	// since we expect those to be the same for the regular user
 	// and the sandbox user
 
-	err := winox.Impersonate(pd.Username, ".", pd.Password, func() error {
+	err := winox.Impersonate(creds.Username, ".", creds.Password, func() error {
 		profileDir, err := winox.GetFolderPath(winox.FolderTypeProfile)
 		if err != nil {
 			return errors.WithStack(err)

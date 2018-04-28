@@ -41,7 +41,7 @@ type FirejailParams struct {
 }
 
 type FujiParams struct {
-	Instance             fuji.Instance
+	Settings             *fuji.Settings
 	PerformElevatedSetup func() error
 }
 

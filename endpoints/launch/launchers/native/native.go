@@ -253,14 +253,10 @@ func (l *Launcher) FirejailParams(params *launch.LauncherParams) runner.Firejail
 }
 
 func (l *Launcher) FujiParams(params *launch.LauncherParams) runner.FujiParams {
-	fi, err := mansion.GetFujiInstance()
-	if err != nil {
-		panic(err)
-	}
 	consumer := params.RequestContext.Consumer
 
 	return runner.FujiParams{
-		Instance: fi,
+		Settings: mansion.GetFujiSettings(),
 		PerformElevatedSetup: func() error {
 			r, err := messages.AllowSandboxSetup.Call(params.RequestContext, &butlerd.AllowSandboxSetupParams{})
 			if err != nil {
