@@ -10,9 +10,10 @@ import (
 )
 
 type multiread struct {
-	upstream io.Reader
-	writers  []*io.PipeWriter
-	doing    bool
+	upstream  io.Reader
+	writers   []*io.PipeWriter
+	doing     bool
+	doingLock sync.Mutex
 }
 
 // Multiread lets multiple readers read the same data
@@ -28,6 +29,8 @@ func New(upstream io.Reader) Multiread {
 }
 
 func (m *multiread) Reader() io.Reader {
+	m.doingLock.Lock()
+	defer m.doingLock.Unlock()
 	if m.doing {
 		return &errReader{err: errors.New("multiread: cannot call Reader() after Do()")}
 	}
@@ -38,7 +41,9 @@ func (m *multiread) Reader() io.Reader {
 }
 
 func (m *multiread) Do(ctx context.Context) error {
+	m.doingLock.Lock()
 	m.doing = true
+	m.doingLock.Unlock()
 
 	var closeOnce sync.Once
 
