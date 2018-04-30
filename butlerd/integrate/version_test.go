@@ -13,5 +13,5 @@ func Test_Version(t *testing.T) {
 
 	vgr, err := messages.VersionGet.TestCall(rc, nil)
 	must(t, err)
-	assert.EqualValues(t, vgr.Version, "head")
+	assert.NotEmpty(t, vgr.Version)
 }
