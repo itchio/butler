@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/endpoints/fetch"
 	itchio "github.com/itchio/go-itchio"
 
 	"github.com/itchio/butler/butlerd"
@@ -36,6 +37,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 	}
 
 	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &butlerd.InstallVersionSwitchPickParams{
+		Cave:   fetch.FormatCave(rc.DB(), cave),
 		Upload: upload,
 		Builds: buildsRes.Builds,
 	})
@@ -49,15 +51,13 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 
 	build := buildsRes.Builds[pickRes.Index]
 
-	if true {
-		return nil, errors.New("We're up to InstallQueue and butler doesn't fully handle downloads yet :o")
-	}
-
 	_, err = InstallQueue(rc, &butlerd.InstallQueueParams{
-		CaveID: params.CaveID,
-		Game:   cave.Game,
-		Upload: cave.Upload,
-		Build:  build,
+		CaveID:        params.CaveID,
+		Game:          cave.Game,
+		Upload:        cave.Upload,
+		Build:         build,
+		Reason:        butlerd.DownloadReasonVersionSwitch,
+		QueueDownload: true,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
