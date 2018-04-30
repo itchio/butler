@@ -281,7 +281,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "8d1b85450fa0f30e08c39ab944f705afc546bda4",
+			"revision": "8915978b837552ee6db5104982fe1853aa3ff26a",
 			"branch": "master",
 			"notests": true
 		},
@@ -353,7 +353,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "9fc6570878cbf4aab12612ecf1564bc1069c7999",
+			"revision": "d20592e5a160701132ff3d4d238fee6a8ba41fa1",
 			"branch": "master",
 			"notests": true
 		},
