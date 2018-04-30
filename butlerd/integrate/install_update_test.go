@@ -15,6 +15,14 @@ func Test_InstallUpdate(t *testing.T) {
 		t.Skip("Skipping test in short mode")
 	}
 
+	log := func(msg string) {
+		t.Logf("==========================")
+		t.Logf("= %s", msg)
+		t.Logf("==========================")
+	}
+
+	log("connecting to butlerd")
+
 	rc, h, cancel := connect(t)
 	defer cancel()
 
@@ -22,6 +30,8 @@ func Test_InstallUpdate(t *testing.T) {
 	setupTmpInstallLocation(t, h, rc)
 
 	{
+		log("listing builds...")
+
 		// fasterthanlime/butler
 		game := getGame(t, h, rc, 239683)
 
@@ -38,13 +48,21 @@ func Test_InstallUpdate(t *testing.T) {
 		}
 		assert.NotNil(t, upload)
 
+		buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
+			UploadID: upload.ID,
+		})
+		must(t, err)
+
+		recentBuild := buildsRes.Builds[1]
+		olderBuild := buildsRes.Builds[4]
+
+		log("installing older build...")
+
 		queue1Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 			Upload:            upload,
-			Build: &itchio.Build{
-				ID: 76706,
-			},
+			Build:             olderBuild,
 		})
 		must(t, err)
 
@@ -62,16 +80,14 @@ func Test_InstallUpdate(t *testing.T) {
 			assert.NoError(t, err, "has receipt")
 		}
 
-		t.Logf("Upgrading to next build")
+		log("upgrading to next build...")
 
 		queue2Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 			CaveID:            caveId,
 			Upload:            upload,
-			Build: &itchio.Build{
-				ID: 76741,
-			},
+			Build:             recentBuild,
 		})
 		must(t, err)
 

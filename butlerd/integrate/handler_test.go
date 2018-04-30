@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -75,7 +77,14 @@ func (h *handler) RegisterNotification(method string, nh butlerd.NotificationHan
 }
 
 func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFunc) {
-	return connectEx(t.Logf)
+	logf := t.Logf
+	if os.Getenv("LOUD_TESTS") == "1" {
+		logf = func(msg string, args ...interface{}) {
+			log.Printf(msg, args...)
+		}
+	}
+
+	return connectEx(logf)
 }
 
 func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestContext, *handler, context.CancelFunc) {

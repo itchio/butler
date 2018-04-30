@@ -157,6 +157,10 @@ type ListUploadBuildsResponse struct {
 	Builds []*Build `json:"builds"`
 }
 
+type GetBuildResponse struct {
+	Build *Build `json:"build"`
+}
+
 type FindUpgradeResponse struct {
 	// UpgradePath is a list of patches needed to upgrade to the latest version
 	UpgradePath []*UpgradePathItem `json:"upgradePath"`

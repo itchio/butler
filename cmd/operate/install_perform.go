@@ -3,17 +3,12 @@ package operate
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/go-itchio"
-
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 
@@ -44,20 +39,6 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 	oc.Retire()
 
 	return nil
-}
-
-type InstallPerformStrategy = int
-
-const (
-	InstallPerformStrategyNone    InstallPerformStrategy = 0
-	InstallPerformStrategyInstall InstallPerformStrategy = 1
-	InstallPerformStrategyHeal    InstallPerformStrategy = 2
-)
-
-type InstallPrepareResult struct {
-	File      eos.File
-	ReceiptIn *bfs.Receipt
-	Strategy  InstallPerformStrategy
 }
 
 func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext) (eos.File, error) {
@@ -113,7 +94,10 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 		}
 
 		istate.IsAvailableLocally = true
-		oc.Save(isub)
+		err = oc.Save(isub)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ret, err := eos.Open(destPath, option.WithConsumer(consumer))
@@ -121,195 +105,6 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 		return nil, errors.WithStack(err)
 	}
 	return ret, nil
-}
-
-type InstallTask func(res *InstallPrepareResult) error
-
-func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, allowDownloads bool, task InstallTask) error {
-	rc := oc.rc
-	params := meta.Data
-	consumer := rc.Consumer
-
-	client := rc.ClientFromCredentials(params.Credentials)
-
-	res := &InstallPrepareResult{}
-
-	receiptIn, err := bfs.ReadReceipt(params.InstallFolder)
-	if err != nil {
-		receiptIn = nil
-		consumer.Errorf("Could not read existing receipt: %s", err.Error())
-	}
-
-	if receiptIn == nil {
-		consumer.Infof("No receipt found.")
-	}
-
-	res.ReceiptIn = receiptIn
-
-	istate := isub.Data
-
-	if istate.DownloadSessionId == "" {
-		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
-			GameID:        params.Game.ID,
-			DownloadKeyID: params.Credentials.DownloadKey,
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		istate.DownloadSessionId = res.UUID
-		oc.Save(isub)
-
-		consumer.Infof("→ Starting fresh download session (%s)", istate.DownloadSessionId)
-	} else {
-		consumer.Infof("↻ Resuming download session (%s)", istate.DownloadSessionId)
-	}
-
-	if receiptIn == nil {
-		consumer.Infof("← No previous install info (no recorded upload or build)")
-	} else {
-		consumer.Infof("← Previously installed:")
-		LogUpload(consumer, receiptIn.Upload, receiptIn.Build)
-	}
-
-	consumer.Infof("→ To be installed:")
-	LogUpload(consumer, params.Upload, params.Build)
-
-	if receiptIn != nil && receiptIn.Upload != nil && receiptIn.Upload.ID == params.Upload.ID {
-		consumer.Infof("Installing over same upload")
-		if receiptIn.Build != nil && params.Build != nil {
-			oldID := receiptIn.Build.ID
-			newID := params.Build.ID
-			if newID > oldID {
-				consumer.Infof("↑ Upgrading from build %d to %d", oldID, newID)
-				upgradePath, err := client.FindUpgrade(&itchio.FindUpgradeParams{
-					CurrentBuildID: oldID,
-					UploadID:       params.Upload.ID,
-					DownloadKeyID:  params.Credentials.DownloadKey,
-				})
-				if err != nil {
-					consumer.Warnf("Could not find upgrade path: %s", err.Error())
-					consumer.Infof("Falling back to heal...")
-					res.Strategy = InstallPerformStrategyHeal
-					return task(res)
-				}
-
-				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.UpgradePath))
-				var totalUpgradeSize int64
-				for _, item := range upgradePath.UpgradePath {
-					if item.ID == oldID {
-						continue
-					}
-
-					consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
-					totalUpgradeSize += item.PatchSize
-				}
-				fullUploadSize := params.Upload.Size
-
-				var comparative = "smaller than"
-				if totalUpgradeSize > fullUploadSize {
-					comparative = "larger than"
-				}
-				consumer.Infof("Total upgrade size %s is %s full upload %s",
-					humanize.IBytes(uint64(totalUpgradeSize)),
-					comparative,
-					humanize.IBytes(uint64(fullUploadSize)),
-				)
-
-				if totalUpgradeSize > fullUploadSize {
-					consumer.Infof("Healing instead of patching")
-					res.Strategy = InstallPerformStrategyHeal
-					return task(res)
-				}
-
-				consumer.Warnf("TODO: update (falling back to install for now)")
-			} else if newID < oldID {
-				consumer.Infof("↓ Downgrading from build %d to %d", oldID, newID)
-				res.Strategy = InstallPerformStrategyHeal
-				return task(res)
-			}
-
-			consumer.Infof("↺ Re-installing build %d", newID)
-			res.Strategy = InstallPerformStrategyHeal
-			return task(res)
-		}
-	}
-
-	installSourceURL := sourceURL(consumer, istate, params, "")
-
-	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	res.File = file
-	defer file.Close()
-
-	if params.Build == nil && UploadIsProbablyExternal(params.Upload) {
-		consumer.Warnf("Dealing with an external upload, all bets are off.")
-
-		if !allowDownloads {
-			consumer.Warnf("Can't determine source information at that time")
-			return nil
-		}
-
-		consumer.Warnf("Forcing download before we check anything else.")
-		lf, err := doForceLocal(file, oc, meta, isub)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		file.Close()
-		file = lf
-		res.File = lf
-	}
-
-	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == installer.InstallerTypeUnknown {
-		consumer.Infof("Determining source information...")
-
-		installerInfo, err := installer.GetInstallerInfo(consumer, file)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		// sniffing may have read parts of the file, so seek back to beginning
-		_, err = file.Seek(0, io.SeekStart)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		if params.IgnoreInstallers {
-			switch installerInfo.Type {
-			case installer.InstallerTypeArchive:
-				// that's cool
-			case installer.InstallerTypeNaked:
-				// that's cool too
-			default:
-				consumer.Infof("Asked to ignore installers, forcing (naked) instead of (%s)", installerInfo.Type)
-				installerInfo.Type = installer.InstallerTypeNaked
-			}
-		}
-
-		dui, err := AssessDiskUsage(file, receiptIn, params.InstallFolder, installerInfo)
-		if err != nil {
-			return errors.WithMessage(err, "assessing disk usage")
-		}
-
-		consumer.Infof("Estimated disk usage (accuracy: %s)", dui.Accuracy)
-		consumer.Infof("  ✓ %s needed free space", humanize.IBytes(uint64(dui.NeededFreeSpace)))
-		consumer.Infof("  ✓ %s final disk usage", humanize.IBytes(uint64(dui.FinalDiskUsage)))
-
-		istate.InstallerInfo = installerInfo
-		oc.Save(isub)
-	} else {
-		consumer.Infof("Using cached source information")
-	}
-
-	installerInfo := istate.InstallerInfo
-	if installerInfo.Type == installer.InstallerTypeUnsupported {
-		consumer.Errorf("Item is packaged in a way that isn't supported, refusing to install")
-		return errors.WithStack(butlerd.CodeUnsupportedPackaging)
-	}
-
-	return task(res)
 }
 
 func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
@@ -330,6 +125,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	return InstallPrepare(oc, meta, isub, true, func(prepareRes *InstallPrepareResult) error {
 		if prepareRes.Strategy == InstallPerformStrategyHeal {
 			return heal(oc, meta, isub, prepareRes.ReceiptIn)
+		}
+
+		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
+			return upgrade(oc, meta, isub, prepareRes.ReceiptIn)
 		}
 
 		stats, err := prepareRes.File.Stat()
@@ -423,7 +222,6 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 				firstInstallResult, err = tryInstall()
 			}
-
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -431,7 +229,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			consumer.Infof("Install successful")
 
 			istate.FirstInstallResult = firstInstallResult
-			oc.Save(isub)
+			err = oc.Save(isub)
+			if err != nil {
+				return err
+			}
 		}
 
 		var finalInstallResult = firstInstallResult
@@ -464,7 +265,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 					sf.Close()
 
 					istate.SecondInstallerInfo = secondInstallerInfo
-					oc.Save(isub)
+					err = oc.Save(isub)
+					if err != nil {
+						return err
+					}
 				}
 
 				if !installer.IsWindowsInstaller(secondInstallerInfo.Type) {

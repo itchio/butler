@@ -59,5 +59,8 @@ func MakeItchfsURL(params *ItchfsURLParams) string {
 	if params.Credentials.DownloadKey != 0 {
 		values.Set("download_key_id", fmt.Sprintf("%d", params.Credentials.DownloadKey))
 	}
+	if params.FileType == "patch" {
+		values.Set("prefer_optimized", "1")
+	}
 	return fmt.Sprintf("itchfs://%s?%s", path, values.Encode())
 }

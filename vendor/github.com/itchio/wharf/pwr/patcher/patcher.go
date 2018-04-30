@@ -546,10 +546,12 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 	f := sp.sourceContainer.Files[sh.FileIndex]
 	finalSize := writer.Tell()
 	if finalSize != f.Size {
-		err = fmt.Errorf("corrupted patch: expected '%s' to be %s after patching, but it's %s",
+		err = fmt.Errorf("corrupted patch: expected '%s' to be %s (%d bytes) after patching, but it's %s (%d bytes)",
 			f.Path,
 			humanize.IBytes(uint64(f.Size)),
+			f.Size,
 			humanize.IBytes(uint64(finalSize)),
+			finalSize,
 		)
 		return errors.WithStack(err)
 	}

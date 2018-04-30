@@ -632,6 +632,30 @@ func (c *Client) ListUploadBuilds(params *ListUploadBuildsParams) (*ListUploadBu
 	return r, nil
 }
 
+type GetBuildParams struct {
+	UploadID      int64
+	BuildID       int64
+	DownloadKeyID int64
+}
+
+func (c *Client) GetBuild(params *GetBuildParams) (*GetBuildResponse, error) {
+	r := &GetBuildResponse{}
+
+	form := url.Values{}
+	if params.DownloadKeyID != 0 {
+		form.Add("download_key_id", fmt.Sprintf("%d", params.DownloadKeyID))
+	}
+
+	path := c.MakePath("upload/%d/builds/%d?%s", params.UploadID, params.BuildID, form.Encode())
+
+	err := c.GetResponse(path, r)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return r, nil
+}
+
 type FindUpgradeParams struct {
 	UploadID       int64
 	CurrentBuildID int64

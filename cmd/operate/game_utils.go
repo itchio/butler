@@ -102,15 +102,23 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	}
 
 	if b != nil {
-		version := ""
-		if b.UserVersion != "" {
-			version = b.UserVersion
-		} else if b.Version != 0 {
-			version = "No explicit version"
-		}
-
-		consumer.Infof("    Build %d for channel (%s) :: %s :: #%d", b.Version, u.ChannelName, version, b.ID)
+		LogBuild(consumer, u, b)
 	}
+}
+
+func LogBuild(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
+	if b == nil {
+		consumer.Infof("    Nil build")
+	}
+
+	version := ""
+	if b.UserVersion != "" {
+		version = b.UserVersion
+	} else if b.Version != 0 {
+		version = "No explicit version"
+	}
+
+	consumer.Infof("    Build %d for channel (%s) :: %s :: #%d", b.Version, u.ChannelName, version, b.ID)
 }
 
 func formatUploadType(uploadType itchio.UploadType) string {
