@@ -101,6 +101,8 @@ func waitForInternet(rc *butlerd.RequestContext, status *Status) error {
 		if err != nil {
 			if neterr.IsNetworkError(err) {
 				// keep going...
+			} else {
+				consumer.Warnf("Got non-network error while pinging: %+v", err)
 			}
 		} else {
 			payload, _ := ioutil.ReadAll(res.Body)

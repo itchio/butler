@@ -70,7 +70,9 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 		Fresh:         Fresh,
 	}
 
-	err = HadesContext(rc).Save(rc.DB(), &hades.SaveParams{
+	c := HadesContext(rc)
+
+	err = c.Save(rc.DB(), &hades.SaveParams{
 		Record: d,
 	})
 	if err != nil {
@@ -80,6 +82,13 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 	if item.CaveID != "" {
 		// remove other downloads for this cave
 		rc.DB().Delete(&models.Download{}, "cave_id = ? and id != ?", item.CaveID, d.ID)
+	}
+
+	if params.Item.CaveID != "" && params.Item.Reason == butlerd.DownloadReasonVersionSwitch {
+		// if reverting, mark cave as pinned
+		cave := models.CaveByID(rc.DB(), params.Item.CaveID)
+		cave.Pinned = true
+		cave.Save(rc.DB())
 	}
 
 	res := &butlerd.DownloadsQueueResult{}

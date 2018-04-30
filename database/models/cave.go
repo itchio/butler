@@ -22,6 +22,7 @@ type Cave struct {
 	Build    *itchio.Build  `json:"build"`
 
 	Morphing bool `json:"morphing"`
+	Pinned   bool `json:"pinned"`
 
 	InstalledAt   *time.Time `json:"installedAt"`
 	LastTouchedAt *time.Time `json:"lastTouchedAt"`
