@@ -3,6 +3,14 @@
 export CURRENT_BUILD_PATH=$(pwd)
 export GOPATH=$CURRENT_BUILD_PATH
 
+export CI_VERSION="head"
+export CI_BUILT_AT="$(date +%s)"
+if [ -n "$CI_BUILD_TAG" ]; then
+  export CI_VERSION="$CI_BUILD_TAG"
+elif [ "master" != "$CI_BUILD_REF_NAME" ]; then
+  export CI_VERSION="$CI_BUILD_REF_NAME"
+fi
+
 TARGET=butler
 if [ "$CI_OS" = "windows" ]; then
   TARGET=$TARGET.exe
