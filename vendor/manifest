@@ -249,7 +249,7 @@
 			"importpath": "github.com/itchio/dash",
 			"repository": "https://github.com/itchio/dash",
 			"vcs": "git",
-			"revision": "e04390a8a8ba1178a48a4bcead5bdb3a8c0f25b9",
+			"revision": "41a8f711c3cb92150ff0200dff11c09fa731bf2c",
 			"branch": "master",
 			"notests": true
 		},

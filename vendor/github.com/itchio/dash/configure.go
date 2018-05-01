@@ -365,6 +365,7 @@ var blacklist = []BlacklistEntry{
 	{regexp.MustCompile(`(?i)\.(so|dylib)$`), Penalty{PenaltyExclude, 0}},
 	{regexp.MustCompile(`(?i)dxwebsetup\.exe$`), Penalty{PenaltyExclude, 0}},
 	{regexp.MustCompile(`(?i)vcredist.*\.exe$`), Penalty{PenaltyExclude, 0}},
+	{regexp.MustCompile(`(?i)unitycrashhandler.*\.exe$`), Penalty{PenaltyExclude, 0}},
 }
 
 type ScoredCandidate struct {
