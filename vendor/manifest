@@ -241,7 +241,7 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "bf14ef6541e9e6e36ebd739f2145b1fb43e80dce",
+			"revision": "ba920d42d27b3915c562f4c54a474c7c073282fb",
 			"branch": "master",
 			"notests": true
 		},

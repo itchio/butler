@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	version := "1.6.0"
+	version := "1.7.0"
 	osarches := []string{
 		"windows-386",
 		"windows-amd64",
@@ -138,7 +138,7 @@ func main() {
 
 func must(err error) {
 	if err != nil {
-		log.Fatalf("+v", err)
+		log.Fatalf("%+v", err)
 	}
 }
 
