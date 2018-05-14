@@ -44,6 +44,8 @@ type ValidatorContext struct {
 	WoundsConsumer WoundsConsumer
 }
 
+const floatIntFactor = 10000.0
+
 // Validate checks the directory at target using the container info and hashes
 // contained in signature. FailFast mode returns an error on the first corruption
 // seen, other modes write wounds to a file or for a wounds consumer, like a healer.
@@ -63,7 +65,7 @@ func (vctx *ValidatorContext) Validate(ctx context.Context, target string, signa
 	cancelled := make(chan struct{})
 
 	var woundsStateConsumer *state.Consumer
-	var healerProgress float64
+	var healerProgressInt int64
 	var bytesDone int64
 
 	updateProgress := func() {
@@ -73,7 +75,8 @@ func (vctx *ValidatorContext) Validate(ctx context.Context, target string, signa
 		if woundsStateConsumer == nil {
 			vctx.Consumer.Progress(scanProgress)
 		} else {
-			vctx.Consumer.Progress(healerProgress)
+			p := float64(atomic.LoadInt64(&healerProgressInt)) / floatIntFactor
+			vctx.Consumer.Progress(p)
 		}
 	}
 
@@ -109,7 +112,7 @@ func (vctx *ValidatorContext) Validate(ctx context.Context, target string, signa
 
 		woundsStateConsumer = &state.Consumer{
 			OnProgress: func(progress float64) {
-				healerProgress = progress
+				atomic.StoreInt64(&healerProgressInt, int64(progress*floatIntFactor))
 				updateProgress()
 			},
 			OnProgressLabel: func(label string) {
