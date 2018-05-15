@@ -10,9 +10,11 @@ import (
 )
 
 type EOSSettings struct {
-	HTTPClient *http.Client
-	Consumer   *state.Consumer
-	MaxTries   int
+	HTTPClient     *http.Client
+	Consumer       *state.Consumer
+	MaxTries       int
+	ForceHTFSCheck bool
+	HTFSDumpStats  bool
 }
 
 var defaultConsumer *state.Consumer
@@ -105,4 +107,28 @@ func (o *maxTriesOption) Apply(settings *EOSSettings) {
 
 func WithMaxTries(maxTries int) Option {
 	return &maxTriesOption{maxTries}
+}
+
+//
+
+type htfsCheckOption struct{}
+
+func (o *htfsCheckOption) Apply(settings *EOSSettings) {
+	settings.ForceHTFSCheck = true
+}
+
+func WithHTFSCheck() Option {
+	return &htfsCheckOption{}
+}
+
+//
+
+type htfsDumpStatsOption struct{}
+
+func (o *htfsDumpStatsOption) Apply(settings *EOSSettings) {
+	settings.HTFSDumpStats = true
+}
+
+func WithHTFSDumpStats() Option {
+	return &htfsDumpStatsOption{}
 }

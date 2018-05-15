@@ -24,25 +24,48 @@ type Backtracker interface {
 
 	// Advance n bytes
 	Discard(n int64) error
+
+	NumCacheHits() int64
+	NumCacheMiss() int64
+
+	CachedBytesServed() int64
 }
 
 // New returns a Backtracker reading from upstream
 func New(offset int64, upstream io.Reader, cacheSize int64) Backtracker {
 	return &backtracker{
-		upstream:  bufio.NewReader(upstream),
-		cache:     make([]byte, cacheSize),
-		cached:    0,
-		backtrack: 0,
-		offset:    offset,
+		upstream:   bufio.NewReader(upstream),
+		discardBuf: make([]byte, 256*1024),
+		cache:      make([]byte, cacheSize),
+		cached:     0,
+		backtrack:  0,
+		offset:     offset,
 	}
 }
 
 type backtracker struct {
-	upstream  *bufio.Reader
-	cache     []byte
-	cached    int
-	backtrack int
-	offset    int64
+	upstream   *bufio.Reader
+	cache      []byte
+	discardBuf []byte
+	cached     int
+	backtrack  int
+	offset     int64
+
+	numCacheHits      int64
+	numCacheMiss      int64
+	cachedBytesServed int64
+}
+
+func (bt *backtracker) NumCacheHits() int64 {
+	return bt.numCacheHits
+}
+
+func (bt *backtracker) NumCacheMiss() int64 {
+	return bt.numCacheMiss
+}
+
+func (bt *backtracker) CachedBytesServed() int64 {
+	return bt.cachedBytesServed
 }
 
 var _ Backtracker = (*backtracker)(nil)
@@ -61,8 +84,12 @@ func (bt *backtracker) Read(buf []byte) (int, error) {
 
 		copy(buf[:readlen], cache[:readlen])
 		bt.backtrack -= readlen
+		bt.numCacheHits++
+		bt.cachedBytesServed += int64(readlen)
 		return readlen, nil
 	}
+
+	bt.numCacheMiss++
 
 	// read from upstream
 	readlen, err := bt.upstream.Read(buf)
@@ -89,10 +116,8 @@ func (bt *backtracker) Read(buf []byte) (int, error) {
 	return readlen, err
 }
 
-var discardBuf = make([]byte, 256*1024)
-
 func (bt *backtracker) Discard(n int64) error {
-	discardlen := int64(len(discardBuf))
+	discardlen := int64(len(bt.discardBuf))
 
 	for n > 0 {
 		readlen := n
@@ -100,7 +125,7 @@ func (bt *backtracker) Discard(n int64) error {
 			readlen = discardlen
 		}
 
-		discarded, err := bt.Read(discardBuf[:readlen])
+		discarded, err := bt.Read(bt.discardBuf[:readlen])
 		if err != nil {
 			return errors.WithMessage(err, "discarding")
 		}

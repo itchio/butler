@@ -69,7 +69,13 @@ func Open(name string, opts ...option.Option) (File, error) {
 		return nil, err
 	}
 
-	if hf, ok := f.(*htfs.File); ok && htfsCheck {
+	settings := option.DefaultSettings()
+	for _, opt := range opts {
+		opt.Apply(settings)
+	}
+	forceHtfsCheck := htfsCheck || settings.ForceHTFSCheck
+
+	if hf, ok := f.(*htfs.File); ok && forceHtfsCheck {
 		hf.ForbidBacktracking = true
 
 		f2, err := realOpen(name, opts...)
@@ -109,6 +115,7 @@ func realOpen(name string, opts ...option.Option) (File, error) {
 				MaxTries: settings.MaxTries,
 				Consumer: settings.Consumer,
 			},
+			DumpStats: settings.HTFSDumpStats,
 		}
 
 		if htfsLogLevel != "" {

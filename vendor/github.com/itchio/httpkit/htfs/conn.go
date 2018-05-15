@@ -29,22 +29,22 @@ type conn struct {
 	contentLength int64
 }
 
-func (hr *conn) Stale() bool {
-	return time.Since(hr.touchedAt) > hr.file.ReaderStaleThreshold
+func (c *conn) Stale() bool {
+	return time.Since(c.touchedAt) > c.file.ConnStaleThreshold
 }
 
 // *not* thread-safe, File handles the locking
-func (hr *conn) Connect(offset int64) error {
-	hf := hr.file
+func (c *conn) Connect(offset int64) error {
+	hf := c.file
 
-	if hr.body != nil {
-		err := hr.body.Close()
+	if c.body != nil {
+		err := c.body.Close()
 		if err != nil {
 			return err
 		}
 
-		hr.body = nil
-		hr.reader = nil
+		c.body = nil
+		c.reader = nil
 	}
 
 	retryCtx := hf.newRetryContext()
@@ -53,7 +53,7 @@ func (hr *conn) Connect(offset int64) error {
 	hf.currentURL = hf.getCurrentURL()
 	for retryCtx.ShouldTry() {
 		startTime := time.Now()
-		err := hr.tryConnect(offset)
+		err := c.tryConnect(offset)
 		if err != nil {
 			if _, ok := err.(*needsRenewalError); ok {
 				renewalTries++
@@ -62,7 +62,7 @@ func (hr *conn) Connect(offset int64) error {
 				}
 				hf.log("[%9d-%9d] (Connect) renewing on %v", offset, offset, err)
 
-				err = hr.renewURLWithRetries(offset)
+				err = c.renewURLWithRetries(offset)
 				if err != nil {
 					// if we reach this point, we've failed to generate
 					// a download URL a bunch of times in a row
@@ -88,14 +88,14 @@ func (hr *conn) Connect(offset int64) error {
 	return errors.WithMessage(retryCtx.LastError, "htfs connect")
 }
 
-func (hr *conn) renewURLWithRetries(offset int64) error {
-	hf := hr.file
+func (c *conn) renewURLWithRetries(offset int64) error {
+	hf := c.file
 	renewRetryCtx := hf.newRetryContext()
 
 	for renewRetryCtx.ShouldTry() {
 		var err error
 		hf.stats.renews++
-		hr.currentURL, err = hf.renewURL()
+		c.currentURL, err = hf.renewURL()
 		if err != nil {
 			if hf.shouldRetry(err) {
 				hf.log("[%9d-%9d] (Connect) retrying %v", offset, offset, err)
@@ -112,8 +112,8 @@ func (hr *conn) renewURLWithRetries(offset int64) error {
 	return errors.WithMessage(renewRetryCtx.LastError, "htfs renew")
 }
 
-func (hr *conn) tryConnect(offset int64) error {
-	hf := hr.file
+func (c *conn) tryConnect(offset int64) error {
+	hf := c.file
 
 	req, err := http.NewRequest("GET", hf.currentURL, nil)
 	if err != nil {
@@ -148,20 +148,20 @@ func (hr *conn) tryConnect(offset int64) error {
 		return errors.WithStack(&ServerError{Host: req.Host, Message: fmt.Sprintf("HTTP %d: %v", res.StatusCode, string(body)), StatusCode: res.StatusCode})
 	}
 
-	hr.Backtracker = backtracker.New(offset, res.Body, maxDiscard)
-	hr.body = res.Body
-	hr.header = res.Header
-	hr.requestURL = res.Request.URL
-	hr.statusCode = res.StatusCode
-	hr.contentLength = res.ContentLength
+	c.Backtracker = backtracker.New(offset, res.Body, maxDiscard)
+	c.body = res.Body
+	c.header = res.Header
+	c.requestURL = res.Request.URL
+	c.statusCode = res.StatusCode
+	c.contentLength = res.ContentLength
 
 	return nil
 }
 
-func (hr *conn) Close() error {
-	if hr.body != nil {
-		err := hr.body.Close()
-		hr.body = nil
+func (c *conn) Close() error {
+	if c.body != nil {
+		err := c.body.Close()
+		c.body = nil
 
 		if err != nil {
 			return err

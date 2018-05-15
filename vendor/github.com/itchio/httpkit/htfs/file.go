@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	goerrors "errors"
@@ -22,8 +24,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-var forbidBacktracking = os.Getenv("HFS_NO_BACKTRACK") == "1"
-var dumpStats = os.Getenv("HFS_DUMP_STATS") == "1"
+var forbidBacktracking = os.Getenv("HTFS_NO_BACKTRACK") == "1"
+var dumpStats = os.Getenv("HTFS_DUMP_STATS") == "1"
 
 // A GetURLFunc returns a URL we can download the resource from.
 // It's handy to have this as a function rather than a constant for signed expiring URLs
@@ -51,13 +53,14 @@ var ErrTooManyRenewals = goerrors.New("Giving up, getting too many renewals. Try
 type hstats struct {
 	connectionWait time.Duration
 	connections    int
+	expired        int
 	renews         int
 
 	fetchedBytes int64
 	numCacheMiss int64
 
-	cachedBytes int64
-	numCacheHit int64
+	cachedBytes  int64
+	numCacheHits int64
 }
 
 var idSeed int64 = 1
@@ -78,12 +81,13 @@ type File struct {
 	size   int64
 	offset int64 // for io.ReadSeeker
 
-	ReaderStaleThreshold time.Duration
+	ConnStaleThreshold time.Duration
+	MaxConns           int
 
 	closed bool
 
-	readers map[string]*conn
-	lock    sync.Mutex
+	conns     map[string]*conn
+	connsLock sync.Mutex
 
 	currentURL string
 	urlMutex   sync.Mutex
@@ -93,13 +97,14 @@ type File struct {
 	stats *hstats
 
 	ForbidBacktracking bool
+	DumpStats          bool
 }
 
 const defaultLogLevel = 1
 
-// defaultReaderStaleThreshold is the duration after which File's readers
+// defaultConnStaleThreshold is the duration after which File's conns
 // are considered stale, and are closed instead of reused. It's set to 10 seconds.
-const defaultReaderStaleThreshold = time.Second * time.Duration(10)
+const defaultConnStaleThreshold = time.Second * time.Duration(10)
 
 var _ io.Seeker = (*File)(nil)
 var _ io.Reader = (*File)(nil)
@@ -113,6 +118,7 @@ type Settings struct {
 	Log                LogFunc
 	LogLevel           int
 	ForbidBacktracking bool
+	DumpStats          bool
 }
 
 // Open returns a new htfs.File. Note that it differs from os.Open in that it does a first request
@@ -128,146 +134,158 @@ func Open(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) 
 		retryCtx.Settings = *settings.RetrySettings
 	}
 
-	hf := &File{
+	f := &File{
 		getURL:        getURL,
 		retrySettings: &retryCtx.Settings,
 		needsRenewal:  needsRenewal,
 		client:        client,
 		name:          "<remote file>",
 
-		readers: make(map[string]*conn),
-		stats:   &hstats{},
+		conns: make(map[string]*conn),
+		stats: &hstats{},
 
-		ReaderStaleThreshold: defaultReaderStaleThreshold,
-		LogLevel:             defaultLogLevel,
-		ForbidBacktracking:   forbidBacktracking,
+		ConnStaleThreshold: defaultConnStaleThreshold,
+		LogLevel:           defaultLogLevel,
+		ForbidBacktracking: forbidBacktracking,
+		DumpStats:          dumpStats,
+		// number obtained through gut feeling
+		// may not be suitable to all workloads
+		MaxConns: 8,
 	}
-	hf.Log = settings.Log
+	f.Log = settings.Log
 
 	if settings.LogLevel != 0 {
-		hf.LogLevel = settings.LogLevel
+		f.LogLevel = settings.LogLevel
 	}
 	if settings.ForbidBacktracking {
-		hf.ForbidBacktracking = true
+		f.ForbidBacktracking = true
+	}
+	if settings.DumpStats {
+		f.DumpStats = true
 	}
 
 	urlStr, err := getURL()
 	if err != nil {
 		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (getting URL)")
 	}
-	hf.currentURL = urlStr
+	f.currentURL = urlStr
 
-	hr, err := hf.borrowReader(0)
+	c, err := f.borrowConn(0)
 	if err != nil {
 		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (initial request)")
 	}
-	hf.returnReader(hr)
+	err = f.returnConn(c)
+	if err != nil {
+		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (initial request)")
+	}
 
-	hf.requestURL = hr.requestURL
+	f.requestURL = c.requestURL
 
-	if hr.statusCode == 206 {
-		rangeHeader := hr.header.Get("content-range")
+	if c.statusCode == 206 {
+		rangeHeader := c.header.Get("content-range")
 		rangeTokens := strings.Split(rangeHeader, "/")
 		totalBytesStr := rangeTokens[len(rangeTokens)-1]
-		hf.size, err = strconv.ParseInt(totalBytesStr, 10, 64)
+		f.size, err = strconv.ParseInt(totalBytesStr, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse file size: %s", err.Error())
 		}
-	} else if hr.statusCode == 200 {
-		hf.size = hr.contentLength
+	} else if c.statusCode == 200 {
+		f.size = c.contentLength
 	}
 
 	// we have to use requestURL because we want the URL after
 	// redirect (for hosts like sourceforge)
-	pathTokens := strings.Split(hf.requestURL.Path, "/")
-	hf.name = pathTokens[len(pathTokens)-1]
+	pathTokens := strings.Split(f.requestURL.Path, "/")
+	f.name = pathTokens[len(pathTokens)-1]
 
-	dispHeader := hr.header.Get("content-disposition")
+	dispHeader := c.header.Get("content-disposition")
 	if dispHeader != "" {
 		_, mimeParams, err := mime.ParseMediaType(dispHeader)
 		if err == nil {
 			filename := mimeParams["filename"]
 			if filename != "" {
-				hf.name = filename
+				f.name = filename
 			}
 		}
 	}
 
-	return hf, nil
+	return f, nil
 }
 
-func (hf *File) newRetryContext() *retrycontext.Context {
+func (f *File) newRetryContext() *retrycontext.Context {
 	retryCtx := retrycontext.NewDefault()
-	if hf.retrySettings != nil {
-		retryCtx.Settings = *hf.retrySettings
+	if f.retrySettings != nil {
+		retryCtx.Settings = *f.retrySettings
 	}
 	return retryCtx
 }
 
-// NumReaders returns the number of connections currently used by the File
+// NumConns returns the number of connections currently used by the File
 // to serve ReadAt calls
-func (hf *File) NumReaders() int {
-	hf.lock.Lock()
-	defer hf.lock.Unlock()
+func (f *File) NumConns() int {
+	f.connsLock.Lock()
+	defer f.connsLock.Unlock()
 
-	return len(hf.readers)
+	return len(f.conns)
 }
 
-func (hf *File) borrowReader(offset int64) (*conn, error) {
-	if hf.size > 0 && offset >= hf.size {
+func (f *File) borrowConn(offset int64) (*conn, error) {
+	f.connsLock.Lock()
+	defer f.connsLock.Unlock()
+
+	if f.size > 0 && offset >= f.size {
 		return nil, io.EOF
 	}
 
-	var bestReader string
+	var bestConn string
 	var bestDiff int64 = math.MaxInt64
 
-	var bestBackReader string
+	var bestBackConn string
 	var bestBackDiff int64 = math.MaxInt64
 
-	for _, reader := range hf.readers {
-		if reader.Stale() {
-			delete(hf.readers, reader.id)
-
-			err := reader.Close()
+	for _, c := range f.conns {
+		if c.Stale() {
+			f.stats.expired++
+			err := f.closeConn(c)
 			if err != nil {
 				return nil, err
 			}
 			continue
 		}
 
-		diff := offset - reader.Offset()
-		if diff < 0 && -diff < maxDiscard && -diff <= reader.Cached() {
+		diff := offset - c.Offset()
+		if diff < 0 && -diff < maxDiscard && -diff <= c.Cached() {
 			if -diff < bestBackDiff {
-				bestBackReader = reader.id
+				bestBackConn = c.id
 				bestBackDiff = -diff
 			}
 		}
 
 		if diff >= 0 && diff < maxDiscard {
 			if diff < bestDiff {
-				bestReader = reader.id
+				bestConn = c.id
 				bestDiff = diff
 			}
 		}
 	}
 
-	if bestReader != "" {
+	if bestConn != "" {
 		// re-use!
-		reader := hf.readers[bestReader]
-		delete(hf.readers, bestReader)
+		c := f.conns[bestConn]
+		delete(f.conns, bestConn)
 
 		// clear backtrack if any
-		reader.Backtrack(0)
+		c.Backtrack(0)
 
 		// discard if needed
 		if bestDiff > 0 {
-			hf.log2("[%9d-%9d] (Borrow) %d --> %d (%s)", offset, offset, reader.Offset(), reader.Offset()+bestDiff, reader.id)
+			f.log2("[%9d-%9d] (Borrow) %d --> %d (%s)", offset, offset, c.Offset(), c.Offset()+bestDiff, c.id)
 
-			err := reader.Discard(bestDiff)
+			err := c.Discard(bestDiff)
 			if err != nil {
-				if hf.shouldRetry(err) {
-					hf.log2("[%9d-] (Borrow) discard failed, reconnecting", offset)
-					err = reader.Connect(offset)
+				if f.shouldRetry(err) {
+					f.log2("[%9d-] (Borrow) discard failed, reconnecting", offset)
+					err = c.Connect(offset)
 					if err != nil {
 						return nil, err
 					}
@@ -277,122 +295,141 @@ func (hf *File) borrowReader(offset int64) (*conn, error) {
 			}
 		}
 
-		return reader, nil
+		return c, nil
 	}
 
-	if !hf.ForbidBacktracking && bestBackReader != "" {
+	if !f.ForbidBacktracking && bestBackConn != "" {
 		// re-use!
-		reader := hf.readers[bestBackReader]
-		delete(hf.readers, bestBackReader)
+		c := f.conns[bestBackConn]
+		delete(f.conns, bestBackConn)
 
-		hf.log2("[%9d-%9d] (Borrow) %d <-- %d (%s)", offset, offset, reader.Offset()-bestBackDiff, reader.Offset(), reader.id)
+		f.log2("[%9d-%9d] (Borrow) %d <-- %d (%s)", offset, offset, c.Offset()-bestBackDiff, c.Offset(), c.id)
 
 		// backtrack as needed
-		err := reader.Backtrack(bestBackDiff)
+		err := c.Backtrack(bestBackDiff)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
 
-		return reader, nil
+		return c, nil
 	}
 
 	// provision a new reader
-	hf.log("[%9d-%9d] (Borrow) new connection", offset, offset)
+	f.log("[%9d-%9d] (Borrow) new connection", offset, offset)
 
 	id := generateID()
-	reader := &conn{
-		file:      hf,
+	c := &conn{
+		file:      f,
 		id:        fmt.Sprintf("reader-%d", id),
 		touchedAt: time.Now(),
 	}
 
-	err := reader.Connect(offset)
+	err := c.Connect(offset)
 	if err != nil {
 		return nil, err
 	}
 
-	return reader, nil
+	return c, nil
 }
 
-func (hf *File) returnReader(reader *conn) {
-	// TODO: enforce max idle readers ?
-
-	reader.touchedAt = time.Now()
-	hf.readers[reader.id] = reader
+type agedConn struct {
+	id  string
+	age time.Duration
 }
 
-func (hf *File) getCurrentURL() string {
-	hf.urlMutex.Lock()
-	defer hf.urlMutex.Unlock()
+func (f *File) returnConn(c *conn) error {
+	f.connsLock.Lock()
+	defer f.connsLock.Unlock()
 
-	return hf.currentURL
+	c.touchedAt = time.Now()
+	f.conns[c.id] = c
+
+	if len(f.conns)*2 > f.MaxConns*3 {
+		var agedConns []agedConn
+		for id, c := range f.conns {
+			agedConns = append(agedConns, agedConn{id: id, age: time.Since(c.touchedAt)})
+		}
+		sort.Slice(agedConns, func(i, j int) bool {
+			return agedConns[i].age < agedConns[j].age
+		})
+
+		victims := agedConns[f.MaxConns:]
+		for _, ac := range victims {
+			err := f.closeConn(f.conns[ac.id])
+			if err != nil {
+
+			}
+		}
+	}
+	return nil
 }
 
-func (hf *File) renewURL() (string, error) {
-	hf.urlMutex.Lock()
-	defer hf.urlMutex.Unlock()
+func (f *File) getCurrentURL() string {
+	f.urlMutex.Lock()
+	defer f.urlMutex.Unlock()
 
-	urlStr, err := hf.getURL()
+	return f.currentURL
+}
+
+func (f *File) renewURL() (string, error) {
+	f.urlMutex.Lock()
+	defer f.urlMutex.Unlock()
+
+	urlStr, err := f.getURL()
 	if err != nil {
 		return "", err
 	}
 
-	hf.currentURL = urlStr
-	return hf.currentURL, nil
+	f.currentURL = urlStr
+	return f.currentURL, nil
 }
 
 // Stat returns an os.FileInfo for this particular file. Only the Size()
 // method is useful, the rest is default values.
-func (hf *File) Stat() (os.FileInfo, error) {
-	return &FileInfo{hf}, nil
+func (f *File) Stat() (os.FileInfo, error) {
+	return &FileInfo{f}, nil
 }
 
 // Seek the read head within the file - it's instant and never returns an
 // error, except if whence is one of os.SEEK_SET, os.SEEK_END, or os.SEEK_CUR.
 // If an invalid offset is given, it will be truncated to a valid one, between
 // [0,size).
-func (hf *File) Seek(offset int64, whence int) (int64, error) {
-	hf.lock.Lock()
-	defer hf.lock.Unlock()
-
+func (f *File) Seek(offset int64, whence int) (int64, error) {
 	var newOffset int64
 
 	switch whence {
 	case os.SEEK_SET:
 		newOffset = offset
 	case os.SEEK_END:
-		newOffset = hf.size + offset
+		newOffset = f.size + offset
 	case os.SEEK_CUR:
-		newOffset = hf.offset + offset
+		newOffset = f.offset + offset
 	default:
-		return hf.offset, fmt.Errorf("invalid whence value %d", whence)
+		return f.offset, fmt.Errorf("invalid whence value %d", whence)
 	}
 
 	if newOffset < 0 {
 		newOffset = 0
 	}
 
-	if newOffset > hf.size {
-		newOffset = hf.size
+	if newOffset > f.size {
+		newOffset = f.size
 	}
 
-	hf.offset = newOffset
-	return hf.offset, nil
+	f.offset = newOffset
+	return f.offset, nil
 }
 
-func (hf *File) Read(buf []byte) (int, error) {
-	hf.lock.Lock()
-	defer hf.lock.Unlock()
+func (f *File) Read(buf []byte) (int, error) {
+	initialOffset := f.offset
+	bytesRead, err := f.readAt(buf, f.offset)
+	f.offset += int64(bytesRead)
 
-	initialOffset := hf.offset
-	bytesRead, err := hf.readAt(buf, hf.offset)
-	hf.offset += int64(bytesRead)
-
-	if hf.LogLevel >= 2 {
+	if f.LogLevel >= 2 {
 		bytesWanted := int64(len(buf))
 		start := initialOffset
 		end := initialOffset + bytesWanted
-		hf.log2("[%9d-%9d] (Read) %d/%d %v", start, end, bytesRead, bytesWanted, err)
+		f.log2("[%9d-%9d] (Read) %d/%d %v", start, end, bytesRead, bytesWanted, err)
 	}
 	return bytesRead, err
 }
@@ -401,13 +438,10 @@ func (hf *File) Read(buf []byte) (int, error) {
 // It returns the number of bytes read, and an error. In case of temporary
 // network errors or timeouts, it will retry with truncated exponential backoff
 // according to RetrySettings
-func (hf *File) ReadAt(buf []byte, offset int64) (int, error) {
-	hf.lock.Lock()
-	defer hf.lock.Unlock()
+func (f *File) ReadAt(buf []byte, offset int64) (int, error) {
+	bytesRead, err := f.readAt(buf, offset)
 
-	bytesRead, err := hf.readAt(buf, offset)
-
-	if hf.LogLevel >= 2 {
+	if f.LogLevel >= 2 {
 		bytesWanted := int64(len(buf))
 		start := offset
 		end := offset + bytesWanted
@@ -423,55 +457,58 @@ func (hf *File) ReadAt(buf []byte, offset int64) (int, error) {
 		if err != nil {
 			readDesc += fmt.Sprintf(", with err %v", err)
 		}
-		hf.log2("[%9d-%9d] (ReadAt) %s", start, end, readDesc)
+		f.log2("[%9d-%9d] (ReadAt) %s", start, end, readDesc)
 	}
 	return bytesRead, err
 }
 
-func (hf *File) readAt(data []byte, offset int64) (int, error) {
+func (f *File) readAt(data []byte, offset int64) (int, error) {
 	buflen := len(data)
 	if buflen == 0 {
 		return 0, nil
 	}
 
-	reader, err := hf.borrowReader(offset)
+	c, err := f.borrowConn(offset)
 	if err != nil {
 		return 0, err
 	}
-
-	defer hf.returnReader(reader)
+	// TODO: this swallows returnConn errors
+	defer f.returnConn(c)
 
 	totalBytesRead := 0
 	bytesToRead := len(data)
 
 	for totalBytesRead < bytesToRead {
-		bytesRead, err := reader.Read(data[totalBytesRead:])
+		bytesRead, err := c.Read(data[totalBytesRead:])
 		totalBytesRead += bytesRead
 
 		if err != nil {
-			if hf.shouldRetry(err) {
-				hf.log("Got %s, retrying", err.Error())
-				err = reader.Connect(reader.Offset())
+			if f.shouldRetry(err) {
+				f.log("Got %s, retrying", err.Error())
+				err = c.Connect(c.Offset())
 				if err != nil {
+					f.stats.fetchedBytes += int64(totalBytesRead)
 					return totalBytesRead, err
 				}
 			} else {
+				f.stats.fetchedBytes += int64(totalBytesRead)
 				return totalBytesRead, err
 			}
 		}
 	}
 
+	atomic.AddInt64(&f.stats.fetchedBytes, int64(totalBytesRead))
 	return totalBytesRead, nil
 }
 
-func (hf *File) shouldRetry(err error) bool {
+func (f *File) shouldRetry(err error) bool {
 	if errors.Cause(err) == io.EOF {
 		// don't retry EOF, it's a perfectly expected error
 		return false
 	}
 
 	if neterr.IsNetworkError(err) {
-		hf.log("Retrying: %v", err)
+		f.log("Retrying: %v", err)
 		return true
 	}
 
@@ -488,7 +525,7 @@ func (hf *File) shouldRetry(err error) bool {
 		}
 	}
 
-	hf.log("Bailing on error: %v", err)
+	f.log("Bailing on error: %v", err)
 	return false
 }
 
@@ -506,91 +543,107 @@ func normalizeError(err error) error {
 	return err
 }
 
-func (hf *File) closeAllReaders() error {
-	for id, reader := range hf.readers {
-		err := reader.Close()
+func (f *File) closeAllConns() error {
+	for _, c := range f.conns {
+		err := f.closeConn(c)
 		if err != nil {
 			return err
 		}
-
-		delete(hf.readers, id)
 	}
 
 	return nil
 }
 
-// Close closes all connections to the distant http server used by this File
-func (hf *File) Close() error {
-	hf.lock.Lock()
-	defer hf.lock.Unlock()
+func (f *File) closeConn(c *conn) error {
+	delete(f.conns, c.id)
 
-	if hf.closed {
+	if f.DumpStats {
+		f.stats.numCacheHits += c.NumCacheHits()
+		f.stats.numCacheMiss += c.NumCacheMiss()
+		f.stats.cachedBytes += c.CachedBytesServed()
+	}
+	return c.Close()
+}
+
+// Close closes all connections to the distant http server used by this File
+func (f *File) Close() error {
+	f.connsLock.Lock()
+	defer f.connsLock.Unlock()
+
+	if f.closed {
 		return nil
 	}
 
-	if dumpStats {
-		log.Printf("========= File stats ==============")
-		log.Printf("= total connections: %d", hf.stats.connections)
-		log.Printf("= total renews: %d", hf.stats.renews)
-		log.Printf("= time spent connecting: %s", hf.stats.connectionWait)
-		size := hf.size
-		perc := 0.0
-		percCached := 0.0
-		if size != 0 {
-			perc = float64(hf.stats.fetchedBytes) / float64(size) * 100.0
-		}
-		allReads := hf.stats.fetchedBytes + hf.stats.cachedBytes
-		percCached = float64(hf.stats.cachedBytes) / float64(allReads) * 100.0
-
-		log.Printf("= total bytes fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(hf.stats.fetchedBytes)), humanize.IBytes(uint64(size)), perc)
-		log.Printf("= total bytes served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(hf.stats.cachedBytes)), percCached)
-
-		hitRate := float64(hf.stats.numCacheHit) / float64(hf.stats.numCacheHit+hf.stats.numCacheMiss) * 100.0
-		log.Printf("= cache hit rate: %.2f%%", hitRate)
-		log.Printf("========================================")
-	}
-
-	err := hf.closeAllReaders()
+	err := f.closeAllConns()
 	if err != nil {
 		return err
 	}
 
-	hf.closed = true
+	if f.DumpStats {
+		fetchedBytes := atomic.LoadInt64(&f.stats.fetchedBytes)
+
+		log.Printf("========= File stats ==============")
+		log.Printf("= total connections: %d", f.stats.connections)
+		log.Printf("= expired conns: %d", f.stats.expired)
+		log.Printf("= total renews: %d", f.stats.renews)
+		log.Printf("= time spent connecting: %s", f.stats.connectionWait)
+		size := f.size
+		perc := 0.0
+		percCached := 0.0
+		if size != 0 {
+			perc = float64(fetchedBytes) / float64(size) * 100.0
+		}
+		totalServedBytes := fetchedBytes
+		percCached = float64(f.stats.cachedBytes) / float64(totalServedBytes) * 100.0
+
+		log.Printf("= total bytes fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(fetchedBytes)), humanize.IBytes(uint64(size)), perc)
+		log.Printf("= total bytes served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(f.stats.cachedBytes)), percCached)
+
+		totalReads := f.stats.numCacheHits + f.stats.numCacheMiss
+		if totalReads == 0 {
+			totalReads = -1 // avoid NaN hit rate
+		}
+		hitRate := float64(f.stats.numCacheHits) / float64(totalReads) * 100.0
+		log.Printf("= cache hit rate: %.2f%% (out of %d reads)", hitRate, totalReads)
+		log.Printf("========================================")
+	}
+
+	f.closed = true
 
 	return nil
 }
 
-func (hf *File) log(format string, args ...interface{}) {
-	if hf.Log == nil {
+func (f *File) log(format string, args ...interface{}) {
+	if f.Log == nil {
 		return
 	}
 
-	hf.Log(fmt.Sprintf(format, args...))
+	f.Log(fmt.Sprintf(format, args...))
 }
 
-func (hf *File) log2(format string, args ...interface{}) {
-	if hf.LogLevel < 2 {
+func (f *File) log2(format string, args ...interface{}) {
+	if f.LogLevel < 2 {
 		return
 	}
 
-	if hf.Log == nil {
+	if f.Log == nil {
 		return
 	}
 
-	hf.Log(fmt.Sprintf(format, args...))
+	f.Log(fmt.Sprintf(format, args...))
 }
 
 // GetHeader returns the header the server responded
 // with on our initial request. It may contain checksums
 // which could be used for integrity checking.
-func (hf *File) GetHeader() http.Header {
-	return hf.header
+func (f *File) GetHeader() http.Header {
+	return f.header
 }
 
 // GetRequestURL returns the first good URL File
 // made a request to.
-func (hf *File) GetRequestURL() *url.URL {
-	return hf.requestURL
+func (f *File) GetRequestURL() *url.URL {
+	return f.requestURL
 }
 
 func generateID() int64 {

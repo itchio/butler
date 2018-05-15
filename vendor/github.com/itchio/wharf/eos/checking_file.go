@@ -2,7 +2,6 @@ package eos
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 
@@ -42,20 +41,20 @@ func (cf *CheckingFile) Read(tBuf []byte) (int, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
+			return 0, errors.Errorf("reference had following error, trainee had no error: %+v", rErr)
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
+			return 0, errors.Errorf("reference had no error, trainee had error: %+v", tErr)
 		}
 	}
 
 	if rReadBytes != tReadBytes {
-		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
+		return 0, errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes)
 	}
 
 	if !bytes.Equal(rBuf[:rReadBytes], tBuf[:rReadBytes]) {
-		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
+		return 0, errors.Errorf("found difference in %d-bytes chunk read by reference & trainee", rReadBytes)
 	}
 
 	return tReadBytes, tErr
@@ -73,16 +72,16 @@ func (cf *CheckingFile) ReadAt(tBuf []byte, offset int64) (int, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that later
 		} else {
-			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
+			return 0, errors.Errorf("reference had following error, trainee had no error: %+v", rErr)
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
+			return 0, errors.Errorf("reference had no error, trainee had error: %+v", tErr)
 		}
 	}
 
 	if rReadBytes != tReadBytes {
-		must(errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes))
+		return 0, errors.Errorf("reference read %d bytes, trainee read %d", rReadBytes, tReadBytes)
 	}
 
 	if !bytes.Equal(rBuf[:rReadBytes], tBuf[:rReadBytes]) {
@@ -101,7 +100,7 @@ func (cf *CheckingFile) ReadAt(tBuf []byte, offset int64) (int, error) {
 			}
 		}
 
-		must(errors.Errorf("reference & trainee read different bytes at %d, first different is at %d / %d, %d bytes are different", offset, firstDifferent, rReadBytes, numDifferent))
+		return 0, errors.Errorf("reference & trainee read different bytes at %d, first different is at %d / %d, %d bytes are different", offset, firstDifferent, rReadBytes, numDifferent)
 	}
 
 	return tReadBytes, tErr
@@ -117,16 +116,16 @@ func (cf *CheckingFile) Seek(offset int64, whence int) (int64, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
+			return 0, errors.Errorf("reference had following error, trainee had no error: %+v", rErr)
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
+			return 0, errors.Errorf("reference had no error, trainee had error: %+v", tErr)
 		}
 	}
 
 	if rOffset != tOffset {
-		must(errors.Errorf("reference seeked to %d, trainee seeked to %d", rOffset, tOffset))
+		return 0, errors.Errorf("reference seeked to %d, trainee seeked to %d", rOffset, tOffset)
 	}
 
 	return tOffset, tErr
@@ -142,19 +141,13 @@ func (cf *CheckingFile) Stat() (os.FileInfo, error) {
 			log.Printf("  trainee error: %s", tErr.Error())
 			// cool, we'll return that at the end
 		} else {
-			must(errors.Errorf("reference had following error, trainee had no error: %+v", rErr))
+			return nil, errors.Errorf("reference had following error, trainee had no error: %+v", rErr)
 		}
 	} else {
 		if tErr != nil {
-			must(errors.Errorf("reference had no error, trainee had error: %+v", tErr))
+			return nil, errors.Errorf("reference had no error, trainee had error: %+v", tErr)
 		}
 	}
 
 	return tStat, tErr
-}
-
-func must(err error) {
-	if err != nil {
-		panic(fmt.Sprintf("%+v", err))
-	}
 }
