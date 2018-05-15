@@ -29,6 +29,7 @@ type Backtracker interface {
 	NumCacheMiss() int64
 
 	CachedBytesServed() int64
+	TotalBytesServed() int64
 }
 
 // New returns a Backtracker reading from upstream
@@ -54,6 +55,7 @@ type backtracker struct {
 	numCacheHits      int64
 	numCacheMiss      int64
 	cachedBytesServed int64
+	totalBytesServed  int64
 }
 
 func (bt *backtracker) NumCacheHits() int64 {
@@ -66,6 +68,10 @@ func (bt *backtracker) NumCacheMiss() int64 {
 
 func (bt *backtracker) CachedBytesServed() int64 {
 	return bt.cachedBytesServed
+}
+
+func (bt *backtracker) TotalBytesServed() int64 {
+	return bt.totalBytesServed
 }
 
 var _ Backtracker = (*backtracker)(nil)
@@ -86,6 +92,7 @@ func (bt *backtracker) Read(buf []byte) (int, error) {
 		bt.backtrack -= readlen
 		bt.numCacheHits++
 		bt.cachedBytesServed += int64(readlen)
+		bt.totalBytesServed += int64(readlen)
 		return readlen, nil
 	}
 
@@ -113,6 +120,7 @@ func (bt *backtracker) Read(buf []byte) (int, error) {
 		}
 	}
 
+	bt.totalBytesServed += int64(readlen)
 	return readlen, err
 }
 

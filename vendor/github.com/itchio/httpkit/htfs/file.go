@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	goerrors "errors"
@@ -51,16 +50,17 @@ var ErrNotFound = goerrors.New("HTTP file not found on server")
 var ErrTooManyRenewals = goerrors.New("Giving up, getting too many renewals. Try again later or contact support.")
 
 type hstats struct {
+	// this needs to be 64-bit aligned
+	fetchedBytes int64
+	cachedBytes  int64
+
+	numCacheMiss int64
+	numCacheHits int64
+
 	connectionWait time.Duration
 	connections    int
 	expired        int
 	renews         int
-
-	fetchedBytes int64
-	numCacheMiss int64
-
-	cachedBytes  int64
-	numCacheHits int64
 }
 
 var idSeed int64 = 1
@@ -487,17 +487,14 @@ func (f *File) readAt(data []byte, offset int64) (int, error) {
 				f.log("Got %s, retrying", err.Error())
 				err = c.Connect(c.Offset())
 				if err != nil {
-					f.stats.fetchedBytes += int64(totalBytesRead)
 					return totalBytesRead, err
 				}
 			} else {
-				f.stats.fetchedBytes += int64(totalBytesRead)
 				return totalBytesRead, err
 			}
 		}
 	}
 
-	atomic.AddInt64(&f.stats.fetchedBytes, int64(totalBytesRead))
 	return totalBytesRead, nil
 }
 
@@ -561,6 +558,7 @@ func (f *File) closeConn(c *conn) error {
 		f.stats.numCacheHits += c.NumCacheHits()
 		f.stats.numCacheMiss += c.NumCacheMiss()
 		f.stats.cachedBytes += c.CachedBytesServed()
+		f.stats.fetchedBytes += c.TotalBytesServed()
 	}
 	return c.Close()
 }
@@ -580,7 +578,7 @@ func (f *File) Close() error {
 	}
 
 	if f.DumpStats {
-		fetchedBytes := atomic.LoadInt64(&f.stats.fetchedBytes)
+		fetchedBytes := f.stats.fetchedBytes
 
 		log.Printf("========= File stats ==============")
 		log.Printf("= total connections: %d", f.stats.connections)
