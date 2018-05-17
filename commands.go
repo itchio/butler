@@ -30,6 +30,7 @@ import (
 	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/run"
 	"github.com/itchio/butler/cmd/sign"
+	"github.com/itchio/butler/cmd/singlediff"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
 	"github.com/itchio/butler/cmd/unsz"
@@ -110,4 +111,6 @@ func registerCommands(ctx *mansion.Context) {
 
 	winsandbox.Register(ctx)
 	validate.Register(ctx)
+
+	singlediff.Register(ctx)
 }
