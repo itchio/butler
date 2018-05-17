@@ -132,7 +132,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 			}
 
 			if startOffset == 0 {
-				consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, downloading %s", stats.Name(), humanize.IBytes(uint64(totalBytes)))
 			} else if startOffset > totalBytes {
 				consumer.Warnf("Existing data too big (%s > %s), starting over", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
 				startOffset, err = dest.Seek(0, io.SeekStart)
@@ -140,11 +140,11 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 					return err
 				}
 			} else if startOffset == totalBytes {
-				consumer.Infof("All %s already there", humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, all %s already there", stats.Name(), humanize.IBytes(uint64(totalBytes)))
 				return nil
 			}
 
-			consumer.Infof("Resuming at %s / %s", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+			consumer.Opf("For %s, resuming at %s / %s", stats.Name(), humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
 
 			_, err = src.Seek(startOffset, io.SeekStart)
 			if err != nil {
@@ -152,9 +152,9 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 			}
 		} else {
 			if totalBytes > 0 {
-				consumer.Infof("Downloading %s", humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, downloading %s", stats.Name(), humanize.IBytes(uint64(totalBytes)))
 			} else {
-				consumer.Infof("Downloading (unknown size)")
+				consumer.Opf("For %s, downloading (unknown size)", stats.Name())
 			}
 		}
 
