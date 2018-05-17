@@ -28,7 +28,7 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("apply2", "(Advanced) Use a patch to resumably patch a directory to a new version")
 	args.patch = cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String()
 	args.old = cmd.Arg("old", "Directory with old files").Required().String()
-	args.dir = cmd.Flag("dir", "Directory for patched files and checkpoints").Required().String()
+	args.dir = cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').Required().String()
 	ctx.Register(cmd, do)
 }
 
