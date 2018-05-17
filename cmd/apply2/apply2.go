@@ -2,21 +2,19 @@ package apply2
 
 import (
 	"encoding/gob"
-	"log"
 	"os"
 	"path"
 	"time"
 
 	"github.com/dchest/safefile"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
-	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
@@ -53,25 +51,17 @@ type Params struct {
 }
 
 func Do(params *Params) error {
+	startTime := time.Now()
+
 	patch := params.Patch
 	old := params.Old
 	dir := params.Dir
 
-	consumer := &state.Consumer{
-		OnMessage: func(level string, message string) {
-			comm.Logf("[%s] %s", level, message)
-		},
-	}
+	consumer := comm.NewStateConsumer()
 
-	patchReader, err := eos.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
+	patchSource, err := filesource.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
 		return errors.Wrap(err, "opening patch")
-	}
-
-	patchSource := seeksource.FromFile(patchReader)
-	_, err = patchSource.Resume(nil)
-	if err != nil {
-		return errors.Wrap(err, "creating patch source")
 	}
 
 	p, err := patcher.New(patchSource, consumer)
@@ -79,7 +69,8 @@ func Do(params *Params) error {
 		return errors.Wrap(err, "creating patcher")
 	}
 
-	// comm.StartProgressWithTotalBytes(patchSource.Size())
+	consumer.Opf("Patching %s", dir)
+	comm.StartProgressWithTotalBytes(patchSource.Size())
 
 	var checkpoint *patcher.Checkpoint
 	checkpointPath := path.Join(dir, "checkpoint.bwl")
@@ -108,10 +99,10 @@ func Do(params *Params) error {
 
 	p.SetSaveConsumer(&patcherSaveConsumer{
 		shouldSave: func() bool {
+			consumer.Progress(p.Progress())
 			return time.Since(lastSaveTime) > saveInterval
 		},
 		save: func(c *patcher.Checkpoint) (patcher.AfterSaveAction, error) {
-			log.Printf("Saving checkpoint")
 			lastSaveTime = time.Now()
 
 			checkpointFile, err := safefile.Create(checkpointPath, 0644)
@@ -154,12 +145,18 @@ func Do(params *Params) error {
 	if err != nil {
 		if errors.Cause(err) == patcher.ErrStop {
 			comm.EndProgress()
-			comm.Statf("Stopped early!")
+			consumer.Statf("Stopped early!")
 			return nil
 		}
 		return errors.Wrap(err, "patching")
 	}
 	comm.EndProgress()
+
+	out := p.GetSourceContainer()
+	duration := time.Since(startTime)
+	perSec := humanize.IBytes(uint64(float64(out.Size) / duration.Seconds()))
+	outSize := humanize.IBytes(uint64(out.Size))
+	consumer.Statf("%s (%s) @ %s / s (%s total)", outSize, out.Stats(), perSec, duration)
 
 	return nil
 }
