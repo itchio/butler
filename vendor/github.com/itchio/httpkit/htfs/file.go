@@ -174,6 +174,8 @@ func Open(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) 
 	if err != nil {
 		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (initial request)")
 	}
+	f.header = c.header
+
 	err = f.returnConn(c)
 	if err != nil {
 		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (initial request)")

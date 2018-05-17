@@ -237,14 +237,22 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 				return errors.WithStack(err)
 			}
 
-			// however, we do have to read the end marker
-			err = sp.rctx.ReadMessage(op)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+		readUntilEndMarker:
+			for {
+				// however, we do have to read the end marker
+				err = sp.rctx.ReadMessage(op)
+				if err != nil {
+					return errors.WithStack(err)
+				}
 
-			if op.Type != pwr.SyncOp_HEY_YOU_DID_IT {
-				return errors.WithStack(fmt.Errorf("corrupt patch: expected sentinel SyncOp after rsync series, got %s", op.Type))
+				if op.Type == pwr.SyncOp_HEY_YOU_DID_IT {
+					break readUntilEndMarker
+				}
+
+				// butler used to emit a 0-len DATA op after
+				// full-file ops in some conditions. we can
+				// ignore them.
+				sp.consumer.Debugf("%s has trailing %s op after full-file op", sp.sourceContainer.Files[sh.FileIndex].Path, op.Type)
 			}
 
 			return nil
@@ -333,7 +341,6 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		if op.Type == pwr.SyncOp_HEY_YOU_DID_IT {
 			// hey, we did it!
-			sp.consumer.Debugf("Hey, we did it!")
 			return nil
 		}
 
@@ -384,7 +391,7 @@ func (sp *savingPatcher) isFullFileOp(sh *pwr.SyncHeader, op *pwr.SyncOp) bool {
 	}
 
 	targetFile := sp.targetContainer.Files[op.FileIndex]
-	outputFile := sp.targetContainer.Files[sh.FileIndex]
+	outputFile := sp.sourceContainer.Files[sh.FileIndex]
 
 	// and both files have gotta be the same size
 	if targetFile.Size != outputFile.Size {
