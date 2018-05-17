@@ -81,6 +81,13 @@ type SeekSource interface {
 	Section(start int64, size int64) (SeekSource, error)
 }
 
+// FileSource is a SeekSource that can be closed (to release associated resources)
+type FileSource interface {
+	SeekSource
+
+	Close() error
+}
+
 type SourceSaveConsumer interface {
 	// Send a checkpoint to the consumer. The consumer may
 	// retain the checkpoint, so its contents must not change

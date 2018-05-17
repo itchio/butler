@@ -18,6 +18,7 @@ struct lib;
 typedef struct lib lib;
 MYEXPORT lib *lib_new();
 MYEXPORT int32_t lib_get_last_error(lib *l);
+MYEXPORT char *lib_get_version(lib *l);
 MYEXPORT void lib_free(lib *l);
 
 struct in_stream;

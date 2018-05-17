@@ -23,7 +23,7 @@ type ecs struct {
 func main() {
 	lib, err := sz.NewLib()
 	must(err)
-	log.Printf("Initialized library...")
+	log.Printf("Initialized 7-zip %s...", lib.GetVersion())
 	defer lib.Free()
 
 	args := os.Args[1:]

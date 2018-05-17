@@ -289,7 +289,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "d9edeb229f531494305947fef1611c543c69def1",
+			"revision": "516d209fc67ddc480b525d76146b44827c14f1f0",
 			"branch": "master",
 			"notests": true
 		},
@@ -313,7 +313,7 @@
 			"importpath": "github.com/itchio/ox",
 			"repository": "https://github.com/itchio/ox",
 			"vcs": "git",
-			"revision": "cb0604888ff88c926870082e4d7773f8046d286d",
+			"revision": "78365f064e087fe3260207d535d7ed510142c8e3",
 			"branch": "master",
 			"notests": true
 		},
@@ -329,7 +329,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "fff1baabd62cc6c405939c5a16136604357eb7d1",
+			"revision": "325289959d37bf5c4a697dc8e8c2f800b3da7e81",
 			"branch": "master",
 			"notests": true
 		},
@@ -337,7 +337,7 @@
 			"importpath": "github.com/itchio/sevenzip-go",
 			"repository": "https://github.com/itchio/sevenzip-go",
 			"vcs": "git",
-			"revision": "2ba1ca2e89a9f2095354d319c57bd97b58638ca4",
+			"revision": "92f02c2a5ab6b95d97063157be3425fae9587216",
 			"branch": "master",
 			"notests": true
 		},
@@ -353,7 +353,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "6ea5455d361b48b3a3761da0995f540f44f5c14b",
+			"revision": "7d0fa4bb2ca5e6d6eb676ae521a464f3618ad95a",
 			"branch": "master",
 			"notests": true
 		},

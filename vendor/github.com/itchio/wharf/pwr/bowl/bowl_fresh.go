@@ -52,8 +52,7 @@ func NewFreshBowl(params *FreshBowlParams) (Bowl, error) {
 	}
 
 	if params.OutputFolder == "" {
-		// both zero
-		return nil, errors.New("freshbowl: must specify either OutputFolder")
+		return nil, errors.New("freshbowl: must specify OutputFolder")
 	}
 
 	outputPool := fspool.New(params.SourceContainer, params.OutputFolder)

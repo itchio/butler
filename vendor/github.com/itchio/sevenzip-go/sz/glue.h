@@ -16,6 +16,11 @@ typedef lib *(*lib_new_t)();
 DECLARE(lib_new)
 lib *libc7zip_lib_new();
 
+// lib_get_version
+typedef char *(*lib_get_version_t)(lib *l);
+DECLARE(lib_get_version)
+char *libc7zip_lib_get_version(lib *l);
+
 // lib_get_last_error
 typedef int32_t (*lib_get_last_error_t)(lib *l);
 DECLARE(lib_get_last_error)

@@ -580,11 +580,8 @@ func (f *File) Close() error {
 	if f.DumpStats {
 		fetchedBytes := f.stats.fetchedBytes
 
-		log.Printf("========= File stats ==============")
-		log.Printf("= total connections: %d", f.stats.connections)
-		log.Printf("= expired conns: %d", f.stats.expired)
-		log.Printf("= total renews: %d", f.stats.renews)
-		log.Printf("= time spent connecting: %s", f.stats.connectionWait)
+		log.Printf("====== htfs stats for %s", f.name)
+		log.Printf("= conns: %d total, %d expired, %d renews, wait %s", f.stats.connections, f.stats.expired, f.stats.renews, f.stats.connectionWait)
 		size := f.size
 		perc := 0.0
 		percCached := 0.0
@@ -594,8 +591,8 @@ func (f *File) Close() error {
 		totalServedBytes := fetchedBytes
 		percCached = float64(f.stats.cachedBytes) / float64(totalServedBytes) * 100.0
 
-		log.Printf("= total bytes fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(fetchedBytes)), humanize.IBytes(uint64(size)), perc)
-		log.Printf("= total bytes served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(f.stats.cachedBytes)), percCached)
+		log.Printf("= fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(fetchedBytes)), humanize.IBytes(uint64(size)), perc)
+		log.Printf("= served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(f.stats.cachedBytes)), percCached)
 
 		totalReads := f.stats.numCacheHits + f.stats.numCacheMiss
 		if totalReads == 0 {

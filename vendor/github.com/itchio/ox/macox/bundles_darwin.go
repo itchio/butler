@@ -11,12 +11,12 @@ package macox
 char *GetExecutablePath(char *cBundlePath) {
     NSString* bundlePath = [NSString stringWithUTF8String:cBundlePath];
 	if (!bundlePath) {
-		return 0;
+		return NULL;
 	}
 
 	NSBundle* bundle = [NSBundle bundleWithPath:bundlePath];
 	if (!bundle) {
-		return 0;
+		return NULL;
 	}
 
     const char *tempString = [[bundle executablePath] UTF8String];
@@ -33,7 +33,15 @@ char *GetLibraryPath() {
 		memcpy(ret, tempString, strlen(tempString) + 1);
 		return ret;
 	}
-	return 0;
+	return NULL;
+}
+
+char *GetHomeDirectory() {
+	id path = NSHomeDirectory();
+	const char *tempString = [path UTF8String];
+	char *ret = malloc(strlen(tempString) + 1);
+	memcpy(ret, tempString, strlen(tempString) + 1);
+	return ret;
 }
 
 char *GetApplicationSupportPath() {
@@ -44,7 +52,7 @@ char *GetApplicationSupportPath() {
 		memcpy(ret, tempString, strlen(tempString) + 1);
 		return ret;
 	}
-	return 0;
+	return NULL;
 }
 */
 import "C"
@@ -68,6 +76,16 @@ func GetLibraryPath() (string, error) {
 	cPath := C.GetLibraryPath()
 	if uintptr(unsafe.Pointer(cPath)) == 0 {
 		return "", fmt.Errorf("Could not get library path")
+	}
+	defer C.free(unsafe.Pointer(cPath))
+
+	return C.GoString(cPath), nil
+}
+
+func GetHomeDirectory() (string, error) {
+	cPath := C.GetHomeDirectory()
+	if uintptr(unsafe.Pointer(cPath)) == 0 {
+		return "", fmt.Errorf("Could not get home directory")
 	}
 	defer C.free(unsafe.Pointer(cPath))
 

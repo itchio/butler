@@ -133,6 +133,11 @@ func (l *Lib) Error() error {
 	}
 }
 
+func (l *Lib) GetVersion() string {
+	// refers to static memory, so it should never be freed
+	return C.GoString(C.libc7zip_lib_get_version(l.lib))
+}
+
 func (l *Lib) Free() {
 	C.libc7zip_lib_free(l.lib)
 }

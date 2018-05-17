@@ -39,6 +39,7 @@ int libc7zip_initialize(char *lib_path) {
 
   LOADSYM(lib_new)
   LOADSYM(lib_get_last_error)
+  LOADSYM(lib_get_version)
   LOADSYM(lib_free)
 
   LOADSYM(in_stream_new)
@@ -84,6 +85,10 @@ void libc7zip_lib_free(lib *l) {
 
 int32_t libc7zip_lib_get_last_error(lib *l) {
   return lib_get_last_error_(l);
+}
+
+char *libc7zip_lib_get_version(lib *l) {
+  return lib_get_version_(l);
 }
 
 //-----------------
