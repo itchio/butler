@@ -2,8 +2,10 @@ package apply2
 
 import (
 	"encoding/gob"
+	"log"
 	"os"
 	"path"
+	"time"
 
 	"github.com/dchest/safefile"
 	"github.com/itchio/butler/comm"
@@ -19,9 +21,10 @@ import (
 )
 
 var args = struct {
-	patch *string
-	dir   *string
-	old   *string
+	patch     *string
+	dir       *string
+	old       *string
+	stopEarly *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -29,21 +32,24 @@ func Register(ctx *mansion.Context) {
 	args.patch = cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String()
 	args.old = cmd.Arg("old", "Directory with old files").Required().String()
 	args.dir = cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').Required().String()
+	args.stopEarly = cmd.Flag("stop-early", "Stop after emitting checkpoint").Bool()
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
 	ctx.Must(Do(&Params{
-		Patch: *args.patch,
-		Old:   *args.old,
-		Dir:   *args.dir,
+		Patch:     *args.patch,
+		Old:       *args.old,
+		Dir:       *args.dir,
+		StopEarly: *args.stopEarly,
 	}))
 }
 
 type Params struct {
-	Patch string
-	Old   string
-	Dir   string
+	Patch     string
+	Old       string
+	Dir       string
+	StopEarly bool
 }
 
 func Do(params *Params) error {
@@ -97,12 +103,17 @@ func Do(params *Params) error {
 		// yay, we have a checkpoint!
 	}
 
+	lastSaveTime := time.Now()
+	saveInterval := 2 * time.Second
+
 	p.SetSaveConsumer(&patcherSaveConsumer{
 		shouldSave: func() bool {
-			// TODO: patcher checkpoints are big. how often do we actually wanna do this?
-			return true
+			return time.Since(lastSaveTime) > saveInterval
 		},
 		save: func(c *patcher.Checkpoint) (patcher.AfterSaveAction, error) {
+			log.Printf("Saving checkpoint")
+			lastSaveTime = time.Now()
+
 			checkpointFile, err := safefile.Create(checkpointPath, 0644)
 			if err != nil {
 				return patcher.AfterSaveStop, errors.Wrap(err, "creating checkpoint file")
@@ -120,6 +131,9 @@ func Do(params *Params) error {
 				return patcher.AfterSaveStop, errors.Wrap(err, "committing checkpoint file")
 			}
 
+			if params.StopEarly {
+				return patcher.AfterSaveStop, nil
+			}
 			return patcher.AfterSaveContinue, nil
 		},
 	})
@@ -138,6 +152,11 @@ func Do(params *Params) error {
 
 	err = p.Resume(checkpoint, targetPool, bowl)
 	if err != nil {
+		if errors.Cause(err) == patcher.ErrStop {
+			comm.EndProgress()
+			comm.Statf("Stopped early!")
+			return nil
+		}
 		return errors.Wrap(err, "patching")
 	}
 	comm.EndProgress()
