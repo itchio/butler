@@ -14,6 +14,10 @@ func Test_InstallSmall(t *testing.T) {
 	authenticate(t, rc)
 	setupTmpInstallLocation(t, h, rc)
 
+	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params *butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
+		return &butlerd.HTMLLaunchResult{}, nil
+	})
+
 	{
 		// itch-test-account/111-first
 		game := getGame(t, h, rc, 149766)
