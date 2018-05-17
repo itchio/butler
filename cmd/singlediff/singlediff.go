@@ -51,7 +51,7 @@ func do(ctx *mansion.Context) error {
 		return err
 	}
 
-	newfile, err := os.Open(args.old)
+	newfile, err := os.Open(args.new)
 	if err != nil {
 		return err
 	}
