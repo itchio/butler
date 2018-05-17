@@ -152,13 +152,13 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bowl bowl.
 			case pwr.SyncHeader_BSDIFF:
 				c.FileKind = FileKindBsdiff
 			default:
-				return errors.WithStack(fmt.Errorf("unknown patch series kind %d for '%s'", sh.Type, f.Path))
+				return errors.Errorf("unknown patch series kind %d for '%s'", sh.Type, f.Path)
 			}
 		}
 
 		err := sp.processFile(c, targetPool, sh, bowl)
 		if err != nil {
-			return errors.Errorf(err)
+			return err
 		}
 
 		// reset checkpoint and increment
