@@ -22,6 +22,7 @@ import (
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
 	"github.com/itchio/butler/cmd/mkdir"
+	"github.com/itchio/butler/cmd/mkzip"
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/cmd/pipe"
 	"github.com/itchio/butler/cmd/prereqs"
@@ -115,4 +116,5 @@ func registerCommands(ctx *mansion.Context) {
 
 	singlediff.Register(ctx)
 	rediff.Register(ctx)
+	mkzip.Register(ctx)
 }
