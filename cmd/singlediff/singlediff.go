@@ -152,11 +152,16 @@ func do(ctx *mansion.Context) error {
 	bdc := &bsdiff.DiffContext{
 		SuffixSortConcurrency: args.concurrency,
 		Partitions:            args.partitions,
+		MeasureMem:            true,
+
+		Stats: &bsdiff.DiffStats{},
 	}
 
 	startTime := time.Now()
 
+	comm.StartProgress()
 	err = bdc.Do(oldfile, newfile, patchWire.WriteMessage, consumer)
+	comm.EndProgress()
 	if err != nil {
 		return err
 	}
@@ -187,5 +192,8 @@ func do(ctx *mansion.Context) error {
 		humanize.IBytes(uint64(perSec)),
 		duration,
 	)
+
+	consumer.Statf("Spent %s scanning", bdc.Stats.TimeSpentScanning)
+	consumer.Statf("Spent %s sorting", bdc.Stats.TimeSpentSorting)
 	return nil
 }
