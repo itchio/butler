@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"sync"
 
+	"github.com/itchio/arkive/pflate"
 	"github.com/itchio/kompress/flate"
 )
 
@@ -30,18 +31,18 @@ type Decompressor func(r io.Reader, f *File) io.ReadCloser
 var flateWriterPool sync.Pool
 
 func newFlateWriter(w io.Writer) io.WriteCloser {
-	fw, ok := flateWriterPool.Get().(*flate.Writer)
+	fw, ok := flateWriterPool.Get().(*pflate.Writer)
 	if ok {
 		fw.Reset(w)
 	} else {
-		fw, _ = flate.NewWriter(w, 5)
+		fw, _ = pflate.NewWriter(w, 5)
 	}
 	return &pooledFlateWriter{fw: fw}
 }
 
 type pooledFlateWriter struct {
 	mu sync.Mutex // guards Close and Write
-	fw *flate.Writer
+	fw *pflate.Writer
 }
 
 func (w *pooledFlateWriter) Write(p []byte) (n int, err error) {

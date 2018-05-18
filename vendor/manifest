@@ -233,7 +233,7 @@
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
-			"revision": "34b5b620da94c21a8dfaa51e225a01a0620aa9a7",
+			"revision": "6044b9afa7b1ca9b2c88bd403e56da70c5358241",
 			"branch": "master",
 			"notests": true
 		},
