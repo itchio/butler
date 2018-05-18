@@ -27,6 +27,7 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
+	"github.com/itchio/butler/cmd/rediff"
 	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/run"
 	"github.com/itchio/butler/cmd/sign"
@@ -113,4 +114,5 @@ func registerCommands(ctx *mansion.Context) {
 	validate.Register(ctx)
 
 	singlediff.Register(ctx)
+	rediff.Register(ctx)
 }
