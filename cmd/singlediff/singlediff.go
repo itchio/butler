@@ -193,7 +193,7 @@ func do(ctx *mansion.Context) error {
 		duration,
 	)
 
-	consumer.Statf("Spent %s scanning", bdc.Stats.TimeSpentScanning)
 	consumer.Statf("Spent %s sorting", bdc.Stats.TimeSpentSorting)
+	consumer.Statf("Spent %s scanning", bdc.Stats.TimeSpentScanning)
 	return nil
 }
