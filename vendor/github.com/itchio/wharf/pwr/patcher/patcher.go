@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/andreyvit/diff"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/bsdiff"
 
@@ -224,10 +225,9 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 			// oh dang it's either a true no-op, or a rename.
 			// either way, we're not troubling the rsync patcher
 			// for that.
-			sp.consumer.Debugf("Transpose: '%s' -> '%s'",
-				sp.targetContainer.Files[op.FileIndex].Path,
-				sp.sourceContainer.Files[op.FileIndex].Path,
-			)
+			oldName := sp.targetContainer.Files[op.FileIndex].Path
+			newName := sp.sourceContainer.Files[sh.FileIndex].Path
+			sp.consumer.Debugf("Transpose: %s", diff.CharacterDiff(oldName, newName))
 
 			err := bwl.Transpose(bowl.Transposition{
 				SourceIndex: sh.FileIndex,
