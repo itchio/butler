@@ -3,6 +3,7 @@ package singlediff
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/wharf/bsdiff"
@@ -153,6 +154,8 @@ func do(ctx *mansion.Context) error {
 		Partitions:            args.partitions,
 	}
 
+	startTime := time.Now()
+
 	err = bdc.Do(oldfile, newfile, patchWire.WriteMessage, consumer)
 	if err != nil {
 		return err
@@ -170,6 +173,19 @@ func do(ctx *mansion.Context) error {
 		return err
 	}
 
-	consumer.Statf("Wrote patch to %s", args.output)
+	outStats, err := os.Stat(args.output)
+	if err != nil {
+		return err
+	}
+
+	duration := time.Since(startTime)
+	perSec := float64(outStats.Size()) / duration.Seconds()
+
+	consumer.Statf("Wrote %s patch to %s @ %s / s (%s total)",
+		humanize.IBytes(uint64(outStats.Size())),
+		args.output,
+		humanize.IBytes(uint64(perSec)),
+		duration,
+	)
 	return nil
 }
