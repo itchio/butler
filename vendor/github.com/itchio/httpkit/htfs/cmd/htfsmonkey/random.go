@@ -148,8 +148,18 @@ func doRandom() error {
 			n, err := f.ReadAt(buf[:readSize], offset)
 			must(err)
 
-			if !bytes.Equal(buf[:n], fakeData[offset:offset+int64(n)]) {
+			refBytes := fakeData[offset : offset+int64(n)]
+			gotBytes := buf[:n]
+			if !bytes.Equal(gotBytes, refBytes) {
 				log.Printf("%d read at %d did not match", n, offset)
+				matching := 0
+				for i := 0; i < n; i++ {
+					if gotBytes[i] == refBytes[i] {
+						matching++
+					}
+				}
+				log.Printf("%d/%d bytes matched", matching, n)
+				panic("didn't match")
 				numErrors++
 			}
 

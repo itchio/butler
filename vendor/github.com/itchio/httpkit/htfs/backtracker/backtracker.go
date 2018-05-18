@@ -45,12 +45,13 @@ func New(offset int64, upstream io.Reader, cacheSize int64) Backtracker {
 }
 
 type backtracker struct {
-	upstream   *bufio.Reader
-	cache      []byte
-	discardBuf []byte
-	cached     int
-	backtrack  int
-	offset     int64
+	upstream    *bufio.Reader
+	cache       []byte
+	discardBuf  []byte
+	writeCursor int
+	cached      int
+	backtrack   int
+	offset      int64
 
 	numCacheHits      int64
 	numCacheMiss      int64
@@ -77,51 +78,73 @@ func (bt *backtracker) TotalBytesServed() int64 {
 var _ Backtracker = (*backtracker)(nil)
 
 func (bt *backtracker) Read(buf []byte) (int, error) {
-	readlen := len(buf)
+	n := len(buf)
 	cachesize := len(bt.cache)
 
 	// read from cache
 	if bt.backtrack > 0 {
-		if readlen > bt.backtrack {
-			readlen = bt.backtrack
+		if n > bt.backtrack {
+			n = bt.backtrack
 		}
 
-		cache := bt.cache[cachesize-bt.backtrack:]
+		// [LLLL).........RRRRRRRR]
+		//      |woff
+		//   L            R
 
-		copy(buf[:readlen], cache[:readlen])
-		bt.backtrack -= readlen
+		readstart := bt.writeCursor - bt.backtrack
+		if readstart < 0 {
+			readstart += cachesize
+			if n > cachesize-readstart {
+				n = cachesize - readstart
+			}
+			// we'll read that first:
+			// [....).........RRRRRRRR]
+			//
+			// then cachestart will be 0
+			// and we'll read this:
+			// [LLLL).................]
+		}
+
+		copy(buf[:n], bt.cache[readstart:])
+		bt.backtrack -= n
 		bt.numCacheHits++
-		bt.cachedBytesServed += int64(readlen)
-		bt.totalBytesServed += int64(readlen)
-		return readlen, nil
+		bt.cachedBytesServed += int64(n)
+		bt.totalBytesServed += int64(n)
+		return n, nil
 	}
 
 	bt.numCacheMiss++
 
 	// read from upstream
-	readlen, err := bt.upstream.Read(buf)
+	n, err := bt.upstream.Read(buf)
 
-	if readlen > 0 {
-		bt.offset += int64(readlen)
+	if n > 0 {
+		bt.offset += int64(n)
 
-		// cache data
-		remainingOldCacheSize := cachesize - readlen
-		if remainingOldCacheSize > 0 {
-			copy(bt.cache[:remainingOldCacheSize], bt.cache[readlen:])
-			copy(bt.cache[remainingOldCacheSize:], buf[:readlen])
-		} else {
-			readbytes := buf[:readlen]
-			copy(bt.cache, readbytes[readlen-cachesize:readlen])
-		}
+		if cachesize > 0 {
+			// cache data
+			cachebytes := buf[:n]
+			if n > cachesize {
+				cachebytes = buf[n-cachesize:]
+			}
 
-		bt.cached += readlen
-		if bt.cached > cachesize {
-			bt.cached = cachesize
+			remain := cachesize - bt.writeCursor
+			copy(bt.cache[bt.writeCursor:], cachebytes)
+
+			if len(cachebytes) > remain {
+				copy(bt.cache, cachebytes[remain:])
+			}
+			bt.writeCursor = (bt.writeCursor + len(cachebytes)) % cachesize
+
+			bt.cached += n
+			if bt.cached > cachesize {
+				bt.cached = cachesize
+			}
 		}
 	}
 
-	bt.totalBytesServed += int64(readlen)
-	return readlen, err
+	bt.totalBytesServed += int64(n)
+	return n, err
 }
 
 func (bt *backtracker) Discard(n int64) error {
@@ -158,3 +181,28 @@ func (bt *backtracker) Backtrack(n int64) error {
 func (bt *backtracker) Offset() int64 {
 	return bt.offset
 }
+
+/*
+---------------------------------------------------
+
+// [)                     ]
+// |woff
+// backtrack=0
+
+// [.....)                ]
+//       |woff
+// <-----|
+//   backtrack
+
+// [..................)   ]
+//                    |woff
+// <------------------|
+//      backtrack
+
+// [....).................]
+//      |woff
+//  ----|<----------------
+//  k             backtrac
+
+---------------------------------------------------
+*/
