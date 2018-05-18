@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/itchio/savior/countingsource"
@@ -22,21 +23,23 @@ import (
 )
 
 var args = struct {
-	patch    *string
-	fullpath *bool
-	deep     *bool
+	patch    string
+	fullpath bool
+	deep     bool
+	dump     string
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("probe", "(Advanced) Show statistics about a patch file").Hidden()
-	args.patch = cmd.Arg("patch", "Path of the patch to analyze").Required().String()
-	args.fullpath = cmd.Flag("fullpath", "Display full path names").Bool()
-	args.deep = cmd.Flag("deep", "Analyze the top N changed files further").Bool()
+	cmd.Arg("patch", "Path of the patch to analyze").Required().StringVar(&args.patch)
+	cmd.Flag("fullpath", "Display full path names").BoolVar(&args.fullpath)
+	cmd.Flag("deep", "Analyze the top N changed files further").BoolVar(&args.deep)
+	cmd.Flag("dump", "Dump ops for any path contain a substring of this").StringVar(&args.dump)
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.patch))
+	ctx.Must(Do(ctx, args.patch))
 }
 
 func Do(ctx *mansion.Context, patch string) error {
@@ -45,7 +48,7 @@ func Do(ctx *mansion.Context, patch string) error {
 		return errors.WithStack(err)
 	}
 
-	if *args.deep {
+	if args.deep {
 		err = doDeepAnalysis(ctx, patch, patchStats)
 		if err != nil {
 			return errors.WithStack(err)
@@ -139,6 +142,13 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 			return nil, fmt.Errorf("malformed patch: expected file %d, got %d", fileIndex, sh.FileIndex)
 		}
 
+		sourceFile := source.Files[sh.FileIndex]
+		doDump := args.dump != "" && strings.Contains(sourceFile.Path, args.dump)
+
+		if doDump {
+			consumer.Infof("========== Op Stream Start ===========")
+		}
+
 		switch sh.Type {
 		case pwr.SyncHeader_RSYNC:
 			{
@@ -187,6 +197,26 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 					return nil, errors.WithStack(err)
 				}
 
+				targetFile := target.Files[bh.TargetIndex]
+				if doDump {
+					consumer.Infof("It's bsdiff series")
+					consumer.Infof("")
+
+					consumer.Infof("Target|index is %d", bh.TargetIndex)
+					consumer.Infof("      |path is %s", targetFile.Path)
+					consumer.Infof("      |size is %s (%d bytes)", humanize.IBytes(uint64(targetFile.Size)), targetFile.Size)
+					consumer.Infof("")
+
+					consumer.Infof("Source|index is %d", sh.FileIndex)
+					consumer.Infof("      |path is %s", sourceFile.Path)
+					consumer.Infof("      |size is %s (%d bytes)", humanize.IBytes(uint64(sourceFile.Size)), sourceFile.Size)
+					consumer.Infof("")
+				}
+
+				var totalAddBytes int64
+				var totalZeroAddBytes int64
+
+				var oldOffset int64
 				for readingOps {
 					bc.Reset()
 
@@ -195,15 +225,36 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 						return nil, errors.WithStack(err)
 					}
 
+					var zeroAddBytes int64
 					for _, b := range bc.Add {
 						if b == 0 {
-							stat.freshData--
+							zeroAddBytes++
 						}
 					}
+
+					totalAddBytes += int64(len(bc.Add))
+					totalZeroAddBytes += zeroAddBytes
+
+					stat.freshData -= zeroAddBytes
+					if doDump {
+						percSimilar := 100.0 * float64(zeroAddBytes) / float64(len(bc.Add))
+						if len(bc.Add) == 0 && len(bc.Copy) == 0 {
+							// ignore seek
+						} else {
+							consumer.Infof("Offset: %d\t Add: %d (%.2f%% similar)\tCopy: %d", oldOffset, len(bc.Add), percSimilar, len(bc.Copy))
+						}
+					}
+
+					oldOffset += int64(len(bc.Add))
+					oldOffset += bc.Seek
 
 					if bc.Eof {
 						readingOps = false
 					}
+				}
+
+				if doDump {
+					consumer.Statf("Overall: %d/%d add bytes were zero (%.2f%%)", totalZeroAddBytes, totalAddBytes, 100.0*float64(totalZeroAddBytes)/float64(totalAddBytes))
 				}
 
 				err = rctx.ReadMessage(rop)
@@ -216,6 +267,10 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 					return nil, errors.New(msg)
 				}
 			}
+		}
+
+		if doDump {
+			consumer.Infof("========== Op Stream End ===========")
 		}
 
 		patchStats = append(patchStats, stat)
@@ -257,7 +312,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 	for i, stat := range patchStats {
 		f := source.Files[stat.fileIndex]
 		name := f.Path
-		if !*args.fullpath {
+		if !args.fullpath {
 			name = filepath.Base(name)
 		}
 

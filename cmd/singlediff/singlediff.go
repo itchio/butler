@@ -16,9 +16,11 @@ import (
 )
 
 var args = struct {
-	old    string
-	new    string
-	output string
+	old         string
+	new         string
+	output      string
+	partitions  int
+	concurrency int
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -26,6 +28,8 @@ func Register(ctx *mansion.Context) {
 	cmd.Arg("old", "Old file").Required().StringVar(&args.old)
 	cmd.Arg("new", "New file").Required().StringVar(&args.new)
 	cmd.Flag("output", "Patch file to write").Short('o').Required().StringVar(&args.output)
+	cmd.Flag("partitions", "Number of partitions to use").Default("1").IntVar(&args.partitions)
+	cmd.Flag("concurrency", "Suffix sort concurrency").Default("1").IntVar(&args.concurrency)
 	ctx.Register(cmd, func(ctx *mansion.Context) {
 		ctx.Must(do(ctx))
 	})
@@ -143,9 +147,10 @@ func do(ctx *mansion.Context) error {
 		return err
 	}
 
+	consumer.Opf("Suffix sort concurrency: %d, partitions: %d", args.concurrency, args.partitions)
 	bdc := &bsdiff.DiffContext{
-		SuffixSortConcurrency: 1,
-		Partitions:            1,
+		SuffixSortConcurrency: args.concurrency,
+		Partitions:            args.partitions,
 	}
 
 	err = bdc.Do(oldfile, newfile, patchWire.WriteMessage, consumer)
