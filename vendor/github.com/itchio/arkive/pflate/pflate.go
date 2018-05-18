@@ -337,6 +337,12 @@ func (z *Writer) Flush() error {
 	if z.closed {
 		return nil
 	}
+	if !z.started {
+		_, err := z.Write(nil)
+		if err != nil {
+			return err
+		}
+	}
 	// We send current block to compression
 	z.compressCurrent(true)
 
@@ -354,6 +360,12 @@ func (z *Writer) Close() error {
 	}
 
 	z.closed = true
+	if !z.started {
+		_, err := z.Write(nil)
+		if err != nil {
+			return err
+		}
+	}
 	z.compressCurrent(true)
 	if err := z.checkError(); err != nil {
 		return err
