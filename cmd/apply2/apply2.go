@@ -154,7 +154,10 @@ func Do(params *Params) error {
 
 	out := p.GetSourceContainer()
 	duration := time.Since(startTime)
-	consumer.Statf("%s (%s) @ %s / s (%s total)", progress.FormatBytes(out.Size), out.Stats(), progress.FormatBPS(out.Size, duration), duration)
+	consumer.Statf("%s (%s) @ %s / s (%s total)",
+		progress.FormatBytes(out.Size), out.Stats(),
+		progress.FormatBPS(out.Size, duration),
+		progress.FormatDuration(duration))
 
 	return nil
 }

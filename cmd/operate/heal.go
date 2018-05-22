@@ -104,7 +104,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 				progress.FormatBytes(sigInfo.Container.Size),
 				progress.FormatBytes(totalHealed),
 				perSec,
-				healDuration,
+				progress.FormatDuration(healDuration),
 			)
 		} else {
 			consumer.Warnf("%s corrupted data found (of %s total)",
