@@ -3,7 +3,7 @@ package wizcompiler
 import (
 	"fmt"
 
-	"github.com/fasterthanlime/wizardry/wizardry/wizparser"
+	"github.com/itchio/wizardry/wizardry/wizparser"
 )
 
 func switchify(node *ruleNode) *ruleNode {

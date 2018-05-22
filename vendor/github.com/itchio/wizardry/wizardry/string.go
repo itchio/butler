@@ -1,6 +1,6 @@
 package wizardry
 
-import "github.com/fasterthanlime/wizardry/wizardry/wizutil"
+import "github.com/itchio/wizardry/wizardry/wizutil"
 
 // StringTestFlags describes how to perform a string test
 type StringTestFlags int64

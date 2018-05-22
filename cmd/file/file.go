@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/fasterthanlime/spellbook"
-	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -17,6 +16,7 @@ import (
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 	"github.com/pkg/errors"
 )
 

@@ -1,6 +1,6 @@
 package wizcompiler
 
-import "github.com/fasterthanlime/wizardry/wizardry/wizparser"
+import "github.com/itchio/wizardry/wizardry/wizparser"
 
 func treeify(rules []wizparser.Rule) []*ruleNode {
 	var rootNodes []*ruleNode

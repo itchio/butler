@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/fasterthanlime/wizardry/wizardry"
-	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
+	"github.com/itchio/wizardry/wizardry"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 )
 
 type parsedInt struct {

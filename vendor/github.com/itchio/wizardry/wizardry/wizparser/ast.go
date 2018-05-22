@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fasterthanlime/wizardry/wizardry"
+	"github.com/itchio/wizardry/wizardry"
 )
 
 // Spellbook contains a set of rules - at least one "" page, potentially others

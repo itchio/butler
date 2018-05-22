@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 )
 
 func (v *Verdict) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf(`| %s %s`,
-		humanize.IBytes(uint64(v.TotalSize)),
+		progress.FormatBytes(v.TotalSize),
 		v.BasePath))
 
 	for _, candidate := range v.Candidates {
@@ -23,7 +23,7 @@ func (v *Verdict) String() string {
 
 func (c *Candidate) String() string {
 	line := fmt.Sprintf(`|-- %s %s %s-%s`,
-		humanize.IBytes(uint64(c.Size)),
+		progress.FormatBytes(c.Size),
 		c.Path,
 		c.Flavor,
 		c.Arch,

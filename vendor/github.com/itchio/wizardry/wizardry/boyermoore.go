@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 )
 
 // StringFinder efficiently finds strings in a source text. It's implemented

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 	"github.com/pkg/errors"
 )
 

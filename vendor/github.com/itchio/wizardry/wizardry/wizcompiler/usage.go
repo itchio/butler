@@ -1,6 +1,6 @@
 package wizcompiler
 
-import "github.com/fasterthanlime/wizardry/wizardry/wizparser"
+import "github.com/itchio/wizardry/wizardry/wizparser"
 
 func computePagesUsage(book wizparser.Spellbook) map[string]*PageUsage {
 	// look at all rules to see which pages are used, and whether they're used

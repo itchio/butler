@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fasterthanlime/wizardry/wizardry"
-	"github.com/fasterthanlime/wizardry/wizardry/wizparser"
-	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
+	"github.com/itchio/wizardry/wizardry"
+	"github.com/itchio/wizardry/wizardry/wizparser"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 )
 
 // MaxLevels is the maximum level of magic rules that are interpreted

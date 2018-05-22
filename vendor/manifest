@@ -75,14 +75,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/dustin/go-humanize",
-			"repository": "https://github.com/dustin/go-humanize",
-			"vcs": "git",
-			"revision": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/dustinkirkland/golang-petname",
 			"repository": "https://github.com/dustinkirkland/golang-petname",
 			"vcs": "git",
@@ -112,15 +104,6 @@
 			"vcs": "git",
 			"revision": "232323d3ecd1f61828649edcce74e03d1ecfa216",
 			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/fasterthanlime/wizardry/wizardry",
-			"repository": "https://github.com/fasterthanlime/wizardry",
-			"vcs": "git",
-			"revision": "237ec928b3978210f12f857e3f847b44e2b81151",
-			"branch": "master",
-			"path": "/wizardry",
 			"notests": true
 		},
 		{
@@ -249,7 +232,7 @@
 			"importpath": "github.com/itchio/dash",
 			"repository": "https://github.com/itchio/dash",
 			"vcs": "git",
-			"revision": "41a8f711c3cb92150ff0200dff11c09fa731bf2c",
+			"revision": "e4f8c3159dbc8f785574b0b46c921284a5a7af13",
 			"branch": "master",
 			"notests": true
 		},
@@ -321,7 +304,7 @@
 			"importpath": "github.com/itchio/pelican",
 			"repository": "https://github.com/itchio/pelican",
 			"vcs": "git",
-			"revision": "e4e31a726ae6c7a418140a1ef5fcf74bd38997e9",
+			"revision": "5424a031414490c8213d4c8b93651bc07b2aca83",
 			"branch": "master",
 			"notests": true
 		},
@@ -354,6 +337,14 @@
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
 			"revision": "1d0c2fbb3a3f2521e07459c4c9307ea4df764354",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/wizardry",
+			"repository": "https://github.com/itchio/wizardry",
+			"vcs": "git",
+			"revision": "8b25a114f7971ae6a0d56b6d43827693a192f7a0",
 			"branch": "master",
 			"notests": true
 		},
