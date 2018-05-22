@@ -6,10 +6,10 @@ import (
 	"io"
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -226,7 +226,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 					return false
 				}
 
-				comm.Logf("%s %10s %s", os.FileMode(hdr.Mode), humanize.IBytes(uint64(hdr.Size)), hdr.Name)
+				comm.Logf("%s %10s %s", os.FileMode(hdr.Mode), progress.FormatBytes(hdr.Size), hdr.Name)
 			}
 			return true
 		}()

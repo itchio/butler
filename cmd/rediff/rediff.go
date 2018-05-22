@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr"
@@ -63,8 +63,8 @@ func do(ctx *mansion.Context) error {
 	}
 
 	consumer.Statf("Analyzed.")
-	consumer.Infof("Before: %s (%s)", humanize.IBytes(uint64(rc.TargetContainer.Size)), rc.TargetContainer.Stats())
-	consumer.Infof(" After: %s (%s)", humanize.IBytes(uint64(rc.SourceContainer.Size)), rc.SourceContainer.Stats())
+	consumer.Infof("Before: %s (%s)", progress.FormatBytes(rc.TargetContainer.Size), rc.TargetContainer.Stats())
+	consumer.Infof(" After: %s (%s)", progress.FormatBytes(rc.SourceContainer.Size), rc.SourceContainer.Stats())
 
 	rc.TargetPool = fspool.New(rc.TargetContainer, args.old)
 	rc.SourcePool = fspool.New(rc.SourceContainer, args.new)
@@ -96,11 +96,11 @@ func do(ctx *mansion.Context) error {
 	}
 
 	duration := time.Since(startTime)
-	perSec := float64(rc.SourceContainer.Size) / duration.Seconds()
+	perSec := progress.FormatBPS(rc.SourceContainer.Size, duration)
 	consumer.Statf("Wrote %s patch, processed at %s / s (%s total)",
-		humanize.IBytes(uint64(outputStats.Size())),
-		humanize.IBytes(uint64(perSec)),
-		duration,
+		progress.FormatBytes(outputStats.Size()),
+		perSec,
+		progress.FormatDuration(duration),
 	)
 
 	return nil

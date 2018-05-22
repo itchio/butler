@@ -5,10 +5,10 @@ import (
 	"os"
 	"sort"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -157,7 +157,7 @@ func fileState(file *itchio.BuildFile) string {
 		sign = theme.OpSign
 	}
 
-	fSize := humanize.IBytes(uint64(file.Size))
+	fSize := progress.FormatBytes(file.Size)
 
 	return fmt.Sprintf("%s %s %s", sign, fSize, fType)
 }

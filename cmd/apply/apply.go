@@ -6,9 +6,9 @@ import (
 	"path"
 	"time"
 
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos/option"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
@@ -157,8 +157,6 @@ func Do(params *Params) error {
 	comm.EndProgress()
 
 	container := actx.SourceContainer
-	prettySize := humanize.IBytes(uint64(container.Size))
-	perSecond := humanize.IBytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
 
 	if actx.InPlace {
 		statStr := ""
@@ -172,9 +170,9 @@ func Do(params *Params) error {
 			statStr += fmt.Sprintf("deleted %d, ", actx.Stats.DeletedFiles)
 		}
 
-		comm.Statf("%s (%s stage)", statStr, humanize.IBytes(uint64(actx.Stats.StageSize)))
+		comm.Statf("%s (%s stage)", statStr, progress.FormatBytes(actx.Stats.StageSize))
 	}
-	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
+	comm.Statf("%s (%s) @ %s/s\n", progress.FormatBytes(container.Size), container.Stats(), progress.FormatBPS(container.Size, time.Since(startTime)))
 
 	if actx.WoundsConsumer != nil && actx.WoundsConsumer.HasWounds() {
 		extra := ""
@@ -191,7 +189,7 @@ func Do(params *Params) error {
 			totalHealed = healer.TotalHealed()
 		}
 
-		comm.Logf("Result %s wounds, %s corrupted data, %s healed%s", verb, humanize.IBytes(uint64(totalCorrupted)), humanize.IBytes(uint64(totalHealed)), extra)
+		comm.Logf("Result %s wounds, %s corrupted data, %s healed%s", verb, progress.FormatBytes(totalCorrupted), progress.FormatBytes(totalHealed), extra)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
@@ -88,8 +88,8 @@ func do(ctx *mansion.Context) error {
 		},
 	}
 
-	consumer.Infof("Before: %s (%s)", humanize.IBytes(uint64(targetContainer.Size)), targetContainer.Stats())
-	consumer.Infof(" After: %s (%s)", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
+	consumer.Infof("Before: %s (%s)", progress.FormatBytes(targetContainer.Size), targetContainer.Stats())
+	consumer.Infof(" After: %s (%s)", progress.FormatBytes(sourceContainer.Size), sourceContainer.Stats())
 
 	writer, err := os.Create(args.output)
 	if err != nil {
@@ -184,12 +184,12 @@ func do(ctx *mansion.Context) error {
 	}
 
 	duration := time.Since(startTime)
-	perSec := float64(outStats.Size()) / duration.Seconds()
+	perSec := progress.FormatBPS(outStats.Size(), duration)
 
 	consumer.Statf("Wrote %s patch to %s @ %s / s (%s total)",
-		humanize.IBytes(uint64(outStats.Size())),
+		progress.FormatBytes(outStats.Size()),
 		args.output,
-		humanize.IBytes(uint64(perSec)),
+		perSec,
 		duration,
 	)
 

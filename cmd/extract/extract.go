@@ -5,10 +5,10 @@ import (
 
 	"github.com/itchio/boar"
 	"github.com/itchio/boar/szextractor"
+	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/savior"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
@@ -110,8 +110,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	}
 
 	duration := time.Since(startTime)
-	bytesPerSec := float64(res.Size()) / duration.Seconds()
-	consumer.Statf("Overall extraction speed: %s/s", humanize.IBytes(uint64(bytesPerSec)))
+	consumer.Statf("Overall extraction speed: %s", progress.FormatBPS(res.Size(), duration))
 
 	return nil
 }

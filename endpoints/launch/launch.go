@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 
 	"github.com/itchio/pelican"
 
 	goerrors "errors"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -294,7 +294,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		default:
 			fakeActions := []*butlerd.Action{}
 			for _, c := range candidates {
-				name := fmt.Sprintf("%s (%s)", c.Path, humanize.IBytes(uint64(c.Size)))
+				name := fmt.Sprintf("%s (%s)", c.Path, progress.FormatBytes(c.Size))
 				fakeActions = append(fakeActions, &butlerd.Action{
 					Name: name,
 					Path: c.Path,

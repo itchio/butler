@@ -3,11 +3,11 @@ package operate
 import (
 	"io"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
@@ -121,7 +121,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath))
 				for _, item := range upgradePath {
-					consumer.Infof(" - Build %d (%s)", item.ID, humanize.IBytes(uint64(item.PatchSize)))
+					consumer.Infof(" - Build %d (%s)", item.ID, progress.FormatBytes(item.PatchSize))
 					totalUpgradeSize += item.PatchSize
 				}
 				fullUploadSize := params.Upload.Size
@@ -131,9 +131,9 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 					comparative = "larger than"
 				}
 				consumer.Infof("Total upgrade size %s is %s full upload %s",
-					humanize.IBytes(uint64(totalUpgradeSize)),
+					progress.FormatBytes(totalUpgradeSize),
 					comparative,
-					humanize.IBytes(uint64(fullUploadSize)),
+					progress.FormatBytes(fullUploadSize),
 				)
 
 				if totalUpgradeSize > fullUploadSize {
@@ -229,8 +229,8 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		}
 
 		consumer.Infof("Estimated disk usage (accuracy: %s)", dui.Accuracy)
-		consumer.Infof("  ✓ %s needed free space", humanize.IBytes(uint64(dui.NeededFreeSpace)))
-		consumer.Infof("  ✓ %s final disk usage", humanize.IBytes(uint64(dui.FinalDiskUsage)))
+		consumer.Infof("  ✓ %s needed free space", progress.FormatBytes(dui.NeededFreeSpace))
+		consumer.Infof("  ✓ %s final disk usage", progress.FormatBytes(dui.FinalDiskUsage))
 
 		istate.InstallerInfo = installerInfo
 		err = oc.Save(isub)

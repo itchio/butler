@@ -3,13 +3,13 @@ package unsz
 import (
 	"time"
 
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/savior"
 
 	"github.com/itchio/boar/szextractor"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/eos"
@@ -88,8 +88,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 	}
 
 	duration := time.Since(startTime)
-	bytesPerSec := float64(res.Size()) / duration.Seconds()
-	consumer.Statf("Overall extraction speed: %s/s", humanize.IBytes(uint64(bytesPerSec)))
+	consumer.Statf("Overall extraction speed: %s/s", progress.FormatBPS(res.Size(), duration))
 
 	return nil
 }

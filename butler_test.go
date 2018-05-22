@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
@@ -135,7 +136,7 @@ func TestAllTheThings(t *testing.T) {
 				}))
 				stat, err := os.Lstat(patch)
 				mist(t, err)
-				t.Logf("%10s -> %10s = %s", lhs, rhs, humanize.IBytes(uint64(stat.Size())))
+				t.Logf("%10s -> %10s = %s", lhs, rhs, progress.FormatBytes(stat.Size()))
 			}
 		}
 	}

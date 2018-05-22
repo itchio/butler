@@ -4,9 +4,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/tlc"
 	"github.com/pkg/errors"
 )
@@ -61,7 +61,10 @@ func Do(ctx *mansion.Context, dir string, dereference bool) error {
 		Type: "totalSize",
 		Size: container.Size,
 	}, func() {
-		comm.Statf("%d entries (%s) walked in %s", totalEntries, humanize.IBytes(uint64(container.Size)), time.Since(startTime))
+		comm.Statf("%s walked in %s",
+			container,
+			progress.FormatDuration(time.Since(startTime)),
+		)
 	})
 
 	return nil

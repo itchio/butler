@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 	uuid "github.com/satori/go.uuid"
 
@@ -157,7 +157,7 @@ func (sc *scanContext) Do() error {
 		consumer.Infof("- %s", operate.GameToString(c.Game))
 		operate.LogUpload(consumer, c.Upload, c.Build)
 		consumer.Infof("  %s @ %s",
-			humanize.IBytes(uint64(c.InstalledSize)),
+			progress.FormatBytes(c.InstalledSize),
 			sc.getInstallLocation(c.InstallLocationID).GetInstallFolder(c.InstallFolderName),
 		)
 		consumer.Infof("")

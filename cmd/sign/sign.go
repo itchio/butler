@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/tlc"
@@ -89,8 +89,8 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 		return errors.Wrap(err, "finalizing signature file")
 	}
 
-	prettySize := humanize.IBytes(uint64(container.Size))
-	perSecond := humanize.IBytes(uint64(float64(container.Size) / time.Since(startTime).Seconds()))
+	prettySize := progress.FormatBytes(container.Size)
+	perSecond := progress.FormatBPS(container.Size, time.Since(startTime))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
 	return nil

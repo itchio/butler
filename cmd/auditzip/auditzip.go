@@ -12,8 +12,7 @@ import (
 	upstreamzip "archive/zip"
 
 	itchiozip "github.com/itchio/arkive/zip"
-
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
@@ -261,9 +260,9 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 		if actualSize != uncompressedSize {
 			err := fmt.Errorf("Dictionary says (%s) is %s (%d bytes), but it's actually %s (%d bytes)",
 				path,
-				humanize.IBytes(uint64(uncompressedSize)),
+				progress.FormatBytes(uncompressedSize),
 				uncompressedSize,
-				humanize.IBytes(uint64(actualSize)),
+				progress.FormatBytes(actualSize),
 				actualSize,
 			)
 			return errors.WithStack(err)
@@ -391,9 +390,9 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 func printExtras(consumer *state.Consumer, size int64, compressedSize int64, uncompressedSize int64, comment string) {
 	consumer.Infof("Comment: (%s)", comment)
 	consumer.Infof("Sizes: ")
-	consumer.Infof(" → Archive size      : %s (%d bytes)", humanize.IBytes(uint64(size)), size)
-	consumer.Infof(" → Sum (compressed)  : %s (%d bytes)", humanize.IBytes(uint64(compressedSize)), compressedSize)
-	consumer.Infof(" → Sum (uncompressed): %s (%d bytes)", humanize.IBytes(uint64(uncompressedSize)), uncompressedSize)
+	consumer.Infof(" → Archive size      : %s (%d bytes)", progress.FormatBytes(size), size)
+	consumer.Infof(" → Sum (compressed)  : %s (%d bytes)", progress.FormatBytes(compressedSize), compressedSize)
+	consumer.Infof(" → Sum (uncompressed): %s (%d bytes)", progress.FormatBytes(uncompressedSize), uncompressedSize)
 	if compressedSize > uncompressedSize {
 		consumer.Warnf("Compressed size is larger than uncompressed, that's suspicious.")
 	}

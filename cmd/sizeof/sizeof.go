@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 )
 
 var args = struct {
@@ -25,7 +25,7 @@ func do(ctx *mansion.Context) {
 	ctx.Must(err)
 
 	comm.ResultOrPrint(totalSize, func() {
-		comm.Logf("Total size of %s: %s", path, humanize.IBytes(uint64(totalSize)))
+		comm.Logf("Total size of %s: %s", path, progress.FormatBytes(totalSize))
 	})
 }
 

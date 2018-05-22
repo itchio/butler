@@ -5,11 +5,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/wharf/counter"
 
 	"github.com/itchio/arkive/zip"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 
 	"github.com/itchio/butler/filtering"
@@ -44,7 +45,7 @@ func do(ctx *mansion.Context) error {
 		return err
 	}
 
-	consumer.Statf("Found %s (%s)", humanize.IBytes(uint64(container.Size)), container.Stats())
+	consumer.Statf("Found %s", container)
 
 	src := fspool.New(container, args.dir)
 
@@ -108,10 +109,9 @@ func do(ctx *mansion.Context) error {
 	}
 
 	duration := time.Since(startTime)
-	perSec := float64(container.Size) / duration.Seconds()
-	consumer.Statf("Compressed @ %s / s (%s total)",
-		humanize.IBytes(uint64(perSec)),
-		duration,
+	consumer.Statf("Compressed @ %s (%s total)",
+		progress.FormatBPS(container.Size, duration),
+		progress.FormatDuration(duration),
 	)
 	return nil
 }

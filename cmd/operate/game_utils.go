@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
 	"github.com/jinzhu/gorm"
@@ -72,7 +72,7 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 
 		var size string
 		if u.Size > 0 {
-			size = humanize.IBytes(uint64(u.Size))
+			size = progress.FormatBytes(u.Size)
 		} else {
 			size = "Unknown size"
 		}

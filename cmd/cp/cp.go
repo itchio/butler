@@ -8,11 +8,11 @@ import (
 
 	"github.com/itchio/wharf/eos/option"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/htfs"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
@@ -132,19 +132,25 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 			}
 
 			if startOffset == 0 {
-				consumer.Opf("For %s, downloading %s", stats.Name(), humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, downloading %s", stats.Name(), progress.FormatBytes(totalBytes))
 			} else if startOffset > totalBytes {
-				consumer.Warnf("Existing data too big (%s > %s), starting over", humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+				consumer.Warnf("Existing data too big (%s > %s), starting over",
+					progress.FormatBytes(startOffset),
+					progress.FormatBytes(totalBytes),
+				)
 				startOffset, err = dest.Seek(0, io.SeekStart)
 				if err != nil {
 					return err
 				}
 			} else if startOffset == totalBytes {
-				consumer.Opf("For %s, all %s already there", stats.Name(), humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, all %s already there", stats.Name(), progress.FormatBytes(totalBytes))
 				return nil
 			}
 
-			consumer.Opf("For %s, resuming at %s / %s", stats.Name(), humanize.IBytes(uint64(startOffset)), humanize.IBytes(uint64(totalBytes)))
+			consumer.Opf("For %s, resuming at %s / %s", stats.Name(),
+				progress.FormatBytes(startOffset),
+				progress.FormatBytes(totalBytes),
+			)
 
 			_, err = src.Seek(startOffset, io.SeekStart)
 			if err != nil {
@@ -152,7 +158,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 			}
 		} else {
 			if totalBytes > 0 {
-				consumer.Opf("For %s, downloading %s", stats.Name(), humanize.IBytes(uint64(totalBytes)))
+				consumer.Opf("For %s, downloading %s", stats.Name(), progress.FormatBytes(totalBytes))
 			} else {
 				consumer.Opf("For %s, downloading (unknown size)", stats.Name())
 			}
@@ -215,11 +221,11 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	}
 
 	totalDuration := time.Since(start)
-	prettySize := humanize.IBytes(uint64(copiedBytes))
-	perSecond := humanize.IBytes(uint64(float64(inferredTotalSize-startOffset) / totalDuration.Seconds()))
+	prettySize := progress.FormatBytes(copiedBytes)
+	perSecond := progress.FormatBPS(inferredTotalSize-startOffset, totalDuration)
 
 	if startOffset > 0 {
-		prettyStartOffset := humanize.IBytes(uint64(startOffset))
+		prettyStartOffset := progress.FormatBytes(startOffset)
 		comm.Statf("%s + %s copied @ %s/s\n", prettyStartOffset, prettySize, perSecond)
 	} else {
 		comm.Statf("%s copied @ %s/s\n", prettySize, perSecond)

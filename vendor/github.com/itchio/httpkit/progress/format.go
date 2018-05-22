@@ -44,6 +44,14 @@ func FormatBytes(i int64) (result string) {
 	return
 }
 
+func FormatBPSValue(bps float64) string {
+	return fmt.Sprintf("%s / s", FormatBytes(int64(bps)))
+}
+
+func FormatBPS(size int64, duration time.Duration) string {
+	return FormatBPSValue(float64(size) * duration.Seconds())
+}
+
 func FormatDuration(d time.Duration) string {
 	res := ""
 	if d > time.Hour*24 {

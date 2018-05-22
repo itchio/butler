@@ -10,10 +10,10 @@ import (
 
 	"github.com/itchio/wharf/eos/option"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/uploader"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
@@ -225,7 +225,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		})
 	}
 
-	comm.Opf("Pushing %s (%s)", humanize.IBytes(uint64(sourceContainer.Size)), sourceContainer.Stats())
+	comm.Opf("Pushing %s", sourceContainer)
 
 	comm.Debugf("Building diff context")
 	var readBytes int64
@@ -247,9 +247,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		if leftBytes > almostThereThreshold {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
-				netStatus = fmt.Sprintf("@ %s/s", humanize.IBytes(uint64(bytesPerSec)))
+				netStatus = fmt.Sprintf("@ %s/s", progress.FormatBytes(int64(bytesPerSec)))
 			}
-			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, humanize.IBytes(uint64(leftBytes))))
+			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, progress.FormatBytes(leftBytes)))
 		} else {
 			comm.ProgressLabel(fmt.Sprintf("- almost there"))
 		}
@@ -356,10 +356,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.EndProgress()
 
 	{
-		prettyPatchSize := humanize.IBytes(uint64(patchCounter.Count()))
+		prettyPatchSize := progress.FormatBytes(patchCounter.Count())
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := humanize.IBytes(uint64(dctx.FreshBytes))
+		prettyFreshSize := progress.FormatBytes(dctx.FreshBytes)
 		savings := 100.0 - relToNew
 
 		if dctx.ReusedBytes > 0 {

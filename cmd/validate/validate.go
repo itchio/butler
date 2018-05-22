@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 	"github.com/itchio/wharf/eos/option"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/BurntSushi/toml"
-	humanize "github.com/dustin/go-humanize"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
@@ -146,7 +146,7 @@ func Validate(consumer *state.Consumer) error {
 		return errors.Wrap(err, "stat'ing manifest file")
 	}
 
-	consumer.Opf("Validating %s manifest at (%s)", humanize.IBytes(uint64(stats.Size())), manifestPath)
+	consumer.Opf("Validating %s manifest at (%s)", progress.FormatBytes(stats.Size()), manifestPath)
 
 	var intermediate map[string]interface{}
 	_, err = toml.DecodeFile(manifestPath, &intermediate)

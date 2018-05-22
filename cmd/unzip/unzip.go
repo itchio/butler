@@ -3,9 +3,9 @@ package unzip
 import (
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/wharf/eos"
 	"github.com/pkg/errors"
@@ -86,13 +86,14 @@ func Do(ctx *mansion.Context, params *UnzipParams) error {
 	comm.EndProgress()
 
 	duration := time.Since(startTime)
-	bytesPerSec := float64(zipUncompressedSize) / duration.Seconds()
+	bytesPerSec := progress.FormatBPS(zipUncompressedSize, duration)
 
 	if err != nil {
 		return errors.Wrap(err, "unzipping")
 	}
-	comm.Logf("Extracted %d dirs, %d files, %d symlinks, %s at %s/s", res.Dirs, res.Files, res.Symlinks,
-		humanize.IBytes(uint64(zipUncompressedSize)), humanize.IBytes(uint64(bytesPerSec)))
+	comm.Logf("Extracted %d dirs, %d files, %d symlinks, %s at %s/s",
+		res.Dirs, res.Files, res.Symlinks,
+		progress.FormatBytes(zipUncompressedSize), bytesPerSec)
 
 	return nil
 }

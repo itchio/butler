@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -58,7 +58,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	}
 
 	consumer.Infof("Fetching + parsing %s signature...",
-		humanize.IBytes(uint64(stat.Size())),
+		progress.FormatBytes(stat.Size()),
 	)
 
 	signatureSource := seeksource.FromFile(signatureFile)
@@ -77,7 +77,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	consumer.Infof("✓ Fetched signature in %s, dealing with %s container",
 		time.Since(timeBeforeSig),
-		humanize.IBytes(uint64(sigInfo.Container.Size)),
+		progress.FormatBytes(sigInfo.Container.Size),
 	)
 
 	consumer.Infof("Healing container...")
@@ -97,26 +97,26 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	if vc.WoundsConsumer.HasWounds() {
 		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
 			totalHealed := healer.TotalHealed()
-			perSec := humanize.IBytes(uint64(float64(totalHealed) / healDuration.Seconds()))
+			perSec := progress.FormatBPS(totalHealed, healDuration)
 
 			consumer.Infof("✓ %s corrupted data found (of %s total), %s healed @ %s/s, %s total",
-				humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())),
-				humanize.IBytes(uint64(sigInfo.Container.Size)),
-				humanize.IBytes(uint64(totalHealed)),
+				progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
+				progress.FormatBytes(sigInfo.Container.Size),
+				progress.FormatBytes(totalHealed),
 				perSec,
 				healDuration,
 			)
 		} else {
 			consumer.Warnf("%s corrupted data found (of %s total)",
-				humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())),
-				humanize.IBytes(uint64(sigInfo.Container.Size)),
+				progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
+				progress.FormatBytes(sigInfo.Container.Size),
 			)
 		}
 	} else {
-		perSec := humanize.IBytes(uint64(float64(containerSize) / healDuration.Seconds()))
+		perSec := progress.FormatBPS(containerSize, healDuration)
 
 		consumer.Infof("✓ All %s were healthy (checked @ %s/s, %s total)",
-			humanize.IBytes(uint64(containerSize)),
+			progress.FormatBytes(containerSize),
 			perSec,
 			healDuration,
 		)

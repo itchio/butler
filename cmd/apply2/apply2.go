@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/dchest/safefile"
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
@@ -154,9 +154,7 @@ func Do(params *Params) error {
 
 	out := p.GetSourceContainer()
 	duration := time.Since(startTime)
-	perSec := humanize.IBytes(uint64(float64(out.Size) / duration.Seconds()))
-	outSize := humanize.IBytes(uint64(out.Size))
-	consumer.Statf("%s (%s) @ %s / s (%s total)", outSize, out.Stats(), perSec, duration)
+	consumer.Statf("%s (%s) @ %s / s (%s total)", progress.FormatBytes(out.Size), out.Stats(), progress.FormatBPS(out.Size, duration), duration)
 
 	return nil
 }

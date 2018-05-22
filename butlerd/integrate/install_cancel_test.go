@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/sourcegraph/jsonrpc2"
 	"github.com/stretchr/testify/assert"
 
@@ -55,7 +54,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		var lastProgressValue float64
 		printProgress := func(params *butlerd.ProgressNotification) {
-			log.Printf("%.2f%% done @ %s / s ETA %s", params.Progress*100, humanize.IBytes(uint64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
+			log.Printf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 			lastProgressValue = params.Progress
 		}
 

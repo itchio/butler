@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -77,7 +77,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		return errors.Wrap(err, "creating patch source")
 	}
 
-	consumer.Infof("Patch is %s", humanize.IBytes(uint64(patchSource.Size())))
+	consumer.Infof("Patch is %s", progress.FormatBytes(patchSource.Size()))
 
 	p, err := patcher.New(patchSource, consumer)
 	if err != nil {

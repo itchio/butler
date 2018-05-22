@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/countingsource"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
@@ -144,7 +144,7 @@ func Do(params *Params) error {
 	}
 
 	if !bench {
-		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), humanize.IBytes(uint64(source.Size())), header.Compression, params.Compression)
+		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), progress.FormatBytes(source.Size()), header.Compression, params.Compression)
 		comm.StartProgressWithTotalBytes(source.Size())
 	}
 
@@ -177,8 +177,7 @@ func Do(params *Params) error {
 
 		if !bench {
 			comm.EndProgress()
-			perSec := humanize.IBytes(uint64(float64(numBytes) / duration.Seconds()))
-			consumer.Statf("Repacked %s @ %s/s", humanize.IBytes(uint64(numBytes)), perSec)
+			consumer.Statf("Repacked %s @ %s/s", progress.FormatBytes(numBytes), progress.FormatBPS(numBytes, duration))
 		}
 
 		return nil
@@ -201,8 +200,8 @@ func Do(params *Params) error {
 		fmt.Printf("%s\n", strings.Join(columns, ","))
 	} else {
 		consumer.Statf("%s => %s (%.3f as large as the input)",
-			humanize.IBytes(uint64(inSize)),
-			humanize.IBytes(uint64(outSize)),
+			progress.FormatBytes(inSize),
+			progress.FormatBytes(outSize),
 			float64(outSize)/float64(inSize),
 		)
 		consumer.Statf("Wrote to %s", params.OutPath)

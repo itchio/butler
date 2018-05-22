@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/pwr"
@@ -82,15 +82,14 @@ func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath strin
 
 	comm.EndProgress()
 
-	prettySize := humanize.IBytes(uint64(signature.Container.Size))
-	perSecond := humanize.IBytes(uint64(float64(signature.Container.Size) / time.Since(startTime).Seconds()))
-	comm.Statf("%s (%s) @ %s/s\n", prettySize, signature.Container.Stats(), perSecond)
+	perSecond := progress.FormatBPS(signature.Container.Size, time.Since(startTime))
+	comm.Statf("%s @ %s\n", signature.Container, perSecond)
 
 	if vc.WoundsConsumer.HasWounds() {
 		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
-			comm.Statf("%s corrupted data found, %s healed", humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())), humanize.IBytes(uint64(healer.TotalHealed())))
+			comm.Statf("%s corrupted data found, %s healed", progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()), progress.FormatBytes(healer.TotalHealed()))
 		} else {
-			comm.Dief("%s corrupted data found", humanize.IBytes(uint64(vc.WoundsConsumer.TotalCorrupted())))
+			comm.Dief("%s corrupted data found", progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()))
 		}
 	}
 

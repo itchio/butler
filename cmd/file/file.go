@@ -5,12 +5,12 @@ import (
 	"io"
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/fasterthanlime/spellbook"
 	"github.com/fasterthanlime/wizardry/wizardry/wizutil"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -76,7 +76,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 		return nil
 	}
 
-	prettySize := humanize.IBytes(uint64(stats.Size()))
+	prettySize := progress.FormatBytes(stats.Size())
 
 	source := seeksource.FromFile(reader)
 
@@ -220,8 +220,11 @@ func Do(ctx *mansion.Context, inPath string) error {
 				}
 			}
 
-			comm.Logf("%s: %s wharf wounds file with %s, %s wounds in %d files", path, prettySize, container.Stats(),
-				humanize.IBytes(uint64(totalWounds)), len(files))
+			comm.Logf("%s: %s wharf wounds file containing %s, %s wounds in %d files",
+				path,
+				prettySize,
+				container.Stats(),
+				progress.FormatBytes(totalWounds), len(files))
 			result = mansion.ContainerResult{
 				Type: "wharf/wounds",
 			}
@@ -247,7 +250,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 			})
 			ctx.Must(err)
 
-			prettyUncompressed := humanize.IBytes(uint64(container.Size))
+			prettyUncompressed := progress.FormatBytes(container.Size)
 			comm.Logf("%s: %s zip file with %s, %s uncompressed", path, prettySize, container.Stats(), prettyUncompressed)
 			result = mansion.ContainerResult{
 				Type:             "zip",

@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
@@ -132,8 +132,8 @@ func Do(params *Params) error {
 			}
 
 			{
-				prettySize := humanize.IBytes(uint64(targetSignature.Container.Size))
-				perSecond := humanize.IBytes(uint64(float64(targetSignature.Container.Size) / time.Since(startTime).Seconds()))
+				prettySize := progress.FormatBytes(targetSignature.Container.Size)
+				perSecond := progress.FormatBPS(targetSignature.Container.Size, time.Since(startTime))
 				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
 			}
 		} else {
@@ -192,16 +192,16 @@ func Do(params *Params) error {
 
 	totalDuration := time.Since(startTime)
 	{
-		prettySize := humanize.IBytes(uint64(sourceContainer.Size))
-		perSecond := humanize.IBytes(uint64(float64(sourceContainer.Size) / totalDuration.Seconds()))
+		prettySize := progress.FormatBytes(sourceContainer.Size)
+		perSecond := progress.FormatBPS(sourceContainer.Size, totalDuration)
 		comm.Statf("%s (%s) @ %s/s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
 	{
-		prettyPatchSize := humanize.IBytes(uint64(patchCounter.Count()))
+		prettyPatchSize := progress.FormatBytes(patchCounter.Count())
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := humanize.IBytes(uint64(dctx.FreshBytes))
+		prettyFreshSize := progress.FormatBytes(dctx.FreshBytes)
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
 		comm.Statf("%s patch (%.2f%% of the full size) in %s", prettyPatchSize, relToNew, totalDuration)

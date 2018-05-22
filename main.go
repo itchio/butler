@@ -13,13 +13,13 @@ import (
 	"strconv"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/efarrer/iothrottler"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/go-itchio/itchfs"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -216,7 +216,7 @@ func doMain(args []string) {
 	if *appArgs.throttle > 0 {
 		throttle := *appArgs.throttle
 		bwKiloBytes := throttle / 8 * 1024
-		comm.Logf("Throttling to %s/s bandwidth", humanize.IBytes(uint64(bwKiloBytes)))
+		comm.Logf("Throttling to %s/s bandwidth", progress.FormatBytes(bwKiloBytes))
 		timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(throttle) * iothrottler.Kbps)
 	}
 
