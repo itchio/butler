@@ -1,6 +1,6 @@
 // +build !windows
 
-package winsandbox
+package fujicmd
 
 import "github.com/itchio/butler/mansion"
 

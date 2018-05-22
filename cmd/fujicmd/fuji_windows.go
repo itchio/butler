@@ -7,12 +7,12 @@
 //
 // If you want to see/manage the user the sandbox creates,
 // you can use "lusrmgr.msc" on Windows (works in Win+R)
-package winsandbox
+package fujicmd
 
 import (
 	"fmt"
-	"syscall"
-	"time"
+
+	"github.com/itchio/smaug/fuji"
 
 	"github.com/itchio/ox/syscallex"
 
@@ -37,7 +37,7 @@ var checkAccessArgs = struct {
 }{}
 
 func Register(ctx *mansion.Context) {
-	parentCmd := ctx.App.Command("winsandbox", "Use or manage the itch.io sandbox for Windows").Hidden()
+	parentCmd := ctx.App.Command("fuji", "Use or manage the itch.io sandbox for Windows").Hidden()
 
 	{
 		cmd := parentCmd.Command("check", "Verify that the sandbox is properly set up").Hidden()
@@ -71,67 +71,12 @@ func doCheck(ctx *mansion.Context) {
 }
 
 func Check(consumer *state.Consumer) error {
-	consumer.Opf("Retrieving player data from registry...")
-	pd, err := GetPlayerData()
+	i, err := fuji.NewInstance(mansion.GetFujiSettings())
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
-	consumer.Statf("Sandbox user is (%s)", pd.Username)
-	consumer.Statf("Sandbox password is (%s)", pd.Password)
-
-	consumer.Opf("Trying to log in...")
-
-	token, err := winox.Logon(pd.Username, ".", pd.Password)
-
-	if err != nil {
-		rescued := false
-
-		if en, ok := winox.AsErrno(err); ok {
-			switch en {
-			case syscallex.ERROR_PASSWORD_EXPIRED:
-			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
-				// Some Windows versions (10 for example) expire password automatically.
-				// Thankfully, we can renew it without administrator access, simply by using the old one.
-				consumer.Opf("Password has expired, setting new password...")
-				newPassword := generatePassword()
-
-				err := syscallex.NetUserChangePassword(
-					nil, // domainname
-					syscall.StringToUTF16Ptr(pd.Username),
-					syscall.StringToUTF16Ptr(pd.Password),
-					syscall.StringToUTF16Ptr(newPassword),
-				)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				pd.Password = newPassword
-				err = pd.Save()
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				token, err = winox.Logon(pd.Username, ".", pd.Password)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				consumer.Statf("Set new password successfully!")
-
-				rescued = true
-			}
-		}
-
-		if !rescued {
-			return errors.WithStack(err)
-		}
-	}
-	defer winox.SafeRelease(uintptr(token))
-
-	consumer.Statf("Everything looks good!")
-
-	return nil
+	return i.Check(consumer)
 }
 
 func doSetup(ctx *mansion.Context) {
@@ -139,80 +84,12 @@ func doSetup(ctx *mansion.Context) {
 }
 
 func Setup(consumer *state.Consumer) error {
-	startTime := time.Now()
-
-	nullConsumer := &state.Consumer{}
-
-	err := Check(nullConsumer)
-	if err == nil {
-		consumer.Statf("Already set up properly!")
-		return nil
-	}
-
-	var username string
-	var password string
-
-	username, err = getItchPlayerData("username")
+	i, err := fuji.NewInstance(mansion.GetFujiSettings())
 	if err != nil {
-		return errors.WithStack(err)
-	}
-	if username != "" {
-		comm.Opf("Trying to salvage existing account (%s)....", username)
-		password = generatePassword()
-		err = winox.ForceSetPassword(username, password)
-		if err != nil {
-			consumer.Warnf("Could not force password: %+v", err)
-			username = ""
-		} else {
-			comm.Statf("Forced password successfully")
-		}
+		return err
 	}
 
-	if username == "" {
-		username = fmt.Sprintf("itch-player-%x", time.Now().Unix())
-		comm.Opf("Generated username (%s)", username)
-
-		password = generatePassword()
-		comm.Opf("Generated password (%s)", password)
-
-		comment := "itch.io sandbox user"
-
-		comm.Opf("Adding user...")
-
-		err = winox.AddUser(username, password, comment)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	}
-
-	comm.Opf("Removing from Users group (so it doesn't show up as a login option)...")
-
-	err = winox.RemoveUserFromUsersGroup(username)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	comm.Opf("Loading profile for the first time (to create some directories)...")
-
-	err = winox.LoadProfileOnce(username, ".", password)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	comm.Opf("Saving to credentials registry...")
-
-	pd := &PlayerData{
-		Username: username,
-		Password: password,
-	}
-	err = pd.Save()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	comm.Statf("All done! (in %s)", time.Since(startTime))
-
-	return nil
+	return i.Setup(consumer)
 }
 
 func doSetfilepermissions(ctx *mansion.Context) {
@@ -289,12 +166,17 @@ var checkAccessSpecs = []checkAccessSpec{
 }
 
 func CheckAccess(consumer *state.Consumer) error {
-	pd, err := GetPlayerData()
+	i, err := fuji.NewInstance(mansion.GetFujiSettings())
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
-	impersonationToken, err := winox.GetImpersonationToken(pd.Username, ".", pd.Password)
+	creds, err := i.GetCredentials()
+	if err != nil {
+		return err
+	}
+
+	impersonationToken, err := winox.GetImpersonationToken(creds.Username, ".", creds.Password)
 	if err != nil {
 		return errors.WithStack(err)
 	}

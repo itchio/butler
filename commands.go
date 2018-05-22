@@ -44,7 +44,7 @@ import (
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
-	"github.com/itchio/butler/cmd/winsandbox"
+	"github.com/itchio/butler/cmd/fujicmd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/mansion"
 )
@@ -111,7 +111,7 @@ func registerCommands(ctx *mansion.Context) {
 
 	daemon.Register(ctx)
 
-	winsandbox.Register(ctx)
+	fujicmd.Register(ctx)
 	validate.Register(ctx)
 
 	singlediff.Register(ctx)
