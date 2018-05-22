@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
@@ -29,7 +29,7 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, sink *Sink,
 			c2, checkpointSize := roundtripEThroughGob(t, checkpoint)
 			totalCheckpointSize += int64(checkpointSize)
 			c = c2
-			log.Printf("↓ saved @ %.0f%% (%s checkpoint, entry %d)", c.Progress*100, humanize.IBytes(uint64(checkpointSize)), c.EntryIndex)
+			log.Printf("↓ saved @ %.0f%% (%s checkpoint, entry %d)", c.Progress*100, progress.FormatBytes(checkpointSize), c.EntryIndex)
 			return savior.AfterSaveStop, nil
 		}
 
@@ -91,11 +91,11 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, sink *Sink,
 
 		// yay, we did it!
 		totalDuration := time.Since(startTime)
-		perSec := humanize.IBytes(uint64(float64(res.Size()) / totalDuration.Seconds()))
+		perSec := progress.FormatBPS(res.Size(), totalDuration)
 		log.Printf(" ⇒ extracted %s @ %s/s (%s total)", res.Stats(), perSec, totalDuration)
 		if numResumes > 0 {
 			meanCheckpointSize := float64(totalCheckpointSize) / float64(numResumes)
-			log.Printf(" ⇒ %d resumes, %s avg checkpoint", numResumes, humanize.IBytes(uint64(meanCheckpointSize)))
+			log.Printf(" ⇒ %d resumes, %s avg checkpoint", numResumes, progress.FormatBytes(int64(meanCheckpointSize)))
 		} else {
 			log.Printf(" ⇒ no resumes")
 		}
@@ -108,7 +108,7 @@ func RunExtractorText(t *testing.T, makeExtractor MakeExtractorFunc, sink *Sink,
 	assert.NoError(t, sink.Validate())
 }
 
-func roundtripEThroughGob(t *testing.T, c *savior.ExtractorCheckpoint) (*savior.ExtractorCheckpoint, int) {
+func roundtripEThroughGob(t *testing.T, c *savior.ExtractorCheckpoint) (*savior.ExtractorCheckpoint, int64) {
 	saveBuf := new(bytes.Buffer)
 	enc := gob.NewEncoder(saveBuf)
 	err := enc.Encode(c)
@@ -120,5 +120,5 @@ func roundtripEThroughGob(t *testing.T, c *savior.ExtractorCheckpoint) (*savior.
 	err = gob.NewDecoder(saveBuf).Decode(c2)
 	must(t, err)
 
-	return c2, buflen
+	return c2, int64(buflen)
 }

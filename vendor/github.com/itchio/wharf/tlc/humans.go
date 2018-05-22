@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 )
 
 func (f *File) ToString() string {
-	return fmt.Sprintf("%s %10s %s", os.FileMode(f.Mode), humanize.IBytes(uint64(f.Size)), f.Path)
+	return fmt.Sprintf("%s %10s %s", os.FileMode(f.Mode), progress.FormatBytes(f.Size), f.Path)
 }
 
 func (f *Dir) ToString() string {

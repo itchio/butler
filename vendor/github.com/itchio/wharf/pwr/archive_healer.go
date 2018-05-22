@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
+	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/wharf/ctxcopy"
 	"github.com/itchio/wharf/werrors"
 
 	"github.com/itchio/arkive/zip"
-
-	humanize "github.com/dustin/go-humanize"
 
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/eos"
@@ -266,7 +266,7 @@ func (ah *ArchiveHealer) healOne(ctx context.Context, sourcePool wsync.Pool, tar
 
 	if ah.Consumer != nil {
 		f := ah.container.Files[fileIndex]
-		ah.Consumer.Debugf("healing (%s) %s", f.Path, humanize.IBytes(uint64(f.Size)))
+		ah.Consumer.Debugf("healing (%s) %s", f.Path, progress.FormatBytes(f.Size))
 	}
 
 	reader, err = sourcePool.GetReader(fileIndex)

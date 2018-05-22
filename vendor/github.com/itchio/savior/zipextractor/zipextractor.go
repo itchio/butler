@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/flatesource"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/state"
@@ -109,7 +109,7 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 	}
 
 	if isFresh {
-		ze.consumer.Infof("⇓ Pre-allocating %s on disk", humanize.IBytes(uint64(totalBytes)))
+		ze.consumer.Infof("⇓ Pre-allocating %s on disk", progress.FormatBytes(totalBytes))
 		preallocateStart := time.Now()
 		for _, zf := range zr.File {
 			entry := zipFileEntry(zf)
@@ -227,7 +227,7 @@ func (ze *ZipExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 							return errors.WithStack(err)
 						}
 					}
-					savior.Debugf(`%s: zipextractor resuming from %s`, entry.CanonicalPath, humanize.IBytes(uint64(entry.WriteOffset)))
+					savior.Debugf(`%s: zipextractor resuming from %s`, entry.CanonicalPath, progress.FormatBytes(entry.WriteOffset))
 
 					writer, err := sink.GetWriter(entry)
 					if err != nil {

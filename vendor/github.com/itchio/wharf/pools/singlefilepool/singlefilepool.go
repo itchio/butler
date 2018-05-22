@@ -6,17 +6,16 @@ import (
 
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
-	"github.com/pkg/errors"
 )
 
 type SingleFilePool struct {
 	container *tlc.Container
-	wr        io.WriteCloser
+	wr        io.Writer
 }
 
 var _ wsync.WritablePool = (*SingleFilePool)(nil)
 
-func New(container *tlc.Container, wr io.WriteCloser) *SingleFilePool {
+func New(container *tlc.Container, wr io.Writer) *SingleFilePool {
 	return &SingleFilePool{
 		container: container,
 		wr:        wr,
@@ -40,11 +39,6 @@ func (sfp *SingleFilePool) GetWriter(fileIndex int64) (io.WriteCloser, error) {
 }
 
 func (sfp *SingleFilePool) Close() error {
-	err := sfp.wr.Close()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
 	return nil
 }
 

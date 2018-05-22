@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -53,12 +53,12 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 			c2, checkpointSize := roundtripThroughGob(t, c)
 
 			totalCheckpoints++
-			log.Printf("%s ↓ made %s checkpoint @ %.2f%% (byte %d)", humanize.IBytes(uint64(c2.Offset)), humanize.IBytes(uint64(checkpointSize)), source.Progress()*100, c2.Offset)
+			log.Printf("%s ↓ made %s checkpoint @ %.2f%% (byte %d)", progress.FormatBytes(c2.Offset), progress.FormatBytes(checkpointSize), source.Progress()*100, c2.Offset)
 
 			newOffset, err := source.Resume(c2)
 			must(t, err)
 
-			log.Printf("%s ↻ resumed", humanize.IBytes(uint64(newOffset)))
+			log.Printf("%s ↻ resumed", progress.FormatBytes(newOffset))
 			_, err = output.Seek(newOffset, io.SeekStart)
 			must(t, err)
 
@@ -91,7 +91,7 @@ func RunSourceTest(t *testing.T, source savior.Source, reference []byte) {
 	assert.True(t, totalCheckpoints > 0, "had at least one checkpoint")
 }
 
-func roundtripThroughGob(t *testing.T, c *savior.SourceCheckpoint) (*savior.SourceCheckpoint, int) {
+func roundtripThroughGob(t *testing.T, c *savior.SourceCheckpoint) (*savior.SourceCheckpoint, int64) {
 	saveBuf := new(bytes.Buffer)
 	enc := gob.NewEncoder(saveBuf)
 	err := enc.Encode(c)
@@ -103,5 +103,5 @@ func roundtripThroughGob(t *testing.T, c *savior.SourceCheckpoint) (*savior.Sour
 	err = gob.NewDecoder(saveBuf).Decode(c2)
 	must(t, err)
 
-	return c2, buflen
+	return c2, int64(buflen)
 }

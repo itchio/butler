@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/jgallagher/gosaca"
 	"github.com/pkg/errors"
@@ -153,7 +153,7 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 	if ctx.MeasureMem {
 		memstats = &runtime.MemStats{}
 		runtime.ReadMemStats(memstats)
-		fmt.Fprintf(os.Stderr, "\nAllocated bytes at start of bsdiff: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes at start of bsdiff: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
 	}
 
 	ctx.obuf.Reset()
@@ -178,7 +178,7 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
-		fmt.Fprintf(os.Stderr, "\nAllocated bytes after ReadAll: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes after ReadAll: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
 	}
 
 	partitions := ctx.Partitions
@@ -186,7 +186,7 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 		partitions = 1
 	}
 
-	consumer.ProgressLabel(fmt.Sprintf("Sorting %s...", humanize.IBytes(uint64(obuflen))))
+	consumer.ProgressLabel(fmt.Sprintf("Sorting %s...", progress.FormatBytes(int64(obuflen))))
 	consumer.Progress(0.0)
 
 	startTime := time.Now()
@@ -203,10 +203,10 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
-		fmt.Fprintf(os.Stderr, "\nAllocated bytes after qsufsort: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes after qsufsort: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
 	}
 
-	consumer.ProgressLabel(fmt.Sprintf("Preparing to scan %s...", humanize.IBytes(uint64(nbuflen))))
+	consumer.ProgressLabel(fmt.Sprintf("Preparing to scan %s...", progress.FormatBytes(int64(nbuflen))))
 	consumer.Progress(0.0)
 
 	startTime = time.Now()
@@ -368,10 +368,10 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
-		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan-prepare: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan-prepare: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
 	}
 
-	consumer.ProgressLabel(fmt.Sprintf("Scanning %s (%d blocks of %s)...", humanize.IBytes(uint64(nbuflen)), numBlocks, humanize.IBytes(uint64(blockSize))))
+	consumer.ProgressLabel(fmt.Sprintf("Scanning %s (%d blocks of %s)...", progress.FormatBytes(int64(nbuflen)), numBlocks, progress.FormatBytes(int64(blockSize))))
 
 	// collect workers' results, forward them to consumer
 	go func() {
@@ -406,8 +406,8 @@ func (ctx *DiffContext) Do(old, new io.Reader, writeMessage WriteMessageFunc, co
 
 	if ctx.MeasureMem {
 		runtime.ReadMemStats(memstats)
-		consumer.Debugf("\nAllocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
-		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan: %s (%s total)", humanize.IBytes(uint64(memstats.Alloc)), humanize.IBytes(uint64(memstats.TotalAlloc)))
+		consumer.Debugf("\nAllocated bytes after scan: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
+		fmt.Fprintf(os.Stderr, "\nAllocated bytes after scan: %s (%s total)", progress.FormatBytes(int64(memstats.Alloc)), progress.FormatBytes(int64(memstats.TotalAlloc)))
 	}
 
 	return nil

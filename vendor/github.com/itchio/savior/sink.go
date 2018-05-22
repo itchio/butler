@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 )
 
 type EntryKind int
@@ -62,7 +62,7 @@ type Entry struct {
 }
 
 func (entry *Entry) String() string {
-	return fmt.Sprintf("%s (%s %s)", entry.CanonicalPath, humanize.IBytes(uint64(entry.UncompressedSize)), entry.Kind)
+	return fmt.Sprintf("%s (%s %s)", entry.CanonicalPath, progress.FormatBytes(entry.UncompressedSize), entry.Kind)
 }
 
 // An EntryWriter is an io.WriteCloser that you can Sync().

@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 )
 
@@ -37,7 +37,7 @@ func (er *ExtractorResult) Stats() string {
 		totalBytes += entry.UncompressedSize
 	}
 
-	return fmt.Sprintf("%s (in %d files, %d dirs, %d symlinks)", humanize.IBytes(uint64(totalBytes)), numFiles, numDirs, numSymlinks)
+	return fmt.Sprintf("%s (in %d files, %d dirs, %d symlinks)", progress.FormatBytes(totalBytes), numFiles, numDirs, numSymlinks)
 }
 
 // Returns the total size of all listed entries, in bytes

@@ -3,7 +3,7 @@ package genie
 import (
 	"fmt"
 
-	"github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 )
 
 type BlockOrigin struct {
@@ -41,7 +41,7 @@ func (comp *Composition) Append(origin Origin) {
 }
 
 func (comp *Composition) String() string {
-	res := fmt.Sprintf("file %d, block %d (%s) is composed of: ", comp.FileIndex, comp.BlockIndex, humanize.IBytes(uint64(comp.Size)))
+	res := fmt.Sprintf("file %d, block %d (%s) is composed of: ", comp.FileIndex, comp.BlockIndex, progress.FormatBytes(comp.Size))
 	for i, origin := range comp.Origins {
 		if i > 0 {
 			res += ", "

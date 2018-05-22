@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
@@ -307,8 +307,8 @@ func (w *Wound) PrettyString(container *tlc.Container) string {
 		return fmt.Sprintf("symlink wound (%s should point to %s)", symlink.Path, symlink.Dest)
 	case WoundKind_FILE:
 		file := container.Files[w.Index]
-		woundSize := humanize.IBytes(uint64(w.End - w.Start))
-		offset := humanize.IBytes(uint64(w.Start))
+		woundSize := progress.FormatBytes(w.End - w.Start)
+		offset := progress.FormatBytes(w.Start)
 		return fmt.Sprintf("~%s wound %s into %s", woundSize, offset, file.Path)
 	default:
 		return fmt.Sprintf("unknown wound (%d)", w.Kind)

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/andreyvit/diff"
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/bsdiff"
 
 	"github.com/itchio/savior"
@@ -208,8 +208,8 @@ func (sp *savingPatcher) processRsync(c *Checkpoint, targetPool wsync.Pool, sh *
 
 		f := sp.sourceContainer.Files[sh.FileIndex]
 		sp.consumer.Debugf("↺ Resuming rsync entry @ %s / %s",
-			humanize.IBytes(uint64(writer.Tell())),
-			humanize.IBytes(uint64(f.Size)),
+			progress.FormatBytes(writer.Tell()),
+			progress.FormatBytes(f.Size),
 		)
 	} else {
 		// starting from the beginning!
@@ -441,8 +441,8 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 
 		f := sp.sourceContainer.Files[sh.FileIndex]
 		sp.consumer.Debugf("↺ Resuming bsdiff entry @ %s / %s",
-			humanize.IBytes(uint64(writer.Tell())),
-			humanize.IBytes(uint64(f.Size)),
+			progress.FormatBytes(writer.Tell()),
+			progress.FormatBytes(f.Size),
 		)
 	} else {
 		// starting from the beginning!
@@ -558,9 +558,9 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 	if finalSize != f.Size {
 		err = fmt.Errorf("corrupted patch: expected '%s' to be %s (%d bytes) after patching, but it's %s (%d bytes)",
 			f.Path,
-			humanize.IBytes(uint64(f.Size)),
+			progress.FormatBytes(f.Size),
 			f.Size,
-			humanize.IBytes(uint64(finalSize)),
+			progress.FormatBytes(finalSize),
 			finalSize,
 		)
 		return errors.WithStack(err)

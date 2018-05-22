@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/arkive/tar"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
@@ -124,7 +124,7 @@ func (te *tarExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savi
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			savior.Debugf("tarextractor: at checkpoint, tar read offset is %s", humanize.IBytes(uint64(tarCheckpoint.Roffset)))
+			savior.Debugf("tarextractor: at checkpoint, tar read offset is %s", progress.FormatBytes(tarCheckpoint.Roffset))
 
 			state.TarCheckpoint = tarCheckpoint
 

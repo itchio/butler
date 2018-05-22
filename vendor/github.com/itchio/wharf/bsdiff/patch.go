@@ -6,8 +6,8 @@ import (
 
 	"os"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/bsdiff/lrufile"
 	"github.com/itchio/wharf/counter"
 	"github.com/pkg/errors"
@@ -150,7 +150,7 @@ func (ctx *PatchContext) Patch(old io.ReadSeeker, out io.Writer, newSize int64, 
 	}
 
 	if countingOut.Count() != newSize {
-		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, countingOut.Count(), humanize.IBytes(uint64(newSize-countingOut.Count())))
+		return fmt.Errorf("bsdiff: expected new file to be %d, was %d (%s difference)", newSize, countingOut.Count(), progress.FormatBytes(newSize-countingOut.Count()))
 	}
 
 	if showLruStats {
