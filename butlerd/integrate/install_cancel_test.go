@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 )
 
 func Test_InstallCancel(t *testing.T) {
@@ -54,7 +55,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		var lastProgressValue float64
 		printProgress := func(params *butlerd.ProgressNotification) {
-			log.Printf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
+			log.Printf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 			lastProgressValue = params.Progress
 		}
 
