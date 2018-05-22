@@ -16,10 +16,10 @@ import (
 	"time"
 
 	"github.com/itchio/arkive/zip"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 )
 
@@ -31,7 +31,7 @@ func doZip() error {
 
 	zipBytes, err := ioutil.ReadFile(zipPath)
 	must(err)
-	log.Printf("Read %s zip file", humanize.IBytes(uint64(len(zipBytes))))
+	log.Printf("Read %s zip file", progress.FormatBytes(int64(len(zipBytes))))
 	log.Printf("Validating...")
 
 	numFiles := 0
@@ -95,7 +95,6 @@ func doZip() error {
 		for index := range indices {
 			func() {
 				zf := zr.File[index]
-				// log.Printf("Extracting file %d (%s)", index, humanize.IBytes(uint64(zf.UncompressedSize64)))
 
 				rc, err := zf.Open()
 				must(err)
@@ -157,7 +156,7 @@ func doZip() error {
 	}
 
 	log.Printf("Files extracted: %d", filesExtracted)
-	log.Printf("Total extracted: %s", humanize.IBytes(uint64(bytesExtracted)))
+	log.Printf("Total extracted: %s", progress.FormatBytes(bytesExtracted))
 
 	return nil
 }

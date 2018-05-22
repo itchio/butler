@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
@@ -110,7 +110,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 
 	status := interpretGcsStatusCode(res.StatusCode)
 	if status == gcsUploadComplete && last {
-		cu.debugf("✓ %s upload complete!", humanize.IBytes(uint64(cu.offset+buflen)))
+		cu.debugf("✓ %s upload complete!", progress.FormatBytes(int64(cu.offset+buflen)))
 		return nil
 	}
 
@@ -152,10 +152,10 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 		}
 
 		committedBytes := committedRange.end - cu.offset
-		perSec := humanize.IBytes(uint64(float64(committedBytes) / callDuration.Seconds()))
+		perSec := progress.FormatBPS(committedBytes, callDuration)
 
 		if committedRange.end == expectedOffset {
-			cu.debugf("✓ Commit succeeded (%d blocks stored @ %s / s)", buflen/gcsChunkSize, perSec)
+			cu.debugf("✓ Commit succeeded (%d blocks stored @ %s)", buflen/gcsChunkSize, perSec)
 			return nil
 		}
 

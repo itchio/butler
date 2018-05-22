@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior"
 	"github.com/itchio/sevenzip-go/sz"
 	"github.com/itchio/wharf/archiver"
@@ -214,7 +214,7 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 
 	if len(indices) > 0 {
 		if isFresh {
-			se.consumer.Infof("⇓ Pre-allocating %s on disk", humanize.IBytes(uint64(totalBytes)))
+			se.consumer.Infof("⇓ Pre-allocating %s on disk", progress.FormatBytes(totalBytes))
 			preallocateItem := func(i int64) error {
 				item := se.archive.GetItem(int64(i))
 				defer item.Free()

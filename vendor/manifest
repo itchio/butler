@@ -241,7 +241,7 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "ba920d42d27b3915c562f4c54a474c7c073282fb",
+			"revision": "a24f662dff70695e9eefbee19c32a4fa8d0e0514",
 			"branch": "master",
 			"notests": true
 		},
@@ -289,7 +289,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "c4c412ff24789df1be684af649310124f4d4d7a0",
+			"revision": "50f60be27c88c7d8a3cdc01ea2029d465a830ceb",
 			"branch": "master",
 			"notests": true
 		},

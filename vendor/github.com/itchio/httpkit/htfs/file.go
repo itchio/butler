@@ -17,8 +17,8 @@ import (
 
 	goerrors "errors"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/retrycontext"
 	"github.com/pkg/errors"
 )
@@ -593,8 +593,8 @@ func (f *File) Close() error {
 		totalServedBytes := fetchedBytes
 		percCached = float64(f.stats.cachedBytes) / float64(totalServedBytes) * 100.0
 
-		log.Printf("= fetched: %s / %s (%.2f%%)", humanize.IBytes(uint64(fetchedBytes)), humanize.IBytes(uint64(size)), perc)
-		log.Printf("= served from cache: %s (%.2f%% of all served bytes)", humanize.IBytes(uint64(f.stats.cachedBytes)), percCached)
+		log.Printf("= fetched: %s / %s (%.2f%%)", progress.FormatBytes(fetchedBytes), progress.FormatBytes(size), perc)
+		log.Printf("= served from cache: %s (%.2f%% of all served bytes)", progress.FormatBytes(f.stats.cachedBytes), percCached)
 
 		totalReads := f.stats.numCacheHits + f.stats.numCacheMiss
 		if totalReads == 0 {

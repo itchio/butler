@@ -11,10 +11,10 @@ import (
 	"runtime"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/boar/szextractor/formulas"
 	"github.com/itchio/boar/szextractor/types"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/state"
@@ -187,7 +187,7 @@ func EnsureDeps(consumer *state.Consumer) error {
 					for _, entry := range toFetch {
 						if entry.Name == zf.Name {
 							foundFiles++
-							consumer.Opf("%s (%s)...", entry.Name, humanize.IBytes(uint64(zf.UncompressedSize64)))
+							consumer.Opf("%s (%s)...", entry.Name, progress.FormatBytes(int64(zf.UncompressedSize64)))
 							entryPath := filepath.Join(execDir, entry.Name)
 
 							err = func() error {
@@ -222,7 +222,7 @@ func EnsureDeps(consumer *state.Consumer) error {
 				if foundFiles < len(toFetch) {
 					return errors.Errorf("Found only %d files of the required %d", foundFiles, len(toFetch))
 				}
-				consumer.Statf("Installed %s's worth of dependencies in %s", humanize.IBytes(uint64(installedSize)), time.Since(beforeHeal))
+				consumer.Statf("Installed %s's worth of dependencies in %s", progress.FormatBytes(installedSize), time.Since(beforeHeal))
 
 				return nil
 			}()

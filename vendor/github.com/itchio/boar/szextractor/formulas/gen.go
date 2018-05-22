@@ -14,10 +14,9 @@ import (
 	"text/template"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
-
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/boar/szextractor/types"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/eos"
 )
 
@@ -64,7 +63,7 @@ func main() {
 
 		for _, f := range zr.File {
 			func() {
-				log.Printf("  - %s (%s)...", f.Name, humanize.IBytes(uint64(f.UncompressedSize64)))
+				log.Printf("  - %s (%s)...", f.Name, progress.FormatBytes(int64(f.UncompressedSize64)))
 
 				de := types.DepEntry{
 					Name: f.Name,
