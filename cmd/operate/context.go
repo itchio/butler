@@ -14,7 +14,6 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/butler/pb"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -67,13 +66,6 @@ func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder st
 	if err != nil {
 		parentConsumer.Warnf("Could not open operate log: %s", err.Error())
 	}
-
-	// shows percentages, to the 1/100th
-	bar := pb.New64(100 * 100)
-	bar.AlwaysUpdate = true
-	bar.NotPrint = true
-	bar.RefreshRate = 250 * time.Millisecond
-	bar.Start()
 
 	oc := &OperationContext{
 		logFile:     logFile,

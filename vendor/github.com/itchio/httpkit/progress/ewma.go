@@ -1,4 +1,4 @@
-package pb
+package progress
 
 const (
 	// AverageMetricAge average over a one-minute period, which means the average

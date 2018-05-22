@@ -9,8 +9,8 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	"github.com/itchio/butler/endpoints/install"
-	"github.com/itchio/butler/progress"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 
 	"github.com/itchio/butler/butlerd"
@@ -62,8 +62,8 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}
 		conn := loopbackconn.New(consumer)
 
-		counter := progress.NewCounter()
-		counter.Start()
+		tracker := progress.NewTracker()
+		tracker.Start()
 
 		cancel := make(chan struct{})
 		var once sync.Once
@@ -78,9 +78,9 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 					tsc.OnState(&butlerd.PrereqsTaskStateNotification{
 						Name:     name,
 						Status:   butlerd.PrereqStatusDownloading,
-						Progress: counter.Progress(),
-						ETA:      counter.ETA().Seconds(),
-						BPS:      counter.BPS(),
+						Progress: tracker.Progress(),
+						ETA:      tracker.ETA().Seconds(),
+						BPS:      tracker.BPS(),
 					})
 				case <-cancel:
 					return
@@ -90,7 +90,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 
 		taskConsumer := &state.Consumer{
 			OnProgress: func(progress float64) {
-				counter.SetProgress(progress)
+				tracker.SetProgress(progress)
 			},
 		}
 

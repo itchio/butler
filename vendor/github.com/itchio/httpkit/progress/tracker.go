@@ -4,58 +4,57 @@ import (
 	"sync"
 	"time"
 
-	"github.com/itchio/butler/pb"
 	"github.com/itchio/httpkit/timeout"
 )
 
 var maxBucketDuration = 1 * time.Second
 
-type Counter struct {
+type Tracker struct {
 	lastBandwidthUpdate time.Time
 	lastBandwidthAlpha  float64
 	bps                 float64
-	bar                 *pb.ProgressBar
+	bar                 *Bar
 	alpha               float64
 	lock                sync.Mutex
 }
 
-func NewCounter() *Counter {
-	bar := pb.New64(100 * 100)
+func NewTracker() *Tracker {
+	bar := NewBar(100 * 100)
 	bar.AlwaysUpdate = true
 	bar.RefreshRate = 125 * time.Millisecond
 
-	return &Counter{
+	return &Tracker{
 		// show to the 1/100ths of a percent (1/10000th of an alpha)
 		bar: bar,
 	}
 }
 
-func (c *Counter) SetTotalBytes(totalBytes int64) {
+func (c *Tracker) SetTotalBytes(totalBytes int64) {
 	c.bar.TotalBytes = totalBytes
 }
 
-func (c *Counter) SetSilent(silent bool) {
+func (c *Tracker) SetSilent(silent bool) {
 	c.bar.NotPrint = silent
 }
 
-func (c *Counter) Start() {
+func (c *Tracker) Start() {
 	c.bar.Start()
 }
 
-func (c *Counter) Finish() {
+func (c *Tracker) Finish() {
 	c.bar.Postfix("")
 	c.bar.Finish()
 }
 
-func (c *Counter) Pause() {
+func (c *Tracker) Pause() {
 	c.bar.AlwaysUpdate = false
 }
 
-func (c *Counter) Resume() {
+func (c *Tracker) Resume() {
 	c.bar.AlwaysUpdate = true
 }
 
-func (c *Counter) SetProgress(alpha float64) {
+func (c *Tracker) SetProgress(alpha float64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -81,23 +80,23 @@ func (c *Counter) SetProgress(alpha float64) {
 	c.bar.Set64(alphaToValue(alpha))
 }
 
-func (c *Counter) Progress() float64 {
+func (c *Tracker) Progress() float64 {
 	return c.alpha
 }
 
-func (c *Counter) ETA() time.Duration {
+func (c *Tracker) ETA() time.Duration {
 	return c.bar.GetTimeLeft()
 }
 
-func (c *Counter) BPS() float64 {
+func (c *Tracker) BPS() float64 {
 	return timeout.GetBPS()
 }
 
-func (c *Counter) WorkBPS() float64 {
+func (c *Tracker) WorkBPS() float64 {
 	return c.bps
 }
 
-func (c *Counter) Bar() *pb.ProgressBar {
+func (c *Tracker) Bar() *Bar {
 	return c.bar
 }
 

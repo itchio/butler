@@ -1,5 +1,5 @@
 // Simple console progress bars
-package pb
+package progress
 
 import (
 	"fmt"
@@ -18,14 +18,9 @@ const (
 	FORMAT               = "[=>-]"
 )
 
-// Create new progress bar object
-func New(total int) *ProgressBar {
-	return New64(int64(total))
-}
-
-// Create new progress bar object uding int64 as total
-func New64(total int64) *ProgressBar {
-	pb := &ProgressBar{
+// Create new progress bar object using int64 as total
+func NewBar(total int64) *Bar {
+	pb := &Bar{
 		Total:         total,
 		RefreshRate:   DEFAULT_REFRESH_RATE,
 		ShowPercent:   true,
@@ -46,8 +41,8 @@ func New64(total int64) *ProgressBar {
 }
 
 // Create new object and start
-func StartNew(total int) *ProgressBar {
-	return New(total).Start()
+func StartNewBar(total int64) *Bar {
+	return NewBar(total).Start()
 }
 
 // Callback for custom output
@@ -58,7 +53,7 @@ func StartNew(total int) *ProgressBar {
 //
 type Callback func(out string)
 
-type ProgressBar struct {
+type Bar struct {
 	current int64 // current must be first member of struct (https://code.google.com/p/go/issues/detail?id=5278)
 
 	Total                            int64
@@ -107,7 +102,7 @@ type ProgressBar struct {
 }
 
 // Start print
-func (pb *ProgressBar) Start() *ProgressBar {
+func (pb *Bar) Start() *Bar {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -124,7 +119,7 @@ func (pb *ProgressBar) Start() *ProgressBar {
 }
 
 // Set64 sets the current value as int64
-func (pb *ProgressBar) Set64(current int64) *ProgressBar {
+func (pb *Bar) Set64(current int64) *Bar {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -132,7 +127,7 @@ func (pb *ProgressBar) Set64(current int64) *ProgressBar {
 	return pb
 }
 
-func (pb *ProgressBar) SetScale(scale float64) *ProgressBar {
+func (pb *Bar) SetScale(scale float64) *Bar {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -141,7 +136,7 @@ func (pb *ProgressBar) SetScale(scale float64) *ProgressBar {
 }
 
 // Set prefix string
-func (pb *ProgressBar) Prefix(prefix string) *ProgressBar {
+func (pb *Bar) Prefix(prefix string) *Bar {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -150,7 +145,7 @@ func (pb *ProgressBar) Prefix(prefix string) *ProgressBar {
 }
 
 // Set postfix string
-func (pb *ProgressBar) Postfix(postfix string) *ProgressBar {
+func (pb *Bar) Postfix(postfix string) *Bar {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -161,7 +156,7 @@ func (pb *ProgressBar) Postfix(postfix string) *ProgressBar {
 // Set custom format for bar
 // Example: bar.Format("[=>_]")
 // Example: bar.Format("[\x00=\x00>\x00-\x00]") // \x00 is the delimiter
-func (pb *ProgressBar) Format(format string) *ProgressBar {
+func (pb *Bar) Format(format string) *Bar {
 	var formatEntries []string
 	if len(format) == 5 {
 		formatEntries = strings.Split(format, "")
@@ -179,7 +174,7 @@ func (pb *ProgressBar) Format(format string) *ProgressBar {
 }
 
 // Set bar refresh rate
-func (pb *ProgressBar) SetRefreshRate(rate time.Duration) *ProgressBar {
+func (pb *Bar) SetRefreshRate(rate time.Duration) *Bar {
 	pb.RefreshRate = rate
 	return pb
 }
@@ -187,27 +182,27 @@ func (pb *ProgressBar) SetRefreshRate(rate time.Duration) *ProgressBar {
 // Set units
 // bar.SetUnits(U_NO) - by default
 // bar.SetUnits(U_BYTES) - for Mb, Kb, etc
-func (pb *ProgressBar) SetUnits(units Units) *ProgressBar {
+func (pb *Bar) SetUnits(units Units) *Bar {
 	pb.Units = units
 	return pb
 }
 
 // Set max width, if width is bigger than terminal width, will be ignored
-func (pb *ProgressBar) SetMaxWidth(width int) *ProgressBar {
+func (pb *Bar) SetMaxWidth(width int) *Bar {
 	pb.Width = width
 	pb.ForceWidth = false
 	return pb
 }
 
 // Set bar width
-func (pb *ProgressBar) SetWidth(width int) *ProgressBar {
+func (pb *Bar) SetWidth(width int) *Bar {
 	pb.Width = width
 	pb.ForceWidth = true
 	return pb
 }
 
 // End print
-func (pb *ProgressBar) Finish() {
+func (pb *Bar) Finish() {
 	// Protect multiple calls
 	pb.finishOnce.Do(func() {
 		pb.mu.Lock()
@@ -222,7 +217,7 @@ func (pb *ProgressBar) Finish() {
 	})
 }
 
-func (pb *ProgressBar) write(current int64) {
+func (pb *Bar) write(current int64) {
 	width := pb.GetWidth() - 1
 
 	var percentBox, countersBox, timeLeftBox, speedBox, barBox, end, out string
@@ -359,7 +354,7 @@ func min(a, b int) int {
 	return b
 }
 
-func (pb *ProgressBar) GetWidth() int {
+func (pb *Bar) GetWidth() int {
 	if pb.ForceWidth {
 		return pb.Width
 	}
@@ -369,7 +364,7 @@ func (pb *ProgressBar) GetWidth() int {
 }
 
 // Write the current state of the progressbar
-func (pb *ProgressBar) Update() {
+func (pb *Bar) Update() {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 
@@ -380,12 +375,12 @@ func (pb *ProgressBar) Update() {
 	}
 }
 
-func (pb *ProgressBar) GOString() string {
+func (pb *Bar) GOString() string {
 	return pb.lastPrint
 }
 
 // Internal loop for writing progressbar
-func (pb *ProgressBar) writer() {
+func (pb *Bar) writer() {
 	pb.Update()
 	for {
 		select {
@@ -397,11 +392,11 @@ func (pb *ProgressBar) writer() {
 	}
 }
 
-func (pb *ProgressBar) CurrentValue() int64 {
+func (pb *Bar) CurrentValue() int64 {
 	return pb.currentValue
 }
 
-func (pb *ProgressBar) GetTimeLeft() time.Duration {
+func (pb *Bar) GetTimeLeft() time.Duration {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
 	return pb.TimeLeft

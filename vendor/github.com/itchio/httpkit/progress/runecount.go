@@ -1,4 +1,4 @@
-package pb
+package progress
 
 import (
 	"regexp"

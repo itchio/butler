@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/itchio/butler/pb"
-	"github.com/itchio/butler/progress"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 )
 
-var counter *progress.Counter
+var tracker *progress.Tracker
 
 var lastProgressAlpha = 0.0
 
-func ApplyTheme(bar *pb.ProgressBar, th *state.ProgressTheme) {
+func ApplyTheme(bar *progress.Bar, th *state.ProgressTheme) {
 	bar.BarStart = th.BarStart
 	bar.BarEnd = th.BarEnd
 	bar.Current = th.Current
@@ -25,14 +24,14 @@ const maxLabelLength = 40
 
 // ProgressLabel sets the string printed next to the progress indicator
 func ProgressLabel(label string) {
-	if counter == nil {
+	if tracker == nil {
 		return
 	}
 
 	if len(label) > maxLabelLength {
 		label = fmt.Sprintf("...%s", label[len(label)-(maxLabelLength-3):])
 	}
-	counter.Bar().Postfix(label)
+	tracker.Bar().Postfix(label)
 }
 
 // StartProgress begins a period in which progress is regularly printed
@@ -43,13 +42,13 @@ func StartProgress() {
 // StartProgressWithTotalBytes begins a period in which progress is regularly printed,
 // and bps (bytes per second) is estimated from the total size given
 func StartProgressWithTotalBytes(totalBytes int64) {
-	if counter != nil {
+	if tracker != nil {
 		// Already in-progress
 		return
 	}
 
-	counter = progress.NewCounter()
-	bar := counter.Bar()
+	tracker = progress.NewTracker()
+	bar := tracker.Bar()
 
 	bar.ShowCounters = false
 	bar.ShowFinalTime = false
@@ -57,29 +56,29 @@ func StartProgressWithTotalBytes(totalBytes int64) {
 	bar.BarWidth = 20
 	bar.SetMaxWidth(80)
 
-	counter.SetTotalBytes(totalBytes)
-	counter.SetProgress(lastProgressAlpha)
+	tracker.SetTotalBytes(totalBytes)
+	tracker.SetProgress(lastProgressAlpha)
 
 	if settings.noProgress || settings.json {
 		// use bar for ETA, but don't print
-		counter.SetSilent(true)
+		tracker.SetSilent(true)
 	}
 
 	ApplyTheme(bar, state.GetTheme())
-	counter.Start()
+	tracker.Start()
 }
 
 // PauseProgress temporarily stops printing the progress bar
 func PauseProgress() {
-	if counter != nil {
-		counter.Pause()
+	if tracker != nil {
+		tracker.Pause()
 	}
 }
 
 // ResumeProgress resumes printing the progress bar after PauseProgress was called
 func ResumeProgress() {
-	if counter != nil {
-		counter.Resume()
+	if tracker != nil {
+		tracker.Resume()
 	}
 }
 
@@ -91,11 +90,11 @@ var maxJsonPrintDuration = 500 * time.Millisecond
 func Progress(alpha float64) {
 	lastProgressAlpha = alpha
 
-	if counter == nil {
+	if tracker == nil {
 		return
 	}
 
-	counter.SetProgress(alpha)
+	tracker.SetProgress(alpha)
 
 	if lastJsonPrintTime.IsZero() {
 		lastJsonPrintTime = time.Now()
@@ -107,8 +106,8 @@ func Progress(alpha float64) {
 		send("progress", JsonMessage{
 			"progress":   alpha,
 			"percentage": alpha * 100.0,
-			"eta":        counter.ETA().Seconds(),
-			"bps":        counter.BPS(),
+			"eta":        tracker.ETA().Seconds(),
+			"bps":        tracker.BPS(),
 		})
 	}
 }
@@ -120,16 +119,16 @@ func ProgressScale(scale float64) {
 		return
 	}
 
-	if counter != nil {
-		counter.Bar().SetScale(scale)
+	if tracker != nil {
+		tracker.Bar().SetScale(scale)
 	}
 }
 
 // EndProgress stops refreshing the progress bar and erases it.
 func EndProgress() {
-	if counter != nil {
-		counter.SetProgress(1.0)
-		counter.Finish()
-		counter = nil
+	if tracker != nil {
+		tracker.SetProgress(1.0)
+		tracker.Finish()
+		tracker = nil
 	}
 }
