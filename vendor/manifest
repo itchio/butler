@@ -320,7 +320,7 @@
 			"importpath": "github.com/itchio/sevenzip-go",
 			"repository": "https://github.com/itchio/sevenzip-go",
 			"vcs": "git",
-			"revision": "92f02c2a5ab6b95d97063157be3425fae9587216",
+			"revision": "4659fbb95b944bf3e963f8b099d7deb38b806fb8",
 			"branch": "master",
 			"notests": true
 		},

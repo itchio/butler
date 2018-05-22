@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/sevenzip-go/sz"
 	"github.com/pkg/errors"
 )
@@ -220,7 +220,7 @@ func (e *ecs) GetStream(item *sz.Item) (*sz.OutStream, error) {
 
 func (e *ecs) SetProgress(complete int64, total int64) {
 	log.Printf("Progress: %s / %s",
-		humanize.IBytes(uint64(complete)),
-		humanize.IBytes(uint64(total)),
+		progress.FormatBytes(complete),
+		progress.FormatBytes(total),
 	)
 }
