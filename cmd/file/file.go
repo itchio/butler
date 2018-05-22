@@ -5,12 +5,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/fasterthanlime/spellbook"
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
+	"github.com/itchio/spellbook"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pwr"

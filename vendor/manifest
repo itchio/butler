@@ -99,14 +99,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/fasterthanlime/spellbook",
-			"repository": "https://github.com/fasterthanlime/spellbook",
-			"vcs": "git",
-			"revision": "232323d3ecd1f61828649edcce74e03d1ecfa216",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/getlantern/context",
 			"repository": "https://github.com/getlantern/context",
 			"vcs": "git",
@@ -329,6 +321,14 @@
 			"repository": "https://github.com/itchio/smaug",
 			"vcs": "git",
 			"revision": "9aa4038b390dca56a5b72704c1c85aec95b86106",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/spellbook",
+			"repository": "https://github.com/itchio/spellbook",
+			"vcs": "git",
+			"revision": "98649825c402139ef1b75792f9b42d0e92d4c26e",
 			"branch": "master",
 			"notests": true
 		},
