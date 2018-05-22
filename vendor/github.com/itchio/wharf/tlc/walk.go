@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/itchio/arkive/zip"
+	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/wharf/eos"
 	"github.com/pkg/errors"
@@ -346,6 +347,16 @@ func WalkZip(zr *zip.Reader, opts *WalkOpts) (*Container, error) {
 func (container *Container) Stats() string {
 	return fmt.Sprintf("%d files, %d dirs, %d symlinks",
 		len(container.Files), len(container.Dirs), len(container.Symlinks))
+}
+
+var _ fmt.Formatter = (*Container)(nil)
+
+// Stats return a human-readable summary of the contents of a container
+func (container *Container) Format(f fmt.State, c rune) {
+	fmt.Fprintf(f, "%s (%s)",
+		progress.FormatBytes(container.Size),
+		container.Stats(),
+	)
 }
 
 // IsSingleFile returns true if the container contains
