@@ -53,6 +53,11 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 		needFetch := false
 		wantFetch := false
 
+		err := os.MkdirAll(pc.PrereqsDir, 0755)
+		if err != nil {
+			return nil, err
+		}
+
 		cachedRegistryPath := filepath.Join(pc.PrereqsDir, "info.json")
 		stats, err := os.Stat(cachedRegistryPath)
 		if err != nil {
