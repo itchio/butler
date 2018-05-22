@@ -30,8 +30,8 @@ func (i *instance) Check(consumer *state.Consumer) error {
 
 		if en, ok := winox.AsErrno(err); ok {
 			switch en {
-			case syscallex.ERROR_PASSWORD_EXPIRED:
-			case syscallex.ERROR_PASSWORD_MUST_CHANGE:
+			case syscallex.ERROR_PASSWORD_EXPIRED,
+				syscallex.ERROR_PASSWORD_MUST_CHANGE:
 				// Some Windows versions (10 for example) expire password automatically.
 				// Thankfully, we can renew it without administrator access, simply by using the old one.
 				consumer.Opf("Password has expired, setting new password...")
