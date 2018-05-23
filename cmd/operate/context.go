@@ -142,6 +142,7 @@ func (oc *OperationContext) Save(s Subcontext) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	defer f.Close()
 
 	err = json.NewEncoder(f).Encode(&oc.root)
 	if err != nil {
@@ -152,8 +153,6 @@ func (oc *OperationContext) Save(s Subcontext) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
-	defer f.Close()
 
 	return nil
 }
