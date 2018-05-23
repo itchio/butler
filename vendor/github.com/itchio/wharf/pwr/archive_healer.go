@@ -6,18 +6,19 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 
 	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/wharf/ctxcopy"
+	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/werrors"
 
 	"github.com/itchio/arkive/zip"
 
 	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pools/zippool"
 	"github.com/itchio/wharf/state"
@@ -33,6 +34,11 @@ type ArchiveHealer struct {
 
 	// an eos path for the archive
 	ArchivePath string
+
+	archiveFile    eos.File
+	archiveFileErr error
+	archiveLock    sync.Mutex
+	archiveOnce    sync.Once
 
 	// number of workers running in parallel
 	NumWorkers int
@@ -82,6 +88,12 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 		atomic.AddInt64(&ah.totalHealed, healedChunk)
 		ah.updateProgress()
 	}
+
+	defer func() {
+		if ah.archiveFile != nil {
+			ah.archiveFile.Close()
+		}
+	}()
 
 	for i := 0; i < ah.NumWorkers; i++ {
 		go func() {
@@ -195,6 +207,22 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 	return nil
 }
 
+func (ah *ArchiveHealer) openArchive() (eos.File, error) {
+	ah.archiveLock.Lock()
+	defer ah.archiveLock.Unlock()
+
+	ah.archiveOnce.Do(func() {
+		if ah.Consumer != nil {
+			ah.Consumer.Debugf("opening archive for worker!")
+		}
+
+		file, err := eos.Open(ah.ArchivePath, option.WithConsumer(ah.Consumer))
+		ah.archiveFile = file
+		ah.archiveFileErr = err
+	})
+	return ah.archiveFile, ah.archiveFileErr
+}
+
 func (ah *ArchiveHealer) heal(ctx context.Context, container *tlc.Container, targetPool wsync.WritablePool,
 	fileIndices chan int64, chunkHealed chunkHealedFunc) error {
 
@@ -214,16 +242,10 @@ func (ah *ArchiveHealer) heal(ctx context.Context, container *tlc.Container, tar
 
 			// lazily open file
 			if sourcePool == nil {
-				if ah.Consumer != nil {
-					ah.Consumer.Debugf("opening archive for worker!")
-				}
-
-				file, err := eos.Open(ah.ArchivePath, option.WithConsumer(ah.Consumer))
+				file, err := ah.openArchive()
 				if err != nil {
 					return errors.WithStack(err)
 				}
-
-				defer file.Close()
 
 				stat, err := file.Stat()
 				if err != nil {

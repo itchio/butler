@@ -49,7 +49,7 @@ func FormatBPSValue(bps float64) string {
 }
 
 func FormatBPS(size int64, duration time.Duration) string {
-	return FormatBPSValue(float64(size) * duration.Seconds())
+	return FormatBPSValue(float64(size) / duration.Seconds())
 }
 
 func FormatDuration(d time.Duration) string {
