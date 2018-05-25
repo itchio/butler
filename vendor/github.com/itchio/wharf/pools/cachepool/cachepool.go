@@ -81,7 +81,11 @@ func (cp *CachePool) Preload(fileIndex int64) error {
 // GetReader returns a reader for the file at index fileIndex,
 // once the file has been preloaded successfully.
 func (cp *CachePool) GetReader(fileIndex int64) (io.Reader, error) {
-	return cp.GetReadSeeker(fileIndex)
+	// this will block until the channel is closed,
+	// or immediately succeed if it's already closed
+	<-cp.fileChans[fileIndex]
+
+	return cp.cache.GetReader(fileIndex)
 }
 
 // GetReadSeeker is a version of GetReader that returns an io.ReadSeeker
