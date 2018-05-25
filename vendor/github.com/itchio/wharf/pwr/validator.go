@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"sync/atomic"
 
+	"github.com/itchio/wharf/tlc"
+
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/pools/nullpool"
@@ -377,6 +379,16 @@ func AssertValid(target string, signature *SignatureInfo) error {
 	}
 
 	return nil
+}
+
+func AssertNoGhosts(target string, signature *SignatureInfo) error {
+	refContainer := signature.Container
+	gotContainer, err := tlc.WalkAny(target, &tlc.WalkOpts{})
+	if err != nil {
+		return err
+	}
+
+	return refContainer.EnsureEqual(gotContainer)
 }
 
 // IsNotExist is a variant of os.IsNotExist that works with nested errors
