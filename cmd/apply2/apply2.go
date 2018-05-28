@@ -34,8 +34,8 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("apply2", "(Advanced) Use a patch to resumably patch a directory to a new version")
 	cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().StringVar(&args.patch)
 	cmd.Arg("old", "Directory with old files").Required().StringVar(&args.old)
-	cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').Required().StringVar(&args.dir)
-	cmd.Flag("staging-dir", "Directory for temporary files").StringVar(&args.stagingDir)
+	cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').StringVar(&args.dir)
+	cmd.Flag("staging-dir", "Directory for temporary files").Required().StringVar(&args.stagingDir)
 	cmd.Flag("stop-early", "Stop after emitting checkpoint").Hidden().BoolVar(&args.stopEarly)
 	cmd.Flag("simulate-restart", "Simulate restarting").Hidden().BoolVar(&args.simulateRestart)
 	ctx.Register(cmd, func(ctx *mansion.Context) {
@@ -62,6 +62,13 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	patch := args.patch
 	old := args.old
 	dir := args.dir
+	stagingDir := args.stagingDir
+
+	if dir != "" {
+		consumer.Opf("Patching %s (in-place)", old)
+	} else {
+		consumer.Opf("Patching %s (fresh)", dir)
+	}
 
 	patchSource, err := filesource.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
@@ -73,11 +80,10 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		return errors.WithMessage(err, "creating patcher")
 	}
 
-	consumer.Opf("Patching %s", dir)
 	comm.StartProgressWithTotalBytes(patchSource.Size())
 
 	var checkpoint *patcher.Checkpoint
-	checkpointPath := path.Join(dir, "checkpoint.bwl")
+	checkpointPath := path.Join(stagingDir, "checkpoint.bwl")
 
 	checkpointFile, err := os.Open(checkpointPath)
 	if err != nil {
@@ -136,7 +142,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	targetPool := fspool.New(p.GetTargetContainer(), old)
 
 	var bwl bowl.Bowl
-	if args.stagingDir == "" {
+	if dir != "" {
 		consumer.Infof("Using fresh bowl")
 		bwl, err = bowl.NewFreshBowl(&bowl.FreshBowlParams{
 			SourceContainer: p.GetSourceContainer(),
@@ -149,9 +155,8 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		bwl, err = bowl.NewOverlayBowl(&bowl.OverlayBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
-			TargetPool:      targetPool,
-			OutputFolder:    dir,
-			StageFolder:     args.stagingDir,
+			OutputFolder:    old,
+			StageFolder:     stagingDir,
 		})
 	}
 	if err != nil {

@@ -47,7 +47,6 @@ var _ Bowl = (*overlayBowl)(nil)
 
 type OverlayBowlParams struct {
 	TargetContainer *tlc.Container
-	TargetPool      wsync.Pool
 	SourceContainer *tlc.Container
 
 	OutputFolder string
@@ -61,10 +60,6 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 		return nil, errors.New("overlaybowl: TargetContainer must not be nil")
 	}
 
-	if params.TargetPool == nil {
-		return nil, errors.New("overlaybowl: TargetPool must not be nil")
-	}
-
 	if params.SourceContainer == nil {
 		return nil, errors.New("overlaybowl: SourceContainer must not be nil")
 	}
@@ -75,38 +70,27 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 		}
 
 		stats, err := os.Stat(params.OutputFolder)
-		if err == nil {
-			if !stats.IsDir() {
-				return nil, errors.New("overlaybowl: OutputFolder (if it exists) must be a directory")
-			}
+		if err != nil {
+			return nil, errors.New("overlaybowl: OutputFolder must exist")
+		}
+
+		if !stats.IsDir() {
+			return nil, errors.New("overlaybowl: OutputFolder must exist and be a directory")
 		}
 	}
 
-	{
-		if params.StageFolder == "" {
-			return nil, errors.New("overlaybowl: StageFolder must not be nil")
-		}
-
-		stats, err := os.Stat(params.StageFolder)
-		if err == nil {
-			if !stats.IsDir() {
-				return nil, errors.New("overlaybowl: StageFolder (if it exists) must be a directory")
-			}
-		}
+	if params.StageFolder == "" {
+		return nil, errors.New("overlaybowl: StageFolder must not be nil")
 	}
 
 	var err error
-
-	err = os.MkdirAll(params.OutputFolder, 0755)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	err = os.MkdirAll(params.StageFolder, 0755)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
+	targetPool := fspool.New(params.TargetContainer, params.OutputFolder)
 	stagePool := fspool.New(params.SourceContainer, params.StageFolder)
 
 	targetFilesByPath := make(map[string]int64)
@@ -116,7 +100,7 @@ func NewOverlayBowl(params *OverlayBowlParams) (Bowl, error) {
 
 	return &overlayBowl{
 		TargetContainer: params.TargetContainer,
-		TargetPool:      params.TargetPool,
+		TargetPool:      targetPool,
 		SourceContainer: params.SourceContainer,
 
 		OutputFolder: params.OutputFolder,
@@ -542,7 +526,7 @@ func (ob *overlayBowl) applyOverlays() error {
 		defer r.Close()
 
 		outputPath := filepath.Join(ob.OutputFolder, nativePath)
-		w, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		w, err := os.OpenFile(outputPath, os.O_WRONLY, 0644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -720,13 +704,20 @@ type overlayEntryWriter struct {
 	path       string
 	readSeeker io.ReadSeeker
 	f          *os.File
-	ow         overlay.WriteFlushCloser
+	ow         overlay.OverlayWriter
 
-	readOffset  int64
-	writeOffset int64
+	// this is how far into the source (new) file we are.
+	// it doesn't correspond with `OverlayOffset`, which is
+	// how many bytes of output the OverlayWriter has produced.
+	sourceOffset int64
 }
 
 type OverlayEntryWriterCheckpoint struct {
+	// This offset is how many bytes we've written into the
+	// overlay, not how many bytes into the new file we are.
+	OverlayOffset int64
+
+	// This offset is how many bytes we've read from the target (old) file
 	ReadOffset int64
 }
 
@@ -735,7 +726,7 @@ func init() {
 }
 
 func (oew *overlayEntryWriter) Tell() int64 {
-	return oew.writeOffset
+	return oew.sourceOffset
 }
 
 func (oew *overlayEntryWriter) Save() (*Checkpoint, error) {
@@ -749,15 +740,11 @@ func (oew *overlayEntryWriter) Save() (*Checkpoint, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	readOffset, err := oew.readSeeker.Seek(0, io.SeekCurrent)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
 	c := &Checkpoint{
-		Offset: oew.writeOffset,
+		Offset: oew.sourceOffset,
 		Data: &OverlayEntryWriterCheckpoint{
-			ReadOffset: readOffset,
+			OverlayOffset: oew.ow.WriteOffset(),
+			ReadOffset:    oew.ow.ReadOffset(),
 		},
 	}
 	return c, nil
@@ -789,19 +776,28 @@ func (oew *overlayEntryWriter) Resume(c *Checkpoint) (int64, error) {
 		}
 
 		// now the writer
-		_, err = f.Seek(c.Offset, io.SeekStart)
+		_, err = f.Seek(oewc.OverlayOffset, io.SeekStart)
 		if err != nil {
 			return 0, errors.WithStack(err)
 		}
 
-		oew.writeOffset = c.Offset
-		oew.readOffset = oewc.ReadOffset
+		oew.sourceOffset = c.Offset
+
+		r := oew.readSeeker
+		oew.ow = overlay.NewOverlayWriter(r, oewc.ReadOffset, f, oewc.OverlayOffset)
+	} else {
+		// the pool we got the readSeeker from doesn't need to give us a reader from 0,
+		// so we need to seek here
+		_, err = oew.readSeeker.Seek(0, io.SeekStart)
+		if err != nil {
+			return 0, errors.WithStack(err)
+		}
+
+		r := oew.readSeeker
+		oew.ow = overlay.NewOverlayWriter(r, 0, f, 0)
 	}
 
-	r := oew.readSeeker
-	oew.ow = overlay.NewOverlayWriter(r, f)
-
-	return oew.writeOffset, nil
+	return oew.sourceOffset, nil
 }
 
 func (oew *overlayEntryWriter) Write(buf []byte) (int, error) {
@@ -810,7 +806,7 @@ func (oew *overlayEntryWriter) Write(buf []byte) (int, error) {
 	}
 
 	n, err := oew.ow.Write(buf)
-	oew.writeOffset += int64(n)
+	oew.sourceOffset += int64(n)
 	return n, err
 }
 
