@@ -23,15 +23,23 @@ const BlockSize int64 = 64 * 1024 // 64k
 var TestSymlinks = (runtime.GOOS != "windows")
 
 type TestDirEntry struct {
-	Path   string
-	Mode   int
-	Size   int64
-	Seed   int64
-	Dir    bool
-	Dest   string
-	Chunks []TestDirChunk
-	Bsmods []Bsmod
-	Data   []byte
+	Path      string
+	Mode      int
+	Size      int64
+	Seed      int64
+	Dir       bool
+	Dest      string
+	Chunks    []TestDirChunk
+	Bsmods    []Bsmod
+	Swaperoos []Swaperoo
+	Data      []byte
+}
+
+// Swaperoo swaps two blocks of the file
+type Swaperoo struct {
+	OldStart int64
+	NewStart int64
+	Size     int64
 }
 
 // Bsmode represents a bsdiff-like corruption
@@ -108,21 +116,20 @@ func MakeTestDir(t *testing.T, dir string, s TestDirSettings) {
 				size = entry.Size
 			}
 
-			f, fErr := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(mode))
-			Must(t, fErr)
-			defer f.Close()
+			f := new(bytes.Buffer)
+			var err error
 
 			if entry.Data != nil {
-				_, fErr = f.Write(entry.Data)
-				Must(t, fErr)
+				_, err = f.Write(entry.Data)
+				Must(t, err)
 			} else if len(entry.Chunks) > 0 {
 				for _, chunk := range entry.Chunks {
 					prng.Seed(chunk.Seed)
 					data.Reset()
 					data.Grow(int(chunk.Size))
 
-					_, fErr = io.CopyN(f, prng, chunk.Size)
-					Must(t, fErr)
+					_, err = io.CopyN(f, prng, chunk.Size)
+					Must(t, err)
 				}
 			} else if len(entry.Bsmods) > 0 {
 				func() {
@@ -154,13 +161,24 @@ func MakeTestDir(t *testing.T, dir string, s TestDirSettings) {
 						writer = drip
 					}
 
-					_, fErr = io.CopyN(writer, prng, size)
-					Must(t, fErr)
+					_, err = io.CopyN(writer, prng, size)
+					Must(t, err)
 				}()
 			} else {
-				_, fErr = io.CopyN(f, prng, size)
-				Must(t, fErr)
+				_, err = io.CopyN(f, prng, size)
+				Must(t, err)
 			}
+
+			finalBuf := f.Bytes()
+			for _, s := range entry.Swaperoos {
+				stagingBuf := make([]byte, s.Size)
+				copy(stagingBuf, finalBuf[s.OldStart:s.OldStart+s.Size])
+				copy(finalBuf[s.OldStart:s.OldStart+s.Size], finalBuf[s.NewStart:s.NewStart+s.Size])
+				copy(finalBuf[s.NewStart:s.NewStart+s.Size], stagingBuf)
+			}
+
+			err = ioutil.WriteFile(path, finalBuf, os.FileMode(mode))
+			Must(t, err)
 		}()
 	}
 }

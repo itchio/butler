@@ -68,7 +68,7 @@ func (ctx *PatchContext) NewIndividualPatchContext(old io.ReadSeeker, oldOffset 
 
 	ipc := &IndividualPatchContext{
 		parent:    ctx,
-		OldOffset: 0,
+		OldOffset: oldOffset,
 		out:       out,
 	}
 	return ipc, nil
