@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"sync"
+	"time"
 
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/state"
@@ -15,11 +17,13 @@ type resumableUpload struct {
 	consumer         *state.Consumer
 	progressListener ProgressListenerFunc
 
+	closed        bool
 	err           error
+	errMu         sync.RWMutex
+	pushedErr     chan struct{}
 	splitBuf      *bytes.Buffer
 	blocks        chan *rblock
 	done          chan struct{}
-	cancel        chan struct{}
 	chunkUploader *chunkUploader
 	id            int
 }
@@ -63,10 +67,10 @@ func NewResumableUpload(uploadURL string, opts ...Option) ResumableUpload {
 		maxChunkGroup: s.MaxChunkGroup,
 
 		err:           nil,
+		pushedErr:     make(chan struct{}, 0),
 		splitBuf:      new(bytes.Buffer),
-		blocks:        make(chan *rblock, s.MaxChunkGroup),
-		done:          make(chan struct{}),
-		cancel:        make(chan struct{}),
+		blocks:        make(chan *rblock),
+		done:          make(chan struct{}, 0),
 		chunkUploader: chunkUploader,
 		id:            id,
 	}
@@ -83,9 +87,11 @@ func (ru *resumableUpload) Write(buf []byte) (int, error) {
 
 	written := 0
 	for written < len(buf) {
-		if ru.err != nil {
-			close(ru.cancel)
-			return 0, ru.err
+		if err := ru.checkError(); err != nil {
+			return 0, err
+		}
+		if ru.closed {
+			return 0, nil
 		}
 
 		availRead := len(buf) - written
@@ -116,10 +122,14 @@ func (ru *resumableUpload) Write(buf []byte) (int, error) {
 
 // Close implements io.Closer.
 func (ru *resumableUpload) Close() error {
-	if ru.err != nil {
-		close(ru.cancel)
-		return ru.err
+	if err := ru.checkError(); err != nil {
+		return err
 	}
+
+	if ru.closed {
+		return nil
+	}
+	ru.closed = true
 
 	// flush!
 	data := ru.splitBuf.Bytes()
@@ -129,14 +139,13 @@ func (ru *resumableUpload) Close() error {
 	close(ru.blocks)
 
 	// wait for work() to be done
-	<-ru.done
+	select {
+	case <-ru.done: // muffin
+	case <-ru.pushedErr: // muffin
+	}
 
 	// return any errors
-	if ru.err != nil {
-		// no need to bother cancelling anymore, work() has returned
-		return ru.err
-	}
-	return nil
+	return ru.checkError()
 }
 
 func (ru *resumableUpload) SetConsumer(consumer *state.Consumer) {
@@ -161,7 +170,7 @@ func (ru *resumableUpload) work() {
 
 	// same as ru.blocks, but `.last` is set properly, no matter
 	// what the size is
-	annotatedBlocks := make(chan *rblock)
+	annotatedBlocks := make(chan *rblock, ru.maxChunkGroup)
 	go func() {
 		var lastBlock *rblock
 		defer close(annotatedBlocks)
@@ -180,7 +189,7 @@ func (ru *resumableUpload) work() {
 					annotatedBlocks <- lastBlock
 				}
 				lastBlock = b
-			case <-ru.cancel:
+			case <-ru.pushedErr:
 				// stop everything
 				return
 			}
@@ -200,7 +209,7 @@ aggregate:
 		{
 			// do a block receive for the first vlock
 			select {
-			case <-ru.cancel:
+			case <-ru.pushedErr:
 				// nevermind, stop everything
 				return
 			case block := <-annotatedBlocks:
@@ -211,7 +220,7 @@ aggregate:
 
 				_, err := sendBuf.Write(block.data)
 				if err != nil {
-					ru.err = errors.WithStack(err)
+					ru.pushError(errors.WithStack(err))
 					return
 				}
 				chunkGroupSize++
@@ -227,7 +236,7 @@ aggregate:
 	maximize:
 		for chunkGroupSize < ru.maxChunkGroup {
 			select {
-			case <-ru.cancel:
+			case <-ru.pushedErr:
 				// nevermind, stop everything
 				return
 			case block := <-annotatedBlocks:
@@ -238,7 +247,7 @@ aggregate:
 
 				_, err := sendBuf.Write(block.data)
 				if err != nil {
-					ru.err = errors.WithStack(err)
+					ru.pushError(errors.WithStack(err))
 					return
 				}
 				chunkGroupSize++
@@ -247,7 +256,7 @@ aggregate:
 					// done receiving blocks
 					break aggregate
 				}
-			default:
+			case <-time.After(100 * time.Millisecond):
 				// no more blocks available right now, that's ok
 				// let's just send what we got
 				break maximize
@@ -258,7 +267,7 @@ aggregate:
 		ru.debugf("Uploading %d chunks", chunkGroupSize)
 		err := ru.chunkUploader.put(sendBuf.Bytes(), false)
 		if err != nil {
-			ru.err = errors.WithStack(err)
+			ru.pushError(errors.WithStack(err))
 			return
 		}
 	}
@@ -267,7 +276,7 @@ aggregate:
 	ru.debugf("Uploading last %d chunks", chunkGroupSize)
 	err := ru.chunkUploader.put(sendBuf.Bytes(), true)
 	if err != nil {
-		ru.err = errors.WithStack(err)
+		ru.pushError(errors.WithStack(err))
 		return
 	}
 }
@@ -277,4 +286,22 @@ func (ru *resumableUpload) debugf(msg string, args ...interface{}) {
 		fmsg := fmt.Sprintf(msg, args...)
 		ru.consumer.Debugf("[ru-%d] %s", ru.id, fmsg)
 	}
+}
+
+func (ru *resumableUpload) checkError() error {
+	ru.errMu.RLock()
+	err := ru.err
+	ru.errMu.RUnlock()
+	return err
+}
+
+func (ru *resumableUpload) pushError(err error) {
+	ru.errMu.Lock()
+	if ru.err != nil {
+		ru.errMu.Unlock()
+		return
+	}
+	ru.err = err
+	close(ru.pushedErr)
+	ru.errMu.Unlock()
 }

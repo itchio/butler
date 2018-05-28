@@ -138,7 +138,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 		expectedOffset := cu.offset + buflen
 		rangeHeader := res.Header.Get("Range")
 		if rangeHeader == "" {
-			cu.debugf("X Commit failed (null range), retrying")
+			cu.debugf("❌ Commit failed (null range), retrying")
 			return &retryError{committedBytes: 0}
 		}
 
@@ -168,7 +168,7 @@ func (cu *chunkUploader) tryPut(buf []byte, last bool) error {
 			return &retryError{committedBytes}
 		}
 
-		cu.debugf("X Commit failed (retrying %d blocks)", buflen/gcsChunkSize)
+		cu.debugf("❌ Commit failed (retrying %d blocks)", buflen/gcsChunkSize)
 		return &retryError{committedBytes}
 	}
 
