@@ -2,6 +2,7 @@ package apply2
 
 import (
 	"encoding/gob"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -15,49 +16,49 @@ import (
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
+	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
 var args = struct {
-	patch     *string
-	dir       *string
-	old       *string
-	stopEarly *bool
+	patch           string
+	dir             string
+	old             string
+	stopEarly       bool
+	simulateRestart bool
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("apply2", "(Advanced) Use a patch to resumably patch a directory to a new version")
-	args.patch = cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().String()
-	args.old = cmd.Arg("old", "Directory with old files").Required().String()
-	args.dir = cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').Required().String()
-	args.stopEarly = cmd.Flag("stop-early", "Stop after emitting checkpoint").Bool()
-	ctx.Register(cmd, do)
+	cmd.Arg("patch", "Patch file (.pwr), previously generated with the `diff` command.").Required().StringVar(&args.patch)
+	cmd.Arg("old", "Directory with old files").Required().StringVar(&args.old)
+	cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').Required().StringVar(&args.dir)
+	cmd.Flag("stop-early", "Stop after emitting checkpoint").Hidden().BoolVar(&args.stopEarly)
+	cmd.Flag("simulate-restart", "Simulate restarting").Hidden().BoolVar(&args.simulateRestart)
+	ctx.Register(cmd, func(ctx *mansion.Context) {
+		consumer := comm.NewStateConsumer()
+		for {
+			err := Do(ctx, consumer)
+			if errors.Cause(err) == patcher.ErrStop {
+				consumer.Statf("Stopped early!")
+				if args.simulateRestart {
+					log.Printf("Restarting!")
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
+			}
+			ctx.Must(err)
+			break
+		}
+	})
 }
 
-func do(ctx *mansion.Context) {
-	ctx.Must(Do(&Params{
-		Patch:     *args.patch,
-		Old:       *args.old,
-		Dir:       *args.dir,
-		StopEarly: *args.stopEarly,
-	}))
-}
-
-type Params struct {
-	Patch     string
-	Old       string
-	Dir       string
-	StopEarly bool
-}
-
-func Do(params *Params) error {
+func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	startTime := time.Now()
 
-	patch := params.Patch
-	old := params.Old
-	dir := params.Dir
-
-	consumer := comm.NewStateConsumer()
+	patch := args.patch
+	old := args.old
+	dir := args.dir
 
 	patchSource, err := filesource.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
@@ -122,7 +123,7 @@ func Do(params *Params) error {
 				return patcher.AfterSaveStop, errors.Wrap(err, "committing checkpoint file")
 			}
 
-			if params.StopEarly {
+			if args.stopEarly || args.simulateRestart {
 				return patcher.AfterSaveStop, nil
 			}
 			return patcher.AfterSaveContinue, nil
@@ -145,8 +146,7 @@ func Do(params *Params) error {
 	if err != nil {
 		if errors.Cause(err) == patcher.ErrStop {
 			comm.EndProgress()
-			consumer.Statf("Stopped early!")
-			return nil
+			return err
 		}
 		return errors.Wrap(err, "patching")
 	}
@@ -154,7 +154,7 @@ func Do(params *Params) error {
 
 	out := p.GetSourceContainer()
 	duration := time.Since(startTime)
-	consumer.Statf("%s (%s) @ %s / s (%s total)",
+	consumer.Statf("%s (%s) @ %s (%s total)",
 		progress.FormatBytes(out.Size), out.Stats(),
 		progress.FormatBPS(out.Size, duration),
 		progress.FormatDuration(duration))

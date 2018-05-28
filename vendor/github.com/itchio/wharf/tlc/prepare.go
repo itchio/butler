@@ -55,7 +55,7 @@ func (c *Container) prepareDir(basePath string, dirEntry *Dir) error {
 
 func (c *Container) prepareFile(basePath string, fileEntry *File) error {
 	fullPath := filepath.Join(basePath, fileEntry.Path)
-	file, err := os.OpenFile(fullPath, os.O_CREATE|os.O_TRUNC, os.FileMode(fileEntry.Mode))
+	file, err := os.OpenFile(fullPath, os.O_CREATE, os.FileMode(fileEntry.Mode))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -64,12 +64,15 @@ func (c *Container) prepareFile(basePath string, fileEntry *File) error {
 		return errors.WithStack(err)
 	}
 
+	// we explicitly don't want to open with O_TRUNC, because we might
+	// be resuming a patching operation. however, if the file is too large
+	// we want to make it smaller.
+	// note that this does not work for preallocation.
 	err = os.Truncate(fullPath, fileEntry.Size)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	// if file already exists, opening with O_TRUNC doesn't change its permissions
 	err = os.Chmod(fullPath, os.FileMode(fileEntry.Mode))
 	if err != nil {
 		return errors.WithStack(err)

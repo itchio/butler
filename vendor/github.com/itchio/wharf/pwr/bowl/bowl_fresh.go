@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/savior"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
@@ -145,6 +146,7 @@ func (few *freshEntryWriter) Resume(c *Checkpoint) (int64, error) {
 			return 0, errors.WithStack(err)
 		}
 
+		savior.Debugf("freshEntryWriter resuming at %d", c.Offset)
 		few.offset = c.Offset
 	}
 
@@ -153,6 +155,12 @@ func (few *freshEntryWriter) Resume(c *Checkpoint) (int64, error) {
 }
 
 func (few *freshEntryWriter) Save() (*Checkpoint, error) {
+	err := few.f.Sync()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	savior.Debugf("freshEntryWriter saving at %d", few.offset)
 	return &Checkpoint{
 		Offset: few.offset,
 	}, nil
