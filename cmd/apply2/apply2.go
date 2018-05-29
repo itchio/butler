@@ -64,7 +64,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	dir := args.dir
 	stagingDir := args.stagingDir
 
-	if dir != "" {
+	if dir == "" {
 		consumer.Opf("Patching %s (in-place)", old)
 	} else {
 		consumer.Opf("Patching %s (fresh)", dir)
