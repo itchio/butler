@@ -2,22 +2,19 @@ package overlay
 
 import (
 	"bufio"
-	"encoding/gob"
 	"io"
+
+	"github.com/itchio/wharf/wire"
 
 	"github.com/itchio/wharf/counter"
 
 	"github.com/pkg/errors"
 )
 
+const OverlayMagic = 0xFEF6F00
+
 const overlayBufSize = 128 * 1024     // 128KiB
 const overlaySameThreshold = 8 * 1024 // 8KiB
-
-type OverlayOp struct {
-	Skip  int64
-	Fresh int64
-	Eof   bool
-}
 
 type overlayWriter struct {
 	cw          *counter.Writer
@@ -29,7 +26,7 @@ type overlayWriter struct {
 	bw   *bufio.Writer
 	rbuf []byte
 
-	encoder *gob.Encoder
+	wctx *wire.WriteContext
 }
 
 type overlayProcessor struct {
@@ -41,33 +38,41 @@ type OverlayWriter interface {
 	Flush() error
 
 	ReadOffset() int64
-	WriteOffset() int64
+	OverlayOffset() int64
 }
 
 // NewOverlayWriter returns a writer that reads from `r` and only
 // encodes changed data to `w`.
 // Closing it will not close the underlying writer!
-func NewOverlayWriter(r io.Reader, readOffset int64, w io.Writer, writeOffset int64) OverlayWriter {
+func NewOverlayWriter(r io.Reader, readOffset int64, w io.Writer, overlayOffset int64) (OverlayWriter, error) {
 	rbuf := make([]byte, overlayBufSize)
 
 	ow := &overlayWriter{
-		r:           r,
-		readOffset:  readOffset,
-		writeOffset: writeOffset,
-		rbuf:        rbuf,
+		r:          r,
+		readOffset: readOffset,
+		rbuf:       rbuf,
 	}
 
-	cw := counter.NewWriterCallback(ow.recordWrite, w)
+	cw := counter.NewWriter(w)
+	cw.SetCount(overlayOffset)
 	ow.cw = cw
-	ow.encoder = gob.NewEncoder(cw)
+	ow.wctx = wire.NewWriteContext(cw)
+
+	if readOffset == 0 && overlayOffset == 0 {
+		err := ow.wctx.WriteMagic(OverlayMagic)
+		if err != nil {
+			return nil, err
+		}
+
+		err = ow.wctx.WriteMessage(&OverlayHeader{})
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	ow.bw = bufio.NewWriterSize(&overlayProcessor{ow}, overlayBufSize)
 
-	return ow
-}
-
-func (ow *overlayWriter) recordWrite(count int64) {
-	ow.writeOffset += count
+	return ow, nil
 }
 
 func (ow *overlayWriter) Write(buf []byte) (int, error) {
@@ -82,8 +87,8 @@ func (ow *overlayWriter) ReadOffset() int64 {
 	return ow.readOffset
 }
 
-func (ow *overlayWriter) WriteOffset() int64 {
-	return ow.writeOffset
+func (ow *overlayWriter) OverlayOffset() int64 {
+	return ow.cw.Count()
 }
 
 func (op *overlayProcessor) Write(buf []byte) (int, error) {
@@ -191,21 +196,13 @@ func (op *overlayProcessor) write(buf []byte) (int, error) {
 
 func (ow *overlayWriter) fresh(data []byte) error {
 	op := &OverlayOp{
-		Fresh: int64(len(data)),
+		Type: OverlayOp_FRESH,
+		Data: data,
 	}
 
-	err := ow.encoder.Encode(op)
+	err := ow.wctx.WriteMessage(op)
 	if err != nil {
 		return errors.WithStack(err)
-	}
-
-	written, err := ow.cw.Write(data)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if written < len(data) {
-		return errors.Errorf("expected to write %d bytes, wrote %d", len(data), written)
 	}
 
 	ow.readOffset += int64(len(data))
@@ -215,10 +212,11 @@ func (ow *overlayWriter) fresh(data []byte) error {
 
 func (ow *overlayWriter) skip(skip int64) error {
 	op := &OverlayOp{
-		Skip: skip,
+		Type: OverlayOp_SKIP,
+		Len:  skip,
 	}
 
-	err := ow.encoder.Encode(op)
+	err := ow.wctx.WriteMessage(op)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -235,10 +233,10 @@ func (ow *overlayWriter) Close() error {
 	}
 
 	op := &OverlayOp{
-		Eof: true,
+		Type: OverlayOp_HEY_YOU_DID_IT,
 	}
 
-	err = ow.encoder.Encode(op)
+	err = ow.wctx.WriteMessage(op)
 	if err != nil {
 		return errors.WithStack(err)
 	}

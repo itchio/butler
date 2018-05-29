@@ -1,55 +1,50 @@
 package overlay
 
 import (
-	"bufio"
-	"encoding/gob"
 	"io"
+
+	"github.com/itchio/savior"
+	"github.com/itchio/wharf/wire"
 
 	"github.com/pkg/errors"
 )
 
-type OverlayPatchContext struct {
-	buf []byte
-}
+type OverlayPatchContext struct{}
 
 const overlayPatchBufSize = 32 * 1024
 
-func (ctx *OverlayPatchContext) Patch(r io.Reader, w io.WriteSeeker) error {
-	br := bufio.NewReader(r)
-
+func (ctx *OverlayPatchContext) Patch(r savior.Source, w io.WriteSeeker) error {
 	// it's imperative that we buffer here, or gob.Decoder will
 	// make its own bufio.Reader and everything will break
-	decoder := gob.NewDecoder(br)
+	rctx := wire.NewReadContext(r)
 	op := &OverlayOp{}
 
-	for {
-		// reset op
-		op.Skip = 0
-		op.Fresh = 0
-		op.Eof = false
+	err := rctx.ExpectMagic(OverlayMagic)
+	if err != nil {
+		return err
+	}
 
-		err := decoder.Decode(op)
+	for {
+		op.Reset()
+
+		err := rctx.ReadMessage(op)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		switch {
-		case op.Eof:
+		switch op.Type {
+		case OverlayOp_HEY_YOU_DID_IT:
 			// cool, we're done!
 			return nil
 
-		case op.Skip > 0:
-			_, err = w.Seek(op.Skip, io.SeekCurrent)
+		case OverlayOp_SKIP:
+			_, err = w.Seek(op.Len, io.SeekCurrent)
 			if err != nil {
 				return errors.WithStack(err)
 			}
 
-		case op.Fresh > 0:
-			if len(ctx.buf) < overlayPatchBufSize {
-				ctx.buf = make([]byte, overlayPatchBufSize)
-			}
-
-			_, err = io.CopyBuffer(w, io.LimitReader(br, op.Fresh), ctx.buf)
+		case OverlayOp_FRESH:
+			_, err := w.Write(op.Data)
 			if err != nil {
 				return errors.WithStack(err)
 			}

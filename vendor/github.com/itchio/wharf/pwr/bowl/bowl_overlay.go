@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/pwr/overlay"
 
 	"github.com/itchio/wharf/pools/fspool"
@@ -519,7 +520,7 @@ func (ob *overlayBowl) applyOverlays() error {
 		nativePath := filepath.FromSlash(file.Path)
 
 		stagePath := filepath.Join(ob.StageFolder, nativePath)
-		r, err := os.Open(stagePath)
+		r, err := filesource.Open(stagePath)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -743,7 +744,7 @@ func (oew *overlayEntryWriter) Save() (*Checkpoint, error) {
 	c := &Checkpoint{
 		Offset: oew.sourceOffset,
 		Data: &OverlayEntryWriterCheckpoint{
-			OverlayOffset: oew.ow.WriteOffset(),
+			OverlayOffset: oew.ow.OverlayOffset(),
 			ReadOffset:    oew.ow.ReadOffset(),
 		},
 	}
@@ -784,7 +785,10 @@ func (oew *overlayEntryWriter) Resume(c *Checkpoint) (int64, error) {
 		oew.sourceOffset = c.Offset
 
 		r := oew.readSeeker
-		oew.ow = overlay.NewOverlayWriter(r, oewc.ReadOffset, f, oewc.OverlayOffset)
+		oew.ow, err = overlay.NewOverlayWriter(r, oewc.ReadOffset, f, oewc.OverlayOffset)
+		if err != nil {
+			return 0, errors.WithStack(err)
+		}
 	} else {
 		// the pool we got the readSeeker from doesn't need to give us a reader from 0,
 		// so we need to seek here
@@ -794,7 +798,10 @@ func (oew *overlayEntryWriter) Resume(c *Checkpoint) (int64, error) {
 		}
 
 		r := oew.readSeeker
-		oew.ow = overlay.NewOverlayWriter(r, 0, f, 0)
+		oew.ow, err = overlay.NewOverlayWriter(r, 0, f, 0)
+		if err != nil {
+			return 0, errors.WithStack(err)
+		}
 	}
 
 	return oew.sourceOffset, nil

@@ -30,6 +30,10 @@ func (w *Writer) Count() int64 {
 	return w.count
 }
 
+func (w *Writer) SetCount(count int64) {
+	w.count = count
+}
+
 // Write is our io.Writer implementation
 func (w *Writer) Write(buffer []byte) (n int, err error) {
 	oldCount := w.count
