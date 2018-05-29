@@ -1,11 +1,13 @@
 package apply2
 
 import (
+	"context"
 	"encoding/gob"
-	"log"
 	"os"
 	"path"
 	"time"
+
+	"github.com/itchio/wharf/pwr"
 
 	"github.com/dchest/safefile"
 	"github.com/itchio/butler/cmd/sizeof"
@@ -28,6 +30,8 @@ var args = struct {
 	stagingDir      string
 	stopEarly       bool
 	simulateRestart bool
+	signature       string
+	saveInterval    float64
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -36,17 +40,16 @@ func Register(ctx *mansion.Context) {
 	cmd.Arg("old", "Directory with old files").Required().StringVar(&args.old)
 	cmd.Flag("dir", "Directory for patched files and checkpoints").Short('d').StringVar(&args.dir)
 	cmd.Flag("staging-dir", "Directory for temporary files").Required().StringVar(&args.stagingDir)
-	cmd.Flag("stop-early", "Stop after emitting checkpoint").Hidden().BoolVar(&args.stopEarly)
-	cmd.Flag("simulate-restart", "Simulate restarting").Hidden().BoolVar(&args.simulateRestart)
+	cmd.Flag("stop-early", "Stop after emitting checkpoint").BoolVar(&args.stopEarly)
+	cmd.Flag("simulate-restart", "Simulate restarting").BoolVar(&args.simulateRestart)
+	cmd.Flag("signature", "Signature file (.pws) to verify build against after patching").StringVar(&args.signature)
+	cmd.Flag("save-interval", "Save interval").Default("2").Float64Var(&args.saveInterval)
 	ctx.Register(cmd, func(ctx *mansion.Context) {
 		consumer := comm.NewStateConsumer()
 		for {
 			err := Do(ctx, consumer)
 			if errors.Cause(err) == patcher.ErrStop {
-				consumer.Statf("Stopped early!")
 				if args.simulateRestart {
-					log.Printf("Restarting!")
-					time.Sleep(500 * time.Millisecond)
 					continue
 				}
 			}
@@ -80,8 +83,6 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		return errors.WithMessage(err, "creating patcher")
 	}
 
-	comm.StartProgressWithTotalBytes(patchSource.Size())
-
 	var checkpoint *patcher.Checkpoint
 	checkpointPath := path.Join(stagingDir, "checkpoint.bwl")
 
@@ -105,7 +106,8 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	}
 
 	lastSaveTime := time.Now()
-	saveInterval := 2 * time.Second
+	saveInterval := time.Duration(float64(time.Second) * args.saveInterval)
+	consumer.Infof("Save interval: %s", saveInterval)
 
 	p.SetSaveConsumer(&patcherSaveConsumer{
 		shouldSave: func() bool {
@@ -143,7 +145,6 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 
 	var bwl bowl.Bowl
 	if dir != "" {
-		consumer.Infof("Using fresh bowl")
 		bwl, err = bowl.NewFreshBowl(&bowl.FreshBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
@@ -151,7 +152,6 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 			OutputFolder:    dir,
 		})
 	} else {
-		consumer.Infof("Using overlay bowl")
 		bwl, err = bowl.NewOverlayBowl(&bowl.OverlayBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
@@ -163,10 +163,13 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		return errors.WithMessage(err, "creating fresh bowl")
 	}
 
+	comm.StartProgressWithTotalBytes(patchSource.Size())
 	err = p.Resume(checkpoint, targetPool, bwl)
+	comm.EndProgress()
 	if err != nil {
 		if errors.Cause(err) == patcher.ErrStop {
 			comm.EndProgress()
+			consumer.Statf("Stopped early! (@ %.2f%%)", p.Progress()*100.0)
 			return err
 		}
 		return errors.WithMessage(err, "patching")
@@ -186,14 +189,52 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		return errors.WithMessage(err, "committing bowl")
 	}
 
-	comm.EndProgress()
-
 	out := p.GetSourceContainer()
 	duration := time.Since(startTime)
-	consumer.Statf("%s (%s) @ %s (%s total)",
+	consumer.Statf("Patched %s (%s) @ %s (%s total)",
 		progress.FormatBytes(out.Size), out.Stats(),
 		progress.FormatBPS(out.Size, duration),
 		progress.FormatDuration(duration))
+
+	if args.signature != "" {
+		sigSource, err := filesource.Open(args.signature)
+		if err != nil {
+			return err
+		}
+		defer sigSource.Close()
+
+		consumer.Opf("Verifying against signature...")
+
+		sigInfo, err := pwr.ReadSignature(context.Background(), sigSource)
+		if err != nil {
+			return err
+		}
+
+		outputDir := dir
+		if outputDir == "" {
+			outputDir = old
+		}
+
+		vctx := &pwr.ValidatorContext{
+			FailFast: true,
+			Consumer: consumer,
+		}
+
+		comm.Progress(0.0)
+		comm.StartProgress()
+		err = vctx.Validate(context.Background(), outputDir, sigInfo)
+		comm.EndProgress()
+		if err != nil {
+			return err
+		}
+
+		err = pwr.AssertNoGhosts(outputDir, sigInfo)
+		if err != nil {
+			return err
+		}
+
+		consumer.Statf("Phew, everything checks out!")
+	}
 
 	return nil
 }

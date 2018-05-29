@@ -174,6 +174,8 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bwl bowl.B
 }
 
 func (sp *savingPatcher) processFile(c *Checkpoint, targetPool wsync.Pool, sh *pwr.SyncHeader, bwl bowl.Bowl) error {
+	sp.consumer.OnProgressLabel(sp.sourceContainer.Files[sh.FileIndex].Path)
+
 	switch c.FileKind {
 	case FileKindRsync:
 		return sp.processRsync(c, targetPool, sh, bwl)
