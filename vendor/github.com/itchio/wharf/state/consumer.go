@@ -77,54 +77,54 @@ type Consumer struct {
 
 // Progress announces the degree of completion of a task, in the [0,1] interval
 func (c *Consumer) Progress(progress float64) {
-	if c.OnProgress != nil {
+	if c != nil && c.OnProgress != nil {
 		c.OnProgress(progress)
 	}
 }
 
 func (c *Consumer) PauseProgress() {
-	if c.OnPauseProgress != nil {
+	if c != nil && c.OnPauseProgress != nil {
 		c.OnPauseProgress()
 	}
 }
 
 func (c *Consumer) ResumeProgress() {
-	if c.OnResumeProgress != nil {
+	if c != nil && c.OnResumeProgress != nil {
 		c.OnResumeProgress()
 	}
 }
 
 // ProgressLabel gives extra info about which task is currently being executed
 func (c *Consumer) ProgressLabel(label string) {
-	if c.OnProgressLabel != nil {
+	if c != nil && c.OnProgressLabel != nil {
 		c.OnProgressLabel(label)
 	}
 }
 
 // Debug logs debug-level messages
 func (c *Consumer) Debug(msg string) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("debug", msg)
 	}
 }
 
 // Debugf is a formatted variant of Debug
 func (c *Consumer) Debugf(msg string, args ...interface{}) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("debug", fmt.Sprintf(msg, args...))
 	}
 }
 
 // Info logs info-level messages
 func (c *Consumer) Info(msg string) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("info", msg)
 	}
 }
 
 // Infof is a formatted variant of Info
 func (c *Consumer) Infof(msg string, args ...interface{}) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("info", fmt.Sprintf(msg, args...))
 	}
 }
@@ -144,28 +144,28 @@ func (c *Consumer) Statf(msg string, args ...interface{}) {
 
 // Warn logs warning-level messages
 func (c *Consumer) Warn(msg string) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("warning", msg)
 	}
 }
 
 // Warnf is a formatted version of Warn
 func (c *Consumer) Warnf(msg string, args ...interface{}) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("warning", fmt.Sprintf(msg, args...))
 	}
 }
 
 // Error logs error-level messages
 func (c *Consumer) Error(msg string) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("error", msg)
 	}
 }
 
 // Errorf is a formatted version of Error
 func (c *Consumer) Errorf(msg string, args ...interface{}) {
-	if c.OnMessage != nil {
+	if c != nil && c.OnMessage != nil {
 		c.OnMessage("error", fmt.Sprintf(msg, args...))
 	}
 }
