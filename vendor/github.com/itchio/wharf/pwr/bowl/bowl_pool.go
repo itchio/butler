@@ -60,26 +60,37 @@ func NewPoolBowl(params *PoolBowlParams) (Bowl, error) {
 	}, nil
 }
 
-func (pb *poolBowl) GetWriter(index int64) (EntryWriter, error) {
-	w, err := pb.OutputPool.GetWriter(index)
+func (b *poolBowl) Save() (*BowlCheckpoint, error) {
+	return nil, errors.Errorf("poolBowl does not support checkpointing")
+}
+
+func (b *poolBowl) Resume(c *BowlCheckpoint) error {
+	if c != nil {
+		return errors.Errorf("poolBowl does not support checkpointing")
+	}
+	return nil
+}
+
+func (b *poolBowl) GetWriter(index int64) (EntryWriter, error) {
+	w, err := b.OutputPool.GetWriter(index)
 	if err != nil {
 		return nil, err
 	}
 
-	pew := &poolEntryWriter{w: w}
+	pew := &poolEntryWriter{poolWriter: w}
 	return pew, nil
 }
 
-func (pb *poolBowl) Transpose(t Transposition) (rErr error) {
+func (b *poolBowl) Transpose(t Transposition) (rErr error) {
 	// alright y'all it's copy time
 
-	r, err := pb.TargetPool.GetReader(t.TargetIndex)
+	r, err := b.TargetPool.GetReader(t.TargetIndex)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
 	}
 
-	w, err := pb.OutputPool.GetWriter(t.SourceIndex)
+	w, err := b.OutputPool.GetWriter(t.SourceIndex)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
@@ -91,11 +102,11 @@ func (pb *poolBowl) Transpose(t Transposition) (rErr error) {
 		}
 	}()
 
-	if len(pb.buf) < poolBufferSize {
-		pb.buf = make([]byte, poolBufferSize)
+	if len(b.buf) < poolBufferSize {
+		b.buf = make([]byte, poolBufferSize)
 	}
 
-	_, err = io.CopyBuffer(w, r, pb.buf)
+	_, err = io.CopyBuffer(w, r, b.buf)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
@@ -104,25 +115,25 @@ func (pb *poolBowl) Transpose(t Transposition) (rErr error) {
 	return
 }
 
-func (pb *poolBowl) Commit() error {
-	return pb.OutputPool.Close()
+func (b *poolBowl) Commit() error {
+	return b.OutputPool.Close()
 }
 
 // poolEntryWriter
 
 type poolEntryWriter struct {
-	w io.WriteCloser
+	poolWriter io.WriteCloser
 
 	offset int64
 }
 
 var _ EntryWriter = (*poolEntryWriter)(nil)
 
-func (pew *poolEntryWriter) Tell() int64 {
-	return pew.offset
+func (w *poolEntryWriter) Tell() int64 {
+	return w.offset
 }
 
-func (pew *poolEntryWriter) Resume(c *Checkpoint) (int64, error) {
+func (w *poolEntryWriter) Resume(c *WriterCheckpoint) (int64, error) {
 	if c != nil {
 		return 0, errors.Errorf("poolEntryWriter does not support checkpoints")
 	}
@@ -130,16 +141,20 @@ func (pew *poolEntryWriter) Resume(c *Checkpoint) (int64, error) {
 	return 0, nil
 }
 
-func (pew *poolEntryWriter) Save() (*Checkpoint, error) {
+func (w *poolEntryWriter) Save() (*WriterCheckpoint, error) {
 	return nil, errors.Errorf("poolEntryWriter does not support checkpoints")
 }
 
-func (pew *poolEntryWriter) Write(buf []byte) (int, error) {
-	n, err := pew.w.Write(buf)
-	pew.offset += int64(n)
+func (w *poolEntryWriter) Write(buf []byte) (int, error) {
+	n, err := w.poolWriter.Write(buf)
+	w.offset += int64(n)
 	return n, err
 }
 
-func (pew *poolEntryWriter) Close() error {
-	return pew.w.Close()
+func (w *poolEntryWriter) Finalize() error {
+	return nil
+}
+
+func (w *poolEntryWriter) Close() error {
+	return w.poolWriter.Close()
 }

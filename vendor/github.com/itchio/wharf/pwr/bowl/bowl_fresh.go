@@ -72,20 +72,33 @@ func NewFreshBowl(params *FreshBowlParams) (Bowl, error) {
 	}, nil
 }
 
-func (fb *freshBowl) GetWriter(index int64) (EntryWriter, error) {
-	return &freshEntryWriter{path: fb.OutputPool.GetPath(index)}, nil
+func (b *freshBowl) Save() (*BowlCheckpoint, error) {
+	// we don't have anything to save
+	c := &BowlCheckpoint{
+		Data: nil,
+	}
+	return c, nil
 }
 
-func (fb *freshBowl) Transpose(t Transposition) (rErr error) {
+func (b *freshBowl) Resume(c *BowlCheckpoint) error {
+	// we don't have anything saved
+	return nil
+}
+
+func (b *freshBowl) GetWriter(index int64) (EntryWriter, error) {
+	return &freshEntryWriter{path: b.OutputPool.GetPath(index)}, nil
+}
+
+func (b *freshBowl) Transpose(t Transposition) (rErr error) {
 	// alright y'all it's copy time
 
-	r, err := fb.TargetPool.GetReader(t.TargetIndex)
+	r, err := b.TargetPool.GetReader(t.TargetIndex)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
 	}
 
-	w, err := fb.OutputPool.GetWriter(t.SourceIndex)
+	w, err := b.OutputPool.GetWriter(t.SourceIndex)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
@@ -97,11 +110,11 @@ func (fb *freshBowl) Transpose(t Transposition) (rErr error) {
 		}
 	}()
 
-	if len(fb.buf) < freshBufferSize {
-		fb.buf = make([]byte, freshBufferSize)
+	if len(b.buf) < freshBufferSize {
+		b.buf = make([]byte, freshBufferSize)
 	}
 
-	_, err = io.CopyBuffer(w, r, fb.buf)
+	_, err = io.CopyBuffer(w, r, b.buf)
 	if err != nil {
 		rErr = errors.WithStack(err)
 		return
@@ -110,7 +123,7 @@ func (fb *freshBowl) Transpose(t Transposition) (rErr error) {
 	return
 }
 
-func (fb *freshBowl) Commit() error {
+func (b *freshBowl) Commit() error {
 	// it's all done buddy!
 	return nil
 }
@@ -129,7 +142,7 @@ func (few *freshEntryWriter) Tell() int64 {
 	return few.offset
 }
 
-func (few *freshEntryWriter) Resume(c *Checkpoint) (int64, error) {
+func (few *freshEntryWriter) Resume(c *WriterCheckpoint) (int64, error) {
 	err := os.MkdirAll(filepath.Dir(few.path), 0755)
 	if err != nil {
 		return 0, errors.WithStack(err)
@@ -154,14 +167,14 @@ func (few *freshEntryWriter) Resume(c *Checkpoint) (int64, error) {
 	return few.offset, nil
 }
 
-func (few *freshEntryWriter) Save() (*Checkpoint, error) {
+func (few *freshEntryWriter) Save() (*WriterCheckpoint, error) {
 	err := few.f.Sync()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	savior.Debugf("freshEntryWriter saving at %d", few.offset)
-	return &Checkpoint{
+	return &WriterCheckpoint{
 		Offset: few.offset,
 	}, nil
 }
@@ -174,6 +187,10 @@ func (few *freshEntryWriter) Write(buf []byte) (int, error) {
 	n, err := few.f.Write(buf)
 	few.offset += int64(n)
 	return n, err
+}
+
+func (few *freshEntryWriter) Finalize() error {
+	return nil
 }
 
 func (few *freshEntryWriter) Close() error {

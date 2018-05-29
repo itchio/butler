@@ -7,6 +7,8 @@ import (
 
 type Bowl interface {
 	// phase 1: patching
+	Resume(checkpoint *BowlCheckpoint) error
+	Save() (*BowlCheckpoint, error)
 	GetWriter(index int64) (EntryWriter, error)
 	Transpose(transposition Transposition) error
 
@@ -15,15 +17,20 @@ type Bowl interface {
 }
 
 type EntryWriter interface {
-	Resume(checkpoint *Checkpoint) (int64, error)
-	Save() (*Checkpoint, error)
+	Resume(checkpoint *WriterCheckpoint) (int64, error)
+	Save() (*WriterCheckpoint, error)
 	Tell() int64
+	Finalize() error
 	io.WriteCloser
 }
 
 var ErrUninitializedWriter = fmt.Errorf("tried to write to source before Resume() was called")
 
-type Checkpoint struct {
+type BowlCheckpoint struct {
+	Data interface{}
+}
+
+type WriterCheckpoint struct {
 	Offset int64
 	Data   interface{}
 }

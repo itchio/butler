@@ -16,6 +16,7 @@ type Checkpoint struct {
 	FileIndex int64
 	FileKind  FileKind
 
+	BowlCheckpoint   *bowl.BowlCheckpoint
 	SyncHeader       *pwr.SyncHeader
 	RsyncCheckpoint  *RsyncCheckpoint
 	BsdiffCheckpoint *BsdiffCheckpoint
@@ -29,11 +30,11 @@ const (
 )
 
 type RsyncCheckpoint struct {
-	BowlCheckpoint *bowl.Checkpoint
+	WriterCheckpoint *bowl.WriterCheckpoint
 }
 
 type BsdiffCheckpoint struct {
-	BowlCheckpoint *bowl.Checkpoint
+	WriterCheckpoint *bowl.WriterCheckpoint
 
 	// instructions in bsdiff are relative seeks, so we need to keep track of
 	// the offset in the (single) target file

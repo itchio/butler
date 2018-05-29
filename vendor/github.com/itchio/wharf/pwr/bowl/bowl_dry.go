@@ -35,8 +35,21 @@ func NewDryBowl(params *DryBowlParams) (Bowl, error) {
 	}, nil
 }
 
-func (db *dryBowl) GetWriter(index int64) (EntryWriter, error) {
-	if index < 0 || index >= int64(len(db.SourceContainer.Files)) {
+func (b *dryBowl) Save() (*BowlCheckpoint, error) {
+	// nothing to save
+	c := &BowlCheckpoint{
+		Data: nil,
+	}
+	return c, nil
+}
+
+func (b *dryBowl) Resume(c *BowlCheckpoint) error {
+	// nothing saved
+	return nil
+}
+
+func (b *dryBowl) GetWriter(index int64) (EntryWriter, error) {
+	if index < 0 || index >= int64(len(b.SourceContainer.Files)) {
 		return nil, errors.Errorf("drybowl: invalid source index %d", index)
 	}
 
@@ -44,11 +57,11 @@ func (db *dryBowl) GetWriter(index int64) (EntryWriter, error) {
 	return &nopEntryWriter{}, nil
 }
 
-func (db *dryBowl) Transpose(t Transposition) error {
-	if t.SourceIndex < 0 || t.SourceIndex >= int64(len(db.SourceContainer.Files)) {
+func (b *dryBowl) Transpose(t Transposition) error {
+	if t.SourceIndex < 0 || t.SourceIndex >= int64(len(b.SourceContainer.Files)) {
 		return errors.Errorf("drybowl: invalid source index %d", t.SourceIndex)
 	}
-	if t.TargetIndex < 0 || t.TargetIndex >= int64(len(db.TargetContainer.Files)) {
+	if t.TargetIndex < 0 || t.TargetIndex >= int64(len(b.TargetContainer.Files)) {
 		return errors.Errorf("drybowl: invalid target index %d", t.TargetIndex)
 	}
 
@@ -56,7 +69,7 @@ func (db *dryBowl) Transpose(t Transposition) error {
 	return nil
 }
 
-func (db *dryBowl) Commit() error {
+func (b *dryBowl) Commit() error {
 	// literally nothing to do, we're just throwing stuff away!
 	return nil
 }
@@ -74,7 +87,7 @@ func (new *nopEntryWriter) Tell() int64 {
 	return new.offset
 }
 
-func (new *nopEntryWriter) Resume(c *Checkpoint) (int64, error) {
+func (new *nopEntryWriter) Resume(c *WriterCheckpoint) (int64, error) {
 	if c != nil {
 		new.offset = c.Offset
 	}
@@ -83,8 +96,8 @@ func (new *nopEntryWriter) Resume(c *Checkpoint) (int64, error) {
 	return new.offset, nil
 }
 
-func (new *nopEntryWriter) Save() (*Checkpoint, error) {
-	return &Checkpoint{
+func (new *nopEntryWriter) Save() (*WriterCheckpoint, error) {
+	return &WriterCheckpoint{
 		Offset: new.offset,
 	}, nil
 }
@@ -96,6 +109,10 @@ func (new *nopEntryWriter) Write(buf []byte) (int, error) {
 
 	new.offset += int64(len(buf))
 	return len(buf), nil
+}
+
+func (new *nopEntryWriter) Finalize() error {
+	return nil
 }
 
 func (new *nopEntryWriter) Close() error {
