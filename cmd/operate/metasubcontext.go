@@ -24,7 +24,7 @@ type InstallParams struct {
 
 	IgnoreInstallers bool `json:"ignoreInstallers,omitempty"`
 
-	Credentials *butlerd.GameCredentials `json:"credentials"`
+	Access *GameAccess `json:"credentials"`
 }
 
 type MetaSubcontext struct {

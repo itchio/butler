@@ -35,8 +35,10 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		Build:  params.Build,
 	})
 
-	signatureURL := sourceURL(consumer, istate, params, "signature")
-	archiveURL := sourceURL(consumer, istate, params, "archive")
+	client := oc.rc.Client(params.Access.APIKey)
+
+	signatureURL := sourceURL(client, consumer, istate, params, "signature")
+	archiveURL := sourceURL(client, consumer, istate, params, "archive")
 
 	healSpec := fmt.Sprintf("archive,%s", archiveURL)
 

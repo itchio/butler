@@ -70,23 +70,6 @@ func obtainSource(itchClient *itchio.Client, itchPath string, queryValues url.Va
 	return nil, fmt.Errorf("unrecognized itchfs pattern: %s", itchPath)
 }
 
-func serveBuildFile(r *itchio.DownloadUploadBuildResponse, fileType string) (string, error) {
-	switch fileType {
-	case "archive":
-		return r.Archive.URL, nil
-	case "patch":
-		return r.Patch.URL, nil
-	case "signature":
-		return r.Signature.URL, nil
-	case "manifest":
-		return r.Manifest.URL, nil
-	case "unpacked":
-		return r.Unpacked.URL, nil
-	}
-
-	return "", fmt.Errorf("unknown file type %s", fileType)
-}
-
 func (s *source) makeGetURL() (htfs.GetURLFunc, error) {
 	tokens := strings.Split(s.Path, "/")
 
@@ -108,68 +91,52 @@ func (s *source) makeGetURL() (htfs.GetURLFunc, error) {
 	}
 }
 
-func stripDownloadKey(in url.Values) url.Values {
-	res := url.Values{}
-	for k, vv := range in {
-		if k == "download_key_id" {
-			continue
-		}
-		for _, v := range vv {
-			res.Add(k, v)
-		}
-	}
-	return res
-}
-
 func (s *source) makeDownloadBuildURL(tokens []string) (htfs.GetURLFunc, error) {
-	uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	buildID, err := strconv.ParseInt(tokens[5], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	downloadKey := s.QueryValues.Get("download_key_id")
-
+	buildID, _ := strconv.ParseInt(tokens[5], 10, 64)
 	fileType := tokens[6]
 
 	getter := func() (string, error) {
-		r, err := s.ItchClient.DownloadUploadBuildWithKeyAndValues(downloadKey, uploadID, buildID, stripDownloadKey(s.QueryValues))
-		if err != nil {
-			return "", err
-		}
-
-		return serveBuildFile(r, fileType)
+		return s.ItchClient.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+			BuildID:     buildID,
+			UUID:        s.QueryValues.Get("uuid"),
+			Type:        itchio.BuildFileType(fileType),
+			Credentials: parseGameCredentials(s.QueryValues),
+		}), nil
 	}
 	return getter, nil
 }
 
+func parseGameCredentials(values url.Values) itchio.GameCredentials {
+	var creds itchio.GameCredentials
+
+	for k, vv := range values {
+		for _, v := range vv {
+			if k == "download_key_id" {
+				creds.DownloadKeyID, _ = strconv.ParseInt(v, 10, 64)
+			}
+		}
+	}
+
+	return creds
+}
+
 func (s *source) makeKeyDownloadBuildURL(tokens []string) (htfs.GetURLFunc, error) {
 	downloadKey := tokens[2]
-
-	uploadID, err := strconv.ParseInt(tokens[4], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	buildID, err := strconv.ParseInt(tokens[6], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
+	buildID, _ := strconv.ParseInt(tokens[6], 10, 64)
 	fileType := tokens[7]
 
 	getter := func() (string, error) {
-		r, err := s.ItchClient.DownloadUploadBuildWithKeyAndValues(downloadKey, uploadID, buildID, stripDownloadKey(s.QueryValues))
-		if err != nil {
-			return "", err
-		}
+		creds := parseGameCredentials(s.QueryValues)
+		creds.DownloadKeyID, _ = strconv.ParseInt(downloadKey, 10, 64)
 
-		return serveBuildFile(r, fileType)
+		return s.ItchClient.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+			BuildID:     buildID,
+			Type:        itchio.BuildFileType(fileType),
+			UUID:        s.QueryValues.Get("uuid"),
+			Credentials: creds,
+		}), nil
 	}
+
 	return getter, nil
 }
 
@@ -185,50 +152,40 @@ func (s *source) makeWharfDownloadBuildURL(tokens []string) (htfs.GetURLFunc, er
 	}
 
 	getter := func() (string, error) {
-		r, err := s.ItchClient.GetBuildFileDownloadURLWithValues(buildID, buildFileID, stripDownloadKey(s.QueryValues))
-		if err != nil {
-			return "", err
-		}
-
-		return r.URL, nil
+		return s.ItchClient.MakeBuildFileDownloadURL(&itchio.MakeBuildFileDownloadURLParams{
+			BuildID: buildID,
+			FileID:  buildFileID,
+		}), nil
 	}
 	return getter, nil
 }
 
 func (s *source) makeDownloadUploadURL(tokens []string) (htfs.GetURLFunc, error) {
-	uploadID, err := strconv.ParseInt(tokens[2], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	downloadKey := s.QueryValues.Get("download_key_id")
+	uploadID, _ := strconv.ParseInt(tokens[2], 10, 64)
 
 	getter := func() (string, error) {
-		r, err := s.ItchClient.UploadDownloadWithKeyAndValues(downloadKey, uploadID, stripDownloadKey(s.QueryValues))
-		if err != nil {
-			return "", err
-		}
-
-		return r.URL, nil
+		return s.ItchClient.MakeUploadDownloadURL(&itchio.MakeUploadDownloadParams{
+			UploadID:    uploadID,
+			Credentials: parseGameCredentials(s.QueryValues),
+			UUID:        s.QueryValues.Get("uuid"),
+		}), nil
 	}
 	return getter, nil
 }
 
 func (s *source) makeKeyDownloadUploadURL(tokens []string) (htfs.GetURLFunc, error) {
 	downloadKey := tokens[2]
+	uploadID, _ := strconv.ParseInt(tokens[4], 10, 64)
 
-	uploadID, err := strconv.ParseInt(tokens[4], 10, 64)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	creds := parseGameCredentials(s.QueryValues)
+	creds.DownloadKeyID, _ = strconv.ParseInt(downloadKey, 10, 64)
 
 	getter := func() (string, error) {
-		r, err := s.ItchClient.UploadDownloadWithKeyAndValues(downloadKey, uploadID, stripDownloadKey(s.QueryValues))
-		if err != nil {
-			return "", err
-		}
-
-		return r.URL, nil
+		return s.ItchClient.MakeUploadDownloadURL(&itchio.MakeUploadDownloadParams{
+			UploadID:    uploadID,
+			Credentials: creds,
+			UUID:        s.QueryValues.Get("uuid"),
+		}), nil
 	}
 	return getter, nil
 }

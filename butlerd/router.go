@@ -277,10 +277,6 @@ func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itch
 	return profile, rc.Client(profile.APIKey)
 }
 
-func (rc *RequestContext) ClientFromCredentials(credentials *GameCredentials) *itchio.Client {
-	return rc.Client(credentials.APIKey)
-}
-
 func (rc *RequestContext) StartProgress() {
 	rc.StartProgressWithTotalBytes(0)
 }

@@ -33,6 +33,7 @@ func SimpleExtract(params *SimpleExtractParams) (*savior.ExtractorResult, error)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	ex.SetConsumer(params.Consumer)
 
 	sink := &savior.FolderSink{
 		Directory: params.DestinationFolder,

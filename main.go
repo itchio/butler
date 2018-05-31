@@ -77,7 +77,7 @@ var appArgs = struct {
 	app.Flag("beeps4life", "Restore historical robot bug.").Hidden().Bool(),
 
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
-	app.Flag("address", "itch.io server to talk to").Default("https://itch.io").Short('a').Hidden().String(),
+	app.Flag("address", "itch.io server to talk to").Default("https://api.itch.io").Short('a').Hidden().String(),
 	app.Flag("user-agent", "string to include in user-agent for all http requests").Default("").Hidden().String(),
 	app.Flag("dbpath", "Path of the sqlite database path to use (for butlerd)").Default("").Hidden().String(),
 

@@ -24,10 +24,10 @@ func GameToString(game *itchio.Game) string {
 	return fmt.Sprintf("%s - %s", game.Title, game.URL)
 }
 
-func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials *butlerd.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
+func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials itchio.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
 	uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-		GameID:        game.ID,
-		DownloadKeyID: credentials.DownloadKey,
+		GameID:      game.ID,
+		Credentials: credentials,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -80,16 +80,16 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 		consumer.Infof("  ☁ %s :: %s :: #%d", name, size, u.ID)
 
 		var plats []string
-		if u.Linux {
+		if u.Traits.PlatformLinux {
 			plats = append(plats, "Linux")
 		}
-		if u.Windows {
+		if u.Traits.PlatformWindows {
 			plats = append(plats, "Windows")
 		}
-		if u.OSX {
+		if u.Traits.PlatformOSX {
 			plats = append(plats, "macOS")
 		}
-		if u.Android {
+		if u.Traits.PlatformAndroid {
 			plats = append(plats, "Android")
 		}
 
@@ -158,7 +158,18 @@ func formatUploadType(uploadType itchio.UploadType) string {
 	}
 }
 
-func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
+type GameAccess struct {
+	APIKey      string                 `json:"api_key"`
+	Credentials itchio.GameCredentials `json:"credentials"`
+}
+
+func (ga *GameAccess) OnlyAPIKey() *GameAccess {
+	return &GameAccess{
+		APIKey: ga.APIKey,
+	}
+}
+
+func AccessForGameID(db *gorm.DB, gameID int64) *GameAccess {
 	// TODO: write unit test for this
 
 	// look for owner access
@@ -166,14 +177,13 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
 		pgs := models.ProfileGamesByGameID(db, gameID)
 		if len(pgs) > 0 {
 			pg := pgs[0]
-			p := models.ProfileByID(db, pg.ProfileID)
+			profile := models.ProfileByID(db, pg.ProfileID)
 
-			if p == nil {
-			} else {
-				creds := &butlerd.GameCredentials{
-					APIKey: p.APIKey,
+			if profile != nil {
+				access := &GameAccess{
+					APIKey: profile.APIKey,
 				}
-				return creds
+				return access
 			}
 		}
 	}
@@ -188,11 +198,13 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
 				continue
 			}
 
-			creds := &butlerd.GameCredentials{
-				APIKey:      profile.APIKey,
-				DownloadKey: dk.ID,
+			access := &GameAccess{
+				APIKey: profile.APIKey,
+				Credentials: itchio.GameCredentials{
+					DownloadKeyID: dk.ID,
+				},
 			}
-			return creds
+			return access
 		}
 	}
 
@@ -210,19 +222,19 @@ func CredentialsForGameID(db *gorm.DB, gameID int64) *butlerd.GameCredentials {
 		// prefer press user
 		for _, profile := range profiles {
 			if profile.PressUser {
-				creds := &butlerd.GameCredentials{
+				access := &GameAccess{
 					APIKey: profile.APIKey,
 				}
-				return creds
+				return access
 			}
 		}
 
 		// just take the most recent then
 		profile := profiles[0]
-		creds := &butlerd.GameCredentials{
+		access := &GameAccess{
 			APIKey: profile.APIKey,
 		}
-		return creds
+		return access
 	}
 }
 

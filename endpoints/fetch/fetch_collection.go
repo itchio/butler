@@ -48,7 +48,6 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	}
 
 	collection := collRes.Collection
-	collection.Games = nil
 	collection.CollectionGames = nil
 
 	c := HadesContext(rc)
@@ -77,17 +76,14 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		numPageGames := int64(len(gamesRes.Games))
+		numPageGames := int64(len(gamesRes.CollectionGames))
 
 		if numPageGames == 0 {
 			break
 		}
 
-		for i, game := range gamesRes.Games {
-			collection.CollectionGames = append(collection.CollectionGames, &itchio.CollectionGame{
-				Position: offset + int64(i),
-				Game:     game,
-			})
+		for _, cg := range gamesRes.CollectionGames {
+			collection.CollectionGames = append(collection.CollectionGames, cg)
 		}
 
 		err = c.Save(rc.DB(), &hades.SaveParams{

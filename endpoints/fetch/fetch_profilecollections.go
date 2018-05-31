@@ -88,20 +88,17 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		return nil, errors.WithStack(err)
 	}
 
-	collRes, err := client.ListMyCollections()
+	collRes, err := client.ListProfileCollections()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	profile.ProfileCollections = nil
 	for i, c := range collRes.Collections {
-		for j, g := range c.Games {
-			c.CollectionGames = append(c.CollectionGames, &itchio.CollectionGame{
-				Position: int64(j),
-				Game:     g,
-			})
+		for _, cg := range c.CollectionGames {
+			c.CollectionGames = append(c.CollectionGames, cg)
 		}
-		c.Games = nil
+		c.CollectionGames = nil
 
 		profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
 			// Other fields are set when saving the association

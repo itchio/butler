@@ -34,12 +34,12 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	}
 
 	consumer.Debugf("Querying API...")
-	creds := operate.CredentialsForGameID(rc.DB(), params.GameID)
-
-	client := rc.ClientFromCredentials(creds)
+	access := operate.AccessForGameID(rc.DB(), params.GameID)
+	client := rc.Client(access.APIKey)
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
-		GameID: params.GameID,
+		GameID:      params.GameID,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)

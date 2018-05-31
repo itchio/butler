@@ -15,10 +15,10 @@ func GameFindUploads(rc *butlerd.RequestContext, params *butlerd.GameFindUploads
 
 	consumer.Infof("Looking for compatible uploads for game %s", operate.GameToString(params.Game))
 
-	credentials := operate.CredentialsForGameID(rc.DB(), params.Game.ID)
-	client := rc.ClientFromCredentials(credentials)
+	access := operate.AccessForGameID(rc.DB(), params.Game.ID)
+	client := rc.Client(access.APIKey)
 
-	uploads, err := operate.GetFilteredUploads(client, params.Game, credentials, consumer)
+	uploads, err := operate.GetFilteredUploads(client, params.Game, access.Credentials, consumer)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

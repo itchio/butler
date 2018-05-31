@@ -5,12 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/itchio/boar"
+
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/wharf/archiver"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
 )
 
@@ -50,75 +49,60 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	err = spec.EnsureChannel()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	client, err := ctx.AuthenticateViaOauth()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	comm.Opf("Getting last build of channel %s", spec.Channel)
 
 	channelResponse, err := client.GetChannel(spec.Target, spec.Channel)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	if channelResponse.Channel.Head == nil {
 		return fmt.Errorf("Channel %s doesn't have any builds yet", spec.Channel)
 	}
 
-	head := *channelResponse.Channel.Head
-	var headArchive *itchio.BuildFile
+	buildID := channelResponse.Channel.Head.ID
 
-	for _, file := range head.Files {
-		comm.Debugf("found file %v", file)
-		if file.Type == itchio.BuildFileTypeArchive && file.SubType == itchio.BuildFileSubTypeDefault && file.State == itchio.BuildFileStateUploaded {
-			headArchive = file
-			break
-		}
+	buildFilesRes, err := client.ListBuildFiles(buildID)
+	if err != nil {
+		return err
 	}
 
-	if headArchive == nil {
+	archiveFile := itchio.FindBuildFileEx(itchio.BuildFileTypeArchive, itchio.BuildFileSubTypeDefault, buildFilesRes.Files)
+	if archiveFile == nil {
 		return fmt.Errorf("Channel %s's latest build is still processing", spec.Channel)
 	}
 
-	url := head.ItchfsURL(headArchive, client.Key)
-
-	remoteFile, err := eos.Open(url, option.WithConsumer(consumer))
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	stats, err := remoteFile.Stat()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	settings := archiver.ExtractSettings{
-		Consumer: comm.NewStateConsumer(),
-		OnUncompressedSizeKnown: func(totalBytes int64) {
-			comm.StartProgressWithTotalBytes(totalBytes)
-		},
-	}
+	url := client.MakeBuildFileDownloadURL(&itchio.MakeBuildFileDownloadURLParams{
+		BuildID: buildID,
+		FileID:  archiveFile.ID,
+	})
 
 	comm.Opf("Extracting into %s", outPath)
-	result, err := archiver.Extract(remoteFile, stats.Size(), outPath, settings)
+
+	comm.StartProgress()
+	extractRes, err := boar.SimpleExtract(&boar.SimpleExtractParams{
+		ArchivePath:       url,
+		Consumer:          consumer,
+		DestinationFolder: outPath,
+	})
 	comm.EndProgress()
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
+	comm.Statf("Extracted %s", extractRes.Stats())
 
-	comm.Statf("Extracted %d dirs, %d files, %d links into %s", result.Dirs, result.Files, result.Symlinks, outPath)
-
-	if err != nil {
-		return errors.WithStack(err)
-	}
 	return nil
 }

@@ -68,16 +68,20 @@ func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) 
 // Do performs a request (any method). It takes care of JWT or API key
 // authentication, sets the propre user agent, has built-in retry,
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	if strings.HasPrefix(c.Key, "jwt:") {
-		req.Header.Add("Authorization", strings.Split(c.Key, ":")[1])
-	}
+	req.Header.Add("Authorization", c.Key)
 	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("Accept", "application/vnd.itch.v2")
 
 	var res *http.Response
 	var err error
 
 	if dumpApiCalls {
 		fmt.Fprintf(os.Stderr, "[request] %s %s\n", req.Method, req.URL)
+		for k, vv := range req.Header {
+			for _, v := range vv {
+				fmt.Fprintf(os.Stderr, "[request] %s: %s\n", k, v)
+			}
+		}
 	}
 
 	retryPatterns := append(c.RetryPatterns, time.Millisecond)
@@ -106,26 +110,20 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	return res, err
 }
 
-// MakePath crafts an API url from our configured base URL, containing our API key
+// MakePath crafts an API url from our configured base URL
 func (c *Client) MakePath(format string, a ...interface{}) string {
-	base := strings.Trim(c.BaseURL, "/")
-	subPath := strings.Trim(fmt.Sprintf(format, a...), "/")
-
-	var key string
-	if strings.HasPrefix(c.Key, "jwt:") {
-		key = "jwt"
-	} else {
-		key = c.Key
-	}
-	return fmt.Sprintf("%s/%s/%s", base, key, subPath)
+	return c.MakeValuesPath(nil, format, a...)
 }
 
-// MakeRootPath crafts an API url from our configured base URL, without the API key component
-func (c *Client) MakeRootPath(format string, a ...interface{}) string {
+// MakePath crafts an API url from our configured base URL
+func (c *Client) MakeValuesPath(values url.Values, format string, a ...interface{}) string {
 	base := strings.Trim(c.BaseURL, "/")
 	subPath := strings.Trim(fmt.Sprintf(format, a...), "/")
-
-	return fmt.Sprintf("%s/%s", base, subPath)
+	path := fmt.Sprintf("%s/%s", base, subPath)
+	if len(values) == 0 {
+		return path
+	}
+	return fmt.Sprintf("%s?%s", path, values.Encode())
 }
 
 // ParseAPIResponse unmarshals an HTTP response into one of out response
@@ -186,7 +184,11 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		Result:  dst,
 		// see https://github.com/itchio/itch/issues/1549
 		WeaklyTypedInput: true,
-		DecodeHook:       mapstructure.StringToTimeHookFunc(APIDateFormat),
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+			GameTraitHookFunc,
+			UploadTraitHookFunc,
+		),
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -213,17 +215,12 @@ func FindBuildFile(fileType BuildFileType, files []*BuildFile) *BuildFile {
 	return nil
 }
 
-// ItchfsURL returns the itchfs:/// url usable to download a given file
-// from a given build
-func (build Build) ItchfsURL(file *BuildFile, apiKey string) string {
-	return ItchfsURL(build.ID, file.ID, apiKey)
-}
+func FindBuildFileEx(fileType BuildFileType, fileSubType BuildFileSubType, files []*BuildFile) *BuildFile {
+	for _, f := range files {
+		if f.Type == fileType && f.SubType == fileSubType && f.State == BuildFileStateUploaded {
+			return f
+		}
+	}
 
-// ItchfsURL returns the itchfs:/// url usable to download a given file
-// from a given build
-func ItchfsURL(buildID int64, fileID int64, apiKey string) string {
-	values := url.Values{}
-	values.Set("api_key", apiKey)
-	return fmt.Sprintf("itchfs:///wharf/builds/%d/files/%d/download?%s",
-		buildID, fileID, values.Encode())
+	return nil
 }

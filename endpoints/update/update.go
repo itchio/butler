@@ -63,9 +63,8 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 	consumer.Infof("→ Cached upload:")
 	operate.LogUpload(consumer, item.Upload, item.Build)
 
-	credentials := operate.CredentialsForGameID(rc.DB(), item.Game.ID)
-
-	if credentials.DownloadKey > 0 {
+	access := operate.AccessForGameID(rc.DB(), item.Game.ID)
+	if access.Credentials.DownloadKeyID > 0 {
 		consumer.Infof("→ Has download key (game is owned)")
 	} else {
 		consumer.Infof("→ Searching without download key")
@@ -73,7 +72,7 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 
 	consumer.Infof("→ Last install operation at (%s)", item.InstalledAt)
 
-	client := rc.ClientFromCredentials(credentials)
+	client := rc.Client(access.APIKey)
 
 	listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: item.Game.ID,

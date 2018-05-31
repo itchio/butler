@@ -6,13 +6,13 @@ import (
 )
 
 type InstallSubcontextState struct {
-	DownloadSessionId   string                    `json:"downloadSessionId,omitempty"`
-	InstallerInfo       *installer.InstallerInfo  `json:"installerInfo,omitempty"`
-	IsAvailableLocally  bool                      `json:"isAvailableLocally,omitempty"`
-	FirstInstallResult  *installer.InstallResult  `json:"firstInstallResult,omitempty"`
-	SecondInstallerInfo *installer.InstallerInfo  `json:"secondInstallerInfo,omitempty"`
-	UpgradePath         []*itchio.UpgradePathItem `json:"upgradePath,omitempty"`
-	UpgradePathIndex    int                       `json:"upgradePathIndex,omitempty"`
+	DownloadSessionId   string                   `json:"downloadSessionId,omitempty"`
+	InstallerInfo       *installer.InstallerInfo `json:"installerInfo,omitempty"`
+	IsAvailableLocally  bool                     `json:"isAvailableLocally,omitempty"`
+	FirstInstallResult  *installer.InstallResult `json:"firstInstallResult,omitempty"`
+	SecondInstallerInfo *installer.InstallerInfo `json:"secondInstallerInfo,omitempty"`
+	UpgradePath         *itchio.UpgradePath      `json:"upgradePath,omitempty"`
+	UpgradePathIndex    int                      `json:"upgradePathIndex,omitempty"`
 }
 
 type InstallSubcontext struct {

@@ -22,7 +22,10 @@ func Write(output io.Writer, length int64, seed int64) error {
 		for i := 0; i < bufsize; i++ {
 			buf[i] = byte(rng.Intn(255))
 		}
-		lw.Write(buf)
+		_, err := lw.Write(buf)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

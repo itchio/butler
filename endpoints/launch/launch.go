@@ -66,10 +66,9 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	upload := cave.Upload
 	build := cave.Build
 	verdict := cave.GetVerdict()
-	credentials := operate.CredentialsForGameID(rc.DB(), game.ID)
 	// these credentials will be used for prereqs, etc., we don't want
 	// a game-specific download key here
-	credentials.DownloadKey = 0
+	access := operate.AccessForGameID(rc.DB(), game.ID).OnlyAPIKey()
 
 	runtime := ox.CurrentRuntime()
 
@@ -416,7 +415,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	if manifestAction != nil {
 		args = append(args, manifestAction.Args...)
 
-		err = requestAPIKeyIfNecessary(rc, manifestAction, game, credentials, env)
+		err = requestAPIKeyIfNecessary(rc, manifestAction, game, access, env)
 		if err != nil {
 			return nil, errors.WithMessage(err, "While requesting API key")
 		}
@@ -442,7 +441,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 
 		PrereqsDir:    params.PrereqsDir,
 		ForcePrereqs:  params.ForcePrereqs,
-		Credentials:   credentials,
+		Access:        access,
 		InstallFolder: installFolder,
 		Runtime:       runtime,
 
@@ -470,7 +469,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	return &butlerd.LaunchResult{}, nil
 }
 
-func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butlerd.Action, game *itchio.Game, credentials *butlerd.GameCredentials, env map[string]string) error {
+func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butlerd.Action, game *itchio.Game, access *operate.GameAccess, env map[string]string) error {
 	consumer := rc.Consumer
 
 	if manifestAction.Scope == "" {
@@ -484,7 +483,7 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butler
 		return errors.WithStack(err)
 	}
 
-	client := rc.ClientFromCredentials(credentials)
+	client := rc.Client(access.APIKey)
 
 	res, err := client.Subkey(&itchio.SubkeyParams{
 		GameID: game.ID,

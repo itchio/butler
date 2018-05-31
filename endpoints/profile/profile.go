@@ -119,16 +119,16 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 	client := rc.Client(key.Key)
 
-	meRes, err := client.GetMe()
+	profileRes, err := client.GetProfile()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	profile := &models.Profile{
-		ID:     meRes.User.ID,
+		ID:     profileRes.User.ID,
 		APIKey: key.Key,
 	}
-	profile.UpdateFromUser(meRes.User)
+	profile.UpdateFromUser(profileRes.User)
 
 	err = rc.DB().Save(profile).Error
 	if err != nil {
@@ -149,16 +149,16 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 
 	client := rc.Client(params.APIKey)
 
-	meRes, err := client.GetMe()
+	profileRes, err := client.GetProfile()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	profile := &models.Profile{
-		ID:     meRes.User.ID,
+		ID:     profileRes.User.ID,
 		APIKey: params.APIKey,
 	}
-	profile.UpdateFromUser(meRes.User)
+	profile.UpdateFromUser(profileRes.User)
 
 	err = rc.DB().Save(profile).Error
 	if err != nil {
@@ -179,12 +179,12 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 	consumer.Opf("Validating credentials...")
 
 	err := func() error {
-		meRes, err := client.GetMe()
+		profileRes, err := client.GetProfile()
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		profile.UpdateFromUser(meRes.User)
+		profile.UpdateFromUser(profileRes.User)
 		if err != nil {
 			return errors.WithStack(err)
 		}

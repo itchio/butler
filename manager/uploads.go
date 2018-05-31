@@ -128,7 +128,7 @@ func (uf *uploadFilter) scoreUpload(upload *itchio.Upload) *scoredUpload {
 	}
 
 	// Demos are penalized (if we have access to non-demo files)
-	if upload.Demo {
+	if upload.Traits.Demo {
 		score -= 500
 	}
 

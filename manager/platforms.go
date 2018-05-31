@@ -14,19 +14,19 @@ type Platforms struct {
 
 func PlatformsForGame(game *itchio.Game) *Platforms {
 	return &Platforms{
-		Linux:   game.Linux,
-		Windows: game.Windows,
-		OSX:     game.OSX,
-		Android: game.Android,
+		Linux:   game.Traits.PlatformLinux,
+		Windows: game.Traits.PlatformWindows,
+		OSX:     game.Traits.PlatformOSX,
+		Android: game.Traits.PlatformAndroid,
 	}
 }
 
 func PlatformsForUpload(upload *itchio.Upload) *Platforms {
 	return &Platforms{
-		Linux:   upload.Linux,
-		Windows: upload.Windows,
-		OSX:     upload.OSX,
-		Android: upload.Android,
+		Linux:   upload.Traits.PlatformLinux,
+		Windows: upload.Traits.PlatformWindows,
+		OSX:     upload.Traits.PlatformOSX,
+		Android: upload.Traits.PlatformAndroid,
 	}
 }
 

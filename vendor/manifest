@@ -2,6 +2,14 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "crawshaw.io/sqlite",
+			"repository": "https://github.com/crawshaw/sqlite",
+			"vcs": "git",
+			"revision": "4e3e3e8c528ecfb9bee9558460201b06f03a6b5f",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/BurntSushi/toml",
 			"repository": "https://github.com/BurntSushi/toml",
 			"vcs": "git",
@@ -171,6 +179,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/go-xorm/builder",
+			"repository": "https://github.com/go-xorm/builder",
+			"vcs": "git",
+			"revision": "bad0a612f0d6277b953910822ab5dfb30dd18237",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/golang/protobuf/proto",
 			"repository": "https://github.com/golang/protobuf",
 			"vcs": "git",
@@ -216,7 +232,7 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "a24f662dff70695e9eefbee19c32a4fa8d0e0514",
+			"revision": "d79a099bf1016152e04b8819224320ccf3dce2de",
 			"branch": "master",
 			"notests": true
 		},
@@ -256,7 +272,15 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "8915978b837552ee6db5104982fe1853aa3ff26a",
+			"revision": "07caa0797540263da4442164ec565399e3b739fe",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/hades",
+			"repository": "https://github.com/itchio/hades",
+			"vcs": "git",
+			"revision": "82eb2f62446527b7c16ccfe34bd5e341148241f1",
 			"branch": "master",
 			"notests": true
 		},
@@ -304,7 +328,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "ad73ed9cbdfbd38d4f869357db707a7bb0ac19c4",
+			"revision": "a9f8c3af201ef807ef6107294cb36bc3893bb02e",
 			"branch": "master",
 			"notests": true
 		},
@@ -336,7 +360,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "58be5517983e25609f09d6b2d2e46f33b4512b55",
+			"revision": "41553639bfc595de2cf68f0ea6dfa0f434273d41",
 			"branch": "master",
 			"notests": true
 		},

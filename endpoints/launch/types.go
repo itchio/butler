@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
@@ -59,7 +60,7 @@ type LauncherParams struct {
 
 	PrereqsDir    string
 	ForcePrereqs  bool
-	Credentials   *butlerd.GameCredentials
+	Access        *operate.GameAccess
 	InstallFolder string
 	Runtime       *ox.Runtime
 

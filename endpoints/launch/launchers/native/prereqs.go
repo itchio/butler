@@ -16,7 +16,7 @@ import (
 func handlePrereqs(params *launch.LauncherParams) error {
 	pc := &prereqs.PrereqsContext{
 		RequestContext: params.RequestContext,
-		Credentials:    params.Credentials,
+		APIKey:         params.Access.APIKey,
 		Runtime:        params.Runtime,
 		Consumer:       params.RequestContext.Consumer,
 		PrereqsDir:     params.PrereqsDir,

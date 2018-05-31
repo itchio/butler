@@ -24,13 +24,12 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		return nil, fmt.Errorf("No other versions available for %s", operate.GameToString(cave.Game))
 	}
 
-	credentials := operate.CredentialsForGameID(rc.DB(), cave.Game.ID)
-
-	client := rc.ClientFromCredentials(credentials)
+	access := operate.AccessForGameID(rc.DB(), cave.Game.ID)
+	client := rc.Client(access.APIKey)
 
 	buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
-		UploadID:      upload.ID,
-		DownloadKeyID: credentials.DownloadKey,
+		UploadID:    upload.ID,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)

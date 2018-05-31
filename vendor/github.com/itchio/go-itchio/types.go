@@ -1,6 +1,8 @@
 package itchio
 
-import "time"
+import (
+	"time"
+)
 
 // User represents an itch.io account, with basic profile info
 type User struct {
@@ -13,9 +15,9 @@ type User struct {
 	DisplayName string `json:"displayName"`
 
 	// Has the user opted into creating games?
-	Developer bool `json:"developer" gorm:"-"`
+	Developer bool `json:"developer" hades:"-"`
 	// Is the user part of itch.io's press program?
-	PressUser bool `json:"pressUser" gorm:"-"`
+	PressUser bool `json:"pressUser" hades:"-"`
 
 	// The address of the user's page on itch.io
 	URL string `json:"url"`
@@ -52,27 +54,16 @@ type Game struct {
 	StillCoverURL string `json:"stillCoverUrl"`
 
 	// Date the game was created
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Date the game was published, empty if not currently published
-	PublishedAt time.Time `json:"publishedAt"`
+	PublishedAt *time.Time `json:"publishedAt"`
 
 	// Price in cents of a dollar
 	MinPrice int64 `json:"minPrice"`
-	// Can this game be bought?
-	CanBeBought bool `json:"canBeBought"`
-	// Is this game downloadable by press users for free?
-	InPressSystem bool `json:"inPressSystem"`
-	// Does this game have a demo that can be downloaded for free?
-	HasDemo bool `json:"hasDemo"`
 
-	// Does this game have an upload tagged with 'macOS compatible'? (creator-controlled)
-	OSX bool `json:"pOsx"`
-	// Does this game have an upload tagged with 'Linux compatible'? (creator-controlled)
-	Linux bool `json:"pLinux"`
-	// Does this game have an upload tagged with 'Windows compatible'? (creator-controlled)
-	Windows bool `json:"pWindows"`
-	// Does this game have an upload tagged with 'Android compatible'? (creator-controlled)
-	Android bool `json:"pAndroid"`
+	// Traits describes the platforms a game is available for,
+	// pricing information, etc.
+	Traits GameTraits `json:"traits" hades:"squash"`
 
 	// The user account this game is associated to
 	// @optional
@@ -87,11 +78,11 @@ type Game struct {
 
 	// Owner-only fields
 
-	ViewsCount     int64 `json:"viewsCount,omitempty" gorm:"-"`
-	DownloadsCount int64 `json:"downloadsCount,omitempt" gorm:"-"`
-	PurchasesCount int64 `json:"purchasesCount,omitempt" gorm:"-"`
+	ViewsCount     int64 `json:"viewsCount,omitempty" hades:"-"`
+	DownloadsCount int64 `json:"downloadsCount,omitempt" hades:"-"`
+	PurchasesCount int64 `json:"purchasesCount,omitempt" hades:"-"`
 
-	Published bool `json:"published,omitempty" gorm:"-"`
+	Published bool `json:"published,omitempty" hades:"-"`
 }
 
 // Type of an itch.io game page, mostly related to
@@ -138,7 +129,7 @@ const (
 // Presentation information for embed games
 type GameEmbedData struct {
 	// Game this embed info is for
-	GameID int64 `json:"gameId" gorm:"primary_key;auto_increment:false"`
+	GameID int64 `json:"gameId" hades:"primary_key"`
 
 	// width of the initial viewport, in pixels
 	Width int64 `json:"width"`
@@ -183,27 +174,17 @@ type Upload struct {
 	ChannelName string `json:"channelName"`
 	// Latest build for this upload, if it's a wharf-enabled upload
 	Build *Build `json:"build"`
-	// Is this upload a demo that can be downloaded for free?
-	Demo bool `json:"demo"`
-	// Is this upload a pre-order placeholder?
-	Preorder bool `json:"preorder"`
 
 	// Upload type: default, soundtrack, etc.
 	Type UploadType `json:"type"`
 
-	// Is this upload tagged with 'macOS compatible'? (creator-controlled)
-	OSX bool `json:"pOsx"`
-	// Is this upload tagged with 'Linux compatible'? (creator-controlled)
-	Linux bool `json:"pLinux"`
-	// Is this upload tagged with 'Windows compatible'? (creator-controlled)
-	Windows bool `json:"pWindows"`
-	// Is this upload tagged with 'Android compatible'? (creator-controlled)
-	Android bool `json:"pAndroid"`
+	// Traits describes platform availability, whether it's a demo upload etc.
+	Traits UploadTraits `json:"traits"`
 
 	// Date this upload was created at
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Date this upload was last updated at (order changed, display name set, etc.)
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 type UploadType string
@@ -242,17 +223,14 @@ type Collection struct {
 	Title string `json:"title"`
 
 	// Date this collection was created at
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Date this collection was last updated at (item added, title set, etc.)
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 
 	// Number of games in the collection. This might not be accurate
 	// as some games might not be accessible to whoever is asking (project
 	// page deleted, visibility level changed, etc.)
 	GamesCount int64 `json:"gamesCount"`
-
-	// Games in this collection: filled in API response
-	Games []*Game `json:"games,omitempty" gorm:"many2many:collection_games"`
 
 	// Games in this collection, with additional info
 	CollectionGames []*CollectionGame `json:"collectionGames,omitempty"`
@@ -262,16 +240,16 @@ type Collection struct {
 }
 
 type CollectionGame struct {
-	CollectionID int64       `json:"collectionId" gorm:"primary_key;auto_increment:false"`
+	CollectionID int64       `json:"collectionId" hades:"primary_key"`
 	Collection   *Collection `json:"collection,omitempty"`
 
-	GameID int64 `json:"gameId" gorm:"primary_key;auto_increment:false"`
+	GameID int64 `json:"gameId" hades:"primary_key"`
 	Game   *Game `json:"game,omitempty"`
 
 	Position int64 `json:"position"`
 
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 
 	Blurb  string `json:"blurb"`
 	UserID int64  `json:"userId"`
@@ -291,9 +269,9 @@ type DownloadKey struct {
 	Game *Game `json:"game,omitempty"`
 
 	// Date this key was created at (often coincides with purchase time)
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Date this key was last updated at
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 
 	// Identifier of the itch.io user to which this key belongs
 	OwnerID int64 `json:"ownerId"`
@@ -323,9 +301,9 @@ type Build struct {
 	// User who pushed the build
 	User *User `json:"user"`
 	// Timestamp the build was created at
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Timestamp the build was last updated at
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 // BuildState describes the state of a build, relative to its initial upload, and
@@ -362,9 +340,9 @@ type BuildFile struct {
 	SubType BuildFileSubType `json:"subType"`
 
 	// Date this build file was created at
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 	// Date this build file was last updated at
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 // BuildFileState describes the state of a specific file for a build

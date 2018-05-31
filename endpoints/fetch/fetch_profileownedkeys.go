@@ -44,7 +44,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 		return nil, errors.WithStack(err)
 	}
 
-	ownedRes, err := client.ListMyOwnedKeys()
+	ownedRes, err := client.ListProfileOwnedKeys()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

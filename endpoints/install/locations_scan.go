@@ -411,11 +411,12 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
 
-	creds := operate.CredentialsForGameID(rc.DB(), legacyCave.GameID)
-	client := rc.ClientFromCredentials(creds)
+	access := operate.AccessForGameID(rc.DB(), legacyCave.GameID)
+	client := rc.Client(access.APIKey)
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
-		GameID: legacyCave.GameID,
+		GameID:      legacyCave.GameID,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -424,8 +425,8 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 	game := gameRes.Game
 
 	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-		GameID:        game.ID,
-		DownloadKeyID: creds.DownloadKey,
+		GameID:      game.ID,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -446,23 +447,16 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	var build *itchio.Build
 	if legacyCave.BuildID != 0 {
-		buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
-			UploadID:      upload.ID,
-			DownloadKeyID: creds.DownloadKey,
+		buildsRes, err := client.GetBuild(&itchio.GetBuildParams{
+			BuildID:     legacyCave.BuildID,
+			Credentials: access.Credentials,
 		})
 		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		for _, b := range buildsRes.Builds {
-			if b.ID == legacyCave.BuildID {
-				build = b
-				break
-			}
-		}
-
-		if build == nil {
-			consumer.Warnf("Could not find build %d, an update will automatically be queued", legacyCave.BuildID)
+			consumer.Warnf("Could not find build %d: %v", legacyCave.BuildID, err)
+			// TODO: do we actually queue it?
+			consumer.Infof("...an update will automatically be queued", legacyCave.BuildID)
+		} else {
+			build = buildsRes.Build
 		}
 	}
 

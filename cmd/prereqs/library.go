@@ -4,26 +4,24 @@ import (
 	"fmt"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/cmd/operate"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
 )
 
 type Library interface {
-	GetURL(name string, fileType string) (string, error)
+	GetURL(name string, fileType itchio.BuildFileType) (string, error)
 	GetUpload(name string) *itchio.Upload
-	GetCredentials() *butlerd.GameCredentials
 }
 
 type library struct {
-	credentials *butlerd.GameCredentials
-	uploads     []*itchio.Upload
+	client  *itchio.Client
+	uploads []*itchio.Upload
 }
 
 var _ Library = (*library)(nil)
 
-func NewLibrary(rc *butlerd.RequestContext, credentials *butlerd.GameCredentials) (Library, error) {
-	client := rc.ClientFromCredentials(credentials)
+func NewLibrary(rc *butlerd.RequestContext, apiKey string) (Library, error) {
+	client := rc.Client(apiKey)
 
 	uploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
 		GameID: RedistsGame.ID,
@@ -33,24 +31,22 @@ func NewLibrary(rc *butlerd.RequestContext, credentials *butlerd.GameCredentials
 	}
 
 	l := &library{
-		credentials: credentials,
-		uploads:     uploadsRes.Uploads,
+		client:  client,
+		uploads: uploadsRes.Uploads,
 	}
 
 	return l, nil
 }
 
-func (l *library) GetURL(name string, fileType string) (string, error) {
+func (l *library) GetURL(name string, fileType itchio.BuildFileType) (string, error) {
 	upload := l.GetUpload(name)
 	if upload == nil {
 		return "", fmt.Errorf("Could not find download for prereq (%s)", name)
 	}
 
-	url := operate.MakeItchfsURL(&operate.ItchfsURLParams{
-		Credentials: l.credentials,
-		UploadID:    upload.ID,
-		BuildID:     upload.Build.ID,
-		FileType:    fileType,
+	url := l.client.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+		BuildID: upload.Build.ID,
+		Type:    fileType,
 	})
 	return url, nil
 }
@@ -63,8 +59,4 @@ func (l *library) GetUpload(name string) *itchio.Upload {
 	}
 
 	return nil
-}
-
-func (l *library) GetCredentials() *butlerd.GameCredentials {
-	return l.credentials
 }

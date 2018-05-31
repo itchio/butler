@@ -35,7 +35,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	params := meta.Data
 	consumer := rc.Consumer
 
-	client := rc.ClientFromCredentials(params.Credentials)
+	client := rc.Client(params.Access.APIKey)
 
 	res := &InstallPrepareResult{}
 
@@ -55,8 +55,8 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 	if istate.DownloadSessionId == "" {
 		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
-			GameID:        params.Game.ID,
-			DownloadKeyID: params.Credentials.DownloadKey,
+			GameID:      params.Game.ID,
+			Credentials: params.Access.Credentials,
 		})
 		if err != nil {
 			return errors.WithStack(err)
@@ -89,10 +89,10 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 			newID := params.Build.ID
 			if newID > oldID {
 				consumer.Infof("↑ Upgrading from build %d to %d", oldID, newID)
-				upgradeRes, err := client.FindUpgrade(&itchio.FindUpgradeParams{
+				upgradeRes, err := client.GetBuildUpgradePath(&itchio.GetBuildUpgradePathParams{
 					CurrentBuildID: oldID,
-					UploadID:       params.Upload.ID,
-					DownloadKeyID:  params.Credentials.DownloadKey,
+					TargetBuildID:  newID,
+					Credentials:    params.Access.Credentials,
 				})
 				if err != nil {
 					consumer.Warnf("Could not find upgrade path: %s", err.Error())
@@ -101,28 +101,28 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 					return task(res)
 				}
 
-				var upgradePath []*itchio.UpgradePathItem
+				upgradePath := upgradeRes.UpgradePath
 
 				var totalUpgradeSize int64
-				for _, item := range upgradeRes.UpgradePath {
-					if item.ID == oldID {
-						// API v1 bug: returns the old build as part of the path
-						continue
+				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.Builds))
+
+				for _, b := range upgradePath.Builds {
+					f := itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeDefault, b.Files)
+					if f == nil {
+						consumer.Warnf("Whoops, build %d is missing a patch, falling back to heal...")
+						res.Strategy = InstallPerformStrategyHeal
+						return task(res)
 					}
 
-					upgradePath = append(upgradePath, item)
-
-					if item.ID == newID {
-						// API v2 bug: upgrade path goes all the way to the newest build
-						// (which might not be what we want)
-						break
+					{
+						of := itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized, b.Files)
+						if of != nil {
+							f = of
+						}
 					}
-				}
 
-				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath))
-				for _, item := range upgradePath {
-					consumer.Infof(" - Build %d (%s)", item.ID, progress.FormatBytes(item.PatchSize))
-					totalUpgradeSize += item.PatchSize
+					consumer.Infof(" - Build %d (%s)", b.ID, progress.FormatBytes(f.Size))
+					totalUpgradeSize += f.Size
 				}
 				fullUploadSize := params.Upload.Size
 
@@ -137,15 +137,15 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 				)
 
 				if totalUpgradeSize > fullUploadSize {
-					consumer.Infof("Heal is less expensive, let's do that", len(upgradePath))
+					consumer.Infof("Heal is less expensive, let's do that", len(upgradePath.Builds))
 					res.Strategy = InstallPerformStrategyHeal
 					return task(res)
 				}
 
-				consumer.Infof("Will apply %d patches", len(upgradePath))
+				consumer.Infof("Will apply %d patches", len(upgradePath.Builds))
 				res.Strategy = InstallPerformStrategyUpgrade
 
-				if len(istate.UpgradePath) == 0 {
+				if len(istate.UpgradePath.Builds) == 0 {
 					istate.UpgradePath = upgradePath
 					istate.UpgradePathIndex = 0
 					err = oc.Save(isub)
@@ -169,7 +169,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		}
 	}
 
-	installSourceURL := sourceURL(consumer, istate, params, "")
+	installSourceURL := sourceURL(client, consumer, istate, params, "")
 
 	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
 	if err != nil {

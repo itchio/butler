@@ -7,8 +7,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
@@ -20,17 +19,17 @@ func upgrade(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext
 	consumer := oc.Consumer()
 	istate := isub.Data
 
-	totalPatches := len(istate.UpgradePath)
+	totalPatches := len(istate.UpgradePath.Builds)
 	donePatches := istate.UpgradePathIndex
 	remainingPatches := totalPatches - donePatches
 
 	consumer.Infof("Applying %d patches (%d already done)", remainingPatches, donePatches)
 
 	for i := istate.UpgradePathIndex; i < totalPatches; i++ {
-		item := istate.UpgradePath[i]
+		build := istate.UpgradePath.Builds[i]
 		err := applyPatch(oc, meta, isub, receiptIn, i)
 		if err != nil {
-			return errors.WithMessage(err, fmt.Sprintf("while applying patch %d/%d (build %d)", i, totalPatches, item.ID))
+			return errors.WithMessage(err, fmt.Sprintf("while applying patch %d/%d (build %d)", i, totalPatches, build.ID))
 		}
 	}
 
@@ -43,38 +42,27 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	params := meta.Data
 	istate := isub.Data
 
-	item := istate.UpgradePath[upgradePathIndex]
-
-	client := rc.ClientFromCredentials(params.Credentials)
-	buildRes, err := client.GetBuild(&itchio.GetBuildParams{
-		UploadID: params.Upload.ID,
-		BuildID:  item.ID,
-	})
-	if err != nil {
-		return errors.WithMessage(err, "while retrieving build info")
-	}
-
-	build := buildRes.Build
+	build := istate.UpgradePath.Builds[upgradePathIndex]
 
 	LogBuild(consumer, params.Upload, build)
 
-	patchURL := MakeItchfsURL(&ItchfsURLParams{
-		Credentials: params.Credentials,
-		UploadID:    params.Upload.ID,
+	client := rc.Client(params.Access.APIKey)
+	subType := itchio.BuildFileSubTypeDefault
+	if itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized, build.Files) != nil {
+		subType = itchio.BuildFileSubTypeOptimized
+	}
+
+	patchURL := client.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+		Credentials: params.Access.Credentials,
 		BuildID:     build.ID,
-		FileType:    "patch",
+		Type:        itchio.BuildFileTypePatch,
+		SubType:     subType,
 		UUID:        istate.DownloadSessionId,
 	})
 
-	patchReader, err := eos.Open(patchURL, option.WithConsumer(consumer))
+	patchSource, err := filesource.Open(patchURL, option.WithConsumer(consumer))
 	if err != nil {
-		return errors.Wrap(err, "opening patch")
-	}
-
-	patchSource := seeksource.FromFile(patchReader)
-	_, err = patchSource.Resume(nil)
-	if err != nil {
-		return errors.Wrap(err, "creating patch source")
+		return errors.Wrap(err, "opening remote patch")
 	}
 
 	consumer.Infof("Patch is %s", progress.FormatBytes(patchSource.Size()))

@@ -88,13 +88,16 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	}
 
 	params.Game = queueParams.Game
-	params.Credentials = operate.CredentialsForGameID(rc.DB(), params.Game.ID)
+	params.Access = operate.AccessForGameID(rc.DB(), params.Game.ID)
 
-	client := rc.ClientFromCredentials(params.Credentials)
+	client := rc.Client(params.Access.APIKey)
 
 	{
 		// attempt to refresh game info
-		gameRes, err := client.GetGame(&itchio.GetGameParams{GameID: params.Game.ID})
+		gameRes, err := client.GetGame(&itchio.GetGameParams{
+			GameID:      params.Game.ID,
+			Credentials: params.Access.Credentials,
+		})
 		if err != nil {
 			consumer.Warnf("Could not refresh game info: %s", err.Error())
 		} else {
@@ -138,7 +141,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploadsFilterResult, err := operate.GetFilteredUploads(client, params.Game, params.Credentials, consumer)
+		uploadsFilterResult, err := operate.GetFilteredUploads(client, params.Game, params.Access.Credentials, consumer)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -183,8 +186,8 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		// Let's refresh upload info so we can settle on a build we want to install (if any)
 
 		listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
-			GameID:        params.Game.ID,
-			DownloadKeyID: params.Credentials.DownloadKey,
+			GameID:      params.Game.ID,
+			Credentials: params.Access.Credentials,
 		})
 		if err != nil {
 			return nil, errors.WithStack(err)

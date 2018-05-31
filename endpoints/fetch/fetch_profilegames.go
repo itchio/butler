@@ -57,7 +57,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 
 	consumer.Debugf("Querying API...")
 
-	gamesRes, err := client.ListMyGames()
+	gamesRes, err := client.ListProfileGames()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

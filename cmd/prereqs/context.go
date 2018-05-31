@@ -19,7 +19,7 @@ import (
 
 type PrereqsContext struct {
 	RequestContext *butlerd.RequestContext
-	Credentials    *butlerd.GameCredentials
+	APIKey         string
 	Runtime        *ox.Runtime
 	Consumer       *state.Consumer
 	PrereqsDir     string
@@ -31,7 +31,7 @@ type PrereqsContext struct {
 
 func (pc *PrereqsContext) GetLibrary() (Library, error) {
 	if pc.library == nil {
-		library, err := NewLibrary(pc.RequestContext, pc.Credentials)
+		library, err := NewLibrary(pc.RequestContext, pc.APIKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "opening prereqs library")
 		}

@@ -104,11 +104,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.Dief("Could not find signature for parent build %d, aborting", ID)
 		}
 
-		signatureURL := itchio.ItchfsURL(
-			ID,
-			signatureFile.ID,
-			client.Key,
-		)
+		signatureURL := client.MakeBuildFileDownloadURL(&itchio.MakeBuildFileDownloadURLParams{
+			BuildID: ID,
+			FileID:  signatureFile.ID,
+		})
 
 		signatureReader, err := eos.Open(signatureURL, option.WithConsumer(comm.NewStateConsumer()))
 		if err != nil {
@@ -156,7 +155,11 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	newBuildRes, err := client.CreateBuild(spec.Target, spec.Channel, userVersion)
+	newBuildRes, err := client.CreateBuild(&itchio.CreateBuildParams{
+		Target:      spec.Target,
+		Channel:     spec.Channel,
+		UserVersion: userVersion,
+	})
 	if err != nil {
 		return errors.Wrap(err, "creating build on remote server")
 	}
@@ -181,10 +184,13 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	newPatchRes, newSignatureRes, err := createBothFiles(client, buildID)
+	bothFiles, err := createBothFiles(client, buildID)
 	if err != nil {
 		return errors.Wrap(err, "creating remote patch and signature files")
 	}
+
+	newPatchRes := bothFiles.patchRes
+	newSignatureRes := bothFiles.signatureRes
 
 	consumer := comm.NewStateConsumer()
 
@@ -337,7 +343,11 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		errs := make(chan error)
 
 		doFinalize := func(fileID int64, fileSize int64, done chan error) {
-			_, err = client.FinalizeBuildFile(buildID, fileID, fileSize)
+			_, err = client.FinalizeBuildFile(&itchio.FinalizeBuildFileParams{
+				BuildID: buildID,
+				FileID:  fileID,
+				Size:    fileSize,
+			})
 			done <- err
 		}
 
