@@ -99,12 +99,11 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 			TagName:          "json",
 			WeaklyTypedInput: true,
 			Result:           &item.Upload,
-			DecodeHook:       mapstructure.StringToTimeHookFunc(itchio.APIDateFormat),
 		})
 		wtest.Must(t, err)
 		wtest.Must(t, dec.Decode(testUpload()))
 
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", httpmock.NewBytesResponder(404, nil))
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", httpmock.NewBytesResponder(404, nil))
 		res, err := checkUpdate(params)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(res.Warnings))
@@ -114,7 +113,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 	{
 		t.Logf("All uploads gone")
 		httpmock.Reset()
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": nil,
 		}))
 		res, err := checkUpdate(params)
@@ -129,7 +128,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		freshUpload := testUpload()
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -145,10 +144,10 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		t.Logf("Upload updated recently")
 		httpmock.Reset()
 		freshUpload := testUpload()
-		freshUpload["updated_at"] = "2018-01-01 04:12:00"
+		freshUpload["updated_at"] = "2018-01-01T04:12:00Z"
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -168,13 +167,13 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		freshUpload["build"] = map[string]interface{}{
 			"id": 1230,
 		}
-		freshUpload["updated_at"] = "2018-01-01 04:12:00"
+		freshUpload["updated_at"] = "2018-01-01T04:12:00Z"
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
 		otherUpload["build"] = map[string]interface{}{
 			"id": 65432,
 		}
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -198,13 +197,13 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		freshUpload["build"] = map[string]interface{}{
 			"id": item.Build.ID,
 		}
-		freshUpload["updated_at"] = "2018-01-01 04:12:00"
+		freshUpload["updated_at"] = "2018-01-01T04:12:00Z"
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
 		otherUpload["build"] = map[string]interface{}{
 			"id": 65432,
 		}
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -227,13 +226,13 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		freshUpload["build"] = map[string]interface{}{
 			"id": 12346,
 		}
-		freshUpload["updated_at"] = "2018-01-01 04:12:00"
+		freshUpload["updated_at"] = "2018-01-01T04:12:00Z"
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
 		otherUpload["build"] = map[string]interface{}{
 			"id": 65432,
 		}
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -253,13 +252,13 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		t.Logf("Upload went wharf-less")
 		httpmock.Reset()
 		freshUpload := testUpload()
-		freshUpload["updated_at"] = "2018-01-01 04:12:00"
+		freshUpload["updated_at"] = "2018-01-01T04:12:00Z"
 		otherUpload := testUpload()
 		otherUpload["id"] = 235987
 		otherUpload["build"] = map[string]interface{}{
 			"id": 65432,
 		}
-		httpmock.RegisterResponder("GET", "https://itch.io/api/1/KEY/game/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
+		httpmock.RegisterResponder("GET", "https://api.itch.io/games/123/uploads", mustJsonResponder(t, 200, map[string]interface{}{
 			"uploads": []interface{}{
 				freshUpload,
 				otherUpload,
@@ -289,7 +288,7 @@ func testUpload() map[string]interface{} {
 	return map[string]interface{}{
 		"id":         768,
 		"filename":   "foobar.zip",
-		"updated_at": "2017-02-03 12:13:00",
+		"updated_at": "2017-02-03T12:13:00Z",
 		"size":       6273984,
 		"windows":    true,
 		"type":       "default",
