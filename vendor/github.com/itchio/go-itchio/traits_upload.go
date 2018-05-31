@@ -3,8 +3,6 @@ package itchio
 import (
 	"encoding/json"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 type UploadTraits struct {
@@ -67,11 +65,13 @@ func UploadTraitHookFunc(
 		return data, nil
 	}
 
+	var tt UploadTraits
 	if f.Kind() != reflect.Slice {
-		return nil, errors.Errorf("expected upload.traits to be a slice")
+		// lua emits `{}` for empty arrays, golang unmarshals that into a `map[string]interface{}`
+		// they're empty anyway
+		return tt, nil
 	}
 
-	var tt UploadTraits
 	val := reflect.ValueOf(&tt).Elem()
 
 	var traits = data.([]interface{})

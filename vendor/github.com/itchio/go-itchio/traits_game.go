@@ -3,8 +3,6 @@ package itchio
 import (
 	"encoding/json"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 type GameTraits struct {
@@ -68,11 +66,14 @@ func GameTraitHookFunc(
 		return data, nil
 	}
 
+	var tt GameTraits
 	if f.Kind() != reflect.Slice {
-		return nil, errors.Errorf("expected game.traits to be a slice")
+		// oh yeah lua will emit `{}` for empty arrays,
+		// which golang unmarshals into a `map[string]interface{}`
+		// so let's ignore those
+		return tt, nil
 	}
 
-	var tt GameTraits
 	val := reflect.ValueOf(&tt).Elem()
 
 	var traits = data.([]interface{})

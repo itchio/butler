@@ -37,12 +37,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	debrpm := []*itchio.Upload{
 		{
-			Linux:    true,
+			Traits:   itchio.UploadTraits{PlatformLinux: true},
 			Filename: "wrong.deb",
 			Type:     "default",
 		},
 		{
-			Linux:    true,
+			Traits:   itchio.UploadTraits{PlatformLinux: true},
 			Filename: "nope.rpm",
 			Type:     "default",
 		},
@@ -61,7 +61,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	blacklistpkg := []*itchio.Upload{
 		{
-			OSX:      true,
+			Traits:   itchio.UploadTraits{PlatformOSX: true},
 			Filename: "super-mac-game.pkg",
 			Type:     "default",
 		},
@@ -74,9 +74,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, blacklistpkg, game, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
-		Linux:    true,
-		Windows:  true,
-		OSX:      true,
+		Traits:   itchio.UploadTraits{PlatformOSX: true, PlatformLinux: true, PlatformWindows: true},
 		Filename: "no-really-all-platforms.love",
 		Type:     "default",
 	}
@@ -96,15 +94,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, excludeuntagged, game, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
-		Linux:    true,
-		Windows:  true,
-		OSX:      true,
+		Traits:   itchio.UploadTraits{PlatformOSX: true, PlatformLinux: true, PlatformWindows: true},
 		Filename: "sources.tar.gz",
 		Type:     "default",
 	}
 
 	linuxBinary := &itchio.Upload{
-		Linux:    true,
+		Traits:   itchio.UploadTraits{PlatformLinux: true},
 		Filename: "binary.zip",
 		Type:     "default",
 	}
@@ -131,13 +127,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, preferlinuxbin, game, linux64), "prefer linux binary")
 
 	windowsNaked := &itchio.Upload{
-		Windows:  true,
+		Traits:   itchio.UploadTraits{PlatformWindows: true},
 		Filename: "gamemaker-stuff-probably.exe",
 		Type:     "default",
 	}
 
 	windowsPortable := &itchio.Upload{
-		Windows:  true,
+		Traits:   itchio.UploadTraits{PlatformWindows: true},
 		Filename: "portable-build.zip",
 		Type:     "default",
 	}
@@ -164,8 +160,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, preferwinportable, game, windows32), "prefer windows portable, then naked")
 
 	windowsDemo := &itchio.Upload{
-		Windows:  true,
-		Demo:     true,
+		Traits:   itchio.UploadTraits{PlatformWindows: true, Demo: true},
 		Filename: "windows-demo.zip",
 		Type:     "default",
 	}
@@ -192,21 +187,19 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	loveWin := &itchio.Upload{
-		Windows:  true,
+		Traits:   itchio.UploadTraits{PlatformWindows: true},
 		Filename: "win32.zip",
 		Type:     "default",
 	}
 
 	loveMac := &itchio.Upload{
-		OSX:      true,
+		Traits:   itchio.UploadTraits{PlatformOSX: true},
 		Filename: "mac64.zip",
 		Type:     "default",
 	}
 
 	loveAll := &itchio.Upload{
-		Windows:  true,
-		OSX:      true,
-		Linux:    true,
+		Traits:   itchio.UploadTraits{PlatformWindows: true, PlatformOSX: true, PlatformLinux: true},
 		Filename: "universal.zip",
 		Type:     "default",
 	}
@@ -227,7 +220,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}, manager.NarrowDownUploads(consumer, preferexclusive, game, windows64), "prefer builds exclusive to platform")
 
 	universalUpload := &itchio.Upload{
-		Linux:    true,
+		Traits:   itchio.UploadTraits{PlatformLinux: true},
 		Filename: "Linux 32+64bit.tar.bz2",
 		Type:     "default",
 	}
@@ -250,12 +243,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	{
 		linux32Upload := &itchio.Upload{
-			Linux:    true,
+			Traits:   itchio.UploadTraits{PlatformLinux: true},
 			Filename: "linux-386.tar.bz2",
 			Type:     "default",
 		}
 		linux64Upload := &itchio.Upload{
-			Linux:    true,
+			Traits:   itchio.UploadTraits{PlatformLinux: true},
 			Filename: "linux-amd64.tar.bz2",
 			Type:     "default",
 		}
@@ -280,12 +273,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	{
 		windows32Upload := &itchio.Upload{
-			Windows:  true,
+			Traits:   itchio.UploadTraits{PlatformWindows: true},
 			Filename: "Super Duper UE4 Game x86.rar",
 			Type:     "default",
 		}
 		windows64Upload := &itchio.Upload{
-			Windows:  true,
+			Traits:   itchio.UploadTraits{PlatformWindows: true},
 			Filename: "Super Duper UE4 Game x64.rar",
 			Type:     "default",
 		}
