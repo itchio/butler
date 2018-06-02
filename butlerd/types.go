@@ -431,7 +431,7 @@ type DownloadKeySummary struct {
 	GameID int64 `json:"gameId"`
 
 	// Date this key was created at (often coincides with purchase time)
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt"`
 }
 
 type CaveSummary struct {
@@ -978,8 +978,6 @@ type DownloadsClearFinishedParams struct {
 }
 
 type DownloadsClearFinishedResult struct {
-	// The number of removed downloads
-	RemovedCount int64 `json:"removedCount"`
 }
 
 // Drive downloads, which is: perform them one at a time,

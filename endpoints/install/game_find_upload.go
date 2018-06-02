@@ -1,6 +1,7 @@
 package install
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/pkg/errors"
@@ -15,7 +16,10 @@ func GameFindUploads(rc *butlerd.RequestContext, params *butlerd.GameFindUploads
 
 	consumer.Infof("Looking for compatible uploads for game %s", operate.GameToString(params.Game))
 
-	access := operate.AccessForGameID(rc.DB(), params.Game.ID)
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, params.Game.ID)
+	})
 	client := rc.Client(access.APIKey)
 
 	uploads, err := operate.GetFilteredUploads(client, params.Game, access.Credentials, consumer)

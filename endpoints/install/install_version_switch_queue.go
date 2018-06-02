@@ -3,6 +3,7 @@ package install
 import (
 	"fmt"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/endpoints/fetch"
 	itchio "github.com/itchio/go-itchio"
@@ -24,7 +25,10 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		return nil, fmt.Errorf("No other versions available for %s", operate.GameToString(cave.Game))
 	}
 
-	access := operate.AccessForGameID(rc.DB(), cave.Game.ID)
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, cave.Game.ID)
+	})
 	client := rc.Client(access.APIKey)
 
 	buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
@@ -35,8 +39,13 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		return nil, errors.WithStack(err)
 	}
 
+	var formattedCave *butlerd.Cave
+	rc.WithConn(func(conn *sqlite.Conn) {
+		formattedCave = fetch.FormatCave(conn, cave)
+	})
+
 	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &butlerd.InstallVersionSwitchPickParams{
-		Cave:   fetch.FormatCave(rc.DB(), cave),
+		Cave:   formattedCave,
 		Upload: upload,
 		Builds: buildsRes.Builds,
 	})

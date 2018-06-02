@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/endpoints/cleandownloads"
@@ -15,17 +16,16 @@ import (
 	"github.com/itchio/butler/endpoints/update"
 	"github.com/itchio/butler/endpoints/utilities"
 	"github.com/itchio/butler/mansion"
-	"github.com/jinzhu/gorm"
 )
 
 var mainRouter *butlerd.Router
 
-func getRouter(db *gorm.DB, mansionContext *mansion.Context) *butlerd.Router {
+func getRouter(dbPool *sqlite.Pool, mansionContext *mansion.Context) *butlerd.Router {
 	if mainRouter != nil {
 		return mainRouter
 	}
 
-	mainRouter = butlerd.NewRouter(db, mansionContext.NewClient)
+	mainRouter = butlerd.NewRouter(dbPool, mansionContext.NewClient)
 	mainRouter.ButlerVersion = mansionContext.Version
 	mainRouter.ButlerVersionString = mansionContext.VersionString
 

@@ -27,7 +27,7 @@ type GetCollectionGamesParams struct {
 type GetCollectionGamesResponse struct {
 	Page            int64             `json:"page"`
 	PerPage         int64             `json:"perPage"`
-	CollectionGames []*CollectionGame `json:"collection_games"`
+	CollectionGames []*CollectionGame `json:"collectionGames"`
 }
 
 func (c *Client) GetCollectionGames(params *GetCollectionGamesParams) (*GetCollectionGamesResponse, error) {

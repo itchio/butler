@@ -31,11 +31,11 @@ func (c *Context) fetchPagedByPK(conn *sqlite.Conn, PKDBName string, keys []inte
 		}
 
 		pageAddr := reflect.New(sliceType)
-		cond := builder.In(PKDBName, remainingItems[:pageSize]...)
+		cond := builder.In(EscapeIdentifier(PKDBName), remainingItems[:pageSize]...)
 
 		err := c.Select(conn, pageAddr.Interface(), cond, search)
 		if err != nil {
-			return result, errors.Wrap(err, "performing page fetch")
+			return result, errors.WithMessage(err, "performing page fetch")
 		}
 
 		appended := reflect.AppendSlice(resultVal, pageAddr.Elem())

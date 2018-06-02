@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"crawshaw.io/sqlite"
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -15,7 +16,6 @@ import (
 	"github.com/itchio/butler/endpoints/downloads"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -47,7 +47,9 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 			if queueParams.InstallLocationID == "" {
 				return nil, errors.New("When caveId is unspecified, installLocationId must be set")
 			}
-			installLocation = models.InstallLocationByID(rc.DB(), queueParams.InstallLocationID)
+			rc.WithConn(func(conn *sqlite.Conn) {
+				installLocation = models.InstallLocationByID(conn, queueParams.InstallLocationID)
+			})
 			if installLocation == nil {
 				return nil, errors.Errorf("Install location not found (%s)", queueParams.InstallLocationID)
 			}
@@ -63,7 +65,9 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 				queueParams.Build = cave.Build
 			}
 
-			installLocation = cave.GetInstallLocation(rc.DB())
+			rc.WithConn(func(conn *sqlite.Conn) {
+				installLocation = cave.GetInstallLocation(conn)
+			})
 		}
 
 		id = generateDownloadID(installLocation.Path)
@@ -88,7 +92,9 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	}
 
 	params.Game = queueParams.Game
-	params.Access = operate.AccessForGameID(rc.DB(), params.Game.ID)
+	rc.WithConn(func(conn *sqlite.Conn) {
+		params.Access = operate.AccessForGameID(conn, params.Game.ID)
+	})
 
 	client := rc.Client(params.Access.APIKey)
 
@@ -126,14 +132,16 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		}
 		params.CaveID = cave.ID
 
-		if cave.InstallFolderName == "" {
-			cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
-			ensureUniqueFolderName(rc.DB(), cave)
-		}
+		rc.WithConn(func(conn *sqlite.Conn) {
+			if cave.InstallFolderName == "" {
+				cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
+				ensureUniqueFolderName(conn, cave)
+			}
 
-		params.InstallFolder = cave.GetInstallFolder(rc.DB())
-		params.InstallLocationID = cave.InstallLocationID
-		params.InstallFolderName = cave.InstallFolderName
+			params.InstallFolder = cave.GetInstallFolder(conn)
+			params.InstallLocationID = cave.InstallLocationID
+			params.InstallFolderName = cave.InstallFolderName
+		})
 	}
 
 	params.Upload = queueParams.Upload
@@ -301,14 +309,14 @@ func makeInstallFolderNameFromID(game *itchio.Game, consumer *state.Consumer) st
 	return fmt.Sprintf("game-%d", game.ID)
 }
 
-func ensureUniqueFolderName(db *gorm.DB, cave *models.Cave) {
+func ensureUniqueFolderName(conn *sqlite.Conn, cave *models.Cave) {
 	// Once we reach "Overland 200", it's time to stop
 	const uniqueMaxTries = 200
 	base := cave.InstallFolderName
 	suffix := 2
 
 	for i := 0; i < uniqueMaxTries; i++ {
-		folder := cave.GetInstallFolder(db)
+		folder := cave.GetInstallFolder(conn)
 		_, err := os.Stat(folder)
 		alreadyExists := (err == nil)
 
@@ -323,7 +331,7 @@ func ensureUniqueFolderName(db *gorm.DB, cave *models.Cave) {
 	}
 
 	cave.InstallFolderName = base
-	err := errors.Errorf("Could not ensure unique install folder starting with (%s)", cave.GetInstallFolder(db))
+	err := errors.Errorf("Could not ensure unique install folder starting with (%s)", cave.GetInstallFolder(conn))
 	panic(err)
 }
 

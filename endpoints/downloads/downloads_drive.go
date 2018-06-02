@@ -9,9 +9,8 @@ import (
 
 	"github.com/itchio/wharf/werrors"
 
-	"github.com/itchio/httpkit/timeout"
-
 	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/httpkit/timeout"
 
 	"github.com/sourcegraph/jsonrpc2"
 
@@ -22,6 +21,10 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
+
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
+	"github.com/itchio/hades"
 )
 
 var downloadsDriveCancelID = "Downloads.Drive"
@@ -123,12 +126,10 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 	consumer := rc.Consumer
 
 	var discardedDownloads []*models.Download
-	err := rc.DB().Where(`discarded`).Find(&discardedDownloads).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	models.PreloadDownloads(rc.DB(), discardedDownloads)
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &discardedDownloads, builder.Expr("discarded"), nil)
+		models.PreloadDownloads(conn, discardedDownloads)
+	})
 	for _, download := range discardedDownloads {
 		consumer.Opf("Cleaning up download for %s", operate.GameToString(download.Game))
 
@@ -154,10 +155,9 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 			}
 		}
 
-		err := rc.DB().Delete(download).Error
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		rc.WithConn(func(conn *sqlite.Conn) {
+			models.MustDelete(conn, download, builder.Eq{"id": download.ID})
+		})
 
 		messages.DownloadsDriveDiscarded.Notify(rc, &butlerd.DownloadsDriveDiscardedNotification{
 			Download: formatDownload(download),
@@ -170,17 +170,25 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	consumer := rc.Consumer
 
 	var pendingDownloads []*models.Download
-	err := rc.DB().Where(`finished_at IS NULL AND NOT discarded`).Order(`position ASC`).Find(&pendingDownloads).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	var download *models.Download
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &pendingDownloads,
+			builder.And(
+				builder.IsNull{"finished_at"},
+				builder.Not{builder.Expr("discarded")},
+			),
+			hades.Search().OrderBy("position ASC"),
+		)
+		if len(pendingDownloads) == 0 {
+			return
+		}
 
-	if len(pendingDownloads) == 0 {
+		download = pendingDownloads[0]
+		download.Preload(conn)
+	})
+	if download == nil {
 		return nil
 	}
-
-	download := pendingDownloads[0]
-	download.Preload(rc.DB())
 	consumer.Infof("%d pending downloads, performing for %s", len(pendingDownloads), operate.GameToString(download.Game))
 
 	ctx, cancelFunc := context.WithCancel(parentCtx)
@@ -189,15 +197,17 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	wasDiscarded := func() bool {
 		// have we been discarded?
 		{
-			var row = struct {
-				Discarded bool
-			}{}
-			err := rc.DB().Raw(`SELECT discarded FROM downloads WHERE id = ?`, download.ID).Scan(&row).Error
-			if err != nil {
-				consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
-			}
-
-			if row.Discarded {
+			var discarded bool
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustExec(conn,
+					builder.Select("discarded").From("downloads").Where(builder.Eq{"id": download.ID}),
+					func(stmt *sqlite.Stmt) error {
+						discarded = stmt.ColumnInt(0) == 1
+						return nil
+					},
+				)
+			})
+			if discarded {
 				consumer.Infof("Download was cancelled from under us, bailing out!")
 				return true
 			}
@@ -205,16 +215,24 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 		// has something else been prioritized?
 		{
-			var row = struct {
-				ID string
-			}{}
-			err := rc.DB().Raw(`SELECT id FROM downloads WHERE finished_at IS NULL AND NOT discarded ORDER BY position ASC LIMIT 1`).Scan(&row).Error
-			if err != nil {
-				consumer.Warnf("Could not check whether download is discarded: %s", err.Error())
-			}
-
-			if row.ID != download.ID {
-				consumer.Infof("%s deprioritized (for %s), bailing out!", download.ID, row.ID)
+			var priorityDownloadID string
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustExecWithSearch(conn,
+					builder.Select("id").From("downloads").Where(
+						builder.And(
+							builder.IsNull{"finished_at"},
+							builder.Not{builder.Expr("discarded")},
+						),
+					),
+					hades.Search().Limit(1),
+					func(stmt *sqlite.Stmt) error {
+						priorityDownloadID = stmt.ColumnText(0)
+						return nil
+					},
+				)
+			})
+			if priorityDownloadID != download.ID {
+				consumer.Infof("%s deprioritized (for %s), bailing out!", download.ID, priorityDownloadID)
 				return true
 			}
 		}
@@ -285,7 +303,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		return nil
 	})
 
-	err = func() (err error) {
+	err := func() (err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				consumer.Warnf("Recovered from panic!")
@@ -323,10 +341,9 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 				return nil
 			case butlerd.CodeOperationAborted:
 				consumer.Warnf("Download aborted, cleaning it out.")
-				err := rc.DB().Delete(download).Error
-				if err != nil {
-					return errors.WithStack(err)
-				}
+				rc.WithConn(func(conn *sqlite.Conn) {
+					models.MustDelete(conn, &models.Download{}, builder.Eq{"id": download.ID})
+				})
 				return nil
 			}
 
@@ -356,7 +373,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 		finishedAt := time.Now().UTC()
 		download.FinishedAt = &finishedAt
-		download.Save(rc.DB())
+		rc.WithConn(download.Save)
 
 		messages.DownloadsDriveErrored.Notify(rc, &butlerd.DownloadsDriveErroredNotification{
 			Download: formatDownload(download),
@@ -368,7 +385,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	consumer.Infof("Download finished!")
 	finishedAt := time.Now().UTC()
 	download.FinishedAt = &finishedAt
-	download.Save(rc.DB())
+	rc.WithConn(download.Save)
 
 	messages.DownloadsDriveFinished.Notify(rc, &butlerd.DownloadsDriveFinishedNotification{
 		Download: formatDownload(download),

@@ -15,6 +15,7 @@ import (
 
 	goerrors "errors"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -52,7 +53,10 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	defer rc.CancelFuncs.Remove(launchCancelID)
 
 	cave := operate.ValidateCave(rc, params.CaveID)
-	installFolder := cave.GetInstallFolder(rc.DB())
+	var installFolder string
+	rc.WithConn(func(conn *sqlite.Conn) {
+		installFolder = cave.GetInstallFolder(conn)
+	})
 
 	_, err := os.Stat(installFolder)
 	if err != nil && os.IsNotExist(err) {
@@ -68,7 +72,10 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 	verdict := cave.GetVerdict()
 	// these credentials will be used for prereqs, etc., we don't want
 	// a game-specific download key here
-	access := operate.AccessForGameID(rc.DB(), game.ID).OnlyAPIKey()
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, game.ID).OnlyAPIKey()
+	})
 
 	runtime := ox.CurrentRuntime()
 
@@ -345,7 +352,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			verdict = newVerdict
 
 			cave.SetVerdict(verdict)
-			cave.Save(rc.DB())
+			rc.WithConn(cave.Save)
 
 			err = pickFromVerdict()
 			if err != nil {
@@ -372,7 +379,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 					verdict = newVerdict
 
 					cave.SetVerdict(verdict)
-					cave.Save(rc.DB())
+					rc.WithConn(cave.Save)
 
 					err = pickFromVerdict()
 					if err != nil {
@@ -453,13 +460,13 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 			}()
 
 			cave.RecordPlayTime(playTime)
-			cave.Save(rc.DB())
+			rc.WithConn(cave.Save)
 			return nil
 		},
 	}
 
 	cave.Touch()
-	cave.Save(rc.DB())
+	rc.WithConn(cave.Save)
 
 	err = launcher.Do(launcherParams)
 	if err != nil {

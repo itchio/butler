@@ -1,7 +1,7 @@
 package itchio
 
 type GameCredentials struct {
-	DownloadKeyID int64  `json:"download_key_id,omitempty"`
+	DownloadKeyID int64  `json:"downloadKeyId,omitempty"`
 	Password      string `json:"password,omitempty"`
 	Secret        string `json:"secret,omitempty"`
 }

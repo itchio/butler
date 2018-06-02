@@ -8,6 +8,59 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ScanIntoRows is used to scan a single sqlite statement into a struct that
+// might contain multiple models, for example
+//
+//   var c *hades.Context
+//   var rows []struct{
+//     Game Game `hades:"squash"`
+//     CollectionGame `hades:"squash"`
+//   }
+//   // exec a query, and in the ResultFn:
+//   c.Exec(..., ..., func () {
+//     return c.ScanIntoRows(stmt, rows)
+//   })
+//
+func (c *Context) ScanIntoRows(stmt *sqlite.Stmt, slicePtr interface{}) error {
+	return c.IntoRowsScanner(slicePtr)(stmt)
+}
+
+// NewScannerIntoRows returns a ResultFn that scans all fields into what
+// is typically an anonymous struct containing multiple squashed models.
+// See ScanIntoRows.
+func (c *Context) IntoRowsScanner(slicePtr interface{}) ResultFn {
+	slicePtrVal := reflect.ValueOf(slicePtr)
+	sliceVal := slicePtrVal.Elem()
+	sliceTyp := sliceVal.Type()
+	if sliceTyp.Kind() != reflect.Slice {
+		err := errors.Errorf("ScanIntoRows expects a slice, got a %v", sliceTyp)
+		return func(stmt *sqlite.Stmt) error {
+			return err
+		}
+	}
+
+	modelTyp := sliceTyp.Elem()
+	recordTemplate := reflect.New(modelTyp).Elem()
+	scope := c.NewScope(recordTemplate.Interface())
+
+	return func(stmt *sqlite.Stmt) error {
+		recordVal := reflect.New(modelTyp).Elem()
+		err := c.Scan(stmt, scope.GetStructFields(), recordVal)
+		if err != nil {
+			return err
+		}
+		sliceVal.Set(reflect.Append(sliceVal, recordVal))
+		return nil
+	}
+}
+
+// Scan is used to scan a single sqlite statement into a model struct
+// for example:
+//
+//   var c *hades.Context
+//   var g Game
+//   c.Scan(stmt, c.NewScope(), reflect.ValueOf(&g).Elem())
+//
 func (c *Context) Scan(stmt *sqlite.Stmt, structFields []*StructField, result reflect.Value) error {
 	i := 0
 
@@ -21,6 +74,10 @@ func (c *Context) Scan(stmt *sqlite.Stmt, structFields []*StructField, result re
 					return err
 				}
 			}
+			return nil
+		}
+
+		if !sf.IsNormal {
 			return nil
 		}
 

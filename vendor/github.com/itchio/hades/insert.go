@@ -32,7 +32,7 @@ func (scope *Scope) ToEq(rec reflect.Value) builder.Eq {
 		if !sf.IsNormal {
 			return
 		}
-		eq[sf.DBName] = DBValue(field.Interface())
+		eq[EscapeIdentifier(sf.DBName)] = DBValue(field.Interface())
 	}
 
 	for _, sf := range scope.GetModelStruct().StructFields {

@@ -1,16 +1,18 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/go-xorm/builder"
+	"github.com/itchio/hades"
+
+	"crawshaw.io/sqlite"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 type Download struct {
 	// An UUID
-	ID string `json:"id" gorm:"primary_key"`
+	ID string `json:"id" hades:"primary_key"`
 
 	Reason     string     `json:"reason"`
 	Position   int64      `json:"position"`
@@ -42,62 +44,56 @@ type Download struct {
 	Fresh     bool `json:"fresh"`
 }
 
-func AllDownloads(db *gorm.DB) []*Download {
+func AllDownloads(conn *sqlite.Conn) []*Download {
 	var dls []*Download
-	err := db.Where(`NOT "discarded"`).Order(`"position" ASC`).Find(&dls).Error
-	if err != nil {
-		panic(err)
-	}
+	MustSelect(conn, &dls, builder.Not{builder.Expr("discarded")}, hades.Search().OrderBy("position ASC"))
 	return dls
 }
 
-func DownloadByID(db *gorm.DB, downloadID string) *Download {
+func DownloadByID(conn *sqlite.Conn, downloadID string) *Download {
 	var dl Download
-	req := db.Where("id = ?", downloadID).Find(&dl)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			return nil
-		}
-		panic(req.Error)
+	if MustSelectOne(conn, &dl, builder.Eq{"id": downloadID}) {
+		return &dl
 	}
-	return &dl
+	return nil
 }
 
-func (d *Download) Preload(db *gorm.DB) {
-	if d == nil {
-		return
+func (d *Download) Preload(conn *sqlite.Conn) {
+	if d != nil {
+		PreloadDownloads(conn, d)
 	}
-	PreloadDownloads(db, d)
 }
 
-func PreloadDownloads(db *gorm.DB, downloadOrDownloads interface{}) {
-	MustPreloadSimple(db, downloadOrDownloads, "Game", "Upload", "Build")
+func PreloadDownloads(conn *sqlite.Conn, downloadOrDownloads interface{}) {
+	MustPreloadSimple(conn, downloadOrDownloads, "Game", "Upload", "Build")
 }
 
-func DownloadMinPosition(db *gorm.DB) int64 {
-	return downloadExtremePosition(db, "min")
+func DownloadMinPosition(conn *sqlite.Conn) int64 {
+	return downloadExtremePosition(conn, "min")
 }
 
-func DownloadMaxPosition(db *gorm.DB) int64 {
-	return downloadExtremePosition(db, "max")
+func DownloadMaxPosition(conn *sqlite.Conn) int64 {
+	return downloadExtremePosition(conn, "max")
 }
 
-func downloadExtremePosition(db *gorm.DB, extreme string) int64 {
-	var row = struct {
-		Position int64
-	}{}
+func downloadExtremePosition(conn *sqlite.Conn, extreme string) int64 {
+	var position int64
 
-	query := fmt.Sprintf(`SELECT coalesce(%s(position), 0) AS position FROM downloads`, extreme)
-	err := db.Raw(query).Scan(&row).Error
-	if err != nil {
-		panic(err)
-	}
-	return row.Position
+	q := `SELECT coalesce(%s(position), 0) AS position FROM downloads`
+	MustExecRaw(conn, q, func(stmt *sqlite.Stmt) error {
+		position = stmt.ColumnInt64(0)
+		return nil
+	}, extreme)
+	return position
 }
 
-func (d *Download) Save(db *gorm.DB) {
-	err := db.Save(d).Error
-	if err != nil {
-		panic(err)
-	}
+func (d *Download) Save(conn *sqlite.Conn) {
+	MustSaveOne(conn, d)
+}
+
+func DiscardDownloadsByCaveID(conn *sqlite.Conn, caveID string) {
+	MustUpdate(conn, &Cave{},
+		hades.Where(builder.Eq{"cave_id": caveID}),
+		builder.Eq{"discarded": true},
+	)
 }

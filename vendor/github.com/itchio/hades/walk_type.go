@@ -35,15 +35,15 @@ type ManyToMany struct {
 func (c *Context) NewManyToMany(JoinTable string, SourceForeignKeys, DestinationForeignKeys []JoinTableForeignKey) (*ManyToMany, error) {
 	scope := c.ScopeMap.ByDBName(JoinTable)
 	if scope == nil {
-		return nil, fmt.Errorf("Could not find model struct for %s: list it explicitly in Models", JoinTable)
+		return nil, errors.Errorf("Could not find model struct for %s: list it explicitly in Models", JoinTable)
 	}
 
 	if len(SourceForeignKeys) != 1 {
-		return nil, fmt.Errorf("For join table %s, expected 1 source foreign keys but got %d",
+		return nil, errors.Errorf("For join table %s, expected 1 source foreign keys but got %d",
 			JoinTable, len(SourceForeignKeys))
 	}
 	if len(DestinationForeignKeys) != 1 {
-		return nil, fmt.Errorf("For join table %s, expected 1 destination foreign keys but got %d",
+		return nil, errors.Errorf("For join table %s, expected 1 destination foreign keys but got %d",
 			JoinTable, len(DestinationForeignKeys))
 	}
 
@@ -104,7 +104,7 @@ func (mtm *ManyToMany) String() string {
 }
 
 type RecordInfo struct {
-	Name         string
+	Field        AssocField
 	Type         reflect.Type
 	Children     []*RecordInfo
 	Relationship *Relationship
@@ -112,9 +112,13 @@ type RecordInfo struct {
 	ModelStruct  *ModelStruct
 }
 
+func (ri *RecordInfo) Name() string {
+	return ri.Field.Name()
+}
+
 func (ri *RecordInfo) String() string {
 	var lines []string
-	lines = append(lines, fmt.Sprintf("- %s: %s", ri.Name, ri.Type.String()))
+	lines = append(lines, fmt.Sprintf("- %s: %s", ri.Name(), ri.Type.String()))
 	for _, c := range ri.Children {
 		for _, cl := range strings.Split(c.String(), "\n") {
 			lines = append(lines, "  "+cl)
@@ -123,50 +127,36 @@ func (ri *RecordInfo) String() string {
 	return strings.Join(lines, "\n")
 }
 
-type VisitMap map[*ModelStruct]bool
-
-func (vm VisitMap) CopyAndMark(ms *ModelStruct) VisitMap {
-	vv := make(VisitMap)
-	for k, v := range vm {
-		vv[k] = v
-	}
-	vv[ms] = true
-	return vv
-}
-
 type RecordInfoMap map[reflect.Type]*RecordInfo
 
-func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, visited VisitMap, assocs []string) (*RecordInfo, error) {
+func (c *Context) WalkType(riMap RecordInfoMap, field AssocField, atyp reflect.Type) (*RecordInfo, error) {
 	if atyp.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("WalkType expects a *Model type, got %v", atyp)
+		return nil, errors.Errorf("WalkType expects a *Model type, got %v", atyp)
 	}
 	if atyp.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("WalkType expects a *Model type, got %v", atyp)
+		return nil, errors.Errorf("WalkType expects a *Model type, got %v", atyp)
 	}
 
 	scope := c.ScopeMap.ByType(atyp)
 	if scope == nil {
-		return nil, fmt.Errorf("WalkType expects a *Model but %v is not a registered model type", atyp)
+		return nil, errors.Errorf("WalkType expects a *Model but %v is not a registered model type", atyp)
 	}
 	ms := scope.GetModelStruct()
 
-	if visited[ms] {
-		return nil, nil
-	}
-	visited = visited.CopyAndMark(ms)
-
 	ri := &RecordInfo{
 		Type:        atyp,
-		Name:        name,
+		Field:       field,
 		ModelStruct: ms,
 	}
 
-	visitField := func(sf *StructField, explicit bool) error {
+	// visit specified assocs
+	for _, assoc := range field.Children() {
+		sf, ok := ms.StructFieldsByName[assoc.Name()]
+		if !ok {
+			return nil, errors.Errorf("No field '%s' in %s", assoc.Name(), atyp)
+		}
 		if sf.Relationship == nil {
-			if explicit {
-				return fmt.Errorf("%s.%s does not describe a relationship", ms.ModelType.Name(), sf.Name)
-			}
-			return nil
+			return nil, errors.Errorf("%s.%s does not describe a relationship", ms.ModelType.Name(), sf.Name)
 		}
 
 		fieldTyp := sf.Struct.Type
@@ -174,23 +164,20 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 			fieldTyp = fieldTyp.Elem()
 		}
 		if fieldTyp.Kind() != reflect.Ptr {
-			return fmt.Errorf("visitField expects a Slice of Ptr, or a Ptr, but got %v", sf.Struct.Type)
+			return nil, errors.Errorf("visitField expects a Slice of Ptr, or a Ptr, but got %v", sf.Struct.Type)
 		}
 
 		if c.ScopeMap.ByType(fieldTyp) == nil {
-			if explicit {
-				return fmt.Errorf("%s.%s is not an explicitly listed model (%v)", ms.ModelType.Name(), sf.Name, fieldTyp)
-			}
-			return nil
+			return nil, errors.Errorf("%s.%s is not an explicitly listed model (%v)", ms.ModelType.Name(), sf.Name, fieldTyp)
 		}
 
-		child, err := c.WalkType(riMap, sf.Name, fieldTyp, visited, nil)
+		child, err := c.WalkType(riMap, assoc, fieldTyp)
 		if err != nil {
-			return errors.Wrap(err, "walking type of child")
+			return nil, errors.WithMessage(err, "walking type of child")
 		}
 
 		if child == nil {
-			return nil
+			return nil, nil
 		}
 
 		child.Relationship = sf.Relationship
@@ -199,45 +186,17 @@ func (c *Context) WalkType(riMap RecordInfoMap, name string, atyp reflect.Type, 
 			jth := sf.Relationship.JoinTableHandler
 			djth, ok := jth.(*JoinTableHandler)
 			if !ok {
-				return errors.Errorf("Expected sf.Relationship.JoinTableHandler to be the default JoinTableHandler type, but it's %v", reflect.TypeOf(jth))
+				return nil, errors.Errorf("Expected sf.Relationship.JoinTableHandler to be the default JoinTableHandler type, but it's %v", reflect.TypeOf(jth))
 			}
 
 			mtm, err := c.NewManyToMany(djth.TableName, jth.SourceForeignKeys(), jth.DestinationForeignKeys())
 			if err != nil {
-				return errors.Wrap(err, "creating ManyToMany relation")
+				return nil, errors.WithMessage(err, "creating ManyToMany relation")
 			}
 			child.ManyToMany = mtm
 		}
 
 		ri.Children = append(ri.Children, child)
-		return nil
-	}
-
-	if len(assocs) > 0 {
-		sfByName := make(map[string]*StructField)
-		for _, sf := range ms.StructFields {
-			sfByName[sf.Name] = sf
-		}
-
-		// visit specified fields
-		for _, fieldName := range assocs {
-			sf, ok := sfByName[fieldName]
-			if !ok {
-				return nil, fmt.Errorf("No field '%s' in %s", fieldName, atyp)
-			}
-			err := visitField(sf, true)
-			if err != nil {
-				return nil, errors.Wrapf(err, "visiting field %s", fieldName)
-			}
-		}
-	} else {
-		// visit all fields
-		for _, sf := range ms.StructFields {
-			err := visitField(sf, false)
-			if err != nil {
-				return nil, errors.Wrapf(err, "visiting field %s", sf.Name)
-			}
-		}
 	}
 
 	riMap[atyp] = ri

@@ -7,17 +7,20 @@ import (
 )
 
 func FetchCavesByInstallLocationID(rc *butlerd.RequestContext, params *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
-	installLocation := models.InstallLocationByID(rc.DB(), params.InstallLocationID)
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
+
+	installLocation := models.InstallLocationByID(conn, params.InstallLocationID)
 	if installLocation == nil {
 		return nil, errors.Errorf("Install location not found (%s)", params.InstallLocationID)
 	}
 
-	caves := installLocation.GetCaves(rc.DB())
-	models.PreloadCaves(rc.DB(), caves)
+	caves := installLocation.GetCaves(conn)
+	models.PreloadCaves(conn, caves)
 
 	var formattedCaves []*butlerd.Cave
 	for _, c := range caves {
-		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), c))
+		formattedCaves = append(formattedCaves, FormatCave(conn, c))
 	}
 
 	var totalSize int64

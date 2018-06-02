@@ -1,7 +1,6 @@
 package hades
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"strings"
@@ -12,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface interface{}) error {
+func (c *Context) saveRows(conn *sqlite.Conn, mode AssocMode, inputIface interface{}) error {
 	// inputIFace is a `[]interface{}`
 	input := reflect.ValueOf(inputIface)
 	if input.Kind() != reflect.Slice {
@@ -40,7 +39,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 	// this will happen for associations
 	if len(primaryFields) != 1 {
 		if len(primaryFields) != 2 {
-			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
+			return errors.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
 		}
 
 		recordsGroupedByPrimaryField := make(map[*Field]map[interface{}][]reflect.Value)
@@ -69,7 +68,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 		}
 
 		if bestSourcePrimaryField == nil {
-			return fmt.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
+			return errors.Errorf("Have %d primary keys for %s, don't know what to do", len(primaryFields), modelName)
 		}
 
 		var bestDestinPrimaryField *Field
@@ -85,28 +84,28 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 
 		sourceRelField, ok := scope.FieldByName(strings.TrimSuffix(bestSourcePrimaryField.Name, "ID"))
 		if !ok {
-			return fmt.Errorf("Could not find assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
+			return errors.Errorf("Could not find assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
 		}
 		destinRelField, ok := scope.FieldByName(strings.TrimSuffix(bestDestinPrimaryField.Name, "ID"))
 		if !ok {
-			return fmt.Errorf("Could not find assoc for %s.%s", modelName, bestDestinPrimaryField.Name)
+			return errors.Errorf("Could not find assoc for %s.%s", modelName, bestDestinPrimaryField.Name)
 		}
 
 		sourceScope := c.ScopeMap.ByType(sourceRelField.Struct.Type)
 		if sourceScope == nil {
-			return fmt.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
+			return errors.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
 		}
 		destinScope := c.ScopeMap.ByType(destinRelField.Struct.Type)
 		if destinScope == nil {
-			return fmt.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
+			return errors.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
 		}
 
 		if len(sourceScope.PrimaryFields()) != 1 {
-			return fmt.Errorf("Expected Source model %s to have 1 primary field, but it has %d",
+			return errors.Errorf("Expected Source model %s to have 1 primary field, but it has %d",
 				sourceScope.GetModelStruct().ModelType, len(sourceScope.PrimaryFields()))
 		}
 		if len(destinScope.PrimaryFields()) != 1 {
-			return fmt.Errorf("Expected Destin model %s to have 1 primary field, but it has %d",
+			return errors.Errorf("Expected Destin model %s to have 1 primary field, but it has %d",
 				destinScope.GetModelStruct().ModelType, len(destinScope.PrimaryFields()))
 		}
 
@@ -126,7 +125,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 			[]JoinTableForeignKey{destinJTFK},
 		)
 		if err != nil {
-			return errors.Wrap(err, "creating ManyToMany relationship")
+			return errors.WithMessage(err, "creating ManyToMany relationship")
 		}
 
 		for sourceKey, recs := range valueMap {
@@ -136,9 +135,9 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 			}
 		}
 
-		err = c.saveJoins(params, conn, mtm)
+		err = c.saveJoins(conn, mode, mtm)
 		if err != nil {
-			return errors.Wrap(err, "saving joins")
+			return errors.WithMessage(err, "saving joins")
 		}
 
 		return nil
@@ -164,7 +163,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 
 	cacheAddr, err := c.fetchPagedByPK(conn, primaryField.DBName, keys, fresh.Type(), nil)
 	if err != nil {
-		return errors.Wrap(err, "getting existing rows")
+		return errors.WithMessage(err, "getting existing rows")
 	}
 
 	cache := cacheAddr.Elem()
@@ -199,7 +198,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 
 			cf, err := DiffRecord(ifrec, icrec, scope)
 			if err != nil {
-				return errors.Wrap(err, "diffing db records")
+				return errors.WithMessage(err, "diffing db records")
 			}
 
 			if cf != nil {
@@ -218,7 +217,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 		for _, rec := range inserts {
 			err := c.Insert(conn, scope, rec)
 			if err != nil {
-				return errors.Wrap(err, "inserting new DB records")
+				return errors.WithMessage(err, "inserting new DB records")
 			}
 		}
 	}
@@ -227,7 +226,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, params *SaveParams, inputIface int
 		eq := cf.ToEq()
 		err := c.Exec(conn, builder.Update(eq).Into(scope.TableName()).Where(builder.Eq{primaryField.DBName: key}), nil)
 		if err != nil {
-			return errors.Wrap(err, "updating DB records")
+			return errors.WithMessage(err, "updating DB records")
 		}
 	}
 

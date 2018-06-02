@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 	"github.com/itchio/wharf/state"
-	"github.com/jinzhu/gorm"
 
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
@@ -169,15 +171,15 @@ func (ga *GameAccess) OnlyAPIKey() *GameAccess {
 	}
 }
 
-func AccessForGameID(db *gorm.DB, gameID int64) *GameAccess {
+func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 	// TODO: write unit test for this
 
 	// look for owner access
 	{
-		pgs := models.ProfileGamesByGameID(db, gameID)
+		pgs := models.ProfileGamesByGameID(conn, gameID)
 		if len(pgs) > 0 {
 			pg := pgs[0]
-			profile := models.ProfileByID(db, pg.ProfileID)
+			profile := models.ProfileByID(conn, pg.ProfileID)
 
 			if profile != nil {
 				access := &GameAccess{
@@ -190,10 +192,10 @@ func AccessForGameID(db *gorm.DB, gameID int64) *GameAccess {
 
 	// look for a download key
 	{
-		dks := models.DownloadKeysByGameID(db, gameID)
+		dks := models.DownloadKeysByGameID(conn, gameID)
 
 		for _, dk := range dks {
-			profile := models.ProfileByID(db, dk.OwnerID)
+			profile := models.ProfileByID(conn, dk.OwnerID)
 			if profile == nil {
 				continue
 			}
@@ -211,10 +213,7 @@ func AccessForGameID(db *gorm.DB, gameID int64) *GameAccess {
 	// no special credentials
 	{
 		var profiles []*models.Profile
-		err := db.Order("last_connected DESC").Find(&profiles).Error
-		if err != nil {
-			panic(err)
-		}
+		models.MustSelect(conn, &profiles, builder.NewCond(), hades.Search().OrderBy("last_connected DESC"))
 		if len(profiles) == 0 {
 			panic(errors.New("No profiles found"))
 		}
@@ -243,13 +242,14 @@ func ValidateCave(rc *butlerd.RequestContext, caveID string) *models.Cave {
 		panic(errors.New("caveId must be set"))
 	}
 
-	cave := models.CaveByID(rc.DB(), caveID)
-	if cave == nil {
-		panic(fmt.Errorf("cave not found: (%s)", caveID))
-	}
-
-	cave.Preload(rc.DB())
-
+	var cave *models.Cave
+	rc.WithConn(func(conn *sqlite.Conn) {
+		cave = models.CaveByID(conn, caveID)
+		if cave == nil {
+			panic(fmt.Errorf("cave not found: (%s)", caveID))
+		}
+		cave.Preload(conn)
+	})
 	return cave
 }
 

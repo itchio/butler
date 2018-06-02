@@ -1,7 +1,6 @@
 package hades
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -44,7 +43,7 @@ func (field *Field) Set(value interface{}) (err error) {
 			if reflectValue.Type().ConvertibleTo(fieldValue.Type()) {
 				fieldValue.Set(reflectValue.Convert(fieldValue.Type()))
 			} else {
-				err = fmt.Errorf("could not convert argument of field %s from %s to %s", field.Name, reflectValue.Type(), fieldValue.Type())
+				err = errors.Errorf("could not convert argument of field %s from %s to %s", field.Name, reflectValue.Type(), fieldValue.Type())
 			}
 		}
 	} else {

@@ -49,3 +49,13 @@ func (sm *ScopeMap) ByDBName(dbname string) *Scope {
 func (sm *ScopeMap) ByType(typ reflect.Type) *Scope {
 	return sm.byType[typ]
 }
+
+func (sm *ScopeMap) Each(f func(*Scope) error) error {
+	for _, scope := range sm.byDBName {
+		err := f(scope)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

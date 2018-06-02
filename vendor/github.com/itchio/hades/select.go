@@ -50,19 +50,20 @@ func (c *Context) Select(conn *sqlite.Conn, result interface{}, cond builder.Con
 
 //
 
-func (c *Context) SelectOne(conn *sqlite.Conn, result interface{}, cond builder.Cond) error {
+func (c *Context) SelectOne(conn *sqlite.Conn, result interface{}, cond builder.Cond) (bool, error) {
+	found := false
 	resultVal := reflect.ValueOf(result)
 	originalType := resultVal.Type()
 	modelType := originalType
 
 	if resultVal.Type().Kind() != reflect.Ptr {
-		return errors.Errorf("SelectOne expects results to be a *Model, but it got a %v", originalType)
+		return found, errors.Errorf("SelectOne expects results to be a *Model, but it got a %v", originalType)
 	}
 	resultVal = resultVal.Elem()
 
 	scope := c.ScopeMap.ByType(modelType)
 	if scope == nil {
-		return errors.Errorf("%v is not a model known to this hades context", modelType)
+		return found, errors.Errorf("%v is not a model known to this hades context", modelType)
 	}
 
 	ms := scope.GetModelStruct()
@@ -70,13 +71,19 @@ func (c *Context) SelectOne(conn *sqlite.Conn, result interface{}, cond builder.
 
 	query, args, err := builder.Select(columns...).From(ms.TableName).Where(cond).ToSQL()
 	if err != nil {
-		return err
+		return found, err
 	}
 	query = Search().Limit(1).Apply(query)
 
-	return c.ExecRaw(conn, query, func(stmt *sqlite.Stmt) error {
-		return c.Scan(stmt, fields, resultVal)
+	err = c.ExecRaw(conn, query, func(stmt *sqlite.Stmt) error {
+		err := c.Scan(stmt, fields, resultVal)
+		if err != nil {
+			return err
+		}
+		found = true
+		return nil
 	}, args...)
+	return found, err
 }
 
 func (c *Context) selectFields(ms *ModelStruct) ([]string, []*StructField) {

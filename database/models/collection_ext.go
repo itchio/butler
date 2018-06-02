@@ -1,23 +1,20 @@
 package models
 
 import (
-	"github.com/itchio/butler/database/hades"
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
+	"github.com/itchio/hades"
 )
 
 // Collection is defined in `go-itchio`, but helper functions are here
 
-func CollectionByID(db *gorm.DB, id int64) *itchio.Collection {
+func CollectionByID(conn *sqlite.Conn, id int64) *itchio.Collection {
 	var c itchio.Collection
-	req := db.Where("id = ?", id).First(&c)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			return nil
-		}
-		panic(req.Error)
+	if MustSelectOne(conn, &c, builder.Eq{"id": id}) {
+		return &c
 	}
-	return &c
+	return nil
 }
 
 type collectionExt struct {
@@ -30,11 +27,11 @@ func CollectionExt(c *itchio.Collection) collectionExt {
 	}
 }
 
-func (ce collectionExt) PreloadCollectionGames(db *gorm.DB) {
-	MustPreload(db, &hades.PreloadParams{
+func (ce collectionExt) PreloadCollectionGames(conn *sqlite.Conn) {
+	MustPreload(conn, &hades.PreloadParams{
 		Record: ce.Collection,
 		Fields: []hades.PreloadField{
-			{Name: "CollectionGames", OrderBy: `"position" ASC`},
+			{Name: "CollectionGames", Search: hades.Search().OrderBy("position ASC")},
 			{Name: "CollectionGames.Game"},
 		},
 	})

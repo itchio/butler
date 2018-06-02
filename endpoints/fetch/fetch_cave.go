@@ -1,22 +1,24 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
-	"github.com/jinzhu/gorm"
 )
 
 func FetchCave(rc *butlerd.RequestContext, params *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
-	cave := models.CaveByID(rc.DB(), params.CaveID)
-	cave.Preload(rc.DB())
-
-	res := &butlerd.FetchCaveResult{
-		Cave: FormatCave(rc.DB(), cave),
-	}
+	var res *butlerd.FetchCaveResult
+	rc.WithConn(func(conn *sqlite.Conn) {
+		cave := models.CaveByID(conn, params.CaveID)
+		cave.Preload(conn)
+		res = &butlerd.FetchCaveResult{
+			Cave: FormatCave(conn, cave),
+		}
+	})
 	return res, nil
 }
 
-func FormatCave(db *gorm.DB, cave *models.Cave) *butlerd.Cave {
+func FormatCave(conn *sqlite.Conn, cave *models.Cave) *butlerd.Cave {
 	if cave == nil {
 		return nil
 	}
@@ -29,7 +31,7 @@ func FormatCave(db *gorm.DB, cave *models.Cave) *butlerd.Cave {
 		Build:  cave.Build,
 
 		InstallInfo: &butlerd.CaveInstallInfo{
-			InstallFolder:   cave.GetInstallFolder(db),
+			InstallFolder:   cave.GetInstallFolder(conn),
 			InstalledSize:   cave.InstalledSize,
 			InstallLocation: cave.InstallLocationID,
 		},

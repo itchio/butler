@@ -3,8 +3,9 @@ package models
 import (
 	"time"
 
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 type Profile struct {
@@ -21,7 +22,7 @@ type Profile struct {
 
 	ProfileCollections []*ProfileCollection  `json:"profileCollections,omitempty"`
 	ProfileGames       []*ProfileGame        `json:"profileGames,omitempty"`
-	OwnedKeys          []*itchio.DownloadKey `json:"ownedKeys,omitempty" gorm:"foreignKey:owner_id"`
+	OwnedKeys          []*itchio.DownloadKey `json:"ownedKeys,omitempty" hades:"foreign_key:owner_id"`
 }
 
 func (p *Profile) UpdateFromUser(user *itchio.User) {
@@ -31,23 +32,20 @@ func (p *Profile) UpdateFromUser(user *itchio.User) {
 	p.LastConnected = time.Now().UTC()
 }
 
-func ProfileByID(db *gorm.DB, id int64) *Profile {
-	p := &Profile{}
-	req := db.Where("id = ?", id).First(p)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			return nil
-		}
-		panic(req.Error)
-	}
-	return p
+func (p *Profile) Save(conn *sqlite.Conn) {
+	MustSaveOne(conn, p)
 }
 
-func AllProfiles(db *gorm.DB) []*Profile {
-	var profiles []*Profile
-	err := db.Find(&profiles).Error
-	if err != nil {
-		panic(err)
+func ProfileByID(conn *sqlite.Conn, id int64) *Profile {
+	var p Profile
+	if MustSelectOne(conn, &p, builder.Eq{"id": id}) {
+		return &p
 	}
+	return nil
+}
+
+func AllProfiles(conn *sqlite.Conn) []*Profile {
+	var profiles []*Profile
+	MustSelect(conn, &profiles, builder.NewCond(), nil)
 	return profiles
 }

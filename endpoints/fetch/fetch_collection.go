@@ -3,14 +3,16 @@ package fetch
 import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
 func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
 	consumer := rc.Consumer
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
 
 	if params.CollectionID == 0 {
 		return nil, errors.New("collectionId must be non-zero")
@@ -19,12 +21,12 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	_, client := rc.ProfileClient(params.ProfileID)
 
 	sendDBCollection := func() error {
-		collection := models.CollectionByID(rc.DB(), params.CollectionID)
+		collection := models.CollectionByID(conn, params.CollectionID)
 		if collection == nil {
 			return nil
 		}
 
-		models.CollectionExt(collection).PreloadCollectionGames(rc.DB())
+		models.CollectionExt(collection).PreloadCollectionGames(conn)
 
 		err := messages.FetchCollectionYield.Notify(rc, &butlerd.FetchCollectionYieldNotification{Collection: collection})
 		if err != nil {
@@ -50,14 +52,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	collection := collRes.Collection
 	collection.CollectionGames = nil
 
-	c := HadesContext(rc)
-
-	err = c.Save(rc.DB(), &hades.SaveParams{
-		Record: collRes.Collection,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	models.MustSaveOne(conn, collRes.Collection)
 
 	// after collection metadata update
 	err = sendDBCollection()
@@ -86,15 +81,13 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			collection.CollectionGames = append(collection.CollectionGames, cg)
 		}
 
-		err = c.Save(rc.DB(), &hades.SaveParams{
+		models.MustSave(conn, &hades.SaveParams{
 			Record: collection,
 			Assocs: []string{"CollectionGames"},
-
-			PartialJoins: []string{"CollectionGames"},
+			DontCull: []interface{}{
+				&itchio.CollectionGame{},
+			},
 		})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
 
 		offset += numPageGames
 
@@ -115,13 +108,10 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		}
 	}
 
-	err = c.Save(rc.DB(), &hades.SaveParams{
+	models.MustSave(conn, &hades.SaveParams{
 		Record: collection,
 		Assocs: []string{"CollectionGames"},
 	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	// after all pages are fetched
 	err = sendDBCollection()

@@ -1,10 +1,11 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
@@ -13,15 +14,15 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	c := HadesContext(rc)
-
 	sendDBGames := func() error {
-		c.Preload(rc.DB(), &hades.PreloadParams{
-			Record: profile,
-			Fields: []hades.PreloadField{
-				{Name: "ProfileGames", OrderBy: `"position" ASC`},
-				{Name: "ProfileGames.Game"},
-			},
+		rc.WithConn(func(conn *sqlite.Conn) {
+			models.MustPreload(conn, &hades.PreloadParams{
+				Record: profile,
+				Fields: []hades.PreloadField{
+					{Name: "ProfileGames", Search: hades.Search().OrderBy("position ASC")},
+					{Name: "ProfileGames.Game"},
+				},
+			})
 		})
 		profileGames := profile.ProfileGames
 
@@ -74,13 +75,12 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 		})
 	}
 
-	err = c.Save(rc.DB(), &hades.SaveParams{
-		Record: profile,
-		Assocs: []string{"ProfileGames"},
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSave(conn, &hades.SaveParams{
+			Record: profile,
+			Assocs: []string{"ProfileGames"},
+		})
 	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	err = sendDBGames()
 	if err != nil {

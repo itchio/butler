@@ -272,7 +272,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "b3ae62491ac725a8377b5a75ccb1d5005a1e7545",
+			"revision": "6d73b6f8d6ea0a99784065dfb4108e24eb38c8bb",
 			"branch": "master",
 			"notests": true
 		},
@@ -280,7 +280,7 @@
 			"importpath": "github.com/itchio/hades",
 			"repository": "https://github.com/itchio/hades",
 			"vcs": "git",
-			"revision": "82eb2f62446527b7c16ccfe34bd5e341148241f1",
+			"revision": "27ab15af2d905b4faf8a8b3d90ce3e3707b93a16",
 			"branch": "master",
 			"notests": true
 		},
@@ -369,14 +369,6 @@
 			"repository": "https://github.com/itchio/wizardry",
 			"vcs": "git",
 			"revision": "8b25a114f7971ae6a0d56b6d43827693a192f7a0",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/jinzhu/gorm",
-			"repository": "https://github.com/jinzhu/gorm",
-			"vcs": "git",
-			"revision": "58e34726dfc069b558038efbaa25555f182d1f7a",
 			"branch": "master",
 			"notests": true
 		},

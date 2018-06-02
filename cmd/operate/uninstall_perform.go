@@ -3,6 +3,7 @@ package operate
 import (
 	"context"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/wipe"
@@ -16,7 +17,10 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 	consumer := rc.Consumer
 
 	cave := ValidateCave(rc, params.CaveID)
-	installFolder := cave.GetInstallFolder(rc.DB())
+	var installFolder string
+	rc.WithConn(func(conn *sqlite.Conn) {
+		installFolder = cave.GetInstallFolder(conn)
+	})
 
 	consumer.Infof("→ Uninstalling %s", installFolder)
 
@@ -75,10 +79,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 	}
 
 	consumer.Infof("Deleting cave...")
-	err = rc.DB().Delete(cave).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	rc.WithConn(cave.Delete)
 
 	consumer.Infof("Wiping install folder...")
 	err = wipe.Do(consumer, installFolder)
@@ -87,10 +88,9 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 	}
 
 	consumer.Infof("Clearing out downloads...")
-	err = rc.DB().Model(&models.Download{}).Where("cave_id = ?", cave.ID).Update("discarded", true).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.DiscardDownloadsByCaveID(conn, cave.ID)
+	})
 
 	return nil
 }

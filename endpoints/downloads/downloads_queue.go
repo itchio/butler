@@ -4,16 +4,18 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-xorm/builder"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 )
 
 func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
 	consumer := rc.Consumer
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
 
 	item := params.Item
 	if item == nil {
@@ -39,11 +41,12 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 	}
 
 	if item.CaveID != "" {
-		var downloadsForCaveCount int
-		err := rc.DB().Model(&models.Download{}).Where("cave_id = ? AND finished_at IS NULL", item.CaveID).Count(&downloadsForCaveCount).Error
-		if err != nil {
-			panic(err)
-		}
+		downloadsForCaveCount := models.MustCount(conn, &models.Download{},
+			builder.And(
+				builder.Eq{"cave_id": item.CaveID},
+				builder.IsNull{"finished_at"},
+			),
+		)
 
 		if downloadsForCaveCount > 0 {
 			return nil, errors.Errorf("Already have downloads in progress for %s, refusing to queue another one", operate.GameToString(item.Game))
@@ -51,16 +54,18 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 	}
 
 	// remove other downloads for this cave or this upload
-	err = rc.DB().Delete(&models.Download{}, "cave_id = ? OR upload_id = ?", item.CaveID, item.Upload.ID).Error
-	if err != nil {
-		panic(err)
-	}
+	models.MustDelete(conn, &models.Download{},
+		builder.Or(
+			builder.Eq{"cave_id": item.CaveID},
+			builder.Eq{"upload_id": item.Upload.ID},
+		),
+	)
 
 	d := &models.Download{
 		ID:            item.ID,
 		Reason:        string(item.Reason),
 		CaveID:        item.CaveID,
-		Position:      models.DownloadMaxPosition(rc.DB()) + 1,
+		Position:      models.DownloadMaxPosition(conn) + 1,
 		Game:          item.Game,
 		Upload:        item.Upload,
 		Build:         item.Build,
@@ -70,25 +75,23 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 		Fresh:         Fresh,
 	}
 
-	c := HadesContext(rc)
-
-	err = c.Save(rc.DB(), &hades.SaveParams{
-		Record: d,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	models.MustSaveOne(conn, d)
 
 	if item.CaveID != "" {
 		// remove other downloads for this cave
-		rc.DB().Delete(&models.Download{}, "cave_id = ? and id != ?", item.CaveID, d.ID)
+		models.MustDelete(conn, &models.Download{},
+			builder.And(
+				builder.Eq{"cave_id": item.CaveID},
+				builder.Neq{"id": d.ID},
+			),
+		)
 	}
 
 	if params.Item.CaveID != "" && params.Item.Reason == butlerd.DownloadReasonVersionSwitch {
 		// if reverting, mark cave as pinned
-		cave := models.CaveByID(rc.DB(), params.Item.CaveID)
+		cave := models.CaveByID(conn, params.Item.CaveID)
 		cave.Pinned = true
-		cave.Save(rc.DB())
+		cave.Save(conn)
 	}
 
 	res := &butlerd.DownloadsQueueResult{}

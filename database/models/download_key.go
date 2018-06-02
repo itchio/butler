@@ -1,8 +1,9 @@
 package models
 
 import (
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 type DownloadKey struct {
@@ -18,11 +19,8 @@ type DownloadKey struct {
 	Owner   *itchio.User `json:"owner,omitempty"`
 }
 
-func DownloadKeysByGameID(db *gorm.DB, gameID int64) []*DownloadKey {
+func DownloadKeysByGameID(conn *sqlite.Conn, gameID int64) []*DownloadKey {
 	var keys []*DownloadKey
-	err := db.Where("game_id = ?", gameID).Find(&keys).Error
-	if err != nil {
-		panic(err)
-	}
+	MustSelect(conn, &keys, builder.Eq{"game_id": gameID}, nil)
 	return keys
 }

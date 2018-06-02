@@ -3,9 +3,13 @@ package search
 import (
 	"fmt"
 
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
@@ -16,14 +20,15 @@ func Register(router *butlerd.Router) {
 
 func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
 	var games []*itchio.Game
-	db := rc.DB()
 	q := fmt.Sprintf("%%%s%%", params.Query)
-	err := db.Where("lower(title) like ?", q).Limit(4).Find(&games).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &games,
+			builder.Like{"lower(title)", q},
+			hades.Search().Limit(4),
+		)
+	})
 
-	err = messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
+	err := messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
 		Games: games,
 	})
 	if err != nil {
@@ -69,15 +74,18 @@ func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) 
 
 func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
 	var users []*itchio.User
-	db := rc.DB()
 	q := fmt.Sprintf("%%%s%%", params.Query)
-	err := db.Where("lower(display_name) like ? OR lower(username) like ?", q, q).Limit(4).Find(&users).Error
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &users,
+			builder.Or(
+				builder.Like{"lower(display_name)", q},
+				builder.Like{"lower(username)", q},
+			),
+			hades.Search().Limit(4),
+		)
+	})
 
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	err = messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
+	err := messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
 		Users: users,
 	})
 	if err != nil {

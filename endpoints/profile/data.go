@@ -1,26 +1,24 @@
 package profile
 
 import (
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
-	"github.com/pkg/errors"
 )
 
 func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 
-	db := rc.DB()
-
 	pd := &models.ProfileData{
 		ProfileID: params.ProfileID,
 		Key:       params.Key,
 		Value:     params.Value,
 	}
-	err := db.Save(&pd).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSaveOne(conn, pd)
+	})
 
 	res := &butlerd.ProfileDataPutResult{}
 	return res, nil
@@ -30,19 +28,16 @@ func DataGet(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 
-	db := rc.DB()
-
-	pd := &models.ProfileData{}
-	req := db.Where("profile_id = ? AND key = ?", params.ProfileID, params.Key).Find(pd)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			res := &butlerd.ProfileDataGetResult{
-				OK: false,
-			}
-			return res, nil
-		}
-		return nil, errors.WithStack(req.Error)
-	}
+	var ok bool
+	var pd models.ProfileData
+	rc.WithConn(func(conn *sqlite.Conn) {
+		ok = models.MustSelectOne(conn, &pd,
+			builder.Eq{
+				"profile_id": params.ProfileID,
+				"key":        params.Key,
+			},
+		)
+	})
 
 	res := &butlerd.ProfileDataGetResult{
 		OK:    true,

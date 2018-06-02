@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/pkg/errors"
@@ -11,13 +12,14 @@ func FetchCavesByGameID(rc *butlerd.RequestContext, params *butlerd.FetchCavesBy
 		return nil, errors.New("gameId must be set")
 	}
 
-	caves := models.CavesByGameID(rc.DB(), params.GameID)
-	models.PreloadCaves(rc.DB(), caves)
-
 	var formattedCaves []*butlerd.Cave
-	for _, c := range caves {
-		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), c))
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		caves := models.CavesByGameID(conn, params.GameID)
+		models.PreloadCaves(conn, caves)
+		for _, c := range caves {
+			formattedCaves = append(formattedCaves, FormatCave(conn, c))
+		}
+	})
 
 	res := &butlerd.FetchCavesByGameIDResult{
 		Caves: formattedCaves,

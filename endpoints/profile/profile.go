@@ -1,6 +1,8 @@
 package profile
 
 import (
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
@@ -21,10 +23,10 @@ func Register(router *butlerd.Router) {
 
 func List(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error) {
 	var profiles []*models.Profile
-	err := rc.DB().Preload("User").Order("last_connected desc").Find(&profiles).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &profiles, builder.NewCond(), nil)
+		models.MustPreloadSimple(conn, profiles, "User")
+	})
 
 	var formattedProfiles []*butlerd.Profile
 	for _, profile := range profiles {
@@ -129,11 +131,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 		APIKey: key.Key,
 	}
 	profile.UpdateFromUser(profileRes.User)
-
-	err = rc.DB().Save(profile).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(profile.Save)
 
 	res := &butlerd.ProfileLoginWithPasswordResult{
 		Cookie:  cookie,
@@ -159,11 +157,7 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 		APIKey: params.APIKey,
 	}
 	profile.UpdateFromUser(profileRes.User)
-
-	err = rc.DB().Save(profile).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(profile.Save)
 
 	res := &butlerd.ProfileLoginWithAPIKeyResult{
 		Profile: formatProfile(profile),
@@ -185,22 +179,17 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 		}
 
 		profile.UpdateFromUser(profileRes.User)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		err = rc.DB().Save(profile).Error
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		rc.WithConn(profile.Save)
 
 		return nil
 	}()
 	if err != nil {
 		if neterr.IsNetworkError(err) {
-			pErr := models.PreloadSimple(rc.DB(), profile, "User")
-			if pErr != nil || profile.User == nil {
-				consumer.Warnf("Could not get offline user: %v", pErr)
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.PreloadSimple(conn, profile, "User")
+			})
+			if profile.User == nil {
+				consumer.Warnf("Could not perform offline login...")
 				return nil, err
 			}
 			consumer.Opf("Logged in! (offline)")
@@ -222,19 +211,12 @@ func Forget(rc *butlerd.RequestContext, params *butlerd.ProfileForgetParams) (*b
 		return nil, errors.New("profileId must be set")
 	}
 
-	success := false
-
-	profile := models.ProfileByID(rc.DB(), params.ProfileID)
-	if profile != nil {
-		err := rc.DB().Delete(profile).Error
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		success = true
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustDelete(conn, &models.Profile{}, builder.Eq{"id": params.ProfileID})
+	})
 
 	res := &butlerd.ProfileForgetResult{
-		Success: success,
+		Success: true,
 	}
 	return res, nil
 }

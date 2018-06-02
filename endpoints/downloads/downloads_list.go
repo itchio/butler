@@ -1,13 +1,17 @@
 package downloads
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 )
 
 func DownloadsList(rc *butlerd.RequestContext, params *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error) {
-	downloads := models.AllDownloads(rc.DB())
-	models.PreloadDownloads(rc.DB(), downloads)
+	var downloads []*models.Download
+	rc.WithConn(func(conn *sqlite.Conn) {
+		downloads = models.AllDownloads(conn)
+		models.PreloadDownloads(conn, downloads)
+	})
 
 	var fdls []*butlerd.Download
 	for _, d := range downloads {

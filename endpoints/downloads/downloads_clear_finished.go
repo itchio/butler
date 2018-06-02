@@ -1,20 +1,21 @@
 package downloads
 
 import (
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
-	"github.com/pkg/errors"
+	"github.com/itchio/hades"
 )
 
 func DownloadsClearFinished(rc *butlerd.RequestContext, params *butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error) {
-	req := rc.DB().Model(&models.Download{}).Where(`finished_at IS NOT NULL`).Update("discarded", true)
-	err := req.Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustUpdate(conn, &models.Download{},
+			hades.Where(builder.NotNull{"finished_at"}),
+			builder.Eq{"discarded": true},
+		)
+	})
 
-	res := &butlerd.DownloadsClearFinishedResult{
-		RemovedCount: req.RowsAffected,
-	}
+	res := &butlerd.DownloadsClearFinishedResult{}
 	return res, nil
 }

@@ -8,15 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMany) error {
-	cull := true
-	for _, dc := range params.DontCull {
-		if mtm.JoinTable == ToDBName(c.NewScope(dc).TableName()) {
-			cull = false
-			break
-		}
-	}
-
+func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) error {
 	joinType := reflect.PtrTo(mtm.Scope.GetModelStruct().ModelType)
 
 	getDestinKey := func(v reflect.Value) interface{} {
@@ -28,7 +20,7 @@ func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMa
 
 		err := c.Select(conn, cacheAddr.Interface(), builder.Eq{mtm.SourceDBName: sourceKey}, nil)
 		if err != nil {
-			return errors.Wrap(err, "fetching cached records to compare later")
+			return errors.WithMessage(err, "fetching cached records to compare later")
 		}
 
 		cache := cacheAddr.Elem()
@@ -60,7 +52,7 @@ func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMa
 
 					cf, err := DiffRecord(ifrec, icrec, mtm.Scope)
 					if err != nil {
-						return errors.Wrap(err, "diffing database records")
+						return errors.WithMessage(err, "diffing database records")
 					}
 
 					if cf != nil {
@@ -78,14 +70,10 @@ func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMa
 			}
 		}
 
-		if !cull {
-			// Not deleting extra join records, as requested
-		} else {
-			if len(deletes) > 0 {
-				err := c.deletePagedByPK(conn, mtm.JoinTable, mtm.DestinDBName, deletes, builder.Eq{mtm.SourceDBName: sourceKey})
-				if err != nil {
-					return errors.Wrap(err, "deleting extraneous relations")
-				}
+		if mode == AssocModeReplace && len(deletes) > 0 {
+			err := c.deletePagedByPK(conn, mtm.JoinTable, mtm.DestinDBName, deletes, builder.Eq{mtm.SourceDBName: sourceKey})
+			if err != nil {
+				return errors.WithMessage(err, "deleting extraneous relations")
 			}
 		}
 
@@ -95,7 +83,7 @@ func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMa
 			if rec.IsValid() {
 				err := c.Insert(conn, mtm.Scope, rec)
 				if err != nil {
-					return errors.Wrap(err, "creating new relation records")
+					return errors.WithMessage(err, "creating new relation records")
 				}
 			} else {
 				// if not passed an explicit record, make it ourselves
@@ -117,7 +105,7 @@ func (c *Context) saveJoins(params *SaveParams, conn *sqlite.Conn, mtm *ManyToMa
 			query := builder.Update(cf.ToEq()).Into(mtm.Scope.TableName()).Where(builder.Eq{mtm.SourceDBName: sourceKey, mtm.DestinDBName: destinKey})
 			err := c.Exec(conn, query, nil)
 			if err != nil {
-				return errors.Wrap(err, "updating related records")
+				return errors.WithMessage(err, "updating related records")
 			}
 		}
 	}

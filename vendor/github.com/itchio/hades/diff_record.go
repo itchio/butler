@@ -121,7 +121,7 @@ func iseq(sf *StructField, v1f reflect.Value, v2f reflect.Value) (bool, error) {
 func (cf ChangedFields) ToEq() builder.Eq {
 	eq := make(builder.Eq)
 	for sf, v := range cf {
-		eq[sf.DBName] = DBValue(v)
+		eq[EscapeIdentifier(sf.DBName)] = DBValue(v)
 	}
 	return eq
 }

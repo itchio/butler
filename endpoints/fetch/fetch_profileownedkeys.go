@@ -1,28 +1,27 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/database/hades"
+	"github.com/itchio/butler/database/models"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
 func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	c := HadesContext(rc)
-
 	sendDBKeys := func() error {
-		err := c.Preload(rc.DB(), &hades.PreloadParams{
-			Record: profile,
-			Fields: []hades.PreloadField{
-				{Name: "OwnedKeys", OrderBy: `"created_at" DESC`},
-				{Name: "OwnedKeys.Game"},
-			},
+		rc.WithConn(func(conn *sqlite.Conn) {
+			models.MustPreload(conn, &hades.PreloadParams{
+				Record: profile,
+				Fields: []hades.PreloadField{
+					{Name: "OwnedKeys", Search: hades.Search().OrderBy("created_at DESC")},
+					{Name: "OwnedKeys.Game"},
+				},
+			})
 		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
 
 		keys := profile.OwnedKeys
 
@@ -31,7 +30,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 			Total:  int64(len(keys)),
 			Items:  keys,
 		}
-		err = messages.FetchProfileOwnedKeysYield.Notify(rc, yn)
+		err := messages.FetchProfileOwnedKeysYield.Notify(rc, yn)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -50,13 +49,12 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 	}
 
 	profile.OwnedKeys = ownedRes.OwnedKeys
-	err = c.Save(rc.DB(), &hades.SaveParams{
-		Record: profile,
-		Assocs: []string{"OwnedKeys"},
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSave(conn, &hades.SaveParams{
+			Record: profile,
+			Assocs: []string{"OwnedKeys"},
+		})
 	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	err = sendDBKeys()
 	if err != nil {

@@ -3,9 +3,10 @@ package models
 import (
 	"time"
 
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/jinzhu/gorm"
 )
 
 type Cave struct {
@@ -55,25 +56,17 @@ func (c *Cave) GetVerdict() *dash.Verdict {
 	return v
 }
 
-func CaveByID(db *gorm.DB, id string) *Cave {
+func CaveByID(conn *sqlite.Conn, id string) *Cave {
 	var c Cave
-	req := db.Where("id = ?", id).First(&c)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			return nil
-		}
-		panic(req.Error)
+	if MustSelectOne(conn, &c, builder.Eq{"id": id}) {
+		return &c
 	}
-
-	return &c
+	return nil
 }
 
-func CavesByGameID(db *gorm.DB, gameID int64) []*Cave {
+func CavesByGameID(conn *sqlite.Conn, gameID int64) []*Cave {
 	var cs []*Cave
-	err := db.Where("game_id = ?", gameID).Find(&cs).Error
-	if err != nil {
-		panic(err)
-	}
+	MustSelect(conn, &cs, builder.Eq{"game_id": gameID}, nil)
 	return cs
 }
 
@@ -92,37 +85,38 @@ func (c *Cave) RecordPlayTime(playTime time.Duration) {
 	c.Touch()
 }
 
-func (c *Cave) GetInstallLocation(db *gorm.DB) *InstallLocation {
+func (c *Cave) GetInstallLocation(conn *sqlite.Conn) *InstallLocation {
 	if c.InstallLocation != nil {
 		return c.InstallLocation
 	}
 
-	MustPreloadSimple(db, c, "InstallLocation")
+	MustPreloadSimple(conn, c, "InstallLocation")
 	return c.InstallLocation
 }
 
-func (c *Cave) GetInstallFolder(db *gorm.DB) string {
+func (c *Cave) GetInstallFolder(conn *sqlite.Conn) string {
 	if c.CustomInstallFolder != "" {
 		return c.CustomInstallFolder
 	}
 
-	return c.GetInstallLocation(db).GetInstallFolder(c.InstallFolderName)
+	return c.GetInstallLocation(conn).GetInstallFolder(c.InstallFolderName)
 }
 
-func (c *Cave) Preload(db *gorm.DB) {
+func (c *Cave) Preload(conn *sqlite.Conn) {
 	if c == nil {
 		return
 	}
-	PreloadCaves(db, c)
+	PreloadCaves(conn, c)
 }
 
-func PreloadCaves(db *gorm.DB, caveOrCaves interface{}) {
-	MustPreloadSimple(db, caveOrCaves, "Game", "Upload", "Build", "InstallLocation")
+func PreloadCaves(conn *sqlite.Conn, caveOrCaves interface{}) {
+	MustPreloadSimple(conn, caveOrCaves, "Game", "Upload", "Build", "InstallLocation")
 }
 
-func (c *Cave) Save(db *gorm.DB) {
-	err := db.Save(c).Error
-	if err != nil {
-		panic(err)
-	}
+func (c *Cave) Save(conn *sqlite.Conn) {
+	MustSaveOne(conn, c)
+}
+
+func (c *Cave) Delete(conn *sqlite.Conn) {
+	MustDelete(conn, &Cave{}, builder.Eq{"id": c.ID})
 }

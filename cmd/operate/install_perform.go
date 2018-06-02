@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
@@ -139,7 +140,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		installerInfo := istate.InstallerInfo
 
 		if !params.NoCave {
-			cave := models.CaveByID(rc.DB(), params.CaveID)
+			var cave *models.Cave
+			rc.WithConn(func(conn *sqlite.Conn) {
+				cave = models.CaveByID(conn, params.CaveID)
+			})
 			if cave == nil {
 				cave = &models.Cave{
 					ID:                params.CaveID,

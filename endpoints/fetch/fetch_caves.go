@@ -1,24 +1,22 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
-	"github.com/pkg/errors"
 )
 
 func FetchCaves(rc *butlerd.RequestContext, params *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
 	var caves []*models.Cave
-	err := rc.DB().Find(&caves).Error
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	models.PreloadCaves(rc.DB(), caves)
-
 	var formattedCaves []*butlerd.Cave
-	for _, cave := range caves {
-		formattedCaves = append(formattedCaves, FormatCave(rc.DB(), cave))
-	}
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSelect(conn, &caves, builder.NewCond(), nil)
+		models.PreloadCaves(conn, caves)
+		for _, cave := range caves {
+			formattedCaves = append(formattedCaves, FormatCave(conn, cave))
+		}
+	})
 
 	res := &butlerd.FetchCavesResult{
 		Caves: formattedCaves,

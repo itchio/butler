@@ -7,14 +7,13 @@ import (
 
 	"github.com/itchio/wharf/werrors"
 
-	"github.com/itchio/butler/database"
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/progress"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -28,21 +27,21 @@ type Router struct {
 	Handlers             map[string]RequestHandler
 	NotificationHandlers map[string]NotificationHandler
 	CancelFuncs          *CancelFuncs
-	db                   *gorm.DB
+	dbPool               *sqlite.Pool
 	getClient            GetClientFunc
 
 	ButlerVersion       string
 	ButlerVersionString string
 }
 
-func NewRouter(db *gorm.DB, getClient GetClientFunc) *Router {
+func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc) *Router {
 	return &Router{
 		Handlers:             make(map[string]RequestHandler),
 		NotificationHandlers: make(map[string]NotificationHandler),
 		CancelFuncs: &CancelFuncs{
 			Funcs: make(map[string]context.CancelFunc),
 		},
-		db:        db,
+		dbPool:    dbPool,
 		getClient: getClient,
 	}
 }
@@ -85,23 +84,13 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			}
 		}()
 
-		var _db *gorm.DB
-		getDB := func() *gorm.DB {
-			if _db == nil {
-				db := r.db.New()
-				database.SetLogger(db, consumer)
-				_db = db
-			}
-			return _db
-		}
-
 		rc := &RequestContext{
 			Ctx:         ctx,
 			Consumer:    consumer,
 			Params:      req.Params,
 			Conn:        conn,
 			CancelFuncs: r.CancelFuncs,
-			DB:          getDB,
+			DBPool:      r.dbPool,
 			Client:      r.getClient,
 
 			ButlerVersion:       r.ButlerVersion,
@@ -213,7 +202,7 @@ type RequestContext struct {
 	Params      *json.RawMessage
 	Conn        Conn
 	CancelFuncs *CancelFuncs
-	DB          DBGetter
+	DBPool      *sqlite.Pool
 	Client      GetClientFunc
 
 	ButlerVersion       string
@@ -222,8 +211,6 @@ type RequestContext struct {
 	notificationInterceptors map[string]NotificationInterceptor
 	tracker                  *progress.Tracker
 }
-
-type DBGetter func() *gorm.DB
 
 type WithParamsFunc func() (interface{}, error)
 
@@ -265,7 +252,10 @@ func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itch
 		panic(errors.New("profileId must be non-zero"))
 	}
 
-	profile := models.ProfileByID(rc.DB(), profileID)
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
+
+	profile := models.ProfileByID(conn, profileID)
 	if profile == nil {
 		panic(errors.Errorf("Could not find profile %d", profileID))
 	}
@@ -305,6 +295,12 @@ func (rc *RequestContext) EndProgress() {
 	} else {
 		rc.Consumer.Warnf("Asked to stop progress but wasn't tracking progress!")
 	}
+}
+
+func (rc *RequestContext) WithConn(f func(conn *sqlite.Conn)) {
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
+	f(conn)
 }
 
 type CancelFuncs struct {

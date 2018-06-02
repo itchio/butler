@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"crawshaw.io/sqlite"
+	"github.com/pkg/errors"
 )
 
 // Exec executes an SQLite query.
@@ -95,7 +96,7 @@ func ExecTransient(conn *sqlite.Conn, query string, resultFn func(stmt *sqlite.S
 		}
 	}()
 	if trailingBytes != 0 {
-		return fmt.Errorf("sqliteutil2.Exec: query %q has trailing bytes", query)
+		return errors.Errorf("sqliteutil2.Exec: query %q has trailing bytes", query)
 	}
 	return exec(stmt, resultFn, args)
 }
@@ -158,9 +159,9 @@ func annotateErr(err error) error {
 		} else {
 			err.Loc = "Exec: " + err.Loc
 		}
-		return err
+		return errors.WithStack(err)
 	}
-	return fmt.Errorf("sqlutil.Exec: %v", err)
+	return errors.Errorf("sqlutil.Exec: %v", err)
 }
 
 // ExecScript executes a script of SQL statements.

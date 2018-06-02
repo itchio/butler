@@ -1,10 +1,10 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/database/hades"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
@@ -18,7 +18,10 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	}
 
 	sendDBGame := func() error {
-		game := models.GameByID(rc.DB(), params.GameID)
+		var game *itchio.Game
+		rc.WithConn(func(conn *sqlite.Conn) {
+			game = models.GameByID(conn, params.GameID)
+		})
 		if game != nil {
 			err := messages.FetchGameYield.Notify(rc, &butlerd.FetchGameYieldNotification{Game: game})
 			if err != nil {
@@ -34,7 +37,10 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	}
 
 	consumer.Debugf("Querying API...")
-	access := operate.AccessForGameID(rc.DB(), params.GameID)
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, params.GameID)
+	})
 	client := rc.Client(access.APIKey)
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{
@@ -45,10 +51,8 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 		return nil, errors.WithStack(err)
 	}
 
-	c := HadesContext(rc)
-
-	err = c.Save(rc.DB(), &hades.SaveParams{
-		Record: gameRes.Game,
+	rc.WithConn(func(conn *sqlite.Conn) {
+		models.MustSaveOne(conn, gameRes.Game)
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)

@@ -39,6 +39,10 @@ func NewContext(consumer *state.Consumer, models ...interface{}) (*Context, erro
 	return c, nil
 }
 
+func (c *Context) TableName(model interface{}) string {
+	return c.NewScope(model).TableName()
+}
+
 func (c *Context) NewScope(value interface{}) *Scope {
 	return &Scope{
 		Value: value,

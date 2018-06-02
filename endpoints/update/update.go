@@ -1,6 +1,7 @@
 package update
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -63,7 +64,10 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 	consumer.Infof("→ Cached upload:")
 	operate.LogUpload(consumer, item.Upload, item.Build)
 
-	access := operate.AccessForGameID(rc.DB(), item.Game.ID)
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, item.Game.ID)
+	})
 	if access.Credentials.DownloadKeyID > 0 {
 		consumer.Infof("→ Has download key (game is owned)")
 	} else {

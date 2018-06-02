@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer/bfs"
@@ -23,6 +25,7 @@ import (
 
 type scanContext struct {
 	rc               *butlerd.RequestContext
+	conn             *sqlite.Conn
 	legacyMarketPath string
 	newByID          map[string]*importedCave
 
@@ -48,8 +51,12 @@ type existingCave struct {
 
 func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
 	consumer := rc.Consumer
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
+
 	sc := &scanContext{
 		rc:               rc,
+		conn:             conn,
 		legacyMarketPath: params.LegacyMarketPath,
 		newByID:          make(map[string]*importedCave),
 		existingByID:     make(map[string]*models.Cave),
@@ -72,7 +79,7 @@ func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 
 		if confirmRes.Confirm {
 			for _, ic := range sc.newByID {
-				err := rc.DB().Save(ic.cave).Error
+				err := models.HadesContext().SaveOne(conn, ic.cave)
 				if err != nil {
 					consumer.Errorf("Could not import: %s", err.Error())
 				} else {
@@ -105,22 +112,13 @@ func (sc *scanContext) Do() error {
 	rc := sc.rc
 	consumer := rc.Consumer
 
-	err := sc.rc.DB().Find(&sc.installLocations).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	models.MustSelect(sc.conn, &sc.installLocations, builder.NewCond(), nil)
 
-	err = rc.DB().
-		Table("caves").
-		Select([]string{
-			"id",
-			"install_location_id",
-			"install_folder_name",
-		}).
-		Scan(&sc.existingCaves).Error
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	hc := models.HadesContext()
+	models.MustExec(sc.conn,
+		builder.Select("id", "install_location_id", "install_folder_name").From("caves"),
+		hc.IntoRowsScanner(&sc.existingCaves),
+	)
 
 	if sc.legacyMarketPath != "" {
 		err := sc.DoMarket()
@@ -129,7 +127,7 @@ func (sc *scanContext) Do() error {
 		}
 	}
 
-	err = sc.DoInstallLocations()
+	err := sc.DoInstallLocations()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -411,7 +409,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
 
-	access := operate.AccessForGameID(rc.DB(), legacyCave.GameID)
+	access := operate.AccessForGameID(sc.conn, legacyCave.GameID)
 	client := rc.Client(access.APIKey)
 
 	gameRes, err := client.GetGame(&itchio.GetGameParams{

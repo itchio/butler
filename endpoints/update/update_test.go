@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/database/models"
-	"github.com/jinzhu/gorm"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -22,7 +22,7 @@ import (
 )
 
 func TestCheckUpdateMissingFields(t *testing.T) {
-	db, err := database.Open("file::memory:?cache=shared")
+	dbPool, err := sqlite.Open("file::memory:?cache=shared", 0, 10)
 	wtest.Must(t, err)
 
 	getClient := func(key string) *itchio.Client {
@@ -31,7 +31,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		return c
 	}
 
-	router := butlerd.NewRouter(db, getClient)
+	router := butlerd.NewRouter(dbPool, getClient)
 	update.Register(router)
 
 	item := &butlerd.CheckUpdateItem{
@@ -45,21 +45,23 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 	ctx := context.Background()
 	conn := loopbackconn.New(consumer)
 
-	err = database.Prepare(db)
+	dbConn := dbPool.Get(ctx.Done())
+	defer dbPool.Put(dbConn)
+	err = database.Prepare(dbConn)
 	wtest.Must(t, err)
 
 	var testCredentials = &models.Profile{
 		ID:     1,
 		APIKey: "KEY",
 	}
-	wtest.Must(t, db.Save(testCredentials).Error)
+	models.MustSaveOne(dbConn, testCredentials)
 
 	checkUpdate := func(params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
 		rc := &butlerd.RequestContext{
 			Ctx:      ctx,
 			Conn:     conn,
 			Consumer: consumer,
-			DB:       func() *gorm.DB { return db },
+			DBPool:   dbPool,
 			Client:   getClient,
 		}
 		return update.CheckUpdate(rc, params)

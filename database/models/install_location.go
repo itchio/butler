@@ -3,27 +3,24 @@ package models
 import (
 	"path/filepath"
 
-	"github.com/jinzhu/gorm"
+	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 )
 
 type InstallLocation struct {
-	ID string `json:"id" gorm:"primary_key"`
+	ID string `json:"id" hades:"primary_key"`
 
 	Path string `json:"path"`
 
 	Caves []*Cave `json:"caves"`
 }
 
-func InstallLocationByID(db *gorm.DB, id string) *InstallLocation {
+func InstallLocationByID(conn *sqlite.Conn, id string) *InstallLocation {
 	var il InstallLocation
-	req := db.Where("id = ?", id).First(&il)
-	if req.Error != nil {
-		if req.RecordNotFound() {
-			return nil
-		}
-		panic(req.Error)
+	if MustSelectOne(conn, &il, builder.Eq{"id": id}) {
+		return &il
 	}
-	return &il
+	return nil
 }
 
 func (il *InstallLocation) GetInstallFolder(folderName string) string {
@@ -34,7 +31,7 @@ func (il *InstallLocation) GetStagingFolder(installID string) string {
 	return filepath.Join(il.Path, "downloads", installID)
 }
 
-func (il *InstallLocation) GetCaves(db *gorm.DB) []*Cave {
-	MustPreloadSimple(db, il, "Caves")
+func (il *InstallLocation) GetCaves(conn *sqlite.Conn) []*Cave {
+	MustPreloadSimple(conn, il, "Caves")
 	return il.Caves
 }

@@ -3,73 +3,19 @@ package hades
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"crawshaw.io/sqlite"
 	"github.com/pkg/errors"
 )
 
-type PreloadParams struct {
-	Record interface{}
-
-	// Fields to preload, for example []string{"CollectionGames", "CollectionGames.Game"}
-	Fields []PreloadField
-}
-
-type PreloadField struct {
-	Name   string
-	Search *SearchParams
-}
-
-type Node struct {
-	Name     string
-	Search   *SearchParams
-	Field    PreloadField
-	Children map[string]*Node
-}
-
-func NewNode(name string) *Node {
-	return &Node{
-		Name:     name,
-		Children: make(map[string]*Node),
-	}
-}
-
-func (n *Node) String() string {
-	var res []string
-	res = append(res, fmt.Sprintf("- %s%s", n.Name, n.Search))
-	for _, c := range n.Children {
-		for _, cl := range strings.Split(c.String(), "\n") {
-			res = append(res, "  "+cl)
-		}
-	}
-	return strings.Join(res, "\n")
-}
-
-func (n *Node) Add(pf PreloadField) {
-	tokens := strings.Split(pf.Name, ".")
-	name := tokens[0]
-
-	c, ok := n.Children[name]
-	if !ok {
-		c = NewNode(name)
-		n.Children[name] = c
+func (c *Context) Preload(conn *sqlite.Conn, rec interface{}, opts ...PreloadParam) error {
+	params := &preloadParams{}
+	for _, o := range opts {
+		o.ApplyToPreloadParams(params)
 	}
 
-	if len(tokens) > 1 {
-		pfc := pf
-		pfc.Name = strings.Join(tokens[1:], ".")
-		c.Add(pfc)
-	} else {
-		c.Field = pf
-		c.Search = pf.Search
-	}
-}
-
-func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
-	rec := params.Record
-	if len(params.Fields) == 0 {
-		return errors.New("Preload expects a non-empty list in Fields")
+	if len(params.assocs) == 0 {
+		return errors.Errorf("Cannot preload 0 assocs")
 	}
 
 	val := reflect.ValueOf(rec)
@@ -81,43 +27,31 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 		valtyp = valtyp.Elem()
 	}
 	if valtyp.Kind() != reflect.Ptr {
-		return fmt.Errorf("Preload expects a []*Model or *Model, but it was passed a %v instead", val.Type())
+		return errors.Errorf("Preload expects a []*Model or *Model, but it was passed a %v instead", val.Type())
 	}
 
 	riMap := make(RecordInfoMap)
-	rootName := fmt.Sprintf("%v", valtyp)
-	typeTree, err := c.WalkType(riMap, rootName, valtyp, make(VisitMap), nil)
+	rootField := &assocField{
+		name:     fmt.Sprintf("%v", valtyp),
+		mode:     AssocModeAppend,
+		children: params.assocs,
+	}
+	rootInfo, err := c.WalkType(riMap, rootField, valtyp)
 	if err != nil {
-		return errors.Wrap(err, "waking type tree")
+		return errors.WithMessage(err, "waking type tree")
 	}
 
-	valTree := NewNode(rootName)
-	for _, field := range params.Fields {
-		valTree.Add(field)
-	}
+	var walk func(p reflect.Value, pri *RecordInfo) error
+	walk = func(p reflect.Value, pri *RecordInfo) error {
+		ptyp := p.Type()
+		if ptyp.Kind() == reflect.Slice {
+			ptyp = ptyp.Elem()
+		}
+		if ptyp.Kind() != reflect.Ptr {
+			return errors.Errorf("walk expects a []*Model or *Model, but it was passed a %v instead", p.Type())
+		}
 
-	var walk func(p reflect.Value, pri *RecordInfo, pvt *Node) error
-	walk = func(p reflect.Value, pri *RecordInfo, pvt *Node) error {
-		for _, cvt := range pvt.Children {
-			var cri *RecordInfo
-			for _, c := range pri.Children {
-				if c.Name == cvt.Name {
-					cri = c
-					break
-				}
-			}
-			if cri == nil {
-				return fmt.Errorf("Relation not found: %s.%s", pri.Name, cvt.Name)
-			}
-
-			ptyp := p.Type()
-			if ptyp.Kind() == reflect.Slice {
-				ptyp = ptyp.Elem()
-			}
-			if ptyp.Kind() != reflect.Ptr {
-				return fmt.Errorf("walk expects a []*Model or *Model, but it was passed a %v instead", p.Type())
-			}
-
+		for _, cri := range pri.Children {
 			freshAddr := reflect.New(reflect.SliceOf(cri.Type))
 
 			var ps reflect.Value
@@ -136,9 +70,9 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 				}
 
 				var err error
-				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.Search)
+				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cri.Field.Search())
 				if err != nil {
-					return errors.Wrap(err, "fetching has_many records (paginated)")
+					return errors.WithMessage(err, "fetching has_many records (paginated)")
 				}
 
 				pByFK := make(map[interface{}]reflect.Value)
@@ -149,7 +83,7 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 
 					// reset slices so if preload is called more than once,
 					// it doesn't keep appending
-					field := rec.Elem().FieldByName(cvt.Name)
+					field := rec.Elem().FieldByName(cri.Name())
 					field.Set(reflect.New(field.Type()).Elem())
 				}
 
@@ -157,7 +91,7 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 				for i := 0; i < fresh.Len(); i++ {
 					fk := fresh.Index(i).Elem().FieldByName(cri.Relationship.ForeignFieldNames[0]).Interface()
 					if p, ok := pByFK[fk]; ok {
-						dest := p.Elem().FieldByName(cvt.Name)
+						dest := p.Elem().FieldByName(cri.Name())
 						dest.Set(reflect.Append(dest, fresh.Index(i)))
 					}
 				}
@@ -169,9 +103,9 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 				}
 
 				var err error
-				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.Search)
+				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.ForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cri.Field.Search())
 				if err != nil {
-					return errors.Wrap(err, "fetching has_one records (paginated)")
+					return errors.WithMessage(err, "fetching has_one records (paginated)")
 				}
 
 				fresh := freshAddr.Elem()
@@ -186,7 +120,7 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 					prec := ps.Index(i)
 					fk := prec.Elem().FieldByName(cri.Relationship.AssociationForeignFieldNames[0]).Interface()
 					if crec, ok := freshByFK[fk]; ok {
-						prec.Elem().FieldByName(cvt.Name).Set(crec)
+						prec.Elem().FieldByName(cri.Name()).Set(crec)
 					}
 				}
 			case "belongs_to":
@@ -197,9 +131,9 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 				}
 
 				var err error
-				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cvt.Search)
+				freshAddr, err = c.fetchPagedByPK(conn, cri.Relationship.AssociationForeignDBNames[0], keys, reflect.SliceOf(cri.Type), cri.Field.Search())
 				if err != nil {
-					return errors.Wrap(err, "fetching belongs_to records (paginated)")
+					return errors.WithMessage(err, "fetching belongs_to records (paginated)")
 				}
 
 				fresh := freshAddr.Elem()
@@ -214,23 +148,23 @@ func (c *Context) Preload(conn *sqlite.Conn, params *PreloadParams) error {
 					prec := ps.Index(i)
 					fk := prec.Elem().FieldByName(cri.Relationship.ForeignFieldNames[0]).Interface()
 					if crec, ok := freshByFK[fk]; ok {
-						prec.Elem().FieldByName(cvt.Name).Set(crec)
+						prec.Elem().FieldByName(cri.Name()).Set(crec)
 					}
 				}
 			default:
-				return fmt.Errorf("Preload doesn't know how to handle %s relationships", cri.Relationship.Kind)
+				return errors.Errorf("Preload doesn't know how to handle %s relationships", cri.Relationship.Kind)
 			}
 
 			fresh := freshAddr.Elem()
 
-			err = walk(fresh, cri, cvt)
+			err = walk(fresh, cri)
 			if err != nil {
 				return errors.WithStack(err)
 			}
 		}
 		return nil
 	}
-	err = walk(val, typeTree, valTree)
+	err = walk(val, rootInfo)
 	if err != nil {
 		return errors.WithStack(err)
 	}
