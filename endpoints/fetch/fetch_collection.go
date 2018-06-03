@@ -82,7 +82,11 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			collection.CollectionGames = append(collection.CollectionGames, cg)
 		}
 
-		models.MustSave(conn, collection, hades.Assoc("CollectionGames"))
+		models.MustSave(conn, collection,
+			hades.Assoc("CollectionGames",
+				hades.Assoc("Game"),
+			),
+		)
 
 		offset += numPageGames
 

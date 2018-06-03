@@ -12,7 +12,7 @@ type GetCollectionResponse struct {
 }
 
 func (c *Client) GetCollection(params *GetCollectionParams) (*GetCollectionResponse, error) {
-	q := NewQuery(c, "/collections/%d")
+	q := NewQuery(c, "/collections/%d", params.CollectionID)
 	r := &GetCollectionResponse{}
 	return r, q.Get(r)
 }
