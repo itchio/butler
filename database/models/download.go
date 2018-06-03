@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-xorm/builder"
@@ -83,11 +84,11 @@ func DownloadMaxPosition(conn *sqlite.Conn) int64 {
 func downloadExtremePosition(conn *sqlite.Conn, extreme string) int64 {
 	var position int64
 
-	q := `SELECT coalesce(%s(position), 0) AS position FROM downloads`
+	q := fmt.Sprintf(`SELECT coalesce(%s(position), 0) AS position FROM downloads`, extreme)
 	MustExecRaw(conn, q, func(stmt *sqlite.Stmt) error {
 		position = stmt.ColumnInt64(0)
 		return nil
-	}, extreme)
+	})
 	return position
 }
 
