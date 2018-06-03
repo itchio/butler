@@ -30,7 +30,7 @@ type scanContext struct {
 	legacyMarketPath string
 	newByID          map[string]*importedCave
 
-	existingCaves []*existingCave
+	existingCaves []existingCave
 	existingByID  map[string]*models.Cave
 
 	installLocations []*models.InstallLocation
@@ -225,10 +225,13 @@ func (sc *scanContext) DoMarket() error {
 }
 
 func (sc *scanContext) DoInstallLocations() error {
+	consumer := sc.rc.Consumer
 	for _, il := range sc.installLocations {
+		consumer.Opf("Scanning install location %s...", il.Path)
 		err := sc.DoInstallLocation(il)
 		if err != nil {
-			return errors.WithStack(err)
+			consumer.Warnf("Could not process install location %s: %+v", il.Path, err)
+			consumer.Infof("Skipping...")
 		}
 	}
 
