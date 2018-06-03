@@ -40,7 +40,7 @@ func DataGet(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (
 	})
 
 	res := &butlerd.ProfileDataGetResult{
-		OK:    true,
+		OK:    ok,
 		Value: pd.Value,
 	}
 	return res, nil

@@ -19,7 +19,7 @@ func Test_Profile(t *testing.T) {
 		APIKey: "meh",
 	})
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid key")
+	assert.Contains(t, err.Error(), "403 Forbidden")
 
 	prof := authenticate(t, rc)
 

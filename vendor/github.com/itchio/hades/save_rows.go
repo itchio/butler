@@ -3,7 +3,6 @@ package hades
 import (
 	"math"
 	"reflect"
-	"strings"
 
 	"github.com/go-xorm/builder"
 
@@ -82,41 +81,14 @@ func (c *Context) saveRows(conn *sqlite.Conn, mode AssocMode, inputIface interfa
 			return errors.New("Internal error: could not find bestDestinPrimaryField")
 		}
 
-		sourceRelField, ok := scope.FieldByName(strings.TrimSuffix(bestSourcePrimaryField.Name, "ID"))
-		if !ok {
-			return errors.Errorf("Could not find assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
-		}
-		destinRelField, ok := scope.FieldByName(strings.TrimSuffix(bestDestinPrimaryField.Name, "ID"))
-		if !ok {
-			return errors.Errorf("Could not find assoc for %s.%s", modelName, bestDestinPrimaryField.Name)
-		}
-
-		sourceScope := c.ScopeMap.ByType(sourceRelField.Struct.Type)
-		if sourceScope == nil {
-			return errors.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
-		}
-		destinScope := c.ScopeMap.ByType(destinRelField.Struct.Type)
-		if destinScope == nil {
-			return errors.Errorf("Could not find scope for assoc for %s.%s", modelName, bestSourcePrimaryField.Name)
-		}
-
-		if len(sourceScope.PrimaryFields()) != 1 {
-			return errors.Errorf("Expected Source model %s to have 1 primary field, but it has %d",
-				sourceScope.GetModelStruct().ModelType, len(sourceScope.PrimaryFields()))
-		}
-		if len(destinScope.PrimaryFields()) != 1 {
-			return errors.Errorf("Expected Destin model %s to have 1 primary field, but it has %d",
-				destinScope.GetModelStruct().ModelType, len(destinScope.PrimaryFields()))
-		}
-
 		sourceJTFK := JoinTableForeignKey{
 			DBName:            ToDBName(bestSourcePrimaryField.Name),
-			AssociationDBName: sourceScope.PrimaryField().DBName,
+			AssociationDBName: "<AssociationDBName left blank intentionally>",
 		}
 
 		destinJTFK := JoinTableForeignKey{
 			DBName:            ToDBName(bestDestinPrimaryField.Name),
-			AssociationDBName: destinScope.PrimaryField().DBName,
+			AssociationDBName: "<AssociationDBName left blank intentionally>",
 		}
 
 		mtm, err := c.NewManyToMany(
