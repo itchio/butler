@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net"
 	"os"
+	"path/filepath"
 	"time"
 
 	"crawshaw.io/sqlite"
@@ -80,6 +81,11 @@ func do(ctx *mansion.Context) {
 
 	if len(secret) < minSecretLength {
 		comm.Dief("butlerd: Secret too short (must be %d chars, received %d chars) or more", minSecretLength, len(secret))
+	}
+
+	err := os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
+	if err != nil {
+		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}
 
 	dbPool, err := sqlite.Open(ctx.DBPath, 0, 10)
