@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 	uuid "github.com/satori/go.uuid"
@@ -79,7 +80,11 @@ func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 
 		if confirmRes.Confirm {
 			for _, ic := range sc.newByID {
-				err := models.HadesContext().SaveOne(conn, ic.cave)
+				err := models.HadesContext().Save(conn, ic.cave,
+					hades.Assoc("Game"),
+					hades.Assoc("Upload"),
+					hades.Assoc("Build"),
+				)
 				if err != nil {
 					consumer.Errorf("Could not import: %s", err.Error())
 				} else {

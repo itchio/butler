@@ -14,13 +14,11 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 
 	sendDBKeys := func() error {
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, &hades.PreloadParams{
-				Record: profile,
-				Fields: []hades.PreloadField{
-					{Name: "OwnedKeys", Search: hades.Search().OrderBy("created_at DESC")},
-					{Name: "OwnedKeys.Game"},
-				},
-			})
+			models.MustPreload(conn, profile,
+				hades.AssocWithSearch("OwnedKeys", hades.Search().OrderBy("created_at DESC"),
+					hades.Assoc("Game"),
+				),
+			)
 		})
 
 		keys := profile.OwnedKeys
@@ -50,10 +48,11 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 
 	profile.OwnedKeys = ownedRes.OwnedKeys
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, &hades.SaveParams{
-			Record: profile,
-			Assocs: []string{"OwnedKeys"},
-		})
+		models.MustSave(conn, profile,
+			hades.Assoc("OwnedKeys",
+				hades.Assoc("Game"),
+			),
+		)
 	})
 
 	err = sendDBKeys()

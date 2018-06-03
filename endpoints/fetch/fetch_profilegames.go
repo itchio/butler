@@ -16,13 +16,11 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 
 	sendDBGames := func() error {
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, &hades.PreloadParams{
-				Record: profile,
-				Fields: []hades.PreloadField{
-					{Name: "ProfileGames", Search: hades.Search().OrderBy("position ASC")},
-					{Name: "ProfileGames.Game"},
-				},
-			})
+			models.MustPreload(conn, profile,
+				hades.AssocWithSearch("ProfileGames", hades.Search().OrderBy("position ASC"),
+					hades.Assoc("Game"),
+				),
+			)
 		})
 		profileGames := profile.ProfileGames
 
@@ -76,10 +74,12 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, &hades.SaveParams{
-			Record: profile,
-			Assocs: []string{"ProfileGames"},
-		})
+		models.MustSave(conn, profile,
+			hades.OmitRoot(),
+			hades.Assoc("ProfileGames",
+				hades.Assoc("Game"),
+			),
+		)
 	})
 
 	err = sendDBGames()

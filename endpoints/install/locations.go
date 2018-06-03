@@ -80,7 +80,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLoca
 		ID:   params.ID,
 		Path: params.Path,
 	}
-	models.MustSaveOne(conn, il)
+	models.MustSave(conn, il)
 
 	res := &butlerd.InstallLocationsAddResult{}
 	return res, nil

@@ -3348,18 +3348,8 @@ a game is found.</p>
 
 
 <p>
-<span class="header">Result</span> 
+<span class="header">Result</span> <em>none</em>
 </p>
-
-
-<table class="field-table">
-<tr>
-<td><code>removedCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>The number of removed downloads</p>
-</td>
-</tr>
-</table>
 
 
 <div id="DownloadsClearFinishedParams__TypeHint" style="display: none;" class="tip-content">
@@ -5681,12 +5671,10 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>error</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p>The download that errored. It contains all the error
+information: a short message, a full stack trace,
+and a butlerd error code.</p>
+</td>
 </tr>
 </table>
 
@@ -5699,10 +5687,6 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type struct-type">Download</span></code></td>
-</tr>
-<tr>
-<td><code>error</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -6215,56 +6199,6 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
-### <em class="enum-type"></em>ItchPlatform
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"osx"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"windows"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"linux"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"unknown"</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="ItchPlatform__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>ItchPlatform <a href="#/?id=itchplatform">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"osx"</code></td>
-</tr>
-<tr>
-<td><code>"windows"</code></td>
-</tr>
-<tr>
-<td><code>"linux"</code></td>
-</tr>
-<tr>
-<td><code>"unknown"</code></td>
-</tr>
-</table>
-
-</div>
-
 ### <em class="enum-type"></em>Code
 
 
@@ -6464,7 +6398,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>platform</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#ItchPlatform__TypeHint">ItchPlatform</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
 <td><p>platform to restrict this action too</p>
 </td>
 </tr>
@@ -6518,7 +6452,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>platform</code></td>
-<td><code class="typename"><span class="type enum-type">ItchPlatform</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
 </tr>
 <tr>
 <td><code>locales</code></td>
@@ -6790,45 +6724,10 @@ a tool, a comic, etc.</p>
 </td>
 </tr>
 <tr>
-<td><code>canBeBought</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Can this game be bought?</p>
-</td>
-</tr>
-<tr>
-<td><code>inPressSystem</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this game downloadable by press users for free?</p>
-</td>
-</tr>
-<tr>
-<td><code>hasDemo</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have a demo that can be downloaded for free?</p>
-</td>
-</tr>
-<tr>
-<td><code>pOsx</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have an upload tagged with &lsquo;macOS compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pLinux</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have an upload tagged with &lsquo;Linux compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pWindows</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have an upload tagged with &lsquo;Windows compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pAndroid</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have an upload tagged with &lsquo;Android compatible&rsquo;? (creator-controlled)</p>
+<td><code>traits</code></td>
+<td><code class="typename"><span class="type builtin-type">GameTraits</span></code></td>
+<td><p>Traits describes the platforms a game is available for,
+pricing information, etc.</p>
 </td>
 </tr>
 <tr>
@@ -6931,32 +6830,8 @@ a tool, a comic, etc.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>canBeBought</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>inPressSystem</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>hasDemo</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pOsx</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pLinux</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pWindows</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pAndroid</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><code>traits</code></td>
+<td><code class="typename"><span class="type builtin-type">GameTraits</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
@@ -7368,45 +7243,15 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </td>
 </tr>
 <tr>
-<td><code>demo</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload a demo that can be downloaded for free?</p>
-</td>
-</tr>
-<tr>
-<td><code>preorder</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload a pre-order placeholder?</p>
-</td>
-</tr>
-<tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadType__TypeHint">UploadType</span></code></td>
 <td><p>Upload type: default, soundtrack, etc.</p>
 </td>
 </tr>
 <tr>
-<td><code>pOsx</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload tagged with &lsquo;macOS compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pLinux</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload tagged with &lsquo;Linux compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pWindows</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload tagged with &lsquo;Windows compatible&rsquo;? (creator-controlled)</p>
-</td>
-</tr>
-<tr>
-<td><code>pAndroid</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this upload tagged with &lsquo;Android compatible&rsquo;? (creator-controlled)</p>
+<td><code>traits</code></td>
+<td><code class="typename"><span class="type builtin-type">UploadTraits</span></code></td>
+<td><p>Traits describes platform availability, whether it&rsquo;s a demo upload etc.</p>
 </td>
 </tr>
 <tr>
@@ -7460,32 +7305,12 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <td><code class="typename"><span class="type struct-type">Build</span></code></td>
 </tr>
 <tr>
-<td><code>demo</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>preorder</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type enum-type">UploadType</span></code></td>
 </tr>
 <tr>
-<td><code>pOsx</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pLinux</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pWindows</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>pAndroid</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><code>traits</code></td>
+<td><code class="typename"><span class="type builtin-type">UploadTraits</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -7676,12 +7501,6 @@ page deleted, visibility level changed, etc.)</p>
 </td>
 </tr>
 <tr>
-<td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td><p>Games in this collection: filled in API response</p>
-</td>
-</tr>
-<tr>
 <td><code>collectionGames</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
 <td><p>Games in this collection, with additional info</p>
@@ -7728,10 +7547,6 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>gamesCount</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
 </tr>
 <tr>
 <td><code>collectionGames</code></td>
@@ -8544,7 +8359,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>spell</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p><span class="tag">Optional</span> Spell contains raw output from <a href="https://github.com/fasterthanlime/wizardry">https://github.com/fasterthanlime/wizardry</a></p>
+<td><p><span class="tag">Optional</span> Spell contains raw output from <a href="https://github.com/itchio/wizardry">https://github.com/itchio/wizardry</a></p>
 </td>
 </tr>
 <tr>

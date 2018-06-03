@@ -1038,13 +1038,7 @@
         "fields": null
       },
       "result": {
-        "fields": [
-          {
-            "name": "removedCount",
-            "doc": "The number of removed downloads",
-            "type": "number"
-          }
-        ]
+        "fields": null
       }
     },
     {
@@ -1484,13 +1478,8 @@
         "fields": [
           {
             "name": "download",
-            "doc": "",
+            "doc": "The download that errored. It contains all the error\ninformation: a short message, a full stack trace,\nand a butlerd error code.",
             "type": "Download"
-          },
-          {
-            "name": "error",
-            "doc": "",
-            "type": "string"
           }
         ]
       }
@@ -2265,7 +2254,7 @@
         {
           "name": "platform",
           "doc": "platform to restrict this action too",
-          "type": "ItchPlatform"
+          "type": "Platform"
         },
         {
           "name": "locales",
@@ -2407,39 +2396,9 @@
           "type": "number"
         },
         {
-          "name": "canBeBought",
-          "doc": "Can this game be bought?",
-          "type": "boolean"
-        },
-        {
-          "name": "inPressSystem",
-          "doc": "Is this game downloadable by press users for free?",
-          "type": "boolean"
-        },
-        {
-          "name": "hasDemo",
-          "doc": "Does this game have a demo that can be downloaded for free?",
-          "type": "boolean"
-        },
-        {
-          "name": "pOsx",
-          "doc": "Does this game have an upload tagged with 'macOS compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pLinux",
-          "doc": "Does this game have an upload tagged with 'Linux compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pWindows",
-          "doc": "Does this game have an upload tagged with 'Windows compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pAndroid",
-          "doc": "Does this game have an upload tagged with 'Android compatible'? (creator-controlled)",
-          "type": "boolean"
+          "name": "traits",
+          "doc": "Traits describes the platforms a game is available for,\npricing information, etc.",
+          "type": "GameTraits"
         },
         {
           "name": "user",
@@ -2570,39 +2529,14 @@
           "type": "Build"
         },
         {
-          "name": "demo",
-          "doc": "Is this upload a demo that can be downloaded for free?",
-          "type": "boolean"
-        },
-        {
-          "name": "preorder",
-          "doc": "Is this upload a pre-order placeholder?",
-          "type": "boolean"
-        },
-        {
           "name": "type",
           "doc": "Upload type: default, soundtrack, etc.",
           "type": "UploadType"
         },
         {
-          "name": "pOsx",
-          "doc": "Is this upload tagged with 'macOS compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pLinux",
-          "doc": "Is this upload tagged with 'Linux compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pWindows",
-          "doc": "Is this upload tagged with 'Windows compatible'? (creator-controlled)",
-          "type": "boolean"
-        },
-        {
-          "name": "pAndroid",
-          "doc": "Is this upload tagged with 'Android compatible'? (creator-controlled)",
-          "type": "boolean"
+          "name": "traits",
+          "doc": "Traits describes platform availability, whether it's a demo upload etc.",
+          "type": "UploadTraits"
         },
         {
           "name": "createdAt",
@@ -2644,11 +2578,6 @@
           "name": "gamesCount",
           "doc": "Number of games in the collection. This might not be accurate\nas some games might not be accessible to whoever is asking (project\npage deleted, visibility level changed, etc.)",
           "type": "number"
-        },
-        {
-          "name": "games",
-          "doc": "Games in this collection: filled in API response",
-          "type": "Game[]"
         },
         {
           "name": "collectionGames",
@@ -2903,7 +2832,7 @@
         },
         {
           "name": "spell",
-          "doc": "Spell contains raw output from \u003chttps://github.com/fasterthanlime/wizardry\u003e",
+          "doc": "Spell contains raw output from \u003chttps://github.com/itchio/wizardry\u003e",
           "type": "string[]"
         },
         {

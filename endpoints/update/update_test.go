@@ -54,7 +54,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 		ID:     1,
 		APIKey: "KEY",
 	}
-	models.MustSaveOne(dbConn, testCredentials)
+	models.MustSave(dbConn, testCredentials)
 
 	checkUpdate := func(params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
 		rc := &butlerd.RequestContext{

@@ -17,7 +17,11 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustPreload(conn, profile,
 				hades.AssocWithSearch("ProfileCollections", hades.Search().OrderBy("position ASC"),
-					hades.Assoc("Collection"),
+					hades.Assoc("Collection",
+						hades.Assoc("CollectionGames",
+							hades.Assoc("Game"),
+						),
+					),
 				),
 			)
 		})
@@ -104,13 +108,15 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, &hades.SaveParams{
-			Record: profile,
-			Assocs: []string{"ProfileCollections"},
-			DontCull: []interface{}{
-				&itchio.CollectionGame{},
-			},
-		})
+		models.MustSave(conn, profile,
+			hades.Assoc("ProfileCollections",
+				hades.Assoc("Collection",
+					hades.Assoc("CollectionGames",
+						hades.Assoc("Game"),
+					),
+				),
+			),
+		)
 	})
 
 	err = sendDBCollections()
