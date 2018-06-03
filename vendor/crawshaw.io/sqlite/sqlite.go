@@ -27,6 +27,7 @@ package sqlite
 // #cgo CFLAGS: -DSQLITE_USE_ALLOCA
 // #cgo CFLAGS: -DSQLITE_ENABLE_COLUMN_METADATA
 // #cgo linux LDFLAGS: -ldl -lm
+// #cgo linux CFLAGS: -std=c99
 // #cgo openbsd LDFLAGS: -lm
 // #cgo openbsd CFLAGS: -std=c99
 //

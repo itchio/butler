@@ -3,10 +3,10 @@
 	"dependencies": [
 		{
 			"importpath": "crawshaw.io/sqlite",
-			"repository": "https://github.com/crawshaw/sqlite",
+			"repository": "https://github.com/fasterthanlime/sqlite",
 			"vcs": "git",
-			"revision": "4e3e3e8c528ecfb9bee9558460201b06f03a6b5f",
-			"branch": "master",
+			"revision": "3d2fd2439cefd67c3662a05f44d06fd2aee1e3fd",
+			"branch": "linux-c99",
 			"notests": true
 		},
 		{
