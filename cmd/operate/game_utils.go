@@ -267,3 +267,12 @@ func UploadIsProbablyExternal(u *itchio.Upload) bool {
 	// everything else though... we don't know.
 	return true
 }
+
+func FindBuildFile(files []*itchio.BuildFile, fileType itchio.BuildFileType, subType itchio.BuildFileSubType) *itchio.BuildFile {
+	for _, f := range files {
+		if f.Type == fileType && f.SubType == subType {
+			return f
+		}
+	}
+	return nil
+}

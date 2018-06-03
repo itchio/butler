@@ -48,7 +48,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 
 	client := rc.Client(params.Access.APIKey)
 	subType := itchio.BuildFileSubTypeDefault
-	if itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized, build.Files) != nil {
+	if FindBuildFile(build.Files, itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized) != nil {
 		subType = itchio.BuildFileSubTypeOptimized
 	}
 

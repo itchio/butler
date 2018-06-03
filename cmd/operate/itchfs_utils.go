@@ -11,17 +11,17 @@ func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallS
 	if build != nil {
 		if fileType == "" {
 			fileType = "archive"
-			if itchio.FindBuildFile(itchio.BuildFileTypeUnpacked, build.Files) != nil {
+			if FindBuildFile(build.Files, itchio.BuildFileTypeUnpacked, itchio.BuildFileSubTypeDefault) != nil {
 				fileType = "unpacked"
 			}
-
-			return client.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
-				BuildID:     build.ID,
-				UUID:        istate.DownloadSessionId,
-				Credentials: params.Access.Credentials,
-				Type:        itchio.BuildFileType(fileType),
-			})
 		}
+
+		return client.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+			BuildID:     build.ID,
+			UUID:        istate.DownloadSessionId,
+			Credentials: params.Access.Credentials,
+			Type:        itchio.BuildFileType(fileType),
+		})
 	}
 
 	return client.MakeUploadDownloadURL(&itchio.MakeUploadDownloadParams{

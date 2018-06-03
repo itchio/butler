@@ -107,15 +107,15 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.Builds))
 
 				for _, b := range upgradePath.Builds {
-					f := itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeDefault, b.Files)
+					f := FindBuildFile(b.Files, itchio.BuildFileTypePatch, itchio.BuildFileSubTypeDefault)
 					if f == nil {
-						consumer.Warnf("Whoops, build %d is missing a patch, falling back to heal...")
+						consumer.Warnf("Whoops, build %d is missing a patch, falling back to heal...", b.ID)
 						res.Strategy = InstallPerformStrategyHeal
 						return task(res)
 					}
 
 					{
-						of := itchio.FindBuildFileEx(itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized, b.Files)
+						of := FindBuildFile(b.Files, itchio.BuildFileTypePatch, itchio.BuildFileSubTypeOptimized)
 						if of != nil {
 							f = of
 						}
@@ -145,7 +145,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 				consumer.Infof("Will apply %d patches", len(upgradePath.Builds))
 				res.Strategy = InstallPerformStrategyUpgrade
 
-				if len(istate.UpgradePath.Builds) == 0 {
+				if istate.UpgradePath == nil {
 					istate.UpgradePath = upgradePath
 					istate.UpgradePathIndex = 0
 					err = oc.Save(isub)
