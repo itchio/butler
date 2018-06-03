@@ -151,8 +151,15 @@ func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...
 			if vri.Relationship != nil {
 				switch vri.Relationship.Kind {
 				case "has_many":
+					// if we're in replace mode
 					if vri.Field.Mode() == AssocModeReplace {
-						cull = true
+						// and it's an actually
+						// has_many, not a disguised
+						// many_to_many
+						if len(vri.ModelStruct.PrimaryFields) == 1 {
+							// then cull now
+							cull = true
+						}
 					}
 				case "many_to_many":
 					// culling is done later, but let's record the ManyToMany now
@@ -182,8 +189,9 @@ func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...
 					for _, pf := range vri.ModelStruct.PrimaryFields {
 						pfNames = append(pfNames, pf.Name)
 					}
+
 					return errors.Errorf("Since %v has_many %v, expected %v to have one primary key. Instead, it has primary fields: %s",
-						pri.Name, vri.Name, strings.Join(pfNames, ", "))
+						pri.Name(), vri.Name(), vri.Name(), strings.Join(pfNames, ", "))
 				}
 				valuePF := c.NewScope(v.Interface()).PrimaryField()
 				if valuePF == nil {
