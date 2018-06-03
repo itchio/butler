@@ -116,7 +116,6 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), jsonrpc2.AsyncHandler(h))
 	go func() {
 		<-ctx.Done()
-		<-time.After(1 * time.Second)
 		jc.Close()
 	}()
 

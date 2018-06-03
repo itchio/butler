@@ -239,6 +239,14 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			}
 		}
 
+		select {
+		case <-oc.ctx.Done():
+			consumer.Warnf("Asked to cancel, so, cancelling...")
+			return errors.WithStack(butlerd.CodeOperationCancelled)
+		default:
+			// continue!
+		}
+
 		var finalInstallResult = firstInstallResult
 		var finalInstallerInfo = installerInfo
 

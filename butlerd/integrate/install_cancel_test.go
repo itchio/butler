@@ -1,7 +1,6 @@
 package integrate
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -55,7 +54,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		var lastProgressValue float64
 		printProgress := func(params *butlerd.ProgressNotification) {
-			log.Printf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
+			t.Logf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 			lastProgressValue = params.Progress
 		}
 
@@ -112,17 +111,12 @@ func Test_InstallCancel(t *testing.T) {
 
 		t.Logf("Resuming after graceful cancel...")
 
-		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params *butlerd.ProgressNotification) {
-			printProgress(params)
-		})
-
 		hardCancelOnce := &sync.Once{}
 
 		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params *butlerd.ProgressNotification) {
-			printProgress(params)
-
 			if params.Progress > 0.5 {
 				hardCancelOnce.Do(func() {
+					t.Logf("Sending hard cancel")
 					delete(h.notificationHandlers, messages.Progress.Method())
 					cancel()
 				})
