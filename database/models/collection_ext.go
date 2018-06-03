@@ -28,11 +28,9 @@ func CollectionExt(c *itchio.Collection) collectionExt {
 }
 
 func (ce collectionExt) PreloadCollectionGames(conn *sqlite.Conn) {
-	MustPreload(conn, &hades.PreloadParams{
-		Record: ce.Collection,
-		Fields: []hades.PreloadField{
-			{Name: "CollectionGames", Search: hades.Search().OrderBy("position ASC")},
-			{Name: "CollectionGames.Game"},
-		},
-	})
+	MustPreload(conn, ce.Collection,
+		hades.AssocWithSearch("CollectionGames", hades.Search().OrderBy("position ASC"),
+			hades.Assoc("Game"),
+		),
+	)
 }

@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sort"
 
@@ -112,6 +113,8 @@ func buildState(build *itchio.Build) string {
 }
 
 func versionState(build *itchio.Build) string {
+	log.Printf("versionState %#v", build)
+
 	switch build.State {
 	case itchio.BuildStateCompleted:
 		if build.UserVersion != "" {

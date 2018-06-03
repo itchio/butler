@@ -52,7 +52,8 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	collection := collRes.Collection
 	collection.CollectionGames = nil
 
-	models.MustSaveOne(conn, collRes.Collection)
+	// not saving assocs on purpose
+	models.MustSave(conn, collRes.Collection)
 
 	// after collection metadata update
 	err = sendDBCollection()
@@ -81,13 +82,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			collection.CollectionGames = append(collection.CollectionGames, cg)
 		}
 
-		models.MustSave(conn, &hades.SaveParams{
-			Record: collection,
-			Assocs: []string{"CollectionGames"},
-			DontCull: []interface{}{
-				&itchio.CollectionGame{},
-			},
-		})
+		models.MustSave(conn, collection, hades.Assoc("CollectionGames"))
 
 		offset += numPageGames
 
@@ -108,10 +103,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		}
 	}
 
-	models.MustSave(conn, &hades.SaveParams{
-		Record: collection,
-		Assocs: []string{"CollectionGames"},
-	})
+	models.MustSave(conn, collection, hades.AssocReplace("CollectionGames"))
 
 	// after all pages are fetched
 	err = sendDBCollection()

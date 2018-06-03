@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
@@ -52,7 +53,11 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSaveOne(conn, gameRes.Game)
+		models.MustSave(conn, gameRes.Game,
+			hades.Assoc("Sale"),
+			hades.Assoc("User"),
+			hades.Assoc("Embed"),
+		)
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)

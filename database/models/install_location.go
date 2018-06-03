@@ -5,6 +5,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
+	"github.com/itchio/hades"
 )
 
 type InstallLocation struct {
@@ -32,6 +33,8 @@ func (il *InstallLocation) GetStagingFolder(installID string) string {
 }
 
 func (il *InstallLocation) GetCaves(conn *sqlite.Conn) []*Cave {
-	MustPreloadSimple(conn, il, "Caves")
+	MustPreload(conn, il,
+		hades.Assoc("Caves"),
+	)
 	return il.Caves
 }

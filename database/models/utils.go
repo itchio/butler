@@ -35,33 +35,12 @@ func HadesContext() *hades.Context {
 	return hadesContext
 }
 
-func Preload(conn *sqlite.Conn, params *hades.PreloadParams) error {
-	return HadesContext().Preload(conn, params)
+func Preload(conn *sqlite.Conn, record interface{}, opts ...hades.PreloadParam) error {
+	return HadesContext().Preload(conn, record, opts...)
 }
 
-func MustPreload(conn *sqlite.Conn, params *hades.PreloadParams) {
-	err := Preload(conn, params)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func PreloadSimple(conn *sqlite.Conn, record interface{}, fields ...string) error {
-	var pfs []hades.PreloadField
-	for _, f := range fields {
-		pfs = append(pfs, hades.PreloadField{
-			Name: f,
-		})
-	}
-
-	return Preload(conn, &hades.PreloadParams{
-		Record: record,
-		Fields: pfs,
-	})
-}
-
-func MustPreloadSimple(conn *sqlite.Conn, record interface{}, fields ...string) {
-	err := PreloadSimple(conn, record, fields...)
+func MustPreload(conn *sqlite.Conn, record interface{}, opts ...hades.PreloadParam) {
+	err := Preload(conn, record, opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -82,15 +61,8 @@ func MustSelect(conn *sqlite.Conn, result interface{}, cond builder.Cond, search
 	}
 }
 
-func MustSave(conn *sqlite.Conn, params *hades.SaveParams) {
-	err := HadesContext().Save(conn, params)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func MustSaveOne(conn *sqlite.Conn, record interface{}) {
-	err := HadesContext().SaveOne(conn, record)
+func MustSave(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) {
+	err := HadesContext().Save(conn, record, opts...)
 	if err != nil {
 		panic(err)
 	}

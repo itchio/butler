@@ -15,13 +15,11 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 	sendDBCollections := func() error {
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, &hades.PreloadParams{
-				Record: profile,
-				Fields: []hades.PreloadField{
-					{Name: "ProfileCollections", Search: hades.Search().OrderBy("position ASC")},
-					{Name: "ProfileCollections.Collection"},
-				},
-			})
+			models.MustPreload(conn, profile,
+				hades.AssocWithSearch("ProfileCollections", hades.Search().OrderBy("position ASC"),
+					hades.Assoc("Collection"),
+				),
+			)
 		})
 
 		profileCollections := profile.ProfileCollections

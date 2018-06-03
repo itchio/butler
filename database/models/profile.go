@@ -6,6 +6,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 )
 
 type Profile struct {
@@ -33,7 +34,9 @@ func (p *Profile) UpdateFromUser(user *itchio.User) {
 }
 
 func (p *Profile) Save(conn *sqlite.Conn) {
-	MustSaveOne(conn, p)
+	MustSave(conn, p,
+		hades.Assoc("User"),
+	)
 }
 
 func ProfileByID(conn *sqlite.Conn, id int64) *Profile {

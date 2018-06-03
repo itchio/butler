@@ -7,6 +7,7 @@ import (
 	"github.com/go-xorm/builder"
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 )
 
 type Cave struct {
@@ -90,7 +91,7 @@ func (c *Cave) GetInstallLocation(conn *sqlite.Conn) *InstallLocation {
 		return c.InstallLocation
 	}
 
-	MustPreloadSimple(conn, c, "InstallLocation")
+	MustPreload(conn, c, hades.Assoc("InstallLocation"))
 	return c.InstallLocation
 }
 
@@ -110,11 +111,16 @@ func (c *Cave) Preload(conn *sqlite.Conn) {
 }
 
 func PreloadCaves(conn *sqlite.Conn, caveOrCaves interface{}) {
-	MustPreloadSimple(conn, caveOrCaves, "Game", "Upload", "Build", "InstallLocation")
+	MustPreload(conn, caveOrCaves,
+		hades.Assoc("Game"),
+		hades.Assoc("Upload"),
+		hades.Assoc("Build"),
+		hades.Assoc("InstallLocation"),
+	)
 }
 
 func (c *Cave) Save(conn *sqlite.Conn) {
-	MustSaveOne(conn, c)
+	MustSave(conn, c)
 }
 
 func (c *Cave) Delete(conn *sqlite.Conn) {

@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/hades"
 )
 
 func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
@@ -75,7 +76,11 @@ func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueuePa
 		Fresh:         Fresh,
 	}
 
-	models.MustSaveOne(conn, d)
+	models.MustSave(conn, d,
+		hades.Assoc("Game"),
+		hades.Assoc("Upload"),
+		hades.Assoc("Build"),
+	)
 
 	if item.CaveID != "" {
 		// remove other downloads for this cave

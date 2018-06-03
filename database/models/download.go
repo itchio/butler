@@ -65,7 +65,11 @@ func (d *Download) Preload(conn *sqlite.Conn) {
 }
 
 func PreloadDownloads(conn *sqlite.Conn, downloadOrDownloads interface{}) {
-	MustPreloadSimple(conn, downloadOrDownloads, "Game", "Upload", "Build")
+	MustPreload(conn, downloadOrDownloads,
+		hades.Assoc("Game"),
+		hades.Assoc("Upload"),
+		hades.Assoc("Build"),
+	)
 }
 
 func DownloadMinPosition(conn *sqlite.Conn) int64 {
@@ -88,7 +92,7 @@ func downloadExtremePosition(conn *sqlite.Conn, extreme string) int64 {
 }
 
 func (d *Download) Save(conn *sqlite.Conn) {
-	MustSaveOne(conn, d)
+	MustSave(conn, d)
 }
 
 func DiscardDownloadsByCaveID(conn *sqlite.Conn, caveID string) {

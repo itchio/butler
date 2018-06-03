@@ -7,6 +7,7 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
 )
@@ -25,7 +26,7 @@ func List(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butle
 	var profiles []*models.Profile
 	rc.WithConn(func(conn *sqlite.Conn) {
 		models.MustSelect(conn, &profiles, builder.NewCond(), nil)
-		models.MustPreloadSimple(conn, profiles, "User")
+		models.MustPreload(conn, profiles, hades.Assoc("User"))
 	})
 
 	var formattedProfiles []*butlerd.Profile
@@ -186,7 +187,10 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 	if err != nil {
 		if neterr.IsNetworkError(err) {
 			rc.WithConn(func(conn *sqlite.Conn) {
-				models.PreloadSimple(conn, profile, "User")
+				err := models.Preload(conn, profile, hades.Assoc("User"))
+				if err != nil {
+					consumer.Warnf("Could not preload user on profile: %+v", err)
+				}
 			})
 			if profile.User == nil {
 				consumer.Warnf("Could not perform offline login...")

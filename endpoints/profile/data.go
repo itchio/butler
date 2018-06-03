@@ -17,7 +17,7 @@ func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (
 		Value:     params.Value,
 	}
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSaveOne(conn, pd)
+		models.MustSave(conn, pd)
 	})
 
 	res := &butlerd.ProfileDataPutResult{}
