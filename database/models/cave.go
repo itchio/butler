@@ -123,6 +123,14 @@ func (c *Cave) Save(conn *sqlite.Conn) {
 	MustSave(conn, c)
 }
 
+func (c *Cave) SaveWithAssocs(conn *sqlite.Conn) {
+	MustSave(conn, c,
+		hades.Assoc("Game"),
+		hades.Assoc("Upload"),
+		hades.Assoc("Build"),
+	)
+}
+
 func (c *Cave) Delete(conn *sqlite.Conn) {
 	MustDelete(conn, &Cave{}, builder.Eq{"id": c.ID})
 }

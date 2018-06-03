@@ -72,7 +72,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		cave.Upload = params.Upload
 		cave.Build = params.Build
 		cave.UpdateInstallTime()
-		oc.rc.WithConn(cave.Save)
+		oc.rc.WithConn(cave.SaveWithAssocs)
 	}
 
 	return nil

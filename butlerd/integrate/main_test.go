@@ -14,6 +14,7 @@ import (
 
 	"github.com/onsi/gocleanup"
 	"github.com/pkg/errors"
+	"github.com/sourcegraph/jsonrpc2"
 )
 
 var secret = strings.Repeat("dummy", 58)
@@ -100,6 +101,19 @@ func must(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		cancelButler()
+		if je, ok := errors.Cause(err).(*jsonrpc2.Error); ok {
+			if je.Data != nil {
+				bs := []byte(*je.Data)
+				intermediate := make(map[string]interface{})
+				jErr := json.Unmarshal(bs, &intermediate)
+				if jErr != nil {
+					t.Errorf("could not Unmarshal json-rpc2 error data: %v", jErr)
+					t.Errorf("data was: %s", string(bs))
+				} else {
+					t.Errorf("json-rpc2 full stack:\n%s", intermediate["stack"])
+				}
+			}
+		}
 		t.Fatalf("%+v", err)
 	}
 }
