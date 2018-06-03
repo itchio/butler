@@ -179,7 +179,7 @@ type Upload struct {
 	Type UploadType `json:"type"`
 
 	// Traits describes platform availability, whether it's a demo upload etc.
-	Traits UploadTraits `json:"traits"`
+	Traits UploadTraits `json:"traits" hades:"squash"`
 
 	// Date this upload was created at
 	CreatedAt *time.Time `json:"createdAt"`
