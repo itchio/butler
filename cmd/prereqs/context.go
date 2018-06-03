@@ -53,6 +53,10 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 		needFetch := false
 		wantFetch := false
 
+		if pc.PrereqsDir == "" {
+			return nil, errors.Errorf("PrereqsDir cannot be empty")
+		}
+
 		err := os.MkdirAll(pc.PrereqsDir, 0755)
 		if err != nil {
 			return nil, err
