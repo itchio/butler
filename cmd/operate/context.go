@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -116,7 +117,11 @@ func (oc *OperationContext) Load(s Subcontext) {
 			TagName:          "json",
 			Result:           s.GetData(),
 			WeaklyTypedInput: true,
-			DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+				itchio.GameTraitHookFunc,
+				itchio.UploadTraitHookFunc,
+			),
 		})
 		if err != nil {
 			oc.consumer.Warnf("Could not load subcontext %s: while configuring decoder, %s", s.Key(), err.Error())
