@@ -8,7 +8,6 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/wharf/state"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -49,7 +48,7 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Channel", "Upload", "Build", "Version", "State"})
+	table.SetHeader([]string{"Channel", "Upload", "Build", "Version"})
 
 	found := false
 
@@ -67,8 +66,7 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 		found = true
 
 		if ch.Head != nil {
-			files := ch.Head.Files
-			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), buildState(ch.Head), versionState(ch.Head), filesState(files, showAllFiles)}
+			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), buildState(ch.Head), versionState(ch.Head)}
 			table.Append(line)
 		} else {
 			line := []string{ch.Name, fmt.Sprintf("#%d", ch.Upload.ID), "No builds yet"}
@@ -76,8 +74,7 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 		}
 
 		if ch.Pending != nil {
-			files := ch.Pending.Files
-			line := []string{"", "", buildState(ch.Pending), versionState(ch.Pending), filesState(files, showAllFiles)}
+			line := []string{"", "", buildState(ch.Pending), versionState(ch.Pending)}
 			table.Append(line)
 		}
 	}
@@ -122,42 +119,4 @@ func versionState(build *itchio.Build) string {
 	default:
 		return ""
 	}
-}
-
-func filesState(files []*itchio.BuildFile, showAllFiles bool) string {
-	if len(files) == 0 {
-		return "(no files)"
-	}
-
-	s := ""
-	for _, file := range files {
-		if !(showAllFiles || file.Type == itchio.BuildFileTypeArchive) {
-			continue
-		}
-
-		if s != "" {
-			s += ", "
-		}
-		s += fileState(file)
-	}
-
-	return s
-}
-
-func fileState(file *itchio.BuildFile) string {
-	theme := state.GetTheme()
-
-	fType := string(file.Type)
-	if file.SubType != itchio.BuildFileSubTypeDefault {
-		fType += fmt.Sprintf(" (%s)", file.SubType)
-	}
-
-	sign := theme.StatSign
-	if file.State != itchio.BuildFileStateUploaded {
-		sign = theme.OpSign
-	}
-
-	fSize := progress.FormatBytes(file.Size)
-
-	return fmt.Sprintf("%s %s %s", sign, fSize, fType)
 }

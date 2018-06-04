@@ -384,7 +384,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.Statf("%s patch (no savings)", prettyPatchSize)
 		}
 	}
-	comm.Opf("Build is now processing, should be up in a bit (see `butler status`)")
+	comm.Opf("Build is now processing, should be up in a bit.")
+	comm.Logf("")
+	comm.Logf("Use the `butler status %s` for more information.", specStr)
 	comm.Logf("")
 
 	return nil
