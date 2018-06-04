@@ -85,6 +85,16 @@ type Game struct {
 	Published bool `json:"published,omitempty" hades:"-"`
 }
 
+type GameTraits struct {
+	PlatformWindows bool `trait:"p_windows"`
+	PlatformLinux   bool `trait:"p_linux"`
+	PlatformOSX     bool `trait:"p_osx"`
+	PlatformAndroid bool `trait:"p_android"`
+	CanBeBought     bool `trait:"can_be_bought"`
+	HasDemo         bool `trait:"has_demo"`
+	InPressSystem   bool `trait:"in_press_system"`
+}
+
 // Type of an itch.io game page, mostly related to
 // how it should be presented on web (downloadable or embed)
 type GameType string
@@ -185,6 +195,15 @@ type Upload struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	// Date this upload was last updated at (order changed, display name set, etc.)
 	UpdatedAt *time.Time `json:"updatedAt"`
+}
+
+type UploadTraits struct {
+	PlatformWindows bool `trait:"p_windows"`
+	PlatformLinux   bool `trait:"p_linux"`
+	PlatformOSX     bool `trait:"p_osx"`
+	PlatformAndroid bool `trait:"p_android"`
+	Preorder        bool `trait:"preorder"`
+	Demo            bool `trait:"demo"`
 }
 
 type UploadType string

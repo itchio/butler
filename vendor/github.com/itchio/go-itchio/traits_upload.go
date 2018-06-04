@@ -5,15 +5,6 @@ import (
 	"reflect"
 )
 
-type UploadTraits struct {
-	PlatformWindows bool `trait:"p_windows"`
-	PlatformLinux   bool `trait:"p_linux"`
-	PlatformOSX     bool `trait:"p_osx"`
-	PlatformAndroid bool `trait:"p_android"`
-	Preorder        bool `trait:"preorder"`
-	Demo            bool `trait:"demo"`
-}
-
 var _ json.Marshaler = UploadTraits{}
 var _ json.Unmarshaler = (*UploadTraits)(nil)
 

@@ -5,16 +5,6 @@ import (
 	"reflect"
 )
 
-type GameTraits struct {
-	PlatformWindows bool `trait:"p_windows"`
-	PlatformLinux   bool `trait:"p_linux"`
-	PlatformOSX     bool `trait:"p_osx"`
-	PlatformAndroid bool `trait:"p_android"`
-	CanBeBought     bool `trait:"can_be_bought"`
-	HasDemo         bool `trait:"has_demo"`
-	InPressSystem   bool `trait:"in_press_system"`
-}
-
 var _ json.Marshaler = GameTraits{}
 var _ json.Unmarshaler = (*GameTraits)(nil)
 
