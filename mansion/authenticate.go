@@ -221,7 +221,11 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		form.Add("redirect_uri", fmt.Sprintf("http://%s/oauth/callback", addr))
 		query := form.Encode()
 
-		uri := fmt.Sprintf("%s/user/oauth?%s", ctx.Address, query)
+		mainDomain, err := stripApiSubdomain(ctx.Address)
+		if err != nil {
+			comm.Dief("Internal error: %+v", err)
+		}
+		uri := fmt.Sprintf("%s/user/oauth?%s", mainDomain, query)
 
 		comm.Login(uri)
 
@@ -275,4 +279,13 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		err = errors.WithStack(err)
 	}
 	return ctx.NewClient(key), nil
+}
+
+func stripApiSubdomain(address string) (string, error) {
+	u, err := url.Parse(address)
+	if err != nil {
+		return "", err
+	}
+	u.Host = strings.TrimPrefix(u.Host, "api.")
+	return u.String(), nil
 }
