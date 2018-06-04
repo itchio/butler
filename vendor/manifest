@@ -34,6 +34,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/andreyvit/diff",
+			"repository": "https://github.com/andreyvit/diff",
+			"vcs": "git",
+			"revision": "c7f18ee00883bfd3b00e0a2bf7607827e0148ad4",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/andybalholm/cascadia",
 			"repository": "https://github.com/andybalholm/cascadia",
 			"vcs": "git",
@@ -475,6 +483,15 @@
 			"vcs": "git",
 			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/sergi/go-diff/diffmatchpatch",
+			"repository": "https://github.com/sergi/go-diff",
+			"vcs": "git",
+			"revision": "da645544ed44df016359bd4c0e3dc60ee3a0da43",
+			"branch": "master",
+			"path": "/diffmatchpatch",
 			"notests": true
 		},
 		{
