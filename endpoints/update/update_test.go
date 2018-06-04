@@ -23,6 +23,7 @@ import (
 
 func TestCheckUpdateMissingFields(t *testing.T) {
 	dbPool, err := sqlite.Open("file::memory:?cache=shared", 0, 10)
+	defer dbPool.Close()
 	wtest.Must(t, err)
 
 	getClient := func(key string) *itchio.Client {

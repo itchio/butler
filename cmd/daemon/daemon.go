@@ -92,6 +92,7 @@ func do(ctx *mansion.Context) {
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
 	}
+	defer dbPool.Close()
 
 	func() {
 		conn := dbPool.Get(context.Background().Done())
