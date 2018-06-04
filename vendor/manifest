@@ -18,14 +18,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/PuerkitoBio/goquery",
-			"repository": "https://github.com/PuerkitoBio/goquery",
-			"vcs": "git",
-			"revision": "09540e565986583836b5fc792fe951ec5fd201dd",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/alecthomas/template",
 			"repository": "https://github.com/alecthomas/template",
 			"vcs": "git",
@@ -418,14 +410,6 @@
 			"repository": "https://github.com/lib/pq",
 			"vcs": "git",
 			"revision": "88edab0803230a3898347e77b474f8c1820a1f20",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/mattn/go-sqlite3",
-			"repository": "https://github.com/mattn/go-sqlite3",
-			"vcs": "git",
-			"revision": "696e2e43cb00dcb1acaf6073e01493e3c4197b75",
 			"branch": "master",
 			"notests": true
 		},
