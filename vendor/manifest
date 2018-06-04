@@ -42,14 +42,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/andybalholm/cascadia",
-			"repository": "https://github.com/andybalholm/cascadia",
-			"vcs": "git",
-			"revision": "349dd0209470eabd9514242c688c403c0926d266",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/basgys/goxml2json",
 			"repository": "https://github.com/basgys/goxml2json",
 			"vcs": "git",
