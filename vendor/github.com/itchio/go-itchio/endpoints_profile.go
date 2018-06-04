@@ -31,14 +31,21 @@ func (c *Client) ListProfileGames() (*ListProfileGamesResponse, error) {
 
 //-------------------------------------------------------
 
+type ListProfileOwnedKeysParams struct {
+	Page int64
+}
+
 // ListProfileOwnedKeysResponse is the response for /profile/owned-keys
 type ListProfileOwnedKeysResponse struct {
+	Page      int64          `json:"page"`
+	PerPage   int64          `json:"perPage"`
 	OwnedKeys []*DownloadKey `json:"ownedKeys"`
 }
 
 // ListProfileOwnedKeys lists the download keys one owns
-func (c *Client) ListProfileOwnedKeys() (*ListProfileOwnedKeysResponse, error) {
+func (c *Client) ListProfileOwnedKeys(p ListProfileOwnedKeysParams) (*ListProfileOwnedKeysResponse, error) {
 	q := NewQuery(c, "/profile/owned-keys")
+	q.AddInt64IfNonZero("page", p.Page)
 	r := &ListProfileOwnedKeysResponse{}
 	return r, q.Get(r)
 }

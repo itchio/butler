@@ -16,7 +16,7 @@ type createBothFilesResponse struct {
 
 func createBothFiles(client *itchio.Client, buildID int64) (*createBothFilesResponse, error) {
 	createFile := func(buildType itchio.BuildFileType, result **itchio.CreateBuildFileResponse) error {
-		res, err := client.CreateBuildFile(&itchio.CreateBuildFileParams{
+		res, err := client.CreateBuildFile(itchio.CreateBuildFileParams{
 			BuildID:        buildID,
 			Type:           buildType,
 			SubType:        itchio.BuildFileSubTypeDefault,

@@ -84,7 +84,7 @@ type CreateBuildResponse struct {
 
 // CreateBuild creates a new build for a given user/game:channel, with
 // an optional user version
-func (c *Client) CreateBuild(p *CreateBuildParams) (*CreateBuildResponse, error) {
+func (c *Client) CreateBuild(p CreateBuildParams) (*CreateBuildResponse, error) {
 	q := NewQuery(c, "/wharf/builds")
 	q.AddString("target", p.Target)
 	q.AddString("channel", p.Channel)
@@ -148,7 +148,7 @@ type CreateBuildFileResponse struct {
 }
 
 // CreateBuildFile creates a new build file for a build
-func (c *Client) CreateBuildFile(p *CreateBuildFileParams) (*CreateBuildFileResponse, error) {
+func (c *Client) CreateBuildFile(p CreateBuildFileParams) (*CreateBuildFileResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/files", p.BuildID)
 	q.AddString("type", string(p.Type))
 	q.AddStringIfNonEmpty("sub_type", string(p.SubType))
@@ -170,7 +170,7 @@ type FinalizeBuildFileParams struct {
 type FinalizeBuildFileResponse struct{}
 
 // FinalizeBuildFile marks the end of the upload for a build file, it validates
-func (c *Client) FinalizeBuildFile(p *FinalizeBuildFileParams) (*FinalizeBuildFileResponse, error) {
+func (c *Client) FinalizeBuildFile(p FinalizeBuildFileParams) (*FinalizeBuildFileResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/files/%d", p.BuildID, p.FileID)
 	q.AddInt64("size", p.Size)
 	r := &FinalizeBuildFileResponse{}
@@ -190,7 +190,7 @@ type MakeBuildFileDownloadURLParams struct {
 }
 
 // GetBuildFileDownloadURL returns a download URL for a given build file
-func (c *Client) MakeBuildFileDownloadURL(p *MakeBuildFileDownloadURLParams) string {
+func (c *Client) MakeBuildFileDownloadURL(p MakeBuildFileDownloadURLParams) string {
 	q := NewQuery(c, "/wharf/builds/%d/files/%d/download", p.BuildID, p.FileID)
 	q.AddAPICredentials()
 	return q.URL()
@@ -220,7 +220,7 @@ type BuildEventData map[string]interface{}
 type CreateBuildEventResponse struct{}
 
 // CreateBuildEvent associates a new build event to a build
-func (c *Client) CreateBuildEvent(p *CreateBuildEventParams) (*CreateBuildEventResponse, error) {
+func (c *Client) CreateBuildEvent(p CreateBuildEventParams) (*CreateBuildEventResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/events", p.BuildID)
 	q.AddString("type", string(p.Type))
 	q.AddString("message", p.Message)
@@ -247,7 +247,7 @@ type CreateBuildFailureResponse struct{}
 
 // CreateBuildFailure marks a given build as failed. We get to specify an error message and
 // if it's a fatal error (if not, the build can be retried after a bit)
-func (c *Client) CreateBuildFailure(p *CreateBuildFailureParams) (*CreateBuildFailureResponse, error) {
+func (c *Client) CreateBuildFailure(p CreateBuildFailureParams) (*CreateBuildFailureResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/failures", p.BuildID)
 	q.AddString("message", p.Message)
 	q.AddBoolIfTrue("fatal", p.Fatal)
@@ -265,7 +265,7 @@ type CreateRediffBuildFailureParams struct {
 type CreateRediffBuildFailureResponse struct{}
 
 // CreateRediffBuildFailure marks a given build as having failed to rediff (optimize)
-func (c *Client) CreateRediffBuildFailure(p *CreateRediffBuildFailureParams) (*CreateRediffBuildFailureResponse, error) {
+func (c *Client) CreateRediffBuildFailure(p CreateRediffBuildFailureParams) (*CreateRediffBuildFailureResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/failures/rediff", p.BuildID)
 	q.AddString("message", p.Message)
 	r := &CreateRediffBuildFailureResponse{}

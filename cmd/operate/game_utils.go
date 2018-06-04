@@ -27,7 +27,7 @@ func GameToString(game *itchio.Game) string {
 }
 
 func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials itchio.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
-	uploads, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+	uploads, err := client.ListGameUploads(itchio.ListGameUploadsParams{
 		GameID:      game.ID,
 		Credentials: credentials,
 	})

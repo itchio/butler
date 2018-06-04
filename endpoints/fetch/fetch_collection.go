@@ -42,7 +42,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	}
 
 	consumer.Debugf("Querying API...")
-	collRes, err := client.GetCollection(&itchio.GetCollectionParams{
+	collRes, err := client.GetCollection(itchio.GetCollectionParams{
 		CollectionID: params.CollectionID,
 	})
 	if err != nil {
@@ -65,7 +65,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	for page := int64(1); ; page++ {
 		consumer.Infof("Fetching page %d", page)
 
-		gamesRes, err := client.GetCollectionGames(&itchio.GetCollectionGamesParams{
+		gamesRes, err := client.GetCollectionGames(itchio.GetCollectionGamesParams{
 			CollectionID: params.CollectionID,
 			Page:         page,
 		})
@@ -92,11 +92,6 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 
 		if offset >= collection.GamesCount {
 			// already fetched all or more?!
-			break
-		}
-
-		if numPageGames < gamesRes.PerPage {
-			// that probably means there's no more pages
 			break
 		}
 

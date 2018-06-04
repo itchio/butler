@@ -1,12 +1,5 @@
 package itchio
 
-import (
-	"fmt"
-	"net/url"
-
-	"github.com/pkg/errors"
-)
-
 //-------------------------------------------------------
 
 type LoginWithPasswordParams struct {
@@ -27,24 +20,15 @@ type LoginWithPasswordResponse struct {
 	Cookie Cookie  `json:"cookie"`
 }
 
-func (c *Client) LoginWithPassword(params *LoginWithPasswordParams) (*LoginWithPasswordResponse, error) {
+func (c *Client) LoginWithPassword(params LoginWithPasswordParams) (*LoginWithPasswordResponse, error) {
+	q := NewQuery(c, "/login")
+	q.AddString("source", "desktop")
+	q.AddString("username", params.Username)
+	q.AddString("password", params.Password)
+	q.AddStringIfNonEmpty("recaptcha_response", params.RecaptchaResponse)
+
 	r := &LoginWithPasswordResponse{}
-	path := c.MakePath("/login")
-
-	form := url.Values{}
-	form.Add("source", "desktop")
-	form.Add("username", params.Username)
-	form.Add("password", params.Password)
-	if params.RecaptchaResponse != "" {
-		form.Add("recaptcha_response", params.RecaptchaResponse)
-	}
-
-	err := c.PostFormResponse(path, form, r)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return r, nil
+	return r, q.Post(r)
 }
 
 //-------------------------------------------------------
@@ -59,20 +43,13 @@ type TOTPVerifyResponse struct {
 	Cookie Cookie  `json:"cookie"`
 }
 
-func (c *Client) TOTPVerify(params *TOTPVerifyParams) (*TOTPVerifyResponse, error) {
+func (c *Client) TOTPVerify(params TOTPVerifyParams) (*TOTPVerifyResponse, error) {
+	q := NewQuery(c, "/totp/verify")
+	q.AddString("token", params.Token)
+	q.AddString("code", params.Code)
+
 	r := &TOTPVerifyResponse{}
-	path := c.MakePath("/totp/verify")
-
-	form := url.Values{}
-	form.Add("token", params.Token)
-	form.Add("code", params.Code)
-
-	err := c.PostFormResponse(path, form, r)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return r, nil
+	return r, q.Post(r)
 }
 
 //-------------------------------------------------------
@@ -87,18 +64,11 @@ type SubkeyResponse struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
-func (c *Client) Subkey(params *SubkeyParams) (*SubkeyResponse, error) {
+func (c *Client) Subkey(params SubkeyParams) (*SubkeyResponse, error) {
+	q := NewQuery(c, "/credentials/subkey")
+	q.AddInt64("game_id", params.GameID)
+	q.AddString("scope", params.Scope)
+
 	r := &SubkeyResponse{}
-	path := c.MakePath("/credentials/subkey")
-
-	form := url.Values{}
-	form.Add("game_id", fmt.Sprintf("%d", params.GameID))
-	form.Add("scope", params.Scope)
-
-	err := c.PostFormResponse(path, form, r)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return r, nil
+	return r, q.Post(r)
 }

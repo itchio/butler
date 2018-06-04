@@ -100,7 +100,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 
 	{
 		// attempt to refresh game info
-		gameRes, err := client.GetGame(&itchio.GetGameParams{
+		gameRes, err := client.GetGame(itchio.GetGameParams{
 			GameID:      params.Game.ID,
 			Credentials: params.Access.Credentials,
 		})
@@ -193,7 +193,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		// We were passed an upload but not a build:
 		// Let's refresh upload info so we can settle on a build we want to install (if any)
 
-		listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+		listUploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
 			GameID:      params.Game.ID,
 			Credentials: params.Access.Credentials,
 		})

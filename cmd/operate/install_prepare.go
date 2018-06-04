@@ -54,7 +54,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	istate := isub.Data
 
 	if istate.DownloadSessionId == "" {
-		res, err := client.NewDownloadSession(&itchio.NewDownloadSessionParams{
+		res, err := client.NewDownloadSession(itchio.NewDownloadSessionParams{
 			GameID:      params.Game.ID,
 			Credentials: params.Access.Credentials,
 		})
@@ -89,7 +89,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 			newID := params.Build.ID
 			if newID > oldID {
 				consumer.Infof("↑ Upgrading from build %d to %d", oldID, newID)
-				upgradeRes, err := client.GetBuildUpgradePath(&itchio.GetBuildUpgradePathParams{
+				upgradeRes, err := client.GetBuildUpgradePath(itchio.GetBuildUpgradePathParams{
 					CurrentBuildID: oldID,
 					TargetBuildID:  newID,
 					Credentials:    params.Access.Credentials,

@@ -121,7 +121,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			comm.Dief("Could not find signature for parent build %d, aborting", ID)
 		}
 
-		signatureURL := client.MakeBuildFileDownloadURL(&itchio.MakeBuildFileDownloadURLParams{
+		signatureURL := client.MakeBuildFileDownloadURL(itchio.MakeBuildFileDownloadURLParams{
 			BuildID: ID,
 			FileID:  signatureFile.ID,
 		})
@@ -172,7 +172,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	newBuildRes, err := client.CreateBuild(&itchio.CreateBuildParams{
+	newBuildRes, err := client.CreateBuild(itchio.CreateBuildParams{
 		Target:      spec.Target,
 		Channel:     spec.Channel,
 		UserVersion: userVersion,
@@ -360,7 +360,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		errs := make(chan error)
 
 		doFinalize := func(fileID int64, fileSize int64, done chan error) {
-			_, err = client.FinalizeBuildFile(&itchio.FinalizeBuildFileParams{
+			_, err = client.FinalizeBuildFile(itchio.FinalizeBuildFileParams{
 				BuildID: buildID,
 				FileID:  fileID,
 				Size:    fileSize,

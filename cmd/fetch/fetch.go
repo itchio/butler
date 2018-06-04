@@ -85,7 +85,7 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 		return fmt.Errorf("Channel %s's latest build is still processing", spec.Channel)
 	}
 
-	url := client.MakeBuildFileDownloadURL(&itchio.MakeBuildFileDownloadURLParams{
+	url := client.MakeBuildFileDownloadURL(itchio.MakeBuildFileDownloadURLParams{
 		BuildID: buildID,
 		FileID:  archiveFile.ID,
 	})

@@ -61,7 +61,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 	var cookie itchio.Cookie
 
 	{
-		loginRes, err := rootClient.LoginWithPassword(&itchio.LoginWithPasswordParams{
+		loginRes, err := rootClient.LoginWithPassword(itchio.LoginWithPasswordParams{
 			Username: params.Username,
 			Password: params.Password,
 		})
@@ -82,7 +82,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
-			loginRes, err = rootClient.LoginWithPassword(&itchio.LoginWithPasswordParams{
+			loginRes, err = rootClient.LoginWithPassword(itchio.LoginWithPasswordParams{
 				Username:          params.Username,
 				Password:          params.Password,
 				RecaptchaResponse: recaptchaRes.RecaptchaResponse,
@@ -103,7 +103,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
-			verifyRes, err := rootClient.TOTPVerify(&itchio.TOTPVerifyParams{
+			verifyRes, err := rootClient.TOTPVerify(itchio.TOTPVerifyParams{
 				Token: loginRes.Token,
 				Code:  totpRes.Code,
 			})

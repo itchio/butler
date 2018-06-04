@@ -227,7 +227,7 @@ func doMain(args []string) {
 	fullCmd := kingpin.MustParse(cmd, err)
 
 	ctx.Identity = *appArgs.identity
-	ctx.Address = *appArgs.address
+	ctx.SetAddress(*appArgs.address)
 	ctx.UserAgentAddition = *appArgs.userAgentAddition
 	ctx.DBPath = *appArgs.dbPath
 	ctx.VersionString = butlerVersionString

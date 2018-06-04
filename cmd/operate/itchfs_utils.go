@@ -16,7 +16,7 @@ func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallS
 			}
 		}
 
-		return client.MakeBuildDownloadURL(&itchio.MakeBuildDownloadParams{
+		return client.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
 			BuildID:     build.ID,
 			UUID:        istate.DownloadSessionId,
 			Credentials: params.Access.Credentials,
@@ -24,7 +24,7 @@ func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallS
 		})
 	}
 
-	return client.MakeUploadDownloadURL(&itchio.MakeUploadDownloadParams{
+	return client.MakeUploadDownloadURL(itchio.MakeUploadDownloadParams{
 		UploadID:    params.Upload.ID,
 		UUID:        istate.DownloadSessionId,
 		Credentials: params.Access.Credentials,

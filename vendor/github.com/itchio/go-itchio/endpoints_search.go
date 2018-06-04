@@ -11,7 +11,7 @@ type SearchGamesResponse struct {
 	Games   []*Game `json:"games"`
 }
 
-func (c *Client) SearchGames(params *SearchGamesParams) (*SearchGamesResponse, error) {
+func (c *Client) SearchGames(params SearchGamesParams) (*SearchGamesResponse, error) {
 	q := NewQuery(c, "/search/games")
 	q.AddString("query", params.Query)
 	q.AddInt64IfNonZero("page", params.Page)
@@ -32,7 +32,7 @@ type SearchUsersResponse struct {
 	Users   []*User `json:"users"`
 }
 
-func (c *Client) SearchUsers(params *SearchUsersParams) (*SearchUsersResponse, error) {
+func (c *Client) SearchUsers(params SearchUsersParams) (*SearchUsersResponse, error) {
 	q := NewQuery(c, "/search/users")
 	q.AddString("query", params.Query)
 	q.AddInt64IfNonZero("page", params.Page)

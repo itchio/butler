@@ -34,7 +34,7 @@ func Do(ctx *mansion.Context) error {
 		"Note: this command will not invalidate the API key itself.",
 		"If you wish to revoke it (for example, because it's been compromised), you should do so in your user settings:",
 		"",
-		fmt.Sprintf("  %s/user/settings\n\n", ctx.Address),
+		fmt.Sprintf("  %s/user/settings\n\n", ctx.WebAddress()),
 	})
 
 	comm.Logf("")

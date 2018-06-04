@@ -21,7 +21,7 @@ type ListGameUploadsResponse struct {
 }
 
 // ListGameUploads lists the uploads for a game that we have access to with our API key
-func (c *Client) ListGameUploads(p *ListGameUploadsParams) (*ListGameUploadsResponse, error) {
+func (c *Client) ListGameUploads(p ListGameUploadsParams) (*ListGameUploadsResponse, error) {
 	q := NewQuery(c, "/games/%d/uploads", p.GameID)
 	q.AddGameCredentials(p.Credentials)
 	r := &ListGameUploadsResponse{}
@@ -41,7 +41,7 @@ type GetUploadResponse struct {
 	Upload *Upload `json:"upload"`
 }
 
-func (c *Client) GetUpload(params *GetUploadParams) (*GetUploadResponse, error) {
+func (c *Client) GetUpload(params GetUploadParams) (*GetUploadResponse, error) {
 	q := NewQuery(c, "/uploads/%d", params.UploadID)
 	q.AddGameCredentials(params.Credentials)
 	r := &GetUploadResponse{}
@@ -61,7 +61,7 @@ type ListUploadBuildsResponse struct {
 	Builds []*Build `json:"builds"`
 }
 
-func (c *Client) ListUploadBuilds(params *ListUploadBuildsParams) (*ListUploadBuildsResponse, error) {
+func (c *Client) ListUploadBuilds(params ListUploadBuildsParams) (*ListUploadBuildsResponse, error) {
 	q := NewQuery(c, "/uploads/%d/builds", params.UploadID)
 	q.AddGameCredentials(params.Credentials)
 	r := &ListUploadBuildsResponse{}
@@ -81,7 +81,7 @@ type GetBuildResponse struct {
 	Build *Build `json:"build"`
 }
 
-func (c *Client) GetBuild(p *GetBuildParams) (*GetBuildResponse, error) {
+func (c *Client) GetBuild(p GetBuildParams) (*GetBuildResponse, error) {
 	q := NewQuery(c, "/builds/%d", p.BuildID)
 	q.AddGameCredentials(p.Credentials)
 	r := &GetBuildResponse{}
@@ -106,7 +106,7 @@ type UpgradePath struct {
 	Builds []*Build `json:"builds"`
 }
 
-func (c *Client) GetBuildUpgradePath(p *GetBuildUpgradePathParams) (*GetBuildUpgradePathResponse, error) {
+func (c *Client) GetBuildUpgradePath(p GetBuildUpgradePathParams) (*GetBuildUpgradePathResponse, error) {
 	q := NewQuery(c, "/builds/%d/upgrade-paths/%d", p.CurrentBuildID, p.TargetBuildID)
 	q.AddGameCredentials(p.Credentials)
 	r := &GetBuildUpgradePathResponse{}
@@ -121,7 +121,7 @@ type NewDownloadSessionParams struct {
 	Credentials GameCredentials
 }
 
-func (c *Client) NewDownloadSession(p *NewDownloadSessionParams) (*NewDownloadSessionResponse, error) {
+func (c *Client) NewDownloadSession(p NewDownloadSessionParams) (*NewDownloadSessionResponse, error) {
 	q := NewQuery(c, "/games/%d/download-sessions", p.GameID)
 	q.AddGameCredentials(p.Credentials)
 	r := &NewDownloadSessionResponse{}
@@ -140,7 +140,7 @@ type MakeUploadDownloadParams struct {
 	Credentials GameCredentials
 }
 
-func (c *Client) MakeUploadDownloadURL(p *MakeUploadDownloadParams) string {
+func (c *Client) MakeUploadDownloadURL(p MakeUploadDownloadParams) string {
 	q := NewQuery(c, "uploads/%d/download", p.UploadID)
 	q.AddAPICredentials()
 	q.AddGameCredentials(p.Credentials)
@@ -164,7 +164,7 @@ type MakeBuildDownloadParams struct {
 	Credentials GameCredentials
 }
 
-func (c *Client) MakeBuildDownloadURL(p *MakeBuildDownloadParams) string {
+func (c *Client) MakeBuildDownloadURL(p MakeBuildDownloadParams) string {
 	subType := p.SubType
 	if subType == "" {
 		subType = BuildFileSubTypeDefault

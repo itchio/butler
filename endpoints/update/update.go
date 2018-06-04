@@ -78,7 +78,7 @@ func checkUpdateItem(rc *butlerd.RequestContext, consumer *state.Consumer, item 
 
 	client := rc.Client(access.APIKey)
 
-	listUploadsRes, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+	listUploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
 		GameID: item.Game.ID,
 	})
 	if err != nil {

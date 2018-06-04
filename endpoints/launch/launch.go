@@ -492,7 +492,7 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butler
 
 	client := rc.Client(access.APIKey)
 
-	res, err := client.Subkey(&itchio.SubkeyParams{
+	res, err := client.Subkey(itchio.SubkeyParams{
 		GameID: game.ID,
 		Scope:  manifestAction.Scope,
 	})

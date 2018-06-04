@@ -19,9 +19,6 @@ type Context struct {
 	// Identity is the path to the credentials file
 	Identity string
 
-	// Address is the URL of the itch.io API server we're talking to
-	Address string
-
 	// String to include in our user-agent
 	UserAgentAddition string
 
@@ -46,7 +43,10 @@ type Context struct {
 	CompressionAlgorithm string
 	CompressionQuality   int
 
-	Cancelled bool
+	// url of the itch.io API server we're talking to
+	apiAddress string
+	// url of the itch.io web instance we're talking to
+	webAddress string
 }
 
 func NewContext(app *kingpin.Application) *Context {
@@ -107,9 +107,25 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 
 func (ctx *Context) NewClient(key string) *itchio.Client {
 	client := itchio.ClientWithKey(key)
-	client.SetServer(ctx.Address)
+	client.SetServer(ctx.APIAddress())
 	client.UserAgent = ctx.UserAgent()
 	return client
+}
+
+func (ctx *Context) WebAddress() string {
+	return ctx.webAddress
+}
+
+func (ctx *Context) APIAddress() string {
+	return ctx.apiAddress
+}
+
+func (ctx *Context) SetAddress(address string) {
+	var err error
+	ctx.webAddress, err = stripApiSubdomain(address)
+	ctx.Must(err)
+	ctx.apiAddress, err = addApiSubdomain(address)
+	ctx.Must(err)
 }
 
 //
