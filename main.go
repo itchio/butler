@@ -138,7 +138,7 @@ func doMain(args []string) {
 	registerCommands(ctx)
 
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
-	app.Flag("ignore", "Glob patterns of files to ignore when diffing").StringsVar(&filtering.IgnoredPaths)
+	app.Flag("ignore", "Glob patterns of files to ignore when pushing or diffing").StringsVar(&filtering.IgnoredPaths)
 
 	app.HelpFlag.Short('h')
 	buildVersionString()

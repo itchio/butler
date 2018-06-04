@@ -39,6 +39,7 @@ var args = struct {
 	fixPerms        *bool
 	dereference     *bool
 	ifChanged       *bool
+	dryRun          *bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -50,6 +51,7 @@ func Register(ctx *mansion.Context) {
 	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
 	args.dereference = cmd.Flag("dereference", "Dereference symlinks").Default("false").Bool()
 	args.ifChanged = cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").Bool()
+	args.dryRun = cmd.Flag("dry-run", "Don't push anything, just show what would be pushed").Default("false").Bool()
 	ctx.Register(cmd, do)
 }
 
@@ -77,6 +79,21 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
 	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, dereference)
+
+	if *args.dryRun {
+		comm.Opf("Dry run, listing files we would push...")
+		select {
+		case walkErr := <-walkErrs:
+			return errors.Wrap(walkErr, "walking directory to push")
+		case walkies := <-sourceContainerChan:
+			log := func(line string) {
+				comm.Logf(line)
+			}
+			walkies.container.Print(log)
+			comm.Statf("Would push %s", walkies.container)
+		}
+		return nil
+	}
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
