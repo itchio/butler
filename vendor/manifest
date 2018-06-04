@@ -373,14 +373,6 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/jinzhu/now",
-			"repository": "https://github.com/jinzhu/now",
-			"vcs": "git",
-			"revision": "d939ba741945c047cac69c329c5fb0d6b4a06520",
-			"branch": "master",
-			"notests": true
-		},
-		{
 			"importpath": "github.com/kballard/go-shellquote",
 			"repository": "https://github.com/kballard/go-shellquote",
 			"vcs": "git",
@@ -418,14 +410,6 @@
 			"repository": "https://github.com/mitchellh/mapstructure",
 			"vcs": "git",
 			"revision": "00c29f56e2386353d58c599509e8dc3801b0d716",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/mohae/deepcopy",
-			"repository": "https://github.com/mohae/deepcopy",
-			"vcs": "git",
-			"revision": "c48cc78d482608239f6c4c92a4abd87eb8761c90",
 			"branch": "master",
 			"notests": true
 		},
