@@ -248,7 +248,8 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 
 								jsonTag, err := tags.Get("json")
 								if err != nil {
-									panic(err)
+									pos := fset.Position(sf.Pos())
+									log.Fatalf("%s: %s.%s is lacking a 'json' tag", pos, ts.Name.Name, sf.Names[0].Name)
 								}
 
 								var optional = false

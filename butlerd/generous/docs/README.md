@@ -6725,7 +6725,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>traits</code></td>
-<td><code class="typename"><span class="type builtin-type">GameTraits</span></code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameTraits__TypeHint">GameTraits</span></code></td>
 <td><p>Traits describes the platforms a game is available for,
 pricing information, etc.</p>
 </td>
@@ -6831,7 +6831,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>traits</code></td>
-<td><code class="typename"><span class="type builtin-type">GameTraits</span></code></td>
+<td><code class="typename"><span class="type struct-type">GameTraits</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
@@ -6859,6 +6859,91 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>GameTraits
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pWindows</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pLinux</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pOsx</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pAndroid</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>canBeBought</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>hasDemo</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>inPressSystem</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="GameTraits__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>GameTraits <a href="#/?id=gametraits">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pWindows</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pLinux</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pOsx</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pAndroid</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>canBeBought</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>hasDemo</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>inPressSystem</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
@@ -7250,7 +7335,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>traits</code></td>
-<td><code class="typename"><span class="type builtin-type">UploadTraits</span></code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#UploadTraits__TypeHint">UploadTraits</span></code></td>
 <td><p>Traits describes platform availability, whether it&rsquo;s a demo upload etc.</p>
 </td>
 </tr>
@@ -7310,7 +7395,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>traits</code></td>
-<td><code class="typename"><span class="type builtin-type">UploadTraits</span></code></td>
+<td><code class="typename"><span class="type struct-type">UploadTraits</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -7319,6 +7404,82 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>UploadTraits
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pWindows</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pLinux</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pOsx</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pAndroid</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>preorder</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>demo</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="UploadTraits__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>UploadTraits <a href="#/?id=uploadtraits">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pWindows</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pLinux</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pOsx</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>pAndroid</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>preorder</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>demo</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

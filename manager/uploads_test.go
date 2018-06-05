@@ -11,17 +11,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NarrowDownUploads(t *testing.T) {
-	consumer := &state.Consumer{
+func makeTestConsumer(t *testing.T) *state.Consumer {
+	return &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
+			t.Helper()
 			t.Logf("[%s] %s", lvl, msg)
 		},
 	}
+}
 
-	game := &itchio.Game{
-		ID:             123,
-		Classification: "game",
+func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
+	consumer := makeTestConsumer(t)
+
+	debrpm := []*itchio.Upload{
+		{
+			Platforms: itchio.Platforms{Linux: "all"},
+			Filename:  "wrong.deb",
+			Type:      "default",
+		},
+		{
+			Platforms: itchio.Platforms{Linux: "all"},
+			Filename:  "nope.rpm",
+			Type:      "default",
+		},
 	}
+
+	linux64 := &ox.Runtime{
+		Platform: ox.PlatformLinux,
+		Is64:     true,
+	}
+
+	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
+		HadWrongFormat: true,
+		HadWrongArch:   false,
+		Uploads:        nil,
+		InitialUploads: debrpm,
+	}, manager.NarrowDownUploads(consumer, debrpm, linux64), "blacklist .deb and .rpm files")
+}
+
+func Test_NarrowDownUploads(t *testing.T) {
+	consumer := makeTestConsumer(t)
 
 	linux64 := &ox.Runtime{
 		Platform: ox.PlatformLinux,
@@ -33,26 +62,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: nil,
-	}, manager.NarrowDownUploads(consumer, nil, game, linux64), "empty is empty")
-
-	debrpm := []*itchio.Upload{
-		{
-			Traits:   itchio.UploadTraits{PlatformLinux: true},
-			Filename: "wrong.deb",
-			Type:     "default",
-		},
-		{
-			Traits:   itchio.UploadTraits{PlatformLinux: true},
-			Filename: "nope.rpm",
-			Type:     "default",
-		},
-	}
-	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadWrongFormat: true,
-		HadWrongArch:   false,
-		Uploads:        nil,
-		InitialUploads: debrpm,
-	}, manager.NarrowDownUploads(consumer, debrpm, game, linux64), "blacklist .deb and .rpm files")
+	}, manager.NarrowDownUploads(consumer, nil, linux64), "empty is empty")
 
 	mac64 := &ox.Runtime{
 		Platform: ox.PlatformOSX,
@@ -61,9 +71,9 @@ func Test_NarrowDownUploads(t *testing.T) {
 
 	blacklistpkg := []*itchio.Upload{
 		{
-			Traits:   itchio.UploadTraits{PlatformOSX: true},
-			Filename: "super-mac-game.pkg",
-			Type:     "default",
+			Platforms: itchio.Platforms{OSX: "all"},
+			Filename:  "super-mac-game.pkg",
+			Type:      "default",
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
@@ -71,12 +81,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: blacklistpkg,
-	}, manager.NarrowDownUploads(consumer, blacklistpkg, game, mac64), "blacklist .pkg files")
+	}, manager.NarrowDownUploads(consumer, blacklistpkg, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformOSX: true, PlatformLinux: true, PlatformWindows: true},
-		Filename: "no-really-all-platforms.love",
-		Type:     "default",
+		Platforms: itchio.Platforms{OSX: "all", Linux: "all", Windows: "all"},
+		Filename:  "no-really-all-platforms.love",
+		Type:      "default",
 	}
 
 	excludeuntagged := []*itchio.Upload{
@@ -91,18 +101,18 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Uploads:        []*itchio.Upload{love},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, excludeuntagged, game, linux64), "exclude untagged, flag it")
+	}, manager.NarrowDownUploads(consumer, excludeuntagged, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformOSX: true, PlatformLinux: true, PlatformWindows: true},
-		Filename: "sources.tar.gz",
-		Type:     "default",
+		Platforms: itchio.Platforms{OSX: "all", Linux: "all", Windows: "all"},
+		Filename:  "sources.tar.gz",
+		Type:      "default",
 	}
 
 	linuxBinary := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformLinux: true},
-		Filename: "binary.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{Linux: "all"},
+		Filename:  "binary.zip",
+		Type:      "default",
 	}
 
 	html := &itchio.Upload{
@@ -124,18 +134,18 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferlinuxbin, game, linux64), "prefer linux binary")
+	}, manager.NarrowDownUploads(consumer, preferlinuxbin, linux64), "prefer linux binary")
 
 	windowsNaked := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformWindows: true},
-		Filename: "gamemaker-stuff-probably.exe",
-		Type:     "default",
+		Platforms: itchio.Platforms{Windows: "all"},
+		Filename:  "gamemaker-stuff-probably.exe",
+		Type:      "default",
 	}
 
 	windowsPortable := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformWindows: true},
-		Filename: "portable-build.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{Windows: "all"},
+		Filename:  "portable-build.zip",
+		Type:      "default",
 	}
 
 	windows32 := &ox.Runtime{
@@ -157,12 +167,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferwinportable, game, windows32), "prefer windows portable, then naked")
+	}, manager.NarrowDownUploads(consumer, preferwinportable, windows32), "prefer windows portable, then naked")
 
 	windowsDemo := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformWindows: true, Demo: true},
-		Filename: "windows-demo.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{Windows: "all"},
+		Demo:      true,
+		Filename:  "windows-demo.zip",
+		Type:      "default",
 	}
 
 	penalizedemos := []*itchio.Upload{
@@ -179,7 +190,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, penalizedemos, game, windows32), "penalize demos")
+	}, manager.NarrowDownUploads(consumer, penalizedemos, windows32), "penalize demos")
 
 	windows64 := &ox.Runtime{
 		Platform: ox.PlatformWindows,
@@ -187,21 +198,21 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	loveWin := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformWindows: true},
-		Filename: "win32.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{Windows: "all"},
+		Filename:  "win32.zip",
+		Type:      "default",
 	}
 
 	loveMac := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformOSX: true},
-		Filename: "mac64.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{OSX: "all"},
+		Filename:  "mac64.zip",
+		Type:      "default",
 	}
 
 	loveAll := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformWindows: true, PlatformOSX: true, PlatformLinux: true},
-		Filename: "universal.zip",
-		Type:     "default",
+		Platforms: itchio.Platforms{Windows: "all", Linux: "all", OSX: "all"},
+		Filename:  "universal.zip",
+		Type:      "default",
 	}
 
 	preferexclusive := []*itchio.Upload{
@@ -217,12 +228,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferexclusive, game, windows64), "prefer builds exclusive to platform")
+	}, manager.NarrowDownUploads(consumer, preferexclusive, windows64), "prefer builds exclusive to platform")
 
 	universalUpload := &itchio.Upload{
-		Traits:   itchio.UploadTraits{PlatformLinux: true},
-		Filename: "Linux 32+64bit.tar.bz2",
-		Type:     "default",
+		Platforms: itchio.Platforms{Linux: "all"},
+		Filename:  "Linux 32+64bit.tar.bz2",
+		Type:      "default",
 	}
 	dontExcludeUniversal := []*itchio.Upload{
 		universalUpload,
@@ -230,7 +241,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		InitialUploads: dontExcludeUniversal,
 		Uploads:        dontExcludeUniversal,
-	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, game, linux64), "don't exclude universal builds on 64-bit")
+	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, linux64), "don't exclude universal builds on 64-bit")
 
 	linux32 := &ox.Runtime{
 		Platform: ox.PlatformLinux,
@@ -239,18 +250,18 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		InitialUploads: dontExcludeUniversal,
 		Uploads:        dontExcludeUniversal,
-	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, game, linux32), "don't exclude universal builds on 32-bit")
+	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, linux32), "don't exclude universal builds on 32-bit")
 
 	{
 		linux32Upload := &itchio.Upload{
-			Traits:   itchio.UploadTraits{PlatformLinux: true},
-			Filename: "linux-386.tar.bz2",
-			Type:     "default",
+			Platforms: itchio.Platforms{Linux: "386"},
+			Filename:  "linux-386.tar.bz2",
+			Type:      "default",
 		}
 		linux64Upload := &itchio.Upload{
-			Traits:   itchio.UploadTraits{PlatformLinux: true},
-			Filename: "linux-amd64.tar.bz2",
-			Type:     "default",
+			Platforms: itchio.Platforms{Linux: "amd64"},
+			Filename:  "linux-amd64.tar.bz2",
+			Type:      "default",
 		}
 
 		bothLinuxUploads := []*itchio.Upload{
@@ -262,25 +273,25 @@ func Test_NarrowDownUploads(t *testing.T) {
 			InitialUploads: bothLinuxUploads,
 			Uploads:        []*itchio.Upload{linux64Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, game, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
+		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 			InitialUploads: bothLinuxUploads,
 			Uploads:        []*itchio.Upload{linux32Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, game, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
+		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
 	}
 
 	{
 		windows32Upload := &itchio.Upload{
-			Traits:   itchio.UploadTraits{PlatformWindows: true},
-			Filename: "Super Duper UE4 Game x86.rar",
-			Type:     "default",
+			Platforms: itchio.Platforms{Windows: "386"},
+			Filename:  "Super Duper UE4 Game x86.rar",
+			Type:      "default",
 		}
 		windows64Upload := &itchio.Upload{
-			Traits:   itchio.UploadTraits{PlatformWindows: true},
-			Filename: "Super Duper UE4 Game x64.rar",
-			Type:     "default",
+			Platforms: itchio.Platforms{Windows: "amd64"},
+			Filename:  "Super Duper UE4 Game x64.rar",
+			Type:      "default",
 		}
 
 		bothWindowsUploads := []*itchio.Upload{
@@ -292,12 +303,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 			InitialUploads: bothWindowsUploads,
 			Uploads:        []*itchio.Upload{windows64Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, game, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
+		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 			InitialUploads: bothWindowsUploads,
 			Uploads:        []*itchio.Upload{windows32Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, game, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
+		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
 	}
 }

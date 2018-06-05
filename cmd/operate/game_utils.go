@@ -39,7 +39,7 @@ func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials it
 	if numInputs == 0 {
 		consumer.Infof("No uploads found at all (that we can access)")
 	}
-	uploadsFilterResult := manager.NarrowDownUploads(consumer, uploads.Uploads, game, ox.CurrentRuntime())
+	uploadsFilterResult := manager.NarrowDownUploads(consumer, uploads.Uploads, ox.CurrentRuntime())
 
 	numResults := len(uploadsFilterResult.Uploads)
 
@@ -82,17 +82,14 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 		consumer.Infof("  ☁ %s :: %s :: #%d", name, size, u.ID)
 
 		var plats []string
-		if u.Traits.PlatformLinux {
-			plats = append(plats, "Linux")
+		if u.Platforms.Linux != "" {
+			plats = append(plats, "Linux "+string(u.Platforms.Linux))
 		}
-		if u.Traits.PlatformWindows {
-			plats = append(plats, "Windows")
+		if u.Platforms.Windows != "" {
+			plats = append(plats, "Windows "+string(u.Platforms.Windows))
 		}
-		if u.Traits.PlatformOSX {
-			plats = append(plats, "macOS")
-		}
-		if u.Traits.PlatformAndroid {
-			plats = append(plats, "Android")
+		if u.Platforms.OSX != "" {
+			plats = append(plats, "macOS "+string(u.Platforms.OSX))
 		}
 
 		var platString = "No platforms"

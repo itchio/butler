@@ -2438,6 +2438,47 @@
       ]
     },
     {
+      "name": "GameTraits",
+      "doc": "",
+      "fields": [
+        {
+          "name": "pWindows",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pLinux",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pOsx",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pAndroid",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "canBeBought",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "hasDemo",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "inPressSystem",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
       "name": "GameEmbedData",
       "doc": "Presentation information for embed games",
       "fields": [
@@ -2547,6 +2588,42 @@
           "name": "updatedAt",
           "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
           "type": "Date"
+        }
+      ]
+    },
+    {
+      "name": "UploadTraits",
+      "doc": "",
+      "fields": [
+        {
+          "name": "pWindows",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pLinux",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pOsx",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "pAndroid",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "preorder",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "demo",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },

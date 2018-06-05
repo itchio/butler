@@ -186,8 +186,8 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		WeaklyTypedInput: true,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
-			GameTraitHookFunc,
-			UploadTraitHookFunc,
+			GameHookFunc,
+			UploadHookFunc,
 		),
 	})
 	if err != nil {
