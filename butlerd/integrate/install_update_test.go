@@ -36,7 +36,7 @@ func Test_InstallUpdate(t *testing.T) {
 		game := getGame(t, h, rc, 239683)
 
 		client := itchio.ClientWithKey(os.Getenv("ITCH_TEST_ACCOUNT_API_KEY"))
-		res, err := client.ListGameUploads(&itchio.ListGameUploadsParams{
+		res, err := client.ListGameUploads(itchio.ListGameUploadsParams{
 			GameID: game.ID,
 		})
 		must(t, err)
@@ -50,7 +50,7 @@ func Test_InstallUpdate(t *testing.T) {
 		}
 		assert.NotNil(t, upload)
 
-		buildsRes, err := client.ListUploadBuilds(&itchio.ListUploadBuildsParams{
+		buildsRes, err := client.ListUploadBuilds(itchio.ListUploadBuildsParams{
 			UploadID: upload.ID,
 		})
 		must(t, err)
