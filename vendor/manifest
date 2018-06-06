@@ -239,7 +239,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "a2911603ba68fda7420c754e477d1612d8f673c2",
+			"revision": "5a76bbac4a1af8015644d1255f88f98f617605c3",
 			"branch": "master",
 			"notests": true
 		},
@@ -247,7 +247,7 @@
 			"importpath": "github.com/itchio/hades",
 			"repository": "https://github.com/itchio/hades",
 			"vcs": "git",
-			"revision": "d5c01b74a1db951f56d14130020d3b2c400c2236",
+			"revision": "47c314899eb3b153f4296a1b49032e4d32e6210b",
 			"branch": "master",
 			"notests": true
 		},
