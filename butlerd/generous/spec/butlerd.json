@@ -2396,9 +2396,24 @@
           "type": "number"
         },
         {
-          "name": "traits",
-          "doc": "Traits describes the platforms a game is available for,\npricing information, etc.",
-          "type": "GameTraits"
+          "name": "canBeBought",
+          "doc": "Are payments accepted?",
+          "type": "boolean"
+        },
+        {
+          "name": "hasDemo",
+          "doc": "Does this game have a demo available?",
+          "type": "boolean"
+        },
+        {
+          "name": "inPressSystem",
+          "doc": "Is this game part of the itch.io press system?",
+          "type": "boolean"
+        },
+        {
+          "name": "platforms",
+          "doc": "Platforms this game is available for",
+          "type": "Platforms"
         },
         {
           "name": "user",
@@ -2438,43 +2453,23 @@
       ]
     },
     {
-      "name": "GameTraits",
+      "name": "Platforms",
       "doc": "",
       "fields": [
         {
-          "name": "pWindows",
+          "name": "windows",
           "doc": "",
-          "type": "boolean"
+          "type": "Architectures"
         },
         {
-          "name": "pLinux",
+          "name": "linux",
           "doc": "",
-          "type": "boolean"
+          "type": "Architectures"
         },
         {
-          "name": "pOsx",
+          "name": "osx",
           "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "pAndroid",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "canBeBought",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "hasDemo",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "inPressSystem",
-          "doc": "",
-          "type": "boolean"
+          "type": "Architectures"
         }
       ]
     },
@@ -2575,9 +2570,19 @@
           "type": "UploadType"
         },
         {
-          "name": "traits",
-          "doc": "Traits describes platform availability, whether it's a demo upload etc.",
-          "type": "UploadTraits"
+          "name": "preorder",
+          "doc": "Is this upload a pre-order placeholder?",
+          "type": "boolean"
+        },
+        {
+          "name": "demo",
+          "doc": "Is this upload a free demo?",
+          "type": "boolean"
+        },
+        {
+          "name": "platforms",
+          "doc": "Platforms this upload is compatible with",
+          "type": "Platforms"
         },
         {
           "name": "createdAt",
@@ -2588,42 +2593,6 @@
           "name": "updatedAt",
           "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
           "type": "Date"
-        }
-      ]
-    },
-    {
-      "name": "UploadTraits",
-      "doc": "",
-      "fields": [
-        {
-          "name": "pWindows",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "pLinux",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "pOsx",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "pAndroid",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "preorder",
-          "doc": "",
-          "type": "boolean"
-        },
-        {
-          "name": "demo",
-          "doc": "",
-          "type": "boolean"
         }
       ]
     },

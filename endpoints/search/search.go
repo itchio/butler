@@ -19,6 +19,18 @@ func Register(router *butlerd.Router) {
 }
 
 func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
+	if params.Query == "" {
+		// return empty games set
+		err := messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
+			Games: nil,
+		})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		return &butlerd.SearchGamesResult{}, nil
+	}
+
 	var games []*itchio.Game
 	q := fmt.Sprintf("%%%s%%", params.Query)
 	rc.WithConn(func(conn *sqlite.Conn) {
@@ -73,6 +85,18 @@ func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) 
 }
 
 func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
+	if params.Query == "" {
+		// return empty users set
+		err := messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
+			Users: nil,
+		})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		return &butlerd.SearchUsersResult{}, nil
+	}
+
 	var users []*itchio.User
 	q := fmt.Sprintf("%%%s%%", params.Query)
 	rc.WithConn(func(conn *sqlite.Conn) {
