@@ -97,7 +97,7 @@ func (d *Download) Save(conn *sqlite.Conn) {
 }
 
 func DiscardDownloadsByCaveID(conn *sqlite.Conn, caveID string) {
-	MustUpdate(conn, &Cave{},
+	MustUpdate(conn, &Download{},
 		hades.Where(builder.Eq{"cave_id": caveID}),
 		builder.Eq{"discarded": true},
 	)
