@@ -11,9 +11,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+type AutoMigrateStats struct {
+	NumCreated  int64
+	NumMigrated int64
+	NumCurrent  int64
+}
+
 func (c *Context) AutoMigrate(conn *sqlite.Conn) error {
+	return c.AutoMigrateEx(conn, &AutoMigrateStats{})
+}
+
+func (c *Context) AutoMigrateEx(conn *sqlite.Conn, stats *AutoMigrateStats) error {
 	for _, m := range c.ScopeMap.byDBName {
-		err := c.syncTable(conn, m.GetModelStruct())
+		err := c.syncTable(conn, stats, m.GetModelStruct())
 		if err != nil {
 			return err
 		}
@@ -21,13 +31,14 @@ func (c *Context) AutoMigrate(conn *sqlite.Conn) error {
 	return nil
 }
 
-func (c *Context) syncTable(conn *sqlite.Conn, ms *ModelStruct) (err error) {
+func (c *Context) syncTable(conn *sqlite.Conn, stats *AutoMigrateStats, ms *ModelStruct) (err error) {
 	tableName := ms.TableName
 	pti, err := c.PragmaTableInfo(conn, tableName)
 	if err != nil {
 		return err
 	}
 	if len(pti) == 0 {
+		stats.NumCreated++
 		return c.createTable(conn, ms)
 	}
 
@@ -47,23 +58,38 @@ func (c *Context) syncTable(conn *sqlite.Conn, ms *ModelStruct) (err error) {
 	numOldCols := len(oldColumns)
 	numNewCols := 0
 	isMissingCols := false
-	for _, sf := range ms.StructFields {
-		if !sf.IsNormal {
-			continue
-		}
-		numNewCols++
 
-		if _, ok := oldColumns[sf.DBName]; !ok {
-			isMissingCols = true
-			break
+	{
+		var processField func(sf *StructField)
+		processField = func(sf *StructField) {
+			if sf.IsSquashed {
+				for _, nsf := range sf.SquashedFields {
+					processField(nsf)
+				}
+			}
+
+			if !sf.IsNormal {
+				return
+			}
+			numNewCols++
+
+			if _, ok := oldColumns[sf.DBName]; !ok {
+				isMissingCols = true
+				return
+			}
+		}
+		for _, sf := range ms.StructFields {
+			processField(sf)
 		}
 	}
 
 	if !isMissingCols && numOldCols == numNewCols {
 		// all done
+		stats.NumCurrent++
 		return nil
 	}
 
+	stats.NumMigrated++
 	tempName := fmt.Sprintf("__hades_migrate__%s__", tableName)
 	err = c.ExecRaw(conn, fmt.Sprintf("CREATE TABLE %s AS SELECT * FROM %s", tempName, tableName), nil)
 	if err != nil {
@@ -81,14 +107,26 @@ func (c *Context) syncTable(conn *sqlite.Conn, ms *ModelStruct) (err error) {
 	}
 
 	var columns []string
-	for _, sf := range ms.StructFields {
-		if sf.Relationship != nil {
-			continue
+	{
+		var processField func(sf *StructField)
+		processField = func(sf *StructField) {
+			if sf.IsSquashed {
+				for _, nsf := range sf.SquashedFields {
+					processField(nsf)
+				}
+			}
+
+			if !sf.IsNormal {
+				return
+			}
+
+			if _, ok := oldColumns[sf.DBName]; ok {
+				columns = append(columns, EscapeIdentifier(sf.DBName))
+			}
 		}
-		if _, ok := oldColumns[sf.DBName]; !ok {
-			continue
+		for _, sf := range ms.StructFields {
+			processField(sf)
 		}
-		columns = append(columns, EscapeIdentifier(sf.DBName))
 	}
 	var columnList = strings.Join(columns, ",")
 
