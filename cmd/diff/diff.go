@@ -134,7 +134,7 @@ func Do(params *Params) error {
 			{
 				prettySize := progress.FormatBytes(targetSignature.Container.Size)
 				perSecond := progress.FormatBPS(targetSignature.Container.Size, time.Since(startTime))
-				comm.Statf("%s (%s) @ %s/s\n", prettySize, targetSignature.Container.Stats(), perSecond)
+				comm.Statf("%s (%s) @ %s\n", prettySize, targetSignature.Container.Stats(), perSecond)
 			}
 		} else {
 			return errors.Wrap(err, "determining if target is signature or directory")
@@ -194,7 +194,7 @@ func Do(params *Params) error {
 	{
 		prettySize := progress.FormatBytes(sourceContainer.Size)
 		perSecond := progress.FormatBPS(sourceContainer.Size, totalDuration)
-		comm.Statf("%s (%s) @ %s/s\n", prettySize, sourceContainer.Stats(), perSecond)
+		comm.Statf("%s (%s) @ %s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
 	{

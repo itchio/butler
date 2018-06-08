@@ -22,6 +22,7 @@ var args = struct {
 	output      string
 	partitions  int
 	concurrency int
+	measureMem  bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -31,6 +32,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("output", "Patch file to write").Short('o').Required().StringVar(&args.output)
 	cmd.Flag("partitions", "Number of partitions to use").Default("1").IntVar(&args.partitions)
 	cmd.Flag("concurrency", "Suffix sort concurrency").Default("1").IntVar(&args.concurrency)
+	cmd.Flag("measuremem", "Measure memory usage").BoolVar(&args.measureMem)
 	ctx.Register(cmd, func(ctx *mansion.Context) {
 		ctx.Must(do(ctx))
 	})
@@ -102,10 +104,9 @@ func do(ctx *mansion.Context) error {
 		return nil
 	}
 
-	compression := &pwr.CompressionSettings{
-		Algorithm: pwr.CompressionAlgorithm_BROTLI,
-		Quality:   1,
-	}
+	ctxCompression := ctx.CompressionSettings()
+	compression := &ctxCompression
+	consumer.Infof("Using compression settings: %s", compression)
 
 	header := &pwr.PatchHeader{
 		Compression: compression,
@@ -152,7 +153,7 @@ func do(ctx *mansion.Context) error {
 	bdc := &bsdiff.DiffContext{
 		SuffixSortConcurrency: args.concurrency,
 		Partitions:            args.partitions,
-		MeasureMem:            true,
+		MeasureMem:            args.measureMem,
 
 		Stats: &bsdiff.DiffStats{},
 	}
@@ -186,7 +187,7 @@ func do(ctx *mansion.Context) error {
 	duration := time.Since(startTime)
 	perSec := progress.FormatBPS(outStats.Size(), duration)
 
-	consumer.Statf("Wrote %s patch to %s @ %s / s (%s total)",
+	consumer.Statf("Wrote %s patch to %s @ %s (%s total)",
 		progress.FormatBytes(outStats.Size()),
 		args.output,
 		perSec,
