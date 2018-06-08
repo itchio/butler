@@ -5,8 +5,8 @@
 			"importpath": "crawshaw.io/sqlite",
 			"repository": "https://github.com/fasterthanlime/sqlite",
 			"vcs": "git",
-			"revision": "3d2fd2439cefd67c3662a05f44d06fd2aee1e3fd",
-			"branch": "linux-c99",
+			"revision": "b5dbb1bf3c88ac1df48258a2f731f6d47d8d6823",
+			"branch": "static-pthreads",
 			"notests": true
 		},
 		{
