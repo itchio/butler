@@ -59,7 +59,17 @@ func do(ctx *mansion.Context) {
 
 		if args.analyzeDistro != "" {
 			codeword := args.analyzeDistro
-			consumer.Infof("Analyzing for distro %s", codeword)
+			consumer.Infof("Analyzing for distro %s (%s)", codeword, info.Arch)
+
+			debarch := ""
+			switch info.Arch {
+			case elefant.Arch386:
+				debarch = "i386"
+			case elefant.ArchAmd64:
+				debarch = "amd64"
+			default:
+				ctx.Must(errors.Errorf("Don't know equivalent debian arch for (%s)", info.Arch))
+			}
 
 			nameMap := make(map[string]bool)
 			for _, c := range root.Children {
@@ -76,7 +86,7 @@ func do(ctx *mansion.Context) {
 
 			log.Printf("Looking for: %s", strings.Join(sortedNames, ", "))
 
-			manifestURL, err := getManifestURL(codeword)
+			manifestURL, err := getManifestURL(codeword, debarch)
 			ctx.Must(err)
 
 			consumer.Infof("Downloading manifest (%s)...", manifestURL)
@@ -109,7 +119,7 @@ func do(ctx *mansion.Context) {
 			processLib := func(libName string) {
 				values := make(url.Values)
 				values.Add("file", libName)
-				searchURL := fmt.Sprintf("https://broth.itch.ovh/debsearch/by-file-path/ubuntu/%s/amd64?%s", codeword, values.Encode())
+				searchURL := fmt.Sprintf("https://broth.itch.ovh/debsearch/by-file-path/ubuntu/%s/%s?%s", codeword, debarch, values.Encode())
 				log.Printf("Querying broth (%s)...", searchURL)
 
 				res, err := client.Get(searchURL)
@@ -171,9 +181,9 @@ func do(ctx *mansion.Context) {
 	}
 }
 
-func getManifestURL(codeword string) (string, error) {
+func getManifestURL(codeword string, debarch string) (string, error) {
 	ubuntuManifestURL := func(v string) string {
-		return fmt.Sprintf("http://releases.ubuntu.com/%s/ubuntu-%s-desktop-amd64.manifest", v, v)
+		return fmt.Sprintf("http://releases.ubuntu.com/%s/ubuntu-%s-desktop-%s.manifest", v, v, debarch)
 	}
 
 	switch codeword {
