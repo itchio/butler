@@ -1346,6 +1346,11 @@ canonical itch.io order</p>
 ### <em class="request-client-caller"></em>Fetch.ProfileCollections
 
 
+<p>
+<p>Lists collections for a profile. Does not contain
+games.</p>
+
+</p>
 
 <p>
 <span class="header">Parameters</span> 
@@ -1356,23 +1361,26 @@ canonical itch.io order</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Profile to use to fetch game</p>
+<td><p>Profile for which to fetch collections</p>
 </td>
 </tr>
 <tr>
 <td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> Maximum number of collections to return at a time.</p>
+</td>
 </tr>
 <tr>
 <td><code>cursor</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
 </tr>
 <tr>
 <td><code>ignoreCache</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
 </tr>
 </table>
 
@@ -1387,12 +1395,14 @@ canonical itch.io order</p>
 <tr>
 <td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
-<td></td>
+<td><p>Collections belonging to the profile</p>
+</td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> Use to fetch the next page</p>
+</td>
 </tr>
 </table>
 
@@ -1400,6 +1410,11 @@ canonical itch.io order</p>
 <div id="FetchProfileCollectionsParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Fetch.ProfileCollections <a href="#/?id=fetchprofilecollections">(Go to definition)</a></p>
 
+<p>
+<p>Lists collections for a profile. Does not contain
+games.</p>
+
+</p>
 
 <table class="field-table">
 <tr>

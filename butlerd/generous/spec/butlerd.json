@@ -388,28 +388,28 @@
     },
     {
       "method": "Fetch.ProfileCollections",
-      "doc": "",
+      "doc": "Lists collections for a profile. Does not contain\ngames.",
       "caller": "client",
       "params": {
         "fields": [
           {
             "name": "profileId",
-            "doc": "Profile to use to fetch game",
+            "doc": "Profile for which to fetch collections",
             "type": "number"
           },
           {
             "name": "limit",
-            "doc": "",
+            "doc": "Maximum number of collections to return at a time.",
             "type": "number"
           },
           {
             "name": "cursor",
-            "doc": "",
+            "doc": "Used for pagination, if specified",
             "type": "string"
           },
           {
             "name": "ignoreCache",
-            "doc": "",
+            "doc": "If set, will force fresh data",
             "type": "boolean"
           }
         ]
@@ -418,12 +418,12 @@
         "fields": [
           {
             "name": "items",
-            "doc": "",
+            "doc": "Collections belonging to the profile",
             "type": "Collection[]"
           },
           {
             "name": "nextCursor",
-            "doc": "",
+            "doc": "Use to fetch the next page",
             "type": "string"
           }
         ]

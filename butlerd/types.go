@@ -338,22 +338,35 @@ type CollectionGame struct {
 type FetchCollectionResult struct {
 }
 
+// Lists collections for a profile. Does not contain
+// games.
+//
 // @name Fetch.ProfileCollections
 // @category Fetch
 // @caller client
 type FetchProfileCollectionsParams struct {
-	// Profile to use to fetch game
+	// Profile for which to fetch collections
 	ProfileID int64 `json:"profileId"`
 
-	Limit  int64  `json:"limit"`
+	// Maximum number of collections to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Used for pagination, if specified
+	// @optional
 	Cursor string `json:"cursor"`
 
+	// If set, will force fresh data
+	// @optional
 	IgnoreCache bool `json:"ignoreCache"`
 }
 
 type FetchProfileCollectionsResult struct {
+	// Collections belonging to the profile
 	Items []*itchio.Collection `json:"items"`
 
+	// Use to fetch the next page
+	// @optional
 	NextCursor string `json:"nextCursor,omitempty"`
 }
 
