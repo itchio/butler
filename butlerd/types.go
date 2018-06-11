@@ -344,20 +344,17 @@ type FetchCollectionResult struct {
 type FetchProfileCollectionsParams struct {
 	// Profile to use to fetch game
 	ProfileID int64 `json:"profileId"`
-}
 
-// Sent during @@FetchProfileCollectionsParams whenever new info is
-// available.
-//
-// @name Fetch.ProfileCollections.Yield
-// @category Fetch
-type FetchProfileCollectionsYieldNotification struct {
-	Offset int64                `json:"offset"`
-	Total  int64                `json:"total"`
-	Items  []*itchio.Collection `json:"items"`
+	Limit  int64  `json:"limit"`
+	Cursor string `json:"cursor"`
+
+	IgnoreCache bool `json:"ignoreCache"`
 }
 
 type FetchProfileCollectionsResult struct {
+	Items []*itchio.Collection `json:"items"`
+
+	NextCursor string `json:"nextCursor,omitempty"`
 }
 
 // @name Fetch.ProfileGames

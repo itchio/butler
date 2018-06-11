@@ -1359,13 +1359,42 @@ canonical itch.io order</p>
 <td><p>Profile to use to fetch game</p>
 </td>
 </tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ignoreCache</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="FetchProfileCollectionsParams__TypeHint" style="display: none;" class="tip-content">
@@ -1377,64 +1406,17 @@ canonical itch.io order</p>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>Fetch.ProfileCollections.Yield
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchProfileCollectionsParams__TypeHint">Fetch.ProfileCollections</span></code> whenever new info is
-available.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
 <tr>
-<td><code>offset</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchProfileCollectionsYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.ProfileCollections.Yield <a href="#/?id=fetchprofilecollectionsyield">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.ProfileCollections</span></code> whenever new info is
-available.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>offset</code></td>
+<td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span>[]</code></td>
+<td><code>ignoreCache</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

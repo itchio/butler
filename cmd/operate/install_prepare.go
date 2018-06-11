@@ -102,6 +102,8 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 				}
 
 				upgradePath := upgradeRes.UpgradePath
+				// skip the current build, we're not interested in it
+				upgradePath.Builds = upgradePath.Builds[1:]
 
 				var totalUpgradeSize int64
 				consumer.Infof("Found upgrade path with %d items: ", len(upgradePath.Builds))

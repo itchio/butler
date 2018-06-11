@@ -22,4 +22,5 @@ var AllModels = []interface{}{
 	&itchio.Upload{},
 	&itchio.Build{},
 	&ProfileData{},
+	&FetchInfo{},
 }

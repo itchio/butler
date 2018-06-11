@@ -1,125 +1,85 @@
 package fetch
 
 import (
+	"strconv"
+	"time"
+
 	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
 func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
+	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	sendDBCollections := func() error {
+	limit := params.Limit
+	if limit == 0 {
+		limit = 5
+	}
+	consumer.Infof("Using limit of %d", limit)
+	ft := models.FetchTarget{
+		Type: "profile_collections",
+		ID:   profile.ID,
+		TTL:  10 * time.Minute,
+	}
+
+	doRemoteFetch := false
+
+	if params.IgnoreCache {
+		consumer.Infof("Doing remote fetch (IgnoreCache specified)")
+		doRemoteFetch = true
+	} else if rc.WithConnBool(ft.IsStale) {
+		consumer.Infof("Doing remote fetch (Is stale)")
+		doRemoteFetch = true
+	}
+
+	if doRemoteFetch {
+		collRes, err := client.ListProfileCollections()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		consumer.Statf("Retrieved %d collections", len(collRes.Collections))
+
+		profile.ProfileCollections = nil
+		for i, c := range collRes.Collections {
+			profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
+				// Other fields are set when saving the association
+				Collection: c,
+				Position:   int64(i),
+			})
+		}
+
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, profile,
-				hades.AssocWithSearch("ProfileCollections", hades.Search().OrderBy("position ASC"),
+			models.MustSave(conn, profile,
+				hades.Assoc("ProfileCollections",
 					hades.Assoc("Collection"),
 				),
 			)
+			ft.MarkFresh(conn)
 		})
-
-		profileCollections := profile.ProfileCollections
-
-		var collectionIDs []int64
-		collectionsByIDs := make(map[int64]*itchio.Collection)
-		for _, pc := range profileCollections {
-			c := pc.Collection
-			collectionIDs = append(collectionIDs, c.ID)
-			collectionsByIDs[c.ID] = c
-		}
-
-		var rows []struct {
-			itchio.CollectionGame `hades:"squash"`
-			itchio.Game           `hades:"squash"`
-		}
-		rc.WithConn(func(conn *sqlite.Conn) {
-			c := models.HadesContext()
-			models.MustExecRaw(conn, `
-			SELECT collection_games.*, games.*
-			FROM collections
-			JOIN collection_games ON collection_games.collection_id = collections.id
-			JOIN games ON games.id = collection_games.game_id
-			WHERE collections.id IN (?)
-			AND collection_games.game_id IN (
-				SELECT game_id
-				FROM collection_games
-				WHERE collection_games.collection_id = collections.id
-				ORDER BY "position" ASC
-				LIMIT 8
-			)
-		`, c.IntoRowsScanner(&rows), collectionIDs)
-		})
-
-		for _, row := range rows {
-			c := collectionsByIDs[row.CollectionGame.CollectionID]
-			cg := row.CollectionGame
-			game := row.Game
-			cg.Game = &game
-			c.CollectionGames = append(c.CollectionGames, &cg)
-		}
-
-		if len(profileCollections) > 0 {
-			yn := &butlerd.FetchProfileCollectionsYieldNotification{}
-			yn.Offset = 0
-			yn.Total = int64(len(profileCollections))
-
-			for _, pc := range profileCollections {
-				yn.Items = append(yn.Items, pc.Collection)
-			}
-
-			err := messages.FetchProfileCollectionsYield.Notify(rc, yn)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-		}
-		return nil
-	}
-
-	err := sendDBCollections()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	collRes, err := client.ListProfileCollections()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	profile.ProfileCollections = nil
-	for i, c := range collRes.Collections {
-		for _, cg := range c.CollectionGames {
-			c.CollectionGames = append(c.CollectionGames, cg)
-		}
-		c.CollectionGames = nil
-
-		profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
-			// Other fields are set when saving the association
-			Collection: c,
-			Position:   int64(i),
-		})
-	}
-
-	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, profile,
-			hades.Assoc("ProfileCollections",
-				hades.Assoc("Collection",
-					hades.Assoc("CollectionGames",
-						hades.Assoc("Game"),
-					),
-				),
-			),
-		)
-	})
-
-	err = sendDBCollections()
-	if err != nil {
-		return nil, errors.WithStack(err)
 	}
 
 	res := &butlerd.FetchProfileCollectionsResult{}
+	var pcs []*models.ProfileCollection
+	rc.WithConn(func(conn *sqlite.Conn) {
+		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
+		if params.Cursor != "" {
+			cond = builder.And(cond, builder.Gte{"position": params.Cursor})
+		}
+		models.MustSelect(conn, &pcs, cond, hades.Search().OrderBy("position ASC").Limit(limit+1))
+		models.MustPreload(conn, pcs, hades.Assoc("Collection"))
+
+		for i, pc := range pcs {
+			if i == len(pcs)-1 {
+				res.NextCursor = strconv.FormatInt(pc.Position, 10)
+			} else {
+				res.Items = append(res.Items, pc.Collection)
+			}
+		}
+	})
 	return res, nil
 }

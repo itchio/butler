@@ -396,11 +396,37 @@
             "name": "profileId",
             "doc": "Profile to use to fetch game",
             "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "ignoreCache",
+            "doc": "",
+            "type": "boolean"
           }
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "items",
+            "doc": "",
+            "type": "Collection[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "",
+            "type": "string"
+          }
+        ]
       }
     },
     {
@@ -1589,29 +1615,6 @@
             "name": "collection",
             "doc": "",
             "type": "Collection"
-          }
-        ]
-      }
-    },
-    {
-      "method": "Fetch.ProfileCollections.Yield",
-      "doc": "Sent during @@FetchProfileCollectionsParams whenever new info is\navailable.",
-      "params": {
-        "fields": [
-          {
-            "name": "offset",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "total",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "items",
-            "doc": "",
-            "type": "Collection[]"
           }
         ]
       }

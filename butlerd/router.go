@@ -303,6 +303,12 @@ func (rc *RequestContext) WithConn(f func(conn *sqlite.Conn)) {
 	f(conn)
 }
 
+func (rc *RequestContext) WithConnBool(f func(conn *sqlite.Conn) bool) bool {
+	conn := rc.DBPool.Get(rc.Ctx.Done())
+	defer rc.DBPool.Put(conn)
+	return f(conn)
+}
+
 type CancelFuncs struct {
 	Funcs map[string]context.CancelFunc
 }

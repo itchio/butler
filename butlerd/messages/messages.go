@@ -1001,34 +1001,6 @@ func (r *FetchProfileCollectionsType) TestCall(rc *butlerd.RequestContext, param
 
 var FetchProfileCollections *FetchProfileCollectionsType
 
-// Fetch.ProfileCollections.Yield (Notification)
-
-type FetchProfileCollectionsYieldType struct {}
-
-var _ NotificationMessage = (*FetchProfileCollectionsYieldType)(nil)
-
-func (r *FetchProfileCollectionsYieldType) Method() string {
-  return "Fetch.ProfileCollections.Yield"
-}
-
-func (r *FetchProfileCollectionsYieldType) Notify(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsYieldNotification) (error) {
-  return rc.Notify("Fetch.ProfileCollections.Yield", params)
-}
-
-func (r *FetchProfileCollectionsYieldType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileCollectionsYieldNotification)) {
-  router.RegisterNotification("Fetch.ProfileCollections.Yield", func (rc *butlerd.RequestContext) {
-    var params butlerd.FetchProfileCollectionsYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, &params)
-  })
-}
-
-var FetchProfileCollectionsYield *FetchProfileCollectionsYieldType
-
 // Fetch.ProfileGames (Request)
 
 type FetchProfileGamesType struct {}
