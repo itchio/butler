@@ -17,11 +17,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustPreload(conn, profile,
 				hades.AssocWithSearch("ProfileCollections", hades.Search().OrderBy("position ASC"),
-					hades.Assoc("Collection",
-						hades.Assoc("CollectionGames",
-							hades.Assoc("Game"),
-						),
-					),
+					hades.Assoc("Collection"),
 				),
 			)
 		})

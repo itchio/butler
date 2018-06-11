@@ -12,10 +12,11 @@ import (
 )
 
 var dbConsumer *state.Consumer
+var logSql = os.Getenv("BUTLER_SQL_DEBUG") == "1"
 
 func init() {
 	dbConsumer = &state.Consumer{}
-	if os.Getenv("BUTLER_SQL_DEBUG") == "1" {
+	if logSql {
 		dbConsumer.OnMessage = func(lvl string, message string) {
 			log.Printf("[hades] [%s] %s", lvl, message)
 		}
@@ -28,6 +29,7 @@ func HadesContext() *hades.Context {
 	if hadesContext == nil {
 		var err error
 		hadesContext, err = hades.NewContext(dbConsumer, AllModels...)
+		hadesContext.Log = logSql
 		if err != nil {
 			panic(err)
 		}
