@@ -1199,7 +1199,7 @@ available.</p>
 <p>Fetches information about a collection and the games it
 contains.</p>
 
-<p>Sends <code class="typename"><span class="type notification" data-tip-selector="#FetchCollectionYieldNotification__TypeHint">Fetch.Collection.Yield</span></code>.</p>
+<p>Sends <code class="typename"><span class="type builtin-type">FetchCollectionYieldNotification</span></code>.</p>
 
 </p>
 
@@ -1221,13 +1221,52 @@ contains.</p>
 <td><p>Identifier of the collection to look for</p>
 </td>
 </tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of games to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>ignoreCache</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
 </table>
 
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><p>Collection info</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionGames</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td><p>Requested games for this collection</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="FetchCollectionParams__TypeHint" style="display: none;" class="tip-content">
@@ -1237,7 +1276,7 @@ contains.</p>
 <p>Fetches information about a collection and the games it
 contains.</p>
 
-<p>Sends <code class="typename"><span class="type notification">Fetch.Collection.Yield</span></code>.</p>
+<p>Sends <code class="typename"><span class="type builtin-type">FetchCollectionYieldNotification</span></code>.</p>
 
 </p>
 
@@ -1250,44 +1289,17 @@ contains.</p>
 <td><code>collectionId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>Fetch.Collection.Yield
-
-
-<p>
-<p>Contains general info about a collection</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
 <tr>
-<td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td></td>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-
-<div id="FetchCollectionYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.Collection.Yield <a href="#/?id=fetchcollectionyield">(Go to definition)</a></p>
-
-<p>
-<p>Contains general info about a collection</p>
-
-</p>
-
-<table class="field-table">
 <tr>
-<td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>ignoreCache</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -1393,7 +1405,7 @@ games.</p>
 
 <table class="field-table">
 <tr>
-<td><code>items</code></td>
+<td><code>collections</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
 <td><p>Collections belonging to the profile</p>
 </td>

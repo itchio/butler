@@ -314,16 +314,21 @@ type FetchGameResult struct {
 type FetchCollectionParams struct {
 	// Profile to use to fetch collection
 	ProfileID int64 `json:"profileId"`
+
 	// Identifier of the collection to look for
 	CollectionID int64 `json:"collectionId"`
-}
 
-// Contains general info about a collection
-//
-// @name Fetch.Collection.Yield
-// @category Fetch
-type FetchCollectionYieldNotification struct {
-	Collection *itchio.Collection `json:"collection"`
+	// Maximum number of games to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor string `json:"cursor"`
+
+	// If set, will force fresh data
+	// @optional
+	IgnoreCache bool `json:"ignoreCache"`
 }
 
 // Association between a @@Game and a @@Collection
@@ -336,6 +341,13 @@ type CollectionGame struct {
 }
 
 type FetchCollectionResult struct {
+	// Collection info
+	Collection *itchio.Collection `json:"collection"`
+
+	// Requested games for this collection
+	CollectionGames []*itchio.CollectionGame `json:"collectionGames"`
+
+	NextCursor string `json:"nextCursor,omitempty"`
 }
 
 // Lists collections for a profile. Does not contain
@@ -363,7 +375,7 @@ type FetchProfileCollectionsParams struct {
 
 type FetchProfileCollectionsResult struct {
 	// Collections belonging to the profile
-	Items []*itchio.Collection `json:"items"`
+	Collections []*itchio.Collection `json:"collections"`
 
 	// Use to fetch the next page
 	// @optional

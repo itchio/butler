@@ -38,6 +38,8 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 	}
 
 	if doRemoteFetch {
+		fts := []models.FetchTarget{ft}
+
 		collRes, err := client.ListProfileCollections()
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -46,6 +48,12 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 		profile.ProfileCollections = nil
 		for i, c := range collRes.Collections {
+			fts = append(fts, models.FetchTarget{
+				Type: "collection",
+				ID:   c.ID,
+				TTL:  10 * time.Minute,
+			})
+
 			profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
 				// Other fields are set when saving the association
 				Collection: c,
@@ -59,17 +67,21 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 					hades.Assoc("Collection"),
 				),
 			)
-			ft.MarkFresh(conn)
+			for _, ft := range fts {
+				// TODO: avoid n+1
+				ft.MarkFresh(conn)
+			}
 		})
 	}
 
 	res := &butlerd.FetchProfileCollectionsResult{}
-	var pcs []*models.ProfileCollection
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
 		if params.Cursor != "" {
 			cond = builder.And(cond, builder.Gte{"position": params.Cursor})
 		}
+
+		var pcs []*models.ProfileCollection
 		models.MustSelect(conn, &pcs, cond, hades.Search().OrderBy("position ASC").Limit(limit+1))
 		models.MustPreload(conn, pcs, hades.Assoc("Collection"))
 
@@ -77,7 +89,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 			if i == len(pcs)-1 {
 				res.NextCursor = strconv.FormatInt(pc.Position, 10)
 			} else {
-				res.Items = append(res.Items, pc.Collection)
+				res.Collections = append(res.Collections, pc.Collection)
 			}
 		}
 	})

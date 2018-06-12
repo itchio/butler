@@ -379,11 +379,42 @@
             "name": "collectionId",
             "doc": "Identifier of the collection to look for",
             "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of games to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "string"
+          },
+          {
+            "name": "ignoreCache",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
           }
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "collection",
+            "doc": "Collection info",
+            "type": "Collection"
+          },
+          {
+            "name": "collectionGames",
+            "doc": "Requested games for this collection",
+            "type": "CollectionGame[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "",
+            "type": "string"
+          }
+        ]
       }
     },
     {
@@ -417,7 +448,7 @@
       "result": {
         "fields": [
           {
-            "name": "items",
+            "name": "collections",
             "doc": "Collections belonging to the profile",
             "type": "Collection[]"
           },
@@ -1602,19 +1633,6 @@
             "name": "game",
             "doc": "Current result for game fetching (from local DB, or API, etc.)",
             "type": "Game"
-          }
-        ]
-      }
-    },
-    {
-      "method": "Fetch.Collection.Yield",
-      "doc": "Contains general info about a collection",
-      "params": {
-        "fields": [
-          {
-            "name": "collection",
-            "doc": "",
-            "type": "Collection"
           }
         ]
       }
