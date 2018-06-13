@@ -1104,9 +1104,6 @@ database and the API, via <code class="typename"><span class="type notification"
 <p>
 <p>Fetches information for an itch.io game.</p>
 
-<p>Sends <code class="typename"><span class="type notification" data-tip-selector="#FetchGameYieldNotification__TypeHint">Fetch.Game.Yield</span></code> twice at most: first from cache,
-second from API if we&rsquo;re online.</p>
-
 </p>
 
 <p>
@@ -1121,13 +1118,36 @@ second from API if we&rsquo;re online.</p>
 <td><p>Identifier of game to look for</p>
 </td>
 </tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Force an API request</p>
+</td>
+</tr>
 </table>
 
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Game info</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Marks that a request should be issued
+afterwards with &lsquo;Fresh&rsquo; set</p>
+</td>
+</tr>
+</table>
 
 
 <div id="FetchGameParams__TypeHint" style="display: none;" class="tip-content">
@@ -1136,9 +1156,6 @@ second from API if we&rsquo;re online.</p>
 <p>
 <p>Fetches information for an itch.io game.</p>
 
-<p>Sends <code class="typename"><span class="type notification">Fetch.Game.Yield</span></code> twice at most: first from cache,
-second from API if we&rsquo;re online.</p>
-
 </p>
 
 <table class="field-table">
@@ -1146,47 +1163,9 @@ second from API if we&rsquo;re online.</p>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>Fetch.Game.Yield
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#FetchGameParams__TypeHint">Fetch.Game</span></code> whenever a result is
-available.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
 <tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Current result for game fetching (from local DB, or API, etc.)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="FetchGameYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.Game.Yield <a href="#/?id=fetchgameyield">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Fetch.Game</span></code> whenever a result is
-available.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -1196,10 +1175,94 @@ available.</p>
 
 
 <p>
+<p>Fetch a collection&rsquo;s title, gamesCount, etc.
+but not its games.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to use to fetch collection</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to fetch</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Force an API request before replying.
+Usually set after getting &lsquo;stale&rsquo; in the response.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><p>Collection info</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True if the info was from local DB and
+it should be re-queried using &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchCollectionParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Collection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+
+<p>
+<p>Fetch a collection&rsquo;s title, gamesCount, etc.
+but not its games.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.Collection.Games
+
+
+<p>
 <p>Fetches information about a collection and the games it
 contains.</p>
-
-<p>Sends <code class="typename"><span class="type builtin-type">FetchCollectionYieldNotification</span></code>.</p>
 
 </p>
 
@@ -1234,7 +1297,7 @@ contains.</p>
 </td>
 </tr>
 <tr>
-<td><code>ignoreCache</code></td>
+<td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> If set, will force fresh data</p>
 </td>
@@ -1250,13 +1313,7 @@ contains.</p>
 
 <table class="field-table">
 <tr>
-<td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td><p>Collection info</p>
-</td>
-</tr>
-<tr>
-<td><code>collectionGames</code></td>
+<td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
 <td><p>Requested games for this collection</p>
 </td>
@@ -1264,19 +1321,24 @@ contains.</p>
 <tr>
 <td><code>nextCursor</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &lsquo;Fresh&rsquo;</p>
+</td>
 </tr>
 </table>
 
 
-<div id="FetchCollectionParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Collection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+<div id="FetchCollectionGamesParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Collection.Games <a href="#/?id=fetchcollectiongames">(Go to definition)</a></p>
 
 <p>
 <p>Fetches information about a collection and the games it
 contains.</p>
-
-<p>Sends <code class="typename"><span class="type builtin-type">FetchCollectionYieldNotification</span></code>.</p>
 
 </p>
 
@@ -1298,58 +1360,8 @@ contains.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>ignoreCache</code></td>
+<td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>CollectionGame
-
-
-<p>
-<p>Association between a <code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code> and a <code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>position</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Position in collection, use if you want to display them in the
-canonical itch.io order</p>
-</td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="CollectionGame__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CollectionGame <a href="#/?id=collectiongame">(Go to definition)</a></p>
-
-<p>
-<p>Association between a <code class="typename"><span class="type struct-type">Game</span></code> and a <code class="typename"><span class="type struct-type">Collection</span></code></p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>position</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
 </tr>
 </table>
 
@@ -1389,7 +1401,7 @@ games.</p>
 </td>
 </tr>
 <tr>
-<td><code>ignoreCache</code></td>
+<td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> If set, will force fresh data</p>
 </td>
@@ -1405,7 +1417,7 @@ games.</p>
 
 <table class="field-table">
 <tr>
-<td><code>collections</code></td>
+<td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
 <td><p>Collections belonging to the profile</p>
 </td>
@@ -1413,7 +1425,13 @@ games.</p>
 <tr>
 <td><code>nextCursor</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Use to fetch the next page</p>
+<td><p><span class="tag">Optional</span> Used to fetch the next page</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
 </td>
 </tr>
 </table>
@@ -1442,7 +1460,7 @@ games.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>ignoreCache</code></td>
+<td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>

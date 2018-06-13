@@ -178,18 +178,9 @@ func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContex
 }
 
 func getGame(t *testing.T, h *handler, rc *butlerd.RequestContext, gameID int64) *itchio.Game {
-	gameChan := make(chan *itchio.Game)
-	once := &sync.Once{}
-
-	messages.FetchGameYield.Register(h, func(rc *butlerd.RequestContext, params *butlerd.FetchGameYieldNotification) {
-		once.Do(func() {
-			gameChan <- params.Game
-		})
-	})
-
-	_, err := messages.FetchGame.TestCall(rc, &butlerd.FetchGameParams{
+	gameRes, err := messages.FetchGame.TestCall(rc, &butlerd.FetchGameParams{
 		GameID: gameID,
 	})
 	must(t, err)
-	return <-gameChan
+	return gameRes.Game
 }

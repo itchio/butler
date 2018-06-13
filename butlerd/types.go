@@ -279,39 +279,64 @@ type SearchUsersYieldNotification struct {
 
 // Fetches information for an itch.io game.
 //
-// Sends @@FetchGameYieldNotification twice at most: first from cache,
-// second from API if we're online.
-//
 // @name Fetch.Game
 // @category Fetch
 // @caller client
 type FetchGameParams struct {
 	// Identifier of game to look for
 	GameID int64 `json:"gameId"`
-}
 
-// Sent during @@FetchGameParams whenever a result is
-// available.
-//
-// @name Fetch.Game.Yield
-// @category Fetch
-type FetchGameYieldNotification struct {
-	// Current result for game fetching (from local DB, or API, etc.)
-	Game *itchio.Game `json:"game"`
+	// Force an API request
+	// @optional
+	Fresh bool `json:"fresh"`
 }
 
 type FetchGameResult struct {
+	// Game info
+	Game *itchio.Game `json:"game"`
+
+	// Marks that a request should be issued
+	// afterwards with 'Fresh' set
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
-// Fetches information about a collection and the games it
-// contains.
-//
-// Sends @@FetchCollectionYieldNotification.
+// Fetch a collection's title, gamesCount, etc.
+// but not its games.
 //
 // @name Fetch.Collection
 // @category Fetch
 // @caller client
 type FetchCollectionParams struct {
+	// Profile to use to fetch collection
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to fetch
+	CollectionID int64 `json:"collectionId"`
+
+	// Force an API request before replying.
+	// Usually set after getting 'stale' in the response.
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+type FetchCollectionResult struct {
+	// Collection info
+	Collection *itchio.Collection `json:"collection"`
+
+	// True if the info was from local DB and
+	// it should be re-queried using "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+// Fetches information about a collection and the games it
+// contains.
+//
+// @name Fetch.Collection.Games
+// @category Fetch
+// @caller client
+type FetchCollectionGamesParams struct {
 	// Profile to use to fetch collection
 	ProfileID int64 `json:"profileId"`
 
@@ -328,26 +353,20 @@ type FetchCollectionParams struct {
 
 	// If set, will force fresh data
 	// @optional
-	IgnoreCache bool `json:"ignoreCache"`
+	Fresh bool `json:"fresh"`
 }
 
-// Association between a @@Game and a @@Collection
-// @category Fetch
-type CollectionGame struct {
-	// Position in collection, use if you want to display them in the
-	// canonical itch.io order
-	Position int64        `json:"position"`
-	Game     *itchio.Game `json:"game"`
-}
-
-type FetchCollectionResult struct {
-	// Collection info
-	Collection *itchio.Collection `json:"collection"`
-
+type FetchCollectionGamesResult struct {
 	// Requested games for this collection
-	CollectionGames []*itchio.CollectionGame `json:"collectionGames"`
+	Items []*itchio.CollectionGame `json:"items"`
 
+	// Use to fetch the next 'page' of results
+	// @optional
 	NextCursor string `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with 'Fresh'
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // Lists collections for a profile. Does not contain
@@ -370,16 +389,20 @@ type FetchProfileCollectionsParams struct {
 
 	// If set, will force fresh data
 	// @optional
-	IgnoreCache bool `json:"ignoreCache"`
+	Fresh bool `json:"fresh"`
 }
 
 type FetchProfileCollectionsResult struct {
 	// Collections belonging to the profile
-	Collections []*itchio.Collection `json:"collections"`
+	Items []*itchio.Collection `json:"items"`
 
-	// Use to fetch the next page
+	// Used to fetch the next page
 	// @optional
 	NextCursor string `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // @name Fetch.ProfileGames

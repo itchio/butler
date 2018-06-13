@@ -1,9 +1,11 @@
 package fetch
 
 import (
+	"strconv"
 	"time"
 
 	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
@@ -11,20 +13,26 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
+func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
 	if params.CollectionID == 0 {
 		return nil, errors.New("collectionId must be non-zero")
 	}
 
 	consumer := rc.Consumer
 	ft := models.FetchTarget{
-		Type: "collection",
+		Type: "collection_games",
 		ID:   params.CollectionID,
-		TTL:  10 * time.Minute,
+		TTL:  30 * time.Minute,
 	}
 
+	limit := params.Limit
+	if limit == 0 {
+		limit = 5
+	}
+	consumer.Infof("Using limit of %d", limit)
+
 	fresh := false
-	res := &butlerd.FetchCollectionResult{}
+	res := &butlerd.FetchCollectionGamesResult{}
 
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
@@ -40,19 +48,10 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 		_, client := rc.ProfileClient(params.ProfileID)
 
 		consumer.Debugf("Querying API...")
-		collRes, err := client.GetCollection(itchio.GetCollectionParams{
-			CollectionID: params.CollectionID,
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
+		var fakeColl = &itchio.Collection{
+			ID: params.CollectionID,
 		}
-
-		collection := collRes.Collection
-		collection.CollectionGames = nil
-
-		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustSave(conn, collRes.Collection)
-		})
+		var collectionGames []*itchio.CollectionGame
 
 		var offset int64
 		for page := int64(1); ; page++ {
@@ -72,11 +71,12 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			}
 
 			for _, cg := range gamesRes.CollectionGames {
-				collection.CollectionGames = append(collection.CollectionGames, cg)
+				collectionGames = append(collectionGames, cg)
 			}
 
 			rc.WithConn(func(conn *sqlite.Conn) {
-				models.MustSave(conn, collection,
+				fakeColl.CollectionGames = collectionGames
+				models.MustSave(conn, fakeColl,
 					hades.Assoc("CollectionGames",
 						hades.Assoc("Game"),
 					),
@@ -84,14 +84,9 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 			})
 
 			offset += numPageGames
-
-			if offset >= collection.GamesCount {
-				// already fetched all or more?!
-				break
-			}
 		}
 
-		for _, cg := range collection.CollectionGames {
+		for _, cg := range collectionGames {
 			g := cg.Game
 			fts = append(fts, models.FetchTarget{
 				ID:   g.ID,
@@ -105,19 +100,36 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 				// TODO: avoid n+1
 				ft.MarkFresh(conn)
 			}
-			models.MustSave(conn, collection, hades.AssocReplace("CollectionGames"))
+			fakeColl.CollectionGames = collectionGames
+			models.MustSave(conn, fakeColl, hades.AssocReplace("CollectionGames"))
 		})
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		res.Collection = models.CollectionByID(conn, params.CollectionID)
+		var cgs []*itchio.CollectionGame
+		var cond builder.Cond = builder.Eq{"collection_id": params.CollectionID}
+		var offset int64
+		if params.Cursor != "" {
+			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
+				offset = parsedOffset
+			}
+		}
+		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
+		models.MustSelect(conn, &cgs, cond, search)
+		models.MustPreload(conn, cgs, hades.Assoc("Game"))
+
+		for i, cg := range cgs {
+			// last collection game
+			if i == len(cgs)-1 {
+				// and we fetched more than was asked...
+				if int64(len(cgs)) > limit {
+					// then we have a next "page"
+					res.NextCursor = strconv.FormatInt(offset+limit, 10)
+				}
+			} else {
+				res.Items = append(res.Items, cg)
+			}
+		}
 	})
-
-	if res.Collection == nil && !params.Fresh {
-		freshParams := *params
-		freshParams.Fresh = true
-		return FetchCollection(rc, &freshParams)
-	}
-
 	return res, nil
 }

@@ -27,17 +27,18 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		TTL:  10 * time.Minute,
 	}
 
-	doRemoteFetch := false
+	fresh := false
+	res := &butlerd.FetchProfileCollectionsResult{}
 
-	if params.IgnoreCache {
-		consumer.Infof("Doing remote fetch (IgnoreCache specified)")
-		doRemoteFetch = true
+	if params.Fresh {
+		consumer.Infof("Doing remote fetch (Fresh specified)")
+		fresh = true
 	} else if rc.WithConnBool(ft.IsStale) {
-		consumer.Infof("Doing remote fetch (Is stale)")
-		doRemoteFetch = true
+		consumer.Infof("Returning stale results")
+		res.Stale = true
 	}
 
-	if doRemoteFetch {
+	if fresh {
 		fts := []models.FetchTarget{ft}
 
 		collRes, err := client.ListProfileCollections()
@@ -74,22 +75,29 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 		})
 	}
 
-	res := &butlerd.FetchProfileCollectionsResult{}
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
-		if params.Cursor != "" {
-			cond = builder.And(cond, builder.Gte{"position": params.Cursor})
-		}
-
 		var pcs []*models.ProfileCollection
-		models.MustSelect(conn, &pcs, cond, hades.Search().OrderBy("position ASC").Limit(limit+1))
+		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
+		var offset int64
+		if params.Cursor != "" {
+			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
+				offset = parsedOffset
+			}
+		}
+		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
+		models.MustSelect(conn, &pcs, cond, search)
 		models.MustPreload(conn, pcs, hades.Assoc("Collection"))
 
 		for i, pc := range pcs {
+			// last collection
 			if i == len(pcs)-1 {
-				res.NextCursor = strconv.FormatInt(pc.Position, 10)
+				// and we fetched more than was asked..
+				if int64(len(pcs)) > limit {
+					// then we have a next page
+					res.NextCursor = strconv.FormatInt(offset+limit, 10)
+				}
 			} else {
-				res.Collections = append(res.Collections, pc.Collection)
+				res.Items = append(res.Items, pc.Collection)
 			}
 		}
 	})

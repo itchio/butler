@@ -873,34 +873,6 @@ func (r *FetchGameType) TestCall(rc *butlerd.RequestContext, params *butlerd.Fet
 
 var FetchGame *FetchGameType
 
-// Fetch.Game.Yield (Notification)
-
-type FetchGameYieldType struct {}
-
-var _ NotificationMessage = (*FetchGameYieldType)(nil)
-
-func (r *FetchGameYieldType) Method() string {
-  return "Fetch.Game.Yield"
-}
-
-func (r *FetchGameYieldType) Notify(rc *butlerd.RequestContext, params *butlerd.FetchGameYieldNotification) (error) {
-  return rc.Notify("Fetch.Game.Yield", params)
-}
-
-func (r *FetchGameYieldType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchGameYieldNotification)) {
-  router.RegisterNotification("Fetch.Game.Yield", func (rc *butlerd.RequestContext) {
-    var params butlerd.FetchGameYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, &params)
-  })
-}
-
-var FetchGameYield *FetchGameYieldType
-
 // Fetch.Collection (Request)
 
 type FetchCollectionType struct {}
@@ -936,6 +908,42 @@ func (r *FetchCollectionType) TestCall(rc *butlerd.RequestContext, params *butle
 }
 
 var FetchCollection *FetchCollectionType
+
+// Fetch.Collection.Games (Request)
+
+type FetchCollectionGamesType struct {}
+
+var _ RequestMessage = (*FetchCollectionGamesType)(nil)
+
+func (r *FetchCollectionGamesType) Method() string {
+  return "Fetch.Collection.Games"
+}
+
+func (r *FetchCollectionGamesType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error)) {
+  router.Register("Fetch.Collection.Games", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchCollectionGamesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    res, err := f(rc, &params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.Collection.Games")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchCollectionGamesType) TestCall(rc *butlerd.RequestContext, params *butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
+  var result butlerd.FetchCollectionGamesResult
+  err := rc.Call("Fetch.Collection.Games", params, &result)
+  return &result, err
+}
+
+var FetchCollectionGames *FetchCollectionGamesType
 
 // Fetch.ProfileCollections (Request)
 
@@ -2972,6 +2980,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Search.Users"]; !ok { panic("missing request handler for (Search.Users)") }
   if _, ok := router.Handlers["Fetch.Game"]; !ok { panic("missing request handler for (Fetch.Game)") }
   if _, ok := router.Handlers["Fetch.Collection"]; !ok { panic("missing request handler for (Fetch.Collection)") }
+  if _, ok := router.Handlers["Fetch.Collection.Games"]; !ok { panic("missing request handler for (Fetch.Collection.Games)") }
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }
   if _, ok := router.Handlers["Fetch.ProfileGames"]; !ok { panic("missing request handler for (Fetch.ProfileGames)") }
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
