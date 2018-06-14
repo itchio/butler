@@ -16,6 +16,7 @@ package sqlite
 
 // #include <sqlite3.h>
 import "C"
+import "github.com/pkg/errors"
 
 // Error is an error produced by SQLite.
 type Error struct {
@@ -342,6 +343,7 @@ const (
 // If err is not a sqlite Error, SQLITE_ERROR is returned.
 // If err is nil, SQLITE_OK is returned.
 func ErrCode(err error) ErrorCode {
+	err = errors.Cause(err)
 	if err != nil {
 		if err, isError := err.(Error); isError {
 			return err.Code
