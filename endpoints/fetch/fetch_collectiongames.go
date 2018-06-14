@@ -77,6 +77,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 			rc.WithConn(func(conn *sqlite.Conn) {
 				fakeColl.CollectionGames = collectionGames
 				models.MustSave(conn, fakeColl,
+					hades.OmitRoot(),
 					hades.Assoc("CollectionGames",
 						hades.Assoc("Game"),
 					),
@@ -101,7 +102,10 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 				ft.MarkFresh(conn)
 			}
 			fakeColl.CollectionGames = collectionGames
-			models.MustSave(conn, fakeColl, hades.AssocReplace("CollectionGames"))
+			models.MustSave(conn, fakeColl,
+				hades.OmitRoot(),
+				hades.AssocReplace("CollectionGames"),
+			)
 		})
 	}
 
