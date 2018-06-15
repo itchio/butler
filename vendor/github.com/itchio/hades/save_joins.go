@@ -38,7 +38,7 @@ func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) 
 
 		var deletes []interface{}
 		updates := make(map[interface{}]ChangedFields)
-		var inserts []JoinRec
+		insertsByDestinKey := make(map[interface{}]JoinRec)
 
 		// compare with cache: will result in delete or update
 		for i := 0; i < cache.Len(); i++ {
@@ -66,7 +66,7 @@ func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) 
 
 		for _, joinRec := range joinRecs {
 			if _, ok := cacheByDestinKey[joinRec.DestinKey]; !ok {
-				inserts = append(inserts, joinRec)
+				insertsByDestinKey[joinRec.DestinKey] = joinRec
 			}
 		}
 
@@ -77,7 +77,7 @@ func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) 
 			}
 		}
 
-		for _, joinRec := range inserts {
+		for _, joinRec := range insertsByDestinKey {
 			rec := joinRec.Record
 
 			if rec.IsValid() {
