@@ -33,7 +33,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
 		fresh = true
-	} else if rc.WithConnBool(ft.IsStale) {
+	} else if rc.WithConnBool(ft.MustIsStale) {
 		consumer.Infof("Returning stale results")
 		res.Stale = true
 	}
@@ -68,10 +68,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 					hades.Assoc("Collection"),
 				),
 			)
-			for _, ft := range fts {
-				// TODO: avoid n+1
-				ft.MarkFresh(conn)
-			}
+			models.MustMarkAllFresh(conn, fts)
 		})
 	}
 

@@ -37,7 +37,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
 		fresh = true
-	} else if rc.WithConnBool(ft.IsStale) {
+	} else if rc.WithConnBool(ft.MustIsStale) {
 		consumer.Infof("Returning stale info")
 		res.Stale = true
 	}
@@ -95,15 +95,12 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 		}
 
 		rc.WithConn(func(conn *sqlite.Conn) {
-			for _, ft := range fts {
-				// TODO: avoid n+1
-				ft.MarkFresh(conn)
-			}
 			fakeColl.CollectionGames = collectionGames
 			models.MustSave(conn, fakeColl,
 				hades.OmitRoot(),
 				hades.AssocReplace("CollectionGames"),
 			)
+			models.MustMarkAllFresh(conn, fts)
 		})
 	}
 

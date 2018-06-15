@@ -7,7 +7,6 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
 
@@ -29,14 +28,12 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
 		fresh = true
-	} else if rc.WithConnBool(ft.IsStale) {
+	} else if rc.WithConnBool(ft.MustIsStale) {
 		consumer.Infof("Returning stale info")
 		res.Stale = true
 	}
 
 	if fresh {
-		fts := []models.FetchTarget{ft}
-
 		_, client := rc.ProfileClient(params.ProfileID)
 
 		consumer.Debugf("Querying API...")
@@ -52,58 +49,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustSave(conn, collRes.Collection)
-		})
-
-		var offset int64
-		for page := int64(1); ; page++ {
-			consumer.Infof("Fetching page %d", page)
-
-			gamesRes, err := client.GetCollectionGames(itchio.GetCollectionGamesParams{
-				CollectionID: params.CollectionID,
-				Page:         page,
-			})
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-			numPageGames := int64(len(gamesRes.CollectionGames))
-
-			if numPageGames == 0 {
-				break
-			}
-
-			collection.CollectionGames = append(collection.CollectionGames, gamesRes.CollectionGames...)
-
-			rc.WithConn(func(conn *sqlite.Conn) {
-				models.MustSave(conn, collection,
-					hades.Assoc("CollectionGames",
-						hades.Assoc("Game"),
-					),
-				)
-			})
-
-			offset += numPageGames
-
-			if offset >= collection.GamesCount {
-				// already fetched all or more?!
-				break
-			}
-		}
-
-		for _, cg := range collection.CollectionGames {
-			g := cg.Game
-			fts = append(fts, models.FetchTarget{
-				ID:   g.ID,
-				Type: "game",
-				TTL:  10 * time.Minute,
-			})
-		}
-
-		rc.WithConn(func(conn *sqlite.Conn) {
-			for _, ft := range fts {
-				// TODO: avoid n+1
-				ft.MarkFresh(conn)
-			}
-			models.MustSave(conn, collection, hades.AssocReplace("CollectionGames"))
+			ft.MustMarkFresh(conn)
 		})
 	}
 

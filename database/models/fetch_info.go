@@ -6,6 +6,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
+	"github.com/pkg/errors"
 )
 
 type FetchInfo struct {
@@ -16,19 +17,24 @@ type FetchInfo struct {
 	FetchedAt *time.Time
 }
 
-func GetFetchInfo(conn *sqlite.Conn, objectType string, objectID int64) *FetchInfo {
+func GetFetchInfo(conn *sqlite.Conn, objectType string, objectID int64) (*FetchInfo, error) {
 	return GetFetchInfoString(conn, objectType, strconv.FormatInt(objectID, 10))
 }
 
-func GetFetchInfoString(conn *sqlite.Conn, objectType string, objectID string) *FetchInfo {
+func GetFetchInfoString(conn *sqlite.Conn, objectType string, objectID string) (*FetchInfo, error) {
 	var fi FetchInfo
-	if MustSelectOne(conn, &fi, builder.Eq{
+	ok, err := HadesContext().SelectOne(conn, &fi, builder.Eq{
 		"object_type": objectType,
 		"object_id":   objectID,
-	}) {
-		return &fi
+	})
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	if ok {
+		return &fi, nil
+	}
+	return nil, nil
 }
 
 type FetchTarget struct {
@@ -45,19 +51,26 @@ type FetchTarget struct {
 	TTL time.Duration
 }
 
-func (ft FetchTarget) Validate() {
+func (ft FetchTarget) Validate() error {
 	if ft.Type == "" {
-		panic("FetchTarget.Type must be non-empty")
+		return errors.Errorf("FetchTarget.Type must be non-empty")
 	}
 	if ft.StringID == "" && ft.ID == 0 {
-		panic("FetchTarget.StringID or FetchTarget.ID must be set")
+		return errors.Errorf("FetchTarget.StringID or FetchTarget.ID must be set")
 	}
 	if ft.TTL == 0 {
-		panic("FetchTarget.TTL must be non-zero")
+		return errors.Errorf("FetchTarget.TTL must be non-zero")
 	}
+	return nil
 }
 
-func (ft FetchTarget) Info(conn *sqlite.Conn) *FetchInfo {
+func (ft FetchTarget) MustGetInfo(conn *sqlite.Conn) *FetchInfo {
+	fi, err := ft.GetInfo(conn)
+	Must(err)
+	return fi
+}
+
+func (ft FetchTarget) GetInfo(conn *sqlite.Conn) (*FetchInfo, error) {
 	if ft.StringID != "" {
 		return GetFetchInfoString(conn, ft.Type, ft.StringID)
 	} else {
@@ -65,21 +78,39 @@ func (ft FetchTarget) Info(conn *sqlite.Conn) *FetchInfo {
 	}
 }
 
-func (ft FetchTarget) IsStale(conn *sqlite.Conn) bool {
-	ft.Validate()
-	fi := ft.Info(conn)
+func (ft FetchTarget) MustIsStale(conn *sqlite.Conn) bool {
+	stale, err := ft.IsStale(conn)
+	Must(err)
+	return stale
+}
+
+func (ft FetchTarget) IsStale(conn *sqlite.Conn) (bool, error) {
+	err := ft.Validate()
+	if err != nil {
+		return false, err
+	}
+
+	fi, err := ft.GetInfo(conn)
+	if err != nil {
+		return false, err
+	}
+
 	if fi == nil || fi.FetchedAt == nil {
-		return true
+		return true, nil
 	}
 
 	if time.Since(*fi.FetchedAt) > ft.TTL {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
-func (ft FetchTarget) MarkFresh(conn *sqlite.Conn) {
-	ft.Validate()
+func (ft FetchTarget) MarkFresh(conn *sqlite.Conn) error {
+	err := ft.Validate()
+	if err != nil {
+		return err
+	}
+
 	fetchedAt := time.Now().UTC()
 	fi := &FetchInfo{
 		ObjectType: ft.Type,
@@ -92,5 +123,41 @@ func (ft FetchTarget) MarkFresh(conn *sqlite.Conn) {
 		fi.ObjectID = strconv.FormatInt(ft.ID, 10)
 	}
 
-	MustSave(conn, fi)
+	return HadesContext().Save(conn, fi)
+}
+
+func (ft FetchTarget) MustMarkFresh(conn *sqlite.Conn) {
+	err := ft.MarkFresh(conn)
+	Must(err)
+}
+
+func MustMarkAllFresh(conn *sqlite.Conn, fts []FetchTarget) {
+	err := MarkAllFresh(conn, fts)
+	Must(err)
+}
+
+func MarkAllFresh(conn *sqlite.Conn, fts []FetchTarget) error {
+	fetchedAt := time.Now().UTC()
+
+	fis := make([]*FetchInfo, len(fts))
+	for i, ft := range fts {
+		err := ft.Validate()
+		if err != nil {
+			return err
+		}
+
+		fi := &FetchInfo{
+			ObjectType: ft.Type,
+			FetchedAt:  &fetchedAt,
+		}
+
+		if ft.StringID != "" {
+			fi.ObjectID = ft.StringID
+		} else {
+			fi.ObjectID = strconv.FormatInt(ft.ID, 10)
+		}
+		fis[i] = fi
+	}
+
+	return Save(conn, fis)
 }

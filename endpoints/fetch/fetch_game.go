@@ -30,7 +30,7 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
 		fresh = true
-	} else if rc.WithConnBool(ft.IsStale) {
+	} else if rc.WithConnBool(ft.MustIsStale) {
 		consumer.Infof("Returning stale info")
 		res.Stale = true
 	}
@@ -58,7 +58,7 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 				hades.Assoc("Embed"),
 			)
 			// TODO: what about sale/user/embed freshness?
-			ft.MarkFresh(conn)
+			ft.MustMarkFresh(conn)
 		})
 		if err != nil {
 			return nil, errors.WithStack(err)

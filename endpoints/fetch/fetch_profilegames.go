@@ -33,7 +33,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 	if params.Fresh {
 		consumer.Infof("Doing remote fetch (Fresh specified)")
 		fresh = true
-	} else if rc.WithConnBool(ft.IsStale) {
+	} else if rc.WithConnBool(ft.MustIsStale) {
 		consumer.Infof("Returning stale results")
 		res.Stale = true
 	}
@@ -72,10 +72,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 					hades.Assoc("Game"),
 				),
 			)
-			for _, ft := range fts {
-				// TODO: avoid n+1
-				ft.MarkFresh(conn)
-			}
+			models.MustMarkAllFresh(conn, fts)
 		})
 	}
 
