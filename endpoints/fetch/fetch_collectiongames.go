@@ -70,7 +70,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 				break
 			}
 
-			collectionGames = append(collectionGames, gamesRes.CollectionGames)
+			collectionGames = append(collectionGames, gamesRes.CollectionGames...)
 
 			rc.WithConn(func(conn *sqlite.Conn) {
 				fakeColl.CollectionGames = collectionGames
