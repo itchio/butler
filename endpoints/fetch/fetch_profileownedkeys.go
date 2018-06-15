@@ -1,9 +1,12 @@
 package fetch
 
 import (
+	"strconv"
+	"time"
+
 	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
@@ -14,72 +17,102 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	sendDBKeys := func() error {
-		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, profile,
-				hades.AssocWithSearch("OwnedKeys", hades.Search().OrderBy("created_at DESC"),
-					hades.Assoc("Game"),
-				),
-			)
-		})
-
-		keys := profile.OwnedKeys
-
-		yn := &butlerd.FetchProfileOwnedKeysYieldNotification{
-			Offset: 0,
-			Total:  int64(len(keys)),
-			Items:  keys,
-		}
-		err := messages.FetchProfileOwnedKeysYield.Notify(rc, yn)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		return nil
+	limit := params.Limit
+	if limit == 0 {
+		limit = 5
+	}
+	consumer.Infof("Using limit of %d", limit)
+	ft := models.FetchTarget{
+		Type: "profile_owned_keys",
+		ID:   profile.ID,
+		TTL:  10 * time.Minute,
 	}
 
-	err := sendDBKeys()
-	if err != nil {
-		return nil, errors.WithStack(err)
+	fresh := false
+	res := &butlerd.FetchProfileOwnedKeysResult{}
+
+	if params.Fresh {
+		consumer.Infof("Doing remote fetch (Fresh specified)")
+		fresh = true
+	} else if rc.WithConnBool(ft.IsStale) {
+		consumer.Infof("Returning stale results")
+		res.Stale = true
 	}
 
-	profile.OwnedKeys = nil
-	for page := int64(1); ; page++ {
-		consumer.Infof("Fetching page %d", page)
+	if fresh {
+		fts := []models.FetchTarget{ft}
 
-		ownedRes, err := client.ListProfileOwnedKeys(itchio.ListProfileOwnedKeysParams{
-			Page: page,
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
+		profile.OwnedKeys = nil
+		for page := int64(1); ; page++ {
+			consumer.Infof("Fetching page %d", page)
+
+			ownedRes, err := client.ListProfileOwnedKeys(itchio.ListProfileOwnedKeysParams{
+				Page: page,
+			})
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			numPageItems := int64(len(ownedRes.OwnedKeys))
+
+			if numPageItems == 0 {
+				break
+			}
+
+			profile.OwnedKeys = append(profile.OwnedKeys, ownedRes.OwnedKeys...)
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustSave(conn, profile,
+					hades.OmitRoot(),
+					hades.Assoc("OwnedKeys",
+						hades.Assoc("Game"),
+					),
+				)
+			})
 		}
-		numPageItems := int64(len(ownedRes.OwnedKeys))
 
-		if numPageItems == 0 {
-			break
+		for _, dk := range profile.OwnedKeys {
+			fts = append(fts, models.FetchTarget{
+				Type: "game",
+				ID:   dk.Game.ID,
+				TTL:  10 * time.Minute,
+			})
 		}
 
-		profile.OwnedKeys = append(profile.OwnedKeys, ownedRes.OwnedKeys...)
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustSave(conn, profile,
-				hades.Assoc("OwnedKeys",
+				hades.OmitRoot(),
+				hades.AssocReplace("OwnedKeys",
 					hades.Assoc("Game"),
 				),
 			)
+			for _, ft := range fts {
+				// TODO: avoid n+1
+				ft.MarkFresh(conn)
+			}
 		})
+	}
 
-		// after each page is fetched
-		err = sendDBKeys()
-		if err != nil {
-			return nil, err
+	rc.WithConn(func(conn *sqlite.Conn) {
+		var oks []*itchio.DownloadKey
+		var cond builder.Cond = builder.Eq{"owner_id": profile.ID}
+		var offset int64
+		if params.Cursor != "" {
+			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
+				offset = parsedOffset
+			}
 		}
-	}
+		search := hades.Search().OrderBy("created_at DESC").Limit(limit + 1).Offset(offset)
+		models.MustSelect(conn, &oks, cond, search)
+		models.MustPreload(conn, oks, hades.Assoc("Game"))
 
-	err = sendDBKeys()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	res := &butlerd.FetchProfileOwnedKeysResult{}
+		for i, ok := range oks {
+			if i == len(oks)-1 {
+				if int64(len(oks)) > limit {
+					res.NextCursor = strconv.FormatInt(offset+limit, 10)
+				}
+			} else {
+				res.Items = append(res.Items, ok)
+			}
+		}
+	})
 	return res, nil
 }

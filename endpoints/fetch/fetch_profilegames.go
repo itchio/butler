@@ -1,9 +1,12 @@
 package fetch
 
 import (
+	"strconv"
+	"time"
+
 	"crawshaw.io/sqlite"
+	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
@@ -11,82 +14,93 @@ import (
 
 func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
 	consumer := rc.Consumer
-
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	sendDBGames := func() error {
-		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustPreload(conn, profile,
-				hades.AssocWithSearch("ProfileGames", hades.Search().OrderBy("position ASC"),
-					hades.Assoc("Game"),
-				),
-			)
-		})
-		profileGames := profile.ProfileGames
+	limit := params.Limit
+	if limit == 0 {
+		limit = 5
+	}
+	consumer.Infof("Using limit of %d", limit)
+	ft := models.FetchTarget{
+		Type: "profile_games",
+		ID:   profile.ID,
+		TTL:  10 * time.Minute,
+	}
 
-		yn := &butlerd.FetchProfileGamesYieldNotification{
-			Offset: 0,
-			Total:  int64(len(profileGames)),
-			Items:  nil,
+	fresh := false
+	res := &butlerd.FetchProfileGamesResult{}
+
+	if params.Fresh {
+		consumer.Infof("Doing remote fetch (Fresh specified)")
+		fresh = true
+	} else if rc.WithConnBool(ft.IsStale) {
+		consumer.Infof("Returning stale results")
+		res.Stale = true
+	}
+
+	if fresh {
+		fts := []models.FetchTarget{ft}
+
+		consumer.Debugf("Querying API...")
+
+		gamesRes, err := client.ListProfileGames()
+		if err != nil {
+			return nil, errors.WithStack(err)
 		}
 
-		for _, pg := range profileGames {
-			yn.Items = append(yn.Items, &butlerd.ProfileGame{
-				Game:           pg.Game,
-				Position:       pg.Position,
-				ViewsCount:     pg.ViewsCount,
-				DownloadsCount: pg.DownloadsCount,
-				PurchasesCount: pg.PurchasesCount,
-				Published:      pg.Published,
+		profile.ProfileGames = nil
+		for i, g := range gamesRes.Games {
+			fts = append(fts, models.FetchTarget{
+				Type: "game",
+				ID:   g.ID,
+				TTL:  10 * time.Minute,
+			})
+			profile.ProfileGames = append(profile.ProfileGames, &models.ProfileGame{
+				Game:           g,
+				Position:       int64(i),
+				Published:      g.Published,
+				ViewsCount:     g.ViewsCount,
+				PurchasesCount: g.PurchasesCount,
+				DownloadsCount: g.DownloadsCount,
 			})
 		}
 
-		err := messages.FetchProfileGamesYield.Notify(rc, yn)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		return nil
-	}
-
-	err := sendDBGames()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	consumer.Debugf("Querying API...")
-
-	gamesRes, err := client.ListProfileGames()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	profile.ProfileGames = nil
-	for i, g := range gamesRes.Games {
-		profile.ProfileGames = append(profile.ProfileGames, &models.ProfileGame{
-			Game:           g,
-			Position:       int64(i),
-			Published:      g.Published,
-			ViewsCount:     g.ViewsCount,
-			PurchasesCount: g.PurchasesCount,
-			DownloadsCount: g.DownloadsCount,
+		rc.WithConn(func(conn *sqlite.Conn) {
+			models.MustSave(conn, profile,
+				hades.OmitRoot(),
+				hades.AssocReplace("ProfileGames",
+					hades.Assoc("Game"),
+				),
+			)
+			for _, ft := range fts {
+				// TODO: avoid n+1
+				ft.MarkFresh(conn)
+			}
 		})
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, profile,
-			hades.OmitRoot(),
-			hades.Assoc("ProfileGames",
-				hades.Assoc("Game"),
-			),
-		)
+		var pgs []*models.ProfileGame
+		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
+		var offset int64
+		if params.Cursor != "" {
+			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
+				offset = parsedOffset
+			}
+		}
+		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
+		models.MustSelect(conn, &pgs, cond, search)
+		models.MustPreload(conn, pgs, hades.Assoc("Game"))
+
+		for i, pg := range pgs {
+			if i == len(pgs)-1 {
+				if int64(len(pgs)) > limit {
+					res.NextCursor = strconv.FormatInt(offset+limit, 10)
+				}
+			} else {
+				res.Items = append(res.Items, pg)
+			}
+		}
 	})
-
-	err = sendDBGames()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	res := &butlerd.FetchProfileGamesResult{}
 	return res, nil
 }

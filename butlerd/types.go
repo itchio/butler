@@ -3,6 +3,7 @@ package butlerd
 import (
 	"time"
 
+	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
@@ -409,33 +410,33 @@ type FetchProfileCollectionsResult struct {
 // @category Fetch
 // @caller client
 type FetchProfileGamesParams struct {
-	// Profile to use to fetch game
+	// Profile for which to fetch games
 	ProfileID int64 `json:"profileId"`
-}
 
-type ProfileGame struct {
-	Game *itchio.Game `json:"game,omitempty"`
-	User *itchio.User `json:"user,omitempty"`
+	// Maximum number of items to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
 
-	// Position on profile, from 0 to N
-	Position int64 `json:"position"`
+	// Used for pagination, if specified
+	// @optional
+	Cursor string `json:"cursor"`
 
-	ViewsCount     int64 `json:"viewsCount"`
-	DownloadsCount int64 `json:"downloadsCount"`
-	PurchasesCount int64 `json:"purchasesCount"`
-
-	Published bool `json:"published"`
-}
-
-// @name Fetch.ProfileGames.Yield
-// @category Fetch
-type FetchProfileGamesYieldNotification struct {
-	Offset int64          `json:"offset"`
-	Total  int64          `json:"total"`
-	Items  []*ProfileGame `json:"items"`
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
 }
 
 type FetchProfileGamesResult struct {
+	// Profile games
+	Items []*models.ProfileGame `json:"item"`
+
+	// Used to fetch the next page
+	// @optional
+	NextCursor string `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // @name Fetch.ProfileOwnedKeys
@@ -444,17 +445,31 @@ type FetchProfileGamesResult struct {
 type FetchProfileOwnedKeysParams struct {
 	// Profile to use to fetch game
 	ProfileID int64 `json:"profileId"`
-}
 
-// @name Fetch.ProfileOwnedKeys.Yield
-// @category Fetch
-type FetchProfileOwnedKeysYieldNotification struct {
-	Offset int64                 `json:"offset"`
-	Total  int64                 `json:"total"`
-	Items  []*itchio.DownloadKey `json:"items"`
+	// Maximum number of collections to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor string `json:"cursor"`
+
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
 }
 
 type FetchProfileOwnedKeysResult struct {
+	// Download keys fetched for profile
+	Items []*itchio.DownloadKey `json:"items"`
+
+	// Used to fetch the next page
+	// @optional
+	NextCursor string `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // @name Fetch.Commons

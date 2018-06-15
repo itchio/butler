@@ -64,7 +64,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustSave(conn, profile,
-				hades.Assoc("ProfileCollections",
+				hades.AssocReplace("ProfileCollections",
 					hades.Assoc("Collection"),
 				),
 			)

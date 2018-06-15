@@ -1017,34 +1017,6 @@ func (r *FetchProfileGamesType) TestCall(rc *butlerd.RequestContext, params *but
 
 var FetchProfileGames *FetchProfileGamesType
 
-// Fetch.ProfileGames.Yield (Notification)
-
-type FetchProfileGamesYieldType struct {}
-
-var _ NotificationMessage = (*FetchProfileGamesYieldType)(nil)
-
-func (r *FetchProfileGamesYieldType) Method() string {
-  return "Fetch.ProfileGames.Yield"
-}
-
-func (r *FetchProfileGamesYieldType) Notify(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesYieldNotification) (error) {
-  return rc.Notify("Fetch.ProfileGames.Yield", params)
-}
-
-func (r *FetchProfileGamesYieldType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileGamesYieldNotification)) {
-  router.RegisterNotification("Fetch.ProfileGames.Yield", func (rc *butlerd.RequestContext) {
-    var params butlerd.FetchProfileGamesYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, &params)
-  })
-}
-
-var FetchProfileGamesYield *FetchProfileGamesYieldType
-
 // Fetch.ProfileOwnedKeys (Request)
 
 type FetchProfileOwnedKeysType struct {}
@@ -1080,34 +1052,6 @@ func (r *FetchProfileOwnedKeysType) TestCall(rc *butlerd.RequestContext, params 
 }
 
 var FetchProfileOwnedKeys *FetchProfileOwnedKeysType
-
-// Fetch.ProfileOwnedKeys.Yield (Notification)
-
-type FetchProfileOwnedKeysYieldType struct {}
-
-var _ NotificationMessage = (*FetchProfileOwnedKeysYieldType)(nil)
-
-func (r *FetchProfileOwnedKeysYieldType) Method() string {
-  return "Fetch.ProfileOwnedKeys.Yield"
-}
-
-func (r *FetchProfileOwnedKeysYieldType) Notify(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysYieldNotification) (error) {
-  return rc.Notify("Fetch.ProfileOwnedKeys.Yield", params)
-}
-
-func (r *FetchProfileOwnedKeysYieldType) Register(router router, f func(*butlerd.RequestContext, *butlerd.FetchProfileOwnedKeysYieldNotification)) {
-  router.RegisterNotification("Fetch.ProfileOwnedKeys.Yield", func (rc *butlerd.RequestContext) {
-    var params butlerd.FetchProfileOwnedKeysYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, &params)
-  })
-}
-
-var FetchProfileOwnedKeysYield *FetchProfileOwnedKeysYieldType
 
 // Fetch.Commons (Request)
 

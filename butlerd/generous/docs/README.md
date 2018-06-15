@@ -1480,7 +1480,25 @@ games.</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Profile to use to fetch game</p>
+<td><p>Profile for which to fetch games</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of items to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
 </td>
 </tr>
 </table>
@@ -1488,8 +1506,30 @@ games.</p>
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>item</code></td>
+<td><code class="typename"><span class="type builtin-type">ProfileGame</span>[]</code></td>
+<td><p>Profile games</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Used to fetch the next page</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
 
 
 <div id="FetchProfileGamesParams__TypeHint" style="display: none;" class="tip-content">
@@ -1501,54 +1541,17 @@ games.</p>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>Fetch.ProfileGames.Yield
-
-
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
 <tr>
-<td><code>offset</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchProfileGamesYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.ProfileGames.Yield <a href="#/?id=fetchprofilegamesyield">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>offset</code></td>
+<td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">ProfileGame</span>[]</code></td>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -1570,13 +1573,53 @@ games.</p>
 <td><p>Profile to use to fetch game</p>
 </td>
 </tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of collections to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
 </table>
 
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
+<td><p>Download keys fetched for profile</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Used to fetch the next page</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
 
 
 <div id="FetchProfileOwnedKeysParams__TypeHint" style="display: none;" class="tip-content">
@@ -1588,54 +1631,17 @@ games.</p>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>Fetch.ProfileOwnedKeys.Yield
-
-
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
 <tr>
-<td><code>offset</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchProfileOwnedKeysYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Fetch.ProfileOwnedKeys.Yield <a href="#/?id=fetchprofileownedkeysyield">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>offset</code></td>
+<td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>total</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">DownloadKey</span>[]</code></td>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -5065,92 +5071,6 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type struct-type">User</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="struct-type"></em>ProfileGame
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>position</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Position on profile, from 0 to N</p>
-</td>
-</tr>
-<tr>
-<td><code>viewsCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>downloadsCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>purchasesCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>published</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="ProfileGame__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ProfileGame <a href="#/?id=profilegame">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
-</tr>
-<tr>
-<td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
-</tr>
-<tr>
-<td><code>position</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>viewsCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>downloadsCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>purchasesCount</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>published</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

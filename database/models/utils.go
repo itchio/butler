@@ -5,10 +5,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/itchio/hades/sqliteutil2"
+
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/hades"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 )
 
 var dbConsumer *state.Consumer
@@ -68,6 +71,39 @@ func MustSave(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func MustSaveNoTransaction(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) {
+	err := HadesContext().SaveNoTransaction(conn, record, opts...)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func MustDoInTransaction(conn *sqlite.Conn, f func()) {
+	err := DoInTransaction(conn, f)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func DoInTransaction(conn *sqlite.Conn, f func()) (err error) {
+	defer sqliteutil2.Save(conn)(&err)
+
+	// looks lispy as heck
+	(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				if rErr, ok := r.(error); ok {
+					err = rErr
+				} else {
+					err = errors.Errorf("panic: %s", r)
+				}
+			}
+		}()
+		f()
+	})()
+	return err
 }
 
 func MustExec(conn *sqlite.Conn, b *builder.Builder, resultFn hades.ResultFn) {

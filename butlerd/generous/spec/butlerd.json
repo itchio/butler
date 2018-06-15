@@ -527,13 +527,44 @@
         "fields": [
           {
             "name": "profileId",
-            "doc": "Profile to use to fetch game",
+            "doc": "Profile for which to fetch games",
             "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of items to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "string"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
           }
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "item",
+            "doc": "Profile games",
+            "type": "ProfileGame[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Used to fetch the next page",
+            "type": "string"
+          },
+          {
+            "name": "stale",
+            "doc": "If true, re-issue request with \"Fresh\"",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {
@@ -546,11 +577,42 @@
             "name": "profileId",
             "doc": "Profile to use to fetch game",
             "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of collections to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "string"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
           }
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "items",
+            "doc": "Download keys fetched for profile",
+            "type": "DownloadKey[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Used to fetch the next page",
+            "type": "string"
+          },
+          {
+            "name": "stale",
+            "doc": "If true, re-issue request with \"Fresh\"",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {
@@ -1684,52 +1746,6 @@
       }
     },
     {
-      "method": "Fetch.ProfileGames.Yield",
-      "doc": "",
-      "params": {
-        "fields": [
-          {
-            "name": "offset",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "total",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "items",
-            "doc": "",
-            "type": "ProfileGame[]"
-          }
-        ]
-      }
-    },
-    {
-      "method": "Fetch.ProfileOwnedKeys.Yield",
-      "doc": "",
-      "params": {
-        "fields": [
-          {
-            "name": "offset",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "total",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "items",
-            "doc": "",
-            "type": "DownloadKey[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "Progress",
       "doc": "Sent periodically during @@InstallPerformParams to inform on the current state of an install",
       "params": {
@@ -1934,47 +1950,6 @@
           "name": "user",
           "doc": "User information",
           "type": "User"
-        }
-      ]
-    },
-    {
-      "name": "ProfileGame",
-      "doc": "",
-      "fields": [
-        {
-          "name": "game",
-          "doc": "",
-          "type": "Game"
-        },
-        {
-          "name": "user",
-          "doc": "",
-          "type": "User"
-        },
-        {
-          "name": "position",
-          "doc": "Position on profile, from 0 to N",
-          "type": "number"
-        },
-        {
-          "name": "viewsCount",
-          "doc": "",
-          "type": "number"
-        },
-        {
-          "name": "downloadsCount",
-          "doc": "",
-          "type": "number"
-        },
-        {
-          "name": "purchasesCount",
-          "doc": "",
-          "type": "number"
-        },
-        {
-          "name": "published",
-          "doc": "",
-          "type": "boolean"
         }
       ]
     },
