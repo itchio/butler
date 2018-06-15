@@ -550,7 +550,7 @@
       "result": {
         "fields": [
           {
-            "name": "item",
+            "name": "items",
             "doc": "Profile games",
             "type": "ProfileGame[]"
           },

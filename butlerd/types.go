@@ -437,7 +437,7 @@ type ProfileGame struct {
 
 type FetchProfileGamesResult struct {
 	// Profile games
-	Items []*ProfileGame `json:"item"`
+	Items []*ProfileGame `json:"items"`
 
 	// Used to fetch the next page
 	// @optional

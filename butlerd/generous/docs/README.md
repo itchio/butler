@@ -1512,7 +1512,7 @@ games.</p>
 
 <table class="field-table">
 <tr>
-<td><code>item</code></td>
+<td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
 <td><p>Profile games</p>
 </td>
