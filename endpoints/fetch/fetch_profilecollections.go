@@ -90,12 +90,9 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 
 		for i, pc := range pcs {
 			// last collection
-			if i == len(pcs)-1 {
-				// and we fetched more than was asked..
-				if int64(len(pcs)) > limit {
-					// then we have a next page
-					res.NextCursor = strconv.FormatInt(offset+limit, 10)
-				}
+			if i == len(pcs)-1 && int64(len(pcs)) > limit {
+				// then we have a next page
+				res.NextCursor = strconv.FormatInt(offset+limit, 10)
 			} else {
 				res.Items = append(res.Items, pc.Collection)
 			}

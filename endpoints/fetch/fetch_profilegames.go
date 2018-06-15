@@ -93,10 +93,8 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 		models.MustPreload(conn, pgs, hades.Assoc("Game"))
 
 		for i, pg := range pgs {
-			if i == len(pgs)-1 {
-				if int64(len(pgs)) > limit {
-					res.NextCursor = strconv.FormatInt(offset+limit, 10)
-				}
+			if i == len(pgs)-1 && int64(len(pgs)) > limit {
+				res.NextCursor = strconv.FormatInt(offset+limit, 10)
 			} else {
 				res.Items = append(res.Items, pg)
 			}

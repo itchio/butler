@@ -71,9 +71,7 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 				break
 			}
 
-			for _, cg := range gamesRes.CollectionGames {
-				collection.CollectionGames = append(collection.CollectionGames, cg)
-			}
+			collection.CollectionGames = append(collection.CollectionGames, gamesRes.CollectionGames...)
 
 			rc.WithConn(func(conn *sqlite.Conn) {
 				models.MustSave(conn, collection,

@@ -70,9 +70,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 				break
 			}
 
-			for _, cg := range gamesRes.CollectionGames {
-				collectionGames = append(collectionGames, cg)
-			}
+			collectionGames = append(collectionGames, gamesRes.CollectionGames)
 
 			rc.WithConn(func(conn *sqlite.Conn) {
 				fakeColl.CollectionGames = collectionGames
@@ -123,13 +121,9 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 		models.MustPreload(conn, cgs, hades.Assoc("Game"))
 
 		for i, cg := range cgs {
-			// last collection game
-			if i == len(cgs)-1 {
-				// and we fetched more than was asked...
-				if int64(len(cgs)) > limit {
-					// then we have a next "page"
-					res.NextCursor = strconv.FormatInt(offset+limit, 10)
-				}
+			if i == len(cgs)-1 && int64(len(cgs)) > limit {
+				// then we have a next "page"
+				res.NextCursor = strconv.FormatInt(offset+limit, 10)
 			} else {
 				res.Items = append(res.Items, cg)
 			}

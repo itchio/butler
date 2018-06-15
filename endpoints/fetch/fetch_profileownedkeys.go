@@ -105,10 +105,8 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 		models.MustPreload(conn, oks, hades.Assoc("Game"))
 
 		for i, ok := range oks {
-			if i == len(oks)-1 {
-				if int64(len(oks)) > limit {
-					res.NextCursor = strconv.FormatInt(offset+limit, 10)
-				}
+			if i == len(oks)-1 && int64(len(oks)) > limit {
+				res.NextCursor = strconv.FormatInt(offset+limit, 10)
 			} else {
 				res.Items = append(res.Items, ok)
 			}
