@@ -3,7 +3,6 @@ package butlerd
 import (
 	"time"
 
-	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
@@ -426,9 +425,19 @@ type FetchProfileGamesParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+type ProfileGame struct {
+	Game *itchio.Game `json:"game"`
+
+	ViewsCount     int64 `json:"viewsCount"`
+	DownloadsCount int64 `json:"downloadsCount"`
+	PurchasesCount int64 `json:"purchasesCount"`
+
+	Published bool `json:"published"`
+}
+
 type FetchProfileGamesResult struct {
 	// Profile games
-	Items []*models.ProfileGame `json:"item"`
+	Items []*ProfileGame `json:"item"`
 
 	// Used to fetch the next page
 	// @optional

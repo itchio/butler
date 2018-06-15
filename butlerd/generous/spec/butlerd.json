@@ -1954,6 +1954,37 @@
       ]
     },
     {
+      "name": "ProfileGame",
+      "doc": "",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "viewsCount",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "downloadsCount",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "purchasesCount",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "published",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
       "name": "DownloadKeySummary",
       "doc": "",
       "fields": [

@@ -1513,7 +1513,7 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>item</code></td>
-<td><code class="typename"><span class="type builtin-type">ProfileGame</span>[]</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
 <td><p>Profile games</p>
 </td>
 </tr>
@@ -5071,6 +5071,73 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>ProfileGame
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="ProfileGame__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>ProfileGame <a href="#/?id=profilegame">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>viewsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>downloadsCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>purchasesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

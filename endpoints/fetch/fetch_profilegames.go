@@ -93,9 +93,21 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 			if i == len(pgs)-1 && int64(len(pgs)) > limit {
 				res.NextCursor = strconv.FormatInt(offset+limit, 10)
 			} else {
-				res.Items = append(res.Items, pg)
+				res.Items = append(res.Items, FormatProfileGame(pg))
 			}
 		}
 	})
 	return res, nil
+}
+
+func FormatProfileGame(pg *models.ProfileGame) *butlerd.ProfileGame {
+	return &butlerd.ProfileGame{
+		Game: pg.Game,
+
+		ViewsCount:     pg.ViewsCount,
+		DownloadsCount: pg.DownloadsCount,
+		PurchasesCount: pg.PurchasesCount,
+
+		Published: pg.Published,
+	}
 }
