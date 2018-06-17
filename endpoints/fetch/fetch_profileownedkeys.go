@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"strconv"
 	"time"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
@@ -17,11 +17,6 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	limit := params.Limit
-	if limit == 0 {
-		limit = 5
-	}
-	consumer.Infof("Using limit of %d", limit)
 	ft := models.FetchTarget{
 		Type: "profile_owned_keys",
 		ID:   profile.ID,
@@ -89,25 +84,14 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProf
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var oks []*itchio.DownloadKey
 		var cond builder.Cond = builder.Eq{"owner_id": profile.ID}
-		var offset int64
-		if params.Cursor != "" {
-			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
-				offset = parsedOffset
-			}
-		}
-		search := hades.Search().OrderBy("created_at DESC").Limit(limit + 1).Offset(offset)
-		models.MustSelect(conn, &oks, cond, search)
-		models.MustPreload(conn, oks, hades.Assoc("Game"))
+		search := hades.Search{}.OrderBy("created_at DESC")
 
-		for i, ok := range oks {
-			if i == len(oks)-1 && int64(len(oks)) > limit {
-				res.NextCursor = strconv.FormatInt(offset+limit, 10)
-			} else {
-				res.Items = append(res.Items, ok)
-			}
-		}
+		var items []*itchio.DownloadKey
+		pg := pager.New(params)
+		res.NextCursor = pg.Fetch(conn, &items, cond, search)
+		models.MustPreload(conn, items, hades.Assoc("Game"))
+		res.Items = items
 	})
 	return res, nil
 }

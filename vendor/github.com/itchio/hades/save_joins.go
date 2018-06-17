@@ -18,7 +18,7 @@ func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) 
 	for sourceKey, joinRecs := range mtm.Values {
 		cacheAddr := reflect.New(reflect.SliceOf(joinType))
 
-		err := c.Select(conn, cacheAddr.Interface(), builder.Eq{mtm.SourceDBName: sourceKey}, nil)
+		err := c.Select(conn, cacheAddr.Interface(), builder.Eq{mtm.SourceDBName: sourceKey}, Search{})
 		if err != nil {
 			return errors.WithMessage(err, "fetching cached records to compare later")
 		}

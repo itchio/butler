@@ -153,9 +153,7 @@ func (scope *Scope) GetModelStruct() *ModelStruct {
 			} else if _, ok := field.TagSettings[TagSettingSquash]; ok {
 				field.IsSquashed = true
 				nestedModelStruct := scope.ctx.NewScope(reflect.Zero(field.Struct.Type).Interface()).GetModelStruct()
-				for _, sf := range nestedModelStruct.StructFields {
-					field.SquashedFields = append(field.SquashedFields, sf)
-				}
+				field.SquashedFields = append(field.SquashedFields, nestedModelStruct.StructFields...)
 			} else {
 				if _, ok := field.TagSettings[TagSettingPrimaryKey]; ok {
 					field.IsPrimaryKey = true

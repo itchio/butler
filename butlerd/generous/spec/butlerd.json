@@ -442,7 +442,7 @@
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "fresh",
@@ -461,7 +461,7 @@
           {
             "name": "nextCursor",
             "doc": "Use to fetch the next 'page' of results",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "stale",
@@ -490,7 +490,7 @@
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "fresh",
@@ -509,7 +509,7 @@
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "stale",
@@ -538,7 +538,7 @@
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "fresh",
@@ -557,7 +557,7 @@
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "stale",
@@ -586,7 +586,7 @@
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "fresh",
@@ -605,7 +605,7 @@
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "string"
+            "type": "Cursor"
           },
           {
             "name": "stale",

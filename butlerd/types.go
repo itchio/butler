@@ -349,11 +349,19 @@ type FetchCollectionGamesParams struct {
 
 	// Used for pagination, if specified
 	// @optional
-	Cursor string `json:"cursor"`
+	Cursor Cursor `json:"cursor"`
 
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
+}
+
+func (p *FetchCollectionGamesParams) GetLimit() int64 {
+	return p.Limit
+}
+
+func (p *FetchCollectionGamesParams) GetCursor() Cursor {
+	return p.Cursor
 }
 
 type FetchCollectionGamesResult struct {
@@ -362,7 +370,7 @@ type FetchCollectionGamesResult struct {
 
 	// Use to fetch the next 'page' of results
 	// @optional
-	NextCursor string `json:"nextCursor,omitempty"`
+	NextCursor Cursor `json:"nextCursor,omitempty"`
 
 	// If true, re-issue request with 'Fresh'
 	// @optional
@@ -385,11 +393,19 @@ type FetchProfileCollectionsParams struct {
 
 	// Used for pagination, if specified
 	// @optional
-	Cursor string `json:"cursor"`
+	Cursor Cursor `json:"cursor"`
 
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
+}
+
+func (p *FetchProfileCollectionsParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p *FetchProfileCollectionsParams) GetLimit() int64 {
+	return p.Limit
 }
 
 type FetchProfileCollectionsResult struct {
@@ -398,7 +414,7 @@ type FetchProfileCollectionsResult struct {
 
 	// Used to fetch the next page
 	// @optional
-	NextCursor string `json:"nextCursor,omitempty"`
+	NextCursor Cursor `json:"nextCursor,omitempty"`
 
 	// If true, re-issue request with "Fresh"
 	// @optional
@@ -418,11 +434,19 @@ type FetchProfileGamesParams struct {
 
 	// Used for pagination, if specified
 	// @optional
-	Cursor string `json:"cursor"`
+	Cursor Cursor `json:"cursor"`
 
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
+}
+
+func (p *FetchProfileGamesParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p *FetchProfileGamesParams) GetLimit() int64 {
+	return p.Limit
 }
 
 type ProfileGame struct {
@@ -441,7 +465,7 @@ type FetchProfileGamesResult struct {
 
 	// Used to fetch the next page
 	// @optional
-	NextCursor string `json:"nextCursor,omitempty"`
+	NextCursor Cursor `json:"nextCursor,omitempty"`
 
 	// If true, re-issue request with "Fresh"
 	// @optional
@@ -461,11 +485,19 @@ type FetchProfileOwnedKeysParams struct {
 
 	// Used for pagination, if specified
 	// @optional
-	Cursor string `json:"cursor"`
+	Cursor Cursor `json:"cursor"`
 
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
+}
+
+func (p *FetchProfileOwnedKeysParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p *FetchProfileOwnedKeysParams) GetLimit() int64 {
+	return p.Limit
 }
 
 type FetchProfileOwnedKeysResult struct {
@@ -474,7 +506,7 @@ type FetchProfileOwnedKeysResult struct {
 
 	// Used to fetch the next page
 	// @optional
-	NextCursor string `json:"nextCursor,omitempty"`
+	NextCursor Cursor `json:"nextCursor,omitempty"`
 
 	// If true, re-issue request with "Fresh"
 	// @optional
@@ -1690,3 +1722,7 @@ func FromDateTime(s string) (time.Time, error) {
 func ToDateTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
+
+// Cursors
+
+type Cursor string

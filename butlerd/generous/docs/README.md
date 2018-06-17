@@ -1292,7 +1292,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -1320,7 +1320,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
 </td>
 </tr>
@@ -1357,7 +1357,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -1396,7 +1396,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -1424,7 +1424,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -1457,7 +1457,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -1491,7 +1491,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -1519,7 +1519,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -1547,7 +1547,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -1581,7 +1581,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -1609,7 +1609,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -1637,7 +1637,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>

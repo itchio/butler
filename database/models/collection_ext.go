@@ -29,7 +29,7 @@ func CollectionExt(c *itchio.Collection) collectionExt {
 
 func (ce collectionExt) PreloadCollectionGames(conn *sqlite.Conn) {
 	MustPreload(conn, ce.Collection,
-		hades.AssocWithSearch("CollectionGames", hades.Search().OrderBy("position ASC"),
+		hades.AssocWithSearch("CollectionGames", hades.Search{}.OrderBy("position ASC"),
 			hades.Assoc("Game"),
 		),
 	)

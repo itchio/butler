@@ -127,7 +127,7 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 
 	var discardedDownloads []*models.Download
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSelect(conn, &discardedDownloads, builder.Expr("discarded"), nil)
+		models.MustSelect(conn, &discardedDownloads, builder.Expr("discarded"), hades.Search{})
 		models.PreloadDownloads(conn, discardedDownloads)
 	})
 	for _, download := range discardedDownloads {
@@ -177,7 +177,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 				builder.IsNull{"finished_at"},
 				builder.Not{builder.Expr("discarded")},
 			),
-			hades.Search().OrderBy("position ASC"),
+			hades.Search{}.OrderBy("position ASC"),
 		)
 		if len(pendingDownloads) == 0 {
 			return
@@ -224,7 +224,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 							builder.Not{builder.Expr("discarded")},
 						),
 					),
-					hades.Search().Limit(1),
+					hades.Search{}.Limit(1),
 					func(stmt *sqlite.Stmt) error {
 						priorityDownloadID = stmt.ColumnText(0)
 						return nil

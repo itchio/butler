@@ -19,7 +19,7 @@ func (c *Context) Exec(conn *sqlite.Conn, b *builder.Builder, resultFn ResultFn)
 	return c.ExecRaw(conn, query, resultFn, args...)
 }
 
-func (c *Context) ExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search *SearchParams, resultFn ResultFn) error {
+func (c *Context) ExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search Search, resultFn ResultFn) error {
 	query, args, err := b.ToSQL()
 	if err != nil {
 		return errors.WithStack(err)

@@ -31,8 +31,7 @@ func ValidateDownload(conn *sqlite.Conn, downloadID string) *models.Download {
 	if downloadID == "" {
 		panic(errors.Errorf("downloadId must be set"))
 	}
-	var download *models.Download
-	download = models.DownloadByID(conn, downloadID)
+	download := models.DownloadByID(conn, downloadID)
 	if download == nil {
 		panic(errors.Errorf("Download not found (%s)", downloadID))
 	}

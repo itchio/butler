@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"strconv"
 	"time"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
@@ -16,11 +16,6 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	limit := params.Limit
-	if limit == 0 {
-		limit = 5
-	}
-	consumer.Infof("Using limit of %d", limit)
 	ft := models.FetchTarget{
 		Type: "profile_collections",
 		ID:   profile.ID,
@@ -73,26 +68,15 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchPr
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var pcs []*models.ProfileCollection
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
-		var offset int64
-		if params.Cursor != "" {
-			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
-				offset = parsedOffset
-			}
-		}
-		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
-		models.MustSelect(conn, &pcs, cond, search)
-		models.MustPreload(conn, pcs, hades.Assoc("Collection"))
+		search := hades.Search{}.OrderBy("position ASC")
 
-		for i, pc := range pcs {
-			// last collection
-			if i == len(pcs)-1 && int64(len(pcs)) > limit {
-				// then we have a next page
-				res.NextCursor = strconv.FormatInt(offset+limit, 10)
-			} else {
-				res.Items = append(res.Items, pc.Collection)
-			}
+		var items []*models.ProfileCollection
+		pg := pager.New(params)
+		res.NextCursor = pg.Fetch(conn, &items, cond, search)
+		models.MustPreload(conn, items, hades.Assoc("Collection"))
+		for _, item := range items {
+			res.Items = append(res.Items, item.Collection)
 		}
 	})
 	return res, nil

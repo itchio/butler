@@ -5,6 +5,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
+	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -33,7 +34,7 @@ func InstallLocationsList(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 	defer rc.DBPool.Put(conn)
 
 	var locations []*models.InstallLocation
-	models.MustSelect(conn, &locations, builder.NewCond(), nil)
+	models.MustSelect(conn, &locations, builder.NewCond(), hades.Search{})
 
 	var flocs []*butlerd.InstallLocationSummary
 	for _, il := range locations {

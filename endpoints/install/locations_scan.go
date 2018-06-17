@@ -117,7 +117,7 @@ func (sc *scanContext) Do() error {
 	rc := sc.rc
 	consumer := rc.Consumer
 
-	models.MustSelect(sc.conn, &sc.installLocations, builder.NewCond(), nil)
+	models.MustSelect(sc.conn, &sc.installLocations, builder.NewCond(), hades.Search{})
 
 	hc := models.HadesContext()
 	models.MustExec(sc.conn,

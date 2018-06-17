@@ -25,7 +25,7 @@ func Register(router *butlerd.Router) {
 func List(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error) {
 	var profiles []*models.Profile
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSelect(conn, &profiles, builder.NewCond(), nil)
+		models.MustSelect(conn, &profiles, builder.NewCond(), hades.Search{})
 		models.MustPreload(conn, profiles, hades.Assoc("User"))
 	})
 

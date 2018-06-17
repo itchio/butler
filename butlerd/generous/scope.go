@@ -70,6 +70,7 @@ type EntryTypeKind int
 const (
 	EntryTypeKindStruct EntryTypeKind = iota
 	EntryTypeKindEnum
+	EntryTypeKindAlias
 	EntryTypeKindInvalid
 )
 
@@ -81,6 +82,7 @@ const (
 	EntryKindNotification
 	EntryKindType
 	EntryKindEnum
+	EntryKindAlias
 	EntryKindInvalid
 )
 
@@ -319,6 +321,13 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 					}
 				}
 			}
+		}
+	}
+
+	for _, entry := range s.entries {
+		if entry.kind == EntryKindEnum && len(entry.enumValues) == 0 {
+			entry.kind = EntryKindAlias
+			entry.typeKind = EntryTypeKindAlias
 		}
 	}
 

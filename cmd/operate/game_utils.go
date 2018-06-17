@@ -210,7 +210,7 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 	// no special credentials
 	{
 		var profiles []*models.Profile
-		models.MustSelect(conn, &profiles, builder.NewCond(), hades.Search().OrderBy("last_connected DESC"))
+		models.MustSelect(conn, &profiles, builder.NewCond(), hades.Search{}.OrderBy("last_connected DESC"))
 		if len(profiles) == 0 {
 			panic(errors.New("No profiles found"))
 		}

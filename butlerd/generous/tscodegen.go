@@ -87,6 +87,8 @@ func (gc *GenerousContext) GenerateTsCode(outPath string) error {
 				doc.Line("  %s = %s,", name, val.value)
 			}
 			doc.Line("}")
+		case EntryTypeKindAlias:
+			doc.Line("export type %s = %s;", entry.typeName, typeToString(entry.typeSpec.Type))
 		}
 	}
 

@@ -34,7 +34,7 @@ func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) 
 		rc.WithConn(func(conn *sqlite.Conn) {
 			models.MustSelect(conn, &games,
 				builder.Like{"lower(title)", q},
-				hades.Search().Limit(4),
+				hades.Search{}.Limit(4),
 			)
 		})
 	}

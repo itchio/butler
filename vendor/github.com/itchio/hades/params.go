@@ -9,7 +9,7 @@ const (
 
 type assocField struct {
 	name     string
-	search   *SearchParams
+	search   Search
 	mode     AssocMode
 	children []AssocField
 }
@@ -36,7 +36,7 @@ type AssocField interface {
 	PreloadParam
 	Name() string
 	Mode() AssocMode
-	Search() *SearchParams
+	Search() Search
 	Children() []AssocField
 }
 
@@ -75,7 +75,7 @@ func AssocReplace(fieldName string, children ...AssocField) AssocField {
 	}
 }
 
-func AssocWithSearch(fieldName string, search *SearchParams, children ...AssocField) AssocField {
+func AssocWithSearch(fieldName string, search Search, children ...AssocField) AssocField {
 	return &assocField{
 		name:     fieldName,
 		mode:     AssocModeAppend,
@@ -104,6 +104,6 @@ func (f *assocField) Children() []AssocField {
 	return f.children
 }
 
-func (f *assocField) Search() *SearchParams {
+func (f *assocField) Search() Search {
 	return f.search
 }

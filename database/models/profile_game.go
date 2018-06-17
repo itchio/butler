@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 )
 
 // Join table for Profile <has many> Games
@@ -30,6 +31,6 @@ type ProfileGame struct {
 
 func ProfileGamesByGameID(conn *sqlite.Conn, gameID int64) []*ProfileGame {
 	var pgs []*ProfileGame
-	MustSelect(conn, &pgs, builder.Eq{"game_id": gameID}, nil)
+	MustSelect(conn, &pgs, builder.Eq{"game_id": gameID}, hades.Search{})
 	return pgs
 }

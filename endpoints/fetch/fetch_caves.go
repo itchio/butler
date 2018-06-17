@@ -5,13 +5,14 @@ import (
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/hades"
 )
 
 func FetchCaves(rc *butlerd.RequestContext, params *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
 	var caves []*models.Cave
 	var formattedCaves []*butlerd.Cave
 	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSelect(conn, &caves, builder.NewCond(), nil)
+		models.MustSelect(conn, &caves, builder.NewCond(), hades.Search{})
 		models.PreloadCaves(conn, caves)
 		for _, cave := range caves {
 			formattedCaves = append(formattedCaves, FormatCave(conn, cave))

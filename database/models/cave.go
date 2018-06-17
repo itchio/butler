@@ -67,7 +67,7 @@ func CaveByID(conn *sqlite.Conn, id string) *Cave {
 
 func CavesByGameID(conn *sqlite.Conn, gameID int64) []*Cave {
 	var cs []*Cave
-	MustSelect(conn, &cs, builder.Eq{"game_id": gameID}, nil)
+	MustSelect(conn, &cs, builder.Eq{"game_id": gameID}, hades.Search{})
 	return cs
 }
 

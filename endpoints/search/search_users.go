@@ -37,7 +37,7 @@ func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) 
 					builder.Like{"lower(display_name)", q},
 					builder.Like{"lower(username)", q},
 				),
-				hades.Search().Limit(4),
+				hades.Search{}.Limit(4),
 			)
 		})
 	}

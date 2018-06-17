@@ -62,11 +62,11 @@ func MustSelectOne(conn *sqlite.Conn, result interface{}, cond builder.Cond) boo
 	return ok
 }
 
-func Select(conn *sqlite.Conn, result interface{}, cond builder.Cond, search *hades.SearchParams) error {
+func Select(conn *sqlite.Conn, result interface{}, cond builder.Cond, search hades.Search) error {
 	return HadesContext().Select(conn, result, cond, search)
 }
 
-func MustSelect(conn *sqlite.Conn, result interface{}, cond builder.Cond, search *hades.SearchParams) {
+func MustSelect(conn *sqlite.Conn, result interface{}, cond builder.Cond, search hades.Search) {
 	err := Select(conn, result, cond, search)
 	Must(err)
 }
@@ -122,7 +122,7 @@ func MustExec(conn *sqlite.Conn, b *builder.Builder, resultFn hades.ResultFn) {
 	Must(err)
 }
 
-func ExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search *hades.SearchParams, resultFn hades.ResultFn) error {
+func ExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search hades.Search, resultFn hades.ResultFn) error {
 	query, args, err := b.ToSQL()
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func ExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search *hades.SearchP
 	return ExecRaw(conn, query, resultFn, args...)
 }
 
-func MustExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search *hades.SearchParams, resultFn hades.ResultFn) {
+func MustExecWithSearch(conn *sqlite.Conn, b *builder.Builder, search hades.Search, resultFn hades.ResultFn) {
 	err := ExecWithSearch(conn, b, search, resultFn)
 	Must(err)
 }

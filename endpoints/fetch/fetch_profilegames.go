@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"strconv"
 	"time"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
 )
@@ -16,11 +16,6 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	limit := params.Limit
-	if limit == 0 {
-		limit = 5
-	}
-	consumer.Infof("Using limit of %d", limit)
 	ft := models.FetchTarget{
 		Type: "profile_games",
 		ID:   profile.ID,
@@ -77,24 +72,15 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var pgs []*models.ProfileGame
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
-		var offset int64
-		if params.Cursor != "" {
-			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
-				offset = parsedOffset
-			}
-		}
-		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
-		models.MustSelect(conn, &pgs, cond, search)
-		models.MustPreload(conn, pgs, hades.Assoc("Game"))
+		search := hades.Search{}.OrderBy("position ASC")
 
-		for i, pg := range pgs {
-			if i == len(pgs)-1 && int64(len(pgs)) > limit {
-				res.NextCursor = strconv.FormatInt(offset+limit, 10)
-			} else {
-				res.Items = append(res.Items, FormatProfileGame(pg))
-			}
+		var items []*models.ProfileGame
+		pg := pager.New(params)
+		res.NextCursor = pg.Fetch(conn, &items, cond, search)
+		models.MustPreload(conn, items, hades.Assoc("Game"))
+		for _, item := range items {
+			res.Items = append(res.Items, FormatProfileGame(item))
 		}
 	})
 	return res, nil

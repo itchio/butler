@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"strconv"
 	"time"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/pager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
@@ -24,12 +24,6 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 		ID:   params.CollectionID,
 		TTL:  30 * time.Minute,
 	}
-
-	limit := params.Limit
-	if limit == 0 {
-		limit = 5
-	}
-	consumer.Infof("Using limit of %d", limit)
 
 	fresh := false
 	res := &butlerd.FetchCollectionGamesResult{}
@@ -105,26 +99,14 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchColle
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cgs []*itchio.CollectionGame
 		var cond builder.Cond = builder.Eq{"collection_id": params.CollectionID}
-		var offset int64
-		if params.Cursor != "" {
-			if parsedOffset, err := strconv.ParseInt(params.Cursor, 10, 64); err == nil {
-				offset = parsedOffset
-			}
-		}
-		search := hades.Search().OrderBy("position ASC").Limit(limit + 1).Offset(offset)
-		models.MustSelect(conn, &cgs, cond, search)
-		models.MustPreload(conn, cgs, hades.Assoc("Game"))
+		search := hades.Search{}.OrderBy("position ASC")
 
-		for i, cg := range cgs {
-			if i == len(cgs)-1 && int64(len(cgs)) > limit {
-				// then we have a next "page"
-				res.NextCursor = strconv.FormatInt(offset+limit, 10)
-			} else {
-				res.Items = append(res.Items, cg)
-			}
-		}
+		var items []*itchio.CollectionGame
+		pg := pager.New(params)
+		res.NextCursor = pg.Fetch(conn, &items, cond, search)
+		models.MustPreload(conn, items, hades.Assoc("Game"))
+		res.Items = items
 	})
 	return res, nil
 }

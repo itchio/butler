@@ -6,6 +6,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/system"
+	"github.com/itchio/hades"
 	"github.com/itchio/wharf/state"
 )
 
@@ -46,7 +47,7 @@ func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams
 			},
 		)
 
-		models.MustSelect(conn, &installLocations, builder.NewCond(), nil)
+		models.MustSelect(conn, &installLocations, builder.NewCond(), hades.Search{})
 		for _, il := range installLocations {
 			flocs = append(flocs, FormatInstallLocation(conn, rc.Consumer, il))
 		}

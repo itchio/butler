@@ -247,7 +247,7 @@
 			"importpath": "github.com/itchio/hades",
 			"repository": "https://github.com/itchio/hades",
 			"vcs": "git",
-			"revision": "918412f4e3350e44e9168871958c716af164a3d5",
+			"revision": "379580a0c77dcf7388d1057e8be6a78fa84a8154",
 			"branch": "master",
 			"notests": true
 		},

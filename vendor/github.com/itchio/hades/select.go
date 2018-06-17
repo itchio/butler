@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Context) Select(conn *sqlite.Conn, result interface{}, cond builder.Cond, search *SearchParams) error {
+func (c *Context) Select(conn *sqlite.Conn, result interface{}, cond builder.Cond, search Search) error {
 	resultVal := reflect.ValueOf(result)
 	originalType := resultVal.Type()
 
@@ -73,7 +73,7 @@ func (c *Context) SelectOne(conn *sqlite.Conn, result interface{}, cond builder.
 	if err != nil {
 		return found, err
 	}
-	query = Search().Limit(1).Apply(query)
+	query = Search{}.Limit(1).Apply(query)
 
 	err = c.ExecRaw(conn, query, func(stmt *sqlite.Stmt) error {
 		err := c.Scan(stmt, fields, resultVal)

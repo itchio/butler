@@ -133,7 +133,7 @@ func (c *Context) saveRows(conn *sqlite.Conn, mode AssocMode, inputIface interfa
 		keys = append(keys, getKey(record))
 	}
 
-	cacheAddr, err := c.fetchPagedByPK(conn, primaryField.DBName, keys, fresh.Type(), nil)
+	cacheAddr, err := c.fetchPagedByPK(conn, primaryField.DBName, keys, fresh.Type(), Search{})
 	if err != nil {
 		return errors.WithMessage(err, "getting existing rows")
 	}

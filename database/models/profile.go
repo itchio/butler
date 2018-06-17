@@ -49,6 +49,6 @@ func ProfileByID(conn *sqlite.Conn, id int64) *Profile {
 
 func AllProfiles(conn *sqlite.Conn) []*Profile {
 	var profiles []*Profile
-	MustSelect(conn, &profiles, builder.NewCond(), nil)
+	MustSelect(conn, &profiles, builder.NewCond(), hades.Search{})
 	return profiles
 }

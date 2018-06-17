@@ -47,7 +47,7 @@ type Download struct {
 
 func AllDownloads(conn *sqlite.Conn) []*Download {
 	var dls []*Download
-	MustSelect(conn, &dls, builder.Not{builder.Expr("discarded")}, hades.Search().OrderBy("position ASC"))
+	MustSelect(conn, &dls, builder.Not{builder.Expr("discarded")}, hades.Search{}.OrderBy("position ASC"))
 	return dls
 }
 
