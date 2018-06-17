@@ -291,6 +291,10 @@ type FetchGameParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+func (p *FetchGameParams) IsFresh() bool {
+	return p.Fresh
+}
+
 type FetchGameResult struct {
 	// Game info
 	Game *itchio.Game `json:"game"`
@@ -299,6 +303,10 @@ type FetchGameResult struct {
 	// afterwards with 'Fresh' set
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchGameResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // Fetch a collection's title, gamesCount, etc.
