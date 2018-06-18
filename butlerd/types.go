@@ -758,14 +758,33 @@ type InstallLocationSizeInfo struct {
 // @category Fetch
 // @caller client
 type FetchCavesParams struct {
+	// Maximum number of caves to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor Cursor `json:"cursor"`
 }
 
 func (p FetchCavesParams) Validate() error {
 	return nil
 }
 
+func (p FetchCavesParams) GetLimit() int64 {
+	return p.Limit
+}
+
+func (p FetchCavesParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
 type FetchCavesResult struct {
 	Caves []*Cave `json:"caves"`
+
+	// Use to fetch the next 'page' of results
+	// @optional
+	NextCursor Cursor `json:"nextCursor,omitempty"`
 }
 
 // Retrieve info on a cave by ID.
