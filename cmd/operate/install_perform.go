@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams *butlerd.InstallPerformParams) error {
+func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams butlerd.InstallPerformParams) error {
 	if performParams.StagingFolder == "" {
 		return errors.New("No staging folder specified")
 	}
@@ -61,7 +61,7 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 		consumer.Infof("Install source needs to be available locally, copying to disk...")
 
 		dlErr := func() error {
-			err := messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+			err := messages.TaskStarted.Notify(oc.rc, butlerd.TaskStartedNotification{
 				Reason:    butlerd.TaskReasonInstall,
 				Type:      butlerd.TaskTypeDownload,
 				Game:      params.Game,
@@ -81,7 +81,7 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 				return errors.WithStack(err)
 			}
 
-			err = messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
+			err = messages.TaskSucceeded.Notify(oc.rc, butlerd.TaskSucceededNotification{
 				Type: butlerd.TaskTypeDownload,
 			})
 			if err != nil {
@@ -185,7 +185,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				// keep going!
 			}
 
-			err = messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+			err = messages.TaskStarted.Notify(oc.rc, butlerd.TaskStartedNotification{
 				Reason:    butlerd.TaskReasonInstall,
 				Type:      butlerd.TaskTypeInstall,
 				Game:      params.Game,

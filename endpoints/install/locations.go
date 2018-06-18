@@ -10,7 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func InstallLocationsGetByID(rc *butlerd.RequestContext, params *butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {
+func InstallLocationsGetByID(rc *butlerd.RequestContext, params butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {
 	if params.ID == "" {
 		return nil, errors.Errorf("id must be set")
 	}
@@ -29,7 +29,7 @@ func InstallLocationsGetByID(rc *butlerd.RequestContext, params *butlerd.Install
 	return res, nil
 }
 
-func InstallLocationsList(rc *butlerd.RequestContext, params *butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error) {
+func InstallLocationsList(rc *butlerd.RequestContext, params butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error) {
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
 
@@ -47,7 +47,7 @@ func InstallLocationsList(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 	return res, nil
 }
 
-func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error) {
+func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error) {
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
 	consumer := rc.Consumer
@@ -87,7 +87,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params *butlerd.InstallLoca
 	return res, nil
 }
 
-func InstallLocationsRemove(rc *butlerd.RequestContext, params *butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error) {
+func InstallLocationsRemove(rc *butlerd.RequestContext, params butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error) {
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
 	consumer := rc.Consumer

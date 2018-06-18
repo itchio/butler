@@ -37,7 +37,7 @@ type Launcher struct{}
 
 var _ launch.Launcher = (*Launcher)(nil)
 
-func (l *Launcher) Do(params *launch.LauncherParams) error {
+func (l *Launcher) Do(params launch.LauncherParams) error {
 	consumer := params.RequestContext.Consumer
 	installFolder := params.InstallFolder
 
@@ -79,7 +79,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 			err = butlerd.CodeNetworkDisconnected
 		}
 
-		r, err := messages.PrereqsFailed.Call(params.RequestContext, &butlerd.PrereqsFailedParams{
+		r, err := messages.PrereqsFailed.Call(params.RequestContext, butlerd.PrereqsFailedParams{
 			Error:      err.Error(),
 			ErrorStack: fmt.Sprintf("%+v", err),
 		})
@@ -177,9 +177,9 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	err = func() error {
 		startTime := time.Now()
 
-		messages.LaunchRunning.Notify(params.RequestContext, &butlerd.LaunchRunningNotification{})
+		messages.LaunchRunning.Notify(params.RequestContext, butlerd.LaunchRunningNotification{})
 		exitCode, err := interpretRunError(run.Run())
-		messages.LaunchExited.Notify(params.RequestContext, &butlerd.LaunchExitedNotification{})
+		messages.LaunchExited.Notify(params.RequestContext, butlerd.LaunchExitedNotification{})
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -244,7 +244,7 @@ func (l *Launcher) Do(params *launch.LauncherParams) error {
 	return nil
 }
 
-func (l *Launcher) FirejailParams(params *launch.LauncherParams) runner.FirejailParams {
+func (l *Launcher) FirejailParams(params launch.LauncherParams) runner.FirejailParams {
 	name := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
 	binaryPath := filepath.Join(params.PrereqsDir, name, "firejail")
 	return runner.FirejailParams{
@@ -252,13 +252,13 @@ func (l *Launcher) FirejailParams(params *launch.LauncherParams) runner.Firejail
 	}
 }
 
-func (l *Launcher) FujiParams(params *launch.LauncherParams) runner.FujiParams {
+func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 	consumer := params.RequestContext.Consumer
 
 	return runner.FujiParams{
 		Settings: mansion.GetFujiSettings(),
 		PerformElevatedSetup: func() error {
-			r, err := messages.AllowSandboxSetup.Call(params.RequestContext, &butlerd.AllowSandboxSetupParams{})
+			r, err := messages.AllowSandboxSetup.Call(params.RequestContext, butlerd.AllowSandboxSetupParams{})
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -295,17 +295,17 @@ func (l *Launcher) FujiParams(params *launch.LauncherParams) runner.FujiParams {
 	}
 }
 
-func (l *Launcher) AttachParams(params *launch.LauncherParams) runner.AttachParams {
+func (l *Launcher) AttachParams(params launch.LauncherParams) runner.AttachParams {
 	return runner.AttachParams{
 		BringWindowToForeground: func(hwnd int64) {
-			messages.LaunchWindowShouldBeForeground.Notify(params.RequestContext, &butlerd.LaunchWindowShouldBeForegroundNotification{
+			messages.LaunchWindowShouldBeForeground.Notify(params.RequestContext, butlerd.LaunchWindowShouldBeForegroundNotification{
 				Hwnd: hwnd,
 			})
 		},
 	}
 }
 
-func configureTargetIfNeeded(params *launch.LauncherParams) error {
+func configureTargetIfNeeded(params launch.LauncherParams) error {
 	if params.Candidate != nil {
 		// already configured
 		return nil
@@ -327,7 +327,7 @@ func configureTargetIfNeeded(params *launch.LauncherParams) error {
 	return nil
 }
 
-func fillPeInfoIfNeeded(params *launch.LauncherParams) error {
+func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 	c := params.Candidate
 	if c == nil {
 		// no candidate for some reason?

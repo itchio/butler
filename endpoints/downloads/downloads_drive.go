@@ -35,7 +35,7 @@ type Status struct {
 	Online bool
 }
 
-func DownloadsDrive(rc *butlerd.RequestContext, params *butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
+func DownloadsDrive(rc *butlerd.RequestContext, params butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
 	consumer := rc.Consumer
 	consumer.Infof("Now driving downloads...")
 
@@ -87,7 +87,7 @@ func waitForInternet(rc *butlerd.RequestContext, status *Status) error {
 	consumer := rc.Consumer
 
 	// notify always, but only log once
-	messages.DownloadsDriveNetworkStatus.Notify(rc, &butlerd.DownloadsDriveNetworkStatusNotification{
+	messages.DownloadsDriveNetworkStatus.Notify(rc, butlerd.DownloadsDriveNetworkStatusNotification{
 		Status: butlerd.NetworkStatusOffline,
 	})
 	if status.Online {
@@ -110,7 +110,7 @@ func waitForInternet(rc *butlerd.RequestContext, status *Status) error {
 		} else {
 			payload, _ := ioutil.ReadAll(res.Body)
 			consumer.Statf("Looks like we're back online! (%s)", strings.TrimSpace(string(payload)))
-			messages.DownloadsDriveNetworkStatus.Notify(rc, &butlerd.DownloadsDriveNetworkStatusNotification{
+			messages.DownloadsDriveNetworkStatus.Notify(rc, butlerd.DownloadsDriveNetworkStatusNotification{
 				Status: butlerd.NetworkStatusOnline,
 			})
 			status.Online = true
@@ -159,7 +159,7 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 			models.MustDelete(conn, download, builder.Eq{"id": download.ID})
 		})
 
-		messages.DownloadsDriveDiscarded.Notify(rc, &butlerd.DownloadsDriveDiscardedNotification{
+		messages.DownloadsDriveDiscarded.Notify(rc, butlerd.DownloadsDriveDiscardedNotification{
 			Download: formatDownload(download),
 		})
 	}
@@ -270,7 +270,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			speedHistory = speedHistory[len(speedHistory)-maxSpeedDatapoints:]
 		}
 
-		return messages.DownloadsDriveProgress.Notify(rc, &butlerd.DownloadsDriveProgressNotification{
+		return messages.DownloadsDriveProgress.Notify(rc, butlerd.DownloadsDriveProgressNotification{
 			Download: formatDownload(download),
 			Progress: &butlerd.DownloadProgress{
 				Stage:    stage,
@@ -315,11 +315,11 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			}
 		}()
 
-		messages.DownloadsDriveStarted.Notify(rc, &butlerd.DownloadsDriveStartedNotification{
+		messages.DownloadsDriveStarted.Notify(rc, butlerd.DownloadsDriveStartedNotification{
 			Download: formatDownload(download),
 		})
 
-		err = operate.InstallPerform(ctx, rc, &butlerd.InstallPerformParams{
+		err = operate.InstallPerform(ctx, rc, butlerd.InstallPerformParams{
 			ID:            download.ID,
 			StagingFolder: download.StagingFolder,
 		})
@@ -375,7 +375,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		download.FinishedAt = &finishedAt
 		rc.WithConn(download.Save)
 
-		messages.DownloadsDriveErrored.Notify(rc, &butlerd.DownloadsDriveErroredNotification{
+		messages.DownloadsDriveErrored.Notify(rc, butlerd.DownloadsDriveErroredNotification{
 			Download: formatDownload(download),
 		})
 
@@ -387,7 +387,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	download.FinishedAt = &finishedAt
 	rc.WithConn(download.Save)
 
-	messages.DownloadsDriveFinished.Notify(rc, &butlerd.DownloadsDriveFinishedNotification{
+	messages.DownloadsDriveFinished.Notify(rc, butlerd.DownloadsDriveFinishedNotification{
 		Download: formatDownload(download),
 	})
 

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchCavesByGameID(rc *butlerd.RequestContext, params *butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error) {
+func FetchCavesByGameID(rc *butlerd.RequestContext, params butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error) {
 	if params.GameID == 0 {
 		return nil, errors.New("gameId must be set")
 	}

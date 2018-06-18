@@ -13,7 +13,7 @@ import (
 	"github.com/itchio/hades"
 )
 
-func DownloadsQueue(rc *butlerd.RequestContext, params *butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
+func DownloadsQueue(rc *butlerd.RequestContext, params butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
 	consumer := rc.Consumer
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)

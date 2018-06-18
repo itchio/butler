@@ -8,14 +8,9 @@ import (
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/pkg/errors"
 )
 
-func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*butlerd.FetchGameResult, error) {
-	if params.GameID == 0 {
-		return nil, errors.New("gameId must be non-zero")
-	}
-
+func FetchGame(rc *butlerd.RequestContext, params butlerd.FetchGameParams) (*butlerd.FetchGameResult, error) {
 	ft := models.FetchTargetForGame(params.GameID)
 	res := &butlerd.FetchGameResult{}
 
@@ -46,9 +41,8 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 	})
 
 	if res.Game == nil && !params.Fresh {
-		freshParams := *params
-		freshParams.Fresh = true
-		return FetchGame(rc, &freshParams)
+		params.Fresh = true
+		return FetchGame(rc, params)
 	}
 
 	return res, nil

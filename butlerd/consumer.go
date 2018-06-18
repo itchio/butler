@@ -28,7 +28,7 @@ func NewStateConsumer(params *NewStateConsumerParams) (*state.Consumer, error) {
 
 	c := &state.Consumer{
 		OnMessage: func(level, msg string) {
-			params.Conn.Notify(params.Ctx, "Log", &LogNotification{
+			params.Conn.Notify(params.Ctx, "Log", LogNotification{
 				Level:   LogLevel(level),
 				Message: msg,
 			})

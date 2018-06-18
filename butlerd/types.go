@@ -3,6 +3,7 @@ package butlerd
 import (
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
@@ -16,6 +17,10 @@ type HandshakeParams struct {
 
 type HandshakeResult struct {
 	Signature string `json:"signature"`
+}
+
+func (p HandshakeParams) Validate() error {
+	return nil
 }
 
 //----------------------------------------------------------------------
@@ -43,6 +48,10 @@ type VersionGetResult struct {
 	VersionString string `json:"versionString"`
 }
 
+func (p VersionGetParams) Validate() error {
+	return nil
+}
+
 // @name Network.SetSimulateOffline
 // @category Utilities
 // @caller client
@@ -50,6 +59,10 @@ type NetworkSetSimulateOfflineParams struct {
 	// If true, all operations after this point will behave
 	// as if there were no network connections
 	Enabled bool `json:"enabled"`
+}
+
+func (p NetworkSetSimulateOfflineParams) Validate() error {
+	return nil
 }
 
 type NetworkSetSimulateOfflineResult struct{}
@@ -64,6 +77,10 @@ type NetworkSetBandwidthThrottleParams struct {
 	Rate int64 `json:"rate"`
 }
 
+func (p NetworkSetBandwidthThrottleParams) Validate() error {
+	return nil
+}
+
 type NetworkSetBandwidthThrottleResult struct{}
 
 //----------------------------------------------------------------------
@@ -76,6 +93,10 @@ type NetworkSetBandwidthThrottleResult struct{}
 // @category Profile
 // @caller client
 type ProfileListParams struct {
+}
+
+func (p ProfileListParams) Validate() error {
+	return nil
 }
 
 type ProfileListResult struct {
@@ -109,6 +130,13 @@ type ProfileLoginWithPasswordParams struct {
 	Password string `json:"password"`
 }
 
+func (p ProfileLoginWithPasswordParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Username, validation.Required),
+		validation.Field(&p.Password, validation.Required),
+	)
+}
+
 type ProfileLoginWithPasswordResult struct {
 	// Information for the new profile, now remembered
 	Profile *Profile `json:"profile"`
@@ -129,6 +157,12 @@ type ProfileLoginWithAPIKeyParams struct {
 	APIKey string `json:"apiKey"`
 }
 
+func (p ProfileLoginWithAPIKeyParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.APIKey, validation.Required),
+	)
+}
+
 type ProfileLoginWithAPIKeyResult struct {
 	// Information for the new profile, now remembered
 	Profile *Profile `json:"profile"`
@@ -146,6 +180,12 @@ type ProfileRequestCaptchaParams struct {
 	RecaptchaURL string `json:"recaptchaUrl"`
 }
 
+func (p ProfileRequestCaptchaParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.RecaptchaURL, validation.Required),
+	)
+}
+
 type ProfileRequestCaptchaResult struct {
 	// The response given by recaptcha after it's been filled
 	RecaptchaResponse string `json:"recaptchaResponse"`
@@ -159,6 +199,10 @@ type ProfileRequestCaptchaResult struct {
 // @category Profile
 // @caller server
 type ProfileRequestTOTPParams struct {
+}
+
+func (p ProfileRequestTOTPParams) Validate() error {
+	return nil
 }
 
 type ProfileRequestTOTPResult struct {
@@ -175,6 +219,12 @@ type ProfileUseSavedLoginParams struct {
 	ProfileID int64 `json:"profileId"`
 }
 
+func (p ProfileUseSavedLoginParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
 type ProfileUseSavedLoginResult struct {
 	// Information for the now validated profile
 	Profile *Profile `json:"profile"`
@@ -188,6 +238,12 @@ type ProfileUseSavedLoginResult struct {
 // @caller client
 type ProfileForgetParams struct {
 	ProfileID int64 `json:"profileId"`
+}
+
+func (p ProfileForgetParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
 }
 
 type ProfileForgetResult struct {
@@ -206,6 +262,14 @@ type ProfileDataPutParams struct {
 	Value     string `json:"value"`
 }
 
+func (p ProfileDataPutParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Key, validation.Required),
+		validation.Field(&p.Value, validation.Required),
+	)
+}
+
 type ProfileDataPutResult struct {
 }
 
@@ -217,6 +281,13 @@ type ProfileDataPutResult struct {
 type ProfileDataGetParams struct {
 	ProfileID int64  `json:"profileId"`
 	Key       string `json:"key"`
+}
+
+func (p ProfileDataGetParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Key, validation.Required),
+	)
 }
 
 type ProfileDataGetResult struct {
@@ -241,6 +312,13 @@ type SearchGamesParams struct {
 	Query string `json:"query"`
 }
 
+func (p SearchGamesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Query, validation.Required),
+	)
+}
+
 type SearchGamesResult struct {
 }
 
@@ -261,6 +339,13 @@ type SearchUsersParams struct {
 	ProfileID int64 `json:"profileId"`
 
 	Query string `json:"query"`
+}
+
+func (p SearchUsersParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Query, validation.Required),
+	)
 }
 
 type SearchUsersResult struct {
@@ -291,7 +376,13 @@ type FetchGameParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchGameParams) IsFresh() bool {
+func (p FetchGameParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+func (p FetchGameParams) IsFresh() bool {
 	return p.Fresh
 }
 
@@ -328,7 +419,14 @@ type FetchCollectionParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchCollectionParams) IsFresh() bool {
+func (p FetchCollectionParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+	)
+}
+
+func (p FetchCollectionParams) IsFresh() bool {
 	return p.Fresh
 }
 
@@ -372,15 +470,22 @@ type FetchCollectionGamesParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchCollectionGamesParams) GetLimit() int64 {
+func (p FetchCollectionGamesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+	)
+}
+
+func (p FetchCollectionGamesParams) GetLimit() int64 {
 	return p.Limit
 }
 
-func (p *FetchCollectionGamesParams) GetCursor() Cursor {
+func (p FetchCollectionGamesParams) GetCursor() Cursor {
 	return p.Cursor
 }
 
-func (p *FetchCollectionGamesParams) IsFresh() bool {
+func (p FetchCollectionGamesParams) IsFresh() bool {
 	return p.Fresh
 }
 
@@ -424,15 +529,21 @@ type FetchProfileCollectionsParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchProfileCollectionsParams) GetCursor() Cursor {
+func (p FetchProfileCollectionsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchProfileCollectionsParams) GetCursor() Cursor {
 	return p.Cursor
 }
 
-func (p *FetchProfileCollectionsParams) GetLimit() int64 {
+func (p FetchProfileCollectionsParams) GetLimit() int64 {
 	return p.Limit
 }
 
-func (p *FetchProfileCollectionsParams) IsFresh() bool {
+func (p FetchProfileCollectionsParams) IsFresh() bool {
 	return p.Fresh
 }
 
@@ -473,15 +584,21 @@ type FetchProfileGamesParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchProfileGamesParams) GetCursor() Cursor {
+func (p FetchProfileGamesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchProfileGamesParams) GetCursor() Cursor {
 	return p.Cursor
 }
 
-func (p *FetchProfileGamesParams) GetLimit() int64 {
+func (p FetchProfileGamesParams) GetLimit() int64 {
 	return p.Limit
 }
 
-func (p *FetchProfileGamesParams) IsFresh() bool {
+func (p FetchProfileGamesParams) IsFresh() bool {
 	return p.Fresh
 }
 
@@ -532,11 +649,17 @@ type FetchProfileOwnedKeysParams struct {
 	Fresh bool `json:"fresh"`
 }
 
-func (p *FetchProfileOwnedKeysParams) GetCursor() Cursor {
+func (p FetchProfileOwnedKeysParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchProfileOwnedKeysParams) GetCursor() Cursor {
 	return p.Cursor
 }
 
-func (p *FetchProfileOwnedKeysParams) GetLimit() int64 {
+func (p FetchProfileOwnedKeysParams) GetLimit() int64 {
 	return p.Limit
 }
 
@@ -557,6 +680,10 @@ type FetchProfileOwnedKeysResult struct {
 // @category Fetch
 // @caller client
 type FetchCommonsParams struct{}
+
+func (p FetchCommonsParams) Validate() error {
+	return nil
+}
 
 type FetchCommonsResult struct {
 	DownloadKeys     []*DownloadKeySummary     `json:"downloadKeys"`
@@ -633,6 +760,10 @@ type InstallLocationSizeInfo struct {
 type FetchCavesParams struct {
 }
 
+func (p FetchCavesParams) Validate() error {
+	return nil
+}
+
 type FetchCavesResult struct {
 	Caves []*Cave `json:"caves"`
 }
@@ -644,6 +775,12 @@ type FetchCavesResult struct {
 // @caller client
 type FetchCaveParams struct {
 	CaveID string `json:"caveId"`
+}
+
+func (p FetchCaveParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
 }
 
 type FetchCaveResult struct {
@@ -659,6 +796,12 @@ type FetchCavesByGameIDParams struct {
 	GameID int64 `json:"gameId"`
 }
 
+func (p FetchCavesByGameIDParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
 type FetchCavesByGameIDResult struct {
 	Caves []*Cave `json:"caves"`
 }
@@ -670,6 +813,12 @@ type FetchCavesByGameIDResult struct {
 // @caller client
 type FetchCavesByInstallLocationIDParams struct {
 	InstallLocationID string `json:"installLocationId"`
+}
+
+func (p FetchCavesByInstallLocationIDParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.InstallLocationID, validation.Required),
+	)
 }
 
 type FetchCavesByInstallLocationIDResult struct {
@@ -690,6 +839,12 @@ type FetchCavesByInstallLocationIDResult struct {
 type GameFindUploadsParams struct {
 	// Which game to find uploads for
 	Game *itchio.Game `json:"game"`
+}
+
+func (p GameFindUploadsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Game, validation.Required),
+	)
 }
 
 type GameFindUploadsResult struct {
@@ -766,6 +921,10 @@ type InstallQueueParams struct {
 	QueueDownload bool `json:"queueDownload"`
 }
 
+func (p InstallQueueParams) Validate() error {
+	return nil
+}
+
 type InstallQueueResult struct {
 	ID            string         `json:"id"`
 	Reason        DownloadReason `json:"reason"`
@@ -784,6 +943,10 @@ type InstallQueueResult struct {
 // @caller server
 type ExternalUploadsAreBadParams struct {
 	Upload *itchio.Upload `json:"upload"`
+}
+
+func (p ExternalUploadsAreBadParams) Validate() error {
+	return nil
 }
 
 type ExternalUploadsAreBadResult struct {
@@ -808,6 +971,13 @@ type InstallPerformParams struct {
 	StagingFolder string `json:"stagingFolder"`
 }
 
+func (p InstallPerformParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+		validation.Field(&p.StagingFolder, validation.Required),
+	)
+}
+
 type InstallPerformResult struct{}
 
 // Attempt to gracefully cancel an ongoing operation.
@@ -818,6 +988,12 @@ type InstallPerformResult struct{}
 type InstallCancelParams struct {
 	// The UUID of the task to cancel, as passed to @@OperationStartParams
 	ID string `json:"id"`
+}
+
+func (p InstallCancelParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
 }
 
 type InstallCancelResult struct {
@@ -835,6 +1011,12 @@ type UninstallPerformParams struct {
 	CaveID string `json:"caveId"`
 }
 
+func (p UninstallPerformParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
 type UninstallPerformResult struct{}
 
 // Prepare to queue a version switch. The client will
@@ -848,6 +1030,12 @@ type InstallVersionSwitchQueueParams struct {
 	CaveID string `json:"caveId"`
 }
 
+func (p InstallVersionSwitchQueueParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
 type InstallVersionSwitchQueueResult struct {
 }
 
@@ -859,6 +1047,13 @@ type InstallVersionSwitchPickParams struct {
 	Cave   *Cave           `json:"cave"`
 	Upload *itchio.Upload  `json:"upload"`
 	Builds []*itchio.Build `json:"builds"`
+}
+
+func (p InstallVersionSwitchPickParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Cave, validation.Required),
+		validation.Field(&p.Upload, validation.Required),
+	)
 }
 
 type InstallVersionSwitchPickResult struct {
@@ -890,6 +1085,12 @@ func (gc *GameCredentials) JustAPIKey() *GameCredentials {
 type PickUploadParams struct {
 	// An array of upload objects to choose from
 	Uploads []*itchio.Upload `json:"uploads"`
+}
+
+func (p PickUploadParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Uploads, validation.Required),
+	)
 }
 
 type PickUploadResult struct {
@@ -989,6 +1190,10 @@ type InstallResult struct {
 type InstallLocationsListParams struct {
 }
 
+func (p InstallLocationsListParams) Validate() error {
+	return nil
+}
+
 type InstallLocationsListResult struct {
 	InstallLocations []*InstallLocationSummary `json:"installLocations"`
 }
@@ -1006,6 +1211,12 @@ type InstallLocationsAddParams struct {
 	Path string `json:"path"`
 }
 
+func (p InstallLocationsAddParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Path, validation.Required),
+	)
+}
+
 type InstallLocationsAddResult struct {
 }
 
@@ -1015,6 +1226,12 @@ type InstallLocationsAddResult struct {
 type InstallLocationsRemoveParams struct {
 	// identifier of the install location to remove
 	ID string `json:"id"`
+}
+
+func (p InstallLocationsRemoveParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
 }
 
 type InstallLocationsRemoveResult struct {
@@ -1028,6 +1245,12 @@ type InstallLocationsGetByIDParams struct {
 	ID string `json:"id"`
 }
 
+func (p InstallLocationsGetByIDParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
+}
+
 type InstallLocationsGetByIDResult struct {
 	InstallLocation *InstallLocationSummary `json:"installLocation"`
 }
@@ -1039,6 +1262,10 @@ type InstallLocationsScanParams struct {
 	// path to a legacy marketDB
 	// @optional
 	LegacyMarketPath string `json:"legacyMarketPath"`
+}
+
+func (p InstallLocationsScanParams) Validate() error {
+	return nil
 }
 
 // Sent during @@InstallLocationsScanParams whenever
@@ -1058,6 +1285,12 @@ type InstallLocationsScanYieldNotification struct {
 type InstallLocationsScanConfirmImportParams struct {
 	// number of items that will be imported
 	NumItems int64 `json:"numItems"`
+}
+
+func (p InstallLocationsScanConfirmImportParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.NumItems, validation.Required),
+	)
 }
 
 type InstallLocationsScanConfirmImportResult struct {
@@ -1083,6 +1316,12 @@ type DownloadsQueueParams struct {
 	Item *InstallQueueResult `json:"item"`
 }
 
+func (p DownloadsQueueParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Item, validation.Required),
+	)
+}
+
 type DownloadsQueueResult struct {
 }
 
@@ -1095,6 +1334,12 @@ type DownloadsPrioritizeParams struct {
 	DownloadID string `json:"downloadId"`
 }
 
+func (p DownloadsPrioritizeParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.DownloadID, validation.Required),
+	)
+}
+
 type DownloadsPrioritizeResult struct {
 }
 
@@ -1104,6 +1349,10 @@ type DownloadsPrioritizeResult struct {
 // @category Downloads
 // @caller client
 type DownloadsListParams struct {
+}
+
+func (p DownloadsListParams) Validate() error {
+	return nil
 }
 
 type DownloadsListResult struct {
@@ -1118,6 +1367,10 @@ type DownloadsListResult struct {
 type DownloadsClearFinishedParams struct {
 }
 
+func (p DownloadsClearFinishedParams) Validate() error {
+	return nil
+}
+
 type DownloadsClearFinishedResult struct {
 }
 
@@ -1129,6 +1382,10 @@ type DownloadsClearFinishedResult struct {
 // @caller client
 type DownloadsDriveParams struct{}
 
+func (p DownloadsDriveParams) Validate() error {
+	return nil
+}
+
 type DownloadsDriveResult struct{}
 
 // Stop driving downloads gracefully.
@@ -1137,6 +1394,10 @@ type DownloadsDriveResult struct{}
 // @category Downloads
 // @caller client
 type DownloadsDriveCancelParams struct{}
+
+func (p DownloadsDriveCancelParams) Validate() error {
+	return nil
+}
 
 type DownloadsDriveCancelResult struct {
 	DidCancel bool `json:"didCancel"`
@@ -1232,6 +1493,12 @@ type DownloadsRetryParams struct {
 	DownloadID string `json:"downloadId"`
 }
 
+func (p DownloadsRetryParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.DownloadID, validation.Required),
+	)
+}
+
 type DownloadsRetryResult struct{}
 
 // Attempts to discard a download
@@ -1241,6 +1508,12 @@ type DownloadsRetryResult struct{}
 // @caller client
 type DownloadsDiscardParams struct {
 	DownloadID string `json:"downloadId"`
+}
+
+func (p DownloadsDiscardParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.DownloadID, validation.Required),
+	)
 }
 
 type DownloadsDiscardResult struct{}
@@ -1259,6 +1532,12 @@ type DownloadsDiscardResult struct{}
 type CheckUpdateParams struct {
 	// A list of items, each of it will be checked for updates
 	Items []*CheckUpdateItem `json:"items"`
+}
+
+func (p CheckUpdateParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Items, validation.Required),
+	)
 }
 
 // @category Update
@@ -1328,7 +1607,15 @@ type LaunchParams struct {
 	ForcePrereqs bool `json:"forcePrereqs,omitempty"`
 
 	// Enable sandbox (regardless of manifest opt-in)
+	// @optional
 	Sandbox bool `json:"sandbox,omitempty"`
+}
+
+func (p LaunchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+		validation.Field(&p.PrereqsDir, validation.Required),
+	)
 }
 
 type LaunchResult struct {
@@ -1340,6 +1627,10 @@ type LaunchResult struct {
 // @category Launch
 // @caller client
 type LaunchCancelParams struct {
+}
+
+func (p LaunchCancelParams) Validate() error {
+	return nil
 }
 
 type LaunchCancelResult struct {
@@ -1384,6 +1675,12 @@ type PickManifestActionParams struct {
 	Actions []*Action `json:"actions"`
 }
 
+func (p PickManifestActionParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Actions, validation.Required),
+	)
+}
+
 type PickManifestActionResult struct {
 	// Index of action picked by user, or negative if aborting
 	Index int `json:"index"`
@@ -1399,6 +1696,12 @@ type PickManifestActionResult struct {
 type ShellLaunchParams struct {
 	// Absolute path of item to open, e.g. `D:\\Games\\Itch\\garden\\README.txt`
 	ItemPath string `json:"itemPath"`
+}
+
+func (p ShellLaunchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ItemPath, validation.Required),
+	)
 }
 
 type ShellLaunchResult struct {
@@ -1423,6 +1726,13 @@ type HTMLLaunchParams struct {
 	Env map[string]string `json:"env"`
 }
 
+func (p HTMLLaunchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.RootFolder, validation.Required),
+		validation.Field(&p.IndexPath, validation.Required),
+	)
+}
+
 type HTMLLaunchResult struct {
 }
 
@@ -1438,6 +1748,12 @@ type URLLaunchParams struct {
 	URL string `json:"url"`
 }
 
+func (p URLLaunchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.URL, validation.Required),
+	)
+}
+
 type URLLaunchResult struct{}
 
 // Ask the user to allow sandbox setup. Will be followed by
@@ -1450,6 +1766,10 @@ type URLLaunchResult struct{}
 // @tags Dialogs
 // @caller server
 type AllowSandboxSetupParams struct{}
+
+func (p AllowSandboxSetupParams) Validate() error {
+	return nil
+}
 
 type AllowSandboxSetupResult struct {
 	// Set to true if user allowed the sandbox setup, false otherwise
@@ -1534,6 +1854,12 @@ type PrereqsFailedParams struct {
 	ErrorStack string `json:"errorStack"`
 }
 
+func (p PrereqsFailedParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Error, validation.Required),
+	)
+}
+
 type PrereqsFailedResult struct {
 	// Set to true if the user wants to proceed with the launch in spite of the prerequisites failure
 	Continue bool `json:"continue"`
@@ -1556,6 +1882,12 @@ type CleanDownloadsSearchParams struct {
 	// A list of subfolders to not consider when cleaning
 	// (staging folders for in-progress downloads)
 	Whitelist []string `json:"whitelist"`
+}
+
+func (p CleanDownloadsSearchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Roots, validation.Required),
+	)
 }
 
 // @category Clean Downloads
@@ -1581,6 +1913,12 @@ type CleanDownloadsApplyParams struct {
 	Entries []*CleanDownloadsEntry `json:"entries"`
 }
 
+func (p CleanDownloadsApplyParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Entries, validation.Required),
+	)
+}
+
 // @category Clean Downloads
 type CleanDownloadsApplyResult struct{}
 
@@ -1595,6 +1933,12 @@ type CleanDownloadsApplyResult struct{}
 // @caller client
 type SystemStatFSParams struct {
 	Path string `json:"path"`
+}
+
+func (p SystemStatFSParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Path, validation.Required),
+	)
 }
 
 type SystemStatFSResult struct {
@@ -1645,6 +1989,12 @@ type TestDoubleTwiceParams struct {
 	Number int64 `json:"number"`
 }
 
+func (p TestDoubleTwiceParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Number, validation.Required),
+	)
+}
+
 // @category Test
 type TestDoubleTwiceResult struct {
 	// The input, quadrupled
@@ -1660,6 +2010,12 @@ type TestDoubleTwiceResult struct {
 type TestDoubleParams struct {
 	// The number to double
 	Number int64 `json:"number"`
+}
+
+func (p TestDoubleParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Number, validation.Required),
+	)
 }
 
 // Result for Test.Double

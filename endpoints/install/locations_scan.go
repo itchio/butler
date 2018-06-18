@@ -50,7 +50,7 @@ type existingCave struct {
 	InstallFolderName string
 }
 
-func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
+func InstallLocationsScan(rc *butlerd.RequestContext, params butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
 	consumer := rc.Consumer
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
@@ -71,7 +71,7 @@ func InstallLocationsScan(rc *butlerd.RequestContext, params *butlerd.InstallLoc
 	var numSaved int64
 
 	if numFound > 0 {
-		confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, &butlerd.InstallLocationsScanConfirmImportParams{
+		confirmRes, err := messages.InstallLocationsScanConfirmImport.Call(rc, butlerd.InstallLocationsScanConfirmImportParams{
 			NumItems: numFound,
 		})
 		if err != nil {
@@ -533,7 +533,7 @@ func (sc *scanContext) addCave(cave *models.Cave, receipt *bfs.Receipt) {
 		receipt: receipt,
 	}
 
-	messages.InstallLocationsScanYield.Notify(sc.rc, &butlerd.InstallLocationsScanYieldNotification{
+	messages.InstallLocationsScanYield.Notify(sc.rc, butlerd.InstallLocationsScanYieldNotification{
 		Game: cave.Game,
 	})
 }

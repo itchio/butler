@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchCollectionGames(rc *butlerd.RequestContext, params *butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
+func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
 	if params.CollectionID == 0 {
 		return nil, errors.New("collectionId must be non-zero")
 	}

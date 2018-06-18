@@ -22,7 +22,7 @@ func Register(router *butlerd.Router) {
 	messages.ProfileDataGet.Register(router, DataGet)
 }
 
-func List(rc *butlerd.RequestContext, params *butlerd.ProfileListParams) (*butlerd.ProfileListResult, error) {
+func List(rc *butlerd.RequestContext, params butlerd.ProfileListParams) (*butlerd.ProfileListResult, error) {
 	var profiles []*models.Profile
 	rc.WithConn(func(conn *sqlite.Conn) {
 		models.MustSelect(conn, &profiles, builder.NewCond(), hades.Search{})
@@ -47,7 +47,7 @@ func formatProfile(p *models.Profile) *butlerd.Profile {
 	}
 }
 
-func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWithPasswordParams) (*butlerd.ProfileLoginWithPasswordResult, error) {
+func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithPasswordParams) (*butlerd.ProfileLoginWithPasswordResult, error) {
 	if params.Username == "" {
 		return nil, errors.New("username cannot be empty")
 	}
@@ -71,7 +71,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 		if loginRes.RecaptchaNeeded {
 			// Captcha flow
-			recaptchaRes, err := messages.ProfileRequestCaptcha.Call(rc, &butlerd.ProfileRequestCaptchaParams{
+			recaptchaRes, err := messages.ProfileRequestCaptcha.Call(rc, butlerd.ProfileRequestCaptchaParams{
 				RecaptchaURL: loginRes.RecaptchaURL,
 			})
 			if err != nil {
@@ -94,7 +94,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 
 		if loginRes.Token != "" {
 			// TOTP flow
-			totpRes, err := messages.ProfileRequestTOTP.Call(rc, &butlerd.ProfileRequestTOTPParams{})
+			totpRes, err := messages.ProfileRequestTOTP.Call(rc, butlerd.ProfileRequestTOTPParams{})
 			if err != nil {
 				return nil, errors.WithStack(err)
 			}
@@ -141,7 +141,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params *butlerd.ProfileLoginW
 	return res, nil
 }
 
-func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWithAPIKeyParams) (*butlerd.ProfileLoginWithAPIKeyResult, error) {
+func LoginWithAPIKey(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithAPIKeyParams) (*butlerd.ProfileLoginWithAPIKeyResult, error) {
 	if params.APIKey == "" {
 		return nil, errors.New("apiKey cannot be empty")
 	}
@@ -166,7 +166,7 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params *butlerd.ProfileLoginWit
 	return res, nil
 }
 
-func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error) {
+func UseSavedLogin(rc *butlerd.RequestContext, params butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error) {
 	consumer := rc.Consumer
 
 	profile, client := rc.ProfileClient(params.ProfileID)
@@ -210,7 +210,7 @@ func UseSavedLogin(rc *butlerd.RequestContext, params *butlerd.ProfileUseSavedLo
 	return res, nil
 }
 
-func Forget(rc *butlerd.RequestContext, params *butlerd.ProfileForgetParams) (*butlerd.ProfileForgetResult, error) {
+func Forget(rc *butlerd.RequestContext, params butlerd.ProfileForgetParams) (*butlerd.ProfileForgetResult, error) {
 	if params.ProfileID == 0 {
 		return nil, errors.New("profileId must be set")
 	}

@@ -7,12 +7,12 @@ import (
 )
 
 func Register(router *butlerd.Router) {
-	messages.TestDoubleTwice.Register(router, func(rc *butlerd.RequestContext, params *butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error) {
+	messages.TestDoubleTwice.Register(router, func(rc *butlerd.RequestContext, params butlerd.TestDoubleTwiceParams) (*butlerd.TestDoubleTwiceResult, error) {
 		if params.Number == 0 {
 			return nil, errors.New("number must be non-zero")
 		}
 
-		res, err := messages.TestDouble.Call(rc, &butlerd.TestDoubleParams{
+		res, err := messages.TestDouble.Call(rc, butlerd.TestDoubleParams{
 			Number: params.Number,
 		})
 		if err != nil {

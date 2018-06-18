@@ -11,7 +11,7 @@ func Register(router *butlerd.Router) {
 	messages.SystemStatFS.Register(router, StatFSHandler)
 }
 
-func StatFSHandler(rc *butlerd.RequestContext, params *butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error) {
+func StatFSHandler(rc *butlerd.RequestContext, params butlerd.SystemStatFSParams) (*butlerd.SystemStatFSResult, error) {
 	if params.Path == "" {
 		return nil, errors.Errorf("path must be set")
 	}

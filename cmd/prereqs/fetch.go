@@ -26,7 +26,7 @@ var RedistsGame = &itchio.Game{
 }
 
 type TaskStateConsumer struct {
-	OnState func(state *butlerd.PrereqsTaskStateNotification)
+	OnState func(state butlerd.PrereqsTaskStateNotification)
 }
 
 func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
@@ -75,7 +75,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			for {
 				select {
 				case <-time.After(500 * time.Millisecond):
-					tsc.OnState(&butlerd.PrereqsTaskStateNotification{
+					tsc.OnState(butlerd.PrereqsTaskStateNotification{
 						Name:     name,
 						Status:   butlerd.PrereqStatusDownloading,
 						Progress: tracker.Progress(),
@@ -98,7 +98,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		rcc.Conn = conn
 		rcc.Consumer = taskConsumer
 
-		_, err = install.InstallQueue(&rcc, &butlerd.InstallQueueParams{
+		_, err = install.InstallQueue(&rcc, butlerd.InstallQueueParams{
 			Game:   RedistsGame,
 			Upload: upload,
 			Build:  nil, // just go with the latest
@@ -111,7 +111,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return errors.Wrapf(err, "queueing download+extract for prereq %s", name)
 		}
 
-		err = operate.InstallPerform(ctx, &rcc, &butlerd.InstallPerformParams{
+		err = operate.InstallPerform(ctx, &rcc, butlerd.InstallPerformParams{
 			ID:            "install-prereqs",
 			StagingFolder: stagingFolder,
 		})
@@ -122,7 +122,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return errors.Wrapf(err, "downloading+extracting prereq %s", name)
 		}
 
-		tsc.OnState(&butlerd.PrereqsTaskStateNotification{
+		tsc.OnState(butlerd.PrereqsTaskStateNotification{
 			Name:   name,
 			Status: butlerd.PrereqStatusReady,
 		})

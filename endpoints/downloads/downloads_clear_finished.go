@@ -8,7 +8,7 @@ import (
 	"github.com/itchio/hades"
 )
 
-func DownloadsClearFinished(rc *butlerd.RequestContext, params *butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error) {
+func DownloadsClearFinished(rc *butlerd.RequestContext, params butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error) {
 	rc.WithConn(func(conn *sqlite.Conn) {
 		models.MustUpdate(conn, &models.Download{},
 			hades.Where(builder.NotNull{"finished_at"}),

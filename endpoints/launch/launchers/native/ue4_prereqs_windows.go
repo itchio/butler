@@ -27,11 +27,11 @@ type UE4Marker struct {
 	SHA256 string
 }
 
-func getMarkerPath(params *launch.LauncherParams) string {
+func getMarkerPath(params launch.LauncherParams) string {
 	return filepath.Join(params.InstallFolder, ".itch", "ue4-prereqs-marker.txt")
 }
 
-func readUE4Marker(params *launch.LauncherParams) (*UE4Marker, error) {
+func readUE4Marker(params launch.LauncherParams) (*UE4Marker, error) {
 	markerPath := getMarkerPath(params)
 	markerBytes, err := ioutil.ReadFile(markerPath)
 	if err != nil {
@@ -51,7 +51,7 @@ func readUE4Marker(params *launch.LauncherParams) (*UE4Marker, error) {
 	return marker, nil
 }
 
-func writeUE4Marker(params *launch.LauncherParams, marker *UE4Marker) error {
+func writeUE4Marker(params launch.LauncherParams, marker *UE4Marker) error {
 	payload, err := json.Marshal(marker)
 	if err != nil {
 		return errors.WithStack(err)
@@ -71,7 +71,7 @@ func writeUE4Marker(params *launch.LauncherParams, marker *UE4Marker) error {
 	return nil
 }
 
-func handleUE4Prereqs(params *launch.LauncherParams) error {
+func handleUE4Prereqs(params launch.LauncherParams) error {
 	marker, err := readUE4Marker(params)
 	if err != nil {
 		return errors.WithStack(err)

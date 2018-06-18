@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func handleAutoPrereqs(params *launch.LauncherParams, pc *prereqs.PrereqsContext) ([]string, error) {
+func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext) ([]string, error) {
 	consumer := params.RequestContext.Consumer
 
 	candidate := params.Candidate

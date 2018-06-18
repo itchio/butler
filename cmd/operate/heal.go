@@ -27,7 +27,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		return errors.New("heal: missing build")
 	}
 
-	messages.TaskStarted.Notify(oc.rc, &butlerd.TaskStartedNotification{
+	messages.TaskStarted.Notify(oc.rc, butlerd.TaskStartedNotification{
 		Reason: butlerd.TaskReasonInstall,
 		Type:   butlerd.TaskTypeHeal,
 		Game:   params.Game,

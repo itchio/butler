@@ -10,7 +10,7 @@ import (
 	"github.com/itchio/hades"
 )
 
-func FetchProfileCollections(rc *butlerd.RequestContext, params *butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
+func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 
 	ft := models.FetchTargetForProfileCollections(profile.ID)

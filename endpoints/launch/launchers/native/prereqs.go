@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func handlePrereqs(params *launch.LauncherParams) error {
+func handlePrereqs(params launch.LauncherParams) error {
 	pc := &prereqs.PrereqsContext{
 		RequestContext: params.RequestContext,
 		APIKey:         params.Access.APIKey,
@@ -101,7 +101,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	consumer.Infof("→ %d Prereqs to install: %s", len(pa.Todo), strings.Join(pa.Todo, ", "))
 
 	{
-		psn := &butlerd.PrereqsStartedNotification{
+		psn := butlerd.PrereqsStartedNotification{
 			Tasks: make(map[string]*butlerd.PrereqTask),
 		}
 		for i, name := range pa.Todo {
@@ -123,7 +123,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 	}
 
 	tsc := &prereqs.TaskStateConsumer{
-		OnState: func(state *butlerd.PrereqsTaskStateNotification) {
+		OnState: func(state butlerd.PrereqsTaskStateNotification) {
 			err = messages.PrereqsTaskState.Notify(params.RequestContext, state)
 			if err != nil {
 				consumer.Warnf(err.Error())
@@ -153,7 +153,7 @@ func handlePrereqs(params *launch.LauncherParams) error {
 		}
 	}
 
-	err = messages.PrereqsEnded.Notify(params.RequestContext, &butlerd.PrereqsEndedNotification{})
+	err = messages.PrereqsEnded.Notify(params.RequestContext, butlerd.PrereqsEndedNotification{})
 	if err != nil {
 		consumer.Warnf(err.Error())
 	}

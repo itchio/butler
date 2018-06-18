@@ -6,7 +6,7 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func FetchCave(rc *butlerd.RequestContext, params *butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
+func FetchCave(rc *butlerd.RequestContext, params butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
 	var res *butlerd.FetchCaveResult
 	rc.WithConn(func(conn *sqlite.Conn) {
 		cave := models.CaveByID(conn, params.CaveID)

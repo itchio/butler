@@ -13,10 +13,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
+func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
 	if params.Query == "" {
 		// return empty games set
-		err := messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
+		err := messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
 			Games: nil,
 		})
 		if err != nil {
@@ -44,7 +44,7 @@ func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) 
 	//----------------------------------
 
 	doLocalSearch()
-	err := messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
+	err := messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
 		Games: games,
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func SearchGames(rc *butlerd.RequestContext, params *butlerd.SearchGamesParams) 
 		}
 	}
 
-	err = messages.SearchGamesYield.Notify(rc, &butlerd.SearchGamesYieldNotification{
+	err = messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
 		Games: games,
 	})
 	if err != nil {

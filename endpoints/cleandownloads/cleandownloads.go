@@ -18,7 +18,7 @@ func Register(router *butlerd.Router) {
 	messages.CleanDownloadsApply.Register(router, CleanDownloadsApply)
 }
 
-func CleanDownloadsSearch(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error) {
+func CleanDownloadsSearch(rc *butlerd.RequestContext, params butlerd.CleanDownloadsSearchParams) (*butlerd.CleanDownloadsSearchResult, error) {
 	consumer := rc.Consumer
 
 	// struct{} trick to use map as a set with 0-sized values
@@ -70,7 +70,7 @@ func CleanDownloadsSearch(rc *butlerd.RequestContext, params *butlerd.CleanDownl
 	return res, nil
 }
 
-func CleanDownloadsApply(rc *butlerd.RequestContext, params *butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error) {
+func CleanDownloadsApply(rc *butlerd.RequestContext, params butlerd.CleanDownloadsApplyParams) (*butlerd.CleanDownloadsApplyResult, error) {
 	consumer := rc.Consumer
 
 	for _, entry := range params.Entries {

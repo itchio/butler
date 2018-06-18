@@ -15,7 +15,7 @@ func Register(router *butlerd.Router) {
 	messages.CheckUpdate.Register(router, CheckUpdate)
 }
 
-func CheckUpdate(rc *butlerd.RequestContext, params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
+func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
 	consumer := rc.Consumer
 	res := &butlerd.CheckUpdateResult{}
 
@@ -31,7 +31,7 @@ func CheckUpdate(rc *butlerd.RequestContext, params *butlerd.CheckUpdateParams) 
 		} else {
 			if update != nil {
 				res.Updates = append(res.Updates, update)
-				err := messages.GameUpdateAvailable.Notify(rc, &butlerd.GameUpdateAvailableNotification{
+				err := messages.GameUpdateAvailable.Notify(rc, butlerd.GameUpdateAvailableNotification{
 					Update: update,
 				})
 				if err != nil {

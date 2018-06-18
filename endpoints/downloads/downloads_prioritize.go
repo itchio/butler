@@ -6,7 +6,7 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsPrioritize(rc *butlerd.RequestContext, params *butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error) {
+func DownloadsPrioritize(rc *butlerd.RequestContext, params butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error) {
 	var download *models.Download
 	rc.WithConn(func(conn *sqlite.Conn) {
 		download = ValidateDownload(conn, params.DownloadID)

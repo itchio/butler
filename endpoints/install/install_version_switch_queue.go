@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error) {
+func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params butlerd.InstallVersionSwitchQueueParams) (*butlerd.InstallVersionSwitchQueueResult, error) {
 	consumer := rc.Consumer
 
 	cave := operate.ValidateCave(rc, params.CaveID)
@@ -44,7 +44,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 		formattedCave = fetch.FormatCave(conn, cave)
 	})
 
-	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, &butlerd.InstallVersionSwitchPickParams{
+	pickRes, err := messages.InstallVersionSwitchPick.Call(rc, butlerd.InstallVersionSwitchPickParams{
 		Cave:   formattedCave,
 		Upload: upload,
 		Builds: buildsRes.Builds,
@@ -59,7 +59,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params *butlerd.Insta
 
 	build := buildsRes.Builds[pickRes.Index]
 
-	_, err = InstallQueue(rc, &butlerd.InstallQueueParams{
+	_, err = InstallQueue(rc, butlerd.InstallQueueParams{
 		CaveID:        params.CaveID,
 		Game:          cave.Game,
 		Upload:        cave.Upload,

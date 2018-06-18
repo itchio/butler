@@ -15,8 +15,8 @@ type Launcher struct{}
 
 var _ launch.Launcher = (*Launcher)(nil)
 
-func (l *Launcher) Do(params *launch.LauncherParams) error {
-	_, err := messages.ShellLaunch.Call(params.RequestContext, &butlerd.ShellLaunchParams{
+func (l *Launcher) Do(params launch.LauncherParams) error {
+	_, err := messages.ShellLaunch.Call(params.RequestContext, butlerd.ShellLaunchParams{
 		ItemPath: params.FullTargetPath,
 	})
 	if err != nil {

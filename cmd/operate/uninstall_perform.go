@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *butlerd.UninstallPerformParams) error {
+func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params butlerd.UninstallPerformParams) error {
 	consumer := rc.Consumer
 
 	cave := ValidateCave(rc, params.CaveID)
@@ -54,7 +54,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 		Receipt:           receipt,
 	}
 
-	err = messages.TaskStarted.Notify(rc, &butlerd.TaskStartedNotification{
+	err = messages.TaskStarted.Notify(rc, butlerd.TaskStartedNotification{
 		Reason: butlerd.TaskReasonUninstall,
 		Type:   butlerd.TaskTypeUninstall,
 	})
@@ -71,7 +71,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params *b
 		return errors.WithStack(err)
 	}
 
-	err = messages.TaskSucceeded.Notify(rc, &butlerd.TaskSucceededNotification{
+	err = messages.TaskSucceeded.Notify(rc, butlerd.TaskSucceededNotification{
 		Type: butlerd.TaskTypeUninstall,
 	})
 	if err != nil {

@@ -20,7 +20,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
+func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
 	var stagingFolder string
 
 	var cave *models.Cave
@@ -167,7 +167,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 		if len(uploadsFilterResult.Uploads) == 1 {
 			params.Upload = uploadsFilterResult.Uploads[0]
 		} else {
-			r, err := messages.PickUpload.Call(rc, &butlerd.PickUploadParams{
+			r, err := messages.PickUpload.Call(rc, butlerd.PickUploadParams{
 				Uploads: uploadsFilterResult.Uploads,
 			})
 			if err != nil {
@@ -222,7 +222,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	}
 
 	if operate.UploadIsProbablyExternal(params.Upload) {
-		res, err := messages.ExternalUploadsAreBad.Call(rc, &butlerd.ExternalUploadsAreBadParams{
+		res, err := messages.ExternalUploadsAreBad.Call(rc, butlerd.ExternalUploadsAreBadParams{
 			Upload: params.Upload,
 		})
 		if err != nil {
@@ -265,7 +265,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams *butlerd.InstallQueueP
 	}
 
 	if queueParams.QueueDownload {
-		_, err := downloads.DownloadsQueue(rc, &butlerd.DownloadsQueueParams{
+		_, err := downloads.DownloadsQueue(rc, butlerd.DownloadsQueueParams{
 			Item: res,
 		})
 		if err != nil {

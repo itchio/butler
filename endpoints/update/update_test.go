@@ -57,7 +57,7 @@ func TestCheckUpdateMissingFields(t *testing.T) {
 	}
 	models.MustSave(dbConn, testCredentials)
 
-	checkUpdate := func(params *butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
+	checkUpdate := func(params butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
 		rc := &butlerd.RequestContext{
 			Ctx:      ctx,
 			Conn:     conn,

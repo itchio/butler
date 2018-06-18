@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func DownloadsDiscard(rc *butlerd.RequestContext, params *butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {
+func DownloadsDiscard(rc *butlerd.RequestContext, params butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {
 	consumer := rc.Consumer
 	rc.WithConn(func(conn *sqlite.Conn) {
 		download := ValidateDownload(conn, params.DownloadID)

@@ -37,14 +37,14 @@ func Register(router *butlerd.Router) {
 
 var launchCancelID = "Launch"
 
-func LaunchCancel(rc *butlerd.RequestContext, params *butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error) {
+func LaunchCancel(rc *butlerd.RequestContext, params butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error) {
 	didCancel := rc.CancelFuncs.Call(launchCancelID)
 	return &butlerd.LaunchCancelResult{
 		DidCancel: didCancel,
 	}, nil
 }
 
-func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
+func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
 	consumer := rc.Consumer
 
 	ctx, cancelFunc := context.WithCancel(rc.Ctx)
@@ -141,7 +141,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		if len(actions) == 1 {
 			manifestAction = actions[0]
 		} else {
-			r, err := messages.PickManifestAction.Call(rc, &butlerd.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, butlerd.PickManifestActionParams{
 				Actions: actions,
 			})
 			if err != nil {
@@ -307,7 +307,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 				})
 			}
 
-			r, err := messages.PickManifestAction.Call(rc, &butlerd.PickManifestActionParams{
+			r, err := messages.PickManifestAction.Call(rc, butlerd.PickManifestActionParams{
 				Actions: fakeActions,
 			})
 			if err != nil {
@@ -434,7 +434,7 @@ func Launch(rc *butlerd.RequestContext, params *butlerd.LaunchParams) (*butlerd.
 		sandbox = true
 	}
 
-	launcherParams := &LauncherParams{
+	launcherParams := LauncherParams{
 		RequestContext: rc,
 		Ctx:            ctx,
 

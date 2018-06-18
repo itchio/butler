@@ -10,7 +10,7 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func FetchCommons(rc *butlerd.RequestContext, params *butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
+func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
 

@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
+func DataPut(rc *butlerd.RequestContext, params butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 
@@ -24,7 +24,7 @@ func DataPut(rc *butlerd.RequestContext, params *butlerd.ProfileDataPutParams) (
 	return res, nil
 }
 
-func DataGet(rc *butlerd.RequestContext, params *butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error) {
+func DataGet(rc *butlerd.RequestContext, params butlerd.ProfileDataGetParams) (*butlerd.ProfileDataGetResult, error) {
 	// will panic if invalid profile or missing param
 	rc.ProfileClient(params.ProfileID)
 

@@ -8,7 +8,7 @@ import (
 	"github.com/itchio/hades"
 )
 
-func FetchCaves(rc *butlerd.RequestContext, params *butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
+func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
 	var caves []*models.Cave
 	var formattedCaves []*butlerd.Cave
 	rc.WithConn(func(conn *sqlite.Conn) {

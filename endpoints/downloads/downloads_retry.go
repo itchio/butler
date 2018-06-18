@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsRetry(rc *butlerd.RequestContext, params *butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error) {
+func DownloadsRetry(rc *butlerd.RequestContext, params butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error) {
 	consumer := rc.Consumer
 
 	var download *models.Download

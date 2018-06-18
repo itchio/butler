@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params *butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
+func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 

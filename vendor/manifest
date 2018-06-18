@@ -50,6 +50,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/asaskevich/govalidator",
+			"repository": "https://github.com/asaskevich/govalidator",
+			"vcs": "git",
+			"revision": "7d2e70ef918f16bd6455529af38304d6d025c952",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/basgys/goxml2json",
 			"repository": "https://github.com/basgys/goxml2json",
 			"vcs": "git",
@@ -159,6 +167,14 @@
 			"repository": "https://github.com/getlantern/stack",
 			"vcs": "git",
 			"revision": "02f928aad224fbccd50d66edd776fc9d1e9f2f2b",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/go-ozzo/ozzo-validation",
+			"repository": "https://github.com/go-ozzo/ozzo-validation",
+			"vcs": "git",
+			"revision": "2c68ddd4ffc17941d8e940cb1264f68e1d8f0394",
 			"branch": "master",
 			"notests": true
 		},

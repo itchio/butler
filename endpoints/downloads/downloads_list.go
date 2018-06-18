@@ -6,7 +6,7 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
-func DownloadsList(rc *butlerd.RequestContext, params *butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error) {
+func DownloadsList(rc *butlerd.RequestContext, params butlerd.DownloadsListParams) (*butlerd.DownloadsListResult, error) {
 	var downloads []*models.Download
 	rc.WithConn(func(conn *sqlite.Conn) {
 		downloads = models.AllDownloads(conn)

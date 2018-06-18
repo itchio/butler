@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchCavesByInstallLocationID(rc *butlerd.RequestContext, params *butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
+func FetchCavesByInstallLocationID(rc *butlerd.RequestContext, params butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
 	conn := rc.DBPool.Get(rc.Ctx.Done())
 	defer rc.DBPool.Put(conn)
 

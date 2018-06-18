@@ -99,7 +99,7 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 				die := func(msg string, args ...interface{}) {
 					fmsg := fmt.Sprintf(msg, args...)
 					consumer.Warnf("%s", fmsg)
-					jc.Notify(ctx, "Log", &LogNotification{
+					jc.Notify(ctx, "Log", LogNotification{
 						Level:   "error",
 						Message: fmsg,
 					})

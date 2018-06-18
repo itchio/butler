@@ -121,7 +121,7 @@ func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*dash.Candidate, error
 type RecordPlayTimeFunc func(playTime time.Duration) error
 
 type Launcher interface {
-	Do(params *LauncherParams) error
+	Do(params LauncherParams) error
 }
 
 var launchers = make(map[LaunchStrategy]Launcher)

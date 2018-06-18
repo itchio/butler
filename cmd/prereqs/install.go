@@ -83,7 +83,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 						return
 					}
 
-					tsc.OnState(&butlerd.PrereqsTaskStateNotification{
+					tsc.OnState(butlerd.PrereqsTaskStateNotification{
 						Name:   ps.Name,
 						Status: ps.Status,
 					})

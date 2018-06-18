@@ -3846,7 +3846,7 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Enable sandbox (regardless of manifest opt-in)</p>
+<td><p><span class="tag">Optional</span> Enable sandbox (regardless of manifest opt-in)</p>
 </td>
 </tr>
 </table>

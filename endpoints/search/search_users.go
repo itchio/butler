@@ -13,10 +13,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
+func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
 	if params.Query == "" {
 		// return empty users set
-		err := messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
+		err := messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
 			Users: nil,
 		})
 		if err != nil {
@@ -47,7 +47,7 @@ func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) 
 	//----------------------------------
 
 	doLocalSearch()
-	err := messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
+	err := messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
 		Users: users,
 	})
 	if err != nil {
@@ -101,7 +101,7 @@ func SearchUsers(rc *butlerd.RequestContext, params *butlerd.SearchUsersParams) 
 		}
 	}
 
-	err = messages.SearchUsersYield.Notify(rc, &butlerd.SearchUsersYieldNotification{
+	err = messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
 		Users: users,
 	})
 	if err != nil {

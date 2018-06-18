@@ -10,7 +10,7 @@ import (
 	"github.com/itchio/hades"
 )
 
-func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
+func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 
 	ft := models.FetchTargetForProfileGames(profile.ID)

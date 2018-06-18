@@ -27,7 +27,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 
 	res := params.InstallResult
 
-	err := messages.TaskSucceeded.Notify(oc.rc, &butlerd.TaskSucceededNotification{
+	err := messages.TaskSucceeded.Notify(oc.rc, butlerd.TaskSucceededNotification{
 		Type: butlerd.TaskTypeInstall,
 		InstallResult: &butlerd.InstallResult{
 			Game:   params.Game,

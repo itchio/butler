@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GameFindUploads(rc *butlerd.RequestContext, params *butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error) {
+func GameFindUploads(rc *butlerd.RequestContext, params butlerd.GameFindUploadsParams) (*butlerd.GameFindUploadsResult, error) {
 	consumer := rc.Consumer
 
 	if params.Game == nil {

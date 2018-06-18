@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InstallPerform(rc *butlerd.RequestContext, params *butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
+func InstallPerform(rc *butlerd.RequestContext, params butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
 	if params.ID == "" {
 		return nil, errors.New("Missing ID")
 	}

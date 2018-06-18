@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
+func FetchCollection(rc *butlerd.RequestContext, params butlerd.FetchCollectionParams) (*butlerd.FetchCollectionResult, error) {
 	if params.CollectionID == 0 {
 		return nil, errors.New("collectionId must be non-zero")
 	}
@@ -38,9 +38,8 @@ func FetchCollection(rc *butlerd.RequestContext, params *butlerd.FetchCollection
 	})
 
 	if res.Collection == nil && !params.Fresh {
-		freshParams := *params
-		freshParams.Fresh = true
-		return FetchCollection(rc, &freshParams)
+		params.Fresh = true
+		return FetchCollection(rc, params)
 	}
 
 	return res, nil

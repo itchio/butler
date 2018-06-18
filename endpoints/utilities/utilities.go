@@ -8,20 +8,20 @@ import (
 )
 
 func Register(router *butlerd.Router) {
-	messages.VersionGet.Register(router, func(rc *butlerd.RequestContext, params *butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
+	messages.VersionGet.Register(router, func(rc *butlerd.RequestContext, params butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
 		return &butlerd.VersionGetResult{
 			Version:       rc.ButlerVersion,
 			VersionString: rc.ButlerVersionString,
 		}, nil
 	})
 
-	messages.NetworkSetSimulateOffline.Register(router, func(rc *butlerd.RequestContext, params *butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
+	messages.NetworkSetSimulateOffline.Register(router, func(rc *butlerd.RequestContext, params butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
 		timeout.SetSimulateOffline(params.Enabled)
 		res := &butlerd.NetworkSetSimulateOfflineResult{}
 		return res, nil
 	})
 
-	messages.NetworkSetBandwidthThrottle.Register(router, func(rc *butlerd.RequestContext, params *butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
+	messages.NetworkSetBandwidthThrottle.Register(router, func(rc *butlerd.RequestContext, params butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
 		if params.Enabled {
 			timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(params.Rate) * iothrottler.Kbps)
 		} else {
