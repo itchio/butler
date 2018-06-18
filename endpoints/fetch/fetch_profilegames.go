@@ -1,55 +1,28 @@
 package fetch
 
 import (
-	"time"
-
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
-	"github.com/pkg/errors"
 )
 
 func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
-	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	ft := models.FetchTarget{
-		Type: "profile_games",
-		ID:   profile.ID,
-		TTL:  10 * time.Minute,
-	}
-
-	fresh := false
+	ft := models.FetchTargetForProfileGames(profile.ID)
 	res := &butlerd.FetchProfileGamesResult{}
 
-	if params.Fresh {
-		consumer.Infof("Doing remote fetch (Fresh specified)")
-		fresh = true
-	} else if rc.WithConnBool(ft.MustIsStale) {
-		consumer.Infof("Returning stale results")
-		res.Stale = true
-	}
-
-	if fresh {
-		fts := []models.FetchTarget{ft}
-
-		consumer.Debugf("Querying API...")
-
+	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		gamesRes, err := client.ListProfileGames()
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
+		models.Must(err)
 
 		profile.ProfileGames = nil
 		for i, g := range gamesRes.Games {
-			fts = append(fts, models.FetchTarget{
-				Type: "game",
-				ID:   g.ID,
-				TTL:  10 * time.Minute,
-			})
+			targets.Add(models.FetchTargetForGame(g.ID))
 			profile.ProfileGames = append(profile.ProfileGames, &models.ProfileGame{
 				Game:           g,
 				Position:       int64(i),
@@ -67,9 +40,8 @@ func FetchProfileGames(rc *butlerd.RequestContext, params *butlerd.FetchProfileG
 					hades.Assoc("Game"),
 				),
 			)
-			models.MustMarkAllFresh(conn, fts)
 		})
-	}
+	})
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}

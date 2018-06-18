@@ -1,8 +1,6 @@
 package fetch
 
 import (
-	"time"
-
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
@@ -18,11 +16,7 @@ func FetchGame(rc *butlerd.RequestContext, params *butlerd.FetchGameParams) (*bu
 		return nil, errors.New("gameId must be non-zero")
 	}
 
-	ft := models.FetchTarget{
-		Type: "game",
-		ID:   params.GameID,
-		TTL:  10 * time.Minute,
-	}
+	ft := models.FetchTargetForGame(params.GameID)
 	res := &butlerd.FetchGameResult{}
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {

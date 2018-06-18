@@ -328,6 +328,10 @@ type FetchCollectionParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+func (p *FetchCollectionParams) IsFresh() bool {
+	return p.Fresh
+}
+
 type FetchCollectionResult struct {
 	// Collection info
 	Collection *itchio.Collection `json:"collection"`
@@ -336,6 +340,10 @@ type FetchCollectionResult struct {
 	// it should be re-queried using "Fresh"
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchCollectionResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // Fetches information about a collection and the games it
@@ -372,6 +380,10 @@ func (p *FetchCollectionGamesParams) GetCursor() Cursor {
 	return p.Cursor
 }
 
+func (p *FetchCollectionGamesParams) IsFresh() bool {
+	return p.Fresh
+}
+
 type FetchCollectionGamesResult struct {
 	// Requested games for this collection
 	Items []*itchio.CollectionGame `json:"items"`
@@ -383,6 +395,10 @@ type FetchCollectionGamesResult struct {
 	// If true, re-issue request with 'Fresh'
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchCollectionGamesResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // Lists collections for a profile. Does not contain
@@ -416,6 +432,10 @@ func (p *FetchProfileCollectionsParams) GetLimit() int64 {
 	return p.Limit
 }
 
+func (p *FetchProfileCollectionsParams) IsFresh() bool {
+	return p.Fresh
+}
+
 type FetchProfileCollectionsResult struct {
 	// Collections belonging to the profile
 	Items []*itchio.Collection `json:"items"`
@@ -427,6 +447,10 @@ type FetchProfileCollectionsResult struct {
 	// If true, re-issue request with "Fresh"
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchProfileCollectionsResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // @name Fetch.ProfileGames
@@ -457,6 +481,10 @@ func (p *FetchProfileGamesParams) GetLimit() int64 {
 	return p.Limit
 }
 
+func (p *FetchProfileGamesParams) IsFresh() bool {
+	return p.Fresh
+}
+
 type ProfileGame struct {
 	Game *itchio.Game `json:"game"`
 
@@ -478,6 +506,10 @@ type FetchProfileGamesResult struct {
 	// If true, re-issue request with "Fresh"
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchProfileGamesResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // @name Fetch.ProfileOwnedKeys
