@@ -27,14 +27,14 @@ func Test_InstallCancel(t *testing.T) {
 	authenticate(t, rc)
 	setupTmpInstallLocation(t, h, rc)
 
-	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, &butlerd.NetworkSetBandwidthThrottleParams{
+	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
 		Rate:    16384,
 	})
 	must(t, err)
 
 	defer func() {
-		_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, &butlerd.NetworkSetBandwidthThrottleParams{
+		_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 			Enabled: false,
 		})
 		must(t, err)
@@ -44,7 +44,7 @@ func Test_InstallCancel(t *testing.T) {
 		// itch-test-account/big-assets
 		game := getGame(t, h, rc, 243485)
 
-		queueRes, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
+		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 		})
@@ -53,14 +53,14 @@ func Test_InstallCancel(t *testing.T) {
 		pidFilePath := filepath.Join(queueRes.StagingFolder, "operate-pid.json")
 
 		var lastProgressValue float64
-		printProgress := func(params *butlerd.ProgressNotification) {
+		printProgress := func(params butlerd.ProgressNotification) {
 			t.Logf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 			lastProgressValue = params.Progress
 		}
 
 		gracefulCancelOnce := &sync.Once{}
 
-		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params *butlerd.ProgressNotification) {
+		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
 			printProgress(params)
 
 			if params.Progress > 0.2 {
@@ -70,7 +70,7 @@ func Test_InstallCancel(t *testing.T) {
 				gracefulCancelOnce.Do(func() {
 					delete(h.notificationHandlers, messages.Progress.Method())
 
-					messages.InstallCancel.TestCall(rc, &butlerd.InstallCancelParams{
+					messages.InstallCancel.TestCall(rc, butlerd.InstallCancelParams{
 						ID: queueRes.ID,
 					})
 				})
@@ -79,7 +79,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		t.Logf("Queued %s", queueRes.InstallFolder)
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
@@ -91,12 +91,12 @@ func Test_InstallCancel(t *testing.T) {
 		assert.EqualValues(t, butlerd.CodeOperationCancelled, je.Code)
 
 		t.Logf("Resuming while offline...")
-		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, &butlerd.NetworkSetSimulateOfflineParams{
+		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 			Enabled: true,
 		})
 		must(t, err)
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
@@ -104,7 +104,7 @@ func Test_InstallCancel(t *testing.T) {
 		je = err.(*jsonrpc2.Error)
 		assert.EqualValues(t, butlerd.CodeNetworkDisconnected, je.Code)
 
-		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, &butlerd.NetworkSetSimulateOfflineParams{
+		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 			Enabled: false,
 		})
 		must(t, err)
@@ -113,7 +113,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		hardCancelOnce := &sync.Once{}
 
-		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params *butlerd.ProgressNotification) {
+		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
 			if params.Progress > 0.5 {
 				hardCancelOnce.Do(func() {
 					t.Logf("Sending hard cancel")
@@ -123,7 +123,7 @@ func Test_InstallCancel(t *testing.T) {
 			}
 		})
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
@@ -147,11 +147,11 @@ func Test_InstallCancel(t *testing.T) {
 		t.Logf("Resuming after hard cancel...")
 		rc, h, cancel = connect(t)
 
-		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params *butlerd.ProgressNotification) {
+		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
 			printProgress(params)
 		})
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
@@ -169,7 +169,7 @@ func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContex
 		tmpPath := filepath.Join(wd, "tmp")
 		must(t, os.RemoveAll(tmpPath))
 
-		_, err = messages.InstallLocationsAdd.TestCall(rc, &butlerd.InstallLocationsAddParams{
+		_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{
 			ID:   "tmp",
 			Path: filepath.Join(wd, "tmp"),
 		})
@@ -178,7 +178,7 @@ func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContex
 }
 
 func getGame(t *testing.T, h *handler, rc *butlerd.RequestContext, gameID int64) *itchio.Game {
-	gameRes, err := messages.FetchGame.TestCall(rc, &butlerd.FetchGameParams{
+	gameRes, err := messages.FetchGame.TestCall(rc, butlerd.FetchGameParams{
 		GameID: gameID,
 	})
 	must(t, err)

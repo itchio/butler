@@ -284,7 +284,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 	defer rc.StopInterceptingNotification(messages.Progress.Method())
 	rc.InterceptNotification(messages.Progress.Method(), func(method string, paramsIn interface{}) error {
-		params := paramsIn.(*butlerd.ProgressNotification)
+		params := paramsIn.(butlerd.ProgressNotification)
 		progress = params.Progress
 		eta = params.ETA
 		bps = params.BPS
@@ -293,7 +293,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 
 	defer rc.StopInterceptingNotification(messages.TaskStarted.Method())
 	rc.InterceptNotification(messages.TaskStarted.Method(), func(method string, paramsIn interface{}) error {
-		params := paramsIn.(*butlerd.TaskStartedNotification)
+		params := paramsIn.(butlerd.TaskStartedNotification)
 		stage = string(params.Type)
 		return sendProgress()
 	})

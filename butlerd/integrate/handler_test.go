@@ -101,13 +101,13 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 
 	h := newHandler(secret, consumer)
 
-	messages.Handshake.TestRegister(h, func(rc *butlerd.RequestContext, params *butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
+	messages.Handshake.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
 		return &butlerd.HandshakeResult{
 			Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(h.secret+params.Message))),
 		}, nil
 	})
 
-	messages.Log.Register(h, func(rc *butlerd.RequestContext, params *butlerd.LogNotification) {
+	messages.Log.Register(h, func(rc *butlerd.RequestContext, params butlerd.LogNotification) {
 		if consumer != nil && consumer.OnMessage != nil {
 			consumer.OnMessage(string(params.Level), params.Message)
 		}

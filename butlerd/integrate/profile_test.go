@@ -15,7 +15,7 @@ func Test_Profile(t *testing.T) {
 	rc, _, cancel := connect(t)
 	defer cancel()
 
-	_, err := messages.ProfileLoginWithAPIKey.TestCall(rc, &butlerd.ProfileLoginWithAPIKeyParams{
+	_, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
 		APIKey: "meh",
 	})
 	assert.Error(t, err)
@@ -23,21 +23,21 @@ func Test_Profile(t *testing.T) {
 
 	prof := authenticate(t, rc)
 
-	r, err := messages.ProfileList.TestCall(rc, nil)
+	r, err := messages.ProfileList.TestCall(rc, butlerd.ProfileListParams{})
 	must(t, err)
 	assert.NotEmpty(t, r.Profiles)
 
 	v, err := uuid.NewV4()
 	must(t, err)
 
-	_, err = messages.ProfileDataPut.TestCall(rc, &butlerd.ProfileDataPutParams{
+	_, err = messages.ProfileDataPut.TestCall(rc, butlerd.ProfileDataPutParams{
 		ProfileID: prof.ID,
 		Key:       "@integrate/hello",
 		Value:     v.String(),
 	})
 	must(t, err)
 
-	dgr, err := messages.ProfileDataGet.TestCall(rc, &butlerd.ProfileDataGetParams{
+	dgr, err := messages.ProfileDataGet.TestCall(rc, butlerd.ProfileDataGetParams{
 		ProfileID: prof.ID,
 		Key:       "@integrate/hello",
 	})
@@ -45,7 +45,7 @@ func Test_Profile(t *testing.T) {
 	assert.True(t, dgr.OK)
 	assert.EqualValues(t, v.String(), dgr.Value)
 
-	dgr, err = messages.ProfileDataGet.TestCall(rc, &butlerd.ProfileDataGetParams{
+	dgr, err = messages.ProfileDataGet.TestCall(rc, butlerd.ProfileDataGetParams{
 		ProfileID: prof.ID,
 		Key:       "@integrate/whoops",
 	})
@@ -54,7 +54,7 @@ func Test_Profile(t *testing.T) {
 }
 
 func authenticate(t *testing.T, rc *butlerd.RequestContext) *butlerd.Profile {
-	prof, err := messages.ProfileLoginWithAPIKey.TestCall(rc, &butlerd.ProfileLoginWithAPIKeyParams{
+	prof, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
 		APIKey: os.Getenv("ITCH_TEST_ACCOUNT_API_KEY"),
 	})
 	must(t, err)

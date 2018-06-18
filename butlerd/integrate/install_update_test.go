@@ -60,7 +60,7 @@ func Test_InstallUpdate(t *testing.T) {
 
 		log("installing older build...")
 
-		queue1Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
+		queue1Res, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 			Upload:            upload,
@@ -71,7 +71,7 @@ func Test_InstallUpdate(t *testing.T) {
 		caveId := queue1Res.CaveID
 		assert.NotEmpty(t, caveId)
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queue1Res.ID,
 			StagingFolder: queue1Res.StagingFolder,
 		})
@@ -84,7 +84,7 @@ func Test_InstallUpdate(t *testing.T) {
 
 		log("upgrading to next build...")
 
-		queue2Res, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
+		queue2Res, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 			CaveID:            caveId,
@@ -96,7 +96,7 @@ func Test_InstallUpdate(t *testing.T) {
 		assert.EqualValues(t, queue1Res.CaveID, queue2Res.CaveID, "installing for same cave")
 		assert.EqualValues(t, queue1Res.InstallFolder, queue2Res.InstallFolder, "using same install folder")
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queue2Res.ID,
 			StagingFolder: queue2Res.StagingFolder,
 		})

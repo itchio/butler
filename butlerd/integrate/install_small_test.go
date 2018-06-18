@@ -14,7 +14,7 @@ func Test_InstallSmall(t *testing.T) {
 	authenticate(t, rc)
 	setupTmpInstallLocation(t, h, rc)
 
-	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params *butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
+	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
 		return &butlerd.HTMLLaunchResult{}, nil
 	})
 
@@ -22,7 +22,7 @@ func Test_InstallSmall(t *testing.T) {
 		// itch-test-account/111-first
 		game := getGame(t, h, rc, 149766)
 
-		queueRes, err := messages.InstallQueue.TestCall(rc, &butlerd.InstallQueueParams{
+		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
 		})
@@ -30,14 +30,15 @@ func Test_InstallSmall(t *testing.T) {
 
 		t.Logf("Queued %s", queueRes.InstallFolder)
 
-		_, err = messages.InstallPerform.TestCall(rc, &butlerd.InstallPerformParams{
+		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
 		must(t, err)
 
-		_, err = messages.Launch.TestCall(rc, &butlerd.LaunchParams{
-			CaveID: queueRes.CaveID,
+		_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
+			CaveID:     queueRes.CaveID,
+			PrereqsDir: "/tmp/prereqs",
 		})
 		must(t, err)
 	}
