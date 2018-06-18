@@ -31,7 +31,10 @@ func (c *Context) Select(conn *sqlite.Conn, result interface{}, cond builder.Con
 	ms := scope.GetModelStruct()
 	columns, fields := c.selectFields(ms)
 
-	query, args, err := builder.Select(columns...).From(ms.TableName).Where(cond).ToSQL()
+	b := builder.Select(columns...).From(ms.TableName).Where(cond)
+	search.ApplyJoins(b)
+
+	query, args, err := b.ToSQL()
 	if err != nil {
 		return err
 	}

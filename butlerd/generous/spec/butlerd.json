@@ -647,7 +647,28 @@
       "doc": "Retrieve info for all caves.",
       "caller": "client",
       "params": {
-        "fields": null
+        "fields": [
+          {
+            "name": "limit",
+            "doc": "Maximum number of caves to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "Cursor"
+          },
+          {
+            "name": "sortBy",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
       },
       "result": {
         "fields": [
@@ -655,6 +676,11 @@
             "name": "caves",
             "doc": "",
             "type": "Cave[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Use to fetch the next 'page' of results",
+            "type": "Cursor"
           }
         ]
       }

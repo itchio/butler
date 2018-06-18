@@ -3,10 +3,18 @@ package hades
 import (
 	"fmt"
 	"strings"
+
+	"github.com/go-xorm/builder"
 )
+
+type join struct {
+	joinTable string
+	joinCond  string
+}
 
 type Search struct {
 	orders []string
+	joins  []join
 	offset *int64
 	limit  *int64
 }
@@ -23,6 +31,14 @@ func (s Search) Limit(limit int64) Search {
 
 func (s Search) Offset(offset int64) Search {
 	s.offset = &offset
+	return s
+}
+
+func (s Search) Join(joinTable string, joinCond string) Search {
+	s.joins = append(s.joins, join{
+		joinTable: joinTable,
+		joinCond:  joinCond,
+	})
 	return s
 }
 
@@ -46,7 +62,14 @@ func (s Search) Apply(sql string) string {
 			sql = fmt.Sprintf("%s OFFSET %d", sql, *s.offset)
 		}
 	}
+
 	return sql
+}
+
+func (s Search) ApplyJoins(b *builder.Builder) {
+	for _, j := range s.joins {
+		b.InnerJoin(j.joinTable, j.joinCond)
+	}
 }
 
 func (s Search) String() string {

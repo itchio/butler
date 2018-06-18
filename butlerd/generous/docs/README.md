@@ -1695,8 +1695,36 @@ games.</p>
 </p>
 
 <p>
-<span class="header">Parameters</span> <em>none</em>
+<span class="header">Parameters</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of caves to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+</table>
 
 
 
@@ -1711,6 +1739,12 @@ games.</p>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
+</td>
+</tr>
 </table>
 
 
@@ -1721,6 +1755,26 @@ games.</p>
 <p>Retrieve info for all caves.</p>
 
 </p>
+
+<table class="field-table">
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="request-client-caller"></em>Fetch.Cave

@@ -765,10 +765,18 @@ type FetchCavesParams struct {
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
+
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
 }
 
 func (p FetchCavesParams) Validate() error {
-	return nil
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.SortBy, validation.In("lastTouched", "title")),
+	)
 }
 
 func (p FetchCavesParams) GetLimit() int64 {

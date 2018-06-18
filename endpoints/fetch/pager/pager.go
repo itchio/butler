@@ -99,3 +99,17 @@ func (info *CursorInfo) Encode() butlerd.Cursor {
 	cur := base64.StdEncoding.EncodeToString(bs)
 	return butlerd.Cursor(cur)
 }
+
+func Ordering(defaultOrder string, reverse bool) string {
+	if reverse {
+		switch defaultOrder {
+		case "ASC":
+			return "DESC"
+		case "DESC":
+			return "ASC"
+		default:
+			panic(errors.Errorf("Unknown ordering '%s'", defaultOrder))
+		}
+	}
+	return defaultOrder
+}
