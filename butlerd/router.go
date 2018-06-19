@@ -110,7 +110,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 					}
 
 					rc.tracker.SetProgress(alpha)
-					notif := &ProgressNotification{
+					notif := ProgressNotification{
 						Progress: alpha,
 						ETA:      rc.tracker.ETA().Seconds(),
 						BPS:      rc.tracker.BPS(),
