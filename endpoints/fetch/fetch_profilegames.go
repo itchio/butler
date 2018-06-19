@@ -44,26 +44,26 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 	})
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
+		var cond builder.Cond = builder.Eq{"profile_games.profile_id": profile.ID}
 		joinGames := false
 		search := hades.Search{}
 
 		switch params.SortBy {
 		case "views":
-			search = search.OrderBy("views_count " + pager.Ordering("DESC", params.Reverse))
+			search = search.OrderBy("profile_games.views_count " + pager.Ordering("DESC", params.Reverse))
 		case "downloads":
-			search = search.OrderBy("downloads_count " + pager.Ordering("DESC", params.Reverse))
+			search = search.OrderBy("profile_games.downloads_count " + pager.Ordering("DESC", params.Reverse))
 		case "purchases":
-			search = search.OrderBy("purchases_count " + pager.Ordering("DESC", params.Reverse))
+			search = search.OrderBy("profile_games.purchases_count " + pager.Ordering("DESC", params.Reverse))
 		case "default", "":
-			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("profile_games.position " + pager.Ordering("ASC", params.Reverse))
 		}
 
 		switch params.Filters.Visibility {
 		case "draft":
-			cond = builder.And(cond, builder.Eq{"published": 0})
+			cond = builder.And(cond, builder.Eq{"profile_games.published": 0})
 		case "published":
-			cond = builder.And(cond, builder.Eq{"published": 1})
+			cond = builder.And(cond, builder.Eq{"profile_games.published": 1})
 		}
 
 		switch params.Filters.PaidStatus {

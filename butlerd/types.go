@@ -669,6 +669,21 @@ type FetchProfileOwnedKeysParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
+	// When specified only shows game titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// Filters
+	// @optional
+	Filters ProfileOwnedKeysFilters `json:"filters"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
@@ -678,10 +693,39 @@ type FetchProfileOwnedKeysParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+type ProfileOwnedKeysFilters struct {
+	Installed      bool                      `json:"installed"`
+	Classification itchio.GameClassification `json:"classification"`
+}
+
+var GameClassificationList = []interface{}{
+	itchio.GameClassificationGame,
+	itchio.GameClassificationTool,
+	itchio.GameClassificationAssets,
+	itchio.GameClassificationGameMod,
+	itchio.GameClassificationPhysicalGame,
+	itchio.GameClassificationSoundtrack,
+	itchio.GameClassificationOther,
+	itchio.GameClassificationComic,
+	itchio.GameClassificationBook,
+}
+
+func (p ProfileOwnedKeysFilters) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+	)
+}
+
 func (p FetchProfileOwnedKeysParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Filters),
+		validation.Field(&p.SortBy, validation.In("acquiredAt", "title")),
 	)
+}
+
+func (p FetchProfileOwnedKeysParams) IsFresh() bool {
+	return p.Fresh
 }
 
 func (p FetchProfileOwnedKeysParams) GetCursor() Cursor {
@@ -703,6 +747,10 @@ type FetchProfileOwnedKeysResult struct {
 	// If true, re-issue request with "Fresh"
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchProfileOwnedKeysResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // @name Fetch.Commons

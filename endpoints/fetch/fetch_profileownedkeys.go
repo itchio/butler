@@ -1,42 +1,24 @@
 package fetch
 
 import (
-	"time"
-
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/pkg/errors"
 )
 
 func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
 	consumer := rc.Consumer
 	profile, client := rc.ProfileClient(params.ProfileID)
 
-	ft := models.FetchTarget{
-		Type: "profile_owned_keys",
-		ID:   profile.ID,
-		TTL:  10 * time.Minute,
-	}
-
-	fresh := false
+	ft := models.FetchTargetForProfileOwnedKeys(profile.ID)
 	res := &butlerd.FetchProfileOwnedKeysResult{}
 
-	if params.Fresh {
-		consumer.Infof("Doing remote fetch (Fresh specified)")
-		fresh = true
-	} else if rc.WithConnBool(ft.MustIsStale) {
-		consumer.Infof("Returning stale results")
-		res.Stale = true
-	}
-
-	if fresh {
-		fts := []models.FetchTarget{ft}
-
+	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		profile.OwnedKeys = nil
 		for page := int64(1); ; page++ {
 			consumer.Infof("Fetching page %d", page)
@@ -44,9 +26,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 			ownedRes, err := client.ListProfileOwnedKeys(itchio.ListProfileOwnedKeysParams{
 				Page: page,
 			})
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
+			models.Must(err)
 			numPageItems := int64(len(ownedRes.OwnedKeys))
 
 			if numPageItems == 0 {
@@ -65,11 +45,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 		}
 
 		for _, dk := range profile.OwnedKeys {
-			fts = append(fts, models.FetchTarget{
-				Type: "game",
-				ID:   dk.Game.ID,
-				TTL:  10 * time.Minute,
-			})
+			targets.Add(models.FetchTargetForGame(dk.Game.ID))
 		}
 
 		rc.WithConn(func(conn *sqlite.Conn) {
@@ -79,13 +55,39 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 					hades.Assoc("Game"),
 				),
 			)
-			models.MustMarkAllFresh(conn, fts)
 		})
-	}
+	})
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cond builder.Cond = builder.Eq{"owner_id": profile.ID}
-		search := hades.Search{}.OrderBy("created_at DESC")
+		var cond builder.Cond = builder.Eq{"download_keys.owner_id": profile.ID}
+		joinGames := false
+		search := hades.Search{}
+
+		switch params.SortBy {
+		case "acquiredAt":
+			search = search.OrderBy("downloads_keys.created_at " + pager.Ordering("DESC", params.Reverse))
+		case "title":
+			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
+			joinGames = true
+		}
+
+		if params.Filters.Installed {
+			cond = builder.And(cond, builder.Expr("exists (select 1 from caves where caves.game_id = download_keys.game_id)"))
+		}
+
+		if params.Filters.Classification != "" {
+			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
+			joinGames = true
+		}
+
+		if params.Search != "" {
+			cond = builder.And(cond, builder.Like{"games.title", params.Search})
+			joinGames = true
+		}
+
+		if joinGames {
+			search = search.Join("games", "games.id = download_keys.game_id")
+		}
 
 		var items []*itchio.DownloadKey
 		pg := pager.New(params)

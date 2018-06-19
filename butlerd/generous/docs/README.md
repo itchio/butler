@@ -1620,6 +1620,30 @@ games.</p>
 </td>
 </tr>
 <tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> When specified only shows game titles that contain this string</p>
+</td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Criterion to sort by</p>
+</td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileOwnedKeysFilters__TypeHint">ProfileOwnedKeysFilters</span></code></td>
+<td><p><span class="tag">Optional</span> Filters</p>
+</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
 <td><code>cursor</code></td>
 <td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
@@ -1674,6 +1698,22 @@ games.</p>
 <tr>
 <td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type struct-type">ProfileOwnedKeysFilters</span></code></td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>cursor</code></td>
@@ -5272,6 +5312,46 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>published</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>ProfileOwnedKeysFilters
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="ProfileOwnedKeysFilters__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>ProfileOwnedKeysFilters <a href="#/?id=profileownedkeysfilters">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
 </tr>
 </table>
 

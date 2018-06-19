@@ -604,6 +604,26 @@
             "type": "number"
           },
           {
+            "name": "search",
+            "doc": "When specified only shows game titles that contain this string",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "doc": "Criterion to sort by",
+            "type": "string"
+          },
+          {
+            "name": "filters",
+            "doc": "Filters",
+            "type": "ProfileOwnedKeysFilters"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
+          },
+          {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
             "type": "Cursor"
@@ -2043,6 +2063,22 @@
           "name": "published",
           "doc": "",
           "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "ProfileOwnedKeysFilters",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installed",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "classification",
+          "doc": "",
+          "type": "GameClassification"
         }
       ]
     },
