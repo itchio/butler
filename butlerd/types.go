@@ -872,7 +872,7 @@ func (p FetchCavesParams) GetCursor() Cursor {
 }
 
 type FetchCavesResult struct {
-	Items []*Cave `json:"caves"`
+	Items []*Cave `json:"items"`
 
 	// Use to fetch the next 'page' of results
 	// @optional
