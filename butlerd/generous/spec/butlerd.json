@@ -694,9 +694,9 @@
             "type": "number"
           },
           {
-            "name": "cursor",
-            "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "name": "search",
+            "doc": "When specified only shows game titles that contain this string",
+            "type": "string"
           },
           {
             "name": "sortBy",
@@ -704,9 +704,19 @@
             "type": "string"
           },
           {
+            "name": "filters",
+            "doc": "Filters",
+            "type": "CavesFilters"
+          },
+          {
             "name": "reverse",
             "doc": "",
             "type": "boolean"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "Cursor"
           }
         ]
       },
@@ -2251,6 +2261,17 @@
           "name": "totalSize",
           "doc": "Total space of this location (depends on the partition/disk on which\nit is), or a negative value if we can't find it",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CavesFilters",
+      "doc": "",
+      "fields": [
+        {
+          "name": "classification",
+          "doc": "",
+          "type": "GameClassification"
         }
       ]
     },

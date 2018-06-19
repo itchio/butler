@@ -698,18 +698,6 @@ type ProfileOwnedKeysFilters struct {
 	Classification itchio.GameClassification `json:"classification"`
 }
 
-var GameClassificationList = []interface{}{
-	itchio.GameClassificationGame,
-	itchio.GameClassificationTool,
-	itchio.GameClassificationAssets,
-	itchio.GameClassificationGameMod,
-	itchio.GameClassificationPhysicalGame,
-	itchio.GameClassificationSoundtrack,
-	itchio.GameClassificationOther,
-	itchio.GameClassificationComic,
-	itchio.GameClassificationBook,
-}
-
 func (p ProfileOwnedKeysFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
@@ -839,20 +827,39 @@ type FetchCavesParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
-	// Used for pagination, if specified
+	// When specified only shows game titles that contain this string
 	// @optional
-	Cursor Cursor `json:"cursor"`
+	Search string `json:"search"`
 
 	// @optional
 	SortBy string `json:"sortBy"`
 
+	// Filters
+	// @optional
+	Filters CavesFilters `json:"filters"`
+
 	// @optional
 	Reverse bool `json:"reverse"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor Cursor `json:"cursor"`
+}
+
+type CavesFilters struct {
+	Classification itchio.GameClassification `json:"classification"`
+}
+
+func (p CavesFilters) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+	)
 }
 
 func (p FetchCavesParams) Validate() error {
 	return validation.ValidateStruct(&p,
-		validation.Field(&p.SortBy, validation.In("lastTouched", "title")),
+		validation.Field(&p.Filters),
+		validation.Field(&p.SortBy, validation.In("lastTouched", "playTime", "title")),
 	)
 }
 
@@ -865,7 +872,7 @@ func (p FetchCavesParams) GetCursor() Cursor {
 }
 
 type FetchCavesResult struct {
-	Caves []*Cave `json:"caves"`
+	Items []*Cave `json:"caves"`
 
 	// Use to fetch the next 'page' of results
 	// @optional
@@ -2226,3 +2233,17 @@ func ToDateTime(t time.Time) string {
 // Cursors
 
 type Cursor string
+
+// Validation enums
+
+var GameClassificationList = []interface{}{
+	itchio.GameClassificationGame,
+	itchio.GameClassificationTool,
+	itchio.GameClassificationAssets,
+	itchio.GameClassificationGameMod,
+	itchio.GameClassificationPhysicalGame,
+	itchio.GameClassificationSoundtrack,
+	itchio.GameClassificationOther,
+	itchio.GameClassificationComic,
+	itchio.GameClassificationBook,
+}

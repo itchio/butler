@@ -1787,9 +1787,9 @@ games.</p>
 </td>
 </tr>
 <tr>
-<td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
-<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> When specified only shows game titles that contain this string</p>
 </td>
 </tr>
 <tr>
@@ -1799,9 +1799,21 @@ games.</p>
 </td>
 </tr>
 <tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#CavesFilters__TypeHint">CavesFilters</span></code></td>
+<td><p><span class="tag">Optional</span> Filters</p>
+</td>
+</tr>
+<tr>
 <td><code>reverse</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
 </table>
@@ -1842,16 +1854,24 @@ games.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
 <td><code>sortBy</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type struct-type">CavesFilters</span></code></td>
+</tr>
+<tr>
 <td><code>reverse</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
 </tr>
 </table>
 
@@ -5748,6 +5768,37 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>totalSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>CavesFilters
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CavesFilters__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>CavesFilters <a href="#/?id=cavesfilters">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
 </tr>
 </table>
 

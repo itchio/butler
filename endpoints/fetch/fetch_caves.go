@@ -14,15 +14,33 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond = builder.NewCond()
+		joinGames := false
+		search := hades.Search{}
 
-		var search hades.Search
 		switch params.SortBy {
 		case "title":
 			ordering := pager.Ordering("ASC", params.Reverse)
 			search = search.OrderBy("games.title "+ordering).Join("games", "games.id = caves.game_id")
+		case "playTime":
+			ordering := pager.Ordering("DESC", params.Reverse)
+			search = search.OrderBy("caves.seconds_run " + ordering)
 		case "lastTouched", "":
 			ordering := pager.Ordering("DESC", params.Reverse)
 			search = search.OrderBy("caves.last_touched_at " + ordering)
+		}
+
+		if params.Filters.Classification != "" {
+			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
+			joinGames = true
+		}
+
+		if params.Search != "" {
+			cond = builder.And(cond, builder.Like{"games.title", params.Search})
+			joinGames = true
+		}
+
+		if joinGames {
+			search = search.Join("games", "games.id = caves.game_id")
 		}
 
 		var items []*models.Cave
@@ -30,7 +48,7 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		res.NextCursor = pg.Fetch(conn, &items, cond, search)
 		models.PreloadCaves(conn, items)
 		for _, cave := range items {
-			res.Caves = append(res.Caves, FormatCave(conn, cave))
+			res.Items = append(res.Items, FormatCave(conn, cave))
 		}
 	})
 	return res, nil
