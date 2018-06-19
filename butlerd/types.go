@@ -575,6 +575,21 @@ type FetchProfileGamesParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
+	// When specified only shows game titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// Filters
+	// @optional
+	Filters ProfileGameFilters `json:"filters"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
@@ -584,9 +599,23 @@ type FetchProfileGamesParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+type ProfileGameFilters struct {
+	Visibility string `json:"visibility"`
+	PaidStatus string `json:"paidStatus"`
+}
+
+func (p ProfileGameFilters) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Visibility, validation.In("draft", "published")),
+		validation.Field(&p.PaidStatus, validation.In("paid", "free")),
+	)
+}
+
 func (p FetchProfileGamesParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.SortBy, validation.In("default", "lastUpdated", "views", "downloads", "purchases")),
+		validation.Field(&p.Filters),
 	)
 }
 

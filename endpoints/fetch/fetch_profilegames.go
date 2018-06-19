@@ -45,7 +45,47 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
-		search := hades.Search{}.OrderBy("position ASC")
+		joinGames := false
+		search := hades.Search{}
+
+		switch params.SortBy {
+		case "lastUpdated":
+			joinGames = true
+			search = search.OrderBy("games.updated_at " + pager.Ordering("ASC", params.Reverse))
+		case "views":
+			search = search.OrderBy("views_count " + pager.Ordering("DESC", params.Reverse))
+		case "downloads":
+			search = search.OrderBy("downloads_count " + pager.Ordering("DESC", params.Reverse))
+		case "purchases":
+			search = search.OrderBy("purchases_count " + pager.Ordering("DESC", params.Reverse))
+		case "default", "":
+			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+		}
+
+		switch params.Filters.Visibility {
+		case "draft":
+			cond = builder.And(builder.Eq{"published": 0})
+		case "published":
+			cond = builder.And(builder.Eq{"published": 1})
+		}
+
+		switch params.Filters.PaidStatus {
+		case "free":
+			joinGames = true
+			cond = builder.And(builder.Eq{"games.min_price": 0})
+		case "paid":
+			joinGames = true
+			cond = builder.And(builder.Neq{"games.min_price": 0})
+		}
+
+		if params.Search != "" {
+			joinGames = true
+			cond = builder.And(builder.Like{"games.title", params.Search})
+		}
+
+		if joinGames {
+			search = search.Join("games", "games.id = profile_games.game_id")
+		}
 
 		var items []*models.ProfileGame
 		pg := pager.New(params)
