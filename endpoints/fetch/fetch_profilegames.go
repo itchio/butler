@@ -49,9 +49,6 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 		search := hades.Search{}
 
 		switch params.SortBy {
-		case "lastUpdated":
-			joinGames = true
-			search = search.OrderBy("games.updated_at " + pager.Ordering("ASC", params.Reverse))
 		case "views":
 			search = search.OrderBy("views_count " + pager.Ordering("DESC", params.Reverse))
 		case "downloads":
@@ -64,23 +61,23 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 
 		switch params.Filters.Visibility {
 		case "draft":
-			cond = builder.And(builder.Eq{"published": 0})
+			cond = builder.And(cond, builder.Eq{"published": 0})
 		case "published":
-			cond = builder.And(builder.Eq{"published": 1})
+			cond = builder.And(cond, builder.Eq{"published": 1})
 		}
 
 		switch params.Filters.PaidStatus {
 		case "free":
 			joinGames = true
-			cond = builder.And(builder.Eq{"games.min_price": 0})
+			cond = builder.And(cond, builder.Eq{"games.min_price": 0})
 		case "paid":
 			joinGames = true
-			cond = builder.And(builder.Neq{"games.min_price": 0})
+			cond = builder.And(cond, builder.Neq{"games.min_price": 0})
 		}
 
 		if params.Search != "" {
 			joinGames = true
-			cond = builder.And(builder.Like{"games.title", params.Search})
+			cond = builder.And(cond, builder.Like{"games.title", params.Search})
 		}
 
 		if joinGames {

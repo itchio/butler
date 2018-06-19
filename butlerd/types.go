@@ -614,7 +614,7 @@ func (p ProfileGameFilters) Validate() error {
 func (p FetchProfileGamesParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
-		validation.Field(&p.SortBy, validation.In("default", "lastUpdated", "views", "downloads", "purchases")),
+		validation.Field(&p.SortBy, validation.In("default", "views", "downloads", "purchases")),
 		validation.Field(&p.Filters),
 	)
 }
