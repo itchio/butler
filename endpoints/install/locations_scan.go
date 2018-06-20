@@ -52,8 +52,8 @@ type existingCave struct {
 
 func InstallLocationsScan(rc *butlerd.RequestContext, params butlerd.InstallLocationsScanParams) (*butlerd.InstallLocationsScanResult, error) {
 	consumer := rc.Consumer
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	sc := &scanContext{
 		rc:               rc,

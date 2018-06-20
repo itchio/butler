@@ -938,6 +938,19 @@ type FetchCavesByInstallLocationIDResult struct {
 	Caves               []*Cave `json:"caves"`
 }
 
+// Mark all local data as stale.
+//
+// @name Fetch.ExpireAll
+// @category Fetch
+// @caller client
+type FetchExpireAllParams struct{}
+
+func (p FetchExpireAllParams) Validate() error {
+	return nil
+}
+
+type FetchExpireAllResult struct{}
+
 //----------------------------------------------------------------------
 // Game
 //----------------------------------------------------------------------
@@ -2161,6 +2174,8 @@ const (
 
 	// There is no Internet connection
 	CodeNetworkDisconnected Code = 9000
+
+	CodeDatabaseBusy Code = 16000
 )
 
 //==================================

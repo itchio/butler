@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/itchio/wharf/werrors"
 
@@ -90,7 +91,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			Params:      req.Params,
 			Conn:        conn,
 			CancelFuncs: r.CancelFuncs,
-			DBPool:      r.dbPool,
+			dbPool:      r.dbPool,
 			Client:      r.getClient,
 
 			ButlerVersion:       r.ButlerVersion,
@@ -202,7 +203,7 @@ type RequestContext struct {
 	Params      *json.RawMessage
 	Conn        Conn
 	CancelFuncs *CancelFuncs
-	DBPool      *sqlite.Pool
+	dbPool      *sqlite.Pool
 	Client      GetClientFunc
 
 	ButlerVersion       string
@@ -252,8 +253,8 @@ func (rc *RequestContext) ProfileClient(profileID int64) (*models.Profile, *itch
 		panic(errors.New("profileId must be non-zero"))
 	}
 
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	profile := models.ProfileByID(conn, profileID)
 	if profile == nil {
@@ -297,15 +298,32 @@ func (rc *RequestContext) EndProgress() {
 	}
 }
 
+func (rc *RequestContext) GetConn() *sqlite.Conn {
+	getCtx, cancel := context.WithTimeout(rc.Ctx, 1*time.Second)
+	defer cancel()
+	conn := rc.dbPool.Get(getCtx.Done())
+	if conn != nil {
+		conn.SetInterrupt(rc.Ctx.Done())
+		return conn
+	}
+
+	panic(errors.WithStack(CodeDatabaseBusy))
+	return nil
+}
+
+func (rc *RequestContext) PutConn(conn *sqlite.Conn) {
+	rc.dbPool.Put(conn)
+}
+
 func (rc *RequestContext) WithConn(f func(conn *sqlite.Conn)) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 	f(conn)
 }
 
 func (rc *RequestContext) WithConnBool(f func(conn *sqlite.Conn) bool) bool {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 	return f(conn)
 }
 

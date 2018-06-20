@@ -723,7 +723,7 @@
       "result": {
         "fields": [
           {
-            "name": "caves",
+            "name": "items",
             "doc": "",
             "type": "Cave[]"
           },
@@ -812,6 +812,17 @@
             "type": "Cave[]"
           }
         ]
+      }
+    },
+    {
+      "method": "Fetch.ExpireAll",
+      "doc": "Mark all local data as stale.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
       }
     },
     {

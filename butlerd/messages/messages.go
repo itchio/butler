@@ -1337,6 +1337,46 @@ func (r *FetchCavesByInstallLocationIDType) TestCall(rc *butlerd.RequestContext,
 
 var FetchCavesByInstallLocationID *FetchCavesByInstallLocationIDType
 
+// Fetch.ExpireAll (Request)
+
+type FetchExpireAllType struct {}
+
+var _ RequestMessage = (*FetchExpireAllType)(nil)
+
+func (r *FetchExpireAllType) Method() string {
+  return "Fetch.ExpireAll"
+}
+
+func (r *FetchExpireAllType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchExpireAllParams) (*butlerd.FetchExpireAllResult, error)) {
+  router.Register("Fetch.ExpireAll", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchExpireAllParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.ExpireAll")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchExpireAllType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchExpireAllParams) (*butlerd.FetchExpireAllResult, error) {
+  var result butlerd.FetchExpireAllResult
+  err := rc.Call("Fetch.ExpireAll", params, &result)
+  return &result, err
+}
+
+var FetchExpireAll *FetchExpireAllType
+
 
 //==============================
 // Install
@@ -3185,6 +3225,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
   if _, ok := router.Handlers["Fetch.CavesByInstallLocationID"]; !ok { panic("missing request handler for (Fetch.CavesByInstallLocationID)") }
+  if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }

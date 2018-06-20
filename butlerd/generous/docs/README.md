@@ -1827,7 +1827,7 @@ games.</p>
 
 <table class="field-table">
 <tr>
-<td><code>caves</code></td>
+<td><code>items</code></td>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
 <td></td>
 </tr>
@@ -2047,6 +2047,34 @@ games.</p>
 </tr>
 </table>
 
+</div>
+
+### <em class="request-client-caller"></em>Fetch.ExpireAll
+
+
+<p>
+<p>Mark all local data as stale.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="FetchExpireAllParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.ExpireAll <a href="#/?id=fetchexpireall">(Go to definition)</a></p>
+
+<p>
+<p>Mark all local data as stale.</p>
+
+</p>
 </div>
 
 
@@ -6527,6 +6555,10 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>There is no Internet connection</p>
 </td>
 </tr>
+<tr>
+<td><code>16000</code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -6559,6 +6591,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>9000</code></td>
+</tr>
+<tr>
+<td><code>16000</code></td>
 </tr>
 </table>
 

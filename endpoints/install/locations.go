@@ -15,8 +15,8 @@ func InstallLocationsGetByID(rc *butlerd.RequestContext, params butlerd.InstallL
 		return nil, errors.Errorf("id must be set")
 	}
 
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	il := models.InstallLocationByID(conn, params.ID)
 	if il == nil {
@@ -30,8 +30,8 @@ func InstallLocationsGetByID(rc *butlerd.RequestContext, params butlerd.InstallL
 }
 
 func InstallLocationsList(rc *butlerd.RequestContext, params butlerd.InstallLocationsListParams) (*butlerd.InstallLocationsListResult, error) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	var locations []*models.InstallLocation
 	models.MustSelect(conn, &locations, builder.NewCond(), hades.Search{})
@@ -48,8 +48,8 @@ func InstallLocationsList(rc *butlerd.RequestContext, params butlerd.InstallLoca
 }
 
 func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocationsAddParams) (*butlerd.InstallLocationsAddResult, error) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 	consumer := rc.Consumer
 
 	hadID := false
@@ -88,8 +88,8 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocat
 }
 
 func InstallLocationsRemove(rc *butlerd.RequestContext, params butlerd.InstallLocationsRemoveParams) (*butlerd.InstallLocationsRemoveResult, error) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 	consumer := rc.Consumer
 
 	if params.ID == "" {

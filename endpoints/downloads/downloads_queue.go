@@ -15,8 +15,8 @@ import (
 
 func DownloadsQueue(rc *butlerd.RequestContext, params butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
 	consumer := rc.Consumer
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	item := params.Item
 	if item == nil {

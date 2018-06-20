@@ -88,7 +88,7 @@ func do(ctx *mansion.Context) {
 		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}
 
-	dbPool, err := sqlite.Open(ctx.DBPath, 0, 10)
+	dbPool, err := sqlite.Open(ctx.DBPath, 0, 2)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
 	}

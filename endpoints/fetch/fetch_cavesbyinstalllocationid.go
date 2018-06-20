@@ -7,8 +7,8 @@ import (
 )
 
 func FetchCavesByInstallLocationID(rc *butlerd.RequestContext, params butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	installLocation := models.InstallLocationByID(conn, params.InstallLocationID)
 	if installLocation == nil {

@@ -11,8 +11,8 @@ import (
 )
 
 func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
-	conn := rc.DBPool.Get(rc.Ctx.Done())
-	defer rc.DBPool.Put(conn)
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	var caves []*butlerd.CaveSummary
 	var downloadKeys []*butlerd.DownloadKeySummary
