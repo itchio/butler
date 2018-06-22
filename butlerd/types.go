@@ -565,7 +565,7 @@ func (p FetchCollectionGamesParams) Validate() error {
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.CollectionID, validation.Required),
 		validation.Field(&p.Filters),
-		validation.Field(&p.SortBy, validation.In("title")),
+		validation.Field(&p.SortBy, validation.In("default", "title")),
 	)
 }
 
