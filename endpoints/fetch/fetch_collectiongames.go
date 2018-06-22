@@ -88,7 +88,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		}
 
 		if params.Filters.Installed {
-			cond = builder.And(cond, builder.Expr("exists (select 1 from caves where caves.game_id = download_keys.game_id)"))
+			cond = builder.And(cond, builder.Expr("exists (select 1 from caves where caves.game_id = collection_games.game_id)"))
 		}
 
 		if params.Filters.Classification != "" {
@@ -102,7 +102,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		}
 
 		if joinGames {
-			search = search.Join("games", "games.id = download_keys.game_id")
+			search = search.Join("games", "games.id = collection_games.game_id")
 		}
 
 		var items []*itchio.CollectionGame
