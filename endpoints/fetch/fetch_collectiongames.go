@@ -76,7 +76,34 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"collection_id": params.CollectionID}
-		search := hades.Search{}.OrderBy("position ASC")
+		joinGames := false
+		search := hades.Search{}
+
+		switch params.SortBy {
+		case "default", "":
+			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+		case "title":
+			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
+			joinGames = true
+		}
+
+		if params.Filters.Installed {
+			cond = builder.And(cond, builder.Expr("exists (select 1 from caves where caves.game_id = download_keys.game_id)"))
+		}
+
+		if params.Filters.Classification != "" {
+			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
+			joinGames = true
+		}
+
+		if params.Search != "" {
+			cond = builder.And(cond, builder.Like{"games.title", params.Search})
+			joinGames = true
+		}
+
+		if joinGames {
+			search = search.Join("games", "games.id = download_keys.game_id")
+		}
 
 		var items []*itchio.CollectionGame
 		pg := pager.New(params)
