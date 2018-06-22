@@ -131,13 +131,15 @@ func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler
 				close(handshakeDone)
 			}()
 
-			select {
-			case <-handshakeDone:
-				// good!
-			case <-time.After(15 * time.Second):
-				consumer.Warnf("butlerd: Handshake timed out!")
-				jc.Close()
-			}
+			go func() {
+				select {
+				case <-handshakeDone:
+					// good!
+				case <-time.After(15 * time.Second):
+					consumer.Warnf("butlerd: Handshake timed out!")
+					jc.Close()
+				}
+			}()
 		case <-disconnects:
 			numClients--
 			consumer.Infof("butlerd: Client disconnected! (%d clients left)", numClients)
