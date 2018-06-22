@@ -400,6 +400,48 @@ func (r *FetchGameResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// Fetches information for an itch.io user.
+//
+// @name Fetch.User
+// @category Fetch
+// @caller client
+type FetchUserParams struct {
+	// Identifier of the user to look for
+	UserID int64 `json:"userId"`
+
+	// Profile to use to look upser
+	ProfileID int64 `json:"profileId"`
+
+	// Force an API request
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+func (p FetchUserParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.UserID, validation.Required),
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchUserParams) IsFresh() bool {
+	return p.Fresh
+}
+
+type FetchUserResult struct {
+	// User info
+	User *itchio.User `json:"user"`
+
+	// Marks that a request should be issued
+	// afterwards with 'Fresh' set
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchUserResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
 // Fetch a collection's title, gamesCount, etc.
 // but not its games.
 //

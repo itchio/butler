@@ -381,6 +381,44 @@
       }
     },
     {
+      "method": "Fetch.User",
+      "doc": "Fetches information for an itch.io user.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "userId",
+            "doc": "Identifier of the user to look for",
+            "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to use to look upser",
+            "type": "number"
+          },
+          {
+            "name": "fresh",
+            "doc": "Force an API request",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "user",
+            "doc": "User info",
+            "type": "User"
+          },
+          {
+            "name": "stale",
+            "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.Collection",
       "doc": "Fetch a collection's title, gamesCount, etc.\nbut not its games.",
       "caller": "client",

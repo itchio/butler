@@ -50,7 +50,9 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 				models.MustSave(conn, fakeColl,
 					hades.OmitRoot(),
 					hades.Assoc("CollectionGames",
-						hades.Assoc("Game"),
+						hades.Assoc("Game",
+							hades.Assoc("Sale"),
+						),
 					),
 				)
 			})
