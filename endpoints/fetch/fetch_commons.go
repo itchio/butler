@@ -18,40 +18,38 @@ func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams)
 	var downloadKeys []*butlerd.DownloadKeySummary
 	var installLocations []*models.InstallLocation
 	var flocs []*butlerd.InstallLocationSummary
-	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustExec(
-			conn,
-			builder.Select("id", "game_id", "last_touched_at", "seconds_run", "installed_size").From("caves"),
-			func(stmt *sqlite.Stmt) error {
-				caves = append(caves, &butlerd.CaveSummary{
-					ID:            stmt.ColumnText(0),
-					GameID:        stmt.ColumnInt64(1),
-					LastTouchedAt: models.ColumnTime(2, stmt),
-					SecondsRun:    stmt.ColumnInt64(3),
-					InstalledSize: stmt.ColumnInt64(4),
-				})
-				return nil
-			},
-		)
+	models.MustExec(
+		conn,
+		builder.Select("id", "game_id", "last_touched_at", "seconds_run", "installed_size").From("caves"),
+		func(stmt *sqlite.Stmt) error {
+			caves = append(caves, &butlerd.CaveSummary{
+				ID:            stmt.ColumnText(0),
+				GameID:        stmt.ColumnInt64(1),
+				LastTouchedAt: models.ColumnTime(2, stmt),
+				SecondsRun:    stmt.ColumnInt64(3),
+				InstalledSize: stmt.ColumnInt64(4),
+			})
+			return nil
+		},
+	)
 
-		models.MustExec(
-			conn,
-			builder.Select("id", "game_id", "created_at").From("download_keys"),
-			func(stmt *sqlite.Stmt) error {
-				downloadKeys = append(downloadKeys, &butlerd.DownloadKeySummary{
-					ID:        stmt.ColumnInt64(0),
-					GameID:    stmt.ColumnInt64(1),
-					CreatedAt: models.ColumnTime(2, stmt),
-				})
-				return nil
-			},
-		)
+	models.MustExec(
+		conn,
+		builder.Select("id", "game_id", "created_at").From("download_keys"),
+		func(stmt *sqlite.Stmt) error {
+			downloadKeys = append(downloadKeys, &butlerd.DownloadKeySummary{
+				ID:        stmt.ColumnInt64(0),
+				GameID:    stmt.ColumnInt64(1),
+				CreatedAt: models.ColumnTime(2, stmt),
+			})
+			return nil
+		},
+	)
 
-		models.MustSelect(conn, &installLocations, builder.NewCond(), hades.Search{})
-		for _, il := range installLocations {
-			flocs = append(flocs, FormatInstallLocation(conn, rc.Consumer, il))
-		}
-	})
+	models.MustSelect(conn, &installLocations, builder.NewCond(), hades.Search{})
+	for _, il := range installLocations {
+		flocs = append(flocs, FormatInstallLocation(conn, rc.Consumer, il))
+	}
 
 	res := &butlerd.FetchCommonsResult{
 		Caves:            caves,
