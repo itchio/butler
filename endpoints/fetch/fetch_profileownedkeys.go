@@ -64,8 +64,8 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 		search := hades.Search{}
 
 		switch params.SortBy {
-		case "acquiredAt":
-			search = search.OrderBy("downloads_keys.created_at " + pager.Ordering("DESC", params.Reverse))
+		case "acquiredAt", "":
+			search = search.OrderBy("download_keys.created_at " + pager.Ordering("DESC", params.Reverse))
 		case "title":
 			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
 			joinGames = true
