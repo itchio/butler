@@ -96,6 +96,9 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 
 			ButlerVersion:       r.ButlerVersion,
 			ButlerVersionString: r.ButlerVersionString,
+
+			origConn: origConn,
+			method:   method,
 		}
 
 		if req.Notif {
@@ -211,6 +214,9 @@ type RequestContext struct {
 
 	notificationInterceptors map[string]NotificationInterceptor
 	tracker                  *progress.Tracker
+
+	method   string
+	origConn *jsonrpc2.Conn
 }
 
 type WithParamsFunc func() (interface{}, error)
