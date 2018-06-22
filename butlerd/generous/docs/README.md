@@ -1254,6 +1254,64 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Fetch.Sale
+
+
+<p>
+<p>Fetches the best current <em>locally cached</em> sale for a given
+game.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the game for which to look for a sale</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sale</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchSaleParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.Sale <a href="#/?id=fetchsale">(Go to definition)</a></p>
+
+<p>
+<p>Fetches the best current <em>locally cached</em> sale for a given
+game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Collection
 
 

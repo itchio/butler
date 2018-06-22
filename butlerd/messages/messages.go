@@ -977,6 +977,46 @@ func (r *FetchUserType) TestCall(rc *butlerd.RequestContext, params butlerd.Fetc
 
 var FetchUser *FetchUserType
 
+// Fetch.Sale (Request)
+
+type FetchSaleType struct {}
+
+var _ RequestMessage = (*FetchSaleType)(nil)
+
+func (r *FetchSaleType) Method() string {
+  return "Fetch.Sale"
+}
+
+func (r *FetchSaleType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchSaleParams) (*butlerd.FetchSaleResult, error)) {
+  router.Register("Fetch.Sale", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchSaleParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.Sale")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchSaleType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchSaleParams) (*butlerd.FetchSaleResult, error) {
+  var result butlerd.FetchSaleResult
+  err := rc.Call("Fetch.Sale", params, &result)
+  return &result, err
+}
+
+var FetchSale *FetchSaleType
+
 // Fetch.Collection (Request)
 
 type FetchCollectionType struct {}
@@ -3256,6 +3296,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Search.Users"]; !ok { panic("missing request handler for (Search.Users)") }
   if _, ok := router.Handlers["Fetch.Game"]; !ok { panic("missing request handler for (Fetch.Game)") }
   if _, ok := router.Handlers["Fetch.User"]; !ok { panic("missing request handler for (Fetch.User)") }
+  if _, ok := router.Handlers["Fetch.Sale"]; !ok { panic("missing request handler for (Fetch.Sale)") }
   if _, ok := router.Handlers["Fetch.Collection"]; !ok { panic("missing request handler for (Fetch.Collection)") }
   if _, ok := router.Handlers["Fetch.Collection.Games"]; !ok { panic("missing request handler for (Fetch.Collection.Games)") }
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }

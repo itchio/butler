@@ -419,6 +419,29 @@
       }
     },
     {
+      "method": "Fetch.Sale",
+      "doc": "Fetches the best current *locally cached* sale for a given\ngame.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "Identifier of the game for which to look for a sale",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "sale",
+            "doc": "",
+            "type": "Sale"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.Collection",
       "doc": "Fetch a collection's title, gamesCount, etc.\nbut not its games.",
       "caller": "client",

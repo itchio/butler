@@ -442,6 +442,28 @@ func (r *FetchUserResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// Fetches the best current *locally cached* sale for a given
+// game.
+//
+// @name Fetch.Sale
+// @category Fetch
+// @caller client
+type FetchSaleParams struct {
+	// Identifier of the game for which to look for a sale
+	GameID int64 `json:"gameId"`
+}
+
+func (p FetchSaleParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type FetchSaleResult struct {
+	// @optional
+	Sale *itchio.Sale `json:"sale"`
+}
+
 // Fetch a collection's title, gamesCount, etc.
 // but not its games.
 //
