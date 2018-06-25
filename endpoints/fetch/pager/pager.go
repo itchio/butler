@@ -34,11 +34,11 @@ func (p pager) Fetch(conn *sqlite.Conn, result interface{}, cond builder.Cond, s
 	cur := &CursorInfo{}
 	cur.Decode(p.req.GetCursor())
 	limit := p.req.GetLimit()
-	if limit == 0 {
-		limit = 5
-	}
 
-	search = search.Offset(cur.Offset).Limit(limit + 1)
+	search = search.Offset(cur.Offset)
+	if limit > 0 {
+		search = search.Limit(limit + 1)
+	}
 	models.MustSelect(conn, result, cond, search)
 
 	resVal := reflect.ValueOf(result)
@@ -51,7 +51,7 @@ func (p pager) Fetch(conn *sqlite.Conn, result interface{}, cond builder.Cond, s
 	}
 
 	var nextCur *CursorInfo
-	if int64(sliceVal.Len()) > limit {
+	if limit > 0 && int64(sliceVal.Len()) > limit {
 		nextCur = &CursorInfo{
 			Offset: cur.Offset + limit,
 		}

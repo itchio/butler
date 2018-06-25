@@ -17,7 +17,5 @@ func Register(router *butlerd.Router) {
 	messages.FetchCommons.Register(router, FetchCommons)
 	messages.FetchCave.Register(router, FetchCave)
 	messages.FetchCaves.Register(router, FetchCaves)
-	messages.FetchCavesByGameID.Register(router, FetchCavesByGameID)
-	messages.FetchCavesByInstallLocationID.Register(router, FetchCavesByInstallLocationID)
 	messages.FetchExpireAll.Register(router, FetchExpireAll)
 }

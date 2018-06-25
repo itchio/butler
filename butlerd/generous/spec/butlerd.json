@@ -840,62 +840,6 @@
       }
     },
     {
-      "method": "Fetch.CavesByGameID",
-      "doc": "Retrieve all caves for a given game.",
-      "caller": "client",
-      "params": {
-        "fields": [
-          {
-            "name": "gameId",
-            "doc": "",
-            "type": "number"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "caves",
-            "doc": "",
-            "type": "Cave[]"
-          }
-        ]
-      }
-    },
-    {
-      "method": "Fetch.CavesByInstallLocationID",
-      "doc": "Retrieve all caves installed to a given location.",
-      "caller": "client",
-      "params": {
-        "fields": [
-          {
-            "name": "installLocationId",
-            "doc": "",
-            "type": "string"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "installLocationPath",
-            "doc": "",
-            "type": "string"
-          },
-          {
-            "name": "installLocationSize",
-            "doc": "",
-            "type": "number"
-          },
-          {
-            "name": "caves",
-            "doc": "",
-            "type": "Cave[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "Fetch.ExpireAll",
       "doc": "Mark all local data as stale.",
       "caller": "client",
@@ -2380,6 +2324,16 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        },
+        {
+          "name": "gameID",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "installLocationID",
+          "doc": "",
+          "type": "string"
         }
       ]
     },

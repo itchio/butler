@@ -2112,124 +2112,6 @@ games.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.CavesByGameID
-
-
-<p>
-<p>Retrieve all caves for a given game.</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>gameId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>caves</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchCavesByGameIDParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.CavesByGameID <a href="#/?id=fetchcavesbygameid">(Go to definition)</a></p>
-
-<p>
-<p>Retrieve all caves for a given game.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>gameId</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-client-caller"></em>Fetch.CavesByInstallLocationID
-
-
-<p>
-<p>Retrieve all caves installed to a given location.</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>installLocationId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>installLocationPath</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>installLocationSize</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>caves</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="FetchCavesByInstallLocationIDParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.CavesByInstallLocationID <a href="#/?id=fetchcavesbyinstalllocationid">(Go to definition)</a></p>
-
-<p>
-<p>Retrieve all caves installed to a given location.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>installLocationId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
 ### <em class="request-client-caller"></em>Fetch.ExpireAll
 
 
@@ -6035,7 +5917,20 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>gameID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>installLocationID</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -6048,6 +5943,14 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>gameID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>installLocationID</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 

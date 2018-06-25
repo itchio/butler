@@ -1337,86 +1337,6 @@ func (r *FetchCaveType) TestCall(rc *butlerd.RequestContext, params butlerd.Fetc
 
 var FetchCave *FetchCaveType
 
-// Fetch.CavesByGameID (Request)
-
-type FetchCavesByGameIDType struct {}
-
-var _ RequestMessage = (*FetchCavesByGameIDType)(nil)
-
-func (r *FetchCavesByGameIDType) Method() string {
-  return "Fetch.CavesByGameID"
-}
-
-func (r *FetchCavesByGameIDType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error)) {
-  router.Register("Fetch.CavesByGameID", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.FetchCavesByGameIDParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Fetch.CavesByGameID")
-    }
-    return res, nil
-  })
-}
-
-func (r *FetchCavesByGameIDType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchCavesByGameIDParams) (*butlerd.FetchCavesByGameIDResult, error) {
-  var result butlerd.FetchCavesByGameIDResult
-  err := rc.Call("Fetch.CavesByGameID", params, &result)
-  return &result, err
-}
-
-var FetchCavesByGameID *FetchCavesByGameIDType
-
-// Fetch.CavesByInstallLocationID (Request)
-
-type FetchCavesByInstallLocationIDType struct {}
-
-var _ RequestMessage = (*FetchCavesByInstallLocationIDType)(nil)
-
-func (r *FetchCavesByInstallLocationIDType) Method() string {
-  return "Fetch.CavesByInstallLocationID"
-}
-
-func (r *FetchCavesByInstallLocationIDType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error)) {
-  router.Register("Fetch.CavesByInstallLocationID", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.FetchCavesByInstallLocationIDParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Fetch.CavesByInstallLocationID")
-    }
-    return res, nil
-  })
-}
-
-func (r *FetchCavesByInstallLocationIDType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchCavesByInstallLocationIDParams) (*butlerd.FetchCavesByInstallLocationIDResult, error) {
-  var result butlerd.FetchCavesByInstallLocationIDResult
-  err := rc.Call("Fetch.CavesByInstallLocationID", params, &result)
-  return &result, err
-}
-
-var FetchCavesByInstallLocationID *FetchCavesByInstallLocationIDType
-
 // Fetch.ExpireAll (Request)
 
 type FetchExpireAllType struct {}
@@ -3305,8 +3225,6 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Caves"]; !ok { panic("missing request handler for (Fetch.Caves)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
-  if _, ok := router.Handlers["Fetch.CavesByGameID"]; !ok { panic("missing request handler for (Fetch.CavesByGameID)") }
-  if _, ok := router.Handlers["Fetch.CavesByInstallLocationID"]; !ok { panic("missing request handler for (Fetch.CavesByInstallLocationID)") }
   if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }

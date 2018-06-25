@@ -34,6 +34,14 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 			joinGames = true
 		}
 
+		if params.Filters.InstallLocationID != "" {
+			cond = builder.And(cond, builder.Eq{"caves.install_location_id": params.Filters.InstallLocationID})
+		}
+
+		if params.Filters.GameID != 0 {
+			cond = builder.And(cond, builder.Eq{"caves.game_id": params.Filters.GameID})
+		}
+
 		if params.Search != "" {
 			cond = builder.And(cond, builder.Like{"games.title", params.Search})
 			joinGames = true

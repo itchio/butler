@@ -939,7 +939,14 @@ type FetchCavesParams struct {
 }
 
 type CavesFilters struct {
+	// @optional
 	Classification itchio.GameClassification `json:"classification"`
+
+	// @optional
+	GameID int64 `json:"gameID"`
+
+	// @optional
+	InstallLocationID string `json:"installLocationID"`
 }
 
 func (p CavesFilters) Validate() error {
@@ -988,46 +995,6 @@ func (p FetchCaveParams) Validate() error {
 
 type FetchCaveResult struct {
 	Cave *Cave `json:"cave"`
-}
-
-// Retrieve all caves for a given game.
-//
-// @name Fetch.CavesByGameID
-// @category Fetch
-// @caller client
-type FetchCavesByGameIDParams struct {
-	GameID int64 `json:"gameId"`
-}
-
-func (p FetchCavesByGameIDParams) Validate() error {
-	return validation.ValidateStruct(&p,
-		validation.Field(&p.GameID, validation.Required),
-	)
-}
-
-type FetchCavesByGameIDResult struct {
-	Caves []*Cave `json:"caves"`
-}
-
-// Retrieve all caves installed to a given location.
-//
-// @name Fetch.CavesByInstallLocationID
-// @category Fetch
-// @caller client
-type FetchCavesByInstallLocationIDParams struct {
-	InstallLocationID string `json:"installLocationId"`
-}
-
-func (p FetchCavesByInstallLocationIDParams) Validate() error {
-	return validation.ValidateStruct(&p,
-		validation.Field(&p.InstallLocationID, validation.Required),
-	)
-}
-
-type FetchCavesByInstallLocationIDResult struct {
-	InstallLocationPath string  `json:"installLocationPath"`
-	InstallLocationSize int64   `json:"installLocationSize"`
-	Caves               []*Cave `json:"caves"`
 }
 
 // Mark all local data as stale.
