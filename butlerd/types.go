@@ -943,10 +943,10 @@ type CavesFilters struct {
 	Classification itchio.GameClassification `json:"classification"`
 
 	// @optional
-	GameID int64 `json:"gameID"`
+	GameID int64 `json:"gameId"`
 
 	// @optional
-	InstallLocationID string `json:"installLocationID"`
+	InstallLocationID string `json:"installLocationId"`
 }
 
 func (p CavesFilters) Validate() error {
