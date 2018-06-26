@@ -129,7 +129,7 @@
           {
             "name": "cookie",
             "doc": "Profile cookie for website",
-            "type": "Map\u003cstring, string\u003e"
+            "type": "{ [key: string]: string }"
           }
         ]
       }
@@ -1534,7 +1534,7 @@
           {
             "name": "env",
             "doc": "Environment variables, to pass as `global.Itch.env`",
-            "type": "Map\u003cstring, string\u003e"
+            "type": "{ [key: string]: string }"
           }
         ]
       },
@@ -1997,7 +1997,7 @@
           {
             "name": "tasks",
             "doc": "A list of prereqs that need to be tended to",
-            "type": "Map\u003cstring, PrereqTask\u003e"
+            "type": "{ [key: string]: PrereqTask }"
           }
         ]
       }
@@ -2326,12 +2326,12 @@
           "type": "GameClassification"
         },
         {
-          "name": "gameID",
+          "name": "gameId",
           "doc": "",
           "type": "number"
         },
         {
-          "name": "installLocationID",
+          "name": "installLocationId",
           "doc": "",
           "type": "string"
         }
@@ -2513,7 +2513,7 @@
         {
           "name": "locales",
           "doc": "localized action name",
-          "type": "Map\u003cstring, ActionLocale\u003e"
+          "type": "{ [key: string]: ActionLocale }"
         }
       ]
     },

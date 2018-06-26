@@ -468,7 +468,7 @@ as if there were no network connections</p>
 </tr>
 <tr>
 <td><code>cookie</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type builtin-type">string</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
 <td><p>Profile cookie for website</p>
 </td>
 </tr>
@@ -4419,7 +4419,7 @@ game, ideally in an embedded browser.</p>
 </tr>
 <tr>
 <td><code>env</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type builtin-type">string</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
 <td><p>Environment variables, to pass as <code>global.Itch.env</code></p>
 </td>
 </tr>
@@ -4458,7 +4458,7 @@ game, ideally in an embedded browser.</p>
 </tr>
 <tr>
 <td><code>env</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type builtin-type">string</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
 </tr>
 </table>
 
@@ -4583,7 +4583,7 @@ tasks.</p>
 <table class="field-table">
 <tr>
 <td><code>tasks</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type" data-tip-selector="#PrereqTask__TypeHint">PrereqTask</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: PrereqTask }</span></code></td>
 <td><p>A list of prereqs that need to be tended to</p>
 </td>
 </tr>
@@ -4606,7 +4606,7 @@ tasks.</p>
 <table class="field-table">
 <tr>
 <td><code>tasks</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type">PrereqTask</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: PrereqTask }</span></code></td>
 </tr>
 </table>
 
@@ -5921,13 +5921,13 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </td>
 </tr>
 <tr>
-<td><code>gameID</code></td>
+<td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
 <tr>
-<td><code>installLocationID</code></td>
+<td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span></p>
 </td>
@@ -5945,11 +5945,11 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
 </tr>
 <tr>
-<td><code>gameID</code></td>
+<td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>installLocationID</code></td>
+<td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
@@ -6842,7 +6842,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>locales</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type" data-tip-selector="#ActionLocale__TypeHint">ActionLocale</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
 <td><p>localized action name</p>
 </td>
 </tr>
@@ -6894,7 +6894,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>locales</code></td>
-<td><code class="typename">Map&lt;<span class="type builtin-type">string</span>, <span class="type struct-type">ActionLocale</span>&gt;</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
 </tr>
 </table>
 
