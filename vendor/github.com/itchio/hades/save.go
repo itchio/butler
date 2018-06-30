@@ -1,10 +1,10 @@
 package hades
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/go-xorm/builder"
 	"github.com/itchio/hades/sqliteutil2"
 
 	"crawshaw.io/sqlite"
@@ -153,9 +153,8 @@ func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...
 				case "has_many":
 					// if we're in replace mode
 					if vri.Field.Mode() == AssocModeReplace {
-						// and it's an actually
-						// has_many, not a disguised
-						// many_to_many
+						// and it's an actual has_many,
+						// not a disguised many_to_many
 						if len(vri.ModelStruct.PrimaryFields) == 1 {
 							// then cull now
 							cull = true
@@ -175,7 +174,6 @@ func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...
 			}
 
 			if cull {
-				var oldValuePKs []string
 				rel := vri.Relationship
 
 				parentPF := c.NewScope(p.Interface()).PrimaryField()
@@ -193,49 +191,58 @@ func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...
 					return errors.Errorf("Since %v has_many %v, expected %v to have one primary key. Instead, it has primary fields: %s",
 						pri.Name(), vri.Name(), vri.Name(), strings.Join(pfNames, ", "))
 				}
+
 				valuePF := c.NewScope(v.Interface()).PrimaryField()
 				if valuePF == nil {
 					return errors.Errorf("Can't save %v has_many %v: value has no primary keys", pri.Type, vri.Type)
 				}
 
-				q := builder.Select(rel.AssociationForeignDBNames[0]).
-					From(vri.ModelStruct.TableName).
-					Where(builder.Eq{
-						rel.ForeignDBNames[0]: parentPK,
-					})
+				passedPFs := make(map[interface{}]struct{})
+				for i := 0; i < v.Len(); i++ {
+					rec := v.Index(i)
+					pf := rec.Elem().FieldByName(rel.AssociationForeignDBNames[0]).Interface()
+					passedPFs[pf] = struct{}{}
+				}
 
-				err = c.Exec(conn, q, func(stmt *sqlite.Stmt) error {
-					pk := stmt.ColumnText(0)
-					oldValuePKs = append(oldValuePKs, pk)
+				pfTyp := valuePF.Struct.Type
+				pfKind := pfTyp.Kind()
+
+				selectQuery := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = ?`,
+					EscapeIdentifier(rel.AssociationForeignDBNames[0]),
+					EscapeIdentifier(vri.ModelStruct.TableName),
+					EscapeIdentifier(rel.ForeignDBNames[0]),
+				)
+				deleteQuery := fmt.Sprintf(`DELETE FROM %s WHERE %s = ? AND %s = ?`,
+					EscapeIdentifier(vri.ModelStruct.TableName),
+					EscapeIdentifier(rel.ForeignDBNames[0]),
+					EscapeIdentifier(rel.AssociationForeignDBNames[0]),
+				)
+
+				var removedPFs []interface{}
+
+				err := c.ExecRaw(conn, selectQuery, func(stmt *sqlite.Stmt) error {
+					var pf interface{}
+					switch pfKind {
+					case reflect.Int64:
+						pf = stmt.ColumnInt64(0)
+					case reflect.String:
+						pf = stmt.ColumnText(0)
+					default:
+						return errors.Errorf("Unsupported primary key for has_many: %v", pfTyp)
+					}
+					if _, ok := passedPFs[pf]; !ok {
+						removedPFs = append(removedPFs, pf)
+					}
 					return nil
-				})
+				}, parentPK.Interface())
 				if err != nil {
 					return err
 				}
 
-				if len(oldValuePKs) > 0 {
-					var newValuePKs []string
-					for i := 0; i < v.Len(); i++ {
-						newValuePKs = append(newValuePKs, c.NewScope(v.Index(i).Interface()).PrimaryField().Field.String())
-					}
-
-					var newValuePKsMap = make(map[string]struct{})
-					for _, pk := range newValuePKs {
-						newValuePKsMap[pk] = struct{}{}
-					}
-
-					var vpksToDelete []interface{}
-					for _, pk := range oldValuePKs {
-						if _, ok := newValuePKsMap[pk]; !ok {
-							vpksToDelete = append(vpksToDelete, pk)
-						}
-					}
-
-					if len(vpksToDelete) > 0 {
-						err := c.deletePagedByPK(conn, vri.ModelStruct.TableName, valuePF.DBName, vpksToDelete, builder.NewCond())
-						if err != nil {
-							return err
-						}
+				for _, pf := range removedPFs {
+					err := c.ExecRaw(conn, deleteQuery, nil, parentPK.Interface(), pf)
+					if err != nil {
+						return err
 					}
 				}
 			}

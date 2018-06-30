@@ -1,111 +1,101 @@
 package hades
 
 import (
+	"fmt"
 	"reflect"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
 	"github.com/pkg/errors"
 )
 
 func (c *Context) saveJoins(conn *sqlite.Conn, mode AssocMode, mtm *ManyToMany) error {
-	joinType := reflect.PtrTo(mtm.Scope.GetModelStruct().ModelType)
-
-	getDestinKey := func(v reflect.Value) interface{} {
-		return v.Elem().FieldByName(mtm.DestinName).Interface()
-	}
+	selectQuery := fmt.Sprintf(`SELECT %s FROM %s WHERE %s = ?`,
+		EscapeIdentifier(mtm.DestinDBName),
+		EscapeIdentifier(mtm.JoinTable),
+		EscapeIdentifier(mtm.SourceDBName),
+	)
+	upsertQuery := fmt.Sprintf(`INSERT INTO %s (%s, %s) VALUES (?, ?) ON CONFLICT DO NOTHING`,
+		EscapeIdentifier(mtm.JoinTable),
+		EscapeIdentifier(mtm.SourceDBName),
+		EscapeIdentifier(mtm.DestinDBName),
+	)
+	deleteQuery := fmt.Sprintf(`DELETE FROM %s WHERE %s = ? AND %s = ?`,
+		EscapeIdentifier(mtm.JoinTable),
+		EscapeIdentifier(mtm.SourceDBName),
+		EscapeIdentifier(mtm.DestinDBName),
+	)
+	deleteAllQuery := fmt.Sprintf(`DELETE FROM %s WHERE %s = ?`,
+		EscapeIdentifier(mtm.JoinTable),
+		EscapeIdentifier(mtm.SourceDBName),
+	)
 
 	for sourceKey, joinRecs := range mtm.Values {
-		cacheAddr := reflect.New(reflect.SliceOf(joinType))
-
-		err := c.Select(conn, cacheAddr.Interface(), builder.Eq{mtm.SourceDBName: sourceKey}, Search{})
-		if err != nil {
-			return errors.WithMessage(err, "fetching cached records to compare later")
-		}
-
-		cache := cacheAddr.Elem()
-
-		cacheByDestinKey := make(map[interface{}]reflect.Value)
-		for i := 0; i < cache.Len(); i++ {
-			rec := cache.Index(i)
-			cacheByDestinKey[getDestinKey(rec)] = rec
-		}
-
-		freshByDestinKey := make(map[interface{}]reflect.Value)
-		for _, joinRec := range joinRecs {
-			freshByDestinKey[joinRec.DestinKey] = joinRec.Record
-		}
-
-		var deletes []interface{}
-		updates := make(map[interface{}]ChangedFields)
-		insertsByDestinKey := make(map[interface{}]JoinRec)
-
-		// compare with cache: will result in delete or update
-		for i := 0; i < cache.Len(); i++ {
-			crec := cache.Index(i)
-			destinKey := getDestinKey(crec)
-			if frec, ok := freshByDestinKey[destinKey]; ok {
-				if frec.IsValid() {
-					// compare to maybe update
-					ifrec := frec.Elem().Interface()
-					icrec := crec.Elem().Interface()
-
-					cf, err := DiffRecord(ifrec, icrec, mtm.Scope)
-					if err != nil {
-						return errors.WithMessage(err, "diffing database records")
-					}
-
-					if cf != nil {
-						updates[destinKey] = cf
-					}
-				}
-			} else {
-				deletes = append(deletes, destinKey)
-			}
-		}
-
-		for _, joinRec := range joinRecs {
-			if _, ok := cacheByDestinKey[joinRec.DestinKey]; !ok {
-				insertsByDestinKey[joinRec.DestinKey] = joinRec
-			}
-		}
-
-		if mode == AssocModeReplace && len(deletes) > 0 {
-			err := c.deletePagedByPK(conn, mtm.JoinTable, mtm.DestinDBName, deletes, builder.Eq{mtm.SourceDBName: sourceKey})
-			if err != nil {
-				return errors.WithMessage(err, "deleting extraneous relations")
-			}
-		}
-
-		for _, joinRec := range insertsByDestinKey {
-			rec := joinRec.Record
-
-			if rec.IsValid() {
-				err := c.Insert(conn, mtm.Scope, rec)
+		for _, jr := range joinRecs {
+			if jr.Record.IsValid() {
+				// many to many record was specified
+				err := c.Upsert(conn, mtm.Scope, jr.Record)
 				if err != nil {
-					return errors.WithMessage(err, "creating new relation records")
+					return err
 				}
 			} else {
-				// if not passed an explicit record, make it ourselves
-				// that typically means the join table doesn't have additional
-				// columns and is a simple many_to_many
-				eq := builder.Eq{
-					mtm.SourceDBName: sourceKey,
-					mtm.DestinDBName: joinRec.DestinKey,
-				}
-				query := builder.Insert(eq).Into(mtm.JoinTable)
-				err := c.Exec(conn, query, nil)
+				// create our own many to many record
+				err := c.ExecRaw(conn, upsertQuery, nil,
+					sourceKey, jr.DestinKey,
+				)
 				if err != nil {
 					return err
 				}
 			}
 		}
 
-		for destinKey, cf := range updates {
-			query := builder.Update(cf.ToEq()).Into(mtm.Scope.TableName()).Where(builder.Eq{mtm.SourceDBName: sourceKey, mtm.DestinDBName: destinKey})
-			err := c.Exec(conn, query, nil)
-			if err != nil {
-				return errors.WithMessage(err, "updating related records")
+		if mode == AssocModeReplace {
+			// this essentially clears all associated records
+			if len(joinRecs) == 0 {
+				err := c.ExecRaw(conn, deleteAllQuery, nil, sourceKey)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+
+			passedDKs := make(map[interface{}]struct{})
+			for _, jr := range joinRecs {
+				passedDKs[jr.DestinKey] = struct{}{}
+			}
+
+			// we have > 0 joinRecs, as checked above
+			firstDK := joinRecs[0].DestinKey
+			dkTyp := reflect.TypeOf(firstDK)
+			dkKind := dkTyp.Kind()
+
+			var removedDKs []interface{}
+			{
+				err := c.ExecRaw(conn, selectQuery, func(stmt *sqlite.Stmt) error {
+					var dk interface{}
+					switch dkKind {
+					case reflect.Int64:
+						dk = stmt.ColumnInt64(0)
+					case reflect.String:
+						dk = stmt.ColumnText(0)
+					default:
+						return errors.Errorf("Unsupported primary key for join table: %v", dkTyp)
+					}
+
+					if _, ok := passedDKs[dk]; !ok {
+						removedDKs = append(removedDKs, dk)
+					}
+					return nil
+				}, sourceKey)
+				if err != nil {
+					return err
+				}
+			}
+
+			for _, dk := range removedDKs {
+				err := c.ExecRaw(conn, deleteQuery, nil, sourceKey, dk)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

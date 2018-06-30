@@ -5,19 +5,10 @@ import (
 )
 
 type Context struct {
-	ScopeMap   *ScopeMap
-	Consumer   *state.Consumer
-	Stats      Stats
-	Error      error
-	Log        bool
-	QueryCount int64
-}
-
-type Stats struct {
-	Inserts int64
-	Updates int64
-	Deletes int64
-	Current int64
+	ScopeMap *ScopeMap
+	Consumer *state.Consumer
+	Error    error
+	Log      bool
 }
 
 func NewContext(consumer *state.Consumer, models ...interface{}) (*Context, error) {

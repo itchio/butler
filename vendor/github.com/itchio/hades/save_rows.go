@@ -4,8 +4,6 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/go-xorm/builder"
-
 	"crawshaw.io/sqlite"
 	"github.com/pkg/errors"
 )
@@ -115,90 +113,11 @@ func (c *Context) saveRows(conn *sqlite.Conn, mode AssocMode, inputIface interfa
 		return nil
 	}
 
-	primaryField := primaryFields[0]
-
-	// record should be a *SomeModel, we're effectively doing (*record).<pkColumn>
-	getKey := func(record reflect.Value) interface{} {
-		f := record.Elem().FieldByName(primaryField.Name)
-		if !f.IsValid() {
-			return nil
-		}
-		return f.Interface()
-	}
-
-	// collect primary key values for all of input
-	var keys []interface{}
 	for i := 0; i < fresh.Len(); i++ {
-		record := fresh.Index(i)
-		keys = append(keys, getKey(record))
-	}
-
-	cacheAddr, err := c.fetchPagedByPK(conn, primaryField.DBName, keys, fresh.Type(), Search{})
-	if err != nil {
-		return errors.WithMessage(err, "getting existing rows")
-	}
-
-	cache := cacheAddr.Elem()
-
-	// index cached items by their primary key
-	// so we can look them up in O(1) when comparing
-	cacheByPK := make(map[interface{}]reflect.Value)
-	for i := 0; i < cache.Len(); i++ {
-		record := cache.Index(i)
-		cacheByPK[getKey(record)] = record
-	}
-
-	// compare cached records with fresh records
-	var inserts []reflect.Value
-	var updates = make(map[interface{}]ChangedFields)
-
-	doneKeys := make(map[interface{}]bool)
-	for i := 0; i < fresh.Len(); i++ {
-		frec := fresh.Index(i)
-		key := getKey(frec)
-		if _, ok := doneKeys[key]; ok {
-			continue
-		}
-		doneKeys[key] = true
-
-		if crec, ok := cacheByPK[key]; ok {
-			// frec and crec are *SomeModel, but `RecordEqual` ignores pointer
-			// equality - we want to compare the contents of the struct
-			// so we indirect to SomeModel here.
-			ifrec := frec.Elem().Interface()
-			icrec := crec.Elem().Interface()
-
-			cf, err := DiffRecord(ifrec, icrec, scope)
-			if err != nil {
-				return errors.WithMessage(err, "diffing db records")
-			}
-
-			if cf != nil {
-				updates[key] = cf
-			}
-		} else {
-			inserts = append(inserts, frec)
-		}
-	}
-
-	c.Stats.Inserts += int64(len(inserts))
-	c.Stats.Updates += int64(len(updates))
-	c.Stats.Current += int64(fresh.Len() - len(updates) - len(inserts))
-
-	if len(inserts) > 0 {
-		for _, rec := range inserts {
-			err := c.Insert(conn, scope, rec)
-			if err != nil {
-				return errors.WithMessage(err, "inserting new DB records")
-			}
-		}
-	}
-
-	for key, cf := range updates {
-		eq := cf.ToEq()
-		err := c.Exec(conn, builder.Update(eq).Into(scope.TableName()).Where(builder.Eq{primaryField.DBName: key}), nil)
+		rec := fresh.Index(i)
+		err := c.Upsert(conn, scope, rec)
 		if err != nil {
-			return errors.WithMessage(err, "updating DB records")
+			return errors.WithMessage(err, "upserting DB records")
 		}
 	}
 
