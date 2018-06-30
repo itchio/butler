@@ -266,8 +266,12 @@ func (conn *Conn) Prep(query string) *Stmt {
 // https://www.sqlite.org/c3ref/prepare.html
 func (conn *Conn) Prepare(query string) (*Stmt, error) {
 	if stmt := conn.stmts[query]; stmt != nil {
-		stmt.Reset()
-		stmt.ClearBindings()
+		if err := stmt.Reset(); err != nil {
+			return nil, err
+		}
+		if err := stmt.ClearBindings(); err != nil {
+			return nil, err
+		}
 		return stmt, nil
 	}
 	stmt, trailingBytes, err := conn.prepare(query, C.SQLITE_PREPARE_PERSISTENT)
@@ -292,8 +296,15 @@ func (conn *Conn) Prepare(query string) (*Stmt, error) {
 //
 // https://www.sqlite.org/c3ref/prepare.html
 func (conn *Conn) PrepareTransient(query string) (stmt *Stmt, trailingBytes int, err error) {
-	return conn.prepare(query, 0)
-
+	stmt, trailingBytes, err = conn.prepare(query, 0)
+	if stmt != nil {
+		runtime.SetFinalizer(stmt, func(stmt *Stmt) {
+			if stmt.conn != nil && !stmt.conn.closed {
+				panic("open *sqlite.Stmt \"" + query + "\" garbage collected, call Finalize")
+			}
+		})
+	}
+	return stmt, trailingBytes, err
 }
 
 func (conn *Conn) prepare(query string, flags C.uint) (*Stmt, int, error) {
@@ -316,13 +327,6 @@ func (conn *Conn) prepare(query string, flags C.uint) (*Stmt, int, error) {
 		return nil, 0, err
 	}
 	trailingBytes := int(C.strlen(ctrailing))
-
-	// TODO: only if Debug ?
-	runtime.SetFinalizer(stmt, func(stmt *Stmt) {
-		if stmt.conn != nil && !stmt.conn.closed {
-			panic("open *sqlite.Stmt \"" + query + "\" garbage collected, call Finalize")
-		}
-	})
 
 	for i, count := 1, stmt.BindParamCount(); i <= count; i++ {
 		cname := C.sqlite3_bind_parameter_name(stmt.stmt, C.int(i))
@@ -411,6 +415,7 @@ type Stmt struct {
 	colNames     map[string]int
 	bindErr      error
 	prepInterupt bool // set if Prep was interrupted
+	lastHasRow   bool // last bool returned by Step
 }
 
 func (stmt *Stmt) interrupted(loc string) error {
@@ -450,6 +455,7 @@ func (stmt *Stmt) Reset() error {
 	if err := stmt.interrupted("Stmt.Reset"); err != nil {
 		return err
 	}
+	stmt.lastHasRow = false
 	res := C.sqlite3_reset(stmt.stmt)
 	return stmt.conn.reserr("Stmt.Reset", stmt.query, res)
 }
@@ -494,6 +500,9 @@ func (stmt *Stmt) ClearBindings() error {
 //
 //	http://www.sqlite.org/unlock_notify.html
 func (stmt *Stmt) Step() (rowReturned bool, err error) {
+	defer func() {
+		stmt.lastHasRow = rowReturned
+	}()
 	if stmt.bindErr != nil {
 		err = stmt.bindErr
 		stmt.bindErr = nil
