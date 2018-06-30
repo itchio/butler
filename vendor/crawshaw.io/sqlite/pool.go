@@ -23,7 +23,23 @@ package sqlite
 //
 //	conn := dbpool.Get(nil)
 //	defer dbpool.Put(conn)
+//
+// As Get may block, a context can be used to return if a task
+// is cancelled. In this case the Conn returned will be nil:
+//
+//	conn := dbpool.Get(ctx.Done())
+//	if conn == nil {
+//		return context.Canceled
+//	}
+//	defer dbpool.Put(conn)
 type Pool struct {
+	// If checkReset, the Put method checks all of the connection's
+	// prepared statements and ensures they were correctly cleaned up.
+	// If they were not, Put will panic with details.
+	//
+	// TODO: export this? Is it enough of a performance concern?
+	checkReset bool
+
 	free   chan *Conn
 	all    []*Conn
 	closed chan struct{}
@@ -50,8 +66,9 @@ func Open(uri string, flags OpenFlags, poolSize int) (*Pool, error) {
 	}
 
 	p := &Pool{
-		free:   make(chan *Conn, poolSize),
-		closed: make(chan struct{}),
+		checkReset: true,
+		free:       make(chan *Conn, poolSize),
+		closed:     make(chan struct{}),
 	}
 
 	for i := 0; i < poolSize; i++ {
@@ -92,10 +109,19 @@ func (p *Pool) Get(doneCh <-chan struct{}) *Conn {
 }
 
 // Put puts an SQLite connection back into the Pool.
+// A nil conn will cause Put to panic.
 func (p *Pool) Put(conn *Conn) {
 	if conn == nil {
 		panic("attempted to Put a nil Conn into Pool")
 	}
+	if p.checkReset {
+		for _, stmt := range conn.stmts {
+			if stmt.lastHasRow {
+				panic("connection returned to pool has active statement: \"" + stmt.query + "\"")
+			}
+		}
+	}
+
 	conn.SetInterrupt(nil)
 	select {
 	case p.free <- conn:

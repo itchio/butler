@@ -38,6 +38,7 @@ import (
 //	floats   to BindFloat
 //	[]byte   to BindBytes
 //	string   to BindText
+//	bool     to BindBool
 //
 // All other kinds are printed using fmt.Sprintf("%v", v) and passed
 // to BindText.
@@ -74,7 +75,12 @@ func Exec(conn *sqlite.Conn, query string, resultFn func(stmt *sqlite.Stmt) erro
 	if err != nil {
 		return annotateErr(err)
 	}
-	return exec(stmt, resultFn, args)
+	err = exec(stmt, resultFn, args)
+	resetErr := stmt.Reset()
+	if err == nil {
+		err = resetErr
+	}
+	return err
 }
 
 // ExecTransient executes an SQLite query without caching the
@@ -101,7 +107,7 @@ func ExecTransient(conn *sqlite.Conn, query string, resultFn func(stmt *sqlite.S
 	return exec(stmt, resultFn, args)
 }
 
-func exec(stmt *sqlite.Stmt, resultFn func(stmt *sqlite.Stmt) error, args []interface{}) error {
+func exec(stmt *sqlite.Stmt, resultFn func(stmt *sqlite.Stmt) error, args []interface{}) (err error) {
 	for i, arg := range args {
 		i++ // parameters are 1-indexed
 		v := reflect.ValueOf(arg)
@@ -115,6 +121,8 @@ func exec(stmt *sqlite.Stmt, resultFn func(stmt *sqlite.Stmt) error, args []inte
 			stmt.BindFloat(i, v.Float())
 		case reflect.String:
 			stmt.BindText(i, v.String())
+		case reflect.Bool:
+			stmt.BindBool(i, v.Bool())
 		case reflect.Invalid:
 			stmt.BindNull(i)
 		default:

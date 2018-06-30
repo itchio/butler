@@ -131,7 +131,7 @@ func (bb *File) zero(p1, p2 bbpos) error {
 
 func (bb *File) Write(p []byte) (n int, err error) {
 	if bb.err != nil {
-		return 0, err
+		return 0, bb.err
 	}
 
 	if bb.gt(bb.off, bb.len) {
@@ -174,7 +174,7 @@ func (bb *File) Write(p []byte) (n int, err error) {
 
 func (bb *File) Read(p []byte) (n int, err error) {
 	if bb.err != nil {
-		return 0, err
+		return 0, bb.err
 	}
 
 	for len(p) > 0 && bb.gt(bb.len, bb.off) {

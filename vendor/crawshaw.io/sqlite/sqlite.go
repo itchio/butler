@@ -187,14 +187,24 @@ func (conn *Conn) Close() error {
 //
 //	ctx := context.WithTimeout(context.Background(), 100*time.Millisecond)
 //	conn.SetInterrupt(ctx.Done())
-func (conn *Conn) SetInterrupt(doneCh <-chan struct{}) {
+//
+// Any busy statements at the time SetInterrupt is called will be reset.
+//
+// SetInterrupt returns the old doneCh assigned to the connection.
+func (conn *Conn) SetInterrupt(doneCh <-chan struct{}) (oldDoneCh <-chan struct{}) {
 	if conn.closed {
 		panic("sqlite.Conn is closed")
 	}
+	oldDoneCh = conn.doneCh
 	conn.cancelInterrupt()
 	conn.doneCh = doneCh
+	for _, stmt := range conn.stmts {
+		if stmt.lastHasRow {
+			stmt.Reset()
+		}
+	}
 	if doneCh == nil {
-		return
+		return oldDoneCh
 	}
 	cancelCh := make(chan struct{})
 	conn.cancelCh = cancelCh
@@ -209,6 +219,7 @@ func (conn *Conn) SetInterrupt(doneCh <-chan struct{}) {
 			cancelCh <- struct{}{}
 		}
 	}()
+	return oldDoneCh
 }
 
 func (conn *Conn) interrupted(loc, query string) error {
@@ -266,8 +277,12 @@ func (conn *Conn) Prep(query string) *Stmt {
 // https://www.sqlite.org/c3ref/prepare.html
 func (conn *Conn) Prepare(query string) (*Stmt, error) {
 	if stmt := conn.stmts[query]; stmt != nil {
-		stmt.Reset()
-		stmt.ClearBindings()
+		if err := stmt.Reset(); err != nil {
+			return nil, err
+		}
+		if err := stmt.ClearBindings(); err != nil {
+			return nil, err
+		}
 		return stmt, nil
 	}
 	stmt, trailingBytes, err := conn.prepare(query, C.SQLITE_PREPARE_PERSISTENT)
@@ -292,8 +307,15 @@ func (conn *Conn) Prepare(query string) (*Stmt, error) {
 //
 // https://www.sqlite.org/c3ref/prepare.html
 func (conn *Conn) PrepareTransient(query string) (stmt *Stmt, trailingBytes int, err error) {
-	return conn.prepare(query, 0)
-
+	stmt, trailingBytes, err = conn.prepare(query, 0)
+	if stmt != nil {
+		runtime.SetFinalizer(stmt, func(stmt *Stmt) {
+			if stmt.conn != nil && !stmt.conn.closed {
+				panic("open *sqlite.Stmt \"" + query + "\" garbage collected, call Finalize")
+			}
+		})
+	}
+	return stmt, trailingBytes, err
 }
 
 func (conn *Conn) prepare(query string, flags C.uint) (*Stmt, int, error) {
@@ -316,13 +338,6 @@ func (conn *Conn) prepare(query string, flags C.uint) (*Stmt, int, error) {
 		return nil, 0, err
 	}
 	trailingBytes := int(C.strlen(ctrailing))
-
-	// TODO: only if Debug ?
-	runtime.SetFinalizer(stmt, func(stmt *Stmt) {
-		if stmt.conn != nil && !stmt.conn.closed {
-			panic("open *sqlite.Stmt \"" + query + "\" garbage collected, call Finalize")
-		}
-	})
 
 	for i, count := 1, stmt.BindParamCount(); i <= count; i++ {
 		cname := C.sqlite3_bind_parameter_name(stmt.stmt, C.int(i))
@@ -411,6 +426,7 @@ type Stmt struct {
 	colNames     map[string]int
 	bindErr      error
 	prepInterupt bool // set if Prep was interrupted
+	lastHasRow   bool // last bool returned by Step
 }
 
 func (stmt *Stmt) interrupted(loc string) error {
@@ -447,9 +463,7 @@ func (stmt *Stmt) Finalize() error {
 // https://www.sqlite.org/c3ref/reset.html
 func (stmt *Stmt) Reset() error {
 	stmt.conn.count++
-	if err := stmt.interrupted("Stmt.Reset"); err != nil {
-		return err
-	}
+	stmt.lastHasRow = false
 	res := C.sqlite3_reset(stmt.stmt)
 	return stmt.conn.reserr("Stmt.Reset", stmt.query, res)
 }
@@ -497,16 +511,28 @@ func (stmt *Stmt) Step() (rowReturned bool, err error) {
 	if stmt.bindErr != nil {
 		err = stmt.bindErr
 		stmt.bindErr = nil
+		stmt.Reset()
 		return false, err
 	}
+	defer func() {
+		stmt.lastHasRow = rowReturned
+	}()
 
 	for {
 		stmt.conn.count++
 		if err := stmt.interrupted("Stmt.Step"); err != nil {
+			stmt.Reset()
 			return false, err
 		}
 		switch res := C.sqlite3_step(stmt.stmt); uint8(res) { // reduce to non-extended error code
 		case C.SQLITE_LOCKED:
+			if res != C.SQLITE_LOCKED_SHAREDCACHE {
+				// don't call wait_for_unlock_notify as it might deadlock, see:
+				// https://github.com/crawshaw/sqlite/issues/6
+				stmt.Reset()
+				return false, stmt.conn.reserr("Stmt.Step", stmt.query, res)
+			}
+
 			if res := C.wait_for_unlock_notify(stmt.conn.conn, stmt.conn.unlockNote); res != C.SQLITE_OK {
 				return false, stmt.conn.reserr("Stmt.Step(Wait)", stmt.query, res)
 			}
