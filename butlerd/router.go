@@ -317,7 +317,7 @@ func (rc *RequestContext) GetConn() *sqlite.Conn {
 	// what it is, and I wasn't able to. If you want to mess
 	// with it, knock yourself out:
 	//
-	// => https://github.com/fasterthanlime/chaoe
+	// => https://github.com/fasterthanlime/chao
 	//
 	conn.SetInterrupt(context.Background().Done())
 	return conn
