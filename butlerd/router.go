@@ -309,18 +309,18 @@ func (rc *RequestContext) GetConn() *sqlite.Conn {
 	defer cancel()
 	conn := rc.dbPool.Get(getCtx.Done())
 	if conn != nil {
-		// this works around an issue with sqlite3_interrupt()
-		// I (amos) have spent a lot of time trying to figure out
-		// what it is, and I wasn't able to. If you want to mess
-		// with it, knock yourself out:
-		//
-		// => https://github.com/fasterthanlime/chaoe
-		//
-		conn.SetInterrupt(context.Background().Done())
-		return conn
+		panic(errors.WithStack(CodeDatabaseBusy))
 	}
 
-	panic(errors.WithStack(CodeDatabaseBusy))
+	// this works around an issue with sqlite3_interrupt()
+	// I (amos) have spent a lot of time trying to figure out
+	// what it is, and I wasn't able to. If you want to mess
+	// with it, knock yourself out:
+	//
+	// => https://github.com/fasterthanlime/chaoe
+	//
+	conn.SetInterrupt(context.Background().Done())
+	return conn
 }
 
 func (rc *RequestContext) PutConn(conn *sqlite.Conn) {
