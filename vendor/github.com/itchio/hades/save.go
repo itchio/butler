@@ -196,7 +196,7 @@ func (c *Context) Save(conn *sqlite.Conn, rec interface{}, opts ...SaveParam) (e
 				passedPFs := make(map[interface{}]struct{})
 				for i := 0; i < v.Len(); i++ {
 					rec := v.Index(i)
-					pf := rec.Elem().FieldByName(rel.AssociationForeignDBNames[0]).Interface()
+					pf := rec.Elem().FieldByName(rel.AssociationForeignFieldNames[0]).Interface()
 					passedPFs[pf] = struct{}{}
 				}
 
