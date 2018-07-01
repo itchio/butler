@@ -305,16 +305,15 @@ func (rc *RequestContext) EndProgress() {
 }
 
 func (rc *RequestContext) GetConn() *sqlite.Conn {
-	getCtx, cancel := context.WithTimeout(rc.Ctx, 1*time.Second)
+	getCtx, cancel := context.WithTimeout(rc.Ctx, 3*time.Second)
 	defer cancel()
 	conn := rc.dbPool.Get(getCtx.Done())
 	if conn != nil {
-		conn.SetInterrupt(rc.Ctx.Done())
-		return conn
+		panic(errors.WithStack(CodeDatabaseBusy))
 	}
 
-	panic(errors.WithStack(CodeDatabaseBusy))
-	return nil
+	conn.SetInterrupt(rc.Ctx.Done())
+	return conn
 }
 
 func (rc *RequestContext) PutConn(conn *sqlite.Conn) {
