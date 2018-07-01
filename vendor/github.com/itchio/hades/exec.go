@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqliteutil"
 	"github.com/go-xorm/builder"
-	"github.com/itchio/hades/sqliteutil2"
 	"github.com/pkg/errors"
 )
 
@@ -36,7 +36,7 @@ func (c *Context) ExecRaw(conn *sqlite.Conn, query string, resultFn ResultFn, ar
 		startTime = time.Now()
 	}
 
-	err := sqliteutil2.Exec(conn, query, resultFn, args...)
+	err := sqliteutil.Exec(conn, query, resultFn, args...)
 
 	if c.Log {
 		c.Consumer.Debugf("[%s] %s %+v", time.Since(startTime), query, args)

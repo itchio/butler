@@ -3,10 +3,10 @@
 	"dependencies": [
 		{
 			"importpath": "crawshaw.io/sqlite",
-			"repository": "https://github.com/fasterthanlime/sqlite",
+			"repository": "https://github.com/crawshaw/sqlite",
 			"vcs": "git",
-			"revision": "a89ff349d743c8c7832ee22e810117605716c208",
-			"branch": "causer",
+			"revision": "e1ae9c3865ec17d0091d75cada77ec107e5d4a62",
+			"branch": "master",
 			"notests": true
 		},
 		{
@@ -263,7 +263,7 @@
 			"importpath": "github.com/itchio/hades",
 			"repository": "https://github.com/itchio/hades",
 			"vcs": "git",
-			"revision": "d68cb3674a6930de331428f1c62ca34e97e1a701",
+			"revision": "9e88aa34c3956097a2a674892f2819bc10ef471e",
 			"branch": "master",
 			"notests": true
 		},

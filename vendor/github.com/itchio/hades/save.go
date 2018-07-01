@@ -5,9 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/itchio/hades/sqliteutil2"
-
 	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqliteutil"
 	"github.com/pkg/errors"
 )
 
@@ -15,11 +14,8 @@ type AllEntities map[reflect.Type]EntityMap
 type EntityMap []interface{}
 
 func (c *Context) Save(conn *sqlite.Conn, rec interface{}, opts ...SaveParam) (err error) {
-	defer sqliteutil2.Save(conn)(&err)
-	return c.SaveNoTransaction(conn, rec, opts...)
-}
+	defer sqliteutil.Save(conn)(&err)
 
-func (c *Context) SaveNoTransaction(conn *sqlite.Conn, rec interface{}, opts ...SaveParam) error {
 	var params saveParams
 	for _, o := range opts {
 		o.ApplyToSaveParams(&params)

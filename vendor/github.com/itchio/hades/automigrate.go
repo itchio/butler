@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"github.com/itchio/hades/sqliteutil2"
+	"crawshaw.io/sqlite/sqliteutil"
 	"github.com/pkg/errors"
 )
 
@@ -43,7 +43,7 @@ func (c *Context) syncTable(conn *sqlite.Conn, stats *AutoMigrateStats, ms *Mode
 	}
 
 	// migrate table in transaction
-	defer sqliteutil2.Save(conn)(&err)
+	defer sqliteutil.Save(conn)(&err)
 
 	err = c.ExecRaw(conn, "PRAGMA foreign_keys = 0", nil)
 	if err != nil {
