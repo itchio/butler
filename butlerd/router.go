@@ -308,7 +308,7 @@ func (rc *RequestContext) GetConn() *sqlite.Conn {
 	getCtx, cancel := context.WithTimeout(rc.Ctx, 3*time.Second)
 	defer cancel()
 	conn := rc.dbPool.Get(getCtx.Done())
-	if conn != nil {
+	if conn == nil {
 		panic(errors.WithStack(CodeDatabaseBusy))
 	}
 
