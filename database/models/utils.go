@@ -5,13 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/itchio/hades/sqliteutil2"
-
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/hades"
 	"github.com/itchio/wharf/state"
-	"github.com/pkg/errors"
 )
 
 var dbConsumer *state.Consumer
@@ -77,39 +74,6 @@ func Save(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) error 
 
 func MustSave(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) {
 	err := Save(conn, record, opts...)
-	Must(err)
-}
-
-func SaveNoTransaction(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) error {
-	return HadesContext().SaveNoTransaction(conn, record, opts...)
-}
-
-func MustSaveNoTransaction(conn *sqlite.Conn, record interface{}, opts ...hades.SaveParam) {
-	err := SaveNoTransaction(conn, record, opts...)
-	Must(err)
-}
-
-func DoInTransaction(conn *sqlite.Conn, f func()) (err error) {
-	defer sqliteutil2.Save(conn)(&err)
-
-	// looks lispy as heck
-	(func() {
-		defer func() {
-			if r := recover(); r != nil {
-				if rErr, ok := r.(error); ok {
-					err = rErr
-				} else {
-					err = errors.Errorf("panic: %s", r)
-				}
-			}
-		}()
-		f()
-	})()
-	return err
-}
-
-func MustDoInTransaction(conn *sqlite.Conn, f func()) {
-	err := DoInTransaction(conn, f)
 	Must(err)
 }
 
