@@ -3,16 +3,13 @@ package butlerd
 import (
 	"bufio"
 	"context"
-	"crypto/sha256"
+	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net"
-	"time"
+	"net/http"
 
 	"github.com/itchio/wharf/state"
-	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -24,132 +21,30 @@ func NewServer(secret string) *Server {
 	return &Server{secret: secret}
 }
 
-type gatedHandler struct {
-	h        jsonrpc2.Handler
-	c        chan struct{}
-	unlocked bool
+type ServeParams struct {
+	Listener net.Listener
+	Handler  jsonrpc2.Handler
+	Consumer *state.Consumer
 }
 
-func (gh *gatedHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	if !gh.unlocked {
-		select {
-		case <-gh.c:
-			gh.unlocked = true
-		case <-ctx.Done():
-			return
-		}
+func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.ConnOpt) error {
+	hh := &httpHandler{
+		jrh: params.Handler,
 	}
-	gh.h.Handle(ctx, conn, req)
-}
 
-func (s *Server) Serve(ctx context.Context, lis net.Listener, h jsonrpc2.Handler, consumer *state.Consumer, opt ...jsonrpc2.ConnOpt) error {
-	cancel := make(chan struct{})
-	conns := make(chan net.Conn)
-	disconnects := make(chan struct{})
-	defer close(cancel)
-
-	numClients := 0
-
-	go func() {
-		defer close(conns)
-
-		for {
-			conn, err := lis.Accept()
-			if err != nil {
-				consumer.Warnf("While accepting: %s", err.Error())
-			}
-			conns <- conn
-		}
-	}()
-
-	for {
-		select {
-		case conn := <-conns:
-			handshakeDone := make(chan struct{})
-			gh := &gatedHandler{
-				h: h,
-				c: handshakeDone,
-			}
-			agh := jsonrpc2.AsyncHandler(gh)
-
-			connCtx, cancelFunc := context.WithCancel(ctx)
-
-			jc := jsonrpc2.NewConn(connCtx, jsonrpc2.NewBufferedStream(conn, LFObjectCodec{}), agh, opt...)
-			numClients++
-			consumer.Infof("butlerd: Accepted connection! (%d clients now)", numClients)
-			go func() {
-				<-jc.DisconnectNotify()
-				cancelFunc()
-				disconnects <- struct{}{}
-			}()
-
-			generateMessage := func() (string, error) {
-				msg := ""
-				for i := 0; i < 4; i++ {
-					u, err := uuid.NewV4()
-					if err != nil {
-						return "", errors.Wrap(err, "generating UUID")
-					}
-					msg += u.String()
-				}
-				return msg, nil
-			}
-
-			go func() {
-				die := func(msg string, args ...interface{}) {
-					fmsg := fmt.Sprintf(msg, args...)
-					consumer.Warnf("%s", fmsg)
-					jc.Notify(ctx, "Log", LogNotification{
-						Level:   "error",
-						Message: fmsg,
-					})
-					jc.Close()
-				}
-
-				hres := &HandshakeResult{}
-				message, err := generateMessage()
-				if err != nil {
-					die("butlerd: Message generation error: %s", err.Error())
-					return
-				}
-
-				err = jc.Call(ctx, "Handshake", &HandshakeParams{
-					Message: message,
-				}, hres)
-				if err != nil {
-					die("butlerd: Handshake error: %s", err.Error())
-					return
-				}
-
-				expectedSigBytes := sha256.Sum256([]byte(s.secret + message))
-				expectedSig := fmt.Sprintf("%x", expectedSigBytes)
-				if expectedSig != hres.Signature {
-					die("butlerd: Handshake failed")
-					return
-				}
-
-				close(handshakeDone)
-			}()
-
-			go func() {
-				select {
-				case <-handshakeDone:
-					// good!
-				case <-time.After(15 * time.Second):
-					consumer.Warnf("butlerd: Handshake timed out!")
-					jc.Close()
-				}
-			}()
-		case <-disconnects:
-			numClients--
-			consumer.Infof("butlerd: Client disconnected! (%d clients left)", numClients)
-			if numClients == 0 {
-				consumer.Infof("butlerd: Last client left, shutting down")
-				return nil
-			}
-		}
+	ts, err := makeTlsState()
+	if err != nil {
+		return err
 	}
+
+	tl := tls.NewListener(params.Listener, &ts.config)
+
+	srv := &http.Server{Handler: hh}
+	srv.TLSConfig = &ts.config
+	return http.Serve(tl, hh)
 }
+
+//
 
 type LFObjectCodec struct{}
 
