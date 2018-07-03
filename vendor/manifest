@@ -196,6 +196,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gorilla/handlers",
+			"repository": "https://github.com/gorilla/handlers",
+			"vcs": "git",
+			"revision": "13a38d26174b16d5b4bf6f1094c1389ec9879572",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/hashicorp/golang-lru",
 			"repository": "https://github.com/hashicorp/golang-lru",
 			"vcs": "git",

@@ -8,7 +8,9 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -39,7 +41,9 @@ func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.
 
 	tl := tls.NewListener(params.Listener, &ts.config)
 
-	srv := &http.Server{Handler: hh}
+	lh := handlers.LoggingHandler(os.Stdout, hh)
+
+	srv := &http.Server{Handler: lh}
 	srv.TLSConfig = &ts.config
 	return http.Serve(tl, hh)
 }
