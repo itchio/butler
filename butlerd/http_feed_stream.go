@@ -20,10 +20,23 @@ type httpFeedStream struct {
 }
 
 func (s *httpFeedStream) emit(data string) error {
-	s.log("emitting %s", data)
-	payload := fmt.Sprintf("id: %d\ndata: %s\n\n", s.id, data)
+	id := s.id
 	s.id++
-	_, err := s.w.Write([]byte(payload))
+	return s.emitMsg(fmt.Sprintf("id: %d\ndata: %s", id, data))
+}
+
+var twoLf = []byte{'\n', '\n'}
+
+func (s *httpFeedStream) emitMsg(data string) error {
+	s.log("emitting %s", data)
+	_, err := s.w.Write([]byte(data))
+	if err != nil {
+		return err
+	}
+	_, err = s.w.Write(twoLf)
+	if err != nil {
+		return err
+	}
 
 	if flusher, ok := s.w.(http.Flusher); ok {
 		flusher.Flush()
@@ -31,7 +44,7 @@ func (s *httpFeedStream) emit(data string) error {
 		s.log("could not flush :(")
 	}
 
-	return err
+	return nil
 }
 
 func (s *httpFeedStream) relay() {
@@ -62,6 +75,7 @@ func (s *httpFeedStream) Wait(parentCtx context.Context) error {
 	s.w.WriteHeader(200)
 
 	go s.relay()
+	s.emitMsg("event: open")
 
 	s.log("Feed opened")
 	<-ctx.Done()
