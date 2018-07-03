@@ -144,7 +144,7 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 		}
 		s.log("found callstream, sending payload %s", string(rm.Payload))
 		cs.readCh <- rm.Payload
-		s.w.WriteHeader(200)
+		s.w.WriteHeader(204)
 		return nil
 	}
 

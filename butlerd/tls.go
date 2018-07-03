@@ -19,13 +19,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type tlsState struct {
-	config       tls.Config
-	certPEMBlock []byte
+type TLSState struct {
+	Config       *tls.Config
+	CertPEMBlock []byte
 }
 
-func makeTlsState() (*tlsState, error) {
-	ts := &tlsState{}
+func MakeTLSState() (*TLSState, error) {
+	ts := &TLSState{}
 
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -44,9 +44,10 @@ func makeTlsState() (*tlsState, error) {
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
 
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
+		IsCA: true,
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
@@ -72,8 +73,8 @@ func makeTlsState() (*tlsState, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	ts.certPEMBlock = certPEMBlock
-	ts.config = tls.Config{
+	ts.CertPEMBlock = certPEMBlock
+	ts.Config = &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		NextProtos:   []string{"h2"},
 	}

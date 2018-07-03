@@ -27,6 +27,7 @@ type ServeParams struct {
 	Listener net.Listener
 	Handler  jsonrpc2.Handler
 	Consumer *state.Consumer
+	TLSState *TLSState
 }
 
 func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.ConnOpt) error {
@@ -34,17 +35,11 @@ func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.
 		jrh: params.Handler,
 	}
 
-	ts, err := makeTlsState()
-	if err != nil {
-		return err
-	}
-
-	tl := tls.NewListener(params.Listener, &ts.config)
-
+	tl := tls.NewListener(params.Listener, params.TLSState.Config)
 	lh := handlers.LoggingHandler(os.Stdout, hh)
 
 	srv := &http.Server{Handler: lh}
-	srv.TLSConfig = &ts.config
+	srv.TLSConfig = params.TLSState.Config
 	return http.Serve(tl, hh)
 }
 

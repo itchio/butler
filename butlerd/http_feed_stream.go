@@ -75,7 +75,10 @@ func (s *httpFeedStream) Wait(parentCtx context.Context) error {
 	s.w.WriteHeader(200)
 
 	go s.relay()
-	s.emitMsg("event: open")
+	err := s.emitMsg("event: open")
+	if err != nil {
+		return err
+	}
 
 	s.log("Feed opened")
 	<-ctx.Done()

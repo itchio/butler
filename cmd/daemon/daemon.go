@@ -76,10 +76,16 @@ func do(ctx *mansion.Context) {
 		ctx.Must(errors.WithMessage(err, "preparing DB"))
 	}
 
-	ctx.Must(Do(ctx, context.Background(), dbPool, secret, func(addr string) {
+	ts, err := butlerd.MakeTLSState()
+	if err != nil {
+		ctx.Must(err)
+	}
+
+	ctx.Must(Do(ctx, context.Background(), dbPool, ts, secret, func(addr string) {
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
 			"secret":  secret,
 			"address": addr,
+			"cert":    string(ts.CertPEMBlock),
 		})
 	}))
 }
@@ -100,7 +106,7 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 
 type OnListenFunc func(addr string)
 
-func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, secret string, onListen OnListenFunc) error {
+func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, ts *butlerd.TLSState, secret string, onListen OnListenFunc) error {
 	listenSpec := "127.0.0.1:13140"
 
 	lis, err := net.Listen("tcp", listenSpec)
@@ -123,6 +129,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 	err = s.Serve(ctx, butlerd.ServeParams{
 		Listener: lis,
 		Handler:  h,
+		TLSState: ts,
 		Consumer: comm.NewStateConsumer(),
 	})
 	if err != nil {
