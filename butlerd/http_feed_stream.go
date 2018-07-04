@@ -8,8 +8,13 @@ import (
 	"net/http"
 )
 
+type responseWriter interface {
+	http.ResponseWriter
+	http.Flusher
+}
+
 type httpFeedStream struct {
-	w http.ResponseWriter
+	w responseWriter
 	r *http.Request
 
 	ctx    context.Context
@@ -28,7 +33,6 @@ func (s *httpFeedStream) emit(data string) error {
 var twoLf = []byte{'\n', '\n'}
 
 func (s *httpFeedStream) emitMsg(data string) error {
-	s.log("emitting %s", data)
 	_, err := s.w.Write([]byte(data))
 	if err != nil {
 		return err
@@ -38,11 +42,7 @@ func (s *httpFeedStream) emitMsg(data string) error {
 		return err
 	}
 
-	if flusher, ok := s.w.(http.Flusher); ok {
-		flusher.Flush()
-	} else {
-		s.log("could not flush :(")
-	}
+	s.w.(http.Flusher).Flush()
 
 	return nil
 }
@@ -51,14 +51,12 @@ func (s *httpFeedStream) relay() {
 	for {
 		select {
 		case rm := <-s.requestCh:
-			s.log("got requestMsg: %s", string(rm.Payload))
 			payload, err := json.Marshal(rm)
 			if err != nil {
 				panic(err)
 			}
 			s.emit(string(payload))
 		case <-s.ctx.Done():
-			s.log("relay stopped")
 			return
 		}
 	}
@@ -79,10 +77,7 @@ func (s *httpFeedStream) Wait(parentCtx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	s.log("Feed opened")
 	<-ctx.Done()
-	s.log("Feed closed")
 
 	return nil
 }

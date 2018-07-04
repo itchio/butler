@@ -88,7 +88,7 @@ func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case "GET":
 		s := &httpFeedStream{
-			w:         w,
+			w:         w.(responseWriter),
 			r:         r,
 			requestCh: make(chan requestMsg),
 		}

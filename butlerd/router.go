@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/itchio/wharf/werrors"
@@ -64,7 +63,6 @@ func (r *Router) RegisterNotification(method string, nh NotificationHandler) {
 
 func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	method := req.Method
-	log.Printf("Dispatching method %s", method)
 	var res interface{}
 
 	conn := &JsonRPC2Conn{origConn}

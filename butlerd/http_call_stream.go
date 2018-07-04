@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/sourcegraph/jsonrpc2"
@@ -30,14 +29,10 @@ var _ jsonrpc2.ObjectStream = (*httpCallStream)(nil)
 var _ jsonrpc2.Handler = (*httpCallStream)(nil)
 
 func (s *httpCallStream) ReadObject(v interface{}) error {
-	s.log("ReadObject called")
-
 	select {
 	case msg := <-s.readCh:
-		s.log("ReadObject msg: %s", string(msg))
 		return json.Unmarshal(msg, v)
 	case <-s.ctx.Done():
-		s.log("ReadObject EOF")
 		return io.EOF
 	}
 }
@@ -48,13 +43,10 @@ type requestMsg struct {
 }
 
 func (s *httpCallStream) WriteObject(obj interface{}) error {
-	s.log("WriteObject called with type %v", reflect.TypeOf(obj))
-
 	marshalled, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
-	s.log("WriteObject marshalled: %s", string(marshalled))
 
 	intermediate := make(map[string]interface{})
 
@@ -66,8 +58,7 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 	_, hasError := intermediate["error"]
 	_, hasResult := intermediate["result"]
 	if hasError || hasResult {
-		s.log("It's a response!")
-
+		// responses are written as http responses
 		s.w.Header().Set("content-type", "application/json")
 		s.w.Header().Set("cache-control", "no-cache")
 		s.w.WriteHeader(200)
@@ -75,7 +66,8 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 		return nil
 	}
 
-	s.log("Must be a notification or a request, trying to send to feed...")
+	// notifications or server-side requests are sent to event-stream
+	// FIXME: we shouldn't hang if the client stops subscribing from the stream
 	fs, ok := s.hh.getFeedStream("")
 	if !ok {
 		return HTTPError(428, "Need to be listening on feed")
@@ -85,17 +77,14 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 		CID:     s.cid,
 		Payload: json.RawMessage(marshalled),
 	}
-	s.log("Sent to feed!")
 	return nil
 }
 
 func (s *httpCallStream) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	// handle asynchronously so we can process server->client requests
 	go func() {
 		defer s.cancel()
-
-		s.log("Handling...")
 		s.jrh.Handle(ctx, conn, req)
-		s.log("Done handling!")
 	}()
 }
 
@@ -128,21 +117,17 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 	var msg json.RawMessage = body
 
 	method := strings.TrimLeft(s.r.URL.Path, "/")
-	s.log("method = %s", method)
 
 	if method == "@Reply" {
-		s.log("it's a reply!")
 		var rm requestMsg
 		err := json.Unmarshal(body, &rm)
 		if err != nil {
 			return err
 		}
-		s.log("unmarshalled reply: %#v", rm)
 		cs, ok := s.hh.getCallStream(rm.CID)
 		if !ok {
-			return HTTPError(404, "callstream not found")
+			return HTTPError(404, fmt.Sprintf("Reply to unknown CID (call identifier) %d", rm.CID))
 		}
-		s.log("found callstream, sending payload %s", string(rm.Payload))
 		cs.readCh <- rm.Payload
 		s.w.WriteHeader(204)
 		return nil
@@ -154,10 +139,8 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 		Params: &msg,
 	})
 
-	s.log("Starting jsonrpc2 conn")
 	conn := jsonrpc2.NewConn(ctx, s, s)
 	<-conn.DisconnectNotify()
-	s.log("Got disconnect notify")
 	return nil
 }
 

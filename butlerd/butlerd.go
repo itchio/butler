@@ -36,11 +36,11 @@ func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.
 	}
 
 	tl := tls.NewListener(params.Listener, params.TLSState.Config)
-	lh := handlers.LoggingHandler(os.Stdout, hh)
+	lh := handlers.LoggingHandler(os.Stderr, hh)
 
 	srv := &http.Server{Handler: lh}
 	srv.TLSConfig = params.TLSState.Config
-	return http.Serve(tl, hh)
+	return srv.Serve(tl)
 }
 
 //

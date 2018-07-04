@@ -2,7 +2,6 @@ package daemon
 
 import (
 	"context"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -96,7 +95,6 @@ type handler struct {
 }
 
 func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	log.Printf("Handle called: %#v", *req)
 	if req.Notif {
 		return
 	}
