@@ -2,9 +2,7 @@ package butlerd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -14,14 +12,18 @@ type responseWriter interface {
 }
 
 type httpFeedStream struct {
-	w responseWriter
-	r *http.Request
+	cid string
+
+	w  responseWriter
+	r  *http.Request
+	hh *httpHandler
 
 	ctx    context.Context
 	cancel context.CancelFunc
-	id     int64
 
-	requestCh chan requestMsg
+	id int64
+
+	requestCh chan []byte
 }
 
 func (s *httpFeedStream) emit(data string) error {
@@ -47,22 +49,17 @@ func (s *httpFeedStream) emitMsg(data string) error {
 	return nil
 }
 
-func (s *httpFeedStream) relay() {
-	for {
-		select {
-		case rm := <-s.requestCh:
-			payload, err := json.Marshal(rm)
-			if err != nil {
-				panic(err)
-			}
-			s.emit(string(payload))
-		case <-s.ctx.Done():
-			return
-		}
-	}
-}
-
 func (s *httpFeedStream) Wait(parentCtx context.Context) error {
+	s.requestCh = make(chan []byte)
+
+	s.hh.putFeedStream(s.cid, s)
+	defer func() {
+		s.hh.removeFeedStream(s.cid)
+		if cs, ok := s.hh.getCallStream(s.cid); ok {
+			cs.cancelWith(424, "Feed closed while server was awaiting response")
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(parentCtx)
 	s.ctx = ctx
 	s.cancel = cancel
@@ -72,16 +69,17 @@ func (s *httpFeedStream) Wait(parentCtx context.Context) error {
 	s.w.Header().Set("cache-control", "no-cache")
 	s.w.WriteHeader(200)
 
-	go s.relay()
 	err := s.emitMsg("event: open")
 	if err != nil {
 		return err
 	}
-	<-ctx.Done()
 
-	return nil
-}
-
-func (s *httpFeedStream) log(format string, a ...interface{}) {
-	log.Printf("[%s] %s", "[feed stream]", fmt.Sprintf(format, a...))
+	for {
+		select {
+		case payload := <-s.requestCh:
+			s.emit(string(payload))
+		case <-s.ctx.Done():
+			return nil
+		}
+	}
 }

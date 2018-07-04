@@ -2,6 +2,8 @@ package daemon
 
 import (
 	"context"
+	"encoding/base64"
+	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -18,16 +20,16 @@ import (
 )
 
 var args = struct {
-	http bool
+	writeSecret string
+	writeCert   string
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
-	cmd.Arg("http", "HTTP mode").BoolVar(&args.http)
+	cmd.Flag("write-secret", "Path to write the secret to").StringVar(&args.writeSecret)
+	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
 	ctx.Register(cmd, do)
 }
-
-const minSecretLength = 256
 
 func do(ctx *mansion.Context) {
 	if !comm.JsonEnabled() {
@@ -40,15 +42,11 @@ func do(ctx *mansion.Context) {
 	}
 
 	generateSecret := func() (string, error) {
-		res := ""
-		for i := 0; i < 16; i++ {
-			u, err := uuid.NewV4()
-			if err != nil {
-				return "", errors.WithStack(err)
-			}
-			res += u.String()
+		u, err := uuid.NewV4()
+		if err != nil {
+			return "", errors.WithStack(err)
 		}
-		return res, nil
+		return u.String(), nil
 	}
 	secret, err := generateSecret()
 	if err != nil {
@@ -80,12 +78,33 @@ func do(ctx *mansion.Context) {
 		ctx.Must(err)
 	}
 
-	ctx.Must(Do(ctx, context.Background(), dbPool, ts, secret, func(addr string) {
+	ctx.Must(Do(ctx, context.Background(), dbPool, ts, secret, func(httpAddress string, httpsAddress string) {
+		ca := base64.StdEncoding.EncodeToString(ts.CertPEMBlock)
+
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
-			"secret":  secret,
-			"address": addr,
-			"cert":    string(ts.CertPEMBlock),
+			"secret": secret,
+			"http": map[string]interface{}{
+				"address": httpAddress,
+			},
+			"https": map[string]interface{}{
+				"address": httpsAddress,
+				"ca":      ca,
+			},
 		})
+
+		if args.writeCert != "" {
+			err := ioutil.WriteFile(args.writeCert, ts.CertPEMBlock, os.FileMode(0644))
+			if err != nil {
+				comm.Warnf("%v", err)
+			}
+		}
+
+		if args.writeSecret != "" {
+			err := ioutil.WriteFile(args.writeSecret, []byte(secret), os.FileMode(0644))
+			if err != nil {
+				comm.Warnf("%v", err)
+			}
+		}
 	}))
 }
 
@@ -102,21 +121,30 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	h.router.Dispatch(ctx, conn, req)
 }
 
-type OnListenFunc func(addr string)
+type OnListenFunc func(httpAddress string, httpsAddress string)
+
+func tryListen(port string) (net.Listener, error) {
+	spec := "127.0.0.1:" + port
+	lis, err := net.Listen("tcp", spec)
+	if err != nil {
+		spec = "127.0.0.1:"
+		lis, err = net.Listen("tcp", spec)
+	}
+	return lis, err
+}
 
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, ts *butlerd.TLSState, secret string, onListen OnListenFunc) error {
-	listenSpec := "127.0.0.1:13140"
-
-	lis, err := net.Listen("tcp", listenSpec)
+	httpListener, err := tryListen("13141")
 	if err != nil {
-		listenSpec = "127.0.0.1:"
-		lis, err = net.Listen("tcp", listenSpec)
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		return err
 	}
 
-	onListen(lis.Addr().String())
+	httpsListener, err := tryListen("13142")
+	if err != nil {
+		return err
+	}
+
+	onListen(httpListener.Addr().String(), httpsListener.Addr().String())
 	s := butlerd.NewServer(secret)
 
 	h := &handler{
@@ -125,10 +153,11 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 	}
 
 	err = s.Serve(ctx, butlerd.ServeParams{
-		Listener: lis,
-		Handler:  h,
-		TLSState: ts,
-		Consumer: comm.NewStateConsumer(),
+		HTTPListener:  httpListener,
+		HTTPSListener: httpsListener,
+		Handler:       h,
+		TLSState:      ts,
+		Consumer:      comm.NewStateConsumer(),
 	})
 	if err != nil {
 		return errors.WithStack(err)

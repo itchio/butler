@@ -24,23 +24,44 @@ func NewServer(secret string) *Server {
 }
 
 type ServeParams struct {
-	Listener net.Listener
+	HTTPListener net.Listener
+
+	HTTPSListener net.Listener
+	TLSState      *TLSState
+
 	Handler  jsonrpc2.Handler
 	Consumer *state.Consumer
-	TLSState *TLSState
 }
 
 func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.ConnOpt) error {
 	hh := &httpHandler{
-		jrh: params.Handler,
+		jrh:    params.Handler,
+		secret: s.secret,
 	}
-
-	tl := tls.NewListener(params.Listener, params.TLSState.Config)
 	lh := handlers.LoggingHandler(os.Stderr, hh)
 
-	srv := &http.Server{Handler: lh}
-	srv.TLSConfig = params.TLSState.Config
-	return srv.Serve(tl)
+	errors := make(chan error)
+	go func() {
+		tlsListener := tls.NewListener(params.HTTPSListener, params.TLSState.Config)
+		srv := &http.Server{Handler: lh}
+		srv.TLSConfig = params.TLSState.Config
+		errors <- srv.Serve(tlsListener)
+	}()
+
+	go func() {
+		srv := &http.Server{Handler: lh}
+		errors <- srv.Serve(params.HTTPListener)
+	}()
+
+	for i := 0; i < 2; i++ {
+		err := <-errors
+		if err != nil {
+			params.HTTPListener.Close()
+			params.HTTPSListener.Close()
+			return err
+		}
+	}
+	return nil
 }
 
 //

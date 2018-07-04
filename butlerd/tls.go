@@ -41,6 +41,7 @@ func MakeTLSState() (*TLSState, error) {
 			net.IPv4(127, 0, 0, 1),
 			net.IPv6loopback,
 		},
+		DNSNames:  []string{"localhost"},
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
 

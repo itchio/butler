@@ -1,8 +1,11 @@
 package butlerd
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/sourcegraph/jsonrpc2"
@@ -14,12 +17,12 @@ type httpHandler struct {
 	feedStreams      map[string]*httpFeedStream
 	feedStreamsMutex sync.Mutex
 
-	callStreams      map[int64]*httpCallStream
+	callStreams      map[string]*httpCallStream
 	callStreamsMutex sync.Mutex
 
 	handlerFunc http.HandlerFunc
 
-	callHandlerId int64
+	secret string
 }
 
 var _ http.Handler = (*httpHandler)(nil)
@@ -32,54 +35,54 @@ func (hh *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hh.feedStreams = make(map[string]*httpFeedStream)
 	}
 	if hh.callStreams == nil {
-		hh.callStreams = make(map[int64]*httpCallStream)
+		hh.callStreams = make(map[string]*httpCallStream)
 	}
 
 	hh.handlerFunc(w, r)
 }
 
-func (hh *httpHandler) getFeedStream(key string) (*httpFeedStream, bool) {
+func (hh *httpHandler) getFeedStream(cid string) (*httpFeedStream, bool) {
 	hh.feedStreamsMutex.Lock()
 	defer hh.feedStreamsMutex.Unlock()
 
-	s, ok := hh.feedStreams[key]
+	s, ok := hh.feedStreams[cid]
 	return s, ok
 }
 
-func (hh *httpHandler) putFeedStream(key string, s *httpFeedStream) {
+func (hh *httpHandler) putFeedStream(cid string, s *httpFeedStream) {
 	hh.feedStreamsMutex.Lock()
 	defer hh.feedStreamsMutex.Unlock()
 
-	hh.feedStreams[key] = s
+	hh.feedStreams[cid] = s
 }
 
-func (hh *httpHandler) removeFeedStream(key string) {
+func (hh *httpHandler) removeFeedStream(cid string) {
 	hh.feedStreamsMutex.Lock()
 	defer hh.feedStreamsMutex.Unlock()
 
-	delete(hh.feedStreams, key)
+	delete(hh.feedStreams, cid)
 }
 
-func (hh *httpHandler) getCallStream(key int64) (*httpCallStream, bool) {
+func (hh *httpHandler) getCallStream(cid string) (*httpCallStream, bool) {
 	hh.callStreamsMutex.Lock()
 	defer hh.callStreamsMutex.Unlock()
 
-	s, ok := hh.callStreams[key]
+	s, ok := hh.callStreams[cid]
 	return s, ok
 }
 
-func (hh *httpHandler) putCallStream(key int64, s *httpCallStream) {
+func (hh *httpHandler) putCallStream(cid string, s *httpCallStream) {
 	hh.callStreamsMutex.Lock()
 	defer hh.callStreamsMutex.Unlock()
 
-	hh.callStreams[key] = s
+	hh.callStreams[cid] = s
 }
 
-func (hh *httpHandler) removeCallStream(key int64) {
+func (hh *httpHandler) removeCallStream(cid string) {
 	hh.callStreamsMutex.Lock()
 	defer hh.callStreamsMutex.Unlock()
 
-	delete(hh.callStreams, key)
+	delete(hh.callStreams, cid)
 }
 
 func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
@@ -87,28 +90,82 @@ func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
 
 	switch r.Method {
 	case "GET":
-		s := &httpFeedStream{
-			w:         w.(responseWriter),
-			r:         r,
-			requestCh: make(chan requestMsg),
+		{
+			if r.URL.Path != "/feed" {
+				return HTTPError(404, "Not found")
+			}
+
+			secret := r.URL.Query().Get("secret")
+			if secret != hh.secret {
+				return HTTPError(401, "Missing or invalid authorization")
+			}
+
+			cid := r.URL.Query().Get("cid")
+			if cid == "" {
+				return HTTPError(400, "Missing cid parameter")
+			}
+
+			s := &httpFeedStream{
+				r:   r,
+				w:   w.(responseWriter),
+				cid: cid,
+				hh:  hh,
+			}
+			return s.Wait(ctx)
 		}
-		key := ""
-		hh.putFeedStream(key, s)
-		defer hh.removeFeedStream(key)
-		return s.Wait(ctx)
 	case "POST":
-		cid := hh.callHandlerId
-		hh.callHandlerId++
-		s := &httpCallStream{
-			w:   w,
-			r:   r,
-			hh:  hh,
-			jrh: hh.jrh,
-			cid: cid,
+		{
+			secret := r.Header.Get("x-secret")
+			if secret != hh.secret {
+				return HTTPError(401, "Missing or invalid authorization error")
+			}
+
+			cid := r.Header.Get("x-cid")
+
+			path := strings.TrimLeft(r.URL.Path, "/")
+			pathTokens := strings.Split(path, "/")
+
+			if len(pathTokens) == 0 {
+				return HTTPError(404, "Not found")
+			}
+
+			switch pathTokens[0] {
+			case "call":
+				if len(pathTokens) < 2 {
+					return HTTPError(404, "Method missing")
+				}
+				method := pathTokens[1]
+
+				s := &httpCallStream{
+					r:      r,
+					w:      w,
+					cid:    cid,
+					hh:     hh,
+					jrh:    hh.jrh,
+					method: method,
+				}
+				return s.Wait(ctx)
+			case "reply":
+				cid := r.Header.Get("x-cid")
+				if cid == "" {
+					return HTTPError(400, "Missing cid")
+				}
+
+				cs, ok := hh.getCallStream(cid)
+				if !ok {
+					return HTTPError(404, fmt.Sprintf("No in-flight request with cid '%s'", cid))
+				}
+				body, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					return err
+				}
+				cs.readCh <- body
+				w.WriteHeader(204)
+				return nil
+			default:
+				return HTTPError(404, "Not found")
+			}
 		}
-		hh.putCallStream(cid, s)
-		defer hh.removeCallStream(cid)
-		return s.Wait(ctx)
 	default:
 		log.Printf("Called with invalid method: %s", r.Method)
 		return HTTPError(400, "Expected GET or POST")
