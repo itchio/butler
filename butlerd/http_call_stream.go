@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -75,7 +76,18 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 	}
 
 	// notifications or server-side requests are sent to event-stream
-	fs, ok := s.hh.getFeedStream(s.cid)
+	var fs *httpFeedStream
+	var ok bool
+
+	for tries := 200; tries > 0; tries-- {
+		// allow 2s of slack
+		fs, ok = s.hh.getFeedStream(s.cid)
+		if ok {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	if !ok {
 		if allowFailures {
 			return nil
