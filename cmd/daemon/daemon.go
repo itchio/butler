@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -47,27 +46,7 @@ func do(ctx *mansion.Context) {
 	}
 
 	for _, destinyPid := range args.destinyPids {
-		go func(destinyPid int64) {
-			proc, err := os.FindProcess(int(destinyPid))
-			if err != nil {
-				log.Printf("While looking for destiny PID %d: %+v", destinyPid, err)
-				os.Exit(1)
-			}
-
-			if proc == nil {
-				log.Printf("Desinty PID %d exited, exiting too", destinyPid)
-				os.Exit(1)
-			}
-
-			_, err = proc.Wait()
-			if err != nil {
-				log.Printf("While waiting on destiny PID %d: %+v, exiting", destinyPid, err)
-				os.Exit(1)
-			}
-
-			log.Printf("Destiny PID %d exited, exiting too", destinyPid)
-			os.Exit(0)
-		}(destinyPid)
+		go tieDestiny(destinyPid)
 	}
 
 	generateSecret := func() (string, error) {
