@@ -6,17 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strconv"
 	"testing"
 
-	"net/http"
-	_ "net/http/pprof"
-
-	"github.com/itchio/butler/comm"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -31,16 +26,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	debugPort := "9090"
-	addr := fmt.Sprintf("localhost:%s", debugPort)
-	go func() {
-		err := http.ListenAndServe(addr, nil)
-		if err != nil {
-			comm.Logf("http debug error: %s", err.Error())
-		}
-	}()
-	comm.Logf("serving pprof debug interface on %s", addr)
-
 	flag.Parse()
 
 	onCi := os.Getenv("CI") != ""
