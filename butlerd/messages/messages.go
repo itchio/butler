@@ -17,22 +17,22 @@ type router interface {
 
 
 //==============================
-// Protocol
+// Utilities
 //==============================
 
-// Handshake (Request)
+// Version.Get (Request)
 
-type HandshakeType struct {}
+type VersionGetType struct {}
 
-var _ RequestMessage = (*HandshakeType)(nil)
+var _ RequestMessage = (*VersionGetType)(nil)
 
-func (r *HandshakeType) Method() string {
-  return "Handshake"
+func (r *VersionGetType) Method() string {
+  return "Version.Get"
 }
 
-func (r *HandshakeType) TestRegister(router router, f func(*butlerd.RequestContext, butlerd.HandshakeParams) (*butlerd.HandshakeResult, error)) {
-  router.Register("Handshake", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.HandshakeParams
+func (r *VersionGetType) Register(router router, f func(*butlerd.RequestContext, butlerd.VersionGetParams) (*butlerd.VersionGetResult, error)) {
+  router.Register("Version.Get", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.VersionGetParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -46,19 +46,99 @@ func (r *HandshakeType) TestRegister(router router, f func(*butlerd.RequestConte
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Handshake")
+    	return nil, errors.New("internal error: nil result for Version.Get")
     }
     return res, nil
   })
 }
 
-func (r *HandshakeType) Call(rc *butlerd.RequestContext, params butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
-  var result butlerd.HandshakeResult
-  err := rc.Call("Handshake", params, &result)
+func (r *VersionGetType) TestCall(rc *butlerd.RequestContext, params butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
+  var result butlerd.VersionGetResult
+  err := rc.Call("Version.Get", params, &result)
   return &result, err
 }
 
-var Handshake *HandshakeType
+var VersionGet *VersionGetType
+
+// Network.SetSimulateOffline (Request)
+
+type NetworkSetSimulateOfflineType struct {}
+
+var _ RequestMessage = (*NetworkSetSimulateOfflineType)(nil)
+
+func (r *NetworkSetSimulateOfflineType) Method() string {
+  return "Network.SetSimulateOffline"
+}
+
+func (r *NetworkSetSimulateOfflineType) Register(router router, f func(*butlerd.RequestContext, butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error)) {
+  router.Register("Network.SetSimulateOffline", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.NetworkSetSimulateOfflineParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Network.SetSimulateOffline")
+    }
+    return res, nil
+  })
+}
+
+func (r *NetworkSetSimulateOfflineType) TestCall(rc *butlerd.RequestContext, params butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
+  var result butlerd.NetworkSetSimulateOfflineResult
+  err := rc.Call("Network.SetSimulateOffline", params, &result)
+  return &result, err
+}
+
+var NetworkSetSimulateOffline *NetworkSetSimulateOfflineType
+
+// Network.SetBandwidthThrottle (Request)
+
+type NetworkSetBandwidthThrottleType struct {}
+
+var _ RequestMessage = (*NetworkSetBandwidthThrottleType)(nil)
+
+func (r *NetworkSetBandwidthThrottleType) Method() string {
+  return "Network.SetBandwidthThrottle"
+}
+
+func (r *NetworkSetBandwidthThrottleType) Register(router router, f func(*butlerd.RequestContext, butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error)) {
+  router.Register("Network.SetBandwidthThrottle", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.NetworkSetBandwidthThrottleParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Network.SetBandwidthThrottle")
+    }
+    return res, nil
+  })
+}
+
+func (r *NetworkSetBandwidthThrottleType) TestCall(rc *butlerd.RequestContext, params butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
+  var result butlerd.NetworkSetBandwidthThrottleResult
+  err := rc.Call("Network.SetBandwidthThrottle", params, &result)
+  return &result, err
+}
+
+var NetworkSetBandwidthThrottle *NetworkSetBandwidthThrottleType
 
 
 //==============================
@@ -260,131 +340,6 @@ func (r *LogType) Register(router router, f func(*butlerd.RequestContext, butler
 }
 
 var Log *LogType
-
-
-//==============================
-// Utilities
-//==============================
-
-// Version.Get (Request)
-
-type VersionGetType struct {}
-
-var _ RequestMessage = (*VersionGetType)(nil)
-
-func (r *VersionGetType) Method() string {
-  return "Version.Get"
-}
-
-func (r *VersionGetType) Register(router router, f func(*butlerd.RequestContext, butlerd.VersionGetParams) (*butlerd.VersionGetResult, error)) {
-  router.Register("Version.Get", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.VersionGetParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Version.Get")
-    }
-    return res, nil
-  })
-}
-
-func (r *VersionGetType) TestCall(rc *butlerd.RequestContext, params butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
-  var result butlerd.VersionGetResult
-  err := rc.Call("Version.Get", params, &result)
-  return &result, err
-}
-
-var VersionGet *VersionGetType
-
-// Network.SetSimulateOffline (Request)
-
-type NetworkSetSimulateOfflineType struct {}
-
-var _ RequestMessage = (*NetworkSetSimulateOfflineType)(nil)
-
-func (r *NetworkSetSimulateOfflineType) Method() string {
-  return "Network.SetSimulateOffline"
-}
-
-func (r *NetworkSetSimulateOfflineType) Register(router router, f func(*butlerd.RequestContext, butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error)) {
-  router.Register("Network.SetSimulateOffline", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.NetworkSetSimulateOfflineParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Network.SetSimulateOffline")
-    }
-    return res, nil
-  })
-}
-
-func (r *NetworkSetSimulateOfflineType) TestCall(rc *butlerd.RequestContext, params butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
-  var result butlerd.NetworkSetSimulateOfflineResult
-  err := rc.Call("Network.SetSimulateOffline", params, &result)
-  return &result, err
-}
-
-var NetworkSetSimulateOffline *NetworkSetSimulateOfflineType
-
-// Network.SetBandwidthThrottle (Request)
-
-type NetworkSetBandwidthThrottleType struct {}
-
-var _ RequestMessage = (*NetworkSetBandwidthThrottleType)(nil)
-
-func (r *NetworkSetBandwidthThrottleType) Method() string {
-  return "Network.SetBandwidthThrottle"
-}
-
-func (r *NetworkSetBandwidthThrottleType) Register(router router, f func(*butlerd.RequestContext, butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error)) {
-  router.Register("Network.SetBandwidthThrottle", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.NetworkSetBandwidthThrottleParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Network.SetBandwidthThrottle")
-    }
-    return res, nil
-  })
-}
-
-func (r *NetworkSetBandwidthThrottleType) TestCall(rc *butlerd.RequestContext, params butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
-  var result butlerd.NetworkSetBandwidthThrottleResult
-  err := rc.Call("Network.SetBandwidthThrottle", params, &result)
-  return &result, err
-}
-
-var NetworkSetBandwidthThrottle *NetworkSetBandwidthThrottleType
 
 
 //==============================

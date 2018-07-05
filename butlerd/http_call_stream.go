@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -100,6 +101,15 @@ func (s *httpCallStream) Close() error {
 }
 
 func (s *httpCallStream) Wait(parentCtx context.Context) error {
+	idString := s.r.Header.Get("x-id")
+	if idString == "" {
+		return HTTPError(400, "Missing request ID x-id")
+	}
+	id, err := strconv.ParseInt(idString, 10, 64)
+	if err != nil {
+		return HTTPError(400, "x-id must be an integer")
+	}
+
 	body, err := ioutil.ReadAll(s.r.Body)
 	if err != nil {
 		return err
@@ -107,7 +117,7 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 
 	s.readCh = make(chan []byte, 1)
 	req := map[string]interface{}{
-		"id":     0,
+		"id":     id,
 		"method": s.method,
 		"params": json.RawMessage(body),
 	}

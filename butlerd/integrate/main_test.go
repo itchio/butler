@@ -3,22 +3,27 @@ package integrate
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"strings"
+	"strconv"
 	"testing"
 
-	"github.com/onsi/gocleanup"
+	"net/http"
+	_ "net/http/pprof"
+
+	"github.com/itchio/butler/comm"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
-var secret = strings.Repeat("dummy", 58)
+var secret string
 var address string
+var ca []byte
 var cancelButler context.CancelFunc
 
 var (
@@ -26,6 +31,16 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	debugPort := "9090"
+	addr := fmt.Sprintf("localhost:%s", debugPort)
+	go func() {
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			comm.Logf("http debug error: %s", err.Error())
+		}
+	}()
+	comm.Logf("serving pprof debug interface on %s", addr)
+
 	flag.Parse()
 
 	onCi := os.Getenv("CI") != ""
@@ -45,9 +60,17 @@ func TestMain(m *testing.M) {
 	defer cancel()
 	cancelButler = cancel
 
-	bExec := exec.CommandContext(ctx, *butlerPath, "daemon", "-j", "--dbpath", "file::memory:?cache=shared")
-	stdin, err := bExec.StdinPipe()
-	gmust(err)
+	pidString := strconv.FormatInt(int64(os.Getpid()), 10)
+	ppidString := strconv.FormatInt(int64(os.Getppid()), 10)
+
+	args := []string{
+		"daemon",
+		"--json",
+		"--dbpath", "file::memory:?cache=shared",
+		"--destiny-pid", pidString,
+		"--destiny-pid", ppidString,
+	}
+	bExec := exec.CommandContext(ctx, *butlerPath, args...)
 
 	stdout, err := bExec.StdoutPipe()
 	gmust(err)
@@ -59,10 +82,12 @@ func TestMain(m *testing.M) {
 		gmust(bExec.Wait())
 	}()
 
+	s := bufio.NewScanner(stdout)
 	addrChan := make(chan string)
 
 	go func() {
-		s := bufio.NewScanner(stdout)
+		defer cancel()
+
 		for s.Scan() {
 			line := s.Text()
 
@@ -75,12 +100,12 @@ func TestMain(m *testing.M) {
 
 			typ := im["type"].(string)
 			switch typ {
-			case "butlerd/secret-request":
-				log.Printf("Sending secret")
-				_, err = stdin.Write([]byte(fmt.Sprintf(`{"type": "butlerd/secret-result", "secret": %#v}%s`, secret, "\n")))
-				gmust(err)
 			case "butlerd/listen-notification":
-				addrChan <- im["address"].(string)
+				secret = im["secret"].(string)
+				httpsBlock := im["https"].(map[string]interface{})
+				ca, err = base64.StdEncoding.DecodeString(httpsBlock["ca"].(string))
+				gmust(err)
+				addrChan <- httpsBlock["address"].(string)
 			case "log":
 				log.Printf("[butler] %s", im["message"].(string))
 			default:
@@ -89,12 +114,16 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	address = <-addrChan
+	select {
+	case address = <-addrChan:
+		// cool!
+	case <-ctx.Done():
+		gmust(errors.Errorf("cancelled"))
+	}
 
-	// keep a main connection going so it doesn't shut down
-	connectEx(log.Printf)
-
-	gocleanup.Exit(m.Run())
+	status := m.Run()
+	cancel()
+	os.Exit(status)
 }
 
 func must(t *testing.T, err error) {
@@ -122,6 +151,5 @@ func gmust(err error) {
 	if err != nil {
 		cancelButler()
 		log.Printf("%+v", errors.WithStack(err))
-		gocleanup.Exit(1)
 	}
 }

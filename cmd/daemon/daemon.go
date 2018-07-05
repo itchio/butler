@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -22,12 +23,14 @@ import (
 var args = struct {
 	writeSecret string
 	writeCert   string
+	destinyPids []int64
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
 	cmd.Flag("write-secret", "Path to write the secret to").StringVar(&args.writeSecret)
 	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
+	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
 	ctx.Register(cmd, do)
 }
 
@@ -39,6 +42,30 @@ func do(ctx *mansion.Context) {
 
 	if ctx.DBPath == "" {
 		comm.Dief("butlerd: dbPath must be set")
+	}
+
+	for _, destinyPid := range args.destinyPids {
+		go func(destinyPid int64) {
+			proc, err := os.FindProcess(int(destinyPid))
+			if err != nil {
+				log.Printf("While looking for destiny PID %d: %+v", destinyPid, err)
+				os.Exit(1)
+			}
+
+			if proc == nil {
+				log.Printf("Desinty PID %d exited, exiting too", destinyPid)
+				os.Exit(1)
+			}
+
+			_, err = proc.Wait()
+			if err != nil {
+				log.Printf("While waiting on destiny PID %d: %+v, exiting", destinyPid, err)
+				os.Exit(1)
+			}
+
+			log.Printf("Destiny PID %d exited, exiting too", destinyPid)
+			os.Exit(0)
+		}(destinyPid)
 	}
 
 	generateSecret := func() (string, error) {

@@ -8,21 +8,6 @@ import (
 	"github.com/itchio/ox"
 )
 
-// @name Handshake
-// @category Protocol
-// @caller server
-type HandshakeParams struct {
-	Message string `json:"message"`
-}
-
-type HandshakeResult struct {
-	Signature string `json:"signature"`
-}
-
-func (p HandshakeParams) Validate() error {
-	return nil
-}
-
 //----------------------------------------------------------------------
 // Version
 //----------------------------------------------------------------------

@@ -1,29 +1,6 @@
 {
   "requests": [
     {
-      "method": "Handshake",
-      "doc": "",
-      "caller": "server",
-      "params": {
-        "fields": [
-          {
-            "name": "message",
-            "doc": "",
-            "type": "string"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "signature",
-            "doc": "",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",

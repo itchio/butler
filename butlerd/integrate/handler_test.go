@@ -2,22 +2,24 @@ package integrate
 
 import (
 	"context"
-	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
-	"net"
+	"net/http"
 	"os"
 	"testing"
-	"time"
+
+	"golang.org/x/net/http2"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
 type handler struct {
-	secret               string
 	handlers             map[string]butlerd.RequestHandler
 	notificationHandlers map[string]butlerd.NotificationHandler
 	consumer             *state.Consumer
@@ -25,9 +27,8 @@ type handler struct {
 
 var _ jsonrpc2.Handler = (*handler)(nil)
 
-func newHandler(secret string, consumer *state.Consumer) *handler {
+func newHandler(consumer *state.Consumer) *handler {
 	return &handler{
-		secret:               secret,
 		handlers:             make(map[string]butlerd.RequestHandler),
 		notificationHandlers: make(map[string]butlerd.NotificationHandler),
 		consumer:             consumer,
@@ -88,8 +89,17 @@ func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFun
 }
 
 func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestContext, *handler, context.CancelFunc) {
-	conn, err := net.DialTimeout("tcp", address, time.Second)
-	gmust(err)
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(ca) {
+		gmust(errors.Errorf("Could not append self-signed cert to pool"))
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: caCertPool,
+		},
+	}
+	http2.ConfigureTransport(transport)
 
 	consumer := &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
@@ -99,13 +109,7 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	h := newHandler(secret, consumer)
-
-	messages.Handshake.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HandshakeParams) (*butlerd.HandshakeResult, error) {
-		return &butlerd.HandshakeResult{
-			Signature: fmt.Sprintf("%x", sha256.Sum256([]byte(h.secret+params.Message))),
-		}, nil
-	})
+	h := newHandler(consumer)
 
 	messages.Log.Register(h, func(rc *butlerd.RequestContext, params butlerd.LogNotification) {
 		if consumer != nil && consumer.OnMessage != nil {
@@ -113,7 +117,14 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 		}
 	})
 
-	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(conn, butlerd.LFObjectCodec{}), jsonrpc2.AsyncHandler(h))
+	hos := &httpsObjectStream{
+		address:   address,
+		secret:    secret,
+		transport: transport,
+	}
+	hos.Go()
+
+	jc := jsonrpc2.NewConn(ctx, hos, jsonrpc2.AsyncHandler(h))
 	go func() {
 		<-ctx.Done()
 		jc.Close()
