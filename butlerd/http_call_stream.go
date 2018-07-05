@@ -3,6 +3,7 @@ package butlerd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -65,14 +66,19 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 	}
 
 	allowFailures := false
-	_, hasMethod := intermediate["method"]
-	if !hasMethod {
+
+	var method string
+	methodObj, hasMethod := intermediate["method"]
+	if hasMethod {
+		method = methodObj.(string)
+	} else {
 		// then it must be a notification
 		allowFailures = true
 	}
 
 	if s.cid == "" {
-		return HTTPError(428, "Server tried to send a request, but cid was not specified for this call")
+		errMsg := fmt.Sprintf("Server tried to call '%s', but no CID was specified ('X-CID' header is not set)", method)
+		return HTTPError(428, errMsg)
 	}
 
 	// notifications or server-side requests are sent to event-stream
@@ -92,7 +98,8 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 		if allowFailures {
 			return nil
 		}
-		return HTTPError(428, "Server tried to send a request, but client is not listening to feed")
+		errMsg := fmt.Sprintf("Server tried to call '%s', but nobody is listening to the feed for CID '%s'", method, s.cid)
+		return HTTPError(428, errMsg)
 	}
 
 	fs.requestCh <- marshalled
