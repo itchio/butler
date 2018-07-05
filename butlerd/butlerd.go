@@ -2,10 +2,12 @@ package butlerd
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -64,6 +66,26 @@ func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.
 	return nil
 }
 
+type ServeTCPParams struct {
+	Handler  jsonrpc2.Handler
+	Consumer *state.Consumer
+	Listener net.Listener
+}
+
+func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
+	tcpConn, err := params.Listener.Accept()
+	if err != nil {
+		return err
+	}
+
+	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
+
+	logger := log.New(os.Stderr, "[rpc]", log.LstdFlags)
+	conn := jsonrpc2.NewConn(ctx, stream, jsonrpc2.AsyncHandler(params.Handler), jsonrpc2.LogMessages(logger))
+	<-conn.DisconnectNotify()
+	return nil
+}
+
 //
 
 type LFObjectCodec struct{}
@@ -86,7 +108,7 @@ func (LFObjectCodec) WriteObject(stream io.Writer, obj interface{}) error {
 }
 
 func (LFObjectCodec) ReadObject(stream *bufio.Reader, v interface{}) error {
-	var buf []byte
+	var buf bytes.Buffer
 
 scanLoop:
 	for {
@@ -99,11 +121,11 @@ scanLoop:
 		case '\n':
 			break scanLoop
 		default:
-			buf = append(buf, b)
+			buf.WriteByte(b)
 		}
 	}
 
-	return json.Unmarshal(buf, v)
+	return json.Unmarshal(buf.Bytes(), v)
 }
 
 type Conn interface {

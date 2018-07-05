@@ -24,6 +24,7 @@ var args = struct {
 	writeSecret string
 	writeCert   string
 	destinyPids []int64
+	transport   string
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -31,6 +32,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("write-secret", "Path to write the secret to").StringVar(&args.writeSecret)
 	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
+	cmd.Flag("transport", "Which transport to use").Default("http").EnumVar(&args.transport, "http", "tcp")
 	ctx.Register(cmd, do)
 }
 
@@ -100,21 +102,86 @@ func do(ctx *mansion.Context) {
 		ctx.Must(errors.WithMessage(err, "preparing DB"))
 	}
 
-	ts, err := butlerd.MakeTLSState()
-	if err != nil {
-		ctx.Must(err)
+	ctx.Must(Do(ctx, context.Background(), dbPool, secret))
+}
+
+type handler struct {
+	ctx    *mansion.Context
+	router *butlerd.Router
+}
+
+func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	if req.Notif {
+		return
 	}
 
-	ctx.Must(Do(ctx, context.Background(), dbPool, ts, secret, func(httpAddress string, httpsAddress string) {
+	h.router.Dispatch(ctx, conn, req)
+}
+
+func tryListen(port string) (net.Listener, error) {
+	spec := "127.0.0.1:" + port
+	lis, err := net.Listen("tcp", spec)
+	if err != nil {
+		spec = "127.0.0.1:"
+		lis, err = net.Listen("tcp", spec)
+	}
+	return lis, err
+}
+
+func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, secret string) error {
+	s := butlerd.NewServer(secret)
+	h := &handler{
+		ctx:    mansionContext,
+		router: getRouter(dbPool, mansionContext),
+	}
+	consumer := comm.NewStateConsumer()
+
+	switch args.transport {
+	case "tcp":
+		listener, err := net.Listen("tcp", "127.0.0.1:")
+		if err != nil {
+			return err
+		}
+
+		comm.Object("butlerd/listen-notification", map[string]interface{}{
+			"tcp": map[string]interface{}{
+				"address": listener.Addr().String(),
+			},
+		})
+
+		err = s.ServeTCP(ctx, butlerd.ServeTCPParams{
+			Handler:  h,
+			Consumer: consumer,
+			Listener: listener,
+		})
+		if err != nil {
+			return err
+		}
+	case "http":
+		ts, err := butlerd.MakeTLSState()
+		if err != nil {
+			return err
+		}
+
+		httpListener, err := tryListen("13141")
+		if err != nil {
+			return err
+		}
+
+		httpsListener, err := tryListen("13142")
+		if err != nil {
+			return err
+		}
+
 		ca := base64.StdEncoding.EncodeToString(ts.CertPEMBlock)
 
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
 			"secret": secret,
 			"http": map[string]interface{}{
-				"address": httpAddress,
+				"address": httpListener.Addr().String(),
 			},
 			"https": map[string]interface{}{
-				"address": httpsAddress,
+				"address": httpsListener.Addr().String(),
 				"ca":      ca,
 			},
 		})
@@ -132,62 +199,16 @@ func do(ctx *mansion.Context) {
 				comm.Warnf("%v", err)
 			}
 		}
-	}))
-}
-
-type handler struct {
-	ctx    *mansion.Context
-	router *butlerd.Router
-}
-
-func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	if req.Notif {
-		return
-	}
-
-	h.router.Dispatch(ctx, conn, req)
-}
-
-type OnListenFunc func(httpAddress string, httpsAddress string)
-
-func tryListen(port string) (net.Listener, error) {
-	spec := "127.0.0.1:" + port
-	lis, err := net.Listen("tcp", spec)
-	if err != nil {
-		spec = "127.0.0.1:"
-		lis, err = net.Listen("tcp", spec)
-	}
-	return lis, err
-}
-
-func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, ts *butlerd.TLSState, secret string, onListen OnListenFunc) error {
-	httpListener, err := tryListen("13141")
-	if err != nil {
-		return err
-	}
-
-	httpsListener, err := tryListen("13142")
-	if err != nil {
-		return err
-	}
-
-	onListen(httpListener.Addr().String(), httpsListener.Addr().String())
-	s := butlerd.NewServer(secret)
-
-	h := &handler{
-		ctx:    mansionContext,
-		router: getRouter(dbPool, mansionContext),
-	}
-
-	err = s.Serve(ctx, butlerd.ServeParams{
-		HTTPListener:  httpListener,
-		HTTPSListener: httpsListener,
-		Handler:       h,
-		TLSState:      ts,
-		Consumer:      comm.NewStateConsumer(),
-	})
-	if err != nil {
-		return errors.WithStack(err)
+		err = s.Serve(ctx, butlerd.ServeParams{
+			HTTPListener:  httpListener,
+			HTTPSListener: httpsListener,
+			Handler:       h,
+			TLSState:      ts,
+			Consumer:      consumer,
+		})
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
 	return nil
