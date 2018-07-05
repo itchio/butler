@@ -8,6 +8,23 @@ import (
 	"github.com/itchio/ox"
 )
 
+// When using TCP transport, must be the first message sent
+//
+// @name Meta.Authenticate
+// @category Utilities
+// @caller client
+type MetaAuthenticateParams struct {
+	Secret string `json:"secret"`
+}
+
+func (p MetaAuthenticateParams) Validate() error {
+	return nil
+}
+
+type MetaAuthenticateResult struct {
+	OK bool `json:"ok"`
+}
+
 //----------------------------------------------------------------------
 // Version
 //----------------------------------------------------------------------

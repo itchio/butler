@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/itchio/wharf/state"
+	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -25,7 +27,7 @@ func NewServer(secret string) *Server {
 	return &Server{secret: secret}
 }
 
-type ServeParams struct {
+type ServeHTTPParams struct {
 	HTTPListener net.Listener
 
 	HTTPSListener net.Listener
@@ -33,25 +35,31 @@ type ServeParams struct {
 
 	Handler  jsonrpc2.Handler
 	Consumer *state.Consumer
+
+	Log bool
 }
 
-func (s *Server) Serve(ctx context.Context, params ServeParams, opt ...jsonrpc2.ConnOpt) error {
+func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 	hh := &httpHandler{
 		jrh:    params.Handler,
 		secret: s.secret,
 	}
-	lh := handlers.LoggingHandler(os.Stderr, hh)
+
+	var chosenHandler http.Handler = hh
+	if params.Log {
+		chosenHandler = handlers.LoggingHandler(os.Stderr, chosenHandler)
+	}
 
 	errors := make(chan error)
 	go func() {
 		tlsListener := tls.NewListener(params.HTTPSListener, params.TLSState.Config)
-		srv := &http.Server{Handler: lh}
+		srv := &http.Server{Handler: chosenHandler}
 		srv.TLSConfig = params.TLSState.Config
 		errors <- srv.Serve(tlsListener)
 	}()
 
 	go func() {
-		srv := &http.Server{Handler: lh}
+		srv := &http.Server{Handler: chosenHandler}
 		errors <- srv.Serve(params.HTTPListener)
 	}()
 
@@ -70,6 +78,8 @@ type ServeTCPParams struct {
 	Handler  jsonrpc2.Handler
 	Consumer *state.Consumer
 	Listener net.Listener
+	Secret   string
+	Log      bool
 }
 
 func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
@@ -78,12 +88,69 @@ func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
 		return err
 	}
 
-	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
-
 	logger := log.New(os.Stderr, "[rpc]", log.LstdFlags)
-	conn := jsonrpc2.NewConn(ctx, stream, jsonrpc2.AsyncHandler(params.Handler), jsonrpc2.LogMessages(logger))
+	gh := &gatedHandler{
+		secret: params.Secret,
+		inner:  params.Handler,
+	}
+
+	var opts []jsonrpc2.ConnOpt
+	if params.Log {
+		opts = append(opts, jsonrpc2.LogMessages(logger))
+	}
+
+	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
+	conn := jsonrpc2.NewConn(ctx, stream, gh, opts...)
 	<-conn.DisconnectNotify()
 	return nil
+}
+
+//
+
+type gatedHandler struct {
+	authenticated bool
+	secret        string
+	inner         jsonrpc2.Handler
+}
+
+var _ jsonrpc2.Handler = (*gatedHandler)(nil)
+
+func (h *gatedHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	if req.Method == "Meta.Authenticate" {
+		err := func() error {
+			var params MetaAuthenticateParams
+
+			err := json.Unmarshal(*req.Params, &params)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			if params.Secret != h.secret {
+				return errors.Errorf("Invalid secret")
+			}
+			return nil
+		}()
+
+		if err != nil {
+			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+				Code:    jsonrpc2.CodeInvalidRequest,
+				Message: fmt.Sprintf("%+v", err),
+			})
+		} else {
+			result := &MetaAuthenticateResult{OK: true}
+			h.authenticated = true
+			conn.Reply(ctx, req.ID, result)
+		}
+	} else {
+		if h.authenticated {
+			go h.inner.Handle(ctx, conn, req)
+		} else {
+			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+				Code:    jsonrpc2.CodeInvalidRequest,
+				Message: "Must call Meta.Authenticate with valid secret first",
+			})
+		}
+	}
 }
 
 //

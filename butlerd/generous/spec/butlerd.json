@@ -1,6 +1,29 @@
 {
   "requests": [
     {
+      "method": "Meta.Authenticate",
+      "doc": "When using TCP transport, must be the first message sent",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "secret",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "ok",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",

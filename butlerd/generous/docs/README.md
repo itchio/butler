@@ -193,6 +193,60 @@ sent (but the other peer may fail to process it before it exits).
 
 ## Utilities
 
+### <em class="request-client-caller"></em>Meta.Authenticate
+
+
+<p>
+<p>When using TCP transport, must be the first message sent</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>secret</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>ok</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="MetaAuthenticateParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Meta.Authenticate <a href="#/?id=metaauthenticate">(Go to definition)</a></p>
+
+<p>
+<p>When using TCP transport, must be the first message sent</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>secret</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Version.Get
 
 

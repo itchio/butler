@@ -24,6 +24,7 @@ var args = struct {
 	writeCert   string
 	destinyPids []int64
 	transport   string
+	log         bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -32,6 +33,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
 	cmd.Flag("transport", "Which transport to use").Default("http").EnumVar(&args.transport, "http", "tcp")
+	cmd.Flag("log", "Log all requests to stderr").BoolVar(&args.log)
 	ctx.Register(cmd, do)
 }
 
@@ -123,6 +125,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 		}
 
 		comm.Object("butlerd/listen-notification", map[string]interface{}{
+			"secret": secret,
 			"tcp": map[string]interface{}{
 				"address": listener.Addr().String(),
 			},
@@ -132,6 +135,8 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 			Handler:  h,
 			Consumer: consumer,
 			Listener: listener,
+			Secret:   secret,
+			Log:      args.log,
 		})
 		if err != nil {
 			return err
@@ -178,12 +183,13 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 				comm.Warnf("%v", err)
 			}
 		}
-		err = s.Serve(ctx, butlerd.ServeParams{
+		err = s.ServeHTTP(ctx, butlerd.ServeHTTPParams{
 			HTTPListener:  httpListener,
 			HTTPSListener: httpsListener,
 			Handler:       h,
 			TLSState:      ts,
 			Consumer:      consumer,
+			Log:           args.log,
 		})
 		if err != nil {
 			return errors.WithStack(err)

@@ -20,6 +20,46 @@ type router interface {
 // Utilities
 //==============================
 
+// Meta.Authenticate (Request)
+
+type MetaAuthenticateType struct {}
+
+var _ RequestMessage = (*MetaAuthenticateType)(nil)
+
+func (r *MetaAuthenticateType) Method() string {
+  return "Meta.Authenticate"
+}
+
+func (r *MetaAuthenticateType) Register(router router, f func(*butlerd.RequestContext, butlerd.MetaAuthenticateParams) (*butlerd.MetaAuthenticateResult, error)) {
+  router.Register("Meta.Authenticate", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.MetaAuthenticateParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Meta.Authenticate")
+    }
+    return res, nil
+  })
+}
+
+func (r *MetaAuthenticateType) TestCall(rc *butlerd.RequestContext, params butlerd.MetaAuthenticateParams) (*butlerd.MetaAuthenticateResult, error) {
+  var result butlerd.MetaAuthenticateResult
+  err := rc.Call("Meta.Authenticate", params, &result)
+  return &result, err
+}
+
+var MetaAuthenticate *MetaAuthenticateType
+
 // Version.Get (Request)
 
 type VersionGetType struct {}
@@ -3157,6 +3197,7 @@ var TestDouble *TestDoubleType
 
 
 func EnsureAllRequests(router *butlerd.Router) {
+  if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Network.SetSimulateOffline"]; !ok { panic("missing request handler for (Network.SetSimulateOffline)") }
   if _, ok := router.Handlers["Network.SetBandwidthThrottle"]; !ok { panic("missing request handler for (Network.SetBandwidthThrottle)") }

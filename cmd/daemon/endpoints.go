@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/endpoints/install"
 	"github.com/itchio/butler/endpoints/launch"
+	"github.com/itchio/butler/endpoints/meta"
 	"github.com/itchio/butler/endpoints/profile"
 	"github.com/itchio/butler/endpoints/search"
 	"github.com/itchio/butler/endpoints/system"
@@ -29,6 +30,7 @@ func getRouter(dbPool *sqlite.Pool, mansionContext *mansion.Context) *butlerd.Ro
 	mainRouter.ButlerVersion = mansionContext.Version
 	mainRouter.ButlerVersionString = mansionContext.VersionString
 
+	meta.Register(mainRouter)
 	utilities.Register(mainRouter)
 	tests.Register(mainRouter)
 	update.Register(mainRouter)
