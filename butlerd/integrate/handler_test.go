@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"golang.org/x/net/http2"
 
@@ -123,6 +124,12 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 		transport: transport,
 	}
 	hos.Go()
+	select {
+	case <-hos.listenCh:
+		// good!
+	case <-time.After(2 * time.Second):
+		gmust(errors.Errorf("Timed out establishing connection to feed"))
+	}
 
 	jc := jsonrpc2.NewConn(ctx, hos, jsonrpc2.AsyncHandler(h))
 	go func() {

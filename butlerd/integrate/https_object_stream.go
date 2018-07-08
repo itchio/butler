@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
@@ -26,8 +28,9 @@ type httpsObjectStream struct {
 
 	id int64
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx      context.Context
+	cancel   context.CancelFunc
+	listenCh chan struct{}
 
 	feedChan chan []byte
 
@@ -35,15 +38,18 @@ type httpsObjectStream struct {
 }
 
 var _ jsonrpc2.ObjectStream = (*httpsObjectStream)(nil)
+var cidSeed int64 = 222
 
 func (s *httpsObjectStream) Go() {
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	s.feedChan = make(chan []byte)
-	s.cid = "testcid"
+	s.cid = fmt.Sprintf("testcid-%d", cidSeed)
+	cidSeed++
 	s.errors = make(chan error)
 	s.client = &http.Client{
 		Transport: s.transport,
 	}
+	s.listenCh = make(chan struct{})
 
 	go func() {
 		s.errors <- s.listen()
@@ -63,6 +69,11 @@ func (s *httpsObjectStream) onMsg(msg map[string]string) error {
 }
 
 func (s *httpsObjectStream) listen() error {
+	var once sync.Once
+	defer once.Do(func() {
+		close(s.listenCh)
+	})
+
 	query := make(url.Values)
 	query.Set("secret", s.secret)
 	query.Set("cid", s.cid)
@@ -78,6 +89,9 @@ func (s *httpsObjectStream) listen() error {
 	if err != nil {
 		return err
 	}
+	once.Do(func() {
+		close(s.listenCh)
+	})
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
