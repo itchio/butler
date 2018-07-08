@@ -708,7 +708,7 @@ func (p ProfileGameFilters) Validate() error {
 func (p FetchProfileGamesParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
-		validation.Field(&p.SortBy, validation.In("default", "views", "downloads", "purchases")),
+		validation.Field(&p.SortBy, validation.In("default", "title", "views", "downloads", "purchases")),
 		validation.Field(&p.Filters),
 	)
 }
@@ -960,7 +960,7 @@ func (p CavesFilters) Validate() error {
 func (p FetchCavesParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Filters),
-		validation.Field(&p.SortBy, validation.In("lastTouched", "playTime", "title")),
+		validation.Field(&p.SortBy, validation.In("lastTouched", "playTime", "title", "installedSize", "installedAt")),
 	)
 }
 

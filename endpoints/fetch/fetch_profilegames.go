@@ -49,6 +49,9 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 		search := hades.Search{}
 
 		switch params.SortBy {
+		case "title":
+			joinGames = true
+			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
 		case "views":
 			search = search.OrderBy("profile_games.views_count " + pager.Ordering("DESC", params.Reverse))
 		case "downloads":

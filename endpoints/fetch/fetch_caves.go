@@ -24,6 +24,12 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		case "playTime":
 			ordering := pager.Ordering("DESC", params.Reverse)
 			search = search.OrderBy("caves.seconds_run " + ordering)
+		case "installedAt":
+			ordering := pager.Ordering("DESC", params.Reverse)
+			search = search.OrderBy("caves.installed_at " + ordering)
+		case "installedSize":
+			ordering := pager.Ordering("DESC", params.Reverse)
+			search = search.OrderBy("caves.installed_size " + ordering)
 		case "lastTouched", "":
 			ordering := pager.Ordering("DESC", params.Reverse)
 			search = search.OrderBy("caves.last_touched_at " + ordering)
