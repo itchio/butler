@@ -155,13 +155,10 @@ func (s *httpsObjectStream) WriteObject(obj interface{}) error {
 		return err
 	}
 
-	go func() {
-		err := s.writeObject(marshalled)
-		if err != nil {
-			log.Printf("While writing object %s: %+v", marshalled, err)
-			s.cancel()
-		}
-	}()
+	err = s.writeObject(marshalled)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -203,25 +200,41 @@ func (s *httpsObjectStream) writeObject(marshalled []byte) error {
 		s.id++
 	}
 
-	res, err := s.client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != expectedStatus {
-		body, _ := ioutil.ReadAll(res.Body)
-
-		return errors.Errorf("Expected HTTP %d, but got %d: %s", expectedStatus, res.StatusCode, string(body))
-	}
-
-	if expectedStatus == 200 {
-		response, err := ioutil.ReadAll(res.Body)
+	send := func() error {
+		res, err := s.client.Do(req)
 		if err != nil {
 			return err
 		}
-		s.feedChan <- response
+		defer res.Body.Close()
+
+		if res.StatusCode != expectedStatus {
+			body, _ := ioutil.ReadAll(res.Body)
+
+			return errors.Errorf("Expected HTTP %d, but got %d: %s", expectedStatus, res.StatusCode, string(body))
+		}
+
+		if expectedStatus == 200 {
+			response, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				return err
+			}
+			s.feedChan <- response
+		}
+		return nil
 	}
+
+	go func() {
+		err := send()
+		if err != nil {
+			select {
+			case <-s.ctx.Done():
+				// disregard errors after cancel
+			default:
+				log.Printf("While sending %s, got: %+v", string(marshalled), err)
+				s.cancel()
+			}
+		}
+	}()
 
 	return nil
 }
