@@ -145,16 +145,21 @@ func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
 					method: method,
 				}
 				return s.Wait(ctx)
-			case "reply":
-				cid := r.Header.Get("x-cid")
-				if cid == "" {
-					return HTTPError(400, "Missing cid")
+			case "cancel":
+				cs, err := hh.assertCallStream(r)
+				if err != nil {
+					return err
 				}
 
-				cs, ok := hh.getCallStream(cid)
-				if !ok {
-					return HTTPError(404, fmt.Sprintf("No in-flight request with cid '%s'", cid))
+				cs.cancel()
+				w.WriteHeader(204)
+				return nil
+			case "reply":
+				cs, err := hh.assertCallStream(r)
+				if err != nil {
+					return err
 				}
+
 				body, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					return err
@@ -170,4 +175,18 @@ func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
 		log.Printf("Called with invalid method: %s", r.Method)
 		return HTTPError(400, "Expected GET or POST")
 	}
+}
+
+func (hh *httpHandler) assertCallStream(r *http.Request) (*httpCallStream, error) {
+	cid := r.Header.Get("x-cid")
+	if cid == "" {
+		return nil, HTTPError(400, "Missing cid")
+	}
+
+	cs, ok := hh.getCallStream(cid)
+	if !ok {
+		return nil, HTTPError(404, fmt.Sprintf("No in-flight request with cid '%s'", cid))
+	}
+
+	return cs, nil
 }
