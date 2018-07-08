@@ -151,7 +151,7 @@ func (hh *httpHandler) handle(w http.ResponseWriter, r *http.Request) error {
 					return err
 				}
 
-				cs.cancel()
+				cs.cancelGracefully()
 				w.WriteHeader(204)
 				return nil
 			case "reply":

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,6 +21,8 @@ type httpCallStream struct {
 	w  http.ResponseWriter
 	r  *http.Request
 	hh *httpHandler
+
+	id int64
 
 	jrh jsonrpc2.Handler
 
@@ -136,6 +139,7 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 	if err != nil {
 		return HTTPError(400, "x-id must be an integer")
 	}
+	s.id = id
 
 	body, err := ioutil.ReadAll(s.r.Body)
 	if err != nil {
@@ -170,5 +174,23 @@ func (s *httpCallStream) Wait(parentCtx context.Context) error {
 func (s *httpCallStream) cancelWith(status int, msg string) {
 	s.w.WriteHeader(status)
 	s.w.Write([]byte(msg))
+	s.cancel()
+}
+
+func (s *httpCallStream) cancelGracefully() {
+	code := CodeOperationCancelled
+	res := jsonrpc2.Response{
+		ID: jsonrpc2.ID{
+			Num: uint64(s.id),
+		},
+		Error: &jsonrpc2.Error{
+			Code:    int64(code),
+			Message: code.Error(),
+		},
+	}
+	err := s.WriteObject(res)
+	if err != nil {
+		log.Printf("While writing abort() reply: %+v", err)
+	}
 	s.cancel()
 }
