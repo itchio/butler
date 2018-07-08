@@ -27,13 +27,26 @@ type TLSState struct {
 func MakeTLSState() (*TLSState, error) {
 	ts := &TLSState{}
 
+	var keyPEMBlock []byte
+	var certPEMBlock []byte
+
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
+	// Generate cryptographically strong pseudo-random between 0 - 2^130
+	// (We need a unique serial number otherwise Chromium on Linux will
+	// reject any cert beyond the first with net::ERR_SSL_SERVER_CERT_BAD_FORMAT)
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(130), nil).Sub(max, big.NewInt(1))
+	serial, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return nil, err
+	}
+
 	template := x509.Certificate{
-		SerialNumber: big.NewInt(1),
+		SerialNumber: serial,
 		Subject: pkix.Name{
 			Organization: []string{"itch corp."},
 		},
@@ -43,7 +56,7 @@ func MakeTLSState() (*TLSState, error) {
 		},
 		DNSNames:  []string{"localhost"},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
+		NotAfter:  time.Now().Add(time.Hour * 24 * 365),
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -60,14 +73,14 @@ func MakeTLSState() (*TLSState, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	certPEMBlock := certOut.Bytes()
+	certPEMBlock = certOut.Bytes()
 
 	keyOut := &bytes.Buffer{}
 	err = pem.Encode(keyOut, pemBlockForKey(priv))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	keyPEMBlock := keyOut.Bytes()
+	keyPEMBlock = keyOut.Bytes()
 
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	if err != nil {
@@ -79,6 +92,7 @@ func MakeTLSState() (*TLSState, error) {
 		Certificates: []tls.Certificate{cert},
 		NextProtos:   []string{"h2"},
 	}
+
 	return ts, nil
 }
 
