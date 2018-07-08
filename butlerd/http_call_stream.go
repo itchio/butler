@@ -25,6 +25,7 @@ type httpCallStream struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
+	tries  int64
 
 	readCh chan []byte
 }
@@ -85,13 +86,20 @@ func (s *httpCallStream) WriteObject(obj interface{}) error {
 	var fs *httpFeedStream
 	var ok bool
 
-	for tries := 200; tries > 0; tries-- {
-		// allow 2s of slack
-		fs, ok = s.hh.getFeedStream(s.cid)
-		if ok {
-			break
+	fs, ok = s.hh.getFeedStream(s.cid)
+	if !ok {
+		if allowFailures {
+			return nil
 		}
-		time.Sleep(10 * time.Millisecond)
+		// allow 200ms of slack
+		for s.tries < 20 {
+			s.tries++
+			fs, ok = s.hh.getFeedStream(s.cid)
+			if ok {
+				break
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
 	}
 
 	if !ok {
