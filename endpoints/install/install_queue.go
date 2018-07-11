@@ -9,6 +9,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -17,7 +18,6 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
@@ -37,11 +37,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 			return nil, errors.New("With noCave, installFolder must be specified")
 		}
 		stagingFolder = queueParams.StagingFolder
-		uu, err := uuid.NewV4()
-		if err != nil {
-			panic(err)
-		}
-		id = uu.String()
+		id = uuid.New().String()
 	} else {
 		if queueParams.CaveID == "" {
 			if queueParams.InstallLocationID == "" {
@@ -120,13 +116,8 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		params.InstallFolder = queueParams.InstallFolder
 	} else {
 		if cave == nil {
-			freshCaveID, err := uuid.NewV4()
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
 			cave = &models.Cave{
-				ID:                freshCaveID.String(),
+				ID:                uuid.New().String(),
 				InstallLocationID: queueParams.InstallLocationID,
 			}
 		}
@@ -343,15 +334,5 @@ func generateDownloadID(basePath string) string {
 			return id
 		}
 	}
-
-	uu, err := uuid.NewV4()
-	if err != nil {
-		// i know watcha thinking - ooh, ah, don't panic!
-		// well, if we reach here, we don't have a good enough random
-		// source to generate an UUID, and we've also tried a hundred
-		// combination of cute animal names, so I don't know what to
-		// tell you. butlerd handlers catch panics anyway!
-		panic(err)
-	}
-	return uu.String()
+	return uuid.New().String()
 }

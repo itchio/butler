@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 
 	"crawshaw.io/sqlite"
+	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"
@@ -51,19 +51,16 @@ func do(ctx *mansion.Context) {
 		go tieDestiny(destinyPid)
 	}
 
-	generateSecret := func() (string, error) {
-		u, err := uuid.NewV4()
-		if err != nil {
-			return "", errors.WithStack(err)
+	generateSecret := func() string {
+		var res string
+		for rounds := 4; rounds > 0; rounds-- {
+			res += uuid.New().String()
 		}
-		return u.String(), nil
+		return res
 	}
-	secret, err := generateSecret()
-	if err != nil {
-		ctx.Must(err)
-	}
+	secret := generateSecret()
 
-	err = os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
+	err := os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}

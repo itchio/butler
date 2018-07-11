@@ -2,12 +2,12 @@ package install
 
 import (
 	"github.com/go-xorm/builder"
+	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 func InstallLocationsGetByID(rc *butlerd.RequestContext, params butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {
@@ -55,11 +55,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocat
 	hadID := false
 	if params.ID == "" {
 		hadID = true
-		freshUuid, err := uuid.NewV4()
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		params.ID = freshUuid.String()
+		params.ID = uuid.New().String()
 	}
 	if params.Path == "" {
 		return nil, errors.New("path must be set")

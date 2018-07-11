@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
-	uuid "github.com/satori/go.uuid"
 
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/stretchr/testify/assert"
@@ -27,8 +27,7 @@ func Test_Profile(t *testing.T) {
 	must(t, err)
 	assert.NotEmpty(t, r.Profiles)
 
-	v, err := uuid.NewV4()
-	must(t, err)
+	v := uuid.New()
 
 	_, err = messages.ProfileDataPut.TestCall(rc, butlerd.ProfileDataPutParams{
 		ProfileID: prof.ID,

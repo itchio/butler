@@ -17,8 +17,8 @@ import (
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
-	uuid "github.com/satori/go.uuid"
 
+	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/pkg/errors"
@@ -282,18 +282,13 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 				buildID = receipt.Build.ID
 			}
 
-			freshUuid, err := uuid.NewV4()
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
 			receiptStats, err := os.Stat(bfs.ReceiptPath(InstallFolder))
 			if err != nil {
 				return errors.WithStack(err)
 			}
 
 			legCave := &legacyCave{
-				ID:       freshUuid.String(),
+				ID:       uuid.New().String(),
 				GameID:   receipt.Game.ID,
 				UploadID: receipt.Upload.ID,
 				BuildID:  buildID,

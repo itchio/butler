@@ -196,6 +196,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/google/uuid",
+			"repository": "https://github.com/google/uuid",
+			"vcs": "git",
+			"revision": "dec09d789f3dba190787f8b4454c7d3c936fed9e",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/gorilla/handlers",
 			"repository": "https://github.com/gorilla/handlers",
 			"vcs": "git",
@@ -465,14 +473,6 @@
 			"repository": "https://github.com/pkg/errors",
 			"vcs": "git",
 			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
-			"branch": "master",
-			"notests": true
-		},
-		{
-			"importpath": "github.com/satori/go.uuid",
-			"repository": "https://github.com/satori/go.uuid",
-			"vcs": "git",
-			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
 			"branch": "master",
 			"notests": true
 		},
