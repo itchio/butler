@@ -302,8 +302,7 @@ type ProfileDataGetResult struct {
 // Search
 //----------------------------------------------------------------------
 
-// Searches for games. Returns data from the local
-// database and the API, via @@SearchGamesYieldNotification.
+// Searches for games.
 //
 // @name Search.Games
 // @category Search
@@ -322,17 +321,10 @@ func (p SearchGamesParams) Validate() error {
 }
 
 type SearchGamesResult struct {
-}
-
-// Sent during @@SearchGamesParams
-//
-// @category Search
-type SearchGamesYieldNotification struct {
 	Games []*itchio.Game `json:"games"`
 }
 
-// Searches for users. Returns data from the local
-// database and the API, via @@SearchUsersYieldNotification.
+// Searches for users.
 //
 // @name Search.Users
 // @category Search
@@ -351,6 +343,7 @@ func (p SearchUsersParams) Validate() error {
 }
 
 type SearchUsersResult struct {
+	Users []*itchio.User `json:"users"`
 }
 
 // Sent during @@SearchUsersParams when results are available

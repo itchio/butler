@@ -2,28 +2,24 @@ package search
 
 import (
 	"fmt"
+	"log"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
 )
 
 func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {
 	if params.Query == "" {
 		// return empty games set
-		err := messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
+		return &butlerd.SearchGamesResult{
 			Games: nil,
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		return &butlerd.SearchGamesResult{}, nil
+		}, nil
 	}
 
 	var games []*itchio.Game
@@ -40,16 +36,10 @@ func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (
 	}
 
 	//----------------------------------
-	// return results from local DB
+	// perform local search
 	//----------------------------------
 
 	doLocalSearch()
-	err := messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
-		Games: games,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	//----------------------------------
 	// perform API request
@@ -61,6 +51,13 @@ func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (
 		Page:  1,
 	})
 	if err != nil {
+		if neterr.IsNetworkError(err) {
+			log.Printf("Seemingly offline, returning local results only")
+			return &butlerd.SearchGamesResult{
+				Games: games,
+			}, nil
+		}
+
 		return nil, errors.WithStack(err)
 	}
 
@@ -98,13 +95,8 @@ func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (
 		}
 	}
 
-	err = messages.SearchGamesYield.Notify(rc, butlerd.SearchGamesYieldNotification{
+	res := &butlerd.SearchGamesResult{
 		Games: games,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
 	}
-
-	res := &butlerd.SearchGamesResult{}
 	return res, nil
 }

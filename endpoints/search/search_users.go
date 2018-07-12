@@ -2,28 +2,24 @@ package search
 
 import (
 	"fmt"
+	"log"
 
 	"crawshaw.io/sqlite"
 	"github.com/go-xorm/builder"
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
 )
 
 func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (*butlerd.SearchUsersResult, error) {
 	if params.Query == "" {
 		// return empty users set
-		err := messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
+		return &butlerd.SearchUsersResult{
 			Users: nil,
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		return &butlerd.SearchUsersResult{}, nil
+		}, nil
 	}
 
 	var users []*itchio.User
@@ -43,16 +39,10 @@ func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (
 	}
 
 	//----------------------------------
-	// return results from local DB
+	// perform local search
 	//----------------------------------
 
 	doLocalSearch()
-	err := messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
-		Users: users,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 
 	//----------------------------------
 	// perform API request
@@ -64,6 +54,13 @@ func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (
 		Page:  1,
 	})
 	if err != nil {
+		if neterr.IsNetworkError(err) {
+			log.Printf("Seemingly offline, returning local results only")
+			return &butlerd.SearchUsersResult{
+				Users: users,
+			}, nil
+		}
+
 		return nil, errors.WithStack(err)
 	}
 
@@ -101,13 +98,8 @@ func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (
 		}
 	}
 
-	err = messages.SearchUsersYield.Notify(rc, butlerd.SearchUsersYieldNotification{
+	res := &butlerd.SearchUsersResult{
 		Users: users,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
 	}
-
-	res := &butlerd.SearchUsersResult{}
 	return res, nil
 }

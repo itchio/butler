@@ -305,7 +305,7 @@
     },
     {
       "method": "Search.Games",
-      "doc": "Searches for games. Returns data from the local\ndatabase and the API, via @@SearchGamesYieldNotification.",
+      "doc": "Searches for games.",
       "caller": "client",
       "params": {
         "fields": [
@@ -322,12 +322,18 @@
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "games",
+            "doc": "",
+            "type": "Game[]"
+          }
+        ]
       }
     },
     {
       "method": "Search.Users",
-      "doc": "Searches for users. Returns data from the local\ndatabase and the API, via @@SearchUsersYieldNotification.",
+      "doc": "Searches for users.",
       "caller": "client",
       "params": {
         "fields": [
@@ -344,7 +350,13 @@
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "users",
+            "doc": "",
+            "type": "User[]"
+          }
+        ]
       }
     },
     {
@@ -1827,19 +1839,6 @@
             "name": "message",
             "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
             "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "method": "SearchGamesYield",
-      "doc": "Sent during @@SearchGamesParams",
-      "params": {
-        "fields": [
-          {
-            "name": "games",
-            "doc": "",
-            "type": "Game[]"
           }
         ]
       }

@@ -791,34 +791,6 @@ func (r *SearchGamesType) TestCall(rc *butlerd.RequestContext, params butlerd.Se
 
 var SearchGames *SearchGamesType
 
-// SearchGamesYield (Notification)
-
-type SearchGamesYieldType struct {}
-
-var _ NotificationMessage = (*SearchGamesYieldType)(nil)
-
-func (r *SearchGamesYieldType) Method() string {
-  return "SearchGamesYield"
-}
-
-func (r *SearchGamesYieldType) Notify(rc *butlerd.RequestContext, params butlerd.SearchGamesYieldNotification) (error) {
-  return rc.Notify("SearchGamesYield", params)
-}
-
-func (r *SearchGamesYieldType) Register(router router, f func(*butlerd.RequestContext, butlerd.SearchGamesYieldNotification)) {
-  router.RegisterNotification("SearchGamesYield", func (rc *butlerd.RequestContext) {
-    var params butlerd.SearchGamesYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, params)
-  })
-}
-
-var SearchGamesYield *SearchGamesYieldType
-
 // Search.Users (Request)
 
 type SearchUsersType struct {}
