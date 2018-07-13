@@ -2,6 +2,7 @@ package update
 
 import (
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/arbovm/levenshtein"
@@ -57,9 +58,21 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	consumer.Infof("Looking for updates to %d items...", len(caves))
 	consumer.Infof("...for runtime %s", updateParams.runtime)
 
-	for _, cave := range caves {
+	var resultMutex sync.Mutex
+	type taskSpec struct {
+		cave *models.Cave
+	}
+
+	taskSpecs := make(chan taskSpec)
+	workerDone := make(chan struct{})
+	numWorkers := 4
+
+	processOne := func(spec taskSpec) {
 		ml := memorylogger.New()
-		update, err := checkUpdateCave(updateParams, ml.Consumer(), cave)
+		update, err := checkUpdateCave(updateParams, ml.Consumer(), spec.cave)
+		resultMutex.Lock()
+		defer resultMutex.Unlock()
+
 		if err != nil {
 			res.Warnings = append(res.Warnings, err.Error())
 			consumer.Warnf("An update check failed: %+v", err)
@@ -80,6 +93,42 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 				}
 			}
 		}
+	}
+
+	work := func() {
+		defer func() {
+			workerDone <- struct{}{}
+		}()
+
+		for spec := range taskSpecs {
+			processOne(spec)
+		}
+	}
+
+	go func() {
+		for _, cave := range caves {
+			spec := taskSpec{
+				cave: cave,
+			}
+
+			select {
+			case taskSpecs <- spec:
+				// good!
+			case <-rc.Ctx.Done():
+				close(taskSpecs)
+				return
+			}
+		}
+
+		close(taskSpecs)
+	}()
+
+	for i := 0; i < numWorkers; i++ {
+		go work()
+	}
+
+	for i := 0; i < numWorkers; i++ {
+		<-workerDone
 	}
 
 	return res, nil

@@ -1407,7 +1407,7 @@
     },
     {
       "method": "CheckUpdate",
-      "doc": "Looks for one or more game updates.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
+      "doc": "Looks for game updates.\n\nIf a list of cave identifiers is passed, will only look for\nupdates for these caves *and will ignore snooze*.\n\nOtherwise, will look for updates for all games, respecting snooze.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
       "caller": "client",
       "params": {
         "fields": [

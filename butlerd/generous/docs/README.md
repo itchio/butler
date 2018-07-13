@@ -4072,7 +4072,12 @@ until they&rsquo;re all finished.</p>
 
 
 <p>
-<p>Looks for one or more game updates.</p>
+<p>Looks for game updates.</p>
+
+<p>If a list of cave identifiers is passed, will only look for
+updates for these caves <em>and will ignore snooze</em>.</p>
+
+<p>Otherwise, will look for updates for all games, respecting snooze.</p>
 
 <p>Updates found are regularly sent via <code class="typename"><span class="type notification" data-tip-selector="#GameUpdateAvailableNotification__TypeHint">GameUpdateAvailable</span></code>, and
 then all at once in the result.</p>
@@ -4126,7 +4131,12 @@ then all at once in the result.</p>
 <p><em class="request-client-caller"></em>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
 
 <p>
-<p>Looks for one or more game updates.</p>
+<p>Looks for game updates.</p>
+
+<p>If a list of cave identifiers is passed, will only look for
+updates for these caves <em>and will ignore snooze</em>.</p>
+
+<p>Otherwise, will look for updates for all games, respecting snooze.</p>
 
 <p>Updates found are regularly sent via <code class="typename"><span class="type notification">GameUpdateAvailable</span></code>, and
 then all at once in the result.</p>
