@@ -1488,23 +1488,6 @@
       }
     },
     {
-      "method": "Launch.Cancel",
-      "doc": "Close a running game or cancel launching it",
-      "caller": "client",
-      "params": {
-        "fields": null
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "didCancel",
-            "doc": "",
-            "type": "boolean"
-          }
-        ]
-      }
-    },
-    {
       "method": "PickManifestAction",
       "doc": "Sent during @@LaunchParams, ask the user to pick a manifest action to launch.\n\nSee [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html).",
       "caller": "server",

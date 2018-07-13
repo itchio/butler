@@ -1,7 +1,6 @@
 package launch
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,25 +31,10 @@ var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Register(router *butlerd.Router) {
 	messages.Launch.Register(router, Launch)
-	messages.LaunchCancel.Register(router, LaunchCancel)
-}
-
-var launchCancelID = "Launch"
-
-func LaunchCancel(rc *butlerd.RequestContext, params butlerd.LaunchCancelParams) (*butlerd.LaunchCancelResult, error) {
-	didCancel := rc.CancelFuncs.Call(launchCancelID)
-	return &butlerd.LaunchCancelResult{
-		DidCancel: didCancel,
-	}, nil
 }
 
 func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
 	consumer := rc.Consumer
-
-	ctx, cancelFunc := context.WithCancel(rc.Ctx)
-
-	rc.CancelFuncs.Add(launchCancelID, cancelFunc)
-	defer rc.CancelFuncs.Remove(launchCancelID)
 
 	cave := operate.ValidateCave(rc, params.CaveID)
 	var installFolder string
@@ -436,7 +420,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 	launcherParams := LauncherParams{
 		RequestContext: rc,
-		Ctx:            ctx,
+		Ctx:            rc.Ctx,
 
 		FullTargetPath: fullTargetPath,
 		Candidate:      candidate,

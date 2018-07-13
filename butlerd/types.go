@@ -1831,22 +1831,6 @@ func (p LaunchParams) Validate() error {
 type LaunchResult struct {
 }
 
-// Close a running game or cancel launching it
-//
-// @name Launch.Cancel
-// @category Launch
-// @caller client
-type LaunchCancelParams struct {
-}
-
-func (p LaunchCancelParams) Validate() error {
-	return nil
-}
-
-type LaunchCancelResult struct {
-	DidCancel bool `json:"didCancel"`
-}
-
 // Sent during @@LaunchParams, when attaching to a running
 // instance, instead of launching a new one.
 //

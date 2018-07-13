@@ -4470,43 +4470,6 @@ cave identifier.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Launch.Cancel
-
-
-<p>
-<p>Close a running game or cancel launching it</p>
-
-</p>
-
-<p>
-<span class="header">Parameters</span> <em>none</em>
-</p>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>didCancel</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="LaunchCancelParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Launch.Cancel <a href="#/?id=launchcancel">(Go to definition)</a></p>
-
-<p>
-<p>Close a running game or cancel launching it</p>
-
-</p>
-</div>
-
 ### <em class="notification"></em>LaunchWindowShouldBeForeground
 
 
