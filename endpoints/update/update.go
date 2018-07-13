@@ -29,6 +29,8 @@ func Register(router *butlerd.Router) {
 }
 
 func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (*butlerd.CheckUpdateResult, error) {
+	startTime := time.Now()
+
 	consumer := rc.Consumer
 	res := &butlerd.CheckUpdateResult{}
 
@@ -58,6 +60,9 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	consumer.Infof("Looking for updates to %d items...", len(caves))
 	consumer.Infof("...for runtime %s", updateParams.runtime)
 
+	var doneCaves int
+
+	// protects 'res' and 'doneCaves'
 	var resultMutex sync.Mutex
 	type taskSpec struct {
 		cave *models.Cave
@@ -72,6 +77,9 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 		update, err := checkUpdateCave(updateParams, ml.Consumer(), spec.cave)
 		resultMutex.Lock()
 		defer resultMutex.Unlock()
+
+		doneCaves++
+		consumer.Progress(float64(doneCaves) / float64(len(caves)))
 
 		if err != nil {
 			res.Warnings = append(res.Warnings, err.Error())
@@ -123,6 +131,7 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 		close(taskSpecs)
 	}()
 
+	rc.StartProgress()
 	for i := 0; i < numWorkers; i++ {
 		go work()
 	}
@@ -130,6 +139,9 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	for i := 0; i < numWorkers; i++ {
 		<-workerDone
 	}
+	rc.EndProgress()
+
+	consumer.Statf("Checked %d entries in %s", len(caves), time.Since(startTime))
 
 	return res, nil
 }
