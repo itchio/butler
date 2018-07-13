@@ -30,6 +30,8 @@ type Cave struct {
 	LastTouchedAt *time.Time `json:"lastTouchedAt"`
 	SecondsRun    int64      `json:"secondsRun"`
 
+	SnoozedAt *time.Time `json:"snoozedAt"`
+
 	Verdict       JSON  `json:"verdict"`
 	InstalledSize int64 `json:"installedSize"`
 

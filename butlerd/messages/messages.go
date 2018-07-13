@@ -2459,6 +2459,51 @@ func (r *GameUpdateAvailableType) Register(router router, f func(*butlerd.Reques
 
 var GameUpdateAvailable *GameUpdateAvailableType
 
+// SnoozeCave (Request)
+
+type SnoozeCaveType struct {}
+
+var _ RequestMessage = (*SnoozeCaveType)(nil)
+
+func (r *SnoozeCaveType) Method() string {
+  return "SnoozeCave"
+}
+
+func (r *SnoozeCaveType) Register(router router, f func(*butlerd.RequestContext, butlerd.SnoozeCaveParams) (*butlerd.SnoozeCaveResult, error)) {
+  router.Register("SnoozeCave", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.SnoozeCaveParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for SnoozeCave")
+    }
+    return res, nil
+  })
+}
+
+func (r *SnoozeCaveType) TestCall(rc *butlerd.RequestContext, params butlerd.SnoozeCaveParams) (*butlerd.SnoozeCaveResult, error) {
+  var result butlerd.SnoozeCaveResult
+  err := rc.Call("SnoozeCave", params, &result)
+  return &result, err
+}
+
+var SnoozeCave *SnoozeCaveType
+
+
+//==============================
+// update
+//==============================
+
 
 //==============================
 // Launch
@@ -3214,6 +3259,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Downloads.Retry"]; !ok { panic("missing request handler for (Downloads.Retry)") }
   if _, ok := router.Handlers["Downloads.Discard"]; !ok { panic("missing request handler for (Downloads.Discard)") }
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
+  if _, ok := router.Handlers["SnoozeCave"]; !ok { panic("missing request handler for (SnoozeCave)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
   if _, ok := router.Handlers["Launch.Cancel"]; !ok { panic("missing request handler for (Launch.Cancel)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }

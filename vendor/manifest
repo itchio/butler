@@ -50,6 +50,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/arbovm/levenshtein",
+			"repository": "https://github.com/arbovm/levenshtein",
+			"vcs": "git",
+			"revision": "48b4e1c0c4d0b8b1864f1bd2cd31bb20147e4636",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/asaskevich/govalidator",
 			"repository": "https://github.com/asaskevich/govalidator",
 			"vcs": "git",
