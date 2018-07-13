@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 
 	"github.com/itchio/httpkit/progress"
 
@@ -47,6 +46,7 @@ type ArchiveHealer struct {
 	Consumer *state.Consumer
 
 	// internal
+	progressMutex  sync.Mutex
 	totalCorrupted int64
 	totalHealing   int64
 	totalHealed    int64
@@ -85,7 +85,9 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 	errs := make(chan error, ah.NumWorkers)
 
 	onChunkHealed := func(healedChunk int64) {
-		atomic.AddInt64(&ah.totalHealed, healedChunk)
+		ah.progressMutex.Lock()
+		ah.totalHealed += healedChunk
+		ah.progressMutex.Unlock()
 		ah.updateProgress()
 	}
 
@@ -147,7 +149,9 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 				ah.Consumer.ProgressLabel(file.Path)
 			}
 
-			atomic.AddInt64(&ah.totalHealing, file.Size)
+			ah.progressMutex.Lock()
+			ah.totalHealing += file.Size
+			ah.progressMutex.Unlock()
 			ah.updateProgress()
 			files[wound.Index] = true
 
@@ -166,7 +170,9 @@ func (ah *ArchiveHealer) Do(parentCtx context.Context, container *tlc.Container,
 
 				// whole file was healthy
 				if wound.End == fileSize {
-					atomic.AddInt64(&ah.totalHealthy, fileSize)
+					ah.progressMutex.Lock()
+					ah.totalHealthy += fileSize
+					ah.progressMutex.Unlock()
 					ah.updateProgress()
 				}
 			}
@@ -354,11 +360,10 @@ func (ah *ArchiveHealer) updateProgress() {
 		return
 	}
 
-	totalHealthy := atomic.LoadInt64(&ah.totalHealthy)
-	totalHealed := atomic.LoadInt64(&ah.totalHealed)
-
-	progress := float64(totalHealthy+totalHealed) / float64(ah.container.Size)
+	ah.progressMutex.Lock()
+	progress := float64(ah.totalHealthy+ah.totalHealed) / float64(ah.container.Size)
 	ah.Consumer.Progress(progress)
+	ah.progressMutex.Unlock()
 }
 
 func (ah *ArchiveHealer) SetLockMap(lockMap LockMap) {

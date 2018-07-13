@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"sync/atomic"
+	"sync"
 
 	"github.com/itchio/savior"
 	"github.com/itchio/wharf/bsdiff"
@@ -253,9 +253,9 @@ func (actx *ApplyContext) ApplyPatch(patchReader savior.SeekSource) error {
 func (actx *ApplyContext) patchAll(ctx context.Context, patchWire *wire.ReadContext, signature *SignatureInfo) (retErr error) {
 	sourceContainer := actx.SourceContainer
 
-	relayWoundsProgress := int64(0)
-	initialHealerProgress := int64(0)
-	const initialHealerFactor = float64(100 * 1000)
+	var progressMutex sync.Mutex
+	var relayWoundsProgress bool
+	var initialHealerProgress float64
 
 	var validatingPool *ValidatingPool
 	consumerErrs := make(chan error, 1)
@@ -293,11 +293,13 @@ func (actx *ApplyContext) patchAll(ctx context.Context, patchWire *wire.ReadCont
 
 			healer.SetConsumer(&state.Consumer{
 				OnProgress: func(progress float64) {
-					if atomic.LoadInt64(&relayWoundsProgress) == 1 {
+					progressMutex.Lock()
+					if relayWoundsProgress {
 						actx.Consumer.Progress(progress)
 					} else {
-						atomic.StoreInt64(&initialHealerProgress, int64(progress*initialHealerFactor))
+						initialHealerProgress = progress
 					}
+					progressMutex.Unlock()
 				},
 			})
 
@@ -374,10 +376,12 @@ func (actx *ApplyContext) patchAll(ctx context.Context, patchWire *wire.ReadCont
 
 		if actx.WoundsConsumer != nil {
 			actx.Consumer.PauseProgress()
-			actx.Consumer.Progress(float64(atomic.LoadInt64(&initialHealerProgress)) / initialHealerFactor)
+			progressMutex.Lock()
+			actx.Consumer.Progress(initialHealerProgress)
 			actx.Consumer.ProgressLabel("Healing...")
 			actx.Consumer.ResumeProgress()
-			atomic.StoreInt64(&relayWoundsProgress, 1)
+			relayWoundsProgress = true
+			progressMutex.Unlock()
 
 			taskErr := <-consumerErrs
 			if taskErr != nil {

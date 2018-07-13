@@ -12,6 +12,7 @@ import (
 	"github.com/efarrer/iothrottler"
 	"github.com/getlantern/idletiming"
 	"github.com/pkg/errors"
+	"golang.org/x/net/http2"
 )
 
 // IgnoreCertificateErrors is a dangerous option that instructs all
@@ -87,6 +88,7 @@ func NewClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *ht
 			InsecureSkipVerify: true,
 		}
 	}
+	http2.ConfigureTransport(transport)
 	return &http.Client{
 		Transport: transport,
 	}

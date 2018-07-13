@@ -279,7 +279,7 @@
 			"importpath": "github.com/itchio/hades",
 			"repository": "https://github.com/itchio/hades",
 			"vcs": "git",
-			"revision": "2c43586015e61857d20c5dbcb1fd31dfb0eb13c0",
+			"revision": "fe967d8b163805dbf8ea6d0730891caeeb2f5656",
 			"branch": "master",
 			"notests": true
 		},
@@ -287,7 +287,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "975c326430eed875a6dabf7e219077018192b960",
+			"revision": "c039395e324eb7b7978b18a920ba6c965f923552",
 			"branch": "master",
 			"notests": true
 		},
@@ -359,7 +359,7 @@
 			"importpath": "github.com/itchio/wharf",
 			"repository": "https://github.com/itchio/wharf",
 			"vcs": "git",
-			"revision": "41553639bfc595de2cf68f0ea6dfa0f434273d41",
+			"revision": "a85677b5ed74c0bb4cf742781236c68eaec70559",
 			"branch": "master",
 			"notests": true
 		},

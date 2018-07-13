@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"sync/atomic"
+	"sync"
 
 	"github.com/itchio/arkive/zip"
 
@@ -34,6 +34,7 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 	}
 
 	var doneSize uint64
+	var doneSizeMutex sync.Mutex
 	var lastDoneIndex int = -1
 
 	func() {
@@ -108,8 +109,9 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 	errs := make(chan error, numWorkers)
 
 	updateProgress := func() {
-		ds := atomic.LoadUint64(&doneSize)
-		settings.Consumer.Progress(float64(ds) / float64(totalSize))
+		doneSizeMutex.Lock()
+		settings.Consumer.Progress(float64(doneSize) / float64(totalSize))
+		doneSizeMutex.Unlock()
 	}
 
 	done := func(file *zip.File) {
@@ -136,7 +138,9 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 				if fileIndex <= lastDoneIndex {
 					settings.Consumer.Debugf("Skipping file %d", fileIndex)
 					done(file)
-					atomic.AddUint64(&doneSize, file.UncompressedSize64)
+					doneSizeMutex.Lock()
+					doneSize += file.UncompressedSize64
+					doneSizeMutex.Unlock()
 					updateProgress()
 					continue
 				}
@@ -189,7 +193,9 @@ func ExtractZip(readerAt io.ReaderAt, size int64, dir string, settings ExtractSe
 						countingReader := counter.NewReaderCallback(func(offset int64) {
 							doneRecently := offset - lastOffset
 							lastOffset = offset
-							atomic.AddUint64(&doneSize, uint64(doneRecently))
+							doneSizeMutex.Lock()
+							doneSize += uint64(doneRecently)
+							doneSizeMutex.Unlock()
 							updateProgress()
 						}, fileReader)
 
