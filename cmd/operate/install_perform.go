@@ -124,21 +124,6 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	consumer.Infof("    via (%s)", oc.StageFolder())
 
 	return InstallPrepare(oc, meta, isub, true, func(prepareRes *InstallPrepareResult) error {
-		if prepareRes.Strategy == InstallPerformStrategyHeal {
-			return heal(oc, meta, isub, prepareRes.ReceiptIn)
-		}
-
-		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
-			return upgrade(oc, meta, isub, prepareRes.ReceiptIn)
-		}
-
-		stats, err := prepareRes.File.Stat()
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		installerInfo := istate.InstallerInfo
-
 		if !params.NoCave {
 			var cave *models.Cave
 			rc.WithConn(func(conn *sqlite.Conn) {
@@ -154,6 +139,21 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 			oc.cave = cave
 		}
+
+		if prepareRes.Strategy == InstallPerformStrategyHeal {
+			return heal(oc, meta, isub, prepareRes.ReceiptIn)
+		}
+
+		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
+			return upgrade(oc, meta, isub, prepareRes.ReceiptIn)
+		}
+
+		stats, err := prepareRes.File.Stat()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		installerInfo := istate.InstallerInfo
 
 		consumer.Infof("Will use installer %s", installerInfo.Type)
 		manager := installer.GetManager(string(installerInfo.Type))
