@@ -35,6 +35,9 @@ const (
 	StrategyTarXz  Strategy = 203
 
 	StrategySevenZip Strategy = 300
+	// .exe files for example - might be self-extracting
+	// archives 7-zip can handle, or they might not.
+	StrategySevenZipUnsure Strategy = 301
 )
 
 func (as Strategy) String() string {
@@ -49,7 +52,7 @@ func (as Strategy) String() string {
 		return "tar.bz2"
 	case StrategyTarXz:
 		return "tar.xz"
-	case StrategySevenZip:
+	case StrategySevenZip, StrategySevenZipUnsure:
 		return "7-zip"
 	default:
 		return "<no strategy>"
@@ -97,6 +100,12 @@ func (ai *Info) String() string {
 	return res
 }
 
+// Attempt to determine the type of an archive
+// Returns (nil, nil) if it is not a recognized archive type
+// Returns (nil, non-nil) if it IS a recognized archive type, but something's
+// wrong with it.
+// Returns (non-nil, nil) if it is a recognized archive type and we
+// are confident we can extract it correctly.
 func Probe(params *ProbeParams) (*Info, error) {
 	var strategy Strategy
 
@@ -108,7 +117,7 @@ func Probe(params *ProbeParams) (*Info, error) {
 	}
 
 	if strategy == StrategyNone {
-		return nil, ErrUnrecognizedArchiveType
+		return nil, nil
 	}
 
 	info := &Info{
@@ -118,7 +127,14 @@ func Probe(params *ProbeParams) (*Info, error) {
 	// now actually try to open it
 	ex, err := info.GetExtractor(params.File, params.Consumer)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting extractor for file")
+		if strategy == StrategySevenZipUnsure {
+			// we didn't know that one until we try, so it's just
+			// not a recognized archive format
+			params.Consumer.Warnf("Tried opening archive with 7-zip but we got: %v", err)
+			params.Consumer.Warnf("Ignoring...")
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "opening archive")
 	}
 
 	if szex, ok := ex.(szextractor.SzExtractor); ok {
@@ -250,11 +266,13 @@ func getStrategy(file eos.File, consumer *state.Consumer) Strategy {
 		return StrategyTarBz2
 	case ".tar.xz":
 		return StrategyTarXz
-	case ".7z", ".rar", ".dmg", ".exe":
+	case ".7z", ".rar", ".dmg":
 		return StrategySevenZip
+	case ".exe":
+		return StrategySevenZipUnsure
 	}
 
-	return StrategySevenZip
+	return StrategySevenZipUnsure
 }
 
 func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
@@ -282,7 +300,7 @@ func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Ex
 			return nil, errors.Wrap(err, "creating xz extractor")
 		}
 		return tarextractor.New(xs), nil
-	case StrategySevenZip:
+	case StrategySevenZip, StrategySevenZipUnsure:
 		szex, err := szextractor.New(file, consumer)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating 7-zip extractor")
@@ -292,9 +310,11 @@ func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Ex
 		switch szex.GetFormat() {
 		// cf. https://github.com/itchio/itch/issues/1700
 		case "ELF":
-			return nil, fmt.Errorf("won't extract ELF executable")
+			// won't extract ELF executables
+			return nil, errors.New("refusing to extract ELF file")
 		case "PE":
-			return nil, fmt.Errorf("won't extract PE executable")
+			// won't extract PE executables
+			return nil, errors.New("refusing to extract PE file")
 		default:
 			return szex, nil
 		}

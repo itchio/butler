@@ -239,7 +239,7 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "d79a099bf1016152e04b8819224320ccf3dce2de",
+			"revision": "2da99e42f2fbf4504522465d3f1bce534ce6bae0",
 			"branch": "master",
 			"notests": true
 		},
@@ -335,7 +335,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "a9f8c3af201ef807ef6107294cb36bc3893bb02e",
+			"revision": "abac68dadcb5b33490ba93280ce4afd48983a71c",
 			"branch": "master",
 			"notests": true
 		},
