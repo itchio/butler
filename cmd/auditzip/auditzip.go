@@ -229,19 +229,27 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 	markError := func(path string, message string, args ...interface{}) {
 		formatted := fmt.Sprintf(message, args...)
 		fullMessage := fmt.Sprintf("(%s): %s", path, formatted)
-		consumer.Errorf(fullMessage)
 		foundErrors = append(foundErrors, fullMessage)
 	}
 
 	paths := make(map[string]int)
 	started := false
 
-	err = impl.EachEntry(consumer, f, stats.Size(), func(index int, name string, uncompressedSize int64, rc io.ReadCloser, numEntries int) error {
+	err = impl.EachEntry(consumer, f, stats.Size(), func(index int, name string, nonutf8 bool, uncompressedSize int64, rc io.ReadCloser, numEntries int) error {
 		if !started {
 			comm.StartProgress()
 			started = true
 		}
 		path := boar.CleanFileName(name)
+
+		if nonutf8 {
+			for _, r := range name {
+				if r > 127 {
+					markError(path, "Entry has non-ASCII characters but isn't encoded as utf-8")
+					break
+				}
+			}
+		}
 
 		comm.Progress(float64(index) / float64(numEntries))
 		comm.ProgressLabel(path)
@@ -275,7 +283,12 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 	}
 
 	if len(foundErrors) > 0 {
-		consumer.Statf("Found %d errors, see above", len(foundErrors))
+		consumer.Infof("================================================")
+		consumer.Statf("Found %d errors:", len(foundErrors))
+		for _, fullMessage := range foundErrors {
+			consumer.Logf(" ✖ %s", fullMessage)
+		}
+		consumer.Infof("================================================")
 		return fmt.Errorf("Found %d errors in zip file", len(foundErrors))
 	}
 
@@ -286,7 +299,7 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 
 // zip implementation types
 
-type EachEntryFunc func(index int, name string, uncompressedSize int64, rc io.ReadCloser, numEntries int) error
+type EachEntryFunc func(index int, name string, nonutf8 bool, uncompressedSize int64, rc io.ReadCloser, numEntries int) error
 
 type ZipImpl interface {
 	EachEntry(consumer *state.Consumer, r io.ReaderAt, size int64, cb EachEntryFunc) error
@@ -332,7 +345,7 @@ func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int
 			}
 		}
 
-		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
+		err = cb(index, entry.Name, entry.NonUTF8, int64(entry.UncompressedSize64), rc, numEntries)
 		rc.Close()
 		if err != nil {
 			return errors.WithStack(err)
@@ -375,7 +388,7 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 			return errors.WithStack(err)
 		}
 
-		err = cb(index, entry.Name, int64(entry.UncompressedSize64), rc, numEntries)
+		err = cb(index, entry.Name, entry.NonUTF8, int64(entry.UncompressedSize64), rc, numEntries)
 		rc.Close()
 		if err != nil {
 			return errors.WithStack(err)
