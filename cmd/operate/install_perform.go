@@ -34,6 +34,7 @@ func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performPara
 
 	err = doInstallPerform(oc, meta)
 	if err != nil {
+		oc.Consumer().Errorf("%+v", err)
 		return errors.WithStack(err)
 	}
 

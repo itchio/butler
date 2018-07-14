@@ -33,7 +33,7 @@ type InstallTask func(res *InstallPrepareResult) error
 func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, allowDownloads bool, task InstallTask) error {
 	rc := oc.rc
 	params := meta.Data
-	consumer := rc.Consumer
+	consumer := oc.Consumer()
 
 	client := rc.Client(params.Access.APIKey)
 
