@@ -49,14 +49,23 @@ func setupHTTPClient(c *http.Client) {
 			return errors.New("stopped after 10 redirects")
 		}
 
-		// forward initial request headers
 		// see https://github.com/itchio/itch/issues/965
+		// GitHub downloads redirect to AWS (at the time of this writing)
+		// and golang's default redirect handler does not forward
+		// headers like 'Range', which AS IT TURNS OUT are very important to us.
 		ireq := via[0]
 		for key, values := range ireq.Header {
 			for _, value := range values {
-				req.Header.Add(key, value)
+				req.Header.Set(key, value)
 			}
 		}
+
+		// see https://github.com/itchio/itch/issues/1960
+		// if SourceForge sees a Referer (any Referer), it'll
+		// serve us HTML instead of the actual download.
+		// except, we're not a browser (don't build a browser on top of eos, please),
+		// so we don't want HTML, ever.
+		req.Header.Del("Referer")
 
 		return nil
 	}
