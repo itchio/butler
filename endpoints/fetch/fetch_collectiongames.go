@@ -81,7 +81,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 
 		switch params.SortBy {
 		case "default", "":
-			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("position " + pager.Ordering("DESC", params.Reverse))
 		case "title":
 			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
 			joinGames = true
