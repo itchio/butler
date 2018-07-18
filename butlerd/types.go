@@ -2245,6 +2245,10 @@ const (
 	// There is no Internet connection
 	CodeNetworkDisconnected Code = 9000
 
+	// API error
+	CodeAPIError Code = 12000
+
+	// The database is busy
 	CodeDatabaseBusy Code = 16000
 )
 

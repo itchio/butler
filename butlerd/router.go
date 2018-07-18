@@ -187,6 +187,11 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 	data["stack"] = fmt.Sprintf("%+v", err)
 	data["butlerVersion"] = r.ButlerVersionString
 
+	if ae, ok := itchio.AsAPIError(err); ok {
+		code = int64(CodeAPIError)
+		data["apiError"] = ae
+	}
+
 	marshalledData, marshalErr := json.Marshal(data)
 	if marshalErr == nil {
 		rawMessage := json.RawMessage(marshalledData)

@@ -18,6 +18,8 @@ var codeMessages = map[Code]string{
 
 	CodeNetworkDisconnected: "There is no Internet connection",
 
+	CodeAPIError: "API error",
+
 	CodeDatabaseBusy: "The database is busy",
 }
 

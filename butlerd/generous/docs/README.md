@@ -6981,8 +6981,14 @@ can be part of an issue report if something goes wrong.</p>
 </td>
 </tr>
 <tr>
+<td><code>12000</code></td>
+<td><p>API error</p>
+</td>
+</tr>
+<tr>
 <td><code>16000</code></td>
-<td></td>
+<td><p>The database is busy</p>
+</td>
 </tr>
 </table>
 
@@ -7016,6 +7022,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>9000</code></td>
+</tr>
+<tr>
+<td><code>12000</code></td>
 </tr>
 <tr>
 <td><code>16000</code></td>
