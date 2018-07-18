@@ -6,13 +6,14 @@ import (
 )
 
 type APIError struct {
-	Messages []string
+	Messages   []string
+	StatusCode int
 }
 
 var _ error = (*APIError)(nil)
 
 func (ae *APIError) Error() string {
-	return fmt.Sprintf("itch.io API error: %s", strings.Join(ae.Messages, ", "))
+	return fmt.Sprintf("itch.io API error (%d): %s", ae.StatusCode, strings.Join(ae.Messages, ", "))
 }
 
 type causer interface {
