@@ -31,6 +31,14 @@ const (
 	almostThereThreshold int64 = 10 * 1024
 )
 
+// pushing single files with any of these extensions
+// will show a warning
+var singleFileWarningExtensionList = []string{
+	".exe", // probably an NSIS installer or something
+	".msi", // Microsoft package
+	".pkg", // Apple installer
+}
+
 var args = struct {
 	src             *string
 	target          *string
@@ -240,13 +248,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		break
 	}
 
-	if sourceContainer.IsSingleFile() {
-		comm.Notice("You're pushing a single file", []string{
-			"Diffing and patching work poorly on 'all-in-one executables' and installers. Consider pushing a portable build instead, for optimal distribution.",
-			"",
-			"For more information, see https://itch.io/docs/butler/single-files.html",
-		})
-	}
+	showSingleFileWarningIfNecessary(sourceContainer)
 
 	comm.Opf("Pushing %s", sourceContainer)
 
@@ -414,4 +416,31 @@ func min(a, b float64) float64 {
 		return a
 	}
 	return b
+}
+
+func showSingleFileWarningIfNecessary(sourceContainer *tlc.Container) {
+	if !sourceContainer.IsSingleFile() {
+		return
+	}
+
+	singlePath := sourceContainer.Files[0].Path
+	lowerPath := strings.ToLower(singlePath)
+
+	deservesWarning := false
+	for _, ext := range singleFileWarningExtensionList {
+		if strings.HasSuffix(lowerPath, ext) {
+			deservesWarning = true
+			break
+		}
+	}
+
+	if !deservesWarning {
+		return
+	}
+
+	comm.Notice("You're pushing a single file", []string{
+		"Diffing and patching work poorly on 'all-in-one executables' and installers. Consider pushing a portable build instead, for optimal distribution.",
+		"",
+		"For more information, see https://itch.io/docs/butler/single-files.html",
+	})
 }
