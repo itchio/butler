@@ -19,7 +19,7 @@ func Test_Profile(t *testing.T) {
 		APIKey: "meh",
 	})
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "403 Forbidden")
+	assert.Contains(t, err.Error(), "itch.io API error (403)")
 
 	prof := authenticate(t, rc)
 
