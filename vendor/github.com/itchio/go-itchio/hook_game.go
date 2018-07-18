@@ -32,7 +32,7 @@ func GameHookFunc(
 						case "can_be_bought":
 							gameMap["canBeBought"] = true
 						case "has_demo":
-							gameMap["canBeBought"] = true
+							gameMap["hasDemo"] = true
 						case "in_press_system":
 							gameMap["inPressSystem"] = true
 						}
