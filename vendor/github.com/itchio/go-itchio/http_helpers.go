@@ -70,6 +70,7 @@ func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) 
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	req.Header.Add("Authorization", c.Key)
 	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("Accept-Language", c.AcceptedLanguage)
 	req.Header.Set("Accept", "application/vnd.itch.v2")
 
 	var res *http.Response

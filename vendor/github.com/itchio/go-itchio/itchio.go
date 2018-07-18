@@ -9,11 +9,12 @@ import (
 
 // A Client allows consuming the itch.io API
 type Client struct {
-	Key           string
-	HTTPClient    *http.Client
-	BaseURL       string
-	RetryPatterns []time.Duration
-	UserAgent     string
+	Key              string
+	HTTPClient       *http.Client
+	BaseURL          string
+	RetryPatterns    []time.Duration
+	UserAgent        string
+	AcceptedLanguage string
 }
 
 func defaultRetryPatterns() []time.Duration {
@@ -29,10 +30,11 @@ func defaultRetryPatterns() []time.Duration {
 // ClientWithKey creates a new itch.io API client with a given API key
 func ClientWithKey(key string) *Client {
 	c := &Client{
-		Key:           key,
-		HTTPClient:    timeout.NewDefaultClient(),
-		RetryPatterns: defaultRetryPatterns(),
-		UserAgent:     "go-itchio",
+		Key:              key,
+		HTTPClient:       timeout.NewDefaultClient(),
+		RetryPatterns:    defaultRetryPatterns(),
+		UserAgent:        "go-itchio",
+		AcceptedLanguage: "*",
 	}
 	c.SetServer("https://api.itch.io")
 	return c
