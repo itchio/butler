@@ -1,6 +1,7 @@
 package update
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -73,6 +74,21 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	numWorkers := 4
 
 	processOne := func(spec taskSpec) {
+		defer func() {
+			var err error
+			if r := recover(); r != nil {
+				if rErr, ok := r.(error); ok {
+					err = errors.WithStack(rErr)
+				} else {
+					err = errors.Errorf("panic: %v", r)
+				}
+				consumer.Errorf("%+v", err)
+				resultMutex.Lock()
+				defer resultMutex.Unlock()
+				res.Warnings = append(res.Warnings, fmt.Sprintf("%+v", err))
+			}
+		}()
+
 		ml := memorylogger.New()
 		update, err := checkUpdateCave(updateParams, ml.Consumer(), spec.cave)
 		resultMutex.Lock()
@@ -269,10 +285,10 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 				return nil, errors.New("We have a build installed but fresh upload has none. This shouldn't happen")
 			}
 
-			if freshUpload.Build.ID > cave.Build.ID {
+			if freshUpload.Build.ID > cave.BuildID {
 				consumer.Statf("↑ A more recent build (#%d) than ours (#%d) is available, it's an update!",
 					freshUpload.Build.ID,
-					cave.Build.ID,
+					cave.BuildID,
 				)
 				res := &butlerd.GameUpdate{
 					CaveID: cave.ID,
