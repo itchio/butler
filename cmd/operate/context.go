@@ -168,6 +168,7 @@ func (oc *OperationContext) Release() {
 
 func (oc *OperationContext) Retire() {
 	consumer := oc.rc.Consumer
+	consumer.Infof("Retiring staging context!")
 	oc.Release()
 	oc.logFile.Close()
 

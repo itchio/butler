@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/pwr"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
@@ -43,6 +44,9 @@ type Context struct {
 	CompressionAlgorithm string
 	CompressionQuality   int
 
+	HTTPClient    *http.Client
+	HTTPTransport *http.Transport
+
 	// url of the itch.io API server we're talking to
 	apiAddress string
 	// url of the itch.io web instance we're talking to
@@ -50,10 +54,22 @@ type Context struct {
 }
 
 func NewContext(app *kingpin.Application) *Context {
-	return &Context{
-		App:      app,
-		Commands: make(map[string]DoCommand),
+	client := timeout.NewDefaultClient()
+	originalTransport := client.Transport.(*http.Transport)
+
+	ctx := &Context{
+		App:           app,
+		Commands:      make(map[string]DoCommand),
+		HTTPClient:    client,
+		HTTPTransport: originalTransport,
 	}
+
+	client.Transport = &UserAgentSetter{
+		OriginalTransport: originalTransport,
+		Context:           ctx,
+	}
+
+	return ctx
 }
 
 func (ctx *Context) Register(clause *kingpin.CmdClause, do DoCommand) {
@@ -107,6 +123,7 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 
 func (ctx *Context) NewClient(key string) *itchio.Client {
 	client := itchio.ClientWithKey(key)
+	client.HTTPClient = ctx.HTTPClient
 	client.SetServer(ctx.APIAddress())
 	client.UserAgent = ctx.UserAgent()
 	return client

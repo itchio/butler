@@ -100,6 +100,7 @@ func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
 	}
 
 	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
+
 	conn := jsonrpc2.NewConn(ctx, stream, gh, opts...)
 	<-conn.DisconnectNotify()
 	return nil

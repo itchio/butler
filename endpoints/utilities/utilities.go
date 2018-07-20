@@ -16,7 +16,15 @@ func Register(router *butlerd.Router) {
 	})
 
 	messages.NetworkSetSimulateOffline.Register(router, func(rc *butlerd.RequestContext, params butlerd.NetworkSetSimulateOfflineParams) (*butlerd.NetworkSetSimulateOfflineResult, error) {
+		rc.Consumer.Infof("Setting offline mode to: %v", params.Enabled)
 		timeout.SetSimulateOffline(params.Enabled)
+
+		if params.Enabled {
+			// with http/2, we need to do this, otherwise it'll re-use existing connections
+			rc.Consumer.Infof("Closing idle connections")
+			rc.HTTPTransport.CloseIdleConnections()
+		}
+
 		res := &butlerd.NetworkSetSimulateOfflineResult{}
 		return res, nil
 	})

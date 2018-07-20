@@ -40,8 +40,8 @@ type httpsObjectStream struct {
 var _ jsonrpc2.ObjectStream = (*httpsObjectStream)(nil)
 var cidSeed int64 = 222
 
-func (s *httpsObjectStream) Go() {
-	s.ctx, s.cancel = context.WithCancel(context.Background())
+func (s *httpsObjectStream) Go(parentCtx context.Context) {
+	s.ctx, s.cancel = context.WithCancel(parentCtx)
 	s.feedChan = make(chan []byte)
 	s.cid = fmt.Sprintf("testcid-%d", cidSeed)
 	cidSeed++
@@ -223,14 +223,40 @@ func (s *httpsObjectStream) writeObject(marshalled []byte) error {
 		return nil
 	}
 
+	sendErr := make(chan error, 1)
 	go func() {
-		err := send()
+		sendErr <- send()
+	}()
+
+	sendCancel := func() error {
+		url := "https://" + s.address + "/cancel"
+
+		req, err := http.NewRequest("POST", url, nil)
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
-				// disregard errors after cancel
-			default:
-				log.Printf("While sending %s, got: %+v", string(marshalled), err)
+			return err
+		}
+		req.Header.Set("x-secret", s.secret)
+		req.Header.Set("x-cid", s.cid)
+
+		res, err := s.client.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if res.StatusCode != 204 {
+			return errors.Errorf("Expected HTTP 204 when cancelling, got HTTP %d", res.StatusCode)
+		}
+
+		return nil
+	}
+
+	go func() {
+		select {
+		case <-s.ctx.Done():
+			sendCancel()
+		case err := <-sendErr:
+			if err != nil {
+				log.Printf("While sending %s, got error %+v", string(marshalled), err)
 				s.cancel()
 			}
 		}

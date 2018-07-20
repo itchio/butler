@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/itchio/wharf/werrors"
@@ -30,20 +31,24 @@ type Router struct {
 	CancelFuncs          *CancelFuncs
 	dbPool               *sqlite.Pool
 	getClient            GetClientFunc
+	httpClient           *http.Client
+	httpTransport        *http.Transport
 
 	ButlerVersion       string
 	ButlerVersionString string
 }
 
-func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc) *Router {
+func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
 	return &Router{
 		Handlers:             make(map[string]RequestHandler),
 		NotificationHandlers: make(map[string]NotificationHandler),
 		CancelFuncs: &CancelFuncs{
 			Funcs: make(map[string]context.CancelFunc),
 		},
-		dbPool:    dbPool,
-		getClient: getClient,
+		dbPool:        dbPool,
+		getClient:     getClient,
+		httpClient:    httpClient,
+		httpTransport: httpTransport,
 	}
 }
 
@@ -93,6 +98,9 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			CancelFuncs: r.CancelFuncs,
 			dbPool:      r.dbPool,
 			Client:      r.getClient,
+
+			HTTPClient:    r.httpClient,
+			HTTPTransport: r.httpTransport,
 
 			ButlerVersion:       r.ButlerVersion,
 			ButlerVersionString: r.ButlerVersionString,
@@ -213,6 +221,9 @@ type RequestContext struct {
 	CancelFuncs *CancelFuncs
 	dbPool      *sqlite.Pool
 	Client      GetClientFunc
+
+	HTTPClient    *http.Client
+	HTTPTransport *http.Transport
 
 	ButlerVersion       string
 	ButlerVersionString string

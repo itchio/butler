@@ -120,6 +120,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	}
 	oc.Load(isub)
 
+	if params.Game == nil {
+		return errors.Errorf("Corrupted download info (missing game), refusing to continue.")
+	}
+
 	consumer.Infof("→ Performing install for %s", GameToString(params.Game))
 	consumer.Infof("    to (%s)", params.InstallFolder)
 	consumer.Infof("    via (%s)", oc.StageFolder())

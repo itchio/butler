@@ -26,7 +26,7 @@ func getRouter(dbPool *sqlite.Pool, mansionContext *mansion.Context) *butlerd.Ro
 		return mainRouter
 	}
 
-	mainRouter = butlerd.NewRouter(dbPool, mansionContext.NewClient)
+	mainRouter = butlerd.NewRouter(dbPool, mansionContext.NewClient, mansionContext.HTTPClient, mansionContext.HTTPTransport)
 	mainRouter.ButlerVersion = mansionContext.Version
 	mainRouter.ButlerVersionString = mansionContext.VersionString
 

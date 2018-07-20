@@ -123,7 +123,7 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 		secret:    secret,
 		transport: transport,
 	}
-	hos.Go()
+	hos.Go(ctx)
 	select {
 	case <-hos.listenCh:
 		// good!

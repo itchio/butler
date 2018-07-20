@@ -245,13 +245,7 @@ func doMain(args []string) {
 			UserAgent:  ctx.UserAgent(),
 		})
 		option.SetDefaultConsumer(comm.NewStateConsumer())
-		eosClient := timeout.NewDefaultClient()
-		originalTransport := eosClient.Transport
-		eosClient.Transport = &mansion.UserAgentSetter{
-			OriginalTransport: originalTransport,
-			Context:           ctx,
-		}
-		option.SetDefaultHTTPClient(eosClient)
+		option.SetDefaultHTTPClient(ctx.HTTPClient)
 	}
 
 	switch fullCmd {

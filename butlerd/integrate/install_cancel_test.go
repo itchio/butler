@@ -29,7 +29,7 @@ func Test_InstallCancel(t *testing.T) {
 
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
-		Rate:    16384,
+		Rate:    32 * 1024,
 	})
 	must(t, err)
 
@@ -70,9 +70,11 @@ func Test_InstallCancel(t *testing.T) {
 				gracefulCancelOnce.Do(func() {
 					delete(h.notificationHandlers, messages.Progress.Method())
 
+					t.Logf("Calling graceful cancel")
 					messages.InstallCancel.TestCall(rc, butlerd.InstallCancelParams{
 						ID: queueRes.ID,
 					})
+					t.Logf("Graceful cancel called")
 				})
 			}
 		})
@@ -114,11 +116,15 @@ func Test_InstallCancel(t *testing.T) {
 		hardCancelOnce := &sync.Once{}
 
 		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
+			printProgress(params)
+
 			if params.Progress > 0.5 {
 				hardCancelOnce.Do(func() {
 					t.Logf("Sending hard cancel")
 					delete(h.notificationHandlers, messages.Progress.Method())
+					t.Logf("Calling cancel")
 					cancel()
+					t.Logf("Okay, we called cancel")
 				})
 			}
 		})
@@ -133,16 +139,18 @@ func Test_InstallCancel(t *testing.T) {
 
 		t.Logf("Waiting for pid file to disappear...")
 		pidFileDisappeared := false
-		for i := 0; i < 10; i++ {
+		beforePidDisappear := time.Now()
+		for i := 0; i < 100; i++ {
 			_, err := os.Stat(pidFilePath)
 			if err != nil && os.IsNotExist(err) {
 				// good!
 				pidFileDisappeared = true
 				break
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(100 * time.Millisecond)
 		}
 		assert.True(t, pidFileDisappeared, "pid file should disappear after cancellation (even hard)")
+		t.Logf("PID file disappeared in %s", time.Since(beforePidDisappear))
 
 		t.Logf("Resuming after hard cancel...")
 		rc, h, cancel = connect(t)
