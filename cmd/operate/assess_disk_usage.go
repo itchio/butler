@@ -47,6 +47,19 @@ func AssessDiskUsage(sourceFile eos.File, receiptIn *bfs.Receipt, installFolder 
 		Accuracy: AccuracyNone,
 	}
 
+	if installerInfo.Type == installer.InstallerTypeNaked {
+		// for naked installers, we can tell exactly how much space we'll need!
+		dui.Accuracy = AccuracyComputed
+
+		stats, err := sourceFile.Stat()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		dui.NeededFreeSpace = stats.Size()
+		dui.FinalDiskUsage = stats.Size()
+		return dui, nil
+	}
+
 	existingFiles := make(map[string]struct{})
 	if receiptIn.HasFiles() {
 		for _, rf := range receiptIn.Files {
