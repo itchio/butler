@@ -12,8 +12,8 @@ import (
 
 	"github.com/itchio/butler/cmd/prereqs"
 
-	"github.com/itchio/dash"
 	"github.com/itchio/butler/endpoints/launch"
+	"github.com/itchio/dash"
 	"github.com/itchio/pelican"
 	"github.com/pkg/errors"
 )
@@ -56,7 +56,7 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 
 		f, err := os.Open(cPath)
 		if err != nil {
-			consumer.Warnf("For auto prereqs: could not open (%s): %s", cPath, err.Error())
+			consumer.Warnf("For auto prereqs: could not open (%s): %v", cPath, err)
 			return nil
 		}
 		defer f.Close()
@@ -65,7 +65,8 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 			Consumer: consumer,
 		})
 		if err != nil {
-			return err
+			consumer.Warnf("For auto prereqs: could not probe (%s): %+v", cPath, err)
+			return nil
 		}
 
 		for _, imp := range peInfo.Imports {
