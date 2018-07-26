@@ -1,6 +1,8 @@
 package lazyfetch
 
 import (
+	"time"
+
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
@@ -29,13 +31,22 @@ func Do(
 
 	if params.IsFresh() {
 		rc.Consumer.Infof("Fetching fresh data...")
-		ts := &targets{
-			items: []models.FetchTarget{ft},
-		}
-		task(ts)
-		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustMarkAllFresh(conn, ts.items)
+		startTime := time.Now()
+		_, _, shared := rc.Group.Do(ft.Key(), func() (interface{}, error) {
+			ts := &targets{
+				items: []models.FetchTarget{ft},
+			}
+			task(ts)
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustMarkAllFresh(conn, ts.items)
+			})
+			return nil, nil
 		})
+		if shared {
+			rc.Consumer.Infof("Waited %s for fetch (shared with another call)", time.Since(startTime))
+		} else {
+			rc.Consumer.Infof("Waited %s for fetch (non-shared)", time.Since(startTime))
+		}
 	} else if rc.WithConnBool(ft.MustIsStale) {
 		res.SetStale(true)
 	}

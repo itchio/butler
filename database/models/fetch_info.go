@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -160,4 +161,11 @@ func MarkAllFresh(conn *sqlite.Conn, fts []FetchTarget) error {
 	}
 
 	return Save(conn, fis)
+}
+
+func (ft FetchTarget) Key() string {
+	if ft.StringID != "" {
+		return fmt.Sprintf("%s-%s", ft.Type, ft.StringID)
+	}
+	return fmt.Sprintf("%s-%d", ft.Type, ft.ID)
 }

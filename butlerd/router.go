@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/itchio/wharf/werrors"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/progress"
@@ -34,6 +35,8 @@ type Router struct {
 	httpClient           *http.Client
 	httpTransport        *http.Transport
 
+	Group *singleflight.Group
+
 	ButlerVersion       string
 	ButlerVersionString string
 }
@@ -49,6 +52,8 @@ func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Cl
 		getClient:     getClient,
 		httpClient:    httpClient,
 		httpTransport: httpTransport,
+
+		Group: &singleflight.Group{},
 	}
 }
 
@@ -104,6 +109,8 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 
 			ButlerVersion:       r.ButlerVersion,
 			ButlerVersionString: r.ButlerVersionString,
+
+			Group: r.Group,
 
 			origConn: origConn,
 			method:   method,
@@ -227,6 +234,8 @@ type RequestContext struct {
 
 	ButlerVersion       string
 	ButlerVersionString string
+
+	Group *singleflight.Group
 
 	notificationInterceptors map[string]NotificationInterceptor
 	tracker                  *progress.Tracker
