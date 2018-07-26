@@ -183,6 +183,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 		err = s.ServeHTTP(ctx, butlerd.ServeHTTPParams{
 			HTTPListener:  httpListener,
 			HTTPSListener: httpsListener,
+			ShutdownChan:  h.router.ShutdownChan,
 			Handler:       h,
 			TLSState:      ts,
 			Consumer:      consumer,

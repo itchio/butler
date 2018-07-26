@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/itchio/wharf/werrors"
@@ -35,7 +37,9 @@ type Router struct {
 	httpClient           *http.Client
 	httpTransport        *http.Transport
 
-	Group *singleflight.Group
+	Group        *singleflight.Group
+	ShutdownChan chan struct{}
+	shutdownOnce sync.Once
 
 	ButlerVersion       string
 	ButlerVersionString string
@@ -53,7 +57,8 @@ func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Cl
 		httpClient:    httpClient,
 		httpTransport: httpTransport,
 
-		Group: &singleflight.Group{},
+		Group:        &singleflight.Group{},
+		ShutdownChan: make(chan struct{}),
 	}
 }
 
@@ -62,6 +67,13 @@ func (r *Router) Register(method string, rh RequestHandler) {
 		panic(fmt.Sprintf("Can't register handler twice for %s", method))
 	}
 	r.Handlers[method] = rh
+}
+
+func (r *Router) shutdown() {
+	r.shutdownOnce.Do(func() {
+		log.Printf("Initiating graceful butlerd shutdown")
+		close(r.ShutdownChan)
+	})
 }
 
 func (r *Router) RegisterNotification(method string, nh NotificationHandler) {
@@ -110,7 +122,8 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			ButlerVersion:       r.ButlerVersion,
 			ButlerVersionString: r.ButlerVersionString,
 
-			Group: r.Group,
+			Group:    r.Group,
+			Shutdown: r.shutdown,
 
 			origConn: origConn,
 			method:   method,
@@ -235,7 +248,8 @@ type RequestContext struct {
 	ButlerVersion       string
 	ButlerVersionString string
 
-	Group *singleflight.Group
+	Group    *singleflight.Group
+	Shutdown func()
 
 	notificationInterceptors map[string]NotificationInterceptor
 	tracker                  *progress.Tracker

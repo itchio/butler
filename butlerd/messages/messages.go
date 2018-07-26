@@ -60,6 +60,74 @@ func (r *MetaAuthenticateType) TestCall(rc *butlerd.RequestContext, params butle
 
 var MetaAuthenticate *MetaAuthenticateType
 
+// Meta.Flow (Request)
+
+type MetaFlowType struct {}
+
+var _ RequestMessage = (*MetaFlowType)(nil)
+
+func (r *MetaFlowType) Method() string {
+  return "Meta.Flow"
+}
+
+func (r *MetaFlowType) Register(router router, f func(*butlerd.RequestContext, butlerd.MetaFlowParams) (*butlerd.MetaFlowResult, error)) {
+  router.Register("Meta.Flow", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.MetaFlowParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Meta.Flow")
+    }
+    return res, nil
+  })
+}
+
+func (r *MetaFlowType) TestCall(rc *butlerd.RequestContext, params butlerd.MetaFlowParams) (*butlerd.MetaFlowResult, error) {
+  var result butlerd.MetaFlowResult
+  err := rc.Call("Meta.Flow", params, &result)
+  return &result, err
+}
+
+var MetaFlow *MetaFlowType
+
+// MetaFlowEstablished (Notification)
+
+type MetaFlowEstablishedType struct {}
+
+var _ NotificationMessage = (*MetaFlowEstablishedType)(nil)
+
+func (r *MetaFlowEstablishedType) Method() string {
+  return "MetaFlowEstablished"
+}
+
+func (r *MetaFlowEstablishedType) Notify(rc *butlerd.RequestContext, params butlerd.MetaFlowEstablishedNotification) (error) {
+  return rc.Notify("MetaFlowEstablished", params)
+}
+
+func (r *MetaFlowEstablishedType) Register(router router, f func(*butlerd.RequestContext, butlerd.MetaFlowEstablishedNotification)) {
+  router.RegisterNotification("MetaFlowEstablished", func (rc *butlerd.RequestContext) {
+    var params butlerd.MetaFlowEstablishedNotification
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	// can't even propagate, just return
+    	return
+    }
+    f(rc, params)
+  })
+}
+
+var MetaFlowEstablished *MetaFlowEstablishedType
+
 // Version.Get (Request)
 
 type VersionGetType struct {}
@@ -830,34 +898,6 @@ func (r *SearchUsersType) TestCall(rc *butlerd.RequestContext, params butlerd.Se
 }
 
 var SearchUsers *SearchUsersType
-
-// SearchUsersYield (Notification)
-
-type SearchUsersYieldType struct {}
-
-var _ NotificationMessage = (*SearchUsersYieldType)(nil)
-
-func (r *SearchUsersYieldType) Method() string {
-  return "SearchUsersYield"
-}
-
-func (r *SearchUsersYieldType) Notify(rc *butlerd.RequestContext, params butlerd.SearchUsersYieldNotification) (error) {
-  return rc.Notify("SearchUsersYield", params)
-}
-
-func (r *SearchUsersYieldType) Register(router router, f func(*butlerd.RequestContext, butlerd.SearchUsersYieldNotification)) {
-  router.RegisterNotification("SearchUsersYield", func (rc *butlerd.RequestContext) {
-    var params butlerd.SearchUsersYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, params)
-  })
-}
-
-var SearchUsersYield *SearchUsersYieldType
 
 
 //==============================
@@ -3175,6 +3215,7 @@ var TestDouble *TestDoubleType
 
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
+  if _, ok := router.Handlers["Meta.Flow"]; !ok { panic("missing request handler for (Meta.Flow)") }
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Network.SetSimulateOffline"]; !ok { panic("missing request handler for (Network.SetSimulateOffline)") }
   if _, ok := router.Handlers["Network.SetBandwidthThrottle"]; !ok { panic("missing request handler for (Network.SetBandwidthThrottle)") }

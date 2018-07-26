@@ -24,6 +24,17 @@
       }
     },
     {
+      "method": "Meta.Flow",
+      "doc": "When called, defines the entire duration of the daemon's life.\n\nCancelling that conversation (or closing the TCP connection) will\nshut down the daemon after all other requests have finished. This\nallows gracefully switching to another daemon.\n\nThis conversation is also used to send all global notifications,\nregarding data that's fetched, network state, etc.\n\nNote that this call never returns - you have to cancel it when you're\ndone with the daemon.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",
@@ -1743,6 +1754,19 @@
   ],
   "notifications": [
     {
+      "method": "MetaFlowEstablished",
+      "doc": "The first notification sent when @@MetaFlowParams is called.",
+      "params": {
+        "fields": [
+          {
+            "name": "pid",
+            "doc": "The identifier of the daemon process for which the flow was established",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
       "method": "Downloads.Drive.Progress",
       "doc": "",
       "params": {
@@ -1844,19 +1868,6 @@
             "name": "message",
             "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
             "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "method": "SearchUsersYield",
-      "doc": "Sent during @@SearchUsersParams when results are available",
-      "params": {
-        "fields": [
-          {
-            "name": "users",
-            "doc": "",
-            "type": "User[]"
           }
         ]
       }

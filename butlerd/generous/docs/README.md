@@ -536,6 +536,94 @@ See <https://github.com/itchio/itch/issues/1721>
 
 </div>
 
+### <em class="request-client-caller"></em>Meta.Flow
+
+
+<p>
+<p>When called, defines the entire duration of the daemon&rsquo;s life.</p>
+
+<p>Cancelling that conversation (or closing the TCP connection) will
+shut down the daemon after all other requests have finished. This
+allows gracefully switching to another daemon.</p>
+
+<p>This conversation is also used to send all global notifications,
+regarding data that&rsquo;s fetched, network state, etc.</p>
+
+<p>Note that this call never returns - you have to cancel it when you&rsquo;re
+done with the daemon.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="MetaFlowParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Meta.Flow <a href="#/?id=metaflow">(Go to definition)</a></p>
+
+<p>
+<p>When called, defines the entire duration of the daemon&rsquo;s life.</p>
+
+<p>Cancelling that conversation (or closing the TCP connection) will
+shut down the daemon after all other requests have finished. This
+allows gracefully switching to another daemon.</p>
+
+<p>This conversation is also used to send all global notifications,
+regarding data that&rsquo;s fetched, network state, etc.</p>
+
+<p>Note that this call never returns - you have to cancel it when you&rsquo;re
+done with the daemon.</p>
+
+</p>
+</div>
+
+### <em class="notification"></em>MetaFlowEstablished
+
+
+<p>
+<p>The first notification sent when <code class="typename"><span class="type request-client-caller" data-tip-selector="#MetaFlowParams__TypeHint">Meta.Flow</span></code> is called.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pid</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>The identifier of the daemon process for which the flow was established</p>
+</td>
+</tr>
+</table>
+
+
+<div id="MetaFlowEstablishedNotification__TypeHint" style="display: none;" class="tip-content">
+<p><em class="notification"></em>MetaFlowEstablished <a href="#/?id=metaflowestablished">(Go to definition)</a></p>
+
+<p>
+<p>The first notification sent when <code class="typename"><span class="type request-client-caller">Meta.Flow</span></code> is called.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>pid</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Version.Get
 
 
@@ -1320,45 +1408,6 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>query</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>SearchUsersYield
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#SearchUsersParams__TypeHint">Search.Users</span></code> when results are available</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="SearchUsersYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>SearchUsersYield <a href="#/?id=searchusersyield">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Search.Users</span></code> when results are available</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
 </tr>
 </table>
 

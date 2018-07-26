@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/gorilla/handlers"
 	"github.com/itchio/wharf/state"
@@ -36,10 +37,31 @@ type ServeHTTPParams struct {
 	Handler  jsonrpc2.Handler
 	Consumer *state.Consumer
 
+	ShutdownChan chan struct{}
+
 	Log bool
 }
 
 func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
+	var shutdownWaitGroup sync.WaitGroup
+
+	handleGracefulShutdown := func(srv *http.Server, name string) {
+		go func() {
+			select {
+			case <-ctx.Done():
+				// welp
+			case <-params.ShutdownChan:
+				shutdownWaitGroup.Add(1)
+				defer shutdownWaitGroup.Done()
+				log.Printf("Shutting down %s server gracefully...", name)
+				err := srv.Shutdown(ctx)
+				if err != nil {
+					log.Printf("While performing %s server shutdown: %+v", name, err)
+				}
+			}
+		}()
+	}
+
 	hh := &httpHandler{
 		jrh:    params.Handler,
 		secret: s.secret,
@@ -55,11 +77,13 @@ func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 		tlsListener := tls.NewListener(params.HTTPSListener, params.TLSState.Config)
 		srv := &http.Server{Handler: chosenHandler}
 		srv.TLSConfig = params.TLSState.Config
+		handleGracefulShutdown(srv, "https")
 		errors <- srv.Serve(tlsListener)
 	}()
 
 	go func() {
 		srv := &http.Server{Handler: chosenHandler}
+		handleGracefulShutdown(srv, "http")
 		errors <- srv.Serve(params.HTTPListener)
 	}()
 
@@ -71,6 +95,8 @@ func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 			return err
 		}
 	}
+	shutdownWaitGroup.Wait()
+
 	return nil
 }
 
