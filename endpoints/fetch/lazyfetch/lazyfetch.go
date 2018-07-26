@@ -6,6 +6,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/pkg/errors"
 )
 
 type LazyFetchParams interface {
@@ -32,7 +33,19 @@ func Do(
 	if params.IsFresh() {
 		rc.Consumer.Infof("Fetching fresh data...")
 		startTime := time.Now()
-		_, _, shared := rc.Group.Do(ft.Key(), func() (interface{}, error) {
+		_, err, shared := rc.Group.Do(ft.Key(), func() (res interface{}, err error) {
+			// we have to recover from panics here, otherwise
+			// we might be stuck with a singleflight.Do forever
+			defer func() {
+				if r := recover(); r != nil {
+					if rErr, ok := r.(error); ok {
+						err = rErr
+					} else {
+						err = errors.Errorf("panic: %v", r)
+					}
+				}
+			}()
+
 			ts := &targets{
 				items: []models.FetchTarget{ft},
 			}
@@ -40,8 +53,12 @@ func Do(
 			rc.WithConn(func(conn *sqlite.Conn) {
 				models.MustMarkAllFresh(conn, ts.items)
 			})
-			return nil, nil
+			return
 		})
+		if err != nil {
+			panic(err)
+		}
+
 		if shared {
 			rc.Consumer.Infof("Waited %s for fetch (shared with another call)", time.Since(startTime))
 		} else {
