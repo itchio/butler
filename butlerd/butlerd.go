@@ -72,24 +72,28 @@ func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 		chosenHandler = handlers.LoggingHandler(os.Stderr, chosenHandler)
 	}
 
-	errors := make(chan error)
+	errs := make(chan error)
 	go func() {
 		tlsListener := tls.NewListener(params.HTTPSListener, params.TLSState.Config)
 		srv := &http.Server{Handler: chosenHandler}
 		srv.TLSConfig = params.TLSState.Config
 		handleGracefulShutdown(srv, "https")
-		errors <- srv.Serve(tlsListener)
+		errs <- srv.Serve(tlsListener)
 	}()
 
 	go func() {
 		srv := &http.Server{Handler: chosenHandler}
 		handleGracefulShutdown(srv, "http")
-		errors <- srv.Serve(params.HTTPListener)
+		errs <- srv.Serve(params.HTTPListener)
 	}()
 
 	for i := 0; i < 2; i++ {
-		err := <-errors
+		err := <-errs
 		if err != nil {
+			if errors.Cause(err) == http.ErrServerClosed {
+				// that's ok!
+				continue
+			}
 			params.HTTPListener.Close()
 			params.HTTPSListener.Close()
 			return err
