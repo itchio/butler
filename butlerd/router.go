@@ -23,6 +23,11 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
+type InFlightRequest struct {
+	DispatchedAt time.Time
+	RpcRequest   *jsonrpc2.Request
+}
+
 type RequestHandler func(rc *RequestContext) (interface{}, error)
 type NotificationHandler func(rc *RequestContext)
 
@@ -37,9 +42,14 @@ type Router struct {
 	httpClient           *http.Client
 	httpTransport        *http.Transport
 
-	Group        *singleflight.Group
-	ShutdownChan chan struct{}
-	shutdownOnce sync.Once
+	Group                *singleflight.Group
+	ShutdownChan         chan struct{}
+	initiateShutdownOnce sync.Once
+	completeShutdownOnce sync.Once
+	shuttingDown         bool
+
+	inflightRequests map[jsonrpc2.ID]InFlightRequest
+	inflightLock     sync.Mutex
 
 	ButlerVersion       string
 	ButlerVersionString string
@@ -57,6 +67,8 @@ func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Cl
 		httpClient:    httpClient,
 		httpTransport: httpTransport,
 
+		inflightRequests: make(map[jsonrpc2.ID]InFlightRequest),
+
 		Group:        &singleflight.Group{},
 		ShutdownChan: make(chan struct{}),
 	}
@@ -69,9 +81,21 @@ func (r *Router) Register(method string, rh RequestHandler) {
 	r.Handlers[method] = rh
 }
 
-func (r *Router) shutdown() {
-	r.shutdownOnce.Do(func() {
+func (r *Router) initiateShutdown() {
+	r.initiateShutdownOnce.Do(func() {
 		log.Printf("Initiating graceful butlerd shutdown")
+		r.inflightLock.Lock()
+		r.shuttingDown = true
+		if len(r.inflightRequests) == 0 {
+			r.completeShutdown()
+		}
+		r.inflightLock.Unlock()
+	})
+}
+
+func (r *Router) completeShutdown() {
+	r.completeShutdownOnce.Do(func() {
+		log.Printf("No in-flight requests left, we can shut down now.")
 		close(r.ShutdownChan)
 	})
 }
@@ -84,6 +108,31 @@ func (r *Router) RegisterNotification(method string, nh NotificationHandler) {
 }
 
 func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+	r.inflightLock.Lock()
+	r.inflightRequests[req.ID] = InFlightRequest{
+		DispatchedAt: time.Now().UTC(),
+		RpcRequest:   req,
+	}
+	r.inflightLock.Unlock()
+
+	defer func() {
+		r.inflightLock.Lock()
+		delete(r.inflightRequests, req.ID)
+		if r.shuttingDown {
+			numInFlightRequests := len(r.inflightRequests)
+			if numInFlightRequests == 0 {
+				r.completeShutdown()
+			} else {
+				log.Printf("In-flight requests preventing shutdown: ")
+				for _, req := range r.inflightRequests {
+					rpcReq := req.RpcRequest
+					log.Printf(" - [%v] %s (%v)", rpcReq.ID, rpcReq.Method, time.Since(req.DispatchedAt))
+				}
+			}
+		}
+		r.inflightLock.Unlock()
+	}()
+
 	method := req.Method
 	var res interface{}
 
@@ -123,7 +172,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			ButlerVersionString: r.ButlerVersionString,
 
 			Group:    r.Group,
-			Shutdown: r.shutdown,
+			Shutdown: r.initiateShutdown,
 
 			origConn: origConn,
 			method:   method,
