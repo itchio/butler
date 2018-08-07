@@ -319,7 +319,7 @@
 			"importpath": "github.com/itchio/ox",
 			"repository": "https://github.com/itchio/ox",
 			"vcs": "git",
-			"revision": "78365f064e087fe3260207d535d7ed510142c8e3",
+			"revision": "327501e065159ff89f825c0286f91958b9aa05de",
 			"branch": "master",
 			"notests": true
 		},
@@ -351,7 +351,7 @@
 			"importpath": "github.com/itchio/smaug",
 			"repository": "https://github.com/itchio/smaug",
 			"vcs": "git",
-			"revision": "eb1186e611bc57b1151b23f594fa63c6a80e278f",
+			"revision": "d01d925fe7ceae014cd7127dbe323657ed40e7a1",
 			"branch": "master",
 			"notests": true
 		},

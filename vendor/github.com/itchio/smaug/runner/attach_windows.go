@@ -60,7 +60,7 @@ func getAttachRunner(params *RunnerParams) (Runner, error) {
 			return nil
 		}()
 		if err != nil {
-			consumer.Debugf("Could not get full image name for PID (%d): %s", entry.ProcessID, err.Error())
+			// these are probably permission denied, ignore them
 		}
 
 		if matches {
@@ -141,10 +141,17 @@ func (ar *attachRunner) bringWindowsToForeground() {
 		return
 	}
 
+	visibleWindowCount := 0
+	invisibleWindowCount := 0
 	for _, hwnd := range hwnds {
-		bwtf(int64(hwnd))
+		if syscallex.IsWindowVisible(hwnd) {
+			visibleWindowCount++
+			bwtf(int64(hwnd))
+		} else {
+			invisibleWindowCount++
+		}
 	}
-	consumer.Infof("Brought %d windows to front", len(hwnds))
+	consumer.Infof("Brought %d windows to front, ignored %d invisible windows", visibleWindowCount, invisibleWindowCount)
 }
 
 func (ar *attachRunner) Run() error {

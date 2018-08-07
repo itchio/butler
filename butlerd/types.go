@@ -1857,21 +1857,6 @@ func (p LaunchParams) Validate() error {
 type LaunchResult struct {
 }
 
-// Sent during @@LaunchParams, when attaching to a running
-// instance, instead of launching a new one.
-//
-// butlerd will also try to call SetForegroundWindow itself
-// but since it's not the foreground process, it'll just
-// be highlighted in the task bar.
-//
-// Windows only.
-// @category Launch
-type LaunchWindowShouldBeForegroundNotification struct {
-	// An HWND of the window that should be brought to front
-	// using SetForegrounWindow.
-	Hwnd int64 `json:"hwnd"`
-}
-
 // Sent during @@LaunchParams, when the game is configured, prerequisites are installed
 // sandbox is set up (if enabled), and the game is actually running.
 //

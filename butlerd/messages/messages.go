@@ -2589,34 +2589,6 @@ func (r *LaunchType) TestCall(rc *butlerd.RequestContext, params butlerd.LaunchP
 
 var Launch *LaunchType
 
-// LaunchWindowShouldBeForeground (Notification)
-
-type LaunchWindowShouldBeForegroundType struct {}
-
-var _ NotificationMessage = (*LaunchWindowShouldBeForegroundType)(nil)
-
-func (r *LaunchWindowShouldBeForegroundType) Method() string {
-  return "LaunchWindowShouldBeForeground"
-}
-
-func (r *LaunchWindowShouldBeForegroundType) Notify(rc *butlerd.RequestContext, params butlerd.LaunchWindowShouldBeForegroundNotification) (error) {
-  return rc.Notify("LaunchWindowShouldBeForeground", params)
-}
-
-func (r *LaunchWindowShouldBeForegroundType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchWindowShouldBeForegroundNotification)) {
-  router.RegisterNotification("LaunchWindowShouldBeForeground", func (rc *butlerd.RequestContext) {
-    var params butlerd.LaunchWindowShouldBeForegroundNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, params)
-  })
-}
-
-var LaunchWindowShouldBeForeground *LaunchWindowShouldBeForegroundType
-
 // LaunchRunning (Notification)
 
 type LaunchRunningType struct {}

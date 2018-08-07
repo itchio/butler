@@ -298,9 +298,7 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 func (l *Launcher) AttachParams(params launch.LauncherParams) runner.AttachParams {
 	return runner.AttachParams{
 		BringWindowToForeground: func(hwnd int64) {
-			messages.LaunchWindowShouldBeForeground.Notify(params.RequestContext, butlerd.LaunchWindowShouldBeForegroundNotification{
-				Hwnd: hwnd,
-			})
+			setWindowForeground(hwnd)
 		},
 	}
 }
