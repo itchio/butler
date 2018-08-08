@@ -43,4 +43,8 @@ func Register(router *butlerd.Router) {
 		}
 		return &butlerd.MetaFlowResult{}, nil
 	})
+	messages.MetaShutdown.Register(router, func(rc *butlerd.RequestContext, params butlerd.MetaShutdownParams) (*butlerd.MetaShutdownResult, error) {
+		rc.Shutdown()
+		return &butlerd.MetaShutdownResult{}, nil
+	})
 }

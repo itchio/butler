@@ -50,6 +50,20 @@ func (p MetaFlowParams) Validate() error {
 type MetaFlowResult struct {
 }
 
+// When called, gracefully shutdown the butler daemon.
+// @name Meta.Shutdown
+// @category Utilities
+// @caller client
+type MetaShutdownParams struct {
+}
+
+func (p MetaShutdownParams) Validate() error {
+	return nil
+}
+
+type MetaShutdownResult struct {
+}
+
 // The first notification sent when @@MetaFlowParams is called.
 //
 // @category Utilities
