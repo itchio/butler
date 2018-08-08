@@ -584,6 +584,34 @@ done with the daemon.</p>
 </p>
 </div>
 
+### <em class="request-client-caller"></em>Meta.Shutdown
+
+
+<p>
+<p>When called, gracefully shutdown the butler daemon.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="MetaShutdownParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Meta.Shutdown <a href="#/?id=metashutdown">(Go to definition)</a></p>
+
+<p>
+<p>When called, gracefully shutdown the butler daemon.</p>
+
+</p>
+</div>
+
 ### <em class="notification"></em>MetaFlowEstablished
 
 

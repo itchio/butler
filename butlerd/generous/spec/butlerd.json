@@ -35,6 +35,17 @@
       }
     },
     {
+      "method": "Meta.Shutdown",
+      "doc": "When called, gracefully shutdown the butler daemon.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",
