@@ -128,6 +128,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	envBlock := os.Environ()
 	for k, v := range envMap {
 		envBlock = append(envBlock, fmt.Sprintf("%s=%s", k, v))
+	}
 
 	const maxLines = 40
 	stdout := newOutputCollector(maxLines)
