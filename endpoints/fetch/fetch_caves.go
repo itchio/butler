@@ -32,7 +32,7 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 			search = search.OrderBy("caves.installed_size " + ordering)
 		case "lastTouched", "":
 			ordering := pager.Ordering("DESC", params.Reverse)
-			search = search.OrderBy("caves.last_touched_at " + ordering)
+			search = search.OrderBy("coalesce(caves.last_touched_at, caves.installed_at) " + ordering)
 		}
 
 		if params.Filters.Classification != "" {
