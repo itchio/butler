@@ -35,6 +35,17 @@
       }
     },
     {
+      "method": "Meta.Shutdown",
+      "doc": "When called, gracefully shutdown the butler daemon.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Version.Get",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "caller": "client",
@@ -1973,19 +1984,6 @@
             "name": "update",
             "doc": "",
             "type": "GameUpdate"
-          }
-        ]
-      }
-    },
-    {
-      "method": "LaunchWindowShouldBeForeground",
-      "doc": "Sent during @@LaunchParams, when attaching to a running\ninstance, instead of launching a new one.\n\nbutlerd will also try to call SetForegroundWindow itself\nbut since it's not the foreground process, it'll just\nbe highlighted in the task bar.\n\nWindows only.",
-      "params": {
-        "fields": [
-          {
-            "name": "hwnd",
-            "doc": "An HWND of the window that should be brought to front\nusing SetForegrounWindow.",
-            "type": "number"
           }
         ]
       }

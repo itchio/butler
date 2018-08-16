@@ -584,6 +584,34 @@ done with the daemon.</p>
 </p>
 </div>
 
+### <em class="request-client-caller"></em>Meta.Shutdown
+
+
+<p>
+<p>When called, gracefully shutdown the butler daemon.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="MetaShutdownParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Meta.Shutdown <a href="#/?id=metashutdown">(Go to definition)</a></p>
+
+<p>
+<p>When called, gracefully shutdown the butler daemon.</p>
+
+</p>
+</div>
+
 ### <em class="notification"></em>MetaFlowEstablished
 
 
@@ -4514,61 +4542,6 @@ cave identifier.</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="notification"></em>LaunchWindowShouldBeForeground
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when attaching to a running
-instance, instead of launching a new one.</p>
-
-<p>butlerd will also try to call SetForegroundWindow itself
-but since it&rsquo;s not the foreground process, it&rsquo;ll just
-be highlighted in the task bar.</p>
-
-<p>Windows only.</p>
-
-</p>
-
-<p>
-<span class="header">Payload</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>hwnd</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>An HWND of the window that should be brought to front
-using SetForegrounWindow.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="LaunchWindowShouldBeForegroundNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>LaunchWindowShouldBeForeground <a href="#/?id=launchwindowshouldbeforeground">(Go to definition)</a></p>
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when attaching to a running
-instance, instead of launching a new one.</p>
-
-<p>butlerd will also try to call SetForegroundWindow itself
-but since it&rsquo;s not the foreground process, it&rsquo;ll just
-be highlighted in the task bar.</p>
-
-<p>Windows only.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>hwnd</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 

@@ -50,6 +50,20 @@ func (p MetaFlowParams) Validate() error {
 type MetaFlowResult struct {
 }
 
+// When called, gracefully shutdown the butler daemon.
+// @name Meta.Shutdown
+// @category Utilities
+// @caller client
+type MetaShutdownParams struct {
+}
+
+func (p MetaShutdownParams) Validate() error {
+	return nil
+}
+
+type MetaShutdownResult struct {
+}
+
 // The first notification sent when @@MetaFlowParams is called.
 //
 // @category Utilities
@@ -1855,21 +1869,6 @@ func (p LaunchParams) Validate() error {
 }
 
 type LaunchResult struct {
-}
-
-// Sent during @@LaunchParams, when attaching to a running
-// instance, instead of launching a new one.
-//
-// butlerd will also try to call SetForegroundWindow itself
-// but since it's not the foreground process, it'll just
-// be highlighted in the task bar.
-//
-// Windows only.
-// @category Launch
-type LaunchWindowShouldBeForegroundNotification struct {
-	// An HWND of the window that should be brought to front
-	// using SetForegrounWindow.
-	Hwnd int64 `json:"hwnd"`
 }
 
 // Sent during @@LaunchParams, when the game is configured, prerequisites are installed

@@ -100,6 +100,46 @@ func (r *MetaFlowType) TestCall(rc *butlerd.RequestContext, params butlerd.MetaF
 
 var MetaFlow *MetaFlowType
 
+// Meta.Shutdown (Request)
+
+type MetaShutdownType struct {}
+
+var _ RequestMessage = (*MetaShutdownType)(nil)
+
+func (r *MetaShutdownType) Method() string {
+  return "Meta.Shutdown"
+}
+
+func (r *MetaShutdownType) Register(router router, f func(*butlerd.RequestContext, butlerd.MetaShutdownParams) (*butlerd.MetaShutdownResult, error)) {
+  router.Register("Meta.Shutdown", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.MetaShutdownParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Meta.Shutdown")
+    }
+    return res, nil
+  })
+}
+
+func (r *MetaShutdownType) TestCall(rc *butlerd.RequestContext, params butlerd.MetaShutdownParams) (*butlerd.MetaShutdownResult, error) {
+  var result butlerd.MetaShutdownResult
+  err := rc.Call("Meta.Shutdown", params, &result)
+  return &result, err
+}
+
+var MetaShutdown *MetaShutdownType
+
 // MetaFlowEstablished (Notification)
 
 type MetaFlowEstablishedType struct {}
@@ -2589,34 +2629,6 @@ func (r *LaunchType) TestCall(rc *butlerd.RequestContext, params butlerd.LaunchP
 
 var Launch *LaunchType
 
-// LaunchWindowShouldBeForeground (Notification)
-
-type LaunchWindowShouldBeForegroundType struct {}
-
-var _ NotificationMessage = (*LaunchWindowShouldBeForegroundType)(nil)
-
-func (r *LaunchWindowShouldBeForegroundType) Method() string {
-  return "LaunchWindowShouldBeForeground"
-}
-
-func (r *LaunchWindowShouldBeForegroundType) Notify(rc *butlerd.RequestContext, params butlerd.LaunchWindowShouldBeForegroundNotification) (error) {
-  return rc.Notify("LaunchWindowShouldBeForeground", params)
-}
-
-func (r *LaunchWindowShouldBeForegroundType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchWindowShouldBeForegroundNotification)) {
-  router.RegisterNotification("LaunchWindowShouldBeForeground", func (rc *butlerd.RequestContext) {
-    var params butlerd.LaunchWindowShouldBeForegroundNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
-    }
-    f(rc, params)
-  })
-}
-
-var LaunchWindowShouldBeForeground *LaunchWindowShouldBeForegroundType
-
 // LaunchRunning (Notification)
 
 type LaunchRunningType struct {}
@@ -3216,6 +3228,7 @@ var TestDouble *TestDoubleType
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
   if _, ok := router.Handlers["Meta.Flow"]; !ok { panic("missing request handler for (Meta.Flow)") }
+  if _, ok := router.Handlers["Meta.Shutdown"]; !ok { panic("missing request handler for (Meta.Shutdown)") }
   if _, ok := router.Handlers["Version.Get"]; !ok { panic("missing request handler for (Version.Get)") }
   if _, ok := router.Handlers["Network.SetSimulateOffline"]; !ok { panic("missing request handler for (Network.SetSimulateOffline)") }
   if _, ok := router.Handlers["Network.SetBandwidthThrottle"]; !ok { panic("missing request handler for (Network.SetBandwidthThrottle)") }

@@ -114,6 +114,10 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		consumer.Infof("Giving app temp dir (%s)", tempDir)
 	}
 
+	if params.Sandbox {
+		envMap["ITCHIO_SANDBOX"] = "1"
+	}
+
 	var envKeys []string
 	for k := range envMap {
 		envKeys = append(envKeys, k)
@@ -298,9 +302,7 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 func (l *Launcher) AttachParams(params launch.LauncherParams) runner.AttachParams {
 	return runner.AttachParams{
 		BringWindowToForeground: func(hwnd int64) {
-			messages.LaunchWindowShouldBeForeground.Notify(params.RequestContext, butlerd.LaunchWindowShouldBeForegroundNotification{
-				Hwnd: hwnd,
-			})
+			setWindowForeground(hwnd)
 		},
 	}
 }
