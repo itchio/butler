@@ -23,6 +23,14 @@ func makeTestConsumer(t *testing.T) *state.Consumer {
 func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 	consumer := makeTestConsumer(t)
 
+	game := &itchio.Game{
+		Classification: itchio.GameClassificationGame,
+	}
+
+	ndu := func(uploads []*itchio.Upload, runtime *ox.Runtime) *manager.NarrowDownUploadsResult {
+		return manager.NarrowDownUploads(consumer, game, uploads, runtime)
+	}
+
 	debrpm := []*itchio.Upload{
 		{
 			Platforms: itchio.Platforms{Linux: "all"},
@@ -46,11 +54,19 @@ func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: debrpm,
-	}, manager.NarrowDownUploads(consumer, debrpm, linux64), "blacklist .deb and .rpm files")
+	}, ndu(debrpm, linux64), "blacklist .deb and .rpm files")
 }
 
 func Test_NarrowDownUploads(t *testing.T) {
 	consumer := makeTestConsumer(t)
+
+	game := &itchio.Game{
+		Classification: itchio.GameClassificationGame,
+	}
+
+	ndu := func(uploads []*itchio.Upload, runtime *ox.Runtime) *manager.NarrowDownUploadsResult {
+		return manager.NarrowDownUploads(consumer, game, uploads, runtime)
+	}
 
 	linux64 := &ox.Runtime{
 		Platform: ox.PlatformLinux,
@@ -62,7 +78,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: nil,
-	}, manager.NarrowDownUploads(consumer, nil, linux64), "empty is empty")
+	}, ndu(nil, linux64), "empty is empty")
 
 	mac64 := &ox.Runtime{
 		Platform: ox.PlatformOSX,
@@ -81,7 +97,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 		Uploads:        nil,
 		InitialUploads: blacklistpkg,
-	}, manager.NarrowDownUploads(consumer, blacklistpkg, mac64), "blacklist .pkg files")
+	}, ndu(blacklistpkg, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
 		Platforms: itchio.Platforms{OSX: "all", Linux: "all", Windows: "all"},
@@ -101,7 +117,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Uploads:        []*itchio.Upload{love},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, excludeuntagged, linux64), "exclude untagged, flag it")
+	}, ndu(excludeuntagged, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
 		Platforms: itchio.Platforms{OSX: "all", Linux: "all", Windows: "all"},
@@ -134,7 +150,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferlinuxbin, linux64), "prefer linux binary")
+	}, ndu(preferlinuxbin, linux64), "prefer linux binary")
 
 	windowsNaked := &itchio.Upload{
 		Platforms: itchio.Platforms{Windows: "all"},
@@ -167,7 +183,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferwinportable, windows32), "prefer windows portable, then naked")
+	}, ndu(preferwinportable, windows32), "prefer windows portable, then naked")
 
 	windowsDemo := &itchio.Upload{
 		Platforms: itchio.Platforms{Windows: "all"},
@@ -190,7 +206,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, penalizedemos, windows32), "penalize demos")
+	}, ndu(penalizedemos, windows32), "penalize demos")
 
 	windows64 := &ox.Runtime{
 		Platform: ox.PlatformWindows,
@@ -228,7 +244,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 		HadWrongFormat: false,
 		HadWrongArch:   false,
-	}, manager.NarrowDownUploads(consumer, preferexclusive, windows64), "prefer builds exclusive to platform")
+	}, ndu(preferexclusive, windows64), "prefer builds exclusive to platform")
 
 	universalUpload := &itchio.Upload{
 		Platforms: itchio.Platforms{Linux: "all"},
@@ -241,7 +257,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		InitialUploads: dontExcludeUniversal,
 		Uploads:        dontExcludeUniversal,
-	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, linux64), "don't exclude universal builds on 64-bit")
+	}, ndu(dontExcludeUniversal, linux64), "don't exclude universal builds on 64-bit")
 
 	linux32 := &ox.Runtime{
 		Platform: ox.PlatformLinux,
@@ -250,7 +266,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 		InitialUploads: dontExcludeUniversal,
 		Uploads:        dontExcludeUniversal,
-	}, manager.NarrowDownUploads(consumer, dontExcludeUniversal, linux32), "don't exclude universal builds on 32-bit")
+	}, ndu(dontExcludeUniversal, linux32), "don't exclude universal builds on 32-bit")
 
 	{
 		linux32Upload := &itchio.Upload{
@@ -273,13 +289,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 			InitialUploads: bothLinuxUploads,
 			Uploads:        []*itchio.Upload{linux64Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
+		}, ndu(bothLinuxUploads, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 			InitialUploads: bothLinuxUploads,
 			Uploads:        []*itchio.Upload{linux32Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothLinuxUploads, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
+		}, ndu(bothLinuxUploads, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
 	}
 
 	{
@@ -303,12 +319,12 @@ func Test_NarrowDownUploads(t *testing.T) {
 			InitialUploads: bothWindowsUploads,
 			Uploads:        []*itchio.Upload{windows64Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
+		}, ndu(bothWindowsUploads, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
 			InitialUploads: bothWindowsUploads,
 			Uploads:        []*itchio.Upload{windows32Upload},
 			HadWrongArch:   true,
-		}, manager.NarrowDownUploads(consumer, bothWindowsUploads, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
+		}, ndu(bothWindowsUploads, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
 	}
 }

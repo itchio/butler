@@ -314,7 +314,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	}
 
 	countBeforeNarrow := len(newerUploads)
-	narrowDownResult := manager.NarrowDownUploads(consumer, newerUploads, runtime)
+	narrowDownResult := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, runtime)
 	newerUploads = narrowDownResult.Uploads
 	consumer.Infof("→ %d uploads to consider (%d eliminated by narrow-down)", len(newerUploads), len(newerUploads)-countBeforeNarrow)
 

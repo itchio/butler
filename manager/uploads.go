@@ -13,6 +13,7 @@ import (
 type uploadFilter struct {
 	consumer *state.Consumer
 	runtime  *ox.Runtime
+	game     *itchio.Game
 }
 
 type NarrowDownUploadsResult struct {
@@ -22,10 +23,11 @@ type NarrowDownUploadsResult struct {
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(consumer *state.Consumer, uploads []*itchio.Upload, runtime *ox.Runtime) *NarrowDownUploadsResult {
+func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtime *ox.Runtime) *NarrowDownUploadsResult {
 	uf := &uploadFilter{
 		consumer: consumer,
 		runtime:  runtime,
+		game:     game,
 	}
 
 	return uf.narrowDownUploads(uploads)
@@ -50,6 +52,14 @@ func (uf *uploadFilter) narrowDownUploads(uploads []*itchio.Upload) *NarrowDownU
 }
 
 func (uf *uploadFilter) excludeWrongPlatform(uploads []*itchio.Upload) []*itchio.Upload {
+	switch uf.game.Classification {
+	case itchio.GameClassificationGame, itchio.GameClassificationTool:
+		// apply regular filters
+	default:
+		// don't filter anything, cf. https://github.com/itchio/itch/issues/1958
+		return uploads
+	}
+
 	var res []*itchio.Upload
 
 	for _, u := range uploads {

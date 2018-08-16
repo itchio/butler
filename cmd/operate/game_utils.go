@@ -39,7 +39,7 @@ func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials it
 	if numInputs == 0 {
 		consumer.Infof("No uploads found at all (that we can access)")
 	}
-	uploadsFilterResult := manager.NarrowDownUploads(consumer, uploads.Uploads, ox.CurrentRuntime())
+	uploadsFilterResult := manager.NarrowDownUploads(consumer, game, uploads.Uploads, ox.CurrentRuntime())
 
 	numResults := len(uploadsFilterResult.Uploads)
 
