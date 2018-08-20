@@ -925,6 +925,7 @@ type CaveInstallInfo struct {
 	InstalledSize   int64  `json:"installedSize"`
 	InstallLocation string `json:"installLocation"`
 	InstallFolder   string `json:"installFolder"`
+	Pinned          bool   `json:"pinned,omitempty"`
 }
 
 type InstallLocationSummary struct {
@@ -1171,6 +1172,25 @@ type ExternalUploadsAreBadResult struct {
 	// If true, will proceed with install anyway. Otherwise aborts.
 	Whatever bool `json:"whatever"`
 }
+
+// @name Caves.SetPinned
+// @category Install
+// @caller client
+type CavesSetPinnedParams struct {
+	// ID of the cave to pin/unpin
+	CaveID string `json:"caveID"`
+
+	// Pinned state the cave should have after this call
+	Pinned bool `json:"pinned"`
+}
+
+func (p CavesSetPinnedParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
+type CavesSetPinnedResult struct{}
 
 // Perform an install that was previously queued via
 // @@InstallQueueParams.

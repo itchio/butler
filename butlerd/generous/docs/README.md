@@ -2805,6 +2805,54 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+### <em class="request-client-caller"></em>Caves.SetPinned
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveID</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID of the cave to pin/unpin</p>
+</td>
+</tr>
+<tr>
+<td><code>pinned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Pinned state the cave should have after this call</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="CavesSetPinnedParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Caves.SetPinned <a href="#/?id=cavessetpinned">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveID</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>pinned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Perform
 
 
@@ -6100,6 +6148,11 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>pinned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -6119,6 +6172,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>installFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>pinned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

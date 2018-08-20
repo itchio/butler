@@ -272,9 +272,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 				}
 			}
 
-			rc.WithConn(func(conn *sqlite.Conn) {
-				models.MustSave(conn, cave, hades.Assoc("Upload"), hades.Assoc("Build"))
-			})
+			rc.WithConn(cave.SaveWithAssocs)
 		}
 	}
 

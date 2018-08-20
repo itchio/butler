@@ -1549,6 +1549,46 @@ func (r *ExternalUploadsAreBadType) Call(rc *butlerd.RequestContext, params butl
 
 var ExternalUploadsAreBad *ExternalUploadsAreBadType
 
+// Caves.SetPinned (Request)
+
+type CavesSetPinnedType struct {}
+
+var _ RequestMessage = (*CavesSetPinnedType)(nil)
+
+func (r *CavesSetPinnedType) Method() string {
+  return "Caves.SetPinned"
+}
+
+func (r *CavesSetPinnedType) Register(router router, f func(*butlerd.RequestContext, butlerd.CavesSetPinnedParams) (*butlerd.CavesSetPinnedResult, error)) {
+  router.Register("Caves.SetPinned", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CavesSetPinnedParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Caves.SetPinned")
+    }
+    return res, nil
+  })
+}
+
+func (r *CavesSetPinnedType) TestCall(rc *butlerd.RequestContext, params butlerd.CavesSetPinnedParams) (*butlerd.CavesSetPinnedResult, error) {
+  var result butlerd.CavesSetPinnedResult
+  err := rc.Call("Caves.SetPinned", params, &result)
+  return &result, err
+}
+
+var CavesSetPinned *CavesSetPinnedType
+
 // Install.Perform (Request)
 
 type InstallPerformType struct {}
@@ -3255,6 +3295,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
+  if _, ok := router.Handlers["Caves.SetPinned"]; !ok { panic("missing request handler for (Caves.SetPinned)") }
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }
   if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
   if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }

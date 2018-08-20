@@ -1039,6 +1039,28 @@
       }
     },
     {
+      "method": "Caves.SetPinned",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveID",
+            "doc": "ID of the cave to pin/unpin",
+            "type": "string"
+          },
+          {
+            "name": "pinned",
+            "doc": "Pinned state the cave should have after this call",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Install.Perform",
       "doc": "Perform an install that was previously queued via\n@@InstallQueueParams.\n\nCan be cancelled by passing the same `ID` to @@InstallCancelParams.",
       "caller": "client",
@@ -2284,6 +2306,11 @@
           "name": "installFolder",
           "doc": "",
           "type": "string"
+        },
+        {
+          "name": "pinned",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },

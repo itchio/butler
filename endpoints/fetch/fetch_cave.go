@@ -34,6 +34,7 @@ func FormatCave(conn *sqlite.Conn, cave *models.Cave) *butlerd.Cave {
 			InstallFolder:   cave.GetInstallFolder(conn),
 			InstalledSize:   cave.InstalledSize,
 			InstallLocation: cave.InstallLocationID,
+			Pinned:          cave.Pinned,
 		},
 
 		Stats: &butlerd.CaveStats{
