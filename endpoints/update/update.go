@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/itchio/butler/installer/bfs"
+
 	"github.com/arbovm/levenshtein"
 	"github.com/itchio/ox"
 
@@ -172,6 +174,11 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	rc := params.rc
 	runtime := params.runtime
 
+	if cave.Pinned {
+		consumer.Statf("Cave is pinned, skipping")
+		return nil, nil
+	}
+
 	var access *operate.GameAccess
 	rc.WithConn(func(conn *sqlite.Conn) {
 		access = operate.AccessForGameID(conn, cave.GameID)
@@ -213,6 +220,60 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 			cave.Upload = uploadRes.Upload
 			rc.WithConn(func(conn *sqlite.Conn) {
 				models.MustSave(conn, uploadRes.Upload)
+			})
+		}
+	}
+
+	installFolder := rc.WithConnString(cave.GetInstallFolder)
+	receipt, err := bfs.ReadReceipt(installFolder)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt != nil {
+		// if we have a receipt, let's make sure it matches up
+		// with the info we have in the database.
+		// receipt info may be fresher if:
+		//   * the game was updated by another copy of the itch app
+		//     (for example, the beta, and we're now running stable)
+		if receipt.Upload != nil && receipt.Upload.ID != cave.UploadID {
+			consumer.Infof("Cave has:")
+			operate.LogUpload(consumer, cave.Upload, cave.Build)
+			consumer.Infof("But receipt has:")
+			operate.LogUpload(consumer, receipt.Upload, receipt.Build)
+			consumer.Infof("...fetching fresh info for receipt upload & build")
+
+			uploadRes, err := client.GetUpload(itchio.GetUploadParams{
+				UploadID:    receipt.Upload.ID,
+				Credentials: access.Credentials,
+			})
+			if err != nil {
+				cave.Upload = receipt.Upload
+				consumer.Warnf("Can't retrieve upload %d: %v", receipt.Upload.ID, err)
+				consumer.Warnf("Continuing with stored upload (this may give poor results)")
+			} else {
+				cave.Upload = uploadRes.Upload
+			}
+
+			if receipt.Build != nil {
+				consumer.Infof("Also fetching info for build:")
+				operate.LogBuild(consumer, receipt.Upload, receipt.Build)
+
+				buildRes, err := client.GetBuild(itchio.GetBuildParams{
+					BuildID:     receipt.Build.ID,
+					Credentials: access.Credentials,
+				})
+				if err != nil {
+					consumer.Warnf("Can't retrieve build %d: %v", receipt.Build.ID, err)
+					consumer.Warnf("Continuing with stored build (this may give poor results)")
+					cave.Build = receipt.Build
+				} else {
+					cave.Build = buildRes.Build
+				}
+			}
+
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustSave(conn, cave, hades.Assoc("Upload"), hades.Assoc("Build"))
 			})
 		}
 	}
