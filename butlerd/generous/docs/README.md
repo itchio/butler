@@ -1517,6 +1517,89 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
+### <em class="request-client-caller"></em>Fetch.GameUploads
+
+
+<p>
+<p>Fetches uploads for an itch.io game</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the game whose uploads we should look for</p>
+</td>
+</tr>
+<tr>
+<td><code>compatible</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Only returns compatible uploads</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Force an API request</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><p>List of uploads</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Marks that a request should be issued
+afterwards with &lsquo;Fresh&rsquo; set</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchGameUploadsParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.GameUploads <a href="#/?id=fetchgameuploads">(Go to definition)</a></p>
+
+<p>
+<p>Fetches uploads for an itch.io game</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>compatible</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.User
 
 
@@ -2820,14 +2903,15 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 <table class="field-table">
 <tr>
-<td><code>gameID</code></td>
+<td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
 <tr>
-<td><code>uploadID</code></td>
+<td><code>uploadId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -2845,13 +2929,8 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td></td>
 </tr>
 <tr>
-<td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td></td>
 </tr>
 <tr>
@@ -2872,11 +2951,11 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 <table class="field-table">
 <tr>
-<td><code>gameID</code></td>
+<td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>uploadID</code></td>
+<td><code>uploadId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -2894,7 +2973,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 <table class="field-table">
 <tr>
-<td><code>caveID</code></td>
+<td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p>ID of the cave to pin/unpin</p>
 </td>
@@ -2920,7 +2999,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 <table class="field-table">
 <tr>
-<td><code>caveID</code></td>
+<td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
@@ -6425,6 +6504,16 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 <table class="field-table">
 <tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
@@ -6442,6 +6531,14 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 
 <table class="field-table">
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
 <tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
@@ -8358,6 +8455,12 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </td>
 </tr>
 <tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>ID of the latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
+</td>
+</tr>
+<tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadType__TypeHint">UploadType</span></code></td>
 <td><p>Upload type: default, soundtrack, etc.</p>
@@ -8430,6 +8533,10 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>type</code></td>

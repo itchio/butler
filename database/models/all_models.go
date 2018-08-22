@@ -23,4 +23,5 @@ var AllModels = []interface{}{
 	&itchio.Build{},
 	&ProfileData{},
 	&FetchInfo{},
+	&GameUpload{},
 }

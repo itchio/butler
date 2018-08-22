@@ -196,6 +196,8 @@ type Upload struct {
 	ChannelName string `json:"channelName"`
 	// Latest build for this upload, if it's a wharf-enabled upload
 	Build *Build `json:"build"`
+	// ID of the latest build for this upload, if it's a wharf-enabled upload
+	BuildID int64 `json:"buildId,omitempty"`
 
 	// Upload type: default, soundtrack, etc.
 	Type UploadType `json:"type"`

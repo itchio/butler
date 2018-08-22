@@ -7,6 +7,7 @@ import (
 
 func Register(router *butlerd.Router) {
 	messages.FetchGame.Register(router, FetchGame)
+	messages.FetchGameUploads.Register(router, FetchGameUploads)
 	messages.FetchUser.Register(router, FetchUser)
 	messages.FetchSale.Register(router, FetchSale)
 	messages.FetchCollection.Register(router, FetchCollection)

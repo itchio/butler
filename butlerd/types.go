@@ -435,6 +435,47 @@ func (r *FetchGameResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// Fetches uploads for an itch.io game
+//
+// @name Fetch.GameUploads
+// @category Fetch
+// @caller client
+type FetchGameUploadsParams struct {
+	// Identifier of the game whose uploads we should look for
+	GameID int64 `json:"gameId"`
+
+	// Only returns compatible uploads
+	OnlyCompatible bool `json:"compatible"`
+
+	// Force an API request
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+func (p FetchGameUploadsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+func (p FetchGameUploadsParams) IsFresh() bool {
+	return p.Fresh
+}
+
+type FetchGameUploadsResult struct {
+	// List of uploads
+	Uploads []*itchio.Upload `json:"uploads"`
+
+	// Marks that a request should be issued
+	// afterwards with 'Fresh' set
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchGameUploadsResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
 // Fetches information for an itch.io user.
 //
 // @name Fetch.User
@@ -1179,22 +1220,28 @@ type ExternalUploadsAreBadResult struct {
 // @category Install
 // @caller client
 type InstallPlanParams struct {
-	GameID   int64 `json:"gameID"`
-	UploadID int64 `json:"uploadID"`
+	GameID int64 `json:"gameId"`
+
+	// @optional
+	UploadID int64 `json:"uploadId"`
 }
 
 func (p InstallPlanParams) Validate() error {
-	return nil
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
 }
 
 type InstallPlanResult struct {
-	Game   *itchio.Game     `json:"game"`
-	Upload *itchio.Game     `json:"upload"`
-	Build  *itchio.Build    `json:"build"`
-	Info   *InstallPlanInfo `json:"info"`
+	Game    *itchio.Game     `json:"game"`
+	Uploads []*itchio.Upload `json:"uploads"`
+
+	Info *InstallPlanInfo `json:"info"`
 }
 
 type InstallPlanInfo struct {
+	Upload    *itchio.Game   `json:"upload"`
+	Build     *itchio.Build  `json:"build"`
 	Type      string         `json:"type"`
 	DiskUsage *DiskUsageInfo `json:"diskUsage"`
 }
@@ -1210,7 +1257,7 @@ type DiskUsageInfo struct {
 // @caller client
 type CavesSetPinnedParams struct {
 	// ID of the cave to pin/unpin
-	CaveID string `json:"caveID"`
+	CaveID string `json:"caveId"`
 
 	// Pinned state the cave should have after this call
 	Pinned bool `json:"pinned"`

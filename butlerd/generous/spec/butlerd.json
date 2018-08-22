@@ -415,6 +415,44 @@
       }
     },
     {
+      "method": "Fetch.GameUploads",
+      "doc": "Fetches uploads for an itch.io game",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "Identifier of the game whose uploads we should look for",
+            "type": "number"
+          },
+          {
+            "name": "compatible",
+            "doc": "Only returns compatible uploads",
+            "type": "boolean"
+          },
+          {
+            "name": "fresh",
+            "doc": "Force an API request",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "uploads",
+            "doc": "List of uploads",
+            "type": "Upload[]"
+          },
+          {
+            "name": "stale",
+            "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.User",
       "doc": "Fetches information for an itch.io user.",
       "caller": "client",
@@ -1045,12 +1083,12 @@
       "params": {
         "fields": [
           {
-            "name": "gameID",
+            "name": "gameId",
             "doc": "",
             "type": "number"
           },
           {
-            "name": "uploadID",
+            "name": "uploadId",
             "doc": "",
             "type": "number"
           }
@@ -1064,14 +1102,9 @@
             "type": "Game"
           },
           {
-            "name": "upload",
+            "name": "uploads",
             "doc": "",
-            "type": "Game"
-          },
-          {
-            "name": "build",
-            "doc": "",
-            "type": "Build"
+            "type": "Upload[]"
           },
           {
             "name": "info",
@@ -1088,7 +1121,7 @@
       "params": {
         "fields": [
           {
-            "name": "caveID",
+            "name": "caveId",
             "doc": "ID of the cave to pin/unpin",
             "type": "string"
           },
@@ -2425,6 +2458,16 @@
       "doc": "",
       "fields": [
         {
+          "name": "upload",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "build",
+          "doc": "",
+          "type": "Build"
+        },
+        {
           "name": "type",
           "doc": "",
           "type": "string"
@@ -2937,6 +2980,11 @@
           "name": "build",
           "doc": "Latest build for this upload, if it's a wharf-enabled upload",
           "type": "Build"
+        },
+        {
+          "name": "buildId",
+          "doc": "ID of the latest build for this upload, if it's a wharf-enabled upload",
+          "type": "number"
         },
         {
           "name": "type",

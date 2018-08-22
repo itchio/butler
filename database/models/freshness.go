@@ -15,6 +15,22 @@ func FetchTargetForGame(gameID int64) FetchTarget {
 	}
 }
 
+func FetchTargetForUpload(uploadID int64) FetchTarget {
+	return FetchTarget{
+		ID:   uploadID,
+		Type: "upload",
+		TTL:  defaultTTL,
+	}
+}
+
+func FetchTargetForGameUploads(gameID int64) FetchTarget {
+	return FetchTarget{
+		ID:   gameID,
+		Type: "game_uploads",
+		TTL:  defaultTTL,
+	}
+}
+
 func FetchTargetForUser(userID int64) FetchTarget {
 	return FetchTarget{
 		ID:   userID,
