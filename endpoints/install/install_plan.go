@@ -40,7 +40,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	info := &butlerd.InstallPlanInfo{}
 
 	var upload *itchio.Upload
-	if params.UploadID == 0 {
+	if params.UploadID != 0 {
 		for _, u := range uploads {
 			if u.ID == params.UploadID {
 				consumer.Infof("Using specified upload.")
