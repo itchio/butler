@@ -53,7 +53,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 	istate := isub.Data
 
-	if istate.DownloadSessionId == "" {
+	if istate.DownloadSessionID == "" {
 		res, err := client.NewDownloadSession(itchio.NewDownloadSessionParams{
 			GameID:      params.Game.ID,
 			Credentials: params.Access.Credentials,
@@ -61,15 +61,15 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		istate.DownloadSessionId = res.UUID
+		istate.DownloadSessionID = res.UUID
 		err = oc.Save(isub)
 		if err != nil {
 			return err
 		}
 
-		consumer.Infof("→ Starting fresh download session (%s)", istate.DownloadSessionId)
+		consumer.Infof("→ Starting fresh download session (%s)", istate.DownloadSessionID)
 	} else {
-		consumer.Infof("↻ Resuming download session (%s)", istate.DownloadSessionId)
+		consumer.Infof("↻ Resuming download session (%s)", istate.DownloadSessionID)
 	}
 
 	if receiptIn == nil {
@@ -171,7 +171,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		}
 	}
 
-	installSourceURL := sourceURL(client, consumer, istate, params, "")
+	installSourceURL := MakeSourceURL(client, consumer, istate.DownloadSessionID, params, "")
 
 	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
 	if err != nil {

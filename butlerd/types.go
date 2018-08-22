@@ -1220,7 +1220,12 @@ type ExternalUploadsAreBadResult struct {
 // @category Install
 // @caller client
 type InstallPlanParams struct {
+	// The ID of the game we're planning to install
 	GameID int64 `json:"gameId"`
+
+	// The download session ID to use for this install plan
+	// @optional
+	DownloadSessionID string `json:"downloadSessionId"`
 
 	// @optional
 	UploadID int64 `json:"uploadId"`
@@ -1240,7 +1245,7 @@ type InstallPlanResult struct {
 }
 
 type InstallPlanInfo struct {
-	Upload    *itchio.Game   `json:"upload"`
+	Upload    *itchio.Upload `json:"upload"`
 	Build     *itchio.Build  `json:"build"`
 	Type      string         `json:"type"`
 	DiskUsage *DiskUsageInfo `json:"diskUsage"`

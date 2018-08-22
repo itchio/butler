@@ -57,7 +57,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		BuildID:     build.ID,
 		Type:        itchio.BuildFileTypePatch,
 		SubType:     subType,
-		UUID:        istate.DownloadSessionId,
+		UUID:        istate.DownloadSessionID,
 	})
 
 	patchSource, err := filesource.Open(patchURL, option.WithConsumer(consumer))

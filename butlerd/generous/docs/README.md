@@ -2905,7 +2905,14 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p>The ID of the game we&rsquo;re planning to install</p>
+</td>
+</tr>
+<tr>
+<td><code>downloadSessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> The download session ID to use for this install plan</p>
+</td>
 </tr>
 <tr>
 <td><code>uploadId</code></td>
@@ -2953,6 +2960,10 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>downloadSessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
 <td><code>uploadId</code></td>
@@ -6505,7 +6516,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -6533,7 +6544,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>

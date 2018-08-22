@@ -6,7 +6,7 @@ import (
 	"github.com/itchio/wharf/state"
 )
 
-func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallSubcontextState, params *InstallParams, fileType string) string {
+func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID string, params *InstallParams, fileType string) string {
 	build := params.Build
 	if build != nil {
 		if fileType == "" {
@@ -18,7 +18,7 @@ func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallS
 
 		return client.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
 			BuildID:     build.ID,
-			UUID:        istate.DownloadSessionId,
+			UUID:        sessionID,
 			Credentials: params.Access.Credentials,
 			Type:        itchio.BuildFileType(fileType),
 		})
@@ -26,7 +26,7 @@ func sourceURL(client *itchio.Client, consumer *state.Consumer, istate *InstallS
 
 	return client.MakeUploadDownloadURL(itchio.MakeUploadDownloadParams{
 		UploadID:    params.Upload.ID,
-		UUID:        istate.DownloadSessionId,
+		UUID:        sessionID,
 		Credentials: params.Access.Credentials,
 	})
 }

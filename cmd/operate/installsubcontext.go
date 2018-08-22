@@ -6,7 +6,7 @@ import (
 )
 
 type InstallSubcontextState struct {
-	DownloadSessionId   string                   `json:"downloadSessionId,omitempty"`
+	DownloadSessionID   string                   `json:"downloadSessionId,omitempty"`
 	InstallerInfo       *installer.InstallerInfo `json:"installerInfo,omitempty"`
 	IsAvailableLocally  bool                     `json:"isAvailableLocally,omitempty"`
 	FirstInstallResult  *installer.InstallResult `json:"firstInstallResult,omitempty"`

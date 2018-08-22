@@ -1084,8 +1084,13 @@
         "fields": [
           {
             "name": "gameId",
-            "doc": "",
+            "doc": "The ID of the game we're planning to install",
             "type": "number"
+          },
+          {
+            "name": "downloadSessionId",
+            "doc": "The download session ID to use for this install plan",
+            "type": "string"
           },
           {
             "name": "uploadId",
@@ -2460,7 +2465,7 @@
         {
           "name": "upload",
           "doc": "",
-          "type": "Game"
+          "type": "Upload"
         },
         {
           "name": "build",
