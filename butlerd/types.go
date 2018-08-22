@@ -1173,6 +1173,38 @@ type ExternalUploadsAreBadResult struct {
 	Whatever bool `json:"whatever"`
 }
 
+// For modal-first install
+//
+// @name Install.Plan
+// @category Install
+// @caller client
+type InstallPlanParams struct {
+	GameID   int64 `json:"gameID"`
+	UploadID int64 `json:"uploadID"`
+}
+
+func (p InstallPlanParams) Validate() error {
+	return nil
+}
+
+type InstallPlanResult struct {
+	Game   *itchio.Game     `json:"game"`
+	Upload *itchio.Game     `json:"upload"`
+	Build  *itchio.Build    `json:"build"`
+	Info   *InstallPlanInfo `json:"info"`
+}
+
+type InstallPlanInfo struct {
+	Type      string         `json:"type"`
+	DiskUsage *DiskUsageInfo `json:"diskUsage"`
+}
+
+type DiskUsageInfo struct {
+	FinalDiskUsage  int64  `json:"finalDiskUsage"`
+	NeededFreeSpace int64  `json:"neededFreeSpace"`
+	Accuracy        string `json:"accuracy"`
+}
+
 // @name Caves.SetPinned
 // @category Install
 // @caller client

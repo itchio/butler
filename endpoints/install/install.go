@@ -7,6 +7,7 @@ import (
 
 func Register(router *butlerd.Router) {
 	messages.GameFindUploads.Register(router, GameFindUploads)
+	messages.InstallPlan.Register(router, InstallPlan)
 	messages.InstallQueue.Register(router, InstallQueue)
 	messages.InstallPerform.Register(router, InstallPerform)
 	messages.InstallCancel.Register(router, InstallCancel)

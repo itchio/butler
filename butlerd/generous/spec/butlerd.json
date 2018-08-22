@@ -1039,6 +1039,49 @@
       }
     },
     {
+      "method": "Install.Plan",
+      "doc": "For modal-first install",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameID",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "uploadID",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "",
+            "type": "Game"
+          },
+          {
+            "name": "upload",
+            "doc": "",
+            "type": "Game"
+          },
+          {
+            "name": "build",
+            "doc": "",
+            "type": "Build"
+          },
+          {
+            "name": "info",
+            "doc": "",
+            "type": "InstallPlanInfo"
+          }
+        ]
+      }
+    },
+    {
       "method": "Caves.SetPinned",
       "doc": "",
       "caller": "client",
@@ -2372,6 +2415,43 @@
         },
         {
           "name": "installLocationId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallPlanInfo",
+      "doc": "",
+      "fields": [
+        {
+          "name": "type",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "diskUsage",
+          "doc": "",
+          "type": "DiskUsageInfo"
+        }
+      ]
+    },
+    {
+      "name": "DiskUsageInfo",
+      "doc": "",
+      "fields": [
+        {
+          "name": "finalDiskUsage",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "neededFreeSpace",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "accuracy",
           "doc": "",
           "type": "string"
         }

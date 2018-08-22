@@ -2805,6 +2805,84 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+### <em class="request-client-caller"></em>Install.Plan
+
+
+<p>
+<p>For modal-first install</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uploadID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>info</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallPlanParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Install.Plan <a href="#/?id=installplan">(Go to definition)</a></p>
+
+<p>
+<p>For modal-first install</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>gameID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>uploadID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Caves.SetPinned
 
 
@@ -6330,6 +6408,95 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </tr>
 <tr>
 <td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>InstallPlanInfo
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>diskUsage</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallPlanInfo__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>InstallPlanInfo <a href="#/?id=installplaninfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>diskUsage</code></td>
+<td><code class="typename"><span class="type struct-type">DiskUsageInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="struct-type"></em>DiskUsageInfo
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>finalDiskUsage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>neededFreeSpace</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>accuracy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="DiskUsageInfo__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>DiskUsageInfo <a href="#/?id=diskusageinfo">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>finalDiskUsage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>neededFreeSpace</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>accuracy</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
