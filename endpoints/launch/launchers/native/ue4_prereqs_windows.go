@@ -16,9 +16,9 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
-	"github.com/itchio/dash"
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/installer"
+	"github.com/itchio/dash"
 	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
 )
@@ -110,7 +110,6 @@ func handleUE4Prereqs(params launch.LauncherParams) error {
 	var prereqCandidate *dash.Candidate
 
 	for _, fe := range installContainer.Files {
-		consumer.Infof("Reviewing (%s)", path.Base(fe.Path))
 		if path.Base(fe.Path) == needle {
 			prereqCandidate, err = params.SniffFile(fe)
 			if err != nil {
