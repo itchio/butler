@@ -1,6 +1,11 @@
 package install
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
 	"github.com/go-xorm/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
@@ -71,6 +76,23 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocat
 			}
 			return nil, errors.Errorf("(%s) exists but has path (%s) - we were passed (%s)", params.ID, existing.Path, params.Path)
 		}
+	}
+
+	stats, err := os.Stat(params.Path)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if !stats.IsDir() {
+		return nil, errors.Errorf("(%s) is not a directory", params.Path)
+	}
+
+	// try writing a file
+	testFileName := fmt.Sprintf(".butler-test-file-%d", os.Getpid())
+	testFilePath := filepath.Join(params.Path, testFileName)
+	defer os.Remove(testFilePath)
+	err = ioutil.WriteFile(testFilePath, []byte{}, os.FileMode(0644))
+	if err != nil {
+		return nil, errors.Errorf("Can't write to (%s) not adding as an install location: %s", params.Path, err.Error())
 	}
 
 	il := &models.InstallLocation{
