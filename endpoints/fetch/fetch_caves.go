@@ -20,7 +20,8 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		switch params.SortBy {
 		case "title":
 			ordering := pager.Ordering("ASC", params.Reverse)
-			search = search.OrderBy("games.title "+ordering).Join("games", "games.id = caves.game_id")
+			search = search.OrderBy("games.title " + ordering)
+			joinGames = true
 		case "playTime":
 			ordering := pager.Ordering("DESC", params.Reverse)
 			search = search.OrderBy("caves.seconds_run " + ordering)
