@@ -176,6 +176,7 @@ func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContex
 
 		tmpPath := filepath.Join(wd, "tmp")
 		must(t, os.RemoveAll(tmpPath))
+		must(t, os.MkdirAll(tmpPath, 0755))
 
 		_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{
 			ID:   "tmp",
