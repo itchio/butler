@@ -1,14 +1,17 @@
 package install
 
 import (
+	"github.com/go-xorm/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/itchio/ox"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -24,8 +27,20 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
 	runtime := ox.CurrentRuntime()
-	uploads := fetch.LazyFetchGameUploads(rc, params.GameID)
-	uploads = manager.NarrowDownUploads(consumer, game, uploads, runtime).Uploads
+	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
+	baseUploads = manager.NarrowDownUploads(consumer, game, baseUploads, runtime).Uploads
+
+	// exclude already-installed and currently-installing uploads
+	var uploadIDs []interface{}
+	for _, u := range baseUploads {
+		uploadIDs = append(uploadIDs, u.ID)
+	}
+	var uploads []*itchio.Upload
+	models.MustSelect(conn, &uploads, builder.And(
+		builder.In("id", uploadIDs...),
+		builder.Expr(`not exists (select 1 from caves where upload_id = uploads.id)`),
+		builder.Expr(`not exists (select 1 from downloads where upload_id = uploads.id)`),
+	), hades.Search{})
 
 	res := &butlerd.InstallPlanResult{
 		Game:    game,
@@ -91,6 +106,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	// planning is always for a fresh install
 	receiptIn := (*bfs.Receipt)(nil)
 	installFolder := ""
+
 	dui, err := operate.AssessDiskUsage(file, receiptIn, installFolder, installerInfo)
 	if err != nil {
 		return nil, errors.WithStack(err)

@@ -455,7 +455,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 		if err != nil {
 			consumer.Warnf("Could not find build %d: %v", legacyCave.BuildID, err)
 			// TODO: do we actually queue it?
-			consumer.Infof("...an update will automatically be queued", legacyCave.BuildID)
+			consumer.Infof("...an update will automatically be queued")
 		} else {
 			build = buildsRes.Build
 		}

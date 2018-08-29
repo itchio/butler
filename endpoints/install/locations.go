@@ -116,7 +116,7 @@ func InstallLocationsRemove(rc *butlerd.RequestContext, params butlerd.InstallLo
 
 	il := models.InstallLocationByID(conn, params.ID)
 	if il == nil {
-		consumer.Statf("Install location (%s) does not exist, doing nothing")
+		consumer.Statf("Install location (%s) does not exist, doing nothing", params.ID)
 		res := &butlerd.InstallLocationsRemoveResult{}
 		return res, nil
 	}
