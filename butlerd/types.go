@@ -688,6 +688,17 @@ type FetchProfileCollectionsParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
+	// When specified only shows collection titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
@@ -700,6 +711,7 @@ type FetchProfileCollectionsParams struct {
 func (p FetchProfileCollectionsParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.SortBy, validation.In("updatedAt", "title")),
 	)
 }
 

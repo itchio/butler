@@ -641,6 +641,21 @@
             "type": "number"
           },
           {
+            "name": "search",
+            "doc": "When specified only shows collection titles that contain this string",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "doc": "Criterion to sort by",
+            "type": "string"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
+          },
+          {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
             "type": "Cursor"

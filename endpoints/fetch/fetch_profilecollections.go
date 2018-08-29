@@ -42,7 +42,28 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
-		search := hades.Search{}.OrderBy("position ASC")
+		joinCollections := false
+		search := hades.Search{}
+
+		switch params.SortBy {
+		case "default", "":
+			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+		case "updatedAt":
+			search = search.OrderBy("collections.updated_at " + pager.Ordering("DESC", params.Reverse))
+			joinCollections = true
+		case "title":
+			search = search.OrderBy("collections.title " + pager.Ordering("ASC", params.Reverse))
+			joinCollections = true
+		}
+
+		if params.Search != "" {
+			cond = builder.And(cond, builder.Like{"collections.title", params.Search})
+			joinCollections = true
+		}
+
+		if joinCollections {
+			search = search.Join("collections", "collections.id = profile_collections.collection_id")
+		}
 
 		var items []*models.ProfileCollection
 		pg := pager.New(params)
