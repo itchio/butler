@@ -8,4 +8,6 @@ type GameUpload struct {
 
 	UploadID int64          `json:"uploadId" hades:"primary_key"`
 	Upload   *itchio.Upload `json:"upload"`
+
+	Position int64 `json:"position"`
 }

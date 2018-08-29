@@ -30,13 +30,14 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 
 		var validUploadIDs []interface{}
 		var gameUploads []*models.GameUpload
-		for _, u := range uploadsRes.Uploads {
+		for i, u := range uploadsRes.Uploads {
 			targets.Add(models.FetchTargetForUpload(u.ID))
 			validUploadIDs = append(validUploadIDs, u.ID)
 			gameUploads = append(gameUploads, &models.GameUpload{
 				GameID:   params.GameID,
 				UploadID: u.ID,
 				Upload:   u,
+				Position: int64(i),
 			})
 		}
 
@@ -55,7 +56,7 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 	var gameUploads []*models.GameUpload
 	models.MustSelect(conn, &gameUploads, builder.Eq{
 		"game_id": params.GameID,
-	}, hades.Search{})
+	}, hades.Search{}.OrderBy("position ASC"))
 	models.MustPreload(conn, gameUploads,
 		hades.Assoc("Upload",
 			hades.Assoc("Build"),

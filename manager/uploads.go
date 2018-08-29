@@ -106,9 +106,9 @@ var (
 	usuallySourceFormatRegexp = regexp.MustCompile(`\.tar\.(gz|bz2|xz)$`)
 )
 
-func (uf *uploadFilter) scoreUpload(upload *itchio.Upload) *scoredUpload {
+func (uf *uploadFilter) scoreUpload(upload *itchio.Upload, index int) *scoredUpload {
 	filename := strings.ToLower(upload.Filename)
-	var score int64 = 500
+	var score int64 = 500 - int64(index)
 
 	if preferredFormatRegexp.MatchString(filename) {
 		// Preferred formats
@@ -157,8 +157,8 @@ func (hsf *highestScoreFirst) Swap(i, j int) {
 func (uf *uploadFilter) sortUploads(uploads []*itchio.Upload) []*itchio.Upload {
 	var scoredUploads []*scoredUpload
 
-	for _, u := range uploads {
-		scoredUploads = append(scoredUploads, uf.scoreUpload(u))
+	for index, u := range uploads {
+		scoredUploads = append(scoredUploads, uf.scoreUpload(u, index))
 	}
 
 	sort.Stable(&highestScoreFirst{scoredUploads})
