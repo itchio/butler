@@ -41,5 +41,10 @@ func Test_InstallSmall(t *testing.T) {
 			PrereqsDir: "/tmp/prereqs",
 		})
 		must(t, err)
+
+		_, err = messages.UninstallPerform.TestCall(rc, butlerd.UninstallPerformParams{
+			CaveID: queueRes.CaveID,
+		})
+		must(t, err)
 	}
 }

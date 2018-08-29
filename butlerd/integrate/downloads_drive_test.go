@@ -94,5 +94,10 @@ func Test_DownloadsDrive(t *testing.T) {
 			t.Logf("Notifications received: %#v", notifs)
 			must(t, errors.New("timed out!"))
 		}
+
+		_, err = messages.UninstallPerform.TestCall(rc, butlerd.UninstallPerformParams{
+			CaveID: queueRes.CaveID,
+		})
+		must(t, err)
 	}
 }
