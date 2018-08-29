@@ -9,6 +9,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/go-xorm/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -22,6 +23,8 @@ import (
 
 func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
 	var stagingFolder string
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
 
 	var cave *models.Cave
 	var installLocation *models.InstallLocation
@@ -43,9 +46,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 			if queueParams.InstallLocationID == "" {
 				return nil, errors.New("When caveId is unspecified, installLocationId must be set")
 			}
-			rc.WithConn(func(conn *sqlite.Conn) {
-				installLocation = models.InstallLocationByID(conn, queueParams.InstallLocationID)
-			})
+			installLocation = models.InstallLocationByID(conn, queueParams.InstallLocationID)
 			if installLocation == nil {
 				return nil, errors.Errorf("Install location not found (%s)", queueParams.InstallLocationID)
 			}
@@ -61,9 +62,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 				queueParams.Build = cave.Build
 			}
 
-			rc.WithConn(func(conn *sqlite.Conn) {
-				installLocation = cave.GetInstallLocation(conn)
-			})
+			installLocation = cave.GetInstallLocation(conn)
 		}
 
 		id = generateDownloadID(installLocation.Path)
@@ -74,7 +73,13 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	defer oc.Release()
+	success := false
+	defer func() {
+		oc.Release()
+		if !success {
+			oc.Retire()
+		}
+	}()
 
 	consumer := oc.Consumer()
 	meta := operate.NewMetaSubcontext()
@@ -88,9 +93,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	}
 
 	params.Game = queueParams.Game
-	rc.WithConn(func(conn *sqlite.Conn) {
-		params.Access = operate.AccessForGameID(conn, params.Game.ID)
-	})
+	params.Access = operate.AccessForGameID(conn, params.Game.ID)
 
 	client := rc.Client(params.Access.APIKey)
 
@@ -106,8 +109,11 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 			params.Game = gameRes.Game
 		}
 	}
+	consumer.Infof("Queuing install for %s", operate.GameToString(params.Game))
 
+	freshCave := false
 	if queueParams.NoCave {
+		consumer.Infof("No-cave mode enabled")
 		if queueParams.InstallFolder == "" {
 			return nil, errors.New("With noCave is specified, InstallFolder cannot be empty")
 		}
@@ -116,23 +122,25 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		params.InstallFolder = queueParams.InstallFolder
 	} else {
 		if cave == nil {
+			freshCave = true
 			cave = &models.Cave{
 				ID:                uuid.New().String(),
 				InstallLocationID: queueParams.InstallLocationID,
 			}
+			consumer.Infof("Generated fresh cave %s", cave.ID)
+		} else {
+			consumer.Infof("Re-using cave %s", cave.ID)
 		}
 		params.CaveID = cave.ID
 
-		rc.WithConn(func(conn *sqlite.Conn) {
-			if cave.InstallFolderName == "" {
-				cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
-				ensureUniqueFolderName(conn, cave)
-			}
+		if cave.InstallFolderName == "" {
+			cave.InstallFolderName = makeInstallFolderName(params.Game, consumer)
+			ensureUniqueFolderName(conn, cave)
+		}
 
-			params.InstallFolder = cave.GetInstallFolder(conn)
-			params.InstallLocationID = cave.InstallLocationID
-			params.InstallFolderName = cave.InstallFolderName
-		})
+		params.InstallFolder = cave.GetInstallFolder(conn)
+		params.InstallLocationID = cave.InstallLocationID
+		params.InstallFolderName = cave.InstallFolderName
 	}
 
 	params.Upload = queueParams.Upload
@@ -176,6 +184,20 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 			// if we reach this point, we *just now* queried for an upload,
 			// so we know the build object is the latest
 			params.Build = params.Upload.Build
+		}
+	} else {
+		consumer.Infof("Upload specified:")
+		operate.LogUpload(consumer, params.Upload, params.Build)
+	}
+
+	if freshCave {
+		dupCond := builder.Eq{
+			"game_id":   params.Game.ID,
+			"upload_id": params.Upload.ID,
+		}
+		if models.MustSelectOne(conn, &models.Cave{}, dupCond) {
+			consumer.Errorf("Is fresh cave, and found a cave for game %d and upload %d, refusing to proceed.", params.Game.ID, params.Upload.ID)
+			return nil, errors.Errorf("That upload is already installed!")
 		}
 	}
 
@@ -244,6 +266,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		return nil, errors.WithStack(err)
 	}
 
+	success = true
 	res := &butlerd.InstallQueueResult{
 		ID:            id,
 		CaveID:        params.CaveID,
