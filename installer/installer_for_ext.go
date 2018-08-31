@@ -100,6 +100,7 @@ var installerForExt = map[string]InstallerType{
 	///////////////////////////////////////////////////////////
 
 	".gb":  InstallerTypeNaked,
+	".gbc": InstallerTypeNaked,
 	".sfc": InstallerTypeNaked,
 	".smc": InstallerTypeNaked,
 	".swc": InstallerTypeNaked,
