@@ -78,7 +78,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 		consumer.Infof("%s: wiping because inner task failed", destPath)
 		err := os.RemoveAll(destPath)
 		if err != nil {
-			consumer.Warnf("Could not wipe after failed inner task: ", err.Error())
+			consumer.Warnf("Could not wipe after failed inner task: %v", err)
 		}
 
 		if switching {
@@ -86,7 +86,7 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 			consumer.Infof("%s: restoring", previousPath)
 			err := os.Rename(previousPath, destPath)
 			if err != nil {
-				consumer.Warnf("Could not restore previous folder after inner task: ", err.Error())
+				consumer.Warnf("Could not restore previous folder after inner task: %v", err)
 			}
 		}
 
@@ -136,14 +136,14 @@ func SaveAngels(params *SaveAngelsParams, innerTask SaveAngelsFunc) (*SaveAngels
 
 		redemptErr := redempt()
 		if redemptErr != nil {
-			consumer.Warnf("Error while performing redemption: %s", redemptErr.Error())
+			consumer.Warnf("Error while performing redemption: %v", redemptErr)
 		}
 	}
 
 	// and get rid of previous folder
 	err = os.RemoveAll(previousPath)
 	if err != nil {
-		consumer.Warnf("could not remove temp folder %s:", previousPath, err.Error())
+		consumer.Warnf("could not remove temp folder %s: %v", previousPath, err)
 	}
 
 	return &SaveAngelsResult{
@@ -170,7 +170,7 @@ func performAngelRedemption(params *SaveAngelsParams, previousPath string, angel
 	for _, angel := range angels {
 		err := save(angel)
 		if err != nil {
-			consumer.Warnf("Could not save angel %s: %s", angel, err.Error())
+			consumer.Warnf("Could not save angel %s: %v", angel, err)
 			continue
 		}
 	}
