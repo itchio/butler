@@ -96,6 +96,19 @@ var installerForExt = map[string]InstallerType{
 	".yymp": InstallerTypeNaked,
 
 	///////////////////////////////////////////////////////////
+	// ROMs
+	///////////////////////////////////////////////////////////
+
+	".gb":  InstallerTypeNaked,
+	".sfc": InstallerTypeNaked,
+	".smc": InstallerTypeNaked,
+	".swc": InstallerTypeNaked,
+	".gen": InstallerTypeNaked,
+	".sg":  InstallerTypeNaked,
+	".smd": InstallerTypeNaked,
+	".md":  InstallerTypeNaked,
+
+	///////////////////////////////////////////////////////////
 	// Miscellaneous other things
 	///////////////////////////////////////////////////////////
 
