@@ -1261,6 +1261,10 @@ type InstallPlanInfo struct {
 	Build     *itchio.Build  `json:"build"`
 	Type      string         `json:"type"`
 	DiskUsage *DiskUsageInfo `json:"diskUsage"`
+
+	Error        string `json:"error,omitempty"`
+	ErrorMessage string `json:"errorMessage,omitempty"`
+	ErrorCode    int64  `json:"errorCode,omitempty"`
 }
 
 type DiskUsageInfo struct {
@@ -2384,6 +2388,9 @@ const (
 
 	// This title is packaged in a way that is not supported.
 	CodeUnsupportedPackaging Code = 3000
+
+	// This title is hosted on an incompatible third-party website
+	CodeUnsupportedHost Code = 3001
 
 	// Nothing that can be launched was found
 	CodeNoLaunchCandidates Code = 5000

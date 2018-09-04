@@ -250,21 +250,6 @@ func ValidateCave(rc *butlerd.RequestContext, caveID string) *models.Cave {
 	return cave
 }
 
-func UploadIsProbablyExternal(u *itchio.Upload) bool {
-	if u.ChannelName != "" {
-		// wharf uploads are definitely not external uploads
-		return false
-	}
-
-	if u.Size != 0 {
-		// uploads with a size are definitely not external uploads
-		return false
-	}
-
-	// everything else though... we don't know.
-	return true
-}
-
 func FindBuildFile(files []*itchio.BuildFile, fileType itchio.BuildFileType, subType itchio.BuildFileSubType) *itchio.BuildFile {
 	for _, f := range files {
 		if f.Type == fileType && f.SubType == subType {

@@ -234,7 +234,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		}
 	}
 
-	if operate.UploadIsProbablyExternal(params.Upload) {
+	if params.Upload.Storage == itchio.UploadStorageExternal {
 		res, err := messages.ExternalUploadsAreBad.Call(rc, butlerd.ExternalUploadsAreBadParams{
 			Upload: params.Upload,
 		})

@@ -6575,6 +6575,21 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <td><code class="typename"><span class="type struct-type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -6598,6 +6613,18 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>diskUsage</code></td>
 <td><code class="typename"><span class="type struct-type">DiskUsageInfo</span></code></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorMessage</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorCode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -7366,6 +7393,11 @@ can be part of an issue report if something goes wrong.</p>
 </td>
 </tr>
 <tr>
+<td><code>3001</code></td>
+<td><p>This title is hosted on an incompatible third-party website</p>
+</td>
+</tr>
+<tr>
 <td><code>5000</code></td>
 <td><p>Nothing that can be launched was found</p>
 </td>
@@ -7411,6 +7443,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>3000</code></td>
+</tr>
+<tr>
+<td><code>3001</code></td>
 </tr>
 <tr>
 <td><code>5000</code></td>

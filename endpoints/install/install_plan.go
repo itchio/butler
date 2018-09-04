@@ -1,6 +1,8 @@
 package install
 
 import (
+	"fmt"
+
 	"github.com/go-xorm/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
@@ -16,6 +18,7 @@ import (
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
 	"github.com/pkg/errors"
+	"github.com/sourcegraph/jsonrpc2"
 )
 
 func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
@@ -63,6 +66,18 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 
 	info := &butlerd.InstallPlanInfo{}
+	res.Info = info
+
+	setResError := func(err error) {
+		info.Error = fmt.Sprintf("%+v", err)
+		if be, ok := butlerd.AsButlerdError(err); ok {
+			info.ErrorCode = be.RpcErrorCode()
+			info.ErrorMessage = be.RpcErrorMessage()
+		} else {
+			info.ErrorCode = int64(jsonrpc2.CodeInternalError)
+			info.ErrorMessage = err.Error()
+		}
+	}
 
 	var upload *itchio.Upload
 	if params.UploadID != 0 {
@@ -84,6 +99,11 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	info.Upload = upload
 	info.Build = upload.Build
 
+	if upload.Storage == itchio.UploadStorageExternal && operate.IsBadExternalHost(upload.Host) {
+		setResError(errors.WithStack(butlerd.CodeUnsupportedHost))
+		return res, nil
+	}
+
 	sessionID := params.DownloadSessionID
 	if sessionID == "" {
 		sessionID = uuid.New().String()
@@ -102,13 +122,15 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	file, err := eos.Open(sourceURL, option.WithConsumer(consumer))
 	if err != nil {
-		return nil, errors.WithStack(err)
+		setResError(errors.WithStack(err))
+		return res, nil
 	}
 	defer file.Close()
 
 	installerInfo, err := installer.GetInstallerInfo(consumer, file)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		setResError(errors.WithStack(err))
+		return res, nil
 	}
 
 	info.Type = string(installerInfo.Type)
@@ -119,7 +141,8 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	dui, err := operate.AssessDiskUsage(file, receiptIn, installFolder, installerInfo)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		setResError(errors.WithStack(err))
+		return res, nil
 	}
 
 	info.DiskUsage = &butlerd.DiskUsageInfo{
@@ -128,6 +151,5 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		Accuracy:        dui.Accuracy.String(),
 	}
 
-	res.Info = info
 	return res, nil
 }

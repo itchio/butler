@@ -180,8 +180,13 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	res.File = file
 	defer file.Close()
 
-	if params.Build == nil && UploadIsProbablyExternal(params.Upload) {
-		consumer.Warnf("Dealing with an external upload, all bets are off.")
+	if params.Upload.Storage == itchio.UploadStorageExternal {
+		consumer.Warnf("Dealing with an external upload (from %s), all bets are off.", params.Upload.Host)
+
+		if IsBadExternalHost(params.Upload.Host) {
+			consumer.Warnf("Host (%s) is known not to work, failing early.", params.Upload.Host)
+			return errors.WithStack(butlerd.CodeUnsupportedHost)
+		}
 
 		if !allowDownloads {
 			consumer.Warnf("Can't determine source information at that time")

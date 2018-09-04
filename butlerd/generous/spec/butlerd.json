@@ -2501,6 +2501,21 @@
           "name": "diskUsage",
           "doc": "",
           "type": "DiskUsageInfo"
+        },
+        {
+          "name": "error",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "errorMessage",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "errorCode",
+          "doc": "",
+          "type": "number"
         }
       ]
     },
