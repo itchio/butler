@@ -26,21 +26,31 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	game := fetch.LazyFetchGame(rc, params.GameID)
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
-	runtime := ox.CurrentRuntime()
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
+	baseUploads = manager.NarrowDownUploads(consumer, game, baseUploads, ox.CurrentRuntime()).Uploads
 
 	// exclude already-installed and currently-installing uploads
 	var uploadIDs []interface{}
 	for _, u := range baseUploads {
 		uploadIDs = append(uploadIDs, u.ID)
 	}
-	var uploads []*itchio.Upload
-	models.MustSelect(conn, &uploads, builder.And(
+	var validUploads []*itchio.Upload
+	models.MustSelect(conn, &validUploads, builder.And(
 		builder.In("id", uploadIDs...),
 		builder.Expr(`not exists (select 1 from caves where upload_id = uploads.id)`),
 		builder.Expr(`not exists (select 1 from downloads where upload_id = uploads.id)`),
 	), hades.Search{})
-	uploads = manager.NarrowDownUploads(consumer, game, uploads, runtime).Uploads
+	validUploadIDs := make(map[int64]bool)
+	for _, u := range validUploads {
+		validUploadIDs[u.ID] = true
+	}
+	// do a little dance to keep the ordering proper
+	var uploads []*itchio.Upload
+	for _, u := range baseUploads {
+		if validUploadIDs[u.ID] {
+			uploads = append(uploads, u)
+		}
+	}
 
 	res := &butlerd.InstallPlanResult{
 		Game:    game,
