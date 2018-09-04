@@ -2982,6 +2982,16 @@
           "type": "number"
         },
         {
+          "name": "storage",
+          "doc": "Storage (hosted, external, etc.)",
+          "type": "UploadStorage"
+        },
+        {
+          "name": "host",
+          "doc": "Host (if external storage)",
+          "type": "string"
+        },
+        {
           "name": "filename",
           "doc": "Original file name (example: `Overland_x64.zip`)",
           "type": "string"

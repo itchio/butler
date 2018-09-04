@@ -8477,6 +8477,18 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </td>
 </tr>
 <tr>
+<td><code>storage</code></td>
+<td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadStorage__TypeHint">UploadStorage</span></code></td>
+<td><p>Storage (hosted, external, etc.)</p>
+</td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Host (if external storage)</p>
+</td>
+</tr>
+<tr>
 <td><code>filename</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p>Original file name (example: <code>Overland_x64.zip</code>)</p>
@@ -8567,6 +8579,14 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
+<td><code>storage</code></td>
+<td><code class="typename"><span class="type enum-type">UploadStorage</span></code></td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
 <td><code>filename</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
@@ -8613,6 +8633,52 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>UploadStorage
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"hosted"</code></td>
+<td><p>Classic upload (web) - no versioning</p>
+</td>
+</tr>
+<tr>
+<td><code>"build"</code></td>
+<td><p>Wharf upload (butler)</p>
+</td>
+</tr>
+<tr>
+<td><code>"external"</code></td>
+<td><p>External upload - alllllllll bets are off.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="UploadStorage__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>UploadStorage <a href="#/?id=uploadstorage">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"hosted"</code></td>
+</tr>
+<tr>
+<td><code>"build"</code></td>
+</tr>
+<tr>
+<td><code>"external"</code></td>
 </tr>
 </table>
 
