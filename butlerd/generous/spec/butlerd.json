@@ -1211,6 +1211,11 @@
             "name": "caveId",
             "doc": "The cave to uninstall",
             "type": "string"
+          },
+          {
+            "name": "hard",
+            "doc": "If true, don't attempt to run any uninstallers, just\nremove the DB record and burn the install folder to the ground.",
+            "type": "boolean"
           }
         ]
       },

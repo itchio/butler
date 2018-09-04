@@ -1343,6 +1343,11 @@ type InstallCancelResult struct {
 type UninstallPerformParams struct {
 	// The cave to uninstall
 	CaveID string `json:"caveId"`
+
+	// If true, don't attempt to run any uninstallers, just
+	// remove the DB record and burn the install folder to the ground.
+	// @optional
+	Hard bool `json:"hard"`
 }
 
 func (p UninstallPerformParams) Validate() error {

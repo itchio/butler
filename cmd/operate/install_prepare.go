@@ -139,7 +139,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 				)
 
 				if totalUpgradeSize > fullUploadSize {
-					consumer.Infof("Heal is less expensive, let's do that", len(upgradePath.Builds))
+					consumer.Infof("Heal is less expensive, let's do that")
 					res.Strategy = InstallPerformStrategyHeal
 					return task(res)
 				}

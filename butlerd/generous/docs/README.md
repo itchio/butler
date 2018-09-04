@@ -3189,6 +3189,13 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 <td><p>The cave to uninstall</p>
 </td>
 </tr>
+<tr>
+<td><code>hard</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, don&rsquo;t attempt to run any uninstallers, just
+remove the DB record and burn the install folder to the ground.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3211,6 +3218,10 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>hard</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
