@@ -69,6 +69,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	res.Info = info
 
 	setResError := func(err error) {
+		consumer.Errorf("Planning failed: %+v", err)
 		info.Error = fmt.Sprintf("%+v", err)
 		if be, ok := butlerd.AsButlerdError(err); ok {
 			info.ErrorCode = be.RpcErrorCode()
