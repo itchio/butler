@@ -28,7 +28,6 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	runtime := ox.CurrentRuntime()
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
-	baseUploads = manager.NarrowDownUploads(consumer, game, baseUploads, runtime).Uploads
 
 	// exclude already-installed and currently-installing uploads
 	var uploadIDs []interface{}
@@ -41,6 +40,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		builder.Expr(`not exists (select 1 from caves where upload_id = uploads.id)`),
 		builder.Expr(`not exists (select 1 from downloads where upload_id = uploads.id)`),
 	), hades.Search{})
+	uploads = manager.NarrowDownUploads(consumer, game, uploads, runtime).Uploads
 
 	res := &butlerd.InstallPlanResult{
 		Game:    game,
