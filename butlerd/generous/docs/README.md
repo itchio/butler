@@ -1489,8 +1489,7 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Marks that a request should be issued
-afterwards with &lsquo;Fresh&rsquo; set</p>
+<td><p><span class="tag">Optional</span> Marks that a request should be issued afterwards with &lsquo;Fresh&rsquo; set</p>
 </td>
 </tr>
 </table>
@@ -1507,6 +1506,84 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 <table class="field-table">
 <tr>
 <td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="request-client-caller"></em>Fetch.DownloadKey
+
+
+<p>
+<p>Fetches a download key</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadKeyId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadKey</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Marks that a request should be issued afterwards with &lsquo;Fresh&rsquo; set</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchDownloadKeyParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Fetch.DownloadKey <a href="#/?id=fetchdownloadkey">(Go to definition)</a></p>
+
+<p>
+<p>Fetches a download key</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>downloadKeyId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>

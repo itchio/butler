@@ -408,7 +408,45 @@
           },
           {
             "name": "stale",
-            "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
+            "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.DownloadKey",
+      "doc": "Fetches a download key",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "downloadKeyId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "fresh",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "downloadKey",
+            "doc": "",
+            "type": "DownloadKey"
+          },
+          {
+            "name": "stale",
+            "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
             "type": "boolean"
           }
         ]

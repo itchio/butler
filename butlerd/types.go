@@ -425,14 +425,43 @@ type FetchGameResult struct {
 	// Game info
 	Game *itchio.Game `json:"game"`
 
-	// Marks that a request should be issued
-	// afterwards with 'Fresh' set
+	// Marks that a request should be issued afterwards with 'Fresh' set
 	// @optional
 	Stale bool `json:"stale,omitempty"`
 }
 
 func (r *FetchGameResult) SetStale(stale bool) {
 	r.Stale = stale
+}
+
+// Fetches a download key
+//
+// @name Fetch.DownloadKey
+// @category Fetch
+// @caller client
+type FetchDownloadKeyParams struct {
+	DownloadKeyID int64 `json:"downloadKeyId"`
+	ProfileID     int64 `json:"profileId"`
+	Fresh         bool  `json:"fresh"`
+}
+
+func (p FetchDownloadKeyParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.DownloadKeyID, validation.Required),
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchDownloadKeyParams) IsFresh() bool {
+	return p.Fresh
+}
+
+type FetchDownloadKeyResult struct {
+	DownloadKey *itchio.DownloadKey `json:"downloadKey"`
+
+	// Marks that a request should be issued afterwards with 'Fresh' set
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // Fetches uploads for an itch.io game
