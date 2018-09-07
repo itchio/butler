@@ -63,17 +63,18 @@ func DownloadsQueue(rc *butlerd.RequestContext, params butlerd.DownloadsQueuePar
 	)
 
 	d := &models.Download{
-		ID:            item.ID,
-		Reason:        string(item.Reason),
-		CaveID:        item.CaveID,
-		Position:      models.DownloadMaxPosition(conn) + 1,
-		Game:          item.Game,
-		Upload:        item.Upload,
-		Build:         item.Build,
-		InstallFolder: item.InstallFolder,
-		StagingFolder: item.StagingFolder,
-		StartedAt:     &startedAt,
-		Fresh:         Fresh,
+		ID:                item.ID,
+		Reason:            string(item.Reason),
+		CaveID:            item.CaveID,
+		Position:          models.DownloadMaxPosition(conn) + 1,
+		Game:              item.Game,
+		Upload:            item.Upload,
+		Build:             item.Build,
+		InstallFolder:     item.InstallFolder,
+		StagingFolder:     item.StagingFolder,
+		InstallLocationID: item.InstallLocationID,
+		StartedAt:         &startedAt,
+		Fresh:             Fresh,
 	}
 
 	models.MustSave(conn, d,

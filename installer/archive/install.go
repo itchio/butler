@@ -3,6 +3,7 @@ package archive
 import (
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/itchio/savior"
 
@@ -60,6 +61,10 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		Directory: params.InstallFolderPath,
 		Consumer:  consumer,
 	}
+	var closeSinkOnce sync.Once
+	defer closeSinkOnce.Do(func() {
+		sink.Close()
+	})
 
 	aRes, err := ex.Resume(checkpoint, sink)
 	if err != nil {
@@ -70,7 +75,9 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		return nil, errors.WithStack(err)
 	}
 
-	err = sink.Close()
+	closeSinkOnce.Do(func() {
+		err = sink.Close()
+	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

@@ -268,14 +268,15 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 
 	success = true
 	res := &butlerd.InstallQueueResult{
-		ID:            id,
-		CaveID:        params.CaveID,
-		Game:          params.Game,
-		Upload:        params.Upload,
-		Build:         params.Build,
-		InstallFolder: params.InstallFolder,
-		StagingFolder: params.StagingFolder,
-		Reason:        params.Reason,
+		ID:                id,
+		CaveID:            params.CaveID,
+		Game:              params.Game,
+		Upload:            params.Upload,
+		Build:             params.Build,
+		InstallFolder:     params.InstallFolder,
+		StagingFolder:     params.StagingFolder,
+		Reason:            params.Reason,
+		InstallLocationID: params.InstallLocationID,
 	}
 
 	if queueParams.QueueDownload {

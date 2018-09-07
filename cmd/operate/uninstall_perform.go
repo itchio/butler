@@ -18,12 +18,12 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params bu
 	defer rc.PutConn(conn)
 
 	cave := ValidateCave(rc, params.CaveID)
-	installFolder := cave.GetInstallFolder(conn)
 
 	if params.Hard {
-		consumer.Opf("Performing hard uninstall for (%s)", installFolder)
+		consumer.Opf("Performing hard uninstall for (%s)", cave.ID)
 	} else {
-		consumer.Opf("Performing graceful uninstall for (%s)", installFolder)
+		consumer.Opf("Performing graceful uninstall for (%s)", cave.ID)
+		installFolder := cave.GetInstallFolder(conn)
 
 		var installerType = installer.InstallerTypeUnknown
 
@@ -86,11 +86,17 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params bu
 	consumer.Infof("Clearing out downloads...")
 	models.DiscardDownloadsByCaveID(conn, cave.ID)
 
-	consumer.Infof("Wiping install folder...")
-	err := wipe.Do(consumer, installFolder)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				consumer.Warnf("While wiping install folder: %+v", r)
+			}
+		}()
+		consumer.Infof("Wiping install folder...")
+
+		installFolder := cave.GetInstallFolder(conn)
+		models.Must(wipe.Do(consumer, installFolder))
+	}()
 
 	return nil
 }

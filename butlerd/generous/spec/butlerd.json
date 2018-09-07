@@ -1102,6 +1102,11 @@
             "name": "stagingFolder",
             "doc": "",
             "type": "string"
+          },
+          {
+            "name": "installLocationId",
+            "doc": "",
+            "type": "string"
           }
         ]
       }

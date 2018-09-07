@@ -2879,6 +2879,11 @@ See <code class="typename"><span class="type request-client-caller" data-tip-sel
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -7494,6 +7499,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>The database is busy</p>
 </td>
 </tr>
+<tr>
+<td><code>18000</code></td>
+<td><p>An install location could not be removed because it has active downloads</p>
+</td>
+</tr>
 </table>
 
 
@@ -7535,6 +7545,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>16000</code></td>
+</tr>
+<tr>
+<td><code>18000</code></td>
 </tr>
 </table>
 

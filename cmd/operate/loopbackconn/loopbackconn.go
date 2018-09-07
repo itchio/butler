@@ -68,7 +68,7 @@ func (lc *loopbackConn) Call(ctx context.Context, method string, params interfac
 	if h, ok := lc.callHandlers[method]; ok {
 		return h(ctx, method, params, result)
 	}
-	return fmt.Errorf("No handle registered for method (%s)", method)
+	return fmt.Errorf("No handler registered for method (%s)", method)
 }
 
 func (lc *loopbackConn) Close() error {

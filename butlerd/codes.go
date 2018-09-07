@@ -22,6 +22,8 @@ var codeMessages = map[Code]string{
 	CodeAPIError: "API error",
 
 	CodeDatabaseBusy: "The database is busy",
+
+	CodeCantRemoveLocationBecauseOfActiveDownloads: "An install location could not be removed because it has active downloads",
 }
 
 func (code Code) RpcErrorMessage() string {

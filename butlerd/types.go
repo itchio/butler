@@ -1227,14 +1227,15 @@ func (p InstallQueueParams) Validate() error {
 }
 
 type InstallQueueResult struct {
-	ID            string         `json:"id"`
-	Reason        DownloadReason `json:"reason"`
-	CaveID        string         `json:"caveId"`
-	Game          *itchio.Game   `json:"game"`
-	Upload        *itchio.Upload `json:"upload"`
-	Build         *itchio.Build  `json:"build"`
-	InstallFolder string         `json:"installFolder"`
-	StagingFolder string         `json:"stagingFolder"`
+	ID                string         `json:"id"`
+	Reason            DownloadReason `json:"reason"`
+	CaveID            string         `json:"caveId"`
+	Game              *itchio.Game   `json:"game"`
+	Upload            *itchio.Upload `json:"upload"`
+	Build             *itchio.Build  `json:"build"`
+	InstallFolder     string         `json:"installFolder"`
+	StagingFolder     string         `json:"stagingFolder"`
+	InstallLocationID string         `json:"installLocationId"`
 }
 
 // Sent during @@InstallQueueParams.
@@ -2432,6 +2433,9 @@ const (
 
 	// The database is busy
 	CodeDatabaseBusy Code = 16000
+
+	// An install location could not be removed because it has active downloads
+	CodeCantRemoveLocationBecauseOfActiveDownloads Code = 18000
 )
 
 //==================================

@@ -297,7 +297,7 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 				LastTouched: 0,
 				SecondsRun:  0,
 
-				InstalledAt: receiptStats.ModTime().Format(time.RFC3339),
+				InstalledAt: receiptStats.ModTime().UTC().Format(time.RFC3339),
 
 				PathScheme:      2,
 				InstallLocation: il.ID,
@@ -305,6 +305,8 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 			}
 			sc.queue(&task{legCave, receipt.Files})
 		} else {
+			consumer.Infof("Reading legacy itch recept from %s", legacyReceiptPath)
+
 			lr := &legacyReceipt{}
 			err := json.Unmarshal(legacyReceiptBytes, lr)
 			if err != nil {
@@ -315,6 +317,13 @@ func (sc *scanContext) DoInstallLocation(il *models.InstallLocation) error {
 
 			if lr.Cave != nil && sc.hasCave(lr.Cave.ID) {
 				return nil
+			}
+
+			if lr.Cave != nil {
+				if lr.Cave.InstallLocation != il.ID {
+					consumer.Infof("Mapping found location ID from (%s) to existing (%s)", lr.Cave.InstallLocation, il.ID)
+					lr.Cave.InstallLocation = il.ID
+				}
 			}
 			sc.queue(&task{lr.Cave, lr.Files})
 		}
@@ -410,6 +419,8 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 		return nil
 	}
 
+	consumer.Infof("Item (%s)", InstallFolder)
+
 	legacyReceiptPath := filepath.Join(InstallFolder, ".itch", "receipt.json")
 
 	access := operate.AccessForGameID(sc.conn, legacyCave.GameID)
@@ -482,7 +493,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 		consumer.Warnf("Unable to get installed at timestamp, going with legacy receipt mtime")
 		legacyReceiptStats, err := os.Stat(legacyReceiptPath)
 		if err == nil {
-			receiptModTime := legacyReceiptStats.ModTime()
+			receiptModTime := legacyReceiptStats.ModTime().UTC()
 			InstalledAt = &receiptModTime
 		}
 	}
@@ -616,6 +627,7 @@ func fromJSTimestamp(timestamp float64) *time.Time {
 	// this assumes UTC timestamp
 	secondsSinceEpoch := int64(timestamp / 1000.0)
 	t := time.Unix(secondsSinceEpoch, 0)
+	t = t.UTC()
 	return &t
 }
 
@@ -624,6 +636,7 @@ func fromJSDate(date string) *time.Time {
 	if err != nil {
 		return nil
 	}
+	t = t.UTC()
 	return &t
 }
 

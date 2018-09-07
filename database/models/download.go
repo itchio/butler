@@ -41,6 +41,8 @@ type Download struct {
 	StagingFolder string `json:"stagingFolder"`
 	InstallFolder string `json:"installFolder"`
 
+	InstallLocationID string `json:"installLocationId"`
+
 	Discarded bool `json:"discarded"`
 	Fresh     bool `json:"fresh"`
 }

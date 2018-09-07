@@ -121,17 +121,27 @@ func InstallLocationsRemove(rc *butlerd.RequestContext, params butlerd.InstallLo
 		return res, nil
 	}
 
-	caveCount := models.MustCount(conn, &models.Cave{}, builder.Eq{"install_location_id": il.ID})
-	if caveCount > 0 {
-		// TODO: suggest moving to another install location
-		return nil, errors.Errorf("Refusing to remove install location (%s) because it is not empty", params.ID)
-	}
-
 	locationCount := models.MustCount(conn, &models.InstallLocation{}, builder.NewCond())
 	if locationCount <= 1 {
 		return nil, errors.Errorf("Refusing to remove last install location")
 	}
 
+	caveCount := models.MustCount(conn, &models.Cave{}, builder.Eq{"install_location_id": il.ID})
+	consumer.Statf("Found %d caves in install location", caveCount)
+
+	downloadsCount := models.MustCount(conn, &models.Download{}, builder.And(
+		builder.IsNull{"finished_at"},
+		builder.Eq{"install_location_id": params.ID},
+	))
+	if downloadsCount > 0 {
+		consumer.Errorf("There are %d downloads in progress, refusing to remove install location.", downloadsCount)
+		return nil, errors.WithStack(butlerd.CodeCantRemoveLocationBecauseOfActiveDownloads)
+	} else {
+		consumer.Statf("No downloads in progress")
+	}
+
+	models.MustDelete(conn, &models.Download{}, builder.Eq{"install_location_id": il.ID})
+	models.MustDelete(conn, &models.Cave{}, builder.Eq{"install_location_id": il.ID})
 	models.MustDelete(conn, &models.InstallLocation{}, builder.Eq{"id": il.ID})
 	res := &butlerd.InstallLocationsRemoveResult{}
 	return res, nil
