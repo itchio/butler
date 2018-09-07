@@ -47,7 +47,7 @@ func (c *Context) syncTable(conn *sqlite.Conn, stats *AutoMigrateStats, ms *Mode
 
 	err = c.ExecRaw(conn, "PRAGMA foreign_keys = 0", nil)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	oldColumns := make(map[string]PragmaTableInfoRow)
@@ -90,15 +90,15 @@ func (c *Context) syncTable(conn *sqlite.Conn, stats *AutoMigrateStats, ms *Mode
 	}
 
 	stats.NumMigrated++
-	tempName := fmt.Sprintf("__hades_migrate__%s__", tableName)
+	tempName := fmt.Sprintf("__hades_migrate__%s__%d__", tableName, time.Now().UnixNano())
 	err = c.ExecRaw(conn, fmt.Sprintf("CREATE TABLE %s AS SELECT * FROM %s", tempName, tableName), nil)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = c.dropTable(conn, tableName)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = c.createTable(conn, ms)
@@ -139,17 +139,17 @@ func (c *Context) syncTable(conn *sqlite.Conn, stats *AutoMigrateStats, ms *Mode
 
 	err = c.ExecRaw(conn, query, nil)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = c.dropTable(conn, tempName)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = c.ExecRaw(conn, "PRAGMA foreign_keys = 1", nil)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil
