@@ -90,7 +90,6 @@ func RunAppBundle(params *RunnerParams, bundlePath string) error {
 		if err != nil {
 			consumer.Errorf("While killing: %s", err.Error())
 		}
-		os.Exit(0)
 	}()
 
 	err = cmd.Run()

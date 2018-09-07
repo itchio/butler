@@ -351,7 +351,7 @@
 			"importpath": "github.com/itchio/smaug",
 			"repository": "https://github.com/itchio/smaug",
 			"vcs": "git",
-			"revision": "d01d925fe7ceae014cd7127dbe323657ed40e7a1",
+			"revision": "39ebfd0c4236a784c9caa18cf55ae026c8dc6a83",
 			"branch": "master",
 			"notests": true
 		},
