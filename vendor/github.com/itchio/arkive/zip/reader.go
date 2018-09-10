@@ -118,6 +118,12 @@ func (z *Reader) init(r io.ReaderAt, size int64) error {
 		// the wrong number of directory entries.
 		return err
 	}
+
+	err = normalizeNameEncoding(z)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -19,8 +19,6 @@ import (
 
 const defaultFlateThreshold = 1 * 1024 * 1024
 
-var ErrBadZipEntryEncoding = errors.New(".zip file contains non-ASCII entries that are not encoded with UTF-8")
-
 type ZipExtractor struct {
 	zr *zip.Reader
 
@@ -60,28 +58,7 @@ func New(reader io.ReaderAt, readerSize int64) (*ZipExtractor, error) {
 		}
 	}
 
-	err = ex.verifyEncodings()
-	if err != nil {
-		return nil, err
-	}
-
 	return ex, nil
-}
-
-// Make sure that all entries have either
-// - only ASCII characters
-// - the UTF-8 flag set
-func (ze *ZipExtractor) verifyEncodings() error {
-	for _, f := range ze.zr.File {
-		if f.NonUTF8 {
-			for _, r := range f.Name {
-				if r > 127 {
-					return errors.WithStack(ErrBadZipEntryEncoding)
-				}
-			}
-		}
-	}
-	return nil
 }
 
 func (ze *ZipExtractor) SetSaveConsumer(saveConsumer savior.SaveConsumer) {

@@ -231,7 +231,7 @@
 			"importpath": "github.com/itchio/arkive",
 			"repository": "https://github.com/itchio/arkive",
 			"vcs": "git",
-			"revision": "48796fce3d2bb940246856d1042501ecde24bb53",
+			"revision": "fc46d4d216ca7680a76734385c360571efad1e1b",
 			"branch": "master",
 			"notests": true
 		},
@@ -335,7 +335,7 @@
 			"importpath": "github.com/itchio/savior",
 			"repository": "https://github.com/itchio/savior",
 			"vcs": "git",
-			"revision": "abac68dadcb5b33490ba93280ce4afd48983a71c",
+			"revision": "9a5e81d13cd125ef7c3a853d3e6f405fabed8094",
 			"branch": "master",
 			"notests": true
 		},
