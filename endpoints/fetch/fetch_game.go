@@ -33,11 +33,13 @@ func FetchGame(rc *butlerd.RequestContext, params butlerd.FetchGameParams) (*but
 	})
 
 	res.Game = models.GameByID(conn, params.GameID)
+
 	if res.Game == nil && !params.Fresh {
 		params.Fresh = true
 		return FetchGame(rc, params)
 	}
 
+	models.MustPreloadGameSales(conn, res.Game)
 	return res, nil
 }
 

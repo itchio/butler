@@ -13,10 +13,16 @@ type join struct {
 }
 
 type Search struct {
+	groups []string
 	orders []string
 	joins  []join
 	offset *int64
 	limit  *int64
+}
+
+func (s Search) GroupBy(group string) Search {
+	s.groups = append(s.groups, group)
+	return s
 }
 
 func (s Search) OrderBy(order string) Search {
@@ -43,6 +49,10 @@ func (s Search) Join(joinTable string, joinCond string) Search {
 }
 
 func (s Search) Apply(sql string) string {
+	if len(s.groups) > 0 {
+		sql = fmt.Sprintf("%s GROUP BY %s", sql, strings.Join(s.groups, ", "))
+	}
+
 	if len(s.orders) > 0 {
 		sql = fmt.Sprintf("%s ORDER BY %s", sql, strings.Join(s.orders, ", "))
 	}
