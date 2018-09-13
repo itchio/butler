@@ -1,22 +1,31 @@
 
 # Installing butler
 
-You can download the latest, bleeding-edge version of butler from here:
+## The human-friendly way
 
-  - [OSX 64-bit](https://dl.itch.ovh/butler/darwin-amd64/head/butler)
-  - [Linux 64-bit](https://dl.itch.ovh/butler/linux-amd64/head/butler) and [Linux 32-bit](https://dl.itch.ovh/butler/linux-386/head/butler)
-  - [Windows 64-bit](https://dl.itch.ovh/butler/windows-amd64/head/butler.exe) and [Windows 32-bit](https://dl.itch.ovh/butler/windows-386/head/butler.exe)
+You can download stable and bleeding-edge builds of butler from its itch.io page:
 
-Alternatively, if you have the [itch app](https://itch.io/app) installed, then
-you already have a stable build of butler on your system, in:
+  - <https://fasterthanlime.itch.io/butler>
 
-  * `%APPDATA%\itch\bin` on Windows
-  * `~/.config/itch/bin` on Linux
-  * `~/Library/Application Support/itch/bin` on Mac OS
+Better yet, you can install it using the [itch app](https://itch.io/app), so it stays up-to-date.
 
-The itch app will update its version of butler to the latest stable
-on start-up. If you upgrade it to the bleeding-edge version, the itch
-app will stop checking for upgrades.
+## The automation-friendly way
+
+You can download the latest, bleeding-edge version of butler from broth:
+
+  - <https://broth.itch.ovh/butler>
+
+broth is the download server used by the desktop app to install its own copy of butler.
+
+The `-head` channels are bleeding-edge, the other ones are stable.
+
+This is recommended if you need to install butler as part of a script, perhaps for continuous deployment
+
+If you want to get the latest stable, for example, you could curl or wget the following URL:
+
+  - <https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default>
+
+You can substitute `linux-amd64` with any channel listed on broth.
 
 ## Adding butler to your path
 
@@ -57,7 +66,7 @@ now be able to move on to the `First run` section.
 you can skip the chmod command and use this line in your `~/.bashrc` instead:
 
 ```sh
-export PATH="$PATH:~/.config/itch/bin"
+export PATH="$PATH:~/.config/itch/apps/butler"
 ```
 
 ### On macOS
@@ -68,7 +77,7 @@ Follow the Linux instructions, except:
   * If you want to use the itch app version, use this line in your `~/.bash_profile` instead:
 
 ```sh
-export PATH="$PATH:~/Library/Application Support/itch/bin"
+export PATH="$PATH:~/Library/Application Support/itch/apps/butler"
 ```
 
 *(don't forget the double-quotes, they're needed because there is a space in Application Support)*
@@ -89,7 +98,7 @@ butler -V
 It should print something like that:
 
 ```bash
-head, built on Apr 18 2016 @ 16:17:21
+head, built on Sep 13 2018 @ 10:59:39, ref 30fe1c38a9611d6b17dc61c7d4fb9582aa369d41
 ```
 
 Or if you're using a stable version, `head` will be replaced by a [semantic version
