@@ -8533,13 +8533,13 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 </tr>
 <tr>
 <td><code>startDate</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp the sale started at</p>
 </td>
 </tr>
 <tr>
 <td><code>endDate</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 <td><p>Timestamp the sale ends at</p>
 </td>
 </tr>
@@ -8569,11 +8569,11 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 </tr>
 <tr>
 <td><code>startDate</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 <tr>
 <td><code>endDate</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
 </tr>
 </table>
 

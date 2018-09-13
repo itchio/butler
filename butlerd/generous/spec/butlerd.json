@@ -3021,12 +3021,12 @@
         {
           "name": "startDate",
           "doc": "Timestamp the sale started at",
-          "type": "string"
+          "type": "Date"
         },
         {
           "name": "endDate",
           "doc": "Timestamp the sale ends at",
-          "type": "string"
+          "type": "Date"
         }
       ]
     },
