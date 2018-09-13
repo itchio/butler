@@ -59,6 +59,7 @@ var installerForExt = map[string]InstallerType{
 	".doc":    InstallerTypeNaked,
 	".docx":   InstallerTypeNaked,
 	".epub":   InstallerTypeNaked,
+	".mobi":   InstallerTypeNaked,
 	".pdb":    InstallerTypeNaked,
 	".fb2":    InstallerTypeNaked,
 	".xeb":    InstallerTypeNaked,
