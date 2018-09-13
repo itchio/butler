@@ -175,9 +175,9 @@ type Sale struct {
 	// Can be negative, see https://itch.io/updates/introducing-reverse-sales
 	Rate float64 `json:"rate"`
 	// Timestamp the sale started at
-	StartDate string `json:"startDate"`
+	StartDate time.Time `json:"startDate"`
 	// Timestamp the sale ends at
-	EndDate string `json:"endDate"`
+	EndDate time.Time `json:"endDate"`
 }
 
 // An Upload is a downloadable file. Some are wharf-enabled, which means
