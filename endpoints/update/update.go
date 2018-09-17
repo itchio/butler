@@ -289,7 +289,8 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	operate.LogUpload(consumer, cave.Upload, cave.Build)
 
 	listUploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
-		GameID: cave.Game.ID,
+		GameID:      cave.Game.ID,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
