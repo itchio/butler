@@ -219,6 +219,13 @@ func StartProcessWithLogon(argv0 string, argv []string, username string, domain 
 	si.StdOutput = fd[1]
 	si.StdErr = fd[2]
 
+	if sys.CreationFlags&CREATE_NEW_CONSOLE != 0 {
+		si.Flags &^= syscall.STARTF_USESTDHANDLES
+		si.StdInput = 0
+		si.StdOutput = 0
+		si.StdErr = 0
+	}
+
 	pi := new(syscall.ProcessInformation)
 
 	if username == "" {

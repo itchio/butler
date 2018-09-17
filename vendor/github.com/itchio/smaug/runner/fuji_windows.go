@@ -109,8 +109,13 @@ func (wr *fujiRunner) Run() error {
 	cmd.Stdout = params.Stdout
 	cmd.Stderr = params.Stderr
 
+	var creationFlags uint32 = syscallex.CREATE_SUSPENDED
+	if params.Console {
+		// note: this will disable std{in,out,err} redirection
+		creationFlags |= syscallex.CREATE_NEW_CONSOLE
+	}
 	cmd.SysProcAttr = &syscallex.SysProcAttr{
-		CreationFlags: syscallex.CREATE_SUSPENDED,
+		CreationFlags: creationFlags,
 		LogonFlags:    syscallex.LOGON_WITH_PROFILE,
 	}
 

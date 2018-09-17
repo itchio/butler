@@ -143,6 +143,13 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		args = append([]string{name}, args...)
 		name = "love"
 		fullTargetPath = "love"
+		consumer.Infof("We're launching a .love bundle, trying to execute with love runtime")
+	}
+
+	console := false
+	if params.Action != nil && params.Action.Console {
+		console = true
+		consumer.Infof("Console launch requested")
 	}
 
 	runParams := &runner.RunnerParams{
@@ -150,6 +157,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		Ctx:      params.Ctx,
 
 		Sandbox: params.Sandbox,
+		Console: console,
 
 		FullTargetPath: fullTargetPath,
 

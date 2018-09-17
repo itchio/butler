@@ -41,6 +41,7 @@ type JobObjectAssociateCompletionPort struct {
 
 const (
 	CREATE_SUSPENDED      = 0x00000004
+	CREATE_NEW_CONSOLE    = 0x00000010
 	PROCESS_ALL_ACCESS    = syscall.STANDARD_RIGHTS_REQUIRED | syscall.SYNCHRONIZE | 0xfff
 	THREAD_SUSPEND_RESUME = 0x0002
 

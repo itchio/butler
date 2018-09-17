@@ -167,7 +167,7 @@ func (ar *attachRunner) Run() error {
 		case <-ar.params.Ctx.Done():
 			err := terminateProcess(ar.pid, 1)
 			if err != nil {
-				consumer.Warnf("Could not terminate PID (%d): %v", err)
+				consumer.Warnf("Could not terminate PID (%d): %v", ar.pid, err)
 			}
 		}
 	}()

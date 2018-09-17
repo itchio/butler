@@ -16,6 +16,7 @@ type RunnerParams struct {
 	Ctx      context.Context
 
 	Sandbox bool
+	Console bool
 
 	FullTargetPath string
 
