@@ -1238,24 +1238,6 @@ type InstallQueueResult struct {
 	InstallLocationID string         `json:"installLocationId"`
 }
 
-// Sent during @@InstallQueueParams.
-//
-// @name ExternalUploadsAreBad
-// @category Install
-// @caller server
-type ExternalUploadsAreBadParams struct {
-	Upload *itchio.Upload `json:"upload"`
-}
-
-func (p ExternalUploadsAreBadParams) Validate() error {
-	return nil
-}
-
-type ExternalUploadsAreBadResult struct {
-	// If true, will proceed with install anyway. Otherwise aborts.
-	Whatever bool `json:"whatever"`
-}
-
 // For modal-first install
 //
 // @name Install.Plan

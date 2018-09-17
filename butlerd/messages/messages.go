@@ -1589,46 +1589,6 @@ func (r *InstallQueueType) TestCall(rc *butlerd.RequestContext, params butlerd.I
 
 var InstallQueue *InstallQueueType
 
-// ExternalUploadsAreBad (Request)
-
-type ExternalUploadsAreBadType struct {}
-
-var _ RequestMessage = (*ExternalUploadsAreBadType)(nil)
-
-func (r *ExternalUploadsAreBadType) Method() string {
-  return "ExternalUploadsAreBad"
-}
-
-func (r *ExternalUploadsAreBadType) TestRegister(router router, f func(*butlerd.RequestContext, butlerd.ExternalUploadsAreBadParams) (*butlerd.ExternalUploadsAreBadResult, error)) {
-  router.Register("ExternalUploadsAreBad", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.ExternalUploadsAreBadParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for ExternalUploadsAreBad")
-    }
-    return res, nil
-  })
-}
-
-func (r *ExternalUploadsAreBadType) Call(rc *butlerd.RequestContext, params butlerd.ExternalUploadsAreBadParams) (*butlerd.ExternalUploadsAreBadResult, error) {
-  var result butlerd.ExternalUploadsAreBadResult
-  err := rc.Call("ExternalUploadsAreBad", params, &result)
-  return &result, err
-}
-
-var ExternalUploadsAreBad *ExternalUploadsAreBadType
-
 // Install.Plan (Request)
 
 type InstallPlanType struct {}

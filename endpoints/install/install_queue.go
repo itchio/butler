@@ -234,21 +234,6 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		}
 	}
 
-	if params.Upload.Storage == itchio.UploadStorageExternal {
-		res, err := messages.ExternalUploadsAreBad.Call(rc, butlerd.ExternalUploadsAreBadParams{
-			Upload: params.Upload,
-		})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		if res.Whatever {
-			// let's keep going then.
-		} else {
-			return nil, errors.WithStack(butlerd.CodeOperationAborted)
-		}
-	}
-
 	oc.Save(meta)
 
 	istate := &operate.InstallSubcontextState{}

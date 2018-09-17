@@ -1112,29 +1112,6 @@
       }
     },
     {
-      "method": "ExternalUploadsAreBad",
-      "doc": "Sent during @@InstallQueueParams.",
-      "caller": "server",
-      "params": {
-        "fields": [
-          {
-            "name": "upload",
-            "doc": "",
-            "type": "Upload"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "whatever",
-            "doc": "If true, will proceed with install anyway. Otherwise aborts.",
-            "type": "boolean"
-          }
-        ]
-      }
-    },
-    {
       "method": "Install.Plan",
       "doc": "For modal-first install",
       "caller": "client",
