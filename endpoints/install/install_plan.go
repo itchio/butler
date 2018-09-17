@@ -41,7 +41,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	models.MustSelect(conn, &validUploads, builder.And(
 		builder.In("id", uploadIDs...),
 		builder.Expr(`not exists (select 1 from caves where upload_id = uploads.id)`),
-		builder.Expr(`not exists (select 1 from downloads where upload_id = uploads.id)`),
+		builder.Expr(`not exists (select 1 from downloads where upload_id = uploads.id and finished_at is null and not discarded)`),
 	), hades.Search{})
 	validUploadIDs := make(map[int64]bool)
 	for _, u := range validUploads {
