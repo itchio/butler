@@ -1352,7 +1352,13 @@
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "installLocation",
+            "doc": "",
+            "type": "InstallLocationSummary"
+          }
+        ]
       }
     },
     {

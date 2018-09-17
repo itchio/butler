@@ -1573,6 +1573,7 @@ func (p InstallLocationsAddParams) Validate() error {
 }
 
 type InstallLocationsAddResult struct {
+	InstallLocation *InstallLocationSummary `json:"installLocation"`
 }
 
 // @name Install.Locations.Remove

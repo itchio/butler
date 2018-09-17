@@ -3855,8 +3855,17 @@ if not specified, will be generated.</p>
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
+<td></td>
+</tr>
+</table>
 
 
 <div id="InstallLocationsAddParams__TypeHint" style="display: none;" class="tip-content">

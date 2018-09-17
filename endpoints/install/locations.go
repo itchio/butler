@@ -101,7 +101,9 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocat
 	}
 	models.MustSave(conn, il)
 
-	res := &butlerd.InstallLocationsAddResult{}
+	res := &butlerd.InstallLocationsAddResult{
+		InstallLocation: fetch.FormatInstallLocation(conn, rc.Consumer, il),
+	}
 	return res, nil
 }
 
