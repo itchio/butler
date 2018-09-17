@@ -41,6 +41,7 @@ var installerForExt = map[string]InstallerType{
 	///////////////////////////////////////////////////////////
 
 	".jar":          InstallerTypeNaked,
+	".air":          InstallerTypeNaked,
 	".love":         InstallerTypeNaked,
 	".unitypackage": InstallerTypeNaked,
 
