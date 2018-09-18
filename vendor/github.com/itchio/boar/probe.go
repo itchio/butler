@@ -28,6 +28,9 @@ const (
 	StrategyNone Strategy = 0
 
 	StrategyZip Strategy = 100
+	// linux binaries for example - they might be MojoSetup installers
+	// (.zip files), or they might not be.
+	StrategyZipUnsure Strategy = 101
 
 	StrategyTar    Strategy = 200
 	StrategyTarGz  Strategy = 201
@@ -42,7 +45,7 @@ const (
 
 func (as Strategy) String() string {
 	switch as {
-	case StrategyZip:
+	case StrategyZip, StrategyZipUnsure:
 		return "zip"
 	case StrategyTar:
 		return "tar"
@@ -111,7 +114,7 @@ func Probe(params *ProbeParams) (*Info, error) {
 
 	if params.Candidate != nil && params.Candidate.Flavor == dash.FlavorNativeLinux {
 		// might be a mojosetup installer - if not, we won't know what to do with it
-		strategy = StrategyZip
+		strategy = StrategyZipUnsure
 	} else {
 		strategy = getStrategy(params.File, params.Consumer)
 	}
@@ -127,14 +130,22 @@ func Probe(params *ProbeParams) (*Info, error) {
 	// now actually try to open it
 	ex, err := info.GetExtractor(params.File, params.Consumer)
 	if err != nil {
-		if strategy == StrategySevenZipUnsure {
+		switch strategy {
+		case StrategySevenZipUnsure:
 			// we didn't know that one until we try, so it's just
 			// not a recognized archive format
 			params.Consumer.Warnf("Tried opening archive with 7-zip but we got: %v", err)
 			params.Consumer.Warnf("Ignoring...")
 			return nil, nil
+		case StrategyZipUnsure:
+			// we didn't know that one until we try, so it's just
+			// not a recognized archive format
+			params.Consumer.Warnf("Tried opening as a zip but we got: %v", err)
+			params.Consumer.Warnf("Ignoring...")
+			return nil, nil
+		default:
+			return nil, errors.Wrap(err, "opening archive")
 		}
-		return nil, errors.Wrap(err, "opening archive")
 	}
 
 	if szex, ok := ex.(szextractor.SzExtractor); ok {
@@ -277,7 +288,7 @@ func getStrategy(file eos.File, consumer *state.Consumer) Strategy {
 
 func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Extractor, error) {
 	switch ai.Strategy {
-	case StrategyZip:
+	case StrategyZip, StrategyZipUnsure:
 		stats, err := file.Stat()
 		if err != nil {
 			return nil, errors.Wrap(err, "stat'ing file to open as zip archive")
