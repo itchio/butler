@@ -2408,6 +2408,9 @@ const (
 	// Nothing that can be launched was found
 	CodeNoLaunchCandidates Code = 5000
 
+	// Java Runtime Environment is required to launch this title.
+	CodeJavaRuntimeNeeded Code = 6000
+
 	// There is no Internet connection
 	CodeNetworkDisconnected Code = 9000
 

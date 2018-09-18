@@ -17,6 +17,8 @@ var codeMessages = map[Code]string{
 
 	CodeNoLaunchCandidates: "Nothing that can be launched was found.",
 
+	CodeJavaRuntimeNeeded: "Java Runtime Environment is required to launch this title.",
+
 	CodeNetworkDisconnected: "There is no Internet connection",
 
 	CodeAPIError: "API error",

@@ -138,12 +138,25 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	name := params.FullTargetPath
 	args := params.Args
 
-	if params.Candidate != nil && params.Candidate.Flavor == dash.FlavorLove {
-		// TODO: add prereqs when that happens
-		args = append([]string{name}, args...)
-		name = "love"
-		fullTargetPath = "love"
-		consumer.Infof("We're launching a .love bundle, trying to execute with love runtime")
+	if params.Candidate != nil {
+		switch params.Candidate.Flavor {
+		case dash.FlavorLove:
+			// TODO: add prereqs when that happens
+			args = append([]string{name}, args...)
+			name = "love"
+			fullTargetPath = "love"
+			consumer.Infof("We're launching a .love bundle, trying to execute with love runtime")
+		case dash.FlavorJar:
+			javaPath, err := exec.LookPath("java")
+			if err != nil {
+				return butlerd.CodeJavaRuntimeNeeded
+			}
+
+			args = append([]string{"-jar", name}, args...)
+			name = "java"
+			fullTargetPath = javaPath
+			consumer.Infof("We're launching a .jar, trying to execute with Java runtime")
+		}
 	}
 
 	console := false
