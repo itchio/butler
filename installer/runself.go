@@ -39,7 +39,7 @@ func RunSelf(params *RunSelfParams) (*RunSelfResult, error) {
 	consumer := params.Consumer
 	args := params.Args
 
-	consumer.Infof("→ Invoking self:")
+	consumer.Infof("→ Invoking self (we're at %s)", selfPath)
 	consumer.Infof("  butler ::: %s", strings.Join(args, " ::: "))
 
 	res := &RunSelfResult{
