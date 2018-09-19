@@ -38,6 +38,9 @@ type Context struct {
 	// Verbose enables chatty output
 	Verbose bool
 
+	// Verbose enables JSON output
+	JSON bool
+
 	// Path to the local sqlite database
 	DBPath string
 
@@ -78,7 +81,7 @@ func (ctx *Context) Register(clause *kingpin.CmdClause, do DoCommand) {
 
 func (ctx *Context) Must(err error) {
 	if err != nil {
-		if ctx.Verbose {
+		if ctx.Verbose || ctx.JSON {
 			comm.Dief("%+v", err)
 		} else {
 			comm.Dief("%s", err)

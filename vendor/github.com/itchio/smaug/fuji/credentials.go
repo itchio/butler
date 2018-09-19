@@ -3,6 +3,8 @@
 package fuji
 
 import (
+	"os"
+
 	"github.com/pkg/errors"
 	"golang.org/x/sys/windows/registry"
 )
@@ -51,6 +53,9 @@ func getRegistryString(s *Settings, name string) (string, error) {
 
 	ret, _, err := key.GetStringValue(name)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
 		return "", errors.WithStack(err)
 	}
 

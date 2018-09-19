@@ -119,10 +119,10 @@ func defaultKeyPath() string {
 
 func must(err error) {
 	if err != nil {
-		if *appArgs.verbose {
+		if *appArgs.verbose || *appArgs.json {
 			comm.Dief("%+v", err)
 		} else {
-			comm.Dief("%s", err)
+			comm.Dief("%v", err)
 		}
 	}
 }
@@ -235,6 +235,7 @@ func doMain(args []string) {
 	ctx.Commit = butlerCommit
 	ctx.Quiet = *appArgs.quiet
 	ctx.Verbose = *appArgs.verbose
+	ctx.JSON = *appArgs.json
 	ctx.CompressionAlgorithm = *appArgs.compressionAlgorithm
 	ctx.CompressionQuality = *appArgs.compressionQuality
 
