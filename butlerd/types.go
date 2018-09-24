@@ -441,8 +441,12 @@ func (r *FetchGameResult) SetStale(stale bool) {
 // @caller client
 type FetchDownloadKeyParams struct {
 	DownloadKeyID int64 `json:"downloadKeyId"`
-	ProfileID     int64 `json:"profileId"`
-	Fresh         bool  `json:"fresh"`
+
+	ProfileID int64 `json:"profileId"`
+
+	// Force an API request
+	// @optional
+	Fresh bool `json:"fresh"`
 }
 
 func (p FetchDownloadKeyParams) Validate() error {
@@ -1892,9 +1896,11 @@ type DownloadsDiscardResult struct{}
 // @caller client
 type CheckUpdateParams struct {
 	// If specified, will only look for updates to these caves
+	// @optional
 	CaveIDs []string `json:"caveIds"`
 
 	// If specified, will log information even when we have no warnings/errors
+	// @optional
 	Verbose bool `json:"verbose"`
 }
 
