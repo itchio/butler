@@ -96,7 +96,7 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		return nil, err
 	}
 
-	dllToRedistMap := make(map[string]string)
+	dllToRedistMap := make(map[string][]string)
 
 	var redistNames []string
 	// map iteration is random in go (they mean it)
@@ -110,7 +110,8 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		redist := registry.Entries[redistName]
 		if redist.Windows != nil {
 			for _, dll := range redist.Windows.DLLs {
-				dllToRedistMap[strings.ToLower(dll)] = redistName
+				k := strings.ToLower(dll)
+				dllToRedistMap[k] = append(dllToRedistMap[k], redistName)
 			}
 		}
 	}
@@ -121,16 +122,18 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		var bestEntry *redist.RedistEntry
 		var bestEntryName string
 
-		if entryName, ok := dllToRedistMap[imp]; ok {
-			entry := registry.Entries[entryName]
-			if bestEntry == nil {
-				bestEntry = entry
-				bestEntryName = entryName
-			} else {
-				if entry.Arch == string(candidateArch) {
-					// prefer matching arch, if we have that luxury
+		if entryNames, ok := dllToRedistMap[imp]; ok {
+			for _, entryName := range entryNames {
+				entry := registry.Entries[entryName]
+				if bestEntry == nil {
 					bestEntry = entry
 					bestEntryName = entryName
+				} else {
+					if entry.Arch == string(candidateArch) {
+						// prefer matching arch, if we have that luxury
+						bestEntry = entry
+						bestEntryName = entryName
+					}
 				}
 			}
 		}
