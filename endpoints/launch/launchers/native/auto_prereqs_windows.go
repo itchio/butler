@@ -3,6 +3,7 @@
 package native
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -69,8 +70,33 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 			return nil
 		}
 
+		cFolder := filepath.Dir(cPath)
+		vendorDLLs := make(map[string]bool)
+		{
+			fileInfos, err := ioutil.ReadDir(cFolder)
+			if err != nil {
+				consumer.Warnf("For auto prereqs: could not list folder (%s): %v", cFolder, err)
+				return nil
+			}
+
+			for _, fi := range fileInfos {
+				lowerName := strings.ToLower(fi.Name())
+				if strings.HasSuffix(lowerName, ".dll") {
+					vendorDLLs[lowerName] = true
+				}
+			}
+		}
+
 		for _, imp := range peInfo.Imports {
-			importsMap[strings.ToLower(imp)] = true
+			lowerDLL := strings.ToLower(imp)
+			isVendored := vendorDLLs[lowerDLL]
+			if isVendored {
+				consumer.Infof("Found vendored DLL, skipping prereqs for (%s)", lowerDLL)
+			} else if desc, isBuiltin := knownBuiltinDLLs[lowerDLL]; isBuiltin {
+				consumer.Infof("Found built-in DLL, skipping prereqs for (%s) (%s)", lowerDLL, desc)
+			} else {
+				importsMap[lowerDLL] = true
+			}
 		}
 		return nil
 	}
@@ -89,7 +115,15 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		}
 	}
 
-	consumer.Opf("Mapping dependencies to prereqs...")
+	if len(importsMap) == 0 {
+		consumer.Opf("No DLL imports to map to prereqs!")
+		return nil, nil
+	}
+
+	consumer.Opf("Mapping (%d) dependencies to prereqs:", len(importsMap))
+	for imp := range importsMap {
+		consumer.Infof(" - (%s)", imp)
+	}
 
 	registry, err := pc.GetRegistry()
 	if err != nil {
