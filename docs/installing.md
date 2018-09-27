@@ -74,6 +74,7 @@ export PATH="$PATH:~/.config/itch/apps/butler"
 Follow the Linux instructions, except:
 
   * On macOS, the `~/.bash_profile` file is used instead of `~/.bashrc`
+    * You may have to create that file if it doesn't exist yet.
   * If you want to use the itch app version, use this line in your `~/.bash_profile` instead:
 
 ```sh
