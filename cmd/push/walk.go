@@ -1,7 +1,6 @@
 package push
 
 import (
-	"github.com/itchio/butler/filtering"
 	"github.com/itchio/wharf/pools"
 	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
@@ -13,11 +12,8 @@ type walkResult struct {
 	pool      wsync.Pool
 }
 
-func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, dereference bool) {
-	container, err := tlc.WalkAny(path, &tlc.WalkOpts{
-		Filter:      filtering.FilterPaths,
-		Dereference: dereference,
-	})
+func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts *tlc.WalkOpts) {
+	container, err := tlc.WalkAny(path, walkOpts)
 	if err != nil {
 		errs <- errors.WithStack(err)
 		return
@@ -42,7 +38,7 @@ func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, de
 		}
 	}
 
-	if dereference {
+	if walkOpts.Dereference {
 		for _, s := range result.container.Symlinks {
 			result.container.Files = append(result.container.Files, &tlc.File{
 				Path: s.Path,

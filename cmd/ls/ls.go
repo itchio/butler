@@ -8,6 +8,7 @@ import (
 
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior/seeksource"
@@ -53,18 +54,28 @@ func Do(ctx *mansion.Context, inPath string) error {
 		return errors.WithStack(err)
 	}
 
+	log := func(line string) {
+		comm.Logf(line)
+	}
+
 	if stats.IsDir() {
+		walkOpts := &tlc.WalkOpts{
+			Filter: filtering.FilterPaths,
+		}
+		walkOpts.AutoWrap(&inPath, consumer)
+
+		container, err := tlc.WalkDir(inPath, walkOpts)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
 		comm.Logf("%s: directory", path)
-		return nil
+		container.Print(log)
 	}
 
 	if stats.Size() == 0 {
 		comm.Logf("%s: empty file. peaceful.", path)
 		return nil
-	}
-
-	log := func(line string) {
-		comm.Logf(line)
 	}
 
 	source := seeksource.FromFile(reader)

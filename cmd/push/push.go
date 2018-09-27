@@ -11,6 +11,7 @@ import (
 	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/progress"
@@ -40,26 +41,28 @@ var singleFileWarningExtensionList = []string{
 }
 
 var args = struct {
-	src             *string
-	target          *string
-	userVersion     *string
-	userVersionFile *string
-	fixPerms        *bool
-	dereference     *bool
-	ifChanged       *bool
-	dryRun          *bool
+	src             string
+	target          string
+	userVersion     string
+	userVersionFile string
+	fixPerms        bool
+	dereference     bool
+	ifChanged       bool
+	dryRun          bool
+	autoWrap        bool
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("push", "Upload a new build to itch.io. See `butler help push`.")
-	args.src = cmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().String()
-	args.target = cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().String()
-	args.userVersion = cmd.Flag("userversion", "A user-supplied version number that you can later query builds by").String()
-	args.userVersionFile = cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").String()
-	args.fixPerms = cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").Bool()
-	args.dereference = cmd.Flag("dereference", "Dereference symlinks").Default("false").Bool()
-	args.ifChanged = cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").Bool()
-	args.dryRun = cmd.Flag("dry-run", "Don't push anything, just show what would be pushed").Default("false").Bool()
+	cmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().StringVar(&args.src)
+	cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().StringVar(&args.target)
+	cmd.Flag("userversion", "A user-supplied version number that you can later query builds by").StringVar(&args.userVersion)
+	cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").StringVar(&args.userVersionFile)
+	cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").BoolVar(&args.fixPerms)
+	cmd.Flag("dereference", "Dereference symlinks").Default("false").BoolVar(&args.dereference)
+	cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").BoolVar(&args.ifChanged)
+	cmd.Flag("dry-run", "Don't push anything, just show what would be pushed").Default("false").BoolVar(&args.dryRun)
+	cmd.Flag("auto-wrap", "Apply workaround for https://github.com/itchio/itch/issues/2147").Default("true").BoolVar(&args.autoWrap)
 	ctx.Register(cmd, do)
 }
 
@@ -68,27 +71,37 @@ func do(ctx *mansion.Context) {
 
 	// if userVersionFile specified, read from the given file
 	// TODO: do utf-16 decoding here
-	userVersion := *args.userVersion
-	if userVersion == "" && *args.userVersionFile != "" {
-		buf, err := ioutil.ReadFile(*args.userVersionFile)
+	userVersion := args.userVersion
+	if userVersion == "" && args.userVersionFile != "" {
+		buf, err := ioutil.ReadFile(args.userVersionFile)
 		ctx.Must(err)
 
 		userVersion = strings.TrimSpace(string(buf))
 		if strings.ContainsAny(userVersion, "\r\n") {
-			ctx.Must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", *args.userVersionFile))
+			ctx.Must(fmt.Errorf("%s contains line breaks, refusing to use as userversion", args.userVersionFile))
 		}
 	}
 
-	ctx.Must(Do(ctx, *args.src, *args.target, userVersion, *args.fixPerms, *args.dereference, *args.ifChanged))
+	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool) error {
+	consumer := comm.NewStateConsumer()
+
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
-	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, dereference)
+	walkOpts := &tlc.WalkOpts{
+		Filter:      filtering.FilterPaths,
+		Dereference: dereference,
+	}
+	if wrap {
+		walkOpts.AutoWrap(&buildPath, consumer)
+	}
 
-	if *args.dryRun {
+	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
+
+	if args.dryRun {
 		comm.Opf("Dry run, listing files we would push...")
 		select {
 		case walkErr := <-walkErrs:
@@ -134,7 +147,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			FileID:  signatureFile.ID,
 		})
 
-		signatureReader, err := eos.Open(signatureURL, option.WithConsumer(comm.NewStateConsumer()))
+		signatureReader, err := eos.Open(signatureURL, option.WithConsumer(consumer))
 		if err != nil {
 			return nil, errors.Wrap(err, "opening signature")
 		}
@@ -216,8 +229,6 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	newPatchRes := bothFiles.patchRes
 	newSignatureRes := bothFiles.signatureRes
-
-	consumer := comm.NewStateConsumer()
 
 	patchWriter := uploader.NewResumableUpload(newPatchRes.File.UploadURL)
 	patchWriter.SetConsumer(consumer)

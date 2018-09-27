@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/wharf/eos"
+	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 )
 
@@ -38,11 +39,70 @@ var DefaultFilter FilterFunc = func(fileInfo os.FileInfo) bool {
 }
 
 type WalkOpts struct {
+	// "Wrapping" solves the problem where we're walking:
+	// /foo/bar/Sample.app
+	// But we want all files, dirs and symlinks in the container to start with "Sample.app/".
+	//
+	// What we do is we adjust the walked path to:
+	// /foo/bar
+	// And we set `WrappedDir` to `Sample.app`.
+	//
+	// This is only used by `WalkDir`. It behaves as if the `/foo/bar` directory
+	// only contained `Sample.app`, and nothing else.
+	WrappedDir string
+
 	// Filter decides which files to exclude from the walk
 	Filter FilterFunc
 
 	// Dereference walks symlinks as if they were their targets
 	Dereference bool
+}
+
+// Wrap the container path if it's a directory, and it ends in .app
+func (opts *WalkOpts) AutoWrap(containerPathPtr *string, consumer *state.Consumer) {
+	if !opts.normalizeContainerPath(containerPathPtr) {
+		return
+	}
+
+	// macOS app bundles should be pushed *as if* they were
+	// in another folder, so their structure is recreated correctly.
+	if strings.HasSuffix(strings.ToLower(*containerPathPtr), ".app") {
+		consumer.Infof("(%s) is a macOS app bundle, making it the top-level directory in the container", *containerPathPtr)
+		opts.Wrap(containerPathPtr)
+	}
+}
+
+// Wrap the container path if it's a directory
+func (opts *WalkOpts) Wrap(containerPathPtr *string) {
+	if !opts.normalizeContainerPath(containerPathPtr) {
+		return
+	}
+
+	opts.WrappedDir = filepath.Base(*containerPathPtr)
+	*containerPathPtr = filepath.Dir(*containerPathPtr)
+}
+
+func (opts *WalkOpts) normalizeContainerPath(containerPathPtr *string) bool {
+	stats, err := os.Stat(*containerPathPtr)
+	if err != nil {
+		// might be a remote path, might not exist, might not have permission to read
+		// can't do anything, will err later
+		return false
+	}
+
+	if !stats.IsDir() {
+		return false
+	}
+
+	absPath, err := filepath.Abs(*containerPathPtr)
+	if err != nil {
+		// might be a remote path (http://, https://, etc.)
+		// can't do anything, will err later
+		return false
+	}
+
+	*containerPathPtr = absPath
+	return true
 }
 
 // WalkAny tries to retrieve container information on containerPath. It supports:
@@ -238,8 +298,14 @@ func WalkDir(basePathIn string, opts *WalkOpts) (*Container, error) {
 			return nil, errors.Errorf("can't walk non-directory %s", basePathIn)
 		}
 
+		baseName := "."
+		if opts.WrappedDir != "" {
+			baseName = opts.WrappedDir
+			basePathIn = filepath.Join(basePathIn, opts.WrappedDir)
+		}
+
 		currentlyWalking[basePathIn] = true
-		err = filepath.Walk(basePathIn, makeEntryCallback(basePathIn, "."))
+		err = filepath.Walk(basePathIn, makeEntryCallback(basePathIn, baseName))
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

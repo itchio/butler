@@ -27,8 +27,8 @@ var args = struct {
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("mkzip", "(Advanced) Create a .zip file").Hidden()
-	cmd.Arg("out", "Output file").StringVar(&args.out)
-	cmd.Arg("dir", "Directory to compress").ExistingDirVar(&args.dir)
+	cmd.Arg("out", "Output file").Required().StringVar(&args.out)
+	cmd.Arg("dir", "Directory to compress").Required().ExistingDirVar(&args.dir)
 	ctx.Register(cmd, func(ctx *mansion.Context) {
 		ctx.Must(do(ctx))
 	})
@@ -38,9 +38,11 @@ func do(ctx *mansion.Context) error {
 	consumer := comm.NewStateConsumer()
 
 	consumer.Opf("Walking %s...", args.dir)
-	container, err := tlc.WalkDir(args.dir, &tlc.WalkOpts{
+	walkOpts := &tlc.WalkOpts{
 		Filter: filtering.FilterPaths,
-	})
+	}
+	walkOpts.Wrap(&args.dir)
+	container, err := tlc.WalkDir(args.dir, walkOpts)
 	if err != nil {
 		return err
 	}
