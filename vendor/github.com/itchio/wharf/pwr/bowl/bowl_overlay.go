@@ -39,7 +39,7 @@ type overlayBowl struct {
 
 	// files we'll have to move
 	transpositions []Transposition
-	// files we'll have to patch using an overlay
+	// files we'll have to patch using an overlay (indices in SourceContainer)
 	overlayFiles []int64
 	// files we'll have to move from the staging folder to the dest
 	moveFiles []int64
@@ -143,47 +143,47 @@ func (b *overlayBowl) Resume(c *BowlCheckpoint) error {
 	return nil
 }
 
-func (b *overlayBowl) GetWriter(index int64) (EntryWriter, error) {
-	sourceFile := b.SourceContainer.Files[index]
+func (b *overlayBowl) GetWriter(sourceFileIndex int64) (EntryWriter, error) {
+	sourceFile := b.SourceContainer.Files[sourceFileIndex]
 	if sourceFile == nil {
-		return nil, errors.Errorf("overlayBowl: unknown source file %d", index)
+		return nil, errors.Errorf("overlayBowl: unknown source file %d", sourceFileIndex)
 	}
 
 	if targetIndex, ok := b.targetFilesByPath[sourceFile.Path]; ok {
 		debugf("returning overlay writer for '%s'", sourceFile.Path)
 
 		// oh damn, that file already exists in the output - let's make an overlay
-		b.markOverlay(index)
+		b.markOverlay(sourceFileIndex)
 
 		r, err := b.TargetPool.GetReadSeeker(targetIndex)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
 
-		wPath := b.stagePool.GetPath(index)
+		wPath := b.stagePool.GetPath(sourceFileIndex)
 		return &overlayEntryWriter{path: wPath, readSeeker: r}, nil
 	}
 
 	// guess it's a new file! let's write it to staging anyway
-	b.markMove(index)
+	b.markMove(sourceFileIndex)
 
 	debugf("returning move writer for '%s'", sourceFile.Path)
 
-	wPath := b.stagePool.GetPath(index)
+	wPath := b.stagePool.GetPath(sourceFileIndex)
 	return &freshEntryWriter{path: wPath}, nil
 }
 
-func (b *overlayBowl) markOverlay(index int64) {
+func (b *overlayBowl) markOverlay(sourceFileIndex int64) {
 	// make sure we don't double mark it
 	for _, i := range b.overlayFiles {
-		if i == index {
+		if i == sourceFileIndex {
 			// oh cool it's already marked
 			return
 		}
 	}
 
 	// mark it
-	b.overlayFiles = append(b.overlayFiles, index)
+	b.overlayFiles = append(b.overlayFiles, sourceFileIndex)
 }
 
 func (b *overlayBowl) markMove(index int64) {
@@ -432,8 +432,8 @@ func (b *overlayBowl) applyTranspositions() error {
 	}
 
 	overlayFilesByPath := make(map[string]bool)
-	for _, overlayFileTargetIndex := range b.overlayFiles {
-		f := b.TargetContainer.Files[overlayFileTargetIndex]
+	for _, overlayFileSourceIndex := range b.overlayFiles {
+		f := b.SourceContainer.Files[overlayFileSourceIndex]
 		overlayFilesByPath[f.Path] = true
 	}
 
@@ -592,10 +592,10 @@ func (b *overlayBowl) applyMoves() error {
 func (b *overlayBowl) applyOverlays() error {
 	ctx := &overlay.OverlayPatchContext{}
 
-	handleOverlay := func(overlayIndex int64) error {
-		file := b.SourceContainer.Files[overlayIndex]
+	handleOverlay := func(overlaySourceFileIndex int64) error {
+		file := b.SourceContainer.Files[overlaySourceFileIndex]
 		if file == nil {
-			return errors.Errorf("overlaybowl: applyOverlays: no such file %d", overlayIndex)
+			return errors.Errorf("overlaybowl: applyOverlays: no such file %d", overlaySourceFileIndex)
 		}
 		debugf("applying overlay '%s'", file.Path)
 		nativePath := filepath.FromSlash(file.Path)
