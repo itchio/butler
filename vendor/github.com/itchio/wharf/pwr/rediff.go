@@ -74,7 +74,13 @@ type RediffContext struct {
 	SourcePool wsync.Pool
 	TargetPool wsync.Pool
 
+	////////////////////
 	// optional
+	////////////////////
+
+	// RediffSizeLimit is the maximum size of a file we'll attempt to rediff.
+	// If a file is larger than that, ops will just be copied.
+	RediffSizeLimit       int64
 	SuffixSortConcurrency int
 	Partitions            int
 	Compression           *CompressionSettings
@@ -83,19 +89,31 @@ type RediffContext struct {
 	Timeline              *Timeline
 	ForceMapAll           bool
 
+	////////////////////
 	// set on Analyze
+	////////////////////
+
 	TargetContainer *tlc.Container
 	SourceContainer *tlc.Container
 
+	////////////////////
 	// internal
+	////////////////////
+
 	DiffMappings DiffMappings
 	MeasureMem   bool
 }
+
+const DefaultRediffSizeLimit = 4 * 1024 * 1024 * 1024 // 4GB
 
 // AnalyzePatch parses a non-optimized patch, looking for good bsdiff'ing candidates
 // and building DiffMappings.
 func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 	var err error
+
+	if rc.RediffSizeLimit == 0 {
+		rc.RediffSizeLimit = DefaultRediffSizeLimit
+	}
 
 	rctx := wire.NewReadContext(patchReader)
 
@@ -221,6 +239,19 @@ func (rc *RediffContext) AnalyzePatch(patchReader savior.SeekSource) error {
 							NumBytes:    0,
 						}
 					}
+				}
+			}
+
+			if sourceFile.Size > rc.RediffSizeLimit {
+				// source file is too large, skip rediff
+				diffMapping = nil
+			}
+
+			if diffMapping != nil {
+				targetFile := targetContainer.Files[diffMapping.TargetIndex]
+				if targetFile.Size > rc.RediffSizeLimit {
+					// target file is too large, skip rediff
+					diffMapping = nil
 				}
 			}
 

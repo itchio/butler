@@ -385,6 +385,10 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 	cs := countingsource.New(patchSource, func(count int64) {
 		comm.Progress(patchSource.Progress())
 	})
+	_, err = cs.Resume(nil)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	comm.Opf("patch:  %s", progress.FormatBytes(cs.Size()))
 

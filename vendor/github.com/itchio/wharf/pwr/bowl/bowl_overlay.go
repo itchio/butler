@@ -224,6 +224,12 @@ func (b *overlayBowl) Commit() error {
 		return errors.WithStack(err)
 	}
 
+	// - same with stage pool, we might have it open for overlay purposes
+	err = b.stagePool.Close()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	// - ensure dirs and symlinks
 	err = b.ensureDirsAndSymlinks()
 	if err != nil {
@@ -320,6 +326,13 @@ const (
 	mkdirBehaviorIfNeeded
 )
 
+type transpoBehavior int
+
+const (
+	transpoBehaviorMove transpoBehavior = 0x1923 + iota
+	transpoBehaviorCopy
+)
+
 func (b *overlayBowl) applyTranspositions() error {
 	transpositions := make(map[string][]*pathTranspo)
 	outputPath := b.OutputFolder
@@ -334,7 +347,7 @@ func (b *overlayBowl) applyTranspositions() error {
 		})
 	}
 
-	applyMultipleTranspositions := func(targetPath string, group []*pathTranspo) error {
+	applyMultipleTranspositions := func(behavior transpoBehavior, targetPath string, group []*pathTranspo) error {
 		// a file got duplicated!
 		var noop *pathTranspo
 		for _, transpo := range group {
@@ -369,9 +382,21 @@ func (b *overlayBowl) applyTranspositions() error {
 			transpo := group[0]
 			oldAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(targetPath))
 			newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.OutputPath))
-			err := b.move(oldAbsolutePath, newAbsolutePath)
-			if err != nil {
-				return errors.WithStack(err)
+
+			switch behavior {
+			case transpoBehaviorCopy:
+				// no, wait, the target file is itself being patched, meaning it has a pending overlay.
+				// in order for that overlay to apply cleanly, we must copy the file, not move it.
+				// we should also not need mkdir, since we already ensured dirs and symlinks.
+				err := b.copy(oldAbsolutePath, newAbsolutePath, mkdirBehaviorNever)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+			case transpoBehaviorMove:
+				err := b.move(oldAbsolutePath, newAbsolutePath)
+				if err != nil {
+					return errors.WithStack(err)
+				}
 			}
 		} else {
 			// muffin!
@@ -392,8 +417,9 @@ func (b *overlayBowl) applyTranspositions() error {
 			}
 
 			if _, ok := transpositions[transpo.OutputPath]; ok {
-				// transpo is writing to the source of swapBuddy, this will blow shit up
-				// make it write to a safe path instead, then rename it to the correct path
+				// transpo is doing A=>B, and another transpo is doing B=>C
+				// instead, have transpo do A=>B2, the other do B=>C
+				// then have a cleanup phase rename B2 to B
 				renameSeed++
 				safePath := transpo.OutputPath + fmt.Sprintf(".butler-rename-%d", renameSeed)
 				cleanupRenames = append(cleanupRenames, &pathTranspo{
@@ -405,11 +431,25 @@ func (b *overlayBowl) applyTranspositions() error {
 		}
 	}
 
+	overlayFilesByPath := make(map[string]bool)
+	for _, overlayFileTargetIndex := range b.overlayFiles {
+		f := b.TargetContainer.Files[overlayFileTargetIndex]
+		overlayFilesByPath[f.Path] = true
+	}
+
 	for groupTargetPath, group := range transpositions {
 		if alreadyDone[groupTargetPath] {
 			continue
 		}
 		alreadyDone[groupTargetPath] = true
+
+		behavior := transpoBehaviorMove
+		_, hasPendingOverlay := overlayFilesByPath[groupTargetPath]
+		if hasPendingOverlay {
+			// if the target file is itself patched (it has a pending overlay),
+			// then it must never be renamed to something else, only copied.
+			behavior = transpoBehaviorCopy
+		}
 
 		if len(group) == 1 {
 			transpo := group[0]
@@ -419,13 +459,23 @@ func (b *overlayBowl) applyTranspositions() error {
 				// file was renamed
 				oldAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.TargetPath))
 				newAbsolutePath := filepath.Join(outputPath, filepath.FromSlash(transpo.OutputPath))
-				err := b.move(oldAbsolutePath, newAbsolutePath)
-				if err != nil {
-					return errors.WithStack(err)
+
+				switch behavior {
+				case transpoBehaviorCopy:
+					// we should never need to mkdir, because we already ensured dirs and symlinks.
+					err := b.copy(oldAbsolutePath, newAbsolutePath, mkdirBehaviorNever)
+					if err != nil {
+						return errors.WithStack(err)
+					}
+				case transpoBehaviorMove:
+					err := b.move(oldAbsolutePath, newAbsolutePath)
+					if err != nil {
+						return errors.WithStack(err)
+					}
 				}
 			}
 		} else {
-			err := applyMultipleTranspositions(groupTargetPath, group)
+			err := applyMultipleTranspositions(behavior, groupTargetPath, group)
 			if err != nil {
 				return errors.WithStack(err)
 			}

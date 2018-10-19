@@ -101,6 +101,10 @@ func New(patchReader savior.SeekSource, consumer *state.Consumer) (Patcher, erro
 }
 
 func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bwl bowl.Bowl) error {
+	// we're going to open some readers while patching, and no matter what happens
+	// we want to have it closed at the end (if we error out early or if we complete successfully)
+	defer targetPool.Close()
+
 	if sp.sc == nil {
 		sp.sc = &nopSaveConsumer{}
 	}
