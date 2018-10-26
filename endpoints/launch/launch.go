@@ -124,7 +124,9 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 		if len(actions) == 1 {
 			manifestAction = actions[0]
+			consumer.Infof("Manifest with single action: %#v", manifestAction)
 		} else {
+			consumer.Infof("Manifest with %d actions, picking...", len(actions))
 			r, err := messages.PickManifestAction.Call(rc, butlerd.PickManifestActionParams{
 				Actions: actions,
 			})
@@ -260,6 +262,16 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 	pickFromVerdict := func() error {
 		consumer.Infof("→ Using verdict: %s", verdict)
+
+		for _, c := range verdict.Candidates {
+			candidatePath := filepath.Join(installFolder, c.Path)
+			_, err := os.Stat(candidatePath)
+			if err != nil && os.IsNotExist(err) {
+				consumer.Warnf("%s disappeared, forcing reconfigure", candidatePath)
+				return errors.WithMessage(ErrCandidateDisappeared, "while picking from verdict")
+			}
+		}
+		consumer.Statf("All launch targets still exist on disk")
 
 		candidates := filterCandidates(verdict.Candidates)
 		numCandidatesEliminated := len(verdict.Candidates) - len(candidates)
