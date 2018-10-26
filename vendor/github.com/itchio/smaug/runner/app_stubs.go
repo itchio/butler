@@ -7,6 +7,6 @@ import (
 	"runtime"
 )
 
-func newAppRunner(params *RunnerParams) (Runner, error) {
+func newAppRunner(params RunnerParams) (Runner, error) {
 	return nil, fmt.Errorf("app runner: not supported on %s", runtime.GOOS)
 }

@@ -19,15 +19,24 @@ import (
 var investigateSandbox = os.Getenv("INVESTIGATE_SANDBOX") == "1"
 
 type sandboxExecRunner struct {
-	params *RunnerParams
+	params RunnerParams
+	target *MacLaunchTarget
 }
 
 var _ Runner = (*sandboxExecRunner)(nil)
 
-func newSandboxExecRunner(params *RunnerParams) (Runner, error) {
+func newSandboxExecRunner(params RunnerParams) (Runner, error) {
+	target, err := PrepareMacLaunchTarget(params)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	params.FullTargetPath = target.Path
+
 	ser := &sandboxExecRunner{
 		params: params,
+		target: target,
 	}
+
 	return ser, nil
 }
 
@@ -47,22 +56,18 @@ func (ser *sandboxExecRunner) Prepare() error {
 	return nil
 }
 
-func (ser *sandboxExecRunner) Run() error {
+func (ser *sandboxExecRunner) SandboxProfilePath() string {
+	params := ser.params
+	return filepath.Join(params.InstallFolder, ".itch", "isolate-app.sb")
+}
+
+func (ser *sandboxExecRunner) WriteSandboxProfile() error {
+	sandboxProfilePath := ser.SandboxProfilePath()
+
 	params := ser.params
 	consumer := params.Consumer
-
-	consumer.Infof("Creating shim app bundle to enable sandboxing")
-	realBundlePath := params.FullTargetPath
-
-	binaryPath, err := macox.GetExecutablePath(realBundlePath)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	binaryName := filepath.Base(binaryPath)
-
-	sandboxProfilePath := filepath.Join(params.InstallFolder, ".itch", "isolate-app.sb")
 	consumer.Opf("Writing sandbox profile to (%s)", sandboxProfilePath)
-	err = os.MkdirAll(filepath.Dir(sandboxProfilePath), 0755)
+	err := os.MkdirAll(filepath.Dir(sandboxProfilePath), 0755)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -90,6 +95,51 @@ func (ser *sandboxExecRunner) Run() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	return nil
+}
+
+func (ser *sandboxExecRunner) Run() error {
+	params := ser.params
+	consumer := params.Consumer
+
+	err := ser.WriteSandboxProfile()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if !ser.target.IsAppBundle {
+		consumer.Infof("Dealing with naked executable, launching via sandbox-exec directly")
+		args := []string{
+			"sandbox-exec",
+			"-f",
+			ser.SandboxProfilePath(),
+			params.FullTargetPath,
+		}
+		args = append(args, params.Args...)
+
+		simpleParams := params
+		simpleParams.Args = args
+		simpleRunner, err := newSimpleRunner(simpleParams)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = simpleRunner.Prepare()
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		return simpleRunner.Run()
+	}
+
+	consumer.Infof("Creating shim app bundle to enable sandboxing")
+	realBundlePath := params.FullTargetPath
+
+	binaryPath, err := macox.GetExecutablePath(realBundlePath)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	binaryName := filepath.Base(binaryPath)
 
 	workDir, err := ioutil.TempDir("", "butler-shim-bundle")
 	if err != nil {
@@ -119,7 +169,7 @@ func (ser *sandboxExecRunner) Run() error {
 		sandbox-exec -f "%s" "%s" "$@"
 		`,
 		params.Dir,
-		sandboxProfilePath,
+		ser.SandboxProfilePath(),
 		binaryPath,
 	)
 

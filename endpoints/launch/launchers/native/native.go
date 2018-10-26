@@ -165,7 +165,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		consumer.Infof("Console launch requested")
 	}
 
-	runParams := &runner.RunnerParams{
+	runParams := runner.RunnerParams{
 		Consumer: consumer,
 		Ctx:      params.Ctx,
 

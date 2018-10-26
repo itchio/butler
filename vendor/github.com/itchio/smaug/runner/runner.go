@@ -55,7 +55,7 @@ type Runner interface {
 	Run() error
 }
 
-func GetRunner(params *RunnerParams) (Runner, error) {
+func GetRunner(params RunnerParams) (Runner, error) {
 	consumer := params.Consumer
 
 	attachRunner, err := getAttachRunner(params)

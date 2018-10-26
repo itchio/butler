@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func getAttachRunner(params *RunnerParams) (Runner, error) {
+func getAttachRunner(params RunnerParams) (Runner, error) {
 	consumer := params.Consumer
 
 	snapshot, err := syscallex.CreateToolhelp32Snapshot(
@@ -84,7 +84,7 @@ func getAttachRunner(params *RunnerParams) (Runner, error) {
 }
 
 type attachRunner struct {
-	params *RunnerParams
+	params RunnerParams
 	pid    uint32
 }
 

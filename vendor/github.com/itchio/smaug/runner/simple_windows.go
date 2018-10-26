@@ -9,12 +9,12 @@ import (
 )
 
 type simpleRunner struct {
-	params *RunnerParams
+	params RunnerParams
 }
 
 var _ Runner = (*simpleRunner)(nil)
 
-func newSimpleRunner(params *RunnerParams) (Runner, error) {
+func newSimpleRunner(params RunnerParams) (Runner, error) {
 	sr := &simpleRunner{
 		params: params,
 	}

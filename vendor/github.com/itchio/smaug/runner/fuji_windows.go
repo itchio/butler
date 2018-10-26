@@ -16,14 +16,14 @@ import (
 )
 
 type fujiRunner struct {
-	params      *RunnerParams
+	params      RunnerParams
 	fi          fuji.Instance
 	credentials *fuji.Credentials
 }
 
 var _ Runner = (*fujiRunner)(nil)
 
-func newFujiRunner(params *RunnerParams) (Runner, error) {
+func newFujiRunner(params RunnerParams) (Runner, error) {
 	if params.FujiParams.Settings == nil {
 		return nil, errors.Errorf("FujiParams.Instance should be set")
 	}

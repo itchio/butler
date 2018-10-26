@@ -14,12 +14,12 @@ import (
 )
 
 type firejailRunner struct {
-	params *RunnerParams
+	params RunnerParams
 }
 
 var _ Runner = (*firejailRunner)(nil)
 
-func newFirejailRunner(params *RunnerParams) (Runner, error) {
+func newFirejailRunner(params RunnerParams) (Runner, error) {
 	if params.FirejailParams.BinaryPath == "" {
 		return nil, errors.Errorf("FirejailParams.BinaryPath must be set")
 	}

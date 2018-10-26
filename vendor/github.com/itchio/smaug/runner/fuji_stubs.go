@@ -7,6 +7,6 @@ import (
 	"runtime"
 )
 
-func newFujiRunner(params *RunnerParams) (Runner, error) {
+func newFujiRunner(params RunnerParams) (Runner, error) {
 	return nil, fmt.Errorf("fuji runner: not supported on %s", runtime.GOOS)
 }
