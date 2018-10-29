@@ -373,6 +373,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 						return nil, errors.WithStack(err)
 					}
 					verdict = newVerdict
+					consumer.Infof("→ New verdict: %s", verdict)
 
 					cave.SetVerdict(verdict)
 					rc.WithConn(cave.Save)
