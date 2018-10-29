@@ -39,7 +39,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}
 
 		if entry == nil {
-			consumer.Warnf("Prereq (%s) not found in registry, skipping")
+			consumer.Warnf("Prereq (%s) not found in registry, skipping", name)
 			return nil
 		}
 		destDir := pc.GetEntryDir(name)
@@ -51,7 +51,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 
 		upload := library.GetUpload(name)
 		if upload == nil {
-			consumer.Warnf("Prereq (%s) not found in library, skipping")
+			consumer.Warnf("Prereq (%s) not found in library, skipping", name)
 			return nil
 		}
 

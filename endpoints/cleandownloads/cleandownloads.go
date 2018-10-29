@@ -47,7 +47,7 @@ func CleanDownloadsSearch(rc *butlerd.RequestContext, params butlerd.CleanDownlo
 
 			if _, ok := whitemap[base]; ok {
 				// don't even consider it
-				consumer.Debugf("Ignoring whitelisted (%s)")
+				consumer.Debugf("Ignoring whitelisted (%s)", base)
 				continue
 			}
 
