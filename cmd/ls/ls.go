@@ -7,10 +7,12 @@ import (
 	"os"
 
 	"github.com/itchio/arkive/zip"
+	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/savior"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
@@ -225,6 +227,11 @@ func Do(ctx *mansion.Context, inPath string) error {
 			return nil
 		}
 
+		_, err = reader.Seek(0, io.SeekStart)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
 		wasTar := func() bool {
 			tr := tar.NewReader(reader)
 
@@ -243,6 +250,40 @@ func Do(ctx *mansion.Context, inPath string) error {
 		}()
 
 		if wasTar {
+			return nil
+		}
+
+		_, err = reader.Seek(0, io.SeekStart)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		wasBoar := func() bool {
+			numEntries := 0
+			info, err := boar.Probe(&boar.ProbeParams{
+				File:     reader,
+				Consumer: consumer,
+				OnEntries: func(entries []*savior.Entry) {
+					numEntries += len(entries)
+					for _, e := range entries {
+						comm.Logf("%s %10s %s", e.Mode, progress.FormatBytes(e.UncompressedSize), e.CanonicalPath)
+					}
+				},
+			})
+			if err != nil {
+				consumer.Warnf("Couldn't probe with boar: %+v", err)
+				return false
+			}
+
+			if numEntries == 0 {
+				consumer.Warnf("Opened with boar successfully, but had 0 entries.")
+				consumer.Warnf("Archive info was: %s", info)
+			}
+
+			return true
+		}()
+
+		if wasBoar {
 			return nil
 		}
 
