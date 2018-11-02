@@ -18,6 +18,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/DHowett/go-plist",
+			"repository": "https://github.com/DHowett/go-plist",
+			"vcs": "git",
+			"revision": "500bd5b9081b5957ac10389f86e069869f00c348",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/Datadog/zstd",
 			"repository": "https://github.com/Datadog/zstd",
 			"vcs": "git",
@@ -71,6 +79,15 @@
 			"vcs": "git",
 			"revision": "652b277a9313806ef04f7c0cb0205dd455c4f344",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/davecgh/go-spew",
+			"vcs": "git",
+			"revision": "d8f796af33cc11cb798c1aaeb27a4ebc5099927d",
+			"branch": "master",
+			"path": "/spew",
 			"notests": true
 		},
 		{
@@ -239,7 +256,15 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "9974725528b9a89e8384be7372f63ba99a0f7c15",
+			"revision": "954937a3bbc191385c7a165580af7be5059d6e5b",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/damage",
+			"repository": "https://github.com/itchio/damage",
+			"vcs": "git",
+			"revision": "e04232042937f0843fdd21481030f45ffc5ff055",
 			"branch": "master",
 			"notests": true
 		},
@@ -376,6 +401,14 @@
 			"repository": "https://github.com/itchio/wizardry",
 			"vcs": "git",
 			"revision": "8b25a114f7971ae6a0d56b6d43827693a192f7a0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/jessevdk/go-flags",
+			"repository": "https://github.com/jessevdk/go-flags",
+			"vcs": "git",
+			"revision": "5de817a9aa209ed35a164cb04aec82b7df1a47a6",
 			"branch": "master",
 			"notests": true
 		},
@@ -725,6 +758,22 @@
 			"repository": "https://gopkg.in/russross/blackfriday.v2",
 			"vcs": "git",
 			"revision": "cadec560ec52d93835bf2f15bd794700d3a2473b",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/yaml.v1",
+			"repository": "https://gopkg.in/yaml.v1",
+			"vcs": "git",
+			"revision": "9f9df34309c04878acc86042b16630b0f696e1de",
+			"branch": "v1",
+			"notests": true
+		},
+		{
+			"importpath": "howett.net/plist",
+			"repository": "https://gitlab.howett.net/go/plist",
+			"vcs": "git",
+			"revision": "500bd5b9081b5957ac10389f86e069869f00c348",
 			"branch": "master",
 			"notests": true
 		}

@@ -2,6 +2,7 @@ package pwr
 
 import (
 	"io"
+	"sync"
 
 	"github.com/itchio/wharf/counter"
 	"github.com/itchio/wharf/state"
@@ -24,6 +25,11 @@ func CopyContainer(container *tlc.Container, outPool wsync.WritablePool, inPool 
 			return err
 		}
 
+		var closeOnce sync.Once
+		defer closeOnce.Do(func() {
+			w.Close()
+		})
+
 		cw := counter.NewWriterCallback(func(count int64) {
 			alpha := float64(byteOffset+count) / float64(container.Size)
 			consumer.Progress(alpha)
@@ -34,7 +40,9 @@ func CopyContainer(container *tlc.Container, outPool wsync.WritablePool, inPool 
 			return err
 		}
 
-		err = w.Close()
+		closeOnce.Do(func() {
+			err = w.Close()
+		})
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,11 @@
 package extract
 
 import (
+	"runtime"
 	"time"
+
+	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/installer/dmg/dmgextract"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/boar/szextractor"
@@ -82,35 +86,62 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	if err != nil {
 		return errors.Wrap(err, "probing archive")
 	}
-	consumer.Opf("Using %s", archiveInfo.Features)
 
-	ex, err := archiveInfo.GetExtractor(file, consumer)
-	if err != nil {
-		return errors.Wrap(err, "getting extractor for archive")
-	}
-
-	if szex, ok := ex.(szextractor.SzExtractor); ok {
-		consumer.Opf("Archive format: (%s)", szex.GetFormat())
-	}
-
-	ex.SetConsumer(consumer)
+	var extractSize int64
 
 	startTime := time.Now()
 
-	sink := &savior.FolderSink{
-		Directory: params.Dir,
-	}
+	if archiveInfo.Strategy == boar.StrategyDmg {
+		consumer.Opf("Using dmgextract")
+		if runtime.GOOS != "darwin" {
+			consumer.Warnf("We're not on macOS, so unless you cross-compiled hdiutil, I'm betting this'll fail.")
+		}
 
-	comm.StartProgress()
-	res, err := ex.Resume(nil, sink)
-	comm.EndProgress()
+		localFile, err := installer.AsLocalFile(file)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
-	if err != nil {
-		return errors.Wrap(err, "extracting archive")
+		comm.StartProgress()
+		res, err := dmgextract.New(localFile.Name(),
+			dmgextract.WithConsumer(consumer),
+		).ExtractTo(params.Dir)
+		comm.EndProgress()
+
+		if err != nil {
+			return errors.Wrap(err, "extracting archive")
+		}
+
+		extractSize = res.Container.Size
+	} else {
+		consumer.Opf("Using %s", archiveInfo.Features)
+		ex, err := archiveInfo.GetExtractor(file, consumer)
+		if err != nil {
+			return errors.Wrap(err, "getting extractor for archive")
+		}
+
+		if szex, ok := ex.(szextractor.SzExtractor); ok {
+			consumer.Opf("Archive format: (%s)", szex.GetFormat())
+		}
+
+		ex.SetConsumer(consumer)
+
+		sink := &savior.FolderSink{
+			Directory: params.Dir,
+		}
+
+		comm.StartProgress()
+		res, err := ex.Resume(nil, sink)
+		comm.EndProgress()
+
+		if err != nil {
+			return errors.Wrap(err, "extracting archive")
+		}
+		extractSize = res.Size()
 	}
 
 	duration := time.Since(startTime)
-	consumer.Statf("Overall extraction speed: %s", progress.FormatBPS(res.Size(), duration))
+	consumer.Statf("Overall extraction speed: %s", progress.FormatBPS(extractSize, duration))
 
 	return nil
 }

@@ -82,6 +82,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		return nil, errors.WithStack(err)
 	}
 
+	consumer.Opf("Applying stage-two...")
 	aRes, err = archiveInfo.ApplyStageTwo(consumer, aRes, params.InstallFolderPath)
 	if err != nil {
 		if errors.Cause(err) == savior.ErrStop {
@@ -95,6 +96,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 		res.Files = append(res.Files, entry.CanonicalPath)
 	}
 
+	consumer.Opf("Busting ghosts...")
 	err = bfs.BustGhosts(&bfs.BustGhostsParams{
 		Folder:   params.InstallFolderPath,
 		NewFiles: res.Files,

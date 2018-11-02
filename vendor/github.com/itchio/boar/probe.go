@@ -41,6 +41,11 @@ const (
 	// .exe files for example - might be self-extracting
 	// archives 7-zip can handle, or they might not.
 	StrategySevenZipUnsure Strategy = 301
+
+	// .dmg files can only be properly extracted on macOS.
+	// 7-zip struggles with ISO9660 disk images for example,
+	// and doesn't support APFS yet (as of 18.05)
+	StrategyDmg Strategy = 400
 )
 
 func (as Strategy) String() string {
@@ -57,6 +62,8 @@ func (as Strategy) String() string {
 		return "tar.xz"
 	case StrategySevenZip, StrategySevenZipUnsure:
 		return "7-zip"
+	case StrategyDmg:
+		return "dmg"
 	default:
 		return "<no strategy>"
 	}
@@ -103,7 +110,7 @@ func (ai *Info) String() string {
 	return res
 }
 
-// Attempt to determine the type of an archive
+// Probe attempts to determine the type of an archive
 // Returns (nil, nil) if it is not a recognized archive type
 // Returns (nil, non-nil) if it IS a recognized archive type, but something's
 // wrong with it.
@@ -125,6 +132,12 @@ func Probe(params *ProbeParams) (*Info, error) {
 
 	info := &Info{
 		Strategy: strategy,
+	}
+
+	if info.Strategy == StrategyDmg {
+		// There's nothing else we can do about DMG, we don't ship
+		// an extractor for it.
+		return info, nil
 	}
 
 	// now actually try to open it
@@ -277,7 +290,9 @@ func getStrategy(file eos.File, consumer *state.Consumer) Strategy {
 		return StrategyTarBz2
 	case ".tar.xz":
 		return StrategyTarXz
-	case ".7z", ".rar", ".dmg":
+	case ".dmg":
+		return StrategyDmg
+	case ".7z", ".rar":
 		return StrategySevenZip
 	case ".exe":
 		return StrategySevenZipUnsure

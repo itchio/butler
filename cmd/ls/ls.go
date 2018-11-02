@@ -6,6 +6,9 @@ import (
 	"io"
 	"os"
 
+	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/installer/dmg/dmgextract"
+
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
@@ -275,9 +278,25 @@ func Do(ctx *mansion.Context, inPath string) error {
 				return false
 			}
 
-			if numEntries == 0 {
-				consumer.Warnf("Opened with boar successfully, but had 0 entries.")
-				consumer.Warnf("Archive info was: %s", info)
+			if info.Strategy == boar.StrategyDmg {
+				localFile, err := installer.AsLocalFile(reader)
+				if err != nil {
+					consumer.Warnf("%+v", err)
+					return false
+				}
+
+				res, err := dmgextract.New(localFile.Name()).List()
+				if err != nil {
+					consumer.Warnf("%+v", err)
+					return false
+				}
+
+				res.Container.Print(log)
+			} else {
+				if numEntries == 0 {
+					consumer.Warnf("Opened with boar successfully, but had 0 entries.")
+					consumer.Warnf("Archive info was: %s", info)
+				}
 			}
 
 			return true
