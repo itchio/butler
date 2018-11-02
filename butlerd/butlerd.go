@@ -58,6 +58,7 @@ func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 				if err != nil {
 					log.Printf("While performing %s server shutdown: %+v", name, err)
 				}
+				log.Printf("%s server has shut down.", name)
 			}
 		}()
 	}
@@ -100,24 +101,65 @@ func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
 		}
 	}
 	shutdownWaitGroup.Wait()
+	log.Printf("All HTTP servers have shut down successfully")
 
 	return nil
 }
 
 type ServeTCPParams struct {
-	Handler  jsonrpc2.Handler
-	Consumer *state.Consumer
-	Listener net.Listener
-	Secret   string
-	Log      bool
+	Handler   jsonrpc2.Handler
+	Consumer  *state.Consumer
+	Listener  net.Listener
+	Secret    string
+	Log       bool
+	KeepAlive bool
 }
 
 func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
+	if params.KeepAlive {
+		return s.serveTCPKeepAlive(ctx, params)
+	} else {
+		return s.serveTCPClose(ctx, params)
+	}
+}
+
+func (s *Server) serveTCPClose(ctx context.Context, params ServeTCPParams) error {
 	tcpConn, err := params.Listener.Accept()
 	if err != nil {
 		return err
 	}
 
+	return s.handleTCPConn(ctx, params, tcpConn)
+}
+
+func (s *Server) serveTCPKeepAlive(ctx context.Context, params ServeTCPParams) error {
+	conns := make(chan net.Conn)
+	go func() {
+		for {
+			tcpConn, err := params.Listener.Accept()
+			if err != nil {
+				log.Printf("While accepting connection: %+v", err)
+			}
+			conns <- tcpConn
+		}
+	}()
+
+	for {
+		select {
+		case tcpConn := <-conns:
+			go func() {
+				err := s.handleTCPConn(ctx, params, tcpConn)
+				if err != nil {
+					log.Printf("While handling TCP connection: %+v", err)
+				}
+			}()
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (s *Server) handleTCPConn(ctx context.Context, params ServeTCPParams, tcpConn net.Conn) error {
 	logger := log.New(os.Stderr, "[rpc]", log.LstdFlags)
 	gh := &gatedHandler{
 		secret: params.Secret,

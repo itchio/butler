@@ -25,6 +25,7 @@ var args = struct {
 	writeCert   string
 	destinyPids []int64
 	transport   string
+	keepAlive   bool
 	log         bool
 }{}
 
@@ -34,6 +35,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
 	cmd.Flag("transport", "Which transport to use").Default("http").EnumVar(&args.transport, "http", "tcp")
+	cmd.Flag("keep-alive", "Accept multiple TCP connections, stay up until killed or a destiny PID shuts down").BoolVar(&args.keepAlive)
 	cmd.Flag("log", "Log all requests to stderr").BoolVar(&args.log)
 	ctx.Register(cmd, do)
 }
@@ -138,11 +140,12 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 		})
 
 		err = s.ServeTCP(ctx, butlerd.ServeTCPParams{
-			Handler:  h,
-			Consumer: consumer,
-			Listener: listener,
-			Secret:   secret,
-			Log:      args.log,
+			Handler:   h,
+			Consumer:  consumer,
+			Listener:  listener,
+			Secret:    secret,
+			Log:       args.log,
+			KeepAlive: args.keepAlive,
 		})
 		if err != nil {
 			return err
