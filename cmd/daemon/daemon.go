@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"crawshaw.io/sqlite"
+	"github.com/google/gops/agent"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
@@ -47,6 +48,14 @@ func do(ctx *mansion.Context) {
 		comm.Dief("butlerd: dbPath must be set")
 	}
 
+	err := agent.Listen(agent.Options{
+		Addr:            "localhost:0",
+		ShutdownCleanup: true,
+	})
+	if err != nil {
+		comm.Warnf("butlerd: Could not start gops agent: %+v", err)
+	}
+
 	for _, destinyPid := range args.destinyPids {
 		go tieDestiny(destinyPid)
 	}
@@ -60,7 +69,7 @@ func do(ctx *mansion.Context) {
 	}
 	secret := generateSecret()
 
-	err := os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
+	err = os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}

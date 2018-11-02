@@ -221,6 +221,58 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gonuts/commander",
+			"repository": "https://github.com/gonuts/commander",
+			"vcs": "git",
+			"revision": "f8ba4e959ca914268227c3ebbd7f6bf0bb35541a",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/gonuts/flag",
+			"repository": "https://github.com/gonuts/flag",
+			"vcs": "git",
+			"revision": "741a6cbd37a30dedc93f817e7de6aaf0ca38a493",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/google/gops/agent",
+			"repository": "https://github.com/google/gops",
+			"vcs": "git",
+			"revision": "f341a40f99ec27eb59f219922de4c5f8369251a1",
+			"branch": "master",
+			"path": "/agent",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/google/gops/internal",
+			"repository": "https://github.com/google/gops",
+			"vcs": "git",
+			"revision": "f341a40f99ec27eb59f219922de4c5f8369251a1",
+			"branch": "master",
+			"path": "internal",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/google/gops/signal",
+			"repository": "https://github.com/google/gops",
+			"vcs": "git",
+			"revision": "f341a40f99ec27eb59f219922de4c5f8369251a1",
+			"branch": "master",
+			"path": "signal",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/google/gops/vendor/github.com/kardianos/osext",
+			"repository": "https://github.com/google/gops",
+			"vcs": "git",
+			"revision": "f341a40f99ec27eb59f219922de4c5f8369251a1",
+			"branch": "master",
+			"path": "vendor/github.com/kardianos/osext",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/google/uuid",
 			"repository": "https://github.com/google/uuid",
 			"vcs": "git",
