@@ -97,6 +97,11 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		operate.LogUpload(consumer, upload, build)
 	}
 
+	err = ensureLicenseAcceptance(rc, installFolder)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	var fullTargetPath string
 	var strategy = LaunchStrategyUnknown
 	var candidate *dash.Candidate
