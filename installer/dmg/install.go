@@ -78,7 +78,7 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 			os.Remove(slaPath)
 		}
 	} else {
-		consumer.Opf("Wiping pre-existing SLA to (%s)", slaPath)
+		consumer.Opf("Writing SLA to (%s)", slaPath)
 		err = os.MkdirAll(filepath.Dir(slaPath), 0755)
 		if err != nil {
 			return nil, errors.WithStack(err)
