@@ -31,7 +31,7 @@ var installerForExt = map[string]InstallerType{
 	///////////////////////////////////////////////////////////
 
 	// Apple disk images
-	".dmg": InstallerTypeArchive,
+	".dmg": InstallerTypeDMG,
 
 	// Microsoft packages
 	".msi": InstallerTypeMSI,
