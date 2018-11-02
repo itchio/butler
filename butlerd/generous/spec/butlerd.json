@@ -432,7 +432,7 @@
           },
           {
             "name": "fresh",
-            "doc": "",
+            "doc": "Force an API request",
             "type": "boolean"
           }
         ]
@@ -1656,6 +1656,29 @@
       },
       "result": {
         "fields": null
+      }
+    },
+    {
+      "method": "AcceptLicense",
+      "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement (at the time of this writing, this only happens if it was installed from a DMG file).",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "text",
+            "doc": "The full text of the license agreement, in its default\nlanguage, which is usually English.",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "accept",
+            "doc": "true if the user accepts the terms of the license, false otherwise.\nNote that false will cancel the launch.",
+            "type": "boolean"
+          }
+        ]
       }
     },
     {

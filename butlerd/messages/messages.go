@@ -2805,6 +2805,46 @@ func (r *LaunchExitedType) Register(router router, f func(*butlerd.RequestContex
 
 var LaunchExited *LaunchExitedType
 
+// AcceptLicense (Request)
+
+type AcceptLicenseType struct {}
+
+var _ RequestMessage = (*AcceptLicenseType)(nil)
+
+func (r *AcceptLicenseType) Method() string {
+  return "AcceptLicense"
+}
+
+func (r *AcceptLicenseType) TestRegister(router router, f func(*butlerd.RequestContext, butlerd.AcceptLicenseParams) (*butlerd.AcceptLicenseResult, error)) {
+  router.Register("AcceptLicense", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.AcceptLicenseParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for AcceptLicense")
+    }
+    return res, nil
+  })
+}
+
+func (r *AcceptLicenseType) Call(rc *butlerd.RequestContext, params butlerd.AcceptLicenseParams) (*butlerd.AcceptLicenseResult, error) {
+  var result butlerd.AcceptLicenseResult
+  err := rc.Call("AcceptLicense", params, &result)
+  return &result, err
+}
+
+var AcceptLicense *AcceptLicenseType
+
 // PickManifestAction (Request)
 
 type PickManifestActionType struct {}

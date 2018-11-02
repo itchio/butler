@@ -2026,6 +2026,28 @@ type LaunchRunningNotification struct{}
 // @category Launch
 type LaunchExitedNotification struct{}
 
+// Sent during @@LaunchParams if the game/application comes with a service license
+// agreement (at the time of this writing, this only happens if it was installed from a DMG file).
+//
+// @tags Dialogs
+// @category Launch
+// @caller server
+type AcceptLicenseParams struct {
+	// The full text of the license agreement, in its default
+	// language, which is usually English.
+	Text string `json:"text"`
+}
+
+func (p AcceptLicenseParams) Validate() error {
+	return nil
+}
+
+type AcceptLicenseResult struct {
+	// true if the user accepts the terms of the license, false otherwise.
+	// Note that false will cancel the launch.
+	Accept bool `json:"accept"`
+}
+
 // Sent during @@LaunchParams, ask the user to pick a manifest action to launch.
 //
 // See [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html).

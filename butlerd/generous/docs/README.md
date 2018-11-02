@@ -1543,7 +1543,8 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> Force an API request</p>
+</td>
 </tr>
 </table>
 
@@ -4463,13 +4464,13 @@ then all at once in the result.</p>
 <tr>
 <td><code>caveIds</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>If specified, will only look for updates to these caves</p>
+<td><p><span class="tag">Optional</span> If specified, will only look for updates to these caves</p>
 </td>
 </tr>
 <tr>
 <td><code>verbose</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>If specified, will log information even when we have no warnings/errors</p>
+<td><p><span class="tag">Optional</span> If specified, will log information even when we have no warnings/errors</p>
 </td>
 </tr>
 </table>
@@ -4884,6 +4885,66 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 <p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when the game has actually exited.</p>
 
 </p>
+</div>
+
+### <em class="request-server-caller"></em>AcceptLicense
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code> if the game/application comes with a service license
+agreement (at the time of this writing, this only happens if it was installed from a DMG file).</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>text</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The full text of the license agreement, in its default
+language, which is usually English.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>accept</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>true if the user accepts the terms of the license, false otherwise.
+Note that false will cancel the launch.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="AcceptLicenseParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-server-caller"></em>AcceptLicense <a href="#/?id=acceptlicense">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code> if the game/application comes with a service license
+agreement (at the time of this writing, this only happens if it was installed from a DMG file).</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>text</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="request-server-caller"></em>PickManifestAction
@@ -7439,6 +7500,11 @@ can be part of an issue report if something goes wrong.</p>
 </td>
 </tr>
 <tr>
+<td><code>6000</code></td>
+<td><p>Java Runtime Environment is required to launch this title.</p>
+</td>
+</tr>
+<tr>
 <td><code>9000</code></td>
 <td><p>There is no Internet connection</p>
 </td>
@@ -7490,6 +7556,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>5000</code></td>
+</tr>
+<tr>
+<td><code>6000</code></td>
 </tr>
 <tr>
 <td><code>9000</code></td>
