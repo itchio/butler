@@ -102,11 +102,13 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 			return errors.WithStack(err)
 		}
 
-		comm.StartProgress()
 		res, err := dmgextract.New(localFile.Name(),
 			dmgextract.WithConsumer(consumer),
+			dmgextract.WithProgressTotalBytes(
+				comm.StartProgressWithTotalBytes,
+				comm.EndProgress,
+			),
 		).ExtractTo(params.Dir)
-		comm.EndProgress()
 
 		if err != nil {
 			return errors.Wrap(err, "extracting archive")

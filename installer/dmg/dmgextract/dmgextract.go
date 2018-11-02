@@ -26,10 +26,12 @@ type extractor struct {
 }
 
 type extractorOpts struct {
-	dmgpath     string
-	mountFolder string
-	consumer    *state.Consumer
-	extractSLA  bool
+	dmgpath                     string
+	mountFolder                 string
+	consumer                    *state.Consumer
+	extractSLA                  bool
+	startProgressWithTotalBytes func(totalBytes int64)
+	endProgress                 func()
 }
 
 // An ExtractorOpt changes the behavior of a dmg extractor.
@@ -54,6 +56,13 @@ func WithConsumer(consumer *state.Consumer) ExtractorOpt {
 func WithMountFolder(mountFolder string) ExtractorOpt {
 	return func(opts *extractorOpts) {
 		opts.mountFolder = mountFolder
+	}
+}
+
+func WithProgressTotalBytes(startProgressWithTotalBytes func(totalBytes int64), endProgress func()) ExtractorOpt {
+	return func(opts *extractorOpts) {
+		opts.startProgressWithTotalBytes = startProgressWithTotalBytes
+		opts.endProgress = endProgress
 	}
 }
 
@@ -220,7 +229,13 @@ func (e *extractor) do(dest string) (*ExtractorResult, error) {
 			outPool := fspool.New(container, dest)
 			return pwr.CopyContainer(container, outPool, inPool, consumer)
 		}
+		if opts.startProgressWithTotalBytes != nil {
+			opts.startProgressWithTotalBytes(container.Size)
+		}
 		err = copy()
+		if opts.endProgress != nil {
+			opts.endProgress()
+		}
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
