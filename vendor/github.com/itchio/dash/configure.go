@@ -278,9 +278,17 @@ func FixPermissions(v *Verdict, params *FixPermissionsParams) ([]string, error) 
 
 	var fixed []string
 
+	var libraryPattern = regexp.MustCompile(`\.so(\.[0-9]+)*$`)
+
 	for _, c := range v.Candidates {
 		switch c.Flavor {
 		case FlavorNativeLinux, FlavorNativeMacos, FlavorScript:
+			baseName := filepath.Base(c.Path)
+			if libraryPattern.MatchString(baseName) {
+				// don't fix dynamic libraries linux
+				continue
+			}
+
 			fullPath := filepath.Join(v.BasePath, c.Path)
 
 			if c.Mode&0100 == 0 {
