@@ -159,8 +159,7 @@ func (s *Server) serveTCPKeepAlive(ctx context.Context, params ServeTCPParams) e
 	}
 }
 
-func (s *Server) handleTCPConn(ctx context.Context, params ServeTCPParams, tcpConn net.Conn) error {
-	logger := log.New(os.Stderr, "[rpc]", log.LstdFlags)
+func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams, tcpConn net.Conn) error {
 	gh := &gatedHandler{
 		secret: params.Secret,
 		inner:  params.Handler,
@@ -168,13 +167,18 @@ func (s *Server) handleTCPConn(ctx context.Context, params ServeTCPParams, tcpCo
 
 	var opts []jsonrpc2.ConnOpt
 	if params.Log {
+		logger := log.New(os.Stderr, "[rpc] ", log.LstdFlags)
 		opts = append(opts, jsonrpc2.LogMessages(logger))
 	}
+
+	ctx, cancel := context.WithCancel(parentCtx)
+	defer cancel()
 
 	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
 
 	conn := jsonrpc2.NewConn(ctx, stream, gh, opts...)
 	<-conn.DisconnectNotify()
+
 	return nil
 }
 

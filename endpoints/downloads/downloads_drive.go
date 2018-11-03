@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 	"time"
 
@@ -35,8 +36,15 @@ type Status struct {
 	Online bool
 }
 
+type tempLockfileErr interface {
+	Temporary() bool
+}
+
 func DownloadsDrive(rc *butlerd.RequestContext, params butlerd.DownloadsDriveParams) (*butlerd.DownloadsDriveResult, error) {
 	consumer := rc.Consumer
+
+	// TODO: implement downloads drive lock via the database.
+
 	consumer.Infof("Now driving downloads...")
 
 	parentCtx := rc.Ctx
@@ -53,6 +61,7 @@ poll:
 	for {
 		select {
 		case <-ctx.Done():
+			log.Printf("Downloads drive context is done")
 			consumer.Infof("Drive cancelled, bye!")
 			break poll
 		default:
