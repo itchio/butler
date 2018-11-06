@@ -146,6 +146,8 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 			Secret:    secret,
 			Log:       args.log,
 			KeepAlive: args.keepAlive,
+
+			ShutdownChan: h.router.ShutdownChan,
 		})
 		if err != nil {
 			return err

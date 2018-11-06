@@ -113,6 +113,8 @@ type ServeTCPParams struct {
 	Secret    string
 	Log       bool
 	KeepAlive bool
+
+	ShutdownChan chan struct{}
 }
 
 func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
@@ -133,6 +135,7 @@ func (s *Server) serveTCPClose(ctx context.Context, params ServeTCPParams) error
 }
 
 func (s *Server) serveTCPKeepAlive(ctx context.Context, params ServeTCPParams) error {
+	var wg sync.WaitGroup
 	conns := make(chan net.Conn)
 	go func() {
 		for {
@@ -147,12 +150,26 @@ func (s *Server) serveTCPKeepAlive(ctx context.Context, params ServeTCPParams) e
 	for {
 		select {
 		case tcpConn := <-conns:
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				err := s.handleTCPConn(ctx, params, tcpConn)
 				if err != nil {
 					log.Printf("While handling TCP connection: %+v", err)
 				}
 			}()
+		case <-params.ShutdownChan:
+			log.Printf("Closing TCP listener...")
+			err := params.Listener.Close()
+			if err != nil {
+				log.Printf("While closing TCP listener: %+v", err)
+			}
+
+			log.Printf("Waiting for TCP connections to close...")
+			wg.Wait()
+			log.Printf("All TCP connections closed")
+
+			return nil
 		case <-ctx.Done():
 			return nil
 		}
