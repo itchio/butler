@@ -58,7 +58,7 @@ func licensePath(installFolder string) string {
 }
 
 func licenseMarkerPath(installFolder string) string {
-	return filepath.Join(installFolder, ".itch", "sla-accepted-hash.txt")
+	return filepath.Join(installFolder, ".itch", "sla-accepted-hash.sha256")
 }
 
 func getLicense(installFolder string) string {
