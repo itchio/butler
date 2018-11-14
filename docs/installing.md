@@ -27,6 +27,27 @@ If you want to get the latest stable, for example, you could curl or wget the fo
 
 You can substitute `linux-amd64` with any channel listed on broth.
 
+The file served is a .zip file, and this URL redirects to an expiring download URL. Here's
+an example bash script to install the latest stable butler for Linux:
+
+```
+# -L follows redirects
+# -O specifies output name
+curl -L -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+unzip butler.zip
+# GNU unzip tends to not set the executable bit even though it's set in the .zip
+chmod +x butler
+# just a sanity check run (and also helpful in case you're sharing CI logs)
+./butler -V
+```
+
+Note: the .zip file contains the butler executable, along with two dynamic
+libraries related to 7-zip, which grant butler extra functionality. They're
+not strictly required for `butler push`, however, they shouldn't hurt either.
+
+If you need help integrating butler in your CI pipeline, butler's GitHub issue
+tracker is a good place to ask: https://github.com/itchio/butler/issues/
+
 ## Adding butler to your path
 
 Adding an executable to your path allows you to launch it from anywhere,
@@ -41,7 +62,7 @@ looking for commands*
 
 ### On Linux
 
-If you downloaded butler to a directory (let's say `~/bin`), you first need
+If you extracted butler to a directory (let's say `~/bin`), you first need
 to mark it as executable. From a terminal, run:
 
 ```sh
@@ -117,3 +138,20 @@ about PowerShell you probably didn't need to read most of this page anyway.*
 If you ever forget where you put your butler.exe, the `butler which` command
 will print its complete path.
 
+## Appendix: What happened to dl.itch.ovh ?
+
+If you followed these instructions before September 2018, you might have
+download URLs starting with `dl.itch.ovh`. While new versions of butler are
+still being deployed to that server for the time being, it is deprecated
+and new CI setups should use the latest `broth.itch.ovh` URLs instead.
+
+`dl.itch.ovh` was a simple storage bucket with a proxy in front. It did
+the job, but some users were unable to access it, and download speeds were
+sometimes suboptimal for non-US users. `broth.itch.ovh` serves downloads
+through itch.io's CDN, which means every should have access and reasonable
+download speeds.
+
+Additionally, `dl.itch.ovh` served "naked binaries", whereas `broth.itch.ovh`
+now serves .zip archives, because the full butler distribution is more than
+one file. See the install instructions above for what these files are, and
+example bash code on how to install butler from broth.
