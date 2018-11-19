@@ -31,18 +31,20 @@ func (c *Client) ListProfileGames() (*ListProfileGamesResponse, error) {
 
 //-------------------------------------------------------
 
+// ListProfileOwnedKeysParams : params for ListProfileOwnedKeys
 type ListProfileOwnedKeysParams struct {
 	Page int64
 }
 
-// ListProfileOwnedKeysResponse is the response for /profile/owned-keys
+// ListProfileOwnedKeysResponse : response for ListProfileOwnedKeys
 type ListProfileOwnedKeysResponse struct {
 	Page      int64          `json:"page"`
 	PerPage   int64          `json:"perPage"`
 	OwnedKeys []*DownloadKey `json:"ownedKeys"`
 }
 
-// ListProfileOwnedKeys lists the download keys one owns
+// ListProfileOwnedKeys lists the download keys the account with
+// the current API key owns.
 func (c *Client) ListProfileOwnedKeys(p ListProfileOwnedKeysParams) (*ListProfileOwnedKeysResponse, error) {
 	q := NewQuery(c, "/profile/owned-keys")
 	q.AddInt64IfNonZero("page", p.Page)
@@ -52,12 +54,12 @@ func (c *Client) ListProfileOwnedKeys(p ListProfileOwnedKeysParams) (*ListProfil
 
 //-------------------------------------------------------
 
-// ListProfileCollectionsResponse is the response for /profile/collections
+// ListProfileCollectionsResponse : response for ListProfileCollections
 type ListProfileCollectionsResponse struct {
 	Collections []*Collection `json:"collections"`
 }
 
-// ListProfileCollections lists the collections associated to a profile
+// ListProfileCollections lists the collections associated to a profile.
 func (c *Client) ListProfileCollections() (*ListProfileCollectionsResponse, error) {
 	q := NewQuery(c, "/profile/collections")
 	r := &ListProfileCollectionsResponse{}

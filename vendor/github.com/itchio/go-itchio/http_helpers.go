@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var dumpApiCalls = os.Getenv("GO_ITCHIO_DEBUG") == "1"
+var dumpAPICalls = os.Getenv("GO_ITCHIO_DEBUG") == "1"
 
 // Get performs an HTTP GET request to the API
 func (c *Client) Get(url string) (*http.Response, error) {
@@ -27,6 +27,7 @@ func (c *Client) Get(url string) (*http.Response, error) {
 	return c.Do(req)
 }
 
+// GetResponse performs an HTTP GET request and parses the API response.
 func (c *Client) GetResponse(url string, dst interface{}) error {
 	resp, err := c.Get(url)
 	if err != nil {
@@ -51,6 +52,7 @@ func (c *Client) PostForm(url string, data url.Values) (*http.Response, error) {
 	return c.Do(req)
 }
 
+// PostFormResponse performs an HTTP POST request to the API *and* parses the API response.
 func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) error {
 	resp, err := c.PostForm(url, data)
 	if err != nil {
@@ -76,7 +78,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	var res *http.Response
 	var err error
 
-	if dumpApiCalls {
+	if dumpAPICalls {
 		fmt.Fprintf(os.Stderr, "[request] %s %s\n", req.Method, req.URL)
 		for k, vv := range req.Header {
 			for _, v := range vv {
@@ -116,7 +118,7 @@ func (c *Client) MakePath(format string, a ...interface{}) string {
 	return c.MakeValuesPath(nil, format, a...)
 }
 
-// MakePath crafts an API url from our configured base URL
+// MakeValuesPath crafts an API url from our configured base URL
 func (c *Client) MakeValuesPath(values url.Values, format string, a ...interface{}) string {
 	base := strings.Trim(c.BaseURL, "/")
 	subPath := strings.Trim(fmt.Sprintf(format, a...), "/")
@@ -150,7 +152,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 		return errors.WithStack(err)
 	}
 
-	if dumpApiCalls {
+	if dumpAPICalls {
 		fmt.Fprintf(os.Stderr, "[response] %s\n", string(body))
 	}
 
@@ -186,7 +188,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 
 	intermediate = camelifyMap(intermediate)
 
-	if dumpApiCalls {
+	if dumpAPICalls {
 		enc := json.NewEncoder(os.Stderr)
 		enc.SetIndent("[intermediate] ", "  ")
 		enc.Encode(intermediate)
@@ -228,6 +230,8 @@ func FindBuildFile(fileType BuildFileType, files []*BuildFile) *BuildFile {
 	return nil
 }
 
+// FindBuildFileEx looks for an uploaded file of the right type
+// and subtype in a list of file. Returns nil if it can't find one.
 func FindBuildFileEx(fileType BuildFileType, fileSubType BuildFileSubType, files []*BuildFile) *BuildFile {
 	for _, f := range files {
 		if f.Type == fileType && f.SubType == fileSubType && f.State == BuildFileStateUploaded {

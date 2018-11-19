@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+// UploadHookFunc is used to transform API results from
+// what they currently are to what we expect them to be.
 func UploadHookFunc(
 	f reflect.Type,
 	t reflect.Type,

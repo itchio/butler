@@ -1,5 +1,6 @@
 package itchio
 
+// GetUserParams : params for GetUser
 type GetUserParams struct {
 	UserID int64
 }
@@ -9,6 +10,7 @@ type GetUserResponse struct {
 	User *User `json:"user"`
 }
 
+// GetUser retrieves info about a single user, by ID.
 func (c *Client) GetUser(p GetUserParams) (*GetUserResponse, error) {
 	q := NewQuery(c, "/users/%d", p.UserID)
 	r := &GetUserResponse{}

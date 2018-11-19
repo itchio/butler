@@ -1,5 +1,9 @@
 package itchio
 
+// GameCredentials is your one-stop shop for all the
+// things that allow access to a game or its uploads, such as:
+// a download key, a password (for restricted pages), a secret
+// (for private pages).
 type GameCredentials struct {
 	DownloadKeyID int64  `json:"downloadKeyId,omitempty"`
 	Password      string `json:"password,omitempty"`
@@ -8,6 +12,7 @@ type GameCredentials struct {
 
 //-------------------------------------------------------
 
+// ListGameUploadsParams : params for ListGameUploads
 type ListGameUploadsParams struct {
 	GameID int64
 
@@ -15,12 +20,13 @@ type ListGameUploadsParams struct {
 	Credentials GameCredentials
 }
 
-// ListGameUploadsResponse is what the server replies with when asked for a game's uploads
+// ListGameUploadsResponse : response
 type ListGameUploadsResponse struct {
 	Uploads []*Upload `json:"uploads"`
 }
 
 // ListGameUploads lists the uploads for a game that we have access to with our API key
+// and game credentials.
 func (c *Client) ListGameUploads(p ListGameUploadsParams) (*ListGameUploadsResponse, error) {
 	q := NewQuery(c, "/games/%d/uploads", p.GameID)
 	q.AddGameCredentials(p.Credentials)
@@ -30,6 +36,7 @@ func (c *Client) ListGameUploads(p ListGameUploadsParams) (*ListGameUploadsRespo
 
 //-------------------------------------------------------
 
+// GetUploadParams : params for GetUpload
 type GetUploadParams struct {
 	UploadID int64
 
@@ -37,10 +44,12 @@ type GetUploadParams struct {
 	Credentials GameCredentials
 }
 
+// GetUploadResponse : response for GetUpload
 type GetUploadResponse struct {
 	Upload *Upload `json:"upload"`
 }
 
+// GetUpload retrieves information about a single upload, by ID.
 func (c *Client) GetUpload(params GetUploadParams) (*GetUploadResponse, error) {
 	q := NewQuery(c, "/uploads/%d", params.UploadID)
 	q.AddGameCredentials(params.Credentials)
@@ -50,6 +59,7 @@ func (c *Client) GetUpload(params GetUploadParams) (*GetUploadResponse, error) {
 
 //-------------------------------------------------------
 
+// ListUploadBuildsParams : params for ListUploadBuilds
 type ListUploadBuildsParams struct {
 	UploadID int64
 
@@ -57,10 +67,12 @@ type ListUploadBuildsParams struct {
 	Credentials GameCredentials
 }
 
+// ListUploadBuildsResponse : response for ListUploadBuilds
 type ListUploadBuildsResponse struct {
 	Builds []*Build `json:"builds"`
 }
 
+// ListUploadBuilds lists recent builds for a given upload, by ID.
 func (c *Client) ListUploadBuilds(params ListUploadBuildsParams) (*ListUploadBuildsResponse, error) {
 	q := NewQuery(c, "/uploads/%d/builds", params.UploadID)
 	q.AddGameCredentials(params.Credentials)
@@ -70,6 +82,7 @@ func (c *Client) ListUploadBuilds(params ListUploadBuildsParams) (*ListUploadBui
 
 //-------------------------------------------------------
 
+// GetBuildParams : params for GetBuild
 type GetBuildParams struct {
 	BuildID int64
 
@@ -77,10 +90,12 @@ type GetBuildParams struct {
 	Credentials GameCredentials
 }
 
+// GetBuildResponse : response for GetBuild
 type GetBuildResponse struct {
 	Build *Build `json:"build"`
 }
 
+// GetBuild retrieves info about a single build, by ID.
 func (c *Client) GetBuild(p GetBuildParams) (*GetBuildResponse, error) {
 	q := NewQuery(c, "/builds/%d", p.BuildID)
 	q.AddGameCredentials(p.Credentials)
@@ -90,6 +105,7 @@ func (c *Client) GetBuild(p GetBuildParams) (*GetBuildResponse, error) {
 
 //-------------------------------------------------------
 
+// GetBuildUpgradePathParams : params for GetBuildUpgradePath
 type GetBuildUpgradePathParams struct {
 	CurrentBuildID int64
 	TargetBuildID  int64
@@ -98,14 +114,19 @@ type GetBuildUpgradePathParams struct {
 	Credentials GameCredentials
 }
 
+// GetBuildUpgradePathResponse : response for GetBuildUpgradePath
 type GetBuildUpgradePathResponse struct {
 	UpgradePath *UpgradePath `json:"upgradePath"`
 }
 
+// UpgradePath is a series of builds for which a (n,n+1) patch exists,
 type UpgradePath struct {
 	Builds []*Build `json:"builds"`
 }
 
+// GetBuildUpgradePath returns the complete list of builds one
+// needs to go through to go from one version to another.
+// It only works when upgrading (at the time of this writing).
 func (c *Client) GetBuildUpgradePath(p GetBuildUpgradePathParams) (*GetBuildUpgradePathResponse, error) {
 	q := NewQuery(c, "/builds/%d/upgrade-paths/%d", p.CurrentBuildID, p.TargetBuildID)
 	q.AddGameCredentials(p.Credentials)
@@ -115,12 +136,22 @@ func (c *Client) GetBuildUpgradePath(p GetBuildUpgradePathParams) (*GetBuildUpgr
 
 //-------------------------------------------------------
 
+// NewDownloadSessionParams : params for NewDownloadSession
 type NewDownloadSessionParams struct {
 	GameID int64
 
 	Credentials GameCredentials
 }
 
+// NewDownloadSessionResponse : response for NewDownloadSession
+type NewDownloadSessionResponse struct {
+	UUID string `json:"uuid"`
+}
+
+// NewDownloadSession creates a new download session. It is used
+// for more accurate download analytics. Downloading multiple patch
+// and signature files may all be part of the same "download session":
+// upgrading a game to its latest version. It should only count as one download.
 func (c *Client) NewDownloadSession(p NewDownloadSessionParams) (*NewDownloadSessionResponse, error) {
 	q := NewQuery(c, "/games/%d/download-sessions", p.GameID)
 	q.AddGameCredentials(p.Credentials)
@@ -130,7 +161,8 @@ func (c *Client) NewDownloadSession(p NewDownloadSessionParams) (*NewDownloadSes
 
 //-------------------------------------------------------
 
-type MakeUploadDownloadParams struct {
+// MakeUploadDownloadURLParams : params for MakeUploadDownloadURL
+type MakeUploadDownloadURLParams struct {
 	UploadID int64
 
 	// Optional
@@ -140,7 +172,8 @@ type MakeUploadDownloadParams struct {
 	Credentials GameCredentials
 }
 
-func (c *Client) MakeUploadDownloadURL(p MakeUploadDownloadParams) string {
+// MakeUploadDownloadURL generates a download URL for an upload
+func (c *Client) MakeUploadDownloadURL(p MakeUploadDownloadURLParams) string {
 	q := NewQuery(c, "uploads/%d/download", p.UploadID)
 	q.AddAPICredentials()
 	q.AddGameCredentials(p.Credentials)
@@ -150,7 +183,8 @@ func (c *Client) MakeUploadDownloadURL(p MakeUploadDownloadParams) string {
 
 //-------------------------------------------------------
 
-type MakeBuildDownloadParams struct {
+// MakeBuildDownloadURLParams : params for MakeBuildDownloadURL
+type MakeBuildDownloadURLParams struct {
 	BuildID int64
 	Type    BuildFileType
 
@@ -164,7 +198,8 @@ type MakeBuildDownloadParams struct {
 	Credentials GameCredentials
 }
 
-func (c *Client) MakeBuildDownloadURL(p MakeBuildDownloadParams) string {
+// MakeBuildDownloadURL generates as download URL for a specific build
+func (c *Client) MakeBuildDownloadURL(p MakeBuildDownloadURLParams) string {
 	subType := p.SubType
 	if subType == "" {
 		subType = BuildFileSubTypeDefault

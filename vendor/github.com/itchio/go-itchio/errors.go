@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// APIError represents an itch.io API error. Some errors
+// are just HTTP status codes, others have more detailed messages.
 type APIError struct {
 	Messages   []string `json:"messages"`
 	StatusCode int      `json:"statusCode"`
@@ -25,7 +27,10 @@ func IsAPIError(err error) bool {
 	return ok
 }
 
-func AsAPIError(err error) (error, bool) {
+// AsAPIError returns an *APIError and true if the
+// passed error (no matter how deeply wrapped it is)
+// is an *APIError. Otherwise it returns nil, false.
+func AsAPIError(err error) (*APIError, bool) {
 	rootErr := errors.Cause(err)
 	apiError, ok := rootErr.(*APIError)
 	return apiError, ok

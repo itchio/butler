@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+// GameHookFunc is used to transform API results from
+// what they currently are to what we expect them to be.
 func GameHookFunc(
 	f reflect.Type,
 	t reflect.Type,

@@ -96,7 +96,7 @@ func (s *source) makeDownloadBuildURL(tokens []string) (htfs.GetURLFunc, error) 
 	fileType := tokens[6]
 
 	getter := func() (string, error) {
-		return s.ItchClient.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
+		return s.ItchClient.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
 			BuildID:     buildID,
 			UUID:        s.QueryValues.Get("uuid"),
 			Type:        itchio.BuildFileType(fileType),
@@ -129,7 +129,7 @@ func (s *source) makeKeyDownloadBuildURL(tokens []string) (htfs.GetURLFunc, erro
 		creds := parseGameCredentials(s.QueryValues)
 		creds.DownloadKeyID, _ = strconv.ParseInt(downloadKey, 10, 64)
 
-		return s.ItchClient.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
+		return s.ItchClient.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
 			BuildID:     buildID,
 			Type:        itchio.BuildFileType(fileType),
 			UUID:        s.QueryValues.Get("uuid"),
@@ -164,7 +164,7 @@ func (s *source) makeDownloadUploadURL(tokens []string) (htfs.GetURLFunc, error)
 	uploadID, _ := strconv.ParseInt(tokens[2], 10, 64)
 
 	getter := func() (string, error) {
-		return s.ItchClient.MakeUploadDownloadURL(itchio.MakeUploadDownloadParams{
+		return s.ItchClient.MakeUploadDownloadURL(itchio.MakeUploadDownloadURLParams{
 			UploadID:    uploadID,
 			Credentials: parseGameCredentials(s.QueryValues),
 			UUID:        s.QueryValues.Get("uuid"),
@@ -181,7 +181,7 @@ func (s *source) makeKeyDownloadUploadURL(tokens []string) (htfs.GetURLFunc, err
 	creds.DownloadKeyID, _ = strconv.ParseInt(downloadKey, 10, 64)
 
 	getter := func() (string, error) {
-		return s.ItchClient.MakeUploadDownloadURL(itchio.MakeUploadDownloadParams{
+		return s.ItchClient.MakeUploadDownloadURL(itchio.MakeUploadDownloadURLParams{
 			UploadID:    uploadID,
 			Credentials: creds,
 			UUID:        s.QueryValues.Get("uuid"),

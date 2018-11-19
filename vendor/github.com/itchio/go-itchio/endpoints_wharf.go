@@ -65,13 +65,14 @@ func (c *Client) GetChannel(target string, channel string) (*GetChannelResponse,
 
 //-------------------------------------------------------
 
+// CreateBuildParams : params for CreateBuild
 type CreateBuildParams struct {
 	Target      string
 	Channel     string
 	UserVersion string
 }
 
-// CreateBuildResponse is what the API replies with when we create a new build
+// CreateBuildResponse : response for CreateBuild
 type CreateBuildResponse struct {
 	Build struct {
 		ID          int64 `json:"id"`
@@ -95,8 +96,7 @@ func (c *Client) CreateBuild(p CreateBuildParams) (*CreateBuildResponse, error) 
 
 //-------------------------------------------------------
 
-// ListBuildFilesResponse is what the API responds with when we ask for the files
-// in a specific build
+// ListBuildFilesResponse : response for ListBuildFiles
 type ListBuildFilesResponse struct {
 	Files []*BuildFile `json:"files"`
 }
@@ -134,6 +134,7 @@ type FileUploadSpec struct {
 	UploadHeaders map[string]string `json:"uploadHeaders"`
 }
 
+// CreateBuildFileParams : params for CreateBuildFile
 type CreateBuildFileParams struct {
 	BuildID        int64
 	Type           BuildFileType
@@ -142,12 +143,12 @@ type CreateBuildFileParams struct {
 	Filename       string
 }
 
-// CreateBuildFileResponse is what the API responds when we create a new build file
+// CreateBuildFileResponse : response for CreateBuildFile
 type CreateBuildFileResponse struct {
 	File *FileUploadSpec `json:"file"`
 }
 
-// CreateBuildFile creates a new build file for a build
+// CreateBuildFile creates a new build file for a build.
 func (c *Client) CreateBuildFile(p CreateBuildFileParams) (*CreateBuildFileResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/files", p.BuildID)
 	q.AddString("type", string(p.Type))
@@ -160,16 +161,19 @@ func (c *Client) CreateBuildFile(p CreateBuildFileParams) (*CreateBuildFileRespo
 
 //-------------------------------------------------------
 
+// FinalizeBuildFileParams : params for FinalizeBuildFile
 type FinalizeBuildFileParams struct {
 	BuildID int64
 	FileID  int64
 	Size    int64
 }
 
-// FinalizeBuildFileResponse is what the API responds when we finalize a build file
+// FinalizeBuildFileResponse : response for FinalizeBuildFile
 type FinalizeBuildFileResponse struct{}
 
-// FinalizeBuildFile marks the end of the upload for a build file, it validates
+// FinalizeBuildFile marks the end of the upload for a build file.
+// It validates that the size of the file in storage is the same
+// we pass to this API call.
 func (c *Client) FinalizeBuildFile(p FinalizeBuildFileParams) (*FinalizeBuildFileResponse, error) {
 	q := NewQuery(c, "/wharf/builds/%d/files/%d", p.BuildID, p.FileID)
 	q.AddInt64("size", p.Size)
@@ -184,12 +188,13 @@ var (
 	ErrBuildFileNotFound = errors.New("build file not found in storage")
 )
 
+// MakeBuildFileDownloadURLParams : params for MakeBuildFileDownloadURL
 type MakeBuildFileDownloadURLParams struct {
 	BuildID int64
 	FileID  int64
 }
 
-// GetBuildFileDownloadURL returns a download URL for a given build file
+// MakeBuildFileDownloadURL returns a download URL for a given build file
 func (c *Client) MakeBuildFileDownloadURL(p MakeBuildFileDownloadURLParams) string {
 	q := NewQuery(c, "/wharf/builds/%d/files/%d/download", p.BuildID, p.FileID)
 	q.AddAPICredentials()
@@ -198,6 +203,7 @@ func (c *Client) MakeBuildFileDownloadURL(p MakeBuildFileDownloadURLParams) stri
 
 //-------------------------------------------------------
 
+// CreateBuildEventParams : params for CreateBuildEvent
 type CreateBuildEventParams struct {
 	BuildID int64
 	Type    BuildEventType
@@ -236,13 +242,14 @@ func (c *Client) CreateBuildEvent(p CreateBuildEventParams) (*CreateBuildEventRe
 
 //-------------------------------------------------------
 
+// CreateBuildFailureParams : params for CreateBuildFailure
 type CreateBuildFailureParams struct {
 	BuildID int64
 	Message string
 	Fatal   bool
 }
 
-// CreateBuildFailureResponse is what the API responds with when we mark a build as failed
+// CreateBuildFailureResponse : response for CreateBuildFailure
 type CreateBuildFailureResponse struct{}
 
 // CreateBuildFailure marks a given build as failed. We get to specify an error message and
@@ -257,11 +264,13 @@ func (c *Client) CreateBuildFailure(p CreateBuildFailureParams) (*CreateBuildFai
 
 //-------------------------------------------------------
 
+// CreateRediffBuildFailureParams : params for CreateRediffBuildFailure
 type CreateRediffBuildFailureParams struct {
 	BuildID int64
 	Message string
 }
 
+// CreateRediffBuildFailureResponse : response for CreateRediffBuildFailure
 type CreateRediffBuildFailureResponse struct{}
 
 // CreateRediffBuildFailure marks a given build as having failed to rediff (optimize)
