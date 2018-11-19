@@ -52,7 +52,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		subType = itchio.BuildFileSubTypeOptimized
 	}
 
-	patchURL := client.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
+	patchURL := client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
 		Credentials: params.Access.Credentials,
 		BuildID:     build.ID,
 		Type:        itchio.BuildFileTypePatch,

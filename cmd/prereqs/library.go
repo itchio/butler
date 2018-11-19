@@ -44,7 +44,7 @@ func (l *library) GetURL(name string, fileType itchio.BuildFileType) (string, er
 		return "", fmt.Errorf("Could not find download for prereq (%s)", name)
 	}
 
-	url := l.client.MakeBuildDownloadURL(itchio.MakeBuildDownloadParams{
+	url := l.client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
 		BuildID: upload.Build.ID,
 		Type:    fileType,
 	})
