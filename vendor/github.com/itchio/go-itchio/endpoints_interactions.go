@@ -9,8 +9,8 @@ import "time"
 // UserGameInteractionsSummary gives the latest "run at" timestamp and the
 // sum of seconds run for all sessions.
 type UserGameInteractionsSummary struct {
-	SecondsRun int64      `json:"seconds_run"`
-	LastRunAt  *time.Time `json:"last_run_at"`
+	SecondsRun int64      `json:"secondsRun"`
+	LastRunAt  *time.Time `json:"lastRunAt"`
 }
 
 // UserGameSession represents a single continuous run for a game.
@@ -18,9 +18,9 @@ type UserGameSession struct {
 	// ID is the global itch.io identifier for this session
 	ID int64 `json:"id"`
 	// SecondsRun is the number of seconds the game has run during this session.
-	SecondsRun int64 `json:"seconds_run"`
+	SecondsRun int64 `json:"secondsRun"`
 	// LastRunAt is the time this session ended.
-	LastRunAt *time.Time `json:"last_run_at"`
+	LastRunAt *time.Time `json:"lastRunAt"`
 }
 
 /////////////////////////////
@@ -37,7 +37,7 @@ type GetUserGameSessionsParams struct {
 // GetUserGameSessionsResponse : response for GetUserGameSessions
 type GetUserGameSessionsResponse struct {
 	Summary          UserGameInteractionsSummary `json:"summary"`
-	UserGameSessions []*UserGameSession          `json:"user_game_sessions"`
+	UserGameSessions []*UserGameSession          `json:"userGameSessions"`
 }
 
 // GetUserGameSessions retrieves a summary of interactions with a game by user,
@@ -59,7 +59,7 @@ type CreateUserGameSessionParams struct {
 	// as the request time, because the session may be "uploaded"
 	// later than it is being recorded. This happens especially
 	// if the session was recorded when offline.
-	LastTouchedAt *time.Time
+	LastRunAt *time.Time
 	// Upload being run this session
 	UploadID int64
 	// Optional (if the upload is not wharf-enabled): build being run this session
@@ -74,7 +74,7 @@ type CreateUserGameSessionResponse struct {
 	// A summary of interactions for this user+game
 	Summary *UserGameInteractionsSummary `json:"summary"`
 	// The freshly-created game session
-	UserGameSession *UserGameSession `json:"user_game_session"`
+	UserGameSession *UserGameSession `json:"userGameSession"`
 }
 
 // CreateUserGameSession creates a session for a user/game. It can
@@ -83,7 +83,7 @@ func (c *Client) CreateUserGameSession(p CreateUserGameSessionParams) (*CreateUs
 	q := NewQuery(c, "/games/%d/interactions/sessions", p.GameID)
 	q.AddGameCredentials(p.Credentials)
 	q.AddInt64("seconds_run", p.SecondsRun)
-	q.AddTimePtr("last_touched_at", p.LastTouchedAt)
+	q.AddTimePtr("last_run_at", p.LastRunAt)
 	q.AddInt64("upload_id", p.UploadID)
 	q.AddInt64IfNonZero("build_id", p.BuildID)
 	r := &CreateUserGameSessionResponse{}
@@ -99,8 +99,8 @@ type UpdateUserGameSessionParams struct {
 	// The ID of the game this session is for
 	GameID int64
 
-	SecondsRun    int64
-	LastTouchedAt *time.Time
+	SecondsRun int64
+	LastRunAt  *time.Time
 
 	Credentials GameCredentials
 }
@@ -108,7 +108,7 @@ type UpdateUserGameSessionParams struct {
 // UpdateUserGameSessionResponse : response for UpdateUserGameSession
 type UpdateUserGameSessionResponse struct {
 	Summary         *UserGameInteractionsSummary `json:"summary"`
-	UserGameSession *UserGameSession             `json:"user_game_session"`
+	UserGameSession *UserGameSession             `json:"userGameSession"`
 }
 
 // UpdateUserGameSession updates an existing user+game session with a new
@@ -117,7 +117,7 @@ func (c *Client) UpdateUserGameSession(p UpdateUserGameSessionParams) (*UpdateUs
 	q := NewQuery(c, "/games/%d/interactions/sessions/%d", p.GameID, p.SessionID)
 	q.AddGameCredentials(p.Credentials)
 	q.AddInt64("seconds_run", p.SecondsRun)
-	q.AddTimePtr("last_touched_at", p.LastTouchedAt)
+	q.AddTimePtr("last_run_at", p.LastRunAt)
 	r := &UpdateUserGameSessionResponse{}
 	return r, q.Post(r)
 }

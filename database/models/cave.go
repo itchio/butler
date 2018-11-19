@@ -88,6 +88,13 @@ func (c *Cave) RecordPlayTime(playTime time.Duration) {
 	c.Touch()
 }
 
+func (c *Cave) UpdateInteractions(summary *itchio.UserGameInteractionsSummary) {
+	c.SecondsRun = summary.SecondsRun
+	if c.LastTouchedAt != nil {
+		c.LastTouchedAt = summary.LastRunAt
+	}
+}
+
 func (c *Cave) GetInstallLocation(conn *sqlite.Conn) *InstallLocation {
 	if c.InstallLocation != nil {
 		return c.InstallLocation

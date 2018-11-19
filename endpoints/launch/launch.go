@@ -461,8 +461,47 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				}
 			}()
 
+			conn := rc.GetConn()
+			defer rc.PutConn(conn)
+			lastRunAt := time.Now().UTC()
+
 			cave.RecordPlayTime(playTime)
-			rc.WithConn(cave.Save)
+			cave.Save(conn)
+
+			logSession := func() error {
+				access := operate.AccessForGameID(conn, cave.GameID)
+				client := rc.Client(access.APIKey)
+				res, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
+					GameID:      cave.GameID,
+					UploadID:    cave.UploadID,
+					BuildID:     cave.BuildID,
+					Credentials: access.Credentials,
+
+					SecondsRun: int64(playTime.Seconds()),
+					LastRunAt:  &lastRunAt,
+				})
+				if err != nil {
+					return errors.WithStack(err)
+				}
+
+				consumer.Infof("Logged %s game session ending at %s",
+					time.Second*time.Duration(res.UserGameSession.SecondsRun),
+					res.UserGameSession.LastRunAt,
+				)
+				consumer.Infof("Overall stats: %s played, last run %s",
+					time.Second*time.Duration(res.Summary.SecondsRun),
+					res.Summary.LastRunAt,
+				)
+				cave.UpdateInteractions(res.Summary)
+				cave.Save(conn)
+
+				return nil
+			}
+			err := logSession()
+			if err != nil {
+				consumer.Warnf("While logging game session: %+v", err)
+			}
+
 			return nil
 		},
 	}
