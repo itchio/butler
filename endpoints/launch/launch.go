@@ -509,7 +509,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		// At game launch, create a session
 		err := createSession()
 		if err != nil {
-			consumer.Warnf("Initial session creation", err)
+			consumer.Warnf("Initial session creation: %+v", err)
 			return
 		}
 
