@@ -530,7 +530,6 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				consumer.Debugf("Launch cancelled while updating session regularly, bailing out")
 				return
 			case <-time.After(1 * time.Minute):
-				consumer.Debugf("Doing regular session update...")
 				err := updateSession()
 				if err != nil {
 					consumer.Warnf("Regular session update: %+v", err)
