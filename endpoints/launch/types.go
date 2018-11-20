@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
@@ -64,7 +63,7 @@ type LauncherParams struct {
 	InstallFolder string
 	Runtime       *ox.Runtime
 
-	RecordPlayTime RecordPlayTimeFunc
+	SessionStarted func()
 }
 
 // cf. https://github.com/itchio/itch/issues/1751
@@ -117,8 +116,6 @@ func (lp *LauncherParams) SniffFile(fileEntry *tlc.File) (*dash.Candidate, error
 
 	return candidate, nil
 }
-
-type RecordPlayTimeFunc func(playTime time.Duration) error
 
 type Launcher interface {
 	Do(params LauncherParams) error

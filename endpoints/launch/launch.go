@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
+
+	"github.com/itchio/butler/butlerd/horror"
 
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/progress"
@@ -436,6 +439,121 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		sandbox = true
 	}
 
+	sessionWatcherDone := make(chan struct{})
+	sessionStartedChan := make(chan struct{})
+	var startSessionOnce sync.Once
+	sessionEndedChan := make(chan struct{})
+
+	sessionWatcher := func() {
+		defer close(sessionWatcherDone)
+		defer horror.RecoverAndLog(consumer)
+
+		lastRunAt := time.Now().UTC()
+		sessionStartedAt := time.Now().UTC()
+		var secondsRun int64 = 0
+
+		conn := rc.GetConn()
+		defer rc.PutConn(conn)
+		access := operate.AccessForGameID(conn, cave.GameID)
+		client := rc.Client(access.APIKey)
+
+		var session *itchio.UserGameSession
+
+		createSession := func() (retErr error) {
+			defer horror.RecoverInto(&retErr)
+
+			res, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
+				GameID:      cave.GameID,
+				UploadID:    cave.UploadID,
+				BuildID:     cave.BuildID,
+				Credentials: access.Credentials,
+
+				SecondsRun: 0,
+				LastRunAt:  &lastRunAt,
+			})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			session = res.UserGameSession
+
+			cave.UpdateInteractions(res.Summary)
+			rc.WithConn(cave.Save)
+
+			return
+		}
+
+		updateSession := func() (retErr error) {
+			defer horror.RecoverInto(&retErr)
+
+			lastRunAt = time.Now().UTC()
+			secondsRun = int64(lastRunAt.Sub(sessionStartedAt).Seconds())
+			res, err := client.UpdateUserGameSession(itchio.UpdateUserGameSessionParams{
+				SessionID:   session.ID,
+				GameID:      cave.GameID,
+				Credentials: access.Credentials,
+
+				SecondsRun: secondsRun,
+				LastRunAt:  &lastRunAt,
+			})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			session = res.UserGameSession
+
+			cave.UpdateInteractions(res.Summary)
+			rc.WithConn(cave.Save)
+
+			return
+		}
+
+		// At game launch, create a session
+		err := createSession()
+		if err != nil {
+			consumer.Warnf("Initial session creation", err)
+			return
+		}
+
+		// Then wait for session to actually start
+		select {
+		case <-rc.Ctx.Done():
+			consumer.Debugf("Launch cancelled while waiting for session to start, bailing out")
+			return
+		case <-sessionStartedChan:
+			sessionStartedAt = time.Now().UTC()
+			lastRunAt = time.Now().UTC()
+		}
+
+	regularUpdates:
+		for {
+			select {
+			case <-rc.Ctx.Done():
+				consumer.Debugf("Launch cancelled while updating session regularly, bailing out")
+				return
+			case <-time.After(1 * time.Minute):
+				consumer.Debugf("Doing regular session update...")
+				err := updateSession()
+				if err != nil {
+					consumer.Warnf("Regular session update: %+v", err)
+					return
+				}
+			case <-sessionEndedChan:
+				consumer.Debugf("Session ended normally!")
+				break regularUpdates
+			}
+		}
+
+		// Then, do a final session update for accurate stats
+		err = updateSession()
+		if err != nil {
+			consumer.Warnf("Final session update: %+v", err)
+			return
+		}
+
+		consumer.Debugf("Entire session committed successfully!")
+	}
+
+	go sessionWatcher()
+
 	launcherParams := LauncherParams{
 		RequestContext: rc,
 		Ctx:            rc.Ctx,
@@ -454,64 +572,25 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		InstallFolder: installFolder,
 		Runtime:       runtime,
 
-		RecordPlayTime: func(playTime time.Duration) error {
-			defer func() {
-				if e := recover(); e != nil {
-					consumer.Warnf("Could not record play time: %s", e)
-				}
-			}()
-
-			conn := rc.GetConn()
-			defer rc.PutConn(conn)
-			lastRunAt := time.Now().UTC()
-
-			cave.RecordPlayTime(playTime)
-			cave.Save(conn)
-
-			logSession := func() error {
-				access := operate.AccessForGameID(conn, cave.GameID)
-				client := rc.Client(access.APIKey)
-				res, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
-					GameID:      cave.GameID,
-					UploadID:    cave.UploadID,
-					BuildID:     cave.BuildID,
-					Credentials: access.Credentials,
-
-					SecondsRun: int64(playTime.Seconds()),
-					LastRunAt:  &lastRunAt,
-				})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				consumer.Infof("Logged %s game session ending at %s",
-					time.Second*time.Duration(res.UserGameSession.SecondsRun),
-					res.UserGameSession.LastRunAt,
-				)
-				consumer.Infof("Overall stats: %s played, last run %s",
-					time.Second*time.Duration(res.Summary.SecondsRun),
-					res.Summary.LastRunAt,
-				)
-				cave.UpdateInteractions(res.Summary)
-				cave.Save(conn)
-
-				return nil
-			}
-			err := logSession()
-			if err != nil {
-				consumer.Warnf("While logging game session: %+v", err)
-			}
-
-			return nil
+		SessionStarted: func() {
+			startSessionOnce.Do(func() {
+				close(sessionStartedChan)
+			})
 		},
 	}
 
-	cave.Touch()
-	rc.WithConn(cave.Save)
-
 	err = launcher.Do(launcherParams)
+	close(sessionEndedChan)
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+
+	consumer.Debugf("Waiting on session watcher...")
+	select {
+	case <-sessionWatcherDone:
+		consumer.Debugf("Session watcher completed")
+	case <-time.After(5 * time.Second):
+		consumer.Warnf("Timed out waiting on session watcher")
 	}
 
 	return &butlerd.LaunchResult{}, nil

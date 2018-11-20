@@ -2,7 +2,6 @@ package html
 
 import (
 	"path/filepath"
-	"time"
 
 	"github.com/itchio/butler/butlerd/messages"
 
@@ -26,9 +25,9 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		return errors.WithStack(err)
 	}
 
-	startTime := time.Now()
-
 	messages.LaunchRunning.Notify(params.RequestContext, butlerd.LaunchRunningNotification{})
+	params.SessionStarted()
+
 	_, err = messages.HTMLLaunch.Call(params.RequestContext, butlerd.HTMLLaunchParams{
 		RootFolder: rootFolder,
 		IndexPath:  indexPath,
@@ -36,12 +35,6 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		Env:        params.Env,
 	})
 	messages.LaunchExited.Notify(params.RequestContext, butlerd.LaunchExitedNotification{})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	runDuration := time.Since(startTime)
-	err = params.RecordPlayTime(runDuration)
 	if err != nil {
 		return errors.WithStack(err)
 	}

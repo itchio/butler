@@ -200,7 +200,8 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	}
 
 	err = func() error {
-		startTime := time.Now()
+		startTime := time.Now().UTC()
+		params.SessionStarted()
 
 		messages.LaunchRunning.Notify(params.RequestContext, butlerd.LaunchRunningNotification{})
 		exitCode, err := interpretRunError(run.Run())
@@ -210,10 +211,6 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		}
 
 		runDuration := time.Since(startTime)
-		err = params.RecordPlayTime(runDuration)
-		if err != nil {
-			return errors.WithStack(err)
-		}
 
 		if exitCode != 0 {
 			var signedExitCode = int64(exitCode)
