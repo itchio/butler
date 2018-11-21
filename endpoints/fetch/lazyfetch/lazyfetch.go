@@ -3,10 +3,11 @@ package lazyfetch
 import (
 	"time"
 
+	"github.com/itchio/butler/butlerd/horror"
+
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
-	"github.com/pkg/errors"
 )
 
 type LazyFetchParams interface {
@@ -36,15 +37,7 @@ func Do(
 		_, err, shared := rc.Group.Do(ft.Key(), func() (res interface{}, err error) {
 			// we have to recover from panics here, otherwise
 			// we might be stuck with a singleflight.Do forever
-			defer func() {
-				if r := recover(); r != nil {
-					if rErr, ok := r.(error); ok {
-						err = rErr
-					} else {
-						err = errors.Errorf("panic: %v", r)
-					}
-				}
-			}()
+			defer horror.RecoverInto(&err)
 
 			ts := &targets{
 				items: []models.FetchTarget{ft},

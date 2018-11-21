@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/httpkit/progress"
 
 	"crawshaw.io/sqlite"
+	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
@@ -25,7 +26,19 @@ import (
 
 type InFlightRequest struct {
 	DispatchedAt time.Time
-	RpcRequest   *jsonrpc2.Request
+	Desc         string
+}
+
+type BackgroundTaskID int64
+
+type InFlightBackgroundTask struct {
+	QueuedAt time.Time
+	Desc     string
+}
+
+type BackgroundTask struct {
+	Desc string
+	Do   func(rc *RequestContext) error
 }
 
 type RequestHandler func(rc *RequestContext) (interface{}, error)
@@ -47,15 +60,24 @@ type Router struct {
 	initiateShutdownOnce sync.Once
 	completeShutdownOnce sync.Once
 	shuttingDown         bool
+	backgroundContext    context.Context
+	backgroundCancel     context.CancelFunc
 
-	inflightRequests map[jsonrpc2.ID]InFlightRequest
-	inflightLock     sync.Mutex
+	inflightRequests        map[jsonrpc2.ID]InFlightRequest
+	inflightBackgroundTasks map[BackgroundTaskID]InFlightBackgroundTask
+	inflightLock            sync.Mutex
+
+	backgroundTaskIDSeed BackgroundTaskID
 
 	ButlerVersion       string
 	ButlerVersionString string
+
+	globalConsumer *state.Consumer
 }
 
 func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
+	backgroundContext, backgroundCancel := context.WithCancel(context.Background())
+
 	return &Router{
 		Handlers:             make(map[string]RequestHandler),
 		NotificationHandlers: make(map[string]NotificationHandler),
@@ -67,10 +89,22 @@ func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Cl
 		httpClient:    httpClient,
 		httpTransport: httpTransport,
 
-		inflightRequests: make(map[jsonrpc2.ID]InFlightRequest),
+		backgroundContext: backgroundContext,
+		backgroundCancel:  backgroundCancel,
+
+		inflightRequests:        make(map[jsonrpc2.ID]InFlightRequest),
+		inflightBackgroundTasks: make(map[BackgroundTaskID]InFlightBackgroundTask),
 
 		Group:        &singleflight.Group{},
 		ShutdownChan: make(chan struct{}),
+
+		backgroundTaskIDSeed: 0,
+
+		globalConsumer: &state.Consumer{
+			OnMessage: func(lvl string, msg string) {
+				log.Printf("[bg task] [%s] %s", lvl, msg)
+			},
+		},
 	}
 }
 
@@ -86,11 +120,71 @@ func (r *Router) initiateShutdown() {
 		log.Printf("Initiating graceful butlerd shutdown")
 		r.inflightLock.Lock()
 		r.shuttingDown = true
-		if len(r.inflightRequests) == 0 {
+		if r.numInflightItems() == 0 {
 			r.completeShutdown()
 		}
 		r.inflightLock.Unlock()
+		r.backgroundCancel()
 	})
+}
+
+func (r *Router) numInflightItems() int {
+	return len(r.inflightRequests) + len(r.inflightBackgroundTasks)
+}
+
+// caller must hold inflightLock
+func (r *Router) onRequestStarted(id jsonrpc2.ID, req InFlightRequest) {
+	r.inflightRequests[id] = req
+}
+
+// caller must hold inflightLock
+func (r *Router) onRequestFinished(id jsonrpc2.ID) {
+	delete(r.inflightRequests, id)
+	if r.shuttingDown {
+		r.globalConsumer.Infof("While shutting down, request %d has completed", id)
+	}
+	r.opportunisticShutdown()
+}
+
+// caller must hold inflightLock
+func (r *Router) generateBackgroundTaskID() BackgroundTaskID {
+	id := r.backgroundTaskIDSeed
+	r.backgroundTaskIDSeed += 1
+	return id
+}
+
+// caller must hold inflightLock
+func (r *Router) onBackgroundTaskQueued(id BackgroundTaskID, task InFlightBackgroundTask) {
+	r.inflightBackgroundTasks[id] = task
+}
+
+// caller must hold inflightLock
+func (r *Router) onBackgroundTaskFinished(id BackgroundTaskID) {
+	delete(r.inflightBackgroundTasks, id)
+	if r.shuttingDown {
+		r.globalConsumer.Infof("While shutting down, task %d has completed", id)
+	}
+	r.opportunisticShutdown()
+}
+
+// caller must hold inflightLock
+func (r *Router) opportunisticShutdown() {
+	if !r.shuttingDown {
+		return
+	}
+
+	numInFlightItems := r.numInflightItems()
+	if numInFlightItems == 0 {
+		r.completeShutdown()
+	} else {
+		r.globalConsumer.Infof("In-flight requests/background tasks preventing shutdown: ")
+		for _, req := range r.inflightRequests {
+			log.Printf(" - %s (%v)", req.Desc, time.Since(req.DispatchedAt))
+		}
+		for _, task := range r.inflightBackgroundTasks {
+			log.Printf(" - %s (%v)", task.Desc, time.Since(task.QueuedAt))
+		}
+	}
 }
 
 func (r *Router) completeShutdown() {
@@ -109,27 +203,15 @@ func (r *Router) RegisterNotification(method string, nh NotificationHandler) {
 
 func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	r.inflightLock.Lock()
-	r.inflightRequests[req.ID] = InFlightRequest{
+	r.onRequestStarted(req.ID, InFlightRequest{
 		DispatchedAt: time.Now().UTC(),
-		RpcRequest:   req,
-	}
+		Desc:         fmt.Sprintf("[req %v] %s", req.ID, req.Method),
+	})
 	r.inflightLock.Unlock()
 
 	defer func() {
 		r.inflightLock.Lock()
-		delete(r.inflightRequests, req.ID)
-		if r.shuttingDown {
-			numInFlightRequests := len(r.inflightRequests)
-			if numInFlightRequests == 0 {
-				r.completeShutdown()
-			} else {
-				log.Printf("In-flight requests preventing shutdown: ")
-				for _, req := range r.inflightRequests {
-					rpcReq := req.RpcRequest
-					log.Printf(" - [%v] %s (%v)", rpcReq.ID, rpcReq.Method, time.Since(req.DispatchedAt))
-				}
-			}
-		}
+		r.onRequestFinished(req.ID)
 		r.inflightLock.Unlock()
 	}()
 
@@ -176,6 +258,8 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 
 			origConn: origConn,
 			method:   method,
+
+			QueueBackgroundTask: r.QueueBackgroundTask,
 		}
 
 		if req.Notif {
@@ -282,17 +366,81 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 	})
 }
 
+func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("background task panicked: %+v", r)
+		}
+	}()
+
+	defer func() {
+		r.inflightLock.Lock()
+		r.onBackgroundTaskFinished(id)
+		r.inflightLock.Unlock()
+	}()
+
+	consumer := r.globalConsumer
+	rc := &RequestContext{
+		Ctx:         r.backgroundContext,
+		Consumer:    consumer,
+		Params:      nil,
+		Conn:        nil,
+		CancelFuncs: r.CancelFuncs,
+		dbPool:      r.dbPool,
+		Client:      r.getClient,
+
+		HTTPClient:    r.httpClient,
+		HTTPTransport: r.httpTransport,
+
+		ButlerVersion:       r.ButlerVersion,
+		ButlerVersionString: r.ButlerVersionString,
+
+		Group:    r.Group,
+		Shutdown: r.initiateShutdown,
+
+		origConn: nil,
+		method:   "",
+
+		QueueBackgroundTask: r.QueueBackgroundTask,
+	}
+
+	err := func() (retErr error) {
+		defer horror.RecoverInto(&retErr)
+		consumer.Debugf("Executing background task %d: %s", id, bt.Desc)
+		return bt.Do(rc)
+	}()
+	if err != nil {
+		consumer.Warnf("Background task error: %+v", err)
+	}
+}
+
+func (r *Router) QueueBackgroundTask(bt BackgroundTask) {
+	r.inflightLock.Lock()
+	id := r.generateBackgroundTaskID()
+	r.onBackgroundTaskQueued(id, InFlightBackgroundTask{
+		QueuedAt: time.Now().UTC(),
+		Desc:     fmt.Sprintf("[task %d] %s", id, bt.Desc),
+	})
+	r.inflightLock.Unlock()
+
+	go r.doBackgroundTask(id, bt)
+}
+
+type BackgroundTaskFunc func(rc *RequestContext) error
+
 type RequestContext struct {
-	Ctx         context.Context
-	Consumer    *state.Consumer
+	Ctx                 context.Context
+	Consumer            *state.Consumer
+	Client              GetClientFunc
+	QueueBackgroundTask func(bt BackgroundTask)
+
+	HTTPClient    *http.Client
+	HTTPTransport *http.Transport
+
 	Params      *json.RawMessage
 	Conn        Conn
 	CancelFuncs *CancelFuncs
 	dbPool      *sqlite.Pool
-	Client      GetClientFunc
-
-	HTTPClient    *http.Client
-	HTTPTransport *http.Transport
 
 	ButlerVersion       string
 	ButlerVersionString string

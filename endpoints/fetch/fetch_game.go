@@ -5,6 +5,7 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
+	"github.com/itchio/butler/endpoints/tasks"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 )
@@ -16,6 +17,8 @@ func FetchGame(rc *butlerd.RequestContext, params butlerd.FetchGameParams) (*but
 	defer rc.PutConn(conn)
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
+		rc.QueueBackgroundTask(tasks.FetchUserGameSessions(params.GameID))
+
 		access := operate.AccessForGameID(conn, params.GameID)
 		client := rc.Client(access.APIKey)
 

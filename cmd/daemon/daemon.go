@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
+	"github.com/itchio/wharf/state"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"
@@ -76,6 +77,13 @@ func do(ctx *mansion.Context) {
 		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}
 
+	justCreated := false
+	_, statErr := os.Stat(ctx.DBPath)
+	if statErr != nil {
+		comm.Logf("butlerd: creating new DB at %s", ctx.DBPath)
+		justCreated = true
+	}
+
 	dbPool, err := sqlite.Open(ctx.DBPath, 0, 100)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
@@ -85,7 +93,11 @@ func do(ctx *mansion.Context) {
 	func() {
 		conn := dbPool.Get(context.Background().Done())
 		defer dbPool.Put(conn)
-		err = database.Prepare(conn)
+		err = database.Prepare(&state.Consumer{
+			OnMessage: func(lvl string, msg string) {
+				comm.Logf("[db prepare] [%s] %s", lvl, msg)
+			},
+		}, conn, justCreated)
 	}()
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "preparing DB"))

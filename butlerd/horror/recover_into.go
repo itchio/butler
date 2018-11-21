@@ -13,7 +13,7 @@ import (
 func RecoverInto(errp *error) {
 	if r := recover(); r != nil {
 		if rErr, ok := r.(error); ok {
-			*errp = rErr
+			*errp = errors.WithStack(rErr)
 		} else {
 			*errp = errors.New(fmt.Sprintf("panic: %+v", r))
 		}

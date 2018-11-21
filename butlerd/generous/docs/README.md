@@ -8188,6 +8188,11 @@ a tool, a comic, etc.</p>
 ### <em class="struct-type"></em>Platforms
 
 
+<p>
+<p>Platforms describes which OS/architectures a game or upload
+is compatible with.</p>
+
+</p>
 
 <p>
 <span class="header">Fields</span> 
@@ -8216,6 +8221,11 @@ a tool, a comic, etc.</p>
 <div id="Platforms__TypeHint" style="display: none;" class="tip-content">
 <p><em class="struct-type"></em>Platforms <a href="#/?id=platforms">(Go to definition)</a></p>
 
+<p>
+<p>Platforms describes which OS/architectures a game or upload
+is compatible with.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -8237,6 +8247,10 @@ a tool, a comic, etc.</p>
 ### <em class="enum-type"></em>Architectures
 
 
+<p>
+<p>Architectures describes a set of processor architectures (mostly 32-bit vs 64-bit)</p>
+
+</p>
 
 <p>
 <span class="header">Values</span> 
@@ -8246,15 +8260,18 @@ a tool, a comic, etc.</p>
 <table class="field-table">
 <tr>
 <td><code>"all"</code></td>
-<td></td>
+<td><p>ArchitecturesAll represents any processor architecture</p>
+</td>
 </tr>
 <tr>
 <td><code>"386"</code></td>
-<td></td>
+<td><p>Architectures386 represents 32-bit processor architectures</p>
+</td>
 </tr>
 <tr>
 <td><code>"amd64"</code></td>
-<td></td>
+<td><p>ArchitecturesAmd64 represents 64-bit processor architectures</p>
+</td>
 </tr>
 </table>
 
@@ -8262,6 +8279,10 @@ a tool, a comic, etc.</p>
 <div id="Architectures__TypeHint" style="display: none;" class="tip-content">
 <p><em class="enum-type"></em>Architectures <a href="#/?id=architectures">(Go to definition)</a></p>
 
+<p>
+<p>Architectures describes a set of processor architectures (mostly 32-bit vs 64-bit)</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -8281,7 +8302,7 @@ a tool, a comic, etc.</p>
 
 
 <p>
-<p>Type of an itch.io game page, mostly related to
+<p>GameType is the type of an itch.io game page, mostly related to
 how it should be presented on web (downloadable or embed)</p>
 
 </p>
@@ -8294,27 +8315,27 @@ how it should be presented on web (downloadable or embed)</p>
 <table class="field-table">
 <tr>
 <td><code>"default"</code></td>
-<td><p>downloadable</p>
+<td><p>GameTypeDefault is downloadable games</p>
 </td>
 </tr>
 <tr>
 <td><code>"flash"</code></td>
-<td><p>.swf (legacy)</p>
+<td><p>GameTypeFlash is for .swf (legacy)</p>
 </td>
 </tr>
 <tr>
 <td><code>"unity"</code></td>
-<td><p>.unity3d (legacy)</p>
+<td><p>GameTypeUnity is for .unity3d (legacy)</p>
 </td>
 </tr>
 <tr>
 <td><code>"java"</code></td>
-<td><p>.jar (legacy)</p>
+<td><p>GameTypeJava is for .jar (legacy)</p>
 </td>
 </tr>
 <tr>
 <td><code>"html"</code></td>
-<td><p>.html (thriving)</p>
+<td><p>GameTypeHTML is for .html (thriving)</p>
 </td>
 </tr>
 </table>
@@ -8324,7 +8345,7 @@ how it should be presented on web (downloadable or embed)</p>
 <p><em class="enum-type"></em>GameType <a href="#/?id=gametype">(Go to definition)</a></p>
 
 <p>
-<p>Type of an itch.io game page, mostly related to
+<p>GameType is the type of an itch.io game page, mostly related to
 how it should be presented on web (downloadable or embed)</p>
 
 </p>
@@ -8353,7 +8374,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 
 <p>
-<p>Creator-picked classification for a page</p>
+<p>GameClassification is the creator-picked classification for a page</p>
 
 </p>
 
@@ -8365,47 +8386,47 @@ how it should be presented on web (downloadable or embed)</p>
 <table class="field-table">
 <tr>
 <td><code>"game"</code></td>
-<td><p>something you can play</p>
+<td><p>GameClassificationGame is something you can play</p>
 </td>
 </tr>
 <tr>
 <td><code>"tool"</code></td>
-<td><p>all software pretty much</p>
+<td><p>GameClassificationTool includes all software pretty much</p>
 </td>
 </tr>
 <tr>
 <td><code>"assets"</code></td>
-<td><p>assets: graphics, sounds, etc.</p>
+<td><p>GameClassificationAssets includes assets: graphics, sounds, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>"game_mod"</code></td>
-<td><p>game mod (no link to game, purely creator tagging)</p>
+<td><p>GameClassificationGameMod are game mods (no link to game, purely creator tagging)</p>
 </td>
 </tr>
 <tr>
 <td><code>"physical_game"</code></td>
-<td><p>printable / board / card game</p>
+<td><p>GameClassificationPhysicalGame is for a printable / board / card game</p>
 </td>
 </tr>
 <tr>
 <td><code>"soundtrack"</code></td>
-<td><p>bunch of music files</p>
+<td><p>GameClassificationSoundtrack is a bunch of music files</p>
 </td>
 </tr>
 <tr>
 <td><code>"other"</code></td>
-<td><p>anything that creators think don&rsquo;t fit in any other category</p>
+<td><p>GameClassificationOther is anything that creators think don&rsquo;t fit in any other category</p>
 </td>
 </tr>
 <tr>
 <td><code>"comic"</code></td>
-<td><p>comic book (pdf, jpg, specific comic formats, etc.)</p>
+<td><p>GameClassificationComic is a comic book (pdf, jpg, specific comic formats, etc.)</p>
 </td>
 </tr>
 <tr>
 <td><code>"book"</code></td>
-<td><p>book (pdf, jpg, specific e-book formats, etc.)</p>
+<td><p>GameClassificationBook is a book (pdf, jpg, specific e-book formats, etc.)</p>
 </td>
 </tr>
 </table>
@@ -8415,7 +8436,7 @@ how it should be presented on web (downloadable or embed)</p>
 <p><em class="enum-type"></em>GameClassification <a href="#/?id=gameclassification">(Go to definition)</a></p>
 
 <p>
-<p>Creator-picked classification for a page</p>
+<p>GameClassification is the creator-picked classification for a page</p>
 
 </p>
 
@@ -8455,7 +8476,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 
 <p>
-<p>Presentation information for embed games</p>
+<p>GameEmbedData contains presentation information for embed games</p>
 
 </p>
 
@@ -8496,7 +8517,7 @@ how it should be presented on web (downloadable or embed)</p>
 <p><em class="struct-type"></em>GameEmbedData <a href="#/?id=gameembeddata">(Go to definition)</a></p>
 
 <p>
-<p>Presentation information for embed games</p>
+<p>GameEmbedData contains presentation information for embed games</p>
 
 </p>
 
@@ -8525,7 +8546,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 
 <p>
-<p>Describes a discount for a game.</p>
+<p>Sale describes a discount for a game.</p>
 
 </p>
 
@@ -8573,7 +8594,7 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 <p><em class="struct-type"></em>Sale <a href="#/?id=sale">(Go to definition)</a></p>
 
 <p>
-<p>Describes a discount for a game.</p>
+<p>Sale describes a discount for a game.</p>
 
 </p>
 
@@ -8789,6 +8810,10 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 ### <em class="enum-type"></em>UploadStorage
 
 
+<p>
+<p>UploadStorage describes where an upload file is stored.</p>
+
+</p>
 
 <p>
 <span class="header">Values</span> 
@@ -8798,17 +8823,17 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <table class="field-table">
 <tr>
 <td><code>"hosted"</code></td>
-<td><p>Classic upload (web) - no versioning</p>
+<td><p>UploadStorageHosted is a classic upload (web) - no versioning</p>
 </td>
 </tr>
 <tr>
 <td><code>"build"</code></td>
-<td><p>Wharf upload (butler)</p>
+<td><p>UploadStorageBuild is a wharf upload (butler)</p>
 </td>
 </tr>
 <tr>
 <td><code>"external"</code></td>
-<td><p>External upload - alllllllll bets are off.</p>
+<td><p>UploadStorageExternal is an external upload - alllllllll bets are off.</p>
 </td>
 </tr>
 </table>
@@ -8817,6 +8842,10 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <div id="UploadStorage__TypeHint" style="display: none;" class="tip-content">
 <p><em class="enum-type"></em>UploadStorage <a href="#/?id=uploadstorage">(Go to definition)</a></p>
 
+<p>
+<p>UploadStorage describes where an upload file is stored.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -8835,6 +8864,11 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 ### <em class="enum-type"></em>UploadType
 
 
+<p>
+<p>UploadType describes what&rsquo;s in an upload - an executable,
+a web game, some music, etc.</p>
+
+</p>
 
 <p>
 <span class="header">Values</span> 
@@ -8844,69 +8878,74 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <table class="field-table">
 <tr>
 <td><code>"default"</code></td>
-<td></td>
+<td><p>UploadTypeDefault is for executables</p>
+</td>
 </tr>
 <tr>
 <td><code>"flash"</code></td>
-<td><hr />
-
-<p>embed types</p>
-
-<hr />
+<td><p>UploadTypeFlash is for .swf files</p>
 </td>
 </tr>
 <tr>
 <td><code>"unity"</code></td>
-<td></td>
+<td><p>UploadTypeUnity is for .unity3d files</p>
+</td>
 </tr>
 <tr>
 <td><code>"java"</code></td>
-<td></td>
+<td><p>UploadTypeJava is for .jar files</p>
+</td>
 </tr>
 <tr>
 <td><code>"html"</code></td>
-<td></td>
+<td><p>UploadTypeHTML is for .html files</p>
+</td>
 </tr>
 <tr>
 <td><code>"soundtrack"</code></td>
-<td><hr />
-
-<p>asorted types</p>
-
-<hr />
+<td><p>UploadTypeSoundtrack is for archives with .mp3/.ogg/.flac/etc files</p>
 </td>
 </tr>
 <tr>
 <td><code>"book"</code></td>
-<td></td>
+<td><p>UploadTypeBook is for books (epubs, pdfs, etc.)</p>
+</td>
 </tr>
 <tr>
 <td><code>"video"</code></td>
-<td></td>
+<td><p>UploadTypeVideo is for videos</p>
+</td>
 </tr>
 <tr>
 <td><code>"documentation"</code></td>
-<td></td>
+<td><p>UploadTypeDocumentation is for documentation (pdf, maybe uhh doxygen?)</p>
+</td>
 </tr>
 <tr>
 <td><code>"mod"</code></td>
-<td></td>
+<td><p>UploadTypeMod is a bunch of loose files with no clear instructions how to apply them to a game</p>
+</td>
 </tr>
 <tr>
 <td><code>"audio_assets"</code></td>
-<td></td>
+<td><p>UploadTypeAudioAssets is a bunch of .ogg/.wav files</p>
+</td>
 </tr>
 <tr>
 <td><code>"graphical_assets"</code></td>
-<td></td>
+<td><p>UploadTypeGraphicalAssets is a bunch of .png/.svg/.gif files, maybe some .objs thrown in there</p>
+</td>
 </tr>
 <tr>
 <td><code>"sourcecode"</code></td>
-<td></td>
+<td><p>UploadTypeSourcecode is for source code. No further comments.</p>
+</td>
 </tr>
 <tr>
 <td><code>"other"</code></td>
-<td></td>
+<td><p>UploadTypeOther is for literally anything that isn&rsquo;t an existing category,
+or for stuff that isn&rsquo;t tagged properly.</p>
+</td>
 </tr>
 </table>
 
@@ -8914,6 +8953,11 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <div id="UploadType__TypeHint" style="display: none;" class="tip-content">
 <p><em class="enum-type"></em>UploadType <a href="#/?id=uploadtype">(Go to definition)</a></p>
 
+<p>
+<p>UploadType describes what&rsquo;s in an upload - an executable,
+a web game, some music, etc.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -9075,6 +9119,10 @@ page deleted, visibility level changed, etc.)</p>
 ### <em class="struct-type"></em>CollectionGame
 
 
+<p>
+<p>CollectionGame represents a game&rsquo;s membership for a collection.</p>
+
+</p>
 
 <p>
 <span class="header">Fields</span> 
@@ -9133,6 +9181,10 @@ page deleted, visibility level changed, etc.)</p>
 <div id="CollectionGame__TypeHint" style="display: none;" class="tip-content">
 <p><em class="struct-type"></em>CollectionGame <a href="#/?id=collectiongame">(Go to definition)</a></p>
 
+<p>
+<p>CollectionGame represents a game&rsquo;s membership for a collection.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
@@ -9179,9 +9231,9 @@ page deleted, visibility level changed, etc.)</p>
 
 
 <p>
-<p>A download key is often generated when a purchase is made, it
+<p>A DownloadKey is often generated when a purchase is made, it
 allows downloading uploads for a game that are not available
-for free.</p>
+for free. It can also be generated by other means.</p>
 
 </p>
 
@@ -9234,9 +9286,9 @@ for free.</p>
 <p><em class="struct-type"></em>DownloadKey <a href="#/?id=downloadkey">(Go to definition)</a></p>
 
 <p>
-<p>A download key is often generated when a purchase is made, it
+<p>A DownloadKey is often generated when a purchase is made, it
 allows downloading uploads for a game that are not available
-for free.</p>
+for free. It can also be generated by other means.</p>
 
 </p>
 

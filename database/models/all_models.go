@@ -6,6 +6,7 @@ import (
 
 // AllModels contains all the tables contained in butler's database
 var AllModels = []interface{}{
+	&SchemaVersion{},
 	&Profile{},
 	&ProfileCollection{},
 	&itchio.DownloadKey{},
@@ -24,4 +25,5 @@ var AllModels = []interface{}{
 	&ProfileData{},
 	&FetchInfo{},
 	&GameUpload{},
+	&CaveHistoricalPlayTime{},
 }
