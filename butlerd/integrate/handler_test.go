@@ -2,21 +2,16 @@ package integrate
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"os"
 	"testing"
 	"time"
 
-	"golang.org/x/net/http2"
-
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/wharf/state"
-	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -90,18 +85,6 @@ func connect(t *testing.T) (*butlerd.RequestContext, *handler, context.CancelFun
 }
 
 func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestContext, *handler, context.CancelFunc) {
-	caCertPool := x509.NewCertPool()
-	if !caCertPool.AppendCertsFromPEM(ca) {
-		gmust(errors.Errorf("Could not append self-signed cert to pool"))
-	}
-
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs: caCertPool,
-		},
-	}
-	http2.ConfigureTransport(transport)
-
 	consumer := &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
 			logf("[%s] %s", lvl, msg)
@@ -118,28 +101,27 @@ func connectEx(logf func(msg string, args ...interface{})) (*butlerd.RequestCont
 		}
 	})
 
-	hos := &httpsObjectStream{
-		address:   address,
-		secret:    secret,
-		transport: transport,
-	}
-	hos.Go(ctx)
-	select {
-	case <-hos.listenCh:
-		// good!
-	case <-time.After(2 * time.Second):
-		gmust(errors.Errorf("Timed out establishing connection to feed"))
-	}
+	tcpConn, err := net.DialTimeout("tcp", address, 2*time.Second)
+	gmust(err)
 
-	jc := jsonrpc2.NewConn(ctx, hos, jsonrpc2.AsyncHandler(h))
+	stream := jsonrpc2.NewBufferedStream(tcpConn, butlerd.LFObjectCodec{})
+
+	jc := jsonrpc2.NewConn(ctx, stream, jsonrpc2.AsyncHandler(h))
 	go func() {
 		<-ctx.Done()
 		jc.Close()
 	}()
 
-	return &butlerd.RequestContext{
+	rc := &butlerd.RequestContext{
 		Conn:     &butlerd.JsonRPC2Conn{Conn: jc},
 		Ctx:      ctx,
 		Consumer: consumer,
-	}, h, cancel
+	}
+
+	_, err = messages.MetaAuthenticate.TestCall(rc, butlerd.MetaAuthenticateParams{
+		Secret: secret,
+	})
+	gmust(err)
+
+	return rc, h, cancel
 }

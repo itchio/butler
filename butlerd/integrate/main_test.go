@@ -3,7 +3,6 @@ package integrate
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"log"
@@ -16,9 +15,8 @@ import (
 	"github.com/sourcegraph/jsonrpc2"
 )
 
-var secret string
 var address string
-var ca []byte
+var secret string
 var cancelButler context.CancelFunc
 
 var (
@@ -51,6 +49,8 @@ func TestMain(m *testing.M) {
 	args := []string{
 		"daemon",
 		"--json",
+		"--transport", "tcp",
+		"--keep-alive",
 		"--dbpath", "file::memory:?cache=shared",
 		"--destiny-pid", pidString,
 		"--destiny-pid", ppidString,
@@ -87,10 +87,8 @@ func TestMain(m *testing.M) {
 			switch typ {
 			case "butlerd/listen-notification":
 				secret = im["secret"].(string)
-				httpsBlock := im["https"].(map[string]interface{})
-				ca, err = base64.StdEncoding.DecodeString(httpsBlock["ca"].(string))
-				gmust(err)
-				addrChan <- httpsBlock["address"].(string)
+				tcpBlock := im["tcp"].(map[string]interface{})
+				addrChan <- tcpBlock["address"].(string)
 			case "log":
 				log.Printf("[butler] %s", im["message"].(string))
 			default:
