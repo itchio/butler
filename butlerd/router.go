@@ -141,7 +141,7 @@ func (r *Router) onRequestStarted(id jsonrpc2.ID, req InFlightRequest) {
 func (r *Router) onRequestFinished(id jsonrpc2.ID) {
 	delete(r.inflightRequests, id)
 	if r.shuttingDown {
-		r.globalConsumer.Infof("While shutting down, request %d has completed", id)
+		r.globalConsumer.Infof("While shutting down, request %s has completed", id)
 	}
 	r.opportunisticShutdown()
 }

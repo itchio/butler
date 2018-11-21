@@ -183,10 +183,6 @@ func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams,
 	}
 
 	var opts []jsonrpc2.ConnOpt
-	if params.Log {
-		logger := log.New(os.Stderr, "[rpc] ", log.LstdFlags)
-		opts = append(opts, jsonrpc2.LogMessages(logger))
-	}
 
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()

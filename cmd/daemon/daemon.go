@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/butlerd/horror"
+
 	"crawshaw.io/sqlite"
 	"github.com/google/gops/agent"
 	"github.com/google/uuid"
@@ -90,10 +92,12 @@ func do(ctx *mansion.Context) {
 	}
 	defer dbPool.Close()
 
-	func() {
+	err = func() (retErr error) {
+		defer horror.RecoverInto(&retErr)
+
 		conn := dbPool.Get(context.Background().Done())
 		defer dbPool.Put(conn)
-		err = database.Prepare(&state.Consumer{
+		return database.Prepare(&state.Consumer{
 			OnMessage: func(lvl string, msg string) {
 				comm.Logf("[db prepare] [%s] %s", lvl, msg)
 			},

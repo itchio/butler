@@ -1,6 +1,7 @@
 package integrate
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -53,8 +54,14 @@ func Test_Profile(t *testing.T) {
 }
 
 func authenticate(t *testing.T, rc *butlerd.RequestContext) *butlerd.Profile {
+	envVar := "ITCH_TEST_ACCOUNT_API_KEY"
+	apiKey := os.Getenv(envVar)
+	if apiKey == "" {
+		panic(fmt.Sprintf("$%s must be set to run integration tests", envVar))
+	}
+
 	prof, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
-		APIKey: os.Getenv("ITCH_TEST_ACCOUNT_API_KEY"),
+		APIKey: apiKey,
 	})
 	must(t, err)
 	assert.EqualValues(t, "itch test account", prof.Profile.User.DisplayName)
