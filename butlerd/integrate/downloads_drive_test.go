@@ -21,7 +21,6 @@ func Test_DownloadsDrive(t *testing.T) {
 	defer cancel()
 
 	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
 
 	{
 		// itch-test-account/111-first
@@ -93,7 +92,7 @@ func Test_DownloadsDrive(t *testing.T) {
 			assert.NoError(t, err)
 		case <-time.After(10 * time.Second):
 			bi.Logf("Notifications received: %#v", notifs)
-			must(t, errors.New("timed out!"))
+			must(t, errors.New("timed out"))
 		}
 
 		_, err = messages.UninstallPerform.TestCall(rc, butlerd.UninstallPerformParams{

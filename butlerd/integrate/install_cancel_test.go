@@ -26,7 +26,6 @@ func Test_InstallCancel(t *testing.T) {
 	defer cancel()
 
 	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
 
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
@@ -166,25 +165,6 @@ func Test_InstallCancel(t *testing.T) {
 		})
 		assert.NoError(t, err)
 	}
-}
-
-var setupTmpOnce sync.Once
-
-func setupTmpInstallLocation(t *testing.T, h *handler, rc *butlerd.RequestContext) {
-	setupTmpOnce.Do(func() {
-		wd, err := os.Getwd()
-		must(t, err)
-
-		tmpPath := filepath.Join(wd, "tmp")
-		must(t, os.RemoveAll(tmpPath))
-		must(t, os.MkdirAll(tmpPath, 0755))
-
-		_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{
-			ID:   "tmp",
-			Path: filepath.Join(wd, "tmp"),
-		})
-		must(t, err)
-	})
 }
 
 func getGame(t *testing.T, h *handler, rc *butlerd.RequestContext, gameID int64) *itchio.Game {

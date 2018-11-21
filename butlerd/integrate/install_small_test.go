@@ -13,7 +13,6 @@ func Test_InstallSmall(t *testing.T) {
 	defer cancel()
 
 	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
 
 	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
 		return &butlerd.HTMLLaunchResult{}, nil

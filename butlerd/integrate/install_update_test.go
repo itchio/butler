@@ -26,7 +26,6 @@ func Test_InstallUpdate(t *testing.T) {
 	}
 
 	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
 
 	{
 		log("listing builds...")
@@ -67,8 +66,8 @@ func Test_InstallUpdate(t *testing.T) {
 		})
 		must(t, err)
 
-		caveId := queue1Res.CaveID
-		assert.NotEmpty(t, caveId)
+		caveID := queue1Res.CaveID
+		assert.NotEmpty(t, caveID)
 
 		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queue1Res.ID,
@@ -86,7 +85,7 @@ func Test_InstallUpdate(t *testing.T) {
 		queue2Res, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
 			InstallLocationID: "tmp",
-			CaveID:            caveId,
+			CaveID:            caveID,
 			Upload:            upload,
 			Build:             recentBuild,
 		})

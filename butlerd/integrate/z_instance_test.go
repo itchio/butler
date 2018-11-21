@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -124,6 +125,7 @@ func newInstance(t *testing.T) *ButlerInstance {
 		Consumer: consumer,
 	}
 	bi.Connect()
+	bi.SetupTmpInstallLocation()
 
 	return bi
 }
@@ -175,4 +177,20 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 		RequestContext: rc,
 	}
 	return bi.Unwrap()
+}
+
+func (bi *ButlerInstance) SetupTmpInstallLocation() {
+	wd, err := os.Getwd()
+	gmust(err)
+
+	tmpPath := filepath.Join(wd, "tmp")
+	gmust(os.RemoveAll(tmpPath))
+	gmust(os.MkdirAll(tmpPath, 0755))
+
+	rc := bi.Conn.RequestContext
+	_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{
+		ID:   "tmp",
+		Path: filepath.Join(wd, "tmp"),
+	})
+	gmust(err)
 }

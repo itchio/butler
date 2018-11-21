@@ -16,7 +16,6 @@ func Test_InstallLove(t *testing.T) {
 	defer cancel()
 
 	authenticate(t, rc)
-	setupTmpInstallLocation(t, h, rc)
 
 	{
 		// itch-test-account/dot-love
