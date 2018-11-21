@@ -11,7 +11,7 @@ import (
 func Test_Plan(t *testing.T) {
 	assert := assert.New(t)
 
-	rc, h, cancel := connect(t)
+	rc, h, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
 	authenticate(t, rc)

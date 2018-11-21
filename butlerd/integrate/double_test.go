@@ -9,7 +9,7 @@ import (
 )
 
 func Test_Double(t *testing.T) {
-	rc, h, cancel := connect(t)
+	rc, h, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
 	messages.TestDouble.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.TestDoubleParams) (*butlerd.TestDoubleResult, error) {

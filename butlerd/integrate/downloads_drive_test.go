@@ -16,7 +16,8 @@ func Test_DownloadsDrive(t *testing.T) {
 		t.Skip("Skipping test in short mode")
 	}
 
-	rc, h, cancel := connect(t)
+	bi := newInstance(t)
+	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
 	authenticate(t, rc)
@@ -33,7 +34,7 @@ func Test_DownloadsDrive(t *testing.T) {
 		})
 		must(t, err)
 
-		t.Logf("Queued %s", queueRes.InstallFolder)
+		bi.Logf("Queued %s", queueRes.InstallFolder)
 
 		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 			Enabled: true,
@@ -61,15 +62,15 @@ func Test_DownloadsDrive(t *testing.T) {
 
 		messages.DownloadsDriveErrored.Register(h, func(rc *butlerd.RequestContext, params butlerd.DownloadsDriveErroredNotification) {
 			notifs = append(notifs, fmt.Sprintf("errored"))
-			t.Logf("Got errored:")
+			bi.Logf("Got errored:")
 			dl := params.Download
 			if dl.ErrorMessage != nil {
-				t.Logf(" ==> %#v", *dl.ErrorMessage)
+				bi.Logf(" ==> %#v", *dl.ErrorMessage)
 			}
 			if dl.ErrorCode != nil {
-				t.Logf(" ==> Code %d", *dl.ErrorCode)
+				bi.Logf(" ==> Code %d", *dl.ErrorCode)
 			}
-			t.Logf("Full notification log: %#v", notifs)
+			bi.Logf("Full notification log: %#v", notifs)
 			driveDone <- errors.New("Got unexpected DriveErrored")
 			t.FailNow()
 		})
@@ -88,10 +89,10 @@ func Test_DownloadsDrive(t *testing.T) {
 
 		select {
 		case err := <-driveDone:
-			t.Logf("Notifications received: %#v", notifs)
+			bi.Logf("Notifications received: %#v", notifs)
 			assert.NoError(t, err)
 		case <-time.After(10 * time.Second):
-			t.Logf("Notifications received: %#v", notifs)
+			bi.Logf("Notifications received: %#v", notifs)
 			must(t, errors.New("timed out!"))
 		}
 

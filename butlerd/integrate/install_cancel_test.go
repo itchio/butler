@@ -21,7 +21,8 @@ func Test_InstallCancel(t *testing.T) {
 		t.Skip("Skipping test in short mode")
 	}
 
-	rc, h, cancel := connect(t)
+	bi := newInstance(t)
+	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
 	authenticate(t, rc)
@@ -54,7 +55,7 @@ func Test_InstallCancel(t *testing.T) {
 
 		var lastProgressValue float64
 		printProgress := func(params butlerd.ProgressNotification) {
-			t.Logf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
+			bi.Logf("%.2f%% done @ %s / s ETA %s", params.Progress*100, progress.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 			lastProgressValue = params.Progress
 		}
 
@@ -70,29 +71,29 @@ func Test_InstallCancel(t *testing.T) {
 				gracefulCancelOnce.Do(func() {
 					delete(h.notificationHandlers, messages.Progress.Method())
 
-					t.Logf("Calling graceful cancel")
+					bi.Logf("Calling graceful cancel")
 					messages.InstallCancel.TestCall(rc, butlerd.InstallCancelParams{
 						ID: queueRes.ID,
 					})
-					t.Logf("Graceful cancel called")
+					bi.Logf("Graceful cancel called")
 				})
 			}
 		})
 
-		t.Logf("Queued %s", queueRes.InstallFolder)
+		bi.Logf("Queued %s", queueRes.InstallFolder)
 
 		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,
 		})
 
-		t.Logf("Last progress before graceful cancel: %.2f%%", lastProgressValue*100)
-		t.Logf("Making sure we've been cancelled...")
+		bi.Logf("Last progress before graceful cancel: %.2f%%", lastProgressValue*100)
+		bi.Logf("Making sure we've been cancelled...")
 		assert.Error(t, err)
 		je := err.(*jsonrpc2.Error)
 		assert.EqualValues(t, butlerd.CodeOperationCancelled, je.Code)
 
-		t.Logf("Resuming while offline...")
+		bi.Logf("Resuming while offline...")
 		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 			Enabled: true,
 		})
@@ -111,7 +112,7 @@ func Test_InstallCancel(t *testing.T) {
 		})
 		must(t, err)
 
-		t.Logf("Resuming after graceful cancel...")
+		bi.Logf("Resuming after graceful cancel...")
 
 		hardCancelOnce := &sync.Once{}
 
@@ -120,11 +121,11 @@ func Test_InstallCancel(t *testing.T) {
 
 			if params.Progress > 0.5 {
 				hardCancelOnce.Do(func() {
-					t.Logf("Sending hard cancel")
+					bi.Logf("Sending hard cancel")
 					delete(h.notificationHandlers, messages.Progress.Method())
-					t.Logf("Calling cancel")
-					cancel()
-					t.Logf("Okay, we called cancel")
+					bi.Logf("Disconnecting...")
+					bi.Disconnect()
+					bi.Logf("Okay, we disconnected")
 				})
 			}
 		})
@@ -134,10 +135,10 @@ func Test_InstallCancel(t *testing.T) {
 			StagingFolder: queueRes.StagingFolder,
 		})
 
-		t.Logf("Last progress before hard cancel: %.2f%%", lastProgressValue*100)
+		bi.Logf("Last progress before hard cancel: %.2f%%", lastProgressValue*100)
 		assert.Error(t, err)
 
-		t.Logf("Waiting for pid file to disappear...")
+		bi.Logf("Waiting for pid file to disappear...")
 		pidFileDisappeared := false
 		beforePidDisappear := time.Now()
 		for i := 0; i < 100; i++ {
@@ -150,10 +151,10 @@ func Test_InstallCancel(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 		}
 		assert.True(t, pidFileDisappeared, "pid file should disappear after cancellation (even hard)")
-		t.Logf("PID file disappeared in %s", time.Since(beforePidDisappear))
+		bi.Logf("PID file disappeared in %s", time.Since(beforePidDisappear))
 
-		t.Logf("Resuming after hard cancel...")
-		rc, h, cancel = connect(t)
+		bi.Logf("Resuming after hard cancel...")
+		rc, h, _ = bi.Connect()
 
 		messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
 			printProgress(params)

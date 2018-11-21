@@ -15,16 +15,15 @@ func Test_InstallUpdate(t *testing.T) {
 		t.Skip("Skipping test in short mode")
 	}
 
-	log := func(msg string) {
-		t.Logf("==========================")
-		t.Logf("= %s", msg)
-		t.Logf("==========================")
-	}
-
-	log("connecting to butlerd")
-
-	rc, h, cancel := connect(t)
+	bi := newInstance(t)
+	rc, h, cancel := bi.Unwrap()
 	defer cancel()
+
+	log := func(msg string) {
+		bi.Logf("==========================")
+		bi.Logf("= %s", msg)
+		bi.Logf("==========================")
+	}
 
 	authenticate(t, rc)
 	setupTmpInstallLocation(t, h, rc)

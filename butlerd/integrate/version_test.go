@@ -9,7 +9,7 @@ import (
 )
 
 func Test_Version(t *testing.T) {
-	rc, _, cancel := connect(t)
+	rc, _, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
 	vgr, err := messages.VersionGet.TestCall(rc, butlerd.VersionGetParams{})

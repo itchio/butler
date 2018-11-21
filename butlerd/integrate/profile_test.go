@@ -13,7 +13,7 @@ import (
 )
 
 func Test_Profile(t *testing.T) {
-	rc, _, cancel := connect(t)
+	rc, _, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
 	_, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{

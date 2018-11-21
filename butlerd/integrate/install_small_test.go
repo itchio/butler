@@ -8,7 +8,8 @@ import (
 )
 
 func Test_InstallSmall(t *testing.T) {
-	rc, h, cancel := connect(t)
+	bi := newInstance(t)
+	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
 	authenticate(t, rc)
@@ -28,7 +29,7 @@ func Test_InstallSmall(t *testing.T) {
 		})
 		must(t, err)
 
-		t.Logf("Queued %s", queueRes.InstallFolder)
+		bi.Logf("Queued %s", queueRes.InstallFolder)
 
 		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,

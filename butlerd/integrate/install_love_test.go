@@ -11,7 +11,8 @@ import (
 )
 
 func Test_InstallLove(t *testing.T) {
-	rc, h, cancel := connect(t)
+	bi := newInstance(t)
+	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
 	authenticate(t, rc)
@@ -27,7 +28,7 @@ func Test_InstallLove(t *testing.T) {
 		})
 		must(t, err)
 
-		t.Logf("Queued %s", queueRes.InstallFolder)
+		bi.Logf("Queued %s", queueRes.InstallFolder)
 
 		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
@@ -36,7 +37,7 @@ func Test_InstallLove(t *testing.T) {
 		must(t, err)
 
 		err = func() error {
-			t.Logf("Looking inside %s to make sure we haven't extacted the .love file", queueRes.InstallFolder)
+			bi.Logf("Looking inside %s to make sure we haven't extacted the .love file", queueRes.InstallFolder)
 
 			dir, err := os.Open(queueRes.InstallFolder)
 			if err != nil {
@@ -52,7 +53,7 @@ func Test_InstallLove(t *testing.T) {
 			foundLove := false
 			for _, name := range names {
 				if strings.HasSuffix(strings.ToLower(name), ".love") {
-					t.Logf("Found it! %s", name)
+					bi.Logf("Found it! %s", name)
 					foundLove = true
 					break
 				}
