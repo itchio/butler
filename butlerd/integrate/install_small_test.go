@@ -14,13 +14,21 @@ func Test_InstallSmall(t *testing.T) {
 
 	bi.Authenticate()
 
+	store := bi.Server.Store()
+	_developer := store.MakeUser("Roll Fizzlebeef")
+	_game := _developer.MakeGame("Advent Burger Simulator")
+	_game.Type = "html"
+	_game.Publish()
+	_upload := _game.MakeUpload("All platforms")
+	_upload.SetAllPlatforms()
+	_upload.SetZipContents()
+
 	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
 		return &butlerd.HTMLLaunchResult{}, nil
 	})
 
 	{
-		// itch-test-account/111-first
-		game := getGame(t, h, rc, 149766)
+		game := getGame(t, h, rc, _game.ID)
 
 		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
