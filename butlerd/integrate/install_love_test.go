@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/mitch"
 	"github.com/pkg/errors"
 )
 
@@ -17,9 +18,19 @@ func Test_InstallLove(t *testing.T) {
 
 	bi.Authenticate()
 
+	store := bi.Server.Store()
+	_developer := store.MakeUser("Kernel Panic")
+	_game := _developer.MakeGame("dot love")
+	_game.Publish()
+	_upload := _game.MakeUpload("All platforms")
+	_upload.SetAllPlatforms()
+	_upload.SetZipContentsCustom(func(ac *mitch.ArchiveContext) {
+		ac.SetName("hello.love")
+		ac.Entry("main.lua").String("print 'hello lua'")
+	})
+
 	{
-		// itch-test-account/dot-love
-		game := getGame(t, h, rc, 283345)
+		game := getGame(t, h, rc, _game.ID)
 
 		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
@@ -36,7 +47,7 @@ func Test_InstallLove(t *testing.T) {
 		must(t, err)
 
 		err = func() error {
-			bi.Logf("Looking inside %s to make sure we haven't extacted the .love file", queueRes.InstallFolder)
+			bi.Logf("Looking inside %s to make sure we haven't extracted the .love file", queueRes.InstallFolder)
 
 			dir, err := os.Open(queueRes.InstallFolder)
 			if err != nil {

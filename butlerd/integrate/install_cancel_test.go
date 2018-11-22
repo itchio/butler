@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/mitch"
 )
 
 func Test_InstallCancel(t *testing.T) {
@@ -26,6 +27,16 @@ func Test_InstallCancel(t *testing.T) {
 	defer cancel()
 
 	bi.Authenticate()
+
+	store := bi.Server.Store()
+	_developer := store.MakeUser("Ricky Machine")
+	_game := _developer.MakeGame("Platformer Platitude")
+	_game.Publish()
+	_upload := _game.MakeUpload("tagged.zip")
+	_upload.SetAllPlatforms()
+	_upload.SetZipContentsCustom(func(ac *mitch.ArchiveContext) {
+		ac.Entry("random.bin").Random(0xfaceface, 4*1024*1024)
+	})
 
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
@@ -41,8 +52,7 @@ func Test_InstallCancel(t *testing.T) {
 	}()
 
 	{
-		// itch-test-account/big-assets
-		game := getGame(t, h, rc, 243485)
+		game := getGame(t, h, rc, _game.ID)
 
 		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
@@ -93,11 +103,14 @@ func Test_InstallCancel(t *testing.T) {
 		assert.EqualValues(t, butlerd.CodeOperationCancelled, je.Code)
 
 		bi.Logf("Resuming while offline...")
+		offlineStart := time.Now()
 		_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 			Enabled: true,
 		})
 		must(t, err)
+		bi.Logf("SetOffline took %s", time.Since(offlineStart))
 
+		bi.Logf("Now calling installperform")
 		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 			ID:            queueRes.ID,
 			StagingFolder: queueRes.StagingFolder,

@@ -17,20 +17,24 @@ func Test_Plan(t *testing.T) {
 
 	bi.Authenticate()
 
-	var untaggedUploadID int64 = 1111754
+	store := bi.Server.Store()
+	_developer := store.MakeUser("Jenny Block")
+	_game := _developer.MakeGame("Z-Moon")
+	_game.Publish()
+	_taggedUpload := _game.MakeUpload("tagged.zip")
+	_taggedUpload.SetAllPlatforms()
+	_taggedUpload.SetZipContents()
+	_untaggedUpload := _game.MakeUpload("untagged.zip")
+	_untaggedUpload.SetZipContents()
 
 	res, err := messages.InstallPlan.TestCall(rc, butlerd.InstallPlanParams{
-		// https://itch-test-account.itch.io/one-untagged
-		GameID: 323326,
-
 		DownloadSessionID: "test",
-
-		// the untagged upload
-		UploadID: untaggedUploadID,
+		GameID:            _game.ID,
+		UploadID:          _untaggedUpload.ID,
 	})
 	assert.NoError(err)
 
 	assert.NotNil(res.Info)
 	assert.NotNil(res.Info.Upload)
-	assert.NotEqual(untaggedUploadID, res.Info.Upload.ID)
+	assert.NotEqual(_untaggedUpload.ID, res.Info.Upload.ID)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/mitch"
 )
 
 func Test_InstallSmall(t *testing.T) {
@@ -21,7 +22,11 @@ func Test_InstallSmall(t *testing.T) {
 	_game.Publish()
 	_upload := _game.MakeUpload("All platforms")
 	_upload.SetAllPlatforms()
-	_upload.SetZipContents()
+	_upload.SetZipContentsCustom(func(ac *mitch.ArchiveContext) {
+		ac.Entry("index.html").String("<p>Hi!</p>")
+		ac.Entry("styles/main.css").String("html { font-size: 16px; }")
+		ac.Entry("data.pak").Random(0xfeedface, 4*1024*1024)
+	})
 
 	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
 		return &butlerd.HTMLLaunchResult{}, nil
