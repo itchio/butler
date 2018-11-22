@@ -42,7 +42,7 @@ You can find your API key locally:
 
   * Linux: `~/.config/itch/butler_creds`
   * Mac: `~/Library/Application Support/itch/butler_creds`
-  * Windows: `%APPDATA%/itch/butler_creds`
+  * Windows: `%USERPROFILE%\\.config\\itch\\butler_creds`
 
 Or on your [API keys][api-keys] user settings page - the key you're
 looking for will have its source set to `wharf`.
