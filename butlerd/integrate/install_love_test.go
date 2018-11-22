@@ -15,7 +15,7 @@ func Test_InstallLove(t *testing.T) {
 	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	{
 		// itch-test-account/dot-love

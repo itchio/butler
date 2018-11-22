@@ -17,6 +17,10 @@ func Test_AddAPISubdomain(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, "http://api.localhost.com:8080/", res)
 
+	res, err = addApiSubdomain("http://127.0.0.1:9393/")
+	assert.NoError(t, err)
+	assert.EqualValues(t, "http://127.0.0.1:9393/", res)
+
 	_, err = addApiSubdomain("# definitely @)#(*% not an URL")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid URL escape")

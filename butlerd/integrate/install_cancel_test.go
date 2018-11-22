@@ -25,7 +25,7 @@ func Test_InstallCancel(t *testing.T) {
 	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,

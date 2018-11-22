@@ -11,10 +11,11 @@ import (
 func Test_Plan(t *testing.T) {
 	assert := assert.New(t)
 
-	rc, _, cancel := newInstance(t).Unwrap()
+	bi := newInstance(t)
+	rc, _, cancel := bi.Unwrap()
 	defer cancel()
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	var untaggedUploadID int64 = 1111754
 

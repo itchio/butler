@@ -286,12 +286,17 @@ func stripApiSubdomain(address string) (string, error) {
 	return u.String(), nil
 }
 
+var (
+	// Simple regular expression for IPv4 values, see https://github.com/goadesign/goa/blob/master/validation.go
+	ipv4Regex = regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)
+)
+
 func addApiSubdomain(address string) (string, error) {
 	u, err := url.Parse(address)
 	if err != nil {
 		return "", err
 	}
-	if !strings.HasPrefix(u.Host, "api.") {
+	if !strings.HasPrefix(u.Host, "api.") && !ipv4Regex.MatchString(u.Hostname()) {
 		u.Host = "api." + u.Host
 	}
 	return u.String(), nil

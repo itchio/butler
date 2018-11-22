@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -14,9 +15,11 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/mitch"
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 type ButlerConn struct {
@@ -34,10 +37,29 @@ type ButlerInstance struct {
 	Consumer *state.Consumer
 	Logf     func(format string, args ...interface{})
 	Conn     *ButlerConn
+
+	t    *testing.T
+	opts instanceOpts
+	// may be nil
+	Server mitch.Server
 }
 
-func newInstance(t *testing.T) *ButlerInstance {
+type instanceOpts struct {
+	mockServer bool
+}
+
+type instanceOpt func(o *instanceOpts)
+
+func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
+	var opts instanceOpts
+	for _, o := range options {
+		o(&opts)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
+
+	server, err := mitch.NewServer(ctx)
+	gmust(err)
 
 	logf := t.Logf
 	if os.Getenv("LOUD_TESTS") == "1" {
@@ -54,6 +76,11 @@ func newInstance(t *testing.T) *ButlerInstance {
 		"--dbpath", "file::memory:?cache=shared",
 		"--destiny-pid", conf.PidString,
 		"--destiny-pid", conf.PpidString,
+	}
+	{
+		addressString := fmt.Sprintf("http://%s", server.Address())
+		args = append(args, "--address", addressString)
+		logf("Using mock server %s", addressString)
 	}
 	bExec := exec.CommandContext(ctx, conf.ButlerPath, args...)
 
@@ -117,12 +144,15 @@ func newInstance(t *testing.T) *ButlerInstance {
 	}
 
 	bi := &ButlerInstance{
+		t:        t,
+		opts:     opts,
 		Ctx:      ctx,
 		Cancel:   cancel,
 		Address:  address,
 		Secret:   secret,
 		Logf:     logf,
 		Consumer: consumer,
+		Server:   server,
 	}
 	bi.Connect()
 	bi.SetupTmpInstallLocation()
@@ -193,4 +223,21 @@ func (bi *ButlerInstance) SetupTmpInstallLocation() {
 		Path: filepath.Join(wd, "tmp"),
 	})
 	gmust(err)
+}
+
+func (bi *ButlerInstance) Authenticate() *butlerd.Profile {
+	store := bi.Server.Store()
+	user := store.MakeUser("itch test account")
+	apiKey := user.MakeAPIKey()
+
+	assert := assert.New(bi.t)
+
+	rc := bi.Conn.RequestContext
+	prof, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
+		APIKey: apiKey.Key,
+	})
+	must(bi.t, err)
+	assert.EqualValues("itch test account", prof.Profile.User.DisplayName)
+
+	return prof.Profile
 }

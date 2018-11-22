@@ -12,7 +12,7 @@ func Test_InstallSmall(t *testing.T) {
 	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
 		return &butlerd.HTMLLaunchResult{}, nil

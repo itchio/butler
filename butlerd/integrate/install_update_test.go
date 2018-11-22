@@ -25,7 +25,7 @@ func Test_InstallUpdate(t *testing.T) {
 		bi.Logf("==========================")
 	}
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	{
 		log("listing builds...")

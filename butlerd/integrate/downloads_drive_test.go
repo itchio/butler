@@ -20,7 +20,7 @@ func Test_DownloadsDrive(t *testing.T) {
 	rc, h, cancel := bi.Unwrap()
 	defer cancel()
 
-	authenticate(t, rc)
+	bi.Authenticate()
 
 	{
 		// itch-test-account/111-first
