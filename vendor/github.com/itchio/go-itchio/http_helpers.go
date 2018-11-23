@@ -177,7 +177,7 @@ func ParseAPIResponse(dst interface{}, res *http.Response) error {
 				}
 			}
 			if len(messages) > 0 {
-				return &APIError{Messages: messages, StatusCode: res.StatusCode, URL: res.Request.URL.String()}
+				return &APIError{Messages: messages, StatusCode: res.StatusCode, Path: res.Request.URL.Path}
 			}
 		}
 	}

@@ -12,13 +12,13 @@ import (
 type APIError struct {
 	Messages   []string `json:"messages"`
 	StatusCode int      `json:"statusCode"`
-	URL        string   `json:"url"`
+	Path       string   `json:"path"`
 }
 
 var _ error = (*APIError)(nil)
 
 func (ae *APIError) Error() string {
-	return fmt.Sprintf("itch.io API error (%d): %s: %s", ae.StatusCode, ae.URL, strings.Join(ae.Messages, ", "))
+	return fmt.Sprintf("itch.io API error (%d): %s: %s", ae.StatusCode, ae.Path, strings.Join(ae.Messages, ", "))
 }
 
 // IsAPIError returns true if an error is an itch.io API error,
