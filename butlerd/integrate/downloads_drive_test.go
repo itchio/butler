@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/itchio/mitch"
+
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/pkg/errors"
@@ -22,9 +24,19 @@ func Test_DownloadsDrive(t *testing.T) {
 
 	bi.Authenticate()
 
+	store := bi.Server.Store()
+	_developer := store.MakeUser("Adam's Atom, eek")
+	_game := _developer.MakeGame("Some web game")
+	_game.Publish()
+	_upload := _game.MakeUpload("web version")
+	_upload.SetAllPlatforms()
+	_upload.PushBuild(func(ac *mitch.ArchiveContext) {
+		ac.SetName("html5.zip")
+		ac.Entry("index.html").String("<p>Well hello</p>")
+	})
+
 	{
-		// itch-test-account/111-first
-		game := getGame(t, h, rc, 149766)
+		game := getGame(t, h, rc, _game.ID)
 
 		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 			Game:              game,
