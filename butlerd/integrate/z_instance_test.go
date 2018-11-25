@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/exec"
 	"testing"
 	"time"
+
+	"github.com/fatih/color"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -36,19 +37,19 @@ type ButlerInstance struct {
 	Logf     func(format string, args ...interface{})
 	Conn     *ButlerConn
 
-	t    *testing.T
-	opts instanceOpts
-	// may be nil
+	t      *testing.T
+	opts   instanceOpts
 	Server mitch.Server
 }
 
 type instanceOpts struct {
-	mockServer bool
 }
 
 type instanceOpt func(o *instanceOpts)
 
 func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
+	color.NoColor = false
+
 	var opts instanceOpts
 	for _, o := range options {
 		o(&opts)
@@ -59,13 +60,40 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	logf := t.Logf
 	if os.Getenv("LOUD_TESTS") == "1" {
 		logf = func(msg string, args ...interface{}) {
-			log.Printf(msg, args...)
+			fmt.Printf("%s\n", fmt.Sprintf(msg, args...))
+		}
+	}
+
+	{
+		lastTime := time.Now().UTC()
+		oldlogf := logf
+		logf = func(msg string, args ...interface{}) {
+			diff := time.Since(lastTime)
+			lastTime = time.Now().UTC()
+			timestampString := fmt.Sprintf("%12s", "")
+			if diff >= 2*time.Millisecond {
+				msDiff := int64(diff.Seconds() * 1000.0)
+				timestampBase := fmt.Sprintf("+%d ms", msDiff)
+				timestampString = fmt.Sprintf("%12s", timestampBase)
+			}
+			oldlogf("%s %s", color.GreenString(timestampString), fmt.Sprintf(msg, args...))
 		}
 	}
 
 	consumer := &state.Consumer{
 		OnMessage: func(lvl string, msg string) {
-			logf("[%s] %s", lvl, msg)
+			var col = color.WhiteString
+			switch lvl {
+			case "debug":
+				col = color.BlueString
+			case "info":
+				col = color.CyanString
+			case "warn":
+				col = color.YellowString
+			case "error":
+				col = color.RedString
+			}
+			logf("%s", col(msg))
 		},
 	}
 

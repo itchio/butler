@@ -17,6 +17,9 @@ import (
 )
 
 func Test_InstallCancel(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping cancel test in short mode")
+	}
 	assert := assert.New(t)
 
 	bi := newInstance(t)
@@ -36,9 +39,10 @@ func Test_InstallCancel(t *testing.T) {
 		ac.Entry("random.bin").Random(0xfaceface, 16*1024*1024)
 	})
 
+	MiBPerSecond := int64(1024 * 8)
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
-		Rate:    128 * 1024,
+		Rate:    4 * MiBPerSecond,
 	})
 	must(err)
 
