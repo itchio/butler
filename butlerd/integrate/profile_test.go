@@ -10,6 +10,8 @@ import (
 )
 
 func Test_Profile(t *testing.T) {
+	assert := assert.New(t)
+
 	bi := newInstance(t)
 	rc, _, cancel := bi.Unwrap()
 	defer cancel()
@@ -17,14 +19,14 @@ func Test_Profile(t *testing.T) {
 	_, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
 		APIKey: "meh",
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "itch.io API error (403)")
+	assert.Error(err)
+	assert.Contains(err.Error(), "itch.io API error (403)")
 
 	prof := bi.Authenticate()
 
 	r, err := messages.ProfileList.TestCall(rc, butlerd.ProfileListParams{})
-	must(t, err)
-	assert.NotEmpty(t, r.Profiles)
+	must(err)
+	assert.NotEmpty(r.Profiles)
 
 	v := uuid.New()
 
@@ -33,20 +35,20 @@ func Test_Profile(t *testing.T) {
 		Key:       "@integrate/hello",
 		Value:     v.String(),
 	})
-	must(t, err)
+	must(err)
 
 	dgr, err := messages.ProfileDataGet.TestCall(rc, butlerd.ProfileDataGetParams{
 		ProfileID: prof.ID,
 		Key:       "@integrate/hello",
 	})
-	must(t, err)
-	assert.True(t, dgr.OK)
-	assert.EqualValues(t, v.String(), dgr.Value)
+	must(err)
+	assert.True(dgr.OK)
+	assert.EqualValues(v.String(), dgr.Value)
 
 	dgr, err = messages.ProfileDataGet.TestCall(rc, butlerd.ProfileDataGetParams{
 		ProfileID: prof.ID,
 		Key:       "@integrate/whoops",
 	})
-	must(t, err)
-	assert.False(t, dgr.OK)
+	must(err)
+	assert.False(dgr.OK)
 }

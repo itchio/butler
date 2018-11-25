@@ -32,32 +32,30 @@ func Test_InstallSmall(t *testing.T) {
 		return &butlerd.HTMLLaunchResult{}, nil
 	})
 
-	{
-		game := getGame(t, h, rc, _game.ID)
+	game := bi.FetchGame(_game.ID)
 
-		queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
-			Game:              game,
-			InstallLocationID: "tmp",
-		})
-		must(t, err)
+	queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
+		Game:              game,
+		InstallLocationID: "tmp",
+	})
+	must(err)
 
-		bi.Logf("Queued %s", queueRes.InstallFolder)
+	bi.Logf("Queued %s", queueRes.InstallFolder)
 
-		_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
-			ID:            queueRes.ID,
-			StagingFolder: queueRes.StagingFolder,
-		})
-		must(t, err)
+	_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+		ID:            queueRes.ID,
+		StagingFolder: queueRes.StagingFolder,
+	})
+	must(err)
 
-		_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
-			CaveID:     queueRes.CaveID,
-			PrereqsDir: "/tmp/prereqs",
-		})
-		must(t, err)
+	_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
+		CaveID:     queueRes.CaveID,
+		PrereqsDir: "/tmp/prereqs",
+	})
+	must(err)
 
-		_, err = messages.UninstallPerform.TestCall(rc, butlerd.UninstallPerformParams{
-			CaveID: queueRes.CaveID,
-		})
-		must(t, err)
-	}
+	_, err = messages.UninstallPerform.TestCall(rc, butlerd.UninstallPerformParams{
+		CaveID: queueRes.CaveID,
+	})
+	must(err)
 }

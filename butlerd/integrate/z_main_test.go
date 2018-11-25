@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 			log.Printf("Skipping integrate tests (on CI, no butler path specified)")
 			os.Exit(0)
 		}
-		gmust(errors.New("Refusing to run integrate tests without --butlerPath"))
+		must(errors.New("Refusing to run integrate tests without --butlerPath"))
 	}
 
 	conf.PidString = strconv.FormatInt(int64(os.Getpid()), 10)
@@ -51,28 +51,21 @@ func TestMain(m *testing.M) {
 	os.Exit(status)
 }
 
-func must(t *testing.T, err error) {
-	t.Helper()
+func must(err error) {
 	if err != nil {
 		if je, ok := errors.Cause(err).(*jsonrpc2.Error); ok {
 			if je.Data != nil {
 				bs := []byte(*je.Data)
 				intermediate := make(map[string]interface{})
 				jErr := json.Unmarshal(bs, &intermediate)
-				if jErr != nil {
-					t.Errorf("could not Unmarshal json-rpc2 error data: %v", jErr)
-					t.Errorf("data was: %s", string(bs))
+				if jErr == nil {
+					panic(fmt.Sprintf("%v: JSON-RPC stack trace:\n%+v", err, string(bs)))
 				} else {
-					t.Errorf("json-rpc2 full stack:\n%s", intermediate["stack"])
+					log.Printf("could not Unmarshal json-rpc2 error data: %v", jErr)
+					log.Printf("data was: %s", string(bs))
 				}
 			}
 		}
-		t.Fatalf("%+v", err)
-	}
-}
-
-func gmust(err error) {
-	if err != nil {
-		panic(fmt.Sprintf("%+v", errors.WithStack(err)))
+		panic(fmt.Sprintf("%+v", err))
 	}
 }

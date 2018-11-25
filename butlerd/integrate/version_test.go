@@ -9,10 +9,12 @@ import (
 )
 
 func Test_Version(t *testing.T) {
+	assert := assert.New(t)
+
 	rc, _, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
 	vgr, err := messages.VersionGet.TestCall(rc, butlerd.VersionGetParams{})
-	must(t, err)
-	assert.NotEmpty(t, vgr.Version)
+	must(err)
+	assert.NotEmpty(vgr.Version)
 }

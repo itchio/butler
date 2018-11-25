@@ -43,17 +43,17 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	if rh, ok := h.handlers[req.Method]; ok {
 		res, err := rh(rc)
 		if err != nil {
-			gmust(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+			must(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 				Code:    jsonrpc2.CodeInternalError,
 				Message: fmt.Sprintf("%+v", err),
 			}))
 			return
 		}
-		gmust(conn.Reply(ctx, req.ID, res))
+		must(conn.Reply(ctx, req.ID, res))
 		return
 	}
 
-	gmust(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	must(conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,
 		Message: fmt.Sprintf("Method '%s' not found", req.Method),
 	}))

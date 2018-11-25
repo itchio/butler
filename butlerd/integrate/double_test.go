@@ -9,6 +9,8 @@ import (
 )
 
 func Test_Double(t *testing.T) {
+	assert := assert.New(t)
+
 	rc, h, cancel := newInstance(t).Unwrap()
 	defer cancel()
 
@@ -19,6 +21,6 @@ func Test_Double(t *testing.T) {
 	})
 
 	res, err := messages.TestDoubleTwice.TestCall(rc, butlerd.TestDoubleTwiceParams{Number: 512})
-	must(t, err)
-	assert.EqualValues(t, 2048, res.Number)
+	must(err)
+	assert.EqualValues(2048, res.Number)
 }

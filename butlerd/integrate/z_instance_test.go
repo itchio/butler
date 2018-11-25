@@ -9,7 +9,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
-	"github.com/stretchr/testify/assert"
 )
 
 type ButlerConn struct {
@@ -72,7 +70,7 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	}
 
 	server, err := mitch.NewServer(ctx, mitch.WithConsumer(consumer))
-	gmust(err)
+	must(err)
 
 	args := []string{
 		"daemon",
@@ -91,10 +89,10 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	bExec := exec.CommandContext(ctx, conf.ButlerPath, args...)
 
 	stdout, err := bExec.StdoutPipe()
-	gmust(err)
+	must(err)
 
 	stderr, err := bExec.StderrPipe()
-	gmust(err)
+	must(err)
 	go func() {
 		s := bufio.NewScanner(stderr)
 		for s.Scan() {
@@ -102,7 +100,7 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 		}
 	}()
 
-	gmust(bExec.Start())
+	must(bExec.Start())
 
 	waitErr := make(chan error, 1)
 	go func() {
@@ -135,7 +133,7 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 			case "log":
 				consumer.Infof("[butler] %s", im["message"].(string))
 			default:
-				gmust(errors.Errorf("unknown butlerd request: %s", typ))
+				must(errors.Errorf("unknown butlerd request: %s", typ))
 			}
 		}
 	}()
@@ -145,11 +143,11 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	case address = <-addrChan:
 		// cool!
 	case err := <-waitErr:
-		gmust(err)
+		must(err)
 	case <-time.After(2 * time.Second):
-		gmust(errors.Errorf("Timed out waiting for butlerd address"))
+		must(errors.Errorf("Timed out waiting for butlerd address"))
 	}
-	gmust(err)
+	must(err)
 
 	bi := &ButlerInstance{
 		t:        t,
@@ -187,7 +185,7 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 	})
 
 	tcpConn, err := net.DialTimeout("tcp", bi.Address, 2*time.Second)
-	gmust(err)
+	must(err)
 
 	stream := jsonrpc2.NewBufferedStream(tcpConn, butlerd.LFObjectCodec{})
 
@@ -206,7 +204,7 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 	_, err = messages.MetaAuthenticate.TestCall(rc, butlerd.MetaAuthenticateParams{
 		Secret: bi.Secret,
 	})
-	gmust(err)
+	must(err)
 
 	bi.Conn = &ButlerConn{
 		Ctx:            ctx,
@@ -215,40 +213,4 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 		RequestContext: rc,
 	}
 	return bi.Unwrap()
-}
-
-func (bi *ButlerInstance) SetupTmpInstallLocation() {
-	wd, err := os.Getwd()
-	gmust(err)
-
-	tmpPath := filepath.Join(wd, "tmp")
-	gmust(os.RemoveAll(tmpPath))
-	gmust(os.MkdirAll(tmpPath, 0755))
-
-	rc := bi.Conn.RequestContext
-	_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{
-		ID:   "tmp",
-		Path: filepath.Join(wd, "tmp"),
-	})
-	gmust(err)
-}
-
-const ConstantAPIKey = "butlerd integrate tests"
-
-func (bi *ButlerInstance) Authenticate() *butlerd.Profile {
-	store := bi.Server.Store()
-	user := store.MakeUser("itch test account")
-	apiKey := user.MakeAPIKey()
-	apiKey.Key = ConstantAPIKey
-
-	assert := assert.New(bi.t)
-
-	rc := bi.Conn.RequestContext
-	prof, err := messages.ProfileLoginWithAPIKey.TestCall(rc, butlerd.ProfileLoginWithAPIKeyParams{
-		APIKey: apiKey.Key,
-	})
-	must(bi.t, err)
-	assert.EqualValues("itch test account", prof.Profile.User.DisplayName)
-
-	return prof.Profile
 }
