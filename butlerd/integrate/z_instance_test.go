@@ -64,6 +64,12 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 		}
 	}
 
+	if os.Getenv("QUIET_TESTS") == "1" {
+		logf = func(msg string, args ...interface{}) {
+			// muffin
+		}
+	}
+
 	{
 		lastTime := time.Now().UTC()
 		oldlogf := logf

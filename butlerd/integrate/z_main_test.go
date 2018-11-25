@@ -59,7 +59,7 @@ func must(err error) {
 				intermediate := make(map[string]interface{})
 				jErr := json.Unmarshal(bs, &intermediate)
 				if jErr == nil {
-					panic(fmt.Sprintf("%v: JSON-RPC stack trace:\n%+v", err, string(bs)))
+					panic(fmt.Sprintf("%v: JSON-RPC stack trace:\n%+v", err, intermediate["stack"]))
 				} else {
 					log.Printf("could not Unmarshal json-rpc2 error data: %v", jErr)
 					log.Printf("data was: %s", string(bs))

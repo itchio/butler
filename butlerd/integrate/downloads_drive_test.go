@@ -14,6 +14,10 @@ import (
 )
 
 func Test_DownloadsDrive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping downloads drive in short mode")
+	}
+
 	assert := assert.New(t)
 
 	bi := newInstance(t)

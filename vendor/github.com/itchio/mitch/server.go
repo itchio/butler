@@ -221,6 +221,21 @@ func (s *server) serve() {
 		})
 	})
 
+	route("/uploads/{id}", func(r *response) {
+		r.RespondTo(RespondToMap{
+			"GET": func() {
+				r.CheckAPIKey()
+				uploadID := r.Int64Var("id")
+				upload := r.FindUpload(uploadID)
+				r.AssertAuthorization(upload.CanBeDownloadedBy(r.currentUser))
+				res := Any{
+					"upload": FormatUpload(upload),
+				}
+				r.WriteJSON(res)
+			},
+		})
+	})
+
 	route("/uploads/{id}/download", func(r *response) {
 		r.RespondTo(RespondToMap{
 			"GET": func() {
@@ -323,6 +338,64 @@ func (s *server) serve() {
 					},
 				}
 				r.WriteJSON(res)
+			},
+		})
+	})
+
+	fakeSummary := func() Any {
+		return Any{
+			"seconds_run": 0,
+			"last_run_at": nil,
+		}
+	}
+
+	fakeGameSession := func() Any {
+		return Any{
+			"id":          666,
+			"seconds_run": 0,
+			"last_run_at": nil,
+		}
+	}
+
+	route("/games/{id}/interactions/sessions", func(r *response) {
+		r.RespondTo(RespondToMap{
+			"POST": func() {
+				r.CheckAPIKey()
+				id := r.Int64Var("id")
+				game := r.FindGame(id)
+				r.AssertAuthorization(game.CanBeViewedBy(r.currentUser))
+
+				r.WriteJSON(Any{
+					"summary":           fakeSummary(),
+					"user_game_session": fakeGameSession(),
+				})
+			},
+			"GET": func() {
+				r.CheckAPIKey()
+				id := r.Int64Var("id")
+				game := r.FindGame(id)
+				r.AssertAuthorization(game.CanBeViewedBy(r.currentUser))
+
+				r.WriteJSON(Any{
+					"summary":  fakeSummary(),
+					"sessions": make([]Any, 0),
+				})
+			},
+		})
+	})
+
+	route("/games/{id}/interactions/sessions", func(r *response) {
+		r.RespondTo(RespondToMap{
+			"POST": func() {
+				r.CheckAPIKey()
+				id := r.Int64Var("id")
+				game := r.FindGame(id)
+				r.AssertAuthorization(game.CanBeViewedBy(r.currentUser))
+
+				r.WriteJSON(Any{
+					"summary":  fakeSummary(),
+					"sessions": make([]Any, 0),
+				})
 			},
 		})
 	})

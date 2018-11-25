@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,8 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd/horror"
+	"github.com/itchio/butler/database/models"
+	"github.com/itchio/hades"
 
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/progress"
@@ -69,6 +72,25 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	consumer.Infof("→ Launching %s", operate.GameToString(game))
 	consumer.Infof("   on runtime %s", runtime)
 	consumer.Infof("   (%s) is our install folder", installFolder)
+
+	// attempt to refresh upload
+	{
+		client := rc.Client(access.APIKey)
+		uploadRes, err := client.GetUpload(itchio.GetUploadParams{
+			Credentials: access.Credentials,
+			UploadID:    upload.ID,
+		})
+		if err != nil {
+			consumer.Warnf("Could not refresh upload: %v", err)
+		} else {
+			upload = uploadRes.Upload
+			rc.WithConn(func(conn *sqlite.Conn) {
+				models.MustSave(conn, upload, hades.Assoc("Build"))
+			})
+			consumer.Debugf("Refreshed upload (last updated %s)", upload.UpdatedAt)
+		}
+	}
+
 	consumer.Infof("Passed:")
 	operate.LogUpload(consumer, upload, build)
 
@@ -444,6 +466,9 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	var startSessionOnce sync.Once
 	sessionEndedChan := make(chan struct{})
 
+	sessionCtx, sessionCancel := context.WithCancel(rc.Ctx)
+	defer sessionCancel()
+
 	sessionWatcher := func() {
 		defer close(sessionWatcherDone)
 		defer horror.RecoverAndLog(consumer)
@@ -515,7 +540,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 		// Then wait for session to actually start
 		select {
-		case <-rc.Ctx.Done():
+		case <-sessionCtx.Done():
 			consumer.Debugf("Launch cancelled while waiting for session to start, bailing out")
 			return
 		case <-sessionStartedChan:
@@ -526,7 +551,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	regularUpdates:
 		for {
 			select {
-			case <-rc.Ctx.Done():
+			case <-sessionCtx.Done():
 				consumer.Debugf("Launch cancelled while updating session regularly, bailing out")
 				return
 			case <-time.After(1 * time.Minute):
@@ -585,6 +610,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	}
 
 	consumer.Debugf("Waiting on session watcher...")
+	sessionCancel()
 	select {
 	case <-sessionWatcherDone:
 		consumer.Debugf("Session watcher completed")
