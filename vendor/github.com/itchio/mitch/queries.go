@@ -28,6 +28,10 @@ func (s *Store) ListUploadsByGame(gameID int64) []*Upload {
 	return s.SelectUploads(NoSort(), Eq{"GameID": gameID})
 }
 
+func (s *Store) ListBuildsByUpload(uploadID int64) []*Build {
+	return s.SelectBuilds(SortBy("ID", "desc"), Eq{"UploadID": uploadID})
+}
+
 func (s *Store) ListGameAdminsByGame(gameID int64) []*GameAdmin {
 	return s.SelectGameAdmins(NoSort(), Eq{"GameID": gameID})
 }

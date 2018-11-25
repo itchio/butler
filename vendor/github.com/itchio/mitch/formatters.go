@@ -76,3 +76,20 @@ func FormatBuild(build *Build) Any {
 	}
 	return res
 }
+
+func FormatBuilds(builds []*Build) []Any {
+	var res []Any
+	for _, b := range builds {
+		res = append(res, FormatBuild(b))
+	}
+	return res
+}
+
+func FormatBuildFile(bf *BuildFile) Any {
+	res := Any{
+		"size":     bf.Size,
+		"type":     bf.Type,
+		"sub_type": bf.SubType,
+	}
+	return res
+}

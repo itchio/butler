@@ -182,11 +182,26 @@ func (s *server) serve() {
 			"GET": func() {
 				r.CheckAPIKey()
 				gameID := r.Int64Var("id")
-				game := r.store.FindGame(gameID)
+				game := r.FindGame(gameID)
 				r.AssertAuthorization(game.CanBeViewedBy(r.currentUser))
 				uploads := r.store.ListUploadsByGame(gameID)
 				r.WriteJSON(Any{
 					"uploads": FormatUploads(uploads),
+				})
+			},
+		})
+	})
+
+	route("/uploads/{id}/builds", func(r *response) {
+		r.RespondTo(RespondToMap{
+			"GET": func() {
+				r.CheckAPIKey()
+				uploadID := r.Int64Var("id")
+				upload := r.FindUpload(uploadID)
+				r.AssertAuthorization(upload.CanBeViewedBy(r.currentUser))
+				builds := r.store.ListBuildsByUpload(uploadID)
+				r.WriteJSON(Any{
+					"builds": FormatBuilds(builds),
 				})
 			},
 		})
@@ -248,6 +263,66 @@ func (s *server) serve() {
 					Throw(404, fmt.Sprintf("no %s/%s build file", typ, subtype))
 				}
 				r.ServeCDNAsset(bf)
+			},
+		})
+	})
+
+	route("/builds/{id}/upgrade-paths/{target_id}", func(r *response) {
+		r.RespondTo(RespondToMap{
+			"GET": func() {
+				r.CheckAPIKey()
+
+				id := r.Int64Var("id")
+				targetID := r.Int64Var("target_id")
+				targetBuild := r.FindBuild(targetID)
+
+				curr := targetBuild
+				builds := []*Build{curr}
+				for {
+					curr = r.FindBuild(curr.ParentBuildID)
+					builds = append(builds, curr)
+					if curr.ID == id {
+						break
+					}
+					if curr.ID < id {
+						// woops, we went back too far and didn't find it
+						break
+					}
+				}
+
+				if curr.ID != id {
+					Throw(404, "upgrade path not found")
+				}
+
+				// see https://github.com/golang/go/wiki/SliceTricks
+				for i := len(builds)/2 - 1; i >= 0; i-- {
+					opp := len(builds) - 1 - i
+					builds[i], builds[opp] = builds[opp], builds[i]
+				}
+
+				var formattedBuilds []Any
+				for _, b := range builds {
+					item := FormatBuild(b)
+					patches := s.store.SelectBuildFiles(
+						NoSort(),
+						Eq{
+							"BuildID": b.ID,
+							"Type":    "patch",
+						},
+					)
+					var files []Any
+					for _, p := range patches {
+						files = append(files, FormatBuildFile(p))
+					}
+					item["files"] = files
+					formattedBuilds = append(formattedBuilds, item)
+				}
+				res := Any{
+					"upgrade_path": Any{
+						"builds": formattedBuilds,
+					},
+				}
+				r.WriteJSON(res)
 			},
 		})
 	})

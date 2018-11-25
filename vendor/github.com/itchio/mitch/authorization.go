@@ -1,5 +1,16 @@
 package mitch
 
+func (u *Upload) CanBeViewedBy(user *User) bool {
+	// TODO: download keys etc.
+	s := u.Store
+	g := s.FindGame(u.GameID)
+	if g == nil {
+		Throw(404, "game not found")
+	}
+
+	return g.CanBeViewedBy(user)
+}
+
 func (g *Game) CanBeViewedBy(user *User) bool {
 	if g.CanBeEditedBy(user) {
 		return true

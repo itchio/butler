@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -17,6 +16,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd/horror"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/wharf/state"
@@ -102,7 +102,7 @@ func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Cl
 
 		globalConsumer: &state.Consumer{
 			OnMessage: func(lvl string, msg string) {
-				log.Printf("[bg task] [%s] %s", lvl, msg)
+				comm.Logf("[router] [%s] %s", lvl, msg)
 			},
 		},
 	}
@@ -117,7 +117,7 @@ func (r *Router) Register(method string, rh RequestHandler) {
 
 func (r *Router) initiateShutdown() {
 	r.initiateShutdownOnce.Do(func() {
-		log.Printf("Initiating graceful butlerd shutdown")
+		r.Logf("Initiating graceful butlerd shutdown")
 		r.inflightLock.Lock()
 		r.shuttingDown = true
 		if r.numInflightItems() == 0 {
@@ -179,17 +179,17 @@ func (r *Router) opportunisticShutdown() {
 	} else {
 		r.globalConsumer.Infof("In-flight requests/background tasks preventing shutdown: ")
 		for _, req := range r.inflightRequests {
-			log.Printf(" - %s (%v)", req.Desc, time.Since(req.DispatchedAt))
+			r.Logf(" - %s (%v)", req.Desc, time.Since(req.DispatchedAt))
 		}
 		for _, task := range r.inflightBackgroundTasks {
-			log.Printf(" - %s (%v)", task.Desc, time.Since(task.QueuedAt))
+			r.Logf(" - %s (%v)", task.Desc, time.Since(task.QueuedAt))
 		}
 	}
 }
 
 func (r *Router) completeShutdown() {
 	r.completeShutdownOnce.Do(func() {
-		log.Printf("No in-flight requests left, we can shut down now.")
+		r.Logf("No in-flight requests left, we can shut down now.")
 		close(r.ShutdownChan)
 	})
 }
@@ -368,8 +368,9 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 
 func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
 	defer func() {
+		router := r
 		if r := recover(); r != nil {
-			log.Printf("background task panicked: %+v", r)
+			router.Logf("background task panicked: %+v", r)
 		}
 	}()
 
@@ -424,6 +425,10 @@ func (r *Router) QueueBackgroundTask(bt BackgroundTask) {
 	r.inflightLock.Unlock()
 
 	go r.doBackgroundTask(id, bt)
+}
+
+func (r *Router) Logf(format string, args ...interface{}) {
+	r.globalConsumer.Infof(format, args...)
 }
 
 type BackgroundTaskFunc func(rc *RequestContext) error

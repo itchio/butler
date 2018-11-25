@@ -29,7 +29,10 @@ func (ac *ArchiveContext) CompressZip() []byte {
 	zw := zip.NewWriter(buf)
 
 	for path, e := range ac.Entries {
-		w, err := zw.Create(path)
+		w, err := zw.CreateHeader(&zip.FileHeader{
+			Name:   path,
+			Method: zip.Store,
+		})
 		must(err)
 		_, err = io.Copy(w, bytes.NewReader(e.buf.Bytes()))
 		must(err)
@@ -51,7 +54,7 @@ func (ae *ArchiveEntry) String(s string) {
 }
 
 func (ae *ArchiveEntry) Random(seed int64, size int64) {
-	rr := &wrand.RandReader{Source: rand.NewSource(0xfaceface)}
+	rr := &wrand.RandReader{Source: rand.NewSource(seed)}
 	io.CopyN(ae, rr, size)
 }
 

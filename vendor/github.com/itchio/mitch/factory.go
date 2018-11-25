@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
+
+	"github.com/itchio/savior/seeksource"
 
 	"github.com/itchio/arkive/zip"
 	"github.com/itchio/wharf/pools/zippool"
@@ -101,7 +104,7 @@ func (u *Upload) SetZipContentsCustom(f func(ac *ArchiveContext)) {
 	u.SetHostedContents(ac.Name, ac.CompressZip())
 }
 
-func (u *Upload) PushBuild(f func(ac *ArchiveContext)) {
+func (u *Upload) PushBuild(f func(ac *ArchiveContext)) *Build {
 	s := u.Store
 
 	parentBuild := s.FindBuild(u.Head)
@@ -128,12 +131,18 @@ func (u *Upload) PushBuild(f func(ac *ArchiveContext)) {
 	archiveFile.SetHostedContents(ac.Name, ac.CompressZip())
 
 	archiveFile.Sign()
+	if parentBuild != nil {
+		archiveFile.Diff(parentBuild)
+	}
 
 	u.Storage = "build"
 	u.Head = b.ID
 	u.Filename = archiveFile.Filename
 	u.Size = archiveFile.Size
-	u.ChannelName = fmt.Sprintf("upload-%d", u.ID)
+	if u.ChannelName == "" {
+		u.ChannelName = fmt.Sprintf("upload-%d", u.ID)
+	}
+	return b
 }
 
 func (b *Build) MakeFile(typ string, subtype string) *BuildFile {
@@ -236,6 +245,70 @@ func (bf *BuildFile) Sign() *BuildFile {
 	filename := fmt.Sprintf("build-%d-signature", b.ID)
 	sf.SetHostedContents(filename, sigBuf.Bytes())
 	return sf
+}
+
+func (bf *BuildFile) Diff(parentBuild *Build) *BuildFile {
+	s := bf.Store
+	if bf.Type != "archive" {
+		panic("Can only diff 'archive' BuildFile")
+	}
+
+	b := s.FindBuild(bf.BuildID)
+	if b == nil {
+		panic("BuildFile without Build")
+	}
+
+	archiveCDNFile := s.CDNFiles[bf.CDNPath()]
+	if archiveCDNFile == nil {
+		panic("missing CDN File for archive BuildFile")
+	}
+
+	sourceZr, err := zip.NewReader(bytes.NewReader(archiveCDNFile.Contents), archiveCDNFile.Size)
+	must(err)
+
+	sourceContainer, err := tlc.WalkZip(sourceZr, &tlc.WalkOpts{})
+	must(err)
+
+	parentSig := parentBuild.GetFile("signature", "default")
+	if parentSig == nil {
+		panic("parent build is missing a signature")
+	}
+
+	parentSigCDNFile := s.CDNFiles[parentSig.CDNPath()]
+	if parentSigCDNFile == nil {
+		panic("missing CDN file for parent signature")
+	}
+
+	sigReader := seeksource.FromBytes(parentSigCDNFile.Contents)
+	_, err = sigReader.Resume(nil)
+	must(err)
+
+	ctx := context.Background()
+
+	sigInfo, err := pwr.ReadSignature(ctx, sigReader)
+	must(err)
+
+	sourcePool := zippool.New(sourceContainer, sourceZr)
+
+	compression := compressionSettings()
+	dctx := pwr.DiffContext{
+		Compression: &compression,
+
+		SourceContainer: sourceContainer,
+		Pool:            sourcePool,
+
+		TargetContainer: sigInfo.Container,
+		TargetSignature: sigInfo.Hashes,
+	}
+	patchBuf := new(bytes.Buffer)
+	err = dctx.WritePatch(ctx, patchBuf, ioutil.Discard)
+	must(err)
+
+	patchFile := b.MakeFile("patch", "default")
+	filename := fmt.Sprintf("patch-%d.pwr", b.ID)
+	patchFile.SetHostedContents(filename, patchBuf.Bytes())
+
+	return patchFile
 }
 
 func compressionSettings() pwr.CompressionSettings {

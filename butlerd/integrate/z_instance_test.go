@@ -93,7 +93,15 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	stdout, err := bExec.StdoutPipe()
 	gmust(err)
 
-	bExec.Stderr = os.Stderr
+	stderr, err := bExec.StderrPipe()
+	gmust(err)
+	go func() {
+		s := bufio.NewScanner(stderr)
+		for s.Scan() {
+			consumer.Infof("[%s] %s", "butler stderr", s.Text())
+		}
+	}()
+
 	gmust(bExec.Start())
 
 	waitErr := make(chan error, 1)
@@ -114,7 +122,7 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 			im := make(map[string]interface{})
 			err := json.Unmarshal([]byte(line), &im)
 			if err != nil {
-				log.Printf("butler => %s", line)
+				consumer.Infof("[%s] %s", "butler stdout", line)
 				continue
 			}
 
@@ -125,7 +133,7 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 				tcpBlock := im["tcp"].(map[string]interface{})
 				addrChan <- tcpBlock["address"].(string)
 			case "log":
-				log.Printf("[butler] %s", im["message"].(string))
+				consumer.Infof("[butler] %s", im["message"].(string))
 			default:
 				gmust(errors.Errorf("unknown butlerd request: %s", typ))
 			}
@@ -225,10 +233,13 @@ func (bi *ButlerInstance) SetupTmpInstallLocation() {
 	gmust(err)
 }
 
+const ConstantAPIKey = "butlerd integrate tests"
+
 func (bi *ButlerInstance) Authenticate() *butlerd.Profile {
 	store := bi.Server.Store()
 	user := store.MakeUser("itch test account")
 	apiKey := user.MakeAPIKey()
+	apiKey.Key = ConstantAPIKey
 
 	assert := assert.New(bi.t)
 
