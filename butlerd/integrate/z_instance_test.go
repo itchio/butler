@@ -58,15 +58,21 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	server, err := mitch.NewServer(ctx)
-	gmust(err)
-
 	logf := t.Logf
 	if os.Getenv("LOUD_TESTS") == "1" {
 		logf = func(msg string, args ...interface{}) {
 			log.Printf(msg, args...)
 		}
 	}
+
+	consumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) {
+			logf("[%s] %s", lvl, msg)
+		},
+	}
+
+	server, err := mitch.NewServer(ctx, mitch.WithConsumer(consumer))
+	gmust(err)
 
 	args := []string{
 		"daemon",
@@ -136,12 +142,6 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 		gmust(errors.Errorf("Timed out waiting for butlerd address"))
 	}
 	gmust(err)
-
-	consumer := &state.Consumer{
-		OnMessage: func(lvl string, msg string) {
-			logf("[%s] %s", lvl, msg)
-		},
-	}
 
 	bi := &ButlerInstance{
 		t:        t,

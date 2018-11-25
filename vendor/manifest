@@ -289,6 +289,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/gorilla/mux",
+			"repository": "https://github.com/gorilla/mux",
+			"vcs": "git",
+			"revision": "3d80bc801bb034e17cae38591335b3b1110f1c47",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/hashicorp/golang-lru",
 			"repository": "https://github.com/hashicorp/golang-lru",
 			"vcs": "git",
@@ -389,6 +397,14 @@
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
 			"revision": "0f05402911fc72ce08c77990f18aa2c20023f036",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/mitch",
+			"repository": "https://github.com/itchio/mitch",
+			"vcs": "git",
+			"revision": "3bc0f0f4e468c795b9a0f5035bc05c434a1464a3",
 			"branch": "master",
 			"notests": true
 		},
