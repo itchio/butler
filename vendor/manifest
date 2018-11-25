@@ -380,7 +380,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "c039395e324eb7b7978b18a920ba6c965f923552",
+			"revision": "89814b0a70c774dc0cdb60b4a103c83b0ea4c392",
 			"branch": "master",
 			"notests": true
 		},
@@ -404,7 +404,7 @@
 			"importpath": "github.com/itchio/mitch",
 			"repository": "https://github.com/itchio/mitch",
 			"vcs": "git",
-			"revision": "3bc0f0f4e468c795b9a0f5035bc05c434a1464a3",
+			"revision": "f7c21feb89636812ea64b9070ad8731816e01783",
 			"branch": "master",
 			"notests": true
 		},

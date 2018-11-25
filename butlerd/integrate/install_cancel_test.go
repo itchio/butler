@@ -35,12 +35,13 @@ func Test_InstallCancel(t *testing.T) {
 	_upload := _game.MakeUpload("tagged.zip")
 	_upload.SetAllPlatforms()
 	_upload.SetZipContentsCustom(func(ac *mitch.ArchiveContext) {
-		ac.Entry("random.bin").Random(0xfaceface, 4*1024*1024)
+		ac.Entry("readme.txt").String("You can't play random binary data, silly face.")
+		ac.Entry("random.bin").Random(0xfaceface, 16*1024*1024)
 	})
 
 	_, err := messages.NetworkSetBandwidthThrottle.TestCall(rc, butlerd.NetworkSetBandwidthThrottleParams{
 		Enabled: true,
-		Rate:    32 * 1024,
+		Rate:    128 * 1024,
 	})
 	must(t, err)
 

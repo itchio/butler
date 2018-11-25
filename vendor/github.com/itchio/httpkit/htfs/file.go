@@ -507,6 +507,11 @@ func (f *File) shouldRetry(err error) bool {
 	}
 
 	if neterr.IsNetworkError(err) {
+		if strings.Contains(fmt.Sprintf("%v", err), "simulated offline") {
+			// don't retry simulated offline
+			return false
+		}
+
 		f.log("Retrying: %v", err)
 		return true
 	}
