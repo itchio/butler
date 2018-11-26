@@ -372,7 +372,7 @@
 			"importpath": "github.com/itchio/go-itchio",
 			"repository": "https://github.com/itchio/go-itchio",
 			"vcs": "git",
-			"revision": "a3d7209ac2c5f4997ceb9f376784eb190784e5e0",
+			"revision": "6592014be10d25438c954cda8378bb93c1ca8e56",
 			"branch": "master",
 			"notests": true
 		},
@@ -388,7 +388,7 @@
 			"importpath": "github.com/itchio/httpkit",
 			"repository": "https://github.com/itchio/httpkit",
 			"vcs": "git",
-			"revision": "89814b0a70c774dc0cdb60b4a103c83b0ea4c392",
+			"revision": "5541996eecdb8227e9939eb6f50dbf9205c65337",
 			"branch": "master",
 			"notests": true
 		},

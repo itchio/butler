@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"sync"
 	"testing"
 	"time"
 
@@ -71,11 +72,14 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	}
 
 	{
+		var timeLock sync.Mutex
 		lastTime := time.Now().UTC()
 		oldlogf := logf
 		logf = func(msg string, args ...interface{}) {
+			timeLock.Lock()
 			diff := time.Since(lastTime)
 			lastTime = time.Now().UTC()
+			timeLock.Unlock()
 			timestampString := fmt.Sprintf("%12s", "")
 			if diff >= 2*time.Millisecond {
 				msDiff := int64(diff.Seconds() * 1000.0)

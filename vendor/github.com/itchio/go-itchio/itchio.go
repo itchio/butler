@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/itchio/httpkit/rate"
 	"github.com/itchio/httpkit/timeout"
 )
 
@@ -15,6 +16,7 @@ type Client struct {
 	RetryPatterns    []time.Duration
 	UserAgent        string
 	AcceptedLanguage string
+	Limiter          rate.Limiter
 }
 
 func defaultRetryPatterns() []time.Duration {
@@ -35,6 +37,7 @@ func ClientWithKey(key string) *Client {
 		RetryPatterns:    defaultRetryPatterns(),
 		UserAgent:        "go-itchio",
 		AcceptedLanguage: "*",
+		Limiter:          DefaultRateLimiter(),
 	}
 	c.SetServer("https://api.itch.io")
 	return c

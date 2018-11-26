@@ -1,6 +1,7 @@
 package retrycontext
 
 import (
+	"math"
 	"math/rand"
 	"time"
 
@@ -22,9 +23,10 @@ type Context struct {
 // a maximum number of tries, whether to sleep or not, and
 // an optional consumer to log activity to.
 type Settings struct {
-	MaxTries int
-	Consumer *state.Consumer
-	NoSleep  bool
+	MaxTries  int
+	Consumer  *state.Consumer
+	NoSleep   bool
+	FakeSleep func(d time.Duration)
 }
 
 // New returns a new retry context with specific settings.
@@ -84,7 +86,7 @@ func (rc *Context) Retry(err error) {
 	}
 
 	// exponential backoff: 1, 2, 4, 8 seconds...
-	delay := rc.Tries * rc.Tries
+	delay := int(math.Pow(2, float64(rc.Tries)))
 	// ...plus a random number of milliseconds.
 	// see https://cloud.google.com/storage/docs/exponential-backoff
 	jitter := rand.Int() % 1000
@@ -93,8 +95,13 @@ func (rc *Context) Retry(err error) {
 		rc.Settings.Consumer.Infof("Sleeping %d seconds then retrying", delay)
 	}
 
-	if !rc.Settings.NoSleep {
-		time.Sleep(time.Second*time.Duration(delay) + time.Millisecond*time.Duration(jitter))
+	sleepDuration := time.Second*time.Duration(delay) + time.Millisecond*time.Duration(jitter)
+	if rc.Settings.NoSleep {
+		if rc.Settings.FakeSleep != nil {
+			rc.Settings.FakeSleep(sleepDuration)
+		}
+	} else {
+		time.Sleep(sleepDuration)
 	}
 
 	rc.Tries++

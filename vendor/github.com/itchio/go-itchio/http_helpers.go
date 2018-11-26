@@ -68,8 +68,9 @@ func (c *Client) PostFormResponse(url string, data url.Values, dst interface{}) 
 }
 
 // Do performs a request (any method). It takes care of JWT or API key
-// authentication, sets the propre user agent, has built-in retry,
+// authentication, sets the proper user agent, has built-in retry,
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	c.Limiter.Wait()
 	req.Header.Add("Authorization", c.Key)
 	req.Header.Set("User-Agent", c.UserAgent)
 	req.Header.Set("Accept-Language", c.AcceptedLanguage)
