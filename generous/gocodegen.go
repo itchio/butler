@@ -26,6 +26,7 @@ func (bc *GenerousContext) GenerateGoCode() error {
 	doc.Line("type router interface {")
 	doc.Line("  Register(method string, hf butlerd.RequestHandler)")
 	doc.Line("  RegisterNotification(method string, nf butlerd.NotificationHandler)")
+	doc.Line("  HasHandler(method string) bool")
 	doc.Line("}")
 	doc.Line("")
 
@@ -151,7 +152,7 @@ func (bc *GenerousContext) GenerateGoCode() error {
 	}
 
 	doc.Line("")
-	doc.Line("func EnsureAllRequests(router *butlerd.Router) {")
+	doc.Line("func EnsureAllRequests(router router) {")
 	for _, method := range clientRequests {
 		doc.Line("  if _, ok := router.Handlers[%#v]; !ok { panic(%#v) }", method, fmt.Sprintf("missing request handler for (%s)", method))
 	}

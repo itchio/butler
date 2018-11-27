@@ -1,0 +1,28 @@
+{
+    "input": {
+        "package": "github.com/itchio/butler/butlerd",
+        "messagesName": "messages",
+        "targets": [
+            {
+                "package": "github.com/itchio/butler/butlerd",
+                "files": ["types.go"]
+            },
+            {
+                "package": "github.com/itchio/go-itchio",
+                "files": ["types.go"]
+            },
+            {
+                "package": "github.com/itchio/dash",
+                "files": ["types.go"]
+            },
+            {
+                "package": "github.com/itchio/ox",
+                "files": ["runtime.go"]
+            },
+            {
+                "package": "github.com/itchio/butler/installer/bfs",
+                "files": ["receipt.go"]
+            }
+        ]
+    }
+}

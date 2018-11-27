@@ -100,8 +100,6 @@ const butlerPkg = "github.com/itchio/butler"
 func (s *Scope) Assimilate(pkg string, file string) error {
 	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
 
-	var rootPath = filepath.Join(s.gc.Dir, "..", "..")
-
 	var relativePath string
 	if strings.HasPrefix(pkg, butlerPkg) {
 		relativePath = strings.TrimPrefix(pkg, butlerPkg)
@@ -109,7 +107,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 		relativePath = path.Join("vendor", pkg)
 	}
 
-	absoluteFilePath := filepath.Join(rootPath, filepath.FromSlash(relativePath), file)
+	absoluteFilePath := filepath.Join(s.gc.RootDir, filepath.FromSlash(relativePath), file)
 	log.Printf("Parsing (%s)", absoluteFilePath)
 	prefix := ""
 
