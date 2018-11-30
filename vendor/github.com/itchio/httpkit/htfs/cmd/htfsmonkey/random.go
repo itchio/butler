@@ -160,7 +160,6 @@ func doRandom() error {
 				}
 				log.Printf("%d/%d bytes matched", matching, n)
 				panic("didn't match")
-				numErrors++
 			}
 
 			lastOffset = offset

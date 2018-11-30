@@ -27,6 +27,11 @@ func IsNetworkError(err error) bool {
 	}
 
 	if urlError, ok := err.(*url.Error); ok {
+		// EOF in this case can signify connection reset,
+		// see https://github.com/itchio/butler/issues/167
+		if urlError.Err == io.EOF {
+			return true
+		}
 		return IsNetworkError(urlError.Err)
 	}
 

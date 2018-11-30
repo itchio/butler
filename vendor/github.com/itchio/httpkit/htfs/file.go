@@ -178,7 +178,7 @@ func Open(getURL GetURLFunc, needsRenewal NeedsRenewalFunc, settings *Settings) 
 
 	err = f.returnConn(c)
 	if err != nil {
-		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (initial request)")
+		return nil, errors.WithMessage(normalizeError(err), "htfs.Open (return conn after initial request)")
 	}
 
 	f.requestURL = c.requestURL
@@ -235,7 +235,7 @@ func (f *File) borrowConn(offset int64) (*conn, error) {
 	f.connsLock.Lock()
 	defer f.connsLock.Unlock()
 
-	if f.size > 0 && offset >= f.size {
+	if f.knownSize() && offset >= f.size {
 		return nil, io.EOF
 	}
 
@@ -485,7 +485,24 @@ func (f *File) readAt(data []byte, offset int64) (int, error) {
 		totalBytesRead += bytesRead
 
 		if err != nil {
+			// so, EOF can indicate connection reset sometimes
+			// (see https://github.com/itchio/butler/issues/167)
+			isEOF := errors.Cause(err) == io.EOF
+			if isEOF && f.knownSize() {
+				position := offset + int64(totalBytesRead)
+				if position >= f.size {
+					// ok, we've read up until the end of the file
+					// so this must be a real EOF.
+					return totalBytesRead, io.EOF
+				}
+			}
+
 			if f.shouldRetry(err) {
+				// for servers that don't support range requests
+				// *and* don't specify the content-length header,
+				// this will retry a bunch of times before returning
+				// EOF, which is less than ideal, but in my defense,
+				// screw those servers.
 				f.log("Got %s, retrying", err.Error())
 				err = c.Connect(c.Offset())
 				if err != nil {
@@ -502,8 +519,9 @@ func (f *File) readAt(data []byte, offset int64) (int, error) {
 
 func (f *File) shouldRetry(err error) bool {
 	if errors.Cause(err) == io.EOF {
-		// don't retry EOF, it's a perfectly expected error
-		return false
+		// *do* retry EOF, because apparently it's used interchangeably with
+		// 'connection reset' in golang, see https://github.com/itchio/butler/issues/167
+		return true
 	}
 
 	if neterr.IsNetworkError(err) {
@@ -613,6 +631,10 @@ func (f *File) Close() error {
 	f.closed = true
 
 	return nil
+}
+
+func (f *File) knownSize() bool {
+	return f.size > 0
 }
 
 func (f *File) log(format string, args ...interface{}) {
