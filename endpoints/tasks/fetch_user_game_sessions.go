@@ -37,7 +37,6 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 					UploadID:    playtime.UploadID,
 					BuildID:     playtime.BuildID,
 					SecondsRun:  playtime.SecondsRun,
-					LastRunAt:   playtime.LastTouchedAt,
 				})
 				if err != nil {
 					consumer.Warnf("Could not sync play time: %+v", err)
