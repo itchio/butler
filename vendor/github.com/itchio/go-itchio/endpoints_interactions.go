@@ -34,20 +34,20 @@ type GetUserGameSessionsParams struct {
 	Credentials GameCredentials
 }
 
-// GetUserGameSessionsResponse : response for GetUserGameSessions
-type GetUserGameSessionsResponse struct {
-	Summary          UserGameInteractionsSummary `json:"summary"`
-	UserGameSessions []*UserGameSession          `json:"userGameSessions"`
-}
+type SessionPlatform string
 
-// GetUserGameSessions retrieves a summary of interactions with a game by user,
-// and the most recent sessions.
-func (c *Client) GetUserGameSessions(p GetUserGameSessionsParams) (*GetUserGameSessionsResponse, error) {
-	q := NewQuery(c, "/games/%d/interactions/sessions", p.GameID)
-	q.AddGameCredentials(p.Credentials)
-	r := &GetUserGameSessionsResponse{}
-	return r, q.Get(r)
-}
+const (
+	SessionPlatformLinux   SessionPlatform = "linux"
+	SessionPlatformMacOS   SessionPlatform = "macos"
+	SessionPlatformWindows SessionPlatform = "windows"
+)
+
+type SessionArchitecture string
+
+const (
+	SessionArchitecture386   SessionArchitecture = "386"
+	SessionArchitectureAmd64 SessionArchitecture = "amd64"
+)
 
 // CreateUserGameSessionParams : params for CreateUserGameSession
 type CreateUserGameSessionParams struct {
@@ -65,6 +65,9 @@ type CreateUserGameSessionParams struct {
 	// Optional (if the upload is not wharf-enabled): build being run this session
 	BuildID int64
 
+	Platform     SessionPlatform
+	Architecture SessionArchitecture
+
 	// Download key etc., in case this is a paid game
 	Credentials GameCredentials
 }
@@ -80,12 +83,15 @@ type CreateUserGameSessionResponse struct {
 // CreateUserGameSession creates a session for a user/game. It can
 // be later updated.
 func (c *Client) CreateUserGameSession(p CreateUserGameSessionParams) (*CreateUserGameSessionResponse, error) {
-	q := NewQuery(c, "/games/%d/interactions/sessions", p.GameID)
+	q := NewQuery(c, "/profile/game-sessions")
 	q.AddGameCredentials(p.Credentials)
+	q.AddInt64("game_id", p.GameID)
 	q.AddInt64("seconds_run", p.SecondsRun)
 	q.AddTimePtr("last_run_at", p.LastRunAt)
 	q.AddInt64("upload_id", p.UploadID)
 	q.AddInt64IfNonZero("build_id", p.BuildID)
+	q.AddStringIfNonEmpty("platform", string(p.Platform))
+	q.AddStringIfNonEmpty("architecture", string(p.Architecture))
 	r := &CreateUserGameSessionResponse{}
 	return r, q.Post(r)
 }
@@ -96,13 +102,10 @@ func (c *Client) CreateUserGameSession(p CreateUserGameSessionParams) (*CreateUs
 type UpdateUserGameSessionParams struct {
 	// The ID of the session to update. It must already exist.
 	SessionID int64
-	// The ID of the game this session is for
-	GameID int64
 
 	SecondsRun int64
 	LastRunAt  *time.Time
-
-	Credentials GameCredentials
+	Crashed    bool
 }
 
 // UpdateUserGameSessionResponse : response for UpdateUserGameSession
@@ -114,10 +117,21 @@ type UpdateUserGameSessionResponse struct {
 // UpdateUserGameSession updates an existing user+game session with a new
 // duration and timestamp.
 func (c *Client) UpdateUserGameSession(p UpdateUserGameSessionParams) (*UpdateUserGameSessionResponse, error) {
-	q := NewQuery(c, "/games/%d/interactions/sessions/%d", p.GameID, p.SessionID)
-	q.AddGameCredentials(p.Credentials)
-	q.AddInt64("seconds_run", p.SecondsRun)
+	q := NewQuery(c, "/profile/game-sessions/%d", p.SessionID)
+	q.AddInt64IfNonZero("seconds_run", p.SecondsRun)
 	q.AddTimePtr("last_run_at", p.LastRunAt)
+	q.AddBoolIfTrue("crashed", true)
 	r := &UpdateUserGameSessionResponse{}
+	return r, q.Post(r)
+}
+
+type GetGameSessionsSummaryResponse struct {
+	Summary *UserGameInteractionsSummary `json:"summary"`
+}
+
+// GetGameSessionsSummary returns a summary of game sessions for a given game.
+func (c *Client) GetGameSessionsSummary(gameID int64) (*GetGameSessionsSummaryResponse, error) {
+	q := NewQuery(c, "/profile/game-sessions/summaries/%d", gameID)
+	r := &GetGameSessionsSummaryResponse{}
 	return r, q.Post(r)
 }

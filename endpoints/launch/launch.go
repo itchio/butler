@@ -461,6 +461,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		sandbox = true
 	}
 
+	crashed := false
 	sessionWatcherDone := make(chan struct{})
 	sessionStartedChan := make(chan struct{})
 	var startSessionOnce sync.Once
@@ -488,10 +489,12 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			defer horror.RecoverInto(&retErr)
 
 			res, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
-				GameID:      cave.GameID,
-				UploadID:    cave.UploadID,
-				BuildID:     cave.BuildID,
-				Credentials: access.Credentials,
+				GameID:       cave.GameID,
+				UploadID:     cave.UploadID,
+				BuildID:      cave.BuildID,
+				Credentials:  access.Credentials,
+				Platform:     interactionPlatform(runtime),
+				Architecture: interactionArchitecture(runtime),
 
 				SecondsRun: 0,
 				LastRunAt:  &lastRunAt,
@@ -513,12 +516,11 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			lastRunAt = time.Now().UTC()
 			secondsRun = int64(lastRunAt.Sub(sessionStartedAt).Seconds())
 			res, err := client.UpdateUserGameSession(itchio.UpdateUserGameSessionParams{
-				SessionID:   session.ID,
-				GameID:      cave.GameID,
-				Credentials: access.Credentials,
+				SessionID: session.ID,
 
 				SecondsRun: secondsRun,
 				LastRunAt:  &lastRunAt,
+				Crashed:    crashed,
 			})
 			if err != nil {
 				return errors.WithStack(err)
@@ -606,6 +608,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	err = launcher.Do(launcherParams)
 	close(sessionEndedChan)
 	if err != nil {
+		crashed = true
 		return nil, errors.WithStack(err)
 	}
 
@@ -654,4 +657,23 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butler
 	env["ITCHIO_API_KEY"] = res.Key
 	env["ITCHIO_API_KEY_EXPIRES_AT"] = res.ExpiresAt
 	return nil
+}
+
+func interactionPlatform(runtime *ox.Runtime) itchio.SessionPlatform {
+	switch runtime.Platform {
+	case ox.PlatformLinux:
+		return itchio.SessionPlatformLinux
+	case ox.PlatformWindows:
+		return itchio.SessionPlatformWindows
+	case ox.PlatformOSX:
+		return itchio.SessionPlatformMacOS
+	}
+	return itchio.SessionPlatform("")
+}
+
+func interactionArchitecture(runtime *ox.Runtime) itchio.SessionArchitecture {
+	if runtime.Is64 {
+		return itchio.SessionArchitectureAmd64
+	}
+	return itchio.SessionArchitecture386
 }

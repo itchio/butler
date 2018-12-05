@@ -47,16 +47,13 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 			}
 
 			consumer.Infof("Fetching game interactions summary for game %d...", gameID)
-			interactionsRes, err := client.GetUserGameSessions(itchio.GetUserGameSessionsParams{
-				GameID:      gameID,
-				Credentials: access.Credentials,
-			})
+			interactionsRes, err := client.GetGameSessionsSummary(gameID)
 			if err != nil {
 				consumer.Warnf("While fetching user game sessions: %+v", err)
 			}
 
 			for _, cave := range caves {
-				cave.UpdateInteractions(&interactionsRes.Summary)
+				cave.UpdateInteractions(interactionsRes.Summary)
 				cave.Save(conn)
 			}
 
