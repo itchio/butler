@@ -560,7 +560,6 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				err := updateSession()
 				if err != nil {
 					consumer.Warnf("Regular session update: %+v", err)
-					return
 				}
 			case <-sessionEndedChan:
 				consumer.Debugf("Session ended normally!")

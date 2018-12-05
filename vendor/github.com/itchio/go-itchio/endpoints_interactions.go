@@ -120,7 +120,7 @@ func (c *Client) UpdateUserGameSession(p UpdateUserGameSessionParams) (*UpdateUs
 	q := NewQuery(c, "/profile/game-sessions/%d", p.SessionID)
 	q.AddInt64IfNonZero("seconds_run", p.SecondsRun)
 	q.AddTimePtr("last_run_at", p.LastRunAt)
-	q.AddBoolIfTrue("crashed", true)
+	q.AddBoolIfTrue("crashed", p.Crashed)
 	r := &UpdateUserGameSessionResponse{}
 	return r, q.Post(r)
 }
@@ -133,5 +133,5 @@ type GetGameSessionsSummaryResponse struct {
 func (c *Client) GetGameSessionsSummary(gameID int64) (*GetGameSessionsSummaryResponse, error) {
 	q := NewQuery(c, "/profile/game-sessions/summaries/%d", gameID)
 	r := &GetGameSessionsSummaryResponse{}
-	return r, q.Post(r)
+	return r, q.Get(r)
 }

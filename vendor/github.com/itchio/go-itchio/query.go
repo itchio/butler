@@ -37,7 +37,7 @@ func (q *Query) AddValues(values url.Values) {
 // AddBoolIfTrue adds the parameter key=true only if value is true.
 func (q *Query) AddBoolIfTrue(key string, value bool) {
 	if value {
-		q.Values.Add(key, "true")
+		q.Values.Add(key, "")
 	}
 }
 
