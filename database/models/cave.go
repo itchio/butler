@@ -90,7 +90,7 @@ func (c *Cave) RecordPlayTime(playTime time.Duration) {
 
 func (c *Cave) UpdateInteractions(summary *itchio.UserGameInteractionsSummary) {
 	c.SecondsRun = summary.SecondsRun
-	if c.LastTouchedAt != nil {
+	if summary.LastRunAt != nil {
 		c.LastTouchedAt = summary.LastRunAt
 	}
 }
