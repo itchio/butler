@@ -88,9 +88,11 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 
 		absolutePath := filepath.Join(params.Folder, ghostDir)
 
-		err := os.Remove(absolutePath)
-		if err != nil {
-			params.Consumer.Infof("Leaving directory behind (%s): %s", absolutePath, err.Error())
-		}
+		// instead of doing readdir first, we just call Remove - if it fails, the
+		// directory wasn't empty, which is fine.
+		// the way DirTree works, all directories that could possibly be empty
+		// now (due to removal of some files) will be listed. However, some of
+		// them might still contain files.
+		os.Remove(absolutePath)
 	}
 }
