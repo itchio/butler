@@ -35,7 +35,6 @@ func Test_Runlock(t *testing.T) {
 	go func() {
 		time.Sleep(1000 * time.Millisecond)
 		wtest.Must(t, rl1.Unlock())
-		done("r1-unlock")
 	}()
 
 	rl2 := runlock.New(nil, installFolder)
@@ -53,13 +52,10 @@ func Test_Runlock(t *testing.T) {
 	done("r2-lock")
 
 	wtest.Must(t, rl2.Unlock())
-	done("r2-unlock")
 
 	assert.EqualValues([]string{
 		"r1-lock",
 		"r2-timeout",
-		"r1-unlock",
 		"r2-lock",
-		"r2-unlock",
 	}, steps)
 }
