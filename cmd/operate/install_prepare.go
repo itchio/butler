@@ -89,6 +89,12 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 			newID := params.Build.ID
 			if newID > oldID {
 				consumer.Infof("↑ Upgrading from build %d to %d", oldID, newID)
+				if istate.UsingHealFallback {
+					consumer.Infof("Using heal fallback (as specified in install state)")
+					res.Strategy = InstallPerformStrategyHeal
+					return task(res)
+				}
+
 				upgradeRes, err := client.GetBuildUpgradePath(itchio.GetBuildUpgradePathParams{
 					CurrentBuildID: oldID,
 					TargetBuildID:  newID,

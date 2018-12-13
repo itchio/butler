@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/wharf/eos"
 	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/wharf/pwr/patcher"
 
 	"github.com/itchio/butler/installer"
 
@@ -154,12 +155,23 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			oc.cave = cave
 		}
 
-		if prepareRes.Strategy == InstallPerformStrategyHeal {
-			return heal(oc, meta, isub, prepareRes.ReceiptIn)
+		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
+			err := upgrade(oc, meta, isub, prepareRes.ReceiptIn)
+			if err == nil || errors.Cause(err) == patcher.ErrStop {
+				return err
+			}
+
+			consumer := oc.Consumer()
+			consumer.Warnf("Patching failed: %+v", err)
+
+			consumer.Warnf("Falling back to heal...")
+			istate.UsingHealFallback = true
+			oc.Save(isub)
+			prepareRes.Strategy = InstallPerformStrategyHeal
 		}
 
-		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
-			return upgrade(oc, meta, isub, prepareRes.ReceiptIn)
+		if prepareRes.Strategy == InstallPerformStrategyHeal {
+			return heal(oc, meta, isub, prepareRes.ReceiptIn)
 		}
 
 		stats, err := prepareRes.File.Stat()

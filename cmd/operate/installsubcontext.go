@@ -13,6 +13,7 @@ type InstallSubcontextState struct {
 	SecondInstallerInfo *installer.InstallerInfo `json:"secondInstallerInfo,omitempty"`
 	UpgradePath         *itchio.UpgradePath      `json:"upgradePath,omitempty"`
 	UpgradePathIndex    int                      `json:"upgradePathIndex,omitempty"`
+	UsingHealFallback   bool                     `json:"usingHealFallback,omitempty"`
 }
 
 type InstallSubcontext struct {
