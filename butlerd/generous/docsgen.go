@@ -169,6 +169,7 @@ func (bc *GenerousContext) GenerateDocs() error {
 		dumpStruct("Result", result, true)
 
 		renderTypeHint(params)
+		renderTypeHint(result)
 	}
 
 	renderNotification := func(entry *Entry) {
@@ -188,6 +189,23 @@ func (bc *GenerousContext) GenerateDocs() error {
 	renderEnum := func(entry *Entry) {
 		renderHeader(entry)
 		dumpEnum("Values", entry, true)
+
+		renderTypeHint(entry)
+	}
+
+	renderAlias := func(entry *Entry) {
+		renderHeader(entry)
+		doc.Line("")
+		if len(entry.doc) > 0 {
+			doc.Line("<p>")
+			doc.Line(scope.MarkdownAll(entry.doc, true))
+			doc.Line("</p>")
+		}
+		if id, ok := entry.typeSpec.Type.(*ast.Ident); ok {
+			doc.Line("Type alias for %s", id.Name)
+		} else {
+			doc.Line("Type alias")
+		}
 
 		renderTypeHint(entry)
 	}
@@ -221,6 +239,8 @@ func (bc *GenerousContext) GenerateDocs() error {
 				renderType(entry)
 			case EntryKindEnum:
 				renderEnum(entry)
+			case EntryKindAlias:
+				renderAlias(entry)
 			}
 		}
 	}

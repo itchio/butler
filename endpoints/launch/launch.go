@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/itchio/butler/manager/runlock"
+
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/hades"
@@ -55,6 +57,13 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			Message: fmt.Sprintf("Could not find install folder (%s)", installFolder),
 		}
 	}
+
+	rlock := runlock.New(consumer, installFolder)
+	err = rlock.Lock(rc.Ctx, "launch")
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	defer rlock.Unlock()
 
 	game := cave.Game
 	upload := cave.Upload

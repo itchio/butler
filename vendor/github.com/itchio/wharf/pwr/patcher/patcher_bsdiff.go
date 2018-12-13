@@ -71,6 +71,8 @@ func (sp *savingPatcher) processBsdiff(c *Checkpoint, targetPool wsync.Pool, sh 
 		}
 
 		// let's patch!
+		f := sp.sourceContainer.Files[sh.FileIndex]
+		sp.consumer.Debugf("→ Patching (BSDiff) (%s)", f.Path)
 		writer, err = bwl.GetWriter(sh.FileIndex)
 		if err != nil {
 			return errors.WithStack(err)

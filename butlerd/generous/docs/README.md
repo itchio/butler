@@ -536,6 +536,20 @@ See <https://github.com/itchio/itch/issues/1721>
 
 </div>
 
+
+<div id="MetaAuthenticateResult__TypeHint" style="display: none;" class="tip-content">
+<p>MetaAuthenticate <a href="#/?id=metaauthenticate">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>ok</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Meta.Flow
 
 
@@ -584,6 +598,12 @@ done with the daemon.</p>
 </p>
 </div>
 
+
+<div id="MetaFlowResult__TypeHint" style="display: none;" class="tip-content">
+<p>MetaFlow <a href="#/?id=metaflow">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Meta.Shutdown
 
 
@@ -610,6 +630,12 @@ done with the daemon.</p>
 <p>When called, gracefully shutdown the butler daemon.</p>
 
 </p>
+</div>
+
+
+<div id="MetaShutdownResult__TypeHint" style="display: none;" class="tip-content">
+<p>MetaShutdown <a href="#/?id=metashutdown">(Go to definition)</a></p>
+
 </div>
 
 ### <em class="notification"></em>MetaFlowEstablished
@@ -706,6 +732,24 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </p>
 </div>
 
+
+<div id="VersionGetResult__TypeHint" style="display: none;" class="tip-content">
+<p>VersionGet <a href="#/?id=versionget">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>versionString</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Network.SetSimulateOffline
 
 
@@ -742,6 +786,12 @@ as if there were no network connections</p>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="NetworkSetSimulateOfflineResult__TypeHint" style="display: none;" class="tip-content">
+<p>NetworkSetSimulateOffline <a href="#/?id=networksetsimulateoffline">(Go to definition)</a></p>
 
 </div>
 
@@ -794,6 +844,12 @@ as if there were no network connections</p>
 </div>
 
 
+<div id="NetworkSetBandwidthThrottleResult__TypeHint" style="display: none;" class="tip-content">
+<p>NetworkSetBandwidthThrottle <a href="#/?id=networksetbandwidththrottle">(Go to definition)</a></p>
+
+</div>
+
+
 ## Profile
 
 ### <em class="request-client-caller"></em>Profile.List
@@ -832,6 +888,20 @@ as if there were no network connections</p>
 <p>Lists remembered profiles</p>
 
 </p>
+</div>
+
+
+<div id="ProfileListResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileList <a href="#/?id=profilelist">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profiles</code></td>
+<td><code class="typename"><span class="type struct-type">Profile</span>[]</code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="request-client-caller"></em>Profile.LoginWithPassword
@@ -906,6 +976,24 @@ as if there were no network connections</p>
 
 </div>
 
+
+<div id="ProfileLoginWithPasswordResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileLoginWithPassword <a href="#/?id=profileloginwithpassword">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
+</tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Profile.LoginWithAPIKey
 
 
@@ -961,6 +1049,20 @@ are returned for this kind of login.</p>
 <tr>
 <td><code>apiKey</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileLoginWithAPIKeyResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileLoginWithAPIKey <a href="#/?id=profileloginwithapikey">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
 </tr>
 </table>
 
@@ -1026,6 +1128,20 @@ conditions are met.</p>
 
 </div>
 
+
+<div id="ProfileRequestCaptchaResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileRequestCaptcha <a href="#/?id=profilerequestcaptcha">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>recaptchaResponse</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>Profile.RequestTOTP
 
 
@@ -1066,6 +1182,20 @@ Sent during <code class="typename"><span class="type request-client-caller">Prof
 two-factor authentication enabled.</p>
 
 </p>
+</div>
+
+
+<div id="ProfileRequestTOTPResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileRequestTOTP <a href="#/?id=profilerequesttotp">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>code</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="request-client-caller"></em>Profile.UseSavedLogin
@@ -1123,6 +1253,20 @@ two-factor authentication enabled.</p>
 
 </div>
 
+
+<div id="ProfileUseSavedLoginResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileUseSavedLogin <a href="#/?id=profileusesavedlogin">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Profile.Forget
 
 
@@ -1175,6 +1319,20 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileForgetResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileForget <a href="#/?id=profileforget">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>success</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -1240,6 +1398,12 @@ two-factor authentication enabled.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="ProfileDataPutResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileDataPut <a href="#/?id=profiledataput">(Go to definition)</a></p>
 
 </div>
 
@@ -1313,6 +1477,24 @@ two-factor authentication enabled.</p>
 </div>
 
 
+<div id="ProfileDataGetResult__TypeHint" style="display: none;" class="tip-content">
+<p>ProfileDataGet <a href="#/?id=profiledataget">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>ok</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
 ## Search
 
 ### <em class="request-client-caller"></em>Search.Games
@@ -1378,6 +1560,20 @@ two-factor authentication enabled.</p>
 
 </div>
 
+
+<div id="SearchGamesResult__TypeHint" style="display: none;" class="tip-content">
+<p>SearchGames <a href="#/?id=searchgames">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Search.Users
 
 
@@ -1436,6 +1632,20 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>query</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="SearchUsersResult__TypeHint" style="display: none;" class="tip-content">
+<p>SearchUsers <a href="#/?id=searchusers">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>users</code></td>
+<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
 </tr>
 </table>
 
@@ -1516,6 +1726,24 @@ two-factor authentication enabled.</p>
 
 </div>
 
+
+<div id="FetchGameResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchGame <a href="#/?id=fetchgame">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.DownloadKey
 
 
@@ -1589,6 +1817,24 @@ two-factor authentication enabled.</p>
 </tr>
 <tr>
 <td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchDownloadKeyResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchDownloadKey <a href="#/?id=fetchdownloadkey">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadKey</code></td>
+<td><code class="typename"><span class="type struct-type">DownloadKey</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
@@ -1678,6 +1924,24 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
+
+<div id="FetchGameUploadsResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchGameUploads <a href="#/?id=fetchgameuploads">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.User
 
 
@@ -1761,6 +2025,24 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
+
+<div id="FetchUserResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchUser <a href="#/?id=fetchuser">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>user</code></td>
+<td><code class="typename"><span class="type struct-type">User</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Sale
 
 
@@ -1814,6 +2096,20 @@ game.</p>
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchSaleResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchSale <a href="#/?id=fetchsale">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sale</code></td>
+<td><code class="typename"><span class="type struct-type">Sale</span></code></td>
 </tr>
 </table>
 
@@ -1899,6 +2195,24 @@ but not its games.</p>
 </tr>
 <tr>
 <td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchCollectionResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchCollection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
@@ -2055,6 +2369,28 @@ contains.</p>
 
 </div>
 
+
+<div id="FetchCollectionGamesResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchCollectionGames <a href="#/?id=fetchcollectiongames">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.ProfileCollections
 
 
@@ -2179,6 +2515,28 @@ games.</p>
 </tr>
 <tr>
 <td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchProfileCollectionsResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchProfileCollections <a href="#/?id=fetchprofilecollections">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">Collection</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
@@ -2315,6 +2673,28 @@ games.</p>
 
 </div>
 
+
+<div id="FetchProfileGamesResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchProfileGames <a href="#/?id=fetchprofilegames">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">ProfileGame</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.ProfileOwnedKeys
 
 
@@ -2445,6 +2825,28 @@ games.</p>
 
 </div>
 
+
+<div id="FetchProfileOwnedKeysResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchProfileOwnedKeys <a href="#/?id=fetchprofileownedkeys">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">DownloadKey</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Commons
 
 
@@ -2481,6 +2883,28 @@ games.</p>
 
 <div id="FetchCommonsParams__TypeHint" style="display: none;" class="tip-content">
 <p><em class="request-client-caller"></em>Fetch.Commons <a href="#/?id=fetchcommons">(Go to definition)</a></p>
+
+</div>
+
+
+<div id="FetchCommonsResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchCommons <a href="#/?id=fetchcommons">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloadKeys</code></td>
+<td><code class="typename"><span class="type struct-type">DownloadKeySummary</span>[]</code></td>
+</tr>
+<tr>
+<td><code>caves</code></td>
+<td><code class="typename"><span class="type struct-type">CaveSummary</span>[]</code></td>
+</tr>
+<tr>
+<td><code>installLocations</code></td>
+<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span>[]</code></td>
+</tr>
+</table>
 
 </div>
 
@@ -2595,6 +3019,24 @@ games.</p>
 
 </div>
 
+
+<div id="FetchCavesResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchCaves <a href="#/?id=fetchcaves">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type struct-type">Cave</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="">Cursor</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.Cave
 
 
@@ -2649,6 +3091,20 @@ games.</p>
 
 </div>
 
+
+<div id="FetchCaveResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchCave <a href="#/?id=fetchcave">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>cave</code></td>
+<td><code class="typename"><span class="type struct-type">Cave</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Fetch.ExpireAll
 
 
@@ -2675,6 +3131,12 @@ games.</p>
 <p>Mark all local data as stale.</p>
 
 </p>
+</div>
+
+
+<div id="FetchExpireAllResult__TypeHint" style="display: none;" class="tip-content">
+<p>FetchExpireAll <a href="#/?id=fetchexpireall">(Go to definition)</a></p>
+
 </div>
 
 
@@ -2731,6 +3193,20 @@ games.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="GameFindUploadsResult__TypeHint" style="display: none;" class="tip-content">
+<p>GameFindUploads <a href="#/?id=gamefinduploads">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
 </tr>
 </table>
 
@@ -2946,6 +3422,52 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+
+<div id="InstallQueueResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallQueue <a href="#/?id=installqueue">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+</tr>
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>installFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>stagingFolder</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Plan
 
 
@@ -3031,6 +3553,28 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+
+<div id="InstallPlanResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallPlan <a href="#/?id=installplan">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+</tr>
+<tr>
+<td><code>info</code></td>
+<td><code class="typename"><span class="type struct-type">InstallPlanInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Caves.SetPinned
 
 
@@ -3076,6 +3620,12 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="CavesSetPinnedResult__TypeHint" style="display: none;" class="tip-content">
+<p>CavesSetPinned <a href="#/?id=cavessetpinned">(Go to definition)</a></p>
 
 </div>
 
@@ -3141,6 +3691,12 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
+
+<div id="InstallPerformResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallPerform <a href="#/?id=installperform">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Cancel
 
 
@@ -3191,6 +3747,20 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallCancelResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallCancel <a href="#/?id=installcancel">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -3255,6 +3825,12 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 
 </div>
 
+
+<div id="UninstallPerformResult__TypeHint" style="display: none;" class="tip-content">
+<p>UninstallPerform <a href="#/?id=uninstallperform">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.VersionSwitch.Queue
 
 
@@ -3300,6 +3876,12 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="InstallVersionSwitchQueueResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallVersionSwitchQueue <a href="#/?id=installversionswitchqueue">(Go to definition)</a></p>
 
 </div>
 
@@ -3376,6 +3958,20 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 
 </div>
 
+
+<div id="InstallVersionSwitchPickResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallVersionSwitchPick <a href="#/?id=installversionswitchpick">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>index</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>PickUpload
 
 
@@ -3428,6 +4024,20 @@ or a negative value to cancel.</p>
 <tr>
 <td><code>uploads</code></td>
 <td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PickUploadResult__TypeHint" style="display: none;" class="tip-content">
+<p>PickUpload <a href="#/?id=pickupload">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>index</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -3828,6 +4438,20 @@ info about the game, upload, build that were installed</p>
 
 </div>
 
+
+<div id="InstallLocationsListResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsList <a href="#/?id=installlocationslist">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocations</code></td>
+<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Locations.Add
 
 
@@ -3886,6 +4510,20 @@ if not specified, will be generated.</p>
 
 </div>
 
+
+<div id="InstallLocationsAddResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsAdd <a href="#/?id=installlocationsadd">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Install.Locations.Remove
 
 
@@ -3921,6 +4559,12 @@ if not specified, will be generated.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="InstallLocationsRemoveResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsRemove <a href="#/?id=installlocationsremove">(Go to definition)</a></p>
 
 </div>
 
@@ -3966,6 +4610,20 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallLocationsGetByIDResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsGetByID <a href="#/?id=installlocationsgetbyid">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installLocation</code></td>
+<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span></code></td>
 </tr>
 </table>
 
@@ -4018,6 +4676,24 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>legacyMarketPath</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallLocationsScanResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsScan <a href="#/?id=installlocationsscan">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numFoundItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>numImportedItems</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -4120,6 +4796,20 @@ a game is found.</p>
 </div>
 
 
+<div id="InstallLocationsScanConfirmImportResult__TypeHint" style="display: none;" class="tip-content">
+<p>InstallLocationsScanConfirmImport <a href="#/?id=installlocationsscanconfirmimport">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>confirm</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
 ## Downloads
 
 ### <em class="request-client-caller"></em>Downloads.Queue
@@ -4169,6 +4859,12 @@ a game is found.</p>
 
 </div>
 
+
+<div id="DownloadsQueueResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsQueue <a href="#/?id=downloadsqueue">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Downloads.Prioritize
 
 
@@ -4214,6 +4910,12 @@ a game is found.</p>
 
 </div>
 
+
+<div id="DownloadsPrioritizeResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsPrioritize <a href="#/?id=downloadsprioritize">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Downloads.List
 
 
@@ -4251,6 +4953,20 @@ a game is found.</p>
 </p>
 </div>
 
+
+<div id="DownloadsListResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsList <a href="#/?id=downloadslist">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>downloads</code></td>
+<td><code class="typename"><span class="type struct-type">Download</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-client-caller"></em>Downloads.ClearFinished
 
 
@@ -4277,6 +4993,12 @@ a game is found.</p>
 <p>Removes all finished downloads from the queue.</p>
 
 </p>
+</div>
+
+
+<div id="DownloadsClearFinishedResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsClearFinished <a href="#/?id=downloadsclearfinished">(Go to definition)</a></p>
+
 </div>
 
 ### <em class="request-client-caller"></em>Downloads.Drive
@@ -4307,6 +5029,12 @@ until they&rsquo;re all finished.</p>
 until they&rsquo;re all finished.</p>
 
 </p>
+</div>
+
+
+<div id="DownloadsDriveResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsDrive <a href="#/?id=downloadsdrive">(Go to definition)</a></p>
+
 </div>
 
 ### <em class="request-client-caller"></em>Downloads.Drive.Cancel
@@ -4344,6 +5072,20 @@ until they&rsquo;re all finished.</p>
 <p>Stop driving downloads gracefully.</p>
 
 </p>
+</div>
+
+
+<div id="DownloadsDriveCancelResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsDriveCancel <a href="#/?id=downloadsdrivecancel">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="request-client-caller"></em>Downloads.Retry
@@ -4391,6 +5133,12 @@ until they&rsquo;re all finished.</p>
 
 </div>
 
+
+<div id="DownloadsRetryResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsRetry <a href="#/?id=downloadsretry">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-client-caller"></em>Downloads.Discard
 
 
@@ -4433,6 +5181,12 @@ until they&rsquo;re all finished.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="DownloadsDiscardResult__TypeHint" style="display: none;" class="tip-content">
+<p>DownloadsDiscard <a href="#/?id=downloadsdiscard">(Go to definition)</a></p>
 
 </div>
 
@@ -4522,6 +5276,24 @@ then all at once in the result.</p>
 <tr>
 <td><code>verbose</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CheckUpdateResult__TypeHint" style="display: none;" class="tip-content">
+<p>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>updates</code></td>
+<td><code class="typename"><span class="type struct-type">GameUpdate</span>[]</code></td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -4700,6 +5472,12 @@ cave identifier.</p>
 </div>
 
 
+<div id="SnoozeCaveResult__TypeHint" style="display: none;" class="tip-content">
+<p>SnoozeCave <a href="#/?id=snoozecave">(Go to definition)</a></p>
+
+</div>
+
+
 ## update
 
 ### <em class="struct-type"></em>GameUpdateChoice
@@ -4841,6 +5619,12 @@ cave identifier.</p>
 
 </div>
 
+
+<div id="LaunchResult__TypeHint" style="display: none;" class="tip-content">
+<p>Launch <a href="#/?id=launch">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="notification"></em>LaunchRunning
 
 
@@ -4947,6 +5731,20 @@ agreement (at the time of this writing, this only happens if it was installed fr
 
 </div>
 
+
+<div id="AcceptLicenseResult__TypeHint" style="display: none;" class="tip-content">
+<p>AcceptLicense <a href="#/?id=acceptlicense">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>accept</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>PickManifestAction
 
 
@@ -5007,6 +5805,20 @@ agreement (at the time of this writing, this only happens if it was installed fr
 
 </div>
 
+
+<div id="PickManifestActionResult__TypeHint" style="display: none;" class="tip-content">
+<p>PickManifestAction <a href="#/?id=pickmanifestaction">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>index</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>ShellLaunch
 
 
@@ -5056,6 +5868,12 @@ with the operating system&rsquo;s default handler (File explorer).</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
+
+</div>
+
+
+<div id="ShellLaunchResult__TypeHint" style="display: none;" class="tip-content">
+<p>ShellLaunch <a href="#/?id=shelllaunch">(Go to definition)</a></p>
 
 </div>
 
@@ -5141,6 +5959,12 @@ game, ideally in an embedded browser.</p>
 
 </div>
 
+
+<div id="HTMLLaunchResult__TypeHint" style="display: none;" class="tip-content">
+<p>HTMLLaunch <a href="#/?id=htmllaunch">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-server-caller"></em>URLLaunch
 
 
@@ -5193,6 +6017,12 @@ with the system browser or appropriate.</p>
 
 </div>
 
+
+<div id="URLLaunchResult__TypeHint" style="display: none;" class="tip-content">
+<p>URLLaunch <a href="#/?id=urllaunch">(Go to definition)</a></p>
+
+</div>
+
 ### <em class="request-server-caller"></em>AllowSandboxSetup
 
 
@@ -5237,6 +6067,20 @@ the user allows.</p>
 <p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
 
 </p>
+</div>
+
+
+<div id="AllowSandboxSetupResult__TypeHint" style="display: none;" class="tip-content">
+<p>AllowSandboxSetup <a href="#/?id=allowsandboxsetup">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>allow</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### <em class="notification"></em>PrereqsStarted
@@ -5582,6 +6426,20 @@ The user may choose to proceed with the launch anyway.</p>
 </div>
 
 
+<div id="PrereqsFailedResult__TypeHint" style="display: none;" class="tip-content">
+<p>PrereqsFailed <a href="#/?id=prereqsfailed">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>continue</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
 ## Clean Downloads
 
 ### <em class="request-client-caller"></em>CleanDownloads.Search
@@ -5650,6 +6508,20 @@ we know about.</p>
 <tr>
 <td><code>whitelist</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CleanDownloadsSearchResult__TypeHint" style="display: none;" class="tip-content">
+<p>CleanDownloadsSearch <a href="#/?id=cleandownloadssearch">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>entries</code></td>
+<td><code class="typename"><span class="type struct-type">CleanDownloadsEntry</span>[]</code></td>
 </tr>
 </table>
 
@@ -5743,6 +6615,12 @@ we know about.</p>
 </div>
 
 
+<div id="CleanDownloadsApplyResult__TypeHint" style="display: none;" class="tip-content">
+<p>CleanDownloadsApply <a href="#/?id=cleandownloadsapply">(Go to definition)</a></p>
+
+</div>
+
+
 ## System
 
 ### <em class="request-client-caller"></em>System.StatFS
@@ -5799,6 +6677,24 @@ we know about.</p>
 <tr>
 <td><code>path</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="SystemStatFSResult__TypeHint" style="display: none;" class="tip-content">
+<p>SystemStatFS <a href="#/?id=systemstatfs">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>freeSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -5871,6 +6767,20 @@ returning the result of that call doubled.</p>
 
 </div>
 
+
+<div id="TestDoubleTwiceResult__TypeHint" style="display: none;" class="tip-content">
+<p>TestDoubleTwice <a href="#/?id=testdoubletwice">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>number</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="request-server-caller"></em>Test.Double
 
 
@@ -5921,6 +6831,24 @@ use <code class="typename"><span class="type request-client-caller" data-tip-sel
 <p>
 <p>Test request: return a number, doubled. Implement that to
 use <code class="typename"><span class="type request-client-caller">Test.DoubleTwice</span></code> in your testing.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>number</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="TestDoubleResult__TypeHint" style="display: none;" class="tip-content">
+<p>TestDouble <a href="#/?id=testdouble">(Go to definition)</a></p>
+
+<p>
+<p>Result for Test.Double</p>
 
 </p>
 
@@ -7815,6 +8743,15 @@ can be taken while launching a game.</p>
 </tr>
 </table>
 
+</div>
+
+### Cursor
+
+
+Type alias for string
+
+<div id="Cursor__TypeHint" style="display: none;" class="tip-content">
+<p>Cursor <a href="#/?id=cursor">(Go to definition)</a></p>
 </div>
 
 ### <em class="struct-type"></em>User

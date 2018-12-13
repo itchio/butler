@@ -186,6 +186,10 @@ func (oc *OperationContext) Consumer() *state.Consumer {
 	return oc.consumer
 }
 
+func (oc *OperationContext) Ctx() context.Context {
+	return oc.ctx
+}
+
 func contextPath(stageFolder string) string {
 	return filepath.Join(stageFolder, "operate-context.json")
 }
