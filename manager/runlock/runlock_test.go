@@ -3,6 +3,7 @@ package runlock_test
 import (
 	"context"
 	"io/ioutil"
+	"sync"
 	"testing"
 	"time"
 
@@ -20,8 +21,11 @@ func Test_Runlock(t *testing.T) {
 	ctx := context.Background()
 
 	var steps []string
+	var mutex sync.Mutex
 	done := func(step string) {
+		mutex.Lock()
 		steps = append(steps, step)
+		mutex.Unlock()
 	}
 
 	rl1 := runlock.New(nil, installFolder)
