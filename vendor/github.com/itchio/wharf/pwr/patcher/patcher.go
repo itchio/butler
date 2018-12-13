@@ -134,8 +134,6 @@ func (sp *savingPatcher) Resume(c *Checkpoint, targetPool wsync.Pool, bwl bowl.B
 		f := sp.sourceContainer.Files[c.FileIndex]
 		var sh *pwr.SyncHeader
 
-		consumer.Debugf("→ Patching #%d: '%s'", c.FileIndex, f.Path)
-
 		if c.SyncHeader != nil {
 			sh = c.SyncHeader
 			consumer.Debugf("...from checkpoint")

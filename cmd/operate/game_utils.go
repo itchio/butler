@@ -253,6 +253,18 @@ func ValidateCave(rc *butlerd.RequestContext, caveID string) *models.Cave {
 func FindBuildFile(files []*itchio.BuildFile, fileType itchio.BuildFileType, subType itchio.BuildFileSubType) *itchio.BuildFile {
 	for _, f := range files {
 		if f.Type == fileType && f.SubType == subType {
+			if string(f.State) == "" {
+				// previous API versions omitted build file state, use size instead
+				if f.Size == 0 {
+					// file is definitely not ready
+					continue
+				}
+			} else {
+				if f.State != itchio.BuildFileStateUploaded {
+					// created/uploading files are listed but unusable
+					continue
+				}
+			}
 			return f
 		}
 	}
