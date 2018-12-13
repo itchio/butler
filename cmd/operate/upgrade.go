@@ -75,7 +75,6 @@ func upgrade(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext
 			start:    donePatchCost / totalPatchCost,
 			end:      (donePatchCost + cost) / totalPatchCost,
 		}
-		sp.Progress(0)
 		err := applyPatch(oc, meta, isub, receiptIn, i, sp)
 		if err != nil {
 			return errors.WithMessage(err, fmt.Sprintf("while applying patch %d/%d (build %d)", i, totalPatches, build.ID))
@@ -187,6 +186,34 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	}
 
 	var checkpoint *patcher.Checkpoint
+	readCheckpoint := func() error {
+		checkpointFile, err := os.Open(checkpointPath)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return errors.WithMessage(err, "opening checkpoint")
+			}
+		} else {
+			defer checkpointFile.Close()
+
+			checkpoint = &patcher.Checkpoint{}
+
+			dec := gob.NewDecoder(checkpointFile)
+			err := dec.Decode(checkpoint)
+			if err != nil {
+				return errors.WithMessage(err, "decoding checkpoint")
+			}
+
+			// yay, we have a checkpoint!
+			consumer.Infof("Using checkpoint")
+		}
+		return nil
+	}
+
+	err = readCheckpoint()
+	if err != nil {
+		return err
+	}
+
 	err = p.Resume(checkpoint, targetPool, bowl)
 	if err != nil {
 		return errors.WithMessage(err, "while applying patch")
