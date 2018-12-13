@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/butler/manager/runlock"
+
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -127,6 +129,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 	consumer.Infof("→ Performing install for %s", GameToString(params.Game))
 	consumer.Infof("    to (%s)", params.InstallFolder)
 	consumer.Infof("    via (%s)", oc.StageFolder())
+
+	rlock := runlock.New(consumer, params.InstallFolder)
+	err := rlock.Lock(rc.Ctx, "install")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer rlock.Unlock()
 
 	return InstallPrepare(oc, meta, isub, true, func(prepareRes *InstallPrepareResult) error {
 		if !params.NoCave {
