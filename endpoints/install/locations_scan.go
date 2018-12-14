@@ -2,6 +2,7 @@ package install
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -176,9 +177,22 @@ func (sc *scanContext) DoMarket() error {
 	cavesPath := filepath.Join(sc.legacyMarketPath, "caves")
 	entries, err := ioutil.ReadDir(cavesPath)
 	if err != nil {
-		consumer.Infof("Could not list caves path, skipping: %s", err.Error())
 		return nil
+	}
 
+	markerPath := filepath.Join(sc.legacyMarketPath, ".scanned")
+	{
+		_, err := ioutil.ReadFile(markerPath)
+		if err == nil {
+			// already scanned, ignore
+			return nil
+		}
+
+		msg := fmt.Sprintf("scanned %s", time.Now().Format(time.RFC3339Nano))
+		err = ioutil.WriteFile(markerPath, []byte(msg), 0644)
+		if err != nil {
+			consumer.Warnf("Could not write marker: %+v", err)
+		}
 	}
 
 	handleEntryPanics := func(entry os.FileInfo) error {
