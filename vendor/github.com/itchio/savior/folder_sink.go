@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/itchio/wharf/state"
 	"github.com/pkg/errors"
@@ -32,8 +33,16 @@ type FolderSink struct {
 
 var _ Sink = (*FolderSink)(nil)
 
+func unkludgePath(s string) string {
+	// found this cute archive with path:
+	//    "blah/blah/Icon\r"
+	// so this is the workaround.
+	return strings.Trim(s, "\r\n")
+}
+
 func (fs *FolderSink) destPath(entry *Entry) string {
-	return filepath.Join(fs.Directory, filepath.FromSlash(entry.CanonicalPath))
+	dest := filepath.Join(fs.Directory, filepath.FromSlash(entry.CanonicalPath))
+	return unkludgePath(dest)
 }
 
 func (fs *FolderSink) Mkdir(entry *Entry) error {
