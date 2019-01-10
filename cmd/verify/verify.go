@@ -30,10 +30,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.signature, *args.dir, *args.wounds, *args.heal))
+	ctx.Must(Do(*args.signature, *args.dir, *args.wounds, *args.heal))
 }
 
-func Do(ctx *mansion.Context, signaturePath string, dir string, woundsPath string, healPath string) error {
+func Do(signaturePath string, dir string, woundsPath string, healPath string) error {
 	if woundsPath == "" {
 		if healPath == "" {
 			comm.Opf("Verifying %s", dir)
