@@ -116,16 +116,6 @@ func Test_InstallUpdateNonWharf(t *testing.T) {
 		referenceFolder = caveRes.Cave.InstallInfo.InstallFolder
 	}
 
-	//walkOpts := &tlc.WalkOpts{Filter: filtering.FilterPaths}
-
-	// actualContainer, err := tlc.WalkDir(actualFolder, walkOpts)
-	// must(err)
-	// actualPool := fspool.New(actualContainer, actualFolder)
-
-	// referenceContainer, err := tlc.WalkDir(referenceFolder, walkOpts)
-	// must(err)
-	// referencePool := fspool.New(referenceContainer, actualFolder)
-
 	tmpDir, err := ioutil.TempDir("", "nonwharf-test")
 	must(err)
 
