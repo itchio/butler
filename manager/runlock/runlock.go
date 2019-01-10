@@ -39,30 +39,39 @@ func New(consumer *state.Consumer, installFolder string) Lock {
 func (rl *lock) Lock(ctx context.Context, task string) error {
 	printed := false
 
-waitLoop:
-	for {
-		select {
-		case <-time.After(1 * time.Second):
-			rp, _ := rl.read()
-			if rp == nil {
-				break waitLoop
-			}
-			proc, _ := os.FindProcess(int(rp.ButlerPID))
-			if proc != nil {
-				// still running
-				proc.Release()
-			} else {
-				// not running anymore
-				rl.Unlock()
-				break waitLoop
-			}
+	isLocked := func() bool {
+		rp, _ := rl.read()
+		if rp == nil {
+			return false
+		}
+		proc, _ := os.FindProcess(int(rp.ButlerPID))
+		if proc != nil {
+			// still running
+			proc.Release()
+		} else {
+			// not running anymore
+			rl.Unlock()
+			return false
+		}
 
-			if !printed {
-				printed = true
-				rl.consumer.Debugf("Waiting (%s) for %s", rl.file(), task)
+		if !printed {
+			printed = true
+			rl.consumer.Debugf("Waiting (%s) for %s", rl.file(), task)
+		}
+		return true
+	}
+
+	if isLocked() {
+	waitLoop:
+		for {
+			select {
+			case <-time.After(1 * time.Second):
+				if !isLocked() {
+					break waitLoop
+				}
+			case <-ctx.Done():
+				return werrors.ErrCancelled
 			}
-		case <-ctx.Done():
-			return werrors.ErrCancelled
 		}
 	}
 
