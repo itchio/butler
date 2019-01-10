@@ -125,6 +125,11 @@ func (fs *FolderSink) GetWriter(entry *Entry) (EntryWriter, error) {
 		}
 	}
 
+	err = f.Truncate(entry.WriteOffset)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	err = fs.Close()
 	if err != nil {
 		fs.Consumer.Warnf("folder_sink could not close last writer: %s", err.Error())
