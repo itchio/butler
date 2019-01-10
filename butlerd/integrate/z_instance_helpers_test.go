@@ -64,3 +64,9 @@ func (bi *ButlerInstance) FetchGame(gameID int64) *itchio.Game {
 	must(err)
 	return gameRes.Game
 }
+
+func (bi *ButlerInstance) FetchUpload(uploadID int64) *itchio.Upload {
+	res, err := bi.Client().GetUpload(itchio.GetUploadParams{UploadID: uploadID})
+	must(err)
+	return res.Upload
+}
