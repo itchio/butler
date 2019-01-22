@@ -356,7 +356,7 @@
 			"importpath": "github.com/itchio/elefant",
 			"repository": "https://github.com/itchio/elefant",
 			"vcs": "git",
-			"revision": "24a98641fe67c4b4506793b197cb954717a85876",
+			"revision": "daca147fcecd8a3fdf0eb2ba9e66912f9caf221e",
 			"branch": "master",
 			"notests": true
 		},
