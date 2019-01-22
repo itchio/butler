@@ -41,13 +41,13 @@ test:windows:
 
 build:linux:386:
   stage: build
+  tags:
+    - docker-capsule-32
   script:
     - export CI_OS=linux
     - export CI_ARCH=386
     - scripts/ci-build.sh
     - scripts/ci-package.sh
-  tags:
-    - dropsy
   artifacts:
     expire_in: 1 week
     paths:
@@ -56,13 +56,13 @@ build:linux:386:
 
 build:linux:amd64:
   stage: build
+  tags:
+    - docker-capsule-64
   script:
     - export CI_OS=linux
     - export CI_ARCH=amd64
     - scripts/ci-build.sh
     - scripts/ci-package.sh
-  tags:
-    - dropsy
   artifacts:
     expire_in: 1 week
     paths:
