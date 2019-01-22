@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/itchio/boar"
 	"github.com/itchio/savior"
 
 	"github.com/itchio/butler/butlerd"
@@ -14,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+func (m *Manager) Install(params installer.InstallParams) (*installer.InstallResult, error) {
 	consumer := params.Consumer
 
 	var res = installer.InstallResult{
@@ -24,6 +25,21 @@ func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallRe
 	f := params.File
 
 	archiveInfo := params.InstallerInfo.ArchiveInfo
+
+	consumer.Infof("Archive installer ready for action")
+
+	if archiveInfo == nil {
+		consumer.Infof("Missing archive info, probing...")
+		var err error
+		archiveInfo, err = boar.Probe(&boar.ProbeParams{
+			File:     f,
+			Consumer: consumer,
+		})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
+
 	if archiveInfo.Features.ResumeSupport == savior.ResumeSupportNone {
 		consumer.Infof("Forcing local for %s", archiveInfo.Features)
 		localFile, err := installer.AsLocalFile(f)

@@ -141,6 +141,11 @@ func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *dash.Cand
 				consumer.Infof("  → Unsupported Windows installer (requested execution level %s)", peInfo.AssemblyInfo.RequestedExecutionLevel)
 				return InstallerTypeUnsupported, nil
 			}
+
+			if peInfo.AssemblyInfo.Description == "IExpress extraction tool" {
+				consumer.Infof("  → Self-extracting CAB created with IExpress")
+				return InstallerTypeIExpress, nil
+			}
 		} else {
 			stats, err := file.Stat()
 			if err != nil {

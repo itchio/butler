@@ -14,7 +14,7 @@ import (
  * When ran without elevate, some NSIS installers will silently fail.
  * So, we run them with elevate all the time.
  */
-func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+func (m *Manager) Install(params installer.InstallParams) (*installer.InstallResult, error) {
 	consumer := params.Consumer
 
 	// we need the installer on disk to run it. this'll err if it's not,

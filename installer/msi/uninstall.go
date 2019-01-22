@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *Manager) Uninstall(params *installer.UninstallParams) error {
+func (m *Manager) Uninstall(params installer.UninstallParams) error {
 	consumer := params.Consumer
 	receipt := params.Receipt
 

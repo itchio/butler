@@ -15,8 +15,8 @@ import (
 var ErrNeedLocal = errors.New("install source needs to be available locally")
 
 type Manager interface {
-	Install(params *InstallParams) (*InstallResult, error)
-	Uninstall(params *UninstallParams) error
+	Install(params InstallParams) (*InstallResult, error)
+	Uninstall(params UninstallParams) error
 	Name() string
 }
 
@@ -72,6 +72,7 @@ type InstallerType string
 const (
 	InstallerTypeNaked       InstallerType = "naked"
 	InstallerTypeArchive     InstallerType = "archive"
+	InstallerTypeIExpress    InstallerType = "iexpress"
 	InstallerTypeDMG         InstallerType = "dmg"
 	InstallerTypeInno        InstallerType = "inno"
 	InstallerTypeNsis        InstallerType = "nsis"

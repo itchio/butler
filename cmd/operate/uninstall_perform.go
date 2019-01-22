@@ -49,7 +49,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params bu
 			}
 		}
 
-		managerUninstallParams := &installer.UninstallParams{
+		managerUninstallParams := installer.UninstallParams{
 			InstallFolderPath: installFolder,
 			Consumer:          consumer,
 			Receipt:           receipt,

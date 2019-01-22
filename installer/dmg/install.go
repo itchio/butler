@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+func (m *Manager) Install(params installer.InstallParams) (*installer.InstallResult, error) {
 	consumer := params.Consumer
 
 	var res = installer.InstallResult{

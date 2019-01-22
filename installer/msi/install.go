@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+func (m *Manager) Install(params installer.InstallParams) (*installer.InstallResult, error) {
 	consumer := params.Consumer
 
 	// we need the installer on disk to run it. this'll err if it's not,

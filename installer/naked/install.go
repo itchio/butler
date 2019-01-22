@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (m *Manager) Install(params *installer.InstallParams) (*installer.InstallResult, error) {
+func (m *Manager) Install(params installer.InstallParams) (*installer.InstallResult, error) {
 	stats, err := params.File.Stat()
 	if err != nil {
 		return nil, errors.WithStack(err)

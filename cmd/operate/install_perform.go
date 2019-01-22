@@ -188,7 +188,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			return errors.New(msg)
 		}
 
-		managerInstallParams := &installer.InstallParams{
+		managerInstallParams := installer.InstallParams{
 			Consumer: consumer,
 
 			File:              prepareRes.File,
