@@ -124,6 +124,6 @@ deploy-ibrew:
 deploy-itchio:
   stage: deploy
   tags:
-    - dropsy
+    - linux
   script:
     - scripts/ci-deploy-itchio.sh
