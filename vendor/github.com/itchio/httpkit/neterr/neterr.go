@@ -54,6 +54,15 @@ func IsNetworkError(err error) bool {
 		if strings.HasPrefix(msg, "connection error: ") {
 			return true
 		}
+		if strings.Contains(msg, "forcibly closed by the remote host") {
+			return true
+		}
+		if strings.Contains(msg, "broken pipe") {
+			return true
+		}
+		if strings.Contains(msg, "protocol wrong type for socket") {
+			return true
+		}
 	}
 
 	if te, ok := err.(temporary); ok {
