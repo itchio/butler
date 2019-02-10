@@ -307,6 +307,18 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 		consumer.Infof("(Using reference snooze date (%s))", referenceDate)
 	}
 
+	type skippedUpload struct {
+		upload *itchio.Upload
+		reason string
+	}
+	var skipped []skippedUpload
+	skip := func(upload *itchio.Upload, format string, a ...interface{}) {
+		skipped = append(skipped, skippedUpload{
+			upload: upload,
+			reason: fmt.Sprintf(format, a...),
+		})
+	}
+
 	for _, u := range listUploadsRes.Uploads {
 		if u.ID == currentUpload.ID {
 			consumer.Infof("✓ Installed upload still listed")
@@ -315,20 +327,17 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 		}
 
 		if u.UpdatedAt == nil {
-			consumer.Infof("↷ Skipping (nil updatedAt)")
-			operate.LogUpload(consumer, u, u.Build)
+			skip(u, "nil updatedAt")
 			continue
 		}
 
 		if currentUpload.Type != "" && u.Type != currentUpload.Type {
-			consumer.Infof("↷ Skipping (has type (%s) instead of (%s))", u.Type, currentUpload.Type)
-			operate.LogUpload(consumer, u, u.Build)
+			skip(u, "(has type (%s) instead of (%s))", u.Type, currentUpload.Type)
 			continue
 		}
 
 		if !moreRecentThan(u.UpdatedAt, referenceDate) {
-			consumer.Infof("↷ Skipping (not more recent than reference date (%s))", referenceDate)
-			operate.LogUpload(consumer, u, u.Build)
+			skip(u, "(not more recent than reference date (%s))", referenceDate)
 			continue
 		}
 
@@ -362,12 +371,16 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 					Confidence: 1,
 				})
 				return res, nil
+			} else {
+				consumer.Statf("The latest build is installed.")
+				return nil, nil
 			}
-			consumer.Infof("No direct update found, let's get fuzzy")
+		} else {
+			consumer.Infof("Our wharf upload disappeared, let's get fuzzy.")
 		}
 	}
 
-	// non-wharf updates
+	// non-wharf updates, or wharf uploade disappeared
 	if len(newerUploads) == 0 {
 		consumer.Infof("No update found (no candidates)")
 		return nil, nil
@@ -377,6 +390,11 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	narrowDownResult := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, runtime)
 	newerUploads = narrowDownResult.Uploads
 	consumer.Infof("→ %d uploads to consider (%d eliminated by narrow-down)", len(newerUploads), len(newerUploads)-countBeforeNarrow)
+
+	for _, s := range skipped {
+		consumer.Infof("  %s: ", s.reason)
+		operate.LogUpload(consumer, s.upload, s.upload.Build)
+	}
 
 	if len(newerUploads) == 0 {
 		consumer.Infof("No update found (no candidates)")
