@@ -2,17 +2,25 @@ package dash
 
 import (
 	"io"
+	"regexp"
 
 	"github.com/itchio/spellbook"
 	"github.com/itchio/wizardry/wizardry/wizutil"
 )
 
-func sniffELF(r io.ReadSeeker, size int64) (*Candidate, error) {
+var libraryPattern = regexp.MustCompile(`\.so(\.[0-9]+)*$`)
+
+func sniffELF(r io.ReadSeeker, name string, size int64) (*Candidate, error) {
+	if libraryPattern.MatchString(name) {
+		// libraries (.so files) are not launch candidates
+		return nil, nil
+	}
+
 	sr := wizutil.NewSliceReader(&readerAtFromSeeker{r}, 0, size)
 	spell := spellbook.Identify(sr, 0)
 
 	if !spellHas(spell, "ELF") {
-		// uh oh
+		// looked like ELF but isn't? weird
 		return nil, nil
 	}
 

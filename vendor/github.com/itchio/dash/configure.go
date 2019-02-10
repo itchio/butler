@@ -26,12 +26,12 @@ func sniffPoolEntry(pool wsync.Pool, fileIndex int64, file *tlc.File) (*Candidat
 	return Sniff(r, file.Path, size)
 }
 
-func Sniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
-	c, err := doSniff(r, path, size)
+func Sniff(r io.ReadSeeker, name string, size int64) (*Candidate, error) {
+	c, err := doSniff(r, name, size)
 	if c != nil {
 		c.Size = size
 		if c.Path == "" {
-			c.Path = path
+			c.Path = name
 		}
 		c.Depth = pathDepth(c.Path)
 	}
@@ -105,7 +105,7 @@ func doSniff(r io.ReadSeeker, path string, size int64) (*Candidate, error) {
 	// ELF executables start with 0x7F454C46
 	// (e.g. 0x7F + 'ELF' in ASCII)
 	if buf[0] == 0x7F && buf[1] == 0x45 && buf[2] == 0x4C && buf[3] == 0x46 {
-		return sniffELF(r, size)
+		return sniffELF(r, path, size)
 	}
 
 	// Shell scripts start with a shebang (#!)
@@ -278,17 +278,9 @@ func FixPermissions(v *Verdict, params *FixPermissionsParams) ([]string, error) 
 
 	var fixed []string
 
-	var libraryPattern = regexp.MustCompile(`\.so(\.[0-9]+)*$`)
-
 	for _, c := range v.Candidates {
 		switch c.Flavor {
 		case FlavorNativeLinux, FlavorNativeMacos, FlavorScript:
-			baseName := filepath.Base(c.Path)
-			if libraryPattern.MatchString(baseName) {
-				// don't fix dynamic libraries linux
-				continue
-			}
-
 			fullPath := filepath.Join(v.BasePath, c.Path)
 
 			if c.Mode&0100 == 0 {
