@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/butler/manager/runlock"
+	itchio "github.com/itchio/go-itchio"
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
@@ -125,6 +126,26 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 	if params.Game == nil {
 		return errors.Errorf("Corrupted download info (missing game), refusing to continue.")
+	}
+
+	{
+		if !istate.RefreshedGame {
+			client := rc.Client(params.Access.APIKey)
+			istate.RefreshedGame = true
+			oc.Save(isub)
+
+			// attempt to refresh game info
+			gameRes, err := client.GetGame(itchio.GetGameParams{
+				GameID:      params.Game.ID,
+				Credentials: params.Access.Credentials,
+			})
+			if err != nil {
+				consumer.Warnf("Could not refresh game info: %s", err.Error())
+			} else {
+				params.Game = gameRes.Game
+				oc.Save(meta)
+			}
+		}
 	}
 
 	consumer.Infof("→ Performing install for %s", GameToString(params.Game))

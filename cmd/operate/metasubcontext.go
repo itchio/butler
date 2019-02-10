@@ -16,7 +16,8 @@ type InstallParams struct {
 
 	InstallFolder string `json:"installFolder"`
 
-	NoCave bool `json:"noCave"`
+	NoCave    bool `json:"noCave"`
+	FastQueue bool `json:"fastQueue"`
 
 	Game   *itchio.Game   `json:"game"`
 	Upload *itchio.Upload `json:"upload"`

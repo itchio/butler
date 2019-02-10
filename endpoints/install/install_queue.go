@@ -97,18 +97,6 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 
 	client := rc.Client(params.Access.APIKey)
 
-	{
-		// attempt to refresh game info
-		gameRes, err := client.GetGame(itchio.GetGameParams{
-			GameID:      params.Game.ID,
-			Credentials: params.Access.Credentials,
-		})
-		if err != nil {
-			consumer.Warnf("Could not refresh game info: %s", err.Error())
-		} else {
-			params.Game = gameRes.Game
-		}
-	}
 	consumer.Infof("Queuing install for %s", operate.GameToString(params.Game))
 
 	freshCave := false
@@ -252,13 +240,18 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	}
 	oc.Load(isub)
 
-	err = operate.InstallPrepare(oc, meta, isub, false /* disallow downloads */, func(res *operate.InstallPrepareResult) error {
-		// do muffin
-		return nil
-	})
-	if err != nil {
-		oc.Retire()
-		return nil, errors.WithStack(err)
+	if queueParams.FastQueue {
+		params.FastQueue = true
+	} else {
+		err = operate.InstallPrepare(oc, meta, isub, false /* disallow downloads */, func(res *operate.InstallPrepareResult) error {
+			// do muffin
+			return nil
+		})
+		if err != nil {
+			oc.Retire()
+			return nil, errors.WithStack(err)
+		}
+
 	}
 
 	success = true

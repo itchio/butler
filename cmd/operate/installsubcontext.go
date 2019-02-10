@@ -14,6 +14,7 @@ type InstallSubcontextState struct {
 	UpgradePath         *itchio.UpgradePath      `json:"upgradePath,omitempty"`
 	UpgradePathIndex    int                      `json:"upgradePathIndex,omitempty"`
 	UsingHealFallback   bool                     `json:"usingHealFallback,omitempty"`
+	RefreshedGame       bool                     `json:"refreshedGame,omitempty"`
 }
 
 type InstallSubcontext struct {

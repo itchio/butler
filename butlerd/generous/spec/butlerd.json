@@ -1058,6 +1058,11 @@
             "name": "queueDownload",
             "doc": "If set, and the install operation is successfully disambiguated,\nwill queue it as a download for butler to drive.\nSee @@DownloadsDriveParams.",
             "type": "boolean"
+          },
+          {
+            "name": "fastQueue",
+            "doc": "Don't run install prepare (assume we can just run it at perform time)",
+            "type": "boolean"
           }
         ]
       },

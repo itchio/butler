@@ -1224,6 +1224,9 @@ type InstallQueueParams struct {
 	// See @@DownloadsDriveParams.
 	// @optional
 	QueueDownload bool `json:"queueDownload"`
+
+	// Don't run install prepare (assume we can just run it at perform time)
+	FastQueue bool `json:"fastQueue"`
 }
 
 func (p InstallQueueParams) Validate() error {

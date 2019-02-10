@@ -3306,6 +3306,12 @@ will queue it as a download for butler to drive.
 See <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
 </td>
 </tr>
+<tr>
+<td><code>fastQueue</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Don&rsquo;t run install prepare (assume we can just run it at perform time)</p>
+</td>
+</tr>
 </table>
 
 
@@ -3416,6 +3422,10 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </tr>
 <tr>
 <td><code>queueDownload</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>fastQueue</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
