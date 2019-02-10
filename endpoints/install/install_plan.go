@@ -96,9 +96,23 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		upload = uploads[0]
 	}
 
-	operate.LogUpload(consumer, upload, upload.Build)
+	access := operate.AccessForGameID(conn, game.ID)
+	client := rc.Client(access.APIKey)
+
 	info.Upload = upload
 	info.Build = upload.Build
+	if info.Build != nil {
+		buildRes, err := client.GetBuild(itchio.GetBuildParams{
+			BuildID:     info.Build.ID,
+			Credentials: access.Credentials,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		info.Build = buildRes.Build
+	}
+	operate.LogUpload(consumer, upload, upload.Build)
 
 	if upload.Storage == itchio.UploadStorageExternal && operate.IsBadExternalHost(upload.Host) {
 		setResError(errors.WithStack(butlerd.CodeUnsupportedHost))
@@ -110,9 +124,6 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		sessionID = uuid.New().String()
 		consumer.Infof("No download session ID passed, using %s", sessionID)
 	}
-
-	access := operate.AccessForGameID(conn, game.ID)
-	client := rc.Client(access.APIKey)
 
 	installParams := &operate.InstallParams{
 		Upload: info.Upload,
