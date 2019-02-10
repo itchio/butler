@@ -117,7 +117,17 @@ func LogBuild(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 		version = "No explicit version"
 	}
 
+	var bfs []string
+	for _, bf := range b.Files {
+		bfs = append(bfs, fmt.Sprintf("%s-%s", bf.Type, bf.SubType))
+	}
+
 	consumer.Infof("    Build %d for channel (%s) :: %s :: #%d", b.Version, u.ChannelName, version, b.ID)
+
+	if len(bfs) > 0 {
+		bfString := strings.Join(bfs, ", ")
+		consumer.Infof("    %s", bfString)
+	}
 }
 
 func formatUploadType(uploadType itchio.UploadType) string {

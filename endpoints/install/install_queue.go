@@ -221,7 +221,17 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 					consumer.Infof("Upload is not wharf-enabled")
 				} else {
 					consumer.Infof("Latest build for upload is %d", u.Build.ID)
-					params.Build = u.Build
+
+					// now refresh the build itself, so we get a list of build files
+					buildRes, err := client.GetBuild(itchio.GetBuildParams{
+						BuildID:     u.Build.ID,
+						Credentials: params.Access.Credentials,
+					})
+					if err != nil {
+						return nil, errors.WithStack(err)
+					}
+
+					params.Build = buildRes.Build
 				}
 				break
 			}

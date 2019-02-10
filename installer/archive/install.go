@@ -27,6 +27,8 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	archiveInfo := params.InstallerInfo.ArchiveInfo
 
 	consumer.Infof("Archive installer ready for action")
+	stat, _ := f.Stat()
+	consumer.Infof("Archive name is (%s)", stat.Name())
 
 	if archiveInfo == nil {
 		consumer.Infof("Missing archive info, probing...")

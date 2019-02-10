@@ -100,18 +100,18 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	client := rc.Client(access.APIKey)
 
 	info.Upload = upload
-	info.Build = upload.Build
-	if info.Build != nil {
+	if upload.Build != nil {
 		buildRes, err := client.GetBuild(itchio.GetBuildParams{
-			BuildID:     info.Build.ID,
+			BuildID:     upload.Build.ID,
 			Credentials: access.Credentials,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		info.Build = buildRes.Build
+		upload.Build = buildRes.Build
 	}
+	info.Build = upload.Build
 	operate.LogUpload(consumer, upload, upload.Build)
 
 	if upload.Storage == itchio.UploadStorageExternal && operate.IsBadExternalHost(upload.Host) {
