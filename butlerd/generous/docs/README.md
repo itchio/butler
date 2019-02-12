@@ -3309,7 +3309,7 @@ See <code class="typename"><span class="type request-client-caller" data-tip-sel
 <tr>
 <td><code>fastQueue</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Don&rsquo;t run install prepare (assume we can just run it at perform time)</p>
+<td><p><span class="tag">Optional</span> Don&rsquo;t run install prepare (assume we can just run it at perform time)</p>
 </td>
 </tr>
 </table>
