@@ -1226,6 +1226,7 @@ type InstallQueueParams struct {
 	QueueDownload bool `json:"queueDownload"`
 
 	// Don't run install prepare (assume we can just run it at perform time)
+	// @optional
 	FastQueue bool `json:"fastQueue"`
 }
 
