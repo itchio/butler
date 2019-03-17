@@ -89,6 +89,9 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}()
 
 		taskConsumer := &state.Consumer{
+			OnMessage: func(level string, msg string) {
+				consumer.Infof("[prereq:%s] %s", level, msg)
+			},
 			OnProgress: func(progress float64) {
 				tracker.SetProgress(progress)
 			},
@@ -106,6 +109,8 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			NoCave:        true,
 			StagingFolder: stagingFolder,
 			InstallFolder: destDir,
+
+			IgnoreInstallers: true,
 		})
 		if err != nil {
 			return errors.Wrapf(err, "queueing download+extract for prereq %s", name)

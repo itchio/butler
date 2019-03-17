@@ -87,6 +87,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 
 	params.StagingFolder = stagingFolder
 	params.Reason = reason
+	params.IgnoreInstallers = queueParams.IgnoreInstallers
 
 	if queueParams.Game == nil {
 		return nil, errors.New("Missing game in install")

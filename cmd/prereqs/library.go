@@ -5,6 +5,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -16,11 +17,12 @@ type Library interface {
 type library struct {
 	client  *itchio.Client
 	uploads []*itchio.Upload
+	runtime *ox.Runtime
 }
 
 var _ Library = (*library)(nil)
 
-func NewLibrary(rc *butlerd.RequestContext, apiKey string) (Library, error) {
+func NewLibrary(rc *butlerd.RequestContext, runtime *ox.Runtime, apiKey string) (Library, error) {
 	client := rc.Client(apiKey)
 
 	uploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
@@ -33,6 +35,7 @@ func NewLibrary(rc *butlerd.RequestContext, apiKey string) (Library, error) {
 	l := &library{
 		client:  client,
 		uploads: uploadsRes.Uploads,
+		runtime: runtime,
 	}
 
 	return l, nil
@@ -52,8 +55,10 @@ func (l *library) GetURL(name string, fileType itchio.BuildFileType) (string, er
 }
 
 func (l *library) GetUpload(name string) *itchio.Upload {
+	channelName := fmt.Sprintf("%s-%s", name, l.runtime.Platform)
+
 	for _, upload := range l.uploads {
-		if upload.ChannelName == name {
+		if upload.ChannelName == channelName {
 			return upload
 		}
 	}

@@ -301,9 +301,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			single := firstInstallResult.Files[0]
 			singlePath := filepath.Join(params.InstallFolder, single)
 
-			consumer.Infof("Installed a single file")
-
-			err = func() error {
+			invokeNestedInstaller := func() error {
 				secondInstallerInfo := istate.SecondInstallerInfo
 				if secondInstallerInfo != nil {
 					consumer.Infof("Using cached second installer info")
@@ -378,9 +376,15 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Infof("Invoking nested install manager, let's go!")
 				finalInstallResult, err = tryInstall()
 				return err
-			}()
-			if err != nil {
-				return errors.WithStack(err)
+			}
+			if meta.Data.IgnoreInstallers {
+				consumer.Infof("Installed a single file, but we're ignoring installers, so nevermind.")
+			} else {
+				consumer.Infof("Installed a single file, looking into nested installers")
+				err = invokeNestedInstaller()
+				if err != nil {
+					return errors.WithStack(err)
+				}
 			}
 		}
 
