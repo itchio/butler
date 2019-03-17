@@ -177,7 +177,11 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		}
 	}
 
-	installSourceURL := MakeSourceURL(client, consumer, istate.DownloadSessionID, params, "")
+	installSourceFileType := ""
+	if params.IgnoreInstallers {
+		installSourceFileType = "archive"
+	}
+	installSourceURL := MakeSourceURL(client, consumer, istate.DownloadSessionID, params, installSourceFileType)
 
 	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
 	if err != nil {
