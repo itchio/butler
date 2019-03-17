@@ -100,6 +100,12 @@ type File struct {
 	DumpStats          bool
 }
 
+type Resetter interface {
+	Reset() error
+}
+
+var _ Resetter = (*File)(nil)
+
 const defaultLogLevel = 1
 
 // defaultConnStaleThreshold is the duration after which File's conns
@@ -574,6 +580,13 @@ func (f *File) closeAllConns() error {
 	}
 
 	return nil
+}
+
+func (f *File) Reset() error {
+	f.connsLock.Lock()
+	defer f.connsLock.Unlock()
+
+	return f.closeAllConns()
 }
 
 func (f *File) closeConn(c *conn) error {
