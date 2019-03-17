@@ -88,11 +88,16 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 }
 
 func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
-	commandPath := filepath.Join(task.WorkDir, task.Info.Command)
-	args := task.Info.Args
+	block := task.Info.Windows
+	if block == nil {
+		return errors.Errorf("No windows block for prereq %s", task.Name)
+	}
+
+	commandPath := filepath.Join(task.WorkDir, block.Command)
+	args := block.Args
 
 	// MSI packages get special treatment for reasons.
-	if strings.HasSuffix(strings.ToLower(task.Info.Command), ".msi") {
+	if strings.HasSuffix(strings.ToLower(block.Command), ".msi") {
 		tempDir, err := ioutil.TempDir("", "butler-msi-logs")
 		if err != nil {
 			return errors.WithStack(err)
@@ -117,7 +122,7 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 
 		if signedCode != 0 {
 			code := uint32(signedCode)
-			for _, exitCode := range task.Info.ExitCodes {
+			for _, exitCode := range block.ExitCodes {
 				if code == exitCode.Code {
 					if exitCode.Success {
 						consumer.Infof("%s (Code %d), continuing", exitCode.Message, exitCode.Code)

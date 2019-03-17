@@ -25,29 +25,6 @@ type RedistEntry struct {
 
 	// macOS-specific fields
 	OSX *RedistEntryOSX `json:"osx,omitempty"`
-
-	//------------------------
-	// Legacy windows fields (kept & filled for compatibility with v23)
-	//------------------------
-
-	// Command is the exe/msi to fire up to install the redist
-	Command string `json:"command"`
-
-	// Elevate is true if the exe/msi needs administrative rights
-	Elevate bool `json:"elevate"`
-
-	// Args are passed to the Command
-	Args []string `json:"args,omitempty"`
-
-	// RegistryKeys hint that the redist might already be installed, if present
-	RegistryKeys []string `json:"registryKeys,omitempty"`
-
-	// DLLs hint that the redist might already be installed, if we can load them
-	DLLs []string `json:"dlls,omitempty"`
-
-	// ExitCodes let prereqs installation succeed in case of non-zero exit codes
-	// that mean something like "this is already installed"
-	ExitCodes []*ExitCode `json:"exitCodes,omitempty"`
 }
 
 type RedistEntryWindows struct {

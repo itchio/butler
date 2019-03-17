@@ -92,6 +92,11 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 			continue
 		}
 
+		block := info.Windows
+		if block == nil {
+			return errors.Errorf("No windows block for prereq %s", name)
+		}
+
 		comm.Opf("Downloading prereq %s", name)
 
 		workDir := filepath.Join(tempDir, name)
@@ -106,8 +111,8 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 			WorkDir: workDir,
 		}
 
-		url := fmt.Sprintf("%s/%s/%s", baseURL, name, info.Command)
-		dest := filepath.Join(workDir, info.Command)
+		url := fmt.Sprintf("%s/%s/%s", baseURL, name, block.Command)
+		dest := filepath.Join(workDir, block.Command)
 		_, err = dl.Do(ctx, url, dest)
 		if err != nil {
 			comm.Logf("Could not download prereq %s", name)
