@@ -380,7 +380,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 		}
 	}
 
-	// non-wharf updates, or wharf uploade disappeared
+	// non-wharf updates, or wharf upload disappeared
 	if len(newerUploads) == 0 {
 		consumer.Infof("No update found (no candidates)")
 		return nil, nil
