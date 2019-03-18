@@ -195,5 +195,115 @@ restored by using the `--beeps4life` option.
 
 *Note that this option is not listed in the program's inline help.*
 
+## Appendix C: Ignoring files
+
+The recommended way to use butler push is to pass it a folder that is *exactly* your
+release build, with no extra files. For example, if your build process generates
+`*.pdb` files, and you don't want to push that - create a copy of the build folder
+without them, or just remove them from the build folder before pushing.
+
+However, because it is hard to resist feature requests, butler supports the
+`--ignore` flag, which lets you push a folder *without* some files.
+
+Here are the rules:
+
+  * The pattern syntax is described in https://godoc.org/path/filepath#Match
+  * Default ignore patterns are [listed here](https://github.com/itchio/butler/blob/544e1b8609f8dab386cc67cd06bf999e47029b28/filtering/filtering.go#L8-L17)
+  * You can use `--ignore` multiple times, once per pattern
+
+For example, if you wanted to ignore all `.pdb` and `.dSYM` files, you would
+do something like:
+
+```
+butler push --ignore '*.pdb' --ignore '*.dSYM' my-build/ foo/bar:baz
+```
+
+*Note: It's `--ignore`, with two dashes, not `-ignore`. Long flags always
+use two dashes.*
+
+To test your ignore patterns, ie. preview what would get pushed without pushing it,
+you can use the `--dry-run` flag. It shows a complete list of files that would
+get pushed, as well as a summary.
+
+Example output without --ignore:
+
+```
+(snip)
+-rw-rw-rw- 895.69 KiB ucrtbase.dll
+-rw-rw-rw-  74.41 KiB ui_resources_200_percent.pak
+-rw-rw-rw-  81.82 KiB vcruntime140.dll
+-rw-rw-rw-        6 B version
+-rw-rw-rw-  56.10 KiB views_resources_200_percent.pak
+√ Would push 103.58 MiB (118 files, 2 dirs, 0 symlinks)
+```
+
+Example output with `--ignore '*.dll'`:
+
+```
+(snip)
+-rw-rw-rw- 586.13 KiB resources/app.asar
+-rw-rw-rw- 233.71 KiB resources/electron.asar
+-rw-rw-rw-   1.12 MiB snapshot_blob.bin
+-rw-rw-rw-  74.41 KiB ui_resources_200_percent.pak
+-rw-rw-rw-        6 B version
+-rw-rw-rw-  56.10 KiB views_resources_200_percent.pak
+√ Would push 80.05 MiB (70 files, 2 dirs, 0 symlinks)
+```
+
+## Appendix D: Dereferencing symlinks
+
+As mentioned in Appendix C, we really really recommend that the folder
+you push is the final version of your build folder, with no changes.
+
+However, because saying no to feature requests require more strength
+than it does implementing said features sometimes, there is a way to
+push a folder with symlinks in it as if those symlinks were copies
+of the folder/files they refer to.
+
+So let's say you have:
+
+```
+- game-linux
+  - game-binary.x64
+  - data -> ../game-data
+- game-data
+  - level1.data 
+```
+
+Then you could do:
+
+```
+butler push --dereference game-linux/ foo/bar:baz
+```
+
+Note that *this will cause problems* if you don't know what you're doing
+(and sometimes even if you know what you're doing). For example:
+
+  * Linux builds that ship with dynamic libraries tend to have
+  symlinks links `libfoo.so => libfoo.so.3` and `libfoo.so.3` => `libfoo.so.3.14`
+  * macOS builds in the form of app bundles (the *only* macOS builds
+  you should ever push) have lots of symlinks too, typically in the `Frameworks/`
+  directory.
+
+It's not that the builds you push won't work, it's that they'll include
+several copies of the same file, and thus be larger than needed.
+
+## Appendix E: Pushing only if changed
+
+Most times, you want to push unconditionally - even if nothing changed, just
+so that there are consistent version numbers across, say, Windows, macOS & Linux.
+
+But sometimes, you might be pushing to a bunch of project pages / channels, and
+you want to avoid generate empty/no-op patches. The `--if-changed` flag lets you
+not push anything if the contents on disk are exactly the same as the latest build.
+
+To give you an example use case, this is used when updating
+<https://fasterthanlime.itch.io/itch-redists>. Each upload on that page is a file
+in a git repository, and they're all deployed in the same CI pipeline. Typically
+only one or two channels actually get chnaged, and `--if-changed` reduces patching
+noise.
+
 [^1]: It still isn't really, but you get the idea.
 [^2]: Historically, from your computer's [PC speaker](https://en.wikipedia.org/wiki/PC_speaker). Now, probably whatever sound Microsoft bundles with your version of Windows.
+
+
