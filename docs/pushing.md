@@ -300,7 +300,7 @@ not push anything if the contents on disk are exactly the same as the latest bui
 To give you an example use case, this is used when updating
 <https://fasterthanlime.itch.io/itch-redists>. Each upload on that page is a file
 in a git repository, and they're all deployed in the same CI pipeline. Typically
-only one or two channels actually get chnaged, and `--if-changed` reduces patching
+only one or two channels actually get changed, and `--if-changed` reduces patching
 noise.
 
 [^1]: It still isn't really, but you get the idea.
