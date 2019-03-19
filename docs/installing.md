@@ -75,10 +75,10 @@ Then, edit the `~/.bashrc` file (`~` is your home directory) and add this line
 at the end:
 
 ```sh
-export PATH="$PATH:~/bin"
+export PATH="$PATH:$HOME/bin"
 ```
 
-(Again, replacing `~/bin` as appropriate)
+(Again, replacing `$HOME/bin` as appropriate)
 
 You'll need to close and start a new terminal to apply the changes. You should
 now be able to move on to the `First run` section.
@@ -87,7 +87,7 @@ now be able to move on to the `First run` section.
 you can skip the chmod command and use this line in your `~/.bashrc` instead:
 
 ```sh
-export PATH="$PATH:~/.config/itch/apps/butler"
+export PATH="$PATH:$HOME/.config/itch/apps/butler"
 ```
 
 ### On macOS
@@ -99,7 +99,7 @@ Follow the Linux instructions, except:
   * If you want to use the itch app version, use this line in your `~/.bash_profile` instead:
 
 ```sh
-export PATH="$PATH:~/Library/Application Support/itch/apps/butler"
+export PATH="$PATH:$HOME/Library/Application Support/itch/apps/butler"
 ```
 
 *(don't forget the double-quotes, they're needed because there is a space in Application Support)*
