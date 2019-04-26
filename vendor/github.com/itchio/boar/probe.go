@@ -46,6 +46,9 @@ const (
 	// 7-zip struggles with ISO9660 disk images for example,
 	// and doesn't support APFS yet (as of 18.05)
 	StrategyDmg Strategy = 400
+
+	// .rar files we do *not* want to open while probing
+	StrategyRar Strategy = 500
 )
 
 func (as Strategy) String() string {
@@ -118,12 +121,15 @@ func (ai *Info) String() string {
 // are confident we can extract it correctly.
 func Probe(params *ProbeParams) (*Info, error) {
 	var strategy Strategy
+	file := params.File
+	consumer := params.Consumer
+	ext := getExt(file, consumer)
 
 	if params.Candidate != nil && params.Candidate.Flavor == dash.FlavorNativeLinux {
 		// might be a mojosetup installer - if not, we won't know what to do with it
 		strategy = StrategyZipUnsure
 	} else {
-		strategy = getStrategy(params.File, params.Consumer)
+		strategy = getStrategy(ext)
 	}
 
 	if strategy == StrategyNone {
@@ -140,21 +146,29 @@ func Probe(params *ProbeParams) (*Info, error) {
 		return info, nil
 	}
 
+	if info.Strategy == StrategySevenZip {
+		info.Features = szextractor.FeaturesByExtension(ext)
+		if !info.Features.RandomAccess {
+			consumer.Infof("PSA: %s archives lack random access, not opening yet", ext)
+			return info, nil
+		}
+	}
+
 	// now actually try to open it
-	ex, err := info.GetExtractor(params.File, params.Consumer)
+	ex, err := info.GetExtractor(file, consumer)
 	if err != nil {
 		switch strategy {
 		case StrategySevenZipUnsure:
 			// we didn't know that one until we try, so it's just
 			// not a recognized archive format
-			params.Consumer.Warnf("Tried opening archive with 7-zip but we got: %v", err)
-			params.Consumer.Warnf("Ignoring...")
+			consumer.Warnf("Tried opening archive with 7-zip but we got: %v", err)
+			consumer.Warnf("Ignoring...")
 			return nil, nil
 		case StrategyZipUnsure:
 			// we didn't know that one until we try, so it's just
 			// not a recognized archive format
-			params.Consumer.Warnf("Tried opening as a zip but we got: %v", err)
-			params.Consumer.Warnf("Ignoring...")
+			consumer.Warnf("Tried opening as a zip but we got: %v", err)
+			consumer.Warnf("Ignoring...")
 			return nil, nil
 		default:
 			return nil, errors.Wrap(err, "opening archive")
@@ -162,8 +176,11 @@ func Probe(params *ProbeParams) (*Info, error) {
 	}
 
 	if szex, ok := ex.(szextractor.SzExtractor); ok {
+		// this codepath runs when we did not have a .zip, .tar.gz etc. file
+		// extension, but 7-zip detected such a file anyway. in this case, we prefer
+		// "native" decompressors, implemented in pure Go.
 		info.Format = szex.GetFormat()
-		preferNative := true
+		useNativeDecompressor := true
 		switch info.Format {
 		case "gzip":
 			info.Strategy = StrategyTarGz
@@ -176,11 +193,11 @@ func Probe(params *ProbeParams) (*Info, error) {
 		case "zip":
 			info.Strategy = StrategyZip
 		default:
-			preferNative = false
+			useNativeDecompressor = false
 		}
 
-		if preferNative {
-			ex, err = info.GetExtractor(params.File, params.Consumer)
+		if useNativeDecompressor {
+			ex, err = info.GetExtractor(file, consumer)
 			if err != nil {
 				return nil, errors.Wrap(err, "getting extractor for file")
 			}
@@ -194,10 +211,14 @@ func Probe(params *ProbeParams) (*Info, error) {
 
 	var entries []*savior.Entry
 	stageTwoStrategy := StageTwoStrategyNone
-	if el, ok := ex.(EntriesLister); ok {
-		entries = el.Entries()
-		if params.OnEntries != nil {
-			params.OnEntries(entries)
+	// only try listing entries if we have random access support,
+	// otherwise, we risk downloading the whole archive just to list entries.
+	if info.Features.RandomAccess {
+		if el, ok := ex.(EntriesLister); ok {
+			entries = el.Entries()
+			if params.OnEntries != nil {
+				params.OnEntries(entries)
+			}
 		}
 	}
 
@@ -214,7 +235,6 @@ func Probe(params *ProbeParams) (*Info, error) {
 			}
 		}
 
-		consumer := params.Consumer
 		if stageTwoStrategy != StageTwoStrategyNone {
 			consumer.Infof("Will apply stage-two strategy %s", stageTwoStrategy)
 			switch stageTwoStrategy {
@@ -266,11 +286,11 @@ func Probe(params *ProbeParams) (*Info, error) {
 	return info, nil
 }
 
-func getStrategy(file eos.File, consumer *state.Consumer) Strategy {
+func getExt(file eos.File, consumer *state.Consumer) string {
 	stats, err := file.Stat()
 	if err != nil {
-		consumer.Warnf("archive: Could not stat file, giving up: %s", err.Error())
-		return StrategyNone
+		consumer.Warnf("archive: Could not stat file, going with blank extension")
+		return ""
 	}
 
 	lowerName := strings.ToLower(stats.Name())
@@ -278,7 +298,10 @@ func getStrategy(file eos.File, consumer *state.Consumer) Strategy {
 	if strings.HasSuffix(lowerName, ".tar"+ext) {
 		ext = ".tar" + ext
 	}
+	return ext
+}
 
+func getStrategy(ext string) Strategy {
 	switch ext {
 	case ".zip":
 		return StrategyZip

@@ -85,7 +85,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 				entries = es
 			},
 		})
-		consumer.Debugf("  (took %s)", time.Since(beforeArchiveProbe))
+		consumer.Debugf("  (archive probe took %s)", time.Since(beforeArchiveProbe))
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -94,6 +94,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 			consumer.Infof("✗ Source is not a supported archive format")
 		} else {
 			consumer.Infof("✓ Source is a supported archive format (%s)", archiveInfo.Format)
+			consumer.Infof("  Features: %s", archiveInfo.Features)
 			return &InstallerInfo{
 				Type:        InstallerTypeArchive,
 				ArchiveInfo: archiveInfo,

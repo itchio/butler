@@ -37,8 +37,6 @@ type szExtractor struct {
 	in      *sz.InStream
 	format  string
 
-	resumeSupport savior.ResumeSupport
-
 	initialProgress float64
 	progress        float64
 
@@ -62,10 +60,9 @@ var _ SzExtractor = (*szExtractor)(nil)
 
 func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 	se := &szExtractor{
-		file:          file,
-		consumer:      consumer,
-		resumeSupport: savior.ResumeSupportEntry, // start by being optimistic
-		saveConsumer:  savior.NopSaveConsumer(),
+		file:         file,
+		consumer:     consumer,
+		saveConsumer: savior.NopSaveConsumer(),
 	}
 	runtime.SetFinalizer(se, func(se *szExtractor) {
 		se.free()
@@ -131,17 +128,11 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 	}
 
 	se.format = strings.ToLower(se.archive.GetArchiveFormat())
-	if se.format == "7z" {
-		// .7z is a known non-resumable format - resuming means a lot
-		// of extra IO and decompression work on already-extracted blocks,
-		// so we just don't want to do it on-the-fly
-		se.resumeSupport = savior.ResumeSupportNone
-	}
 	return se, nil
 }
 
 func (se *szExtractor) GetFormat() string {
-	return strings.ToLower(se.format)
+	return se.format
 }
 
 func (se *szExtractor) SetConsumer(consumer *state.Consumer) {
@@ -283,12 +274,7 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 }
 
 func (se *szExtractor) Features() savior.ExtractorFeatures {
-	return savior.ExtractorFeatures{
-		Name:          "sz",
-		Preallocate:   true, // some formats might have a 0 UncompressedSize?
-		RandomAccess:  true, // that's not true for .tar, but we don't use sz for that
-		ResumeSupport: se.resumeSupport,
-	}
+	return FeaturesByFormat(se.format)
 }
 
 // implement sz.ExtractCallbackFuncs
