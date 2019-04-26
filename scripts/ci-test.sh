@@ -2,7 +2,6 @@
 
 go version
 
-export PKG=github.com/itchio/butler
 export PATH="$PATH:$(go env GOPATH)/bin"
 export PATH=$PATH:$GOPATH/bin
 
