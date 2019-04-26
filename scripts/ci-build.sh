@@ -4,11 +4,7 @@ echo "Building for $CI_OS-$CI_ARCH"
 
 go version
 
-export PATH="$PATH:$(go env GOPATH)/bin"
 export CGO_ENABLED=1
-
-# set up go cross-compile
-go get github.com/mitchellh/gox
 
 if [ "$CI_OS" = "windows" ]; then
   if [ "$CI_ARCH" = "386" ]; then
@@ -47,7 +43,7 @@ if [ "$CI_OS" = "windows" ]; then
 fi
 
 # compile
-gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" .
+GOOS=$CI_OS GOARCH=$CI_ARCH go build -ldflags "$CI_LDFLAGS" .
 
 # sign (win)
 if [ "$CI_OS" = "windows" ]; then
