@@ -93,6 +93,8 @@ github.com/itchio/lzma v0.0.0-20190426175107-4d7449869289 h1:P+lAnMJAIY+BIzralkD
 github.com/itchio/lzma v0.0.0-20190426175107-4d7449869289/go.mod h1:CacUOfxqprQN/CaPKMHD4dbU7XJumYFXF8nbg2HMQ7Q=
 github.com/itchio/mitch v0.0.0-20181125133452-f7c21feb8963 h1:CDyTd6nfYI6Kf0iPfUxJ7BczXv5K3dp2C8bvSJutge0=
 github.com/itchio/mitch v0.0.0-20181125133452-f7c21feb8963/go.mod h1:HZmZ8NzdtgrbyfBr3HE/wFON3Gd6lIPGkISyRX6Ntm4=
+github.com/itchio/mitch v0.0.0-20190426220049-2f3e7d9e51df h1:Cl3TXqusKzGEd4AfAJGoNs4iTrMCY1CVfOrSnvPTDZ8=
+github.com/itchio/mitch v0.0.0-20190426220049-2f3e7d9e51df/go.mod h1:HZmZ8NzdtgrbyfBr3HE/wFON3Gd6lIPGkISyRX6Ntm4=
 github.com/itchio/ox v0.0.0-20180917160415-e1e80a5e22b0 h1:s+tW5YYK6U81Mslch5XNNh9I6PwAAPpPjW+JiTo7smc=
 github.com/itchio/ox v0.0.0-20180917160415-e1e80a5e22b0/go.mod h1:40+Eo2tT4aqzrZB/UGMW9yiwoZE9ttF+DhfAJSmmoDw=
 github.com/itchio/pelican v0.0.0-20180522163416-5424a0314144 h1:3T6RU1H+oqFHbpfaAoaOZYWgTAWm2Isjq/P386Y8iLA=

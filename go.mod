@@ -52,7 +52,7 @@ require (
 	github.com/itchio/httpkit v0.0.0-20190315213018-f7051ef34545
 	github.com/itchio/kompress v0.0.0-20180114163554-a19876f8c9b7 // indirect
 	github.com/itchio/lzma v0.0.0-20190426175107-4d7449869289 // indirect
-	github.com/itchio/mitch v0.0.0-20181125133452-f7c21feb8963
+	github.com/itchio/mitch v0.0.0-20190426220049-2f3e7d9e51df
 	github.com/itchio/ox v0.0.0-20180917160415-e1e80a5e22b0
 	github.com/itchio/pelican v0.0.0-20180522163416-5424a0314144
 	github.com/itchio/savior v0.0.0-20190110031307-fa53ef6e9562
