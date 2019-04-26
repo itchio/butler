@@ -335,10 +335,10 @@ func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Ex
 		// apply blacklist
 		switch szex.GetFormat() {
 		// cf. https://github.com/itchio/itch/issues/1700
-		case "ELF":
+		case "elf":
 			// won't extract ELF executables
 			return nil, errors.New("refusing to extract ELF file")
-		case "PE":
+		case "pe":
 			// won't extract PE executables
 			return nil, errors.New("refusing to extract PE file")
 		default:

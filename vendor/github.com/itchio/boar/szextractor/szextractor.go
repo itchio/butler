@@ -141,7 +141,7 @@ func New(file eos.File, consumer *state.Consumer) (SzExtractor, error) {
 }
 
 func (se *szExtractor) GetFormat() string {
-	return se.format
+	return strings.ToLower(se.format)
 }
 
 func (se *szExtractor) SetConsumer(consumer *state.Consumer) {
