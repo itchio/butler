@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/itchio/boar/notifycloser"
 	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/savior"
 	"github.com/itchio/sevenzip-go/sz"
@@ -266,8 +267,6 @@ func (se *szExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink savio
 		listEntry(i)
 	}
 
-	se.consumer.Statf("Extracted %s", res.Stats())
-
 	se.free()
 
 	return res, nil
@@ -336,10 +335,10 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 			return nil, nil
 		}
 
-		// so we have a sylink and the linkname is in the content.
+		// so we have a symlink and the linkname is in the content.
 		// let's extract to an in-memory buffer and symlink on close
 		buf := new(bytes.Buffer)
-		nc := &notifyCloser{
+		nc := &notifycloser.NotifyCloser{
 			Writer: buf,
 			OnClose: func(totalBytes int64) error {
 				err := sc.sink.Symlink(entry, buf.String())
@@ -360,7 +359,7 @@ func (sc *szCallbacks) GetStream(item *sz.Item) (*sz.OutStream, error) {
 		return nil, errors.Wrap(err, "getting writer for regular file")
 	}
 
-	nc := &notifyCloser{
+	nc := &notifycloser.NotifyCloser{
 		Writer: writer,
 		OnClose: func(totalBytes int64) error {
 			if se.saveConsumer.ShouldSave(totalBytes) {

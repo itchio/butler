@@ -1,25 +1,25 @@
-package szextractor
+package notifycloser
 
 import "io"
 
-type onCloseFunc func(totalBytes int64) error
+type OnCloseFunc func(totalBytes int64) error
 
-type notifyCloser struct {
+type NotifyCloser struct {
 	Writer  io.Writer
-	OnClose onCloseFunc
+	OnClose OnCloseFunc
 
 	totalBytes int64
 }
 
-var _ io.WriteCloser = (*notifyCloser)(nil)
+var _ io.WriteCloser = (*NotifyCloser)(nil)
 
-func (nc *notifyCloser) Write(buf []byte) (int, error) {
+func (nc *NotifyCloser) Write(buf []byte) (int, error) {
 	written, err := nc.Writer.Write(buf)
 	nc.totalBytes += int64(written)
 	return written, err
 }
 
-func (nc *notifyCloser) Close() error {
+func (nc *NotifyCloser) Close() error {
 	if closer, ok := nc.Writer.(io.Closer); ok {
 		err := closer.Close()
 		if err != nil {

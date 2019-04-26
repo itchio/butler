@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/dash"
 
+	"github.com/itchio/boar/rarextractor"
 	"github.com/itchio/boar/szextractor"
 	"github.com/itchio/boar/szextractor/xzsource"
 	"github.com/itchio/savior/bzip2source"
@@ -67,6 +68,8 @@ func (as Strategy) String() string {
 		return "7-zip"
 	case StrategyDmg:
 		return "dmg"
+	case StrategyRar:
+		return "rar"
 	default:
 		return "<no strategy>"
 	}
@@ -149,7 +152,13 @@ func Probe(params *ProbeParams) (*Info, error) {
 	if info.Strategy == StrategySevenZip {
 		info.Features = szextractor.FeaturesByExtension(ext)
 		if !info.Features.RandomAccess {
-			consumer.Infof("PSA: %s archives lack random access, not opening yet", ext)
+			return info, nil
+		}
+	}
+
+	if info.Strategy == StrategyRar {
+		info.Features = rarextractor.Features()
+		if !info.Features.RandomAccess {
 			return info, nil
 		}
 	}
@@ -315,7 +324,9 @@ func getStrategy(ext string) Strategy {
 		return StrategyTarXz
 	case ".dmg":
 		return StrategyDmg
-	case ".7z", ".rar":
+	case ".rar":
+		return StrategyRar
+	case ".7z":
 		return StrategySevenZip
 	case ".exe":
 		return StrategySevenZipUnsure
@@ -337,6 +348,8 @@ func (ai *Info) GetExtractor(file eos.File, consumer *state.Consumer) (savior.Ex
 			return nil, errors.Wrap(err, "creating zip extractor")
 		}
 		return ex, nil
+	case StrategyRar:
+		return rarextractor.New(file, consumer)
 	case StrategyTar:
 		return tarextractor.New(seeksource.FromFile(file)), nil
 	case StrategyTarGz:

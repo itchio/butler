@@ -77,7 +77,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 		return errors.Wrap(err, "stat'ing archive file")
 	}
 
-	consumer.Opf("Extracting %s to %s", stats.Name(), params.Dir)
+	consumer.Opf("Extracting (%s) to (%s)", stats.Name(), params.Dir)
 
 	archiveInfo, err := boar.Probe(&boar.ProbeParams{
 		File:     file,
@@ -126,13 +126,24 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 			consumer.Opf("Archive format: (%s)", szex.GetFormat())
 		}
 
-		ex.SetConsumer(consumer)
+		progressStarted := false
+		// create a copy of consumer that starts progress on the first
+		// Progress() call
+		delayedConsumer := *consumer
+		delayedConsumer.OnProgress = func(progress float64) {
+			if !progressStarted {
+				comm.StartProgress()
+				progressStarted = true
+			}
+			consumer.Progress(progress)
+		}
+
+		ex.SetConsumer(&delayedConsumer)
 
 		sink := &savior.FolderSink{
 			Directory: params.Dir,
 		}
 
-		comm.StartProgress()
 		res, err := ex.Resume(nil, sink)
 		comm.EndProgress()
 
@@ -140,6 +151,8 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 			return errors.Wrap(err, "extracting archive")
 		}
 		extractSize = res.Size()
+
+		consumer.Statf("Extracted %s", res.Stats())
 	}
 
 	duration := time.Since(startTime)
