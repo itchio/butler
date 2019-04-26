@@ -1,7 +1,6 @@
 #!/bin/sh -xe
 
 export CURRENT_BUILD_PATH=$(pwd)
-export GOPATH=$CURRENT_BUILD_PATH
 
 export CI_VERSION="head"
 export CI_BUILT_AT="$(date +%s)"
