@@ -4,7 +4,6 @@ go version
 
 export PATH="$PATH:$(go env GOPATH)/bin"
 
-go get -v -d -t ./...
 go test -v -race -cover -coverprofile=coverage.txt ./...
 
 curl -s https://codecov.io/bash | bash
