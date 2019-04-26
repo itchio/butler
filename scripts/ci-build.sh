@@ -41,20 +41,13 @@ else
   export PATH=$PATH:/usr/local/go/bin
 fi
 
-export PKG=github.com/itchio/butler
-
-mkdir -p src/$PKG
-
 # compile manifest before rsync'ing
 if [ "$CI_OS" = "windows" ]; then
     ${WINDRES} -o butler.syso butler.rc
 fi
 
-# grab deps
-GOOS=$CI_OS GOARCH=$CI_ARCH go get -v -d -t $PKG
-
 # compile
-gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" $PKG
+gox -osarch "$CI_OS/$CI_ARCH" -ldflags "$CI_LDFLAGS" -cgo -output="butler" .
 
 # sign (win)
 if [ "$CI_OS" = "windows" ]; then
