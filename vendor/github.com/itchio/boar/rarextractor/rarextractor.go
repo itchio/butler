@@ -256,7 +256,10 @@ func Features() savior.ExtractorFeatures {
 	return savior.ExtractorFeatures{
 		Name:          "dmc_unrar",
 		Preallocate:   true,
+		// rar has no central directory, and interleaved blocks,
+		// so let's not pretend we meaningfully pause/resume a
+		// download, let's just force downloading to disk first.
 		RandomAccess:  false,
-		ResumeSupport: savior.ResumeSupportEntry,
+		ResumeSupport: savior.ResumeSupportNone,
 	}
 }

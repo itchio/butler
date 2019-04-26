@@ -324,7 +324,7 @@
 			"importpath": "github.com/itchio/boar",
 			"repository": "https://github.com/itchio/boar",
 			"vcs": "git",
-			"revision": "59236849e21235dd11651487e9477c0c731edfa5",
+			"revision": "2d1c4a4b7c1cf7d44c1567d0283f423b745fb6c2",
 			"branch": "master",
 			"notests": true
 		},
@@ -341,6 +341,14 @@
 			"repository": "https://github.com/itchio/dash",
 			"vcs": "git",
 			"revision": "02bdaa9bde016d4ecbff4f164fd639819b75b2c0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/itchio/dmcunrar-go",
+			"repository": "https://github.com/itchio/dmcunrar-go",
+			"vcs": "git",
+			"revision": "dc196bffe321d00d5f4def37250171f9f5903767",
 			"branch": "master",
 			"notests": true
 		},

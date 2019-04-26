@@ -151,16 +151,18 @@ func Probe(params *ProbeParams) (*Info, error) {
 
 	if info.Strategy == StrategySevenZip {
 		info.Features = szextractor.FeaturesByExtension(ext)
-		if !info.Features.RandomAccess {
-			return info, nil
-		}
 	}
 
 	if info.Strategy == StrategyRar {
 		info.Features = rarextractor.Features()
-		if !info.Features.RandomAccess {
-			return info, nil
-		}
+	}
+
+	if !info.Features.RandomAccess {
+		// no random access means the format isn't "htfs-friendly",
+		// ie. enumerating entries might end up downloading the whole
+		// file. since we're just probing right now, let's just return
+		// what little info we have.
+		return info, nil
 	}
 
 	// now actually try to open it
