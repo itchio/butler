@@ -11,9 +11,6 @@ func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID st
 	if build != nil {
 		if fileType == "" {
 			fileType = "archive"
-			if FindBuildFile(build.Files, itchio.BuildFileTypeUnpacked, itchio.BuildFileSubTypeDefault) != nil {
-				fileType = "unpacked"
-			}
 		}
 
 		return client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
