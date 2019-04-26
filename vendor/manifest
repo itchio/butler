@@ -404,7 +404,7 @@
 			"importpath": "github.com/itchio/lzma",
 			"repository": "https://github.com/itchio/lzma",
 			"vcs": "git",
-			"revision": "0f05402911fc72ce08c77990f18aa2c20023f036",
+			"revision": "4d744986928969fce8da659f9fd0faa728e25fbd",
 			"branch": "master",
 			"notests": true
 		},

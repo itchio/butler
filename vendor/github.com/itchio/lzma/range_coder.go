@@ -44,12 +44,9 @@ func newRangeDecoder(r io.Reader) *rangeDecoder {
 		code:   0,
 	}
 	buf := make([]byte, 5)
-	n, err := rd.r.Read(buf)
+	_, err := io.ReadFull(rd.r, buf)
 	if err != nil {
 		throw(err)
-	}
-	if n != len(buf) {
-		throw(nReadError)
 	}
 	for i := 0; i < len(buf); i++ {
 		rd.code = rd.code<<8 | uint32(buf[i])

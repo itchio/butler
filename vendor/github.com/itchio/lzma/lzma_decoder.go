@@ -94,9 +94,6 @@ var streamError = errors.New("error in lzma encoded data stream")
 // A headerError reports an error in the header of the lzma encoder file.
 var headerError = errors.New("error in lzma header")
 
-// A nReadError reports what its message reads
-var nReadError = errors.New("number of bytes returned by Reader.Read() didn't meet expectances")
-
 // A nWriteError reports what its message reads
 var nWriteError = errors.New("number of bytes returned by Writer.Write() didn't meet expectances")
 
@@ -311,12 +308,9 @@ func (z *decoder) decoder(r io.Reader, w io.Writer) (err error) {
 
 	// read 13 bytes (lzma header)
 	header := make([]byte, lzmaHeaderSize)
-	n, err := r.Read(header)
+	_, err = io.ReadFull(r, header)
 	if err != nil {
 		return
-	}
-	if n != lzmaHeaderSize {
-		return nReadError
 	}
 	z.prop = &props{}
 	z.prop.decodeProps(header)
