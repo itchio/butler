@@ -1,7 +1,8 @@
 package main
 
 /*
-extern void IsWindow(int handle);
+#cgo LDFLAGS: -luser32
+#include <windows.h>
 */
 import "C"
 
@@ -11,6 +12,6 @@ func init() {
 	// it. If you remove this, windows sandboxing will break.
 	// No, I don't know either. It seems a Windows 2012 update
 	// broke this.
-	C.IsWindow(0);
+	C.IsWindow(C.HWND(nil));
 }
 
