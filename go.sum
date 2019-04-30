@@ -116,8 +116,8 @@ github.com/itchio/ox v0.0.0-20180917160415-e1e80a5e22b0 h1:s+tW5YYK6U81Mslch5XNN
 github.com/itchio/ox v0.0.0-20180917160415-e1e80a5e22b0/go.mod h1:40+Eo2tT4aqzrZB/UGMW9yiwoZE9ttF+DhfAJSmmoDw=
 github.com/itchio/pelican v0.0.0-20180522163416-5424a0314144 h1:3T6RU1H+oqFHbpfaAoaOZYWgTAWm2Isjq/P386Y8iLA=
 github.com/itchio/pelican v0.0.0-20180522163416-5424a0314144/go.mod h1:/hOAG2uYeWgYwYRaFyQ7+jM3lE/6tbkSUg0BZ4sbMnQ=
-github.com/itchio/savior v0.0.0-20190110031307-fa53ef6e9562 h1:vIYNKiEhZMUJG6zLvuobdo64/ZhV+U/FGMSEHcEDYRM=
-github.com/itchio/savior v0.0.0-20190110031307-fa53ef6e9562/go.mod h1:4w1REDB38i9+DIVw2+3X2w3FpW5K8v8rcO7OV7GaDs8=
+github.com/itchio/savior v0.0.0-20190430155913-9d507713b837 h1:l6xA+7sk+9dogSTw1CPX/voRGWmzW0E68dRe6jpl8tg=
+github.com/itchio/savior v0.0.0-20190430155913-9d507713b837/go.mod h1:4w1REDB38i9+DIVw2+3X2w3FpW5K8v8rcO7OV7GaDs8=
 github.com/itchio/sevenzip-go v0.0.0-20180522164139-4659fbb95b94 h1:90YuKr8UR9WyaOB8isQoP2mBj28nchS8yQ5LHPosFWw=
 github.com/itchio/sevenzip-go v0.0.0-20180522164139-4659fbb95b94/go.mod h1:IJYkxTamK2jN1nwUncooDJvhtlSOGR3mlFwZYPiNvZQ=
 github.com/itchio/smaug v0.0.0-20181026110157-5c88b6a507f3 h1:Eyci8BXx76Yf01503pcGY/3DWVDpI4Q9Oyoa9COUznU=
