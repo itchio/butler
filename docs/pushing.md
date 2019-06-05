@@ -255,7 +255,7 @@ Example output with `--ignore '*.dll'`:
 As mentioned in Appendix C, we really really recommend that the folder
 you push is the final version of your build folder, with no changes.
 
-However, because saying no to feature requests require more strength
+However, because saying no to feature requests requires more strength
 than it does implementing said features sometimes, there is a way to
 push a folder with symlinks in it as if those symlinks were copies
 of the folder/files they refer to.
