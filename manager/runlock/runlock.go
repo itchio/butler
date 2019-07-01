@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -58,16 +59,21 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 		if proc != nil {
 			debugf("Got a process handle, %#v", proc)
 
-			err := proc.Signal(syscall.Signal(0))
-			if err != nil {
-				debugf("Got error while signalling PID (%d), assuming dead: %#v", rp.ButlerPID, err)
+			if runtime.GOOS == "windows" {
+				debugf("...on Windows, that means the process is still running")
+			} else {
+				debugf("...trying to poke it with a 0 signal")
+				err := proc.Signal(syscall.Signal(0))
+				if err != nil {
+					debugf("Got error while signalling PID (%d), assuming dead: %#v", rp.ButlerPID, err)
 
-				// not running anymore
-				rl.Unlock()
-				return false
+					// not running anymore
+					rl.Unlock()
+					return false
+				}
 			}
 
-			debugf("PID (%d) still running!", rp.ButlerPID, proc)
+			debugf("PID (%d) still running!", rp.ButlerPID)
 			proc.Release()
 		} else {
 			debugf("Didn't get a process handle, assuming dead")

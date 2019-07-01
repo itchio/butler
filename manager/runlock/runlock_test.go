@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/manager/runlock"
+	"github.com/itchio/wharf/state"
 	"github.com/itchio/wharf/wtest"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,7 +29,11 @@ func Test_Runlock(t *testing.T) {
 		mutex.Unlock()
 	}
 
-	rl1 := runlock.New(nil, installFolder)
+	consumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) { t.Logf("[%s] %s", lvl, msg) },
+	}
+
+	rl1 := runlock.New(consumer, installFolder)
 	wtest.Must(t, rl1.Lock(ctx, "rl1"))
 	done("r1-lock")
 
@@ -37,7 +42,7 @@ func Test_Runlock(t *testing.T) {
 		wtest.Must(t, rl1.Unlock())
 	}()
 
-	rl2 := runlock.New(nil, installFolder)
+	rl2 := runlock.New(consumer, installFolder)
 	timeoutCtx, cancel := context.WithTimeout(ctx, 600*time.Millisecond)
 	defer cancel()
 	err = rl2.Lock(timeoutCtx, "rl2")
