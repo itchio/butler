@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	crawshaw.io/iox v0.0.0-20181124134642-c51c3df30797 // indirect
-	crawshaw.io/sqlite v0.0.0-20180630230157-e1ae9c3865ec
+	crawshaw.io/sqlite v0.1.2
 	github.com/BurntSushi/toml v0.0.0-20170626110600-a368813c5e64
 	github.com/DHowett/go-plist v0.0.0-20180609054337-500bd5b9081b // indirect
 	github.com/Datadog/zstd v1.3.4 // indirect
@@ -23,7 +23,6 @@ require (
 	github.com/efarrer/iothrottler v0.0.0-20141121142253-60e7e547c7fe
 	github.com/fatih/color v0.0.0-20181010231311-3f9d52f7176a
 	github.com/fatih/structtag v0.1.0
-	github.com/getlantern/stack v0.0.0-20160516001742-02f928aad224 // indirect
 	github.com/go-ozzo/ozzo-validation v0.0.0-20180322184344-2c68ddd4ffc1
 	github.com/go-xorm/builder v0.2.0
 	github.com/golang/protobuf v0.0.0-20160930204858-df1d3ca07d2d // indirect
