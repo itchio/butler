@@ -137,7 +137,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploadsFilterResult, err := operate.GetFilteredUploads(client, params.Game, params.Access.Credentials, consumer)
+		uploadsFilterResult, err := operate.GetFilteredUploads(rc.Ctx, client, params.Game, params.Access.Credentials, consumer)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -195,7 +195,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 		// We were passed an upload but not a build:
 		// Let's refresh upload info so we can settle on a build we want to install (if any)
 
-		listUploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+		listUploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 			GameID:      params.Game.ID,
 			Credentials: params.Access.Credentials,
 		})
@@ -212,7 +212,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 					consumer.Infof("Latest build for upload is %d", u.Build.ID)
 
 					// now refresh the build itself, so we get a list of build files
-					buildRes, err := client.GetBuild(itchio.GetBuildParams{
+					buildRes, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
 						BuildID:     u.Build.ID,
 						Credentials: params.Access.Credentials,
 					})

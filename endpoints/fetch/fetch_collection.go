@@ -20,7 +20,7 @@ func FetchCollection(rc *butlerd.RequestContext, params butlerd.FetchCollectionP
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		_, client := rc.ProfileClient(params.ProfileID)
 
-		collRes, err := client.GetCollection(itchio.GetCollectionParams{
+		collRes, err := client.GetCollection(rc.Ctx, itchio.GetCollectionParams{
 			CollectionID: params.CollectionID,
 		})
 		models.Must(err)

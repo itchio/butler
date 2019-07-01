@@ -46,7 +46,7 @@ func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (
 	//----------------------------------
 
 	_, client := rc.ProfileClient(params.ProfileID)
-	searchRes, err := client.SearchGames(itchio.SearchGamesParams{
+	searchRes, err := client.SearchGames(rc.Ctx, itchio.SearchGamesParams{
 		Query: params.Query,
 		Page:  1,
 	})

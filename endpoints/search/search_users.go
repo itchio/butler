@@ -49,7 +49,7 @@ func SearchUsers(rc *butlerd.RequestContext, params butlerd.SearchUsersParams) (
 	//----------------------------------
 
 	_, client := rc.ProfileClient(params.ProfileID)
-	searchRes, err := client.SearchUsers(itchio.SearchUsersParams{
+	searchRes, err := client.SearchUsers(rc.Ctx, itchio.SearchUsersParams{
 		Query: params.Query,
 		Page:  1,
 	})

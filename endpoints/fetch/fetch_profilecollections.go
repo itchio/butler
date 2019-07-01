@@ -17,7 +17,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 	res := &butlerd.FetchProfileCollectionsResult{}
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
-		collRes, err := client.ListProfileCollections()
+		collRes, err := client.ListProfileCollections(rc.Ctx)
 		models.Must(err)
 
 		profile.ProfileCollections = nil

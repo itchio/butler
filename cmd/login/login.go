@@ -22,7 +22,7 @@ func Do(ctx *mansion.Context) error {
 			return errors.Wrap(err, "authenticating with saved credentials")
 		}
 
-		_, err = client.WharfStatus()
+		_, err = client.WharfStatus(ctx.DefaultCtx())
 		if err != nil {
 			return errors.Wrap(err, "validating credentials")
 		}

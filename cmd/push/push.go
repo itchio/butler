@@ -132,7 +132,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	getSignature := func(ID int64) (*pwr.SignatureInfo, error) {
-		buildFiles, err := client.ListBuildFiles(ID)
+		buildFiles, err := client.ListBuildFiles(ctx.DefaultCtx(), ID)
 		if err != nil {
 			return nil, errors.Wrap(err, "listing build files")
 		}
@@ -169,7 +169,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	if ifChanged {
-		chanInfo, err := client.GetChannel(spec.Target, spec.Channel)
+		chanInfo, err := client.GetChannel(ctx.DefaultCtx(), spec.Target, spec.Channel)
 		if err == nil && chanInfo != nil && chanInfo.Channel != nil && chanInfo.Channel.Head != nil {
 			comm.Opf("Comparing against previous build...")
 			sig, err := getSignature(chanInfo.Channel.Head.ID)
@@ -193,7 +193,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	newBuildRes, err := client.CreateBuild(itchio.CreateBuildParams{
+	newBuildRes, err := client.CreateBuild(ctx.DefaultCtx(), itchio.CreateBuildParams{
 		Target:      spec.Target,
 		Channel:     spec.Channel,
 		UserVersion: userVersion,
@@ -222,7 +222,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	bothFiles, err := createBothFiles(client, buildID)
+	bothFiles, err := createBothFiles(ctx, client, buildID)
 	if err != nil {
 		return errors.Wrap(err, "creating remote patch and signature files")
 	}
@@ -373,7 +373,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		errs := make(chan error)
 
 		doFinalize := func(fileID int64, fileSize int64, done chan error) {
-			_, err = client.FinalizeBuildFile(itchio.FinalizeBuildFileParams{
+			_, err = client.FinalizeBuildFile(ctx.DefaultCtx(), itchio.FinalizeBuildFileParams{
 				BuildID: buildID,
 				FileID:  fileID,
 				Size:    fileSize,

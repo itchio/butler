@@ -1,6 +1,7 @@
 package operate
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -26,8 +27,8 @@ func GameToString(game *itchio.Game) string {
 	return fmt.Sprintf("%s - %s", game.Title, game.URL)
 }
 
-func GetFilteredUploads(client *itchio.Client, game *itchio.Game, credentials itchio.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
-	uploads, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+func GetFilteredUploads(ctx context.Context, client *itchio.Client, game *itchio.Game, credentials itchio.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
+	uploads, err := client.ListGameUploads(ctx, itchio.ListGameUploadsParams{
 		GameID:      game.ID,
 		Credentials: credentials,
 	})

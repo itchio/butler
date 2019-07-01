@@ -85,7 +85,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	// attempt to refresh upload
 	{
 		client := rc.Client(access.APIKey)
-		uploadRes, err := client.GetUpload(itchio.GetUploadParams{
+		uploadRes, err := client.GetUpload(rc.Ctx, itchio.GetUploadParams{
 			Credentials: access.Credentials,
 			UploadID:    upload.ID,
 		})
@@ -497,7 +497,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		createSession := func() (retErr error) {
 			defer horror.RecoverInto(&retErr)
 
-			res, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
+			res, err := client.CreateUserGameSession(rc.Ctx, itchio.CreateUserGameSessionParams{
 				GameID:       cave.GameID,
 				UploadID:     cave.UploadID,
 				BuildID:      cave.BuildID,
@@ -524,7 +524,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 			lastRunAt = time.Now().UTC()
 			secondsRun = int64(lastRunAt.Sub(sessionStartedAt).Seconds())
-			res, err := client.UpdateUserGameSession(itchio.UpdateUserGameSessionParams{
+			res, err := client.UpdateUserGameSession(rc.Ctx, itchio.UpdateUserGameSessionParams{
 				SessionID: session.ID,
 
 				SecondsRun: secondsRun,
@@ -648,7 +648,7 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *butler
 
 	client := rc.Client(access.APIKey)
 
-	res, err := client.Subkey(itchio.SubkeyParams{
+	res, err := client.Subkey(rc.Ctx, itchio.SubkeyParams{
 		GameID: game.ID,
 		Scope:  manifestAction.Scope,
 	})

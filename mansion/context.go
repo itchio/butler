@@ -1,8 +1,10 @@
 package mansion
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
@@ -122,6 +124,11 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 		Algorithm: algo,
 		Quality:   int32(ctx.CompressionQuality),
 	}
+}
+
+func (ctx *Context) DefaultCtx() context.Context {
+	defaultCtx, _ := context.WithTimeout(context.Background(), 2 * time.Second)
+	return defaultCtx
 }
 
 func (ctx *Context) NewClient(key string) *itchio.Client {

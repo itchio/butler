@@ -25,7 +25,7 @@ var _ Library = (*library)(nil)
 func NewLibrary(rc *butlerd.RequestContext, runtime *ox.Runtime, apiKey string) (Library, error) {
 	client := rc.Client(apiKey)
 
-	uploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+	uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 		GameID: RedistsGame.ID,
 	})
 	if err != nil {

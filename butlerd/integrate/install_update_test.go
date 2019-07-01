@@ -61,7 +61,7 @@ func Test_InstallUpdate(t *testing.T) {
 	game := bi.FetchGame(_game.ID)
 
 	client := bi.Client()
-	res, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+	res, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 		GameID: game.ID,
 	})
 	must(err)
@@ -77,7 +77,7 @@ func Test_InstallUpdate(t *testing.T) {
 	}
 	assert.NotNil(upload)
 
-	buildsRes, err := client.ListUploadBuilds(itchio.ListUploadBuildsParams{
+	buildsRes, err := client.ListUploadBuilds(rc.Ctx, itchio.ListUploadBuildsParams{
 		UploadID: upload.ID,
 	})
 	must(err)

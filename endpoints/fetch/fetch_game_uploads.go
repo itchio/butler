@@ -22,7 +22,7 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 		access := operate.AccessForGameID(conn, params.GameID)
 		client := rc.Client(access.APIKey)
 
-		uploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+		uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 			GameID:      params.GameID,
 			Credentials: access.Credentials,
 		})

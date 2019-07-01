@@ -31,7 +31,7 @@ func InstallVersionSwitchQueue(rc *butlerd.RequestContext, params butlerd.Instal
 	})
 	client := rc.Client(access.APIKey)
 
-	buildsRes, err := client.ListUploadBuilds(itchio.ListUploadBuildsParams{
+	buildsRes, err := client.ListUploadBuilds(rc.Ctx, itchio.ListUploadBuildsParams{
 		UploadID:    upload.ID,
 		Credentials: access.Credentials,
 	})

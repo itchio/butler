@@ -1,6 +1,7 @@
 package push
 
 import (
+	"github.com/itchio/butler/mansion"
 	"net/http"
 
 	"github.com/itchio/butler/comm"
@@ -13,9 +14,9 @@ type createBothFilesResponse struct {
 	signatureRes *itchio.CreateBuildFileResponse
 }
 
-func createBothFiles(client *itchio.Client, buildID int64) (*createBothFilesResponse, error) {
+func createBothFiles(ctx *mansion.Context, client *itchio.Client, buildID int64) (*createBothFilesResponse, error) {
 	createFile := func(buildType itchio.BuildFileType, result **itchio.CreateBuildFileResponse) error {
-		buildFileRes, err := client.CreateBuildFile(itchio.CreateBuildFileParams{
+		buildFileRes, err := client.CreateBuildFile(ctx.DefaultCtx(), itchio.CreateBuildFileParams{
 			BuildID:        buildID,
 			Type:           buildType,
 			SubType:        itchio.BuildFileSubTypeDefault,

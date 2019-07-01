@@ -3,6 +3,10 @@ package mansion
 import (
 	"bufio"
 	"fmt"
+	"github.com/itchio/butler/art"
+	"github.com/itchio/butler/comm"
+	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -12,11 +16,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-
-	"github.com/itchio/butler/art"
-	"github.com/itchio/butler/comm"
-	"github.com/itchio/go-itchio"
-	"github.com/pkg/errors"
 )
 
 // read+write for owner, no permissions for others
@@ -179,7 +178,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 			matches := callbackRe.FindStringSubmatch(r.RequestURI)
 			if matches != nil {
 				client := ctx.NewClient(matches[1])
-				client.WharfStatus()
+				client.WharfStatus(ctx.DefaultCtx())
 
 				w.Header().Set("Content-Type", "text/plain")
 				fmt.Fprintf(w, art.ItchLogo)
@@ -250,7 +249,8 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 			err = nil
 
 			client := ctx.NewClient(key)
-			_, err = client.WharfStatus()
+
+			_, err = client.WharfStatus(ctx.DefaultCtx())
 			if err != nil {
 				return nil, errors.Wrap(err, "retrieving wharf status")
 			}

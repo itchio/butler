@@ -440,7 +440,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 	access := operate.AccessForGameID(sc.conn, legacyCave.GameID)
 	client := rc.Client(access.APIKey)
 
-	gameRes, err := client.GetGame(itchio.GetGameParams{
+	gameRes, err := client.GetGame(rc.Ctx, itchio.GetGameParams{
 		GameID:      legacyCave.GameID,
 		Credentials: access.Credentials,
 	})
@@ -450,7 +450,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	game := gameRes.Game
 
-	uploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+	uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 		GameID:      game.ID,
 		Credentials: access.Credentials,
 	})
@@ -473,7 +473,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	var build *itchio.Build
 	if legacyCave.BuildID != 0 {
-		buildsRes, err := client.GetBuild(itchio.GetBuildParams{
+		buildsRes, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
 			BuildID:     legacyCave.BuildID,
 			Credentials: access.Credentials,
 		})

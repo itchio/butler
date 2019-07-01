@@ -31,7 +31,7 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 			for _, playtime := range toUpload {
 				consumer.Infof("Syncing historical playtime for cave (%s)", playtime.CaveID)
 
-				_, err := client.CreateUserGameSession(itchio.CreateUserGameSessionParams{
+				_, err := client.CreateUserGameSession(rc.Ctx, itchio.CreateUserGameSessionParams{
 					Credentials: access.Credentials,
 					GameID:      playtime.GameID,
 					UploadID:    playtime.UploadID,
@@ -46,7 +46,7 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 			}
 
 			consumer.Infof("Fetching game interactions summary for game %d...", gameID)
-			interactionsRes, err := client.GetGameSessionsSummary(gameID)
+			interactionsRes, err := client.GetGameSessionsSummary(rc.Ctx, gameID)
 			if err != nil {
 				consumer.Warnf("While fetching user game sessions: %+v", err)
 			}

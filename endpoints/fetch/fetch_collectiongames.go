@@ -32,7 +32,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		for page := int64(1); ; page++ {
 			rc.Consumer.Infof("Fetching page %d (of unknown)", page)
 
-			gamesRes, err := client.GetCollectionGames(itchio.GetCollectionGamesParams{
+			gamesRes, err := client.GetCollectionGames(rc.Ctx, itchio.GetCollectionGamesParams{
 				CollectionID: params.CollectionID,
 				Page:         page,
 			})

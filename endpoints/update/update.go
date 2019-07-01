@@ -188,7 +188,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	if cave.Game == nil {
 		consumer.Opf("Cave game is missing, trying to fetch it...")
 
-		gameRes, err := client.GetGame(itchio.GetGameParams{
+		gameRes, err := client.GetGame(rc.Ctx, itchio.GetGameParams{
 			GameID:      cave.GameID,
 			Credentials: access.Credentials,
 		})
@@ -206,7 +206,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 		consumer.Infof("Cave upload is missing, trying to fetch it...")
 		consumer.Infof("(For game %s)", operate.GameToString(cave.Game))
 
-		uploadRes, err := client.GetUpload(itchio.GetUploadParams{
+		uploadRes, err := client.GetUpload(rc.Ctx, itchio.GetUploadParams{
 			UploadID:    cave.UploadID,
 			Credentials: access.Credentials,
 		})
@@ -243,7 +243,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 			operate.LogUpload(consumer, receipt.Upload, receipt.Build)
 			consumer.Infof("...fetching fresh info for receipt upload & build")
 
-			uploadRes, err := client.GetUpload(itchio.GetUploadParams{
+			uploadRes, err := client.GetUpload(rc.Ctx, itchio.GetUploadParams{
 				UploadID:    receipt.Upload.ID,
 				Credentials: access.Credentials,
 			})
@@ -259,7 +259,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 				consumer.Infof("Also fetching info for build:")
 				operate.LogBuild(consumer, receipt.Upload, receipt.Build)
 
-				buildRes, err := client.GetBuild(itchio.GetBuildParams{
+				buildRes, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
 					BuildID:     receipt.Build.ID,
 					Credentials: access.Credentials,
 				})
@@ -288,7 +288,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	consumer.Infof("→ Cached upload:")
 	operate.LogUpload(consumer, cave.Upload, cave.Build)
 
-	listUploadsRes, err := client.ListGameUploads(itchio.ListGameUploadsParams{
+	listUploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 		GameID:      cave.Game.ID,
 		Credentials: access.Credentials,
 	})

@@ -135,7 +135,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			oc.Save(isub)
 
 			// attempt to refresh game info
-			gameRes, err := client.GetGame(itchio.GetGameParams{
+			gameRes, err := client.GetGame(rc.Ctx, itchio.GetGameParams{
 				GameID:      params.Game.ID,
 				Credentials: params.Access.Credentials,
 			})

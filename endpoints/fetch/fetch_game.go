@@ -22,7 +22,7 @@ func FetchGame(rc *butlerd.RequestContext, params butlerd.FetchGameParams) (*but
 		access := operate.AccessForGameID(conn, params.GameID)
 		client := rc.Client(access.APIKey)
 
-		gameRes, err := client.GetGame(itchio.GetGameParams{
+		gameRes, err := client.GetGame(rc.Ctx, itchio.GetGameParams{
 			GameID:      params.GameID,
 			Credentials: access.Credentials,
 		})

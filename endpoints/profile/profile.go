@@ -61,7 +61,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWi
 	var cookie itchio.Cookie
 
 	{
-		loginRes, err := rootClient.LoginWithPassword(itchio.LoginWithPasswordParams{
+		loginRes, err := rootClient.LoginWithPassword(rc.Ctx, itchio.LoginWithPasswordParams{
 			Username: params.Username,
 			Password: params.Password,
 		})
@@ -82,7 +82,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWi
 				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
-			loginRes, err = rootClient.LoginWithPassword(itchio.LoginWithPasswordParams{
+			loginRes, err = rootClient.LoginWithPassword(rc.Ctx, itchio.LoginWithPasswordParams{
 				Username:          params.Username,
 				Password:          params.Password,
 				RecaptchaResponse: recaptchaRes.RecaptchaResponse,
@@ -103,7 +103,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWi
 				return nil, errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
-			verifyRes, err := rootClient.TOTPVerify(itchio.TOTPVerifyParams{
+			verifyRes, err := rootClient.TOTPVerify(rc.Ctx, itchio.TOTPVerifyParams{
 				Token: loginRes.Token,
 				Code:  totpRes.Code,
 			})
@@ -122,7 +122,7 @@ func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWi
 
 	client := rc.Client(key.Key)
 
-	profileRes, err := client.GetProfile()
+	profileRes, err := client.GetProfile(rc.Ctx)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -148,7 +148,7 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params butlerd.ProfileLoginWith
 
 	client := rc.Client(params.APIKey)
 
-	profileRes, err := client.GetProfile()
+	profileRes, err := client.GetProfile(rc.Ctx)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -174,7 +174,7 @@ func UseSavedLogin(rc *butlerd.RequestContext, params butlerd.ProfileUseSavedLog
 	consumer.Opf("Validating credentials...")
 
 	err := func() error {
-		profileRes, err := client.GetProfile()
+		profileRes, err := client.GetProfile(rc.Ctx)
 		if err != nil {
 			return errors.WithStack(err)
 		}

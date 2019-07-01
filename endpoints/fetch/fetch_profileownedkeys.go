@@ -23,7 +23,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 		for page := int64(1); ; page++ {
 			consumer.Infof("Fetching page %d", page)
 
-			ownedRes, err := client.ListProfileOwnedKeys(itchio.ListProfileOwnedKeysParams{
+			ownedRes, err := client.ListProfileOwnedKeys(rc.Ctx, itchio.ListProfileOwnedKeysParams{
 				Page: page,
 			})
 			models.Must(err)

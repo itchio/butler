@@ -22,7 +22,7 @@ func GameFindUploads(rc *butlerd.RequestContext, params butlerd.GameFindUploadsP
 	})
 	client := rc.Client(access.APIKey)
 
-	uploads, err := operate.GetFilteredUploads(client, params.Game, access.Credentials, consumer)
+	uploads, err := operate.GetFilteredUploads(rc.Ctx, client, params.Game, access.Credentials, consumer)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

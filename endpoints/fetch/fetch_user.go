@@ -15,7 +15,7 @@ func FetchUser(rc *butlerd.RequestContext, params butlerd.FetchUserParams) (*but
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		_, client := rc.ProfileClient(params.ProfileID)
 
-		userRes, err := client.GetUser(itchio.GetUserParams{
+		userRes, err := client.GetUser(rc.Ctx, itchio.GetUserParams{
 			UserID: params.UserID,
 		})
 		models.Must(err)

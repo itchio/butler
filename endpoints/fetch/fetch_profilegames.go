@@ -17,7 +17,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 	res := &butlerd.FetchProfileGamesResult{}
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
-		gamesRes, err := client.ListProfileGames()
+		gamesRes, err := client.ListProfileGames(rc.Ctx)
 		models.Must(err)
 
 		profile.ProfileGames = nil
