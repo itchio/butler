@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/itchio/wharf/state"
@@ -40,15 +41,37 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 	printed := false
 
 	isLocked := func() bool {
+		debugf := func(f string, a ...interface{}) {
+			rl.consumer.Debugf(f, a...)
+			printed = true
+		}
+		if printed {
+			debugf = func(f string, a ...interface{}) {}
+		}
+
 		rp, _ := rl.read()
 		if rp == nil {
 			return false
 		}
+		debugf("Has runlock file at (%s), PID (%d)", rl.file(), rp.ButlerPID)
 		proc, _ := os.FindProcess(int(rp.ButlerPID))
 		if proc != nil {
-			// still running
+			debugf("Got a process handle, %#v", proc)
+
+			err := proc.Signal(syscall.Signal(0))
+			if err != nil {
+				debugf("Got error while signalling PID (%d), assuming dead: %#v", rp.ButlerPID, err)
+
+				// not running anymore
+				rl.Unlock()
+				return false
+			}
+
+			debugf("PID (%d) still running!", rp.ButlerPID, proc)
 			proc.Release()
 		} else {
+			debugf("Didn't get a process handle, assuming dead")
+
 			// not running anymore
 			rl.Unlock()
 			return false
