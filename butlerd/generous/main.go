@@ -11,7 +11,9 @@ import (
 	"time"
 )
 
-type GenerousContext struct {
+// generousContext regroups global state for the generous tool
+// along with a few utility methods
+type generousContext struct {
 	Dir string
 }
 
@@ -22,64 +24,66 @@ func main() {
 		log.Printf("generous is a documentation & bindings generator for butlerd")
 		log.Printf("")
 		log.Printf("Usage: generous (godocs|ts [OUT])")
-		log.Printf("  - godocs: generate directly in the $GOPATH tree")
+		log.Printf("  - godocs: generate directly in the butler sources")
 		log.Printf("  - ts: give a target path to generate")
 		os.Exit(1)
 	}
 	mode := os.Args[1]
 
-	gopath := os.Getenv("GOPATH")
-	if gopath == "" {
-		log.Fatalf("$GOPATH must be set")
-	}
-
-	baseDir := filepath.Join(gopath, "src", "github.com", "itchio", "butler", "butlerd", "generous")
-	_, err := os.Stat(baseDir)
-	must(err)
+	baseDir := getGoPackageDir("github.com/itchio/butler/butlerd/generous")
 	log.Printf("Base dir: (%s)", baseDir)
 
-	gc := &GenerousContext{
+	_, err := os.Stat(baseDir)
+	must(err)
+
+	gc := &generousContext{
 		Dir: baseDir,
 	}
 
 	switch mode {
 	case "godocs":
-		must(gc.GenerateDocs())
-		must(gc.GenerateGoCode())
-		must(gc.GenerateSpec())
+		must(gc.generateDocs())
+		must(gc.generateGoCode())
+		must(gc.generateSpec())
 	case "ts":
 		if len(os.Args) < 2 {
 			log.Printf("generous ts: missing output path")
 			os.Exit(1)
 		}
 		tsOut := os.Args[2]
-		must(gc.GenerateTsCode(tsOut))
+		must(gc.generateTsCode(tsOut))
 	}
 }
 
-func (gc *GenerousContext) Task(task string) {
+func getGoPackageDir(pkg string) string {
+	bs, err := exec.Command("go", "list", "-f", "{{ .Dir }}", pkg).Output()
+	must(err)
+	return strings.TrimSpace(string(bs))
+}
+
+func (gc *generousContext) task(task string) {
 	log.Printf("")
 	log.Printf("=========================")
 	log.Printf(">> %s", task)
 	log.Printf("=========================")
 }
 
-func (gc *GenerousContext) ReadFile(file string) string {
+func (gc *generousContext) readFile(file string) string {
 	bs, err := ioutil.ReadFile(filepath.Join(gc.Dir, file))
 	must(err)
 	return string(bs)
 }
 
-func (gc *GenerousContext) NewPathDoc(name string) *Doc {
-	return &Doc{
+func (gc *generousContext) newPathDoc(name string) *document {
+	return &document{
 		gc:   gc,
 		name: name,
 	}
 }
 
-func (gc *GenerousContext) NewGenerousRelativeDoc(relname string) *Doc {
+func (gc *generousContext) newGenerousRelativeDoc(relname string) *document {
 	name := filepath.Join(gc.Dir, filepath.FromSlash(relname))
-	return &Doc{
+	return &document{
 		gc:   gc,
 		name: name,
 	}
@@ -91,26 +95,24 @@ func must(err error) {
 	}
 }
 
-//
-
-type Doc struct {
+type document struct {
 	name string
-	gc   *GenerousContext
+	gc   *generousContext
 
 	doc string
 	buf string
 }
 
-func (d *Doc) Load(doc string) {
+func (d *document) load(doc string) {
 	d.doc = doc
 }
 
-func (d *Doc) Line(msg string, args ...interface{}) {
+func (d *document) line(msg string, args ...interface{}) {
 	d.buf += fmt.Sprintf(msg, args...)
 	d.buf += "\n"
 }
 
-func (d *Doc) Commit(name string) {
+func (d *document) commit(name string) {
 	if name == "" {
 		d.doc = d.buf
 	} else {
@@ -119,19 +121,19 @@ func (d *Doc) Commit(name string) {
 	d.buf = ""
 }
 
-func (b *Doc) Write() {
-	bs := []byte(b.doc)
-	dest := b.name
+func (d *document) write() {
+	bs := []byte(d.doc)
+	dest := d.name
 	log.Printf("Writing (%s)...", dest)
 	must(os.MkdirAll(filepath.Dir(dest), 0755))
 	must(ioutil.WriteFile(dest, bs, 0644))
 }
 
-func (gc *GenerousContext) Timestamp() string {
+func (gc *generousContext) timestamp() string {
 	return time.Now().Format(time.Stamp)
 }
 
-func (gc *GenerousContext) Revision() string {
+func (gc *generousContext) revision() string {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = gc.Dir
 	rev, err := cmd.CombinedOutput()

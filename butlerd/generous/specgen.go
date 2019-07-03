@@ -8,20 +8,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (gc *GenerousContext) GenerateSpec() error {
-	gc.Task("Generating JSON spec")
+func (gc *generousContext) generateSpec() error {
+	gc.task("Generating JSON spec")
 
-	doc := gc.NewGenerousRelativeDoc("spec/butlerd.json")
+	doc := gc.newGenerousRelativeDoc("spec/butlerd.json")
 
 	s := &spec.Spec{}
 
 	scope := newScope(gc)
-	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
-	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.Assimilate("github.com/itchio/dash", "types.go"))
-	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
+	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
+	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
+	must(scope.assimilate("github.com/itchio/dash", "types.go"))
+	must(scope.assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
 
-	encodeStruct := func(entry *Entry) []*spec.FieldSpec {
+	encodeStruct := func(entry *entryInfo) []*spec.FieldSpec {
 		var res []*spec.FieldSpec
 		for _, sf := range entry.structFields {
 			fs := &spec.FieldSpec{
@@ -34,7 +34,7 @@ func (gc *GenerousContext) GenerateSpec() error {
 		return res
 	}
 
-	encodeEnum := func(entry *Entry) []*spec.EnumValueSpec {
+	encodeEnum := func(entry *entryInfo) []*spec.EnumValueSpec {
 		var res []*spec.EnumValueSpec
 		for _, ev := range entry.enumValues {
 			evs := &spec.EnumValueSpec{
@@ -51,14 +51,14 @@ func (gc *GenerousContext) GenerateSpec() error {
 		cat := scope.categories[category]
 		for _, entry := range cat.entries {
 			switch entry.kind {
-			case EntryKindParams:
+			case entryKindParams:
 				params := entry
-				result := scope.FindEntry(strings.TrimSuffix(entry.typeName, "Params") + "Result")
+				result := scope.findEntry(strings.TrimSuffix(entry.typeName, "Params") + "Result")
 				var caller string
 				switch entry.caller {
-				case CallerClient:
+				case callerClient:
 					caller = "client"
-				case CallerServer:
+				case callerServer:
 					caller = "server"
 				}
 
@@ -74,7 +74,7 @@ func (gc *GenerousContext) GenerateSpec() error {
 					Doc: strings.Join(params.doc, "\n"),
 				}
 				s.Requests = append(s.Requests, rs)
-			case EntryKindNotification:
+			case entryKindNotification:
 				ns := &spec.NotificationSpec{
 					Method: entry.name,
 					Params: &spec.StructSpec{
@@ -83,16 +83,16 @@ func (gc *GenerousContext) GenerateSpec() error {
 					Doc: strings.Join(entry.doc, "\n"),
 				}
 				s.Notifications = append(s.Notifications, ns)
-			case EntryKindType:
+			case entryKindType:
 				switch entry.typeKind {
-				case EntryTypeKindStruct:
+				case entryTypeKindStruct:
 					sts := &spec.StructTypeSpec{
 						Name:   entry.name,
 						Doc:    strings.Join(entry.doc, "\n"),
 						Fields: encodeStruct(entry),
 					}
 					s.StructTypes = append(s.StructTypes, sts)
-				case EntryTypeKindEnum:
+				case entryTypeKindEnum:
 					ets := &spec.EnumTypeSpec{
 						Name:   entry.name,
 						Doc:    strings.Join(entry.doc, "\n"),
@@ -109,9 +109,9 @@ func (gc *GenerousContext) GenerateSpec() error {
 		return errors.WithStack(err)
 	}
 
-	doc.Line(string(js))
-	doc.Commit("")
-	doc.Write()
+	doc.line(string(js))
+	doc.commit("")
+	doc.write()
 
 	return nil
 }

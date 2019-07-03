@@ -6,26 +6,26 @@ import (
 	"strings"
 )
 
-func (bc *GenerousContext) GenerateDocs() error {
-	bc.Task("Generating docs")
+func (bc *generousContext) generateDocs() error {
+	bc.task("Generating docs")
 
-	doc := bc.NewGenerousRelativeDoc("docs/README.md")
-	doc.Load(bc.ReadFile("layout.md"))
+	doc := bc.newGenerousRelativeDoc("docs/README.md")
+	doc.load(bc.readFile("layout.md"))
 
 	scope := newScope(bc)
-	must(scope.Assimilate("github.com/itchio/butler/butlerd", "types.go"))
-	must(scope.Assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.Assimilate("github.com/itchio/dash", "types.go"))
-	must(scope.Assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
+	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
+	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
+	must(scope.assimilate("github.com/itchio/dash", "types.go"))
+	must(scope.assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
 
-	dumpStruct := func(header string, entry *Entry, showDesc bool) {
+	dumpStruct := func(header string, entry *entryInfo, showDesc bool) {
 		ts := entry.typeSpec
 
-		doc.Line("")
+		doc.line("")
 		if len(entry.doc) > 0 {
-			doc.Line("<p>")
-			doc.Line(scope.MarkdownAll(entry.doc, showDesc))
-			doc.Line("</p>")
+			doc.line("<p>")
+			doc.line(scope.markdownAll(entry.doc, showDesc))
+			doc.line("</p>")
 		}
 
 		st := ts.Type.(*ast.StructType)
@@ -33,25 +33,25 @@ func (bc *GenerousContext) GenerateDocs() error {
 
 		if len(fl) == 0 {
 			if header != "" {
-				doc.Line("")
-				doc.Line("<p>")
-				doc.Line("<span class=%#v>%s</span> <em>none</em>", "header", header)
-				doc.Line("</p>")
-				doc.Line("")
+				doc.line("")
+				doc.line("<p>")
+				doc.line("<span class=%#v>%s</span> <em>none</em>", "header", header)
+				doc.line("</p>")
+				doc.line("")
 			}
 			return
 		}
 
 		if header != "" {
-			doc.Line("")
-			doc.Line("<p>")
-			doc.Line("<span class=%#v>%s</span> ", "header", header)
-			doc.Line("</p>")
-			doc.Line("")
+			doc.line("")
+			doc.line("<p>")
+			doc.line("<span class=%#v>%s</span> ", "header", header)
+			doc.line("</p>")
+			doc.line("")
 		}
 
-		doc.Line("")
-		doc.Line("<table class=%#v>", "field-table")
+		doc.line("")
+		doc.line("<table class=%#v>", "field-table")
 
 		for _, sf := range entry.structFields {
 			var beforeDesc = ""
@@ -59,110 +59,110 @@ func (bc *GenerousContext) GenerateDocs() error {
 				beforeDesc = fmt.Sprintf("<span class=%#v>Optional</span> ", "tag")
 			}
 
-			doc.Line("<tr>")
-			doc.Line("<td><code>%s</code></td>", sf.name)
-			doc.Line("<td>%s</td>", scope.LinkType(sf.typeString, showDesc))
+			doc.line("<tr>")
+			doc.line("<td><code>%s</code></td>", sf.name)
+			doc.line("<td>%s</td>", scope.linkType(sf.typeString, showDesc))
 			if showDesc {
 				comment := strings.Join(sf.doc, "\n")
-				doc.Line("<td>%s</td>", scope.Markdown(beforeDesc+comment, showDesc))
+				doc.line("<td>%s</td>", scope.markdown(beforeDesc+comment, showDesc))
 			}
-			doc.Line("</tr>")
+			doc.line("</tr>")
 		}
 
-		doc.Line("</table>")
-		doc.Line("")
+		doc.line("</table>")
+		doc.line("")
 	}
 
-	dumpEnum := func(header string, entry *Entry, showDesc bool) {
-		doc.Line("")
+	dumpEnum := func(header string, entry *entryInfo, showDesc bool) {
+		doc.line("")
 		if len(entry.doc) > 0 {
-			doc.Line("<p>")
-			doc.Line(scope.MarkdownAll(entry.doc, showDesc))
-			doc.Line("</p>")
+			doc.line("<p>")
+			doc.line(scope.markdownAll(entry.doc, showDesc))
+			doc.line("</p>")
 		}
 
 		values := entry.enumValues
 
 		if len(values) == 0 {
 			if header != "" {
-				doc.Line("")
-				doc.Line("<p>")
-				doc.Line("<span class=%#v>%s</span> <em>none</em>", "header", header)
-				doc.Line("</p>")
-				doc.Line("")
+				doc.line("")
+				doc.line("<p>")
+				doc.line("<span class=%#v>%s</span> <em>none</em>", "header", header)
+				doc.line("</p>")
+				doc.line("")
 			}
 			return
 		}
 
 		if header != "" {
-			doc.Line("")
-			doc.Line("<p>")
-			doc.Line("<span class=%#v>%s</span> ", "header", header)
-			doc.Line("</p>")
-			doc.Line("")
+			doc.line("")
+			doc.line("<p>")
+			doc.line("<span class=%#v>%s</span> ", "header", header)
+			doc.line("</p>")
+			doc.line("")
 		}
 
-		doc.Line("")
-		doc.Line("<table class=%#v>", "field-table")
+		doc.line("")
+		doc.line("<table class=%#v>", "field-table")
 
 		for _, v := range values {
-			doc.Line("<tr>")
-			doc.Line("<td><code>%s</code></td>", v.value)
+			doc.line("<tr>")
+			doc.line("<td><code>%s</code></td>", v.value)
 			if showDesc {
 				comment := strings.Join(v.doc, "\n")
-				doc.Line("<td>%s</td>", scope.Markdown(comment, showDesc))
+				doc.line("<td>%s</td>", scope.markdown(comment, showDesc))
 			}
-			doc.Line("</tr>")
+			doc.line("</tr>")
 		}
-		doc.Line("</table>")
-		doc.Line("")
+		doc.line("</table>")
+		doc.line("")
 	}
 
-	kindString := func(entry *Entry) string {
+	kindString := func(entry *entryInfo) string {
 		switch entry.kind {
-		case EntryKindParams:
+		case entryKindParams:
 			switch entry.caller {
-			case CallerClient:
+			case callerClient:
 				return `<em class="request-client-caller"></em>`
-			case CallerServer:
+			case callerServer:
 				return `<em class="request-server-caller"></em>`
 			}
-		case EntryKindNotification:
+		case entryKindNotification:
 			return `<em class="notification"></em>`
-		case EntryKindType:
+		case entryKindType:
 			return `<em class="struct-type"></em>`
-		case EntryKindEnum:
+		case entryKindEnum:
 			return `<em class="enum-type"></em>`
 		}
 		return ""
 	}
 
-	renderHeader := func(entry *Entry) {
-		doc.Line("### %s%s", kindString(entry), entry.name)
-		doc.Line("")
+	renderHeader := func(entry *entryInfo) {
+		doc.line("### %s%s", kindString(entry), entry.name)
+		doc.line("")
 	}
 
-	renderTypeHint := func(entry *Entry) {
+	renderTypeHint := func(entry *entryInfo) {
 		id := entry.typeName + "__TypeHint"
-		doc.Line("")
-		doc.Line("<div id=%#v style=%#v class=%#v>", id, "display: none;", "tip-content")
-		doc.Line("<p>%s%s <a href=%#v>(Go to definition)</a></p>", kindString(entry), entry.name, fmt.Sprintf("#/?id=%s", linkify(entry.name)))
+		doc.line("")
+		doc.line("<div id=%#v style=%#v class=%#v>", id, "display: none;", "tip-content")
+		doc.line("<p>%s%s <a href=%#v>(Go to definition)</a></p>", kindString(entry), entry.name, fmt.Sprintf("#/?id=%s", linkify(entry.name)))
 
 		switch entry.typeKind {
-		case EntryTypeKindStruct:
+		case entryTypeKindStruct:
 			dumpStruct("", entry, false)
-		case EntryTypeKindEnum:
+		case entryTypeKindEnum:
 			dumpEnum("", entry, false)
 		}
-		doc.Line("</div>")
-		doc.Line("")
+		doc.line("</div>")
+		doc.line("")
 	}
 
-	renderRequest := func(params *Entry) {
+	renderRequest := func(params *entryInfo) {
 		paramsName := asType(params.gd).Name.Name
 		resultName := strings.TrimSuffix(paramsName, "Params") + "Result"
 
-		result := scope.FindEntry(resultName)
+		result := scope.findEntry(resultName)
 
 		renderHeader(params)
 		dumpStruct("Parameters", params, true)
@@ -172,47 +172,47 @@ func (bc *GenerousContext) GenerateDocs() error {
 		renderTypeHint(result)
 	}
 
-	renderNotification := func(entry *Entry) {
+	renderNotification := func(entry *entryInfo) {
 		renderHeader(entry)
 		dumpStruct("Payload", entry, true)
 
 		renderTypeHint(entry)
 	}
 
-	renderType := func(entry *Entry) {
+	renderType := func(entry *entryInfo) {
 		renderHeader(entry)
 		dumpStruct("Fields", entry, true)
 
 		renderTypeHint(entry)
 	}
 
-	renderEnum := func(entry *Entry) {
+	renderEnum := func(entry *entryInfo) {
 		renderHeader(entry)
 		dumpEnum("Values", entry, true)
 
 		renderTypeHint(entry)
 	}
 
-	renderAlias := func(entry *Entry) {
+	renderAlias := func(entry *entryInfo) {
 		renderHeader(entry)
-		doc.Line("")
+		doc.line("")
 		if len(entry.doc) > 0 {
-			doc.Line("<p>")
-			doc.Line(scope.MarkdownAll(entry.doc, true))
-			doc.Line("</p>")
+			doc.line("<p>")
+			doc.line(scope.markdownAll(entry.doc, true))
+			doc.line("</p>")
 		}
 		if id, ok := entry.typeSpec.Type.(*ast.Ident); ok {
-			doc.Line("Type alias for %s", id.Name)
+			doc.line("Type alias for %s", id.Name)
 		} else {
-			doc.Line("Type alias")
+			doc.line("Type alias")
 		}
 
 		renderTypeHint(entry)
 	}
 
-	doc.Line("")
-	doc.Line("# Messages")
-	doc.Line("")
+	doc.line("")
+	doc.line("# Messages")
+	doc.line("")
 
 	// Make sure the Misc. category is at the end
 	var ourCategoryList []string
@@ -224,29 +224,29 @@ func (bc *GenerousContext) GenerateDocs() error {
 	ourCategoryList = append(ourCategoryList, "Miscellaneous")
 
 	for _, category := range ourCategoryList {
-		doc.Line("")
-		doc.Line("## %s", category)
-		doc.Line("")
+		doc.line("")
+		doc.line("## %s", category)
+		doc.line("")
 
 		cat := scope.categories[category]
 		for _, entry := range cat.entries {
 			switch entry.kind {
-			case EntryKindParams:
+			case entryKindParams:
 				renderRequest(entry)
-			case EntryKindNotification:
+			case entryKindNotification:
 				renderNotification(entry)
-			case EntryKindType:
+			case entryKindType:
 				renderType(entry)
-			case EntryKindEnum:
+			case entryKindEnum:
 				renderEnum(entry)
-			case EntryKindAlias:
+			case entryKindAlias:
 				renderAlias(entry)
 			}
 		}
 	}
 
-	doc.Commit("{{EVERYTHING}}")
-	doc.Write()
+	doc.commit("{{EVERYTHING}}")
+	doc.write()
 
 	return nil
 }

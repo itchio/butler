@@ -6,7 +6,6 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -16,28 +15,28 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-type Scope struct {
-	categories   map[string]*Category
+type scope struct {
+	categories   map[string]*categoryInfo
 	categoryList []string
-	entries      map[string]*Entry
-	gc           *GenerousContext
+	entries      map[string]*entryInfo
+	gc           *generousContext
 }
 
-type Category struct {
-	entries []*Entry
+type categoryInfo struct {
+	entries []*entryInfo
 }
 
-type Caller int
+type callerInfo int
 
 const (
-	CallerUnknown Caller = iota
-	CallerClient
-	CallerServer
+	callerUnknown callerInfo = iota
+	callerClient
+	callerServer
 )
 
-type Entry struct {
-	kind         EntryKind
-	typeKind     EntryTypeKind
+type entryInfo struct {
+	kind         entryKind
+	typeKind     entryTypeKind
 	gd           *ast.GenDecl
 	typeSpec     *ast.TypeSpec
 	tags         []string
@@ -45,18 +44,18 @@ type Entry struct {
 	doc          []string
 	name         string
 	typeName     string
-	caller       Caller
-	enumValues   []*EnumValue
-	structFields []*StructField
+	caller       callerInfo
+	enumValues   []*enumValue
+	structFields []*structField
 }
 
-type EnumValue struct {
+type enumValue struct {
 	name  string
 	value string
 	doc   []string
 }
 
-type StructField struct {
+type structField struct {
 	goName     string
 	name       string
 	typeString string
@@ -65,51 +64,42 @@ type StructField struct {
 	optional   bool
 }
 
-type EntryTypeKind int
+type entryTypeKind int
 
 const (
-	EntryTypeKindStruct EntryTypeKind = iota
-	EntryTypeKindEnum
-	EntryTypeKindAlias
-	EntryTypeKindInvalid
+	entryTypeKindStruct entryTypeKind = iota
+	entryTypeKindEnum
+	entryTypeKindAlias
+	entryTypeKindInvalid
 )
 
-type EntryKind int
+type entryKind int
 
 const (
-	EntryKindParams EntryKind = iota
-	EntryKindResult
-	EntryKindNotification
-	EntryKindType
-	EntryKindEnum
-	EntryKindAlias
-	EntryKindInvalid
+	entryKindParams entryKind = iota
+	entryKindResult
+	entryKindNotification
+	entryKindType
+	entryKindEnum
+	entryKindAlias
+	entryKindInvalid
 )
 
-func newScope(gc *GenerousContext) *Scope {
-	return &Scope{
-		categories:   make(map[string]*Category),
+func newScope(gc *generousContext) *scope {
+	return &scope{
+		categories:   make(map[string]*categoryInfo),
 		categoryList: nil,
-		entries:      make(map[string]*Entry),
+		entries:      make(map[string]*entryInfo),
 		gc:           gc,
 	}
 }
 
 const butlerPkg = "github.com/itchio/butler"
 
-func (s *Scope) Assimilate(pkg string, file string) error {
+func (s *scope) assimilate(pkg string, file string) error {
 	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
 
-	var rootPath = filepath.Join(s.gc.Dir, "..", "..")
-
-	var relativePath string
-	if strings.HasPrefix(pkg, butlerPkg) {
-		relativePath = strings.TrimPrefix(pkg, butlerPkg)
-	} else {
-		relativePath = path.Join("vendor", pkg)
-	}
-
-	absoluteFilePath := filepath.Join(rootPath, filepath.FromSlash(relativePath), file)
+	absoluteFilePath := filepath.Join(getGoPackageDir(pkg), file)
 	log.Printf("Parsing (%s)", absoluteFilePath)
 	prefix := ""
 
@@ -123,40 +113,40 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 		if gd, ok := decl.(*ast.GenDecl); ok {
 			ts := asType(gd)
 			if ts != nil {
-				var typeKind = EntryTypeKindInvalid
+				var typeKind = entryTypeKindInvalid
 				if isStruct(ts) {
-					typeKind = EntryTypeKindStruct
+					typeKind = entryTypeKindStruct
 				} else if isEnum(ts) {
-					typeKind = EntryTypeKindEnum
+					typeKind = entryTypeKindEnum
 				}
 
-				if typeKind != EntryTypeKindInvalid {
+				if typeKind != entryTypeKindInvalid {
 					tsName := ts.Name.Name
 
-					kind := EntryKindInvalid
+					kind := entryKindInvalid
 
 					switch typeKind {
-					case EntryTypeKindEnum:
-						kind = EntryKindEnum
-					case EntryTypeKindStruct:
+					case entryTypeKindEnum:
+						kind = entryKindEnum
+					case entryTypeKindStruct:
 						switch true {
 						case strings.HasSuffix(tsName, "Notification"):
-							kind = EntryKindNotification
+							kind = entryKindNotification
 						case strings.HasSuffix(tsName, "Params"):
-							kind = EntryKindParams
+							kind = entryKindParams
 						case strings.HasSuffix(tsName, "Result"):
-							kind = EntryKindResult
+							kind = entryKindResult
 						default:
-							kind = EntryKindType
+							kind = entryKindType
 						}
 					}
 
-					if kind != EntryKindInvalid {
+					if kind != entryKindInvalid {
 						category := "Miscellaneous"
 						var tags []string
 						var customName string
 						var doc []string
-						var caller = CallerUnknown
+						var caller = callerUnknown
 
 						lines := getCommentLines(gd.Doc)
 						if len(lines) > 0 {
@@ -166,7 +156,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 								case "kind":
 									switch value {
 									case "type":
-										kind = EntryKindType
+										kind = entryKindType
 									default:
 										log.Fatalf("Unknown @kind: (%s)", value)
 									}
@@ -179,9 +169,9 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 								case "caller":
 									switch value {
 									case "server":
-										caller = CallerServer
+										caller = callerServer
 									case "client":
-										caller = CallerClient
+										caller = callerClient
 									default:
 										panic(fmt.Sprintf("invalid caller specified for (%s): %s (must be server or client)", tsName, value))
 									}
@@ -204,22 +194,22 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 						if customName == "" {
 							name = tsName
 							switch kind {
-							case EntryKindParams:
+							case entryKindParams:
 								name = strings.TrimSuffix(name, "Params")
-							case EntryKindResult:
+							case entryKindResult:
 								name = strings.TrimSuffix(name, "Result")
-							case EntryKindNotification:
+							case entryKindNotification:
 								name = strings.TrimSuffix(name, "Notification")
 							}
 						} else {
 							name = customName
 						}
 
-						if kind == EntryKindParams && caller == CallerUnknown {
+						if kind == entryKindParams && caller == callerUnknown {
 							panic(fmt.Sprintf("no caller specified for (%s) (must be server or client)", tsName))
 						}
 
-						e := &Entry{
+						e := &entryInfo{
 							kind:     kind,
 							typeKind: typeKind,
 							name:     prefix + name,
@@ -232,7 +222,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 							caller:   caller,
 						}
 
-						if typeKind == EntryTypeKindStruct {
+						if typeKind == entryTypeKindStruct {
 							st := ts.Type.(*ast.StructType)
 							for _, sf := range st.Fields.List {
 								if sf.Tag == nil {
@@ -264,7 +254,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 									doc = append(doc, line)
 								}
 
-								e.structFields = append(e.structFields, &StructField{
+								e.structFields = append(e.structFields, &structField{
 									goName:     sf.Names[0].Name,
 									name:       jsonTag.Name,
 									doc:        doc,
@@ -275,7 +265,7 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 							}
 						}
 
-						s.AddEntry(category, e)
+						s.addEntry(category, e)
 
 						s.entries[tsName] = e
 					}
@@ -293,14 +283,14 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 				for _, spec := range gd.Specs {
 					if vs, ok := spec.(*ast.ValueSpec); ok {
 						if typeid, ok := vs.Type.(*ast.Ident); ok {
-							if enum, ok := s.entries[typeid.Name]; ok && enum.kind == EntryKindEnum {
+							if enum, ok := s.entries[typeid.Name]; ok && enum.kind == entryKindEnum {
 								hadValidType = true
 								name := vs.Names[0]
 								val := vs.Values[0]
 								if bl, ok := val.(*ast.BasicLit); ok {
 									if bl.Kind == token.STRING || bl.Kind == token.INT {
 										shortName := strings.TrimPrefix(name.Name, enum.typeName)
-										enum.enumValues = append(enum.enumValues, &EnumValue{
+										enum.enumValues = append(enum.enumValues, &enumValue{
 											name:  shortName,
 											value: bl.Value,
 											doc:   getCommentLines(vs.Doc),
@@ -325,65 +315,65 @@ func (s *Scope) Assimilate(pkg string, file string) error {
 	}
 
 	for _, entry := range s.entries {
-		if entry.kind == EntryKindEnum && len(entry.enumValues) == 0 {
-			entry.kind = EntryKindAlias
-			entry.typeKind = EntryTypeKindAlias
+		if entry.kind == entryKindEnum && len(entry.enumValues) == 0 {
+			entry.kind = entryKindAlias
+			entry.typeKind = entryTypeKindAlias
 		}
 	}
 
 	return nil
 }
 
-func (s *Scope) LinkType(typeName string, tip bool) string {
-	return fmt.Sprintf("<code class=%#v>%s</code>", "typename", s.LinkTypeInner(typeName, tip))
+func (s *scope) linkType(typeName string, tip bool) string {
+	return fmt.Sprintf("<code class=%#v>%s</code>", "typename", s.linkTypeInner(typeName, tip))
 }
 
 var doubleAtRe = regexp.MustCompile(`@@[\w]+`)
 
-func (s *Scope) MarkdownAll(input []string, tip bool) string {
-	return s.Markdown(strings.Join(input, "\n"), tip)
+func (s *scope) markdownAll(input []string, tip bool) string {
+	return s.markdown(strings.Join(input, "\n"), tip)
 }
 
-func (s *Scope) Markdown(input string, tip bool) string {
+func (s *scope) markdown(input string, tip bool) string {
 	buf := string(blackfriday.Run([]byte(input)))
 	matches := doubleAtRe.FindAllString(buf, -1)
 	for _, m := range matches {
 		var typeName = strings.TrimPrefix(m, "@@")
-		buf = strings.Replace(buf, m, s.LinkType(typeName, tip), -1)
+		buf = strings.Replace(buf, m, s.linkType(typeName, tip), -1)
 	}
 	return buf
 }
 
 var mapRegexp = regexp.MustCompile(`Map<([^,]+),\s*([^>]+)>`)
 
-func (s *Scope) LinkTypeInner(typeName string, tip bool) string {
+func (s *scope) linkTypeInner(typeName string, tip bool) string {
 	mapMatches := mapRegexp.FindStringSubmatch(typeName)
 	if len(mapMatches) > 0 {
-		return fmt.Sprintf(`Map&lt;%s, %s&gt;`, s.LinkTypeInner(mapMatches[1], tip), s.LinkTypeInner(mapMatches[2], tip))
+		return fmt.Sprintf(`Map&lt;%s, %s&gt;`, s.linkTypeInner(mapMatches[1], tip), s.linkTypeInner(mapMatches[2], tip))
 	}
 
 	if strings.HasSuffix(typeName, "[]") {
-		return s.LinkTypeInner(strings.TrimSuffix(typeName, "[]"), tip) + "[]"
+		return s.linkTypeInner(strings.TrimSuffix(typeName, "[]"), tip) + "[]"
 	}
 
 	if entry, ok := s.entries[typeName]; ok {
 		var className string
 		switch entry.typeKind {
-		case EntryTypeKindStruct:
+		case entryTypeKindStruct:
 			switch entry.kind {
-			case EntryKindParams:
+			case entryKindParams:
 				switch entry.caller {
-				case CallerClient:
+				case callerClient:
 					className = "type request-client-caller"
-				case CallerServer:
+				case callerServer:
 					className = "type request-server-caller"
 				}
-			case EntryKindNotification:
+			case entryKindNotification:
 				className = "type notification"
 			default:
 				className = "type struct-type"
 			}
-		case EntryTypeKindEnum:
+		case entryTypeKindEnum:
 			className = "type enum-type"
 		}
 
@@ -397,11 +387,11 @@ func (s *Scope) LinkTypeInner(typeName string, tip bool) string {
 	return fmt.Sprintf(`<span class=%#v>%s</span>`, "type builtin-type", typeName)
 }
 
-func (s *Scope) AddEntry(category string, e *Entry) {
+func (s *scope) addEntry(category string, e *entryInfo) {
 	e.category = category
 	cat, ok := s.categories[category]
 	if !ok {
-		cat = &Category{}
+		cat = &categoryInfo{}
 		s.categoryList = append(s.categoryList, category)
 		s.categories[category] = cat
 	}
@@ -409,6 +399,6 @@ func (s *Scope) AddEntry(category string, e *Entry) {
 	cat.entries = append(cat.entries, e)
 }
 
-func (s *Scope) FindEntry(name string) *Entry {
+func (s *scope) findEntry(name string) *entryInfo {
 	return s.entries[name]
 }
