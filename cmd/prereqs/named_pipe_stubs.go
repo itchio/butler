@@ -5,7 +5,7 @@ package prereqs
 import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 type NamedPipe struct {

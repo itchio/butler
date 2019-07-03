@@ -1,6 +1,6 @@
 package memorylogger
 
-import "github.com/itchio/wharf/state"
+import "github.com/itchio/headway/state"
 
 // MemoryLogger
 

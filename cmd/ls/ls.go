@@ -8,20 +8,26 @@ import (
 
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/dmg/dmgextract"
-
-	"github.com/itchio/arkive/zip"
-	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/arkive/zip"
+	"github.com/itchio/boar"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/savior"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+
+	"github.com/itchio/lake/tlc"
+
 	"github.com/pkg/errors"
 )
 
@@ -247,7 +253,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 					return false
 				}
 
-				comm.Logf("%s %10s %s", os.FileMode(hdr.Mode), progress.FormatBytes(hdr.Size), hdr.Name)
+				comm.Logf("%s %10s %s", os.FileMode(hdr.Mode), united.FormatBytes(hdr.Size), hdr.Name)
 			}
 			return true
 		}()
@@ -269,7 +275,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 				OnEntries: func(entries []*savior.Entry) {
 					numEntries += len(entries)
 					for _, e := range entries {
-						comm.Logf("%s %10s %s", e.Mode, progress.FormatBytes(e.UncompressedSize), e.CanonicalPath)
+						comm.Logf("%s %10s %s", e.Mode, united.FormatBytes(e.UncompressedSize), e.CanonicalPath)
 					}
 				},
 			})

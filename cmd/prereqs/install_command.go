@@ -12,7 +12,7 @@ import (
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/ox"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/installer"

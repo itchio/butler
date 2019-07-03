@@ -5,19 +5,18 @@ import (
 	"os"
 	"time"
 
-	"github.com/itchio/httpkit/progress"
-
-	"github.com/itchio/wharf/counter"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/headway/counter"
 
 	"github.com/itchio/arkive/zip"
 
 	"github.com/itchio/butler/comm"
-
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/pools/fspool"
-	"github.com/itchio/wharf/pools/zipwriterpool"
-	"github.com/itchio/wharf/tlc"
+
+	"github.com/itchio/lake/tlc"
+	"github.com/itchio/lake/pools/fspool"
+	"github.com/itchio/lake/pools/zipwriterpool"
 )
 
 var args = struct {
@@ -112,8 +111,8 @@ func do(ctx *mansion.Context) error {
 
 	duration := time.Since(startTime)
 	consumer.Statf("Compressed @ %s (%s total)",
-		progress.FormatBPS(container.Size, duration),
-		progress.FormatDuration(duration),
+		united.FormatBPS(container.Size, duration),
+		united.FormatDuration(duration),
 	)
 	return nil
 }

@@ -6,7 +6,8 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
 )
 
 var args = struct {
@@ -25,7 +26,7 @@ func do(ctx *mansion.Context) {
 	ctx.Must(err)
 
 	comm.ResultOrPrint(totalSize, func() {
-		comm.Logf("Total size of %s: %s", path, progress.FormatBytes(totalSize))
+		comm.Logf("Total size of %s: %s", path, united.FormatBytes(totalSize))
 	})
 }
 

@@ -15,7 +15,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/handlers"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )

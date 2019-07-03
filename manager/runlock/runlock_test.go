@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/manager/runlock"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/wharf/wtest"
 	"github.com/stretchr/testify/assert"
 )

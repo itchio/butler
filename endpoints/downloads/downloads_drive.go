@@ -24,7 +24,7 @@ import (
 	"github.com/itchio/butler/database/models"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/itchio/hades"
 )
 

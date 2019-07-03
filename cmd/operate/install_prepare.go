@@ -7,9 +7,9 @@ import (
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
 	"github.com/pkg/errors"
 )
 
@@ -129,7 +129,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 						}
 					}
 
-					consumer.Infof(" - Build %d (%s)", b.ID, progress.FormatBytes(f.Size))
+					consumer.Infof(" - Build %d (%s)", b.ID, united.FormatBytes(f.Size))
 					totalUpgradeSize += f.Size
 				}
 				fullUploadSize := params.Upload.Size
@@ -139,9 +139,9 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 					comparative = "larger than"
 				}
 				consumer.Infof("Total upgrade size %s is %s full upload %s",
-					progress.FormatBytes(totalUpgradeSize),
+					united.FormatBytes(totalUpgradeSize),
 					comparative,
-					progress.FormatBytes(fullUploadSize),
+					united.FormatBytes(fullUploadSize),
 				)
 
 				if totalUpgradeSize > fullUploadSize {
@@ -246,8 +246,8 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		}
 
 		consumer.Infof("Estimated disk usage (accuracy: %s)", dui.Accuracy)
-		consumer.Infof("  ✓ %s needed free space", progress.FormatBytes(dui.NeededFreeSpace))
-		consumer.Infof("  ✓ %s final disk usage", progress.FormatBytes(dui.FinalDiskUsage))
+		consumer.Infof("  ✓ %s needed free space", united.FormatBytes(dui.NeededFreeSpace))
+		consumer.Infof("  ✓ %s final disk usage", united.FormatBytes(dui.FinalDiskUsage))
 
 		istate.InstallerInfo = installerInfo
 		err = oc.Save(isub)

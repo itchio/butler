@@ -13,8 +13,8 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
 	"github.com/itchio/wharf/pwr/patcher"
 
 	"github.com/itchio/butler/installer"

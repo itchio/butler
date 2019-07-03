@@ -9,15 +9,17 @@ import (
 
 	"github.com/itchio/boar"
 	"github.com/itchio/boar/szextractor"
-	"github.com/itchio/httpkit/progress"
 
 	"github.com/itchio/savior"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -156,7 +158,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	}
 
 	duration := time.Since(startTime)
-	consumer.Statf("Overall extraction speed: %s", progress.FormatBPS(extractSize, duration))
+	consumer.Statf("Overall extraction speed: %s", united.FormatBPS(extractSize, duration))
 
 	return nil
 }

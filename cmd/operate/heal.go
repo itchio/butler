@@ -8,11 +8,15 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
-	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/tlc"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/headway/united"
+
+	"github.com/itchio/lake/tlc"
 
 	"github.com/itchio/wharf/pwr"
 	"github.com/pkg/errors"
@@ -60,7 +64,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	}
 
 	consumer.Infof("Fetching + parsing %s signature...",
-		progress.FormatBytes(stat.Size()),
+		united.FormatBytes(stat.Size()),
 	)
 
 	signatureSource := seeksource.FromFile(signatureFile)
@@ -79,7 +83,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	consumer.Infof("✓ Fetched signature in %s, dealing with %s container",
 		time.Since(timeBeforeSig),
-		progress.FormatBytes(sigInfo.Container.Size),
+		united.FormatBytes(sigInfo.Container.Size),
 	)
 
 	consumer.Infof("Healing container...")
@@ -99,26 +103,26 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	if vc.WoundsConsumer.HasWounds() {
 		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
 			totalHealed := healer.TotalHealed()
-			perSec := progress.FormatBPS(totalHealed, healDuration)
+			perSec := united.FormatBPS(totalHealed, healDuration)
 
 			consumer.Infof("✓ %s corrupted data found (of %s total), %s healed @ %s/s, %s total",
-				progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
-				progress.FormatBytes(sigInfo.Container.Size),
-				progress.FormatBytes(totalHealed),
+				united.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
+				united.FormatBytes(sigInfo.Container.Size),
+				united.FormatBytes(totalHealed),
 				perSec,
-				progress.FormatDuration(healDuration),
+				united.FormatDuration(healDuration),
 			)
 		} else {
 			consumer.Warnf("%s corrupted data found (of %s total)",
-				progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
-				progress.FormatBytes(sigInfo.Container.Size),
+				united.FormatBytes(vc.WoundsConsumer.TotalCorrupted()),
+				united.FormatBytes(sigInfo.Container.Size),
 			)
 		}
 	} else {
-		perSec := progress.FormatBPS(containerSize, healDuration)
+		perSec := united.FormatBPS(containerSize, healDuration)
 
 		consumer.Infof("✓ All %s were healthy (checked @ %s/s, %s total)",
-			progress.FormatBytes(containerSize),
+			united.FormatBytes(containerSize),
 			perSec,
 			healDuration,
 		)

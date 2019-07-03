@@ -5,9 +5,13 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
+
+	"github.com/itchio/httpkit/eos"
+
 	"github.com/itchio/wharf/archiver"
-	"github.com/itchio/wharf/eos"
+
 	"github.com/pkg/errors"
 )
 
@@ -86,14 +90,14 @@ func Do(ctx *mansion.Context, params *UnzipParams) error {
 	comm.EndProgress()
 
 	duration := time.Since(startTime)
-	bytesPerSec := progress.FormatBPS(zipUncompressedSize, duration)
+	bytesPerSec := united.FormatBPS(zipUncompressedSize, duration)
 
 	if err != nil {
 		return errors.Wrap(err, "unzipping")
 	}
 	comm.Logf("Extracted %d dirs, %d files, %d symlinks, %s at %s/s",
 		res.Dirs, res.Files, res.Symlinks,
-		progress.FormatBytes(zipUncompressedSize), bytesPerSec)
+		united.FormatBytes(zipUncompressedSize), bytesPerSec)
 
 	return nil
 }

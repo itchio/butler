@@ -8,20 +8,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/httpkit/uploader"
+
+	itchio "github.com/itchio/go-itchio"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
-	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/httpkit/uploader"
+
+	"github.com/itchio/headway/counter"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/headway/state"
+
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/eos"
+
+	"github.com/itchio/lake"
+	"github.com/itchio/lake/tlc"
+
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/state"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wsync"
 	"github.com/pkg/errors"
 )
@@ -247,7 +253,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	// creation & upload setup is done
 
 	var sourceContainer *tlc.Container
-	var sourcePool wsync.Pool
+	var sourcePool lake.Pool
 
 	comm.Debugf("Waiting for source container")
 	select {
@@ -283,9 +289,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		if leftBytes > almostThereThreshold {
 			netStatus := "- network idle"
 			if bytesPerSec > 1 {
-				netStatus = fmt.Sprintf("@ %s/s", progress.FormatBytes(int64(bytesPerSec)))
+				netStatus = fmt.Sprintf("@ %s/s", united.FormatBytes(int64(bytesPerSec)))
 			}
-			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, progress.FormatBytes(leftBytes)))
+			comm.ProgressLabel(fmt.Sprintf("%s, %s left", netStatus, united.FormatBytes(leftBytes)))
 		} else {
 			comm.ProgressLabel(fmt.Sprintf("- almost there"))
 		}
@@ -396,10 +402,10 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.EndProgress()
 
 	{
-		prettyPatchSize := progress.FormatBytes(patchCounter.Count())
+		prettyPatchSize := united.FormatBytes(patchCounter.Count())
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := progress.FormatBytes(dctx.FreshBytes)
+		prettyFreshSize := united.FormatBytes(dctx.FreshBytes)
 		savings := 100.0 - relToNew
 
 		if dctx.ReusedBytes > 0 {

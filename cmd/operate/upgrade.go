@@ -12,12 +12,18 @@ import (
 
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/savior/filesource"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/pools/fspool"
+
+	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/lake/pools/fspool"
+
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
+
 	"github.com/pkg/errors"
 )
 
@@ -117,7 +123,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		return errors.Wrap(err, "opening remote patch")
 	}
 
-	consumer.Infof("Patch is %s", progress.FormatBytes(patchSource.Size()))
+	consumer.Infof("Patch is %s", united.FormatBytes(patchSource.Size()))
 
 	checkpointPath := filepath.Join(oc.StageFolder(), fmt.Sprintf("patch-%d-%s-checkpoint", build.ID, subType))
 	consumer.Debugf("Using checkpoint (%s)", checkpointPath)

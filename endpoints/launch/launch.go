@@ -8,31 +8,32 @@ import (
 	"sync"
 	"time"
 
-	"github.com/itchio/butler/manager/runlock"
-
-	"github.com/itchio/butler/butlerd/horror"
-	"github.com/itchio/butler/database/models"
-	"github.com/itchio/hades"
-
-	"github.com/itchio/httpkit/neterr"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/ox"
-
-	"github.com/itchio/pelican"
-
 	goerrors "errors"
+	"github.com/pkg/errors"
 
-	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/butler/manager/runlock"
+	"github.com/itchio/butler/database/models"
+
+	"github.com/itchio/hades"
+
+	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/ox"
+
+	"github.com/itchio/pelican"
+
+	"crawshaw.io/sqlite"
 	"github.com/itchio/dash"
+
 	itchio "github.com/itchio/go-itchio"
-	"github.com/pkg/errors"
 )
 
 var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
@@ -335,7 +336,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		default:
 			fakeActions := []*butlerd.Action{}
 			for _, c := range candidates {
-				name := fmt.Sprintf("%s (%s)", c.Path, progress.FormatBytes(c.Size))
+				name := fmt.Sprintf("%s (%s)", c.Path, united.FormatBytes(c.Size))
 				fakeActions = append(fakeActions, &butlerd.Action{
 					Name: name,
 					Path: c.Path,

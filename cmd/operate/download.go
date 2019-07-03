@@ -14,8 +14,8 @@ import (
 	"github.com/itchio/butler/cmd/operate/downloadextractor"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

@@ -14,15 +14,20 @@ import (
 	"time"
 
 	"github.com/efarrer/iothrottler"
+
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+
 	"github.com/itchio/go-itchio/itchfs"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/httpkit/timeout"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
 	shellquote "github.com/kballard/go-shellquote"
 
 	"net/http"
@@ -81,7 +86,7 @@ var appArgs = struct {
 	app.Flag("user-agent", "string to include in user-agent for all http requests").Default("").Hidden().String(),
 	app.Flag("dbpath", "Path of the sqlite database path to use (for butlerd)").Default("").Hidden().String(),
 
-	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip", "zstd"),
+	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip"),
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
 
 	app.Flag("cpuprofile", "Write CPU profile to given file").Hidden().String(),
@@ -216,7 +221,7 @@ func doMain(args []string) {
 	if *appArgs.throttle > 0 {
 		throttle := *appArgs.throttle
 		bwKiloBytes := throttle / 8 * 1024
-		comm.Logf("Throttling to %s/s bandwidth", progress.FormatBytes(bwKiloBytes))
+		comm.Logf("Throttling to %s/s bandwidth", united.FormatBytes(bwKiloBytes))
 		timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(throttle) * iothrottler.Kbps)
 	}
 

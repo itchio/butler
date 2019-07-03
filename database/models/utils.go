@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/itchio/hades"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 var dbConsumer *state.Consumer

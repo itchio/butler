@@ -9,19 +9,24 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
+
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/database/models"
+
 	itchio "github.com/itchio/go-itchio"
+
 	"github.com/itchio/hades"
-	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
 
 	"github.com/google/uuid"
-	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/database/models"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -161,7 +166,7 @@ func (sc *scanContext) Do() error {
 		consumer.Infof("- %s", operate.GameToString(c.Game))
 		operate.LogUpload(consumer, c.Upload, c.Build)
 		consumer.Infof("  %s @ %s",
-			progress.FormatBytes(c.InstalledSize),
+			united.FormatBytes(c.InstalledSize),
 			sc.getInstallLocation(c.InstallLocationID).GetInstallFolder(c.InstallFolderName),
 		)
 		consumer.Infof("")

@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"

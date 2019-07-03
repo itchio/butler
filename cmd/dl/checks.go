@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/itchio/wharf/crc32c"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

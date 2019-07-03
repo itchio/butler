@@ -4,7 +4,7 @@ import (
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/dash"
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 func Configure(consumer *state.Consumer, installFolder string, runtime *ox.Runtime) (*dash.Verdict, error) {

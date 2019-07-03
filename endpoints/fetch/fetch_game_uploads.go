@@ -1,7 +1,7 @@
 package fetch
 
 import (
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"

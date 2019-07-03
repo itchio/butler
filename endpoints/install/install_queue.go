@@ -9,7 +9,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	petname "github.com/dustinkirkland/golang-petname"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -17,7 +17,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/downloads"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

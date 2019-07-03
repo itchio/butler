@@ -6,8 +6,8 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/lake/tlc"
 	"github.com/pkg/errors"
 )
 
@@ -63,7 +63,7 @@ func Do(ctx *mansion.Context, dir string, dereference bool) error {
 	}, func() {
 		comm.Statf("%s walked in %s",
 			container,
-			progress.FormatDuration(time.Since(startTime)),
+			united.FormatDuration(time.Since(startTime)),
 		)
 	})
 

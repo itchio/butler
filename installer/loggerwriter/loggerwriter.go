@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 // New returns an io.Writer that, when a line is

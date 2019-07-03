@@ -3,7 +3,7 @@ package bfs
 import (
 	"os"
 
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/lake/tlc"
 )
 
 func Walk(path string) (*tlc.Container, error) {

@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"

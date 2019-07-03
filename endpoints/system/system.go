@@ -3,7 +3,7 @@ package system
 import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/headway/united"
 	"github.com/pkg/errors"
 )
 
@@ -24,8 +24,8 @@ func StatFSHandler(rc *butlerd.RequestContext, params butlerd.SystemStatFSParams
 	consumer := rc.Consumer
 	consumer.Statf("(%s): %s free out of %s total",
 		params.Path,
-		progress.FormatBytes(res.FreeSize),
-		progress.FormatBytes(res.TotalSize),
+		united.FormatBytes(res.FreeSize),
+		united.FormatBytes(res.TotalSize),
 	)
 	return res, nil
 }

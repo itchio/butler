@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/itchio/butler/art"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/olekukonko/tablewriter"
 	"github.com/skratchdot/open-golang/open"
 )

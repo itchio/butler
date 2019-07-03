@@ -5,7 +5,7 @@ package msi
 import (
 	"fmt"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 func Info(consumer *state.Consumer, msiPath string) (*MSIInfoResult, error) {

@@ -11,9 +11,9 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

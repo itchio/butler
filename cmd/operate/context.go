@@ -14,7 +14,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )

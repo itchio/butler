@@ -13,7 +13,7 @@ import (
 
 	"github.com/fatih/structtag"
 	"github.com/pkg/errors"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday"
 )
 
 type Scope struct {

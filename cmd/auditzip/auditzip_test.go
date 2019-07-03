@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/itchio/butler/cmd/auditzip"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/wharf/wtest"
 
 	_ "github.com/itchio/boar/lzmasupport"

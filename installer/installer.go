@@ -8,8 +8,8 @@ import (
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/savior"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/headway/state"
 )
 
 var ErrNeedLocal = errors.New("install source needs to be available locally")

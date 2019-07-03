@@ -1,6 +1,6 @@
 package comm
 
-import "github.com/itchio/wharf/state"
+import "github.com/itchio/headway/state"
 
 // NewStateConsumer returns an implementor of `pwr.StateConsumer` that prints
 // directly to the console via butler's logging functions.

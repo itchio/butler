@@ -2,7 +2,7 @@ package models
 
 import (
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	itchio "github.com/itchio/go-itchio"
 )
 

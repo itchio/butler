@@ -6,7 +6,7 @@ import (
 
 	"github.com/itchio/butler/installer"
 	"github.com/itchio/butler/installer/bfs"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/httpkit/eos"
 	"github.com/pkg/errors"
 )
 

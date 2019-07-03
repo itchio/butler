@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"

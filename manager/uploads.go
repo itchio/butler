@@ -7,7 +7,7 @@ import (
 
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 type uploadFilter struct {

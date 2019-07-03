@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/headway/united"
 
 	"github.com/itchio/butler/cmd/apply"
 	"github.com/itchio/butler/cmd/diff"
@@ -21,7 +21,7 @@ import (
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/stretchr/testify/assert"
 )
@@ -136,7 +136,7 @@ func TestAllTheThings(t *testing.T) {
 				}))
 				stat, err := os.Lstat(patch)
 				mist(t, err)
-				t.Logf("%10s -> %10s = %s", lhs, rhs, progress.FormatBytes(stat.Size()))
+				t.Logf("%10s -> %10s = %s", lhs, rhs, united.FormatBytes(stat.Size()))
 			}
 		}
 	}

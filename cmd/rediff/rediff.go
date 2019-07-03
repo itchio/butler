@@ -8,9 +8,12 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/savior/filesource"
-	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/lake/pools/fspool"
+
 	"github.com/itchio/wharf/pwr"
 )
 
@@ -63,8 +66,8 @@ func do(ctx *mansion.Context) error {
 	}
 
 	consumer.Statf("Analyzed.")
-	consumer.Infof("Before: %s (%s)", progress.FormatBytes(rc.TargetContainer.Size), rc.TargetContainer.Stats())
-	consumer.Infof(" After: %s (%s)", progress.FormatBytes(rc.SourceContainer.Size), rc.SourceContainer.Stats())
+	consumer.Infof("Before: %s (%s)", united.FormatBytes(rc.TargetContainer.Size), rc.TargetContainer.Stats())
+	consumer.Infof(" After: %s (%s)", united.FormatBytes(rc.SourceContainer.Size), rc.SourceContainer.Stats())
 
 	rc.TargetPool = fspool.New(rc.TargetContainer, args.old)
 	rc.SourcePool = fspool.New(rc.SourceContainer, args.new)
@@ -96,11 +99,11 @@ func do(ctx *mansion.Context) error {
 	}
 
 	duration := time.Since(startTime)
-	perSec := progress.FormatBPS(rc.SourceContainer.Size, duration)
+	perSec := united.FormatBPS(rc.SourceContainer.Size, duration)
 	consumer.Statf("Wrote %s patch, processed at %s / s (%s total)",
-		progress.FormatBytes(outputStats.Size()),
+		united.FormatBytes(outputStats.Size()),
 		perSec,
-		progress.FormatDuration(duration),
+		united.FormatDuration(duration),
 	)
 
 	return nil

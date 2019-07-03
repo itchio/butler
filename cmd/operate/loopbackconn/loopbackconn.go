@@ -6,7 +6,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 //

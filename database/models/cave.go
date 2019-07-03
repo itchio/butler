@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"

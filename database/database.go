@@ -5,7 +5,7 @@ import (
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/database/models/migrations"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

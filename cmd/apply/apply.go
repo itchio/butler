@@ -6,13 +6,13 @@ import (
 	"path"
 	"time"
 
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/httpkit/eos/option"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/wharf/pwr"
 	"github.com/pkg/errors"
 )
@@ -170,9 +170,9 @@ func Do(params *Params) error {
 			statStr += fmt.Sprintf("deleted %d, ", actx.Stats.DeletedFiles)
 		}
 
-		comm.Statf("%s (%s stage)", statStr, progress.FormatBytes(actx.Stats.StageSize))
+		comm.Statf("%s (%s stage)", statStr, united.FormatBytes(actx.Stats.StageSize))
 	}
-	comm.Statf("%s (%s) @ %s/s\n", progress.FormatBytes(container.Size), container.Stats(), progress.FormatBPS(container.Size, time.Since(startTime)))
+	comm.Statf("%s (%s) @ %s/s\n", united.FormatBytes(container.Size), container.Stats(), united.FormatBPS(container.Size, time.Since(startTime)))
 
 	if actx.WoundsConsumer != nil && actx.WoundsConsumer.HasWounds() {
 		extra := ""
@@ -189,7 +189,7 @@ func Do(params *Params) error {
 			totalHealed = healer.TotalHealed()
 		}
 
-		comm.Logf("Result %s wounds, %s corrupted data, %s healed%s", verb, progress.FormatBytes(totalCorrupted), progress.FormatBytes(totalHealed), extra)
+		comm.Logf("Result %s wounds, %s corrupted data, %s healed%s", verb, united.FormatBytes(totalCorrupted), united.FormatBytes(totalHealed), extra)
 	}
 
 	return nil

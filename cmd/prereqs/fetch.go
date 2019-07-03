@@ -6,12 +6,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/itchio/httpkit/timeout"
+
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/cmd/operate/loopbackconn"
 	"github.com/itchio/butler/endpoints/install"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/state"
+
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/tracker"
 
 	"github.com/itchio/butler/butlerd"
 
@@ -62,8 +65,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 		}
 		conn := loopbackconn.New(consumer)
 
-		tracker := progress.NewTracker()
-		tracker.Start()
+		tracker := tracker.New(tracker.Opts{})
 
 		cancel := make(chan struct{})
 		var once sync.Once
@@ -75,13 +77,19 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			for {
 				select {
 				case <-time.After(500 * time.Millisecond):
-					tsc.OnState(butlerd.PrereqsTaskStateNotification{
+					state := butlerd.PrereqsTaskStateNotification{
 						Name:     name,
 						Status:   butlerd.PrereqStatusDownloading,
 						Progress: tracker.Progress(),
-						ETA:      tracker.ETA().Seconds(),
-						BPS:      tracker.BPS(),
-					})
+					}
+					stats := tracker.Stats()
+					state.BPS = timeout.GetBPS()
+					if stats != nil {
+						if stats.TimeLeft() != nil {
+							state.ETA = stats.TimeLeft().Seconds()
+						}
+					}
+					tsc.OnState(state)
 				case <-cancel:
 					return
 				}

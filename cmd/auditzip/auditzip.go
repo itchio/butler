@@ -12,14 +12,14 @@ import (
 	upstreamzip "archive/zip"
 
 	itchiozip "github.com/itchio/arkive/zip"
-	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/headway/united"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -268,9 +268,9 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 		if actualSize != uncompressedSize {
 			err := fmt.Errorf("Dictionary says (%s) is %s (%d bytes), but it's actually %s (%d bytes)",
 				path,
-				progress.FormatBytes(uncompressedSize),
+				united.FormatBytes(uncompressedSize),
 				uncompressedSize,
-				progress.FormatBytes(actualSize),
+				united.FormatBytes(actualSize),
 				actualSize,
 			)
 			return errors.WithStack(err)
@@ -403,9 +403,9 @@ func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size i
 func printExtras(consumer *state.Consumer, size int64, compressedSize int64, uncompressedSize int64, comment string) {
 	consumer.Infof("Comment: (%s)", comment)
 	consumer.Infof("Sizes: ")
-	consumer.Infof(" → Archive size      : %s (%d bytes)", progress.FormatBytes(size), size)
-	consumer.Infof(" → Sum (compressed)  : %s (%d bytes)", progress.FormatBytes(compressedSize), compressedSize)
-	consumer.Infof(" → Sum (uncompressed): %s (%d bytes)", progress.FormatBytes(uncompressedSize), uncompressedSize)
+	consumer.Infof(" → Archive size      : %s (%d bytes)", united.FormatBytes(size), size)
+	consumer.Infof(" → Sum (compressed)  : %s (%d bytes)", united.FormatBytes(compressedSize), compressedSize)
+	consumer.Infof(" → Sum (uncompressed): %s (%d bytes)", united.FormatBytes(uncompressedSize), uncompressedSize)
 	if compressedSize > uncompressedSize {
 		consumer.Warnf("Compressed size is larger than uncompressed, that's suspicious.")
 	}

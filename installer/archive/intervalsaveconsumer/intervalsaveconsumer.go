@@ -8,7 +8,7 @@ import (
 
 	"github.com/dchest/safefile"
 	"github.com/itchio/savior"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

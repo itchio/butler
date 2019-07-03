@@ -7,7 +7,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/natefinch/npipe"
 	"github.com/pkg/errors"
 )

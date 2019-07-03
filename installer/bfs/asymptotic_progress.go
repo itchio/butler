@@ -3,7 +3,7 @@ package bfs
 import (
 	"time"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 func StartAsymptoticProgress(consumer *state.Consumer, cancel chan struct{}) {

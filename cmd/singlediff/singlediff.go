@@ -5,15 +5,18 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/mansion"
+
 	"github.com/itchio/wharf/bsdiff"
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 
-	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/lake/tlc"
 )
 
 var args = struct {
@@ -90,8 +93,8 @@ func do(ctx *mansion.Context) error {
 		},
 	}
 
-	consumer.Infof("Before: %s (%s)", progress.FormatBytes(targetContainer.Size), targetContainer.Stats())
-	consumer.Infof(" After: %s (%s)", progress.FormatBytes(sourceContainer.Size), sourceContainer.Stats())
+	consumer.Infof("Before: %s (%s)", united.FormatBytes(targetContainer.Size), targetContainer.Stats())
+	consumer.Infof(" After: %s (%s)", united.FormatBytes(sourceContainer.Size), sourceContainer.Stats())
 
 	writer, err := os.Create(args.output)
 	if err != nil {
@@ -185,10 +188,10 @@ func do(ctx *mansion.Context) error {
 	}
 
 	duration := time.Since(startTime)
-	perSec := progress.FormatBPS(outStats.Size(), duration)
+	perSec := united.FormatBPS(outStats.Size(), duration)
 
 	consumer.Statf("Wrote %s patch to %s @ %s (%s total)",
-		progress.FormatBytes(outStats.Size()),
+		united.FormatBytes(outStats.Size()),
 		args.output,
 		perSec,
 		duration,

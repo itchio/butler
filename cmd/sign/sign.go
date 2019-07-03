@@ -8,12 +8,16 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/pools"
+
+	"github.com/itchio/lake/pools"
+	"github.com/itchio/lake/tlc"
+
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/itchio/wharf/wsync"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -89,8 +93,8 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 		return errors.Wrap(err, "finalizing signature file")
 	}
 
-	prettySize := progress.FormatBytes(container.Size)
-	perSecond := progress.FormatBPS(container.Size, time.Since(startTime))
+	prettySize := united.FormatBytes(container.Size)
+	perSecond := united.FormatBPS(container.Size, time.Since(startTime))
 	comm.Statf("%s (%s) @ %s/s\n", prettySize, container.Stats(), perSecond)
 
 	return nil

@@ -9,9 +9,9 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/httpkit/timeout"
-	"github.com/itchio/wharf/counter"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/headway/counter"
 	"github.com/pkg/errors"
 )
 
@@ -116,13 +116,13 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 	if doDownload {
 		if existingBytes > 0 {
 			comm.Logf("Resuming (%s + %s = %s) download from %s",
-				progress.FormatBytes(existingBytes),
-				progress.FormatBytes(resp.ContentLength),
-				progress.FormatBytes(totalBytes),
+				united.FormatBytes(existingBytes),
+				united.FormatBytes(resp.ContentLength),
+				united.FormatBytes(totalBytes),
 				hostInfo,
 			)
 		} else {
-			comm.Logf("Downloading %s from %s", progress.FormatBytes(resp.ContentLength), hostInfo)
+			comm.Logf("Downloading %s from %s", united.FormatBytes(resp.ContentLength), hostInfo)
 		}
 		err = appendAllToFile(resp.Body, dest, existingBytes, totalBytes)
 		if err != nil {

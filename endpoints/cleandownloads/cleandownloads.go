@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/httpkit/progress"
-
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/wipe"
+
+	"github.com/itchio/headway/united"
 )
 
 func Register(router *butlerd.Router) {
@@ -74,7 +74,7 @@ func CleanDownloadsApply(rc *butlerd.RequestContext, params butlerd.CleanDownloa
 	consumer := rc.Consumer
 
 	for _, entry := range params.Entries {
-		consumer.Infof("Wiping (%s) - %s", entry.Path, progress.FormatBytes(entry.Size))
+		consumer.Infof("Wiping (%s) - %s", entry.Path, united.FormatBytes(entry.Size))
 		err := wipe.Do(consumer, entry.Path)
 		if err != nil {
 			consumer.Warnf("Could not wipe (%s): %s", entry.Path, err.Error())

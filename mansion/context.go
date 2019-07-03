@@ -114,8 +114,6 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 		algo = pwr.CompressionAlgorithm_BROTLI
 	case "gzip":
 		algo = pwr.CompressionAlgorithm_GZIP
-	case "zstd":
-		algo = pwr.CompressionAlgorithm_ZSTD
 	default:
 		panic(fmt.Errorf("Unknown compression algorithm: %s", algo))
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 var args = struct {

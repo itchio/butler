@@ -1,6 +1,6 @@
 package operate
 
-import "github.com/itchio/wharf/state"
+import "github.com/itchio/headway/state"
 
 type SlicedProgress struct {
 	consumer *state.Consumer

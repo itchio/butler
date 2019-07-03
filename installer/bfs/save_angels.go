@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/itchio/wharf/state"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/headway/state"
+	"github.com/itchio/lake/tlc"
 	"github.com/pkg/errors"
 )
 

@@ -5,12 +5,16 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/butler/cmd/dl"
+
+	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/htfs"
-	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/savior"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -80,7 +84,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 			Mode:             os.FileMode(0644),
 		}
 
-		consumer.Infof("⇓ Pre-allocating %s on disk", progress.FormatBytes(entry.UncompressedSize))
+		consumer.Infof("⇓ Pre-allocating %s on disk", united.FormatBytes(entry.UncompressedSize))
 		err = sink.Preallocate(entry)
 		if err != nil {
 			return nil, errors.Wrap(err, "preallocating")
@@ -97,7 +101,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 	if err != nil {
 		consumer.Warnf("Could not resume source, starting over: %s", err.Error())
 	} else {
-		consumer.Infof("↻ Resuming @ %s", progress.FormatBytes(offset))
+		consumer.Infof("↻ Resuming @ %s", united.FormatBytes(offset))
 	}
 	checkpoint.Entry.WriteOffset = offset
 

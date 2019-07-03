@@ -10,14 +10,19 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
 	"github.com/itchio/savior/countingsource"
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+
+	"github.com/itchio/headway/counter"
+	"github.com/itchio/headway/united"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
+
 	"github.com/pkg/errors"
 )
 
@@ -48,7 +53,6 @@ func do(ctx *mansion.Context) {
 		fmt.Printf("%s\n", strings.Join(headers, ","))
 
 		algos := []pwr.CompressionAlgorithm{
-			pwr.CompressionAlgorithm_ZSTD,
 			pwr.CompressionAlgorithm_BROTLI,
 		}
 		qualities := []int32{
@@ -144,7 +148,7 @@ func Do(params *Params) error {
 	}
 
 	if !bench {
-		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), progress.FormatBytes(source.Size()), header.Compression, params.Compression)
+		consumer.Opf("Repacking %s (%s) from %s to %s", stats.Name(), united.FormatBytes(source.Size()), header.Compression, params.Compression)
 		comm.StartProgressWithTotalBytes(source.Size())
 	}
 
@@ -177,7 +181,7 @@ func Do(params *Params) error {
 
 		if !bench {
 			comm.EndProgress()
-			consumer.Statf("Repacked %s @ %s/s", progress.FormatBytes(numBytes), progress.FormatBPS(numBytes, duration))
+			consumer.Statf("Repacked %s @ %s/s", united.FormatBytes(numBytes), united.FormatBPS(numBytes, duration))
 		}
 
 		return nil
@@ -200,8 +204,8 @@ func Do(params *Params) error {
 		fmt.Printf("%s\n", strings.Join(columns, ","))
 	} else {
 		consumer.Statf("%s => %s (%.3f as large as the input)",
-			progress.FormatBytes(inSize),
-			progress.FormatBytes(outSize),
+			united.FormatBytes(inSize),
+			united.FormatBytes(outSize),
 			float64(outSize)/float64(inSize),
 		)
 		consumer.Statf("Wrote to %s", params.OutPath)

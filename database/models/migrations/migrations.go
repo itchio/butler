@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
@@ -12,7 +12,7 @@ import (
 	"crawshaw.io/sqlite"
 	"crawshaw.io/sqlite/sqliteutil"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 type Migration func(consumer *state.Consumer, conn *sqlite.Conn) error

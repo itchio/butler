@@ -6,15 +6,17 @@ import (
 	"strings"
 
 	"crawshaw.io/sqlite"
-	"github.com/go-xorm/builder"
-	"github.com/itchio/butler/database/models"
-	"github.com/itchio/butler/manager"
-	"github.com/itchio/hades"
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/ox"
-	"github.com/itchio/wharf/state"
+	"xorm.io/builder"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/manager"
+
+	"github.com/itchio/hades"
+	"github.com/itchio/ox"
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
 )
@@ -75,7 +77,7 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 
 		var size string
 		if u.Size > 0 {
-			size = progress.FormatBytes(u.Size)
+			size = united.FormatBytes(u.Size)
 		} else {
 			size = "Unknown size"
 		}

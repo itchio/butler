@@ -3,7 +3,7 @@ package msi
 import (
 	"fmt"
 
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/lake/tlc"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"

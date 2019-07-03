@@ -1,15 +1,16 @@
 package push
 
 import (
-	"github.com/itchio/wharf/pools"
-	"github.com/itchio/wharf/tlc"
-	"github.com/itchio/wharf/wsync"
+	"github.com/itchio/lake"
+	"github.com/itchio/lake/pools"
+	"github.com/itchio/lake/tlc"
+
 	"github.com/pkg/errors"
 )
 
 type walkResult struct {
 	container *tlc.Container
-	pool      wsync.Pool
+	pool      lake.Pool
 }
 
 func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts *tlc.WalkOpts) {

@@ -3,7 +3,7 @@ package install
 import (
 	"fmt"
 
-	"github.com/go-xorm/builder"
+	"xorm.io/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
@@ -15,8 +15,8 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 )

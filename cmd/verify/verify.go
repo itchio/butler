@@ -6,9 +6,12 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/eos"
+	"github.com/itchio/httpkit/eos"
+
 	"github.com/itchio/wharf/pwr"
 	"github.com/pkg/errors"
 )
@@ -82,14 +85,14 @@ func Do(signaturePath string, dir string, woundsPath string, healPath string) er
 
 	comm.EndProgress()
 
-	perSecond := progress.FormatBPS(signature.Container.Size, time.Since(startTime))
+	perSecond := united.FormatBPS(signature.Container.Size, time.Since(startTime))
 	comm.Statf("%s @ %s\n", signature.Container, perSecond)
 
 	if vc.WoundsConsumer.HasWounds() {
 		if healer, ok := vc.WoundsConsumer.(pwr.Healer); ok {
-			comm.Statf("%s corrupted data found, %s healed", progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()), progress.FormatBytes(healer.TotalHealed()))
+			comm.Statf("%s corrupted data found, %s healed", united.FormatBytes(vc.WoundsConsumer.TotalCorrupted()), united.FormatBytes(healer.TotalHealed()))
 		} else {
-			comm.Dief("%s corrupted data found", progress.FormatBytes(vc.WoundsConsumer.TotalCorrupted()))
+			comm.Dief("%s corrupted data found", united.FormatBytes(vc.WoundsConsumer.TotalCorrupted()))
 		}
 	}
 

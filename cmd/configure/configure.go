@@ -8,7 +8,7 @@ import (
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/dash"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

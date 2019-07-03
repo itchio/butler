@@ -8,10 +8,10 @@ import (
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/damage"
 	"github.com/itchio/damage/hdiutil"
-	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/lake/pools/fspool"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/state"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/headway/state"
+	"github.com/itchio/lake/tlc"
 	"github.com/pkg/errors"
 )
 

@@ -13,13 +13,13 @@ import (
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+	"github.com/itchio/headway/united"
 	"github.com/itchio/savior/filesource"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/pools/fspool"
+	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/lake/pools/fspool"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -180,7 +180,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		if err != nil {
 			return err
 		}
-		consumer.Statf("Before commit, staging dir is %s", progress.FormatBytes(stagingDirSize))
+		consumer.Statf("Before commit, staging dir is %s", united.FormatBytes(stagingDirSize))
 	}
 
 	consumer.Opf("Committing...")
@@ -192,9 +192,9 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 	out := p.GetSourceContainer()
 	duration := time.Since(startTime)
 	consumer.Statf("Patched %s (%s) @ %s (%s total)",
-		progress.FormatBytes(out.Size), out.Stats(),
-		progress.FormatBPS(out.Size, duration),
-		progress.FormatDuration(duration))
+		united.FormatBytes(out.Size), out.Stats(),
+		united.FormatBPS(out.Size, duration),
+		united.FormatDuration(duration))
 
 	if args.signature != "" {
 		sigSource, err := filesource.Open(args.signature)

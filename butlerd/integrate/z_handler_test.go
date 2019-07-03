@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/sourcegraph/jsonrpc2"
 )
 

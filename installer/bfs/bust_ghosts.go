@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 var debugGhostBusting = os.Getenv("BUTLER_LOUD_GHOSTS") == "1"

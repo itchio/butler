@@ -7,18 +7,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/savior/countingsource"
-
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+
+	"github.com/itchio/headway/united"
+
 	"github.com/itchio/savior/seeksource"
+	"github.com/itchio/savior/countingsource"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/lake/tlc"
+
 	"github.com/itchio/wharf/bsdiff"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
+
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +75,7 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	patchSource := seeksource.FromFile(patchReader)
 
-	comm.Opf("patch:  %s", progress.FormatBytes(patchSource.Size()))
+	comm.Opf("patch:  %s", united.FormatBytes(patchSource.Size()))
 
 	cs := countingsource.New(patchSource, func(count int64) {
 		comm.Progress(patchSource.Progress())
@@ -110,8 +115,8 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 		return nil, errors.WithStack(err)
 	}
 
-	comm.Logf("  before: %s in %s", progress.FormatBytes(target.Size), target.Stats())
-	comm.Logf("   after: %s in %s", progress.FormatBytes(target.Size), source.Stats())
+	comm.Logf("  before: %s in %s", united.FormatBytes(target.Size), target.Stats())
+	comm.Logf("   after: %s in %s", united.FormatBytes(target.Size), source.Stats())
 
 	startTime := time.Now()
 
@@ -178,8 +183,8 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 						totalSize := int64(len(rop.Data))
 						if ctx.Verbose {
 							comm.Debugf("%s fresh data at %s (%d-%d)",
-								progress.FormatBytes(totalSize),
-								progress.FormatBytes(pos),
+								united.FormatBytes(totalSize),
+								united.FormatBytes(pos),
 								pos, pos+totalSize,
 							)
 						}
@@ -207,12 +212,12 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 					consumer.Infof("Target|index is %d", bh.TargetIndex)
 					consumer.Infof("      |path is %s", targetFile.Path)
-					consumer.Infof("      |size is %s (%d bytes)", progress.FormatBytes(targetFile.Size), targetFile.Size)
+					consumer.Infof("      |size is %s (%d bytes)", united.FormatBytes(targetFile.Size), targetFile.Size)
 					consumer.Infof("")
 
 					consumer.Infof("Source|index is %d", sh.FileIndex)
 					consumer.Infof("      |path is %s", sourceFile.Path)
-					consumer.Infof("      |size is %s (%d bytes)", progress.FormatBytes(sourceFile.Size), sourceFile.Size)
+					consumer.Infof("      |size is %s (%d bytes)", united.FormatBytes(sourceFile.Size), sourceFile.Size)
 					consumer.Infof("")
 				}
 
@@ -293,8 +298,8 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 
 	duration := time.Since(startTime)
 
-	perSec := progress.FormatBPS(cs.Size(), duration)
-	comm.Statf("Analyzed %s @ %s/s (%s total)", progress.FormatBytes(cs.Size()), perSec, duration)
+	perSec := united.FormatBPS(cs.Size(), duration)
+	comm.Statf("Analyzed %s @ %s/s (%s total)", united.FormatBytes(cs.Size()), perSec, duration)
 	comm.Statf("%d bsdiff series, %d rsync series", numBsdiff, numRsync)
 
 	var numTouched = 0
@@ -320,8 +325,8 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 		}
 
 		comm.Logf("  - %s / %s in %s (%.2f%% changed, %s)",
-			progress.FormatBytes(stat.freshData),
-			progress.FormatBytes(f.Size),
+			united.FormatBytes(stat.freshData),
+			united.FormatBytes(f.Size),
 			name,
 			float64(stat.freshData)/float64(f.Size)*100.0,
 			stat.algo)
@@ -340,11 +345,11 @@ func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) 
 		kind = "optimized"
 	}
 	comm.Statf("All in all, that's %s of fresh data in a %s %s patch",
-		progress.FormatBytes(totalFresh),
-		progress.FormatBytes(cs.Size()),
+		united.FormatBytes(totalFresh),
+		united.FormatBytes(cs.Size()),
 		kind,
 	)
-	comm.Logf(" (%d/%d files are changed by this patch, they weigh a total of %s)", numTouched, numTotal, progress.FormatBytes(naivePatchSize))
+	comm.Logf(" (%d/%d files are changed by this patch, they weigh a total of %s)", numTouched, numTotal, united.FormatBytes(naivePatchSize))
 
 	return patchStats, nil
 }
@@ -390,7 +395,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 		return errors.WithStack(err)
 	}
 
-	comm.Opf("patch:  %s", progress.FormatBytes(cs.Size()))
+	comm.Opf("patch:  %s", united.FormatBytes(cs.Size()))
 
 	rctx := wire.NewReadContext(cs)
 	err = rctx.ExpectMagic(pwr.PatchMagic)
@@ -452,8 +457,8 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 	}
 
 	comm.Statf("All in all, that's %s / %s pristine of all the touched data",
-		progress.FormatBytes(ddc.totalPristine),
-		progress.FormatBytes(ddc.totalTouched),
+		united.FormatBytes(ddc.totalPristine),
+		united.FormatBytes(ddc.totalTouched),
 	)
 
 	return nil
@@ -567,9 +572,9 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 	clearUnchanged := func() {
 		if bestUnchanged > 1024*1024 {
 			comm.Debugf("%s contiguous unchanged block ending at from %s to %s",
-				progress.FormatBytes(bestUnchanged),
-				progress.FormatBytes(newpos-bestUnchanged),
-				progress.FormatBytes(newpos),
+				united.FormatBytes(bestUnchanged),
+				united.FormatBytes(newpos-bestUnchanged),
+				united.FormatBytes(newpos),
 			)
 		}
 		bestUnchanged = 0
@@ -639,10 +644,10 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 		return errors.New(msg)
 	}
 
-	comm.Debugf("%s / %s pristine after patch application", progress.FormatBytes(pristine), progress.FormatBytes(tf.Size))
-	comm.Debugf("File went from %s to %s", progress.FormatBytes(tf.Size), progress.FormatBytes(f.Size))
-	comm.Debugf("%s / %s clobbered total", progress.FormatBytes(clobbered), progress.FormatBytes(tf.Size))
-	comm.Debugf("%s / %s similar total", progress.FormatBytes(similar), progress.FormatBytes(tf.Size))
+	comm.Debugf("%s / %s pristine after patch application", united.FormatBytes(pristine), united.FormatBytes(tf.Size))
+	comm.Debugf("File went from %s to %s", united.FormatBytes(tf.Size), united.FormatBytes(f.Size))
+	comm.Debugf("%s / %s clobbered total", united.FormatBytes(clobbered), united.FormatBytes(tf.Size))
+	comm.Debugf("%s / %s similar total", united.FormatBytes(similar), united.FormatBytes(tf.Size))
 
 	ddc.totalPristine += pristine
 

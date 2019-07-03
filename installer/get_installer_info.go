@@ -9,8 +9,8 @@ import (
 	"github.com/itchio/dash"
 	"github.com/itchio/pelican"
 	"github.com/itchio/savior"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

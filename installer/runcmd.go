@@ -8,7 +8,7 @@ import (
 
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/installer/loggerwriter"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/lake/tlc"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/dash"

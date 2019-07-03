@@ -9,17 +9,23 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/progress"
+
+	"github.com/itchio/headway/counter"
+	"github.com/itchio/headway/united"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
 	"github.com/itchio/savior/seeksource"
-	"github.com/itchio/wharf/counter"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/eos/option"
-	"github.com/itchio/wharf/pools"
-	"github.com/itchio/wharf/pools/nullpool"
+
+	"github.com/itchio/lake"
+	"github.com/itchio/lake/pools"
+	"github.com/itchio/lake/pools/nullpool"
+	"github.com/itchio/lake/tlc"
+
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
 	"github.com/itchio/wharf/wire"
-	"github.com/itchio/wharf/wsync"
+
 	"github.com/pkg/errors"
 )
 
@@ -119,7 +125,7 @@ func Do(params *Params) error {
 			comm.Opf("Hashing %s", params.Target)
 
 			comm.StartProgress()
-			var targetPool wsync.Pool
+			var targetPool lake.Pool
 			targetPool, err = pools.New(targetSignature.Container, params.Target)
 			if err != nil {
 				return errors.Wrap(err, "opening target as directory")
@@ -132,8 +138,8 @@ func Do(params *Params) error {
 			}
 
 			{
-				prettySize := progress.FormatBytes(targetSignature.Container.Size)
-				perSecond := progress.FormatBPS(targetSignature.Container.Size, time.Since(startTime))
+				prettySize := united.FormatBytes(targetSignature.Container.Size)
+				perSecond := united.FormatBPS(targetSignature.Container.Size, time.Since(startTime))
 				comm.Statf("%s (%s) @ %s\n", prettySize, targetSignature.Container.Stats(), perSecond)
 			}
 		} else {
@@ -149,7 +155,7 @@ func Do(params *Params) error {
 		return errors.Wrap(err, "walking source as directory")
 	}
 
-	var sourcePool wsync.Pool
+	var sourcePool lake.Pool
 	sourcePool, err = pools.New(sourceContainer, params.Source)
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
@@ -192,16 +198,16 @@ func Do(params *Params) error {
 
 	totalDuration := time.Since(startTime)
 	{
-		prettySize := progress.FormatBytes(sourceContainer.Size)
-		perSecond := progress.FormatBPS(sourceContainer.Size, totalDuration)
+		prettySize := united.FormatBytes(sourceContainer.Size)
+		perSecond := united.FormatBPS(sourceContainer.Size, totalDuration)
 		comm.Statf("%s (%s) @ %s\n", prettySize, sourceContainer.Stats(), perSecond)
 	}
 
 	{
-		prettyPatchSize := progress.FormatBytes(patchCounter.Count())
+		prettyPatchSize := united.FormatBytes(patchCounter.Count())
 		percReused := 100.0 * float64(dctx.ReusedBytes) / float64(dctx.FreshBytes+dctx.ReusedBytes)
 		relToNew := 100.0 * float64(patchCounter.Count()) / float64(sourceContainer.Size)
-		prettyFreshSize := progress.FormatBytes(dctx.FreshBytes)
+		prettyFreshSize := united.FormatBytes(dctx.FreshBytes)
 
 		comm.Statf("Re-used %.2f%% of old, added %s fresh data", percReused, prettyFreshSize)
 		comm.Statf("%s patch (%.2f%% of the full size) in %s", prettyPatchSize, relToNew, totalDuration)

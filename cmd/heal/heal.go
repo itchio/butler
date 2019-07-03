@@ -9,7 +9,7 @@ import (
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/pwr"
-	"github.com/itchio/wharf/tlc"
+	"github.com/itchio/lake/tlc"
 	"github.com/itchio/wharf/wire"
 	"github.com/pkg/errors"
 )

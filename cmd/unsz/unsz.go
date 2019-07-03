@@ -3,8 +3,8 @@ package unsz
 import (
 	"time"
 
-	"github.com/itchio/httpkit/progress"
-	"github.com/itchio/wharf/eos/option"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
 
 	"github.com/itchio/savior"
 
@@ -12,8 +12,10 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -88,7 +90,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 	}
 
 	duration := time.Since(startTime)
-	consumer.Statf("Overall extraction speed: %s/s", progress.FormatBPS(res.Size(), duration))
+	consumer.Statf("Overall extraction speed: %s/s", united.FormatBPS(res.Size(), duration))
 
 	return nil
 }

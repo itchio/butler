@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 	"github.com/winlabs/gowin32"
 	"golang.org/x/text/encoding/unicode"

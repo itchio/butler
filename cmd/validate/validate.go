@@ -6,9 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/itchio/httpkit/progress"
 	"github.com/itchio/ox"
-	"github.com/itchio/wharf/eos/option"
 
 	"github.com/itchio/butler/manager"
 
@@ -24,8 +22,13 @@ import (
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
-	"github.com/itchio/wharf/eos"
-	"github.com/itchio/wharf/state"
+
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+
 	"github.com/pkg/errors"
 )
 
@@ -146,7 +149,7 @@ func Validate(consumer *state.Consumer) error {
 		return errors.Wrap(err, "stat'ing manifest file")
 	}
 
-	consumer.Opf("Validating %s manifest at (%s)", progress.FormatBytes(stats.Size()), manifestPath)
+	consumer.Opf("Validating %s manifest at (%s)", united.FormatBytes(stats.Size()), manifestPath)
 
 	var intermediate map[string]interface{}
 	_, err = toml.DecodeFile(manifestPath, &intermediate)

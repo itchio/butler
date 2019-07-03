@@ -3,7 +3,7 @@ package operate
 import (
 	"github.com/itchio/butler/butlerd"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 )
 
 func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID string, params *InstallParams, fileType string) string {

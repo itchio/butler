@@ -3,7 +3,7 @@ package msi
 import (
 	"github.com/itchio/butler/cmd/msi"
 	"github.com/itchio/butler/installer"
-	"github.com/itchio/wharf/state"
+	"github.com/itchio/headway/state"
 	"github.com/mitchellh/mapstructure"
 )
 
