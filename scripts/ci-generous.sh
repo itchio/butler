@@ -7,5 +7,5 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 go get -v -x ./butlerd/generous
 generous godocs
 
-gsutil -m cp -r -a public-read src/$PKG/butlerd/generous/docs/* gs://docs.itch.ovh/butlerd/$CI_BUILD_REF_NAME/
+gsutil -m cp -r -a public-read ./butlerd/generous/docs/* gs://docs.itch.ovh/butlerd/$CI_BUILD_REF_NAME/
 
