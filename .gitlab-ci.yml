@@ -16,7 +16,6 @@ generous:
     - dropsy
   script:
     - scripts/ci-generous.sh
-  allow_failure: true
 
 test:linux:
   stage: test
