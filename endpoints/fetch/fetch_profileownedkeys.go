@@ -2,13 +2,13 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
@@ -67,7 +67,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 		case "acquiredAt", "":
 			search = search.OrderBy("download_keys.created_at " + pager.Ordering("DESC", params.Reverse))
 		case "title":
-			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("lower(games.title) " + pager.Ordering("ASC", params.Reverse))
 			joinGames = true
 		}
 

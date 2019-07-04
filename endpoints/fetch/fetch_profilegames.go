@@ -2,12 +2,12 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
@@ -51,7 +51,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 		switch params.SortBy {
 		case "title":
 			joinGames = true
-			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("lower(games.title) " + pager.Ordering("ASC", params.Reverse))
 		case "views":
 			search = search.OrderBy("profile_games.views_count " + pager.Ordering("DESC", params.Reverse))
 		case "downloads":

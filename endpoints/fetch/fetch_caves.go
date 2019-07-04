@@ -2,11 +2,11 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*butlerd.FetchCavesResult, error) {
@@ -20,7 +20,7 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		switch params.SortBy {
 		case "title":
 			ordering := pager.Ordering("ASC", params.Reverse)
-			search = search.OrderBy("games.title " + ordering)
+			search = search.OrderBy("lower(games.title) " + ordering)
 			joinGames = true
 		case "playTime":
 			ordering := pager.Ordering("DESC", params.Reverse)

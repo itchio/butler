@@ -2,7 +2,6 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
@@ -10,6 +9,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
@@ -83,7 +83,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		case "default", "":
 			search = search.OrderBy("position " + pager.Ordering("DESC", params.Reverse))
 		case "title":
-			search = search.OrderBy("games.title " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("lower(games.title) " + pager.Ordering("ASC", params.Reverse))
 			joinGames = true
 		}
 

@@ -2,12 +2,12 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
@@ -52,7 +52,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 			search = search.OrderBy("collections.updated_at " + pager.Ordering("DESC", params.Reverse))
 			joinCollections = true
 		case "title":
-			search = search.OrderBy("collections.title " + pager.Ordering("ASC", params.Reverse))
+			search = search.OrderBy("lower(collections.title) " + pager.Ordering("ASC", params.Reverse))
 			joinCollections = true
 		}
 
