@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/headway/probar"
 	"github.com/itchio/headway/tracker"
+	"github.com/itchio/httpkit/timeout"
 )
 
 var globalBar probar.Bar
@@ -99,6 +100,8 @@ func Progress(alpha float64) {
 			}
 			if stats.BPS() != nil {
 				bps = stats.BPS().Value
+			} else {
+				bps = timeout.GetBPS()
 			}
 		}
 
