@@ -38,21 +38,6 @@ test:windows:
   script:
     - scripts/ci-test.sh
 
-build:linux:386:
-  stage: build
-  tags:
-    - docker-capsule-32
-  script:
-    - export CI_OS=linux
-    - export CI_ARCH=386
-    - scripts/ci-build.sh
-    - scripts/ci-package.sh
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - ibrew
-      - broth
-
 build:linux:amd64:
   stage: build
   tags:
