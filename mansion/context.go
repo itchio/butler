@@ -125,7 +125,7 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 }
 
 func (ctx *Context) DefaultCtx() context.Context {
-	defaultCtx, _ := context.WithTimeout(context.Background(), 2 * time.Second)
+	defaultCtx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 	return defaultCtx
 }
 
@@ -151,6 +151,12 @@ func (ctx *Context) SetAddress(address string) {
 	ctx.Must(err)
 	ctx.apiAddress, err = addApiSubdomain(address)
 	ctx.Must(err)
+}
+
+func (ctx *Context) EnsureDBPath() {
+	if ctx.DBPath == "" {
+		comm.Dief("butlerd: Missing database path: use --dbpath path/to/butler.db")
+	}
 }
 
 //

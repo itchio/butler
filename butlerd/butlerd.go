@@ -4,17 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net"
-	"net/http"
-	"os"
 	"sync"
 
-	"github.com/gorilla/handlers"
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
@@ -26,84 +23,6 @@ type Server struct {
 
 func NewServer(secret string) *Server {
 	return &Server{secret: secret}
-}
-
-type ServeHTTPParams struct {
-	HTTPListener net.Listener
-
-	HTTPSListener net.Listener
-	TLSState      *TLSState
-
-	Handler  jsonrpc2.Handler
-	Consumer *state.Consumer
-
-	ShutdownChan chan struct{}
-
-	Log bool
-}
-
-func (s *Server) ServeHTTP(ctx context.Context, params ServeHTTPParams) error {
-	var shutdownWaitGroup sync.WaitGroup
-
-	handleGracefulShutdown := func(srv *http.Server, name string) {
-		go func() {
-			select {
-			case <-ctx.Done():
-				// welp
-			case <-params.ShutdownChan:
-				shutdownWaitGroup.Add(1)
-				defer shutdownWaitGroup.Done()
-				log.Printf("Shutting down %s server gracefully...", name)
-				err := srv.Shutdown(ctx)
-				if err != nil {
-					log.Printf("While performing %s server shutdown: %+v", name, err)
-				}
-				log.Printf("%s server has shut down.", name)
-			}
-		}()
-	}
-
-	hh := &httpHandler{
-		jrh:    params.Handler,
-		secret: s.secret,
-	}
-
-	var chosenHandler http.Handler = hh
-	if params.Log {
-		chosenHandler = handlers.LoggingHandler(os.Stderr, chosenHandler)
-	}
-
-	errs := make(chan error)
-	go func() {
-		tlsListener := tls.NewListener(params.HTTPSListener, params.TLSState.Config)
-		srv := &http.Server{Handler: chosenHandler}
-		srv.TLSConfig = params.TLSState.Config
-		handleGracefulShutdown(srv, "https")
-		errs <- srv.Serve(tlsListener)
-	}()
-
-	go func() {
-		srv := &http.Server{Handler: chosenHandler}
-		handleGracefulShutdown(srv, "http")
-		errs <- srv.Serve(params.HTTPListener)
-	}()
-
-	for i := 0; i < 2; i++ {
-		err := <-errs
-		if err != nil {
-			if errors.Cause(err) == http.ErrServerClosed {
-				// that's ok!
-				continue
-			}
-			params.HTTPListener.Close()
-			params.HTTPSListener.Close()
-			return err
-		}
-	}
-	shutdownWaitGroup.Wait()
-	log.Printf("All HTTP servers have shut down successfully")
-
-	return nil
 }
 
 type ServeTCPParams struct {
@@ -222,23 +141,32 @@ func (h *gatedHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jso
 		}()
 
 		if err != nil {
-			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+			err := conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 				Code:    jsonrpc2.CodeInvalidRequest,
 				Message: fmt.Sprintf("%+v", err),
 			})
+			if err != nil {
+				comm.Warnf("Failed to reply: %#v", err)
+			}
 		} else {
 			result := &MetaAuthenticateResult{OK: true}
 			h.authenticated = true
-			conn.Reply(ctx, req.ID, result)
+			err := conn.Reply(ctx, req.ID, result)
+			if err != nil {
+				comm.Warnf("Failed to reply: %#v", err)
+			}
 		}
 	} else {
 		if h.authenticated {
 			go h.inner.Handle(ctx, conn, req)
 		} else {
-			conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+			err := conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
 				Code:    jsonrpc2.CodeInvalidRequest,
 				Message: "Must call Meta.Authenticate with valid secret first",
 			})
+			if err != nil {
+				comm.Warnf("Failed to reply with error: %#v", err)
+			}
 		}
 	}
 }

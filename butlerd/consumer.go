@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/itchio/butler/comm"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
@@ -28,10 +29,13 @@ func NewStateConsumer(params *NewStateConsumerParams) (*state.Consumer, error) {
 
 	c := &state.Consumer{
 		OnMessage: func(level, msg string) {
-			params.Conn.Notify(params.Ctx, "Log", LogNotification{
+			err := params.Conn.Notify(params.Ctx, "Log", LogNotification{
 				Level:   LogLevel(level),
 				Message: msg,
 			})
+			if err != nil {
+				comm.Warnf("Failed to notify: %#v", err)
+			}
 		},
 	}
 

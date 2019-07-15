@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 // generousContext regroups global state for the generous tool
@@ -127,16 +126,4 @@ func (d *document) write() {
 	log.Printf("Writing (%s)...", dest)
 	must(os.MkdirAll(filepath.Dir(dest), 0755))
 	must(ioutil.WriteFile(dest, bs, 0644))
-}
-
-func (gc *generousContext) timestamp() string {
-	return time.Now().Format(time.Stamp)
-}
-
-func (gc *generousContext) revision() string {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = gc.Dir
-	rev, err := cmd.CombinedOutput()
-	must(err)
-	return strings.TrimSpace(string(rev))
 }

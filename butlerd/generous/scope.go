@@ -94,8 +94,6 @@ func newScope(gc *generousContext) *scope {
 	}
 }
 
-const butlerPkg = "github.com/itchio/butler"
-
 func (s *scope) assimilate(pkg string, file string) error {
 	log.Printf("Assimilating package (%s), file (%s)", pkg, file)
 

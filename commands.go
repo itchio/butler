@@ -46,6 +46,7 @@ import (
 	"github.com/itchio/butler/cmd/which"
 	"github.com/itchio/butler/cmd/fujicmd"
 	"github.com/itchio/butler/cmd/wipe"
+	"github.com/itchio/butler/cmd/ratetest"
 	"github.com/itchio/butler/mansion"
 )
 
@@ -117,4 +118,6 @@ func registerCommands(ctx *mansion.Context) {
 	singlediff.Register(ctx)
 	rediff.Register(ctx)
 	mkzip.Register(ctx)
+
+	ratetest.Register(ctx)
 }

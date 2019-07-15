@@ -2,8 +2,6 @@ package daemon
 
 import (
 	"context"
-	"encoding/base64"
-	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -24,8 +22,6 @@ import (
 )
 
 var args = struct {
-	writeSecret string
-	writeCert   string
 	destinyPids []int64
 	transport   string
 	keepAlive   bool
@@ -34,10 +30,8 @@ var args = struct {
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
-	cmd.Flag("write-secret", "Path to write the secret to").StringVar(&args.writeSecret)
-	cmd.Flag("write-cert", "Path to write the certificate to").StringVar(&args.writeCert)
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
-	cmd.Flag("transport", "Which transport to use").Default("http").EnumVar(&args.transport, "http", "tcp")
+	cmd.Flag("transport", "Which transport to use").Default("tcp").EnumVar(&args.transport, "http", "tcp")
 	cmd.Flag("keep-alive", "Accept multiple TCP connections, stay up until killed or a destiny PID shuts down").BoolVar(&args.keepAlive)
 	cmd.Flag("log", "Log all requests to stderr").BoolVar(&args.log)
 	ctx.Register(cmd, do)
@@ -49,9 +43,7 @@ func do(ctx *mansion.Context) {
 		os.Exit(1)
 	}
 
-	if ctx.DBPath == "" {
-		comm.Dief("butlerd: dbPath must be set")
-	}
+	ctx.EnsureDBPath()
 
 	err := agent.Listen(agent.Options{
 		Addr:            "localhost:0",
@@ -123,16 +115,6 @@ func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	h.router.Dispatch(ctx, conn, req)
 }
 
-func tryListen(port string) (net.Listener, error) {
-	spec := "127.0.0.1:" + port
-	lis, err := net.Listen("tcp", spec)
-	if err != nil {
-		spec = "127.0.0.1:"
-		lis, err = net.Listen("tcp", spec)
-	}
-	return lis, err
-}
-
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	h := &handler{
@@ -169,59 +151,7 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 			return err
 		}
 	case "http":
-		ts, err := butlerd.MakeTLSState()
-		if err != nil {
-			return err
-		}
-
-		httpListener, err := tryListen("13141")
-		if err != nil {
-			return err
-		}
-
-		httpsListener, err := tryListen("13142")
-		if err != nil {
-			return err
-		}
-
-		ca := base64.StdEncoding.EncodeToString(ts.CertPEMBlock)
-
-		comm.Object("butlerd/listen-notification", map[string]interface{}{
-			"secret": secret,
-			"http": map[string]interface{}{
-				"address": httpListener.Addr().String(),
-			},
-			"https": map[string]interface{}{
-				"address": httpsListener.Addr().String(),
-				"ca":      ca,
-			},
-		})
-
-		if args.writeCert != "" {
-			err := ioutil.WriteFile(args.writeCert, ts.CertPEMBlock, os.FileMode(0644))
-			if err != nil {
-				comm.Warnf("%v", err)
-			}
-		}
-
-		if args.writeSecret != "" {
-			err := ioutil.WriteFile(args.writeSecret, []byte(secret), os.FileMode(0644))
-			if err != nil {
-				comm.Warnf("%v", err)
-			}
-		}
-		err = s.ServeHTTP(ctx, butlerd.ServeHTTPParams{
-			HTTPListener:  httpListener,
-			HTTPSListener: httpsListener,
-			ShutdownChan:  h.router.ShutdownChan,
-			Handler:       h,
-			TLSState:      ts,
-			Consumer:      consumer,
-			Log:           args.log,
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
+		comm.Dief("The HTTP transport is deprecated. Use TCP instead.")
 	}
 
 	return nil
