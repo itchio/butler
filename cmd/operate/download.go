@@ -2,6 +2,7 @@ package operate
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"github.com/itchio/httpkit/htfs"
@@ -14,13 +15,40 @@ import (
 	"github.com/itchio/butler/cmd/operate/downloadextractor"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/installer/archive/intervalsaveconsumer"
-	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/httpkit/eos"
 	"github.com/pkg/errors"
 )
 
-func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx context.Context, file eos.File, destPath string) error {
-	statePath := filepath.Join(stageFolder, "download-state.dat")
+type DownloadInstallSourceParams struct {
+	// State consumer
+	Consumer *state.Consumer
+
+	// For cancellation
+	Context context.Context
+
+	// Staging folder we can use to store the download state file
+	StageFolder string
+
+	// Used to determine the state file name - must be filesystem-safe
+	OperationName string
+
+	// File to download from (usually an HTTP file)
+	File eos.File
+
+	// Where to download the file
+	DestPath string
+}
+
+func DownloadInstallSource(params DownloadInstallSourceParams) error {
+	consumer := params.Consumer
+	ctx := params.Context
+	stageFolder := params.StageFolder
+	file := params.File
+	destPath := params.DestPath
+
+	stateName := fmt.Sprintf("downsource-%s-state.dat", params.OperationName)
+	statePath := filepath.Join(stageFolder, stateName)
 	sc := intervalsaveconsumer.New(statePath, intervalsaveconsumer.DefaultInterval, consumer, ctx)
 
 	checkpoint, err := sc.Load()
@@ -75,6 +103,11 @@ func DownloadInstallSource(consumer *state.Consumer, stageFolder string, ctx con
 			// if it's not an integrity error, just bubble it up
 			return err
 		}
+
+		// N.B: we don't remove the state file in case we retry
+		// so that we know the operation is done already.
+		// That means state file names should be unique per operation,
+		// cf. https://github.com/itchio/itch/issues/2311
 
 		return nil
 	}

@@ -79,7 +79,14 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 			}
 
 			oc.rc.StartProgress()
-			err = DownloadInstallSource(oc.Consumer(), oc.StageFolder(), oc.ctx, file, destPath)
+			err = DownloadInstallSource(DownloadInstallSourceParams{
+				Context:       oc.ctx,
+				Consumer:      oc.Consumer(),
+				StageFolder:   oc.StageFolder(),
+				OperationName: "force-local",
+				File:          file,
+				DestPath:      destPath,
+			})
 			oc.rc.EndProgress()
 			oc.consumer.Progress(0)
 			if err != nil {

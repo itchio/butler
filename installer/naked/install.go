@@ -18,7 +18,14 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	destName := filepath.Base(stats.Name())
 	destAbsolutePath := filepath.Join(params.InstallFolderPath, destName)
 
-	err = operate.DownloadInstallSource(params.Consumer, params.StageFolderPath, params.Context, params.File, destAbsolutePath)
+	err = operate.DownloadInstallSource(operate.DownloadInstallSourceParams{
+		Context:       params.Context,
+		Consumer:      params.Consumer,
+		StageFolder:   params.StageFolderPath,
+		OperationName: "naked-installer",
+		File:          params.File,
+		DestPath:      destAbsolutePath,
+	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
