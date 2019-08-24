@@ -27,6 +27,15 @@ plugin for automatically installing, updating, and running butler as part of you
 
   * [View gradle-butler-plugin on Github](https://github.com/mini2Dx/gradle-butler-plugin)
 
+## Easy-Butler
+
+[Easy-Butler](https://github.com/TheCrafters001/Easy-Butler) is a tool built by TheCrafters001.
+This tool was built with a UI in mind, making it easier for people who don't understand butler.
+Easy-Butler also has features like Dark Mode.
+
+  * [View Easy-Butler on Github](https://github.com/TheCrafters001/Easy-Butler)
+  * [View Easy Butler on Itch.IO](https://thecrafters001.itch.io/easybutler)
+
 ## Other resources
 
 Here's a few articles people have written about integrating butler into their release
