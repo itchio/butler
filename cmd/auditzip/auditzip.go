@@ -17,9 +17,9 @@ import (
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
-	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -134,7 +134,7 @@ func DoMk(consumer *state.Consumer, file string, rfc bool) error {
 	}
 	defer f.Close()
 
-	itchiozip.RegisterCompressor(itchiozip.LZMA, func(w io.Writer) (io.WriteCloser, error) {
+	itchiozip.RegisterCompressor(itchiozip.LZMA, func(s itchiozip.CompressionSettings, w io.Writer) (io.WriteCloser, error) {
 		buf := new(bytes.Buffer)
 		return &lzmaWriter{buf, w}, nil
 	})
