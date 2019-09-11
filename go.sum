@@ -100,8 +100,8 @@ github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ
 github.com/itchio/arkive v0.0.0-20180910214514-fc46d4d216ca/go.mod h1:AsMFt+VBCAYG/iC+CGwl1QVas0r8ogUn69kJkf96rLE=
 github.com/itchio/arkive v0.0.0-20190702114012-1bb6c7241ec3 h1:UcZnU7qzWTmZf8v7F3mC79H98I0b77pZz+99vqHFwtI=
 github.com/itchio/arkive v0.0.0-20190702114012-1bb6c7241ec3/go.mod h1:/MAMeMlpquFOD0/pXvk5+2uxV9S6UXcdj6YtesJWPAI=
-github.com/itchio/arkive v0.0.0-20190910163214-8e61994451e2 h1:H4O4PbawIk0VhzPc87h1Coxl4HrtZUuCQGO7AMIvP9c=
-github.com/itchio/arkive v0.0.0-20190910163214-8e61994451e2/go.mod h1:/MAMeMlpquFOD0/pXvk5+2uxV9S6UXcdj6YtesJWPAI=
+github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35 h1:zO46W7RXmji+iy3dFp+6pq2jhjhixTHQqPocfbq7L8c=
+github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35/go.mod h1:852gQZMyqQfE72WGtvbfvGo4dw5QgZLTJPVE4MkULdo=
 github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f h1:l1RxdEc4BgyFpMxrpBRJOLh++Kko0VRuaxhGHr9MFsc=
 github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f/go.mod h1:DEVC1bPLcELkOztb2oI1yaDgWxyX2rGbgEvDB0Q8Pu4=
 github.com/itchio/damage v0.0.0-20190703135837-76df725fc766 h1:4nBDNxFnzgCg46RTEKSQPK6g9TP87GvwLojqEoVIO5w=
@@ -173,8 +173,8 @@ github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:C
 github.com/keybase/go-ps v0.0.0-20161005175911-668c8856d999/go.mod h1:hY+WOq6m2FpbvyrI93sMaypsttvaIL5nhVR92dTMUcQ=
 github.com/klauspost/compress v1.7.1 h1:VRD0WLa8rweLB7alA5WMSVkoAtrI8xou5RrNd4JUlR0=
 github.com/klauspost/compress v1.7.1/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
-github.com/klauspost/compress v1.7.5 h1:NMapGoDIKPKpk2hpcgAU6XHfsREHG2p8PIg7C3f/jpI=
-github.com/klauspost/compress v1.7.5/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
+github.com/klauspost/compress v1.8.2 h1:Bx0qjetmNjdFXASH02NSAREKpiaDwkO1DRZ3dV2KCcs=
+github.com/klauspost/compress v1.8.2/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/cpuid v1.2.1 h1:vJi+O/nMdFt0vqm8NZBI6wzALWdA2X+egi0ogNyrC/w=
 github.com/klauspost/cpuid v1.2.1/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=

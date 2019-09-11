@@ -19,7 +19,7 @@ require (
 	github.com/google/gops v0.3.6
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.0 // indirect
-	github.com/itchio/arkive v0.0.0-20190910163214-8e61994451e2
+	github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35
 	github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f
 	github.com/itchio/damage v0.0.0-20190703135837-76df725fc766
 	github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f
@@ -28,7 +28,6 @@ require (
 	github.com/itchio/hades v0.0.0-20190703142104-a6700d471538
 	github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de
 	github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52
-	github.com/itchio/kompress v0.0.0-20190703125833-0b2a6b182782 // indirect
 	github.com/itchio/lake v0.0.0-20190703103538-f71861a8a3eb
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
 	github.com/itchio/ox v0.0.0-20190705170940-1e1b8248fbc5
@@ -40,7 +39,6 @@ require (
 	github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
