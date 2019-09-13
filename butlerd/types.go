@@ -4,6 +4,7 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
@@ -2029,6 +2030,29 @@ type LaunchRunningNotification struct{}
 //
 // @category Launch
 type LaunchExitedNotification struct{}
+
+// @name Launch.GetCandidates
+// @category Launch
+// @caller client
+type LaunchGetCandidatesParams struct {
+	// The ID of the cave to retrieve the launch candidates of
+	CaveID string `json:"caveId"`
+
+	// A list of platforms that should be included when looking
+	// for candidates, even though they're not the current platform.
+	NonNativePlatforms []ox.Platform `json:"nonNativePlatforms"`
+}
+
+func (p LaunchGetCandidatesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
+type LaunchGetCandidatesResult struct {
+	// All launch candidates found
+	Candidates []dash.Candidate `json:"candidates"`
+}
 
 // Sent during @@LaunchParams if the game/application comes with a service license
 // agreement (at the time of this writing, this only happens if it was installed from a DMG file).

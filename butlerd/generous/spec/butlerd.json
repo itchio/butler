@@ -1664,6 +1664,34 @@
       }
     },
     {
+      "method": "Launch.GetCandidates",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "The ID of the cave to retrieve the launch candidates of",
+            "type": "string"
+          },
+          {
+            "name": "nonNativePlatforms",
+            "doc": "A list of platforms that should be included when looking\nfor candidates, even though they're not the current platform.",
+            "type": "Platform[]"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "candidates",
+            "doc": "All launch candidates found",
+            "type": "Candidate[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "AcceptLicense",
       "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement (at the time of this writing, this only happens if it was installed from a DMG file).",
       "caller": "server",
