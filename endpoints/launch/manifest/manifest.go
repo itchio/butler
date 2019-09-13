@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/ox"
 	"github.com/mitchellh/mapstructure"
 
@@ -14,20 +13,73 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: linter
+// A Manifest describes prerequisites (dependencies) and actions that
+// can be taken while launching a game.
+type Manifest struct {
+	// Actions are a list of options to give the user when launching a game.
+	Actions []*Action `json:"actions"`
 
-func ListActions(m *butlerd.Manifest, runtime *ox.Runtime) []*butlerd.Action {
-	var result []*butlerd.Action
+	// Prereqs describe libraries or frameworks that must be installed
+	// prior to launching a game
+	Prereqs []*Prereq `json:"prereqs,omitempty"`
+}
+
+// An Action is a choice for the user to pick when launching a game.
+//
+// see https://itch.io/docs/itch/integrating/manifest.html
+type Action struct {
+	// human-readable or standard name
+	Name string `json:"name"`
+
+	// file path (relative to manifest or absolute), URL, etc.
+	Path string `json:"path"`
+
+	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
+	Icon string `json:"icon,omitempty"`
+
+	// command-line arguments
+	Args []string `json:"args,omitempty"`
+
+	// sandbox opt-in
+	Sandbox bool `json:"sandbox,omitempty"`
+
+	// requested API scope
+	Scope string `json:"scope,omitempty"`
+
+	// don't redirect stdout/stderr, open in new console window
+	Console bool `json:"console,omitempty"`
+
+	// platform to restrict this action to
+	Platform ox.Platform `json:"platform,omitempty"`
+
+	// localized action name
+	Locales map[string]*ActionLocale `json:"locales,omitempty"`
+}
+
+func (a Action) RunsOn(platform ox.Platform) bool {
+	if a.Platform == "" {
+		return true
+	}
+	return a.Platform == platform
+}
+
+type Prereq struct {
+	// A prerequisite to be installed, see <https://itch.io/docs/itch/integrating/prereqs/> for the full list.
+	Name string `json:"name"`
+}
+
+type ActionLocale struct {
+	// A localized action name
+	Name string `json:"name"`
+}
+
+func (m *Manifest) ListActions(platform ox.Platform) []*Action {
+	var result []*Action
 
 	for _, a := range m.Actions {
-		if a.Platform == "" {
-			// universal
-			result = append(result, a)
-		} else if a.Platform == runtime.Platform {
-			// just the right platform for us!
+		if a.RunsOn(platform) {
 			result = append(result, a)
 		}
-		// otherwise, skip it
 	}
 
 	return result
@@ -42,7 +94,7 @@ func Path(folder string) string {
 // in the folder. Returns an error if there is a file, but it can't
 // be read, for example because of permissions errors, invalid TOML
 // markup, or invalid manifest structure
-func Read(folder string) (*butlerd.Manifest, error) {
+func Read(folder string) (*Manifest, error) {
 	manifestPath := Path(folder)
 	f, err := os.Open(manifestPath)
 	if err != nil {
@@ -62,7 +114,7 @@ func Read(folder string) (*butlerd.Manifest, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	manifest := &butlerd.Manifest{}
+	manifest := &Manifest{}
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result: manifest,
 	})
@@ -80,7 +132,7 @@ func Read(folder string) (*butlerd.Manifest, error) {
 	return manifest, nil
 }
 
-func ExpandPath(a *butlerd.Action, runtime *ox.Runtime, baseFolder string) string {
+func ExpandPath(a *Action, platform ox.Platform, baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
@@ -88,7 +140,7 @@ func ExpandPath(a *butlerd.Action, runtime *ox.Runtime, baseFolder string) strin
 	path := a.Path
 	if strings.Contains(path, "{{EXT}}") {
 		var ext = ""
-		switch runtime.Platform {
+		switch platform {
 		case ox.PlatformWindows:
 			ext = ".exe"
 		case ox.PlatformOSX:

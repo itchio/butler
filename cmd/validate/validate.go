@@ -102,7 +102,7 @@ func Validate(consumer *state.Consumer) error {
 		showWarning("In manifest-only validation mode. Pass a valid build directory to perform further checks.")
 	}
 
-	printStrategyResult := func(sr *launch.StrategyResult) {
+	printStrategyResult := func(sr *butlerd.StrategyResult) {
 		for _, line := range strings.Split(sr.String(), "\n") {
 			consumer.Infof("    %s", line)
 		}
@@ -123,11 +123,11 @@ func Validate(consumer *state.Consumer) error {
 			for i, candidate := range verdict.Candidates {
 				consumer.Infof("")
 				consumer.Infof("  → Implicit launch target %d", i+1)
-				sr, err := launch.DetermineCandidateStrategy(dir, candidate)
+				target, err := launch.CandidateToLaunchTarget(dir, runtime.Platform, candidate)
 				if err != nil {
 					showError(err.Error())
 				} else {
-					printStrategyResult(sr)
+					printStrategyResult(target.Strategy)
 				}
 			}
 		} else {
@@ -164,7 +164,7 @@ func Validate(consumer *state.Consumer) error {
 	}
 	consumer.Debugf("Intermediate:\n%s", string(jsonIntermediate))
 
-	appManifest := &butlerd.Manifest{}
+	appManifest := &manifest.Manifest{}
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:      appManifest,
 		ErrorUnused: true,
@@ -240,11 +240,11 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("    Passes arguments: %s", strings.Join(action.Args, " ::: "))
 			}
 			if hasDir {
-				sr, err := launch.DetermineStrategy(consumer, runtime, dir, action)
+				target, err := launch.ActionToLaunchTarget(consumer, runtime.Platform, dir, action)
 				if err != nil {
 					showError(err.Error())
 				} else {
-					printStrategyResult(sr)
+					printStrategyResult(target.Strategy)
 				}
 			}
 		}

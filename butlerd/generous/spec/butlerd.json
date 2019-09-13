@@ -1664,19 +1664,19 @@
       }
     },
     {
-      "method": "Launch.GetCandidates",
+      "method": "Launch.GetTargets",
       "doc": "",
       "caller": "client",
       "params": {
         "fields": [
           {
             "name": "caveId",
-            "doc": "The ID of the cave to retrieve the launch candidates of",
+            "doc": "The ID of the cave to retrieve the launch targets of",
             "type": "string"
           },
           {
             "name": "nonNativePlatforms",
-            "doc": "A list of platforms that should be included when looking\nfor candidates, even though they're not the current platform.",
+            "doc": "A list of platforms that should be included when looking\nfor launch targets, even though they're not the current platform.",
             "type": "Platform[]"
           }
         ]
@@ -1684,9 +1684,9 @@
       "result": {
         "fields": [
           {
-            "name": "candidates",
-            "doc": "All launch candidates found",
-            "type": "Candidate[]"
+            "name": "targets",
+            "doc": "All launch targets found",
+            "type": "LaunchTarget[]"
           }
         ]
       }
@@ -2732,95 +2732,6 @@
           "name": "bps",
           "doc": "",
           "type": "number"
-        }
-      ]
-    },
-    {
-      "name": "Manifest",
-      "doc": "A Manifest describes prerequisites (dependencies) and actions that\ncan be taken while launching a game.",
-      "fields": [
-        {
-          "name": "actions",
-          "doc": "Actions are a list of options to give the user when launching a game.",
-          "type": "Action[]"
-        },
-        {
-          "name": "prereqs",
-          "doc": "Prereqs describe libraries or frameworks that must be installed\nprior to launching a game",
-          "type": "Prereq[]"
-        }
-      ]
-    },
-    {
-      "name": "Action",
-      "doc": "An Action is a choice for the user to pick when launching a game.\n\nsee https://itch.io/docs/itch/integrating/manifest.html",
-      "fields": [
-        {
-          "name": "name",
-          "doc": "human-readable or standard name",
-          "type": "string"
-        },
-        {
-          "name": "path",
-          "doc": "file path (relative to manifest or absolute), URL, etc.",
-          "type": "string"
-        },
-        {
-          "name": "icon",
-          "doc": "icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)",
-          "type": "string"
-        },
-        {
-          "name": "args",
-          "doc": "command-line arguments",
-          "type": "string[]"
-        },
-        {
-          "name": "sandbox",
-          "doc": "sandbox opt-in",
-          "type": "boolean"
-        },
-        {
-          "name": "scope",
-          "doc": "requested API scope",
-          "type": "string"
-        },
-        {
-          "name": "console",
-          "doc": "don't redirect stdout/stderr, open in new console window",
-          "type": "boolean"
-        },
-        {
-          "name": "platform",
-          "doc": "platform to restrict this action too",
-          "type": "Platform"
-        },
-        {
-          "name": "locales",
-          "doc": "localized action name",
-          "type": "{ [key: string]: ActionLocale }"
-        }
-      ]
-    },
-    {
-      "name": "Prereq",
-      "doc": "",
-      "fields": [
-        {
-          "name": "name",
-          "doc": "A prerequisite to be installed, see \u003chttps://itch.io/docs/itch/integrating/prereqs/\u003e for the full list.",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "ActionLocale",
-      "doc": "",
-      "fields": [
-        {
-          "name": "name",
-          "doc": "A localized action name",
-          "type": "string"
         }
       ]
     },

@@ -11,7 +11,7 @@ import (
 )
 
 func Register() {
-	launch.RegisterLauncher(launch.LaunchStrategyHTML, &Launcher{})
+	launch.RegisterLauncher(butlerd.LaunchStrategyHTML, &Launcher{})
 }
 
 type Launcher struct{}

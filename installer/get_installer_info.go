@@ -153,7 +153,7 @@ func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *dash.Cand
 				return InstallerTypeUnknown, errors.WithStack(err)
 			}
 
-			if HasSuspiciouslySetupLikeName(stats.Name()) {
+			if dash.HasSuspiciouslySetupLikeName(stats.Name()) {
 				consumer.Infof("  → Unsupported Windows installer (no manifest, has name '%s')", stats.Name())
 				return InstallerTypeUnsupported, nil
 			}

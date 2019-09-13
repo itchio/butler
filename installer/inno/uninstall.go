@@ -16,7 +16,7 @@ func (m *Manager) Uninstall(params installer.UninstallParams) error {
 
 	consumer.Infof("%s: probing with configurator", folder)
 
-	verdict, err := dash.Configure(folder, &dash.ConfigureParams{
+	verdict, err := dash.Configure(folder, dash.ConfigureParams{
 		Consumer: params.Consumer,
 		Filter:   filtering.FilterPaths,
 	})

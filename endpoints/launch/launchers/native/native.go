@@ -30,7 +30,7 @@ import (
 )
 
 func Register() {
-	launch.RegisterLauncher(launch.LaunchStrategyNative, &Launcher{})
+	launch.RegisterLauncher(butlerd.LaunchStrategyNative, &Launcher{})
 }
 
 type Launcher struct{}
@@ -331,7 +331,7 @@ func configureTargetIfNeeded(params launch.LauncherParams) error {
 		return nil
 	}
 
-	v, err := dash.Configure(params.FullTargetPath, &dash.ConfigureParams{
+	v, err := dash.Configure(params.FullTargetPath, dash.ConfigureParams{
 		Consumer: params.RequestContext.Consumer,
 		Filter:   filtering.FilterPaths,
 	})

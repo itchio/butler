@@ -2805,19 +2805,19 @@ func (r *LaunchExitedType) Register(router router, f func(*butlerd.RequestContex
 
 var LaunchExited *LaunchExitedType
 
-// Launch.GetCandidates (Request)
+// Launch.GetTargets (Request)
 
-type LaunchGetCandidatesType struct {}
+type LaunchGetTargetsType struct {}
 
-var _ RequestMessage = (*LaunchGetCandidatesType)(nil)
+var _ RequestMessage = (*LaunchGetTargetsType)(nil)
 
-func (r *LaunchGetCandidatesType) Method() string {
-  return "Launch.GetCandidates"
+func (r *LaunchGetTargetsType) Method() string {
+  return "Launch.GetTargets"
 }
 
-func (r *LaunchGetCandidatesType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchGetCandidatesParams) (*butlerd.LaunchGetCandidatesResult, error)) {
-  router.Register("Launch.GetCandidates", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.LaunchGetCandidatesParams
+func (r *LaunchGetTargetsType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error)) {
+  router.Register("Launch.GetTargets", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.LaunchGetTargetsParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -2831,19 +2831,19 @@ func (r *LaunchGetCandidatesType) Register(router router, f func(*butlerd.Reques
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Launch.GetCandidates")
+    	return nil, errors.New("internal error: nil result for Launch.GetTargets")
     }
     return res, nil
   })
 }
 
-func (r *LaunchGetCandidatesType) TestCall(rc *butlerd.RequestContext, params butlerd.LaunchGetCandidatesParams) (*butlerd.LaunchGetCandidatesResult, error) {
-  var result butlerd.LaunchGetCandidatesResult
-  err := rc.Call("Launch.GetCandidates", params, &result)
+func (r *LaunchGetTargetsType) TestCall(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error) {
+  var result butlerd.LaunchGetTargetsResult
+  err := rc.Call("Launch.GetTargets", params, &result)
   return &result, err
 }
 
-var LaunchGetCandidates *LaunchGetCandidatesType
+var LaunchGetTargets *LaunchGetTargetsType
 
 // AcceptLicense (Request)
 
@@ -3479,7 +3479,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["SnoozeCave"]; !ok { panic("missing request handler for (SnoozeCave)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
-  if _, ok := router.Handlers["Launch.GetCandidates"]; !ok { panic("missing request handler for (Launch.GetCandidates)") }
+  if _, ok := router.Handlers["Launch.GetTargets"]; !ok { panic("missing request handler for (Launch.GetTargets)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }

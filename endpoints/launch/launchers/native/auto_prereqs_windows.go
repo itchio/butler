@@ -3,6 +3,7 @@
 package native
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,12 +11,13 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/redist"
-
 	"github.com/itchio/butler/cmd/prereqs"
-
 	"github.com/itchio/butler/endpoints/launch"
+
+	"github.com/itchio/headway/state"
 	"github.com/itchio/dash"
 	"github.com/itchio/pelican"
+
 	"github.com/pkg/errors"
 )
 
@@ -62,11 +64,19 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		}
 		defer f.Close()
 
+		var peLines []string
+		memConsumer := &state.Consumer{
+			OnMessage: func(lvl string, msg string) {
+				peLines = append(peLines, fmt.Sprintf("[%s] %s", lvl, msg))
+			},
+		}
+
 		peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
-			Consumer: consumer,
+			Consumer: memConsumer,
 		})
 		if err != nil {
 			consumer.Warnf("For auto prereqs: could not probe (%s): %+v", cPath, err)
+			consumer.Warnf("Full pelican log:\n%s", strings.Join(peLines, "\n"))
 			return nil
 		}
 

@@ -3,8 +3,9 @@ package butlerd
 import (
 	"time"
 
+	"github.com/itchio/butler/endpoints/launch/manifest"
+
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
@@ -2031,27 +2032,27 @@ type LaunchRunningNotification struct{}
 // @category Launch
 type LaunchExitedNotification struct{}
 
-// @name Launch.GetCandidates
+// @name Launch.GetTargets
 // @category Launch
 // @caller client
-type LaunchGetCandidatesParams struct {
-	// The ID of the cave to retrieve the launch candidates of
+type LaunchGetTargetsParams struct {
+	// The ID of the cave to retrieve the launch targets of
 	CaveID string `json:"caveId"`
 
 	// A list of platforms that should be included when looking
-	// for candidates, even though they're not the current platform.
+	// for launch targets, even though they're not the current platform.
 	NonNativePlatforms []ox.Platform `json:"nonNativePlatforms"`
 }
 
-func (p LaunchGetCandidatesParams) Validate() error {
+func (p LaunchGetTargetsParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.CaveID, validation.Required),
 	)
 }
 
-type LaunchGetCandidatesResult struct {
-	// All launch candidates found
-	Candidates []dash.Candidate `json:"candidates"`
+type LaunchGetTargetsResult struct {
+	// All launch targets found
+	Targets []*LaunchTarget `json:"targets"`
 }
 
 // Sent during @@LaunchParams if the game/application comes with a service license
@@ -2085,7 +2086,7 @@ type AcceptLicenseResult struct {
 // @caller server
 type PickManifestActionParams struct {
 	// A list of actions to pick from. Must be shown to the user in the order they're passed.
-	Actions []*Action `json:"actions"`
+	Actions []*manifest.Action `json:"actions"`
 }
 
 func (p PickManifestActionParams) Validate() error {
@@ -2479,63 +2480,6 @@ const (
 	// An install location could not be removed because it has active downloads
 	CodeCantRemoveLocationBecauseOfActiveDownloads Code = 18000
 )
-
-//==================================
-// Manifests
-//==================================
-
-// A Manifest describes prerequisites (dependencies) and actions that
-// can be taken while launching a game.
-type Manifest struct {
-	// Actions are a list of options to give the user when launching a game.
-	Actions []*Action `json:"actions"`
-
-	// Prereqs describe libraries or frameworks that must be installed
-	// prior to launching a game
-	Prereqs []*Prereq `json:"prereqs,omitempty"`
-}
-
-// An Action is a choice for the user to pick when launching a game.
-//
-// see https://itch.io/docs/itch/integrating/manifest.html
-type Action struct {
-	// human-readable or standard name
-	Name string `json:"name"`
-
-	// file path (relative to manifest or absolute), URL, etc.
-	Path string `json:"path"`
-
-	// icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)
-	Icon string `json:"icon,omitempty"`
-
-	// command-line arguments
-	Args []string `json:"args,omitempty"`
-
-	// sandbox opt-in
-	Sandbox bool `json:"sandbox,omitempty"`
-
-	// requested API scope
-	Scope string `json:"scope,omitempty"`
-
-	// don't redirect stdout/stderr, open in new console window
-	Console bool `json:"console,omitempty"`
-
-	// platform to restrict this action too
-	Platform ox.Platform `json:"platform,omitempty"`
-
-	// localized action name
-	Locales map[string]*ActionLocale `json:"locales,omitempty"`
-}
-
-type Prereq struct {
-	// A prerequisite to be installed, see <https://itch.io/docs/itch/integrating/prereqs/> for the full list.
-	Name string `json:"name"`
-}
-
-type ActionLocale struct {
-	// A localized action name
-	Name string `json:"name"`
-}
 
 // Dates
 

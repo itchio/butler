@@ -22,7 +22,7 @@ require (
 	github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35
 	github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f
 	github.com/itchio/damage v0.0.0-20190703135837-76df725fc766
-	github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f
+	github.com/itchio/dash v0.0.0-20190913210438-de96047ab8d7
 	github.com/itchio/elefant v0.0.0-20190703135033-2d43bc5934e5
 	github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102
 	github.com/itchio/hades v0.0.0-20190703142104-a6700d471538
@@ -30,7 +30,7 @@ require (
 	github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52
 	github.com/itchio/lake v0.0.0-20190703103538-f71861a8a3eb
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
-	github.com/itchio/ox v0.0.0-20190705170940-1e1b8248fbc5
+	github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190702184736-b8b849654d01
 	github.com/itchio/smaug v0.0.0-20190702183459-b4c26be6cc7c
@@ -60,3 +60,5 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	xorm.io/builder v0.3.5
 )
+
+replace github.com/itchio/dash => ../dash

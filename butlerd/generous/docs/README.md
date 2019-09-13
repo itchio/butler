@@ -5385,7 +5385,7 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 </p>
 </div>
 
-### <em class="request-client-caller"></em>Launch.GetCandidates
+### <em class="request-client-caller"></em>Launch.GetTargets
 
 
 
@@ -5398,14 +5398,14 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The ID of the cave to retrieve the launch candidates of</p>
+<td><p>The ID of the cave to retrieve the launch targets of</p>
 </td>
 </tr>
 <tr>
 <td><code>nonNativePlatforms</code></td>
 <td><code class="typename"><span class="type builtin-type">Platform</span>[]</code></td>
 <td><p>A list of platforms that should be included when looking
-for candidates, even though they&rsquo;re not the current platform.</p>
+for launch targets, even though they&rsquo;re not the current platform.</p>
 </td>
 </tr>
 </table>
@@ -5419,16 +5419,16 @@ for candidates, even though they&rsquo;re not the current platform.</p>
 
 <table class="field-table">
 <tr>
-<td><code>candidates</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
-<td><p>All launch candidates found</p>
+<td><code>targets</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#LaunchTarget__TypeHint">LaunchTarget</span>[]</code></td>
+<td><p>All launch targets found</p>
 </td>
 </tr>
 </table>
 
 
-<div id="LaunchGetCandidatesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Launch.GetCandidates <a href="#/?id=launchgetcandidates">(Go to definition)</a></p>
+<div id="LaunchGetTargetsParams__TypeHint" style="display: none;" class="tip-content">
+<p><em class="request-client-caller"></em>Launch.GetTargets <a href="#/?id=launchgettargets">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -5445,14 +5445,14 @@ for candidates, even though they&rsquo;re not the current platform.</p>
 </div>
 
 
-<div id="LaunchGetCandidatesResult__TypeHint" style="display: none;" class="tip-content">
-<p>LaunchGetCandidates <a href="#/?id=launchgetcandidates">(Go to definition)</a></p>
+<div id="LaunchGetTargetsResult__TypeHint" style="display: none;" class="tip-content">
+<p>LaunchGetTargets <a href="#/?id=launchgettargets">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
-<td><code>candidates</code></td>
-<td><code class="typename"><span class="type struct-type">Candidate</span>[]</code></td>
+<td><code>targets</code></td>
+<td><code class="typename"><span class="type struct-type">LaunchTarget</span>[]</code></td>
 </tr>
 </table>
 
@@ -8291,6 +8291,125 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
+### Cursor
+
+
+Type alias for string
+
+<div id="Cursor__TypeHint" style="display: none;" class="tip-content">
+<p>Cursor <a href="#/?id=cursor">(Go to definition)</a></p>
+</div>
+
+### <em class="struct-type"></em>LaunchTarget
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>action</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
+<td><p>The manifest action corresponding to this launch target.
+For implicit launch targets, a minimal one will be generated.</p>
+</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
+<td><p>Platform this launch target was found for</p>
+</td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td><code class="typename"><span class="type struct-type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
+<td><p>Detailed launch strategy</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchTarget__TypeHint" style="display: none;" class="tip-content">
+<p><em class="struct-type"></em>LaunchTarget <a href="#/?id=launchtarget">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>action</code></td>
+<td><code class="typename"><span class="type struct-type">Action</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td><code class="typename"><span class="type struct-type">Strategy</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### <em class="enum-type"></em>LaunchStrategy
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"native"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"url"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"shell"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="LaunchStrategy__TypeHint" style="display: none;" class="tip-content">
+<p><em class="enum-type"></em>LaunchStrategy <a href="#/?id=launchstrategy">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+</tr>
+<tr>
+<td><code>"native"</code></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+</tr>
+<tr>
+<td><code>"url"</code></td>
+</tr>
+<tr>
+<td><code>"shell"</code></td>
+</tr>
+</table>
+
+</div>
+
 ### <em class="struct-type"></em>Manifest
 
 
@@ -8405,7 +8524,7 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
-<td><p>platform to restrict this action too</p>
+<td><p>platform to restrict this action to</p>
 </td>
 </tr>
 <tr>
@@ -8530,15 +8649,6 @@ can be taken while launching a game.</p>
 </tr>
 </table>
 
-</div>
-
-### Cursor
-
-
-Type alias for string
-
-<div id="Cursor__TypeHint" style="display: none;" class="tip-content">
-<p>Cursor <a href="#/?id=cursor">(Go to definition)</a></p>
 </div>
 
 ### <em class="struct-type"></em>User

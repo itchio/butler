@@ -8,7 +8,7 @@ import (
 )
 
 func Register() {
-	launch.RegisterLauncher(launch.LaunchStrategyShell, &Launcher{})
+	launch.RegisterLauncher(butlerd.LaunchStrategyShell, &Launcher{})
 }
 
 type Launcher struct{}

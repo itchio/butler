@@ -7,23 +7,14 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/lake/tlc"
 	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
-	"github.com/itchio/lake/tlc"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/dash"
-)
-
-type LaunchStrategy string
-
-const (
-	LaunchStrategyUnknown LaunchStrategy = ""
-	LaunchStrategyNative  LaunchStrategy = "native"
-	LaunchStrategyHTML    LaunchStrategy = "html"
-	LaunchStrategyURL     LaunchStrategy = "url"
-	LaunchStrategyShell   LaunchStrategy = "shell"
 )
 
 type LauncherParams struct {
@@ -43,10 +34,10 @@ type LauncherParams struct {
 	installContainer *tlc.Container
 
 	// May be nil
-	AppManifest *butlerd.Manifest
+	AppManifest *manifest.Manifest
 
 	// May be nil
-	Action *butlerd.Action
+	Action *manifest.Action
 
 	// If true, enable sandbox
 	Sandbox bool
@@ -121,8 +112,8 @@ type Launcher interface {
 	Do(params LauncherParams) error
 }
 
-var launchers = make(map[LaunchStrategy]Launcher)
+var launchers = make(map[butlerd.LaunchStrategy]Launcher)
 
-func RegisterLauncher(strategy LaunchStrategy, launcher Launcher) {
+func RegisterLauncher(strategy butlerd.LaunchStrategy, launcher Launcher) {
 	launchers[strategy] = launcher
 }

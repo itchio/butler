@@ -5,21 +5,16 @@ import (
 	"os"
 
 	"crawshaw.io/sqlite"
-	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/manager/runlock"
-	"github.com/itchio/ox"
 	"github.com/pkg/errors"
+
+	"github.com/itchio/ox"
+
+	validation "github.com/go-ozzo/ozzo-validation"
 )
-
-type getCandidatesResult struct {
-}
-
-func getCandidates(rc *butlerd.RequestContext) (*getCandidatesResult, error) {
-	return nil, errors.New("unimplemented")
-}
 
 type withInstallFolderLockParams struct {
 	rc     *butlerd.RequestContext

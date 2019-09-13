@@ -11,46 +11,23 @@ import (
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/dash"
-	"github.com/itchio/ox"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
-type StrategyResult struct {
-	Strategy       LaunchStrategy
-	FullTargetPath string
-	Candidate      *dash.Candidate
-}
-
-func (sr *StrategyResult) String() string {
-	var lines []string
-	lines = append(lines, fmt.Sprintf("| (%s) (%s)", sr.FullTargetPath, sr.Strategy))
-	if sr.Candidate != nil {
-		lines = append(lines, sr.Candidate.String())
+func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, installFolder string, manifestAction *manifest.Action) (*butlerd.LaunchTarget, error) {
+	target := &butlerd.LaunchTarget{
+		Action:   manifestAction,
+		Strategy: &butlerd.StrategyResult{},
 	}
-	var explanation = ""
-	switch sr.Strategy {
-	case LaunchStrategyHTML:
-		explanation = "☁ Will be opened as HTML5 app"
-	case LaunchStrategyNative:
-		explanation = "↗ Will be launched as a native application"
-	case LaunchStrategyShell:
-		explanation = "🗁 Will be opened in file manager"
-	case LaunchStrategyURL:
-		explanation = "🗏 Will be opened in browser, as web page"
-	default:
-		explanation = "(Unknown strategy)"
-	}
-	lines = append(lines, "|-- "+explanation)
-	return strings.Join(lines, "\n")
-}
 
-func DetermineStrategy(consumer *state.Consumer, runtime *ox.Runtime, installFolder string, manifestAction *butlerd.Action) (*StrategyResult, error) {
 	// is it a path?
-	fullPath := manifest.ExpandPath(manifestAction, runtime, installFolder)
+	fullPath := manifest.ExpandPath(manifestAction, platform, installFolder)
 	stats, err := os.Stat(fullPath)
 	if err != nil {
-		// is it an URL?
+		// is it a URL?
 		{
 			u, urlErr := url.Parse(manifestAction.Path)
 			if urlErr == nil {
@@ -58,11 +35,11 @@ func DetermineStrategy(consumer *state.Consumer, runtime *ox.Runtime, installFol
 					return nil, err
 				}
 
-				res := &StrategyResult{
-					Strategy:       LaunchStrategyURL,
+				target.Strategy = &butlerd.StrategyResult{
+					Strategy:       butlerd.LaunchStrategyURL,
 					FullTargetPath: manifestAction.Path,
 				}
-				return res, nil
+				return target, nil
 			}
 		}
 
@@ -75,23 +52,23 @@ func DetermineStrategy(consumer *state.Consumer, runtime *ox.Runtime, installFol
 
 	if stats.IsDir() {
 		// is it an app bundle?
-		if runtime.Platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
-			res := &StrategyResult{
-				Strategy:       LaunchStrategyNative,
+		if platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+			target.Strategy = &butlerd.StrategyResult{
+				Strategy:       butlerd.LaunchStrategyNative,
 				FullTargetPath: fullPath,
 			}
-			return res, nil
+			return target, nil
 		}
 
 		// if it's a folder, just browse it!
-		res := &StrategyResult{
-			Strategy:       LaunchStrategyShell,
+		target.Strategy = &butlerd.StrategyResult{
+			Strategy:       butlerd.LaunchStrategyShell,
 			FullTargetPath: fullPath,
 		}
-		return res, nil
+		return target, nil
 	}
 
-	verdict, err := dash.Configure(fullPath, &dash.ConfigureParams{
+	verdict, err := dash.Configure(fullPath, dash.ConfigureParams{
 		Consumer: consumer,
 		Filter:   filtering.FilterPaths,
 	})
@@ -100,51 +77,68 @@ func DetermineStrategy(consumer *state.Consumer, runtime *ox.Runtime, installFol
 	}
 
 	if len(verdict.Candidates) > 0 {
-		return DetermineCandidateStrategy(filepath.Dir(fullPath), verdict.Candidates[0])
+		candidate := verdict.Candidates[0]
+		target, err := CandidateToLaunchTarget(filepath.Dir(fullPath), platform, candidate)
+		if err != nil {
+			target.Action = manifestAction
+			return target, nil
+		}
 	}
 
 	// must not be an executable, that's ok, just open it
-	res := &StrategyResult{
-		Strategy:       LaunchStrategyShell,
+	target.Strategy = &butlerd.StrategyResult{
+		Strategy:       butlerd.LaunchStrategyShell,
 		FullTargetPath: fullPath,
 	}
-	return res, nil
+	return target, nil
 }
 
-func DetermineCandidateStrategy(basePath string, candidate *dash.Candidate) (*StrategyResult, error) {
+func CandidateToLaunchTarget(basePath string, platform ox.Platform, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
 	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
 
-	res := &StrategyResult{
-		Strategy:       flavorToStrategy(candidate.Flavor),
-		FullTargetPath: fullPath,
-		Candidate:      candidate,
+	name := filepath.Base(fullPath)
+	if candidate.Size > 0 {
+		name += fmt.Sprintf(" (%s)", united.FormatBytes(candidate.Size))
 	}
-	return res, nil
+
+	target := &butlerd.LaunchTarget{
+		Action: &manifest.Action{
+			Name: name,
+			Path: candidate.Path,
+		},
+		Platform: platform,
+		Strategy: &butlerd.StrategyResult{
+			Strategy:       flavorToStrategy(candidate.Flavor),
+			FullTargetPath: fullPath,
+			Candidate:      candidate,
+		},
+	}
+	return target, nil
 }
 
-func flavorToStrategy(flavor dash.Flavor) LaunchStrategy {
+func flavorToStrategy(flavor dash.Flavor) butlerd.LaunchStrategy {
 	switch flavor {
 	// HTML
 	case dash.FlavorHTML:
-		return LaunchStrategyHTML
+		return butlerd.LaunchStrategyHTML
 	// Native
 	case dash.FlavorNativeLinux:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorNativeMacos:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorNativeWindows:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorAppMacos:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorScript:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorScriptWindows:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorJar:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	case dash.FlavorLove:
-		return LaunchStrategyNative
+		return butlerd.LaunchStrategyNative
 	default:
-		return LaunchStrategyUnknown
+		return butlerd.LaunchStrategyUnknown
 	}
 }
