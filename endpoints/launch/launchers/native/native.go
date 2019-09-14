@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/neterr"
 
 	"github.com/itchio/pelican"
@@ -366,10 +367,20 @@ func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 	}
 	defer f.Close()
 
+	consumer := params.RequestContext.Consumer
+
+	var peLines []string
+	memConsumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) {
+			peLines = append(peLines, fmt.Sprintf("[%s] %s", lvl, msg))
+		},
+	}
+
 	params.PeInfo, err = pelican.Probe(f, &pelican.ProbeParams{
-		Consumer: params.RequestContext.Consumer,
+		Consumer: memConsumer,
 	})
 	if err != nil {
+		consumer.Warnf("pelican failed on (%s), full log:\n%s", params.FullTargetPath, strings.Join(peLines, "\n"))
 		return errors.WithStack(err)
 	}
 

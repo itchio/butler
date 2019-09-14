@@ -1,16 +1,18 @@
 package installer
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/dash"
+	"github.com/itchio/headway/state"
+	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/pelican"
 	"github.com/itchio/savior"
-	"github.com/itchio/httpkit/eos"
-	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -129,10 +131,18 @@ func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *dash.Cand
 			return InstallerTypeUnknown, errors.WithStack(err)
 		}
 
+		var peLines []string
+		memConsumer := &state.Consumer{
+			OnMessage: func(lvl string, msg string) {
+				peLines = append(peLines, fmt.Sprintf("[%s] %s", lvl, msg))
+			},
+		}
+
 		peInfo, err := pelican.Probe(file, &pelican.ProbeParams{
-			Consumer: consumer,
+			Consumer: memConsumer,
 		})
 		if err != nil {
+			consumer.Warnf("pelican failed on (%s), full log:\n%s", candidate.Path, strings.Join(peLines, "\n"))
 			return InstallerTypeUnknown, errors.WithStack(err)
 		}
 

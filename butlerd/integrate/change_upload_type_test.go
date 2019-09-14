@@ -28,6 +28,7 @@ func Test_ChangeUploadType(t *testing.T) {
 		ac.Entry("song1.ogg").Random(0xfeed0001, 512*1024)
 		ac.Entry("song2.ogg").Random(0xfeed0002, 512*1024)
 		ac.Entry("song3.ogg").Random(0xfeed0003, 512*1024)
+		ac.Entry("README.html").String("<p>Thanks for reading me</p>")
 	})
 
 	game := bi.FetchGame(_game.ID)
@@ -43,14 +44,21 @@ func Test_ChangeUploadType(t *testing.T) {
 	})
 	must(err)
 
+	bi.Logf("Registering HTML launch handler...")
+	hadHTMLLaunch := false
+	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
+		hadHTMLLaunch = true
+		bi.Logf("Performing HTML launch!")
+		return &butlerd.HTMLLaunchResult{}, nil
+	})
+
 	bi.Logf("Launching with wrong upload type")
 	_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
 		CaveID:     queueRes.CaveID,
 		PrereqsDir: "./tmp/prereqs",
 	})
-	assert.Error(err)
-	bi.Logf("Got error, as expected: %v", err)
-	assert.Contains(err.Error(), "Nothing that can be launched was found")
+	assert.NoError(err, "launch went fine")
+	assert.True(hadHTMLLaunch, "had html launch")
 
 	bi.Logf("Changing upload type...")
 	_upload.Type = "soundtrack"
