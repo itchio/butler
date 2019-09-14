@@ -108,14 +108,8 @@ github.com/itchio/damage v0.0.0-20190703135837-76df725fc766 h1:4nBDNxFnzgCg46RTE
 github.com/itchio/damage v0.0.0-20190703135837-76df725fc766/go.mod h1:WA/BAVc27XYi+O39kOxQfFtexJP2DBYdZy4mgaLCiQE=
 github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f h1:KY0Gw9KoAuCO4trci+YYkGKO7HxU6027xqbNauvriG4=
 github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f/go.mod h1:LV8chL1tHPvRr/V6mio3TibisQLeQn4wNuLVd2Z2a2E=
-github.com/itchio/dash v0.0.0-20190913181533-33e28c54323c h1:qD059u7kj183kJFLD3GMWt3zI+GjzEYybyMdVeoSvFs=
-github.com/itchio/dash v0.0.0-20190913181533-33e28c54323c/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
-github.com/itchio/dash v0.0.0-20190913182153-0ffc65f6ed57 h1:xY878A9VIYQb5MSkqhSgG0mRdnvynki9ruZoYFH3Nzg=
-github.com/itchio/dash v0.0.0-20190913182153-0ffc65f6ed57/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
-github.com/itchio/dash v0.0.0-20190913202449-a77a06e6538c h1:u/7QTlDW547ArYgt8Q00/TfS7W2NWQdVwefFfxfo7ec=
-github.com/itchio/dash v0.0.0-20190913202449-a77a06e6538c/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
-github.com/itchio/dash v0.0.0-20190913203712-f96333314413 h1:dbHMDkiJmUdz9x20bd/DcrC/R/Hhf1OeO/MSrAUObBU=
-github.com/itchio/dash v0.0.0-20190913203712-f96333314413/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
+github.com/itchio/dash v0.0.0-20190914115735-7deb1d6f90be h1:VUMsBOVy8wbJ6stSmgp2ZS6YAIcieVK914T8iVygpMU=
+github.com/itchio/dash v0.0.0-20190914115735-7deb1d6f90be/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
 github.com/itchio/dmcunrar-go v0.0.0-20190812200505-0379366c30f1 h1:dM0tqJfYvU/0KbfYsHnp0Jq1g4iGXL8eTonspDNsiF4=
 github.com/itchio/dmcunrar-go v0.0.0-20190812200505-0379366c30f1/go.mod h1:aasfhW1zLYXUtJOgqR2zGS/wCsDC5kkElVkw0u9LG/k=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
@@ -147,10 +141,6 @@ github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66 h1:qynNkJCVLkDJcN8+gV
 github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5 h1:8Wi95IwkUGZTGhVmylXAnCW/iUe9nUEtKYKLyhsseuM=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
-github.com/itchio/ox v0.0.0-20190705170940-1e1b8248fbc5 h1:+UnHPaDyTaPcFuyf2M7dkTLlstkOQygouz6iLx5PkaY=
-github.com/itchio/ox v0.0.0-20190705170940-1e1b8248fbc5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
-github.com/itchio/ox v0.0.0-20190913091130-77b7685c12a6 h1:QnsgvLtC7E66S+ZIl1Uz2ZmuQKekuxivZph4KBALswQ=
-github.com/itchio/ox v0.0.0-20190913091130-77b7685c12a6/go.mod h1:GuTWYN1cE6CcUyEEWNIEPTKs6345SiECMOucKUTjqGU=
 github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189 h1:SO3VwgR+6KEeu8FSfenALL3AYd7QZ9pN5qy7ZLIqHJ4=
 github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189/go.mod h1:GuTWYN1cE6CcUyEEWNIEPTKs6345SiECMOucKUTjqGU=
 github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e h1:6PC5zK+yRl2H3qVF6BPCi2GMZfxu1kwC3f1GDuxf1QQ=
