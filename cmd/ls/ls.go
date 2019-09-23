@@ -6,10 +6,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/dmg/dmgextract"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/installer/dmg/dmgextract"
 	"github.com/itchio/butler/mansion"
 
 	"github.com/itchio/arkive/zip"
@@ -229,6 +229,13 @@ func Do(ctx *mansion.Context, inPath string) error {
 			})
 			ctx.Must(err)
 			container.Print(log)
+
+			err = container.CheckSanity()
+			if err != nil {
+				comm.Notice("Sanity check failed", []string{"One or more errors found, see below"})
+			}
+			comm.Logf("%s", err)
+
 			return true
 		}()
 

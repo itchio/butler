@@ -19,8 +19,8 @@ import (
 	"github.com/itchio/butler/mansion"
 
 	"github.com/itchio/headway/counter"
-	"github.com/itchio/headway/united"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/united"
 
 	"github.com/itchio/savior/seeksource"
 
@@ -266,6 +266,19 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	showSingleFileWarningIfNecessary(sourceContainer)
+
+	err = sourceContainer.CheckSanity()
+	if err != nil {
+		comm.Notice("Sanity check failed", []string{
+			fmt.Sprintf("(%s) cannot be pushed, because it is invalid.", buildPath),
+			"",
+			"If you're pushing a .zip file, try pushing a folder directly instead. Pushing a folder is not only faster, it eliminates a whole class of errors.",
+			"",
+			"(Believe it or not, most tools are pretty bad at making zip files.)",
+		})
+		comm.Logf("%s", err)
+		comm.Die("Non-sane container, refusing to push, see above.")
+	}
 
 	comm.Opf("Pushing %s", sourceContainer)
 

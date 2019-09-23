@@ -122,7 +122,10 @@ func do(ctx *mansion.Context) error {
 		)
 	}
 
-	dst := zipwriterpool.New(container, zw)
+	dst, err := zipwriterpool.New(container, zw)
+	if err != nil {
+		return err
+	}
 
 	var totalBytes int64
 
