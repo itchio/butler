@@ -151,6 +151,19 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 		})
 	}
 
+	var uniqueTargets []*butlerd.LaunchTarget
+	fullPathsDone := make(map[string]struct{})
+	for _, target := range targets {
+		if _, ok := fullPathsDone[target.Strategy.FullTargetPath]; ok {
+			consumer.Debugf("Removing duplicate target:\n%s", target.Strategy.String())
+			continue
+		}
+
+		fullPathsDone[target.Strategy.FullTargetPath] = struct{}{}
+		uniqueTargets = append(uniqueTargets, target)
+	}
+	targets = uniqueTargets
+
 	return &getTargetsResult{
 		appManifest,
 		targets,

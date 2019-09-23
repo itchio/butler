@@ -18,6 +18,12 @@ import (
 )
 
 func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, installFolder string, manifestAction *manifest.Action) (*butlerd.LaunchTarget, error) {
+	actionCopy := *manifestAction
+	manifestAction = &actionCopy
+	if manifestAction.Platform == "" {
+		manifestAction.Platform = platform
+	}
+
 	target := &butlerd.LaunchTarget{
 		Action:   manifestAction,
 		Strategy: &butlerd.StrategyResult{},
