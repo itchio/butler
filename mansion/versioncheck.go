@@ -34,6 +34,11 @@ func (ctx *Context) DoVersionCheck() {
 		return
 	}
 
+	if vinfo.Current.Name == "" {
+		// home-built, don't check
+		return
+	}
+
 	if vinfo.Current != vinfo.Latest {
 		comm.Notice("New version available",
 			[]string{
