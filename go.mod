@@ -28,7 +28,7 @@ require (
 	github.com/itchio/hades v0.0.0-20190703142104-a6700d471538
 	github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de
 	github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52
-	github.com/itchio/lake v0.0.0-20190923082121-ff6d7190bdaf
+	github.com/itchio/lake v0.0.0-20190924095629-744ed8d0739a
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
 	github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e

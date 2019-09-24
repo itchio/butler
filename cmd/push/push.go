@@ -267,17 +267,17 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	showSingleFileWarningIfNecessary(sourceContainer)
 
-	err = sourceContainer.CheckSanity()
+	err = sourceContainer.Validate()
 	if err != nil {
-		comm.Notice("Sanity check failed", []string{
+		comm.Notice("Validation failed", []string{
 			fmt.Sprintf("(%s) cannot be pushed, because it is invalid.", buildPath),
 			"",
 			"If you're pushing a .zip file, try pushing a folder directly instead. Pushing a folder is not only faster, it eliminates a whole class of errors.",
 			"",
-			"(Believe it or not, most tools are pretty bad at making zip files.)",
+			"The errors found duration validation follow.",
 		})
 		comm.Logf("%s", err)
-		comm.Die("Non-sane container, refusing to push, see above.")
+		comm.Die("Refusing to push invalid container (see above)")
 	}
 
 	comm.Opf("Pushing %s", sourceContainer)

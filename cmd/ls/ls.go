@@ -230,9 +230,9 @@ func Do(ctx *mansion.Context, inPath string) error {
 			ctx.Must(err)
 			container.Print(log)
 
-			err = container.CheckSanity()
+			err = container.Validate()
 			if err != nil {
-				comm.Notice("Sanity check failed", []string{"One or more errors found, see below"})
+				comm.Notice("Validation failed", []string{"One or more errors found, see below"})
 			}
 			comm.Logf("%s", err)
 
