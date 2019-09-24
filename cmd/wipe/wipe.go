@@ -8,8 +8,8 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/wharf/archiver"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/wharf/archiver"
 )
 
 var args = struct {

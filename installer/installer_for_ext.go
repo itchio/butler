@@ -1,9 +1,5 @@
 package installer
 
-// Note: .exe is not in that list because we need to
-// read part of its contents to decide what we're going to
-// do with it: 1) extract it 2) run it as an installer 3)
-// just copy it naked
 var installerForExt = map[string]InstallerType{
 
 	///////////////////////////////////////////////////////////
@@ -19,27 +15,15 @@ var installerForExt = map[string]InstallerType{
 	".rar": InstallerTypeArchive,
 
 	///////////////////////////////////////////////////////////
-	// Known non-supported
+	// Known naked (because we no longer support them)
 	///////////////////////////////////////////////////////////
 
-	".deb": InstallerTypeUnsupported,
-	".rpm": InstallerTypeUnsupported,
-	".pkg": InstallerTypeUnsupported,
-
-	///////////////////////////////////////////////////////////
-	// Platform-specific packages
-	///////////////////////////////////////////////////////////
-
-	// Apple disk images
-	".dmg": InstallerTypeDMG,
-
-	// Microsoft packages
-	".msi": InstallerTypeMSI,
-
-	///////////////////////////////////////////////////////////
-	// Known naked that also sniff as other formats
-	///////////////////////////////////////////////////////////
-
+	".dmg":          InstallerTypeNaked,
+	".exe":          InstallerTypeNaked,
+	".deb":          InstallerTypeNaked,
+	".rpm":          InstallerTypeNaked,
+	".pkg":          InstallerTypeNaked,
+	".msi":          InstallerTypeNaked,
 	".jar":          InstallerTypeNaked,
 	".air":          InstallerTypeNaked,
 	".love":         InstallerTypeNaked,

@@ -110,6 +110,8 @@ github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f h1:KY0Gw9KoAuCO4trci+Y
 github.com/itchio/dash v0.0.0-20190703110303-c813f12a029f/go.mod h1:LV8chL1tHPvRr/V6mio3TibisQLeQn4wNuLVd2Z2a2E=
 github.com/itchio/dash v0.0.0-20190914115735-7deb1d6f90be h1:VUMsBOVy8wbJ6stSmgp2ZS6YAIcieVK914T8iVygpMU=
 github.com/itchio/dash v0.0.0-20190914115735-7deb1d6f90be/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
+github.com/itchio/dash v0.0.0-20190924130836-8ab701fc1aa0 h1:T/jiEuz4UefEJklJo4TJPSWWkUvi/Ao9ql2rVVgzqXw=
+github.com/itchio/dash v0.0.0-20190924130836-8ab701fc1aa0/go.mod h1:HdtwUGtBgDB0TcOnoC06NxXQJJr5TU1xVO31IdwW3yg=
 github.com/itchio/dmcunrar-go v0.0.0-20190812200505-0379366c30f1 h1:dM0tqJfYvU/0KbfYsHnp0Jq1g4iGXL8eTonspDNsiF4=
 github.com/itchio/dmcunrar-go v0.0.0-20190812200505-0379366c30f1/go.mod h1:aasfhW1zLYXUtJOgqR2zGS/wCsDC5kkElVkw0u9LG/k=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=

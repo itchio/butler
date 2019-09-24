@@ -1,11 +1,7 @@
 package extract
 
 import (
-	"runtime"
 	"time"
-
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/dmg/dmgextract"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/boar/szextractor"
@@ -94,29 +90,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 	startTime := time.Now()
 
 	if archiveInfo.Strategy == boar.StrategyDmg {
-		consumer.Opf("Using dmgextract")
-		if runtime.GOOS != "darwin" {
-			consumer.Warnf("We're not on macOS, so unless you cross-compiled hdiutil, I'm betting this'll fail.")
-		}
-
-		localFile, err := installer.AsLocalFile(file)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		res, err := dmgextract.New(localFile.Name(),
-			dmgextract.WithConsumer(consumer),
-			dmgextract.WithProgressTotalBytes(
-				comm.StartProgressWithTotalBytes,
-				comm.EndProgress,
-			),
-		).ExtractTo(params.Dir)
-
-		if err != nil {
-			return errors.Wrap(err, "extracting archive")
-		}
-
-		extractSize = res.Container.Size
+		return errors.New("Extracting DMGs is deprecated, sorry!")
 	} else {
 		consumer.Opf("Using %s", archiveInfo.Features)
 		ex, err := archiveInfo.GetExtractor(file, consumer)

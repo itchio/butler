@@ -3,7 +3,6 @@ package operate
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/itchio/butler/manager/runlock"
@@ -262,13 +261,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			return res, nil
 		}
 
-		var firstInstallResult = istate.FirstInstallResult
+		var installResult = istate.FirstInstallResult
 
-		if firstInstallResult != nil {
-			consumer.Infof("First install already completed (%d files)", len(firstInstallResult.Files))
+		if installResult != nil {
+			consumer.Infof("First install already completed (%d files)", len(installResult.Files))
 		} else {
 			var err error
-			firstInstallResult, err = tryInstall()
+			installResult, err = tryInstall()
 			if err != nil && errors.Cause(err) == installer.ErrNeedLocal {
 				lf, localErr := doForceLocal(prepareRes.File, oc, meta, isub)
 				if localErr != nil {
@@ -278,7 +277,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Infof("Re-invoking manager with local file...")
 				managerInstallParams.File = lf
 
-				firstInstallResult, err = tryInstall()
+				installResult, err = tryInstall()
 			}
 			if err != nil {
 				return errors.WithStack(err)
@@ -286,7 +285,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 
 			consumer.Infof("Install successful")
 
-			istate.FirstInstallResult = firstInstallResult
+			istate.FirstInstallResult = installResult
 			err = oc.Save(isub)
 			if err != nil {
 				return err
@@ -301,109 +300,15 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 			// continue!
 		}
 
-		var finalInstallResult = firstInstallResult
-		var finalInstallerInfo = installerInfo
-
-		if len(firstInstallResult.Files) == 1 {
-			single := firstInstallResult.Files[0]
-			singlePath := filepath.Join(params.InstallFolder, single)
-
-			invokeNestedInstaller := func() error {
-				secondInstallerInfo := istate.SecondInstallerInfo
-				if secondInstallerInfo != nil {
-					consumer.Infof("Using cached second installer info")
-				} else {
-					consumer.Infof("Probing (%s)...", single)
-					sf, err := os.Open(singlePath)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-					defer sf.Close()
-
-					secondInstallerInfo, err = installer.GetInstallerInfo(consumer, sf)
-					if err != nil {
-						consumer.Infof("Could not determine installer info for single file, skipping: %s", err.Error())
-						return nil
-					}
-
-					sf.Close()
-
-					istate.SecondInstallerInfo = secondInstallerInfo
-					err = oc.Save(isub)
-					if err != nil {
-						return err
-					}
-				}
-
-				if !installer.IsWindowsInstaller(secondInstallerInfo.Type) {
-					consumer.Infof("Installer type is (%s), ignoring", secondInstallerInfo.Type)
-					return nil
-				}
-
-				consumer.Infof("Will use nested installer (%s)", secondInstallerInfo.Type)
-				finalInstallerInfo = secondInstallerInfo
-				manager = installer.GetManager(string(secondInstallerInfo.Type))
-				if manager == nil {
-					return fmt.Errorf("Don't know how to install (%s) packages", secondInstallerInfo.Type)
-				}
-
-				destName := filepath.Base(single)
-				destPath := filepath.Join(oc.StageFolder(), "nested-install-source", destName)
-
-				_, err = os.Stat(destPath)
-				if err == nil {
-					// ah, it must already be there then
-					consumer.Infof("Using (%s) for nested install", destPath)
-				} else {
-					consumer.Infof("Moving (%s) to (%s) for nested install", singlePath, destPath)
-
-					err = os.MkdirAll(filepath.Dir(destPath), 0755)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-
-					err = os.RemoveAll(destPath)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-
-					err = os.Rename(singlePath, destPath)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-				}
-
-				lf, err := os.Open(destPath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-
-				managerInstallParams.File = lf
-
-				consumer.Infof("Invoking nested install manager, let's go!")
-				finalInstallResult, err = tryInstall()
-				return err
-			}
-			if meta.Data.IgnoreInstallers {
-				consumer.Infof("Installed a single file, but we're ignoring installers, so nevermind.")
-			} else {
-				consumer.Infof("Installed a single file, looking into nested installers")
-				err = invokeNestedInstaller()
-				if err != nil {
-					return errors.WithStack(err)
-				}
-			}
-		}
-
 		return commitInstall(oc, &CommitInstallParams{
 			InstallFolder: params.InstallFolder,
 
-			InstallerName: string(finalInstallerInfo.Type),
+			InstallerName: string(installerInfo.Type),
 			Game:          params.Game,
 			Upload:        params.Upload,
 			Build:         params.Build,
 
-			InstallResult: finalInstallResult,
+			InstallResult: installResult,
 		})
 
 	})

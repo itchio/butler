@@ -7,9 +7,9 @@ import (
 
 	"github.com/itchio/boar"
 	"github.com/itchio/butler/installer/bfs"
-	"github.com/itchio/savior"
-	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/savior"
 )
 
 var ErrNeedLocal = errors.New("install source needs to be available locally")
@@ -74,9 +74,6 @@ const (
 	InstallerTypeArchive     InstallerType = "archive"
 	InstallerTypeIExpress    InstallerType = "iexpress"
 	InstallerTypeDMG         InstallerType = "dmg"
-	InstallerTypeInno        InstallerType = "inno"
-	InstallerTypeNsis        InstallerType = "nsis"
-	InstallerTypeMSI         InstallerType = "msi"
 	InstallerTypeUnknown     InstallerType = "unknown"
 	InstallerTypeUnsupported InstallerType = "unsupported"
 )

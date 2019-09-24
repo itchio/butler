@@ -2,8 +2,8 @@ package install
 
 import (
 	"fmt"
+	"time"
 
-	"xorm.io/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
@@ -14,11 +14,12 @@ import (
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/itchio/ox"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
+	"xorm.io/builder"
 )
 
 func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
@@ -132,7 +133,9 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	sourceURL := operate.MakeSourceURL(client, consumer, sessionID, installParams, "")
 
+	beforeOpen := time.Now()
 	file, err := eos.Open(sourceURL, option.WithConsumer(consumer))
+	consumer.Infof("(opening file took %s)", time.Since(beforeOpen))
 	if err != nil {
 		setResError(errors.WithStack(err))
 		return res, nil

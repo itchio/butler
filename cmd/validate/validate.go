@@ -123,7 +123,7 @@ func Validate(consumer *state.Consumer) error {
 			for i, candidate := range verdict.Candidates {
 				consumer.Infof("")
 				consumer.Infof("  → Implicit launch target %d", i+1)
-				target, err := launch.CandidateToLaunchTarget(dir, runtime.Platform, candidate)
+				target, err := launch.CandidateToLaunchTarget(nil, dir, runtime.Platform, candidate)
 				if err != nil {
 					showError(err.Error())
 				} else {

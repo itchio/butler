@@ -2056,7 +2056,7 @@ type LaunchGetTargetsResult struct {
 }
 
 // Sent during @@LaunchParams if the game/application comes with a service license
-// agreement (at the time of this writing, this only happens if it was installed from a DMG file).
+// agreement.
 //
 // @tags Dialogs
 // @category Launch

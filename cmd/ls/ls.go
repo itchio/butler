@@ -8,8 +8,6 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/dmg/dmgextract"
 	"github.com/itchio/butler/mansion"
 
 	"github.com/itchio/arkive/zip"
@@ -292,19 +290,8 @@ func Do(ctx *mansion.Context, inPath string) error {
 			}
 
 			if info.Strategy == boar.StrategyDmg {
-				localFile, err := installer.AsLocalFile(reader)
-				if err != nil {
-					consumer.Warnf("%+v", err)
-					return false
-				}
-
-				res, err := dmgextract.New(localFile.Name()).List()
-				if err != nil {
-					consumer.Warnf("%+v", err)
-					return false
-				}
-
-				res.Container.Print(log)
+				consumer.Errorf("Listing dmg files is deprecated, sorry!")
+				return false
 			} else {
 				if numEntries == 0 {
 					consumer.Warnf("Opened with boar successfully, but had 0 entries.")

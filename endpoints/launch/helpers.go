@@ -218,7 +218,7 @@ func getTargetsForPlatform(rc *butlerd.RequestContext,
 	verdict = &v2
 
 	for _, candidate := range verdict.Candidates {
-		target, err := CandidateToLaunchTarget(info.installFolder, platform, candidate)
+		target, err := CandidateToLaunchTarget(consumer, info.installFolder, platform, candidate)
 		if err != nil {
 			return nil, err
 		}

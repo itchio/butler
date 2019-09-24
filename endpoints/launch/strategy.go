@@ -14,6 +14,7 @@ import (
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
 	"github.com/itchio/ox"
+	"github.com/itchio/pelican"
 	"github.com/pkg/errors"
 )
 
@@ -87,12 +88,11 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	if len(verdict.Candidates) > 0 {
 		consumer.Infof("(%s) yielded %d candidates when configured with dash", fullPath, len(verdict.Candidates))
 		candidate := verdict.Candidates[0]
-		target, err := CandidateToLaunchTarget(filepath.Dir(fullPath), platform, candidate)
+		target, err := CandidateToLaunchTarget(consumer, filepath.Dir(fullPath), platform, candidate)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
 
-		consumer.Infof("(%s) turned candidate into launch target succesfully")
 		target.Action = manifestAction
 		return target, nil
 	} else {
@@ -100,7 +100,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	}
 
 	// must not be an executable, that's ok, just open it
-	consumer.Infof("(%s) falling back to shell strategy (no candidates)", fullPath)
+	consumer.Infof("(%s) yielded no candidates, falling back to shell strategy", fullPath)
 	target.Strategy = &butlerd.StrategyResult{
 		Strategy:       butlerd.LaunchStrategyShell,
 		FullTargetPath: fullPath,
@@ -108,7 +108,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	return target, nil
 }
 
-func CandidateToLaunchTarget(basePath string, platform ox.Platform, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
+func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, platform ox.Platform, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
 	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
 
 	name := filepath.Base(fullPath)
@@ -128,7 +128,58 @@ func CandidateToLaunchTarget(basePath string, platform ox.Platform, candidate *d
 			Candidate:      candidate,
 		},
 	}
+
+	fallBackToShell := false
+
+	if IsElevatedWindowsInstaller(consumer, candidate, fullPath) {
+		consumer.Infof("(%s) is windows installer, falling back to shell strategy.", candidate.Path)
+		fallBackToShell = true
+	} else if target.Strategy.Strategy == butlerd.LaunchStrategyUnknown {
+		consumer.Infof("(%s) unknown launch strategy, falling back to shell strategy.", candidate.Path)
+		fallBackToShell = true
+	}
+
+	if fallBackToShell {
+		target.Strategy.Strategy = butlerd.LaunchStrategyShell
+		target.Strategy.FullTargetPath = filepath.Dir(fullPath)
+	}
 	return target, nil
+}
+
+func IsElevatedWindowsInstaller(consumer *state.Consumer, candidate *dash.Candidate, fullPath string) bool {
+	if candidate.Flavor != dash.FlavorNativeWindows {
+		return false
+	}
+
+	var memLines []string
+	memConsumer := &state.Consumer{
+		OnMessage: func(lvl string, msg string) {
+			memLines = append(memLines, fmt.Sprintf("[%s] %s", lvl, msg))
+		},
+	}
+
+	f, err := os.Open(fullPath)
+	if err != nil {
+		consumer.Warnf("While opening candidate for pelican probe: %v", err)
+		return false
+	}
+
+	peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+		Consumer: memConsumer,
+	})
+	if err != nil {
+		consumer.Warnf("While opening candidate for pelican probe: %v", err)
+		consumer.Warnf("Pelican log:\n%s", strings.Join(memLines, "\n"))
+		return false
+	}
+
+	if peInfo.RequiresElevation() {
+		consumer.Infof("(%s) Requires elevation", candidate.Path)
+		return true
+	}
+
+	consumer.Infof("(%s) Does not require elevation", candidate.Path)
+	return false
 }
 
 func flavorToStrategy(flavor dash.Flavor) butlerd.LaunchStrategy {
