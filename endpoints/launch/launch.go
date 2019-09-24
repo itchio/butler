@@ -89,14 +89,20 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			info:      info,
 			platforms: []ox.Platform{runtime.Platform},
 		})
+		if err != nil {
+			return err
+		}
 		targets := targetRes.targets
 
 		var target *butlerd.LaunchTarget
 		if len(targets) == 0 {
 			return errors.WithStack(butlerd.CodeNoLaunchCandidates)
 		} else if len(targets) == 1 {
+			consumer.Infof("Single target, picking it:")
 			target = targets[0]
+			consumer.Logf("%s", target.Strategy.String())
 		} else {
+			consumer.Infof("Found (%d) targets, asking client to pick via PickManifestAction", len(targets))
 			var actions []*manifest.Action
 			for _, t := range targets {
 				actions = append(actions, t.Action)
@@ -106,14 +112,18 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				Actions: actions,
 			})
 			if err != nil {
+				consumer.Warnf("PickManifestAction call failed")
 				return errors.WithStack(err)
 			}
 
 			if r.Index < 0 {
+				consumer.Warnf("PickManifestAction call aborted (Index < 0)")
 				return errors.WithStack(butlerd.CodeOperationAborted)
 			}
 
 			target = targets[r.Index]
+			consumer.Infof("Target picked:")
+			consumer.Logf("%s", target.Strategy.String())
 		}
 
 		consumer.Infof("→ Using strategy (%s)", target.Strategy.Strategy)

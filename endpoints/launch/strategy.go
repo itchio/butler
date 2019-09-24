@@ -59,6 +59,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	if stats.IsDir() {
 		// is it an app bundle?
 		if platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+			consumer.Infof("(%s) is an app bundle, picking native strategy", fullPath)
 			target.Strategy = &butlerd.StrategyResult{
 				Strategy:       butlerd.LaunchStrategyNative,
 				FullTargetPath: fullPath,
@@ -67,6 +68,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 		}
 
 		// if it's a folder, just browse it!
+		consumer.Infof("(%s) is a folder, picking shell strategy", fullPath)
 		target.Strategy = &butlerd.StrategyResult{
 			Strategy:       butlerd.LaunchStrategyShell,
 			FullTargetPath: fullPath,
@@ -83,15 +85,22 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	}
 
 	if len(verdict.Candidates) > 0 {
+		consumer.Infof("(%s) yielded %d candidates when configured with dash", fullPath, len(verdict.Candidates))
 		candidate := verdict.Candidates[0]
 		target, err := CandidateToLaunchTarget(filepath.Dir(fullPath), platform, candidate)
 		if err != nil {
-			target.Action = manifestAction
-			return target, nil
+			return nil, errors.WithStack(err)
 		}
+
+		consumer.Infof("(%s) turned candidate into launch target succesfully")
+		target.Action = manifestAction
+		return target, nil
+	} else {
+		consumer.Infof("(%s) yielded no candidates when configured with dash", fullPath)
 	}
 
 	// must not be an executable, that's ok, just open it
+	consumer.Infof("(%s) falling back to shell strategy (no candidates)", fullPath)
 	target.Strategy = &butlerd.StrategyResult{
 		Strategy:       butlerd.LaunchStrategyShell,
 		FullTargetPath: fullPath,

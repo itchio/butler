@@ -29,7 +29,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("os-filter", "OS filter").Default(runtime.GOOS).StringVar(&args.osFilter)
 	cmd.Flag("arch-filter", "Architecture filter").Default(runtime.GOARCH).StringVar(&args.archFilter)
 	cmd.Flag("no-filter", "Do not filter at all").BoolVar(&args.noFilter)
-	cmd.Flag("show-stats", "Do not filter at all").BoolVar(&args.showStats)
+	cmd.Flag("show-stats", "Show configure stats (how many files were sniffed, their extensions)").BoolVar(&args.showStats)
 	ctx.Register(cmd, do)
 }
 
