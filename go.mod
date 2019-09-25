@@ -30,9 +30,9 @@ require (
 	github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52
 	github.com/itchio/lake v0.0.0-20190924095629-744ed8d0739a
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
-	github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189
+	github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
-	github.com/itchio/savior v0.0.0-20190702184736-b8b849654d01
+	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
 	github.com/itchio/smaug v0.0.0-20190702183459-b4c26be6cc7c
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
 	github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012
@@ -49,11 +49,11 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/sourcegraph/jsonrpc2 v0.0.0-20190106185902-35a74f039c6a
-	github.com/stretchr/testify v1.3.1-0.20190311161405-34c6fa2dc709
+	github.com/stretchr/testify v1.4.0
 	github.com/winlabs/gowin32 v0.0.0-20190620203850-8e8c5160a38b
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190812172437-4e8604ab3aff
+	golang.org/x/sys v0.0.0-20190924154521-2837fb4f24fe
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6

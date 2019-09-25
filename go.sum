@@ -32,6 +32,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185 h1:3T8ZyTDp5QxTx3NU48JVb2u+75xc040fofcBaN+6jPA=
 github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185/go.mod h1:cFRxtTwTOJkz2x3rQUNCYKWC93yP1VKjR8NUhqFxZNU=
+github.com/detailyang/go-fallocate v0.0.0-20180908115635-432fa640bd2e h1:lj77EKYUpYXTd8CD/+QMIf8b6OIOTsfEBSXiAzuEHTU=
+github.com/detailyang/go-fallocate v0.0.0-20180908115635-432fa640bd2e/go.mod h1:3ZQK6DMPSz/QZ73jlWxBtUhNA8xZx7LzUFSq/OfP8vk=
 github.com/dsnet/golib/unitconv v0.0.0-20190531212259-571cdbcff553/go.mod h1:86KTUtTJFLreKjc4sS9xE0rhj4lR44Ox0rEQSEXSWwM=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
@@ -147,6 +149,8 @@ github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5 h1:8Wi95IwkUGZTGhVmylXAn
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
 github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189 h1:SO3VwgR+6KEeu8FSfenALL3AYd7QZ9pN5qy7ZLIqHJ4=
 github.com/itchio/ox v0.0.0-20190913091940-f143fb13b189/go.mod h1:GuTWYN1cE6CcUyEEWNIEPTKs6345SiECMOucKUTjqGU=
+github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d h1:EcmVffUYduCSFCEM12YpSXoVXvyeq8Ro4Q+rwc60TIo=
+github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d/go.mod h1:OkOgnS4mtvTl2n9S65jTihpuQJxeldLBA/x3QSFHQFQ=
 github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e h1:6PC5zK+yRl2H3qVF6BPCi2GMZfxu1kwC3f1GDuxf1QQ=
 github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e/go.mod h1:JLmbluABAmZIBcWVhgCOkikjqZzVg7RIuvvcWECh9mo=
 github.com/itchio/randsource v0.0.0-20190702184213-a7635a4cb94b/go.mod h1:lKWkyaS6DHSVoxVLw7mIeD+po2Kvwv1Hiy8+7VR1zZc=
@@ -154,6 +158,8 @@ github.com/itchio/randsource v0.0.0-20190703104731-3f6d22f91927 h1:5abFAYun3PFyc
 github.com/itchio/randsource v0.0.0-20190703104731-3f6d22f91927/go.mod h1:lKWkyaS6DHSVoxVLw7mIeD+po2Kvwv1Hiy8+7VR1zZc=
 github.com/itchio/savior v0.0.0-20190702184736-b8b849654d01 h1:W+QljvzvaHQdgB/9RQXdvbW6W1aettfu6ixQgNQURBU=
 github.com/itchio/savior v0.0.0-20190702184736-b8b849654d01/go.mod h1:KyMj8mbcmn7QqpWmDZD1QWM2d5GAg5G2mPNTOak2rwI=
+github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402 h1:a51wRxkLoJWu5NqnVDkI6cE50S0mDpJfOXkCp4ltvr8=
+github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402/go.mod h1:e6yYz4mMvoOkoXEAanZ8NkSjwn9vjsgiBUGD14y++0o=
 github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376 h1:Qhfx6SvjhcmJzUgwYvBAa2aRqfIGZczXHauOu901uac=
 github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376/go.mod h1:5ppm0m2hS/bHydxUQbmuY/U6dsCVaFLmfu+7vY2lwcU=
 github.com/itchio/smaug v0.0.0-20190702183459-b4c26be6cc7c h1:DbM1lo2Ud4Sg7XO8/Tmszu4HrgtC2SPFPH3lgGYiTJg=
@@ -228,6 +234,7 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.3.1-0.20190311161405-34c6fa2dc709 h1:Ko2LQMrRU+Oy/+EDBwX7eZ2jp3C47eDBB8EIhKTun+I=
 github.com/stretchr/testify v1.3.1-0.20190311161405-34c6fa2dc709/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/ulikunitz/xz v0.5.6/go.mod h1:2bypXElzHzzJZwzH67Y6wb67pO62Rzfn7BSiF4ABRW8=
 github.com/winlabs/gowin32 v0.0.0-20190620203850-8e8c5160a38b h1:FsUfIYBUSTrQVmaVkN7H+tnKs4pH8C5pnWejPT2+Jy8=
 github.com/winlabs/gowin32 v0.0.0-20190620203850-8e8c5160a38b/go.mod h1:N51TYkG9JGR5sytj0EoPl31Xg2kuB507lxEmrwSNvfQ=
@@ -251,6 +258,7 @@ golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb h1:fgwFCsaw9buMuxNd6+DQfAuSF
 golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190812172437-4e8604ab3aff h1:u5LtynOOWSPG+jkEa3Y4ATlQ05vVeRvFjYSvbG0z6uw=
 golang.org/x/sys v0.0.0-20190812172437-4e8604ab3aff/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190924154521-2837fb4f24fe/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
@@ -265,6 +273,7 @@ gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce h1:+JknDZhAj8YMt7GC73Ei8pv4MzjDUNPHgQWJdtMAaDU=
 gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce/go.mod h1:5AcXVHNjg+BDxry382+8OKon8SEWiKktQR07RKPsv1c=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 howett.net/plist v0.0.0-20181124034731-591f970eefbb h1:jhnBjNi9UFpfpl8YZhA9CrOqpnJdvzuiHsl/dnxl11M=
 howett.net/plist v0.0.0-20181124034731-591f970eefbb/go.mod h1:vMygbs4qMhSZSc4lCUl2OEE+rDiIIJAIdR4m7MiMcm0=
 rsc.io/goversion v1.0.0/go.mod h1:Eih9y/uIBS3ulggl7KNJ09xGSLcuNaLgmvvqa07sgfo=
