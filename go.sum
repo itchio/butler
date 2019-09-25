@@ -165,6 +165,8 @@ github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9N
 github.com/itchio/wizardry v0.0.0-20190702191849-ac1b407f270b/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c h1:gBUbKS6o9ns7UqD2Xs7FQ4d/6LIZuarPd47ykvLA9K0=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
+github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36 h1:CsHDEV3anoGcwyG6pcmD9VlQZKWJtGnn/2yNKMeMTxQ=
+github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 h1:VlCjOBMvVsqr/L/w7k4CW8WEQog5Hj53CihNyYyvvo4=
 github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08/go.mod h1:iU7U0LShC+6Wjkkymyl3dpCZyiDSGnY4N4DY+xt3yNg=

@@ -36,7 +36,7 @@ require (
 	github.com/itchio/smaug v0.0.0-20190702183459-b4c26be6cc7c
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
 	github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012
-	github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c
+	github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mattn/go-colorable v0.1.2 // indirect
