@@ -3,10 +3,6 @@ package mansion
 import (
 	"bufio"
 	"fmt"
-	"github.com/itchio/butler/art"
-	"github.com/itchio/butler/comm"
-	"github.com/itchio/go-itchio"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -16,10 +12,15 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/itchio/butler/art"
+	"github.com/itchio/butler/comm"
+	"github.com/itchio/go-itchio"
+	"github.com/pkg/errors"
 )
 
 // read+write for owner, no permissions for others
-const keyFileMode = 0600
+const keyFileMode = 0o600
 
 const (
 	authHTML = `
@@ -118,12 +119,12 @@ func readKeyFile(path string) (string, error) {
 
 	if stats.Mode()&077 > 0 {
 		if runtime.GOOS == "windows" {
-			// windows won't let you 0600, because it's ACL-based
-			// we can make it 0644, and go will report 0666, but
+			// windows won't let you 0o600, because it's ACL-based
+			// we can make it 0o644, and go will report 0o666, but
 			// it doesn't matter since other users can't access it anyway.
 			// empirical evidence: https://github.com/itchio/butler/issues/65
 		} else {
-			comm.Logf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0777, keyFileMode)
+			comm.Logf("[Warning] Key file had wrong permissions (%#o), resetting to %#o\n", stats.Mode()&0o777, keyFileMode)
 			err = os.Chmod(path, keyFileMode)
 			if err != nil {
 				comm.Logf("[Warning] Couldn't chmod keyfile: %s\n", err.Error())
@@ -257,7 +258,7 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 
 			comm.Logf("\nAuthenticated successfully! Saving key in %s...\n", identity)
 
-			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0755))
+			err = os.MkdirAll(filepath.Dir(identity), os.FileMode(0o755))
 			if err != nil {
 				comm.Logf("\nCould not create directory for storing API key: %s\n\n", err)
 				err = nil

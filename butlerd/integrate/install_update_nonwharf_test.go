@@ -119,7 +119,7 @@ func Test_InstallUpdateNonWharf(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "nonwharf-test")
 	must(err)
 
-	must(os.MkdirAll(tmpDir, 0755))
+	must(os.MkdirAll(tmpDir, 0o755))
 
 	sigPath := filepath.Join(tmpDir, "expected-sig.pws")
 	err = sign.Do(referenceFolder, sigPath, pwr.CompressionSettings{}, false)

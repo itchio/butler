@@ -43,7 +43,7 @@ type PidFileContents struct {
 func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder string) (*OperationContext, error) {
 	parentConsumer := rc.Consumer
 
-	err := os.MkdirAll(stageFolder, 0755)
+	err := os.MkdirAll(stageFolder, 0o755)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating staging folder")
 	}
@@ -56,13 +56,13 @@ func LoadContext(ctx context.Context, rc *butlerd.RequestContext, stageFolder st
 	if err != nil {
 		return nil, errors.WithMessage(err, "marshalling pid file")
 	}
-	err = ioutil.WriteFile(pidFilePath, pidBytes, 0644)
+	err = ioutil.WriteFile(pidFilePath, pidBytes, 0o644)
 	if err != nil {
 		parentConsumer.Warnf("Could not open write pid file: %s", err.Error())
 	}
 
 	logFilePath := filepath.Join(stageFolder, "operate-log.json")
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		parentConsumer.Warnf("Could not open operate log: %s", err.Error())
 	}
@@ -138,7 +138,7 @@ func (oc *OperationContext) Save(s Subcontext) error {
 
 	path := contextPath(oc.stageFolder)
 
-	f, err := safefile.Create(path, 0644)
+	f, err := safefile.Create(path, 0o644)
 	if err != nil {
 		return errors.WithStack(err)
 	}

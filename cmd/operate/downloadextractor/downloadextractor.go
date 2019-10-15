@@ -81,7 +81,7 @@ func (de *downloadExtractor) Resume(checkpoint *savior.ExtractorCheckpoint, sink
 			CanonicalPath:    de.destName,
 			UncompressedSize: stats.Size(),
 			Kind:             savior.EntryKindFile,
-			Mode:             os.FileMode(0644),
+			Mode:             os.FileMode(0o644),
 		}
 
 		consumer.Infof("⇓ Pre-allocating %s on disk", united.FormatBytes(entry.UncompressedSize))

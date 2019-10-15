@@ -80,7 +80,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 	comm.Logf("Working in %s", tempDir)
 	comm.Logf("(This helps not having to re-download the prereqs between runs, but feel free to wipe it)")
 
-	err = os.MkdirAll(tempDir, 0755)
+	err = os.MkdirAll(tempDir, 0o755)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -100,7 +100,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		comm.Opf("Downloading prereq %s", name)
 
 		workDir := filepath.Join(tempDir, name)
-		err = os.MkdirAll(workDir, 0755)
+		err = os.MkdirAll(workDir, 0o755)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -130,7 +130,7 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 		return errors.WithStack(err)
 	}
 
-	err = ioutil.WriteFile(planPath, planContents, 0644)
+	err = ioutil.WriteFile(planPath, planContents, 0o644)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -124,6 +124,6 @@ func (d *document) write() {
 	bs := []byte(d.doc)
 	dest := d.name
 	log.Printf("Writing (%s)...", dest)
-	must(os.MkdirAll(filepath.Dir(dest), 0755))
-	must(ioutil.WriteFile(dest, bs, 0644))
+	must(os.MkdirAll(filepath.Dir(dest), 0o755))
+	must(ioutil.WriteFile(dest, bs, 0o644))
 }

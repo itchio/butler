@@ -58,12 +58,12 @@ func writeUE4Marker(params launch.LauncherParams, marker *UE4Marker) error {
 	}
 
 	markerPath := getMarkerPath(params)
-	err = os.MkdirAll(filepath.Dir(markerPath), 0755)
+	err = os.MkdirAll(filepath.Dir(markerPath), 0o755)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	err = ioutil.WriteFile(markerPath, payload, 0644)
+	err = ioutil.WriteFile(markerPath, payload, 0o644)
 	if err != nil {
 		return errors.WithStack(err)
 	}

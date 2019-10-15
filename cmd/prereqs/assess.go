@@ -81,12 +81,12 @@ func (pc *PrereqsContext) MarkInstalled(name string) error {
 
 	contents := fmt.Sprintf("Installed on %s", time.Now())
 	path := pc.MarkerPath(name)
-	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0755))
+	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0o755))
 	if err != nil {
 		return errors.Wrap(err, "creating marker dir")
 	}
 
-	err = ioutil.WriteFile(path, []byte(contents), os.FileMode(0644))
+	err = ioutil.WriteFile(path, []byte(contents), os.FileMode(0o644))
 	if err != nil {
 		return errors.Wrap(err, "writing marker file")
 	}

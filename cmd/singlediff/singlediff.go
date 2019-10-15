@@ -75,7 +75,7 @@ func do(ctx *mansion.Context) error {
 	targetContainer.Size = oldstats.Size()
 	targetContainer.Files = []*tlc.File{
 		&tlc.File{
-			Mode:   0644,
+			Mode:   0o644,
 			Offset: 0,
 			Size:   oldstats.Size(),
 			Path:   args.old,
@@ -86,7 +86,7 @@ func do(ctx *mansion.Context) error {
 	sourceContainer.Size = newstats.Size()
 	sourceContainer.Files = []*tlc.File{
 		&tlc.File{
-			Mode:   0644,
+			Mode:   0o644,
 			Offset: 0,
 			Size:   newstats.Size(),
 			Path:   args.new,

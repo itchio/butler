@@ -33,7 +33,7 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, specStr string, outPath string) error {
 	consumer := comm.NewStateConsumer()
 
-	err := os.MkdirAll(outPath, os.FileMode(0755))
+	err := os.MkdirAll(outPath, os.FileMode(0o755))
 	if err != nil {
 		return errors.WithStack(err)
 	}

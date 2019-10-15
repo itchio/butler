@@ -34,7 +34,7 @@ func (dt *DirTree) EnsureParents(filePath string) error {
 	}
 
 	// ok, let's make it!
-	err := os.MkdirAll(filepath.Join(dt.basePath, dirPath), 0755)
+	err := os.MkdirAll(filepath.Join(dt.basePath, dirPath), 0o755)
 	if err != nil {
 		// mkdirall will return `ENOTDIR` if one of the elements is not a directory
 		return errors.Wrap(err, "dirtree ensuring parents for file")

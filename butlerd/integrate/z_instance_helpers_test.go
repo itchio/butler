@@ -17,7 +17,7 @@ func (bi *ButlerInstance) SetupTmpInstallLocation() {
 
 	tmpPath := filepath.Join(wd, "tmp")
 	must(os.RemoveAll(tmpPath))
-	must(os.MkdirAll(tmpPath, 0755))
+	must(os.MkdirAll(tmpPath, 0o755))
 
 	rc := bi.Conn.RequestContext
 	_, err = messages.InstallLocationsAdd.TestCall(rc, butlerd.InstallLocationsAddParams{

@@ -90,7 +90,7 @@ func InstallLocationsAdd(rc *butlerd.RequestContext, params butlerd.InstallLocat
 	testFileName := fmt.Sprintf(".butler-test-file-%d", os.Getpid())
 	testFilePath := filepath.Join(params.Path, testFileName)
 	defer os.Remove(testFilePath)
-	err = ioutil.WriteFile(testFilePath, []byte{}, os.FileMode(0644))
+	err = ioutil.WriteFile(testFilePath, []byte{}, os.FileMode(0o644))
 	if err != nil {
 		return nil, errors.Errorf("Can't write to (%s) not adding as an install location: %s", params.Path, err.Error())
 	}

@@ -127,11 +127,11 @@ func (rl *lock) write(rp *runlockPayload) error {
 	}
 
 	file := rl.file()
-	err = os.MkdirAll(filepath.Dir(file), 0755)
+	err = os.MkdirAll(filepath.Dir(file), 0o755)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(file, contents, 0644)
+	return ioutil.WriteFile(file, contents, 0o644)
 }
 
 func (rl *lock) read() (*runlockPayload, error) {

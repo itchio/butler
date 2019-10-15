@@ -117,7 +117,7 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 		save: func(c *patcher.Checkpoint) (patcher.AfterSaveAction, error) {
 			lastSaveTime = time.Now()
 
-			checkpointFile, err := safefile.Create(checkpointPath, 0644)
+			checkpointFile, err := safefile.Create(checkpointPath, 0o644)
 			if err != nil {
 				return patcher.AfterSaveStop, errors.WithMessage(err, "creating checkpoint file")
 			}

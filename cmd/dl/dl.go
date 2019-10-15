@@ -9,9 +9,9 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/httpkit/timeout"
-	"github.com/itchio/headway/united"
 	"github.com/itchio/headway/counter"
+	"github.com/itchio/headway/united"
+	"github.com/itchio/httpkit/timeout"
 	"github.com/pkg/errors"
 )
 
@@ -143,7 +143,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 }
 
 func appendAllToFile(src io.Reader, dest string, existingBytes int64, totalBytes int64) error {
-	out, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	out, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o666)
 	defer out.Close()
 
 	prevPercent := 0.0

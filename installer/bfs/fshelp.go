@@ -10,5 +10,5 @@ func Exists(path string) bool {
 }
 
 func Mkdir(path string) error {
-	return os.MkdirAll(path, 0755)
+	return os.MkdirAll(path, 0o755)
 }

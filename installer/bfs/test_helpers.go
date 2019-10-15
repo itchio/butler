@@ -30,7 +30,7 @@ func cleanAndMakeFolder(fs *folderSpec, dest string) error {
 }
 
 func makeFolder(fs *folderSpec, dest string) error {
-	err := os.MkdirAll(dest, 0755)
+	err := os.MkdirAll(dest, 0o755)
 	if err != nil {
 		return errors.Wrap(err, "creating test folder")
 	}
@@ -39,12 +39,12 @@ func makeFolder(fs *folderSpec, dest string) error {
 		entryPath := filepath.Join(dest, e.name)
 		entryDir := filepath.Dir(entryPath)
 
-		err = os.MkdirAll(entryDir, 0755)
+		err = os.MkdirAll(entryDir, 0o755)
 		if err != nil {
 			return errors.Wrap(err, "creating test folder directory entry")
 		}
 
-		err = ioutil.WriteFile(entryPath, e.data, os.FileMode(0644))
+		err = ioutil.WriteFile(entryPath, e.data, os.FileMode(0o644))
 		if err != nil {
 			return errors.Wrap(err, "writing test folder file entry")
 		}

@@ -85,5 +85,5 @@ func getLicenseMarker(installFolder string) []byte {
 }
 
 func writeLicenseMarker(installFolder string, hashed []byte) error {
-	return ioutil.WriteFile(licenseMarkerPath(installFolder), hashed, 0644)
+	return ioutil.WriteFile(licenseMarkerPath(installFolder), hashed, 0o644)
 }

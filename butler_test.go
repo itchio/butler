@@ -20,8 +20,8 @@ import (
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/sign"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/pwr"
 	"github.com/stretchr/testify/assert"
 )
@@ -46,7 +46,7 @@ func permFor(t *testing.T, path string) os.FileMode {
 }
 
 func putfile(t *testing.T, basePath string, i int, data []byte) {
-	putfileEx(t, basePath, i, data, os.FileMode(0777))
+	putfileEx(t, basePath, i, data, os.FileMode(0o777))
 }
 
 func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMode) {
@@ -55,7 +55,7 @@ func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMo
 }
 
 func TestAllTheThings(t *testing.T) {
-	perm := os.FileMode(0777)
+	perm := os.FileMode(0o777)
 	workingDir, err := ioutil.TempDir("", "butler-tests")
 	mist(t, err)
 	defer os.RemoveAll(workingDir)
@@ -176,7 +176,7 @@ func TestAllTheThings(t *testing.T) {
 		// In-place preserve permissions tests
 		t.Logf("In-place patching should preserve permissions")
 
-		eperm := os.FileMode(0750)
+		eperm := os.FileMode(0o750)
 
 		samplePerm1 := path.Join(workingDir, "samplePerm1")
 		mist(t, os.MkdirAll(samplePerm1, perm))

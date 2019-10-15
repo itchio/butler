@@ -148,7 +148,7 @@ func installLinuxPrereq(consumer *state.Consumer, task *PrereqTask) error {
 		for _, f := range block.EnsureExecutable {
 			path := filepath.Join(task.WorkDir, f)
 			consumer.Infof("Making (%s) executable", path)
-			err := os.Chmod(path, 0755)
+			err := os.Chmod(path, 0o755)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -163,7 +163,7 @@ func installLinuxPrereq(consumer *state.Consumer, task *PrereqTask) error {
 				return errors.WithStack(err)
 			}
 
-			err = os.Chmod(path, 0755|os.ModeSetuid)
+			err = os.Chmod(path, 0o755|os.ModeSetuid)
 			if err != nil {
 				return errors.WithStack(err)
 			}

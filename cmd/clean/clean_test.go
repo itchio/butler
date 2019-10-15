@@ -19,7 +19,7 @@ func withTestDirectory(f func(testDir string) error) error {
 		return errors.WithStack(err)
 	}
 
-	err = os.MkdirAll(testDir, 0755)
+	err = os.MkdirAll(testDir, 0o755)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -41,7 +41,7 @@ func TestBadJSON(t *testing.T) {
 	wtest.Must(t, withTestDirectory(func(testDir string) error {
 		planPath := filepath.Join(testDir, "plan.json")
 		invalidJSON := "this is not valid json { { { ] ] ] ]- - -"
-		err := ioutil.WriteFile(planPath, []byte(invalidJSON), 0644)
+		err := ioutil.WriteFile(planPath, []byte(invalidJSON), 0o644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -60,7 +60,7 @@ func TestAlreadyRemoved(t *testing.T) {
 			"already-removed"
 		  ]
 		}`, testDir)
-		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
+		err := ioutil.WriteFile(planPath, []byte(planContents), 0o644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -81,7 +81,7 @@ func TestRemoveFail(t *testing.T) {
 			"nonempty"
 		  ]
 		}`, testDir)
-		pf, err := os.OpenFile(planPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0644)
+		pf, err := os.OpenFile(planPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0o644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -109,20 +109,20 @@ func TestHappyPath(t *testing.T) {
 			"a-directory"
 		  ]
 		}`, testDir)
-		err := ioutil.WriteFile(planPath, []byte(planContents), 0644)
+		err := ioutil.WriteFile(planPath, []byte(planContents), 0o644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		// prepare files to be cleaned
 		aFilePath := filepath.Join(testDir, "exists.txt")
-		err = ioutil.WriteFile(aFilePath, []byte{'P', 'K'}, 0644)
+		err = ioutil.WriteFile(aFilePath, []byte{'P', 'K'}, 0o644)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		aDirPath := filepath.Join(testDir, "a-directory")
-		err = os.Mkdir(aDirPath, 0755)
+		err = os.Mkdir(aDirPath, 0o755)
 		if err != nil {
 			return errors.WithStack(err)
 		}

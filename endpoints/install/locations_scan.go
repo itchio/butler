@@ -194,7 +194,7 @@ func (sc *scanContext) DoMarket() error {
 		}
 
 		msg := fmt.Sprintf("scanned %s", time.Now().Format(time.RFC3339Nano))
-		err = ioutil.WriteFile(markerPath, []byte(msg), 0644)
+		err = ioutil.WriteFile(markerPath, []byte(msg), 0o644)
 		if err != nil {
 			consumer.Warnf("Could not write marker: %+v", err)
 		}

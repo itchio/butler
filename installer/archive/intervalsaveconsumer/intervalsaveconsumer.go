@@ -70,7 +70,7 @@ func (sc *saveConsumer) Save(state *savior.ExtractorCheckpoint) (savior.AfterSav
 	sc.lastSave = time.Now()
 
 	err := func() error {
-		stateFile, err := safefile.Create(sc.statePath, 0644)
+		stateFile, err := safefile.Create(sc.statePath, 0o644)
 		if err != nil {
 			return errors.Wrap(err, "creating checkpoint file")
 		}

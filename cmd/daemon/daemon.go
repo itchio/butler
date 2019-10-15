@@ -66,7 +66,7 @@ func do(ctx *mansion.Context) {
 	}
 	secret := generateSecret()
 
-	err = os.MkdirAll(filepath.Dir(ctx.DBPath), 0755)
+	err = os.MkdirAll(filepath.Dir(ctx.DBPath), 0o755)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "creating DB directory if necessary"))
 	}

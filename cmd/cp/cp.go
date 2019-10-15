@@ -92,14 +92,14 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	defer src.Close()
 
 	dir := filepath.Dir(destPath)
-	err = os.MkdirAll(dir, 0755)
+	err = os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return err
 	}
 
 	flags := os.O_CREATE | os.O_WRONLY
 
-	dest, err := os.OpenFile(destPath, flags, 0644)
+	dest, err := os.OpenFile(destPath, flags, 0o644)
 	if err != nil {
 		return err
 	}

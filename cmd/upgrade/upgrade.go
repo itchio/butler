@@ -80,7 +80,7 @@ func applyUpgrade(ctx *mansion.Context, vinfo *mansion.VersionCheckResult) error
 	execDir := filepath.Dir(execPath)
 
 	updateDir := filepath.Join(execDir, ".butler-self-upgrade")
-	err = os.MkdirAll(updateDir, 0755)
+	err = os.MkdirAll(updateDir, 0o755)
 	if err != nil {
 		return errors.WithStack(err)
 	}

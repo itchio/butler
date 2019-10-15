@@ -105,7 +105,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 
 	// give the app its own temporary directory
 	tempDir := filepath.Join(params.InstallFolder, ".itch", "temp")
-	err = os.MkdirAll(tempDir, 0755)
+	err = os.MkdirAll(tempDir, 0o755)
 	if err != nil {
 		consumer.Warnf("Could not make temporary directory: %s", err.Error())
 	} else {
