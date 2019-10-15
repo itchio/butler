@@ -21,12 +21,11 @@ require (
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35
 	github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f
-	github.com/itchio/damage v0.0.0-20190703135837-76df725fc766
 	github.com/itchio/dash v0.0.0-20190924130836-8ab701fc1aa0
 	github.com/itchio/elefant v0.0.0-20190703135033-2d43bc5934e5
 	github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102
 	github.com/itchio/hades v0.0.0-20190703142104-a6700d471538
-	github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de
+	github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524
 	github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52
 	github.com/itchio/lake v0.0.0-20190924095629-744ed8d0739a
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
@@ -57,6 +56,7 @@ require (
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	xorm.io/builder v0.3.5
 )

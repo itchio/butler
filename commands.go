@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/cmd/cp"
 	"github.com/itchio/butler/cmd/daemon"
+	"github.com/itchio/butler/cmd/diag"
 	"github.com/itchio/butler/cmd/diff"
 	"github.com/itchio/butler/cmd/ditto"
 	"github.com/itchio/butler/cmd/dl"
@@ -17,6 +18,7 @@ import (
 	"github.com/itchio/butler/cmd/extract"
 	"github.com/itchio/butler/cmd/fetch"
 	"github.com/itchio/butler/cmd/file"
+	"github.com/itchio/butler/cmd/fujicmd"
 	"github.com/itchio/butler/cmd/heal"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
@@ -28,6 +30,7 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
+	"github.com/itchio/butler/cmd/ratetest"
 	"github.com/itchio/butler/cmd/rediff"
 	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/run"
@@ -44,9 +47,7 @@ import (
 	"github.com/itchio/butler/cmd/version"
 	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/butler/cmd/which"
-	"github.com/itchio/butler/cmd/fujicmd"
 	"github.com/itchio/butler/cmd/wipe"
-	"github.com/itchio/butler/cmd/ratetest"
 	"github.com/itchio/butler/mansion"
 )
 
@@ -120,4 +121,5 @@ func registerCommands(ctx *mansion.Context) {
 	mkzip.Register(ctx)
 
 	ratetest.Register(ctx)
+	diag.Register(ctx)
 }
