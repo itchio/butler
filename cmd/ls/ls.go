@@ -80,6 +80,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 
 		comm.Logf("%s: directory", path)
 		container.Print(log)
+		return nil
 	}
 
 	if stats.Size() == 0 {
