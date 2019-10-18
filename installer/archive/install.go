@@ -115,7 +115,7 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	}
 
 	consumer.Opf("Busting ghosts...")
-	err = bfs.BustGhosts(&bfs.BustGhostsParams{
+	err = bfs.BustGhosts(bfs.BustGhostsParams{
 		Folder:   params.InstallFolderPath,
 		NewFiles: res.Files,
 		Receipt:  params.ReceiptIn,

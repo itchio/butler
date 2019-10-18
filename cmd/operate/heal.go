@@ -132,7 +132,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 
 	consumer.Infof("Busting ghosts...")
 
-	err = bfs.BustGhosts(&bfs.BustGhostsParams{
+	err = bfs.BustGhosts(bfs.BustGhostsParams{
 		Folder:   params.InstallFolder,
 		NewFiles: res.Files,
 		Receipt:  receiptIn,
