@@ -13,13 +13,13 @@ import (
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
-	"github.com/itchio/savior/filesource"
 	"github.com/itchio/httpkit/eos/option"
 	"github.com/itchio/lake/pools/fspool"
+	"github.com/itchio/savior/filesource"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
-	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -145,14 +145,14 @@ func Do(ctx *mansion.Context, consumer *state.Consumer) error {
 
 	var bwl bowl.Bowl
 	if dir != "" {
-		bwl, err = bowl.NewFreshBowl(&bowl.FreshBowlParams{
+		bwl, err = bowl.NewFreshBowl(bowl.FreshBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
 			TargetPool:      targetPool,
 			OutputFolder:    dir,
 		})
 	} else {
-		bwl, err = bowl.NewOverlayBowl(&bowl.OverlayBowlParams{
+		bwl, err = bowl.NewOverlayBowl(bowl.OverlayBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
 			OutputFolder:    old,

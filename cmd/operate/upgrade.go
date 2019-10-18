@@ -180,7 +180,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 
 	stageFolder := filepath.Join(params.StagingFolder, "patch-overlay")
 
-	bowl, err := bowl.NewOverlayBowl(&bowl.OverlayBowlParams{
+	bowl, err := bowl.NewOverlayBowl(bowl.OverlayBowlParams{
 		TargetContainer: p.GetTargetContainer(),
 		SourceContainer: p.GetSourceContainer(),
 
@@ -232,6 +232,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		return errors.WithMessage(err, "while committing patch")
 	}
 
+	// FIXME: this is a lie, see https://github.com/itchio/butler/issues/200
 	consumer.Infof("Patching done, getting signature info...")
 
 	res := resultForContainer(p.GetSourceContainer())

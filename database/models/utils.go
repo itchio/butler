@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
+	"xorm.io/builder"
 )
 
 var dbConsumer *state.Consumer
@@ -119,11 +119,11 @@ func MustDelete(conn *sqlite.Conn, model interface{}, cond builder.Cond) {
 	Must(err)
 }
 
-func Update(conn *sqlite.Conn, model interface{}, where hades.WhereCond, updates ...builder.Eq) error {
+func Update(conn *sqlite.Conn, model interface{}, where hades.WhereCond, updates ...builder.Cond) error {
 	return HadesContext().Update(conn, model, where, updates...)
 }
 
-func MustUpdate(conn *sqlite.Conn, model interface{}, where hades.WhereCond, updates ...builder.Eq) {
+func MustUpdate(conn *sqlite.Conn, model interface{}, where hades.WhereCond, updates ...builder.Cond) {
 	err := Update(conn, model, where, updates...)
 	Must(err)
 }
