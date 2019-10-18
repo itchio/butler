@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/itchio/headway/state"
+	"github.com/itchio/screw"
 )
 
 var debugGhostBusting = os.Getenv("BUTLER_LOUD_GHOSTS") == "1"
@@ -73,7 +74,7 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 	for _, ghostFile := range ghostFiles {
 		absolutePath := filepath.Join(params.Folder, ghostFile)
 
-		err := os.Remove(absolutePath)
+		err := screw.Remove(absolutePath)
 		if err != nil {
 			params.Consumer.Infof("Leaving ghost file behind (%s): %s", absolutePath, err.Error())
 		}
@@ -93,6 +94,6 @@ func removeFoundGhosts(params *BustGhostsParams, ghostFiles []string) {
 		// the way DirTree works, all directories that could possibly be empty
 		// now (due to removal of some files) will be listed. However, some of
 		// them might still contain files.
-		os.Remove(absolutePath)
+		_ = screw.Remove(absolutePath)
 	}
 }

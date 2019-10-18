@@ -34,6 +34,7 @@ require (
 	github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
+	github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a
 	github.com/itchio/smaug v0.0.0-20190830114734-99d8c6baba09
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
 	github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0
