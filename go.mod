@@ -29,14 +29,14 @@ require (
 	github.com/itchio/hades v0.0.0-20191018165837-991738ec6622
 	github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524
 	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
-	github.com/itchio/lake v0.0.0-20191018151306-175d146fd503
+	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
 	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
 	github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
 	github.com/itchio/smaug v0.0.0-20190830114734-99d8c6baba09
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
-	github.com/itchio/wharf v0.0.0-20191018162444-b856d7ad39d9
+	github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0
 	github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
