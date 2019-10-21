@@ -5,7 +5,6 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/cmd/walk"
 	"github.com/itchio/mitch"
 )
 
@@ -80,5 +79,18 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	must(walk.Do(queueRes.InstallFolder, false))
+	bi.Logf("Now re-install (heal)")
+
+	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
+		Game:              game,
+		CaveID:            caveId,
+		InstallLocationID: "tmp",
+	})
+	must(err)
+
+	_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+		ID:            queueRes.ID,
+		StagingFolder: queueRes.StagingFolder,
+	})
+	must(err)
 }
