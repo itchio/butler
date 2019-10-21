@@ -71,3 +71,9 @@ func (bi *ButlerInstance) FetchUpload(uploadID int64) *itchio.Upload {
 	must(err)
 	return res.Upload
 }
+
+func (bi *ButlerInstance) FetchBuild(buildID int64) *itchio.Build {
+	res, err := bi.Client().GetBuild(context.Background(), itchio.GetBuildParams{BuildID: buildID})
+	must(err)
+	return res.Build
+}

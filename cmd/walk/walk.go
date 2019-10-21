@@ -24,10 +24,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, *args.dir, *args.dereference))
+	ctx.Must(Do(*args.dir, *args.dereference))
 }
 
-func Do(ctx *mansion.Context, dir string, dereference bool) error {
+func Do(dir string, dereference bool) error {
 	startTime := time.Now()
 
 	container, err := tlc.WalkDir(dir, &tlc.WalkOpts{

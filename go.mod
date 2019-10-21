@@ -30,7 +30,7 @@ require (
 	github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524
 	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
 	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
-	github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66
+	github.com/itchio/mitch v0.0.0-20191021151313-f1cc24570c54
 	github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
