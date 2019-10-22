@@ -1,9 +1,6 @@
 package operate
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer"
 	itchio "github.com/itchio/go-itchio"
@@ -24,32 +21,28 @@ type InstallSubcontextState struct {
 }
 
 type InstallSubcontext struct {
-	Data *InstallSubcontextState
+	Data      *InstallSubcontextState
+	eventSink *installer.InstallEventSink
 }
 
 var _ Subcontext = (*InstallSubcontext)(nil)
 
-func (mt *InstallSubcontext) Key() string {
+func (isub *InstallSubcontext) Key() string {
 	return "install"
 }
 
-func (mt *InstallSubcontext) GetData() interface{} {
-	return &mt.Data
+func (isub *InstallSubcontext) GetData() interface{} {
+	return &isub.Data
 }
 
-func (mt *InstallSubcontext) PostEvent(oc *OperationContext, event butlerd.InstallEvent) error {
-	event.Timestamp = time.Now()
-
-	mt.Data.Events = append(mt.Data.Events, event)
-	return oc.Save(mt)
-}
-
-func (mt *InstallSubcontext) PostProblem(oc *OperationContext, err error) error {
-	return mt.PostEvent(oc, butlerd.InstallEvent{
-		Type: butlerd.InstallEventProblem,
-		Problem: &butlerd.ProblemInstallEvent{
-			Error:      fmt.Sprintf("%v", err),
-			ErrorStack: fmt.Sprintf("%+v", err),
-		},
-	})
+func (isub *InstallSubcontext) EventSink(oc *OperationContext) *installer.InstallEventSink {
+	if isub.eventSink == nil {
+		isub.eventSink = &installer.InstallEventSink{
+			Append: func(event butlerd.InstallEvent) error {
+				isub.Data.Events = append(isub.Data.Events, event)
+				return oc.Save(isub)
+			},
+		}
+	}
+	return isub.eventSink
 }

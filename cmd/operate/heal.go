@@ -128,19 +128,35 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		)
 	}
 
+	err = isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
+		Heal: &butlerd.HealInstallEvent{
+			TotalCorrupted:   vc.WoundsConsumer.TotalCorrupted(),
+			AppliedCaseFixes: vc.CaseFixStats != nil && len(vc.CaseFixStats.Fixes) > 0,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	res := resultForContainer(sigInfo.Container)
 
 	consumer.Infof("Busting ghosts...")
 
+	var bustGhostStats bfs.BustGhostStats
 	err = bfs.BustGhosts(bfs.BustGhostsParams{
 		Folder:   params.InstallFolder,
 		NewFiles: res.Files,
 		Receipt:  receiptIn,
 
 		Consumer: consumer,
+		Stats:    &bustGhostStats,
 	})
 	if err != nil {
 		return errors.WithStack(err)
+	}
+	err = isub.EventSink(oc).PostGhostBusting("heal", bustGhostStats)
+	if err != nil {
+		return err
 	}
 
 	return commitInstall(oc, &CommitInstallParams{

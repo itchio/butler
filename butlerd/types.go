@@ -1350,6 +1350,7 @@ type InstallEvent struct {
 	Install      *InstallInstallEvent      `json:"install,omitempty"`
 	Upgrade      *UpgradeInstallEvent      `json:"upgrade,omitempty"`
 	GhostBusting *GhostBustingInstallEvent `json:"ghostBusting,omitempty"`
+	Patching     *PatchingInstallEvent     `json:"patching,omitempty"`
 	Problem      *ProblemInstallEvent      `json:"problem,omitempty"`
 	Fallback     *FallbackInstallEvent     `json:"fallback,omitempty"`
 }
@@ -1376,6 +1377,12 @@ const (
 	// Applying one or more wharf patches
 	InstallEventUpgrade InstallEventType = "upgrade"
 
+	// Applying a single wharf patch
+	InstallEventPatching InstallEventType = "patching"
+
+	// Cleaning up ghost files
+	InstallEventGhostBusting InstallEventType = "ghostBusting"
+
 	// Any kind of step failing
 	InstallEventProblem InstallEventType = "problem"
 
@@ -1386,11 +1393,11 @@ const (
 )
 
 type InstallInstallEvent struct {
-	StrategyName string `json:"strategyName"`
+	Manager string `json:"manager"`
 }
 
 type HealInstallEvent struct {
-	NumWounds int64 `json:"numWounds"`
+	TotalCorrupted int64 `json:"totalCorrupted"`
 
 	AppliedCaseFixes bool `json:"appliedCaseFixes"`
 }

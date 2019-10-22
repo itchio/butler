@@ -16,6 +16,12 @@ func Test_ChangeCase(t *testing.T) {
 
 	bi.Authenticate()
 
+	dumpJSON := func(header string, payload interface{}) {
+		bs, err := json.MarshalIndent(payload, "", "  ")
+		must(err)
+		bi.Logf("%s:\n%s", header, string(bs))
+	}
+
 	store := bi.Server.Store()
 	_developer := store.MakeUser("John Doe")
 	_game := _developer.MakeGame("Airplane Simulator")
@@ -39,11 +45,13 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+	installRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 		ID:            queueRes.ID,
 		StagingFolder: queueRes.StagingFolder,
 	})
 	must(err)
+
+	dumpJSON("Install events", installRes.Events)
 
 	bi.Logf("Pushing second build...")
 
@@ -56,7 +64,7 @@ func Test_ChangeCase(t *testing.T) {
 
 	bi.Logf("Now upgrading to second build...")
 
-	caveId := queueRes.CaveID
+	caveID := queueRes.CaveID
 	upload := bi.FetchUpload(_upload.ID)
 	build := bi.FetchBuild(_build2.ID)
 
@@ -64,7 +72,7 @@ func Test_ChangeCase(t *testing.T) {
 		Game: game,
 		// make sure to install to same cave so that it ends up
 		// being an upgrade and not a duplicate install
-		CaveID:            caveId,
+		CaveID:            caveID,
 		InstallLocationID: "tmp",
 
 		// force upgrade otherwise it's going to default
@@ -74,30 +82,28 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+	upgradeRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 		ID:            queueRes.ID,
 		StagingFolder: queueRes.StagingFolder,
 	})
 	must(err)
+
+	dumpJSON("Upgrade events", upgradeRes.Events)
 
 	bi.Logf("Now re-install (heal)")
 
 	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 		Game:              game,
-		CaveID:            caveId,
+		CaveID:            caveID,
 		InstallLocationID: "tmp",
 	})
 	must(err)
 
-	installRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+	reinstallRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 		ID:            queueRes.ID,
 		StagingFolder: queueRes.StagingFolder,
 	})
 	must(err)
 
-	{
-		bs, err := json.MarshalIndent(installRes.Events, "", "  ")
-		must(err)
-		bi.Logf("Install events:\n%s", string(bs))
-	}
+	dumpJSON("Re-install events", reinstallRes.Events)
 }

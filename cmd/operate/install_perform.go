@@ -125,7 +125,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.Inst
 	}
 	oc.Load(isub)
 
-	err := isub.PostEvent(oc, butlerd.InstallEvent{
+	err := isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
 		Type: butlerd.InstallEventResume,
 	})
 	if err != nil {
@@ -134,7 +134,7 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.Inst
 
 	err = doInstallPerformInner(oc, meta, isub)
 	if err != nil {
-		_ = isub.PostProblem(oc, err)
+		_ = isub.EventSink(oc).PostProblem(err)
 		return nil, err
 	}
 
@@ -251,7 +251,8 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 
 			ReceiptIn: prepareRes.ReceiptIn,
 
-			Context: oc.ctx,
+			Context:   oc.ctx,
+			EventSink: isub.EventSink(oc),
 		}
 
 		tryInstall := func() (*installer.InstallResult, error) {
@@ -310,6 +311,11 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 			}
 
 			consumer.Infof("Install successful")
+			isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
+				Install: &butlerd.InstallInstallEvent{
+					Manager: string(installerInfo.Type),
+				},
+			})
 
 			istate.FirstInstallResult = installResult
 			err = oc.Save(isub)

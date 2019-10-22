@@ -40,6 +40,8 @@ type InstallParams struct {
 
 	// For cancellation
 	Context context.Context
+
+	EventSink *InstallEventSink
 }
 
 type UninstallParams struct {

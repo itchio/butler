@@ -12,11 +12,18 @@ import (
 
 var debugGhostBusting = os.Getenv("BUTLER_LOUD_GHOSTS") == "1"
 
+type BustGhostStats struct {
+	Found   int64
+	Removed int64
+}
+
 type BustGhostsParams struct {
 	Consumer *state.Consumer
 	Folder   string
 	NewFiles []string
 	Receipt  *Receipt
+
+	Stats *BustGhostStats
 }
 
 /**
@@ -46,6 +53,9 @@ func BustGhosts(params BustGhostsParams) error {
 	oldFiles := params.Receipt.Files
 
 	ghostFiles := Difference(params.NewFiles, oldFiles)
+	if params.Stats != nil {
+		params.Stats.Found = int64(len(ghostFiles))
+	}
 
 	if screw.IsCaseInsensitiveFS() {
 		// naming skills 10/10
@@ -117,6 +127,10 @@ func removeFoundGhosts(params BustGhostsParams, ghostFiles []string) {
 		err := screw.Remove(absolutePath)
 		if err != nil {
 			params.Consumer.Debugf("Leaving ghost file behind (%s): %s", absolutePath, err.Error())
+		} else {
+			if params.Stats != nil {
+				params.Stats.Removed++
+			}
 		}
 	}
 

@@ -115,6 +115,7 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	}
 
 	consumer.Opf("Busting ghosts...")
+	var bustGhostStats bfs.BustGhostStats
 	err = bfs.BustGhosts(bfs.BustGhostsParams{
 		Folder:   params.InstallFolderPath,
 		NewFiles: res.Files,
@@ -124,6 +125,10 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	err = params.EventSink.PostGhostBusting("install::archive", bustGhostStats)
+	if err != nil {
+		return nil, err
 	}
 
 	return &res, nil

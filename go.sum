@@ -206,6 +206,8 @@ github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012 h1:wmzF81vWMJ2lVi7+BQ
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9NVHqKFxuBI7oyVnHJss2nexwJFcQeRo4I=
 github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0 h1:kAXD+a+2qIMnhqLPBQ1H7mJFdM2TO1uAvrQGgAw6Rl4=
 github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0/go.mod h1:9su/M4OMdC2HkPX65JroSFQn8O4THQF2EUYQlx/o6bs=
+github.com/itchio/wharf v0.0.0-20191022164012-82a20788b05d h1:tRh7nQxtD9HvmeLOaL8tl/wy94xryWTWDnHDE8XgZRY=
+github.com/itchio/wharf v0.0.0-20191022164012-82a20788b05d/go.mod h1:9su/M4OMdC2HkPX65JroSFQn8O4THQF2EUYQlx/o6bs=
 github.com/itchio/wizardry v0.0.0-20190702191849-ac1b407f270b/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c h1:gBUbKS6o9ns7UqD2Xs7FQ4d/6LIZuarPd47ykvLA9K0=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=

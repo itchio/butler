@@ -10,6 +10,7 @@ import (
 
 	"github.com/dchest/safefile"
 
+	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
 
@@ -90,6 +91,15 @@ func upgrade(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext
 		donePatchCost += cost
 	}
 	oc.rc.EndProgress()
+
+	err := isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
+		Upgrade: &butlerd.UpgradeInstallEvent{
+			NumPatches: totalPatches,
+		},
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
