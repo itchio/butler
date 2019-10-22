@@ -24,8 +24,8 @@ import (
 	"github.com/itchio/butler/database/models"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 var downloadsDriveCancelID = "Downloads.Drive"
@@ -324,11 +324,11 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			}
 		}()
 
-		messages.DownloadsDriveStarted.Notify(rc, butlerd.DownloadsDriveStartedNotification{
+		_ = messages.DownloadsDriveStarted.Notify(rc, butlerd.DownloadsDriveStartedNotification{
 			Download: formatDownload(download),
 		})
 
-		err = operate.InstallPerform(ctx, rc, butlerd.InstallPerformParams{
+		_, err = operate.InstallPerform(ctx, rc, butlerd.InstallPerformParams{
 			ID:            download.ID,
 			StagingFolder: download.StagingFolder,
 		})

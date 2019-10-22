@@ -21,29 +21,29 @@ import (
 	"github.com/pkg/errors"
 )
 
-func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams butlerd.InstallPerformParams) error {
+func InstallPerform(ctx context.Context, rc *butlerd.RequestContext, performParams butlerd.InstallPerformParams) (*butlerd.InstallPerformResult, error) {
 	if performParams.StagingFolder == "" {
-		return errors.New("No staging folder specified")
+		return nil, errors.New("No staging folder specified")
 	}
 
 	oc, err := LoadContext(ctx, rc, performParams.StagingFolder)
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	defer oc.Release()
 
 	meta := NewMetaSubcontext()
 	oc.Load(meta)
 
-	err = doInstallPerform(oc, meta)
+	res, err := doInstallPerform(oc, meta)
 	if err != nil {
 		oc.Consumer().Errorf("%+v", err)
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
 	oc.Retire()
 
-	return nil
+	return res, nil
 }
 
 func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext) (eos.File, error) {
@@ -119,16 +119,36 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 	return ret, nil
 }
 
-func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
+func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.InstallPerformResult, error) {
+	isub := &InstallSubcontext{
+		Data: &InstallSubcontextState{},
+	}
+	oc.Load(isub)
+
+	err := isub.PostEvent(oc, butlerd.InstallEvent{
+		Type: butlerd.InstallEventResume,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = doInstallPerformInner(oc, meta, isub)
+	if err != nil {
+		_ = isub.PostProblem(oc, err)
+		return nil, err
+	}
+
+	res := &butlerd.InstallPerformResult{
+		Events: isub.Data.Events,
+	}
+	return res, nil
+}
+
+func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext) error {
 	rc := oc.rc
 	params := meta.Data
 	consumer := oc.Consumer()
-
-	istate := &InstallSubcontextState{}
-	isub := &InstallSubcontext{
-		Data: istate,
-	}
-	oc.Load(isub)
+	istate := isub.Data
 
 	if params.Game == nil {
 		return errors.Errorf("Corrupted download info (missing game), refusing to continue.")
@@ -138,7 +158,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 		if !istate.RefreshedGame {
 			client := rc.Client(params.Access.APIKey)
 			istate.RefreshedGame = true
-			oc.Save(isub)
+			err := oc.Save(isub)
+			if err != nil {
+				return err
+			}
 
 			// attempt to refresh game info
 			gameRes, err := client.GetGame(rc.Ctx, itchio.GetGameParams{
@@ -149,7 +172,10 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) error {
 				consumer.Warnf("Could not refresh game info: %s", err.Error())
 			} else {
 				params.Game = gameRes.Game
-				oc.Save(meta)
+				err = oc.Save(meta)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

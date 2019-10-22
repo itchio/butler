@@ -19,10 +19,10 @@ func InstallPerform(rc *butlerd.RequestContext, params butlerd.InstallPerformPar
 	rc.CancelFuncs.Add(params.ID, cancelFunc)
 	defer rc.CancelFuncs.Remove(params.ID)
 
-	err := operate.InstallPerform(ctx, rc, params)
+	res, err := operate.InstallPerform(ctx, rc, params)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return &butlerd.InstallPerformResult{}, nil
+	return res, nil
 }

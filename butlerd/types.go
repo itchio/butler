@@ -1346,14 +1346,12 @@ type InstallEvent struct {
 	Type      InstallEventType `json:"type"`
 	Timestamp time.Time        `json:"timestamp"`
 
-	Heal    *HealInstallEvent    `json:"heal"`
-	Install *InstallInstallEvent `json:"install"`
-	Upgrade *UpgradeInstallEvent `json:"upgrade"`
-
-	GhostBusting *GhostBustingInstallEvent `json:"ghostBusting"`
-
-	Problem  *ProblemInstallEvent  `json:"problem"`
-	Fallback *FallbackInstallEvent `json:"fallback"`
+	Heal         *HealInstallEvent         `json:"heal,omitempty"`
+	Install      *InstallInstallEvent      `json:"install,omitempty"`
+	Upgrade      *UpgradeInstallEvent      `json:"upgrade,omitempty"`
+	GhostBusting *GhostBustingInstallEvent `json:"ghostBusting,omitempty"`
+	Problem      *ProblemInstallEvent      `json:"problem,omitempty"`
+	Fallback     *FallbackInstallEvent     `json:"fallback,omitempty"`
 }
 
 type InstallEventType string

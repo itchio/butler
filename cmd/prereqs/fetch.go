@@ -124,7 +124,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			return errors.Wrapf(err, "queueing download+extract for prereq %s", name)
 		}
 
-		err = operate.InstallPerform(ctx, &rcc, butlerd.InstallPerformParams{
+		_, err = operate.InstallPerform(ctx, &rcc, butlerd.InstallPerformParams{
 			ID:            "install-prereqs",
 			StagingFolder: stagingFolder,
 		})

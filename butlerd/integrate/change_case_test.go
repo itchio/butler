@@ -1,6 +1,7 @@
 package integrate
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/itchio/butler/butlerd"
@@ -88,9 +89,15 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	_, err = messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+	installRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
 		ID:            queueRes.ID,
 		StagingFolder: queueRes.StagingFolder,
 	})
 	must(err)
+
+	{
+		bs, err := json.MarshalIndent(installRes.Events, "", "  ")
+		must(err)
+		bi.Logf("Install events:\n%s", string(bs))
+	}
 }
