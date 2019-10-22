@@ -30,7 +30,7 @@ func Test_ChangeCase(t *testing.T) {
 	_upload := _game.MakeUpload("All platforms")
 
 	_upload.SetAllPlatforms()
-	_upload.PushBuild(func(ac *mitch.ArchiveContext) {
+	_build1 := _upload.PushBuild(func(ac *mitch.ArchiveContext) {
 		ac.Entry("index.html").String("<p>Hi!</p>")
 		ac.Entry("data/data1").Random(0x1, 1024)
 		ac.Entry("data/data2").Random(0x2, 1024)
@@ -66,7 +66,8 @@ func Test_ChangeCase(t *testing.T) {
 
 	caveID := queueRes.CaveID
 	upload := bi.FetchUpload(_upload.ID)
-	build := bi.FetchBuild(_build2.ID)
+	build1 := bi.FetchBuild(_build1.ID)
+	build2 := bi.FetchBuild(_build2.ID)
 
 	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
 		Game: game,
@@ -78,7 +79,7 @@ func Test_ChangeCase(t *testing.T) {
 		// force upgrade otherwise it's going to default
 		// to reinstall
 		Upload: upload,
-		Build:  build,
+		Build:  build2,
 	})
 	must(err)
 
@@ -106,4 +107,23 @@ func Test_ChangeCase(t *testing.T) {
 	must(err)
 
 	dumpJSON("Re-install events", reinstallRes.Events)
+
+	bi.Logf("Revert to past build (heal)")
+
+	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
+		Game:              game,
+		CaveID:            caveID,
+		InstallLocationID: "tmp",
+
+		Build: build1,
+	})
+	must(err)
+
+	revertRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+		ID:            queueRes.ID,
+		StagingFolder: queueRes.StagingFolder,
+	})
+	must(err)
+
+	dumpJSON("Revert events", revertRes.Events)
 }
