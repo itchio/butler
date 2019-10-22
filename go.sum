@@ -178,10 +178,8 @@ github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0 h1:6MWYltjNZPnDA11nVTS
 github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0/go.mod h1:QzMCieUnffQvCeDF5vlDOcsjhtkERfeZE+eKy6KS0wg=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49/go.mod h1:avNrevQMli1pYPsz1+HIHMvx95pk6O+6otbWqCZPeZI=
-github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66 h1:qynNkJCVLkDJcN8+gVq1DNnnjaIVi7XZk8XrdpC10ZY=
-github.com/itchio/mitch v0.0.0-20190703125854-42bcb20bbe66/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
-github.com/itchio/mitch v0.0.0-20191021151313-f1cc24570c54 h1:EXl0VdSzvACZv/0iFjU8GSlxbMj0p7e7AxquSgsAUlk=
-github.com/itchio/mitch v0.0.0-20191021151313-f1cc24570c54/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
+github.com/itchio/mitch v0.0.0-20191022162303-f44524fed5a6 h1:uT2QtltrYeNcK8GUICZUiWOyDAO1dtMvpzrg0fOxAX4=
+github.com/itchio/mitch v0.0.0-20191022162303-f44524fed5a6/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5 h1:8Wi95IwkUGZTGhVmylXAnCW/iUe9nUEtKYKLyhsseuM=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
 github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d h1:EcmVffUYduCSFCEM12YpSXoVXvyeq8Ro4Q+rwc60TIo=
