@@ -37,7 +37,7 @@ require (
 	github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a
 	github.com/itchio/smaug v0.0.0-20190830114734-99d8c6baba09
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
-	github.com/itchio/wharf v0.0.0-20191022164012-82a20788b05d
+	github.com/itchio/wharf v0.0.0-20191024111623-c761ad08a670
 	github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
