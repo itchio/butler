@@ -178,8 +178,8 @@ github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0 h1:6MWYltjNZPnDA11nVTS
 github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0/go.mod h1:QzMCieUnffQvCeDF5vlDOcsjhtkERfeZE+eKy6KS0wg=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49/go.mod h1:avNrevQMli1pYPsz1+HIHMvx95pk6O+6otbWqCZPeZI=
-github.com/itchio/mitch v0.0.0-20191022162303-f44524fed5a6 h1:uT2QtltrYeNcK8GUICZUiWOyDAO1dtMvpzrg0fOxAX4=
-github.com/itchio/mitch v0.0.0-20191022162303-f44524fed5a6/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
+github.com/itchio/mitch v0.0.0-20191024115215-7d4e88f096be h1:07yXvwgtJTcrUvU2RwLyC0gIvo/lhgMMc1ChbbAoHE4=
+github.com/itchio/mitch v0.0.0-20191024115215-7d4e88f096be/go.mod h1:npCXonLy+yxwkZJJBKb5ySE4CGfN/cDuJhRLWcrZeaA=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5 h1:8Wi95IwkUGZTGhVmylXAnCW/iUe9nUEtKYKLyhsseuM=
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
 github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d h1:EcmVffUYduCSFCEM12YpSXoVXvyeq8Ro4Q+rwc60TIo=
@@ -204,10 +204,6 @@ github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673 h1:2bncqho+T6mZkz
 github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673/go.mod h1:Z8GuFb1PZQTracji6TIBFLTw2ZV3u7rOS0S04v63g58=
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012 h1:wmzF81vWMJ2lVi7+BQg+frAzuS8fn22pQBaQp6pMtBE=
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9NVHqKFxuBI7oyVnHJss2nexwJFcQeRo4I=
-github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0 h1:kAXD+a+2qIMnhqLPBQ1H7mJFdM2TO1uAvrQGgAw6Rl4=
-github.com/itchio/wharf v0.0.0-20191018174648-e84ea06cc2c0/go.mod h1:9su/M4OMdC2HkPX65JroSFQn8O4THQF2EUYQlx/o6bs=
-github.com/itchio/wharf v0.0.0-20191022164012-82a20788b05d h1:tRh7nQxtD9HvmeLOaL8tl/wy94xryWTWDnHDE8XgZRY=
-github.com/itchio/wharf v0.0.0-20191022164012-82a20788b05d/go.mod h1:9su/M4OMdC2HkPX65JroSFQn8O4THQF2EUYQlx/o6bs=
 github.com/itchio/wharf v0.0.0-20191024111623-c761ad08a670 h1:IJsD0YBU5tLYlny9omGX59P03UbYnxUaM/tk9yoEG6s=
 github.com/itchio/wharf v0.0.0-20191024111623-c761ad08a670/go.mod h1:9su/M4OMdC2HkPX65JroSFQn8O4THQF2EUYQlx/o6bs=
 github.com/itchio/wizardry v0.0.0-20190702191849-ac1b407f270b/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
