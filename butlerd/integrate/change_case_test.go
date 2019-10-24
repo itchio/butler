@@ -1,26 +1,23 @@
 package integrate
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/mitch"
+	"github.com/itchio/screw"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ChangeCase(t *testing.T) {
+	assert := assert.New(t)
+
 	bi := newInstance(t)
 	rc, _, cancel := bi.Unwrap()
 	defer cancel()
 
 	bi.Authenticate()
-
-	dumpJSON := func(header string, payload interface{}) {
-		bs, err := json.MarshalIndent(payload, "", "  ")
-		must(err)
-		bi.Logf("%s:\n%s", header, string(bs))
-	}
 
 	store := bi.Server.Store()
 	_developer := store.MakeUser("John Doe")
@@ -51,7 +48,7 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	dumpJSON("Install events", installRes.Events)
+	bi.DumpJSON("Install events", installRes.Events)
 
 	bi.Logf("Pushing second build...")
 
@@ -89,7 +86,7 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	dumpJSON("Upgrade events", upgradeRes.Events)
+	bi.DumpJSON("Upgrade events", upgradeRes.Events)
 
 	bi.Logf("Now re-install (heal)")
 
@@ -106,7 +103,7 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	dumpJSON("Re-install events", reinstallRes.Events)
+	bi.DumpJSON("Re-install events", reinstallRes.Events)
 
 	bi.Logf("Revert to past build (heal)")
 
@@ -125,5 +122,16 @@ func Test_ChangeCase(t *testing.T) {
 	})
 	must(err)
 
-	dumpJSON("Revert events", revertRes.Events)
+	bi.DumpJSON("Revert events", revertRes.Events)
+
+	{
+		ev := bi.FindEvent(revertRes.Events, butlerd.InstallEventHeal)
+		if screw.IsCaseInsensitiveFS() {
+			assert.True(ev.Heal.AppliedCaseFixes)
+			assert.Zero(ev.Heal.TotalCorrupted)
+		} else {
+			assert.False(ev.Heal.AppliedCaseFixes)
+			assert.NotZero(ev.Heal.TotalCorrupted)
+		}
+	}
 }

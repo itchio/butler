@@ -2,6 +2,8 @@ package integrate
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -76,4 +78,21 @@ func (bi *ButlerInstance) FetchBuild(buildID int64) *itchio.Build {
 	res, err := bi.Client().GetBuild(context.Background(), itchio.GetBuildParams{BuildID: buildID})
 	must(err)
 	return res.Build
+}
+
+func (bi *ButlerInstance) DumpJSON(header string, payload interface{}) {
+	bs, err := json.MarshalIndent(payload, "", "  ")
+	must(err)
+	bi.Logf("%s:\n%s", header, string(bs))
+}
+
+func (bi *ButlerInstance) FindEvent(events []butlerd.InstallEvent, typ butlerd.InstallEventType) butlerd.InstallEvent {
+	for _, ev := range events {
+		if ev.Type == typ {
+			return ev
+		}
+	}
+
+	bi.DumpJSON(fmt.Sprintf("Needed to find %s in events", typ), events)
+	panic(fmt.Sprintf("Could not find event of type %s", typ))
 }
