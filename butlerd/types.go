@@ -1339,7 +1339,8 @@ func (p InstallPerformParams) Validate() error {
 }
 
 type InstallPerformResult struct {
-	Events []InstallEvent
+	CaveID string         `json:"caveId"`
+	Events []InstallEvent `json:"events"`
 }
 
 type InstallEvent struct {

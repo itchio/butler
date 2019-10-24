@@ -138,7 +138,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.Inst
 		return nil, err
 	}
 
+	var caveID string
+	if oc.cave != nil {
+		caveID = oc.cave.ID
+	}
+
 	res := &butlerd.InstallPerformResult{
+		CaveID: caveID,
 		Events: isub.Data.Events,
 	}
 	return res, nil

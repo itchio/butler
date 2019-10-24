@@ -96,3 +96,38 @@ func (bi *ButlerInstance) FindEvent(events []butlerd.InstallEvent, typ butlerd.I
 	bi.DumpJSON(fmt.Sprintf("Needed to find %s in events", typ), events)
 	panic(fmt.Sprintf("Could not find event of type %s", typ))
 }
+
+func (bi *ButlerInstance) FindEvents(events []butlerd.InstallEvent, typ butlerd.InstallEventType) []butlerd.InstallEvent {
+	var results []butlerd.InstallEvent
+
+	for _, ev := range events {
+		if ev.Type == typ {
+			results = append(results, ev)
+		}
+	}
+
+	return results
+}
+
+func (bi *ButlerInstance) Install(params butlerd.InstallQueueParams) *butlerd.InstallPerformResult {
+	rc := bi.Conn.RequestContext
+	params.InstallLocationID = "tmp"
+
+	queueRes, err := messages.InstallQueue.TestCall(rc, params)
+	must(err)
+
+	res, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
+		ID:            queueRes.ID,
+		StagingFolder: queueRes.StagingFolder,
+	})
+	must(err)
+	return res
+}
+
+func (bi *ButlerInstance) InstallAndVerify(params butlerd.InstallQueueParams) *butlerd.InstallPerformResult {
+	assert := assert.New(bi.t)
+
+	res := bi.Install(params)
+	assert.Zero(bi.FindEvent(res.Events, butlerd.InstallEventHeal).Heal.TotalCorrupted)
+	return res
+}

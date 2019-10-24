@@ -269,6 +269,16 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		return errors.WithMessage(err, "while saving install subcontext")
 	}
 
+	err = isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
+		Patching: &butlerd.PatchingInstallEvent{
+			BuildID: build.ID,
+			Subtype: string(subType),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

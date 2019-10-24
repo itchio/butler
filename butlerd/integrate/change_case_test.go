@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/mitch"
 	"github.com/itchio/screw"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +13,7 @@ func Test_ChangeCase(t *testing.T) {
 	assert := assert.New(t)
 
 	bi := newInstance(t)
-	rc, _, cancel := bi.Unwrap()
+	_, _, cancel := bi.Unwrap()
 	defer cancel()
 
 	bi.Authenticate()
@@ -36,19 +35,9 @@ func Test_ChangeCase(t *testing.T) {
 
 	game := bi.FetchGame(_game.ID)
 
-	queueRes, err := messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
-		Game:              game,
-		InstallLocationID: "tmp",
+	installRes := bi.Install(butlerd.InstallQueueParams{
+		Game: game,
 	})
-	must(err)
-
-	installRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
-		ID:            queueRes.ID,
-		StagingFolder: queueRes.StagingFolder,
-	})
-	must(err)
-
-	bi.DumpJSON("Install events", installRes.Events)
 
 	bi.Logf("Pushing second build...")
 
@@ -61,68 +50,32 @@ func Test_ChangeCase(t *testing.T) {
 
 	bi.Logf("Now upgrading to second build...")
 
-	caveID := queueRes.CaveID
 	upload := bi.FetchUpload(_upload.ID)
 	build1 := bi.FetchBuild(_build1.ID)
 	build2 := bi.FetchBuild(_build2.ID)
 
-	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
-		Game: game,
-		// make sure to install to same cave so that it ends up
-		// being an upgrade and not a duplicate install
-		CaveID:            caveID,
-		InstallLocationID: "tmp",
+	upgradeRes := bi.Install(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
 
-		// force upgrade otherwise it's going to default
-		// to reinstall
 		Upload: upload,
 		Build:  build2,
 	})
-	must(err)
+	bi.FindEvent(upgradeRes.Events, butlerd.InstallEventUpgrade)
+	assert.Len(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventPatching), 1)
 
-	upgradeRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
-		ID:            queueRes.ID,
-		StagingFolder: queueRes.StagingFolder,
+	bi.InstallAndVerify(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
 	})
-	must(err)
-
-	bi.DumpJSON("Upgrade events", upgradeRes.Events)
-
-	bi.Logf("Now re-install (heal)")
-
-	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
-		Game:              game,
-		CaveID:            caveID,
-		InstallLocationID: "tmp",
-	})
-	must(err)
-
-	reinstallRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
-		ID:            queueRes.ID,
-		StagingFolder: queueRes.StagingFolder,
-	})
-	must(err)
-
-	bi.DumpJSON("Re-install events", reinstallRes.Events)
 
 	bi.Logf("Revert to past build (heal)")
-
-	queueRes, err = messages.InstallQueue.TestCall(rc, butlerd.InstallQueueParams{
-		Game:              game,
-		CaveID:            caveID,
-		InstallLocationID: "tmp",
+	revertRes := bi.Install(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
 
 		Build: build1,
 	})
-	must(err)
-
-	revertRes, err := messages.InstallPerform.TestCall(rc, butlerd.InstallPerformParams{
-		ID:            queueRes.ID,
-		StagingFolder: queueRes.StagingFolder,
-	})
-	must(err)
-
-	bi.DumpJSON("Revert events", revertRes.Events)
 
 	{
 		ev := bi.FindEvent(revertRes.Events, butlerd.InstallEventHeal)
@@ -134,4 +87,9 @@ func Test_ChangeCase(t *testing.T) {
 			assert.NotZero(ev.Heal.TotalCorrupted)
 		}
 	}
+
+	bi.InstallAndVerify(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
+	})
 }
