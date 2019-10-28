@@ -3,7 +3,9 @@
 go version
 export PATH="$PATH:$(go env GOPATH)/bin"
 
+set +e
 replaced=$(go list -m -f '{{ .Replace }}' all | grep -v -F "<nil>")
+set -e
 if [[ -n $replaced ]]; then
     echo ""
     echo "======================================================="
