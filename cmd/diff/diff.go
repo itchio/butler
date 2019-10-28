@@ -20,30 +20,17 @@ import (
 
 	"github.com/itchio/lake"
 	"github.com/itchio/lake/pools"
+	"github.com/itchio/lake/pools/fspool"
 	"github.com/itchio/lake/pools/nullpool"
 	"github.com/itchio/lake/tlc"
 
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/pwr/bowl"
+	"github.com/itchio/wharf/pwr/patcher"
 	"github.com/itchio/wharf/wire"
 
 	"github.com/pkg/errors"
 )
-
-var args = struct {
-	old    *string
-	new    *string
-	patch  *string
-	verify *bool
-}{}
-
-func Register(ctx *mansion.Context) {
-	cmd := ctx.App.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
-	args.old = cmd.Arg("old", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().String()
-	args.new = cmd.Arg("new", "Directory or .zip archive (slower) with newer files").Required().String()
-	args.patch = cmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").String()
-	args.verify = cmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").Bool()
-	ctx.Register(cmd, do)
-}
 
 type Params struct {
 	// Target is the old version of the data
@@ -57,17 +44,23 @@ type Params struct {
 	Verify bool
 }
 
-func do(ctx *mansion.Context) {
-	ctx.Must(Do(&Params{
-		Target:      *args.old,
-		Source:      *args.new,
-		Patch:       *args.patch,
-		Compression: ctx.CompressionSettings(),
-		Verify:      *args.verify,
-	}))
+var params Params
+
+func Register(ctx *mansion.Context) {
+	cmd := ctx.App.Command("diff", "(Advanced) Compute the difference between two directories or .zip archives. Stores the patch in `patch.pwr`, and a signature in `patch.pwr.sig` for integrity checks and further diff.")
+	cmd.Arg("target", "Directory or .zip archive (slower) with older files, or signature file generated from old directory.").Required().StringVar(&params.Target)
+	cmd.Arg("source", "Directory or .zip archive (slower) with newer files").Required().StringVar(&params.Source)
+	cmd.Arg("patch", "Path to write the patch file (recommended extension is `.pwr`) The signature file will be written to the same path, with .sig added to the end.").Default("patch.pwr").StringVar(&params.Patch)
+	cmd.Flag("verify", "Make sure generated patch applies cleanly by applying it (slower)").BoolVar(&params.Verify)
+	ctx.Register(cmd, do)
 }
 
-func Do(params *Params) error {
+func do(ctx *mansion.Context) {
+	params.Compression = ctx.CompressionSettings()
+	ctx.Must(Do(params))
+}
+
+func Do(params Params) error {
 	var err error
 
 	startTime := time.Now()
@@ -121,6 +114,10 @@ func Do(params *Params) error {
 		if errors.Cause(err) == wire.ErrFormat || errors.Cause(err) == io.EOF {
 			// must be a container then
 			targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
+			if err != nil {
+				return err
+			}
+
 			// Container (dir, archive, etc.)
 			comm.Opf("Hashing %s", params.Target)
 
@@ -232,32 +229,38 @@ func Do(params *Params) error {
 			return errors.Wrap(err, "decoding fresh signature file")
 		}
 
-		actx := &pwr.ApplyContext{
+		pat, err := patcher.New(seeksource.FromFile(patchWriter), comm.NewStateConsumer())
+		if err != nil {
+			return err
+		}
+
+		targetPool := fspool.New(targetSignature.Container, params.Target)
+
+		bwl, err := bowl.NewPoolBowl(bowl.PoolBowlParams{
+			TargetContainer: pat.GetTargetContainer(),
+			SourceContainer: pat.GetSourceContainer(),
+
+			TargetPool: targetPool,
 			OutputPool: &pwr.ValidatingPool{
 				Pool:      nullpool.New(sourceContainer),
 				Container: sourceContainer,
 				Signature: signature,
 			},
-			TargetPath:      params.Target,
-			TargetContainer: targetSignature.Container,
-
-			SourceContainer: sourceContainer,
-
-			Consumer: comm.NewStateConsumer(),
-		}
-
-		patchSource := seeksource.FromFile(patchWriter)
-
-		_, err = patchSource.Resume(nil)
+		})
 		if err != nil {
-			return errors.Wrap(err, "creating source for patch")
+			return err
 		}
 
 		comm.StartProgress()
-		err = actx.ApplyPatch(patchSource)
+		err = pat.Resume(nil, targetPool, bwl)
 		comm.EndProgress()
 		if err != nil {
 			return errors.Wrap(err, "applying patch")
+		}
+
+		err = bwl.Commit()
+		if err != nil {
+			return errors.Wrap(err, "committing bowl")
 		}
 
 		comm.Statf("Patch applies cleanly!")

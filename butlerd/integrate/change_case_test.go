@@ -88,6 +88,7 @@ func Test_ChangeCase(t *testing.T) {
 		}
 	}
 
+	bi.Logf("Making sure revert actually went fine")
 	bi.InstallAndVerify(butlerd.InstallQueueParams{
 		Game:   game,
 		CaveID: installRes.CaveID,

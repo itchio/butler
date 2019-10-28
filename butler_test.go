@@ -23,16 +23,9 @@ import (
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/wharf/pwr"
+	"github.com/itchio/wharf/wtest"
 	"github.com/stretchr/testify/assert"
 )
-
-// reverse must
-func mist(t *testing.T, err error) {
-	if err != nil {
-		assert.NoError(t, err)
-		t.FailNow()
-	}
-}
 
 func octal(perm os.FileMode) string {
 	return strconv.FormatInt(int64(perm), 8)
@@ -41,7 +34,7 @@ func octal(perm os.FileMode) string {
 func permFor(t *testing.T, path string) os.FileMode {
 	t.Logf("Getting perm of %s", path)
 	stat, err := os.Lstat(path)
-	mist(t, err)
+	wtest.Must(t, err)
 	return stat.Mode()
 }
 
@@ -51,21 +44,21 @@ func putfile(t *testing.T, basePath string, i int, data []byte) {
 
 func putfileEx(t *testing.T, basePath string, i int, data []byte, perm os.FileMode) {
 	samplePath := path.Join(basePath, fmt.Sprintf("dummy%d.dat", i))
-	mist(t, ioutil.WriteFile(samplePath, data, perm))
+	wtest.Must(t, ioutil.WriteFile(samplePath, data, perm))
 }
 
 func TestAllTheThings(t *testing.T) {
 	perm := os.FileMode(0o777)
 	workingDir, err := ioutil.TempDir("", "butler-tests")
-	mist(t, err)
+	wtest.Must(t, err)
 	defer os.RemoveAll(workingDir)
 
 	sample := path.Join(workingDir, "sample")
-	mist(t, os.MkdirAll(sample, perm))
-	mist(t, ioutil.WriteFile(path.Join(sample, "hello.txt"), []byte("hello!"), perm))
+	wtest.Must(t, os.MkdirAll(sample, perm))
+	wtest.Must(t, ioutil.WriteFile(path.Join(sample, "hello.txt"), []byte("hello!"), perm))
 
 	sample2 := path.Join(workingDir, "sample2")
-	mist(t, os.MkdirAll(sample2, perm))
+	wtest.Must(t, os.MkdirAll(sample2, perm))
 	for i := 0; i < 5; i++ {
 		if i == 3 {
 			// e.g. .gitkeep
@@ -76,19 +69,19 @@ func TestAllTheThings(t *testing.T) {
 	}
 
 	sample3 := path.Join(workingDir, "sample3")
-	mist(t, os.MkdirAll(sample3, perm))
+	wtest.Must(t, os.MkdirAll(sample3, perm))
 	for i := 0; i < 60; i++ {
 		putfile(t, sample3, i, bytes.Repeat([]byte{0x42, 0x69}, i*300+1))
 	}
 
 	sample4 := path.Join(workingDir, "sample4")
-	mist(t, os.MkdirAll(sample4, perm))
+	wtest.Must(t, os.MkdirAll(sample4, perm))
 	for i := 0; i < 120; i++ {
 		putfile(t, sample4, i, bytes.Repeat([]byte{0x42, 0x69}, i*150+1))
 	}
 
 	sample5 := path.Join(workingDir, "sample5")
-	mist(t, os.MkdirAll(sample5, perm))
+	wtest.Must(t, os.MkdirAll(sample5, perm))
 	rg := rand.New(rand.NewSource(0x239487))
 
 	for i := 0; i < 25; i++ {
@@ -102,7 +95,7 @@ func TestAllTheThings(t *testing.T) {
 
 		buf := make([]byte, l)
 		_, err := io.CopyN(bytes.NewBuffer(buf), rg, int64(l))
-		mist(t, err)
+		wtest.Must(t, err)
 		putfile(t, sample5, i, buf)
 	}
 
@@ -128,14 +121,14 @@ func TestAllTheThings(t *testing.T) {
 
 		for lhs := range files {
 			for rhs := range files {
-				mist(t, diff.Do(&diff.Params{
+				wtest.Must(t, diff.Do(diff.Params{
 					Target:      files[lhs],
 					Source:      files[rhs],
 					Patch:       patch,
 					Compression: compression,
 				}))
 				stat, err := os.Lstat(patch)
-				mist(t, err)
+				wtest.Must(t, err)
 				t.Logf("%10s -> %10s = %s", lhs, rhs, united.FormatBytes(stat.Size()))
 			}
 		}
@@ -150,25 +143,25 @@ func TestAllTheThings(t *testing.T) {
 		t.Logf("Signing %s\n", filepath)
 
 		sigPath := path.Join(workingDir, "signature.pwr.sig")
-		mist(t, sign.Do(filepath, sigPath, compression, false))
+		wtest.Must(t, sign.Do(filepath, sigPath, compression, false))
 
 		sigReader, err := eos.Open(sigPath)
-		mist(t, err)
+		wtest.Must(t, err)
 
 		sigSource := seeksource.FromFile(sigReader)
 		_, err = sigSource.Resume(nil)
-		mist(t, err)
+		wtest.Must(t, err)
 
 		signature, err := pwr.ReadSignature(context.Background(), sigSource)
-		mist(t, err)
+		wtest.Must(t, err)
 
-		mist(t, sigReader.Close())
+		wtest.Must(t, sigReader.Close())
 
 		validator := &pwr.ValidatorContext{
 			FailFast: true,
 		}
 
-		mist(t, validator.Validate(context.Background(), filepath, signature))
+		wtest.Must(t, validator.Validate(context.Background(), filepath, signature))
 	}
 
 	// K windows you just sit this one out we'll catch you on the flip side
@@ -179,34 +172,35 @@ func TestAllTheThings(t *testing.T) {
 		eperm := os.FileMode(0o750)
 
 		samplePerm1 := path.Join(workingDir, "samplePerm1")
-		mist(t, os.MkdirAll(samplePerm1, perm))
+		wtest.Must(t, os.MkdirAll(samplePerm1, perm))
 		putfileEx(t, samplePerm1, 1, bytes.Repeat([]byte{0x42, 0x69}, 8192), eperm)
 
 		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm1, "dummy1.dat"))))
 
 		samplePerm2 := path.Join(workingDir, "samplePerm2")
-		mist(t, os.MkdirAll(samplePerm2, perm))
+		wtest.Must(t, os.MkdirAll(samplePerm2, perm))
 		putfileEx(t, samplePerm2, 1, bytes.Repeat([]byte{0x69, 0x42}, 16384), eperm)
 
 		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm2, "dummy1.dat"))))
 
-		mist(t, diff.Do(&diff.Params{
+		wtest.Must(t, diff.Do(diff.Params{
 			Target:      samplePerm1,
 			Source:      samplePerm2,
 			Patch:       patch,
 			Compression: compression,
 		}))
 		_, err := os.Lstat(patch)
-		mist(t, err)
+		wtest.Must(t, err)
 
 		cave := path.Join(workingDir, "cave")
 		ditto.Do(samplePerm1, cave)
 
-		mist(t, apply.Do(&apply.Params{
-			Patch:   patch,
-			Target:  cave,
-			Output:  cave,
-			InPlace: true,
+		staging := path.Join()
+
+		wtest.Must(t, apply.Do(apply.Params{
+			Patch:      patch,
+			Old:        cave,
+			StagingDir: staging,
 		}))
 		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
 	}

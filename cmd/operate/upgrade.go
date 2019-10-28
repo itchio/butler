@@ -128,6 +128,15 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		UUID:        istate.DownloadSessionID,
 	})
 
+	// TODO: use safekeeper
+
+	// parentSignatureURL := client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
+	// 	Credentials: params.Access.Credentials,
+	// 	BuildID:     build.ParentBuildID,
+	// 	Type:        itchio.BuildFileTypeSignature,
+	// 	UUID:        istate.DownloadSessionID,
+	// })
+
 	patchSource, err := filesource.Open(patchURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.Wrap(err, "opening remote patch")
