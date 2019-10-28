@@ -11,25 +11,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-var args = struct {
-	src *string
-	dst *string
-}{}
+type Params struct {
+	Src                 string
+	Dst                 string
+	PreservePermissions bool
+}
+
+var params Params
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("ditto", "Create a mirror (incl. symlinks) of a directory into another dir (rsync -az)").Hidden()
-	args.src = cmd.Arg("src", "Directory to mirror").Required().String()
-	args.dst = cmd.Arg("dst", "Path where to create a mirror").Required().String()
+	cmd.Arg("src", "Directory to mirror").Required().StringVar(&params.Src)
+	cmd.Arg("dst", "Path where to create a mirror").Required().StringVar(&params.Dst)
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.src, *args.dst))
+	ctx.Must(Do(params))
 }
 
 // Does not preserve users, nor permission, except the executable bit
-func Do(src string, dst string) error {
-	comm.Debugf("rsync -a %s %s", src, dst)
+func Do(params Params) error {
+	comm.Debugf("rsync -a %s %s", params.Src, params.Dst)
 
 	totalSize := int64(0)
 	doneSize := int64(0)
@@ -49,7 +52,7 @@ func Do(src string, dst string) error {
 			return nil
 		}
 
-		rel, err := filepath.Rel(src, path)
+		rel, err := filepath.Rel(params.Src, path)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -59,7 +62,7 @@ func Do(src string, dst string) error {
 			Path: rel,
 		})
 
-		dstpath := filepath.Join(dst, rel)
+		dstpath := filepath.Join(params.Dst, rel)
 		mode := f.Mode()
 
 		switch {
@@ -70,7 +73,11 @@ func Do(src string, dst string) error {
 			}
 
 		case mode.IsRegular():
-			err := dittoReg(path, dstpath, os.FileMode(f.Mode()&archiver.LuckyMode|archiver.ModeMask))
+			mode := f.Mode()
+			if !params.PreservePermissions {
+				mode = mode&archiver.LuckyMode | archiver.ModeMask
+			}
+			err := dittoReg(path, dstpath, os.FileMode(mode))
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -95,24 +102,24 @@ func Do(src string, dst string) error {
 		return nil
 	}
 
-	rootinfo, err := os.Lstat(src)
+	rootinfo, err := os.Lstat(params.Src)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	if rootinfo.IsDir() {
 		totalSize = 0
-		comm.Logf("Counting files in %s...", src)
-		filepath.Walk(src, inc)
+		comm.Logf("Counting files in %s...", params.Src)
+		filepath.Walk(params.Src, inc)
 
 		comm.Logf("Mirroring...")
-		err = filepath.Walk(src, onFile)
+		err = filepath.Walk(params.Src, onFile)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 	} else {
 		totalSize = rootinfo.Size()
-		err = onFile(src, rootinfo, nil)
+		err = onFile(params.Src, rootinfo, nil)
 		if err != nil {
 			return errors.WithStack(err)
 		}
