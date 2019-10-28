@@ -203,8 +203,8 @@ github.com/itchio/smaug v0.0.0-20190830114734-99d8c6baba09/go.mod h1:z9gicKFTKzd
 github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673 h1:2bncqho+T6mZkzDHYhYxLU4fmTWfIcU+CN+YUDuqO9k=
 github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673/go.mod h1:Z8GuFb1PZQTracji6TIBFLTw2ZV3u7rOS0S04v63g58=
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9NVHqKFxuBI7oyVnHJss2nexwJFcQeRo4I=
-github.com/itchio/wharf v0.0.0-20191025103409-9bc5b831d042 h1:KU1bcAWviR10ICAlKUKo1GwXDrJ1a0SKfSZmHEZCUgo=
-github.com/itchio/wharf v0.0.0-20191025103409-9bc5b831d042/go.mod h1:yydPHfywGF6RX5PfeB4pC8srmVyRUo6IoNvaTVwdNv4=
+github.com/itchio/wharf v0.0.0-20191028185939-68b178a49dce h1:jFWXNT46nPhOBk8V1Njvvp3Vjv249eMNAkehPimRdRw=
+github.com/itchio/wharf v0.0.0-20191028185939-68b178a49dce/go.mod h1:yydPHfywGF6RX5PfeB4pC8srmVyRUo6IoNvaTVwdNv4=
 github.com/itchio/wizardry v0.0.0-20190702191849-ac1b407f270b/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c h1:gBUbKS6o9ns7UqD2Xs7FQ4d/6LIZuarPd47ykvLA9K0=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=

@@ -193,15 +193,17 @@ func TestAllTheThings(t *testing.T) {
 		wtest.Must(t, err)
 
 		cave := path.Join(workingDir, "cave")
-		ditto.Do(samplePerm1, cave)
+		ditto.Do(ditto.Params{Src: samplePerm1, Dst: cave, PreservePermissions: true})
 
-		staging := path.Join()
+		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
+
+		staging := path.Join(workingDir, "staging")
 
 		wtest.Must(t, apply.Do(apply.Params{
 			Patch:      patch,
 			Old:        cave,
 			StagingDir: staging,
 		}))
-		assert.Equal(t, octal(eperm|pwr.ModeMask), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
+		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(cave, "dummy1.dat"))))
 	}
 }
