@@ -1,21 +1,23 @@
-#!/bin/sh -xe
+#!/bin/sh -e
 
 go version
-
 export PATH="$PATH:$(go env GOPATH)/bin"
 
-grep "replace" go.mod
-if [[ $? == 0 ]]; then
-    set +x
+replaced=$(go list -m -f '{{ .Replace }}' all | grep -v -F "<nil>")
+if [[ -n $replaced ]]; then
+    echo ""
     echo "======================================================="
-    echo "=                      NOPE                           ="
+    echo "=           Error: precondition failed                ="
     echo "======================================================="
-    echo "= go.mod: should not have any replace directives      ="
-    echo "=                                                     ="
-    echo "= signed: your friendly neighborhood automated check  ="
+    echo "go.mod: found replace directives:"
+    echo "$replaced"
     echo "======================================================="
+    echo ""
+    echo "Refusing to even run tests, bye"
     exit 1
 fi
+
+set -x
 
 go test -v -race -cover -coverprofile=coverage.txt ./...
 
