@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/installer/bfs"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/savior"
 
 	"github.com/itchio/headway/united"
 
@@ -22,6 +23,7 @@ import (
 
 	"github.com/itchio/lake/pools/fspool"
 
+	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/pwr/bowl"
 	"github.com/itchio/wharf/pwr/patcher"
 
@@ -128,14 +130,12 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		UUID:        istate.DownloadSessionID,
 	})
 
-	// TODO: use safekeeper
-
-	// parentSignatureURL := client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
-	// 	Credentials: params.Access.Credentials,
-	// 	BuildID:     build.ParentBuildID,
-	// 	Type:        itchio.BuildFileTypeSignature,
-	// 	UUID:        istate.DownloadSessionID,
-	// })
+	parentSignatureURL := client.MakeBuildDownloadURL(itchio.MakeBuildDownloadURLParams{
+		Credentials: params.Access.Credentials,
+		BuildID:     build.ParentBuildID,
+		Type:        itchio.BuildFileTypeSignature,
+		UUID:        istate.DownloadSessionID,
+	})
 
 	patchSource, err := filesource.Open(patchURL, option.WithConsumer(consumer))
 	if err != nil {
@@ -195,7 +195,16 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		},
 	})
 
-	targetPool := fspool.New(p.GetTargetContainer(), params.InstallFolder)
+	consumer.Debugf("Using safekeeper to selectively validate existing files")
+	targetPool, err := pwr.NewSafeKeeper(pwr.SafeKeeperParams{
+		Inner: fspool.New(p.GetTargetContainer(), params.InstallFolder),
+		Open: func() (savior.SeekSource, error) {
+			return filesource.Open(parentSignatureURL, option.WithConsumer(consumer))
+		},
+	})
+	if err != nil {
+		return errors.WithMessage(err, "while creating safekeeper for patch")
+	}
 
 	stageFolder := filepath.Join(params.StagingFolder, "patch-overlay")
 
@@ -250,9 +259,6 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	if err != nil {
 		return errors.WithMessage(err, "while committing patch")
 	}
-
-	// FIXME: this is a lie, see https://github.com/itchio/butler/issues/200
-	consumer.Infof("Patching done, getting signature info...")
 
 	res := resultForContainer(p.GetSourceContainer())
 

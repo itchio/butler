@@ -69,3 +69,5 @@ require (
 )
 
 replace github.com/itchio/wharf => ../wharf
+
+replace github.com/itchio/mitch => ../mitch

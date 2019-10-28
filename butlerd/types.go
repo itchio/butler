@@ -1418,6 +1418,9 @@ type FallbackInstallEvent struct {
 	// Name of the operation we were trying to do
 	Attempted string `json:"attempted"`
 
+	// Problem encountered while trying "attempted"
+	Problem ProblemInstallEvent `json:"problem"`
+
 	// Name of the operation we're falling back to
 	NowTrying string `json:"nowTrying"`
 }

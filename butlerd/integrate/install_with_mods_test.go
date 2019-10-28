@@ -8,9 +8,12 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/mitch"
 	"github.com/itchio/screw"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_InstallWithMods(t *testing.T) {
+	assert := assert.New(t)
+
 	bi := newInstance(t)
 	rc, _, cancel := bi.Unwrap()
 	defer cancel()
@@ -26,7 +29,7 @@ func Test_InstallWithMods(t *testing.T) {
 	_upload.SetAllPlatforms()
 	_upload.ChannelName = "main"
 
-	_upload.PushBuild(func(ac *mitch.ArchiveContext) {
+	_build1 := _upload.PushBuild(func(ac *mitch.ArchiveContext) {
 		ac.SetName("the-game.zip")
 		ac.Entry("game.exe").Random(0x1, 1*1024*1024)
 
@@ -44,8 +47,6 @@ func Test_InstallWithMods(t *testing.T) {
 		Game: game,
 	})
 
-	bi.Logf("Modding some files...")
-
 	caveRes, err := messages.FetchCave.TestCall(rc, butlerd.FetchCaveParams{
 		CaveID: installRes.CaveID,
 	})
@@ -53,6 +54,7 @@ func Test_InstallWithMods(t *testing.T) {
 
 	installFolder := caveRes.Cave.InstallInfo.InstallFolder
 
+	bi.Logf("Modding level1 (changed between builds)")
 	err = screw.WriteFile(filepath.Join(installFolder, "level1"), []byte("haha modded!"), 0644)
 	must(err)
 
@@ -68,15 +70,57 @@ func Test_InstallWithMods(t *testing.T) {
 	})
 	build2 := bi.FetchBuild(_build2.ID)
 
-	bi.Install(butlerd.InstallQueueParams{
+	upgradeRes := bi.Install(butlerd.InstallQueueParams{
 		Game:   game,
 		CaveID: installRes.CaveID,
 
 		Build: build2,
 	})
 
+	{
+		ev := bi.FindEvent(upgradeRes.Events, butlerd.InstallEventFallback)
+		assert.EqualValues(ev.Fallback.Attempted, "upgrade")
+		assert.EqualValues(ev.Fallback.NowTrying, "heal")
+		assert.Contains(ev.Fallback.Problem.Error, "expected weak hash")
+	}
+	{
+		ev := bi.FindEvent(upgradeRes.Events, butlerd.InstallEventHeal)
+		assert.NotZero(ev.Heal.TotalCorrupted)
+	}
+
+	bi.Logf("Making sure build2 is correctly installed")
 	bi.InstallAndVerify(butlerd.InstallQueueParams{
 		Game:   game,
 		CaveID: installRes.CaveID,
 	})
+
+	build1 := bi.FetchBuild(_build1.ID)
+	bi.Logf("Reverting to build1")
+	bi.Install(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
+
+		Build: build1,
+	})
+	bi.InstallAndVerify(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
+	})
+
+	bi.Logf("Modding level2 (NOT changed between builds)")
+	err = screw.WriteFile(filepath.Join(installFolder, "level2"), []byte("modded too lol"), 0644)
+	must(err)
+
+	bi.Logf("Upgrading again to build2")
+	upgradeRes = bi.Install(butlerd.InstallQueueParams{
+		Game:   game,
+		CaveID: installRes.CaveID,
+
+		Build: build2,
+	})
+
+	{
+		assert.Empty(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventFallback))
+		assert.Empty(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventHeal))
+	}
 }

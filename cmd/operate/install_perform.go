@@ -220,12 +220,29 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 				return err
 			}
 
+			upgradeErr := err
+
 			consumer := oc.Consumer()
 			consumer.Warnf("Patching failed: %+v", err)
 
 			consumer.Warnf("Falling back to heal...")
 			istate.UsingHealFallback = true
-			oc.Save(isub)
+			err = oc.Save(isub)
+			if err != nil {
+				return err
+			}
+
+			ies := isub.EventSink(oc)
+			err = ies.PostEvent(butlerd.InstallEvent{
+				Fallback: &butlerd.FallbackInstallEvent{
+					Attempted: "upgrade",
+					NowTrying: "heal",
+					Problem:   ies.MakeProblem(upgradeErr),
+				},
+			})
+			if err != nil {
+				return err
+			}
 			prepareRes.Strategy = InstallPerformStrategyHeal
 		}
 

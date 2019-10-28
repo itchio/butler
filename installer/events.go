@@ -31,19 +31,31 @@ func (ies *InstallEventSink) PostEvent(event butlerd.InstallEvent) error {
 		event.Type = butlerd.InstallEventGhostBusting
 	case event.Patching != nil:
 		event.Type = butlerd.InstallEventPatching
+	case event.Fallback != nil:
+		event.Type = butlerd.InstallEventFallback
+	}
+
+	if event.Type == "" {
+		// wee runtime checks
+		panic("InstallEventSink events shoudl always have Type set")
 	}
 
 	return ies.Append(event)
 }
 
 func (ies *InstallEventSink) PostProblem(err error) error {
+	prob := ies.MakeProblem(err)
 	return ies.PostEvent(butlerd.InstallEvent{
-		Type: butlerd.InstallEventProblem,
-		Problem: &butlerd.ProblemInstallEvent{
-			Error:      fmt.Sprintf("%v", err),
-			ErrorStack: fmt.Sprintf("%+v", err),
-		},
+		Type:    butlerd.InstallEventProblem,
+		Problem: &prob,
 	})
+}
+
+func (ies *InstallEventSink) MakeProblem(err error) butlerd.ProblemInstallEvent {
+	return butlerd.ProblemInstallEvent{
+		Error:      fmt.Sprintf("%v", err),
+		ErrorStack: fmt.Sprintf("%+v", err),
+	}
 }
 
 func (ies *InstallEventSink) PostGhostBusting(operation string, stats bfs.BustGhostStats) error {
