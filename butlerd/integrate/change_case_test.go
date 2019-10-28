@@ -38,6 +38,7 @@ func Test_ChangeCase(t *testing.T) {
 	installRes := bi.Install(butlerd.InstallQueueParams{
 		Game: game,
 	})
+	assert.NotEmpty(installRes.CaveID)
 
 	bi.Logf("Pushing second build...")
 
