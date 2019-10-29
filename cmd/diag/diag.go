@@ -2,6 +2,7 @@ package diag
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"runtime"
@@ -112,7 +113,7 @@ func do(mc *mansion.Context) {
 				}
 
 				if major != 2 || minor > 27 {
-					return errors.Errorf("butler should require GLIBC 2.27 at most, but this binary requires %s", props.GlibcVersion)
+					return fmt.Errorf("butler should require GLIBC 2.27 at most, but this binary requires %s", props.GlibcVersion)
 				}
 				consumer.Infof("Required glibc version: %s", props.GlibcVersion)
 				return nil
