@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/itchio/butler/comm"
@@ -95,8 +97,22 @@ func do(mc *mansion.Context) {
 				if err != nil {
 					return err
 				}
-				if props.GlibcVersion != "2.27" {
-					return errors.Errorf("Expected butler to require GLIBC version 2.27, but it requires %s", props.GlibcVersion)
+
+				tokens := strings.Split(props.GlibcVersion, ".")
+				if len(tokens) != 2 {
+					return errors.Errorf("expected two tokens when splitting %q by '.'", props.GlibcVersion)
+				}
+				major, err := strconv.ParseInt(tokens[0], 10, 64)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				minor, err := strconv.ParseInt(tokens[1], 10, 64)
+				if err != nil {
+					return errors.WithStack(err)
+				}
+
+				if major != 2 || minor > 27 {
+					return errors.Errorf("butler should require GLIBC 2.27 at most, but this binary requires %s", props.GlibcVersion)
 				}
 				consumer.Infof("Required glibc version: %s", props.GlibcVersion)
 				return nil
