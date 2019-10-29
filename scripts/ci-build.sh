@@ -45,6 +45,11 @@ fi
 # compile
 GOOS=$CI_OS GOARCH=$CI_ARCH go build -ldflags "$CI_LDFLAGS" .
 
+# check glibc version (linux)
+if [ "$CI_OS" = "linux" ]; then
+  ./butler diag --no-net --glibc
+fi
+
 # sign (win)
 if [ "$CI_OS" = "windows" ]; then
   WIN_SIGN_KEY="itch corp."

@@ -3,29 +3,44 @@ package diag
 import (
 	"context"
 	"net/http"
+	"os"
+	"runtime"
 	"time"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/elefant"
+	"github.com/itchio/httpkit/eos"
 	"github.com/pkg/errors"
 )
 
+type Params struct {
+	Net   bool
+	Glibc bool
+}
+
+var params Params
+
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("diag", "(Advanced) Run some diagnostics")
+	cmd.Flag("net", "Run network connectivity tests").Default("1").BoolVar(&params.Net)
+	cmd.Flag("glibc", "Run glibc version test").Default("0").BoolVar(&params.Glibc)
 	ctx.Register(cmd, do)
 }
 
 func do(mc *mansion.Context) {
-	comm.Opf("Running diagnostics...")
+	consumer := comm.NewStateConsumer()
+
+	consumer.Opf("Running diagnostics...")
 	ctx := context.Background()
 
 	numProblems := 0
 
 	runTest := func(name string, t func() error) {
-		comm.Opf("Test: %s...", name)
+		consumer.Opf("Test: %s...", name)
 		err := t()
 		if err != nil {
-			comm.Warnf("Failed: %+v", err)
+			consumer.Warnf("Failed: %+v", err)
 			numProblems++
 		}
 	}
@@ -52,14 +67,46 @@ func do(mc *mansion.Context) {
 		}
 	}
 
-	runTest("CDN reachable", httpTest("https://static.itch.io/ping.txt", 200))
-	runTest("Web reachable", httpTest("https://itch.io/static/ping.txt", 200))
-	runTest("API reachable", httpTest("https://api.itch.io/login", 405))
-	runTest("Broth reachable", httpTest("https://broth.itch.ovh", 200))
+	if params.Net {
+		runTest("CDN reachable", httpTest("https://static.itch.io/ping.txt", 200))
+		runTest("Web reachable", httpTest("https://itch.io/static/ping.txt", 200))
+		runTest("API reachable", httpTest("https://api.itch.io/login", 405))
+		runTest("Broth reachable", httpTest("https://broth.itch.ovh", 200))
+	}
+	if params.Glibc {
+		if runtime.GOOS != "linux" {
+			consumer.Infof("Skipping glibc check, not on Linux")
+		} else {
+			runTest("GLIBC version", func() error {
+				exe, err := os.Executable()
+				if err != nil {
+					return err
+				}
+
+				f, err := eos.Open(exe)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+
+				props, err := elefant.Probe(f, &elefant.ProbeParams{
+					Consumer: consumer,
+				})
+				if err != nil {
+					return err
+				}
+				if props.GlibcVersion != "2.27" {
+					return errors.Errorf("Expected butler to require GLIBC version 2.27, but it requires %s", props.GlibcVersion)
+				}
+				consumer.Infof("Required glibc version: %s", props.GlibcVersion)
+				return nil
+			})
+		}
+	}
 
 	if numProblems > 0 {
 		comm.Dief("%d tests failed", numProblems)
 	}
 
-	comm.Statf("Everything went fine!")
+	consumer.Statf("Everything went fine!")
 }
