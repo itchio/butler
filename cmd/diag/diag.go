@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -188,17 +187,7 @@ func do(mc *mansion.Context) {
 			}
 
 			stats := t.Finish()
-			toBPS := func(speed float64) tracker.BPS {
-				if speed == math.MaxFloat64 {
-					speed = 1
-				}
-				return tracker.BPS{Value: speed * float64(stats.ByteAmount().Value)}
-			}
-
-			min := toBPS(stats.MinSpeed())
-			avg := toBPS(stats.AverageSpeed())
-			max := toBPS(stats.MaxSpeed())
-			return fmt.Sprintf("min %v :: avg %v :: max %v", min, avg, max), nil
+			return fmt.Sprintf("%v", stats.AverageBPS()), nil
 		}
 
 		trackDownload := func(contentLength int64, src io.ReadCloser, dst io.Writer) (string, error) {
