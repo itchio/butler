@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -188,6 +189,9 @@ func do(mc *mansion.Context) {
 
 			stats := t.Finish()
 			toBPS := func(speed float64) tracker.BPS {
+				if speed == math.MaxFloat64 {
+					speed = 1
+				}
 				return tracker.BPS{Value: stats.MinSpeed() * float64(stats.ByteAmount().Value)}
 			}
 
