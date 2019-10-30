@@ -382,7 +382,7 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	}
 
 	countBeforeNarrow := len(newerUploads)
-	narrowDownResult, err := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, rc.RuntimeEnumerator())
+	narrowDownResult, err := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, rc.HostEnumerator())
 	if err != nil {
 		return nil, err
 	}

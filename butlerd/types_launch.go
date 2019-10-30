@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/endpoints/launch/manifest"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
-	"github.com/itchio/ox"
 )
 
 type LaunchTarget struct {
@@ -14,8 +14,8 @@ type LaunchTarget struct {
 	// For implicit launch targets, a minimal one will be generated.
 	Action *manifest.Action `json:"action"`
 
-	// Platform this launch target was found for
-	Platform ox.Platform `json:"platform"`
+	// Host this launch target was found for
+	Host manager.Host `json:"host"`
 
 	// Detailed launch strategy
 	Strategy *StrategyResult `json:"strategy"`

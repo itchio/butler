@@ -16,7 +16,7 @@ func (bc *generousContext) generateDocs() error {
 	scope := newScope(bc)
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types_launch.go"))
-	must(scope.assimilate("github.com/itchio/butler/manager", "types_runtime.go"))
+	must(scope.assimilate("github.com/itchio/butler/manager", "types_host.go"))
 	must(scope.assimilate("github.com/itchio/butler/endpoints/launch/manifest", "manifest.go"))
 	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
 	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))

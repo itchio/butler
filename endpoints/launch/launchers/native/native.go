@@ -42,15 +42,19 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	consumer := params.RequestContext.Consumer
 	installFolder := params.InstallFolder
 
-	cwd := installFolder
-	_, err := filepath.Rel(installFolder, params.FullTargetPath)
-	if err == nil {
-		// if it's relative, set the cwd to the folder the
-		// target is in
-		cwd = filepath.Dir(params.FullTargetPath)
+	cwd := params.WorkingDirectory
+	if cwd == "" {
+		_, err := filepath.Rel(installFolder, params.FullTargetPath)
+		if err == nil {
+			// if it's relative, set the cwd to the folder the
+			// target is in
+			cwd = filepath.Dir(params.FullTargetPath)
+		} else {
+			cwd = params.InstallFolder
+		}
 	}
 
-	_, err = os.Stat(params.FullTargetPath)
+	_, err := os.Stat(params.FullTargetPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -209,7 +213,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		exitCode, err := interpretRunError(run.Run())
 		messages.LaunchExited.Notify(params.RequestContext, butlerd.LaunchExitedNotification{})
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 
 		runDuration := time.Since(startTime)
@@ -262,7 +266,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 			consumer.Errorf("=================================")
 		}
 		consumer.Errorf("Relaying launch failure.")
-		return errors.WithStack(err)
+		return err
 	}
 
 	return nil

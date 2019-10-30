@@ -69,7 +69,7 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 
 	if params.OnlyCompatible {
 		game := LazyFetchGame(rc, params.GameID)
-		narrowRes, err := manager.NarrowDownUploads(rc.Consumer, game, uploads, rc.RuntimeEnumerator())
+		narrowRes, err := manager.NarrowDownUploads(rc.Consumer, game, uploads, rc.HostEnumerator())
 		if err != nil {
 			return nil, err
 		}

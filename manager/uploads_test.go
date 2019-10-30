@@ -29,7 +29,7 @@ func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 	}
 
 	ndu := func(uploads []*itchio.Upload, runtime ox.Runtime) *manager.NarrowDownUploadsResult {
-		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleRuntimeEnumerator(runtime))
+		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleHostEnumerator(runtime))
 		wtest.Must(t, err)
 		return res
 	}
@@ -68,7 +68,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 	}
 
 	ndu := func(uploads []*itchio.Upload, runtime ox.Runtime) *manager.NarrowDownUploadsResult {
-		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleRuntimeEnumerator(runtime))
+		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleHostEnumerator(runtime))
 		wtest.Must(t, err)
 		return res
 	}

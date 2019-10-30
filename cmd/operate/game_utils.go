@@ -49,7 +49,7 @@ func GetFilteredUploads(rc *butlerd.RequestContext, game *itchio.Game) (*manager
 	if numInputs == 0 {
 		consumer.Infof("No uploads found at all (that we can access)")
 	}
-	uploadsFilterResult, err := manager.NarrowDownUploads(consumer, game, uploads.Uploads, rc.RuntimeEnumerator())
+	uploadsFilterResult, err := manager.NarrowDownUploads(consumer, game, uploads.Uploads, rc.HostEnumerator())
 	if err != nil {
 		return nil, err
 	}

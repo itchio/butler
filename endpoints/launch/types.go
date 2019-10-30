@@ -21,6 +21,8 @@ type LauncherParams struct {
 	RequestContext *butlerd.RequestContext
 	Ctx            context.Context
 
+	WorkingDirectory string
+
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
 

@@ -1,14 +1,12 @@
 package manager
 
 import (
-	"fmt"
-
 	"github.com/itchio/ox"
 )
 
-// Runtimes
+// Hosts
 
-type SupportedRuntime struct {
+type Host struct {
 	// os + arch, e.g. windows-i386, linux-amd64
 	Runtime ox.Runtime `json:"runtime"`
 
@@ -16,18 +14,6 @@ type SupportedRuntime struct {
 	Wrapper *Wrapper `json:"wrapper,omitempty"`
 
 	RemoteLaunchName string `json:"remoteLaunchName,omitempty"`
-}
-
-func (sr SupportedRuntime) String() string {
-	res := sr.Runtime.String()
-	if sr.RemoteLaunchName != "" {
-		res += fmt.Sprintf(" (remoteLaunchName=%s)", sr.RemoteLaunchName)
-	} else if sr.Wrapper != nil {
-		res += fmt.Sprintf(" (wrapper=%s)", sr.Wrapper.WrapperBinary)
-	} else {
-		res += " (native)"
-	}
-	return res
 }
 
 type Wrapper struct {
@@ -43,4 +29,17 @@ type Wrapper struct {
 
 	// additional environment variables
 	Env map[string]string `json:"env"`
+
+	// When this is true, the wrapper can't function like this:
+	//
+	//   $ wine /path/to/game.exe
+	//
+	// It needs to function like this:
+	//
+	//   $ cd /path/to
+	//   $ wine game.exe
+	//
+	// This is at least true for wine, which cannot find required DLLs
+	// otherwise. This might be true for other wrappers, so it's an option here.
+	NeedRelativeTarget bool `json:"needRelativeTarget"`
 }

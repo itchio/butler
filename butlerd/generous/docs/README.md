@@ -5411,79 +5411,6 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 </p>
 </div>
 
-### Launch.GetTargets (client request)
-
-
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>caveId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The ID of the cave to retrieve the launch targets of</p>
-</td>
-</tr>
-<tr>
-<td><code>nonNativePlatforms</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span>[]</code></td>
-<td><p>A list of platforms that should be included when looking
-for launch targets, even though they&rsquo;re not the current platform.</p>
-</td>
-</tr>
-</table>
-
-
-
-<p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>targets</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#LaunchTarget__TypeHint">LaunchTarget</span>[]</code></td>
-<td><p>All launch targets found</p>
-</td>
-</tr>
-</table>
-
-
-<div id="LaunchGetTargetsParams__TypeHint" class="tip-content">
-<p>Launch.GetTargets (client request) <a href="#/?id=launchgettargets-client-request">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>caveId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>nonNativePlatforms</code></td>
-<td><code class="typename"><span class="type">Platform</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-
-<div id="LaunchGetTargetsResult__TypeHint" class="tip-content">
-<p>LaunchGetTargets  <a href="#/?id=launchgettargets-">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>targets</code></td>
-<td><code class="typename"><span class="type">LaunchTarget</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
 ### AcceptLicense (client caller)
 
 
@@ -8837,9 +8764,9 @@ For implicit launch targets, a minimal one will be generated.</p>
 </td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
-<td><p>Platform this launch target was found for</p>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Host__TypeHint">Host</span></code></td>
+<td><p>Runtime this launch target was found for</p>
 </td>
 </tr>
 <tr>
@@ -8861,8 +8788,8 @@ For implicit launch targets, a minimal one will be generated.</p>
 <td><code class="typename"><span class="type">Action</span></code></td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type">Platform</span></code></td>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type">Host</span></code></td>
 </tr>
 <tr>
 <td><code>strategy</code></td>
@@ -8929,7 +8856,7 @@ For implicit launch targets, a minimal one will be generated.</p>
 
 </div>
 
-### SupportedRuntime (struct)
+### Host (struct)
 
 
 
@@ -8959,8 +8886,8 @@ For implicit launch targets, a minimal one will be generated.</p>
 </table>
 
 
-<div id="SupportedRuntime__TypeHint" class="tip-content">
-<p>SupportedRuntime (struct) <a href="#/?id=supportedruntime-struct">(Go to definition)</a></p>
+<div id="Host__TypeHint" class="tip-content">
+<p>Host (struct) <a href="#/?id=host-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">

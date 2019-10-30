@@ -1675,34 +1675,6 @@
       }
     },
     {
-      "method": "Launch.GetTargets",
-      "doc": "",
-      "caller": "client",
-      "params": {
-        "fields": [
-          {
-            "name": "caveId",
-            "doc": "The ID of the cave to retrieve the launch targets of",
-            "type": "string"
-          },
-          {
-            "name": "nonNativePlatforms",
-            "doc": "A list of platforms that should be included when looking\nfor launch targets, even though they're not the current platform.",
-            "type": "Platform[]"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "targets",
-            "doc": "All launch targets found",
-            "type": "LaunchTarget[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "AcceptLicense",
       "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement.",
       "caller": "server",

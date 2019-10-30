@@ -31,7 +31,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
 
-	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.RuntimeEnumerator())
+	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.HostEnumerator())
 	if err != nil {
 		return nil, err
 	}

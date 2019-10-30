@@ -12,7 +12,7 @@ import (
 
 type uploadFilter struct {
 	consumer *state.Consumer
-	runtimes SupportedRuntimes
+	runtimes Hosts
 	game     *itchio.Game
 }
 
@@ -23,7 +23,7 @@ type NarrowDownUploadsResult struct {
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtimeEnum RuntimeEnumerator) (*NarrowDownUploadsResult, error) {
+func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtimeEnum HostEnumerator) (*NarrowDownUploadsResult, error) {
 	runtimes, err := runtimeEnum.Enumerate(consumer)
 	if err != nil {
 		return nil, err

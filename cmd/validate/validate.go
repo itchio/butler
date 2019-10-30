@@ -95,7 +95,9 @@ func Validate(consumer *state.Consumer) error {
 	if *args.arch != "" {
 		runtime.Is64 = (*args.arch == string(dash.ArchAmd64))
 	}
-	consumer.Infof("For runtime %s (use --platform and --arch to simulate others)", runtime)
+	host := manager.Host{Runtime: runtime}
+
+	consumer.Infof("For host %v (use --platform and --arch to simulate others)", host)
 	consumer.Infof("")
 
 	if !hasDir {
@@ -123,7 +125,7 @@ func Validate(consumer *state.Consumer) error {
 			for i, candidate := range verdict.Candidates {
 				consumer.Infof("")
 				consumer.Infof("  → Implicit launch target %d", i+1)
-				target, err := launch.CandidateToLaunchTarget(nil, dir, runtime.Platform, candidate)
+				target, err := launch.CandidateToLaunchTarget(nil, dir, host, candidate)
 				if err != nil {
 					showError(err.Error())
 				} else {
@@ -240,7 +242,7 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("    Passes arguments: %s", strings.Join(action.Args, " ::: "))
 			}
 			if hasDir {
-				target, err := launch.ActionToLaunchTarget(consumer, runtime.Platform, dir, action)
+				target, err := launch.ActionToLaunchTarget(consumer, host, dir, action)
 				if err != nil {
 					showError(err.Error())
 				} else {
