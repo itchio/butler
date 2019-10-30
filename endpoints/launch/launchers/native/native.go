@@ -182,6 +182,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		Stdout: stdout,
 		Stderr: stderr,
 
+		TempDir:       tempDir,
 		InstallFolder: params.InstallFolder,
 		Runtime:       params.Runtime,
 
