@@ -1,11 +1,19 @@
 package manager
 
 import (
+	"log"
+
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
 
-func IsCompatible(p itchio.Platforms, rt *ox.Runtime) bool {
+func IsCompatible(p itchio.Platforms, rt ox.Runtime) bool {
+	res := isCompatible(p, rt)
+	log.Printf("IsCompatible(%+v, %v) = %v", p, rt, res)
+	return res
+}
+
+func isCompatible(p itchio.Platforms, rt ox.Runtime) bool {
 	switch rt.Platform {
 	case ox.PlatformLinux:
 		return p.Linux != ""
@@ -20,7 +28,9 @@ func IsCompatible(p itchio.Platforms, rt *ox.Runtime) bool {
 
 // ExclusivityScore returns a higher value the closest an
 // upload is to being *only for this platform*
-func ExclusivityScore(p itchio.Platforms, rt *ox.Runtime) int64 {
+func ExclusivityScore(p itchio.Platforms) int64 {
+	rt := ox.CurrentRuntime()
+
 	var score int64 = 400
 
 	switch rt.Platform {

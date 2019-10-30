@@ -184,9 +184,9 @@ See <https://github.com/itchio/itch/issues/1721>
 # Messages
 
 
-## Utilities
+## Utilities Category
 
-### <em class="request-client-caller"></em>Meta.Authenticate
+### Meta.Authenticate (client request)
 
 
 <p>
@@ -223,8 +223,8 @@ See <https://github.com/itchio/itch/issues/1721>
 </table>
 
 
-<div id="MetaAuthenticateParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Meta.Authenticate <a href="#/?id=metaauthenticate">(Go to definition)</a></p>
+<div id="MetaAuthenticateParams__TypeHint" class="tip-content">
+<p>Meta.Authenticate (client request) <a href="#/?id=metaauthenticate-client-request">(Go to definition)</a></p>
 
 <p>
 <p>When using TCP transport, must be the first message sent</p>
@@ -241,8 +241,8 @@ See <https://github.com/itchio/itch/issues/1721>
 </div>
 
 
-<div id="MetaAuthenticateResult__TypeHint" style="display: none;" class="tip-content">
-<p>MetaAuthenticate <a href="#/?id=metaauthenticate">(Go to definition)</a></p>
+<div id="MetaAuthenticateResult__TypeHint" class="tip-content">
+<p>MetaAuthenticate  <a href="#/?id=metaauthenticate-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -254,7 +254,7 @@ See <https://github.com/itchio/itch/issues/1721>
 
 </div>
 
-### <em class="request-client-caller"></em>Meta.Flow
+### Meta.Flow (client request)
 
 
 <p>
@@ -283,8 +283,8 @@ done with the daemon.</p>
 </p>
 
 
-<div id="MetaFlowParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Meta.Flow <a href="#/?id=metaflow">(Go to definition)</a></p>
+<div id="MetaFlowParams__TypeHint" class="tip-content">
+<p>Meta.Flow (client request) <a href="#/?id=metaflow-client-request">(Go to definition)</a></p>
 
 <p>
 <p>When called, defines the entire duration of the daemon&rsquo;s life.</p>
@@ -303,12 +303,12 @@ done with the daemon.</p>
 </div>
 
 
-<div id="MetaFlowResult__TypeHint" style="display: none;" class="tip-content">
-<p>MetaFlow <a href="#/?id=metaflow">(Go to definition)</a></p>
+<div id="MetaFlowResult__TypeHint" class="tip-content">
+<p>MetaFlow  <a href="#/?id=metaflow-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Meta.Shutdown
+### Meta.Shutdown (client request)
 
 
 <p>
@@ -327,8 +327,8 @@ done with the daemon.</p>
 </p>
 
 
-<div id="MetaShutdownParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Meta.Shutdown <a href="#/?id=metashutdown">(Go to definition)</a></p>
+<div id="MetaShutdownParams__TypeHint" class="tip-content">
+<p>Meta.Shutdown (client request) <a href="#/?id=metashutdown-client-request">(Go to definition)</a></p>
 
 <p>
 <p>When called, gracefully shutdown the butler daemon.</p>
@@ -337,16 +337,16 @@ done with the daemon.</p>
 </div>
 
 
-<div id="MetaShutdownResult__TypeHint" style="display: none;" class="tip-content">
-<p>MetaShutdown <a href="#/?id=metashutdown">(Go to definition)</a></p>
+<div id="MetaShutdownResult__TypeHint" class="tip-content">
+<p>MetaShutdown  <a href="#/?id=metashutdown-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="notification"></em>MetaFlowEstablished
+### MetaFlowEstablished (notification)
 
 
 <p>
-<p>The first notification sent when <code class="typename"><span class="type request-client-caller" data-tip-selector="#MetaFlowParams__TypeHint">Meta.Flow</span></code> is called.</p>
+<p>The first notification sent when <code class="typename"><span class="type" data-tip-selector="#MetaFlowParams__TypeHint">Meta.Flow</span></code> is called.</p>
 
 </p>
 
@@ -365,11 +365,11 @@ done with the daemon.</p>
 </table>
 
 
-<div id="MetaFlowEstablishedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>MetaFlowEstablished <a href="#/?id=metaflowestablished">(Go to definition)</a></p>
+<div id="MetaFlowEstablishedNotification__TypeHint" class="tip-content">
+<p>MetaFlowEstablished (notification) <a href="#/?id=metaflowestablished-notification">(Go to definition)</a></p>
 
 <p>
-<p>The first notification sent when <code class="typename"><span class="type request-client-caller">Meta.Flow</span></code> is called.</p>
+<p>The first notification sent when <code class="typename"><span class="type">Meta.Flow</span></code> is called.</p>
 
 </p>
 
@@ -382,7 +382,7 @@ done with the daemon.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Version.Get
+### Version.Get (client request)
 
 
 <p>
@@ -422,8 +422,8 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </table>
 
 
-<div id="VersionGetParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Version.Get <a href="#/?id=versionget">(Go to definition)</a></p>
+<div id="VersionGetParams__TypeHint" class="tip-content">
+<p>Version.Get (client request) <a href="#/?id=versionget-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Retrieves the version of the butler instance the client
@@ -437,8 +437,8 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 </div>
 
 
-<div id="VersionGetResult__TypeHint" style="display: none;" class="tip-content">
-<p>VersionGet <a href="#/?id=versionget">(Go to definition)</a></p>
+<div id="VersionGetResult__TypeHint" class="tip-content">
+<p>VersionGet  <a href="#/?id=versionget-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -454,7 +454,7 @@ automatically download new versions of butler, see the <strong>Updating</strong>
 
 </div>
 
-### <em class="request-client-caller"></em>Network.SetSimulateOffline
+### Network.SetSimulateOffline (client request)
 
 
 
@@ -480,8 +480,8 @@ as if there were no network connections</p>
 </p>
 
 
-<div id="NetworkSetSimulateOfflineParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Network.SetSimulateOffline <a href="#/?id=networksetsimulateoffline">(Go to definition)</a></p>
+<div id="NetworkSetSimulateOfflineParams__TypeHint" class="tip-content">
+<p>Network.SetSimulateOffline (client request) <a href="#/?id=networksetsimulateoffline-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -494,12 +494,12 @@ as if there were no network connections</p>
 </div>
 
 
-<div id="NetworkSetSimulateOfflineResult__TypeHint" style="display: none;" class="tip-content">
-<p>NetworkSetSimulateOffline <a href="#/?id=networksetsimulateoffline">(Go to definition)</a></p>
+<div id="NetworkSetSimulateOfflineResult__TypeHint" class="tip-content">
+<p>NetworkSetSimulateOffline  <a href="#/?id=networksetsimulateoffline-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Network.SetBandwidthThrottle
+### Network.SetBandwidthThrottle (client request)
 
 
 
@@ -530,8 +530,8 @@ as if there were no network connections</p>
 </p>
 
 
-<div id="NetworkSetBandwidthThrottleParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Network.SetBandwidthThrottle <a href="#/?id=networksetbandwidththrottle">(Go to definition)</a></p>
+<div id="NetworkSetBandwidthThrottleParams__TypeHint" class="tip-content">
+<p>Network.SetBandwidthThrottle (client request) <a href="#/?id=networksetbandwidththrottle-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -548,15 +548,15 @@ as if there were no network connections</p>
 </div>
 
 
-<div id="NetworkSetBandwidthThrottleResult__TypeHint" style="display: none;" class="tip-content">
-<p>NetworkSetBandwidthThrottle <a href="#/?id=networksetbandwidththrottle">(Go to definition)</a></p>
+<div id="NetworkSetBandwidthThrottleResult__TypeHint" class="tip-content">
+<p>NetworkSetBandwidthThrottle  <a href="#/?id=networksetbandwidththrottle-">(Go to definition)</a></p>
 
 </div>
 
 
-## Profile
+## Profile Category
 
-### <em class="request-client-caller"></em>Profile.List
+### Profile.List (client request)
 
 
 <p>
@@ -578,15 +578,15 @@ as if there were no network connections</p>
 <table class="field-table">
 <tr>
 <td><code>profiles</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span>[]</code></td>
 <td><p>A list of remembered profiles</p>
 </td>
 </tr>
 </table>
 
 
-<div id="ProfileListParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.List <a href="#/?id=profilelist">(Go to definition)</a></p>
+<div id="ProfileListParams__TypeHint" class="tip-content">
+<p>Profile.List (client request) <a href="#/?id=profilelist-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Lists remembered profiles</p>
@@ -595,20 +595,20 @@ as if there were no network connections</p>
 </div>
 
 
-<div id="ProfileListResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileList <a href="#/?id=profilelist">(Go to definition)</a></p>
+<div id="ProfileListResult__TypeHint" class="tip-content">
+<p>ProfileList  <a href="#/?id=profilelist-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>profiles</code></td>
-<td><code class="typename"><span class="type struct-type">Profile</span>[]</code></td>
+<td><code class="typename"><span class="type">Profile</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.LoginWithPassword
+### Profile.LoginWithPassword (client request)
 
 
 <p>
@@ -646,7 +646,7 @@ as if there were no network connections</p>
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
 <td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
@@ -659,8 +659,8 @@ as if there were no network connections</p>
 </table>
 
 
-<div id="ProfileLoginWithPasswordParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.LoginWithPassword <a href="#/?id=profileloginwithpassword">(Go to definition)</a></p>
+<div id="ProfileLoginWithPasswordParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithPassword (client request) <a href="#/?id=profileloginwithpassword-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Add a new profile by password login</p>
@@ -681,14 +681,14 @@ as if there were no network connections</p>
 </div>
 
 
-<div id="ProfileLoginWithPasswordResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileLoginWithPassword <a href="#/?id=profileloginwithpassword">(Go to definition)</a></p>
+<div id="ProfileLoginWithPasswordResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithPassword  <a href="#/?id=profileloginwithpassword-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
+<td><code class="typename"><span class="type">Profile</span></code></td>
 </tr>
 <tr>
 <td><code>cookie</code></td>
@@ -698,7 +698,7 @@ as if there were no network connections</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.LoginWithAPIKey
+### Profile.LoginWithAPIKey (client request)
 
 
 <p>
@@ -732,15 +732,15 @@ are returned for this kind of login.</p>
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
 <td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
 </table>
 
 
-<div id="ProfileLoginWithAPIKeyParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.LoginWithAPIKey <a href="#/?id=profileloginwithapikey">(Go to definition)</a></p>
+<div id="ProfileLoginWithAPIKeyParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithAPIKey (client request) <a href="#/?id=profileloginwithapikey-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Add a new profile by API key login. This can be used
@@ -759,25 +759,25 @@ are returned for this kind of login.</p>
 </div>
 
 
-<div id="ProfileLoginWithAPIKeyResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileLoginWithAPIKey <a href="#/?id=profileloginwithapikey">(Go to definition)</a></p>
+<div id="ProfileLoginWithAPIKeyResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithAPIKey  <a href="#/?id=profileloginwithapikey-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
+<td><code class="typename"><span class="type">Profile</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-server-caller"></em>Profile.RequestCaptcha
+### Profile.RequestCaptcha (client caller)
 
 
 <p>
 <p>Ask the user to solve a captcha challenge
-Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if certain
+Sent during <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if certain
 conditions are met.</p>
 
 </p>
@@ -813,12 +813,12 @@ conditions are met.</p>
 </table>
 
 
-<div id="ProfileRequestCaptchaParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Profile.RequestCaptcha <a href="#/?id=profilerequestcaptcha">(Go to definition)</a></p>
+<div id="ProfileRequestCaptchaParams__TypeHint" class="tip-content">
+<p>Profile.RequestCaptcha (client caller) <a href="#/?id=profilerequestcaptcha-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the user to solve a captcha challenge
-Sent during <code class="typename"><span class="type request-client-caller">Profile.LoginWithPassword</span></code> if certain
+Sent during <code class="typename"><span class="type">Profile.LoginWithPassword</span></code> if certain
 conditions are met.</p>
 
 </p>
@@ -833,8 +833,8 @@ conditions are met.</p>
 </div>
 
 
-<div id="ProfileRequestCaptchaResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileRequestCaptcha <a href="#/?id=profilerequestcaptcha">(Go to definition)</a></p>
+<div id="ProfileRequestCaptchaResult__TypeHint" class="tip-content">
+<p>ProfileRequestCaptcha  <a href="#/?id=profilerequestcaptcha-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -846,12 +846,12 @@ conditions are met.</p>
 
 </div>
 
-### <em class="request-server-caller"></em>Profile.RequestTOTP
+### Profile.RequestTOTP (client caller)
 
 
 <p>
 <p>Ask the user to provide a TOTP token.
-Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if the user has
+Sent during <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithPasswordParams__TypeHint">Profile.LoginWithPassword</span></code> if the user has
 two-factor authentication enabled.</p>
 
 </p>
@@ -877,20 +877,20 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="ProfileRequestTOTPParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Profile.RequestTOTP <a href="#/?id=profilerequesttotp">(Go to definition)</a></p>
+<div id="ProfileRequestTOTPParams__TypeHint" class="tip-content">
+<p>Profile.RequestTOTP (client caller) <a href="#/?id=profilerequesttotp-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the user to provide a TOTP token.
-Sent during <code class="typename"><span class="type request-client-caller">Profile.LoginWithPassword</span></code> if the user has
+Sent during <code class="typename"><span class="type">Profile.LoginWithPassword</span></code> if the user has
 two-factor authentication enabled.</p>
 
 </p>
 </div>
 
 
-<div id="ProfileRequestTOTPResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileRequestTOTP <a href="#/?id=profilerequesttotp">(Go to definition)</a></p>
+<div id="ProfileRequestTOTPResult__TypeHint" class="tip-content">
+<p>ProfileRequestTOTP  <a href="#/?id=profilerequesttotp-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -902,7 +902,7 @@ two-factor authentication enabled.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.UseSavedLogin
+### Profile.UseSavedLogin (client request)
 
 
 <p>
@@ -933,15 +933,15 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
 <td><p>Information for the now validated profile</p>
 </td>
 </tr>
 </table>
 
 
-<div id="ProfileUseSavedLoginParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.UseSavedLogin <a href="#/?id=profileusesavedlogin">(Go to definition)</a></p>
+<div id="ProfileUseSavedLoginParams__TypeHint" class="tip-content">
+<p>Profile.UseSavedLogin (client request) <a href="#/?id=profileusesavedlogin-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Use saved login credentials to validate a profile.</p>
@@ -958,25 +958,25 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="ProfileUseSavedLoginResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileUseSavedLogin <a href="#/?id=profileusesavedlogin">(Go to definition)</a></p>
+<div id="ProfileUseSavedLoginResult__TypeHint" class="tip-content">
+<p>ProfileUseSavedLogin  <a href="#/?id=profileusesavedlogin-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>profile</code></td>
-<td><code class="typename"><span class="type struct-type">Profile</span></code></td>
+<td><code class="typename"><span class="type">Profile</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.Forget
+### Profile.Forget (client request)
 
 
 <p>
 <p>Forgets a remembered profile - it won&rsquo;t appear in the
-<code class="typename"><span class="type request-client-caller" data-tip-selector="#ProfileListParams__TypeHint">Profile.List</span></code> results anymore.</p>
+<code class="typename"><span class="type" data-tip-selector="#ProfileListParams__TypeHint">Profile.List</span></code> results anymore.</p>
 
 </p>
 
@@ -1010,12 +1010,12 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="ProfileForgetParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.Forget <a href="#/?id=profileforget">(Go to definition)</a></p>
+<div id="ProfileForgetParams__TypeHint" class="tip-content">
+<p>Profile.Forget (client request) <a href="#/?id=profileforget-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Forgets a remembered profile - it won&rsquo;t appear in the
-<code class="typename"><span class="type request-client-caller">Profile.List</span></code> results anymore.</p>
+<code class="typename"><span class="type">Profile.List</span></code> results anymore.</p>
 
 </p>
 
@@ -1029,8 +1029,8 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="ProfileForgetResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileForget <a href="#/?id=profileforget">(Go to definition)</a></p>
+<div id="ProfileForgetResult__TypeHint" class="tip-content">
+<p>ProfileForget  <a href="#/?id=profileforget-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -1042,7 +1042,7 @@ two-factor authentication enabled.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.Data.Put
+### Profile.Data.Put (client request)
 
 
 <p>
@@ -1080,8 +1080,8 @@ two-factor authentication enabled.</p>
 </p>
 
 
-<div id="ProfileDataPutParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.Data.Put <a href="#/?id=profiledataput">(Go to definition)</a></p>
+<div id="ProfileDataPutParams__TypeHint" class="tip-content">
+<p>Profile.Data.Put (client request) <a href="#/?id=profiledataput-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Stores some data associated to a profile, by key.</p>
@@ -1106,12 +1106,12 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="ProfileDataPutResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileDataPut <a href="#/?id=profiledataput">(Go to definition)</a></p>
+<div id="ProfileDataPutResult__TypeHint" class="tip-content">
+<p>ProfileDataPut  <a href="#/?id=profiledataput-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Profile.Data.Get
+### Profile.Data.Get (client request)
 
 
 <p>
@@ -1159,8 +1159,8 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="ProfileDataGetParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Profile.Data.Get <a href="#/?id=profiledataget">(Go to definition)</a></p>
+<div id="ProfileDataGetParams__TypeHint" class="tip-content">
+<p>Profile.Data.Get (client request) <a href="#/?id=profiledataget-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Retrieves some data associated to a profile, by key.</p>
@@ -1181,8 +1181,8 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="ProfileDataGetResult__TypeHint" style="display: none;" class="tip-content">
-<p>ProfileDataGet <a href="#/?id=profiledataget">(Go to definition)</a></p>
+<div id="ProfileDataGetResult__TypeHint" class="tip-content">
+<p>ProfileDataGet  <a href="#/?id=profiledataget-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -1199,9 +1199,9 @@ two-factor authentication enabled.</p>
 </div>
 
 
-## Search
+## Search Category
 
-### <em class="request-client-caller"></em>Search.Games
+### Search.Games (client request)
 
 
 <p>
@@ -1237,14 +1237,14 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="SearchGamesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Search.Games <a href="#/?id=searchgames">(Go to definition)</a></p>
+<div id="SearchGamesParams__TypeHint" class="tip-content">
+<p>Search.Games (client request) <a href="#/?id=searchgames-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Searches for games.</p>
@@ -1265,20 +1265,20 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="SearchGamesResult__TypeHint" style="display: none;" class="tip-content">
-<p>SearchGames <a href="#/?id=searchgames">(Go to definition)</a></p>
+<div id="SearchGamesResult__TypeHint" class="tip-content">
+<p>SearchGames  <a href="#/?id=searchgames-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>games</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span>[]</code></td>
+<td><code class="typename"><span class="type">Game</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Search.Users
+### Search.Users (client request)
 
 
 <p>
@@ -1314,14 +1314,14 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="SearchUsersParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Search.Users <a href="#/?id=searchusers">(Go to definition)</a></p>
+<div id="SearchUsersParams__TypeHint" class="tip-content">
+<p>Search.Users (client request) <a href="#/?id=searchusers-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Searches for users.</p>
@@ -1342,23 +1342,23 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="SearchUsersResult__TypeHint" style="display: none;" class="tip-content">
-<p>SearchUsers <a href="#/?id=searchusers">(Go to definition)</a></p>
+<div id="SearchUsersResult__TypeHint" class="tip-content">
+<p>SearchUsers  <a href="#/?id=searchusers-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>users</code></td>
-<td><code class="typename"><span class="type struct-type">User</span>[]</code></td>
+<td><code class="typename"><span class="type">User</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
 
-## Fetch
+## Fetch Category
 
-### <em class="request-client-caller"></em>Fetch.Game
+### Fetch.Game (client request)
 
 
 <p>
@@ -1396,7 +1396,7 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>Game info</p>
 </td>
 </tr>
@@ -1409,8 +1409,8 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="FetchGameParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Game <a href="#/?id=fetchgame">(Go to definition)</a></p>
+<div id="FetchGameParams__TypeHint" class="tip-content">
+<p>Fetch.Game (client request) <a href="#/?id=fetchgame-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches information for an itch.io game.</p>
@@ -1431,14 +1431,14 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="FetchGameResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchGame <a href="#/?id=fetchgame">(Go to definition)</a></p>
+<div id="FetchGameResult__TypeHint" class="tip-content">
+<p>FetchGame  <a href="#/?id=fetchgame-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -1448,7 +1448,7 @@ two-factor authentication enabled.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.DownloadKey
+### Fetch.DownloadKey (client request)
 
 
 <p>
@@ -1490,7 +1490,7 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>downloadKey</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -1502,8 +1502,8 @@ two-factor authentication enabled.</p>
 </table>
 
 
-<div id="FetchDownloadKeyParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.DownloadKey <a href="#/?id=fetchdownloadkey">(Go to definition)</a></p>
+<div id="FetchDownloadKeyParams__TypeHint" class="tip-content">
+<p>Fetch.DownloadKey (client request) <a href="#/?id=fetchdownloadkey-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches a download key</p>
@@ -1528,14 +1528,14 @@ two-factor authentication enabled.</p>
 </div>
 
 
-<div id="FetchDownloadKeyResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchDownloadKey <a href="#/?id=fetchdownloadkey">(Go to definition)</a></p>
+<div id="FetchDownloadKeyResult__TypeHint" class="tip-content">
+<p>FetchDownloadKey  <a href="#/?id=fetchdownloadkey-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>downloadKey</code></td>
-<td><code class="typename"><span class="type struct-type">DownloadKey</span></code></td>
+<td><code class="typename"><span class="type">DownloadKey</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -1545,7 +1545,7 @@ two-factor authentication enabled.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.GameUploads
+### Fetch.GameUploads (client request)
 
 
 <p>
@@ -1589,7 +1589,7 @@ two-factor authentication enabled.</p>
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td><p>List of uploads</p>
 </td>
 </tr>
@@ -1603,8 +1603,8 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 </table>
 
 
-<div id="FetchGameUploadsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.GameUploads <a href="#/?id=fetchgameuploads">(Go to definition)</a></p>
+<div id="FetchGameUploadsParams__TypeHint" class="tip-content">
+<p>Fetch.GameUploads (client request) <a href="#/?id=fetchgameuploads-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches uploads for an itch.io game</p>
@@ -1629,14 +1629,14 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 </div>
 
 
-<div id="FetchGameUploadsResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchGameUploads <a href="#/?id=fetchgameuploads">(Go to definition)</a></p>
+<div id="FetchGameUploadsResult__TypeHint" class="tip-content">
+<p>FetchGameUploads  <a href="#/?id=fetchgameuploads-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -1646,7 +1646,7 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.User
+### Fetch.User (client request)
 
 
 <p>
@@ -1690,7 +1690,7 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 <table class="field-table">
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p>User info</p>
 </td>
 </tr>
@@ -1704,8 +1704,8 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 </table>
 
 
-<div id="FetchUserParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.User <a href="#/?id=fetchuser">(Go to definition)</a></p>
+<div id="FetchUserParams__TypeHint" class="tip-content">
+<p>Fetch.User (client request) <a href="#/?id=fetchuser-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches information for an itch.io user.</p>
@@ -1730,14 +1730,14 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 </div>
 
 
-<div id="FetchUserResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchUser <a href="#/?id=fetchuser">(Go to definition)</a></p>
+<div id="FetchUserResult__TypeHint" class="tip-content">
+<p>FetchUser  <a href="#/?id=fetchuser-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
+<td><code class="typename"><span class="type">User</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -1747,7 +1747,7 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Sale
+### Fetch.Sale (client request)
 
 
 <p>
@@ -1780,15 +1780,15 @@ game.</p>
 <table class="field-table">
 <tr>
 <td><code>sale</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
 </table>
 
 
-<div id="FetchSaleParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Sale <a href="#/?id=fetchsale">(Go to definition)</a></p>
+<div id="FetchSaleParams__TypeHint" class="tip-content">
+<p>Fetch.Sale (client request) <a href="#/?id=fetchsale-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches the best current <em>locally cached</em> sale for a given
@@ -1806,20 +1806,20 @@ game.</p>
 </div>
 
 
-<div id="FetchSaleResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchSale <a href="#/?id=fetchsale">(Go to definition)</a></p>
+<div id="FetchSaleResult__TypeHint" class="tip-content">
+<p>FetchSale  <a href="#/?id=fetchsale-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>sale</code></td>
-<td><code class="typename"><span class="type struct-type">Sale</span></code></td>
+<td><code class="typename"><span class="type">Sale</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Collection
+### Fetch.Collection (client request)
 
 
 <p>
@@ -1865,7 +1865,7 @@ Usually set after getting &lsquo;stale&rsquo; in the response.</p>
 <table class="field-table">
 <tr>
 <td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
 <td><p>Collection info</p>
 </td>
 </tr>
@@ -1879,8 +1879,8 @@ it should be re-queried using &ldquo;Fresh&rdquo;</p>
 </table>
 
 
-<div id="FetchCollectionParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Collection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+<div id="FetchCollectionParams__TypeHint" class="tip-content">
+<p>Fetch.Collection (client request) <a href="#/?id=fetchcollection-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetch a collection&rsquo;s title, gamesCount, etc.
@@ -1906,14 +1906,14 @@ but not its games.</p>
 </div>
 
 
-<div id="FetchCollectionResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchCollection <a href="#/?id=fetchcollection">(Go to definition)</a></p>
+<div id="FetchCollectionResult__TypeHint" class="tip-content">
+<p>FetchCollection  <a href="#/?id=fetchcollection-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+<td><code class="typename"><span class="type">Collection</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -1923,7 +1923,7 @@ but not its games.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Collection.Games
+### Fetch.Collection.Games (client request)
 
 
 <p>
@@ -1970,7 +1970,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGamesFilters__TypeHint">CollectionGamesFilters</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionGamesFilters__TypeHint">CollectionGamesFilters</span></code></td>
 <td><p><span class="tag">Optional</span> Filters</p>
 </td>
 </tr>
@@ -1982,7 +1982,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -2004,13 +2004,13 @@ contains.</p>
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
 <td><p>Requested games for this collection</p>
 </td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
 </td>
 </tr>
@@ -2023,8 +2023,8 @@ contains.</p>
 </table>
 
 
-<div id="FetchCollectionGamesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Collection.Games <a href="#/?id=fetchcollectiongames">(Go to definition)</a></p>
+<div id="FetchCollectionGamesParams__TypeHint" class="tip-content">
+<p>Fetch.Collection.Games (client request) <a href="#/?id=fetchcollectiongames-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Fetches information about a collection and the games it
@@ -2055,7 +2055,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionGamesFilters</span></code></td>
+<td><code class="typename"><span class="type">CollectionGamesFilters</span></code></td>
 </tr>
 <tr>
 <td><code>reverse</code></td>
@@ -2063,7 +2063,7 @@ contains.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -2074,18 +2074,18 @@ contains.</p>
 </div>
 
 
-<div id="FetchCollectionGamesResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchCollectionGames <a href="#/?id=fetchcollectiongames">(Go to definition)</a></p>
+<div id="FetchCollectionGamesResult__TypeHint" class="tip-content">
+<p>FetchCollectionGames  <a href="#/?id=fetchcollectiongames-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+<td><code class="typename"><span class="type">CollectionGame</span>[]</code></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -2095,7 +2095,7 @@ contains.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.ProfileCollections
+### Fetch.ProfileCollections (client request)
 
 
 <p>
@@ -2142,7 +2142,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -2164,13 +2164,13 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
 <td><p>Collections belonging to the profile</p>
 </td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -2183,8 +2183,8 @@ games.</p>
 </table>
 
 
-<div id="FetchProfileCollectionsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.ProfileCollections <a href="#/?id=fetchprofilecollections">(Go to definition)</a></p>
+<div id="FetchProfileCollectionsParams__TypeHint" class="tip-content">
+<p>Fetch.ProfileCollections (client request) <a href="#/?id=fetchprofilecollections-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Lists collections for a profile. Does not contain
@@ -2215,7 +2215,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -2226,18 +2226,18 @@ games.</p>
 </div>
 
 
-<div id="FetchProfileCollectionsResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchProfileCollections <a href="#/?id=fetchprofilecollections">(Go to definition)</a></p>
+<div id="FetchProfileCollectionsResult__TypeHint" class="tip-content">
+<p>FetchProfileCollections  <a href="#/?id=fetchprofilecollections-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span>[]</code></td>
+<td><code class="typename"><span class="type">Collection</span>[]</code></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -2247,7 +2247,7 @@ games.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.ProfileGames
+### Fetch.ProfileGames (client request)
 
 
 
@@ -2283,7 +2283,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGameFilters__TypeHint">ProfileGameFilters</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProfileGameFilters__TypeHint">ProfileGameFilters</span></code></td>
 <td><p><span class="tag">Optional</span> Filters</p>
 </td>
 </tr>
@@ -2295,7 +2295,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -2317,13 +2317,13 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProfileGame__TypeHint">ProfileGame</span>[]</code></td>
 <td><p>Profile games</p>
 </td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -2336,8 +2336,8 @@ games.</p>
 </table>
 
 
-<div id="FetchProfileGamesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.ProfileGames <a href="#/?id=fetchprofilegames">(Go to definition)</a></p>
+<div id="FetchProfileGamesParams__TypeHint" class="tip-content">
+<p>Fetch.ProfileGames (client request) <a href="#/?id=fetchprofilegames-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -2359,7 +2359,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type">ProfileGameFilters</span></code></td>
+<td><code class="typename"><span class="type">ProfileGameFilters</span></code></td>
 </tr>
 <tr>
 <td><code>reverse</code></td>
@@ -2367,7 +2367,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -2378,18 +2378,18 @@ games.</p>
 </div>
 
 
-<div id="FetchProfileGamesResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchProfileGames <a href="#/?id=fetchprofilegames">(Go to definition)</a></p>
+<div id="FetchProfileGamesResult__TypeHint" class="tip-content">
+<p>FetchProfileGames  <a href="#/?id=fetchprofilegames-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">ProfileGame</span>[]</code></td>
+<td><code class="typename"><span class="type">ProfileGame</span>[]</code></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -2399,7 +2399,7 @@ games.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.ProfileOwnedKeys
+### Fetch.ProfileOwnedKeys (client request)
 
 
 
@@ -2435,7 +2435,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#ProfileOwnedKeysFilters__TypeHint">ProfileOwnedKeysFilters</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProfileOwnedKeysFilters__TypeHint">ProfileOwnedKeysFilters</span></code></td>
 <td><p><span class="tag">Optional</span> Filters</p>
 </td>
 </tr>
@@ -2447,7 +2447,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -2469,13 +2469,13 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
 <td><p>Download keys fetched for profile</p>
 </td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used to fetch the next page</p>
 </td>
 </tr>
@@ -2488,8 +2488,8 @@ games.</p>
 </table>
 
 
-<div id="FetchProfileOwnedKeysParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.ProfileOwnedKeys <a href="#/?id=fetchprofileownedkeys">(Go to definition)</a></p>
+<div id="FetchProfileOwnedKeysParams__TypeHint" class="tip-content">
+<p>Fetch.ProfileOwnedKeys (client request) <a href="#/?id=fetchprofileownedkeys-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -2511,7 +2511,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type">ProfileOwnedKeysFilters</span></code></td>
+<td><code class="typename"><span class="type">ProfileOwnedKeysFilters</span></code></td>
 </tr>
 <tr>
 <td><code>reverse</code></td>
@@ -2519,7 +2519,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>fresh</code></td>
@@ -2530,18 +2530,18 @@ games.</p>
 </div>
 
 
-<div id="FetchProfileOwnedKeysResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchProfileOwnedKeys <a href="#/?id=fetchprofileownedkeys">(Go to definition)</a></p>
+<div id="FetchProfileOwnedKeysResult__TypeHint" class="tip-content">
+<p>FetchProfileOwnedKeys  <a href="#/?id=fetchprofileownedkeys-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">DownloadKey</span>[]</code></td>
+<td><code class="typename"><span class="type">DownloadKey</span>[]</code></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -2551,7 +2551,7 @@ games.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Commons
+### Fetch.Commons (client request)
 
 
 
@@ -2569,50 +2569,50 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>downloadKeys</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadKeySummary__TypeHint">DownloadKeySummary</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadKeySummary__TypeHint">DownloadKeySummary</span>[]</code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>caves</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CaveSummary__TypeHint">CaveSummary</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CaveSummary__TypeHint">CaveSummary</span>[]</code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>installLocations</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="FetchCommonsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Commons <a href="#/?id=fetchcommons">(Go to definition)</a></p>
+<div id="FetchCommonsParams__TypeHint" class="tip-content">
+<p>Fetch.Commons (client request) <a href="#/?id=fetchcommons-client-request">(Go to definition)</a></p>
 
 </div>
 
 
-<div id="FetchCommonsResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchCommons <a href="#/?id=fetchcommons">(Go to definition)</a></p>
+<div id="FetchCommonsResult__TypeHint" class="tip-content">
+<p>FetchCommons  <a href="#/?id=fetchcommons-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>downloadKeys</code></td>
-<td><code class="typename"><span class="type struct-type">DownloadKeySummary</span>[]</code></td>
+<td><code class="typename"><span class="type">DownloadKeySummary</span>[]</code></td>
 </tr>
 <tr>
 <td><code>caves</code></td>
-<td><code class="typename"><span class="type struct-type">CaveSummary</span>[]</code></td>
+<td><code class="typename"><span class="type">CaveSummary</span>[]</code></td>
 </tr>
 <tr>
 <td><code>installLocations</code></td>
-<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span>[]</code></td>
+<td><code class="typename"><span class="type">InstallLocationSummary</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Caves
+### Fetch.Caves (client request)
 
 
 <p>
@@ -2646,7 +2646,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CavesFilters__TypeHint">CavesFilters</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CavesFilters__TypeHint">CavesFilters</span></code></td>
 <td><p><span class="tag">Optional</span> Filters</p>
 </td>
 </tr>
@@ -2658,7 +2658,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
@@ -2674,20 +2674,20 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span>[]</code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
 </td>
 </tr>
 </table>
 
 
-<div id="FetchCavesParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Caves <a href="#/?id=fetchcaves">(Go to definition)</a></p>
+<div id="FetchCavesParams__TypeHint" class="tip-content">
+<p>Fetch.Caves (client request) <a href="#/?id=fetchcaves-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Retrieve info for all caves.</p>
@@ -2709,7 +2709,7 @@ games.</p>
 </tr>
 <tr>
 <td><code>filters</code></td>
-<td><code class="typename"><span class="type struct-type">CavesFilters</span></code></td>
+<td><code class="typename"><span class="type">CavesFilters</span></code></td>
 </tr>
 <tr>
 <td><code>reverse</code></td>
@@ -2717,31 +2717,31 @@ games.</p>
 </tr>
 <tr>
 <td><code>cursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="FetchCavesResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchCaves <a href="#/?id=fetchcaves">(Go to definition)</a></p>
+<div id="FetchCavesResult__TypeHint" class="tip-content">
+<p>FetchCaves  <a href="#/?id=fetchcaves-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>items</code></td>
-<td><code class="typename"><span class="type struct-type">Cave</span>[]</code></td>
+<td><code class="typename"><span class="type">Cave</span>[]</code></td>
 </tr>
 <tr>
 <td><code>nextCursor</code></td>
-<td><code class="typename"><span class="">Cursor</span></code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.Cave
+### Fetch.Cave (client request)
 
 
 <p>
@@ -2772,14 +2772,14 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>cave</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="FetchCaveParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.Cave <a href="#/?id=fetchcave">(Go to definition)</a></p>
+<div id="FetchCaveParams__TypeHint" class="tip-content">
+<p>Fetch.Cave (client request) <a href="#/?id=fetchcave-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Retrieve info on a cave by ID.</p>
@@ -2796,20 +2796,20 @@ games.</p>
 </div>
 
 
-<div id="FetchCaveResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchCave <a href="#/?id=fetchcave">(Go to definition)</a></p>
+<div id="FetchCaveResult__TypeHint" class="tip-content">
+<p>FetchCave  <a href="#/?id=fetchcave-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>cave</code></td>
-<td><code class="typename"><span class="type struct-type">Cave</span></code></td>
+<td><code class="typename"><span class="type">Cave</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Fetch.ExpireAll
+### Fetch.ExpireAll (client request)
 
 
 <p>
@@ -2828,8 +2828,8 @@ games.</p>
 </p>
 
 
-<div id="FetchExpireAllParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Fetch.ExpireAll <a href="#/?id=fetchexpireall">(Go to definition)</a></p>
+<div id="FetchExpireAllParams__TypeHint" class="tip-content">
+<p>Fetch.ExpireAll (client request) <a href="#/?id=fetchexpireall-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Mark all local data as stale.</p>
@@ -2838,15 +2838,15 @@ games.</p>
 </div>
 
 
-<div id="FetchExpireAllResult__TypeHint" style="display: none;" class="tip-content">
-<p>FetchExpireAll <a href="#/?id=fetchexpireall">(Go to definition)</a></p>
+<div id="FetchExpireAllResult__TypeHint" class="tip-content">
+<p>FetchExpireAll  <a href="#/?id=fetchexpireall-">(Go to definition)</a></p>
 
 </div>
 
 
-## Install
+## Install Category
 
-### <em class="request-client-caller"></em>Game.FindUploads
+### Game.FindUploads (client request)
 
 
 <p>
@@ -2862,7 +2862,7 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>Which game to find uploads for</p>
 </td>
 </tr>
@@ -2878,15 +2878,15 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td><p>A list of uploads that were found to be compatible.</p>
 </td>
 </tr>
 </table>
 
 
-<div id="GameFindUploadsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Game.FindUploads <a href="#/?id=gamefinduploads">(Go to definition)</a></p>
+<div id="GameFindUploadsParams__TypeHint" class="tip-content">
+<p>Game.FindUploads (client request) <a href="#/?id=gamefinduploads-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Finds uploads compatible with the current runtime, for a given game.</p>
@@ -2896,32 +2896,32 @@ games.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="GameFindUploadsResult__TypeHint" style="display: none;" class="tip-content">
-<p>GameFindUploads <a href="#/?id=gamefinduploads">(Go to definition)</a></p>
+<div id="GameFindUploadsResult__TypeHint" class="tip-content">
+<p>GameFindUploads  <a href="#/?id=gamefinduploads-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Queue
+### Install.Queue (client request)
 
 
 <p>
 <p>Queues an install operation to be later performed
-via <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code>.</p>
+via <code class="typename"><span class="type" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code>.</p>
 
 </p>
 
@@ -2940,7 +2940,7 @@ If not specified, will create a new cave.</p>
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td><p><span class="tag">Optional</span> If unspecified, will default to &lsquo;install&rsquo;</p>
 </td>
 </tr>
@@ -2966,7 +2966,7 @@ record will be read or modified</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p><span class="tag">Optional</span> Which game to install.</p>
 
 <p>If unspecified and caveId is specified, the same game will be used.</p>
@@ -2974,7 +2974,7 @@ record will be read or modified</p>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td><p><span class="tag">Optional</span> Which upload to install.</p>
 
 <p>If unspecified and caveId is specified, the same upload will be used.</p>
@@ -2982,7 +2982,7 @@ record will be read or modified</p>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p><span class="tag">Optional</span> Which build to install</p>
 
 <p>If unspecified and caveId is specified, the same build will be used.</p>
@@ -3007,7 +3007,7 @@ partial downloads, checkpoint files, etc.</p>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> If set, and the install operation is successfully disambiguated,
 will queue it as a download for butler to drive.
-See <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
+See <code class="typename"><span class="type" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
 </td>
 </tr>
 <tr>
@@ -3033,7 +3033,7 @@ See <code class="typename"><span class="type request-client-caller" data-tip-sel
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -3043,17 +3043,17 @@ See <code class="typename"><span class="type request-client-caller" data-tip-sel
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -3074,12 +3074,12 @@ See <code class="typename"><span class="type request-client-caller" data-tip-sel
 </table>
 
 
-<div id="InstallQueueParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Queue <a href="#/?id=installqueue">(Go to definition)</a></p>
+<div id="InstallQueueParams__TypeHint" class="tip-content">
+<p>Install.Queue (client request) <a href="#/?id=installqueue-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Queues an install operation to be later performed
-via <code class="typename"><span class="type request-client-caller">Install.Perform</span></code>.</p>
+via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 </p>
 
@@ -3090,7 +3090,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type">DownloadReason</span></code></td>
 </tr>
 <tr>
 <td><code>installLocationId</code></td>
@@ -3106,15 +3106,15 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>ignoreInstallers</code></td>
@@ -3137,8 +3137,8 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </div>
 
 
-<div id="InstallQueueResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallQueue <a href="#/?id=installqueue">(Go to definition)</a></p>
+<div id="InstallQueueResult__TypeHint" class="tip-content">
+<p>InstallQueue  <a href="#/?id=installqueue-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3148,7 +3148,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type">DownloadReason</span></code></td>
 </tr>
 <tr>
 <td><code>caveId</code></td>
@@ -3156,15 +3156,15 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>installFolder</code></td>
@@ -3182,7 +3182,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Plan
+### Install.Plan (client request)
 
 
 <p>
@@ -3226,24 +3226,24 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>info</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallPlanParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Plan <a href="#/?id=installplan">(Go to definition)</a></p>
+<div id="InstallPlanParams__TypeHint" class="tip-content">
+<p>Install.Plan (client request) <a href="#/?id=installplan-client-request">(Go to definition)</a></p>
 
 <p>
 <p>For modal-first install</p>
@@ -3268,28 +3268,28 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </div>
 
 
-<div id="InstallPlanResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallPlan <a href="#/?id=installplan">(Go to definition)</a></p>
+<div id="InstallPlanResult__TypeHint" class="tip-content">
+<p>InstallPlan  <a href="#/?id=installplan-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
 <tr>
 <td><code>info</code></td>
-<td><code class="typename"><span class="type struct-type">InstallPlanInfo</span></code></td>
+<td><code class="typename"><span class="type">InstallPlanInfo</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Caves.SetPinned
+### Caves.SetPinned (client request)
 
 
 
@@ -3320,8 +3320,8 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </p>
 
 
-<div id="CavesSetPinnedParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Caves.SetPinned <a href="#/?id=cavessetpinned">(Go to definition)</a></p>
+<div id="CavesSetPinnedParams__TypeHint" class="tip-content">
+<p>Caves.SetPinned (client request) <a href="#/?id=cavessetpinned-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3338,19 +3338,19 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </div>
 
 
-<div id="CavesSetPinnedResult__TypeHint" style="display: none;" class="tip-content">
-<p>CavesSetPinned <a href="#/?id=cavessetpinned">(Go to definition)</a></p>
+<div id="CavesSetPinnedResult__TypeHint" class="tip-content">
+<p>CavesSetPinned  <a href="#/?id=cavessetpinned-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Perform
+### Install.Perform (client request)
 
 
 <p>
 <p>Perform an install that was previously queued via
-<code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code>.</p>
+<code class="typename"><span class="type" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code>.</p>
 
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code>.</p>
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code>.</p>
 
 </p>
 
@@ -3363,13 +3363,13 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 <tr>
 <td><code>id</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>ID that can be later used in <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code></p>
+<td><p>ID that can be later used in <code class="typename"><span class="type" data-tip-selector="#InstallCancelParams__TypeHint">Install.Cancel</span></code></p>
 </td>
 </tr>
 <tr>
 <td><code>stagingFolder</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The folder turned by <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code></p>
+<td><p>The folder turned by <code class="typename"><span class="type" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code></p>
 </td>
 </tr>
 </table>
@@ -3377,18 +3377,32 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 
 <p>
-<span class="header">Result</span> <em>none</em>
+<span class="header">Result</span> 
 </p>
 
 
-<div id="InstallPerformParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Perform <a href="#/?id=installperform">(Go to definition)</a></p>
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallEvent__TypeHint">InstallEvent</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallPerformParams__TypeHint" class="tip-content">
+<p>Install.Perform (client request) <a href="#/?id=installperform-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Perform an install that was previously queued via
-<code class="typename"><span class="type request-client-caller">Install.Queue</span></code>.</p>
+<code class="typename"><span class="type">Install.Queue</span></code>.</p>
 
-<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type request-client-caller">Install.Cancel</span></code>.</p>
+<p>Can be cancelled by passing the same <code>ID</code> to <code class="typename"><span class="type">Install.Cancel</span></code>.</p>
 
 </p>
 
@@ -3406,12 +3420,24 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </div>
 
 
-<div id="InstallPerformResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallPerform <a href="#/?id=installperform">(Go to definition)</a></p>
+<div id="InstallPerformResult__TypeHint" class="tip-content">
+<p>InstallPerform  <a href="#/?id=installperform-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td><code class="typename"><span class="type">InstallEvent</span>[]</code></td>
+</tr>
+</table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Cancel
+### Install.Cancel (client request)
 
 
 <p>
@@ -3449,8 +3475,8 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </table>
 
 
-<div id="InstallCancelParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Cancel <a href="#/?id=installcancel">(Go to definition)</a></p>
+<div id="InstallCancelParams__TypeHint" class="tip-content">
+<p>Install.Cancel (client request) <a href="#/?id=installcancel-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Attempt to gracefully cancel an ongoing operation.</p>
@@ -3467,8 +3493,8 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 </div>
 
 
-<div id="InstallCancelResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallCancel <a href="#/?id=installcancel">(Go to definition)</a></p>
+<div id="InstallCancelResult__TypeHint" class="tip-content">
+<p>InstallCancel  <a href="#/?id=installcancel-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3480,7 +3506,7 @@ via <code class="typename"><span class="type request-client-caller">Install.Perf
 
 </div>
 
-### <em class="request-client-caller"></em>Uninstall.Perform
+### Uninstall.Perform (client request)
 
 
 <p>
@@ -3517,8 +3543,8 @@ remove the DB record and burn the install folder to the ground.</p>
 </p>
 
 
-<div id="UninstallPerformParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Uninstall.Perform <a href="#/?id=uninstallperform">(Go to definition)</a></p>
+<div id="UninstallPerformParams__TypeHint" class="tip-content">
+<p>Uninstall.Perform (client request) <a href="#/?id=uninstallperform-client-request">(Go to definition)</a></p>
 
 <p>
 <p>UninstallParams contains all the parameters needed to perform
@@ -3540,17 +3566,17 @@ an uninstallation for a game via <code class="typename"><span class="type builti
 </div>
 
 
-<div id="UninstallPerformResult__TypeHint" style="display: none;" class="tip-content">
-<p>UninstallPerform <a href="#/?id=uninstallperform">(Go to definition)</a></p>
+<div id="UninstallPerformResult__TypeHint" class="tip-content">
+<p>UninstallPerform  <a href="#/?id=uninstallperform-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.VersionSwitch.Queue
+### Install.VersionSwitch.Queue (client request)
 
 
 <p>
 <p>Prepare to queue a version switch. The client will
-receive an <code class="typename"><span class="type request-server-caller" data-tip-selector="#InstallVersionSwitchPickParams__TypeHint">InstallVersionSwitchPick</span></code>.</p>
+receive an <code class="typename"><span class="type" data-tip-selector="#InstallVersionSwitchPickParams__TypeHint">InstallVersionSwitchPick</span></code>.</p>
 
 </p>
 
@@ -3575,12 +3601,12 @@ receive an <code class="typename"><span class="type request-server-caller" data-
 </p>
 
 
-<div id="InstallVersionSwitchQueueParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.VersionSwitch.Queue <a href="#/?id=installversionswitchqueue">(Go to definition)</a></p>
+<div id="InstallVersionSwitchQueueParams__TypeHint" class="tip-content">
+<p>Install.VersionSwitch.Queue (client request) <a href="#/?id=installversionswitchqueue-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Prepare to queue a version switch. The client will
-receive an <code class="typename"><span class="type request-server-caller">InstallVersionSwitchPick</span></code>.</p>
+receive an <code class="typename"><span class="type">InstallVersionSwitchPick</span></code>.</p>
 
 </p>
 
@@ -3594,12 +3620,12 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 </div>
 
 
-<div id="InstallVersionSwitchQueueResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallVersionSwitchQueue <a href="#/?id=installversionswitchqueue">(Go to definition)</a></p>
+<div id="InstallVersionSwitchQueueResult__TypeHint" class="tip-content">
+<p>InstallVersionSwitchQueue  <a href="#/?id=installversionswitchqueue-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-server-caller"></em>InstallVersionSwitchPick
+### InstallVersionSwitchPick (client caller)
 
 
 <p>
@@ -3615,17 +3641,17 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 <table class="field-table">
 <tr>
 <td><code>cave</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>builds</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
 <td></td>
 </tr>
 </table>
@@ -3647,8 +3673,8 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 </table>
 
 
-<div id="InstallVersionSwitchPickParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>InstallVersionSwitchPick <a href="#/?id=installversionswitchpick">(Go to definition)</a></p>
+<div id="InstallVersionSwitchPickParams__TypeHint" class="tip-content">
+<p>InstallVersionSwitchPick (client caller) <a href="#/?id=installversionswitchpick-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Let the user pick which version to switch to.</p>
@@ -3658,23 +3684,23 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 <table class="field-table">
 <tr>
 <td><code>cave</code></td>
-<td><code class="typename"><span class="type struct-type">Cave</span></code></td>
+<td><code class="typename"><span class="type">Cave</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>builds</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span>[]</code></td>
+<td><code class="typename"><span class="type">Build</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="InstallVersionSwitchPickResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallVersionSwitchPick <a href="#/?id=installversionswitchpick">(Go to definition)</a></p>
+<div id="InstallVersionSwitchPickResult__TypeHint" class="tip-content">
+<p>InstallVersionSwitchPick  <a href="#/?id=installversionswitchpick-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3686,7 +3712,7 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 
 </div>
 
-### <em class="request-server-caller"></em>PickUpload
+### PickUpload (client caller)
 
 
 <p>
@@ -3702,7 +3728,7 @@ receive an <code class="typename"><span class="type request-server-caller">Insta
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td><p>An array of upload objects to choose from</p>
 </td>
 </tr>
@@ -3726,8 +3752,8 @@ or a negative value to cancel.</p>
 </table>
 
 
-<div id="PickUploadParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>PickUpload <a href="#/?id=pickupload">(Go to definition)</a></p>
+<div id="PickUploadParams__TypeHint" class="tip-content">
+<p>PickUpload (client caller) <a href="#/?id=pickupload-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Asks the user to pick between multiple available uploads</p>
@@ -3737,15 +3763,15 @@ or a negative value to cancel.</p>
 <table class="field-table">
 <tr>
 <td><code>uploads</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span>[]</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="PickUploadResult__TypeHint" style="display: none;" class="tip-content">
-<p>PickUpload <a href="#/?id=pickupload">(Go to definition)</a></p>
+<div id="PickUploadResult__TypeHint" class="tip-content">
+<p>PickUpload  <a href="#/?id=pickupload-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3757,11 +3783,11 @@ or a negative value to cancel.</p>
 
 </div>
 
-### <em class="notification"></em>Progress
+### Progress (notification)
 
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code> to inform on the current state of an install</p>
+<p>Sent periodically during <code class="typename"><span class="type" data-tip-selector="#InstallPerformParams__TypeHint">Install.Perform</span></code> to inform on the current state of an install</p>
 
 </p>
 
@@ -3792,11 +3818,11 @@ or a negative value to cancel.</p>
 </table>
 
 
-<div id="ProgressNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Progress <a href="#/?id=progress">(Go to definition)</a></p>
+<div id="ProgressNotification__TypeHint" class="tip-content">
+<p>Progress (notification) <a href="#/?id=progress-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent periodically during <code class="typename"><span class="type request-client-caller">Install.Perform</span></code> to inform on the current state of an install</p>
+<p>Sent periodically during <code class="typename"><span class="type">Install.Perform</span></code> to inform on the current state of an install</p>
 
 </p>
 
@@ -3817,7 +3843,7 @@ or a negative value to cancel.</p>
 
 </div>
 
-### <em class="enum-type"></em>TaskReason
+### TaskReason (enum)
 
 
 
@@ -3840,8 +3866,8 @@ or a negative value to cancel.</p>
 </table>
 
 
-<div id="TaskReason__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>TaskReason <a href="#/?id=taskreason">(Go to definition)</a></p>
+<div id="TaskReason__TypeHint" class="tip-content">
+<p>TaskReason (enum) <a href="#/?id=taskreason-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3855,7 +3881,7 @@ or a negative value to cancel.</p>
 
 </div>
 
-### <em class="enum-type"></em>TaskType
+### TaskType (enum)
 
 
 
@@ -3893,8 +3919,8 @@ or a negative value to cancel.</p>
 </table>
 
 
-<div id="TaskType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>TaskType <a href="#/?id=tasktype">(Go to definition)</a></p>
+<div id="TaskType__TypeHint" class="tip-content">
+<p>TaskType (enum) <a href="#/?id=tasktype-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -3917,7 +3943,7 @@ or a negative value to cancel.</p>
 
 </div>
 
-### <em class="notification"></em>TaskStarted
+### TaskStarted (notification)
 
 
 <p>
@@ -3934,31 +3960,31 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <table class="field-table">
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskReason__TypeHint">TaskReason</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#TaskReason__TypeHint">TaskReason</span></code></td>
 <td><p>Why this task was started</p>
 </td>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
 <td><p>Is this task a download? An install?</p>
 </td>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>The game this task is dealing with</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td><p>The upload this task is dealing with</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p>The build this task is dealing with (if any)</p>
 </td>
 </tr>
@@ -3971,8 +3997,8 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 </table>
 
 
-<div id="TaskStartedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>TaskStarted <a href="#/?id=taskstarted">(Go to definition)</a></p>
+<div id="TaskStartedNotification__TypeHint" class="tip-content">
+<p>TaskStarted (notification) <a href="#/?id=taskstarted-notification">(Go to definition)</a></p>
 
 <p>
 <p>Each operation is made up of one or more tasks. This notification
@@ -3983,23 +4009,23 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <table class="field-table">
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type">TaskReason</span></code></td>
+<td><code class="typename"><span class="type">TaskReason</span></code></td>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
+<td><code class="typename"><span class="type">TaskType</span></code></td>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>totalSize</code></td>
@@ -4009,7 +4035,7 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 
 </div>
 
-### <em class="notification"></em>TaskSucceeded
+### TaskSucceeded (notification)
 
 
 <p>
@@ -4025,12 +4051,12 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <table class="field-table">
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#TaskType__TypeHint">TaskType</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>installResult</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallResult__TypeHint">InstallResult</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallResult__TypeHint">InstallResult</span></code></td>
 <td><p>If the task installed something, then this contains
 info about the game, upload, build that were installed</p>
 </td>
@@ -4038,8 +4064,8 @@ info about the game, upload, build that were installed</p>
 </table>
 
 
-<div id="TaskSucceededNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>TaskSucceeded <a href="#/?id=tasksucceeded">(Go to definition)</a></p>
+<div id="TaskSucceededNotification__TypeHint" class="tip-content">
+<p>TaskSucceeded (notification) <a href="#/?id=tasksucceeded-notification">(Go to definition)</a></p>
 
 <p>
 <p>Sent during <code class="typename"><span class="type builtin-type">OperationStartParams</span></code> whenever a task succeeds for an operation.</p>
@@ -4049,23 +4075,23 @@ info about the game, upload, build that were installed</p>
 <table class="field-table">
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">TaskType</span></code></td>
+<td><code class="typename"><span class="type">TaskType</span></code></td>
 </tr>
 <tr>
 <td><code>installResult</code></td>
-<td><code class="typename"><span class="type struct-type">InstallResult</span></code></td>
+<td><code class="typename"><span class="type">InstallResult</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>InstallResult
+### InstallResult (struct)
 
 
 <p>
 <p>What was installed by a subtask of <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
-<p>See <code class="typename"><span class="type notification" data-tip-selector="#TaskSucceededNotification__TypeHint">TaskSucceeded</span></code>.</p>
+<p>See <code class="typename"><span class="type" data-tip-selector="#TaskSucceededNotification__TypeHint">TaskSucceeded</span></code>.</p>
 
 </p>
 
@@ -4077,53 +4103,53 @@ info about the game, upload, build that were installed</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>The game we installed</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td><p>The upload we installed</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p><span class="tag">Optional</span> The build we installed</p>
 </td>
 </tr>
 </table>
 
 
-<div id="InstallResult__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallResult <a href="#/?id=installresult">(Go to definition)</a></p>
+<div id="InstallResult__TypeHint" class="tip-content">
+<p>InstallResult (struct) <a href="#/?id=installresult-struct">(Go to definition)</a></p>
 
 <p>
 <p>What was installed by a subtask of <code class="typename"><span class="type builtin-type">OperationStartParams</span></code>.</p>
 
-<p>See <code class="typename"><span class="type notification">TaskSucceeded</span></code>.</p>
+<p>See <code class="typename"><span class="type">TaskSucceeded</span></code>.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Locations.List
+### Install.Locations.List (client request)
 
 
 
@@ -4141,32 +4167,32 @@ info about the game, upload, build that were installed</p>
 <table class="field-table">
 <tr>
 <td><code>installLocations</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallLocationsListParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Locations.List <a href="#/?id=installlocationslist">(Go to definition)</a></p>
+<div id="InstallLocationsListParams__TypeHint" class="tip-content">
+<p>Install.Locations.List (client request) <a href="#/?id=installlocationslist-client-request">(Go to definition)</a></p>
 
 </div>
 
 
-<div id="InstallLocationsListResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsList <a href="#/?id=installlocationslist">(Go to definition)</a></p>
+<div id="InstallLocationsListResult__TypeHint" class="tip-content">
+<p>InstallLocationsList  <a href="#/?id=installlocationslist-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>installLocations</code></td>
-<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span>[]</code></td>
+<td><code class="typename"><span class="type">InstallLocationSummary</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Locations.Add
+### Install.Locations.Add (client request)
 
 
 
@@ -4201,14 +4227,14 @@ if not specified, will be generated.</p>
 <table class="field-table">
 <tr>
 <td><code>installLocation</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallLocationsAddParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Locations.Add <a href="#/?id=installlocationsadd">(Go to definition)</a></p>
+<div id="InstallLocationsAddParams__TypeHint" class="tip-content">
+<p>Install.Locations.Add (client request) <a href="#/?id=installlocationsadd-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4225,20 +4251,20 @@ if not specified, will be generated.</p>
 </div>
 
 
-<div id="InstallLocationsAddResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsAdd <a href="#/?id=installlocationsadd">(Go to definition)</a></p>
+<div id="InstallLocationsAddResult__TypeHint" class="tip-content">
+<p>InstallLocationsAdd  <a href="#/?id=installlocationsadd-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>installLocation</code></td>
-<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span></code></td>
+<td><code class="typename"><span class="type">InstallLocationSummary</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Locations.Remove
+### Install.Locations.Remove (client request)
 
 
 
@@ -4263,8 +4289,8 @@ if not specified, will be generated.</p>
 </p>
 
 
-<div id="InstallLocationsRemoveParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Locations.Remove <a href="#/?id=installlocationsremove">(Go to definition)</a></p>
+<div id="InstallLocationsRemoveParams__TypeHint" class="tip-content">
+<p>Install.Locations.Remove (client request) <a href="#/?id=installlocationsremove-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4277,12 +4303,12 @@ if not specified, will be generated.</p>
 </div>
 
 
-<div id="InstallLocationsRemoveResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsRemove <a href="#/?id=installlocationsremove">(Go to definition)</a></p>
+<div id="InstallLocationsRemoveResult__TypeHint" class="tip-content">
+<p>InstallLocationsRemove  <a href="#/?id=installlocationsremove-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Locations.GetByID
+### Install.Locations.GetByID (client request)
 
 
 
@@ -4310,14 +4336,14 @@ if not specified, will be generated.</p>
 <table class="field-table">
 <tr>
 <td><code>installLocation</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallLocationsGetByIDParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Locations.GetByID <a href="#/?id=installlocationsgetbyid">(Go to definition)</a></p>
+<div id="InstallLocationsGetByIDParams__TypeHint" class="tip-content">
+<p>Install.Locations.GetByID (client request) <a href="#/?id=installlocationsgetbyid-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4330,20 +4356,20 @@ if not specified, will be generated.</p>
 </div>
 
 
-<div id="InstallLocationsGetByIDResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsGetByID <a href="#/?id=installlocationsgetbyid">(Go to definition)</a></p>
+<div id="InstallLocationsGetByIDResult__TypeHint" class="tip-content">
+<p>InstallLocationsGetByID  <a href="#/?id=installlocationsgetbyid-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>installLocation</code></td>
-<td><code class="typename"><span class="type struct-type">InstallLocationSummary</span></code></td>
+<td><code class="typename"><span class="type">InstallLocationSummary</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Install.Locations.Scan
+### Install.Locations.Scan (client request)
 
 
 
@@ -4382,8 +4408,8 @@ if not specified, will be generated.</p>
 </table>
 
 
-<div id="InstallLocationsScanParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Install.Locations.Scan <a href="#/?id=installlocationsscan">(Go to definition)</a></p>
+<div id="InstallLocationsScanParams__TypeHint" class="tip-content">
+<p>Install.Locations.Scan (client request) <a href="#/?id=installlocationsscan-client-request">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4396,8 +4422,8 @@ if not specified, will be generated.</p>
 </div>
 
 
-<div id="InstallLocationsScanResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsScan <a href="#/?id=installlocationsscan">(Go to definition)</a></p>
+<div id="InstallLocationsScanResult__TypeHint" class="tip-content">
+<p>InstallLocationsScan  <a href="#/?id=installlocationsscan-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4413,11 +4439,11 @@ if not specified, will be generated.</p>
 
 </div>
 
-### <em class="notification"></em>Install.Locations.Scan.Yield
+### Install.Locations.Scan.Yield (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code> whenever
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code> whenever
 a game is found.</p>
 
 </p>
@@ -4430,17 +4456,17 @@ a game is found.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallLocationsScanYieldNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Install.Locations.Scan.Yield <a href="#/?id=installlocationsscanyield">(Go to definition)</a></p>
+<div id="InstallLocationsScanYieldNotification__TypeHint" class="tip-content">
+<p>Install.Locations.Scan.Yield (notification) <a href="#/?id=installlocationsscanyield-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Install.Locations.Scan</span></code> whenever
+<p>Sent during <code class="typename"><span class="type">Install.Locations.Scan</span></code> whenever
 a game is found.</p>
 
 </p>
@@ -4448,17 +4474,17 @@ a game is found.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-server-caller"></em>Install.Locations.Scan.ConfirmImport
+### Install.Locations.Scan.ConfirmImport (client caller)
 
 
 <p>
-<p>Sent at the end of <code class="typename"><span class="type request-client-caller" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code></p>
+<p>Sent at the end of <code class="typename"><span class="type" data-tip-selector="#InstallLocationsScanParams__TypeHint">Install.Locations.Scan</span></code></p>
 
 </p>
 
@@ -4492,11 +4518,11 @@ a game is found.</p>
 </table>
 
 
-<div id="InstallLocationsScanConfirmImportParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Install.Locations.Scan.ConfirmImport <a href="#/?id=installlocationsscanconfirmimport">(Go to definition)</a></p>
+<div id="InstallLocationsScanConfirmImportParams__TypeHint" class="tip-content">
+<p>Install.Locations.Scan.ConfirmImport (client caller) <a href="#/?id=installlocationsscanconfirmimport-client-caller">(Go to definition)</a></p>
 
 <p>
-<p>Sent at the end of <code class="typename"><span class="type request-client-caller">Install.Locations.Scan</span></code></p>
+<p>Sent at the end of <code class="typename"><span class="type">Install.Locations.Scan</span></code></p>
 
 </p>
 
@@ -4510,8 +4536,8 @@ a game is found.</p>
 </div>
 
 
-<div id="InstallLocationsScanConfirmImportResult__TypeHint" style="display: none;" class="tip-content">
-<p>InstallLocationsScanConfirmImport <a href="#/?id=installlocationsscanconfirmimport">(Go to definition)</a></p>
+<div id="InstallLocationsScanConfirmImportResult__TypeHint" class="tip-content">
+<p>InstallLocationsScanConfirmImport  <a href="#/?id=installlocationsscanconfirmimport-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4524,14 +4550,14 @@ a game is found.</p>
 </div>
 
 
-## Downloads
+## Downloads Category
 
-### <em class="request-client-caller"></em>Downloads.Queue
+### Downloads.Queue (client request)
 
 
 <p>
 <p>Queue a download that will be performed later by
-<code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
+<code class="typename"><span class="type" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code>.</p>
 
 </p>
 
@@ -4543,7 +4569,7 @@ a game is found.</p>
 <table class="field-table">
 <tr>
 <td><code>item</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallQueueResult__TypeHint">InstallQueue</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallQueueResult__TypeHint">InstallQueue</span></code></td>
 <td></td>
 </tr>
 </table>
@@ -4555,31 +4581,31 @@ a game is found.</p>
 </p>
 
 
-<div id="DownloadsQueueParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Queue <a href="#/?id=downloadsqueue">(Go to definition)</a></p>
+<div id="DownloadsQueueParams__TypeHint" class="tip-content">
+<p>Downloads.Queue (client request) <a href="#/?id=downloadsqueue-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Queue a download that will be performed later by
-<code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code>.</p>
+<code class="typename"><span class="type">Downloads.Drive</span></code>.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
 <td><code>item</code></td>
-<td><code class="typename"><span class="type struct-type">InstallQueue</span></code></td>
+<td><code class="typename"><span class="type">InstallQueue</span></code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="DownloadsQueueResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsQueue <a href="#/?id=downloadsqueue">(Go to definition)</a></p>
+<div id="DownloadsQueueResult__TypeHint" class="tip-content">
+<p>DownloadsQueue  <a href="#/?id=downloadsqueue-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.Prioritize
+### Downloads.Prioritize (client request)
 
 
 <p>
@@ -4607,8 +4633,8 @@ a game is found.</p>
 </p>
 
 
-<div id="DownloadsPrioritizeParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Prioritize <a href="#/?id=downloadsprioritize">(Go to definition)</a></p>
+<div id="DownloadsPrioritizeParams__TypeHint" class="tip-content">
+<p>Downloads.Prioritize (client request) <a href="#/?id=downloadsprioritize-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Put a download on top of the queue.</p>
@@ -4625,12 +4651,12 @@ a game is found.</p>
 </div>
 
 
-<div id="DownloadsPrioritizeResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsPrioritize <a href="#/?id=downloadsprioritize">(Go to definition)</a></p>
+<div id="DownloadsPrioritizeResult__TypeHint" class="tip-content">
+<p>DownloadsPrioritize  <a href="#/?id=downloadsprioritize-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.List
+### Downloads.List (client request)
 
 
 <p>
@@ -4652,14 +4678,14 @@ a game is found.</p>
 <table class="field-table">
 <tr>
 <td><code>downloads</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span>[]</code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="DownloadsListParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.List <a href="#/?id=downloadslist">(Go to definition)</a></p>
+<div id="DownloadsListParams__TypeHint" class="tip-content">
+<p>Downloads.List (client request) <a href="#/?id=downloadslist-client-request">(Go to definition)</a></p>
 
 <p>
 <p>List all known downloads.</p>
@@ -4668,20 +4694,20 @@ a game is found.</p>
 </div>
 
 
-<div id="DownloadsListResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsList <a href="#/?id=downloadslist">(Go to definition)</a></p>
+<div id="DownloadsListResult__TypeHint" class="tip-content">
+<p>DownloadsList  <a href="#/?id=downloadslist-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>downloads</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span>[]</code></td>
+<td><code class="typename"><span class="type">Download</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.ClearFinished
+### Downloads.ClearFinished (client request)
 
 
 <p>
@@ -4700,8 +4726,8 @@ a game is found.</p>
 </p>
 
 
-<div id="DownloadsClearFinishedParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.ClearFinished <a href="#/?id=downloadsclearfinished">(Go to definition)</a></p>
+<div id="DownloadsClearFinishedParams__TypeHint" class="tip-content">
+<p>Downloads.ClearFinished (client request) <a href="#/?id=downloadsclearfinished-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Removes all finished downloads from the queue.</p>
@@ -4710,12 +4736,12 @@ a game is found.</p>
 </div>
 
 
-<div id="DownloadsClearFinishedResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsClearFinished <a href="#/?id=downloadsclearfinished">(Go to definition)</a></p>
+<div id="DownloadsClearFinishedResult__TypeHint" class="tip-content">
+<p>DownloadsClearFinished  <a href="#/?id=downloadsclearfinished-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.Drive
+### Downloads.Drive (client request)
 
 
 <p>
@@ -4735,8 +4761,8 @@ until they&rsquo;re all finished.</p>
 </p>
 
 
-<div id="DownloadsDriveParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Drive <a href="#/?id=downloadsdrive">(Go to definition)</a></p>
+<div id="DownloadsDriveParams__TypeHint" class="tip-content">
+<p>Downloads.Drive (client request) <a href="#/?id=downloadsdrive-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Drive downloads, which is: perform them one at a time,
@@ -4746,12 +4772,12 @@ until they&rsquo;re all finished.</p>
 </div>
 
 
-<div id="DownloadsDriveResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsDrive <a href="#/?id=downloadsdrive">(Go to definition)</a></p>
+<div id="DownloadsDriveResult__TypeHint" class="tip-content">
+<p>DownloadsDrive  <a href="#/?id=downloadsdrive-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.Drive.Cancel
+### Downloads.Drive.Cancel (client request)
 
 
 <p>
@@ -4779,8 +4805,8 @@ until they&rsquo;re all finished.</p>
 </table>
 
 
-<div id="DownloadsDriveCancelParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Drive.Cancel <a href="#/?id=downloadsdrivecancel">(Go to definition)</a></p>
+<div id="DownloadsDriveCancelParams__TypeHint" class="tip-content">
+<p>Downloads.Drive.Cancel (client request) <a href="#/?id=downloadsdrivecancel-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Stop driving downloads gracefully.</p>
@@ -4789,8 +4815,8 @@ until they&rsquo;re all finished.</p>
 </div>
 
 
-<div id="DownloadsDriveCancelResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsDriveCancel <a href="#/?id=downloadsdrivecancel">(Go to definition)</a></p>
+<div id="DownloadsDriveCancelResult__TypeHint" class="tip-content">
+<p>DownloadsDriveCancel  <a href="#/?id=downloadsdrivecancel-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -4802,7 +4828,7 @@ until they&rsquo;re all finished.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.Retry
+### Downloads.Retry (client request)
 
 
 <p>
@@ -4830,8 +4856,8 @@ until they&rsquo;re all finished.</p>
 </p>
 
 
-<div id="DownloadsRetryParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Retry <a href="#/?id=downloadsretry">(Go to definition)</a></p>
+<div id="DownloadsRetryParams__TypeHint" class="tip-content">
+<p>Downloads.Retry (client request) <a href="#/?id=downloadsretry-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Retries a download that has errored</p>
@@ -4848,12 +4874,12 @@ until they&rsquo;re all finished.</p>
 </div>
 
 
-<div id="DownloadsRetryResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsRetry <a href="#/?id=downloadsretry">(Go to definition)</a></p>
+<div id="DownloadsRetryResult__TypeHint" class="tip-content">
+<p>DownloadsRetry  <a href="#/?id=downloadsretry-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-client-caller"></em>Downloads.Discard
+### Downloads.Discard (client request)
 
 
 <p>
@@ -4881,8 +4907,8 @@ until they&rsquo;re all finished.</p>
 </p>
 
 
-<div id="DownloadsDiscardParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Downloads.Discard <a href="#/?id=downloadsdiscard">(Go to definition)</a></p>
+<div id="DownloadsDiscardParams__TypeHint" class="tip-content">
+<p>Downloads.Discard (client request) <a href="#/?id=downloadsdiscard-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Attempts to discard a download</p>
@@ -4899,15 +4925,15 @@ until they&rsquo;re all finished.</p>
 </div>
 
 
-<div id="DownloadsDiscardResult__TypeHint" style="display: none;" class="tip-content">
-<p>DownloadsDiscard <a href="#/?id=downloadsdiscard">(Go to definition)</a></p>
+<div id="DownloadsDiscardResult__TypeHint" class="tip-content">
+<p>DownloadsDiscard  <a href="#/?id=downloadsdiscard-">(Go to definition)</a></p>
 
 </div>
 
 
-## Update
+## Update Category
 
-### <em class="request-client-caller"></em>CheckUpdate
+### CheckUpdate (client request)
 
 
 <p>
@@ -4918,7 +4944,7 @@ updates for these caves <em>and will ignore snooze</em>.</p>
 
 <p>Otherwise, will look for updates for all games, respecting snooze.</p>
 
-<p>Updates found are regularly sent via <code class="typename"><span class="type notification" data-tip-selector="#GameUpdateAvailableNotification__TypeHint">GameUpdateAvailable</span></code>, and
+<p>Updates found are regularly sent via <code class="typename"><span class="type" data-tip-selector="#GameUpdateAvailableNotification__TypeHint">GameUpdateAvailable</span></code>, and
 then all at once in the result.</p>
 
 </p>
@@ -4953,7 +4979,7 @@ then all at once in the result.</p>
 <table class="field-table">
 <tr>
 <td><code>updates</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span>[]</code></td>
 <td><p>Any updates found (might be empty)</p>
 </td>
 </tr>
@@ -4966,8 +4992,8 @@ then all at once in the result.</p>
 </table>
 
 
-<div id="CheckUpdateParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
+<div id="CheckUpdateParams__TypeHint" class="tip-content">
+<p>CheckUpdate (client request) <a href="#/?id=checkupdate-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Looks for game updates.</p>
@@ -4977,7 +5003,7 @@ updates for these caves <em>and will ignore snooze</em>.</p>
 
 <p>Otherwise, will look for updates for all games, respecting snooze.</p>
 
-<p>Updates found are regularly sent via <code class="typename"><span class="type notification">GameUpdateAvailable</span></code>, and
+<p>Updates found are regularly sent via <code class="typename"><span class="type">GameUpdateAvailable</span></code>, and
 then all at once in the result.</p>
 
 </p>
@@ -4996,14 +5022,14 @@ then all at once in the result.</p>
 </div>
 
 
-<div id="CheckUpdateResult__TypeHint" style="display: none;" class="tip-content">
-<p>CheckUpdate <a href="#/?id=checkupdate">(Go to definition)</a></p>
+<div id="CheckUpdateResult__TypeHint" class="tip-content">
+<p>CheckUpdate  <a href="#/?id=checkupdate-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>updates</code></td>
-<td><code class="typename"><span class="type struct-type">GameUpdate</span>[]</code></td>
+<td><code class="typename"><span class="type">GameUpdate</span>[]</code></td>
 </tr>
 <tr>
 <td><code>warnings</code></td>
@@ -5013,11 +5039,11 @@ then all at once in the result.</p>
 
 </div>
 
-### <em class="notification"></em>GameUpdateAvailable
+### GameUpdateAvailable (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code>, every time butler
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code>, every time butler
 finds an update for a game. Can be safely ignored if displaying
 updates as they are found is not a requirement for the client.</p>
 
@@ -5031,17 +5057,17 @@ updates as they are found is not a requirement for the client.</p>
 <table class="field-table">
 <tr>
 <td><code>update</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="GameUpdateAvailableNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>GameUpdateAvailable <a href="#/?id=gameupdateavailable">(Go to definition)</a></p>
+<div id="GameUpdateAvailableNotification__TypeHint" class="tip-content">
+<p>GameUpdateAvailable (notification) <a href="#/?id=gameupdateavailable-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">CheckUpdate</span></code>, every time butler
+<p>Sent during <code class="typename"><span class="type">CheckUpdate</span></code>, every time butler
 finds an update for a game. Can be safely ignored if displaying
 updates as they are found is not a requirement for the client.</p>
 
@@ -5050,13 +5076,13 @@ updates as they are found is not a requirement for the client.</p>
 <table class="field-table">
 <tr>
 <td><code>update</code></td>
-<td><code class="typename"><span class="type struct-type">GameUpdate</span></code></td>
+<td><code class="typename"><span class="type">GameUpdate</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>GameUpdate
+### GameUpdate (struct)
 
 
 <p>
@@ -5078,7 +5104,7 @@ updates as they are found is not a requirement for the client.</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>Game we found an update for</p>
 </td>
 </tr>
@@ -5094,15 +5120,15 @@ not sure if it&rsquo;s an upgrade or other additional content</p>
 </tr>
 <tr>
 <td><code>choices</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameUpdateChoice__TypeHint">GameUpdateChoice</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameUpdateChoice__TypeHint">GameUpdateChoice</span>[]</code></td>
 <td><p>Available choice of updates</p>
 </td>
 </tr>
 </table>
 
 
-<div id="GameUpdate__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameUpdate <a href="#/?id=gameupdate">(Go to definition)</a></p>
+<div id="GameUpdate__TypeHint" class="tip-content">
+<p>GameUpdate (struct) <a href="#/?id=gameupdate-struct">(Go to definition)</a></p>
 
 <p>
 <p>Describes an available update for a particular game install.</p>
@@ -5116,7 +5142,7 @@ not sure if it&rsquo;s an upgrade or other additional content</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>direct</code></td>
@@ -5124,13 +5150,13 @@ not sure if it&rsquo;s an upgrade or other additional content</p>
 </tr>
 <tr>
 <td><code>choices</code></td>
-<td><code class="typename"><span class="type struct-type">GameUpdateChoice</span>[]</code></td>
+<td><code class="typename"><span class="type">GameUpdateChoice</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="request-client-caller"></em>SnoozeCave
+### SnoozeCave (client request)
 
 
 <p>
@@ -5138,7 +5164,7 @@ not sure if it&rsquo;s an upgrade or other additional content</p>
 be potential updates) between the cave&rsquo;s last install operation
 and now.</p>
 
-<p>This can be undone by calling <code class="typename"><span class="type request-client-caller" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code> with this specific
+<p>This can be undone by calling <code class="typename"><span class="type" data-tip-selector="#CheckUpdateParams__TypeHint">CheckUpdate</span></code> with this specific
 cave identifier.</p>
 
 </p>
@@ -5163,15 +5189,15 @@ cave identifier.</p>
 </p>
 
 
-<div id="SnoozeCaveParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>SnoozeCave <a href="#/?id=snoozecave">(Go to definition)</a></p>
+<div id="SnoozeCaveParams__TypeHint" class="tip-content">
+<p>SnoozeCave (client request) <a href="#/?id=snoozecave-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Snoozing a cave means we ignore all new uploads (that would
 be potential updates) between the cave&rsquo;s last install operation
 and now.</p>
 
-<p>This can be undone by calling <code class="typename"><span class="type request-client-caller">CheckUpdate</span></code> with this specific
+<p>This can be undone by calling <code class="typename"><span class="type">CheckUpdate</span></code> with this specific
 cave identifier.</p>
 
 </p>
@@ -5186,15 +5212,15 @@ cave identifier.</p>
 </div>
 
 
-<div id="SnoozeCaveResult__TypeHint" style="display: none;" class="tip-content">
-<p>SnoozeCave <a href="#/?id=snoozecave">(Go to definition)</a></p>
+<div id="SnoozeCaveResult__TypeHint" class="tip-content">
+<p>SnoozeCave  <a href="#/?id=snoozecave-">(Go to definition)</a></p>
 
 </div>
 
 
-## update
+## update Category
 
-### <em class="struct-type"></em>GameUpdateChoice
+### GameUpdateChoice (struct)
 
 
 <p>
@@ -5210,13 +5236,13 @@ cave identifier.</p>
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td><p>Upload to be installed</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p>Build to be installed (may be nil)</p>
 </td>
 </tr>
@@ -5229,8 +5255,8 @@ cave identifier.</p>
 </table>
 
 
-<div id="GameUpdateChoice__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameUpdateChoice <a href="#/?id=gameupdatechoice">(Go to definition)</a></p>
+<div id="GameUpdateChoice__TypeHint" class="tip-content">
+<p>GameUpdateChoice (struct) <a href="#/?id=gameupdatechoice-struct">(Go to definition)</a></p>
 
 <p>
 <p>One possible upload/build choice to upgrade a cave</p>
@@ -5240,11 +5266,11 @@ cave identifier.</p>
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>confidence</code></td>
@@ -5255,9 +5281,9 @@ cave identifier.</p>
 </div>
 
 
-## Launch
+## Launch Category
 
-### <em class="request-client-caller"></em>Launch
+### Launch (client request)
 
 
 <p>
@@ -5304,8 +5330,8 @@ cave identifier.</p>
 </p>
 
 
-<div id="LaunchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Launch <a href="#/?id=launch">(Go to definition)</a></p>
+<div id="LaunchParams__TypeHint" class="tip-content">
+<p>Launch (client request) <a href="#/?id=launch-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Attempt to launch an installed game.</p>
@@ -5334,16 +5360,16 @@ cave identifier.</p>
 </div>
 
 
-<div id="LaunchResult__TypeHint" style="display: none;" class="tip-content">
-<p>Launch <a href="#/?id=launch">(Go to definition)</a></p>
+<div id="LaunchResult__TypeHint" class="tip-content">
+<p>Launch  <a href="#/?id=launch-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="notification"></em>LaunchRunning
+### LaunchRunning (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when the game is configured, prerequisites are installed
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when the game is configured, prerequisites are installed
 sandbox is set up (if enabled), and the game is actually running.</p>
 
 </p>
@@ -5353,21 +5379,21 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 </p>
 
 
-<div id="LaunchRunningNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>LaunchRunning <a href="#/?id=launchrunning">(Go to definition)</a></p>
+<div id="LaunchRunningNotification__TypeHint" class="tip-content">
+<p>LaunchRunning (notification) <a href="#/?id=launchrunning-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when the game is configured, prerequisites are installed
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, when the game is configured, prerequisites are installed
 sandbox is set up (if enabled), and the game is actually running.</p>
 
 </p>
 </div>
 
-### <em class="notification"></em>LaunchExited
+### LaunchExited (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when the game has actually exited.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when the game has actually exited.</p>
 
 </p>
 
@@ -5376,94 +5402,21 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 </p>
 
 
-<div id="LaunchExitedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>LaunchExited <a href="#/?id=launchexited">(Go to definition)</a></p>
+<div id="LaunchExitedNotification__TypeHint" class="tip-content">
+<p>LaunchExited (notification) <a href="#/?id=launchexited-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when the game has actually exited.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, when the game has actually exited.</p>
 
 </p>
 </div>
 
-### <em class="request-client-caller"></em>Launch.GetTargets
-
-
-
-<p>
-<span class="header">Parameters</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>caveId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The ID of the cave to retrieve the launch targets of</p>
-</td>
-</tr>
-<tr>
-<td><code>nonNativePlatforms</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span>[]</code></td>
-<td><p>A list of platforms that should be included when looking
-for launch targets, even though they&rsquo;re not the current platform.</p>
-</td>
-</tr>
-</table>
-
+### AcceptLicense (client caller)
 
 
 <p>
-<span class="header">Result</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>targets</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#LaunchTarget__TypeHint">LaunchTarget</span>[]</code></td>
-<td><p>All launch targets found</p>
-</td>
-</tr>
-</table>
-
-
-<div id="LaunchGetTargetsParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Launch.GetTargets <a href="#/?id=launchgettargets">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>caveId</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>nonNativePlatforms</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-
-<div id="LaunchGetTargetsResult__TypeHint" style="display: none;" class="tip-content">
-<p>LaunchGetTargets <a href="#/?id=launchgettargets">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>targets</code></td>
-<td><code class="typename"><span class="type struct-type">LaunchTarget</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### <em class="request-server-caller"></em>AcceptLicense
-
-
-<p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code> if the game/application comes with a service license
-agreement (at the time of this writing, this only happens if it was installed from a DMG file).</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code> if the game/application comes with a service license
+agreement.</p>
 
 </p>
 
@@ -5500,12 +5453,12 @@ Note that false will cancel the launch.</p>
 </table>
 
 
-<div id="AcceptLicenseParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>AcceptLicense <a href="#/?id=acceptlicense">(Go to definition)</a></p>
+<div id="AcceptLicenseParams__TypeHint" class="tip-content">
+<p>AcceptLicense (client caller) <a href="#/?id=acceptlicense-client-caller">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code> if the game/application comes with a service license
-agreement (at the time of this writing, this only happens if it was installed from a DMG file).</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code> if the game/application comes with a service license
+agreement.</p>
 
 </p>
 
@@ -5519,8 +5472,8 @@ agreement (at the time of this writing, this only happens if it was installed fr
 </div>
 
 
-<div id="AcceptLicenseResult__TypeHint" style="display: none;" class="tip-content">
-<p>AcceptLicense <a href="#/?id=acceptlicense">(Go to definition)</a></p>
+<div id="AcceptLicenseResult__TypeHint" class="tip-content">
+<p>AcceptLicense  <a href="#/?id=acceptlicense-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -5532,11 +5485,11 @@ agreement (at the time of this writing, this only happens if it was installed fr
 
 </div>
 
-### <em class="request-server-caller"></em>PickManifestAction
+### PickManifestAction (client caller)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, ask the user to pick a manifest action to launch.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, ask the user to pick a manifest action to launch.</p>
 
 <p>See <a href="https://itch.io/docs/itch/integrating/manifest.html">itch app manifests</a>.</p>
 
@@ -5550,7 +5503,7 @@ agreement (at the time of this writing, this only happens if it was installed fr
 <table class="field-table">
 <tr>
 <td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
 <td><p>A list of actions to pick from. Must be shown to the user in the order they&rsquo;re passed.</p>
 </td>
 </tr>
@@ -5573,11 +5526,11 @@ agreement (at the time of this writing, this only happens if it was installed fr
 </table>
 
 
-<div id="PickManifestActionParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>PickManifestAction <a href="#/?id=pickmanifestaction">(Go to definition)</a></p>
+<div id="PickManifestActionParams__TypeHint" class="tip-content">
+<p>PickManifestAction (client caller) <a href="#/?id=pickmanifestaction-client-caller">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, ask the user to pick a manifest action to launch.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, ask the user to pick a manifest action to launch.</p>
 
 <p>See <a href="https://itch.io/docs/itch/integrating/manifest.html">itch app manifests</a>.</p>
 
@@ -5586,15 +5539,15 @@ agreement (at the time of this writing, this only happens if it was installed fr
 <table class="field-table">
 <tr>
 <td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type">Action</span>[]</code></td>
+<td><code class="typename"><span class="type">Action</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="PickManifestActionResult__TypeHint" style="display: none;" class="tip-content">
-<p>PickManifestAction <a href="#/?id=pickmanifestaction">(Go to definition)</a></p>
+<div id="PickManifestActionResult__TypeHint" class="tip-content">
+<p>PickManifestAction  <a href="#/?id=pickmanifestaction-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -5606,14 +5559,14 @@ agreement (at the time of this writing, this only happens if it was installed fr
 
 </div>
 
-### <em class="request-server-caller"></em>ShellLaunch
+### ShellLaunch (client caller)
 
 
 <p>
 <p>Ask the client to perform a shell launch, ie. open an item
 with the operating system&rsquo;s default handler (File explorer).</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
 
 </p>
 
@@ -5638,14 +5591,14 @@ with the operating system&rsquo;s default handler (File explorer).</p>
 </p>
 
 
-<div id="ShellLaunchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>ShellLaunch <a href="#/?id=shelllaunch">(Go to definition)</a></p>
+<div id="ShellLaunchParams__TypeHint" class="tip-content">
+<p>ShellLaunch (client caller) <a href="#/?id=shelllaunch-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the client to perform a shell launch, ie. open an item
 with the operating system&rsquo;s default handler (File explorer).</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>.</p>
 
 </p>
 
@@ -5659,19 +5612,19 @@ with the operating system&rsquo;s default handler (File explorer).</p>
 </div>
 
 
-<div id="ShellLaunchResult__TypeHint" style="display: none;" class="tip-content">
-<p>ShellLaunch <a href="#/?id=shelllaunch">(Go to definition)</a></p>
+<div id="ShellLaunchResult__TypeHint" class="tip-content">
+<p>ShellLaunch  <a href="#/?id=shelllaunch-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-server-caller"></em>HTMLLaunch
+### HTMLLaunch (client caller)
 
 
 <p>
 <p>Ask the client to perform an HTML launch, ie. open an HTML5
 game, ideally in an embedded browser.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
 
 </p>
 
@@ -5714,14 +5667,14 @@ game, ideally in an embedded browser.</p>
 </p>
 
 
-<div id="HTMLLaunchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>HTMLLaunch <a href="#/?id=htmllaunch">(Go to definition)</a></p>
+<div id="HTMLLaunchParams__TypeHint" class="tip-content">
+<p>HTMLLaunch (client caller) <a href="#/?id=htmllaunch-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the client to perform an HTML launch, ie. open an HTML5
 game, ideally in an embedded browser.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>.</p>
 
 </p>
 
@@ -5747,19 +5700,19 @@ game, ideally in an embedded browser.</p>
 </div>
 
 
-<div id="HTMLLaunchResult__TypeHint" style="display: none;" class="tip-content">
-<p>HTMLLaunch <a href="#/?id=htmllaunch">(Go to definition)</a></p>
+<div id="HTMLLaunchResult__TypeHint" class="tip-content">
+<p>HTMLLaunch  <a href="#/?id=htmllaunch-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-server-caller"></em>URLLaunch
+### URLLaunch (client caller)
 
 
 <p>
 <p>Ask the client to perform an URL launch, ie. open an address
 with the system browser or appropriate.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
 
 </p>
 
@@ -5784,14 +5737,14 @@ with the system browser or appropriate.</p>
 </p>
 
 
-<div id="URLLaunchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>URLLaunch <a href="#/?id=urllaunch">(Go to definition)</a></p>
+<div id="URLLaunchParams__TypeHint" class="tip-content">
+<p>URLLaunch (client caller) <a href="#/?id=urllaunch-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the client to perform an URL launch, ie. open an address
 with the system browser or appropriate.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>.</p>
 
 </p>
 
@@ -5805,12 +5758,12 @@ with the system browser or appropriate.</p>
 </div>
 
 
-<div id="URLLaunchResult__TypeHint" style="display: none;" class="tip-content">
-<p>URLLaunch <a href="#/?id=urllaunch">(Go to definition)</a></p>
+<div id="URLLaunchResult__TypeHint" class="tip-content">
+<p>URLLaunch  <a href="#/?id=urllaunch-">(Go to definition)</a></p>
 
 </div>
 
-### <em class="request-server-caller"></em>AllowSandboxSetup
+### AllowSandboxSetup (client caller)
 
 
 <p>
@@ -5818,7 +5771,7 @@ with the system browser or appropriate.</p>
 a UAC prompt (on Windows) or a pkexec dialog (on Linux) if
 the user allows.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
 
 </p>
 
@@ -5843,22 +5796,22 @@ the user allows.</p>
 </table>
 
 
-<div id="AllowSandboxSetupParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>AllowSandboxSetup <a href="#/?id=allowsandboxsetup">(Go to definition)</a></p>
+<div id="AllowSandboxSetupParams__TypeHint" class="tip-content">
+<p>AllowSandboxSetup (client caller) <a href="#/?id=allowsandboxsetup-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Ask the user to allow sandbox setup. Will be followed by
 a UAC prompt (on Windows) or a pkexec dialog (on Linux) if
 the user allows.</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>.</p>
 
 </p>
 </div>
 
 
-<div id="AllowSandboxSetupResult__TypeHint" style="display: none;" class="tip-content">
-<p>AllowSandboxSetup <a href="#/?id=allowsandboxsetup">(Go to definition)</a></p>
+<div id="AllowSandboxSetupResult__TypeHint" class="tip-content">
+<p>AllowSandboxSetup  <a href="#/?id=allowsandboxsetup-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -5870,16 +5823,16 @@ the user allows.</p>
 
 </div>
 
-### <em class="notification"></em>PrereqsStarted
+### PrereqsStarted (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when some prerequisites are about to be installed.</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when some prerequisites are about to be installed.</p>
 
 <p>This is a good time to start showing a UI element with the state of prereq
 tasks.</p>
 
-<p>Updates are regularly provided via <code class="typename"><span class="type notification" data-tip-selector="#PrereqsTaskStateNotification__TypeHint">PrereqsTaskState</span></code>.</p>
+<p>Updates are regularly provided via <code class="typename"><span class="type" data-tip-selector="#PrereqsTaskStateNotification__TypeHint">PrereqsTaskState</span></code>.</p>
 
 </p>
 
@@ -5898,16 +5851,16 @@ tasks.</p>
 </table>
 
 
-<div id="PrereqsStartedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>PrereqsStarted <a href="#/?id=prereqsstarted">(Go to definition)</a></p>
+<div id="PrereqsStartedNotification__TypeHint" class="tip-content">
+<p>PrereqsStarted (notification) <a href="#/?id=prereqsstarted-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when some prerequisites are about to be installed.</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, when some prerequisites are about to be installed.</p>
 
 <p>This is a good time to start showing a UI element with the state of prereq
 tasks.</p>
 
-<p>Updates are regularly provided via <code class="typename"><span class="type notification">PrereqsTaskState</span></code>.</p>
+<p>Updates are regularly provided via <code class="typename"><span class="type">PrereqsTaskState</span></code>.</p>
 
 </p>
 
@@ -5920,7 +5873,7 @@ tasks.</p>
 
 </div>
 
-### <em class="struct-type"></em>PrereqTask
+### PrereqTask (struct)
 
 
 <p>
@@ -5949,8 +5902,8 @@ tasks.</p>
 </table>
 
 
-<div id="PrereqTask__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>PrereqTask <a href="#/?id=prereqtask">(Go to definition)</a></p>
+<div id="PrereqTask__TypeHint" class="tip-content">
+<p>PrereqTask (struct) <a href="#/?id=prereqtask-struct">(Go to definition)</a></p>
 
 <p>
 <p>Information about a prerequisite task.</p>
@@ -5970,13 +5923,13 @@ tasks.</p>
 
 </div>
 
-### <em class="notification"></em>PrereqsTaskState
+### PrereqsTaskState (notification)
 
 
 <p>
 <p>Current status of a prerequisite task</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, after <code class="typename"><span class="type notification" data-tip-selector="#PrereqsStartedNotification__TypeHint">PrereqsStarted</span></code>, repeatedly
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, after <code class="typename"><span class="type" data-tip-selector="#PrereqsStartedNotification__TypeHint">PrereqsStarted</span></code>, repeatedly
 until all prereq tasks are done.</p>
 
 </p>
@@ -5995,7 +5948,7 @@ until all prereq tasks are done.</p>
 </tr>
 <tr>
 <td><code>status</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#PrereqStatus__TypeHint">PrereqStatus</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PrereqStatus__TypeHint">PrereqStatus</span></code></td>
 <td><p>Current status of the prereq</p>
 </td>
 </tr>
@@ -6020,13 +5973,13 @@ until all prereq tasks are done.</p>
 </table>
 
 
-<div id="PrereqsTaskStateNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>PrereqsTaskState <a href="#/?id=prereqstaskstate">(Go to definition)</a></p>
+<div id="PrereqsTaskStateNotification__TypeHint" class="tip-content">
+<p>PrereqsTaskState (notification) <a href="#/?id=prereqstaskstate-notification">(Go to definition)</a></p>
 
 <p>
 <p>Current status of a prerequisite task</p>
 
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, after <code class="typename"><span class="type notification">PrereqsStarted</span></code>, repeatedly
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, after <code class="typename"><span class="type">PrereqsStarted</span></code>, repeatedly
 until all prereq tasks are done.</p>
 
 </p>
@@ -6038,7 +5991,7 @@ until all prereq tasks are done.</p>
 </tr>
 <tr>
 <td><code>status</code></td>
-<td><code class="typename"><span class="type enum-type">PrereqStatus</span></code></td>
+<td><code class="typename"><span class="type">PrereqStatus</span></code></td>
 </tr>
 <tr>
 <td><code>progress</code></td>
@@ -6056,7 +6009,7 @@ until all prereq tasks are done.</p>
 
 </div>
 
-### <em class="enum-type"></em>PrereqStatus
+### PrereqStatus (enum)
 
 
 
@@ -6094,8 +6047,8 @@ until all prereq tasks are done.</p>
 </table>
 
 
-<div id="PrereqStatus__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>PrereqStatus <a href="#/?id=prereqstatus">(Go to definition)</a></p>
+<div id="PrereqStatus__TypeHint" class="tip-content">
+<p>PrereqStatus (enum) <a href="#/?id=prereqstatus-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6118,11 +6071,11 @@ until all prereq tasks are done.</p>
 
 </div>
 
-### <em class="notification"></em>PrereqsEnded
+### PrereqsEnded (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when all prereqs have finished installing (successfully or not)</p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when all prereqs have finished installing (successfully or not)</p>
 
 <p>After this is received, it&rsquo;s safe to close any UI element showing prereq task state.</p>
 
@@ -6133,22 +6086,22 @@ until all prereq tasks are done.</p>
 </p>
 
 
-<div id="PrereqsEndedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>PrereqsEnded <a href="#/?id=prereqsended">(Go to definition)</a></p>
+<div id="PrereqsEndedNotification__TypeHint" class="tip-content">
+<p>PrereqsEnded (notification) <a href="#/?id=prereqsended-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when all prereqs have finished installing (successfully or not)</p>
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, when all prereqs have finished installing (successfully or not)</p>
 
 <p>After this is received, it&rsquo;s safe to close any UI element showing prereq task state.</p>
 
 </p>
 </div>
 
-### <em class="request-server-caller"></em>PrereqsFailed
+### PrereqsFailed (client caller)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when one or more prerequisites have failed to install.
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>, when one or more prerequisites have failed to install.
 The user may choose to proceed with the launch anyway.</p>
 
 </p>
@@ -6190,11 +6143,11 @@ The user may choose to proceed with the launch anyway.</p>
 </table>
 
 
-<div id="PrereqsFailedParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>PrereqsFailed <a href="#/?id=prereqsfailed">(Go to definition)</a></p>
+<div id="PrereqsFailedParams__TypeHint" class="tip-content">
+<p>PrereqsFailed (client caller) <a href="#/?id=prereqsfailed-client-caller">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Launch</span></code>, when one or more prerequisites have failed to install.
+<p>Sent during <code class="typename"><span class="type">Launch</span></code>, when one or more prerequisites have failed to install.
 The user may choose to proceed with the launch anyway.</p>
 
 </p>
@@ -6213,8 +6166,8 @@ The user may choose to proceed with the launch anyway.</p>
 </div>
 
 
-<div id="PrereqsFailedResult__TypeHint" style="display: none;" class="tip-content">
-<p>PrereqsFailed <a href="#/?id=prereqsfailed">(Go to definition)</a></p>
+<div id="PrereqsFailedResult__TypeHint" class="tip-content">
+<p>PrereqsFailed  <a href="#/?id=prereqsfailed-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6227,9 +6180,9 @@ The user may choose to proceed with the launch anyway.</p>
 </div>
 
 
-## Clean Downloads
+## Clean Downloads Category
 
-### <em class="request-client-caller"></em>CleanDownloads.Search
+### CleanDownloads.Search (client request)
 
 
 <p>
@@ -6270,15 +6223,15 @@ we know about.</p>
 <table class="field-table">
 <tr>
 <td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
 <td><p>Entries we found that could use some cleaning (with path and size information)</p>
 </td>
 </tr>
 </table>
 
 
-<div id="CleanDownloadsSearchParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CleanDownloads.Search <a href="#/?id=cleandownloadssearch">(Go to definition)</a></p>
+<div id="CleanDownloadsSearchParams__TypeHint" class="tip-content">
+<p>CleanDownloads.Search (client request) <a href="#/?id=cleandownloadssearch-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Look for folders we can clean up in various download folders.
@@ -6301,20 +6254,20 @@ we know about.</p>
 </div>
 
 
-<div id="CleanDownloadsSearchResult__TypeHint" style="display: none;" class="tip-content">
-<p>CleanDownloadsSearch <a href="#/?id=cleandownloadssearch">(Go to definition)</a></p>
+<div id="CleanDownloadsSearchResult__TypeHint" class="tip-content">
+<p>CleanDownloadsSearch  <a href="#/?id=cleandownloadssearch-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type">CleanDownloadsEntry</span>[]</code></td>
+<td><code class="typename"><span class="type">CleanDownloadsEntry</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>CleanDownloadsEntry
+### CleanDownloadsEntry (struct)
 
 
 
@@ -6339,8 +6292,8 @@ we know about.</p>
 </table>
 
 
-<div id="CleanDownloadsEntry__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CleanDownloadsEntry <a href="#/?id=cleandownloadsentry">(Go to definition)</a></p>
+<div id="CleanDownloadsEntry__TypeHint" class="tip-content">
+<p>CleanDownloadsEntry (struct) <a href="#/?id=cleandownloadsentry-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6356,7 +6309,7 @@ we know about.</p>
 
 </div>
 
-### <em class="request-client-caller"></em>CleanDownloads.Apply
+### CleanDownloads.Apply (client request)
 
 
 <p>
@@ -6372,7 +6325,7 @@ we know about.</p>
 <table class="field-table">
 <tr>
 <td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CleanDownloadsEntry__TypeHint">CleanDownloadsEntry</span>[]</code></td>
 <td></td>
 </tr>
 </table>
@@ -6384,8 +6337,8 @@ we know about.</p>
 </p>
 
 
-<div id="CleanDownloadsApplyParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>CleanDownloads.Apply <a href="#/?id=cleandownloadsapply">(Go to definition)</a></p>
+<div id="CleanDownloadsApplyParams__TypeHint" class="tip-content">
+<p>CleanDownloads.Apply (client request) <a href="#/?id=cleandownloadsapply-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Remove the specified entries from disk, freeing up disk space.</p>
@@ -6395,22 +6348,22 @@ we know about.</p>
 <table class="field-table">
 <tr>
 <td><code>entries</code></td>
-<td><code class="typename"><span class="type struct-type">CleanDownloadsEntry</span>[]</code></td>
+<td><code class="typename"><span class="type">CleanDownloadsEntry</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
 
-<div id="CleanDownloadsApplyResult__TypeHint" style="display: none;" class="tip-content">
-<p>CleanDownloadsApply <a href="#/?id=cleandownloadsapply">(Go to definition)</a></p>
+<div id="CleanDownloadsApplyResult__TypeHint" class="tip-content">
+<p>CleanDownloadsApply  <a href="#/?id=cleandownloadsapply-">(Go to definition)</a></p>
 
 </div>
 
 
-## System
+## System Category
 
-### <em class="request-client-caller"></em>System.StatFS
+### System.StatFS (client request)
 
 
 <p>
@@ -6452,8 +6405,8 @@ we know about.</p>
 </table>
 
 
-<div id="SystemStatFSParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>System.StatFS <a href="#/?id=systemstatfs">(Go to definition)</a></p>
+<div id="SystemStatFSParams__TypeHint" class="tip-content">
+<p>System.StatFS (client request) <a href="#/?id=systemstatfs-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Get information on a filesystem.</p>
@@ -6470,8 +6423,8 @@ we know about.</p>
 </div>
 
 
-<div id="SystemStatFSResult__TypeHint" style="display: none;" class="tip-content">
-<p>SystemStatFS <a href="#/?id=systemstatfs">(Go to definition)</a></p>
+<div id="SystemStatFSResult__TypeHint" class="tip-content">
+<p>SystemStatFS  <a href="#/?id=systemstatfs-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6488,14 +6441,14 @@ we know about.</p>
 </div>
 
 
-## Test
+## Test Category
 
-### <em class="request-client-caller"></em>Test.DoubleTwice
+### Test.DoubleTwice (client request)
 
 
 <p>
 <p>Test request: asks butler to double a number twice.
-First by calling <code class="typename"><span class="type request-server-caller" data-tip-selector="#TestDoubleParams__TypeHint">Test.Double</span></code>, then by
+First by calling <code class="typename"><span class="type" data-tip-selector="#TestDoubleParams__TypeHint">Test.Double</span></code>, then by
 returning the result of that call doubled.</p>
 
 <p>Use that to try out your JSON-RPC 2.0 over TCP implementation.</p>
@@ -6533,12 +6486,12 @@ returning the result of that call doubled.</p>
 </table>
 
 
-<div id="TestDoubleTwiceParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-client-caller"></em>Test.DoubleTwice <a href="#/?id=testdoubletwice">(Go to definition)</a></p>
+<div id="TestDoubleTwiceParams__TypeHint" class="tip-content">
+<p>Test.DoubleTwice (client request) <a href="#/?id=testdoubletwice-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Test request: asks butler to double a number twice.
-First by calling <code class="typename"><span class="type request-server-caller">Test.Double</span></code>, then by
+First by calling <code class="typename"><span class="type">Test.Double</span></code>, then by
 returning the result of that call doubled.</p>
 
 <p>Use that to try out your JSON-RPC 2.0 over TCP implementation.</p>
@@ -6555,8 +6508,8 @@ returning the result of that call doubled.</p>
 </div>
 
 
-<div id="TestDoubleTwiceResult__TypeHint" style="display: none;" class="tip-content">
-<p>TestDoubleTwice <a href="#/?id=testdoubletwice">(Go to definition)</a></p>
+<div id="TestDoubleTwiceResult__TypeHint" class="tip-content">
+<p>TestDoubleTwice  <a href="#/?id=testdoubletwice-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6568,12 +6521,12 @@ returning the result of that call doubled.</p>
 
 </div>
 
-### <em class="request-server-caller"></em>Test.Double
+### Test.Double (client caller)
 
 
 <p>
 <p>Test request: return a number, doubled. Implement that to
-use <code class="typename"><span class="type request-client-caller" data-tip-selector="#TestDoubleTwiceParams__TypeHint">Test.DoubleTwice</span></code> in your testing.</p>
+use <code class="typename"><span class="type" data-tip-selector="#TestDoubleTwiceParams__TypeHint">Test.DoubleTwice</span></code> in your testing.</p>
 
 </p>
 
@@ -6612,12 +6565,12 @@ use <code class="typename"><span class="type request-client-caller" data-tip-sel
 </table>
 
 
-<div id="TestDoubleParams__TypeHint" style="display: none;" class="tip-content">
-<p><em class="request-server-caller"></em>Test.Double <a href="#/?id=testdouble">(Go to definition)</a></p>
+<div id="TestDoubleParams__TypeHint" class="tip-content">
+<p>Test.Double (client caller) <a href="#/?id=testdouble-client-caller">(Go to definition)</a></p>
 
 <p>
 <p>Test request: return a number, doubled. Implement that to
-use <code class="typename"><span class="type request-client-caller">Test.DoubleTwice</span></code> in your testing.</p>
+use <code class="typename"><span class="type">Test.DoubleTwice</span></code> in your testing.</p>
 
 </p>
 
@@ -6631,8 +6584,8 @@ use <code class="typename"><span class="type request-client-caller">Test.DoubleT
 </div>
 
 
-<div id="TestDoubleResult__TypeHint" style="display: none;" class="tip-content">
-<p>TestDouble <a href="#/?id=testdouble">(Go to definition)</a></p>
+<div id="TestDoubleResult__TypeHint" class="tip-content">
+<p>TestDouble  <a href="#/?id=testdouble-">(Go to definition)</a></p>
 
 <p>
 <p>Result for Test.Double</p>
@@ -6649,9 +6602,9 @@ use <code class="typename"><span class="type request-client-caller">Test.DoubleT
 </div>
 
 
-## Miscellaneous
+## Miscellaneous Category
 
-### <em class="struct-type"></em>Profile
+### Profile (struct)
 
 
 <p>
@@ -6680,15 +6633,15 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p>User information</p>
 </td>
 </tr>
 </table>
 
 
-<div id="Profile__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Profile <a href="#/?id=profile">(Go to definition)</a></p>
+<div id="Profile__TypeHint" class="tip-content">
+<p>Profile (struct) <a href="#/?id=profile-struct">(Go to definition)</a></p>
 
 <p>
 <p>Represents a user for which we have profile information,
@@ -6707,13 +6660,13 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
+<td><code class="typename"><span class="type">User</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>CollectionGamesFilters
+### CollectionGamesFilters (struct)
 
 
 
@@ -6730,14 +6683,14 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="CollectionGamesFilters__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CollectionGamesFilters <a href="#/?id=collectiongamesfilters">(Go to definition)</a></p>
+<div id="CollectionGamesFilters__TypeHint" class="tip-content">
+<p>CollectionGamesFilters (struct) <a href="#/?id=collectiongamesfilters-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6747,13 +6700,13 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>ProfileGameFilters
+### ProfileGameFilters (struct)
 
 
 
@@ -6776,8 +6729,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="ProfileGameFilters__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ProfileGameFilters <a href="#/?id=profilegamefilters">(Go to definition)</a></p>
+<div id="ProfileGameFilters__TypeHint" class="tip-content">
+<p>ProfileGameFilters (struct) <a href="#/?id=profilegamefilters-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6793,7 +6746,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>ProfileGame
+### ProfileGame (struct)
 
 
 
@@ -6805,7 +6758,7 @@ ie. that we can connect as, etc.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -6831,14 +6784,14 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="ProfileGame__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ProfileGame <a href="#/?id=profilegame">(Go to definition)</a></p>
+<div id="ProfileGame__TypeHint" class="tip-content">
+<p>ProfileGame (struct) <a href="#/?id=profilegame-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>viewsCount</code></td>
@@ -6860,7 +6813,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>ProfileOwnedKeysFilters
+### ProfileOwnedKeysFilters (struct)
 
 
 
@@ -6877,14 +6830,14 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="ProfileOwnedKeysFilters__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ProfileOwnedKeysFilters <a href="#/?id=profileownedkeysfilters">(Go to definition)</a></p>
+<div id="ProfileOwnedKeysFilters__TypeHint" class="tip-content">
+<p>ProfileOwnedKeysFilters (struct) <a href="#/?id=profileownedkeysfilters-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6894,13 +6847,13 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>DownloadKeySummary
+### DownloadKeySummary (struct)
 
 
 
@@ -6931,8 +6884,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="DownloadKeySummary__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>DownloadKeySummary <a href="#/?id=downloadkeysummary">(Go to definition)</a></p>
+<div id="DownloadKeySummary__TypeHint" class="tip-content">
+<p>DownloadKeySummary (struct) <a href="#/?id=downloadkeysummary-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -6952,7 +6905,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>CaveSummary
+### CaveSummary (struct)
 
 
 
@@ -6990,8 +6943,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="CaveSummary__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CaveSummary <a href="#/?id=cavesummary">(Go to definition)</a></p>
+<div id="CaveSummary__TypeHint" class="tip-content">
+<p>CaveSummary (struct) <a href="#/?id=cavesummary-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7019,7 +6972,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>Cave
+### Cave (struct)
 
 
 
@@ -7036,34 +6989,34 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>stats</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CaveStats__TypeHint">CaveStats</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CaveStats__TypeHint">CaveStats</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>installInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CaveInstallInfo__TypeHint">CaveInstallInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CaveInstallInfo__TypeHint">CaveInstallInfo</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="Cave__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Cave <a href="#/?id=cave">(Go to definition)</a></p>
+<div id="Cave__TypeHint" class="tip-content">
+<p>Cave (struct) <a href="#/?id=cave-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7073,29 +7026,29 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>stats</code></td>
-<td><code class="typename"><span class="type struct-type">CaveStats</span></code></td>
+<td><code class="typename"><span class="type">CaveStats</span></code></td>
 </tr>
 <tr>
 <td><code>installInfo</code></td>
-<td><code class="typename"><span class="type struct-type">CaveInstallInfo</span></code></td>
+<td><code class="typename"><span class="type">CaveInstallInfo</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>CaveStats
+### CaveStats (struct)
 
 
 
@@ -7123,8 +7076,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="CaveStats__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CaveStats <a href="#/?id=cavestats">(Go to definition)</a></p>
+<div id="CaveStats__TypeHint" class="tip-content">
+<p>CaveStats (struct) <a href="#/?id=cavestats-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7144,7 +7097,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>CaveInstallInfo
+### CaveInstallInfo (struct)
 
 
 
@@ -7177,8 +7130,8 @@ ie. that we can connect as, etc.</p>
 </table>
 
 
-<div id="CaveInstallInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CaveInstallInfo <a href="#/?id=caveinstallinfo">(Go to definition)</a></p>
+<div id="CaveInstallInfo__TypeHint" class="tip-content">
+<p>CaveInstallInfo (struct) <a href="#/?id=caveinstallinfo-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7202,7 +7155,7 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>InstallLocationSummary
+### InstallLocationSummary (struct)
 
 
 
@@ -7224,14 +7177,14 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>sizeInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#InstallLocationSizeInfo__TypeHint">InstallLocationSizeInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSizeInfo__TypeHint">InstallLocationSizeInfo</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="InstallLocationSummary__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallLocationSummary <a href="#/?id=installlocationsummary">(Go to definition)</a></p>
+<div id="InstallLocationSummary__TypeHint" class="tip-content">
+<p>InstallLocationSummary (struct) <a href="#/?id=installlocationsummary-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7245,13 +7198,13 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>sizeInfo</code></td>
-<td><code class="typename"><span class="type struct-type">InstallLocationSizeInfo</span></code></td>
+<td><code class="typename"><span class="type">InstallLocationSizeInfo</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>InstallLocationSizeInfo
+### InstallLocationSizeInfo (struct)
 
 
 
@@ -7284,8 +7237,8 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </table>
 
 
-<div id="InstallLocationSizeInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallLocationSizeInfo <a href="#/?id=installlocationsizeinfo">(Go to definition)</a></p>
+<div id="InstallLocationSizeInfo__TypeHint" class="tip-content">
+<p>InstallLocationSizeInfo (struct) <a href="#/?id=installlocationsizeinfo-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7305,7 +7258,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 </div>
 
-### <em class="struct-type"></em>CavesFilters
+### CavesFilters (struct)
 
 
 
@@ -7317,7 +7270,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <table class="field-table">
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
@@ -7336,14 +7289,14 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </table>
 
 
-<div id="CavesFilters__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CavesFilters <a href="#/?id=cavesfilters">(Go to definition)</a></p>
+<div id="CavesFilters__TypeHint" class="tip-content">
+<p>CavesFilters (struct) <a href="#/?id=cavesfilters-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
 </tr>
 <tr>
 <td><code>gameId</code></td>
@@ -7357,7 +7310,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 </div>
 
-### <em class="struct-type"></em>InstallPlanInfo
+### InstallPlanInfo (struct)
 
 
 
@@ -7369,12 +7322,12 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7384,7 +7337,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </tr>
 <tr>
 <td><code>diskUsage</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7405,18 +7358,18 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </table>
 
 
-<div id="InstallPlanInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>InstallPlanInfo <a href="#/?id=installplaninfo">(Go to definition)</a></p>
+<div id="InstallPlanInfo__TypeHint" class="tip-content">
+<p>InstallPlanInfo (struct) <a href="#/?id=installplaninfo-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>type</code></td>
@@ -7424,7 +7377,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </tr>
 <tr>
 <td><code>diskUsage</code></td>
-<td><code class="typename"><span class="type struct-type">DiskUsageInfo</span></code></td>
+<td><code class="typename"><span class="type">DiskUsageInfo</span></code></td>
 </tr>
 <tr>
 <td><code>error</code></td>
@@ -7442,7 +7395,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 </div>
 
-### <em class="struct-type"></em>DiskUsageInfo
+### DiskUsageInfo (struct)
 
 
 
@@ -7470,8 +7423,8 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </table>
 
 
-<div id="DiskUsageInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>DiskUsageInfo <a href="#/?id=diskusageinfo">(Go to definition)</a></p>
+<div id="DiskUsageInfo__TypeHint" class="tip-content">
+<p>DiskUsageInfo (struct) <a href="#/?id=diskusageinfo-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7491,7 +7444,500 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 </div>
 
-### <em class="struct-type"></em>GameCredentials
+### InstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallEventType__TypeHint">InstallEventType</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>heal</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#HealInstallEvent__TypeHint">HealInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallInstallEvent__TypeHint">InstallInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upgrade</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UpgradeInstallEvent__TypeHint">UpgradeInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ghostBusting</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GhostBustingInstallEvent__TypeHint">GhostBustingInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>patching</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PatchingInstallEvent__TypeHint">PatchingInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#FallbackInstallEvent__TypeHint">FallbackInstallEvent</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallEvent__TypeHint" class="tip-content">
+<p>InstallEvent (struct) <a href="#/?id=installevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type">InstallEventType</span></code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+</tr>
+<tr>
+<td><code>heal</code></td>
+<td><code class="typename"><span class="type">HealInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code class="typename"><span class="type">InstallInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>upgrade</code></td>
+<td><code class="typename"><span class="type">UpgradeInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>ghostBusting</code></td>
+<td><code class="typename"><span class="type">GhostBustingInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>patching</code></td>
+<td><code class="typename"><span class="type">PatchingInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td><code class="typename"><span class="type">FallbackInstallEvent</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### InstallEventType (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"resume"</code></td>
+<td><p>Started for the first time or resumed after a pause
+or butler exit or whatever</p>
+</td>
+</tr>
+<tr>
+<td><code>"stop"</code></td>
+<td><p>Stopped explicitly (pausing downloads), can&rsquo;t rely
+on this being present because BRÜTAL PÖWER LÖSS will
+not announce itself 🔥</p>
+</td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+<td><p>Regular install from archive or naked file</p>
+</td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+<td><p>Reverting to previous version or re-installing
+wharf-powered upload</p>
+</td>
+</tr>
+<tr>
+<td><code>"upgrade"</code></td>
+<td><p>Applying one or more wharf patches</p>
+</td>
+</tr>
+<tr>
+<td><code>"patching"</code></td>
+<td><p>Applying a single wharf patch</p>
+</td>
+</tr>
+<tr>
+<td><code>"ghostBusting"</code></td>
+<td><p>Cleaning up ghost files</p>
+</td>
+</tr>
+<tr>
+<td><code>"problem"</code></td>
+<td><p>Any kind of step failing</p>
+</td>
+</tr>
+<tr>
+<td><code>"fallback"</code></td>
+<td><p>Any operation we do as a result of another one failing,
+but in a case where we&rsquo;re still expecting a favorable
+outcome eventually.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallEventType__TypeHint" class="tip-content">
+<p>InstallEventType (enum) <a href="#/?id=installeventtype-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"resume"</code></td>
+</tr>
+<tr>
+<td><code>"stop"</code></td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+</tr>
+<tr>
+<td><code>"upgrade"</code></td>
+</tr>
+<tr>
+<td><code>"patching"</code></td>
+</tr>
+<tr>
+<td><code>"ghostBusting"</code></td>
+</tr>
+<tr>
+<td><code>"problem"</code></td>
+</tr>
+<tr>
+<td><code>"fallback"</code></td>
+</tr>
+</table>
+
+</div>
+
+### InstallInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>manager</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallInstallEvent__TypeHint" class="tip-content">
+<p>InstallInstallEvent (struct) <a href="#/?id=installinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>manager</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### HealInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>totalCorrupted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>appliedCaseFixes</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="HealInstallEvent__TypeHint" class="tip-content">
+<p>HealInstallEvent (struct) <a href="#/?id=healinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>totalCorrupted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>appliedCaseFixes</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### UpgradeInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numPatches</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="UpgradeInstallEvent__TypeHint" class="tip-content">
+<p>UpgradeInstallEvent (struct) <a href="#/?id=upgradeinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numPatches</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### ProblemInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Short error</p>
+</td>
+</tr>
+<tr>
+<td><code>errorStack</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Longer error</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProblemInstallEvent__TypeHint" class="tip-content">
+<p>ProblemInstallEvent (struct) <a href="#/?id=probleminstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorStack</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### FallbackInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>attempted</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Name of the operation we were trying to do</p>
+</td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
+<td><p>Problem encountered while trying &ldquo;attempted&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>nowTrying</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Name of the operation we&rsquo;re falling back to</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FallbackInstallEvent__TypeHint" class="tip-content">
+<p>FallbackInstallEvent (struct) <a href="#/?id=fallbackinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>attempted</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>nowTrying</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PatchingInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Build we patched to</p>
+</td>
+</tr>
+<tr>
+<td><code>subtype</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>&ldquo;default&rdquo; or &ldquo;optimized&rdquo; (for the +bsdiff variant)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PatchingInstallEvent__TypeHint" class="tip-content">
+<p>PatchingInstallEvent (struct) <a href="#/?id=patchinginstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>subtype</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GhostBustingInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Operation that requested the ghost busting (install, upgrade, heal)</p>
+</td>
+</tr>
+<tr>
+<td><code>found</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of ghost files found</p>
+</td>
+</tr>
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of ghost files removed</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GhostBustingInstallEvent__TypeHint" class="tip-content">
+<p>GhostBustingInstallEvent (struct) <a href="#/?id=ghostbustinginstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>found</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GameCredentials (struct)
 
 
 <p>
@@ -7521,8 +7967,8 @@ including the download key if any.</p>
 </table>
 
 
-<div id="GameCredentials__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameCredentials <a href="#/?id=gamecredentials">(Go to definition)</a></p>
+<div id="GameCredentials__TypeHint" class="tip-content">
+<p>GameCredentials (struct) <a href="#/?id=gamecredentials-struct">(Go to definition)</a></p>
 
 <p>
 <p>GameCredentials contains all the credentials required to make API requests
@@ -7543,7 +7989,7 @@ including the download key if any.</p>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Progress
+### Downloads.Drive.Progress (notification)
 
 
 
@@ -7555,12 +8001,12 @@ including the download key if any.</p>
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>progress</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7572,18 +8018,18 @@ including the download key if any.</p>
 </table>
 
 
-<div id="DownloadsDriveProgressNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Progress <a href="#/?id=downloadsdriveprogress">(Go to definition)</a></p>
+<div id="DownloadsDriveProgressNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.Progress (notification) <a href="#/?id=downloadsdriveprogress-notification">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+<td><code class="typename"><span class="type">Download</span></code></td>
 </tr>
 <tr>
 <td><code>progress</code></td>
-<td><code class="typename"><span class="type struct-type">DownloadProgress</span></code></td>
+<td><code class="typename"><span class="type">DownloadProgress</span></code></td>
 </tr>
 <tr>
 <td><code>speedHistory</code></td>
@@ -7593,7 +8039,7 @@ including the download key if any.</p>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Started
+### Downloads.Drive.Started (notification)
 
 
 
@@ -7605,26 +8051,26 @@ including the download key if any.</p>
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="DownloadsDriveStartedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Started <a href="#/?id=downloadsdrivestarted">(Go to definition)</a></p>
+<div id="DownloadsDriveStartedNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.Started (notification) <a href="#/?id=downloadsdrivestarted-notification">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+<td><code class="typename"><span class="type">Download</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Errored
+### Downloads.Drive.Errored (notification)
 
 
 
@@ -7636,7 +8082,7 @@ including the download key if any.</p>
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td><p>The download that errored. It contains all the error
 information: a short message, a full stack trace,
 and a butlerd error code.</p>
@@ -7645,20 +8091,20 @@ and a butlerd error code.</p>
 </table>
 
 
-<div id="DownloadsDriveErroredNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Errored <a href="#/?id=downloadsdriveerrored">(Go to definition)</a></p>
+<div id="DownloadsDriveErroredNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.Errored (notification) <a href="#/?id=downloadsdriveerrored-notification">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+<td><code class="typename"><span class="type">Download</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Finished
+### Downloads.Drive.Finished (notification)
 
 
 
@@ -7670,26 +8116,26 @@ and a butlerd error code.</p>
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="DownloadsDriveFinishedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Finished <a href="#/?id=downloadsdrivefinished">(Go to definition)</a></p>
+<div id="DownloadsDriveFinishedNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.Finished (notification) <a href="#/?id=downloadsdrivefinished-notification">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+<td><code class="typename"><span class="type">Download</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.Discarded
+### Downloads.Drive.Discarded (notification)
 
 
 
@@ -7701,30 +8147,30 @@ and a butlerd error code.</p>
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="DownloadsDriveDiscardedNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.Discarded <a href="#/?id=downloadsdrivediscarded">(Go to definition)</a></p>
+<div id="DownloadsDriveDiscardedNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.Discarded (notification) <a href="#/?id=downloadsdrivediscarded-notification">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>download</code></td>
-<td><code class="typename"><span class="type struct-type">Download</span></code></td>
+<td><code class="typename"><span class="type">Download</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="notification"></em>Downloads.Drive.NetworkStatus
+### Downloads.Drive.NetworkStatus (notification)
 
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> to inform on network
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> to inform on network
 status changes.</p>
 
 </p>
@@ -7737,18 +8183,18 @@ status changes.</p>
 <table class="field-table">
 <tr>
 <td><code>status</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#NetworkStatus__TypeHint">NetworkStatus</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#NetworkStatus__TypeHint">NetworkStatus</span></code></td>
 <td><p>The current network status</p>
 </td>
 </tr>
 </table>
 
 
-<div id="DownloadsDriveNetworkStatusNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Downloads.Drive.NetworkStatus <a href="#/?id=downloadsdrivenetworkstatus">(Go to definition)</a></p>
+<div id="DownloadsDriveNetworkStatusNotification__TypeHint" class="tip-content">
+<p>Downloads.Drive.NetworkStatus (notification) <a href="#/?id=downloadsdrivenetworkstatus-notification">(Go to definition)</a></p>
 
 <p>
-<p>Sent during <code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code> to inform on network
+<p>Sent during <code class="typename"><span class="type">Downloads.Drive</span></code> to inform on network
 status changes.</p>
 
 </p>
@@ -7756,13 +8202,13 @@ status changes.</p>
 <table class="field-table">
 <tr>
 <td><code>status</code></td>
-<td><code class="typename"><span class="type enum-type">NetworkStatus</span></code></td>
+<td><code class="typename"><span class="type">NetworkStatus</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>NetworkStatus
+### NetworkStatus (enum)
 
 
 
@@ -7783,8 +8229,8 @@ status changes.</p>
 </table>
 
 
-<div id="NetworkStatus__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>NetworkStatus <a href="#/?id=networkstatus">(Go to definition)</a></p>
+<div id="NetworkStatus__TypeHint" class="tip-content">
+<p>NetworkStatus (enum) <a href="#/?id=networkstatus-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7798,7 +8244,7 @@ status changes.</p>
 
 </div>
 
-### <em class="enum-type"></em>DownloadReason
+### DownloadReason (enum)
 
 
 
@@ -7827,8 +8273,8 @@ status changes.</p>
 </table>
 
 
-<div id="DownloadReason__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>DownloadReason <a href="#/?id=downloadreason">(Go to definition)</a></p>
+<div id="DownloadReason__TypeHint" class="tip-content">
+<p>DownloadReason (enum) <a href="#/?id=downloadreason-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7848,12 +8294,12 @@ status changes.</p>
 
 </div>
 
-### <em class="struct-type"></em>Download
+### Download (struct)
 
 
 <p>
 <p>Represents a download queued, which will be
-performed whenever <code class="typename"><span class="type request-client-caller" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> is called.</p>
+performed whenever <code class="typename"><span class="type" data-tip-selector="#DownloadsDriveParams__TypeHint">Downloads.Drive</span></code> is called.</p>
 
 </p>
 
@@ -7885,7 +8331,7 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadReason__TypeHint">DownloadReason</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7900,17 +8346,17 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7931,12 +8377,12 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </table>
 
 
-<div id="Download__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Download <a href="#/?id=download">(Go to definition)</a></p>
+<div id="Download__TypeHint" class="tip-content">
+<p>Download (struct) <a href="#/?id=download-struct">(Go to definition)</a></p>
 
 <p>
 <p>Represents a download queued, which will be
-performed whenever <code class="typename"><span class="type request-client-caller">Downloads.Drive</span></code> is called.</p>
+performed whenever <code class="typename"><span class="type">Downloads.Drive</span></code> is called.</p>
 
 </p>
 
@@ -7959,7 +8405,7 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </tr>
 <tr>
 <td><code>reason</code></td>
-<td><code class="typename"><span class="type enum-type">DownloadReason</span></code></td>
+<td><code class="typename"><span class="type">DownloadReason</span></code></td>
 </tr>
 <tr>
 <td><code>position</code></td>
@@ -7971,15 +8417,15 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>startedAt</code></td>
@@ -7997,7 +8443,7 @@ performed whenever <code class="typename"><span class="type request-client-calle
 
 </div>
 
-### <em class="struct-type"></em>DownloadProgress
+### DownloadProgress (struct)
 
 
 
@@ -8030,8 +8476,8 @@ performed whenever <code class="typename"><span class="type request-client-calle
 </table>
 
 
-<div id="DownloadProgress__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>DownloadProgress <a href="#/?id=downloadprogress">(Go to definition)</a></p>
+<div id="DownloadProgress__TypeHint" class="tip-content">
+<p>DownloadProgress (struct) <a href="#/?id=downloadprogress-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8055,7 +8501,7 @@ performed whenever <code class="typename"><span class="type request-client-calle
 
 </div>
 
-### <em class="notification"></em>Log
+### Log (notification)
 
 
 <p>
@@ -8073,7 +8519,7 @@ can be part of an issue report if something goes wrong.</p>
 <table class="field-table">
 <tr>
 <td><code>level</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#LogLevel__TypeHint">LogLevel</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LogLevel__TypeHint">LogLevel</span></code></td>
 <td><p>Level of the message (<code>info</code>, <code>warn</code>, etc.)</p>
 </td>
 </tr>
@@ -8088,8 +8534,8 @@ can be part of an issue report if something goes wrong.</p>
 </table>
 
 
-<div id="LogNotification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="notification"></em>Log <a href="#/?id=log">(Go to definition)</a></p>
+<div id="LogNotification__TypeHint" class="tip-content">
+<p>Log (notification) <a href="#/?id=log-notification">(Go to definition)</a></p>
 
 <p>
 <p>Sent any time butler needs to send a log message. The client should
@@ -8101,7 +8547,7 @@ can be part of an issue report if something goes wrong.</p>
 <table class="field-table">
 <tr>
 <td><code>level</code></td>
-<td><code class="typename"><span class="type enum-type">LogLevel</span></code></td>
+<td><code class="typename"><span class="type">LogLevel</span></code></td>
 </tr>
 <tr>
 <td><code>message</code></td>
@@ -8111,7 +8557,7 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
-### <em class="enum-type"></em>LogLevel
+### LogLevel (enum)
 
 
 
@@ -8144,8 +8590,8 @@ can be part of an issue report if something goes wrong.</p>
 </table>
 
 
-<div id="LogLevel__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>LogLevel <a href="#/?id=loglevel">(Go to definition)</a></p>
+<div id="LogLevel__TypeHint" class="tip-content">
+<p>LogLevel (enum) <a href="#/?id=loglevel-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8165,7 +8611,7 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
-### <em class="enum-type"></em>Code
+### Code (enum)
 
 
 <p>
@@ -8242,8 +8688,8 @@ can be part of an issue report if something goes wrong.</p>
 </table>
 
 
-<div id="Code__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Code <a href="#/?id=code">(Go to definition)</a></p>
+<div id="Code__TypeHint" class="tip-content">
+<p>Code (enum) <a href="#/?id=code-enum">(Go to definition)</a></p>
 
 <p>
 <p>butlerd JSON-RPC 2.0 error codes</p>
@@ -8291,16 +8737,16 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
-### Cursor
+### Cursor 
 
 
 Type alias for string
 
-<div id="Cursor__TypeHint" style="display: none;" class="tip-content">
-<p>Cursor <a href="#/?id=cursor">(Go to definition)</a></p>
+<div id="Cursor__TypeHint" class="tip-content">
+<p>Cursor  <a href="#/?id=cursor-">(Go to definition)</a></p>
 </div>
 
-### <em class="struct-type"></em>LaunchTarget
+### LaunchTarget (struct)
 
 
 
@@ -8312,48 +8758,48 @@ Type alias for string
 <table class="field-table">
 <tr>
 <td><code>action</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
 <td><p>The manifest action corresponding to this launch target.
 For implicit launch targets, a minimal one will be generated.</p>
 </td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
-<td><p>Platform this launch target was found for</p>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Host__TypeHint">Host</span></code></td>
+<td><p>Runtime this launch target was found for</p>
 </td>
 </tr>
 <tr>
 <td><code>strategy</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
 <td><p>Detailed launch strategy</p>
 </td>
 </tr>
 </table>
 
 
-<div id="LaunchTarget__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>LaunchTarget <a href="#/?id=launchtarget">(Go to definition)</a></p>
+<div id="LaunchTarget__TypeHint" class="tip-content">
+<p>LaunchTarget (struct) <a href="#/?id=launchtarget-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>action</code></td>
-<td><code class="typename"><span class="type struct-type">Action</span></code></td>
+<td><code class="typename"><span class="type">Action</span></code></td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type">Host</span></code></td>
 </tr>
 <tr>
 <td><code>strategy</code></td>
-<td><code class="typename"><span class="type struct-type">Strategy</span></code></td>
+<td><code class="typename"><span class="type">Strategy</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>LaunchStrategy
+### LaunchStrategy (enum)
 
 
 
@@ -8386,8 +8832,8 @@ For implicit launch targets, a minimal one will be generated.</p>
 </table>
 
 
-<div id="LaunchStrategy__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>LaunchStrategy <a href="#/?id=launchstrategy">(Go to definition)</a></p>
+<div id="LaunchStrategy__TypeHint" class="tip-content">
+<p>LaunchStrategy (enum) <a href="#/?id=launchstrategy-enum">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8410,7 +8856,130 @@ For implicit launch targets, a minimal one will be generated.</p>
 
 </div>
 
-### <em class="struct-type"></em>Manifest
+### Host (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Runtime__TypeHint">Runtime</span></code></td>
+<td><p>os + arch, e.g. windows-i386, linux-amd64</p>
+</td>
+</tr>
+<tr>
+<td><code>wrapper</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Wrapper__TypeHint">Wrapper</span></code></td>
+<td><p>wrapper tool (wine, etc.) that butler can launch itself</p>
+</td>
+</tr>
+<tr>
+<td><code>remoteLaunchName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Host__TypeHint" class="tip-content">
+<p>Host (struct) <a href="#/?id=host-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>runtime</code></td>
+<td><code class="typename"><span class="type">Runtime</span></code></td>
+</tr>
+<tr>
+<td><code>wrapper</code></td>
+<td><code class="typename"><span class="type">Wrapper</span></code></td>
+</tr>
+<tr>
+<td><code>remoteLaunchName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Wrapper (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>beforeTarget</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>wrapper {HERE} game.exe &ndash;launch-editor</p>
+</td>
+</tr>
+<tr>
+<td><code>betweenTargetAndArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>wrapper game.exe {HERE} &ndash;launch-editor</p>
+</td>
+</tr>
+<tr>
+<td><code>afterArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>wrapper game.exe &ndash;launch-editor {HERE}</p>
+</td>
+</tr>
+<tr>
+<td><code>wrapperBinary</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>full path to the wrapper, like &ldquo;wine&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p>additional environment variables</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Wrapper__TypeHint" class="tip-content">
+<p>Wrapper (struct) <a href="#/?id=wrapper-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>beforeTarget</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>betweenTargetAndArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>afterArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>wrapperBinary</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Manifest (struct)
 
 
 <p>
@@ -8427,13 +8996,13 @@ can be taken while launching a game.</p>
 <table class="field-table">
 <tr>
 <td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span>[]</code></td>
 <td><p>Actions are a list of options to give the user when launching a game.</p>
 </td>
 </tr>
 <tr>
 <td><code>prereqs</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
 <td><p>Prereqs describe libraries or frameworks that must be installed
 prior to launching a game</p>
 </td>
@@ -8441,8 +9010,8 @@ prior to launching a game</p>
 </table>
 
 
-<div id="Manifest__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Manifest <a href="#/?id=manifest">(Go to definition)</a></p>
+<div id="Manifest__TypeHint" class="tip-content">
+<p>Manifest (struct) <a href="#/?id=manifest-struct">(Go to definition)</a></p>
 
 <p>
 <p>A Manifest describes prerequisites (dependencies) and actions that
@@ -8453,17 +9022,17 @@ can be taken while launching a game.</p>
 <table class="field-table">
 <tr>
 <td><code>actions</code></td>
-<td><code class="typename"><span class="type struct-type">Action</span>[]</code></td>
+<td><code class="typename"><span class="type">Action</span>[]</code></td>
 </tr>
 <tr>
 <td><code>prereqs</code></td>
-<td><code class="typename"><span class="type struct-type">Prereq</span>[]</code></td>
+<td><code class="typename"><span class="type">Prereq</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>Action
+### Action (struct)
 
 
 <p>
@@ -8523,7 +9092,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
 <td><p>platform to restrict this action to</p>
 </td>
 </tr>
@@ -8536,8 +9105,8 @@ can be taken while launching a game.</p>
 </table>
 
 
-<div id="Action__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Action <a href="#/?id=action">(Go to definition)</a></p>
+<div id="Action__TypeHint" class="tip-content">
+<p>Action (struct) <a href="#/?id=action-struct">(Go to definition)</a></p>
 
 <p>
 <p>An Action is a choice for the user to pick when launching a game.</p>
@@ -8577,7 +9146,7 @@ can be taken while launching a game.</p>
 </tr>
 <tr>
 <td><code>platform</code></td>
-<td><code class="typename"><span class="type builtin-type">Platform</span></code></td>
+<td><code class="typename"><span class="type">Platform</span></code></td>
 </tr>
 <tr>
 <td><code>locales</code></td>
@@ -8587,7 +9156,7 @@ can be taken while launching a game.</p>
 
 </div>
 
-### <em class="struct-type"></em>Prereq
+### Prereq (struct)
 
 
 
@@ -8606,8 +9175,8 @@ can be taken while launching a game.</p>
 </table>
 
 
-<div id="Prereq__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Prereq <a href="#/?id=prereq">(Go to definition)</a></p>
+<div id="Prereq__TypeHint" class="tip-content">
+<p>Prereq (struct) <a href="#/?id=prereq-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8619,7 +9188,7 @@ can be taken while launching a game.</p>
 
 </div>
 
-### <em class="struct-type"></em>ActionLocale
+### ActionLocale (struct)
 
 
 
@@ -8638,8 +9207,8 @@ can be taken while launching a game.</p>
 </table>
 
 
-<div id="ActionLocale__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ActionLocale <a href="#/?id=actionlocale">(Go to definition)</a></p>
+<div id="ActionLocale__TypeHint" class="tip-content">
+<p>ActionLocale (struct) <a href="#/?id=actionlocale-struct">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8651,7 +9220,105 @@ can be taken while launching a game.</p>
 
 </div>
 
-### <em class="struct-type"></em>User
+### Platform (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Platform__TypeHint" class="tip-content">
+<p>Platform (enum) <a href="#/?id=platform-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+</tr>
+</table>
+
+</div>
+
+### Runtime (struct)
+
+
+<p>
+<p>Runtime describes an os-arch combo in a convenient way</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>is64</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Runtime__TypeHint" class="tip-content">
+<p>Runtime (struct) <a href="#/?id=runtime-struct">(Go to definition)</a></p>
+
+<p>
+<p>Runtime describes an os-arch combo in a convenient way</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type">Platform</span></code></td>
+</tr>
+<tr>
+<td><code>is64</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### User (struct)
 
 
 <p>
@@ -8716,8 +9383,8 @@ can be taken while launching a game.</p>
 </table>
 
 
-<div id="User__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>User <a href="#/?id=user">(Go to definition)</a></p>
+<div id="User__TypeHint" class="tip-content">
+<p>User (struct) <a href="#/?id=user-struct">(Go to definition)</a></p>
 
 <p>
 <p>User represents an itch.io account, with basic profile info</p>
@@ -8761,7 +9428,7 @@ can be taken while launching a game.</p>
 
 </div>
 
-### <em class="struct-type"></em>Game
+### Game (struct)
 
 
 <p>
@@ -8802,19 +9469,19 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameType__TypeHint">GameType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameType__TypeHint">GameType</span></code></td>
 <td><p>Downloadable game, html game, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td><p>Classification: game, tool, comic, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>embed</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#GameEmbedData__TypeHint">GameEmbedData</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameEmbedData__TypeHint">GameEmbedData</span></code></td>
 <td><p><span class="tag">Optional</span> Configuration for embedded (HTML5) games</p>
 </td>
 </tr>
@@ -8868,13 +9535,13 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>platforms</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Platforms__TypeHint">Platforms</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platforms__TypeHint">Platforms</span></code></td>
 <td><p>Platforms this game is available for</p>
 </td>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p><span class="tag">Optional</span> The user account this game is associated to</p>
 </td>
 </tr>
@@ -8886,7 +9553,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>sale</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Sale__TypeHint">Sale</span></code></td>
 <td><p><span class="tag">Optional</span> The best current sale for this game</p>
 </td>
 </tr>
@@ -8913,8 +9580,8 @@ a tool, a comic, etc.</p>
 </table>
 
 
-<div id="Game__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Game <a href="#/?id=game">(Go to definition)</a></p>
+<div id="Game__TypeHint" class="tip-content">
+<p>Game (struct) <a href="#/?id=game-struct">(Go to definition)</a></p>
 
 <p>
 <p>Game represents a page on itch.io, it could be a game,
@@ -8941,15 +9608,15 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">GameType</span></code></td>
+<td><code class="typename"><span class="type">GameType</span></code></td>
 </tr>
 <tr>
 <td><code>classification</code></td>
-<td><code class="typename"><span class="type enum-type">GameClassification</span></code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
 </tr>
 <tr>
 <td><code>embed</code></td>
-<td><code class="typename"><span class="type struct-type">GameEmbedData</span></code></td>
+<td><code class="typename"><span class="type">GameEmbedData</span></code></td>
 </tr>
 <tr>
 <td><code>coverUrl</code></td>
@@ -8985,11 +9652,11 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>platforms</code></td>
-<td><code class="typename"><span class="type struct-type">Platforms</span></code></td>
+<td><code class="typename"><span class="type">Platforms</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
+<td><code class="typename"><span class="type">User</span></code></td>
 </tr>
 <tr>
 <td><code>userId</code></td>
@@ -8997,7 +9664,7 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>sale</code></td>
-<td><code class="typename"><span class="type struct-type">Sale</span></code></td>
+<td><code class="typename"><span class="type">Sale</span></code></td>
 </tr>
 <tr>
 <td><code>viewsCount</code></td>
@@ -9019,7 +9686,7 @@ a tool, a comic, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>Platforms
+### Platforms (struct)
 
 
 <p>
@@ -9036,24 +9703,24 @@ is compatible with.</p>
 <table class="field-table">
 <tr>
 <td><code>windows</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>linux</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>osx</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="Platforms__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Platforms <a href="#/?id=platforms">(Go to definition)</a></p>
+<div id="Platforms__TypeHint" class="tip-content">
+<p>Platforms (struct) <a href="#/?id=platforms-struct">(Go to definition)</a></p>
 
 <p>
 <p>Platforms describes which OS/architectures a game or upload
@@ -9064,21 +9731,21 @@ is compatible with.</p>
 <table class="field-table">
 <tr>
 <td><code>windows</code></td>
-<td><code class="typename"><span class="type enum-type">Architectures</span></code></td>
+<td><code class="typename"><span class="type">Architectures</span></code></td>
 </tr>
 <tr>
 <td><code>linux</code></td>
-<td><code class="typename"><span class="type enum-type">Architectures</span></code></td>
+<td><code class="typename"><span class="type">Architectures</span></code></td>
 </tr>
 <tr>
 <td><code>osx</code></td>
-<td><code class="typename"><span class="type enum-type">Architectures</span></code></td>
+<td><code class="typename"><span class="type">Architectures</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>Architectures
+### Architectures (enum)
 
 
 <p>
@@ -9110,8 +9777,8 @@ is compatible with.</p>
 </table>
 
 
-<div id="Architectures__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Architectures <a href="#/?id=architectures">(Go to definition)</a></p>
+<div id="Architectures__TypeHint" class="tip-content">
+<p>Architectures (enum) <a href="#/?id=architectures-enum">(Go to definition)</a></p>
 
 <p>
 <p>Architectures describes a set of processor architectures (mostly 32-bit vs 64-bit)</p>
@@ -9132,7 +9799,7 @@ is compatible with.</p>
 
 </div>
 
-### <em class="enum-type"></em>GameType
+### GameType (enum)
 
 
 <p>
@@ -9175,8 +9842,8 @@ how it should be presented on web (downloadable or embed)</p>
 </table>
 
 
-<div id="GameType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>GameType <a href="#/?id=gametype">(Go to definition)</a></p>
+<div id="GameType__TypeHint" class="tip-content">
+<p>GameType (enum) <a href="#/?id=gametype-enum">(Go to definition)</a></p>
 
 <p>
 <p>GameType is the type of an itch.io game page, mostly related to
@@ -9204,7 +9871,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 </div>
 
-### <em class="enum-type"></em>GameClassification
+### GameClassification (enum)
 
 
 <p>
@@ -9266,8 +9933,8 @@ how it should be presented on web (downloadable or embed)</p>
 </table>
 
 
-<div id="GameClassification__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>GameClassification <a href="#/?id=gameclassification">(Go to definition)</a></p>
+<div id="GameClassification__TypeHint" class="tip-content">
+<p>GameClassification (enum) <a href="#/?id=gameclassification-enum">(Go to definition)</a></p>
 
 <p>
 <p>GameClassification is the creator-picked classification for a page</p>
@@ -9306,7 +9973,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 </div>
 
-### <em class="struct-type"></em>GameEmbedData
+### GameEmbedData (struct)
 
 
 <p>
@@ -9347,8 +10014,8 @@ how it should be presented on web (downloadable or embed)</p>
 </table>
 
 
-<div id="GameEmbedData__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>GameEmbedData <a href="#/?id=gameembeddata">(Go to definition)</a></p>
+<div id="GameEmbedData__TypeHint" class="tip-content">
+<p>GameEmbedData (struct) <a href="#/?id=gameembeddata-struct">(Go to definition)</a></p>
 
 <p>
 <p>GameEmbedData contains presentation information for embed games</p>
@@ -9376,7 +10043,7 @@ how it should be presented on web (downloadable or embed)</p>
 
 </div>
 
-### <em class="struct-type"></em>Sale
+### Sale (struct)
 
 
 <p>
@@ -9424,8 +10091,8 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 </table>
 
 
-<div id="Sale__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Sale <a href="#/?id=sale">(Go to definition)</a></p>
+<div id="Sale__TypeHint" class="tip-content">
+<p>Sale (struct) <a href="#/?id=sale-struct">(Go to definition)</a></p>
 
 <p>
 <p>Sale describes a discount for a game.</p>
@@ -9457,7 +10124,7 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 
 </div>
 
-### <em class="struct-type"></em>Upload
+### Upload (struct)
 
 
 <p>
@@ -9481,7 +10148,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>storage</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadStorage__TypeHint">UploadStorage</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UploadStorage__TypeHint">UploadStorage</span></code></td>
 <td><p>Storage (hosted, external, etc.)</p>
 </td>
 </tr>
@@ -9517,7 +10184,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p>Latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
 </td>
 </tr>
@@ -9529,7 +10196,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#UploadType__TypeHint">UploadType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UploadType__TypeHint">UploadType</span></code></td>
 <td><p>Upload type: default, soundtrack, etc.</p>
 </td>
 </tr>
@@ -9547,7 +10214,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>platforms</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Platforms__TypeHint">Platforms</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platforms__TypeHint">Platforms</span></code></td>
 <td><p>Platforms this upload is compatible with</p>
 </td>
 </tr>
@@ -9566,8 +10233,8 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </table>
 
 
-<div id="Upload__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Upload <a href="#/?id=upload">(Go to definition)</a></p>
+<div id="Upload__TypeHint" class="tip-content">
+<p>Upload (struct) <a href="#/?id=upload-struct">(Go to definition)</a></p>
 
 <p>
 <p>An Upload is a downloadable file. Some are wharf-enabled, which means
@@ -9583,7 +10250,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>storage</code></td>
-<td><code class="typename"><span class="type enum-type">UploadStorage</span></code></td>
+<td><code class="typename"><span class="type">UploadStorage</span></code></td>
 </tr>
 <tr>
 <td><code>host</code></td>
@@ -9607,7 +10274,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>buildId</code></td>
@@ -9615,7 +10282,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">UploadType</span></code></td>
+<td><code class="typename"><span class="type">UploadType</span></code></td>
 </tr>
 <tr>
 <td><code>preorder</code></td>
@@ -9627,7 +10294,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>platforms</code></td>
-<td><code class="typename"><span class="type struct-type">Platforms</span></code></td>
+<td><code class="typename"><span class="type">Platforms</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -9641,7 +10308,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 
 </div>
 
-### <em class="enum-type"></em>UploadStorage
+### UploadStorage (enum)
 
 
 <p>
@@ -9673,8 +10340,8 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </table>
 
 
-<div id="UploadStorage__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>UploadStorage <a href="#/?id=uploadstorage">(Go to definition)</a></p>
+<div id="UploadStorage__TypeHint" class="tip-content">
+<p>UploadStorage (enum) <a href="#/?id=uploadstorage-enum">(Go to definition)</a></p>
 
 <p>
 <p>UploadStorage describes where an upload file is stored.</p>
@@ -9695,7 +10362,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 
 </div>
 
-### <em class="enum-type"></em>UploadType
+### UploadType (enum)
 
 
 <p>
@@ -9784,8 +10451,8 @@ or for stuff that isn&rsquo;t tagged properly.</p>
 </table>
 
 
-<div id="UploadType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>UploadType <a href="#/?id=uploadtype">(Go to definition)</a></p>
+<div id="UploadType__TypeHint" class="tip-content">
+<p>UploadType (enum) <a href="#/?id=uploadtype-enum">(Go to definition)</a></p>
 
 <p>
 <p>UploadType describes what&rsquo;s in an upload - an executable,
@@ -9840,7 +10507,7 @@ a web game, some music, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>Collection
+### Collection (struct)
 
 
 <p>
@@ -9888,7 +10555,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>collectionGames</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
 <td><p>Games in this collection, with additional info</p>
 </td>
 </tr>
@@ -9899,14 +10566,14 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="Collection__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Collection <a href="#/?id=collection">(Go to definition)</a></p>
+<div id="Collection__TypeHint" class="tip-content">
+<p>Collection (struct) <a href="#/?id=collection-struct">(Go to definition)</a></p>
 
 <p>
 <p>A Collection is a set of games, curated by humans.</p>
@@ -9936,7 +10603,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>collectionGames</code></td>
-<td><code class="typename"><span class="type struct-type">CollectionGame</span>[]</code></td>
+<td><code class="typename"><span class="type">CollectionGame</span>[]</code></td>
 </tr>
 <tr>
 <td><code>userId</code></td>
@@ -9944,13 +10611,13 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
+<td><code class="typename"><span class="type">User</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>CollectionGame
+### CollectionGame (struct)
 
 
 <p>
@@ -9971,7 +10638,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -9981,7 +10648,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -10012,8 +10679,8 @@ page deleted, visibility level changed, etc.)</p>
 </table>
 
 
-<div id="CollectionGame__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>CollectionGame <a href="#/?id=collectiongame">(Go to definition)</a></p>
+<div id="CollectionGame__TypeHint" class="tip-content">
+<p>CollectionGame (struct) <a href="#/?id=collectiongame-struct">(Go to definition)</a></p>
 
 <p>
 <p>CollectionGame represents a game&rsquo;s membership for a collection.</p>
@@ -10027,7 +10694,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>collection</code></td>
-<td><code class="typename"><span class="type struct-type">Collection</span></code></td>
+<td><code class="typename"><span class="type">Collection</span></code></td>
 </tr>
 <tr>
 <td><code>gameId</code></td>
@@ -10035,7 +10702,7 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>position</code></td>
@@ -10061,7 +10728,7 @@ page deleted, visibility level changed, etc.)</p>
 
 </div>
 
-### <em class="struct-type"></em>DownloadKey
+### DownloadKey (struct)
 
 
 <p>
@@ -10091,7 +10758,7 @@ for free. It can also be generated by other means.</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>Game to which this download key grants access</p>
 </td>
 </tr>
@@ -10116,8 +10783,8 @@ for free. It can also be generated by other means.</p>
 </table>
 
 
-<div id="DownloadKey__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>DownloadKey <a href="#/?id=downloadkey">(Go to definition)</a></p>
+<div id="DownloadKey__TypeHint" class="tip-content">
+<p>DownloadKey (struct) <a href="#/?id=downloadkey-struct">(Go to definition)</a></p>
 
 <p>
 <p>A DownloadKey is often generated when a purchase is made, it
@@ -10137,7 +10804,7 @@ for free. It can also be generated by other means.</p>
 </tr>
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -10155,7 +10822,7 @@ for free. It can also be generated by other means.</p>
 
 </div>
 
-### <em class="struct-type"></em>Build
+### Build (struct)
 
 
 <p>
@@ -10184,7 +10851,7 @@ or 0 if this is the initial build.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildState__TypeHint">BuildState</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BuildState__TypeHint">BuildState</span></code></td>
 <td><p>State of the build: started, processing, etc.</p>
 </td>
 </tr>
@@ -10203,7 +10870,7 @@ Might not be unique across builds of a given channel.</p>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#BuildFile__TypeHint">BuildFile</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BuildFile__TypeHint">BuildFile</span>[]</code></td>
 <td><p>Files associated with this build - often at least an archive,
 a signature, and a patch. Some might be missing while the build
 is still processing or if processing has failed.</p>
@@ -10211,7 +10878,7 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#User__TypeHint">User</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p>User who pushed the build</p>
 </td>
 </tr>
@@ -10230,8 +10897,8 @@ is still processing or if processing has failed.</p>
 </table>
 
 
-<div id="Build__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Build <a href="#/?id=build">(Go to definition)</a></p>
+<div id="Build__TypeHint" class="tip-content">
+<p>Build (struct) <a href="#/?id=build-struct">(Go to definition)</a></p>
 
 <p>
 <p>Build contains information about a specific build</p>
@@ -10249,7 +10916,7 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type enum-type">BuildState</span></code></td>
+<td><code class="typename"><span class="type">BuildState</span></code></td>
 </tr>
 <tr>
 <td><code>version</code></td>
@@ -10261,11 +10928,11 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code class="typename"><span class="type struct-type">BuildFile</span>[]</code></td>
+<td><code class="typename"><span class="type">BuildFile</span>[]</code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
-<td><code class="typename"><span class="type struct-type">User</span></code></td>
+<td><code class="typename"><span class="type">User</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -10279,7 +10946,7 @@ is still processing or if processing has failed.</p>
 
 </div>
 
-### <em class="enum-type"></em>BuildState
+### BuildState (enum)
 
 
 <p>
@@ -10321,8 +10988,8 @@ that new build will &ldquo;win&rdquo;.</p>
 </table>
 
 
-<div id="BuildState__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>BuildState <a href="#/?id=buildstate">(Go to definition)</a></p>
+<div id="BuildState__TypeHint" class="tip-content">
+<p>BuildState (enum) <a href="#/?id=buildstate-enum">(Go to definition)</a></p>
 
 <p>
 <p>BuildState describes the state of a build, relative to its initial upload, and
@@ -10347,7 +11014,7 @@ its processing.</p>
 
 </div>
 
-### <em class="struct-type"></em>BuildFile
+### BuildFile (struct)
 
 
 <p>
@@ -10376,19 +11043,19 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileState__TypeHint">BuildFileState</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BuildFileState__TypeHint">BuildFileState</span></code></td>
 <td><p>State of this file: created, uploading, uploaded, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileType__TypeHint">BuildFileType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BuildFileType__TypeHint">BuildFileType</span></code></td>
 <td><p>Type of this build file: archive, signature, patch, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>subType</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#BuildFileSubType__TypeHint">BuildFileSubType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BuildFileSubType__TypeHint">BuildFileSubType</span></code></td>
 <td><p>Subtype of this build file, usually indicates compression</p>
 </td>
 </tr>
@@ -10407,8 +11074,8 @@ archive, its signature, its patch, etc.</p>
 </table>
 
 
-<div id="BuildFile__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>BuildFile <a href="#/?id=buildfile">(Go to definition)</a></p>
+<div id="BuildFile__TypeHint" class="tip-content">
+<p>BuildFile (struct) <a href="#/?id=buildfile-struct">(Go to definition)</a></p>
 
 <p>
 <p>BuildFile contains information about a build&rsquo;s &ldquo;file&rdquo;, which could be its
@@ -10427,15 +11094,15 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>state</code></td>
-<td><code class="typename"><span class="type enum-type">BuildFileState</span></code></td>
+<td><code class="typename"><span class="type">BuildFileState</span></code></td>
 </tr>
 <tr>
 <td><code>type</code></td>
-<td><code class="typename"><span class="type enum-type">BuildFileType</span></code></td>
+<td><code class="typename"><span class="type">BuildFileType</span></code></td>
 </tr>
 <tr>
 <td><code>subType</code></td>
-<td><code class="typename"><span class="type enum-type">BuildFileSubType</span></code></td>
+<td><code class="typename"><span class="type">BuildFileSubType</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
@@ -10449,7 +11116,7 @@ archive, its signature, its patch, etc.</p>
 
 </div>
 
-### <em class="enum-type"></em>BuildFileState
+### BuildFileState (enum)
 
 
 <p>
@@ -10486,8 +11153,8 @@ archive, its signature, its patch, etc.</p>
 </table>
 
 
-<div id="BuildFileState__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>BuildFileState <a href="#/?id=buildfilestate">(Go to definition)</a></p>
+<div id="BuildFileState__TypeHint" class="tip-content">
+<p>BuildFileState (enum) <a href="#/?id=buildfilestate-enum">(Go to definition)</a></p>
 
 <p>
 <p>BuildFileState describes the state of a specific file for a build</p>
@@ -10511,7 +11178,7 @@ archive, its signature, its patch, etc.</p>
 
 </div>
 
-### <em class="enum-type"></em>BuildFileType
+### BuildFileType (enum)
 
 
 <p>
@@ -10553,8 +11220,8 @@ archive, its signature, its patch, etc.</p>
 </table>
 
 
-<div id="BuildFileType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>BuildFileType <a href="#/?id=buildfiletype">(Go to definition)</a></p>
+<div id="BuildFileType__TypeHint" class="tip-content">
+<p>BuildFileType (enum) <a href="#/?id=buildfiletype-enum">(Go to definition)</a></p>
 
 <p>
 <p>BuildFileType describes the type of a build file: patch, archive, signature, etc.</p>
@@ -10581,7 +11248,7 @@ archive, its signature, its patch, etc.</p>
 
 </div>
 
-### <em class="enum-type"></em>BuildFileSubType
+### BuildFileSubType (enum)
 
 
 <p>
@@ -10614,8 +11281,8 @@ level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas 
 </table>
 
 
-<div id="BuildFileSubType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>BuildFileSubType <a href="#/?id=buildfilesubtype">(Go to definition)</a></p>
+<div id="BuildFileSubType__TypeHint" class="tip-content">
+<p>BuildFileSubType (enum) <a href="#/?id=buildfilesubtype-enum">(Go to definition)</a></p>
 
 <p>
 <p>BuildFileSubType describes the subtype of a build file: mostly its compression
@@ -10637,7 +11304,7 @@ level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas 
 
 </div>
 
-### <em class="struct-type"></em>Verdict
+### Verdict (struct)
 
 
 <p>
@@ -10666,15 +11333,15 @@ folder.</p>
 </tr>
 <tr>
 <td><code>candidates</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
 <td><p>Candidates is a list of potentially interesting files, with a lot of additional info</p>
 </td>
 </tr>
 </table>
 
 
-<div id="Verdict__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Verdict <a href="#/?id=verdict">(Go to definition)</a></p>
+<div id="Verdict__TypeHint" class="tip-content">
+<p>Verdict (struct) <a href="#/?id=verdict-struct">(Go to definition)</a></p>
 
 <p>
 <p>A Verdict contains a wealth of information on how to &ldquo;launch&rdquo; or &ldquo;open&rdquo; a specific
@@ -10693,13 +11360,13 @@ folder.</p>
 </tr>
 <tr>
 <td><code>candidates</code></td>
-<td><code class="typename"><span class="type struct-type">Candidate</span>[]</code></td>
+<td><code class="typename"><span class="type">Candidate</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="struct-type"></em>Candidate
+### Candidate (struct)
 
 
 <p>
@@ -10734,13 +11401,13 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>flavor</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Flavor__TypeHint">Flavor</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Flavor__TypeHint">Flavor</span></code></td>
 <td><p>Flavor is the type of a candidate - native, html, jar etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>arch</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
 <td><p>Arch describes the architecture of a candidate (where relevant)</p>
 </td>
 </tr>
@@ -10758,45 +11425,45 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>windowsInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
 <td><p><span class="tag">Optional</span> WindowsInfo contains information specific to native Windows candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>linuxInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
 <td><p><span class="tag">Optional</span> LinuxInfo contains information specific to native Linux candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>macosInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
 <td><p><span class="tag">Optional</span> MacosInfo contains information specific to native macOS candidates</p>
 </td>
 </tr>
 <tr>
 <td><code>loveInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
 <td><p><span class="tag">Optional</span> LoveInfo contains information specific to Love2D bundles (<code>.love</code> files)</p>
 </td>
 </tr>
 <tr>
 <td><code>scriptInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
 <td><p><span class="tag">Optional</span> ScriptInfo contains information specific to shell scripts (<code>.sh</code>, <code>.bat</code> etc.)</p>
 </td>
 </tr>
 <tr>
 <td><code>jarInfo</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
 <td><p><span class="tag">Optional</span> JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
 </td>
 </tr>
 </table>
 
 
-<div id="Candidate__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Candidate <a href="#/?id=candidate">(Go to definition)</a></p>
+<div id="Candidate__TypeHint" class="tip-content">
+<p>Candidate (struct) <a href="#/?id=candidate-struct">(Go to definition)</a></p>
 
 <p>
 <p>A Candidate is a potentially interesting launch target, be it
@@ -10819,11 +11486,11 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>flavor</code></td>
-<td><code class="typename"><span class="type enum-type">Flavor</span></code></td>
+<td><code class="typename"><span class="type">Flavor</span></code></td>
 </tr>
 <tr>
 <td><code>arch</code></td>
-<td><code class="typename"><span class="type enum-type">Arch</span></code></td>
+<td><code class="typename"><span class="type">Arch</span></code></td>
 </tr>
 <tr>
 <td><code>size</code></td>
@@ -10835,33 +11502,33 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>windowsInfo</code></td>
-<td><code class="typename"><span class="type struct-type">WindowsInfo</span></code></td>
+<td><code class="typename"><span class="type">WindowsInfo</span></code></td>
 </tr>
 <tr>
 <td><code>linuxInfo</code></td>
-<td><code class="typename"><span class="type struct-type">LinuxInfo</span></code></td>
+<td><code class="typename"><span class="type">LinuxInfo</span></code></td>
 </tr>
 <tr>
 <td><code>macosInfo</code></td>
-<td><code class="typename"><span class="type struct-type">MacosInfo</span></code></td>
+<td><code class="typename"><span class="type">MacosInfo</span></code></td>
 </tr>
 <tr>
 <td><code>loveInfo</code></td>
-<td><code class="typename"><span class="type struct-type">LoveInfo</span></code></td>
+<td><code class="typename"><span class="type">LoveInfo</span></code></td>
 </tr>
 <tr>
 <td><code>scriptInfo</code></td>
-<td><code class="typename"><span class="type struct-type">ScriptInfo</span></code></td>
+<td><code class="typename"><span class="type">ScriptInfo</span></code></td>
 </tr>
 <tr>
 <td><code>jarInfo</code></td>
-<td><code class="typename"><span class="type struct-type">JarInfo</span></code></td>
+<td><code class="typename"><span class="type">JarInfo</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>Flavor
+### Flavor (enum)
 
 
 <p>
@@ -10920,11 +11587,16 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <td><p>FlavorLove denotes a love package</p>
 </td>
 </tr>
+<tr>
+<td><code>"msi"</code></td>
+<td><p>Microsoft installer packages</p>
+</td>
+</tr>
 </table>
 
 
-<div id="Flavor__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Flavor <a href="#/?id=flavor">(Go to definition)</a></p>
+<div id="Flavor__TypeHint" class="tip-content">
+<p>Flavor (enum) <a href="#/?id=flavor-enum">(Go to definition)</a></p>
 
 <p>
 <p>Flavor describes whether we&rsquo;re dealing with a native executables, a Java archive, a love2d bundle, etc.</p>
@@ -10959,11 +11631,14 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>"love"</code></td>
 </tr>
+<tr>
+<td><code>"msi"</code></td>
+</tr>
 </table>
 
 </div>
 
-### <em class="enum-type"></em>Arch
+### Arch (enum)
 
 
 <p>
@@ -10990,8 +11665,8 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </table>
 
 
-<div id="Arch__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>Arch <a href="#/?id=arch">(Go to definition)</a></p>
+<div id="Arch__TypeHint" class="tip-content">
+<p>Arch (enum) <a href="#/?id=arch-enum">(Go to definition)</a></p>
 
 <p>
 <p>The architecture of an executable</p>
@@ -11009,7 +11684,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 
 </div>
 
-### <em class="struct-type"></em>WindowsInfo
+### WindowsInfo (struct)
 
 
 <p>
@@ -11026,7 +11701,7 @@ or installer packages.</p>
 <table class="field-table">
 <tr>
 <td><code>installerType</code></td>
-<td><code class="typename"><span class="type enum-type" data-tip-selector="#WindowsInstallerType__TypeHint">WindowsInstallerType</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WindowsInstallerType__TypeHint">WindowsInstallerType</span></code></td>
 <td><p><span class="tag">Optional</span> Particular type of installer (msi, inno, etc.)</p>
 </td>
 </tr>
@@ -11051,8 +11726,8 @@ or installer packages.</p>
 </table>
 
 
-<div id="WindowsInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>WindowsInfo <a href="#/?id=windowsinfo">(Go to definition)</a></p>
+<div id="WindowsInfo__TypeHint" class="tip-content">
+<p>WindowsInfo (struct) <a href="#/?id=windowsinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to native windows executables
@@ -11063,7 +11738,7 @@ or installer packages.</p>
 <table class="field-table">
 <tr>
 <td><code>installerType</code></td>
-<td><code class="typename"><span class="type enum-type">WindowsInstallerType</span></code></td>
+<td><code class="typename"><span class="type">WindowsInstallerType</span></code></td>
 </tr>
 <tr>
 <td><code>uninstaller</code></td>
@@ -11081,7 +11756,7 @@ or installer packages.</p>
 
 </div>
 
-### <em class="enum-type"></em>WindowsInstallerType
+### WindowsInstallerType (enum)
 
 
 <p>
@@ -11118,8 +11793,8 @@ or installer packages.</p>
 </table>
 
 
-<div id="WindowsInstallerType__TypeHint" style="display: none;" class="tip-content">
-<p><em class="enum-type"></em>WindowsInstallerType <a href="#/?id=windowsinstallertype">(Go to definition)</a></p>
+<div id="WindowsInstallerType__TypeHint" class="tip-content">
+<p>WindowsInstallerType (enum) <a href="#/?id=windowsinstallertype-enum">(Go to definition)</a></p>
 
 <p>
 <p>Which particular type of windows-specific installer</p>
@@ -11143,7 +11818,7 @@ or installer packages.</p>
 
 </div>
 
-### <em class="struct-type"></em>MacosInfo
+### MacosInfo (struct)
 
 
 <p>
@@ -11157,8 +11832,8 @@ or app bundles.</p>
 </p>
 
 
-<div id="MacosInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>MacosInfo <a href="#/?id=macosinfo">(Go to definition)</a></p>
+<div id="MacosInfo__TypeHint" class="tip-content">
+<p>MacosInfo (struct) <a href="#/?id=macosinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to native macOS executables
@@ -11167,7 +11842,7 @@ or app bundles.</p>
 </p>
 </div>
 
-### <em class="struct-type"></em>LinuxInfo
+### LinuxInfo (struct)
 
 
 <p>
@@ -11180,8 +11855,8 @@ or app bundles.</p>
 </p>
 
 
-<div id="LinuxInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>LinuxInfo <a href="#/?id=linuxinfo">(Go to definition)</a></p>
+<div id="LinuxInfo__TypeHint" class="tip-content">
+<p>LinuxInfo (struct) <a href="#/?id=linuxinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to native Linux executables</p>
@@ -11189,7 +11864,7 @@ or app bundles.</p>
 </p>
 </div>
 
-### <em class="struct-type"></em>LoveInfo
+### LoveInfo (struct)
 
 
 <p>
@@ -11212,8 +11887,8 @@ or app bundles.</p>
 </table>
 
 
-<div id="LoveInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>LoveInfo <a href="#/?id=loveinfo">(Go to definition)</a></p>
+<div id="LoveInfo__TypeHint" class="tip-content">
+<p>LoveInfo (struct) <a href="#/?id=loveinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to Love2D bundles</p>
@@ -11229,7 +11904,7 @@ or app bundles.</p>
 
 </div>
 
-### <em class="struct-type"></em>ScriptInfo
+### ScriptInfo (struct)
 
 
 <p>
@@ -11252,8 +11927,8 @@ or app bundles.</p>
 </table>
 
 
-<div id="ScriptInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>ScriptInfo <a href="#/?id=scriptinfo">(Go to definition)</a></p>
+<div id="ScriptInfo__TypeHint" class="tip-content">
+<p>ScriptInfo (struct) <a href="#/?id=scriptinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to shell scripts</p>
@@ -11269,7 +11944,7 @@ or app bundles.</p>
 
 </div>
 
-### <em class="struct-type"></em>JarInfo
+### JarInfo (struct)
 
 
 <p>
@@ -11292,8 +11967,8 @@ or app bundles.</p>
 </table>
 
 
-<div id="JarInfo__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>JarInfo <a href="#/?id=jarinfo">(Go to definition)</a></p>
+<div id="JarInfo__TypeHint" class="tip-content">
+<p>JarInfo (struct) <a href="#/?id=jarinfo-struct">(Go to definition)</a></p>
 
 <p>
 <p>Contains information specific to Java archives</p>
@@ -11309,7 +11984,7 @@ or app bundles.</p>
 
 </div>
 
-### <em class="struct-type"></em>Receipt
+### Receipt (struct)
 
 
 <p>
@@ -11330,19 +12005,19 @@ angels are saved.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
 <td><p>The itch.io game installed at this location</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
 <td><p>The itch.io upload installed at this location</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
 <td><p>The itch.io build installed at this location. Null for non-wharf upload.</p>
 </td>
 </tr>
@@ -11368,8 +12043,8 @@ used for a clean uninstall.</p>
 </table>
 
 
-<div id="Receipt__TypeHint" style="display: none;" class="tip-content">
-<p><em class="struct-type"></em>Receipt <a href="#/?id=receipt">(Go to definition)</a></p>
+<div id="Receipt__TypeHint" class="tip-content">
+<p>Receipt (struct) <a href="#/?id=receipt-struct">(Go to definition)</a></p>
 
 <p>
 <p>A Receipt describes what was installed to a specific folder.</p>
@@ -11384,15 +12059,15 @@ angels are saved.</p>
 <table class="field-table">
 <tr>
 <td><code>game</code></td>
-<td><code class="typename"><span class="type struct-type">Game</span></code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
-<td><code class="typename"><span class="type struct-type">Upload</span></code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td><code class="typename"><span class="type struct-type">Build</span></code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 <tr>
 <td><code>files</code></td>

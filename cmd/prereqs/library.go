@@ -17,12 +17,12 @@ type Library interface {
 type library struct {
 	client  *itchio.Client
 	uploads []*itchio.Upload
-	runtime *ox.Runtime
+	runtime ox.Runtime
 }
 
 var _ Library = (*library)(nil)
 
-func NewLibrary(rc *butlerd.RequestContext, runtime *ox.Runtime, apiKey string) (Library, error) {
+func NewLibrary(rc *butlerd.RequestContext, runtime ox.Runtime, apiKey string) (Library, error) {
 	client := rc.Client(apiKey)
 
 	uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{

@@ -1,7 +1,6 @@
 package operate
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/itchio/butler/manager"
 
 	"github.com/itchio/hades"
-	"github.com/itchio/ox"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
 
@@ -29,20 +27,33 @@ func GameToString(game *itchio.Game) string {
 	return fmt.Sprintf("%s - %s", game.Title, game.URL)
 }
 
-func GetFilteredUploads(ctx context.Context, client *itchio.Client, game *itchio.Game, credentials itchio.GameCredentials, consumer *state.Consumer) (*manager.NarrowDownUploadsResult, error) {
-	uploads, err := client.ListGameUploads(ctx, itchio.ListGameUploadsParams{
+func GetFilteredUploads(rc *butlerd.RequestContext, game *itchio.Game) (*manager.NarrowDownUploadsResult, error) {
+	consumer := rc.Consumer
+
+	var access *GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = AccessForGameID(conn, game.ID)
+	})
+	client := rc.Client(access.APIKey)
+
+	uploads, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
 		GameID:      game.ID,
-		Credentials: credentials,
+		Credentials: access.Credentials,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	consumer.Debugf("API returned %d uploads", len(uploads.Uploads))
 
 	numInputs := len(uploads.Uploads)
 	if numInputs == 0 {
 		consumer.Infof("No uploads found at all (that we can access)")
 	}
-	uploadsFilterResult := manager.NarrowDownUploads(consumer, game, uploads.Uploads, ox.CurrentRuntime())
+	uploadsFilterResult, err := manager.NarrowDownUploads(consumer, game, uploads.Uploads, rc.HostEnumerator())
+	if err != nil {
+		return nil, err
+	}
+	consumer.Debugf("Narrow returned %d uploads", len(uploadsFilterResult.Uploads))
 
 	numResults := len(uploadsFilterResult.Uploads)
 

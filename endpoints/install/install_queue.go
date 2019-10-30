@@ -9,7 +9,6 @@ import (
 
 	"crawshaw.io/sqlite"
 	petname "github.com/dustinkirkland/golang-petname"
-	"xorm.io/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
@@ -19,6 +18,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueueParams) (*butlerd.InstallQueueResult, error) {
@@ -137,7 +137,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 
 	if params.Upload == nil {
 		consumer.Infof("No upload specified, looking for compatible ones...")
-		uploadsFilterResult, err := operate.GetFilteredUploads(rc.Ctx, client, params.Game, params.Access.Credentials, consumer)
+		uploadsFilterResult, err := operate.GetFilteredUploads(rc, params.Game)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

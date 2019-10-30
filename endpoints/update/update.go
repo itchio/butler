@@ -9,12 +9,10 @@ import (
 	"github.com/itchio/butler/installer/bfs"
 
 	"github.com/arbovm/levenshtein"
-	"github.com/itchio/ox"
 
 	"github.com/itchio/butler/manager"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
@@ -24,6 +22,7 @@ import (
 	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func Register(router *butlerd.Router) {
@@ -38,8 +37,7 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	res := &butlerd.CheckUpdateResult{}
 
 	updateParams := checkUpdateCaveParams{
-		rc:      rc,
-		runtime: ox.CurrentRuntime(),
+		rc: rc,
 	}
 
 	var caves []*models.Cave
@@ -61,7 +59,6 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 	})
 
 	consumer.Infof("Looking for updates to %d items...", len(caves))
-	consumer.Infof("...for runtime %s", updateParams.runtime)
 
 	var doneCaves int
 
@@ -167,12 +164,10 @@ func CheckUpdate(rc *butlerd.RequestContext, params butlerd.CheckUpdateParams) (
 type checkUpdateCaveParams struct {
 	ignoreSnooze bool
 	rc           *butlerd.RequestContext
-	runtime      *ox.Runtime
 }
 
 func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cave *models.Cave) (*butlerd.GameUpdate, error) {
 	rc := params.rc
-	runtime := params.runtime
 
 	if cave.Pinned {
 		consumer.Statf("Cave is pinned, skipping")
@@ -387,7 +382,10 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 	}
 
 	countBeforeNarrow := len(newerUploads)
-	narrowDownResult := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, runtime)
+	narrowDownResult, err := manager.NarrowDownUploads(consumer, cave.Game, newerUploads, rc.HostEnumerator())
+	if err != nil {
+		return nil, err
+	}
 	newerUploads = narrowDownResult.Uploads
 	consumer.Infof("→ %d uploads to consider (%d eliminated by narrow-down)", len(newerUploads), len(newerUploads)-countBeforeNarrow)
 

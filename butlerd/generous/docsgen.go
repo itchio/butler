@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go/ast"
+	"regexp"
 	"strings"
 )
 
@@ -15,7 +16,9 @@ func (bc *generousContext) generateDocs() error {
 	scope := newScope(bc)
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types_launch.go"))
+	must(scope.assimilate("github.com/itchio/butler/manager", "types_host.go"))
 	must(scope.assimilate("github.com/itchio/butler/endpoints/launch/manifest", "manifest.go"))
+	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
 	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.assimilate("github.com/itchio/dash", "types.go"))
 	must(scope.assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
@@ -125,30 +128,39 @@ func (bc *generousContext) generateDocs() error {
 		case entryKindParams:
 			switch entry.caller {
 			case callerClient:
-				return `<em class="request-client-caller"></em>`
+				return `(client request)`
 			case callerServer:
-				return `<em class="request-server-caller"></em>`
+				return `(client caller)`
 			}
 		case entryKindNotification:
-			return `<em class="notification"></em>`
+			return `(notification)`
 		case entryKindType:
-			return `<em class="struct-type"></em>`
+			return `(struct)`
 		case entryKindEnum:
-			return `<em class="enum-type"></em>`
+			return `(enum)`
 		}
 		return ""
 	}
 
 	renderHeader := func(entry *entryInfo) {
-		doc.line("### %s%s", kindString(entry), entry.name)
+		doc.line("### %s %s", entry.name, kindString(entry))
 		doc.line("")
+	}
+
+	invalidHrefCharacters := regexp.MustCompile("[^A-Za-z-]")
+	getHref := func(entry *entryInfo) string {
+		id := fmt.Sprintf("%s %s", entry.name, kindString(entry))
+		id = strings.Replace(id, " ", "-", -1)
+		id = invalidHrefCharacters.ReplaceAllString(id, "")
+		id = strings.ToLower(id)
+		return fmt.Sprintf("#/?id=%s", id)
 	}
 
 	renderTypeHint := func(entry *entryInfo) {
 		id := entry.typeName + "__TypeHint"
 		doc.line("")
-		doc.line("<div id=%#v style=%#v class=%#v>", id, "display: none;", "tip-content")
-		doc.line("<p>%s%s <a href=%#v>(Go to definition)</a></p>", kindString(entry), entry.name, fmt.Sprintf("#/?id=%s", linkify(entry.name)))
+		doc.line("<div id=%#v class=%#v>", id, "tip-content")
+		doc.line("<p>%s %s <a href=%#v>(Go to definition)</a></p>", entry.name, kindString(entry), getHref(entry))
 
 		switch entry.typeKind {
 		case entryTypeKindStruct:
@@ -227,7 +239,7 @@ func (bc *generousContext) generateDocs() error {
 
 	for _, category := range ourCategoryList {
 		doc.line("")
-		doc.line("## %s", category)
+		doc.line("## %s Category", category)
 		doc.line("")
 
 		cat := scope.categories[category]

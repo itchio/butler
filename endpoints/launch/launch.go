@@ -3,6 +3,7 @@ package launch
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -26,38 +27,6 @@ var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Register(router *butlerd.Router) {
 	messages.Launch.Register(router, Launch)
-	messages.LaunchGetTargets.Register(router, LaunchGetTargets)
-}
-
-func LaunchGetTargets(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error) {
-	var res *butlerd.LaunchGetTargetsResult
-
-	err := withInstallFolderLock(withInstallFolderLockParams{
-		rc:     rc,
-		caveID: params.CaveID,
-		reason: "Launch.GetTargets",
-	}, func(info withInstallFolderInfo) error {
-		var platforms = []ox.Platform{ox.CurrentRuntime().Platform}
-		platforms = append(platforms, params.NonNativePlatforms...)
-
-		targetRes, err := getTargets(rc, getTargetsParams{
-			info,
-			platforms,
-		})
-		if err != nil {
-			return err
-		}
-
-		res = &butlerd.LaunchGetTargetsResult{
-			Targets: targetRes.targets,
-		}
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
 }
 
 func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
@@ -77,7 +46,6 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		game := cave.Game
 
 		consumer.Infof("→ Launching %s", operate.GameToString(game))
-		consumer.Infof("   on runtime %s", runtime)
 		consumer.Infof("   (%s) is our install folder", installFolder)
 
 		err := ensureLicenseAcceptance(rc, installFolder)
@@ -85,9 +53,14 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			return errors.WithStack(err)
 		}
 
+		hosts, err := rc.HostEnumerator().Enumerate(rc.Consumer)
+		if err != nil {
+			return err
+		}
+
 		targetRes, err := getTargets(rc, getTargetsParams{
-			info:      info,
-			platforms: []ox.Platform{runtime.Platform},
+			info:  info,
+			hosts: hosts,
 		})
 		if err != nil {
 			return err
@@ -127,7 +100,8 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		}
 
 		consumer.Infof("→ Using strategy (%s)", target.Strategy.Strategy)
-		consumer.Infof("  (%s) is our target", target.Strategy.FullTargetPath)
+		consumer.Infof("  target (%s)", target.Strategy.FullTargetPath)
+		consumer.Infof("  host (%s)", target.Host)
 
 		launcher := launchers[target.Strategy.Strategy]
 		if launcher == nil {
@@ -135,10 +109,12 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			return errors.WithStack(err)
 		}
 
+		var workingDirectory = ""
 		var args = []string{}
 		var env = make(map[string]string)
 
 		args = append(args, target.Action.Args...)
+		fullTargetPath := target.Strategy.FullTargetPath
 
 		err = requestAPIKeyIfNecessary(rc, target.Action, game, access, env)
 		if err != nil {
@@ -149,6 +125,25 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		if target.Action.Sandbox {
 			consumer.Infof("Enabling sandbox because of manifest opt-in")
 			sandbox = true
+		}
+
+		if target.Host.Wrapper != nil {
+			wr := target.Host.Wrapper
+
+			var wrapperArgs []string
+			wrapperArgs = append(wrapperArgs, wr.BeforeTarget...)
+			if wr.NeedRelativeTarget {
+				workingDirectory = filepath.Dir(fullTargetPath)
+				relativeTarget := filepath.Base(fullTargetPath)
+				wrapperArgs = append(wrapperArgs, relativeTarget)
+			} else {
+				wrapperArgs = append(wrapperArgs, fullTargetPath)
+			}
+			wrapperArgs = append(wrapperArgs, wr.BetweenTargetAndArgs...)
+			wrapperArgs = append(wrapperArgs, args...)
+			wrapperArgs = append(wrapperArgs, wr.AfterArgs...)
+			args = wrapperArgs
+			fullTargetPath = wr.WrapperBinary
 		}
 
 		crashed := false
@@ -273,13 +268,14 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			RequestContext: rc,
 			Ctx:            rc.Ctx,
 
-			FullTargetPath: target.Strategy.FullTargetPath,
-			Candidate:      target.Strategy.Candidate,
-			AppManifest:    targetRes.appManifest,
-			Action:         target.Action,
-			Sandbox:        sandbox,
-			Args:           args,
-			Env:            env,
+			FullTargetPath:   fullTargetPath,
+			Candidate:        target.Strategy.Candidate,
+			AppManifest:      targetRes.appManifest,
+			Action:           target.Action,
+			Sandbox:          sandbox,
+			WorkingDirectory: workingDirectory,
+			Args:             args,
+			Env:              env,
 
 			PrereqsDir:    params.PrereqsDir,
 			ForcePrereqs:  params.ForcePrereqs,
@@ -298,7 +294,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		close(sessionEndedChan)
 		if err != nil {
 			crashed = true
-			return errors.WithStack(err)
+			return err
 		}
 
 		consumer.Debugf("Waiting on session watcher...")
@@ -354,7 +350,7 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *manife
 	return nil
 }
 
-func interactionPlatform(runtime *ox.Runtime) itchio.SessionPlatform {
+func interactionPlatform(runtime ox.Runtime) itchio.SessionPlatform {
 	switch runtime.Platform {
 	case ox.PlatformLinux:
 		return itchio.SessionPlatformLinux
@@ -366,7 +362,7 @@ func interactionPlatform(runtime *ox.Runtime) itchio.SessionPlatform {
 	return itchio.SessionPlatform("")
 }
 
-func interactionArchitecture(runtime *ox.Runtime) itchio.SessionArchitecture {
+func interactionArchitecture(runtime ox.Runtime) itchio.SessionArchitecture {
 	if runtime.Is64 {
 		return itchio.SessionArchitectureAmd64
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
@@ -18,20 +19,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, installFolder string, manifestAction *manifest.Action) (*butlerd.LaunchTarget, error) {
+func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFolder string, manifestAction *manifest.Action) (*butlerd.LaunchTarget, error) {
 	actionCopy := *manifestAction
 	manifestAction = &actionCopy
 	if manifestAction.Platform == "" {
-		manifestAction.Platform = platform
+		manifestAction.Platform = host.Runtime.Platform
 	}
 
 	target := &butlerd.LaunchTarget{
 		Action:   manifestAction,
 		Strategy: &butlerd.StrategyResult{},
+		Host:     host,
 	}
 
 	// is it a path?
-	fullPath := manifest.ExpandPath(manifestAction, platform, installFolder)
+	fullPath := manifest.ExpandPath(manifestAction, host.Runtime.Platform, installFolder)
 	stats, err := os.Stat(fullPath)
 	if err != nil {
 		// is it a URL?
@@ -59,7 +61,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 
 	if stats.IsDir() {
 		// is it an app bundle?
-		if platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
+		if host.Runtime.Platform == ox.PlatformOSX && strings.HasSuffix(strings.ToLower(fullPath), ".app") {
 			consumer.Infof("(%s) is an app bundle, picking native strategy", fullPath)
 			target.Strategy = &butlerd.StrategyResult{
 				Strategy:       butlerd.LaunchStrategyNative,
@@ -88,7 +90,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	if len(verdict.Candidates) > 0 {
 		consumer.Infof("(%s) yielded %d candidates when configured with dash", fullPath, len(verdict.Candidates))
 		candidate := verdict.Candidates[0]
-		target, err := CandidateToLaunchTarget(consumer, filepath.Dir(fullPath), platform, candidate)
+		target, err := CandidateToLaunchTarget(consumer, filepath.Dir(fullPath), host, candidate)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -108,7 +110,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, platform ox.Platform, instal
 	return target, nil
 }
 
-func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, platform ox.Platform, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
+func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, host manager.Host, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
 	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
 
 	name := filepath.Base(fullPath)
@@ -117,11 +119,11 @@ func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, platform
 	}
 
 	target := &butlerd.LaunchTarget{
+		Host: host,
 		Action: &manifest.Action{
 			Name: name,
 			Path: candidate.Path,
 		},
-		Platform: platform,
 		Strategy: &butlerd.StrategyResult{
 			Strategy:       flavorToStrategy(candidate.Flavor),
 			FullTargetPath: fullPath,

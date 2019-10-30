@@ -7,7 +7,6 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/ox"
 )
 
 // When using TCP transport, must be the first message sent
@@ -2135,29 +2134,6 @@ type LaunchRunningNotification struct{}
 //
 // @category Launch
 type LaunchExitedNotification struct{}
-
-// @name Launch.GetTargets
-// @category Launch
-// @caller client
-type LaunchGetTargetsParams struct {
-	// The ID of the cave to retrieve the launch targets of
-	CaveID string `json:"caveId"`
-
-	// A list of platforms that should be included when looking
-	// for launch targets, even though they're not the current platform.
-	NonNativePlatforms []ox.Platform `json:"nonNativePlatforms"`
-}
-
-func (p LaunchGetTargetsParams) Validate() error {
-	return validation.ValidateStruct(&p,
-		validation.Field(&p.CaveID, validation.Required),
-	)
-}
-
-type LaunchGetTargetsResult struct {
-	// All launch targets found
-	Targets []*LaunchTarget `json:"targets"`
-}
 
 // Sent during @@LaunchParams if the game/application comes with a service license
 // agreement.

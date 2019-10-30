@@ -21,6 +21,8 @@ type LauncherParams struct {
 	RequestContext *butlerd.RequestContext
 	Ctx            context.Context
 
+	WorkingDirectory string
+
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
 
@@ -52,7 +54,7 @@ type LauncherParams struct {
 	ForcePrereqs  bool
 	Access        *operate.GameAccess
 	InstallFolder string
-	Runtime       *ox.Runtime
+	Runtime       ox.Runtime
 
 	SessionStarted func()
 }

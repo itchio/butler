@@ -3,8 +3,9 @@ package manager_test
 import (
 	"testing"
 
-	"github.com/itchio/ox"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/ox"
+	"github.com/itchio/wharf/wtest"
 
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
@@ -27,8 +28,10 @@ func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 		Classification: itchio.GameClassificationGame,
 	}
 
-	ndu := func(uploads []*itchio.Upload, runtime *ox.Runtime) *manager.NarrowDownUploadsResult {
-		return manager.NarrowDownUploads(consumer, game, uploads, runtime)
+	ndu := func(uploads []*itchio.Upload, runtime ox.Runtime) *manager.NarrowDownUploadsResult {
+		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleHostEnumerator(runtime))
+		wtest.Must(t, err)
+		return res
 	}
 
 	debrpm := []*itchio.Upload{
@@ -44,7 +47,7 @@ func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 		},
 	}
 
-	linux64 := &ox.Runtime{
+	linux64 := ox.Runtime{
 		Platform: ox.PlatformLinux,
 		Is64:     true,
 	}
@@ -64,11 +67,13 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Classification: itchio.GameClassificationGame,
 	}
 
-	ndu := func(uploads []*itchio.Upload, runtime *ox.Runtime) *manager.NarrowDownUploadsResult {
-		return manager.NarrowDownUploads(consumer, game, uploads, runtime)
+	ndu := func(uploads []*itchio.Upload, runtime ox.Runtime) *manager.NarrowDownUploadsResult {
+		res, err := manager.NarrowDownUploads(consumer, game, uploads, manager.SingleHostEnumerator(runtime))
+		wtest.Must(t, err)
+		return res
 	}
 
-	linux64 := &ox.Runtime{
+	linux64 := ox.Runtime{
 		Platform: ox.PlatformLinux,
 		Is64:     true,
 	}
@@ -80,7 +85,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		InitialUploads: nil,
 	}, ndu(nil, linux64), "empty is empty")
 
-	mac64 := &ox.Runtime{
+	mac64 := ox.Runtime{
 		Platform: ox.PlatformOSX,
 		Is64:     true,
 	}
@@ -184,7 +189,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Type:      "default",
 	}
 
-	windows32 := &ox.Runtime{
+	windows32 := ox.Runtime{
 		Platform: ox.PlatformWindows,
 		Is64:     false,
 	}
@@ -228,7 +233,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		HadWrongArch:   false,
 	}, ndu(penalizeDemos, windows32), "penalize demos")
 
-	windows64 := &ox.Runtime{
+	windows64 := ox.Runtime{
 		Platform: ox.PlatformWindows,
 		Is64:     true,
 	}
@@ -279,7 +284,7 @@ func Test_NarrowDownUploads(t *testing.T) {
 		Uploads:        dontExcludeUniversal,
 	}, ndu(dontExcludeUniversal, linux64), "don't exclude universal builds on 64-bit")
 
-	linux32 := &ox.Runtime{
+	linux32 := ox.Runtime{
 		Platform: ox.PlatformLinux,
 		Is64:     false,
 	}

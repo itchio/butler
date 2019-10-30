@@ -1200,7 +1200,18 @@
         ]
       },
       "result": {
-        "fields": null
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "events",
+            "doc": "",
+            "type": "InstallEvent[]"
+          }
+        ]
       }
     },
     {
@@ -1664,36 +1675,8 @@
       }
     },
     {
-      "method": "Launch.GetTargets",
-      "doc": "",
-      "caller": "client",
-      "params": {
-        "fields": [
-          {
-            "name": "caveId",
-            "doc": "The ID of the cave to retrieve the launch targets of",
-            "type": "string"
-          },
-          {
-            "name": "nonNativePlatforms",
-            "doc": "A list of platforms that should be included when looking\nfor launch targets, even though they're not the current platform.",
-            "type": "Platform[]"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "targets",
-            "doc": "All launch targets found",
-            "type": "LaunchTarget[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "AcceptLicense",
-      "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement (at the time of this writing, this only happens if it was installed from a DMG file).",
+      "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement.",
       "caller": "server",
       "params": {
         "fields": [
@@ -2619,6 +2602,169 @@
           "name": "accuracy",
           "doc": "",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "type",
+          "doc": "",
+          "type": "InstallEventType"
+        },
+        {
+          "name": "timestamp",
+          "doc": "",
+          "type": "Date"
+        },
+        {
+          "name": "heal",
+          "doc": "",
+          "type": "HealInstallEvent"
+        },
+        {
+          "name": "install",
+          "doc": "",
+          "type": "InstallInstallEvent"
+        },
+        {
+          "name": "upgrade",
+          "doc": "",
+          "type": "UpgradeInstallEvent"
+        },
+        {
+          "name": "ghostBusting",
+          "doc": "",
+          "type": "GhostBustingInstallEvent"
+        },
+        {
+          "name": "patching",
+          "doc": "",
+          "type": "PatchingInstallEvent"
+        },
+        {
+          "name": "problem",
+          "doc": "",
+          "type": "ProblemInstallEvent"
+        },
+        {
+          "name": "fallback",
+          "doc": "",
+          "type": "FallbackInstallEvent"
+        }
+      ]
+    },
+    {
+      "name": "InstallInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "manager",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "HealInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "totalCorrupted",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "appliedCaseFixes",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "UpgradeInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "numPatches",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ProblemInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "error",
+          "doc": "Short error",
+          "type": "string"
+        },
+        {
+          "name": "errorStack",
+          "doc": "Longer error",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FallbackInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "attempted",
+          "doc": "Name of the operation we were trying to do",
+          "type": "string"
+        },
+        {
+          "name": "problem",
+          "doc": "Problem encountered while trying \"attempted\"",
+          "type": "ProblemInstallEvent"
+        },
+        {
+          "name": "nowTrying",
+          "doc": "Name of the operation we're falling back to",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PatchingInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "buildID",
+          "doc": "Build we patched to",
+          "type": "number"
+        },
+        {
+          "name": "subtype",
+          "doc": "\"default\" or \"optimized\" (for the +bsdiff variant)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "GhostBustingInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "operation",
+          "doc": "Operation that requested the ghost busting (install, upgrade, heal)",
+          "type": "string"
+        },
+        {
+          "name": "found",
+          "doc": "Number of ghost files found",
+          "type": "number"
+        },
+        {
+          "name": "removed",
+          "doc": "Number of ghost files removed",
+          "type": "number"
         }
       ]
     },

@@ -9,10 +9,10 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -75,8 +75,8 @@ func getUploadAndBuild(rc *butlerd.RequestContext, info withInstallFolderInfo) (
 }
 
 type getTargetsParams struct {
-	info      withInstallFolderInfo
-	platforms []ox.Platform
+	info  withInstallFolderInfo
+	hosts []manager.Host
 }
 
 type getTargetsResult struct {
@@ -86,7 +86,7 @@ type getTargetsResult struct {
 
 func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTargetsResult, error) {
 	err := validation.ValidateStruct(&params,
-		validation.Field(&params.platforms, validation.Required),
+		validation.Field(&params.hosts, validation.Required),
 	)
 	if err != nil {
 		return nil, err
@@ -128,12 +128,12 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 	}
 
 	if !shouldBrowse {
-		for _, platform := range params.platforms {
-			platformTargets, err := getTargetsForPlatform(rc, upload, appManifest, verdict, info, platform)
+		for _, host := range params.hosts {
+			hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host)
 			if err != nil {
 				return nil, err
 			}
-			targets = append(targets, platformTargets...)
+			targets = append(targets, hostTargets...)
 		}
 	}
 
@@ -170,26 +170,26 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 	}, nil
 }
 
-func getTargetsForPlatform(rc *butlerd.RequestContext,
+func getTargetsForHost(rc *butlerd.RequestContext,
 	upload *itchio.Upload,
 	appManifest *manifest.Manifest,
 	verdict *dash.Verdict,
 	info withInstallFolderInfo,
-	platform ox.Platform,
+	host manager.Host,
 ) ([]*butlerd.LaunchTarget, error) {
 	consumer := rc.Consumer
-	consumer.Opf("Seeking launch targets for platform (%s)", platform)
+	consumer.Opf("Seeking launch targets for host (%s)", host)
 
 	var targets []*butlerd.LaunchTarget
 
 	if appManifest == nil {
 		consumer.Infof("No app manifest.")
 	} else {
-		actions := appManifest.ListActions(platform)
-		consumer.Statf("%d/%d manifest actions are relevant on (%s)", len(actions), len(appManifest.Actions), platform)
+		actions := appManifest.ListActions(host.Runtime.Platform)
+		consumer.Statf("%d/%d manifest actions are relevant on (%s)", len(actions), len(appManifest.Actions), host)
 
 		for _, action := range actions {
-			target, err := ActionToLaunchTarget(consumer, platform, info.installFolder, action)
+			target, err := ActionToLaunchTarget(consumer, host, info.installFolder, action)
 			if err != nil {
 				return nil, err
 			}
@@ -202,12 +202,11 @@ func getTargetsForPlatform(rc *butlerd.RequestContext,
 		return targets, nil
 	}
 
-	consumer.Infof("Filtering verdict for platform (%s)", platform)
-	platformRuntime := &ox.Runtime{Platform: platform}
+	consumer.Infof("Filtering verdict for host %v", host)
 	filterParams := dash.FilterParams{
-		OS: platformRuntime.OS(),
+		OS: host.Runtime.OS(),
 	}
-	if info.runtime.Platform == platform {
+	if info.runtime.Platform == host.Runtime.Platform {
 		// if the platform we're getting targets for is
 		// our currently running platform, we know the architecture,
 		// so use it to filter.
@@ -218,7 +217,7 @@ func getTargetsForPlatform(rc *butlerd.RequestContext,
 	verdict = &v2
 
 	for _, candidate := range verdict.Candidates {
-		target, err := CandidateToLaunchTarget(consumer, info.installFolder, platform, candidate)
+		target, err := CandidateToLaunchTarget(consumer, info.installFolder, host, candidate)
 		if err != nil {
 			return nil, err
 		}

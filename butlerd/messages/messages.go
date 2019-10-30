@@ -2805,46 +2805,6 @@ func (r *LaunchExitedType) Register(router router, f func(*butlerd.RequestContex
 
 var LaunchExited *LaunchExitedType
 
-// Launch.GetTargets (Request)
-
-type LaunchGetTargetsType struct {}
-
-var _ RequestMessage = (*LaunchGetTargetsType)(nil)
-
-func (r *LaunchGetTargetsType) Method() string {
-  return "Launch.GetTargets"
-}
-
-func (r *LaunchGetTargetsType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error)) {
-  router.Register("Launch.GetTargets", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.LaunchGetTargetsParams
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
-    }
-    err = params.Validate()
-    if err != nil {
-    	return nil, err
-    }
-    res, err := f(rc, params)
-    if err != nil {
-    	return nil, err
-    }
-    if res == nil {
-    	return nil, errors.New("internal error: nil result for Launch.GetTargets")
-    }
-    return res, nil
-  })
-}
-
-func (r *LaunchGetTargetsType) TestCall(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error) {
-  var result butlerd.LaunchGetTargetsResult
-  err := rc.Call("Launch.GetTargets", params, &result)
-  return &result, err
-}
-
-var LaunchGetTargets *LaunchGetTargetsType
-
 // AcceptLicense (Request)
 
 type AcceptLicenseType struct {}
@@ -3479,7 +3439,6 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["CheckUpdate"]; !ok { panic("missing request handler for (CheckUpdate)") }
   if _, ok := router.Handlers["SnoozeCave"]; !ok { panic("missing request handler for (SnoozeCave)") }
   if _, ok := router.Handlers["Launch"]; !ok { panic("missing request handler for (Launch)") }
-  if _, ok := router.Handlers["Launch.GetTargets"]; !ok { panic("missing request handler for (Launch.GetTargets)") }
   if _, ok := router.Handlers["CleanDownloads.Search"]; !ok { panic("missing request handler for (CleanDownloads.Search)") }
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }
