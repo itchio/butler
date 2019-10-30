@@ -24,7 +24,7 @@ type NarrowDownUploadsResult struct {
 }
 
 func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtimeEnum RuntimeEnumerator) (*NarrowDownUploadsResult, error) {
-	runtimes, err := runtimeEnum.Enumerate()
+	runtimes, err := runtimeEnum.Enumerate(consumer)
 	if err != nil {
 		return nil, err
 	}
