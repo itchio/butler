@@ -192,7 +192,7 @@ func do(mc *mansion.Context) {
 				if speed == math.MaxFloat64 {
 					speed = 1
 				}
-				return tracker.BPS{Value: stats.MinSpeed() * float64(stats.ByteAmount().Value)}
+				return tracker.BPS{Value: speed * float64(stats.ByteAmount().Value)}
 			}
 
 			min := toBPS(stats.MinSpeed())
