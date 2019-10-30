@@ -18,7 +18,7 @@ fi
 export TOOLS_DIR=$PWD/tools/
 mkdir -p ${TOOLS_DIR}
 pushd ${TOOLS_DIR}
-curl -sLo butler.zip "https://broth.itch.ovh/butler/linux-amd64-head/LATEST/.zip"
+curl -sLo butler.zip "https://broth.itch.ovh/butler/linux-amd64-head/65bf13509d214308111a7b9c0f227099034536c7/.zip"
 unzip butler.zip
 popd
 
