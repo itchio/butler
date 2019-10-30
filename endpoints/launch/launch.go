@@ -354,7 +354,7 @@ func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *manife
 	return nil
 }
 
-func interactionPlatform(runtime *ox.Runtime) itchio.SessionPlatform {
+func interactionPlatform(runtime ox.Runtime) itchio.SessionPlatform {
 	switch runtime.Platform {
 	case ox.PlatformLinux:
 		return itchio.SessionPlatformLinux
@@ -366,7 +366,7 @@ func interactionPlatform(runtime *ox.Runtime) itchio.SessionPlatform {
 	return itchio.SessionPlatform("")
 }
 
-func interactionArchitecture(runtime *ox.Runtime) itchio.SessionArchitecture {
+func interactionArchitecture(runtime ox.Runtime) itchio.SessionArchitecture {
 	if runtime.Is64 {
 		return itchio.SessionArchitectureAmd64
 	}

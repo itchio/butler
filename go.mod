@@ -31,11 +31,11 @@ require (
 	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
 	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
 	github.com/itchio/mitch v0.0.0-20191028174717-8a022c53f4c6
-	github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d
+	github.com/itchio/ox v0.0.0-20191030172710-a7ccbf299855
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
 	github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a
-	github.com/itchio/smaug v0.0.0-20191030100039-e9a3c77b5e21
+	github.com/itchio/smaug v0.0.0-20191030173627-0019dc43a2bc
 	github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673
 	github.com/itchio/wharf v0.0.0-20191028185939-68b178a49dce
 	github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36

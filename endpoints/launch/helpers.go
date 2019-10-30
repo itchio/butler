@@ -203,7 +203,7 @@ func getTargetsForPlatform(rc *butlerd.RequestContext,
 	}
 
 	consumer.Infof("Filtering verdict for platform (%s)", platform)
-	platformRuntime := &ox.Runtime{Platform: platform}
+	platformRuntime := ox.Runtime{Platform: platform}
 	filterParams := dash.FilterParams{
 		OS: platformRuntime.OS(),
 	}

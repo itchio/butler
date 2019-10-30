@@ -26,7 +26,7 @@ type withInstallFolderInfo struct {
 	installFolder string
 	cave          *models.Cave
 	access        *operate.GameAccess
-	runtime       *ox.Runtime
+	runtime       ox.Runtime
 }
 
 func withInstallFolderLock(params withInstallFolderLockParams, f func(info withInstallFolderInfo) error) error {

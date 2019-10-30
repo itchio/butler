@@ -16,7 +16,6 @@ import (
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
-	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 	"xorm.io/builder"
@@ -31,7 +30,12 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
-	baseUploads = manager.NarrowDownUploads(consumer, game, baseUploads, ox.CurrentRuntime()).Uploads
+
+	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.RuntimeEnumerator())
+	if err != nil {
+		return nil, err
+	}
+	baseUploads = narrowRes.Uploads
 
 	// exclude already-installed and currently-installing uploads
 	var uploadIDs []interface{}

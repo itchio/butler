@@ -6,6 +6,9 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="description" content="Documentation for the butler service protocol, including all requests, notifications and types.">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <script>
+    localStorage.clear();
+  </script>
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/dark.css"> 
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
 </head>
@@ -13,9 +16,14 @@
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: 'butlerd',
-      themeColor: '#fa5c5c',
-      repo: '',
+      name: "butlerd",
+      themeColor: "#fa5c5c",
+      repo: "",
+      search: {
+        paths: ["/"],
+        namespace: "butlerd",
+        depth: 3,
+      },
       markdown: {
         gfm: true,
         tables: true,
@@ -24,10 +32,18 @@
       plugins: [
         function (hook, vm) {
           hook.doneEach(function() {
-            tippy('[data-tip-selector]', {
-              placement: 'right',
+            tippy("[data-tip-selector]", {
+              placement: "right",
+              allowHTML: true,
               arrow: true,
-              html: (el) => el.dataset.tipSelector,
+              content: (el) => {
+                let sel = el.dataset.tipSelector;
+                let tipContent = document.querySelector(sel);
+                if (tipContent) {
+                  return tipContent.cloneNode(true);
+                }
+                return null;
+              },
               interactive: true,
               trigger: "click",
               maxWidth: "400px",
@@ -37,11 +53,12 @@
   ]
     }
   </script>
-  <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
-  <script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
-  <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
-  <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
-  <script src="//unpkg.com/tippy.js@2.2.3/dist/tippy.all.min.js"></script>
+  <script src="//unpkg.com/docsify@4.9.4/lib/docsify.min.js"></script>
+  <script src="//unpkg.com/docsify@4.9.4/lib/plugins/search.min.js"></script>
+  <script src="//unpkg.com/prismjs@1.17.1/components/prism-bash.min.js"></script>
+  <script src="//unpkg.com/prismjs@1.17.1/components/prism-json.min.js"></script>
+  <script src="//unpkg.com/popper.js@1"></script>
+  <script src="//unpkg.com/tippy.js@5"></script>
   <style>
     .sidebar-nav a em, .content h3 em, .tippy-content em {
       font-style: initial;
@@ -68,31 +85,6 @@
 
     .content h3 {
       padding-top: 1.4em;
-    }
-
-    em.request-server-caller::before,
-    span.request-server-caller::before {
-      content: "🙋";
-    }
-
-    em.request-client-caller::before,
-    span.request-client-caller::before  {
-      content: "👋";
-    }
-
-    em.notification::before,
-    span.notification::before {
-      content: "✉️️";
-    }
-
-    em.struct-type::before,
-    span.struct-type::before {
-      content: "📦";
-    }
-
-    em.enum-type::before,
-    span.enum-type::before  {
-      content: "📜";
     }
 
     span.type::before {
@@ -175,6 +167,22 @@
 
     .markdown-section p.tip {
       color: #d7eaf1;
+    }
+
+    .tip-content {
+      display: none;
+      white-space: initial;
+
+      font-family: 'Lato', sans-serif;
+      font-size: 14px;
+    }
+
+    .tip-content p {
+      margin: 1em 0;
+    }
+
+    .tippy-popper .tip-content {
+      display: initial;
     }
   </style>
 </body>

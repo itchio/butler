@@ -7,7 +7,7 @@ import (
 	"github.com/itchio/ox"
 )
 
-func Configure(consumer *state.Consumer, installFolder string, runtime *ox.Runtime) (*dash.Verdict, error) {
+func Configure(consumer *state.Consumer, installFolder string, runtime ox.Runtime) (*dash.Verdict, error) {
 	return configure.Do(configure.Params{
 		Consumer:   consumer,
 		Path:       installFolder,

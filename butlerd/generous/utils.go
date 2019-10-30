@@ -51,10 +51,6 @@ func parseTag(line string) (tag string, value string) {
 	return
 }
 
-func linkify(input string) string {
-	return strings.Replace(strings.ToLower(input), ".", "", -1)
-}
-
 func jsonType(goType string) string {
 	switch goType {
 	case "string":

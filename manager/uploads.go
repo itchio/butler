@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/ox"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/ox"
 )
 
 type uploadFilter struct {
 	consumer *state.Consumer
-	runtime  *ox.Runtime
+	runtimes SupportedRuntimes
 	game     *itchio.Game
 }
 
@@ -23,14 +23,24 @@ type NarrowDownUploadsResult struct {
 	HadWrongArch   bool
 }
 
-func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtime *ox.Runtime) *NarrowDownUploadsResult {
+func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtimeEnum RuntimeEnumerator) (*NarrowDownUploadsResult, error) {
+	runtimes, err := runtimeEnum.Enumerate()
+	if err != nil {
+		return nil, err
+	}
+	consumer.Debugf("Filtering for %d runtimes:", len(runtimes))
+	for _, r := range runtimes {
+		consumer.Debugf("- %v", r)
+	}
+
 	uf := &uploadFilter{
 		consumer: consumer,
-		runtime:  runtime,
+		runtimes: runtimes,
 		game:     game,
 	}
 
-	return uf.narrowDownUploads(uploads)
+	res := uf.narrowDownUploads(uploads)
+	return res, nil
 }
 
 func (uf *uploadFilter) narrowDownUploads(uploads []*itchio.Upload) *NarrowDownUploadsResult {
@@ -52,11 +62,15 @@ func (uf *uploadFilter) narrowDownUploads(uploads []*itchio.Upload) *NarrowDownU
 }
 
 func (uf *uploadFilter) excludeWrongPlatform(uploads []*itchio.Upload) []*itchio.Upload {
+	consumer := uf.consumer
+
 	switch uf.game.Classification {
 	case itchio.GameClassificationGame, itchio.GameClassificationTool:
 		// apply regular filters
+		consumer.Debugf("Classification is %q, applying platform filters", uf.game.Classification)
 	default:
 		// don't filter anything, cf. https://github.com/itchio/itch/issues/1958
+		consumer.Debugf("Classification is %q, not applying platform filters", uf.game.Classification)
 		return uploads
 	}
 
@@ -65,7 +79,11 @@ func (uf *uploadFilter) excludeWrongPlatform(uploads []*itchio.Upload) []*itchio
 	for _, u := range uploads {
 		switch u.Type {
 		case "default":
-			if !IsCompatible(u.Platforms, uf.runtime) {
+			if uf.runtimes.IsCompatible(u.Platforms) {
+				consumer.Debugf("Our runtimes support upload with platforms %+v", u.Platforms)
+			} else {
+				consumer.Debugf("Our runtimes do *NOT* support upload with platforms %+v", u.Platforms)
+
 				// executable and not compatible with us? that's a skip
 				continue
 			}
@@ -128,7 +146,7 @@ func (uf *uploadFilter) scoreUpload(upload *itchio.Upload, index int) *scoredUpl
 		score -= 500
 	}
 
-	score += ExclusivityScore(upload.Platforms, uf.runtime)
+	score += ExclusivityScore(upload.Platforms)
 
 	return &scoredUpload{
 		score:  score,
@@ -172,30 +190,32 @@ func (uf *uploadFilter) sortUploads(uploads []*itchio.Upload) []*itchio.Upload {
 }
 
 func (uf *uploadFilter) excludeWrongArch(uploads []*itchio.Upload) []*itchio.Upload {
-	switch uf.runtime.Platform {
-	case ox.PlatformWindows:
-		if uf.runtime.Is64 {
-			// on windows 64-bit, if we have both archs, exclude 32-bit builds
-			if hasUploadsMatching(uploads, uploadIsWin64) {
-				return excludeUploads(uploads, uploadIsWin32)
+	for _, r := range uf.runtimes {
+		switch r.Runtime.Platform {
+		case ox.PlatformWindows:
+			if r.Runtime.Is64 {
+				// on windows 64-bit, if we have both archs, exclude 32-bit builds
+				if hasUploadsMatching(uploads, uploadIsWin64) {
+					return excludeUploads(uploads, uploadIsWin32)
+				}
+			} else {
+				// on windows 32-bit, if we have 32-bit builds, exclude 64-bit builds
+				if hasUploadsMatching(uploads, uploadIsWin32) {
+					return excludeUploads(uploads, uploadIsWin64)
+				}
 			}
-		} else {
-			// on windows 32-bit, if we have 32-bit builds, exclude 64-bit builds
-			if hasUploadsMatching(uploads, uploadIsWin32) {
-				return excludeUploads(uploads, uploadIsWin64)
-			}
-		}
 
-	case ox.PlatformLinux:
-		if uf.runtime.Is64 {
-			// on 64-bit, if we have 64-bit builds, exclude 32-bit builds
-			if hasUploadsMatching(uploads, uploadIsLinux64) {
-				return excludeUploads(uploads, uploadIsLinux32)
-			}
-		} else {
-			// on 32-bit, if we have 32-bit builds, exclude 64-bit builds
-			if hasUploadsMatching(uploads, uploadIsLinux32) {
-				return excludeUploads(uploads, uploadIsLinux64)
+		case ox.PlatformLinux:
+			if r.Runtime.Is64 {
+				// on 64-bit, if we have 64-bit builds, exclude 32-bit builds
+				if hasUploadsMatching(uploads, uploadIsLinux64) {
+					return excludeUploads(uploads, uploadIsLinux32)
+				}
+			} else {
+				// on 32-bit, if we have 32-bit builds, exclude 64-bit builds
+				if hasUploadsMatching(uploads, uploadIsLinux32) {
+					return excludeUploads(uploads, uploadIsLinux64)
+				}
 			}
 		}
 	}

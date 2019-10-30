@@ -52,7 +52,7 @@ type LauncherParams struct {
 	ForcePrereqs  bool
 	Access        *operate.GameAccess
 	InstallFolder string
-	Runtime       *ox.Runtime
+	Runtime       ox.Runtime
 
 	SessionStarted func()
 }

@@ -184,6 +184,8 @@ github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5 h1:8Wi95IwkUGZTGhVmylXAn
 github.com/itchio/ox v0.0.0-20190702183250-92ed53dc0fa5/go.mod h1:POv3yZKXDBTjmHRY+4ICAitLMtCwTwPjq9EOZOvRpok=
 github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d h1:EcmVffUYduCSFCEM12YpSXoVXvyeq8Ro4Q+rwc60TIo=
 github.com/itchio/ox v0.0.0-20190925154941-b613e528fc7d/go.mod h1:OkOgnS4mtvTl2n9S65jTihpuQJxeldLBA/x3QSFHQFQ=
+github.com/itchio/ox v0.0.0-20191030172710-a7ccbf299855 h1:sLbWNLXBrABt7E3TivuB/5dtKod6SIvHGaDAAq7GyeI=
+github.com/itchio/ox v0.0.0-20191030172710-a7ccbf299855/go.mod h1:OkOgnS4mtvTl2n9S65jTihpuQJxeldLBA/x3QSFHQFQ=
 github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e h1:6PC5zK+yRl2H3qVF6BPCi2GMZfxu1kwC3f1GDuxf1QQ=
 github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e/go.mod h1:JLmbluABAmZIBcWVhgCOkikjqZzVg7RIuvvcWECh9mo=
 github.com/itchio/randsource v0.0.0-20190702184213-a7635a4cb94b/go.mod h1:lKWkyaS6DHSVoxVLw7mIeD+po2Kvwv1Hiy8+7VR1zZc=
@@ -198,8 +200,8 @@ github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a h1:7iG2pfbs1CqCdPRuWb
 github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a/go.mod h1:VvpbutV6AQmyF6n99NYFeBmCm0VcgEMF3z/Pb+nBlu4=
 github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376 h1:Qhfx6SvjhcmJzUgwYvBAa2aRqfIGZczXHauOu901uac=
 github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376/go.mod h1:5ppm0m2hS/bHydxUQbmuY/U6dsCVaFLmfu+7vY2lwcU=
-github.com/itchio/smaug v0.0.0-20191030100039-e9a3c77b5e21 h1:O/ZzAVjts0zY1v6FErRYaH+nuFrKuhD4IRnAtsD9Nbc=
-github.com/itchio/smaug v0.0.0-20191030100039-e9a3c77b5e21/go.mod h1:z9gicKFTKzdTs3r3ioyzhJg6oF43dJJtsXybsOhggNg=
+github.com/itchio/smaug v0.0.0-20191030173627-0019dc43a2bc h1:jSrAYoNYU5nfHrmqBm79NQ1HL4bVInExuwRI4rItIDk=
+github.com/itchio/smaug v0.0.0-20191030173627-0019dc43a2bc/go.mod h1:z9gicKFTKzdTs3r3ioyzhJg6oF43dJJtsXybsOhggNg=
 github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673 h1:2bncqho+T6mZkzDHYhYxLU4fmTWfIcU+CN+YUDuqO9k=
 github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673/go.mod h1:Z8GuFb1PZQTracji6TIBFLTw2ZV3u7rOS0S04v63g58=
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9NVHqKFxuBI7oyVnHJss2nexwJFcQeRo4I=

@@ -1,7 +1,6 @@
 package fetch
 
 import (
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
@@ -9,7 +8,7 @@ import (
 	"github.com/itchio/butler/manager"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/itchio/ox"
+	"xorm.io/builder"
 )
 
 func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUploadsParams) (*butlerd.FetchGameUploadsResult, error) {
@@ -70,8 +69,10 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 
 	if params.OnlyCompatible {
 		game := LazyFetchGame(rc, params.GameID)
-		runtime := ox.CurrentRuntime()
-		narrowRes := manager.NarrowDownUploads(rc.Consumer, game, uploads, runtime)
+		narrowRes, err := manager.NarrowDownUploads(rc.Consumer, game, uploads, rc.RuntimeEnumerator())
+		if err != nil {
+			return nil, err
+		}
 		uploads = narrowRes.Uploads
 	}
 

@@ -355,26 +355,7 @@ func (s *scope) linkTypeInner(typeName string, tip bool) string {
 	}
 
 	if entry, ok := s.entries[typeName]; ok {
-		var className string
-		switch entry.typeKind {
-		case entryTypeKindStruct:
-			switch entry.kind {
-			case entryKindParams:
-				switch entry.caller {
-				case callerClient:
-					className = "type request-client-caller"
-				case callerServer:
-					className = "type request-server-caller"
-				}
-			case entryKindNotification:
-				className = "type notification"
-			default:
-				className = "type struct-type"
-			}
-		case entryTypeKindEnum:
-			className = "type enum-type"
-		}
-
+		var className = "type"
 		if tip {
 			sel := fmt.Sprintf("#%s__TypeHint", entry.typeName)
 			return fmt.Sprintf(`<span class=%#v data-tip-selector="%s">%s</span>`, className, sel, entry.name)
