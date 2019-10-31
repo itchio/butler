@@ -16,6 +16,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/fatih/structtag v1.0.0
 	github.com/getlantern/golog v0.0.0-20190830074920-4ef2e798c2d7 // indirect
+	github.com/go-ole/go-ole v1.2.4
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/google/gops v0.3.6
 	github.com/google/uuid v1.1.1
@@ -31,7 +32,7 @@ require (
 	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
 	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
 	github.com/itchio/mitch v0.0.0-20191028174717-8a022c53f4c6
-	github.com/itchio/ox v0.0.0-20191030172710-a7ccbf299855
+	github.com/itchio/ox v0.0.0-20191031175435-32d876f09b55
 	github.com/itchio/pelican v0.0.0-20190703135153-206ee1f15f3e
 	github.com/itchio/savior v0.0.0-20190925162935-b92976a0b402
 	github.com/itchio/screw v0.0.0-20191018161534-50266ea9752a
@@ -50,6 +51,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.1
 	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday v2.0.0+incompatible
+	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/sourcegraph/jsonrpc2 v0.0.0-20190106185902-35a74f039c6a

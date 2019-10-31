@@ -18,6 +18,7 @@ func Register(router *butlerd.Router) {
 	messages.InstallLocationsAdd.Register(router, InstallLocationsAdd)
 	messages.InstallLocationsRemove.Register(router, InstallLocationsRemove)
 	messages.InstallLocationsScan.Register(router, InstallLocationsScan)
+	messages.InstallCreateShortcut.Register(router, InstallCreateShortcut)
 
 	messages.CavesSetPinned.Register(router, CavesSetPinned)
 }

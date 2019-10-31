@@ -1182,6 +1182,23 @@
       }
     },
     {
+      "method": "Install.CreateShortcut",
+      "doc": "Create a shortcut for an existing cave .",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Install.Perform",
       "doc": "Perform an install that was previously queued via\n@@InstallQueueParams.\n\nCan be cancelled by passing the same `ID` to @@InstallCancelParams.",
       "caller": "client",

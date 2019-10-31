@@ -3343,6 +3343,57 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 </div>
 
+### Install.CreateShortcut (client request)
+
+
+<p>
+<p>Create a shortcut for an existing cave .</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="InstallCreateShortcutParams__TypeHint" class="tip-content">
+<p>Install.CreateShortcut (client request) <a href="#/?id=installcreateshortcut-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Create a shortcut for an existing cave .</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallCreateShortcutResult__TypeHint" class="tip-content">
+<p>InstallCreateShortcut  <a href="#/?id=installcreateshortcut-">(Go to definition)</a></p>
+
+</div>
+
 ### Install.Perform (client request)
 
 
@@ -8764,9 +8815,9 @@ For implicit launch targets, a minimal one will be generated.</p>
 </td>
 </tr>
 <tr>
-<td><code>runtime</code></td>
+<td><code>host</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Host__TypeHint">Host</span></code></td>
-<td><p>Runtime this launch target was found for</p>
+<td><p>Host this launch target was found for</p>
 </td>
 </tr>
 <tr>
@@ -8788,7 +8839,7 @@ For implicit launch targets, a minimal one will be generated.</p>
 <td><code class="typename"><span class="type">Action</span></code></td>
 </tr>
 <tr>
-<td><code>runtime</code></td>
+<td><code>host</code></td>
 <td><code class="typename"><span class="type">Host</span></code></td>
 </tr>
 <tr>
@@ -8947,6 +8998,22 @@ For implicit launch targets, a minimal one will be generated.</p>
 <td><p>additional environment variables</p>
 </td>
 </tr>
+<tr>
+<td><code>needRelativeTarget</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>When this is true, the wrapper can&rsquo;t function like this:</p>
+
+<p>$ wine /path/to/game.exe</p>
+
+<p>It needs to function like this:</p>
+
+<p>$ cd /path/to
+$ wine game.exe</p>
+
+<p>This is at least true for wine, which cannot find required DLLs
+otherwise. This might be true for other wrappers, so it&rsquo;s an option here.</p>
+</td>
+</tr>
 </table>
 
 
@@ -8974,6 +9041,10 @@ For implicit launch targets, a minimal one will be generated.</p>
 <tr>
 <td><code>env</code></td>
 <td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+<tr>
+<td><code>needRelativeTarget</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

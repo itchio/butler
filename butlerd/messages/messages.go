@@ -1669,6 +1669,46 @@ func (r *CavesSetPinnedType) TestCall(rc *butlerd.RequestContext, params butlerd
 
 var CavesSetPinned *CavesSetPinnedType
 
+// Install.CreateShortcut (Request)
+
+type InstallCreateShortcutType struct {}
+
+var _ RequestMessage = (*InstallCreateShortcutType)(nil)
+
+func (r *InstallCreateShortcutType) Method() string {
+  return "Install.CreateShortcut"
+}
+
+func (r *InstallCreateShortcutType) Register(router router, f func(*butlerd.RequestContext, butlerd.InstallCreateShortcutParams) (*butlerd.InstallCreateShortcutResult, error)) {
+  router.Register("Install.CreateShortcut", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.InstallCreateShortcutParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.CreateShortcut")
+    }
+    return res, nil
+  })
+}
+
+func (r *InstallCreateShortcutType) TestCall(rc *butlerd.RequestContext, params butlerd.InstallCreateShortcutParams) (*butlerd.InstallCreateShortcutResult, error) {
+  var result butlerd.InstallCreateShortcutResult
+  err := rc.Call("Install.CreateShortcut", params, &result)
+  return &result, err
+}
+
+var InstallCreateShortcut *InstallCreateShortcutType
+
 // Install.Perform (Request)
 
 type InstallPerformType struct {}
@@ -3419,6 +3459,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
   if _, ok := router.Handlers["Install.Plan"]; !ok { panic("missing request handler for (Install.Plan)") }
   if _, ok := router.Handlers["Caves.SetPinned"]; !ok { panic("missing request handler for (Caves.SetPinned)") }
+  if _, ok := router.Handlers["Install.CreateShortcut"]; !ok { panic("missing request handler for (Install.CreateShortcut)") }
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }
   if _, ok := router.Handlers["Install.Cancel"]; !ok { panic("missing request handler for (Install.Cancel)") }
   if _, ok := router.Handlers["Uninstall.Perform"]; !ok { panic("missing request handler for (Uninstall.Perform)") }

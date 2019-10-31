@@ -1313,6 +1313,24 @@ func (p CavesSetPinnedParams) Validate() error {
 
 type CavesSetPinnedResult struct{}
 
+// Create a shortcut for an existing cave .
+//
+// @name Install.CreateShortcut
+// @category Install
+// @caller client
+type InstallCreateShortcutParams struct {
+	CaveID string `json:"caveId"`
+}
+
+func (p InstallCreateShortcutParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
+type InstallCreateShortcutResult struct {
+}
+
 // Perform an install that was previously queued via
 // @@InstallQueueParams.
 //
