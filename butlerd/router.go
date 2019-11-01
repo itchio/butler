@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/httpkit/timeout"
 
 	"crawshaw.io/sqlite"
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
@@ -69,9 +70,6 @@ type Router struct {
 	inflightLock            sync.Mutex
 
 	backgroundTaskIDSeed BackgroundTaskID
-
-	ButlerVersion       string
-	ButlerVersionString string
 
 	globalConsumer *state.Consumer
 }
@@ -251,9 +249,6 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			HTTPClient:    r.httpClient,
 			HTTPTransport: r.httpTransport,
 
-			ButlerVersion:       r.ButlerVersion,
-			ButlerVersionString: r.ButlerVersionString,
-
 			Group:    r.Group,
 			Shutdown: r.initiateShutdown,
 
@@ -356,7 +351,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		data = make(map[string]interface{})
 	}
 	data["stack"] = fmt.Sprintf("%+v", err)
-	data["butlerVersion"] = r.ButlerVersionString
+	data["butlerVersion"] = buildinfo.VersionString
 
 	if ae, ok := itchio.AsAPIError(err); ok {
 		code = int64(CodeAPIError)
@@ -402,9 +397,6 @@ func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
 
 		HTTPClient:    r.httpClient,
 		HTTPTransport: r.httpTransport,
-
-		ButlerVersion:       r.ButlerVersion,
-		ButlerVersionString: r.ButlerVersionString,
 
 		Group:    r.Group,
 		Shutdown: r.initiateShutdown,
@@ -456,9 +448,6 @@ type RequestContext struct {
 	Conn        Conn
 	CancelFuncs *CancelFuncs
 	dbPool      *sqlite.Pool
-
-	ButlerVersion       string
-	ButlerVersionString string
 
 	Group    *singleflight.Group
 	Shutdown func()

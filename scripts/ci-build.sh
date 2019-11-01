@@ -28,7 +28,7 @@ elif [ "master" != "$CI_BUILD_REF_NAME" ]; then
   export CI_VERSION="$CI_BUILD_REF_NAME"
 fi
 
-export CI_LDFLAGS="-X main.butlerVersion=$CI_VERSION -X main.butlerBuiltAt=$CI_BUILT_AT -X main.butlerCommit=$CI_BUILD_REF -w -s"
+export CI_LDFLAGS="-X buildinfo.Version=$CI_VERSION -X buildinfo.BuiltAt=$CI_BUILT_AT -X buildinfo.Commit=$CI_BUILD_REF -w -s"
 
 TARGET=butler
 if [ "$CI_OS" = "windows" ]; then

@@ -2,6 +2,7 @@ package prereqs
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -193,5 +194,10 @@ func (h *handler) GetEntry(name string) (*redist.RedistEntry, error) {
 }
 
 func (h *handler) GetEntryDir(name string) string {
-	return filepath.Join(h.prereqsDir(), name)
+	if !h.runtime().Equals(ox.CurrentRuntime()) {
+		prefix := fmt.Sprintf("%s-%s", h.runtime().OS(), h.runtime().Arch())
+		return filepath.Join(h.prereqsDir(), prefix, name)
+	} else {
+		return filepath.Join(h.prereqsDir(), name)
+	}
 }

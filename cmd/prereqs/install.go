@@ -61,9 +61,10 @@ func (h *handler) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error
 	args = append(args, []string{"install-prereqs", planPath}...)
 
 	res, err := installer.RunSelf(installer.RunSelfParams{
-		Consumer: consumer,
-		Args:     args,
-		Host:     h.host(),
+		Consumer:   consumer,
+		Args:       args,
+		Host:       h.host(),
+		PrereqsDir: h.prereqsDir(),
 		OnResult: func(value installer.Any) {
 			switch value["type"] {
 			case "state":

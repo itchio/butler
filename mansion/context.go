@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/timeout"
@@ -24,15 +25,6 @@ type Context struct {
 
 	// String to include in our user-agent
 	UserAgentAddition string
-
-	// VersionString is the complete version string
-	VersionString string
-
-	// Version is just the version number, as a string
-	Version string
-
-	// The git commit hash
-	Commit string
 
 	// Quiet silences all output
 	Quiet bool
@@ -92,9 +84,9 @@ func (ctx *Context) Must(err error) {
 }
 
 func (ctx *Context) UserAgent() string {
-	version := ctx.Version
-	if version == "head" && ctx.Commit != "" {
-		version = ctx.Commit
+	version := buildinfo.Version
+	if version == "head" && buildinfo.Commit != "" {
+		version = buildinfo.Commit
 	}
 
 	res := fmt.Sprintf("butler/%s", version)

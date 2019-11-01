@@ -3,6 +3,7 @@ package version
 import (
 	"log"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/mansion"
 )
 
@@ -12,5 +13,5 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	log.Println(ctx.VersionString)
+	log.Println(buildinfo.VersionString)
 }

@@ -64,7 +64,7 @@ func (h *handler) AssessPrereqs(names []string) (*PrereqAssessment, error) {
 }
 
 func (h *handler) MarkerPath(name string) string {
-	return filepath.Join(h.prereqsDir(), name, ".installed")
+	return filepath.Join(h.GetEntryDir(name), ".installed")
 }
 
 func (h *handler) HasInstallMarker(name string) bool {

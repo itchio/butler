@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/comm"
 	itchio "github.com/itchio/go-itchio"
 )
@@ -96,19 +97,19 @@ func (ctx *Context) CurrentVersion() *Version {
 	switch variant {
 	case VersionVariantHead:
 		return &Version{
-			Name:    ctx.Commit,
+			Name:    buildinfo.Commit,
 			Variant: variant,
 		}
 	default:
 		return &Version{
-			Name:    normalizeVersionName(ctx.Version),
+			Name:    normalizeVersionName(buildinfo.Version),
 			Variant: variant,
 		}
 	}
 }
 
 func (ctx *Context) CurrentVariant() VersionVariant {
-	switch ctx.Version {
+	switch buildinfo.Version {
 	case "head":
 		return VersionVariantHead
 	default:

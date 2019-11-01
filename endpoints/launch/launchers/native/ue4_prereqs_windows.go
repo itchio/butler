@@ -204,9 +204,10 @@ func handleUE4Prereqs(params launch.LauncherParams) error {
 
 	consumer.Infof("Attempting elevated UE4 prereqs install")
 	installRes, err := installer.RunSelf(&installer.RunSelfParams{
-		Host:     params.Host,
-		Consumer: consumer,
-		Args:     args,
+		Host:       params.Host,
+		Consumer:   consumer,
+		Args:       args,
+		PrereqsDir: params.PrereqsDir,
 	})
 	if err != nil {
 		return errors.WithStack(err)

@@ -145,6 +145,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	if params.Host.Wrapper != nil {
 		wr := params.Host.Wrapper
 
+		// TODO: DRY (see runself)
 		var wrapperArgs []string
 		wrapperArgs = append(wrapperArgs, wr.BeforeTarget...)
 		if wr.NeedRelativeTarget {
@@ -316,8 +317,9 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 			consumer.Infof("Proceeding with sandbox setup...")
 
 			res, err := installer.RunSelf(installer.RunSelfParams{
-				Host:     params.Host,
-				Consumer: consumer,
+				Host:       params.Host,
+				Consumer:   consumer,
+				PrereqsDir: params.PrereqsDir,
 				Args: []string{
 					"--elevate",
 					"fuji",

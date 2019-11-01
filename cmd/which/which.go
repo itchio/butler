@@ -3,6 +3,7 @@ package which
 import (
 	"os"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 )
@@ -16,6 +17,6 @@ func do(ctx *mansion.Context) {
 	p, err := os.Executable()
 	ctx.Must(err)
 
-	comm.Logf("You're running butler %s, from the following path:", ctx.VersionString)
+	comm.Logf("You're running butler %s, from the following path:", buildinfo.VersionString)
 	comm.Logf("%s", p)
 }

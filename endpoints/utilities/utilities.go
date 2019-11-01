@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"github.com/efarrer/iothrottler"
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/httpkit/timeout"
@@ -10,8 +11,8 @@ import (
 func Register(router *butlerd.Router) {
 	messages.VersionGet.Register(router, func(rc *butlerd.RequestContext, params butlerd.VersionGetParams) (*butlerd.VersionGetResult, error) {
 		return &butlerd.VersionGetResult{
-			Version:       rc.ButlerVersion,
-			VersionString: rc.ButlerVersionString,
+			Version:       buildinfo.Version,
+			VersionString: buildinfo.VersionString,
 		}, nil
 	})
 

@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
-	"strconv"
 	"time"
 
 	"github.com/efarrer/iothrottler"
 
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 
@@ -39,10 +39,6 @@ import (
 import "C"
 
 var (
-	butlerVersion       = "head" // set by command-line on CI release builds
-	butlerBuiltAt       = ""     // set by command-line on CI release builds
-	butlerCommit        = ""     // set by command-line on CI release builds
-	butlerVersionString = ""     // formatted on boot from 'version' and 'builtAt'
 	app                 = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
@@ -146,8 +142,7 @@ func doMain(args []string) {
 	app.Flag("ignore", "Glob patterns of files to ignore when pushing or diffing").StringsVar(&filtering.IgnoredPaths)
 
 	app.HelpFlag.Short('h')
-	buildVersionString()
-	app.Version(butlerVersionString)
+	app.Version(buildinfo.VersionString)
 	app.VersionFlag.Short('V')
 	app.Author("Amos Wenger <amos@itch.io>")
 
@@ -235,9 +230,6 @@ func doMain(args []string) {
 	ctx.SetAddress(*appArgs.address)
 	ctx.UserAgentAddition = *appArgs.userAgentAddition
 	ctx.DBPath = *appArgs.dbPath
-	ctx.VersionString = butlerVersionString
-	ctx.Version = butlerVersion
-	ctx.Commit = butlerCommit
 	ctx.Quiet = *appArgs.quiet
 	ctx.Verbose = *appArgs.verbose
 	ctx.JSON = *appArgs.json
@@ -311,18 +303,3 @@ func doScript(scriptPath string) error {
 	return nil
 }
 
-func buildVersionString() {
-	if butlerBuiltAt != "" {
-		epoch, err := strconv.ParseInt(butlerBuiltAt, 10, 64)
-		if err != nil {
-			butlerVersionString = fmt.Sprintf("%s, invalid build date", butlerVersion)
-		} else {
-			butlerVersionString = fmt.Sprintf("%s, built on %s", butlerVersion, time.Unix(epoch, 0).Format("Jan _2 2006 @ 15:04:05"))
-		}
-	} else {
-		butlerVersionString = fmt.Sprintf("%s, no build date", butlerVersion)
-	}
-	if butlerCommit != "" {
-		butlerVersionString = fmt.Sprintf("%s, ref %s", butlerVersionString, butlerCommit)
-	}
-}

@@ -7,6 +7,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/ox"
+	"github.com/pkg/errors"
 )
 
 type Hosts []Host
@@ -23,6 +24,13 @@ var _ HostEnumerator = (*defaultHostEnumerator)(nil)
 
 func DefaultHostEnumerator() HostEnumerator {
 	return &defaultHostEnumerator{}
+}
+
+func (h Host) Validate() error {
+	if h.Runtime.Platform == "" {
+		return errors.Errorf("invalid host (empty platform)")
+	}
+	return nil
 }
 
 func NativeHost() Host {
