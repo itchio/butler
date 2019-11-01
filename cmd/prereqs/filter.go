@@ -21,8 +21,8 @@ func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
 			continue
 		}
 
-		if !RedistHasPlatform(entry, pc.Runtime.Platform) {
-			consumer.Warnf("Prereq (%s) is not relevant on (%s), skipping...", name, pc.Runtime.Platform)
+		if !RedistHasPlatform(entry, pc.Host.Runtime.Platform) {
+			consumer.Warnf("Prereq (%s) is not relevant on (%s), skipping...", name, pc.Host.Runtime.Platform)
 			continue
 		}
 		result = append(result, name)

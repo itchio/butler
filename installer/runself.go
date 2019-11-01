@@ -9,7 +9,9 @@ import (
 	"strings"
 	"syscall"
 
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/installer/loggerwriter"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
@@ -26,11 +28,16 @@ type OnResultFunc func(res Any)
 
 type RunSelfParams struct {
 	Consumer *state.Consumer
+	Host     manager.Host
 	Args     []string
 	OnResult OnResultFunc
 }
 
-func RunSelf(params *RunSelfParams) (*RunSelfResult, error) {
+func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
+	err := validation.ValidateStruct(&params,
+		validation.Field(&params.Host.Runtime.Platform, validation.Required),
+	)
+
 	selfPath, err := os.Executable()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting path to own binary")

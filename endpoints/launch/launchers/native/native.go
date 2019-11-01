@@ -140,8 +140,27 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 	stderr := newOutputCollector(maxLines)
 
 	fullTargetPath := params.FullTargetPath
-	name := params.FullTargetPath
 	args := params.Args
+
+	if params.Host.Wrapper != nil {
+		wr := params.Host.Wrapper
+
+		var wrapperArgs []string
+		wrapperArgs = append(wrapperArgs, wr.BeforeTarget...)
+		if wr.NeedRelativeTarget {
+			cwd = filepath.Dir(fullTargetPath)
+			relativeTarget := filepath.Base(fullTargetPath)
+			wrapperArgs = append(wrapperArgs, relativeTarget)
+		} else {
+			wrapperArgs = append(wrapperArgs, fullTargetPath)
+		}
+		wrapperArgs = append(wrapperArgs, wr.BetweenTargetAndArgs...)
+		wrapperArgs = append(wrapperArgs, args...)
+		wrapperArgs = append(wrapperArgs, wr.AfterArgs...)
+		args = wrapperArgs
+		fullTargetPath = wr.WrapperBinary
+	}
+	name := params.FullTargetPath
 
 	if params.Candidate != nil {
 		switch params.Candidate.Flavor {
@@ -296,7 +315,8 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 			}
 			consumer.Infof("Proceeding with sandbox setup...")
 
-			res, err := installer.RunSelf(&installer.RunSelfParams{
+			res, err := installer.RunSelf(installer.RunSelfParams{
+				Host:     params.Host,
 				Consumer: consumer,
 				Args: []string{
 					"--elevate",
@@ -366,7 +386,7 @@ func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 	}
 
 	var err error
-	f, err := os.Open(params.OriginalFullTargetPath)
+	f, err := os.Open(params.FullTargetPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}

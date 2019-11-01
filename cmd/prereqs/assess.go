@@ -30,7 +30,7 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 
 		alreadyGood := false
 
-		switch pc.Runtime.Platform {
+		switch pc.Host.Runtime.Platform {
 		case ox.PlatformWindows:
 			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
 			if err != nil {
@@ -128,6 +128,11 @@ func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEnt
 }
 
 func (pc *PrereqsContext) RunSanityCheck(name string, entry *redist.RedistEntry, sc *redist.LinuxSanityCheck) error {
+	if !pc.Host.Runtime.Equals(ox.CurrentRuntime()) {
+		pc.Consumer.Debugf("Skipping sanity check, because we're on a non-native runtime")
+		return nil
+	}
+
 	cmd := exec.Command(sc.Command, sc.Args...)
 	cmd.Dir = pc.GetEntryDir(name)
 	output, err := cmd.CombinedOutput()

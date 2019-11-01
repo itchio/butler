@@ -8,7 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/redist"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
@@ -17,21 +19,44 @@ import (
 	"github.com/pkg/errors"
 )
 
-type PrereqsContext struct {
+type Handler interface{}
+
+type Params struct {
 	RequestContext *butlerd.RequestContext
 	APIKey         string
-	Runtime        ox.Runtime
+	Host           manager.Host
 	Consumer       *state.Consumer
 	PrereqsDir     string
 	Force          bool
+}
+
+type handler struct {
+	params Params
 
 	library  Library
 	registry *redist.RedistRegistry
 }
 
-func (pc *PrereqsContext) GetLibrary() (Library, error) {
+func NewHandler(params Params) (Handler, error) {
+	err := validation.ValidateStruct(&params,
+		validation.Field(&params.RequestContext, validation.Required),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &prereqsContext{
+		params: params,
+	}, nil
+}
+
+func (pc *prereqsContext) runtime() ox.Runtime {
+	return pc.params.Host.Runtime
+}
+
+func (pc *prereqsContext) GetLibrary() (Library, error) {
 	if pc.library == nil {
-		library, err := NewLibrary(pc.RequestContext, pc.Runtime, pc.APIKey)
+		library, err := NewLibrary(pc.params.RequestContext, pc.runtime(), pc.params.APIKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "opening prereqs library")
 		}
@@ -41,11 +66,11 @@ func (pc *PrereqsContext) GetLibrary() (Library, error) {
 	return pc.library, nil
 }
 
-func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
+func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 	if pc.registry == nil {
 		beforeFetch := time.Now()
 
-		consumer := pc.Consumer
+		consumer := pc.params.Consumer
 
 		consumer.Infof("Fetching prereqs registry...")
 		registry := &redist.RedistRegistry{}
@@ -53,16 +78,16 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 		needFetch := false
 		wantFetch := false
 
-		if pc.PrereqsDir == "" {
+		if pc.params.PrereqsDir == "" {
 			return nil, errors.Errorf("PrereqsDir cannot be empty")
 		}
 
-		err := os.MkdirAll(pc.PrereqsDir, 0o755)
+		err := os.MkdirAll(pc.params.PrereqsDir, 0o755)
 		if err != nil {
 			return nil, err
 		}
 
-		cachedRegistryPath := filepath.Join(pc.PrereqsDir, "info.json")
+		cachedRegistryPath := filepath.Join(pc.params.PrereqsDir, "info.json")
 		stats, err := os.Stat(cachedRegistryPath)
 		if err != nil {
 			needFetch = true
@@ -73,13 +98,13 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 				wantFetch = true
 			}
 		}
-		if pc.Force {
+		if pc.params.Force {
 			needFetch = true
 		}
 
 		if needFetch || wantFetch {
 			err := func() error {
-				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(pc.Consumer))
+				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(pc.params.Consumer))
 				if err != nil {
 					return errors.Wrap(err, "opening remote registry file")
 				}
@@ -125,7 +150,7 @@ func (pc *PrereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 	return pc.registry, nil
 }
 
-func (pc *PrereqsContext) GetEntry(name string) (*redist.RedistEntry, error) {
+func (pc *prereqsContext) GetEntry(name string) (*redist.RedistEntry, error) {
 	r, err := pc.GetRegistry()
 	if err != nil {
 		return nil, errors.Wrap(err, "opening prereqs registry")
@@ -134,6 +159,6 @@ func (pc *PrereqsContext) GetEntry(name string) (*redist.RedistEntry, error) {
 	return r.Entries[name], nil
 }
 
-func (pc *PrereqsContext) GetEntryDir(name string) string {
-	return filepath.Join(pc.PrereqsDir, name)
+func (pc *prereqsContext) GetEntryDir(name string) string {
+	return filepath.Join(pc.params.PrereqsDir, name)
 }

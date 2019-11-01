@@ -23,6 +23,7 @@ type library struct {
 var _ Library = (*library)(nil)
 
 func NewLibrary(rc *butlerd.RequestContext, runtime ox.Runtime, apiKey string) (Library, error) {
+	// TODO: use broth instead
 	client := rc.Client(apiKey)
 
 	uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{

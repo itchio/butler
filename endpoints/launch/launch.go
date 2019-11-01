@@ -3,7 +3,6 @@ package launch
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -115,7 +114,6 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 		args = append(args, target.Action.Args...)
 		fullTargetPath := target.Strategy.FullTargetPath
-		originalFullTargetPath := target.Strategy.FullTargetPath
 
 		err = requestAPIKeyIfNecessary(rc, target.Action, game, access, env)
 		if err != nil {
@@ -126,25 +124,6 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		if target.Action.Sandbox {
 			consumer.Infof("Enabling sandbox because of manifest opt-in")
 			sandbox = true
-		}
-
-		if target.Host.Wrapper != nil {
-			wr := target.Host.Wrapper
-
-			var wrapperArgs []string
-			wrapperArgs = append(wrapperArgs, wr.BeforeTarget...)
-			if wr.NeedRelativeTarget {
-				workingDirectory = filepath.Dir(fullTargetPath)
-				relativeTarget := filepath.Base(fullTargetPath)
-				wrapperArgs = append(wrapperArgs, relativeTarget)
-			} else {
-				wrapperArgs = append(wrapperArgs, fullTargetPath)
-			}
-			wrapperArgs = append(wrapperArgs, wr.BetweenTargetAndArgs...)
-			wrapperArgs = append(wrapperArgs, args...)
-			wrapperArgs = append(wrapperArgs, wr.AfterArgs...)
-			args = wrapperArgs
-			fullTargetPath = wr.WrapperBinary
 		}
 
 		crashed := false
@@ -269,21 +248,20 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			RequestContext: rc,
 			Ctx:            rc.Ctx,
 
-			OriginalFullTargetPath: originalFullTargetPath,
-			FullTargetPath:         fullTargetPath,
-			Candidate:              target.Strategy.Candidate,
-			AppManifest:            targetRes.appManifest,
-			Action:                 target.Action,
-			Sandbox:                sandbox,
-			WorkingDirectory:       workingDirectory,
-			Args:                   args,
-			Env:                    env,
+			FullTargetPath:   fullTargetPath,
+			Candidate:        target.Strategy.Candidate,
+			AppManifest:      targetRes.appManifest,
+			Action:           target.Action,
+			Sandbox:          sandbox,
+			WorkingDirectory: workingDirectory,
+			Args:             args,
+			Env:              env,
 
 			PrereqsDir:    params.PrereqsDir,
 			ForcePrereqs:  params.ForcePrereqs,
 			Access:        access,
 			InstallFolder: installFolder,
-			Runtime:       runtime,
+			Host:          target.Host,
 
 			SessionStarted: func() {
 				startSessionOnce.Do(func() {

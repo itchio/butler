@@ -17,7 +17,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 	pc := &prereqs.PrereqsContext{
 		RequestContext: params.RequestContext,
 		APIKey:         params.Access.APIKey,
-		Runtime:        params.Runtime,
+		Host:           params.Host,
 		Consumer:       params.RequestContext.Consumer,
 		PrereqsDir:     params.PrereqsDir,
 		Force:          params.ForcePrereqs,

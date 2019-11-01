@@ -9,8 +9,8 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
+	"github.com/itchio/butler/manager"
 	"github.com/itchio/lake/tlc"
-	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
 	"github.com/pkg/errors"
 
@@ -25,9 +25,6 @@ type LauncherParams struct {
 
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
-
-	// Target path before any wrappers (wine, etc.)
-	OriginalFullTargetPath string
 
 	// May be nil
 	PeInfo *pelican.PeInfo
@@ -57,7 +54,7 @@ type LauncherParams struct {
 	ForcePrereqs  bool
 	Access        *operate.GameAccess
 	InstallFolder string
-	Runtime       ox.Runtime
+	Host          manager.Host
 
 	SessionStarted func()
 }

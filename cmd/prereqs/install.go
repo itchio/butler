@@ -19,7 +19,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	needElevation := false
 	for _, task := range plan.Tasks {
-		switch pc.Runtime.Platform {
+		switch pc.Host.Runtime.Platform {
 		case ox.PlatformWindows:
 			block := task.Info.Windows
 			if block.Elevate {
@@ -60,9 +60,10 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	}
 	args = append(args, []string{"install-prereqs", planPath}...)
 
-	res, err := installer.RunSelf(&installer.RunSelfParams{
+	res, err := installer.RunSelf(installer.RunSelfParams{
 		Consumer: consumer,
 		Args:     args,
+		Host:     pc.Host,
 		OnResult: func(value installer.Any) {
 			switch value["type"] {
 			case "state":
@@ -108,7 +109,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	// now to run some sanity checks (as regular user)
 	for _, task := range plan.Tasks {
-		switch pc.Runtime.Platform {
+		switch pc.Host.Runtime.Platform {
 		case ox.PlatformLinux:
 			block := task.Info.Linux
 			for _, sc := range block.SanityChecks {
