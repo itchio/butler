@@ -14,16 +14,19 @@ import (
 )
 
 func handlePrereqs(params launch.LauncherParams) error {
-	pc := &prereqs.PrereqsContext{
+	ph, err := prereqs.NewHandler(prereqs.Params{
 		RequestContext: params.RequestContext,
 		APIKey:         params.Access.APIKey,
 		Host:           params.Host,
 		Consumer:       params.RequestContext.Consumer,
 		PrereqsDir:     params.PrereqsDir,
 		Force:          params.ForcePrereqs,
+	})
+	if err != nil {
+		return err
 	}
 
-	err := handleUE4Prereqs(params)
+	err = handleUE4Prereqs(params)
 	if err != nil {
 		return errors.WithMessage(err, "While handling UE4 prereqs")
 	}
@@ -35,7 +38,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 	// add manifest prereqs
 	if params.AppManifest == nil {
 		consumer.Infof("No manifest, no prereqs")
-		autoPrereqs, err := handleAutoPrereqs(params, pc)
+		autoPrereqs, err := handleAutoPrereqs(params, ph)
 		if err != nil {
 			return errors.WithMessage(err, "While doing auto prereqs")
 		}
@@ -52,10 +55,12 @@ func handlePrereqs(params launch.LauncherParams) error {
 	}
 
 	// append built-in params if we need some
-	runtime := params.Runtime
-	if runtime.Platform == ox.PlatformLinux && params.Sandbox {
-		firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
-		wanted = append(wanted, firejailName)
+	{
+		runtime := params.Host.Runtime
+		if runtime.Platform == ox.PlatformLinux && params.Sandbox {
+			firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
+			wanted = append(wanted, firejailName)
+		}
 	}
 
 	if len(wanted) == 0 {
@@ -68,14 +73,14 @@ func handlePrereqs(params launch.LauncherParams) error {
 
 	var pending []string
 	for _, name := range wanted {
-		if pc.HasInstallMarker(name) {
+		if ph.HasInstallMarker(name) {
 			continue
 		}
 
 		pending = append(pending, name)
 	}
 
-	pending, err = pc.FilterPrereqs(pending)
+	pending, err = ph.FilterPrereqs(pending)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -85,7 +90,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 		return nil
 	}
 
-	pa, err := pc.AssessPrereqs(pending)
+	pa, err := ph.AssessPrereqs(pending)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -105,7 +110,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 			Tasks: make(map[string]*butlerd.PrereqTask),
 		}
 		for i, name := range pa.Todo {
-			entry, err := pc.GetEntry(name)
+			entry, err := ph.GetEntry(name)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -131,23 +136,23 @@ func handlePrereqs(params launch.LauncherParams) error {
 		},
 	}
 
-	err = pc.FetchPrereqs(tsc, pa.Todo)
+	err = ph.FetchPrereqs(tsc, pa.Todo)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	plan, err := pc.BuildPlan(pa.Todo)
+	plan, err := ph.BuildPlan(pa.Todo)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	err = pc.InstallPrereqs(tsc, plan)
+	err = ph.InstallPrereqs(tsc, plan)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	for _, name := range pa.Todo {
-		err = pc.MarkInstalled(name)
+		err = ph.MarkInstalled(name)
 		if err != nil {
 			return errors.WithStack(err)
 		}

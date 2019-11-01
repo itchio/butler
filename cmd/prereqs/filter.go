@@ -6,12 +6,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
-	consumer := pc.Consumer
+func (h *handler) FilterPrereqs(names []string) ([]string, error) {
+	consumer := h.consumer()
 
 	var result []string
 	for _, name := range names {
-		entry, err := pc.GetEntry(name)
+		entry, err := h.GetEntry(name)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -21,8 +21,8 @@ func (pc *PrereqsContext) FilterPrereqs(names []string) ([]string, error) {
 			continue
 		}
 
-		if !RedistHasPlatform(entry, pc.Host.Runtime.Platform) {
-			consumer.Warnf("Prereq (%s) is not relevant on (%s), skipping...", name, pc.Host.Runtime.Platform)
+		if !RedistHasPlatform(entry, h.platform()) {
+			consumer.Warnf("Prereq (%s) is not relevant on (%s), skipping...", name, h.host())
 			continue
 		}
 		result = append(result, name)

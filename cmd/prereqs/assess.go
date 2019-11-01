@@ -18,26 +18,26 @@ type PrereqAssessment struct {
 	Todo []string
 }
 
-func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, error) {
+func (h *handler) AssessPrereqs(names []string) (*PrereqAssessment, error) {
 	pa := &PrereqAssessment{}
 
 	for _, name := range names {
-		entry, err := pc.GetEntry(name)
+		entry, err := h.GetEntry(name)
 		if entry == nil {
-			pc.Consumer.Warnf("Prereq (%s) not found in registry, skipping...", name)
+			h.consumer().Warnf("Prereq (%s) not found in registry, skipping...", name)
 			continue
 		}
 
 		alreadyGood := false
 
-		switch pc.Host.Runtime.Platform {
+		switch h.platform() {
 		case ox.PlatformWindows:
-			alreadyGood, err = pc.AssessWindowsPrereq(name, entry)
+			alreadyGood, err = h.AssessWindowsPrereq(name, entry)
 			if err != nil {
 				return nil, errors.Wrap(err, "assessing windows prereq")
 			}
 		case ox.PlatformLinux:
-			alreadyGood, err = pc.AssessLinuxPrereq(name, entry)
+			alreadyGood, err = h.AssessLinuxPrereq(name, entry)
 			if err != nil {
 				return nil, errors.Wrap(err, "assessing linux prereq")
 			}
@@ -53,7 +53,7 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 	}
 
 	for _, name := range pa.Done {
-		err := pc.MarkInstalled(name)
+		err := h.MarkInstalled(name)
 		if err != nil {
 			return nil, errors.Wrapf(err, "marking %s as installed", name)
 		}
@@ -63,24 +63,24 @@ func (pc *PrereqsContext) AssessPrereqs(names []string) (*PrereqAssessment, erro
 	return pa, nil
 }
 
-func (pc *PrereqsContext) MarkerPath(name string) string {
-	return filepath.Join(pc.PrereqsDir, name, ".installed")
+func (h *handler) MarkerPath(name string) string {
+	return filepath.Join(h.prereqsDir(), name, ".installed")
 }
 
-func (pc *PrereqsContext) HasInstallMarker(name string) bool {
-	path := pc.MarkerPath(name)
+func (h *handler) HasInstallMarker(name string) bool {
+	path := h.MarkerPath(name)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func (pc *PrereqsContext) MarkInstalled(name string) error {
-	if pc.HasInstallMarker(name) {
+func (h *handler) MarkInstalled(name string) error {
+	if h.HasInstallMarker(name) {
 		// don't mark again
 		return nil
 	}
 
 	contents := fmt.Sprintf("Installed on %s", time.Now())
-	path := pc.MarkerPath(name)
+	path := h.MarkerPath(name)
 	err := os.MkdirAll(filepath.Dir(path), os.FileMode(0o755))
 	if err != nil {
 		return errors.Wrap(err, "creating marker dir")
@@ -94,12 +94,12 @@ func (pc *PrereqsContext) MarkInstalled(name string) error {
 	return nil
 }
 
-func (pc *PrereqsContext) AssessWindowsPrereq(name string, entry *redist.RedistEntry) (bool, error) {
+func (h *handler) AssessWindowsPrereq(name string, entry *redist.RedistEntry) (bool, error) {
 	block := entry.Windows
 
 	for _, registryKey := range block.RegistryKeys {
-		if RegistryKeyExists(pc.Consumer, registryKey) {
-			pc.Consumer.Debugf("Found registry key (%s)", registryKey)
+		if RegistryKeyExists(h.consumer(), registryKey) {
+			h.consumer().Debugf("Found registry key (%s)", registryKey)
 			return true, nil
 		}
 	}
@@ -107,7 +107,7 @@ func (pc *PrereqsContext) AssessWindowsPrereq(name string, entry *redist.RedistE
 	return false, nil
 }
 
-func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEntry) (bool, error) {
+func (h *handler) AssessLinuxPrereq(name string, entry *redist.RedistEntry) (bool, error) {
 	block := entry.Linux
 
 	switch block.Type {
@@ -118,7 +118,7 @@ func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEnt
 	}
 
 	for _, sc := range block.SanityChecks {
-		err := pc.RunSanityCheck(name, entry, sc)
+		err := h.RunSanityCheck(name, entry, sc)
 		if err != nil {
 			return false, nil
 		}
@@ -127,17 +127,19 @@ func (pc *PrereqsContext) AssessLinuxPrereq(name string, entry *redist.RedistEnt
 	return true, nil
 }
 
-func (pc *PrereqsContext) RunSanityCheck(name string, entry *redist.RedistEntry, sc *redist.LinuxSanityCheck) error {
-	if !pc.Host.Runtime.Equals(ox.CurrentRuntime()) {
-		pc.Consumer.Debugf("Skipping sanity check, because we're on a non-native runtime")
+func (h *handler) RunSanityCheck(name string, entry *redist.RedistEntry, sc *redist.LinuxSanityCheck) error {
+	consumer := h.consumer()
+
+	if !h.runtime().Equals(ox.CurrentRuntime()) {
+		consumer.Debugf("Skipping sanity check, because we're on a non-native runtime")
 		return nil
 	}
 
 	cmd := exec.Command(sc.Command, sc.Args...)
-	cmd.Dir = pc.GetEntryDir(name)
+	cmd.Dir = h.GetEntryDir(name)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		pc.Consumer.Debugf("Sanity check failed:%s\n%s", err.Error(), string(output))
+		consumer.Debugf("Sanity check failed:%s\n%s", err.Error(), string(output))
 		return errors.Wrapf(err, "performing sanity check for %s", name)
 	}
 

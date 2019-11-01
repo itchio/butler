@@ -207,7 +207,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 
 		TempDir:       tempDir,
 		InstallFolder: params.InstallFolder,
-		Runtime:       params.Runtime,
+		Runtime:       params.Host.Runtime,
 
 		AttachParams:   l.AttachParams(params),
 		FirejailParams: l.FirejailParams(params),
@@ -292,7 +292,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 }
 
 func (l *Launcher) FirejailParams(params launch.LauncherParams) runner.FirejailParams {
-	name := fmt.Sprintf("firejail-%s", params.Runtime.Arch())
+	name := fmt.Sprintf("firejail-%s", params.Host.Runtime.Arch())
 	binaryPath := filepath.Join(params.PrereqsDir, name, "firejail")
 	return runner.FirejailParams{
 		BinaryPath: binaryPath,

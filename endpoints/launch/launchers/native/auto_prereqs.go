@@ -1,5 +1,3 @@
-// +build windows
-
 package native
 
 import (
@@ -10,18 +8,29 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/itchio/butler/redist"
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/endpoints/launch"
+	"github.com/itchio/butler/redist"
+	"github.com/itchio/ox"
 
-	"github.com/itchio/headway/state"
 	"github.com/itchio/dash"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/pelican"
 
 	"github.com/pkg/errors"
 )
 
-func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext) ([]string, error) {
+func handleAutoPrereqs(params launch.LauncherParams, h prereqs.Handler) ([]string, error) {
+	switch params.Host.Runtime.Platform {
+	case ox.PlatformWindows:
+		return handleAutoPrereqsWindows(params, h)
+	default:
+		// no auto prereqs on non-windows platforms for now
+		return nil, nil
+	}
+}
+
+func handleAutoPrereqsWindows(params launch.LauncherParams, h prereqs.Handler) ([]string, error) {
 	consumer := params.RequestContext.Consumer
 
 	candidate := params.Candidate
@@ -135,7 +144,7 @@ func handleAutoPrereqs(params launch.LauncherParams, pc *prereqs.PrereqsContext)
 		consumer.Infof(" - (%s)", imp)
 	}
 
-	registry, err := pc.GetRegistry()
+	registry, err := h.GetRegistry()
 	if err != nil {
 		return nil, err
 	}

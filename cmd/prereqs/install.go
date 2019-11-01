@@ -14,12 +14,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error {
-	consumer := pc.Consumer
+func (h *handler) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error {
+	consumer := h.consumer()
 
 	needElevation := false
 	for _, task := range plan.Tasks {
-		switch pc.Host.Runtime.Platform {
+		switch h.platform() {
 		case ox.PlatformWindows:
 			block := task.Info.Windows
 			if block.Elevate {
@@ -63,7 +63,7 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 	res, err := installer.RunSelf(installer.RunSelfParams{
 		Consumer: consumer,
 		Args:     args,
-		Host:     pc.Host,
+		Host:     h.host(),
 		OnResult: func(value installer.Any) {
 			switch value["type"] {
 			case "state":
@@ -109,11 +109,11 @@ func (pc *PrereqsContext) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPla
 
 	// now to run some sanity checks (as regular user)
 	for _, task := range plan.Tasks {
-		switch pc.Host.Runtime.Platform {
+		switch h.platform() {
 		case ox.PlatformLinux:
 			block := task.Info.Linux
 			for _, sc := range block.SanityChecks {
-				err := pc.RunSanityCheck(task.Name, task.Info, sc)
+				err := h.RunSanityCheck(task.Name, task.Info, sc)
 				if err != nil {
 					return errors.Wrapf(err, "sanity check failed for (%s)", task.Name)
 				}

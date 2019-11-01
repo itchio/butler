@@ -32,11 +32,11 @@ type TaskStateConsumer struct {
 	OnState func(state butlerd.PrereqsTaskStateNotification)
 }
 
-func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
-	consumer := pc.Consumer
+func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
+	consumer := h.consumer()
 
 	doPrereq := func(name string) error {
-		entry, err := pc.GetEntry(name)
+		entry, err := h.GetEntry(name)
 		if err != nil {
 			return errors.Wrapf(err, "getting info about prereq %s", name)
 		}
@@ -45,9 +45,9 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			consumer.Warnf("Prereq (%s) not found in registry, skipping", name)
 			return nil
 		}
-		destDir := pc.GetEntryDir(name)
+		destDir := h.GetEntryDir(name)
 
-		library, err := pc.GetLibrary()
+		library, err := h.GetLibrary()
 		if err != nil {
 			return errors.Wrap(err, "opening prereqs library")
 		}
@@ -105,7 +105,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 			},
 		}
 
-		rcc := *pc.RequestContext
+		rcc := *h.rc()
 		rcc.Conn = conn
 		rcc.Consumer = taskConsumer
 
@@ -181,7 +181,7 @@ func (pc *PrereqsContext) FetchPrereqs(tsc *TaskStateConsumer, names []string) e
 	}
 
 	select {
-	case <-pc.RequestContext.Ctx.Done():
+	case <-h.rc().Ctx.Done():
 		// uh oh
 		return butlerd.CodeOperationAborted
 	default:

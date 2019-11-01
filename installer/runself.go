@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/butler/installer/loggerwriter"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
 
@@ -37,6 +38,10 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 	err := validation.ValidateStruct(&params,
 		validation.Field(&params.Host.Runtime.Platform, validation.Required),
 	)
+
+	if !params.Host.Runtime.Equals(ox.CurrentRuntime()) {
+		return nil, errors.Errorf("Don't know how to run self on non-native host %s", params.Host)
+	}
 
 	selfPath, err := os.Executable()
 	if err != nil {

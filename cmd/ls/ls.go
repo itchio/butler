@@ -293,11 +293,11 @@ func Do(ctx *mansion.Context, inPath string) error {
 			if info.Strategy == boar.StrategyDmg {
 				consumer.Errorf("Listing dmg files is deprecated, sorry!")
 				return false
-			} else {
-				if numEntries == 0 {
-					consumer.Warnf("Opened with boar successfully, but had 0 entries.")
-					consumer.Warnf("Archive info was: %s", info)
-				}
+			}
+
+			if numEntries == 0 {
+				consumer.Warnf("Opened with boar successfully, but had 0 entries.")
+				consumer.Warnf("Archive info was: %s", info)
 			}
 
 			return true

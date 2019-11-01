@@ -19,7 +19,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Handler interface{}
+type Handler interface {
+	HasInstallMarker(name string) bool
+	MarkInstalled(name string) error
+
+	GetEntry(name string) (*redist.RedistEntry, error)
+	GetRegistry() (*redist.RedistRegistry, error)
+
+	FilterPrereqs(names []string) ([]string, error)
+	AssessPrereqs(names []string) (*PrereqAssessment, error)
+	FetchPrereqs(tsc *TaskStateConsumer, names []string) error
+	BuildPlan(names []string) (*PrereqPlan, error)
+	InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error
+}
+
+var _ Handler = (*handler)(nil)
 
 type Params struct {
 	RequestContext *butlerd.RequestContext
@@ -45,32 +59,52 @@ func NewHandler(params Params) (Handler, error) {
 		return nil, err
 	}
 
-	return &prereqsContext{
+	return &handler{
 		params: params,
 	}, nil
 }
 
-func (pc *prereqsContext) runtime() ox.Runtime {
-	return pc.params.Host.Runtime
+func (h *handler) prereqsDir() string {
+	return h.params.PrereqsDir
 }
 
-func (pc *prereqsContext) GetLibrary() (Library, error) {
-	if pc.library == nil {
-		library, err := NewLibrary(pc.params.RequestContext, pc.runtime(), pc.params.APIKey)
+func (h *handler) rc() *butlerd.RequestContext {
+	return h.params.RequestContext
+}
+
+func (h *handler) consumer() *state.Consumer {
+	return h.params.Consumer
+}
+
+func (h *handler) host() manager.Host {
+	return h.params.Host
+}
+
+func (h *handler) runtime() ox.Runtime {
+	return h.host().Runtime
+}
+
+func (h *handler) platform() ox.Platform {
+	return h.runtime().Platform
+}
+
+func (h *handler) GetLibrary() (Library, error) {
+	if h.library == nil {
+		library, err := NewLibrary(h.rc(), h.runtime(), h.params.APIKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "opening prereqs library")
 		}
 
-		pc.library = library
+		h.library = library
 	}
-	return pc.library, nil
+	return h.library, nil
 }
 
-func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
-	if pc.registry == nil {
+func (h *handler) GetRegistry() (*redist.RedistRegistry, error) {
+	if h.registry == nil {
 		beforeFetch := time.Now()
 
-		consumer := pc.params.Consumer
+		consumer := h.consumer()
 
 		consumer.Infof("Fetching prereqs registry...")
 		registry := &redist.RedistRegistry{}
@@ -78,16 +112,16 @@ func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 		needFetch := false
 		wantFetch := false
 
-		if pc.params.PrereqsDir == "" {
+		if h.params.PrereqsDir == "" {
 			return nil, errors.Errorf("PrereqsDir cannot be empty")
 		}
 
-		err := os.MkdirAll(pc.params.PrereqsDir, 0o755)
+		err := os.MkdirAll(h.params.PrereqsDir, 0o755)
 		if err != nil {
 			return nil, err
 		}
 
-		cachedRegistryPath := filepath.Join(pc.params.PrereqsDir, "info.json")
+		cachedRegistryPath := filepath.Join(h.params.PrereqsDir, "info.json")
 		stats, err := os.Stat(cachedRegistryPath)
 		if err != nil {
 			needFetch = true
@@ -98,13 +132,13 @@ func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 				wantFetch = true
 			}
 		}
-		if pc.params.Force {
+		if h.params.Force {
 			needFetch = true
 		}
 
 		if needFetch || wantFetch {
 			err := func() error {
-				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(pc.params.Consumer))
+				src, err := eos.Open("https://broth.itch.ovh/itch-redists/info/LATEST/unpacked", option.WithConsumer(h.consumer()))
 				if err != nil {
 					return errors.Wrap(err, "opening remote registry file")
 				}
@@ -125,9 +159,8 @@ func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 			if err != nil {
 				if needFetch {
 					return nil, errors.Wrap(err, "fetching prereqs registry")
-				} else {
-					consumer.Warnf("while fetching prereqs registry: %v", err)
 				}
+				consumer.Warnf("while fetching prereqs registry: %v", err)
 			}
 		}
 
@@ -144,14 +177,14 @@ func (pc *prereqsContext) GetRegistry() (*redist.RedistRegistry, error) {
 		registryFetchDuration := time.Since(beforeFetch)
 		consumer.Infof("✓ Fetched %d entries in %s", len(registry.Entries), registryFetchDuration)
 
-		pc.registry = registry
+		h.registry = registry
 	}
 
-	return pc.registry, nil
+	return h.registry, nil
 }
 
-func (pc *prereqsContext) GetEntry(name string) (*redist.RedistEntry, error) {
-	r, err := pc.GetRegistry()
+func (h *handler) GetEntry(name string) (*redist.RedistEntry, error) {
+	r, err := h.GetRegistry()
 	if err != nil {
 		return nil, errors.Wrap(err, "opening prereqs registry")
 	}
@@ -159,6 +192,6 @@ func (pc *prereqsContext) GetEntry(name string) (*redist.RedistEntry, error) {
 	return r.Entries[name], nil
 }
 
-func (pc *prereqsContext) GetEntryDir(name string) string {
-	return filepath.Join(pc.params.PrereqsDir, name)
+func (h *handler) GetEntryDir(name string) string {
+	return filepath.Join(h.prereqsDir(), name)
 }
