@@ -26,6 +26,9 @@ type LauncherParams struct {
 	// If relative, it's relative to the WorkingDirectory
 	FullTargetPath string
 
+	// Target path before any wrappers (wine, etc.)
+	OriginalFullTargetPath string
+
 	// May be nil
 	PeInfo *pelican.PeInfo
 

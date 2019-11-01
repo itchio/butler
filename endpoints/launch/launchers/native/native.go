@@ -366,7 +366,7 @@ func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 	}
 
 	var err error
-	f, err := os.Open(params.FullTargetPath)
+	f, err := os.Open(params.OriginalFullTargetPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}

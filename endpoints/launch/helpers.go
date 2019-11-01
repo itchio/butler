@@ -1,6 +1,8 @@
 package launch
 
 import (
+	"path/filepath"
+
 	"crawshaw.io/sqlite"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/butlerd"
@@ -13,6 +15,7 @@ import (
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"github.com/itchio/screw"
 	"github.com/pkg/errors"
 )
 
@@ -185,8 +188,49 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	if appManifest == nil {
 		consumer.Infof("No app manifest.")
 	} else {
-		actions := appManifest.ListActions(host.Runtime.Platform)
-		consumer.Statf("%d/%d manifest actions are relevant on (%s)", len(actions), len(appManifest.Actions), host)
+		fillActionPlatform := func(action manifest.Action) (manifest.Action, error) {
+			if action.Path == "" {
+				return action, nil
+			}
+			actionPath := filepath.Join(info.installFolder, action.Path)
+			_, err := screw.Lstat(actionPath)
+			if err != nil {
+				consumer.Warnf("Could not stat (%s)", actionPath)
+				consumer.Warnf("%v", err)
+				return action, nil
+			}
+
+			verdict, err := dash.Configure(actionPath, dash.ConfigureParams{
+				Consumer: consumer,
+			})
+			if err != nil {
+				consumer.Warnf("Could not configure (%s)", actionPath)
+				consumer.Warnf("%v", err)
+				return action, nil
+			}
+
+			if len(verdict.Candidates) != 1 {
+				consumer.Warnf("Expected 1 candidates but had (%d)", len(verdict.Candidates))
+				return action, nil
+			}
+			candidate := verdict.Candidates[0]
+			platform := flavorToPlatform(candidate.Flavor)
+			if platform != nil {
+				action.Platform = *platform
+			}
+			return action, nil
+		}
+
+		var actions manifest.Actions
+		for _, input := range appManifest.Actions {
+			output, err := fillActionPlatform(input)
+			if err != nil {
+				return nil, err
+			}
+			actions = append(actions, output)
+		}
+
+		actions = actions.FilterByPlatform(host.Runtime.Platform)
 
 		for _, action := range actions {
 			target, err := ActionToLaunchTarget(consumer, host, info.installFolder, action)

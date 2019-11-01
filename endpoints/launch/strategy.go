@@ -19,21 +19,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFolder string, manifestAction *manifest.Action) (*butlerd.LaunchTarget, error) {
-	actionCopy := *manifestAction
-	manifestAction = &actionCopy
+func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFolder string, manifestAction manifest.Action) (*butlerd.LaunchTarget, error) {
 	if manifestAction.Platform == "" {
 		manifestAction.Platform = host.Runtime.Platform
 	}
 
 	target := &butlerd.LaunchTarget{
-		Action:   manifestAction,
+		Action:   &manifestAction,
 		Strategy: &butlerd.StrategyResult{},
 		Host:     host,
 	}
 
 	// is it a path?
-	fullPath := manifest.ExpandPath(manifestAction, host.Runtime.Platform, installFolder)
+	fullPath := manifestAction.ExpandPath(manifestAction.Platform, installFolder)
 	stats, err := os.Stat(fullPath)
 	if err != nil {
 		// is it a URL?
@@ -95,10 +93,8 @@ func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFo
 			return nil, errors.WithStack(err)
 		}
 
-		target.Action = manifestAction
+		target.Action = &manifestAction
 		return target, nil
-	} else {
-		consumer.Infof("(%s) yielded no candidates when configured with dash", fullPath)
 	}
 
 	// must not be an executable, that's ok, just open it
@@ -182,6 +178,38 @@ func IsElevatedWindowsInstaller(consumer *state.Consumer, candidate *dash.Candid
 
 	consumer.Infof("(%s) Does not require elevation", candidate.Path)
 	return false
+}
+
+func flavorToPlatform(flavor dash.Flavor) *ox.Platform {
+	switch flavor {
+	// HTML
+	case dash.FlavorHTML:
+		return nil
+	// Native
+	case dash.FlavorNativeLinux:
+		p := ox.PlatformLinux
+		return &p
+	case dash.FlavorNativeMacos:
+		p := ox.PlatformOSX
+		return &p
+	case dash.FlavorNativeWindows:
+		p := ox.PlatformWindows
+		return &p
+	case dash.FlavorAppMacos:
+		p := ox.PlatformOSX
+		return &p
+	case dash.FlavorScript:
+		return nil
+	case dash.FlavorScriptWindows:
+		p := ox.PlatformWindows
+		return &p
+	case dash.FlavorJar:
+		return nil
+	case dash.FlavorLove:
+		return nil
+	default:
+		return nil
+	}
 }
 
 func flavorToStrategy(flavor dash.Flavor) butlerd.LaunchStrategy {

@@ -17,12 +17,14 @@ import (
 // can be taken while launching a game.
 type Manifest struct {
 	// Actions are a list of options to give the user when launching a game.
-	Actions []*Action `json:"actions"`
+	Actions Actions `json:"actions"`
 
 	// Prereqs describe libraries or frameworks that must be installed
 	// prior to launching a game
-	Prereqs []*Prereq `json:"prereqs,omitempty"`
+	Prereqs []Prereq `json:"prereqs,omitempty"`
 }
+
+type Actions []Action
 
 // An Action is a choice for the user to pick when launching a game.
 //
@@ -73,10 +75,10 @@ type ActionLocale struct {
 	Name string `json:"name"`
 }
 
-func (m *Manifest) ListActions(platform ox.Platform) []*Action {
-	var result []*Action
+func (actions Actions) FilterByPlatform(platform ox.Platform) []Action {
+	var result Actions
 
-	for _, a := range m.Actions {
+	for _, a := range actions {
 		if a.RunsOn(platform) {
 			result = append(result, a)
 		}
@@ -132,7 +134,7 @@ func Read(folder string) (*Manifest, error) {
 	return manifest, nil
 }
 
-func ExpandPath(a *Action, platform ox.Platform, baseFolder string) string {
+func (a Action) ExpandPath(platform ox.Platform, baseFolder string) string {
 	if filepath.IsAbs(a.Path) {
 		return a.Path
 	}
