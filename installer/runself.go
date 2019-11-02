@@ -129,9 +129,9 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 	cmd.Stdout = parser
 	cmd.Stderr = loggerwriter.New(consumer, "err")
 
-	consumer.Debugf("Final arguments: (%s)", strings.Join(args, ":::"))
+	consumer.Debugf("Final arguments: (%s)", strings.Join(args, " ::: "))
 	consumer.Debugf("Final dir: (%s)", cmd.Dir)
-	consumer.Debugf("Final info was: %#s", info)
+	consumer.Debugf("Final info was: %#v", info)
 
 	err = cmd.Run()
 	if len(res.Errors) > 0 {

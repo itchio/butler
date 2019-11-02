@@ -88,8 +88,8 @@ func registerCommands(ctx *mansion.Context) {
 	clean.Register(ctx)
 	walk.Register(ctx)
 
-	msi.Register(ctx)
 	prereqs.Register(ctx)
+	msi.Register(ctx)
 
 	extract.Register(ctx)
 	unzip.Register(ctx)

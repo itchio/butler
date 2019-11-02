@@ -109,7 +109,7 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 
 		logPath := filepath.Join(tempDir, "msi-install-log.txt")
 
-		err = msi.Install(consumer, commandPath, logPath, "", nil)
+		err = msi.Install(consumer, commandPath, logPath, nil)
 		if err != nil {
 			return fmt.Errorf("MSI install failed: %s", err.Error())
 		}

@@ -56,7 +56,6 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/sourcegraph/jsonrpc2 v0.0.0-20190106185902-35a74f039c6a
 	github.com/stretchr/testify v1.4.0
-	github.com/winlabs/gowin32 v0.0.0-20191014154835-eca81418a0e3
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20191014212845-da9a3fd4c582 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
