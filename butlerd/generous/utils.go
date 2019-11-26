@@ -38,6 +38,18 @@ func isEnum(ts *ast.TypeSpec) bool {
 	return false
 }
 
+func isArrayAlias(ts *ast.TypeSpec) bool {
+	if ts == nil {
+		return false
+	}
+
+	if _, ok := ts.Type.(*ast.ArrayType); ok {
+		return true
+	}
+
+	return false
+}
+
 func parseTag(line string) (tag string, value string) {
 	if strings.HasPrefix(line, "@") {
 		for i := 1; i < len(line); i++ {

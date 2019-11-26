@@ -18,6 +18,7 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 
 	scope := newScope(gc)
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
+	must(scope.assimilate("github.com/itchio/butler/endpoints/launch/manifest", "manifest.go"))
 	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.assimilate("github.com/itchio/dash", "types.go"))
 	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
@@ -73,6 +74,8 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 			}
 
 			doc.line("}")
+		case entryTypeKindArrayAlias:
+			doc.line("export type %s = %s;", entry.typeName, typeToString(entry.typeSpec.Type))
 		case entryTypeKindEnum:
 			doc.line("export enum %s {", entry.typeName)
 			for _, val := range entry.enumValues {

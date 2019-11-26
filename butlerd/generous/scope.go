@@ -69,6 +69,7 @@ type entryTypeKind int
 const (
 	entryTypeKindStruct entryTypeKind = iota
 	entryTypeKindEnum
+	entryTypeKindArrayAlias
 	entryTypeKindAlias
 	entryTypeKindInvalid
 )
@@ -81,6 +82,7 @@ const (
 	entryKindNotification
 	entryKindType
 	entryKindEnum
+	entryKindArrayAlias
 	entryKindAlias
 	entryKindInvalid
 )
@@ -116,6 +118,8 @@ func (s *scope) assimilate(pkg string, file string) error {
 					typeKind = entryTypeKindStruct
 				} else if isEnum(ts) {
 					typeKind = entryTypeKindEnum
+				} else if isArrayAlias(ts) {
+					typeKind = entryTypeKindArrayAlias
 				}
 
 				if typeKind != entryTypeKindInvalid {
@@ -126,6 +130,8 @@ func (s *scope) assimilate(pkg string, file string) error {
 					switch typeKind {
 					case entryTypeKindEnum:
 						kind = entryKindEnum
+					case entryTypeKindArrayAlias:
+						kind = entryKindArrayAlias
 					case entryTypeKindStruct:
 						switch true {
 						case strings.HasSuffix(tsName, "Notification"):
