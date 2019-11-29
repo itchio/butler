@@ -86,7 +86,7 @@ func typeToString(e ast.Expr) string {
 		name := node.Sel.Name
 		switch name {
 		case "Time":
-			return "Date" // javascript type date
+			return "RFCDate"
 		default:
 			return name
 		}

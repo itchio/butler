@@ -16,6 +16,10 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 	doc.line("")
 	doc.line("import { createRequest, createNotification } from %#v;", "butlerd/lib/support")
 
+	doc.line("")
+	doc.line("// Type alias for RFC3339-nano date strings")
+	doc.line("export type RFCDate = string;")
+
 	scope := newScope(gc)
 	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
 	must(scope.assimilate("github.com/itchio/butler/endpoints/launch/manifest", "manifest.go"))
