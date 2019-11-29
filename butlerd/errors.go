@@ -3,7 +3,7 @@ package butlerd
 import (
 	"fmt"
 
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 )
 
 type Error interface {

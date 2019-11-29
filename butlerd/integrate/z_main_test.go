@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 )
 
 type IntegrateConfig struct {

@@ -55,11 +55,11 @@ func Test_DownloadsDrive(t *testing.T) {
 
 	var notifs []string
 
-	messages.DownloadsDriveStarted.Register(h, func(rc *butlerd.RequestContext, params butlerd.DownloadsDriveStartedNotification) {
+	messages.DownloadsDriveStarted.Register(h, func(params butlerd.DownloadsDriveStartedNotification) {
 		notifs = append(notifs, "started")
 	})
 
-	messages.DownloadsDriveNetworkStatus.Register(h, func(rc *butlerd.RequestContext, params butlerd.DownloadsDriveNetworkStatusNotification) {
+	messages.DownloadsDriveNetworkStatus.Register(h, func(params butlerd.DownloadsDriveNetworkStatusNotification) {
 		notifs = append(notifs, fmt.Sprintf("network-%s", params.Status))
 
 		if params.Status == butlerd.NetworkStatusOffline {
@@ -72,7 +72,7 @@ func Test_DownloadsDrive(t *testing.T) {
 
 	driveDone := make(chan error)
 
-	messages.DownloadsDriveErrored.Register(h, func(rc *butlerd.RequestContext, params butlerd.DownloadsDriveErroredNotification) {
+	messages.DownloadsDriveErrored.Register(h, func(params butlerd.DownloadsDriveErroredNotification) {
 		notifs = append(notifs, fmt.Sprintf("errored"))
 		bi.Logf("Got errored:")
 		dl := params.Download
@@ -87,7 +87,7 @@ func Test_DownloadsDrive(t *testing.T) {
 		t.FailNow()
 	})
 
-	messages.DownloadsDriveFinished.Register(h, func(rc *butlerd.RequestContext, params butlerd.DownloadsDriveFinishedNotification) {
+	messages.DownloadsDriveFinished.Register(h, func(params butlerd.DownloadsDriveFinishedNotification) {
 		notifs = append(notifs, fmt.Sprintf("finished"))
 
 		_, err = messages.DownloadsDriveCancel.TestCall(rc, butlerd.DownloadsDriveCancelParams{})

@@ -1,20 +1,14 @@
 package butlerd
 
 import (
-	"bufio"
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net"
 	"sync"
 
-	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type Server struct {
@@ -96,19 +90,12 @@ func (s *Server) serveTCPKeepAlive(ctx context.Context, params ServeTCPParams) e
 }
 
 func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams, tcpConn net.Conn) error {
-	gh := &gatedHandler{
-		secret: params.Secret,
-		inner:  params.Handler,
-	}
-
-	var opts []jsonrpc2.ConnOpt
+	gh := newGatedHandler(params.Handler, params.Secret)
 
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
-	stream := jsonrpc2.NewBufferedStream(tcpConn, LFObjectCodec{})
-
-	conn := jsonrpc2.NewConn(ctx, stream, gh, opts...)
+	conn := jsonrpc2.NewConn(ctx, tcpConn, gh)
 	<-conn.DisconnectNotify()
 
 	return nil
@@ -117,123 +104,62 @@ func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams,
 //
 
 type gatedHandler struct {
-	authenticated bool
-	secret        string
-	inner         jsonrpc2.Handler
+	authenticateChan  chan struct{}
+	authenticated     bool
+	authenticateMutex sync.Mutex
+
+	secret string
+	inner  jsonrpc2.Handler
 }
 
 var _ jsonrpc2.Handler = (*gatedHandler)(nil)
 
-func (h *gatedHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+func newGatedHandler(inner jsonrpc2.Handler, secret string) jsonrpc2.Handler {
+	return &gatedHandler{
+		authenticateChan: make(chan struct{}),
+		authenticated:    false,
+
+		secret: secret,
+		inner:  inner,
+	}
+}
+
+func (h *gatedHandler) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interface{}, error) {
 	if req.Method == "Meta.Authenticate" {
-		err := func() error {
-			var params MetaAuthenticateParams
+		var params MetaAuthenticateParams
 
-			err := json.Unmarshal(*req.Params, &params)
+		if req.Params != nil {
+			err := jsonrpc2.DecodeJSON(*req.Params, &params)
 			if err != nil {
-				return errors.WithStack(err)
+				return nil, err
 			}
+		}
 
-			if params.Secret != h.secret {
-				return errors.Errorf("Invalid secret")
+		if params.Secret != h.secret {
+			return nil, errors.Errorf("Invalid secret")
+		}
+
+		func() {
+			h.authenticateMutex.Lock()
+			defer h.authenticateMutex.Unlock()
+
+			if !h.authenticated {
+				h.authenticated = true
+				// notify any pending requests that they are free to go
+				close(h.authenticateChan)
 			}
-			return nil
 		}()
 
-		if err != nil {
-			err := conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-				Code:    jsonrpc2.CodeInvalidRequest,
-				Message: fmt.Sprintf("%+v", err),
-			})
-			if err != nil {
-				comm.Warnf("Failed to reply: %#v", err)
-			}
-		} else {
-			result := &MetaAuthenticateResult{OK: true}
-			h.authenticated = true
-			err := conn.Reply(ctx, req.ID, result)
-			if err != nil {
-				comm.Warnf("Failed to reply: %#v", err)
-			}
+		result := MetaAuthenticateResult{
+			OK: true,
 		}
+		return result, nil
 	} else {
-		if h.authenticated {
-			go h.inner.Handle(ctx, conn, req)
-		} else {
-			err := conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
-				Code:    jsonrpc2.CodeInvalidRequest,
-				Message: "Must call Meta.Authenticate with valid secret first",
-			})
-			if err != nil {
-				comm.Warnf("Failed to reply with error: %#v", err)
-			}
-		}
+		<-h.authenticateChan
+		return h.inner.HandleRequest(conn, req)
 	}
 }
 
-//
-
-type LFObjectCodec struct{}
-
-var separator = []byte("\n")
-
-func (LFObjectCodec) WriteObject(stream io.Writer, obj interface{}) error {
-	data, err := json.Marshal(obj)
-	if err != nil {
-		return err
-	}
-
-	if _, err := stream.Write(data); err != nil {
-		return err
-	}
-	if _, err := stream.Write(separator); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (LFObjectCodec) ReadObject(stream *bufio.Reader, v interface{}) error {
-	var buf bytes.Buffer
-
-scanLoop:
-	for {
-		b, err := stream.ReadByte()
-		if err != nil {
-			return err
-		}
-
-		switch b {
-		case '\n':
-			break scanLoop
-		default:
-			buf.WriteByte(b)
-		}
-	}
-
-	return json.Unmarshal(buf.Bytes(), v)
-}
-
-type Conn interface {
-	Notify(ctx context.Context, method string, params interface{}) error
-	Call(ctx context.Context, method string, params interface{}, result interface{}) error
-}
-
-//
-
-type JsonRPC2Conn struct {
-	Conn *jsonrpc2.Conn
-}
-
-var _ Conn = (*JsonRPC2Conn)(nil)
-
-func (jc *JsonRPC2Conn) Notify(ctx context.Context, method string, params interface{}) error {
-	return jc.Conn.Notify(ctx, method, params)
-}
-
-func (jc *JsonRPC2Conn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
-	return jc.Conn.Call(ctx, method, params, result)
-}
-
-func (jc *JsonRPC2Conn) Close() error {
-	return jc.Conn.Close()
+func (h *gatedHandler) HandleNotification(conn jsonrpc2.Conn, notif jsonrpc2.Notification) {
+	h.inner.HandleNotification(conn, notif)
 }

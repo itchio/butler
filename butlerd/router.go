@@ -2,28 +2,28 @@ package butlerd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"golang.org/x/sync/singleflight"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/itchio/wharf/werrors"
-	"golang.org/x/sync/singleflight"
-
-	"github.com/itchio/headway/tracker"
-	"github.com/itchio/httpkit/neterr"
-	"github.com/itchio/httpkit/timeout"
-
-	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd/horror"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/headway/tracker"
+	"github.com/itchio/httpkit/neterr"
+	"github.com/itchio/httpkit/timeout"
+	"github.com/itchio/wharf/werrors"
+
+	"crawshaw.io/sqlite"
+	"github.com/helloeave/json"
+
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type InFlightRequest struct {
@@ -44,7 +44,7 @@ type BackgroundTask struct {
 }
 
 type RequestHandler func(rc *RequestContext) (interface{}, error)
-type NotificationHandler func(rc *RequestContext)
+type NotificationHandler func(notif jsonrpc2.Notification)
 
 type GetClientFunc func(key string) *itchio.Client
 
@@ -140,7 +140,7 @@ func (r *Router) onRequestStarted(id jsonrpc2.ID, req InFlightRequest) {
 func (r *Router) onRequestFinished(id jsonrpc2.ID) {
 	delete(r.inflightRequests, id)
 	if r.shuttingDown {
-		r.globalConsumer.Infof("While shutting down, request %s has completed", id)
+		r.globalConsumer.Infof("While shutting down, request %v has completed", id)
 	}
 	r.opportunisticShutdown()
 }
@@ -200,7 +200,13 @@ func (r *Router) RegisterNotification(method string, nh NotificationHandler) {
 	r.NotificationHandlers[method] = nh
 }
 
-func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+var _ jsonrpc2.Handler = (*Router)(nil)
+
+func (r *Router) HandleNotification(conn jsonrpc2.Conn, notif jsonrpc2.Notification) {
+	// muffin.
+}
+
+func (r *Router) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interface{}, error) {
 	r.inflightLock.Lock()
 	r.onRequestStarted(req.ID, InFlightRequest{
 		DispatchedAt: time.Now().UTC(),
@@ -217,13 +223,11 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 	method := req.Method
 	var res interface{}
 
-	conn := &JsonRPC2Conn{origConn}
 	consumer, cErr := NewStateConsumer(&NewStateConsumerParams{
-		Ctx:  ctx,
 		Conn: conn,
 	})
 	if cErr != nil {
-		return
+		return nil, cErr
 	}
 
 	err := func() (err error) {
@@ -238,7 +242,7 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		}()
 
 		rc := &RequestContext{
-			Ctx:         ctx,
+			Ctx:         conn.Context(),
 			Consumer:    consumer,
 			Params:      req.Params,
 			Conn:        conn,
@@ -252,17 +256,12 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 			Group:    r.Group,
 			Shutdown: r.initiateShutdown,
 
-			origConn: origConn,
-			method:   method,
+			method: method,
 
 			QueueBackgroundTask: r.QueueBackgroundTask,
 		}
 
-		if req.Notif {
-			if nh, ok := r.NotificationHandlers[req.Method]; ok {
-				nh(rc)
-			}
-		} else {
+		{
 			if h, ok := r.Handlers[method]; ok {
 				rc.Consumer.OnProgress = func(alpha float64) {
 					if rc.tracker == nil {
@@ -313,16 +312,8 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		return
 	}()
 
-	if req.Notif {
-		return
-	}
-
 	if err == nil {
-		err = origConn.Reply(ctx, req.ID, res)
-		if err != nil {
-			consumer.Errorf("Error while replying: %s", err.Error())
-		}
-		return
+		return res, nil
 	}
 
 	var code int64
@@ -346,7 +337,6 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		}
 	}
 
-	var rawData *json.RawMessage
 	if data == nil {
 		data = make(map[string]interface{})
 	}
@@ -358,17 +348,16 @@ func (r *Router) Dispatch(ctx context.Context, origConn *jsonrpc2.Conn, req *jso
 		data["apiError"] = ae
 	}
 
-	marshalledData, marshalErr := json.Marshal(data)
-	if marshalErr == nil {
-		rawMessage := json.RawMessage(marshalledData)
-		rawData = &rawMessage
-	}
-
-	origConn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{
+	var rpcErr = &jsonrpc2.Error{
 		Code:    code,
 		Message: message,
-		Data:    rawData,
-	})
+		Data:    nil,
+	}
+	err = rpcErr.SetData(data)
+	if err != nil {
+		return nil, err
+	}
+	return nil, rpcErr
 }
 
 func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
@@ -401,8 +390,7 @@ func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
 		Group:    r.Group,
 		Shutdown: r.initiateShutdown,
 
-		origConn: nil,
-		method:   "",
+		method: "",
 
 		QueueBackgroundTask: r.QueueBackgroundTask,
 	}
@@ -445,7 +433,7 @@ type RequestContext struct {
 	HTTPTransport *http.Transport
 
 	Params      *json.RawMessage
-	Conn        Conn
+	Conn        jsonrpc2.Conn
 	CancelFuncs *CancelFuncs
 	dbPool      *sqlite.Pool
 
@@ -455,8 +443,7 @@ type RequestContext struct {
 	notificationInterceptors map[string]NotificationInterceptor
 	tracker                  tracker.Tracker
 
-	method   string
-	origConn *jsonrpc2.Conn
+	method string
 }
 
 type WithParamsFunc func() (interface{}, error)
@@ -464,7 +451,7 @@ type WithParamsFunc func() (interface{}, error)
 type NotificationInterceptor func(method string, params interface{}) error
 
 func (rc *RequestContext) Call(method string, params interface{}, res interface{}) error {
-	return rc.Conn.Call(rc.Ctx, method, params, res)
+	return rc.Conn.Call(method, params, res)
 }
 
 func (rc *RequestContext) InterceptNotification(method string, interceptor NotificationInterceptor) {
@@ -487,7 +474,7 @@ func (rc *RequestContext) Notify(method string, params interface{}) error {
 			return ni(method, params)
 		}
 	}
-	return rc.Conn.Notify(rc.Ctx, method, params)
+	return rc.Conn.Notify(method, params)
 }
 
 func (rc *RequestContext) RootClient() *itchio.Client {

@@ -14,7 +14,6 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
 	"github.com/itchio/headway/state"
-	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -102,25 +101,9 @@ func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, context.Background(), dbPool, secret))
 }
 
-type handler struct {
-	ctx    *mansion.Context
-	router *butlerd.Router
-}
-
-func (h *handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
-	if req.Notif {
-		return
-	}
-
-	h.router.Dispatch(ctx, conn, req)
-}
-
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
-	h := &handler{
-		ctx:    mansionContext,
-		router: getRouter(dbPool, mansionContext),
-	}
+	router := getRouter(dbPool, mansionContext)
 	consumer := comm.NewStateConsumer()
 
 	switch args.transport {
@@ -138,14 +121,14 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Poo
 		})
 
 		err = s.ServeTCP(ctx, butlerd.ServeTCPParams{
-			Handler:   h,
+			Handler:   router,
 			Consumer:  consumer,
 			Listener:  listener,
 			Secret:    secret,
 			Log:       args.log,
 			KeepAlive: args.keepAlive,
 
-			ShutdownChan: h.router.ShutdownChan,
+			ShutdownChan: router.ShutdownChan,
 		})
 		if err != nil {
 			return err

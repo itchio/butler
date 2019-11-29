@@ -17,7 +17,7 @@ import (
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"xorm.io/builder"
 )
 

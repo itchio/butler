@@ -20,8 +20,8 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/google/gops v0.3.6
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
+	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20190910190734-aa506bf6be35
 	github.com/itchio/boar v0.0.0-20190812200833-6a765722cc1f
 	github.com/itchio/dash v0.0.0-20190924130836-8ab701fc1aa0
@@ -54,7 +54,6 @@ require (
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
-	github.com/sourcegraph/jsonrpc2 v0.0.0-20190106185902-35a74f039c6a
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20191014212845-da9a3fd4c582 // indirect

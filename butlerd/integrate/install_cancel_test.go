@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/itchio/butler/butlerd"
@@ -71,7 +71,7 @@ func Test_InstallCancel(t *testing.T) {
 
 	gracefulCancelOnce := &sync.Once{}
 
-	messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
+	messages.Progress.Register(h, func(params butlerd.ProgressNotification) {
 		printProgress(params)
 
 		if params.Progress > 0.2 {
@@ -129,7 +129,7 @@ func Test_InstallCancel(t *testing.T) {
 
 	hardCancelOnce := &sync.Once{}
 
-	messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
+	messages.Progress.Register(h, func(params butlerd.ProgressNotification) {
 		printProgress(params)
 
 		if params.Progress > 0.5 {
@@ -169,7 +169,7 @@ func Test_InstallCancel(t *testing.T) {
 	bi.Logf("Resuming after hard cancel...")
 	rc, h, _ = bi.Connect()
 
-	messages.Progress.Register(h, func(rc *butlerd.RequestContext, params butlerd.ProgressNotification) {
+	messages.Progress.Register(h, func(params butlerd.ProgressNotification) {
 		printProgress(params)
 	})
 

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 )
 
 type router interface {
@@ -154,15 +154,16 @@ func (r *MetaFlowEstablishedType) Notify(rc *butlerd.RequestContext, params butl
   return rc.Notify("MetaFlowEstablished", params)
 }
 
-func (r *MetaFlowEstablishedType) Register(router router, f func(*butlerd.RequestContext, butlerd.MetaFlowEstablishedNotification)) {
-  router.RegisterNotification("MetaFlowEstablished", func (rc *butlerd.RequestContext) {
+func (r *MetaFlowEstablishedType) Register(router router, f func(butlerd.MetaFlowEstablishedNotification)) {
+  router.RegisterNotification("MetaFlowEstablished", func (notif jsonrpc2.Notification) {
     var params butlerd.MetaFlowEstablishedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -307,15 +308,16 @@ func (r *DownloadsDriveProgressType) Notify(rc *butlerd.RequestContext, params b
   return rc.Notify("Downloads.Drive.Progress", params)
 }
 
-func (r *DownloadsDriveProgressType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveProgressNotification)) {
-  router.RegisterNotification("Downloads.Drive.Progress", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveProgressType) Register(router router, f func(butlerd.DownloadsDriveProgressNotification)) {
+  router.RegisterNotification("Downloads.Drive.Progress", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveProgressNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -335,15 +337,16 @@ func (r *DownloadsDriveStartedType) Notify(rc *butlerd.RequestContext, params bu
   return rc.Notify("Downloads.Drive.Started", params)
 }
 
-func (r *DownloadsDriveStartedType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveStartedNotification)) {
-  router.RegisterNotification("Downloads.Drive.Started", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveStartedType) Register(router router, f func(butlerd.DownloadsDriveStartedNotification)) {
+  router.RegisterNotification("Downloads.Drive.Started", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveStartedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -363,15 +366,16 @@ func (r *DownloadsDriveErroredType) Notify(rc *butlerd.RequestContext, params bu
   return rc.Notify("Downloads.Drive.Errored", params)
 }
 
-func (r *DownloadsDriveErroredType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveErroredNotification)) {
-  router.RegisterNotification("Downloads.Drive.Errored", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveErroredType) Register(router router, f func(butlerd.DownloadsDriveErroredNotification)) {
+  router.RegisterNotification("Downloads.Drive.Errored", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveErroredNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -391,15 +395,16 @@ func (r *DownloadsDriveFinishedType) Notify(rc *butlerd.RequestContext, params b
   return rc.Notify("Downloads.Drive.Finished", params)
 }
 
-func (r *DownloadsDriveFinishedType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveFinishedNotification)) {
-  router.RegisterNotification("Downloads.Drive.Finished", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveFinishedType) Register(router router, f func(butlerd.DownloadsDriveFinishedNotification)) {
+  router.RegisterNotification("Downloads.Drive.Finished", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveFinishedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -419,15 +424,16 @@ func (r *DownloadsDriveDiscardedType) Notify(rc *butlerd.RequestContext, params 
   return rc.Notify("Downloads.Drive.Discarded", params)
 }
 
-func (r *DownloadsDriveDiscardedType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveDiscardedNotification)) {
-  router.RegisterNotification("Downloads.Drive.Discarded", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveDiscardedType) Register(router router, f func(butlerd.DownloadsDriveDiscardedNotification)) {
+  router.RegisterNotification("Downloads.Drive.Discarded", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveDiscardedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -447,15 +453,16 @@ func (r *DownloadsDriveNetworkStatusType) Notify(rc *butlerd.RequestContext, par
   return rc.Notify("Downloads.Drive.NetworkStatus", params)
 }
 
-func (r *DownloadsDriveNetworkStatusType) Register(router router, f func(*butlerd.RequestContext, butlerd.DownloadsDriveNetworkStatusNotification)) {
-  router.RegisterNotification("Downloads.Drive.NetworkStatus", func (rc *butlerd.RequestContext) {
+func (r *DownloadsDriveNetworkStatusType) Register(router router, f func(butlerd.DownloadsDriveNetworkStatusNotification)) {
+  router.RegisterNotification("Downloads.Drive.NetworkStatus", func (notif jsonrpc2.Notification) {
     var params butlerd.DownloadsDriveNetworkStatusNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -475,15 +482,16 @@ func (r *LogType) Notify(rc *butlerd.RequestContext, params butlerd.LogNotificat
   return rc.Notify("Log", params)
 }
 
-func (r *LogType) Register(router router, f func(*butlerd.RequestContext, butlerd.LogNotification)) {
-  router.RegisterNotification("Log", func (rc *butlerd.RequestContext) {
+func (r *LogType) Register(router router, f func(butlerd.LogNotification)) {
+  router.RegisterNotification("Log", func (notif jsonrpc2.Notification) {
     var params butlerd.LogNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -1963,15 +1971,16 @@ func (r *ProgressType) Notify(rc *butlerd.RequestContext, params butlerd.Progres
   return rc.Notify("Progress", params)
 }
 
-func (r *ProgressType) Register(router router, f func(*butlerd.RequestContext, butlerd.ProgressNotification)) {
-  router.RegisterNotification("Progress", func (rc *butlerd.RequestContext) {
+func (r *ProgressType) Register(router router, f func(butlerd.ProgressNotification)) {
+  router.RegisterNotification("Progress", func (notif jsonrpc2.Notification) {
     var params butlerd.ProgressNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -1991,15 +2000,16 @@ func (r *TaskStartedType) Notify(rc *butlerd.RequestContext, params butlerd.Task
   return rc.Notify("TaskStarted", params)
 }
 
-func (r *TaskStartedType) Register(router router, f func(*butlerd.RequestContext, butlerd.TaskStartedNotification)) {
-  router.RegisterNotification("TaskStarted", func (rc *butlerd.RequestContext) {
+func (r *TaskStartedType) Register(router router, f func(butlerd.TaskStartedNotification)) {
+  router.RegisterNotification("TaskStarted", func (notif jsonrpc2.Notification) {
     var params butlerd.TaskStartedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -2019,15 +2029,16 @@ func (r *TaskSucceededType) Notify(rc *butlerd.RequestContext, params butlerd.Ta
   return rc.Notify("TaskSucceeded", params)
 }
 
-func (r *TaskSucceededType) Register(router router, f func(*butlerd.RequestContext, butlerd.TaskSucceededNotification)) {
-  router.RegisterNotification("TaskSucceeded", func (rc *butlerd.RequestContext) {
+func (r *TaskSucceededType) Register(router router, f func(butlerd.TaskSucceededNotification)) {
+  router.RegisterNotification("TaskSucceeded", func (notif jsonrpc2.Notification) {
     var params butlerd.TaskSucceededNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -2247,15 +2258,16 @@ func (r *InstallLocationsScanYieldType) Notify(rc *butlerd.RequestContext, param
   return rc.Notify("Install.Locations.Scan.Yield", params)
 }
 
-func (r *InstallLocationsScanYieldType) Register(router router, f func(*butlerd.RequestContext, butlerd.InstallLocationsScanYieldNotification)) {
-  router.RegisterNotification("Install.Locations.Scan.Yield", func (rc *butlerd.RequestContext) {
+func (r *InstallLocationsScanYieldType) Register(router router, f func(butlerd.InstallLocationsScanYieldNotification)) {
+  router.RegisterNotification("Install.Locations.Scan.Yield", func (notif jsonrpc2.Notification) {
     var params butlerd.InstallLocationsScanYieldNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -2685,15 +2697,16 @@ func (r *GameUpdateAvailableType) Notify(rc *butlerd.RequestContext, params butl
   return rc.Notify("GameUpdateAvailable", params)
 }
 
-func (r *GameUpdateAvailableType) Register(router router, f func(*butlerd.RequestContext, butlerd.GameUpdateAvailableNotification)) {
-  router.RegisterNotification("GameUpdateAvailable", func (rc *butlerd.RequestContext) {
+func (r *GameUpdateAvailableType) Register(router router, f func(butlerd.GameUpdateAvailableNotification)) {
+  router.RegisterNotification("GameUpdateAvailable", func (notif jsonrpc2.Notification) {
     var params butlerd.GameUpdateAvailableNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -2803,15 +2816,16 @@ func (r *LaunchRunningType) Notify(rc *butlerd.RequestContext, params butlerd.La
   return rc.Notify("LaunchRunning", params)
 }
 
-func (r *LaunchRunningType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchRunningNotification)) {
-  router.RegisterNotification("LaunchRunning", func (rc *butlerd.RequestContext) {
+func (r *LaunchRunningType) Register(router router, f func(butlerd.LaunchRunningNotification)) {
+  router.RegisterNotification("LaunchRunning", func (notif jsonrpc2.Notification) {
     var params butlerd.LaunchRunningNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -2831,15 +2845,16 @@ func (r *LaunchExitedType) Notify(rc *butlerd.RequestContext, params butlerd.Lau
   return rc.Notify("LaunchExited", params)
 }
 
-func (r *LaunchExitedType) Register(router router, f func(*butlerd.RequestContext, butlerd.LaunchExitedNotification)) {
-  router.RegisterNotification("LaunchExited", func (rc *butlerd.RequestContext) {
+func (r *LaunchExitedType) Register(router router, f func(butlerd.LaunchExitedNotification)) {
+  router.RegisterNotification("LaunchExited", func (notif jsonrpc2.Notification) {
     var params butlerd.LaunchExitedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -3099,15 +3114,16 @@ func (r *PrereqsStartedType) Notify(rc *butlerd.RequestContext, params butlerd.P
   return rc.Notify("PrereqsStarted", params)
 }
 
-func (r *PrereqsStartedType) Register(router router, f func(*butlerd.RequestContext, butlerd.PrereqsStartedNotification)) {
-  router.RegisterNotification("PrereqsStarted", func (rc *butlerd.RequestContext) {
+func (r *PrereqsStartedType) Register(router router, f func(butlerd.PrereqsStartedNotification)) {
+  router.RegisterNotification("PrereqsStarted", func (notif jsonrpc2.Notification) {
     var params butlerd.PrereqsStartedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -3127,15 +3143,16 @@ func (r *PrereqsTaskStateType) Notify(rc *butlerd.RequestContext, params butlerd
   return rc.Notify("PrereqsTaskState", params)
 }
 
-func (r *PrereqsTaskStateType) Register(router router, f func(*butlerd.RequestContext, butlerd.PrereqsTaskStateNotification)) {
-  router.RegisterNotification("PrereqsTaskState", func (rc *butlerd.RequestContext) {
+func (r *PrereqsTaskStateType) Register(router router, f func(butlerd.PrereqsTaskStateNotification)) {
+  router.RegisterNotification("PrereqsTaskState", func (notif jsonrpc2.Notification) {
     var params butlerd.PrereqsTaskStateNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 
@@ -3155,15 +3172,16 @@ func (r *PrereqsEndedType) Notify(rc *butlerd.RequestContext, params butlerd.Pre
   return rc.Notify("PrereqsEnded", params)
 }
 
-func (r *PrereqsEndedType) Register(router router, f func(*butlerd.RequestContext, butlerd.PrereqsEndedNotification)) {
-  router.RegisterNotification("PrereqsEnded", func (rc *butlerd.RequestContext) {
+func (r *PrereqsEndedType) Register(router router, f func(butlerd.PrereqsEndedNotification)) {
+  router.RegisterNotification("PrereqsEnded", func (notif jsonrpc2.Notification) {
     var params butlerd.PrereqsEndedNotification
-    err := json.Unmarshal(*rc.Params, &params)
-    if err != nil {
-    	// can't even propagate, just return
-    	return
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
     }
-    f(rc, params)
+    f(params)
   })
 }
 

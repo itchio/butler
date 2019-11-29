@@ -13,7 +13,7 @@ import (
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/timeout"
 
-	"github.com/sourcegraph/jsonrpc2"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 
 	"github.com/pkg/errors"
 

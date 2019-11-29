@@ -15,11 +15,11 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/mitch"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/mitch"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/jsonrpc2"
 )
 
 type ButlerConn struct {
@@ -218,23 +218,17 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 
 	h := newHandler(bi.Consumer)
 
-	messages.Log.Register(h, func(rc *butlerd.RequestContext, params butlerd.LogNotification) {
+	messages.Log.Register(h, func(params butlerd.LogNotification) {
 		bi.Consumer.OnMessage(string(params.Level), params.Message)
 	})
 
 	tcpConn, err := net.DialTimeout("tcp", bi.Address, 2*time.Second)
 	must(err)
 
-	stream := jsonrpc2.NewBufferedStream(tcpConn, butlerd.LFObjectCodec{})
-
-	jc := jsonrpc2.NewConn(ctx, stream, jsonrpc2.AsyncHandler(h))
-	go func() {
-		<-ctx.Done()
-		jc.Close()
-	}()
+	jc := jsonrpc2.NewConn(ctx, tcpConn, h)
 
 	rc := &butlerd.RequestContext{
-		Conn:     &butlerd.JsonRPC2Conn{Conn: jc},
+		Conn:     jc,
 		Ctx:      ctx,
 		Consumer: bi.Consumer,
 	}
