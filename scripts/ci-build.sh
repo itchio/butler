@@ -30,6 +30,11 @@ fi
 
 export CI_LDFLAGS="-X buildinfo.Version=$CI_VERSION -X buildinfo.BuiltAt=$CI_BUILT_AT -X buildinfo.Commit=$CI_BUILD_REF -w -s"
 
+if [ "$CI_OS" = "darwin" ]; then
+  export CGO_CFLAGS=-mmacosx-version-min=10.10
+  export CGO_LDFLAGS=-mmacosx-version-min=10.10
+fi
+
 TARGET=butler
 if [ "$CI_OS" = "windows" ]; then
   TARGET=$TARGET.exe
