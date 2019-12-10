@@ -1,5 +1,11 @@
 #!/bin/sh -xe
 
+# Inputs:
+# `CI_BUILD_TAG` (for vX.Y.Z tags) / `CI_BUILD_REF_NAME` (branch)
+# `CI_BUILD_REF` (commit)
+# `CI_OS` (windows, linux, darwin)
+# `CI_ARCH` (386, amd64)
+
 echo "Building for $CI_OS-$CI_ARCH"
 
 go version
@@ -28,7 +34,9 @@ elif [ "master" != "$CI_BUILD_REF_NAME" ]; then
   export CI_VERSION="$CI_BUILD_REF_NAME"
 fi
 
-export CI_LDFLAGS="-X buildinfo.Version=$CI_VERSION -X buildinfo.BuiltAt=$CI_BUILT_AT -X buildinfo.Commit=$CI_BUILD_REF -w -s"
+BI="github.com/itchio/butler/buildinfo"
+
+export CI_LDFLAGS="-X ${BI}.Version=$CI_VERSION -X ${BI}.BuiltAt=$CI_BUILT_AT -X ${BI}.Commit=$CI_BUILD_REF -w -s"
 
 if [ "$CI_OS" = "darwin" ]; then
   export CGO_CFLAGS=-mmacosx-version-min=10.10
