@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-const defaultTTL = 30 * time.Minute
-const longTTL = 2 * time.Hour
+const defaultTTL = 2 * time.Minute
+const longTTL = 10 * time.Minute
 
 func FetchTargetForGame(gameID int64) FetchTarget {
 	return FetchTarget{
