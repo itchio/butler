@@ -159,8 +159,8 @@ github.com/itchio/go-itchio v0.0.0-20190703105933-6cc0976392aa h1:9Y+zMIjROj6/7P
 github.com/itchio/go-itchio v0.0.0-20190703105933-6cc0976392aa/go.mod h1:XSSLba+Gv3NSpWfqMZTPb5u5JUEs+EM7AtNjUxqerQY=
 github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102 h1:xIfiY+me2hZa4kX/uqGb1iK3FRCSo5rZ7/NxvK88kLo=
 github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102/go.mod h1:XSSLba+Gv3NSpWfqMZTPb5u5JUEs+EM7AtNjUxqerQY=
-github.com/itchio/hades v0.0.0-20191018165837-991738ec6622 h1:dOsVpC5bsfXFyMZgf92tNe1zx90OynDyMCgskUTNmI8=
-github.com/itchio/hades v0.0.0-20191018165837-991738ec6622/go.mod h1:QT9BK2JjH9aafDgr+Mm6vu85HvGzwBI5TzrSPweAbyc=
+github.com/itchio/hades v0.0.0-20191212185751-731a3732b18d h1:l3OwmGGKN7YEJ4M/QxdtVnxj9KDztXPyF4z3BsXyK3I=
+github.com/itchio/hades v0.0.0-20191212185751-731a3732b18d/go.mod h1:QT9BK2JjH9aafDgr+Mm6vu85HvGzwBI5TzrSPweAbyc=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de h1:RQW9xPqYtvjdHHRZR95XsaEA9B4URCuNHK78IuJcc+Y=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
 github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524 h1:eROPirGQCZXnzRiwJw3bOE4OB5CctMF+zsnH91bmv9o=

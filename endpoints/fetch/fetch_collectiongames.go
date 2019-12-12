@@ -102,7 +102,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		}
 
 		if joinGames {
-			search = search.Join("games", "games.id = collection_games.game_id")
+			search = search.InnerJoin("games", "games.id = collection_games.game_id")
 		}
 
 		var items []*itchio.CollectionGame

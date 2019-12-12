@@ -435,6 +435,147 @@ func (r *FetchGameResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+type GameRecord struct {
+	// Game ID
+	ID int64 `json:"id"`
+
+	// Game title
+	Title string `json:"title"`
+
+	// Game cover
+	Cover string `json:"cover,omitempty"`
+
+	// True if owned
+	Owned bool `json:"owned,omitempty"`
+
+	// Non-nil if installed (has caves)
+	InstalledAt *time.Time `json:"installed_at,omitempty"`
+}
+
+// Fetches game records - owned, installed, in collection,
+// with search, etc. Includes download key info, cave info, etc.
+//
+// @name Fetch.GameRecords
+// @category Fetch
+// @caller client
+type FetchGameRecordsParams struct {
+	// Profile to use to fetch game
+	ProfileID int64 `json:"profileId"`
+
+	// Source from which to fetch games
+	Source GameRecordsSource `json:"source"`
+
+	// Collection ID, required if `Source` is "collection"
+	// @optional
+	CollectionID int64 `json:"collectionId"`
+
+	// Maximum number of games to return at a time
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// When specified only shows game titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// Filters
+	// @optional
+	Filters GameRecordsFilters `json:"filters"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor Cursor `json:"cursor"`
+
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+type GameRecordsSource string
+
+const (
+	// Games for which the profile has a download key
+	GameRecordsSourceOwned = "owned"
+	// Games for which a cave exists (regardless of the profile)
+	GameRecordsSourceInstalled = "installed"
+	// Games authored by profile, or for whom profile is an admin of
+	GameRecordsSourceProfile = "profile"
+	// Games from a collection
+	GameRecordsSourceCollection = "collection"
+)
+
+type GameRecordsFilters struct {
+	Classification itchio.GameClassification `json:"classification"`
+}
+
+func (p GameRecordsFilters) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+	)
+}
+
+func (p FetchGameRecordsParams) GetLimit() int64 {
+	return p.Limit
+}
+
+func (p FetchGameRecordsParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p FetchGameRecordsParams) IsFresh() bool {
+	return p.Fresh
+}
+
+func (p FetchGameRecordsParams) Validate() error {
+	err := validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Filters),
+		validation.Field(&p.Source, validation.In(GameRecordsSourceOwned)),
+	)
+	if err != nil {
+		return err
+	}
+
+	switch p.Source {
+	case GameRecordsSourceOwned:
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.SortBy, validation.In("acquiredAt", "title")),
+		)
+	case GameRecordsSourceProfile:
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.SortBy, validation.In("title")),
+		)
+	case GameRecordsSourceCollection:
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.SortBy, validation.In("default", "title", "views", "downloads", "purchases")),
+		)
+	case GameRecordsSourceInstalled:
+		return validation.ValidateStruct(&p,
+			validation.Field(&p.SortBy, validation.In("lastTouched", "playTime", "title", "installedSize")),
+		)
+	}
+	return nil
+}
+
+type FetchGameRecordsResult struct {
+	// All the records that were fetched
+	Records []GameRecord `json:"record"`
+
+	// Marks that a request should be issued afterwards with 'Fresh' set
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+
+	// Use to fetch the next 'page' of results
+	// @optional
+	NextCursor Cursor `json:"nextCursor,omitempty"`
+}
+
 // Fetches a download key
 //
 // @name Fetch.DownloadKey
@@ -879,7 +1020,7 @@ type FetchProfileOwnedKeysParams struct {
 	// Profile to use to fetch game
 	ProfileID int64 `json:"profileId"`
 
-	// Maximum number of collections to return at a time.
+	// Maximum number of owned keys to return at a time.
 	// @optional
 	Limit int64 `json:"limit"`
 

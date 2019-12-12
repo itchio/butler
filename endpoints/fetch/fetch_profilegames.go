@@ -84,7 +84,7 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 		}
 
 		if joinGames {
-			search = search.Join("games", "games.id = profile_games.game_id")
+			search = search.InnerJoin("games", "games.id = profile_games.game_id")
 		}
 
 		var items []*models.ProfileGame

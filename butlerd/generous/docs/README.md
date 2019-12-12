@@ -1448,6 +1448,188 @@ two-factor authentication enabled.</p>
 
 </div>
 
+### Fetch.GameRecords (client request)
+
+
+<p>
+<p>Fetches game records - owned, installed, in collection,
+with search, etc. Includes download key info, cave info, etc.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to use to fetch game</p>
+</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameRecordsSource__TypeHint">GameRecordsSource</span></code></td>
+<td><p>Source from which to fetch games</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Collection ID, required if <code>Source</code> is &ldquo;collection&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of games to return at a time</p>
+</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> When specified only shows game titles that contain this string</p>
+</td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Criterion to sort by</p>
+</td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameRecordsFilters__TypeHint">GameRecordsFilters</span></code></td>
+<td><p><span class="tag">Optional</span> Filters</p>
+</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>record</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameRecord__TypeHint">GameRecord</span>[]</code></td>
+<td><p>All the records that were fetched</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Marks that a request should be issued afterwards with &lsquo;Fresh&rsquo; set</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchGameRecordsParams__TypeHint" class="tip-content">
+<p>Fetch.GameRecords (client request) <a href="#/?id=fetchgamerecords-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Fetches game records - owned, installed, in collection,
+with search, etc. Includes download key info, cave info, etc.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type">GameRecordsSource</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type">GameRecordsFilters</span></code></td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchGameRecordsResult__TypeHint" class="tip-content">
+<p>FetchGameRecords  <a href="#/?id=fetchgamerecords-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>record</code></td>
+<td><code class="typename"><span class="type">GameRecord</span>[]</code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Fetch.DownloadKey (client request)
 
 
@@ -2418,7 +2600,7 @@ games.</p>
 <tr>
 <td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p><span class="tag">Optional</span> Maximum number of collections to return at a time.</p>
+<td><p><span class="tag">Optional</span> Maximum number of owned keys to return at a time.</p>
 </td>
 </tr>
 <tr>
@@ -6678,7 +6860,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastConnected</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Timestamp the user last connected at (to the client)</p>
 </td>
 </tr>
@@ -6707,11 +6889,123 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastConnected</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type">User</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GameRecord (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game ID</p>
+</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Game title</p>
+</td>
+</tr>
+<tr>
+<td><code>cover</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Game cover</p>
+</td>
+</tr>
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True if owned</p>
+</td>
+</tr>
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p>Non-nil if installed (has caves)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameRecord__TypeHint" class="tip-content">
+<p>GameRecord (struct) <a href="#/?id=gamerecord-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>cover</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GameRecordsSource 
+
+
+Type alias for string
+
+<div id="GameRecordsSource__TypeHint" class="tip-content">
+<p>GameRecordsSource  <a href="#/?id=gamerecordssource-">(Go to definition)</a></p>
+</div>
+
+### GameRecordsFilters (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="GameRecordsFilters__TypeHint" class="tip-content">
+<p>GameRecordsFilters (struct) <a href="#/?id=gamerecordsfilters-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
 </tr>
 </table>
 
@@ -6928,7 +7222,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
@@ -6950,7 +7244,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
@@ -6978,7 +7272,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7009,7 +7303,7 @@ ie. that we can connect as, etc.</p>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>secondsRun</code></td>
@@ -7137,13 +7431,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <table class="field-table">
 <tr>
 <td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Time the cave was first installed</p>
 </td>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7165,11 +7459,11 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <table class="field-table">
 <tr>
 <td><code>installedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>secondsRun</code></td>
@@ -7562,7 +7856,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </tr>
 <tr>
 <td><code>timestamp</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -7614,7 +7908,7 @@ it is), or a negative value if we can&rsquo;t find it</p>
 </tr>
 <tr>
 <td><code>timestamp</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>heal</code></td>
@@ -8462,12 +8756,12 @@ performed whenever <code class="typename"><span class="type" data-tip-selector="
 </tr>
 <tr>
 <td><code>startedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>finishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -8530,11 +8824,11 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 </tr>
 <tr>
 <td><code>startedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>finishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>stagingFolder</code></td>
@@ -9620,13 +9914,13 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date the game was created</p>
 </td>
 </tr>
 <tr>
 <td><code>publishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date the game was published, empty if not currently published</p>
 </td>
 </tr>
@@ -9749,11 +10043,11 @@ a tool, a comic, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>publishedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>minPrice</code></td>
@@ -10199,13 +10493,13 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 </tr>
 <tr>
 <td><code>startDate</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Timestamp the sale started at</p>
 </td>
 </tr>
 <tr>
 <td><code>endDate</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Timestamp the sale ends at</p>
 </td>
 </tr>
@@ -10235,11 +10529,11 @@ Can be negative, see <a href="https://itch.io/updates/introducing-reverse-sales"
 </tr>
 <tr>
 <td><code>startDate</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>endDate</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
@@ -10341,13 +10635,13 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this upload was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this upload was last updated at (order changed, display name set, etc.)</p>
 </td>
 </tr>
@@ -10419,11 +10713,11 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
@@ -10656,13 +10950,13 @@ a web game, some music, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this collection was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this collection was last updated at (item added, title set, etc.)</p>
 </td>
 </tr>
@@ -10712,11 +11006,11 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>gamesCount</code></td>
@@ -10779,12 +11073,12 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td></td>
 </tr>
 <tr>
@@ -10831,11 +11125,11 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>blurb</code></td>
@@ -10885,13 +11179,13 @@ for free. It can also be generated by other means.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this key was last updated at</p>
 </td>
 </tr>
@@ -10929,11 +11223,11 @@ for free. It can also be generated by other means.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>ownerId</code></td>
@@ -11005,13 +11299,13 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Timestamp the build was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Timestamp the build was last updated at</p>
 </td>
 </tr>
@@ -11057,11 +11351,11 @@ is still processing or if processing has failed.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
@@ -11182,13 +11476,13 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this build file was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Date this build file was last updated at</p>
 </td>
 </tr>
@@ -11227,11 +11521,11 @@ archive, its signature, its patch, etc.</p>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
-<td><code class="typename"><span class="type builtin-type">Date</span></code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 

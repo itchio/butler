@@ -20,4 +20,5 @@ func Register(router *butlerd.Router) {
 	messages.FetchCaves.Register(router, FetchCaves)
 	messages.FetchExpireAll.Register(router, FetchExpireAll)
 	messages.FetchDownloadKey.Register(router, FetchDownloadKey)
+	messages.FetchGameRecords.Register(router, FetchGameRecords)
 }

@@ -55,7 +55,7 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		}
 
 		if joinGames {
-			search = search.Join("games", "games.id = caves.game_id")
+			search = search.InnerJoin("games", "games.id = caves.game_id")
 		}
 
 		var items []*models.Cave

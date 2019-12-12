@@ -62,7 +62,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 		}
 
 		if joinCollections {
-			search = search.Join("collections", "collections.id = profile_collections.collection_id")
+			search = search.InnerJoin("collections", "collections.id = profile_collections.collection_id")
 		}
 
 		var items []*models.ProfileCollection

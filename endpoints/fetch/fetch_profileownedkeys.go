@@ -86,7 +86,7 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 		}
 
 		if joinGames {
-			search = search.Join("games", "games.id = download_keys.game_id")
+			search = search.InnerJoin("games", "games.id = download_keys.game_id")
 		}
 
 		var items []*itchio.DownloadKey

@@ -415,6 +415,84 @@
       }
     },
     {
+      "method": "Fetch.GameRecords",
+      "doc": "Fetches game records - owned, installed, in collection,\nwith search, etc. Includes download key info, cave info, etc.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to use to fetch game",
+            "type": "number"
+          },
+          {
+            "name": "source",
+            "doc": "Source from which to fetch games",
+            "type": "GameRecordsSource"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection ID, required if `Source` is \"collection\"",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of games to return at a time",
+            "type": "number"
+          },
+          {
+            "name": "search",
+            "doc": "When specified only shows game titles that contain this string",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "doc": "Criterion to sort by",
+            "type": "string"
+          },
+          {
+            "name": "filters",
+            "doc": "Filters",
+            "type": "GameRecordsFilters"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "Cursor"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "record",
+            "doc": "All the records that were fetched",
+            "type": "GameRecord[]"
+          },
+          {
+            "name": "stale",
+            "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
+            "type": "boolean"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Use to fetch the next 'page' of results",
+            "type": "Cursor"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.DownloadKey",
       "doc": "Fetches a download key",
       "caller": "client",
@@ -806,7 +884,7 @@
           },
           {
             "name": "limit",
-            "doc": "Maximum number of collections to return at a time.",
+            "doc": "Maximum number of owned keys to return at a time.",
             "type": "number"
           },
           {
@@ -2274,12 +2352,54 @@
         {
           "name": "lastConnected",
           "doc": "Timestamp the user last connected at (to the client)",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "user",
           "doc": "User information",
           "type": "User"
+        }
+      ]
+    },
+    {
+      "name": "GameRecord",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Game ID",
+          "type": "number"
+        },
+        {
+          "name": "title",
+          "doc": "Game title",
+          "type": "string"
+        },
+        {
+          "name": "cover",
+          "doc": "Game cover",
+          "type": "string"
+        },
+        {
+          "name": "owned",
+          "doc": "True if owned",
+          "type": "boolean"
+        },
+        {
+          "name": "installed",
+          "doc": "Non-nil if installed (has caves)",
+          "type": "RFCDate"
+        }
+      ]
+    },
+    {
+      "name": "GameRecordsFilters",
+      "doc": "",
+      "fields": [
+        {
+          "name": "classification",
+          "doc": "",
+          "type": "GameClassification"
         }
       ]
     },
@@ -2379,7 +2499,7 @@
         {
           "name": "createdAt",
           "doc": "Date this key was created at (often coincides with purchase time)",
-          "type": "Date"
+          "type": "RFCDate"
         }
       ]
     },
@@ -2400,7 +2520,7 @@
         {
           "name": "lastTouchedAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "secondsRun",
@@ -2457,12 +2577,12 @@
         {
           "name": "installedAt",
           "doc": "Time the cave was first installed",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "lastTouchedAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "secondsRun",
@@ -2634,7 +2754,7 @@
         {
           "name": "timestamp",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "heal",
@@ -2858,12 +2978,12 @@
         {
           "name": "startedAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "finishedAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "stagingFolder",
@@ -2996,12 +3116,12 @@
         {
           "name": "createdAt",
           "doc": "Date the game was created",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "publishedAt",
           "doc": "Date the game was published, empty if not currently published",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "minPrice",
@@ -3134,12 +3254,12 @@
         {
           "name": "startDate",
           "doc": "Timestamp the sale started at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "endDate",
           "doc": "Timestamp the sale ends at",
-          "type": "Date"
+          "type": "RFCDate"
         }
       ]
     },
@@ -3215,12 +3335,12 @@
         {
           "name": "createdAt",
           "doc": "Date this upload was created at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
-          "type": "Date"
+          "type": "RFCDate"
         }
       ]
     },
@@ -3241,12 +3361,12 @@
         {
           "name": "createdAt",
           "doc": "Date this collection was created at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "Date this collection was last updated at (item added, title set, etc.)",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "gamesCount",
@@ -3302,12 +3422,12 @@
         {
           "name": "createdAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "blurb",
@@ -3343,12 +3463,12 @@
         {
           "name": "createdAt",
           "doc": "Date this key was created at (often coincides with purchase time)",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "Date this key was last updated at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "ownerId",
@@ -3399,12 +3519,12 @@
         {
           "name": "createdAt",
           "doc": "Timestamp the build was created at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "Timestamp the build was last updated at",
-          "type": "Date"
+          "type": "RFCDate"
         }
       ]
     },
@@ -3440,12 +3560,12 @@
         {
           "name": "createdAt",
           "doc": "Date this build file was created at",
-          "type": "Date"
+          "type": "RFCDate"
         },
         {
           "name": "updatedAt",
           "doc": "Date this build file was last updated at",
-          "type": "Date"
+          "type": "RFCDate"
         }
       ]
     },

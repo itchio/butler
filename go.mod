@@ -27,7 +27,7 @@ require (
 	github.com/itchio/dash v0.0.0-20190924130836-8ab701fc1aa0
 	github.com/itchio/elefant v0.0.0-20190703135033-2d43bc5934e5
 	github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102
-	github.com/itchio/hades v0.0.0-20191018165837-991738ec6622
+	github.com/itchio/hades v0.0.0-20191212185751-731a3732b18d
 	github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524
 	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
 	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
