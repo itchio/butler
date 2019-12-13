@@ -39,6 +39,7 @@ github.com/bitly/go-simplejson v0.5.0 h1:6IH+V8/tVMab511d5bn4M7EwGXZf9Hj6i2xSwkN
 github.com/bitly/go-simplejson v0.5.0/go.mod h1:cXHtHw4XUPsvGaxgjIAn8PhEWG9NfngEKAMDJEczWVA=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 h1:DDGfHa7BWjL4YnC6+E63dPcxHo2sUxDIu8g3QgEJdRY=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
+github.com/certifi/gocertifi v0.0.0-20191021191039-0944d244cd40/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -170,6 +171,8 @@ github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52 h1:S91A3cWq0selvlqL
 github.com/itchio/httpkit v0.0.0-20190703105757-f6353d320e52/go.mod h1:MAwPXM6IGYlFG9J4IVzFCRbPIDCgysXTjZwRQFtq+Yc=
 github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00 h1:CnbtMlqv1QVL9HN6iZa1NXUXFje654Fy1xpXwnXBQRw=
 github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00/go.mod h1:qWXGHO7IWmtDgGyBSpXDlrWL6MNjERnHJ7SoQd7Vi0c=
+github.com/itchio/httpkit v0.0.0-20191213103655-30fba402f2dd h1:B0FevOCk0y+Ow/xLNCT/woJ1C7m6E8B+uGuRH6G9aWA=
+github.com/itchio/httpkit v0.0.0-20191213103655-30fba402f2dd/go.mod h1:faQU6umIDmy3RBuHmZSb6ue3xfPQ++k7GDMGSB1tUmE=
 github.com/itchio/kompress v0.0.0-20190702090658-5e2558a00102 h1:QXEwRXrrx+7CxU+Y+G4GpDk4mUeHbP7grMXHhydk8qU=
 github.com/itchio/kompress v0.0.0-20190702090658-5e2558a00102/go.mod h1:YEdp1gs/LrGWRcZwYkw7MXli8lIcApwk6fgkAR+3moI=
 github.com/itchio/kompress v0.0.0-20190703125833-0b2a6b182782 h1:JCEcOVLpRZpsrbR2dne0Hj/+1rKhURckabzOgyCInpU=

@@ -29,7 +29,7 @@ require (
 	github.com/itchio/go-itchio v0.0.0-20190715130917-ff003c6e3102
 	github.com/itchio/hades v0.0.0-20191212185751-731a3732b18d
 	github.com/itchio/headway v0.0.0-20191015112415-46f64dd4d524
-	github.com/itchio/httpkit v0.0.0-20191016123402-68159f3a0f00
+	github.com/itchio/httpkit v0.0.0-20191213103655-30fba402f2dd
 	github.com/itchio/lake v0.0.0-20191018173418-af085e0239d0
 	github.com/itchio/mitch v0.0.0-20191028174717-8a022c53f4c6
 	github.com/itchio/ox v0.0.0-20191031175435-32d876f09b55
