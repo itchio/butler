@@ -473,6 +473,10 @@ type FetchGameRecordsParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
+	// Games to skip
+	// @optional
+	Offset int64 `json:"offset"`
+
 	// When specified only shows game titles that contain this string
 	// @optional
 	Search string `json:"search"`
@@ -488,10 +492,6 @@ type FetchGameRecordsParams struct {
 	// @optional
 	Reverse bool `json:"reverse"`
 
-	// Used for pagination, if specified
-	// @optional
-	Cursor Cursor `json:"cursor"`
-
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
@@ -501,31 +501,32 @@ type GameRecordsSource string
 
 const (
 	// Games for which the profile has a download key
-	GameRecordsSourceOwned = "owned"
+	GameRecordsSourceOwned GameRecordsSource = "owned"
 	// Games for which a cave exists (regardless of the profile)
-	GameRecordsSourceInstalled = "installed"
+	GameRecordsSourceInstalled GameRecordsSource = "installed"
 	// Games authored by profile, or for whom profile is an admin of
-	GameRecordsSourceProfile = "profile"
+	GameRecordsSourceProfile GameRecordsSource = "profile"
 	// Games from a collection
-	GameRecordsSourceCollection = "collection"
+	GameRecordsSourceCollection GameRecordsSource = "collection"
 )
+
+var GameRecordsSourceList = []interface{}{
+	GameRecordsSourceOwned,
+	GameRecordsSourceInstalled,
+	GameRecordsSourceProfile,
+	GameRecordsSourceCollection,
+}
 
 type GameRecordsFilters struct {
 	Classification itchio.GameClassification `json:"classification"`
+	Installed      bool                      `json:"installed"`
+	Owned          bool                      `json:"owned"`
 }
 
 func (p GameRecordsFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
 	)
-}
-
-func (p FetchGameRecordsParams) GetLimit() int64 {
-	return p.Limit
-}
-
-func (p FetchGameRecordsParams) GetCursor() Cursor {
-	return p.Cursor
 }
 
 func (p FetchGameRecordsParams) IsFresh() bool {
@@ -536,7 +537,7 @@ func (p FetchGameRecordsParams) Validate() error {
 	err := validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Filters),
-		validation.Field(&p.Source, validation.In(GameRecordsSourceOwned)),
+		validation.Field(&p.Source, validation.Required, validation.In(GameRecordsSourceList...)),
 	)
 	if err != nil {
 		return err
@@ -549,11 +550,12 @@ func (p FetchGameRecordsParams) Validate() error {
 		)
 	case GameRecordsSourceProfile:
 		return validation.ValidateStruct(&p,
-			validation.Field(&p.SortBy, validation.In("title")),
+			validation.Field(&p.SortBy, validation.In("title", "views", "downloads", "purchases")),
 		)
 	case GameRecordsSourceCollection:
 		return validation.ValidateStruct(&p,
-			validation.Field(&p.SortBy, validation.In("default", "title", "views", "downloads", "purchases")),
+			validation.Field(&p.CollectionID, validation.Required),
+			validation.Field(&p.SortBy, validation.In("default", "title")),
 		)
 	case GameRecordsSourceInstalled:
 		return validation.ValidateStruct(&p,
