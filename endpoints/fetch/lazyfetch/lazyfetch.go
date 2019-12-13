@@ -10,6 +10,15 @@ import (
 	"github.com/itchio/butler/database/models"
 )
 
+type ProfiledLazyFetchParams interface {
+	ProfiledParams
+	LazyFetchParams
+}
+
+type ProfiledParams interface {
+	GetProfileID() int64
+}
+
 type LazyFetchParams interface {
 	IsFresh() bool
 }

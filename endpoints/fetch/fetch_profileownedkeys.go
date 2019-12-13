@@ -11,13 +11,11 @@ import (
 	"xorm.io/builder"
 )
 
-func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
+func LazyFetchProfileOwnedKeys(rc *butlerd.RequestContext, params lazyfetch.ProfiledLazyFetchParams, res lazyfetch.LazyFetchResponse) {
 	consumer := rc.Consumer
-	profile, client := rc.ProfileClient(params.ProfileID)
+	profile, client := rc.ProfileClient(params.GetProfileID())
 
-	ft := models.FetchTargetForProfileOwnedKeys(profile.ID)
-	res := &butlerd.FetchProfileOwnedKeysResult{}
-
+	ft := models.FetchTargetForProfileOwnedKeys(params.GetProfileID())
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		profile.OwnedKeys = nil
 		for page := int64(1); ; page++ {
@@ -57,9 +55,15 @@ func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfi
 			)
 		})
 	})
+}
+
+func FetchProfileOwnedKeys(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedKeysParams) (*butlerd.FetchProfileOwnedKeysResult, error) {
+	res := &butlerd.FetchProfileOwnedKeysResult{}
+
+	LazyFetchProfileOwnedKeys(rc, params, res)
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cond builder.Cond = builder.Eq{"download_keys.owner_id": profile.ID}
+		var cond builder.Cond = builder.Eq{"download_keys.owner_id": params.GetProfileID()}
 		joinGames := false
 		search := hades.Search{}
 

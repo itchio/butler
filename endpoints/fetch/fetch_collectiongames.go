@@ -12,19 +12,13 @@ import (
 	"xorm.io/builder"
 )
 
-func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
-	if params.CollectionID == 0 {
-		return nil, errors.New("collectionId must be non-zero")
-	}
-
-	ft := models.FetchTargetForCollectionGames(params.CollectionID)
-	res := &butlerd.FetchCollectionGamesResult{}
-
+func LazyFetchCollectionGames(rc *butlerd.RequestContext, params lazyfetch.ProfiledLazyFetchParams, res lazyfetch.LazyFetchResponse, collectionID int64) {
+	ft := models.FetchTargetForCollectionGames(collectionID)
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
-		_, client := rc.ProfileClient(params.ProfileID)
+		_, client := rc.ProfileClient(params.GetProfileID())
 
 		var fakeColl = &itchio.Collection{
-			ID: params.CollectionID,
+			ID: collectionID,
 		}
 		var collectionGames []*itchio.CollectionGame
 
@@ -33,7 +27,7 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 			rc.Consumer.Infof("Fetching page %d (of unknown)", page)
 
 			gamesRes, err := client.GetCollectionGames(rc.Ctx, itchio.GetCollectionGamesParams{
-				CollectionID: params.CollectionID,
+				CollectionID: collectionID,
 				Page:         page,
 			})
 			models.Must(err)
@@ -73,6 +67,15 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 			)
 		})
 	})
+}
+
+func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollectionGamesParams) (*butlerd.FetchCollectionGamesResult, error) {
+	if params.CollectionID == 0 {
+		return nil, errors.New("collectionId must be non-zero")
+	}
+
+	res := &butlerd.FetchCollectionGamesResult{}
+	LazyFetchCollectionGames(rc, params, res, params.CollectionID)
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"collection_id": params.CollectionID}

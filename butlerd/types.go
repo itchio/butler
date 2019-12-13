@@ -529,6 +529,10 @@ func (p GameRecordsFilters) Validate() error {
 	)
 }
 
+func (p FetchGameRecordsParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
 func (p FetchGameRecordsParams) IsFresh() bool {
 	return p.Fresh
 }
@@ -567,15 +571,15 @@ func (p FetchGameRecordsParams) Validate() error {
 
 type FetchGameRecordsResult struct {
 	// All the records that were fetched
-	Records []GameRecord `json:"record"`
+	Records []GameRecord `json:"records"`
 
 	// Marks that a request should be issued afterwards with 'Fresh' set
 	// @optional
 	Stale bool `json:"stale,omitempty"`
+}
 
-	// Use to fetch the next 'page' of results
-	// @optional
-	NextCursor Cursor `json:"nextCursor,omitempty"`
+func (r *FetchGameRecordsResult) SetStale(stale bool) {
+	r.Stale = stale
 }
 
 // Fetches a download key
@@ -822,6 +826,10 @@ func (p FetchCollectionGamesParams) Validate() error {
 	)
 }
 
+func (p FetchCollectionGamesParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
 func (p FetchCollectionGamesParams) GetLimit() int64 {
 	return p.Limit
 }
@@ -976,6 +984,10 @@ func (p FetchProfileGamesParams) Validate() error {
 	)
 }
 
+func (p FetchProfileGamesParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
 func (p FetchProfileGamesParams) GetCursor() Cursor {
 	return p.Cursor
 }
@@ -1067,6 +1079,10 @@ func (p FetchProfileOwnedKeysParams) Validate() error {
 		validation.Field(&p.Filters),
 		validation.Field(&p.SortBy, validation.In("acquiredAt", "title")),
 	)
+}
+
+func (p FetchProfileOwnedKeysParams) GetProfileID() int64 {
+	return p.ProfileID
 }
 
 func (p FetchProfileOwnedKeysParams) IsFresh() bool {

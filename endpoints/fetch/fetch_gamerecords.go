@@ -12,6 +12,17 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 	consumer := rc.Consumer
 	res := &butlerd.FetchGameRecordsResult{}
 
+	switch params.Source {
+	case butlerd.GameRecordsSourceOwned:
+		LazyFetchProfileOwnedKeys(rc, params, res)
+	case butlerd.GameRecordsSourceProfile:
+		LazyFetchProfileGames(rc, params, res)
+	case butlerd.GameRecordsSourceCollection:
+		LazyFetchCollectionGames(rc, params, res, params.CollectionID)
+	case butlerd.GameRecordsSourceInstalled:
+		// well the caves info is absolutely up-to-date, but what about game & playtime info?
+	}
+
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond = builder.NewCond()
 		var sourceTable string
@@ -30,7 +41,7 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		switch params.Source {
 		case butlerd.GameRecordsSourceOwned:
 			sourceTable = "download_keys"
-			cond = builder.NotNull{"owned"}
+			cond = builder.Eq{"download_keys.owner_id": params.ProfileID}
 			search = search.InnerJoin("games", "games.id = download_keys.game_id")
 			switch params.SortBy {
 			case "title":
@@ -42,6 +53,7 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 			}
 		case butlerd.GameRecordsSourceProfile:
 			sourceTable = "profile_games"
+			cond = builder.Eq{"profile_games.profile_id": params.ProfileID}
 			search = search.InnerJoin("games", "games.id = profile_games.game_id")
 			switch params.SortBy {
 			case "views":

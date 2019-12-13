@@ -10,12 +10,10 @@ import (
 	"xorm.io/builder"
 )
 
-func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
-	profile, client := rc.ProfileClient(params.ProfileID)
+func LazyFetchProfileGames(rc *butlerd.RequestContext, params lazyfetch.ProfiledLazyFetchParams, res lazyfetch.LazyFetchResponse) {
+	profile, client := rc.ProfileClient(params.GetProfileID())
 
-	ft := models.FetchTargetForProfileGames(profile.ID)
-	res := &butlerd.FetchProfileGamesResult{}
-
+	ft := models.FetchTargetForProfileGames(params.GetProfileID())
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		gamesRes, err := client.ListProfileGames(rc.Ctx)
 		models.Must(err)
@@ -42,9 +40,14 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 			)
 		})
 	})
+}
+
+func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGamesParams) (*butlerd.FetchProfileGamesResult, error) {
+	res := &butlerd.FetchProfileGamesResult{}
+	LazyFetchProfileGames(rc, params, res)
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		var cond builder.Cond = builder.Eq{"profile_games.profile_id": profile.ID}
+		var cond builder.Cond = builder.Eq{"profile_games.profile_id": params.GetProfileID()}
 		joinGames := false
 		search := hades.Search{}
 

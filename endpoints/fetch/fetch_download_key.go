@@ -1,11 +1,11 @@
 package fetch
 
 import (
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func FetchDownloadKey(rc *butlerd.RequestContext, params butlerd.FetchDownloadKeyParams) (*butlerd.FetchDownloadKeyResult, error) {
