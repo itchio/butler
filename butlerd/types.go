@@ -449,7 +449,7 @@ type GameRecord struct {
 	Owned bool `json:"owned,omitempty"`
 
 	// Non-nil if installed (has caves)
-	InstalledAt *time.Time `json:"installed_at,omitempty"`
+	InstalledAt *time.Time `json:"installedAt,omitempty"`
 }
 
 // Fetches game records - owned, installed, in collection,
