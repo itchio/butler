@@ -1488,6 +1488,12 @@ with search, etc. Includes download key info, cave info, etc.</p>
 </td>
 </tr>
 <tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Games to skip</p>
+</td>
+</tr>
+<tr>
 <td><code>search</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> When specified only shows game titles that contain this string</p>
@@ -1512,12 +1518,6 @@ with search, etc. Includes download key info, cave info, etc.</p>
 </td>
 </tr>
 <tr>
-<td><code>cursor</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
-<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
-</td>
-</tr>
-<tr>
 <td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> If set, will force fresh data</p>
@@ -1534,7 +1534,7 @@ with search, etc. Includes download key info, cave info, etc.</p>
 
 <table class="field-table">
 <tr>
-<td><code>record</code></td>
+<td><code>records</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameRecord__TypeHint">GameRecord</span>[]</code></td>
 <td><p>All the records that were fetched</p>
 </td>
@@ -1543,12 +1543,6 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> Marks that a request should be issued afterwards with &lsquo;Fresh&rsquo; set</p>
-</td>
-</tr>
-<tr>
-<td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
-<td><p><span class="tag">Optional</span> Use to fetch the next &lsquo;page&rsquo; of results</p>
 </td>
 </tr>
 </table>
@@ -1581,6 +1575,10 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
 <td><code>search</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
@@ -1597,10 +1595,6 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
-<td><code>cursor</code></td>
-<td><code class="typename"><span class="type">Cursor</span></code></td>
-</tr>
-<tr>
 <td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
@@ -1615,16 +1609,12 @@ with search, etc. Includes download key info, cave info, etc.</p>
 
 <table class="field-table">
 <tr>
-<td><code>record</code></td>
+<td><code>records</code></td>
 <td><code class="typename"><span class="type">GameRecord</span>[]</code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>nextCursor</code></td>
-<td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
 </table>
 
@@ -6934,7 +6924,7 @@ ie. that we can connect as, etc.</p>
 </td>
 </tr>
 <tr>
-<td><code>installed</code></td>
+<td><code>installedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p>Non-nil if installed (has caves)</p>
 </td>
@@ -6964,20 +6954,65 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
-<td><code>installed</code></td>
+<td><code>installedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### GameRecordsSource 
+### GameRecordsSource (enum)
 
 
-Type alias for string
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"owned"</code></td>
+<td><p>Games for which the profile has a download key</p>
+</td>
+</tr>
+<tr>
+<td><code>"installed"</code></td>
+<td><p>Games for which a cave exists (regardless of the profile)</p>
+</td>
+</tr>
+<tr>
+<td><code>"profile"</code></td>
+<td><p>Games authored by profile, or for whom profile is an admin of</p>
+</td>
+</tr>
+<tr>
+<td><code>"collection"</code></td>
+<td><p>Games from a collection</p>
+</td>
+</tr>
+</table>
+
 
 <div id="GameRecordsSource__TypeHint" class="tip-content">
-<p>GameRecordsSource  <a href="#/?id=gamerecordssource-">(Go to definition)</a></p>
+<p>GameRecordsSource (enum) <a href="#/?id=gamerecordssource-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"owned"</code></td>
+</tr>
+<tr>
+<td><code>"installed"</code></td>
+</tr>
+<tr>
+<td><code>"profile"</code></td>
+</tr>
+<tr>
+<td><code>"collection"</code></td>
+</tr>
+</table>
+
 </div>
 
 ### GameRecordsFilters (struct)
@@ -6995,6 +7030,16 @@ Type alias for string
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -7006,6 +7051,14 @@ Type alias for string
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

@@ -441,6 +441,11 @@
             "type": "number"
           },
           {
+            "name": "offset",
+            "doc": "Games to skip",
+            "type": "number"
+          },
+          {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
             "type": "string"
@@ -461,11 +466,6 @@
             "type": "boolean"
           },
           {
-            "name": "cursor",
-            "doc": "Used for pagination, if specified",
-            "type": "Cursor"
-          },
-          {
             "name": "fresh",
             "doc": "If set, will force fresh data",
             "type": "boolean"
@@ -475,7 +475,7 @@
       "result": {
         "fields": [
           {
-            "name": "record",
+            "name": "records",
             "doc": "All the records that were fetched",
             "type": "GameRecord[]"
           },
@@ -483,11 +483,6 @@
             "name": "stale",
             "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
             "type": "boolean"
-          },
-          {
-            "name": "nextCursor",
-            "doc": "Use to fetch the next 'page' of results",
-            "type": "Cursor"
           }
         ]
       }
@@ -2386,7 +2381,7 @@
           "type": "boolean"
         },
         {
-          "name": "installed",
+          "name": "installedAt",
           "doc": "Non-nil if installed (has caves)",
           "type": "RFCDate"
         }
@@ -2400,6 +2395,16 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        },
+        {
+          "name": "installed",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "owned",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },
