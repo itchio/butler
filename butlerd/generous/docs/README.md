@@ -7028,17 +7028,20 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>installed</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>owned</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 

@@ -518,8 +518,11 @@ var GameRecordsSourceList = []interface{}{
 }
 
 type GameRecordsFilters struct {
+	// @optional
 	Classification itchio.GameClassification `json:"classification"`
+	// @optional
 	Installed      bool                      `json:"installed"`
+	// @optional
 	Owned          bool                      `json:"owned"`
 }
 
