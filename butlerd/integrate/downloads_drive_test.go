@@ -2,6 +2,7 @@ package integrate
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -54,16 +55,22 @@ func Test_DownloadsDrive(t *testing.T) {
 	must(err)
 
 	var notifs []string
+	var notifsLock sync.Mutex
+	appendNotif := func(s string) {
+		notifsLock.Lock()
+		notifs = append(notifs, s)
+		notifsLock.Unlock()
+	}
 
 	messages.DownloadsDriveStarted.Register(h, func(params butlerd.DownloadsDriveStartedNotification) {
-		notifs = append(notifs, "started")
+		appendNotif("started")
 	})
 
 	messages.DownloadsDriveNetworkStatus.Register(h, func(params butlerd.DownloadsDriveNetworkStatusNotification) {
-		notifs = append(notifs, fmt.Sprintf("network-%s", params.Status))
+		appendNotif(fmt.Sprintf("network-%s", params.Status))
 
 		if params.Status == butlerd.NetworkStatusOffline {
-			_, err = messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
+			_, err := messages.NetworkSetSimulateOffline.TestCall(rc, butlerd.NetworkSetSimulateOfflineParams{
 				Enabled: false,
 			})
 			must(err)
@@ -73,7 +80,7 @@ func Test_DownloadsDrive(t *testing.T) {
 	driveDone := make(chan error)
 
 	messages.DownloadsDriveErrored.Register(h, func(params butlerd.DownloadsDriveErroredNotification) {
-		notifs = append(notifs, fmt.Sprintf("errored"))
+		appendNotif(fmt.Sprintf("errored"))
 		bi.Logf("Got errored:")
 		dl := params.Download
 		if dl.ErrorMessage != nil {
@@ -82,29 +89,35 @@ func Test_DownloadsDrive(t *testing.T) {
 		if dl.ErrorCode != nil {
 			bi.Logf(" ==> Code %d", *dl.ErrorCode)
 		}
+		notifsLock.Lock()
 		bi.Logf("Full notification log: %#v", notifs)
+		notifsLock.Unlock()
 		driveDone <- errors.New("Got unexpected DriveErrored")
 		t.FailNow()
 	})
 
 	messages.DownloadsDriveFinished.Register(h, func(params butlerd.DownloadsDriveFinishedNotification) {
-		notifs = append(notifs, fmt.Sprintf("finished"))
+		appendNotif(fmt.Sprintf("finished"))
 
-		_, err = messages.DownloadsDriveCancel.TestCall(rc, butlerd.DownloadsDriveCancelParams{})
+		_, err := messages.DownloadsDriveCancel.TestCall(rc, butlerd.DownloadsDriveCancelParams{})
 		must(err)
 	})
 
 	go func() {
-		_, err = messages.DownloadsDrive.TestCall(rc, butlerd.DownloadsDriveParams{})
+		_, err := messages.DownloadsDrive.TestCall(rc, butlerd.DownloadsDriveParams{})
 		driveDone <- err
 	}()
 
 	select {
 	case err := <-driveDone:
+		notifsLock.Lock()
 		bi.Logf("Notifications received: %#v", notifs)
+		notifsLock.Unlock()
 		assert.NoError(err)
 	case <-time.After(10 * time.Second):
+		notifsLock.Lock()
 		bi.Logf("Notifications received: %#v", notifs)
+		notifsLock.Unlock()
 		must(errors.New("timed out"))
 	}
 

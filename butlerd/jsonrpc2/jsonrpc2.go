@@ -73,7 +73,8 @@ type connImpl struct {
 	idSeed  ID
 	idMutex sync.Mutex
 
-	outgoingCalls map[ID]OutgoingCall
+	outgoingCalls      map[ID]OutgoingCall
+	outgoingCallsMutex sync.Mutex
 
 	closed           bool
 	disconnectNotify chan struct{}
@@ -203,6 +204,8 @@ func (c *connImpl) handleIncomingMessage(msg Message) {
 		if msg.ID != nil {
 			id := *msg.ID
 
+			c.outgoingCallsMutex.Lock()
+			defer c.outgoingCallsMutex.Unlock()
 			if oc, ok := c.outgoingCalls[id]; ok {
 				delete(c.outgoingCalls, id)
 				oc(msg)
@@ -299,7 +302,8 @@ func (c *connImpl) Call(method string, params interface{}, result interface{}) e
 	}
 
 	done := make(chan error)
-	c.outgoingCalls[id] = func(msg Message) {
+
+	f := func(msg Message) {
 		done <- (func() error {
 			if msg.Error != nil {
 				return msg.Error
@@ -312,6 +316,11 @@ func (c *connImpl) Call(method string, params interface{}, result interface{}) e
 			return DecodeJSON(*msg.Result, result)
 		})()
 	}
+	(func() {
+		c.outgoingCallsMutex.Lock()
+		c.outgoingCalls[id] = f
+		c.outgoingCallsMutex.Unlock()
+	})()
 
 	select {
 	case err := <-done:

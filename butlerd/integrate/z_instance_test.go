@@ -48,9 +48,11 @@ type instanceOpts struct {
 
 type instanceOpt func(o *instanceOpts)
 
-func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
+func init() {
 	color.NoColor = false
+}
 
+func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 	var opts instanceOpts
 	for _, o := range options {
 		o(&opts)

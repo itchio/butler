@@ -64,7 +64,12 @@ func Test_InstallCancel(t *testing.T) {
 	pidFilePath := filepath.Join(queueRes.StagingFolder, "operate-pid.json")
 
 	var lastProgressValue float64
+	var lastProgressLock sync.Mutex
+
 	printProgress := func(params butlerd.ProgressNotification) {
+		lastProgressLock.Lock()
+		defer lastProgressLock.Unlock()
+
 		bi.Logf("%.2f%% done @ %s / s ETA %s", params.Progress*100, united.FormatBytes(int64(params.BPS)), time.Duration(params.ETA*float64(time.Second)))
 		lastProgressValue = params.Progress
 	}
@@ -97,7 +102,10 @@ func Test_InstallCancel(t *testing.T) {
 		StagingFolder: queueRes.StagingFolder,
 	})
 
+	lastProgressLock.Lock()
 	bi.Logf("Last progress before graceful cancel: %.2f%%", lastProgressValue*100)
+	lastProgressLock.Unlock()
+
 	bi.Logf("Making sure we've been cancelled...")
 	assert.Error(err)
 	je := err.(*jsonrpc2.Error)
@@ -148,7 +156,9 @@ func Test_InstallCancel(t *testing.T) {
 		StagingFolder: queueRes.StagingFolder,
 	})
 
+	lastProgressLock.Lock()
 	bi.Logf("Last progress before hard cancel: %.2f%%", lastProgressValue*100)
+	lastProgressLock.Unlock()
 	assert.Error(err)
 
 	bi.Logf("Waiting for pid file to disappear...")

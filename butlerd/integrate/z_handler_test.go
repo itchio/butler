@@ -2,6 +2,7 @@ package integrate
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/jsonrpc2"
@@ -9,9 +10,13 @@ import (
 )
 
 type handler struct {
-	handlers             map[string]butlerd.RequestHandler
-	notificationHandlers map[string]butlerd.NotificationHandler
-	consumer             *state.Consumer
+	handlers      map[string]butlerd.RequestHandler
+	handlersMutex sync.Mutex
+
+	notificationHandlers      map[string]butlerd.NotificationHandler
+	notificationHandlersMutex sync.Mutex
+
+	consumer *state.Consumer
 }
 
 var _ jsonrpc2.Handler = (*handler)(nil)
@@ -25,10 +30,13 @@ func newHandler(consumer *state.Consumer) *handler {
 }
 
 func (h *handler) HandleNotification(conn jsonrpc2.Conn, notif jsonrpc2.Notification) {
-	if nh, ok := h.notificationHandlers[notif.Method]; ok {
+	h.notificationHandlersMutex.Lock()
+	nh, ok := h.notificationHandlers[notif.Method]
+	h.notificationHandlersMutex.Unlock()
+
+	if ok {
 		nh(notif)
 	}
-	return
 }
 
 func (h *handler) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interface{}, error) {
@@ -39,7 +47,10 @@ func (h *handler) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (inter
 		Consumer: h.consumer,
 	}
 
-	if rh, ok := h.handlers[req.Method]; ok {
+	h.handlersMutex.Lock()
+	rh, ok := h.handlers[req.Method]
+	h.handlersMutex.Unlock()
+	if ok {
 		return rh(rc)
 	}
 
@@ -50,9 +61,13 @@ func (h *handler) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (inter
 }
 
 func (h *handler) Register(method string, rh butlerd.RequestHandler) {
+	h.handlersMutex.Lock()
 	h.handlers[method] = rh
+	h.handlersMutex.Unlock()
 }
 
 func (h *handler) RegisterNotification(method string, nh butlerd.NotificationHandler) {
+	h.notificationHandlersMutex.Lock()
 	h.notificationHandlers[method] = nh
+	h.notificationHandlersMutex.Unlock()
 }
