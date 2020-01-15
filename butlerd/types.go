@@ -1167,6 +1167,28 @@ func (r *FetchProfileOwnedKeysResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// A bad endpoint you probably shouldn't rely on, if I'm quite honest.
+// Please don't use it?
+//
+// @name Fetch.ScrapedScreenshots
+// @category Fetch
+// @caller client
+type FetchScrapedScreenshotsParams struct {
+	// The game for which to grab screenshots
+	GameID int64 `json:"gameId"`
+}
+
+func (p FetchScrapedScreenshotsParams) Validate() error {
+	return validation.ValidateStruct(
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type FetchScrapedScreenshotsResult struct {
+	// The returned screenshots
+	Screenshots []string `json:"screenshots"`
+}
+
 // @name Fetch.Commons
 // @category Fetch
 // @caller client

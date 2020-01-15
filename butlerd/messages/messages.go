@@ -1432,6 +1432,46 @@ func (r *FetchProfileOwnedKeysType) TestCall(rc *butlerd.RequestContext, params 
 
 var FetchProfileOwnedKeys *FetchProfileOwnedKeysType
 
+// Fetch.ScrapedScreenshots (Request)
+
+type FetchScrapedScreenshotsType struct {}
+
+var _ RequestMessage = (*FetchScrapedScreenshotsType)(nil)
+
+func (r *FetchScrapedScreenshotsType) Method() string {
+  return "Fetch.ScrapedScreenshots"
+}
+
+func (r *FetchScrapedScreenshotsType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchScrapedScreenshotsParams) (*butlerd.FetchScrapedScreenshotsResult, error)) {
+  router.Register("Fetch.ScrapedScreenshots", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchScrapedScreenshotsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.ScrapedScreenshots")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchScrapedScreenshotsType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchScrapedScreenshotsParams) (*butlerd.FetchScrapedScreenshotsResult, error) {
+  var result butlerd.FetchScrapedScreenshotsResult
+  err := rc.Call("Fetch.ScrapedScreenshots", params, &result)
+  return &result, err
+}
+
+var FetchScrapedScreenshots *FetchScrapedScreenshotsType
+
 // Fetch.Commons (Request)
 
 type FetchCommonsType struct {}
@@ -3551,6 +3591,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }
   if _, ok := router.Handlers["Fetch.ProfileGames"]; !ok { panic("missing request handler for (Fetch.ProfileGames)") }
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
+  if _, ok := router.Handlers["Fetch.ScrapedScreenshots"]; !ok { panic("missing request handler for (Fetch.ScrapedScreenshots)") }
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Caves"]; !ok { panic("missing request handler for (Fetch.Caves)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
