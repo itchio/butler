@@ -126,7 +126,7 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		}
 
 		// N.B: these need to be kept in the same order as the `GameRecord` struct
-		// (the field names don't actuall matter)
+		// (the field names don't actually matter)
 		builder := builder.Select(
 			"games.id",
 			"games.title",

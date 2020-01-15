@@ -1717,6 +1717,126 @@ with search, etc. Includes download key info, cave info, etc.</p>
 
 </div>
 
+### Fetch.DownloadKeys (client request)
+
+
+<p>
+<p>Fetches multiple download keys</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Number of items to skip</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Max number of results per page (default = 5)</p>
+</td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#FetchDownloadKeysFilter__TypeHint">FetchDownloadKeysFilter</span></code></td>
+<td><p><span class="tag">Optional</span> Filter results</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Force an API request</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span>[]</code></td>
+<td><p>All the download keys found in the local DB.</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Whether the information was fetched from a stale cache,
+and could warrant a refresh if online.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchDownloadKeysParams__TypeHint" class="tip-content">
+<p>Fetch.DownloadKeys (client request) <a href="#/?id=fetchdownloadkeys-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Fetches multiple download keys</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type">FetchDownloadKeysFilter</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchDownloadKeysResult__TypeHint" class="tip-content">
+<p>FetchDownloadKeys  <a href="#/?id=fetchdownloadkeys-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type">DownloadKey</span>[]</code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Fetch.GameUploads (client request)
 
 
@@ -7062,6 +7182,38 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>owned</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### FetchDownloadKeysFilter (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Return only download keys for given game</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchDownloadKeysFilter__TypeHint" class="tip-content">
+<p>FetchDownloadKeysFilter (struct) <a href="#/?id=fetchdownloadkeysfilter-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 

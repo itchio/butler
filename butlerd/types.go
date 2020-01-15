@@ -521,9 +521,9 @@ type GameRecordsFilters struct {
 	// @optional
 	Classification itchio.GameClassification `json:"classification"`
 	// @optional
-	Installed      bool                      `json:"installed"`
+	Installed bool `json:"installed"`
 	// @optional
-	Owned          bool                      `json:"owned"`
+	Owned bool `json:"owned"`
 }
 
 func (p GameRecordsFilters) Validate() error {
@@ -616,6 +616,56 @@ type FetchDownloadKeyResult struct {
 
 	// Marks that a request should be issued afterwards with 'Fresh' set
 	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+// Fetches multiple download keys
+//
+// @name Fetch.DownloadKeys
+// @category Fetch
+// @caller client
+type FetchDownloadKeysParams struct {
+	ProfileID int64 `json:"profileId"`
+
+	// Number of items to skip
+	// @optional
+	Offset int64 `json:"offset"`
+
+	// Max number of results per page (default = 5)
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Filter results
+	// @optional
+	Filters FetchDownloadKeysFilter `json:"filters"`
+
+	// Force an API request
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+type FetchDownloadKeysFilter struct {
+	// Return only download keys for given game
+	// @optional
+	GameID int64 `json:"gameId"`
+}
+
+func (p FetchDownloadKeysParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchDownloadKeysParams) IsFresh() bool {
+	return p.Fresh
+}
+
+type FetchDownloadKeysResult struct {
+	// All the download keys found in the local DB.
+	Items []*itchio.DownloadKey `json:"items"`
+
+	// Whether the information was fetched from a stale cache,
+	// and could warrant a refresh if online.
 	Stale bool `json:"stale,omitempty"`
 }
 

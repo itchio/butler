@@ -526,6 +526,54 @@
       }
     },
     {
+      "method": "Fetch.DownloadKeys",
+      "doc": "Fetches multiple download keys",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "offset",
+            "doc": "Number of items to skip",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Max number of results per page (default = 5)",
+            "type": "number"
+          },
+          {
+            "name": "filters",
+            "doc": "Filter results",
+            "type": "FetchDownloadKeysFilter"
+          },
+          {
+            "name": "fresh",
+            "doc": "Force an API request",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "items",
+            "doc": "All the download keys found in the local DB.",
+            "type": "DownloadKey[]"
+          },
+          {
+            "name": "stale",
+            "doc": "Whether the information was fetched from a stale cache,\nand could warrant a refresh if online.",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.GameUploads",
       "doc": "Fetches uploads for an itch.io game",
       "caller": "client",
@@ -2405,6 +2453,17 @@
           "name": "owned",
           "doc": "",
           "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchDownloadKeysFilter",
+      "doc": "",
+      "fields": [
+        {
+          "name": "gameId",
+          "doc": "Return only download keys for given game",
+          "type": "number"
         }
       ]
     },
