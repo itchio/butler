@@ -983,29 +983,6 @@
       }
     },
     {
-      "method": "Fetch.ScrapedScreenshots",
-      "doc": "A bad endpoint you probably shouldn't rely on, if I'm quite honest.\nPlease don't use it?",
-      "caller": "client",
-      "params": {
-        "fields": [
-          {
-            "name": "gameId",
-            "doc": "The game for which to grab screenshots",
-            "type": "number"
-          }
-        ]
-      },
-      "result": {
-        "fields": [
-          {
-            "name": "screenshots",
-            "doc": "The returned screenshots",
-            "type": "string[]"
-          }
-        ]
-      }
-    },
-    {
       "method": "Fetch.Commons",
       "doc": "",
       "caller": "client",

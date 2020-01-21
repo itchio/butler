@@ -22,5 +22,4 @@ func Register(router *butlerd.Router) {
 	messages.FetchDownloadKey.Register(router, FetchDownloadKey)
 	messages.FetchDownloadKeys.Register(router, FetchDownloadKeys)
 	messages.FetchGameRecords.Register(router, FetchGameRecords)
-	messages.FetchScrapedScreenshots.Register(router, FetchScrapedScreenshots)
 }
