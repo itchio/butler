@@ -92,7 +92,7 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 				// most played first
 				search = search.OrderBy("caves.seconds_run" + desc)
 			default: // + "lastTouched"
-				search = search.OrderBy("caves.last_touched_at" + desc)
+				search = search.OrderBy("coalesce(caves.last_touched_at, caves.installed_at)" + desc)
 			}
 		}
 
