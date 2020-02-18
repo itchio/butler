@@ -234,6 +234,8 @@ github.com/itchio/spellbook v0.0.0-20190702192024-d861b16ab673/go.mod h1:Z8GuFb1
 github.com/itchio/wharf v0.0.0-20190703124244-659fddc29012/go.mod h1:WcTtMJ14F9NVHqKFxuBI7oyVnHJss2nexwJFcQeRo4I=
 github.com/itchio/wharf v0.0.0-20200218085724-b2841149c7f7 h1:PVYSiHmqrowVhsGVjnK7ZR0i0rZYdow1WwWt61U64Qk=
 github.com/itchio/wharf v0.0.0-20200218085724-b2841149c7f7/go.mod h1:ho4W3UwBxMBu937r6iGEg5Qy5XIP+HHPbwxdFnAkK5U=
+github.com/itchio/wharf v0.0.0-20200218094354-fc0439690d3a h1:weuuxzf3aSfX0IbcFCIvqoDHJGxGFYN3RrmUPMc3Pu8=
+github.com/itchio/wharf v0.0.0-20200218094354-fc0439690d3a/go.mod h1:ho4W3UwBxMBu937r6iGEg5Qy5XIP+HHPbwxdFnAkK5U=
 github.com/itchio/wizardry v0.0.0-20190702191849-ac1b407f270b/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c h1:gBUbKS6o9ns7UqD2Xs7FQ4d/6LIZuarPd47ykvLA9K0=
 github.com/itchio/wizardry v0.0.0-20190702192039-559605be939c/go.mod h1:E+s8EspsKQUVBCY6Tq5C+9fJ7tH/KewSlqy96MJWyEA=
