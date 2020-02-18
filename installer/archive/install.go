@@ -33,7 +33,7 @@ func (m *Manager) Install(params installer.InstallParams) (*installer.InstallRes
 	if archiveInfo == nil {
 		consumer.Infof("Missing archive info, probing...")
 		var err error
-		archiveInfo, err = boar.Probe(&boar.ProbeParams{
+		archiveInfo, err = boar.Probe(boar.ProbeParams{
 			File:     f,
 			Consumer: consumer,
 		})

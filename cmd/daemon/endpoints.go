@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqlitex"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/endpoints/cleandownloads"
@@ -21,7 +21,7 @@ import (
 
 var mainRouter *butlerd.Router
 
-func getRouter(dbPool *sqlite.Pool, mansionContext *mansion.Context) *butlerd.Router {
+func getRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.Router {
 	if mainRouter != nil {
 		return mainRouter
 	}

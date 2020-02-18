@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqlitex"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/database/models"
@@ -51,7 +51,7 @@ func do(mc *mansion.Context) error {
 	}
 	consumer.Debugf("Using database (%s)", mc.DBPath)
 
-	dbPool, err := sqlite.Open(mc.DBPath, 0, 1)
+	dbPool, err := sqlitex.Open(mc.DBPath, 0, 1)
 	if err != nil {
 		mc.Must(errors.WithMessage(err, "opening DB for the first time"))
 	}
@@ -59,7 +59,7 @@ func do(mc *mansion.Context) error {
 
 	ctx := context.Background()
 
-	conn := dbPool.Get(ctx.Done())
+	conn := dbPool.Get(ctx)
 	if conn == nil {
 		panic("database busy")
 	}

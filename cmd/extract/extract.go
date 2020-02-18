@@ -77,7 +77,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 
 	consumer.Opf("Extracting (%s) to (%s)", stats.Name(), params.Dir)
 
-	archiveInfo, err := boar.Probe(&boar.ProbeParams{
+	archiveInfo, err := boar.Probe(boar.ProbeParams{
 		File:     file,
 		Consumer: consumer,
 	})
