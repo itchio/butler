@@ -42,7 +42,6 @@ require (
 	github.com/itchio/wizardry v0.0.0-20190925103644-6068e7653f36
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/klauspost/cpuid v1.2.3 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
