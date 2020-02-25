@@ -39,7 +39,7 @@ func doFetch7zLibs(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx, &ExtractParams{
+	ctx.Must(Do(ctx, ExtractParams{
 		File: *args.file,
 		Dir:  *args.dir,
 
@@ -54,7 +54,7 @@ type ExtractParams struct {
 	Consumer *state.Consumer
 }
 
-func Do(ctx *mansion.Context, params *ExtractParams) error {
+func Do(ctx *mansion.Context, params ExtractParams) error {
 	if params.File == "" {
 		return errors.New("extract: File must be specified")
 	}
@@ -119,6 +119,7 @@ func Do(ctx *mansion.Context, params *ExtractParams) error {
 		sink := &savior.FolderSink{
 			Directory: params.Dir,
 		}
+		defer sink.Close()
 
 		res, err := ex.Resume(nil, sink)
 		comm.EndProgress()

@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
-	"github.com/itchio/butler/cmd/dl"
+	"github.com/itchio/butler/cmd/extract"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
@@ -22,16 +21,16 @@ import (
 func Test(ctx *mansion.Context, prereqs []string) error {
 	comm.Opf("Fetching registry...")
 
-	baseURL := "https://dl.itch.ovh/itch-redists"
+	baseURL := "https://broth.itch.ovh/itch-redists"
 
-	infoURL := fmt.Sprintf("%s/info.json?t=%d", baseURL, time.Now().Unix())
+	infoURL := fmt.Sprintf("%s/info/LATEST/unpacked/default", baseURL)
 	res, err := http.Get(infoURL)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	if res.StatusCode != 200 {
-		return errors.Errorf("While getting redist registry, got HTTP %d", res.StatusCode)
+		return errors.Errorf("Got HTTP %d when fetching registry (%s)", res.StatusCode, infoURL)
 	}
 
 	dec := json.NewDecoder(res.Body)
@@ -111,9 +110,13 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 			WorkDir: workDir,
 		}
 
-		url := fmt.Sprintf("%s/%s/%s", baseURL, name, block.Command)
-		dest := filepath.Join(workDir, block.Command)
-		_, err = dl.Do(ctx, url, dest)
+		url := fmt.Sprintf("%s/%s-windows/LATEST/archive/default", baseURL, name)
+		comm.Logf("..from (%s)", url)
+		err = extract.Do(ctx, extract.ExtractParams{
+			File:     url,
+			Dir:      workDir,
+			Consumer: comm.NewStateConsumer(),
+		})
 		if err != nil {
 			comm.Logf("Could not download prereq %s", name)
 			return errors.WithStack(err)
