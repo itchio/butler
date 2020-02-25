@@ -8,7 +8,7 @@ import (
 
 	"github.com/itchio/butler/butlerd/horror"
 
-	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqlitex"
 	"github.com/google/gops/agent"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
@@ -77,7 +77,7 @@ func do(ctx *mansion.Context) {
 		justCreated = true
 	}
 
-	dbPool, err := sqlite.Open(ctx.DBPath, 0, 100)
+	dbPool, err := sqlitex.Open(ctx.DBPath, 0, 100)
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
 	}
@@ -86,7 +86,7 @@ func do(ctx *mansion.Context) {
 	err = func() (retErr error) {
 		defer horror.RecoverInto(&retErr)
 
-		conn := dbPool.Get(context.Background().Done())
+		conn := dbPool.Get(context.Background())
 		defer dbPool.Put(conn)
 		return database.Prepare(&state.Consumer{
 			OnMessage: func(lvl string, msg string) {
@@ -101,7 +101,7 @@ func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, context.Background(), dbPool, secret))
 }
 
-func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlite.Pool, secret string) error {
+func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := getRouter(dbPool, mansionContext)
 	consumer := comm.NewStateConsumer()

@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"crawshaw.io/sqlite"
-	"crawshaw.io/sqlite/sqliteutil"
+	"crawshaw.io/sqlite/sqlitex"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/headway/state"
 )
@@ -71,7 +71,7 @@ func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
 		err := func() (retErr error) {
 			defer horror.RecoverInto(&retErr)
 			// run migration in a transaction
-			defer sqliteutil.Save(conn)(&retErr)
+			defer sqlitex.Save(conn)(&retErr)
 			err := migration(consumer, conn)
 			if err != nil {
 				return err

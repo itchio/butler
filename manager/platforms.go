@@ -1,19 +1,11 @@
 package manager
 
 import (
-	"log"
-
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 )
 
 func IsCompatible(p itchio.Platforms, rt ox.Runtime) bool {
-	res := isCompatible(p, rt)
-	log.Printf("IsCompatible(%+v, %v) = %v", p, rt, res)
-	return res
-}
-
-func isCompatible(p itchio.Platforms, rt ox.Runtime) bool {
 	switch rt.Platform {
 	case ox.PlatformLinux:
 		return p.Linux != ""

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/itchio/boar"
-	"github.com/itchio/dash"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/savior"
@@ -42,7 +41,7 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 		consumer.Infof("  Probing with boar (because installer type is archive)...")
 
 		var entries []*savior.Entry
-		archiveInfo, err := boar.Probe(&boar.ProbeParams{
+		archiveInfo, err := boar.Probe(boar.ProbeParams{
 			File:     file,
 			Consumer: consumer,
 			OnEntries: func(es []*savior.Entry) {
@@ -75,40 +74,4 @@ func GetInstallerInfo(consumer *state.Consumer, file eos.File) (*InstallerInfo, 
 	return &InstallerInfo{
 		Type: installerType,
 	}, nil
-}
-
-func getInstallerTypeForCandidate(consumer *state.Consumer, candidate *dash.Candidate, file eos.File) (InstallerType, error) {
-	switch candidate.Flavor {
-
-	case dash.FlavorNativeWindows:
-		if candidate.WindowsInfo != nil && candidate.WindowsInfo.InstallerType != "" {
-			consumer.Infof("  → Found Windows installer of type %s", candidate.WindowsInfo.InstallerType)
-			consumer.Warnf("  But support for Windows installers has been removed, so, we'll just copy them in place.")
-		} else {
-			consumer.Infof("  → Native Windows executable, sure hope it's not an installer")
-		}
-
-		return InstallerTypeNaked, nil
-
-	case dash.FlavorNativeMacos:
-		consumer.Infof("  → Native macOS executable")
-		return InstallerTypeNaked, nil
-
-	case dash.FlavorNativeLinux:
-		consumer.Infof("  → Native linux executable")
-		return InstallerTypeNaked, nil
-
-	case dash.FlavorScript:
-		consumer.Infof("  → Script")
-		if candidate.ScriptInfo != nil && candidate.ScriptInfo.Interpreter != "" {
-			consumer.Infof("    with interpreter %s", candidate.ScriptInfo.Interpreter)
-		}
-		return InstallerTypeNaked, nil
-
-	case dash.FlavorScriptWindows:
-		consumer.Infof("  → Windows script")
-		return InstallerTypeNaked, nil
-	}
-
-	return InstallerTypeUnknown, nil
 }

@@ -3,10 +3,11 @@ package butlerd
 import (
 	"context"
 	"fmt"
-	"golang.org/x/sync/singleflight"
 	"net/http"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 
 	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd/horror"
@@ -21,6 +22,7 @@ import (
 	"github.com/itchio/wharf/werrors"
 
 	"crawshaw.io/sqlite"
+	"crawshaw.io/sqlite/sqlitex"
 	"github.com/helloeave/json"
 
 	"github.com/pkg/errors"
@@ -52,7 +54,7 @@ type Router struct {
 	Handlers             map[string]RequestHandler
 	NotificationHandlers map[string]NotificationHandler
 	CancelFuncs          *CancelFuncs
-	dbPool               *sqlite.Pool
+	dbPool               *sqlitex.Pool
 	getClient            GetClientFunc
 	httpClient           *http.Client
 	httpTransport        *http.Transport
@@ -74,7 +76,7 @@ type Router struct {
 	globalConsumer *state.Consumer
 }
 
-func NewRouter(dbPool *sqlite.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
+func NewRouter(dbPool *sqlitex.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
 	backgroundContext, backgroundCancel := context.WithCancel(context.Background())
 
 	return &Router{
@@ -435,7 +437,7 @@ type RequestContext struct {
 	Params      *json.RawMessage
 	Conn        jsonrpc2.Conn
 	CancelFuncs *CancelFuncs
-	dbPool      *sqlite.Pool
+	dbPool      *sqlitex.Pool
 
 	Group    *singleflight.Group
 	Shutdown func()
@@ -535,7 +537,7 @@ func (rc *RequestContext) EndProgress() {
 func (rc *RequestContext) GetConn() *sqlite.Conn {
 	getCtx, cancel := context.WithTimeout(rc.Ctx, 3*time.Second)
 	defer cancel()
-	conn := rc.dbPool.Get(getCtx.Done())
+	conn := rc.dbPool.Get(getCtx)
 	if conn == nil {
 		panic(errors.WithStack(CodeDatabaseBusy))
 	}

@@ -275,7 +275,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 
 		wasBoar := func() bool {
 			numEntries := 0
-			info, err := boar.Probe(&boar.ProbeParams{
+			info, err := boar.Probe(boar.ProbeParams{
 				File:     reader,
 				Consumer: consumer,
 				OnEntries: func(entries []*savior.Entry) {
