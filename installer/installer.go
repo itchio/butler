@@ -72,12 +72,9 @@ type InstallerInfo struct {
 type InstallerType string
 
 const (
-	InstallerTypeNaked       InstallerType = "naked"
-	InstallerTypeArchive     InstallerType = "archive"
-	InstallerTypeIExpress    InstallerType = "iexpress"
-	InstallerTypeDMG         InstallerType = "dmg"
-	InstallerTypeUnknown     InstallerType = "unknown"
-	InstallerTypeUnsupported InstallerType = "unsupported"
+	InstallerTypeNaked   InstallerType = "naked"
+	InstallerTypeArchive InstallerType = "archive"
+	InstallerTypeUnknown InstallerType = "unknown"
 )
 
 // AsLocalFile takes an eos.File and tries to cast it to an *os.File.

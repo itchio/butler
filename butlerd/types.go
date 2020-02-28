@@ -2791,9 +2791,6 @@ const (
 	// We tried to install something, but could not find compatible uploads
 	CodeNoCompatibleUploads Code = 2001
 
-	// This title is packaged in a way that is not supported.
-	CodeUnsupportedPackaging Code = 3000
-
 	// This title is hosted on an incompatible third-party website
 	CodeUnsupportedHost Code = 3001
 

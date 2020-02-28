@@ -261,11 +261,5 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		consumer.Infof("Using cached source information")
 	}
 
-	installerInfo := istate.InstallerInfo
-	if installerInfo.Type == installer.InstallerTypeUnsupported {
-		consumer.Errorf("Item is packaged in a way that isn't supported, refusing to install")
-		return errors.WithStack(butlerd.CodeUnsupportedPackaging)
-	}
-
 	return task(res)
 }
