@@ -4,9 +4,9 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/manager"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hush"
 	"github.com/itchio/hush/bfs"
-	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/ox"
 	"github.com/pkg/errors"
 )
@@ -47,9 +47,6 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 		Build:         params.Build,
 
 		Files: res.Files,
-
-		// optionals:
-		MSIProductCode: res.MSIProductCode,
 	}
 
 	err = receipt.WriteReceipt(params.InstallFolder)
