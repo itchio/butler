@@ -8,7 +8,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
-	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/shell"
 	"github.com/itchio/ox"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -60,12 +60,12 @@ func (h *handler) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error
 	}
 	args = append(args, []string{"install-prereqs", planPath}...)
 
-	res, err := installer.RunSelf(installer.RunSelfParams{
+	res, err := shell.RunSelf(shell.RunSelfParams{
 		Consumer:   consumer,
 		Args:       args,
 		Host:       h.host(),
 		PrereqsDir: h.prereqsDir(),
-		OnResult: func(value installer.Any) {
+		OnResult: func(value shell.Any) {
 			switch value["type"] {
 			case "state":
 				{
@@ -103,7 +103,7 @@ func (h *handler) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error
 		}
 	}
 
-	err = installer.CheckExitCode(res.ExitCode, err)
+	err = shell.CheckExitCode(res.ExitCode, err)
 	if err != nil {
 		return errors.WithStack(err)
 	}

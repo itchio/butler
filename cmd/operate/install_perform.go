@@ -16,7 +16,9 @@ import (
 	"github.com/itchio/httpkit/eos/option"
 	"github.com/itchio/wharf/pwr/patcher"
 
-	"github.com/itchio/butler/installer"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/download"
+	"github.com/itchio/hush/installers"
 
 	"github.com/pkg/errors"
 )
@@ -78,7 +80,7 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 			}
 
 			oc.rc.StartProgress()
-			err = DownloadInstallSource(DownloadInstallSourceParams{
+			err = download.DownloadInstallSource(download.DownloadInstallSourceParams{
 				Context:       oc.ctx,
 				Consumer:      oc.Consumer(),
 				StageFolder:   oc.StageFolder(),
@@ -125,8 +127,8 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.Inst
 	}
 	oc.Load(isub)
 
-	err := isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
-		Type: butlerd.InstallEventResume,
+	err := isub.EventSink(oc).PostEvent(hush.InstallEvent{
+		Type: hush.InstallEventResume,
 	})
 	if err != nil {
 		return nil, err
@@ -233,8 +235,8 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 			}
 
 			ies := isub.EventSink(oc)
-			err = ies.PostEvent(butlerd.InstallEvent{
-				Fallback: &butlerd.FallbackInstallEvent{
+			err = ies.PostEvent(hush.InstallEvent{
+				Fallback: &hush.FallbackInstallEvent{
 					Attempted: "upgrade",
 					NowTrying: "heal",
 					Problem:   ies.MakeProblem(upgradeErr),
@@ -258,13 +260,13 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 		installerInfo := istate.InstallerInfo
 
 		consumer.Infof("Will use installer %s", installerInfo.Type)
-		manager := installer.GetManager(string(installerInfo.Type))
+		manager := installers.GetManager(installerInfo.Type)
 		if manager == nil {
 			msg := fmt.Sprintf("No manager for installer %s", installerInfo.Type)
 			return errors.New(msg)
 		}
 
-		managerInstallParams := installer.InstallParams{
+		managerInstallParams := hush.InstallParams{
 			Consumer: consumer,
 
 			File:              prepareRes.File,
@@ -278,7 +280,7 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 			EventSink: isub.EventSink(oc),
 		}
 
-		tryInstall := func() (*installer.InstallResult, error) {
+		tryInstall := func() (*hush.InstallResult, error) {
 			defer managerInstallParams.File.Close()
 
 			select {
@@ -318,7 +320,7 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 		} else {
 			var err error
 			installResult, err = tryInstall()
-			if err != nil && errors.Cause(err) == installer.ErrNeedLocal {
+			if err != nil && errors.Cause(err) == hush.ErrNeedLocal {
 				lf, localErr := doForceLocal(prepareRes.File, oc, meta, isub)
 				if localErr != nil {
 					return errors.WithStack(err)
@@ -334,8 +336,8 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 			}
 
 			consumer.Infof("Install successful")
-			isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
-				Install: &butlerd.InstallInstallEvent{
+			isub.EventSink(oc).PostEvent(hush.InstallEvent{
+				Install: &hush.InstallInstallEvent{
 					Manager: string(installerInfo.Type),
 				},
 			})

@@ -19,7 +19,7 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/filtering"
-	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/shell"
 	"github.com/itchio/butler/mansion"
 
 	"github.com/itchio/butler/butlerd"
@@ -316,7 +316,7 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 			}
 			consumer.Infof("Proceeding with sandbox setup...")
 
-			res, err := installer.RunSelf(installer.RunSelfParams{
+			res, err := shell.RunSelf(shell.RunSelfParams{
 				Host:       params.Host,
 				Consumer:   consumer,
 				PrereqsDir: params.PrereqsDir,
@@ -336,7 +336,7 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 				}
 			}
 
-			err = installer.CheckExitCode(res.ExitCode, err)
+			err = shell.CheckExitCode(res.ExitCode, err)
 			if err != nil {
 				return errors.WithStack(err)
 			}

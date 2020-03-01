@@ -21,7 +21,8 @@ func (bc *generousContext) generateDocs() error {
 	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
 	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.assimilate("github.com/itchio/dash", "types.go"))
-	must(scope.assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
+	must(scope.assimilate("github.com/itchio/hush", "event_types.go"))
+	must(scope.assimilate("github.com/itchio/hush/bfs", "receipt.go"))
 
 	dumpStruct := func(header string, entry *entryInfo, showDesc bool) {
 		ts := entry.typeSpec

@@ -17,7 +17,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/endpoints/launch"
-	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/shell"
 	"github.com/itchio/dash"
 	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
@@ -203,7 +203,7 @@ func handleUE4Prereqs(params launch.LauncherParams) error {
 	}
 
 	consumer.Infof("Attempting elevated UE4 prereqs install")
-	installRes, err := installer.RunSelf(installer.RunSelfParams{
+	installRes, err := shell.RunSelf(shell.RunSelfParams{
 		Host:       params.Host,
 		Consumer:   consumer,
 		Args:       args,

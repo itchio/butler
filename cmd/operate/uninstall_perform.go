@@ -7,8 +7,9 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/wipe"
 	"github.com/itchio/butler/database/models"
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
+	"github.com/itchio/hush/installers"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +26,7 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params bu
 		consumer.Opf("Performing graceful uninstall for (%s)", cave.ID)
 		installFolder := cave.GetInstallFolder(conn)
 
-		var installerType = installer.InstallerTypeUnknown
+		var installerType = hush.InstallerTypeUnknown
 
 		receipt, err := bfs.ReadReceipt(installFolder)
 		if err != nil {
@@ -33,23 +34,23 @@ func UninstallPerform(ctx context.Context, rc *butlerd.RequestContext, params bu
 		}
 
 		if receipt != nil && receipt.InstallerName != "" {
-			installerType = (installer.InstallerType)(receipt.InstallerName)
+			installerType = (hush.InstallerType)(receipt.InstallerName)
 		}
 
 		consumer.Infof("Will use installer (%s)", installerType)
-		manager := installer.GetManager(string(installerType))
+		manager := installers.GetManager(installerType)
 		if manager == nil {
 			// TODO: detect common uninstallers?
 			consumer.Warnf("No manager for installer (%s)", installerType)
 			consumer.Infof("Falling back to archive")
 
-			manager = installer.GetManager("archive")
+			manager = installers.GetManager("archive")
 			if manager == nil {
 				return errors.New("archive install manager not found, can't uninstall")
 			}
 		}
 
-		managerUninstallParams := installer.UninstallParams{
+		managerUninstallParams := hush.UninstallParams{
 			InstallFolderPath: installFolder,
 			Consumer:          consumer,
 			Receipt:           receipt,

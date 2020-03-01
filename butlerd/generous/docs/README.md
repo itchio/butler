@@ -8047,499 +8047,6 @@ it is), or a negative value if we can&rsquo;t find it</p>
 
 </div>
 
-### InstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#InstallEventType__TypeHint">InstallEventType</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>timestamp</code></td>
-<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>heal</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#HealInstallEvent__TypeHint">HealInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>install</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#InstallInstallEvent__TypeHint">InstallInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>upgrade</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#UpgradeInstallEvent__TypeHint">UpgradeInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>ghostBusting</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#GhostBustingInstallEvent__TypeHint">GhostBustingInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>patching</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#PatchingInstallEvent__TypeHint">PatchingInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>problem</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>fallback</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#FallbackInstallEvent__TypeHint">FallbackInstallEvent</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="InstallEvent__TypeHint" class="tip-content">
-<p>InstallEvent (struct) <a href="#/?id=installevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>type</code></td>
-<td><code class="typename"><span class="type">InstallEventType</span></code></td>
-</tr>
-<tr>
-<td><code>timestamp</code></td>
-<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-</tr>
-<tr>
-<td><code>heal</code></td>
-<td><code class="typename"><span class="type">HealInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>install</code></td>
-<td><code class="typename"><span class="type">InstallInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>upgrade</code></td>
-<td><code class="typename"><span class="type">UpgradeInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>ghostBusting</code></td>
-<td><code class="typename"><span class="type">GhostBustingInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>patching</code></td>
-<td><code class="typename"><span class="type">PatchingInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>problem</code></td>
-<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>fallback</code></td>
-<td><code class="typename"><span class="type">FallbackInstallEvent</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### InstallEventType (enum)
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"resume"</code></td>
-<td><p>Started for the first time or resumed after a pause
-or butler exit or whatever</p>
-</td>
-</tr>
-<tr>
-<td><code>"stop"</code></td>
-<td><p>Stopped explicitly (pausing downloads), can&rsquo;t rely
-on this being present because BRÜTAL PÖWER LÖSS will
-not announce itself 🔥</p>
-</td>
-</tr>
-<tr>
-<td><code>"install"</code></td>
-<td><p>Regular install from archive or naked file</p>
-</td>
-</tr>
-<tr>
-<td><code>"heal"</code></td>
-<td><p>Reverting to previous version or re-installing
-wharf-powered upload</p>
-</td>
-</tr>
-<tr>
-<td><code>"upgrade"</code></td>
-<td><p>Applying one or more wharf patches</p>
-</td>
-</tr>
-<tr>
-<td><code>"patching"</code></td>
-<td><p>Applying a single wharf patch</p>
-</td>
-</tr>
-<tr>
-<td><code>"ghostBusting"</code></td>
-<td><p>Cleaning up ghost files</p>
-</td>
-</tr>
-<tr>
-<td><code>"problem"</code></td>
-<td><p>Any kind of step failing</p>
-</td>
-</tr>
-<tr>
-<td><code>"fallback"</code></td>
-<td><p>Any operation we do as a result of another one failing,
-but in a case where we&rsquo;re still expecting a favorable
-outcome eventually.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="InstallEventType__TypeHint" class="tip-content">
-<p>InstallEventType (enum) <a href="#/?id=installeventtype-enum">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"resume"</code></td>
-</tr>
-<tr>
-<td><code>"stop"</code></td>
-</tr>
-<tr>
-<td><code>"install"</code></td>
-</tr>
-<tr>
-<td><code>"heal"</code></td>
-</tr>
-<tr>
-<td><code>"upgrade"</code></td>
-</tr>
-<tr>
-<td><code>"patching"</code></td>
-</tr>
-<tr>
-<td><code>"ghostBusting"</code></td>
-</tr>
-<tr>
-<td><code>"problem"</code></td>
-</tr>
-<tr>
-<td><code>"fallback"</code></td>
-</tr>
-</table>
-
-</div>
-
-### InstallInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>manager</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="InstallInstallEvent__TypeHint" class="tip-content">
-<p>InstallInstallEvent (struct) <a href="#/?id=installinstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>manager</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### HealInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>totalCorrupted</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>appliedCaseFixes</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="HealInstallEvent__TypeHint" class="tip-content">
-<p>HealInstallEvent (struct) <a href="#/?id=healinstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>totalCorrupted</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>appliedCaseFixes</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### UpgradeInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>numPatches</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="UpgradeInstallEvent__TypeHint" class="tip-content">
-<p>UpgradeInstallEvent (struct) <a href="#/?id=upgradeinstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>numPatches</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### ProblemInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>error</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Short error</p>
-</td>
-</tr>
-<tr>
-<td><code>errorStack</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Longer error</p>
-</td>
-</tr>
-</table>
-
-
-<div id="ProblemInstallEvent__TypeHint" class="tip-content">
-<p>ProblemInstallEvent (struct) <a href="#/?id=probleminstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>error</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>errorStack</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### FallbackInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>attempted</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Name of the operation we were trying to do</p>
-</td>
-</tr>
-<tr>
-<td><code>problem</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
-<td><p>Problem encountered while trying &ldquo;attempted&rdquo;</p>
-</td>
-</tr>
-<tr>
-<td><code>nowTrying</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Name of the operation we&rsquo;re falling back to</p>
-</td>
-</tr>
-</table>
-
-
-<div id="FallbackInstallEvent__TypeHint" class="tip-content">
-<p>FallbackInstallEvent (struct) <a href="#/?id=fallbackinstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>attempted</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>problem</code></td>
-<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
-</tr>
-<tr>
-<td><code>nowTrying</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### PatchingInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>buildID</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Build we patched to</p>
-</td>
-</tr>
-<tr>
-<td><code>subtype</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>&ldquo;default&rdquo; or &ldquo;optimized&rdquo; (for the +bsdiff variant)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="PatchingInstallEvent__TypeHint" class="tip-content">
-<p>PatchingInstallEvent (struct) <a href="#/?id=patchinginstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>buildID</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>subtype</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### GhostBustingInstallEvent (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Operation that requested the ghost busting (install, upgrade, heal)</p>
-</td>
-</tr>
-<tr>
-<td><code>found</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Number of ghost files found</p>
-</td>
-</tr>
-<tr>
-<td><code>removed</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Number of ghost files removed</p>
-</td>
-</tr>
-</table>
-
-
-<div id="GhostBustingInstallEvent__TypeHint" class="tip-content">
-<p>GhostBustingInstallEvent (struct) <a href="#/?id=ghostbustinginstallevent-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>operation</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>found</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>removed</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-</table>
-
-</div>
-
 ### GameCredentials (struct)
 
 
@@ -9249,11 +8756,6 @@ can be part of an issue report if something goes wrong.</p>
 </td>
 </tr>
 <tr>
-<td><code>3000</code></td>
-<td><p>This title is packaged in a way that is not supported.</p>
-</td>
-</tr>
-<tr>
 <td><code>3001</code></td>
 <td><p>This title is hosted on an incompatible third-party website</p>
 </td>
@@ -9311,9 +8813,6 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>2001</code></td>
-</tr>
-<tr>
-<td><code>3000</code></td>
 </tr>
 <tr>
 <td><code>3001</code></td>
@@ -12602,6 +12101,499 @@ or app bundles.</p>
 <tr>
 <td><code>mainClass</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### InstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallEventType__TypeHint">InstallEventType</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>heal</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#HealInstallEvent__TypeHint">HealInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallInstallEvent__TypeHint">InstallInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>upgrade</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UpgradeInstallEvent__TypeHint">UpgradeInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ghostBusting</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GhostBustingInstallEvent__TypeHint">GhostBustingInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>patching</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PatchingInstallEvent__TypeHint">PatchingInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#FallbackInstallEvent__TypeHint">FallbackInstallEvent</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallEvent__TypeHint" class="tip-content">
+<p>InstallEvent (struct) <a href="#/?id=installevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type">InstallEventType</span></code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>heal</code></td>
+<td><code class="typename"><span class="type">HealInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td><code class="typename"><span class="type">InstallInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>upgrade</code></td>
+<td><code class="typename"><span class="type">UpgradeInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>ghostBusting</code></td>
+<td><code class="typename"><span class="type">GhostBustingInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>patching</code></td>
+<td><code class="typename"><span class="type">PatchingInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td><code class="typename"><span class="type">FallbackInstallEvent</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### InstallEventType (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"resume"</code></td>
+<td><p>Started for the first time or resumed after a pause
+or exit or whatever</p>
+</td>
+</tr>
+<tr>
+<td><code>"stop"</code></td>
+<td><p>Stopped explicitly (pausing downloads), can&rsquo;t rely
+on this being present because BRÜTAL PÖWER LÖSS will
+not announce itself 🔥</p>
+</td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+<td><p>Regular install from archive or naked file</p>
+</td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+<td><p>Reverting to previous version or re-installing
+wharf-powered upload</p>
+</td>
+</tr>
+<tr>
+<td><code>"upgrade"</code></td>
+<td><p>Applying one or more wharf patches</p>
+</td>
+</tr>
+<tr>
+<td><code>"patching"</code></td>
+<td><p>Applying a single wharf patch</p>
+</td>
+</tr>
+<tr>
+<td><code>"ghostBusting"</code></td>
+<td><p>Cleaning up ghost files</p>
+</td>
+</tr>
+<tr>
+<td><code>"problem"</code></td>
+<td><p>Any kind of step failing</p>
+</td>
+</tr>
+<tr>
+<td><code>"fallback"</code></td>
+<td><p>Any operation we do as a result of another one failing,
+but in a case where we&rsquo;re still expecting a favorable
+outcome eventually.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="InstallEventType__TypeHint" class="tip-content">
+<p>InstallEventType (enum) <a href="#/?id=installeventtype-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"resume"</code></td>
+</tr>
+<tr>
+<td><code>"stop"</code></td>
+</tr>
+<tr>
+<td><code>"install"</code></td>
+</tr>
+<tr>
+<td><code>"heal"</code></td>
+</tr>
+<tr>
+<td><code>"upgrade"</code></td>
+</tr>
+<tr>
+<td><code>"patching"</code></td>
+</tr>
+<tr>
+<td><code>"ghostBusting"</code></td>
+</tr>
+<tr>
+<td><code>"problem"</code></td>
+</tr>
+<tr>
+<td><code>"fallback"</code></td>
+</tr>
+</table>
+
+</div>
+
+### InstallInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>manager</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallInstallEvent__TypeHint" class="tip-content">
+<p>InstallInstallEvent (struct) <a href="#/?id=installinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>manager</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### HealInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>totalCorrupted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>appliedCaseFixes</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="HealInstallEvent__TypeHint" class="tip-content">
+<p>HealInstallEvent (struct) <a href="#/?id=healinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>totalCorrupted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>appliedCaseFixes</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### UpgradeInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numPatches</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="UpgradeInstallEvent__TypeHint" class="tip-content">
+<p>UpgradeInstallEvent (struct) <a href="#/?id=upgradeinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>numPatches</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### ProblemInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Short error</p>
+</td>
+</tr>
+<tr>
+<td><code>errorStack</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Longer error</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProblemInstallEvent__TypeHint" class="tip-content">
+<p>ProblemInstallEvent (struct) <a href="#/?id=probleminstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>error</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>errorStack</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### FallbackInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>attempted</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Name of the operation we were trying to do</p>
+</td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
+<td><p>Problem encountered while trying &ldquo;attempted&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>nowTrying</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Name of the operation we&rsquo;re falling back to</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FallbackInstallEvent__TypeHint" class="tip-content">
+<p>FallbackInstallEvent (struct) <a href="#/?id=fallbackinstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>attempted</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td><code class="typename"><span class="type">ProblemInstallEvent</span></code></td>
+</tr>
+<tr>
+<td><code>nowTrying</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PatchingInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Build we patched to</p>
+</td>
+</tr>
+<tr>
+<td><code>subtype</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>&ldquo;default&rdquo; or &ldquo;optimized&rdquo; (for the +bsdiff variant)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PatchingInstallEvent__TypeHint" class="tip-content">
+<p>PatchingInstallEvent (struct) <a href="#/?id=patchinginstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildID</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>subtype</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GhostBustingInstallEvent (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Operation that requested the ghost busting (install, upgrade, heal)</p>
+</td>
+</tr>
+<tr>
+<td><code>found</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of ghost files found</p>
+</td>
+</tr>
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of ghost files removed</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GhostBustingInstallEvent__TypeHint" class="tip-content">
+<p>GhostBustingInstallEvent (struct) <a href="#/?id=ghostbustinginstallevent-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>operation</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>found</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 

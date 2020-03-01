@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/intact"
 
-	"github.com/itchio/butler/cmd/dl"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/headway/united"
@@ -66,7 +66,7 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 	for retryCtx.ShouldTry() {
 		err := Try(ctx, params, srcPath, destPath, resume)
 		if err != nil {
-			if dl.IsIntegrityError(err) {
+			if intact.IsIntegrityError(err) {
 				retryCtx.Retry(err)
 				continue
 			}
@@ -207,7 +207,7 @@ func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath stri
 	if hf, ok := src.(*htfs.File); ok {
 		header := hf.GetHeader()
 		if header != nil {
-			err = dl.CheckIntegrity(comm.NewStateConsumer(), header, totalBytes, destPath)
+			err = intact.CheckIntegrity(comm.NewStateConsumer(), header, totalBytes, destPath)
 			if err != nil {
 				comm.Log("Integrity checks failed, truncating")
 				os.Truncate(destPath, 0)

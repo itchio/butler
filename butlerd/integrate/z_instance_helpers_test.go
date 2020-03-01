@@ -10,6 +10,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hush"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,7 +87,7 @@ func (bi *ButlerInstance) DumpJSON(header string, payload interface{}) {
 	bi.Logf("%s:\n%s", header, string(bs))
 }
 
-func (bi *ButlerInstance) FindEvent(events []butlerd.InstallEvent, typ butlerd.InstallEventType) butlerd.InstallEvent {
+func (bi *ButlerInstance) FindEvent(events []hush.InstallEvent, typ hush.InstallEventType) hush.InstallEvent {
 	for _, ev := range events {
 		if ev.Type == typ {
 			return ev
@@ -97,8 +98,8 @@ func (bi *ButlerInstance) FindEvent(events []butlerd.InstallEvent, typ butlerd.I
 	panic(fmt.Sprintf("Could not find event of type %s", typ))
 }
 
-func (bi *ButlerInstance) FindEvents(events []butlerd.InstallEvent, typ butlerd.InstallEventType) []butlerd.InstallEvent {
-	var results []butlerd.InstallEvent
+func (bi *ButlerInstance) FindEvents(events []hush.InstallEvent, typ hush.InstallEventType) []hush.InstallEvent {
+	var results []hush.InstallEvent
 
 	for _, ev := range events {
 		if ev.Type == typ {
@@ -128,6 +129,6 @@ func (bi *ButlerInstance) InstallAndVerify(params butlerd.InstallQueueParams) *b
 	assert := assert.New(bi.t)
 
 	res := bi.Install(params)
-	assert.Zero(bi.FindEvent(res.Events, butlerd.InstallEventHeal).Heal.TotalCorrupted)
+	assert.Zero(bi.FindEvent(res.Events, hush.InstallEventHeal).Heal.TotalCorrupted)
 	return res
 }

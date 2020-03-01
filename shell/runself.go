@@ -1,4 +1,4 @@
-package installer
+package shell
 
 import (
 	"bufio"
@@ -13,8 +13,8 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/buildinfo"
-	"github.com/itchio/butler/installer/loggerwriter"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/butler/shell/loggerwriter"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/united"
 	"github.com/itchio/httpkit/eos"
@@ -217,10 +217,10 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 		res.File = lf
 	}
 
-	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == installer.InstallerTypeUnknown {
+	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == hush.InstallerTypeUnknown {
 		consumer.Infof("Determining source information...")
 
-		installerInfo, err := installer.GetInstallerInfo(consumer, file)
+		installerInfo, err := hush.GetInstallerInfo(consumer, file)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -233,13 +233,13 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 
 		if params.IgnoreInstallers {
 			switch installerInfo.Type {
-			case installer.InstallerTypeArchive:
+			case hush.InstallerTypeArchive:
 				// that's cool
-			case installer.InstallerTypeNaked:
+			case hush.InstallerTypeNaked:
 				// that's cool too
 			default:
 				consumer.Infof("Asked to ignore installers, forcing (naked) instead of (%s)", installerInfo.Type)
-				installerInfo.Type = installer.InstallerTypeNaked
+				installerInfo.Type = hush.InstallerTypeNaked
 			}
 		}
 

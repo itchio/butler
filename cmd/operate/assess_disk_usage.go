@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
 	"github.com/itchio/httpkit/eos"
 	"github.com/pkg/errors"
 )
@@ -42,12 +42,12 @@ type DiskUsageInfo struct {
 	Accuracy Accuracy
 }
 
-func AssessDiskUsage(sourceFile eos.File, receiptIn *bfs.Receipt, installFolder string, installerInfo *installer.InstallerInfo) (*DiskUsageInfo, error) {
+func AssessDiskUsage(sourceFile eos.File, receiptIn *bfs.Receipt, installFolder string, installerInfo *hush.InstallerInfo) (*DiskUsageInfo, error) {
 	dui := &DiskUsageInfo{
 		Accuracy: AccuracyNone,
 	}
 
-	if installerInfo.Type == installer.InstallerTypeNaked {
+	if installerInfo.Type == hush.InstallerTypeNaked {
 		// for naked installers, we can tell exactly how much space we'll need!
 		dui.Accuracy = AccuracyComputed
 
