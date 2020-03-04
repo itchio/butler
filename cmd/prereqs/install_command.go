@@ -15,7 +15,7 @@ import (
 	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/cmd/msi"
-	"github.com/itchio/butler/installer"
+	"github.com/itchio/butler/shell"
 	"github.com/itchio/butler/mansion"
 	"github.com/pkg/errors"
 )
@@ -115,7 +115,7 @@ func installWindowsPrereq(consumer *state.Consumer, task *PrereqTask) error {
 		}
 	} else {
 		cmdTokens := append([]string{commandPath}, args...)
-		signedCode, err := installer.RunCommand(consumer, cmdTokens)
+		signedCode, err := shell.RunCommand(consumer, cmdTokens)
 		if err != nil {
 			return errors.WithStack(err)
 		}

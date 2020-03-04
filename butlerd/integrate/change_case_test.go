@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/hush"
 	"github.com/itchio/mitch"
 	"github.com/itchio/screw"
 	"github.com/stretchr/testify/assert"
@@ -62,8 +63,8 @@ func Test_ChangeCase(t *testing.T) {
 		Upload: upload,
 		Build:  build2,
 	})
-	bi.FindEvent(upgradeRes.Events, butlerd.InstallEventUpgrade)
-	assert.Len(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventPatching), 1)
+	bi.FindEvent(upgradeRes.Events, hush.InstallEventUpgrade)
+	assert.Len(bi.FindEvents(upgradeRes.Events, hush.InstallEventPatching), 1)
 
 	bi.InstallAndVerify(butlerd.InstallQueueParams{
 		Game:   game,
@@ -79,7 +80,7 @@ func Test_ChangeCase(t *testing.T) {
 	})
 
 	{
-		ev := bi.FindEvent(revertRes.Events, butlerd.InstallEventHeal)
+		ev := bi.FindEvent(revertRes.Events, hush.InstallEventHeal)
 		if screw.IsCaseInsensitiveFS() {
 			assert.True(ev.Heal.AppliedCaseFixes)
 			assert.Zero(ev.Heal.TotalCorrupted)

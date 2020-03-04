@@ -5,19 +5,24 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	itchio "github.com/itchio/go-itchio"
+
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
-	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
+
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
+
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
+
 	"github.com/pkg/errors"
-	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"xorm.io/builder"
 )
 
@@ -146,7 +151,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	defer file.Close()
 
-	installerInfo, err := installer.GetInstallerInfo(consumer, file)
+	installerInfo, err := hush.GetInstallerInfo(consumer, file)
 	if err != nil {
 		setResError(errors.WithStack(err))
 		return res, nil

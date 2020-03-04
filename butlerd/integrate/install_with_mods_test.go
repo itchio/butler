@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/hush"
 	"github.com/itchio/mitch"
 	"github.com/itchio/screw"
 	"github.com/stretchr/testify/assert"
@@ -78,13 +79,13 @@ func Test_InstallWithMods(t *testing.T) {
 	})
 
 	{
-		ev := bi.FindEvent(upgradeRes.Events, butlerd.InstallEventFallback)
+		ev := bi.FindEvent(upgradeRes.Events, hush.InstallEventFallback)
 		assert.EqualValues(ev.Fallback.Attempted, "upgrade")
 		assert.EqualValues(ev.Fallback.NowTrying, "heal")
 		assert.Contains(ev.Fallback.Problem.Error, "expected weak hash")
 	}
 	{
-		ev := bi.FindEvent(upgradeRes.Events, butlerd.InstallEventHeal)
+		ev := bi.FindEvent(upgradeRes.Events, hush.InstallEventHeal)
 		assert.NotZero(ev.Heal.TotalCorrupted)
 	}
 
@@ -120,7 +121,7 @@ func Test_InstallWithMods(t *testing.T) {
 	})
 
 	{
-		assert.Empty(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventFallback))
-		assert.Empty(bi.FindEvents(upgradeRes.Events, butlerd.InstallEventHeal))
+		assert.Empty(bi.FindEvents(upgradeRes.Events, hush.InstallEventFallback))
+		assert.Empty(bi.FindEvents(upgradeRes.Events, hush.InstallEventHeal))
 	}
 }

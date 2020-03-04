@@ -10,8 +10,9 @@ import (
 
 	"github.com/dchest/safefile"
 
-	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
+
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/savior"
 
@@ -94,8 +95,8 @@ func upgrade(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext
 	}
 	oc.rc.EndProgress()
 
-	err := isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
-		Upgrade: &butlerd.UpgradeInstallEvent{
+	err := isub.EventSink(oc).PostEvent(hush.InstallEvent{
+		Upgrade: &hush.UpgradeInstallEvent{
 			NumPatches: totalPatches,
 		},
 	})
@@ -284,8 +285,8 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		return errors.WithMessage(err, "while saving install subcontext")
 	}
 
-	err = isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
-		Patching: &butlerd.PatchingInstallEvent{
+	err = isub.EventSink(oc).PostEvent(hush.InstallEvent{
+		Patching: &hush.PatchingInstallEvent{
 			BuildID: build.ID,
 			Subtype: string(subType),
 		},

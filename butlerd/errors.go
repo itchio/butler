@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/itchio/butler/butlerd/jsonrpc2"
+	"github.com/itchio/savior"
 )
 
 type Error interface {
@@ -62,6 +63,10 @@ type causer interface {
 func AsButlerdError(err error) (Error, bool) {
 	if err == nil {
 		return nil, false
+	}
+
+	if err == savior.ErrStop {
+		return CodeOperationCancelled, true
 	}
 
 	if se, ok := err.(causer); ok {

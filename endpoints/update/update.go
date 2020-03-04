@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush/bfs"
 
 	"github.com/arbovm/levenshtein"
 

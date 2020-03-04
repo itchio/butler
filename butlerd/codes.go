@@ -12,8 +12,7 @@ var codeMessages = map[Code]string{
 
 	CodeNoCompatibleUploads: "No compatible uploads were found.",
 
-	CodeUnsupportedPackaging: "This title is packaged in a way that is not supported.",
-	CodeUnsupportedHost:      "This title is hosted on an incompatible third-party website",
+	CodeUnsupportedHost: "This title is hosted on an incompatible third-party website",
 
 	CodeNoLaunchCandidates: "Nothing that can be launched was found.",
 

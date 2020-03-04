@@ -26,7 +26,8 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
 	must(scope.assimilate("github.com/itchio/dash", "types.go"))
 	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
-	must(scope.assimilate("github.com/itchio/butler/installer/bfs", "receipt.go"))
+	must(scope.assimilate("github.com/itchio/hush", "event_types.go"))
+	must(scope.assimilate("github.com/itchio/hush/bfs", "receipt.go"))
 
 	bindType := func(entry *entryInfo) {
 		doc.line("")

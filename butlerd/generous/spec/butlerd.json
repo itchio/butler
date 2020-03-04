@@ -2807,169 +2807,6 @@
       ]
     },
     {
-      "name": "InstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "type",
-          "doc": "",
-          "type": "InstallEventType"
-        },
-        {
-          "name": "timestamp",
-          "doc": "",
-          "type": "RFCDate"
-        },
-        {
-          "name": "heal",
-          "doc": "",
-          "type": "HealInstallEvent"
-        },
-        {
-          "name": "install",
-          "doc": "",
-          "type": "InstallInstallEvent"
-        },
-        {
-          "name": "upgrade",
-          "doc": "",
-          "type": "UpgradeInstallEvent"
-        },
-        {
-          "name": "ghostBusting",
-          "doc": "",
-          "type": "GhostBustingInstallEvent"
-        },
-        {
-          "name": "patching",
-          "doc": "",
-          "type": "PatchingInstallEvent"
-        },
-        {
-          "name": "problem",
-          "doc": "",
-          "type": "ProblemInstallEvent"
-        },
-        {
-          "name": "fallback",
-          "doc": "",
-          "type": "FallbackInstallEvent"
-        }
-      ]
-    },
-    {
-      "name": "InstallInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "manager",
-          "doc": "",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "HealInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "totalCorrupted",
-          "doc": "",
-          "type": "number"
-        },
-        {
-          "name": "appliedCaseFixes",
-          "doc": "",
-          "type": "boolean"
-        }
-      ]
-    },
-    {
-      "name": "UpgradeInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "numPatches",
-          "doc": "",
-          "type": "number"
-        }
-      ]
-    },
-    {
-      "name": "ProblemInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "error",
-          "doc": "Short error",
-          "type": "string"
-        },
-        {
-          "name": "errorStack",
-          "doc": "Longer error",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "FallbackInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "attempted",
-          "doc": "Name of the operation we were trying to do",
-          "type": "string"
-        },
-        {
-          "name": "problem",
-          "doc": "Problem encountered while trying \"attempted\"",
-          "type": "ProblemInstallEvent"
-        },
-        {
-          "name": "nowTrying",
-          "doc": "Name of the operation we're falling back to",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "PatchingInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "buildID",
-          "doc": "Build we patched to",
-          "type": "number"
-        },
-        {
-          "name": "subtype",
-          "doc": "\"default\" or \"optimized\" (for the +bsdiff variant)",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "GhostBustingInstallEvent",
-      "doc": "",
-      "fields": [
-        {
-          "name": "operation",
-          "doc": "Operation that requested the ghost busting (install, upgrade, heal)",
-          "type": "string"
-        },
-        {
-          "name": "found",
-          "doc": "Number of ghost files found",
-          "type": "number"
-        },
-        {
-          "name": "removed",
-          "doc": "Number of ghost files removed",
-          "type": "number"
-        }
-      ]
-    },
-    {
       "name": "GameCredentials",
       "doc": "GameCredentials contains all the credentials required to make API requests\nincluding the download key if any.",
       "fields": [
@@ -3791,6 +3628,169 @@
           "name": "mainClass",
           "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "type",
+          "doc": "",
+          "type": "InstallEventType"
+        },
+        {
+          "name": "timestamp",
+          "doc": "",
+          "type": "RFCDate"
+        },
+        {
+          "name": "heal",
+          "doc": "",
+          "type": "HealInstallEvent"
+        },
+        {
+          "name": "install",
+          "doc": "",
+          "type": "InstallInstallEvent"
+        },
+        {
+          "name": "upgrade",
+          "doc": "",
+          "type": "UpgradeInstallEvent"
+        },
+        {
+          "name": "ghostBusting",
+          "doc": "",
+          "type": "GhostBustingInstallEvent"
+        },
+        {
+          "name": "patching",
+          "doc": "",
+          "type": "PatchingInstallEvent"
+        },
+        {
+          "name": "problem",
+          "doc": "",
+          "type": "ProblemInstallEvent"
+        },
+        {
+          "name": "fallback",
+          "doc": "",
+          "type": "FallbackInstallEvent"
+        }
+      ]
+    },
+    {
+      "name": "InstallInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "manager",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "HealInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "totalCorrupted",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "appliedCaseFixes",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "UpgradeInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "numPatches",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ProblemInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "error",
+          "doc": "Short error",
+          "type": "string"
+        },
+        {
+          "name": "errorStack",
+          "doc": "Longer error",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FallbackInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "attempted",
+          "doc": "Name of the operation we were trying to do",
+          "type": "string"
+        },
+        {
+          "name": "problem",
+          "doc": "Problem encountered while trying \"attempted\"",
+          "type": "ProblemInstallEvent"
+        },
+        {
+          "name": "nowTrying",
+          "doc": "Name of the operation we're falling back to",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PatchingInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "buildID",
+          "doc": "Build we patched to",
+          "type": "number"
+        },
+        {
+          "name": "subtype",
+          "doc": "\"default\" or \"optimized\" (for the +bsdiff variant)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "GhostBustingInstallEvent",
+      "doc": "",
+      "fields": [
+        {
+          "name": "operation",
+          "doc": "Operation that requested the ghost busting (install, upgrade, heal)",
+          "type": "string"
+        },
+        {
+          "name": "found",
+          "doc": "Number of ghost files found",
+          "type": "number"
+        },
+        {
+          "name": "removed",
+          "doc": "Number of ghost files removed",
+          "type": "number"
         }
       ]
     },

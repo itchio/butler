@@ -13,13 +13,13 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/installer/bfs"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 
 	itchio "github.com/itchio/go-itchio"
 
+	"github.com/itchio/hush/bfs"
 	"github.com/itchio/hades"
 	"github.com/itchio/ox"
 

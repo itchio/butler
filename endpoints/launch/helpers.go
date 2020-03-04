@@ -10,7 +10,7 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/launch/manifest"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush/bfs"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
 	itchio "github.com/itchio/go-itchio"

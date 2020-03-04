@@ -6,8 +6,8 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/itchio/butler/installer"
-	"github.com/itchio/butler/installer/bfs"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
 
 	"github.com/itchio/savior/seeksource"
 
@@ -128,8 +128,8 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		)
 	}
 
-	err = isub.EventSink(oc).PostEvent(butlerd.InstallEvent{
-		Heal: &butlerd.HealInstallEvent{
+	err = isub.EventSink(oc).PostEvent(hush.InstallEvent{
+		Heal: &hush.HealInstallEvent{
 			TotalCorrupted:   vc.WoundsConsumer.TotalCorrupted(),
 			AppliedCaseFixes: vc.CaseFixStats != nil && len(vc.CaseFixStats.Fixes) > 0,
 		},
@@ -173,8 +173,8 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	})
 }
 
-func resultForContainer(c *tlc.Container) *installer.InstallResult {
-	res := &installer.InstallResult{
+func resultForContainer(c *tlc.Container) *hush.InstallResult {
+	res := &hush.InstallResult{
 		Files: nil,
 	}
 

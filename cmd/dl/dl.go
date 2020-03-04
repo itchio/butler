@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/itchio/intact"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/headway/counter"
@@ -132,7 +133,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 		comm.Log("Already fully downloaded")
 	}
 
-	err = CheckIntegrity(comm.NewStateConsumer(), resp.Header, totalBytes, dest)
+	err = intact.CheckIntegrity(comm.NewStateConsumer(), resp.Header, totalBytes, dest)
 	if err != nil {
 		comm.Log("Integrity checks failed, truncating")
 		os.Truncate(dest, 0)
