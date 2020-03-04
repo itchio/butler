@@ -1,6 +1,6 @@
 module github.com/itchio/butler
 
-go 1.13
+go 1.14
 
 require (
 	crawshaw.io/sqlite v0.2.5
