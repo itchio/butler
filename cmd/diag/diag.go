@@ -141,7 +141,7 @@ func do(mc *mansion.Context) {
 			}
 			defer f.Close()
 
-			props, err := elefant.Probe(f, &elefant.ProbeParams{
+			props, err := elefant.Probe(f, elefant.ProbeParams{
 				Consumer: consumer,
 			})
 			if err != nil {

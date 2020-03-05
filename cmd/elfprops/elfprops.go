@@ -15,9 +15,9 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/elefant"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
-	"github.com/itchio/headway/state"
 )
 
 var args = struct {
@@ -195,7 +195,7 @@ func getManifestURL(codeword string, debarch string) (string, error) {
 }
 
 func Do(f eos.File, consumer *state.Consumer) (*elefant.ElfInfo, error) {
-	return elefant.Probe(f, &elefant.ProbeParams{
+	return elefant.Probe(f, elefant.ProbeParams{
 		Consumer: consumer,
 	})
 }

@@ -7,9 +7,9 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/headway/state"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
-	"github.com/itchio/headway/state"
 )
 
 var args = struct {
@@ -40,7 +40,7 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(f eos.File, consumer *state.Consumer) (*pelican.PeInfo, error) {
-	return pelican.Probe(f, &pelican.ProbeParams{
+	return pelican.Probe(f, pelican.ProbeParams{
 		Consumer: consumer,
 	})
 }

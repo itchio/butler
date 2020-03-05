@@ -80,7 +80,7 @@ func handleAutoPrereqsWindows(params launch.LauncherParams, h prereqs.Handler) (
 			},
 		}
 
-		peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+		peInfo, err := pelican.Probe(f, pelican.ProbeParams{
 			Consumer: memConsumer,
 		})
 		if err != nil {

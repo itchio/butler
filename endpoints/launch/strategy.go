@@ -162,7 +162,7 @@ func IsElevatedWindowsInstaller(consumer *state.Consumer, candidate *dash.Candid
 		return false
 	}
 
-	peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+	peInfo, err := pelican.Probe(f, pelican.ProbeParams{
 		Consumer: memConsumer,
 	})
 	if err != nil {

@@ -132,7 +132,7 @@ func handleUE4Prereqs(params launch.LauncherParams) error {
 	}
 	defer f.Close()
 
-	peInfo, err := pelican.Probe(f, &pelican.ProbeParams{
+	peInfo, err := pelican.Probe(f, pelican.ProbeParams{
 		Consumer: consumer,
 	})
 	if err != nil {

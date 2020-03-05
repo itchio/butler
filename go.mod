@@ -17,20 +17,20 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20200301155608-aeded25a0494
-	github.com/itchio/boar v0.0.0-20200305155233-7f4185d53695
-	github.com/itchio/dash v0.0.0-20200305152456-e3adf6cd0462
-	github.com/itchio/elefant v0.0.0-20200301161212-bc3ab5d4a2d9
+	github.com/itchio/boar v0.0.0-20200305195307-d2befc01fa9e
+	github.com/itchio/dash v0.0.0-20200305193527-478357e813a2
+	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c
 	github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4
 	github.com/itchio/headway v0.0.0-20200301160421-e15721f23905
-	github.com/itchio/httpkit v0.0.0-20200301151414-2207154e44d1
-	github.com/itchio/hush v0.0.0-20200305155608-f82bb66a0ad6
+	github.com/itchio/httpkit v0.0.0-20200304092139-56c2e1e88c9b
+	github.com/itchio/hush v0.0.0-20200305195452-67599c102343
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
 	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
 	github.com/itchio/ox v0.0.0-20200301160301-4e131878ba64
-	github.com/itchio/pelican v0.0.0-20200301161110-c3b05695d102
-	github.com/itchio/savior v0.0.0-20200301160120-c73741a23f8b
+	github.com/itchio/pelican v0.0.0-20200305192721-308c3772290a
+	github.com/itchio/savior v0.0.0-20200303195615-7cac7998294c
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
 	github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
@@ -51,7 +51,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200301153931-2f85c7ec1e52
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6

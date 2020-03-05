@@ -19,8 +19,8 @@ import (
 
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/filtering"
-	"github.com/itchio/butler/shell"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/shell"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/elevate"
@@ -403,7 +403,7 @@ func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 		},
 	}
 
-	params.PeInfo, err = pelican.Probe(f, &pelican.ProbeParams{
+	params.PeInfo, err = pelican.Probe(f, pelican.ProbeParams{
 		Consumer: memConsumer,
 	})
 	if err != nil {
