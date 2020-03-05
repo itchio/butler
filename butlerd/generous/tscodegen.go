@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strings"
 )
 
@@ -21,13 +22,7 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 	doc.line("export type RFCDate = string;")
 
 	scope := newScope(gc)
-	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
-	must(scope.assimilate("github.com/itchio/butler/endpoints/launch/manifest", "manifest.go"))
-	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.assimilate("github.com/itchio/dash", "types.go"))
-	must(scope.assimilate("github.com/itchio/ox", "runtime.go"))
-	must(scope.assimilate("github.com/itchio/hush", "event_types.go"))
-	must(scope.assimilate("github.com/itchio/hush/bfs", "receipt.go"))
+	scope.assimilateAll()
 
 	bindType := func(entry *entryInfo) {
 		doc.line("")
@@ -37,7 +32,9 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 			doc.line(" * Params for %s", entry.name)
 		case entryKindResult:
 			params := scope.findEntry(strings.TrimSuffix(entry.typeName, "Result") + "Params")
-			doc.line(" * Result for %s", params.name)
+			if params != nil {
+				doc.line(" * Result for %s", params.name)
+			}
 		case entryKindNotification:
 			doc.line(" * Payload for %s", entry.name)
 		default:
@@ -110,6 +107,10 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 				paramsTypeName := strings.TrimSuffix(entry.typeName, "Result") + "Params"
 				resultTypeName := entry.typeName
 				params := scope.findEntry(paramsTypeName)
+				if params == nil {
+					log.Printf("Warning: %q doesn't have a Params equivalent", entry.typeName)
+					continue
+				}
 				method := params.name
 				symbolName := strings.Replace(method, ".", "", -1)
 

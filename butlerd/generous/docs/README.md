@@ -6947,6 +6947,116 @@ use <code class="typename"><span class="type">Test.DoubleTwice</span></code> in 
 
 ## Miscellaneous Category
 
+### LaunchTarget (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>action</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
+<td><p>The manifest action corresponding to this launch target.
+For implicit launch targets, a minimal one will be generated.</p>
+</td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Host__TypeHint">Host</span></code></td>
+<td><p>Host this launch target was found for</p>
+</td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
+<td><p>Detailed launch strategy</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchTarget__TypeHint" class="tip-content">
+<p>LaunchTarget (struct) <a href="#/?id=launchtarget-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>action</code></td>
+<td><code class="typename"><span class="type">Action</span></code></td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td><code class="typename"><span class="type">Host</span></code></td>
+</tr>
+<tr>
+<td><code>strategy</code></td>
+<td><code class="typename"><span class="type">Strategy</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### LaunchStrategy (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"native"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"url"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"shell"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="LaunchStrategy__TypeHint" class="tip-content">
+<p>LaunchStrategy (enum) <a href="#/?id=launchstrategy-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+</tr>
+<tr>
+<td><code>"native"</code></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+</tr>
+<tr>
+<td><code>"url"</code></td>
+</tr>
+<tr>
+<td><code>"shell"</code></td>
+</tr>
+</table>
+
+</div>
+
 ### Profile (struct)
 
 
@@ -8848,116 +8958,6 @@ Type alias for string
 <p>Cursor  <a href="#/?id=cursor-">(Go to definition)</a></p>
 </div>
 
-### LaunchTarget (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>action</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
-<td><p>The manifest action corresponding to this launch target.
-For implicit launch targets, a minimal one will be generated.</p>
-</td>
-</tr>
-<tr>
-<td><code>host</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Host__TypeHint">Host</span></code></td>
-<td><p>Host this launch target was found for</p>
-</td>
-</tr>
-<tr>
-<td><code>strategy</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
-<td><p>Detailed launch strategy</p>
-</td>
-</tr>
-</table>
-
-
-<div id="LaunchTarget__TypeHint" class="tip-content">
-<p>LaunchTarget (struct) <a href="#/?id=launchtarget-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>action</code></td>
-<td><code class="typename"><span class="type">Action</span></code></td>
-</tr>
-<tr>
-<td><code>host</code></td>
-<td><code class="typename"><span class="type">Host</span></code></td>
-</tr>
-<tr>
-<td><code>strategy</code></td>
-<td><code class="typename"><span class="type">Strategy</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### LaunchStrategy (enum)
-
-
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>""</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"native"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"html"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"url"</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>"shell"</code></td>
-<td></td>
-</tr>
-</table>
-
-
-<div id="LaunchStrategy__TypeHint" class="tip-content">
-<p>LaunchStrategy (enum) <a href="#/?id=launchstrategy-enum">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>""</code></td>
-</tr>
-<tr>
-<td><code>"native"</code></td>
-</tr>
-<tr>
-<td><code>"html"</code></td>
-</tr>
-<tr>
-<td><code>"url"</code></td>
-</tr>
-<tr>
-<td><code>"shell"</code></td>
-</tr>
-</table>
-
-</div>
-
 ### Host (struct)
 
 
@@ -9101,12 +9101,12 @@ otherwise. This might be true for other wrappers, so it&rsquo;s an option here.<
 
 </div>
 
-### Manifest (struct)
+### Verdict (struct)
 
 
 <p>
-<p>A Manifest describes prerequisites (dependencies) and actions that
-can be taken while launching a game.</p>
+<p>A Verdict contains a wealth of information on how to &ldquo;launch&rdquo; or &ldquo;open&rdquo; a specific
+folder.</p>
 
 </p>
 
@@ -9117,50 +9117,58 @@ can be taken while launching a game.</p>
 
 <table class="field-table">
 <tr>
-<td><code>actions</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Actions__TypeHint">Actions</span></code></td>
-<td><p>Actions are a list of options to give the user when launching a game.</p>
+<td><code>basePath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>BasePath is the absolute path of the folder that was configured</p>
 </td>
 </tr>
 <tr>
-<td><code>prereqs</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
-<td><p>Prereqs describe libraries or frameworks that must be installed
-prior to launching a game</p>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>TotalSize is the size in bytes of the folder and all its children, recursively</p>
+</td>
+</tr>
+<tr>
+<td><code>candidates</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
+<td><p>Candidates is a list of potentially interesting files, with a lot of additional info</p>
 </td>
 </tr>
 </table>
 
 
-<div id="Manifest__TypeHint" class="tip-content">
-<p>Manifest (struct) <a href="#/?id=manifest-struct">(Go to definition)</a></p>
+<div id="Verdict__TypeHint" class="tip-content">
+<p>Verdict (struct) <a href="#/?id=verdict-struct">(Go to definition)</a></p>
 
 <p>
-<p>A Manifest describes prerequisites (dependencies) and actions that
-can be taken while launching a game.</p>
+<p>A Verdict contains a wealth of information on how to &ldquo;launch&rdquo; or &ldquo;open&rdquo; a specific
+folder.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>actions</code></td>
-<td><code class="typename"><span class="type">Actions</span></code></td>
+<td><code>basePath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>prereqs</code></td>
-<td><code class="typename"><span class="type">Prereq</span>[]</code></td>
+<td><code>totalSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>candidates</code></td>
+<td><code class="typename"><span class="type">Candidate</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### Action (struct)
+### Candidate (struct)
 
 
 <p>
-<p>An Action is a choice for the user to pick when launching a game.</p>
-
-<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+<p>A Candidate is a potentially interesting launch target, be it
+a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 
 </p>
 
@@ -9170,181 +9178,160 @@ can be taken while launching a game.</p>
 
 
 <table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>human-readable or standard name</p>
-</td>
-</tr>
 <tr>
 <td><code>path</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>file path (relative to manifest or absolute), URL, etc.</p>
+<td><p>Path is relative to the configured folder</p>
 </td>
 </tr>
 <tr>
-<td><code>icon</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
+<td><code>mode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Mode describes file permissions</p>
 </td>
 </tr>
 <tr>
-<td><code>args</code></td>
+<td><code>depth</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Depth is the number of path elements leading up to this candidate</p>
+</td>
+</tr>
+<tr>
+<td><code>flavor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Flavor__TypeHint">Flavor</span></code></td>
+<td><p>Flavor is the type of a candidate - native, html, jar etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
+<td><p>Arch describes the architecture of a candidate (where relevant)</p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Size is the size of the candidate&rsquo;s file, in bytes</p>
+</td>
+</tr>
+<tr>
+<td><code>spell</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>command-line arguments</p>
+<td><p><span class="tag">Optional</span> Spell contains raw output from <a href="https://github.com/itchio/wizardry">https://github.com/itchio/wizardry</a></p>
 </td>
 </tr>
 <tr>
-<td><code>sandbox</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>sandbox opt-in</p>
+<td><code>windowsInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
+<td><p><span class="tag">Optional</span> WindowsInfo contains information specific to native Windows candidates</p>
 </td>
 </tr>
 <tr>
-<td><code>scope</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>requested API scope</p>
+<td><code>linuxInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
+<td><p><span class="tag">Optional</span> LinuxInfo contains information specific to native Linux candidates</p>
 </td>
 </tr>
 <tr>
-<td><code>console</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>don&rsquo;t redirect stdout/stderr, open in new console window</p>
+<td><code>macosInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
+<td><p><span class="tag">Optional</span> MacosInfo contains information specific to native macOS candidates</p>
 </td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
-<td><p>platform to restrict this action to</p>
+<td><code>loveInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
+<td><p><span class="tag">Optional</span> LoveInfo contains information specific to Love2D bundles (<code>.love</code> files)</p>
 </td>
 </tr>
 <tr>
-<td><code>locales</code></td>
-<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
-<td><p>localized action name</p>
+<td><code>scriptInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
+<td><p><span class="tag">Optional</span> ScriptInfo contains information specific to shell scripts (<code>.sh</code>, <code>.bat</code> etc.)</p>
+</td>
+</tr>
+<tr>
+<td><code>jarInfo</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
+<td><p><span class="tag">Optional</span> JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
 </td>
 </tr>
 </table>
 
 
-<div id="Action__TypeHint" class="tip-content">
-<p>Action (struct) <a href="#/?id=action-struct">(Go to definition)</a></p>
+<div id="Candidate__TypeHint" class="tip-content">
+<p>Candidate (struct) <a href="#/?id=candidate-struct">(Go to definition)</a></p>
 
 <p>
-<p>An Action is a choice for the user to pick when launching a game.</p>
-
-<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+<p>A Candidate is a potentially interesting launch target, be it
+a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 
 </p>
 
 <table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
 <tr>
 <td><code>path</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>icon</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code>mode</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
-<td><code>args</code></td>
+<td><code>depth</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>flavor</code></td>
+<td><code class="typename"><span class="type">Flavor</span></code></td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type">Arch</span></code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>spell</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 <tr>
-<td><code>sandbox</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><code>windowsInfo</code></td>
+<td><code class="typename"><span class="type">WindowsInfo</span></code></td>
 </tr>
 <tr>
-<td><code>scope</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code>linuxInfo</code></td>
+<td><code class="typename"><span class="type">LinuxInfo</span></code></td>
 </tr>
 <tr>
-<td><code>console</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><code>macosInfo</code></td>
+<td><code class="typename"><span class="type">MacosInfo</span></code></td>
 </tr>
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type">Platform</span></code></td>
+<td><code>loveInfo</code></td>
+<td><code class="typename"><span class="type">LoveInfo</span></code></td>
 </tr>
 <tr>
-<td><code>locales</code></td>
-<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
+<td><code>scriptInfo</code></td>
+<td><code class="typename"><span class="type">ScriptInfo</span></code></td>
+</tr>
+<tr>
+<td><code>jarInfo</code></td>
+<td><code class="typename"><span class="type">JarInfo</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### Prereq (struct)
-
+### Flavor (enum)
 
 
 <p>
-<span class="header">Fields</span> 
+<p>Flavor describes whether we&rsquo;re dealing with a native executables, a Java archive, a love2d bundle, etc.</p>
+
 </p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A prerequisite to be installed, see <a href="https://itch.io/docs/itch/integrating/prereqs/">https://itch.io/docs/itch/integrating/prereqs/</a> for the full list.</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Prereq__TypeHint" class="tip-content">
-<p>Prereq (struct) <a href="#/?id=prereq-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### ActionLocale (struct)
-
-
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>A localized action name</p>
-</td>
-</tr>
-</table>
-
-
-<div id="ActionLocale__TypeHint" class="tip-content">
-<p>ActionLocale (struct) <a href="#/?id=actionlocale-struct">(Go to definition)</a></p>
-
-
-<table class="field-table">
-<tr>
-<td><code>name</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### Platform (enum)
-
-
 
 <p>
 <span class="header">Values</span> 
@@ -9353,50 +9340,153 @@ can be taken while launching a game.</p>
 
 <table class="field-table">
 <tr>
-<td><code>"osx"</code></td>
-<td></td>
+<td><code>"linux"</code></td>
+<td><p>FlavorNativeLinux denotes native linux executables</p>
+</td>
+</tr>
+<tr>
+<td><code>"macos"</code></td>
+<td><p>ExecNativeMacos denotes native macOS executables</p>
+</td>
 </tr>
 <tr>
 <td><code>"windows"</code></td>
-<td></td>
+<td><p>FlavorPe denotes native windows executables</p>
+</td>
 </tr>
 <tr>
-<td><code>"linux"</code></td>
-<td></td>
+<td><code>"app-macos"</code></td>
+<td><p>FlavorAppMacos denotes a macOS app bundle</p>
+</td>
 </tr>
 <tr>
-<td><code>"unknown"</code></td>
-<td></td>
+<td><code>"script"</code></td>
+<td><p>FlavorScript denotes scripts starting with a shebang (#!)</p>
+</td>
+</tr>
+<tr>
+<td><code>"windows-script"</code></td>
+<td><p>FlavorScriptWindows denotes windows scripts (.bat or .cmd)</p>
+</td>
+</tr>
+<tr>
+<td><code>"jar"</code></td>
+<td><p>FlavorJar denotes a .jar archive with a Main-Class</p>
+</td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+<td><p>FlavorHTML denotes an index html file</p>
+</td>
+</tr>
+<tr>
+<td><code>"love"</code></td>
+<td><p>FlavorLove denotes a love package</p>
+</td>
+</tr>
+<tr>
+<td><code>"msi"</code></td>
+<td><p>Microsoft installer packages</p>
+</td>
 </tr>
 </table>
 
 
-<div id="Platform__TypeHint" class="tip-content">
-<p>Platform (enum) <a href="#/?id=platform-enum">(Go to definition)</a></p>
+<div id="Flavor__TypeHint" class="tip-content">
+<p>Flavor (enum) <a href="#/?id=flavor-enum">(Go to definition)</a></p>
 
+<p>
+<p>Flavor describes whether we&rsquo;re dealing with a native executables, a Java archive, a love2d bundle, etc.</p>
+
+</p>
 
 <table class="field-table">
 <tr>
-<td><code>"osx"</code></td>
+<td><code>"linux"</code></td>
+</tr>
+<tr>
+<td><code>"macos"</code></td>
 </tr>
 <tr>
 <td><code>"windows"</code></td>
 </tr>
 <tr>
-<td><code>"linux"</code></td>
+<td><code>"app-macos"</code></td>
 </tr>
 <tr>
-<td><code>"unknown"</code></td>
+<td><code>"script"</code></td>
+</tr>
+<tr>
+<td><code>"windows-script"</code></td>
+</tr>
+<tr>
+<td><code>"jar"</code></td>
+</tr>
+<tr>
+<td><code>"html"</code></td>
+</tr>
+<tr>
+<td><code>"love"</code></td>
+</tr>
+<tr>
+<td><code>"msi"</code></td>
 </tr>
 </table>
 
 </div>
 
-### Runtime (struct)
+### Arch (enum)
 
 
 <p>
-<p>Runtime describes an os-arch combo in a convenient way</p>
+<p>The architecture of an executable</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"386"</code></td>
+<td><p>32-bit</p>
+</td>
+</tr>
+<tr>
+<td><code>"amd64"</code></td>
+<td><p>64-bit</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Arch__TypeHint" class="tip-content">
+<p>Arch (enum) <a href="#/?id=arch-enum">(Go to definition)</a></p>
+
+<p>
+<p>The architecture of an executable</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"386"</code></td>
+</tr>
+<tr>
+<td><code>"amd64"</code></td>
+</tr>
+</table>
+
+</div>
+
+### WindowsInfo (struct)
+
+
+<p>
+<p>Contains information specific to native windows executables
+or installer packages.</p>
 
 </p>
 
@@ -9407,34 +9497,285 @@ can be taken while launching a game.</p>
 
 <table class="field-table">
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
-<td></td>
+<td><code>installerType</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WindowsInstallerType__TypeHint">WindowsInstallerType</span></code></td>
+<td><p><span class="tag">Optional</span> Particular type of installer (msi, inno, etc.)</p>
+</td>
 </tr>
 <tr>
-<td><code>is64</code></td>
+<td><code>uninstaller</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> True if we suspect this might be an uninstaller rather than an installer</p>
+</td>
+</tr>
+<tr>
+<td><code>gui</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Is this executable marked as GUI? This can be false and still pop a GUI, it&rsquo;s just a hint.</p>
+</td>
+</tr>
+<tr>
+<td><code>dotNet</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Is this a .NET assembly?</p>
+</td>
 </tr>
 </table>
 
 
-<div id="Runtime__TypeHint" class="tip-content">
-<p>Runtime (struct) <a href="#/?id=runtime-struct">(Go to definition)</a></p>
+<div id="WindowsInfo__TypeHint" class="tip-content">
+<p>WindowsInfo (struct) <a href="#/?id=windowsinfo-struct">(Go to definition)</a></p>
 
 <p>
-<p>Runtime describes an os-arch combo in a convenient way</p>
+<p>Contains information specific to native windows executables
+or installer packages.</p>
 
 </p>
 
 <table class="field-table">
 <tr>
-<td><code>platform</code></td>
-<td><code class="typename"><span class="type">Platform</span></code></td>
+<td><code>installerType</code></td>
+<td><code class="typename"><span class="type">WindowsInstallerType</span></code></td>
 </tr>
 <tr>
-<td><code>is64</code></td>
+<td><code>uninstaller</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>gui</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>dotNet</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### WindowsInstallerType (enum)
+
+
+<p>
+<p>Which particular type of windows-specific installer</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"msi"</code></td>
+<td><p>Microsoft install packages (<code>.msi</code> files)</p>
+</td>
+</tr>
+<tr>
+<td><code>"inno"</code></td>
+<td><p>InnoSetup installers</p>
+</td>
+</tr>
+<tr>
+<td><code>"nsis"</code></td>
+<td><p>NSIS installers</p>
+</td>
+</tr>
+<tr>
+<td><code>"archive"</code></td>
+<td><p>Self-extracting installers that 7-zip knows how to extract</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WindowsInstallerType__TypeHint" class="tip-content">
+<p>WindowsInstallerType (enum) <a href="#/?id=windowsinstallertype-enum">(Go to definition)</a></p>
+
+<p>
+<p>Which particular type of windows-specific installer</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"msi"</code></td>
+</tr>
+<tr>
+<td><code>"inno"</code></td>
+</tr>
+<tr>
+<td><code>"nsis"</code></td>
+</tr>
+<tr>
+<td><code>"archive"</code></td>
+</tr>
+</table>
+
+</div>
+
+### MacosInfo (struct)
+
+
+<p>
+<p>Contains information specific to native macOS executables
+or app bundles.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> <em>none</em>
+</p>
+
+
+<div id="MacosInfo__TypeHint" class="tip-content">
+<p>MacosInfo (struct) <a href="#/?id=macosinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>Contains information specific to native macOS executables
+or app bundles.</p>
+
+</p>
+</div>
+
+### LinuxInfo (struct)
+
+
+<p>
+<p>Contains information specific to native Linux executables</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> <em>none</em>
+</p>
+
+
+<div id="LinuxInfo__TypeHint" class="tip-content">
+<p>LinuxInfo (struct) <a href="#/?id=linuxinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>Contains information specific to native Linux executables</p>
+
+</p>
+</div>
+
+### LoveInfo (struct)
+
+
+<p>
+<p>Contains information specific to Love2D bundles</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> The version of love2D required to open this bundle. May be empty</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LoveInfo__TypeHint" class="tip-content">
+<p>LoveInfo (struct) <a href="#/?id=loveinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>Contains information specific to Love2D bundles</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### ScriptInfo (struct)
+
+
+<p>
+<p>Contains information specific to shell scripts</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>interpreter</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Something like <code>/bin/bash</code></p>
+</td>
+</tr>
+</table>
+
+
+<div id="ScriptInfo__TypeHint" class="tip-content">
+<p>ScriptInfo (struct) <a href="#/?id=scriptinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>Contains information specific to shell scripts</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>interpreter</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### JarInfo (struct)
+
+
+<p>
+<p>Contains information specific to Java archives</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>mainClass</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> The main Java class as specified by the manifest included in the .jar (if any)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="JarInfo__TypeHint" class="tip-content">
+<p>JarInfo (struct) <a href="#/?id=jarinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>Contains information specific to Java archives</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>mainClass</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -11426,686 +11767,6 @@ level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas 
 
 </div>
 
-### Verdict (struct)
-
-
-<p>
-<p>A Verdict contains a wealth of information on how to &ldquo;launch&rdquo; or &ldquo;open&rdquo; a specific
-folder.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>basePath</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>BasePath is the absolute path of the folder that was configured</p>
-</td>
-</tr>
-<tr>
-<td><code>totalSize</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>TotalSize is the size in bytes of the folder and all its children, recursively</p>
-</td>
-</tr>
-<tr>
-<td><code>candidates</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Candidate__TypeHint">Candidate</span>[]</code></td>
-<td><p>Candidates is a list of potentially interesting files, with a lot of additional info</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Verdict__TypeHint" class="tip-content">
-<p>Verdict (struct) <a href="#/?id=verdict-struct">(Go to definition)</a></p>
-
-<p>
-<p>A Verdict contains a wealth of information on how to &ldquo;launch&rdquo; or &ldquo;open&rdquo; a specific
-folder.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>basePath</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>totalSize</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>candidates</code></td>
-<td><code class="typename"><span class="type">Candidate</span>[]</code></td>
-</tr>
-</table>
-
-</div>
-
-### Candidate (struct)
-
-
-<p>
-<p>A Candidate is a potentially interesting launch target, be it
-a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Path is relative to the configured folder</p>
-</td>
-</tr>
-<tr>
-<td><code>mode</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Mode describes file permissions</p>
-</td>
-</tr>
-<tr>
-<td><code>depth</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Depth is the number of path elements leading up to this candidate</p>
-</td>
-</tr>
-<tr>
-<td><code>flavor</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Flavor__TypeHint">Flavor</span></code></td>
-<td><p>Flavor is the type of a candidate - native, html, jar etc.</p>
-</td>
-</tr>
-<tr>
-<td><code>arch</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
-<td><p>Arch describes the architecture of a candidate (where relevant)</p>
-</td>
-</tr>
-<tr>
-<td><code>size</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Size is the size of the candidate&rsquo;s file, in bytes</p>
-</td>
-</tr>
-<tr>
-<td><code>spell</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p><span class="tag">Optional</span> Spell contains raw output from <a href="https://github.com/itchio/wizardry">https://github.com/itchio/wizardry</a></p>
-</td>
-</tr>
-<tr>
-<td><code>windowsInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WindowsInfo__TypeHint">WindowsInfo</span></code></td>
-<td><p><span class="tag">Optional</span> WindowsInfo contains information specific to native Windows candidates</p>
-</td>
-</tr>
-<tr>
-<td><code>linuxInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#LinuxInfo__TypeHint">LinuxInfo</span></code></td>
-<td><p><span class="tag">Optional</span> LinuxInfo contains information specific to native Linux candidates</p>
-</td>
-</tr>
-<tr>
-<td><code>macosInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#MacosInfo__TypeHint">MacosInfo</span></code></td>
-<td><p><span class="tag">Optional</span> MacosInfo contains information specific to native macOS candidates</p>
-</td>
-</tr>
-<tr>
-<td><code>loveInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#LoveInfo__TypeHint">LoveInfo</span></code></td>
-<td><p><span class="tag">Optional</span> LoveInfo contains information specific to Love2D bundles (<code>.love</code> files)</p>
-</td>
-</tr>
-<tr>
-<td><code>scriptInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#ScriptInfo__TypeHint">ScriptInfo</span></code></td>
-<td><p><span class="tag">Optional</span> ScriptInfo contains information specific to shell scripts (<code>.sh</code>, <code>.bat</code> etc.)</p>
-</td>
-</tr>
-<tr>
-<td><code>jarInfo</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#JarInfo__TypeHint">JarInfo</span></code></td>
-<td><p><span class="tag">Optional</span> JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Candidate__TypeHint" class="tip-content">
-<p>Candidate (struct) <a href="#/?id=candidate-struct">(Go to definition)</a></p>
-
-<p>
-<p>A Candidate is a potentially interesting launch target, be it
-a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>path</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-<tr>
-<td><code>mode</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>depth</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>flavor</code></td>
-<td><code class="typename"><span class="type">Flavor</span></code></td>
-</tr>
-<tr>
-<td><code>arch</code></td>
-<td><code class="typename"><span class="type">Arch</span></code></td>
-</tr>
-<tr>
-<td><code>size</code></td>
-<td><code class="typename"><span class="type builtin-type">number</span></code></td>
-</tr>
-<tr>
-<td><code>spell</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-</tr>
-<tr>
-<td><code>windowsInfo</code></td>
-<td><code class="typename"><span class="type">WindowsInfo</span></code></td>
-</tr>
-<tr>
-<td><code>linuxInfo</code></td>
-<td><code class="typename"><span class="type">LinuxInfo</span></code></td>
-</tr>
-<tr>
-<td><code>macosInfo</code></td>
-<td><code class="typename"><span class="type">MacosInfo</span></code></td>
-</tr>
-<tr>
-<td><code>loveInfo</code></td>
-<td><code class="typename"><span class="type">LoveInfo</span></code></td>
-</tr>
-<tr>
-<td><code>scriptInfo</code></td>
-<td><code class="typename"><span class="type">ScriptInfo</span></code></td>
-</tr>
-<tr>
-<td><code>jarInfo</code></td>
-<td><code class="typename"><span class="type">JarInfo</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### Flavor (enum)
-
-
-<p>
-<p>Flavor describes whether we&rsquo;re dealing with a native executables, a Java archive, a love2d bundle, etc.</p>
-
-</p>
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"linux"</code></td>
-<td><p>FlavorNativeLinux denotes native linux executables</p>
-</td>
-</tr>
-<tr>
-<td><code>"macos"</code></td>
-<td><p>ExecNativeMacos denotes native macOS executables</p>
-</td>
-</tr>
-<tr>
-<td><code>"windows"</code></td>
-<td><p>FlavorPe denotes native windows executables</p>
-</td>
-</tr>
-<tr>
-<td><code>"app-macos"</code></td>
-<td><p>FlavorAppMacos denotes a macOS app bundle</p>
-</td>
-</tr>
-<tr>
-<td><code>"script"</code></td>
-<td><p>FlavorScript denotes scripts starting with a shebang (#!)</p>
-</td>
-</tr>
-<tr>
-<td><code>"windows-script"</code></td>
-<td><p>FlavorScriptWindows denotes windows scripts (.bat or .cmd)</p>
-</td>
-</tr>
-<tr>
-<td><code>"jar"</code></td>
-<td><p>FlavorJar denotes a .jar archive with a Main-Class</p>
-</td>
-</tr>
-<tr>
-<td><code>"html"</code></td>
-<td><p>FlavorHTML denotes an index html file</p>
-</td>
-</tr>
-<tr>
-<td><code>"love"</code></td>
-<td><p>FlavorLove denotes a love package</p>
-</td>
-</tr>
-<tr>
-<td><code>"msi"</code></td>
-<td><p>Microsoft installer packages</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Flavor__TypeHint" class="tip-content">
-<p>Flavor (enum) <a href="#/?id=flavor-enum">(Go to definition)</a></p>
-
-<p>
-<p>Flavor describes whether we&rsquo;re dealing with a native executables, a Java archive, a love2d bundle, etc.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>"linux"</code></td>
-</tr>
-<tr>
-<td><code>"macos"</code></td>
-</tr>
-<tr>
-<td><code>"windows"</code></td>
-</tr>
-<tr>
-<td><code>"app-macos"</code></td>
-</tr>
-<tr>
-<td><code>"script"</code></td>
-</tr>
-<tr>
-<td><code>"windows-script"</code></td>
-</tr>
-<tr>
-<td><code>"jar"</code></td>
-</tr>
-<tr>
-<td><code>"html"</code></td>
-</tr>
-<tr>
-<td><code>"love"</code></td>
-</tr>
-<tr>
-<td><code>"msi"</code></td>
-</tr>
-</table>
-
-</div>
-
-### Arch (enum)
-
-
-<p>
-<p>The architecture of an executable</p>
-
-</p>
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"386"</code></td>
-<td><p>32-bit</p>
-</td>
-</tr>
-<tr>
-<td><code>"amd64"</code></td>
-<td><p>64-bit</p>
-</td>
-</tr>
-</table>
-
-
-<div id="Arch__TypeHint" class="tip-content">
-<p>Arch (enum) <a href="#/?id=arch-enum">(Go to definition)</a></p>
-
-<p>
-<p>The architecture of an executable</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>"386"</code></td>
-</tr>
-<tr>
-<td><code>"amd64"</code></td>
-</tr>
-</table>
-
-</div>
-
-### WindowsInfo (struct)
-
-
-<p>
-<p>Contains information specific to native windows executables
-or installer packages.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>installerType</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WindowsInstallerType__TypeHint">WindowsInstallerType</span></code></td>
-<td><p><span class="tag">Optional</span> Particular type of installer (msi, inno, etc.)</p>
-</td>
-</tr>
-<tr>
-<td><code>uninstaller</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> True if we suspect this might be an uninstaller rather than an installer</p>
-</td>
-</tr>
-<tr>
-<td><code>gui</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Is this executable marked as GUI? This can be false and still pop a GUI, it&rsquo;s just a hint.</p>
-</td>
-</tr>
-<tr>
-<td><code>dotNet</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Is this a .NET assembly?</p>
-</td>
-</tr>
-</table>
-
-
-<div id="WindowsInfo__TypeHint" class="tip-content">
-<p>WindowsInfo (struct) <a href="#/?id=windowsinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to native windows executables
-or installer packages.</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>installerType</code></td>
-<td><code class="typename"><span class="type">WindowsInstallerType</span></code></td>
-</tr>
-<tr>
-<td><code>uninstaller</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>gui</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
-<td><code>dotNet</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### WindowsInstallerType (enum)
-
-
-<p>
-<p>Which particular type of windows-specific installer</p>
-
-</p>
-
-<p>
-<span class="header">Values</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>"msi"</code></td>
-<td><p>Microsoft install packages (<code>.msi</code> files)</p>
-</td>
-</tr>
-<tr>
-<td><code>"inno"</code></td>
-<td><p>InnoSetup installers</p>
-</td>
-</tr>
-<tr>
-<td><code>"nsis"</code></td>
-<td><p>NSIS installers</p>
-</td>
-</tr>
-<tr>
-<td><code>"archive"</code></td>
-<td><p>Self-extracting installers that 7-zip knows how to extract</p>
-</td>
-</tr>
-</table>
-
-
-<div id="WindowsInstallerType__TypeHint" class="tip-content">
-<p>WindowsInstallerType (enum) <a href="#/?id=windowsinstallertype-enum">(Go to definition)</a></p>
-
-<p>
-<p>Which particular type of windows-specific installer</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>"msi"</code></td>
-</tr>
-<tr>
-<td><code>"inno"</code></td>
-</tr>
-<tr>
-<td><code>"nsis"</code></td>
-</tr>
-<tr>
-<td><code>"archive"</code></td>
-</tr>
-</table>
-
-</div>
-
-### MacosInfo (struct)
-
-
-<p>
-<p>Contains information specific to native macOS executables
-or app bundles.</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> <em>none</em>
-</p>
-
-
-<div id="MacosInfo__TypeHint" class="tip-content">
-<p>MacosInfo (struct) <a href="#/?id=macosinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to native macOS executables
-or app bundles.</p>
-
-</p>
-</div>
-
-### LinuxInfo (struct)
-
-
-<p>
-<p>Contains information specific to native Linux executables</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> <em>none</em>
-</p>
-
-
-<div id="LinuxInfo__TypeHint" class="tip-content">
-<p>LinuxInfo (struct) <a href="#/?id=linuxinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to native Linux executables</p>
-
-</p>
-</div>
-
-### LoveInfo (struct)
-
-
-<p>
-<p>Contains information specific to Love2D bundles</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>version</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> The version of love2D required to open this bundle. May be empty</p>
-</td>
-</tr>
-</table>
-
-
-<div id="LoveInfo__TypeHint" class="tip-content">
-<p>LoveInfo (struct) <a href="#/?id=loveinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to Love2D bundles</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>version</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### ScriptInfo (struct)
-
-
-<p>
-<p>Contains information specific to shell scripts</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>interpreter</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Something like <code>/bin/bash</code></p>
-</td>
-</tr>
-</table>
-
-
-<div id="ScriptInfo__TypeHint" class="tip-content">
-<p>ScriptInfo (struct) <a href="#/?id=scriptinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to shell scripts</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>interpreter</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
-### JarInfo (struct)
-
-
-<p>
-<p>Contains information specific to Java archives</p>
-
-</p>
-
-<p>
-<span class="header">Fields</span> 
-</p>
-
-
-<table class="field-table">
-<tr>
-<td><code>mainClass</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> The main Java class as specified by the manifest included in the .jar (if any)</p>
-</td>
-</tr>
-</table>
-
-
-<div id="JarInfo__TypeHint" class="tip-content">
-<p>JarInfo (struct) <a href="#/?id=jarinfo-struct">(Go to definition)</a></p>
-
-<p>
-<p>Contains information specific to Java archives</p>
-
-</p>
-
-<table class="field-table">
-<tr>
-<td><code>mainClass</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
-</table>
-
-</div>
-
 ### InstallEvent (struct)
 
 
@@ -12648,13 +12309,6 @@ angels are saved.</p>
 <td><p><span class="tag">Optional</span> The installer used to install at this location</p>
 </td>
 </tr>
-<tr>
-<td><code>msiProductCode</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> If this was installed from an MSI package, the product code,
-used for a clean uninstall.</p>
-</td>
-</tr>
 </table>
 
 
@@ -12692,9 +12346,344 @@ angels are saved.</p>
 <td><code>installerName</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
+</table>
+
+</div>
+
+### Manifest (struct)
+
+
+<p>
+<p>A Manifest describes prerequisites (dependencies) and actions that
+can be taken while launching a game.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
 <tr>
-<td><code>msiProductCode</code></td>
+<td><code>actions</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Actions__TypeHint">Actions</span></code></td>
+<td><p>Actions are a list of options to give the user when launching a game.</p>
+</td>
+</tr>
+<tr>
+<td><code>prereqs</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
+<td><p>Prereqs describe libraries or frameworks that must be installed
+prior to launching a game</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Manifest__TypeHint" class="tip-content">
+<p>Manifest (struct) <a href="#/?id=manifest-struct">(Go to definition)</a></p>
+
+<p>
+<p>A Manifest describes prerequisites (dependencies) and actions that
+can be taken while launching a game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>actions</code></td>
+<td><code class="typename"><span class="type">Actions</span></code></td>
+</tr>
+<tr>
+<td><code>prereqs</code></td>
+<td><code class="typename"><span class="type">Prereq</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### Action (struct)
+
+
+<p>
+<p>An Action is a choice for the user to pick when launching a game.</p>
+
+<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>human-readable or standard name</p>
+</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>file path (relative to manifest or absolute), URL, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
+</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p>command-line arguments</p>
+</td>
+</tr>
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>sandbox opt-in</p>
+</td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>requested API scope</p>
+</td>
+</tr>
+<tr>
+<td><code>console</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>don&rsquo;t redirect stdout/stderr, open in new console window</p>
+</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
+<td><p>platform to restrict this action to</p>
+</td>
+</tr>
+<tr>
+<td><code>locales</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
+<td><p>localized action name</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Action__TypeHint" class="tip-content">
+<p>Action (struct) <a href="#/?id=action-struct">(Go to definition)</a></p>
+
+<p>
+<p>An Action is a choice for the user to pick when launching a game.</p>
+
+<p>see <a href="https://itch.io/docs/itch/integrating/manifest.html">https://itch.io/docs/itch/integrating/manifest.html</a></p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>console</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type">Platform</span></code></td>
+</tr>
+<tr>
+<td><code>locales</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Prereq (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A prerequisite to be installed, see <a href="https://itch.io/docs/itch/integrating/prereqs/">https://itch.io/docs/itch/integrating/prereqs/</a> for the full list.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Prereq__TypeHint" class="tip-content">
+<p>Prereq (struct) <a href="#/?id=prereq-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### ActionLocale (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A localized action name</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ActionLocale__TypeHint" class="tip-content">
+<p>ActionLocale (struct) <a href="#/?id=actionlocale-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Platform (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Platform__TypeHint" class="tip-content">
+<p>Platform (enum) <a href="#/?id=platform-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"osx"</code></td>
+</tr>
+<tr>
+<td><code>"windows"</code></td>
+</tr>
+<tr>
+<td><code>"linux"</code></td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+</tr>
+</table>
+
+</div>
+
+### Runtime (struct)
+
+
+<p>
+<p>Runtime describes an os-arch combo in a convenient way</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>is64</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Runtime__TypeHint" class="tip-content">
+<p>Runtime (struct) <a href="#/?id=runtime-struct">(Go to definition)</a></p>
+
+<p>
+<p>Runtime describes an os-arch combo in a convenient way</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type">Platform</span></code></td>
+</tr>
+<tr>
+<td><code>is64</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

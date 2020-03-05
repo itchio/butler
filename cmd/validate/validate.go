@@ -19,9 +19,9 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/endpoints/launch"
-	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/redist"
+	"github.com/itchio/hush/manifest"
 
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"

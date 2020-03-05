@@ -16,11 +16,7 @@ func (gc *generousContext) generateSpec() error {
 	s := &spec.Spec{}
 
 	scope := newScope(gc)
-	must(scope.assimilate("github.com/itchio/butler/butlerd", "types.go"))
-	must(scope.assimilate("github.com/itchio/go-itchio", "types.go"))
-	must(scope.assimilate("github.com/itchio/dash", "types.go"))
-	must(scope.assimilate("github.com/itchio/hush", "event_types.go"))
-	must(scope.assimilate("github.com/itchio/hush/bfs", "receipt.go"))
+	scope.assimilateAll()
 
 	encodeStruct := func(entry *entryInfo) []*spec.FieldSpec {
 		var res []*spec.FieldSpec

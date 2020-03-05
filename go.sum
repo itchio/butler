@@ -118,8 +118,8 @@ github.com/itchio/headway v0.0.0-20200301160421-e15721f23905/go.mod h1:JpKeIqKW8
 github.com/itchio/httpkit v0.0.0-20200228192911-d307914d3efe/go.mod h1:TS9jX+QA6mUpUIij4bUsntCcNNEnp+jPJGzm2tubOWg=
 github.com/itchio/httpkit v0.0.0-20200301151414-2207154e44d1 h1:C1HRom5DCRG024rjo3CXlcGRQkxW9Uhx5XMbxy8rL70=
 github.com/itchio/httpkit v0.0.0-20200301151414-2207154e44d1/go.mod h1:ttQmJg3MrzSL0TYYqececx1WLJWjUedAMWoJ0dUbbKA=
-github.com/itchio/hush v0.0.0-20200301170349-181d7964be3a h1:GkWGnRiq9OraCRgzDBd10TH8gfAEN99NzI9KNEHRDcE=
-github.com/itchio/hush v0.0.0-20200301170349-181d7964be3a/go.mod h1:Fx6a3SMbsN8EkcJsXrZhtfl5ZFqdth1geewT7JjRGOk=
+github.com/itchio/hush v0.0.0-20200305140214-76d46181e709 h1:j+OSpzK2R4CNW/a5wJmnqC6kjgwunOkUEZFpyKcQH+Q=
+github.com/itchio/hush v0.0.0-20200305140214-76d46181e709/go.mod h1:SFA7xDi3SHfPtzRBjlJ5GdbvSvP61dpdaxBT7JAAFpk=
 github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a h1:lTvuTme0PqU2gIzNK3ZPW2vaarAQ2MGNo54SycrJY48=
 github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a/go.mod h1:63w5zpLrbzfhdIWsEkVs+iyfQquaf6KNQTSpaAubtDc=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 h1:jipXtdsZClshNO8fKK8ItiVyqE9bKA09as+qjW/yjG0=

@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
+	"github.com/itchio/hush/manifest"
 	"github.com/itchio/ox"
 	"github.com/itchio/pelican"
 	"github.com/pkg/errors"

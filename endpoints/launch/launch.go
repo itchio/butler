@@ -14,7 +14,7 @@ import (
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/endpoints/launch/manifest"
+	"github.com/itchio/hush/manifest"
 
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/ox"

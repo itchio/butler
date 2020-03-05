@@ -2091,19 +2091,6 @@
   ],
   "notifications": [
     {
-      "method": "MetaFlowEstablished",
-      "doc": "The first notification sent when @@MetaFlowParams is called.",
-      "params": {
-        "fields": [
-          {
-            "name": "pid",
-            "doc": "The identifier of the daemon process for which the flow was established",
-            "type": "number"
-          }
-        ]
-      }
-    },
-    {
       "method": "Downloads.Drive.Progress",
       "doc": "",
       "params": {
@@ -2205,6 +2192,19 @@
             "name": "message",
             "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "MetaFlowEstablished",
+      "doc": "The first notification sent when @@MetaFlowParams is called.",
+      "params": {
+        "fields": [
+          {
+            "name": "pid",
+            "doc": "The identifier of the daemon process for which the flow was established",
+            "type": "number"
           }
         ]
       }
@@ -2383,6 +2383,27 @@
     }
   ],
   "structTypes": [
+    {
+      "name": "LaunchTarget",
+      "doc": "",
+      "fields": [
+        {
+          "name": "action",
+          "doc": "The manifest action corresponding to this launch target.\nFor implicit launch targets, a minimal one will be generated.",
+          "type": "Action"
+        },
+        {
+          "name": "host",
+          "doc": "Host this launch target was found for",
+          "type": "Host"
+        },
+        {
+          "name": "strategy",
+          "doc": "Detailed launch strategy",
+          "type": "StrategyResult"
+        }
+      ]
+    },
     {
       "name": "Profile",
       "doc": "Represents a user for which we have profile information,\nie. that we can connect as, etc.",
@@ -2916,6 +2937,224 @@
           "name": "bps",
           "doc": "",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Host",
+      "doc": "",
+      "fields": [
+        {
+          "name": "runtime",
+          "doc": "os + arch, e.g. windows-i386, linux-amd64",
+          "type": "Runtime"
+        },
+        {
+          "name": "wrapper",
+          "doc": "wrapper tool (wine, etc.) that butler can launch itself",
+          "type": "Wrapper"
+        },
+        {
+          "name": "remoteLaunchName",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Wrapper",
+      "doc": "",
+      "fields": [
+        {
+          "name": "beforeTarget",
+          "doc": "wrapper {HERE} game.exe --launch-editor",
+          "type": "string[]"
+        },
+        {
+          "name": "betweenTargetAndArgs",
+          "doc": "wrapper game.exe {HERE} --launch-editor",
+          "type": "string[]"
+        },
+        {
+          "name": "afterArgs",
+          "doc": "wrapper game.exe --launch-editor {HERE}",
+          "type": "string[]"
+        },
+        {
+          "name": "wrapperBinary",
+          "doc": "full path to the wrapper, like \"wine\"",
+          "type": "string"
+        },
+        {
+          "name": "env",
+          "doc": "additional environment variables",
+          "type": "{ [key: string]: string }"
+        },
+        {
+          "name": "needRelativeTarget",
+          "doc": "When this is true, the wrapper can't function like this:\n\n$ wine /path/to/game.exe\n\nIt needs to function like this:\n\n$ cd /path/to\n$ wine game.exe\n\nThis is at least true for wine, which cannot find required DLLs\notherwise. This might be true for other wrappers, so it's an option here.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "Verdict",
+      "doc": "A Verdict contains a wealth of information on how to \"launch\" or \"open\" a specific\nfolder.",
+      "fields": [
+        {
+          "name": "basePath",
+          "doc": "BasePath is the absolute path of the folder that was configured",
+          "type": "string"
+        },
+        {
+          "name": "totalSize",
+          "doc": "TotalSize is the size in bytes of the folder and all its children, recursively",
+          "type": "number"
+        },
+        {
+          "name": "candidates",
+          "doc": "Candidates is a list of potentially interesting files, with a lot of additional info",
+          "type": "Candidate[]"
+        }
+      ]
+    },
+    {
+      "name": "Candidate",
+      "doc": "A Candidate is a potentially interesting launch target, be it\na native executable, a Java or Love2D bundle, an HTML index, etc.",
+      "fields": [
+        {
+          "name": "path",
+          "doc": "Path is relative to the configured folder",
+          "type": "string"
+        },
+        {
+          "name": "mode",
+          "doc": "Mode describes file permissions",
+          "type": "number"
+        },
+        {
+          "name": "depth",
+          "doc": "Depth is the number of path elements leading up to this candidate",
+          "type": "number"
+        },
+        {
+          "name": "flavor",
+          "doc": "Flavor is the type of a candidate - native, html, jar etc.",
+          "type": "Flavor"
+        },
+        {
+          "name": "arch",
+          "doc": "Arch describes the architecture of a candidate (where relevant)",
+          "type": "Arch"
+        },
+        {
+          "name": "size",
+          "doc": "Size is the size of the candidate's file, in bytes",
+          "type": "number"
+        },
+        {
+          "name": "spell",
+          "doc": "Spell contains raw output from \u003chttps://github.com/itchio/wizardry\u003e",
+          "type": "string[]"
+        },
+        {
+          "name": "windowsInfo",
+          "doc": "WindowsInfo contains information specific to native Windows candidates",
+          "type": "WindowsInfo"
+        },
+        {
+          "name": "linuxInfo",
+          "doc": "LinuxInfo contains information specific to native Linux candidates",
+          "type": "LinuxInfo"
+        },
+        {
+          "name": "macosInfo",
+          "doc": "MacosInfo contains information specific to native macOS candidates",
+          "type": "MacosInfo"
+        },
+        {
+          "name": "loveInfo",
+          "doc": "LoveInfo contains information specific to Love2D bundles (`.love` files)",
+          "type": "LoveInfo"
+        },
+        {
+          "name": "scriptInfo",
+          "doc": "ScriptInfo contains information specific to shell scripts (`.sh`, `.bat` etc.)",
+          "type": "ScriptInfo"
+        },
+        {
+          "name": "jarInfo",
+          "doc": "JarInfo contains information specific to Java archives (`.jar` files)",
+          "type": "JarInfo"
+        }
+      ]
+    },
+    {
+      "name": "WindowsInfo",
+      "doc": "Contains information specific to native windows executables\nor installer packages.",
+      "fields": [
+        {
+          "name": "installerType",
+          "doc": "Particular type of installer (msi, inno, etc.)",
+          "type": "WindowsInstallerType"
+        },
+        {
+          "name": "uninstaller",
+          "doc": "True if we suspect this might be an uninstaller rather than an installer",
+          "type": "boolean"
+        },
+        {
+          "name": "gui",
+          "doc": "Is this executable marked as GUI? This can be false and still pop a GUI, it's just a hint.",
+          "type": "boolean"
+        },
+        {
+          "name": "dotNet",
+          "doc": "Is this a .NET assembly?",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "MacosInfo",
+      "doc": "Contains information specific to native macOS executables\nor app bundles.",
+      "fields": null
+    },
+    {
+      "name": "LinuxInfo",
+      "doc": "Contains information specific to native Linux executables",
+      "fields": null
+    },
+    {
+      "name": "LoveInfo",
+      "doc": "Contains information specific to Love2D bundles",
+      "fields": [
+        {
+          "name": "version",
+          "doc": "The version of love2D required to open this bundle. May be empty",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ScriptInfo",
+      "doc": "Contains information specific to shell scripts",
+      "fields": [
+        {
+          "name": "interpreter",
+          "doc": "Something like `/bin/bash`",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "JarInfo",
+      "doc": "Contains information specific to Java archives",
+      "fields": [
+        {
+          "name": "mainClass",
+          "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
+          "type": "string"
         }
       ]
     },
@@ -3471,167 +3710,6 @@
       ]
     },
     {
-      "name": "Verdict",
-      "doc": "A Verdict contains a wealth of information on how to \"launch\" or \"open\" a specific\nfolder.",
-      "fields": [
-        {
-          "name": "basePath",
-          "doc": "BasePath is the absolute path of the folder that was configured",
-          "type": "string"
-        },
-        {
-          "name": "totalSize",
-          "doc": "TotalSize is the size in bytes of the folder and all its children, recursively",
-          "type": "number"
-        },
-        {
-          "name": "candidates",
-          "doc": "Candidates is a list of potentially interesting files, with a lot of additional info",
-          "type": "Candidate[]"
-        }
-      ]
-    },
-    {
-      "name": "Candidate",
-      "doc": "A Candidate is a potentially interesting launch target, be it\na native executable, a Java or Love2D bundle, an HTML index, etc.",
-      "fields": [
-        {
-          "name": "path",
-          "doc": "Path is relative to the configured folder",
-          "type": "string"
-        },
-        {
-          "name": "mode",
-          "doc": "Mode describes file permissions",
-          "type": "number"
-        },
-        {
-          "name": "depth",
-          "doc": "Depth is the number of path elements leading up to this candidate",
-          "type": "number"
-        },
-        {
-          "name": "flavor",
-          "doc": "Flavor is the type of a candidate - native, html, jar etc.",
-          "type": "Flavor"
-        },
-        {
-          "name": "arch",
-          "doc": "Arch describes the architecture of a candidate (where relevant)",
-          "type": "Arch"
-        },
-        {
-          "name": "size",
-          "doc": "Size is the size of the candidate's file, in bytes",
-          "type": "number"
-        },
-        {
-          "name": "spell",
-          "doc": "Spell contains raw output from \u003chttps://github.com/itchio/wizardry\u003e",
-          "type": "string[]"
-        },
-        {
-          "name": "windowsInfo",
-          "doc": "WindowsInfo contains information specific to native Windows candidates",
-          "type": "WindowsInfo"
-        },
-        {
-          "name": "linuxInfo",
-          "doc": "LinuxInfo contains information specific to native Linux candidates",
-          "type": "LinuxInfo"
-        },
-        {
-          "name": "macosInfo",
-          "doc": "MacosInfo contains information specific to native macOS candidates",
-          "type": "MacosInfo"
-        },
-        {
-          "name": "loveInfo",
-          "doc": "LoveInfo contains information specific to Love2D bundles (`.love` files)",
-          "type": "LoveInfo"
-        },
-        {
-          "name": "scriptInfo",
-          "doc": "ScriptInfo contains information specific to shell scripts (`.sh`, `.bat` etc.)",
-          "type": "ScriptInfo"
-        },
-        {
-          "name": "jarInfo",
-          "doc": "JarInfo contains information specific to Java archives (`.jar` files)",
-          "type": "JarInfo"
-        }
-      ]
-    },
-    {
-      "name": "WindowsInfo",
-      "doc": "Contains information specific to native windows executables\nor installer packages.",
-      "fields": [
-        {
-          "name": "installerType",
-          "doc": "Particular type of installer (msi, inno, etc.)",
-          "type": "WindowsInstallerType"
-        },
-        {
-          "name": "uninstaller",
-          "doc": "True if we suspect this might be an uninstaller rather than an installer",
-          "type": "boolean"
-        },
-        {
-          "name": "gui",
-          "doc": "Is this executable marked as GUI? This can be false and still pop a GUI, it's just a hint.",
-          "type": "boolean"
-        },
-        {
-          "name": "dotNet",
-          "doc": "Is this a .NET assembly?",
-          "type": "boolean"
-        }
-      ]
-    },
-    {
-      "name": "MacosInfo",
-      "doc": "Contains information specific to native macOS executables\nor app bundles.",
-      "fields": null
-    },
-    {
-      "name": "LinuxInfo",
-      "doc": "Contains information specific to native Linux executables",
-      "fields": null
-    },
-    {
-      "name": "LoveInfo",
-      "doc": "Contains information specific to Love2D bundles",
-      "fields": [
-        {
-          "name": "version",
-          "doc": "The version of love2D required to open this bundle. May be empty",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "ScriptInfo",
-      "doc": "Contains information specific to shell scripts",
-      "fields": [
-        {
-          "name": "interpreter",
-          "doc": "Something like `/bin/bash`",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "JarInfo",
-      "doc": "Contains information specific to Java archives",
-      "fields": [
-        {
-          "name": "mainClass",
-          "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
-          "type": "string"
-        }
-      ]
-    },
-    {
       "name": "InstallEvent",
       "doc": "",
       "fields": [
@@ -3822,11 +3900,111 @@
           "name": "installerName",
           "doc": "The installer used to install at this location",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Manifest",
+      "doc": "A Manifest describes prerequisites (dependencies) and actions that\ncan be taken while launching a game.",
+      "fields": [
+        {
+          "name": "actions",
+          "doc": "Actions are a list of options to give the user when launching a game.",
+          "type": "Actions"
         },
         {
-          "name": "msiProductCode",
-          "doc": "If this was installed from an MSI package, the product code,\nused for a clean uninstall.",
+          "name": "prereqs",
+          "doc": "Prereqs describe libraries or frameworks that must be installed\nprior to launching a game",
+          "type": "Prereq[]"
+        }
+      ]
+    },
+    {
+      "name": "Action",
+      "doc": "An Action is a choice for the user to pick when launching a game.\n\nsee https://itch.io/docs/itch/integrating/manifest.html",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "human-readable or standard name",
           "type": "string"
+        },
+        {
+          "name": "path",
+          "doc": "file path (relative to manifest or absolute), URL, etc.",
+          "type": "string"
+        },
+        {
+          "name": "icon",
+          "doc": "icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)",
+          "type": "string"
+        },
+        {
+          "name": "args",
+          "doc": "command-line arguments",
+          "type": "string[]"
+        },
+        {
+          "name": "sandbox",
+          "doc": "sandbox opt-in",
+          "type": "boolean"
+        },
+        {
+          "name": "scope",
+          "doc": "requested API scope",
+          "type": "string"
+        },
+        {
+          "name": "console",
+          "doc": "don't redirect stdout/stderr, open in new console window",
+          "type": "boolean"
+        },
+        {
+          "name": "platform",
+          "doc": "platform to restrict this action to",
+          "type": "Platform"
+        },
+        {
+          "name": "locales",
+          "doc": "localized action name",
+          "type": "{ [key: string]: ActionLocale }"
+        }
+      ]
+    },
+    {
+      "name": "Prereq",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "A prerequisite to be installed, see \u003chttps://itch.io/docs/itch/integrating/prereqs/\u003e for the full list.",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ActionLocale",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "A localized action name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Runtime",
+      "doc": "Runtime describes an os-arch combo in a convenient way",
+      "fields": [
+        {
+          "name": "platform",
+          "doc": "",
+          "type": "Platform"
+        },
+        {
+          "name": "is64",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },

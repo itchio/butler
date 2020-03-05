@@ -7,9 +7,9 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
-	"github.com/itchio/butler/endpoints/launch/manifest"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/hush/manifest"
 	"github.com/itchio/lake/tlc"
 	"github.com/itchio/pelican"
 	"github.com/pkg/errors"
