@@ -1,31 +1,27 @@
 package filtering
 
 import (
-	"os"
 	"path/filepath"
+
+	"github.com/itchio/lake/tlc"
 )
 
-var IgnoredPaths = []string{
-	".git",
-	".hg",
-	".svn",
-	".DS_Store",
-	"__MACOSX",
-	"._*",
-	"Thumbs.db",
-	".itch",
-}
+var CustomIgnorePatterns = []string{}
 
 // FilterPaths filters out known bad folder/files
 // which butler should just ignore
-func FilterPaths(fileInfo os.FileInfo) bool {
-	name := fileInfo.Name()
-	for _, pattern := range IgnoredPaths {
+var FilterPaths tlc.FilterFunc = func(name string) tlc.FilterResult {
+	if tlc.PresetFilter(name) == tlc.FilterIgnore {
+		return tlc.FilterIgnore
+	}
+
+	for _, pattern := range CustomIgnorePatterns {
 		match, _ := filepath.Match(pattern, name)
 		if match {
-			return false
+			return tlc.FilterIgnore
 		}
 	}
 
-	return true
+	return tlc.FilterKeep
 }
+

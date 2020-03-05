@@ -1,7 +1,6 @@
 package walk
 
 import (
-	"os"
 	"time"
 
 	"github.com/itchio/butler/comm"
@@ -30,8 +29,7 @@ func do(ctx *mansion.Context) {
 func Do(dir string, dereference bool) error {
 	startTime := time.Now()
 
-	container, err := tlc.WalkDir(dir, &tlc.WalkOpts{
-		Filter:      func(fi os.FileInfo) bool { return true },
+	container, err := tlc.WalkDir(dir, tlc.WalkOpts{
 		Dereference: dereference,
 	})
 	if err != nil {

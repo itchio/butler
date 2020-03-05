@@ -14,9 +14,9 @@ import (
 
 	"github.com/efarrer/iothrottler"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
 
@@ -24,9 +24,9 @@ import (
 
 	"github.com/itchio/headway/united"
 
-	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/httpkit/timeout"
 
 	shellquote "github.com/kballard/go-shellquote"
 
@@ -139,7 +139,7 @@ func doMain(args []string) {
 	registerCommands(ctx)
 
 	app.UsageTemplate(kingpin.CompactUsageTemplate)
-	app.Flag("ignore", "Glob patterns of files to ignore when pushing or diffing").StringsVar(&filtering.IgnoredPaths)
+	app.Flag("ignore", "Glob patterns of files to ignore when pushing or diffing").StringsVar(&filtering.CustomIgnorePatterns)
 
 	app.HelpFlag.Short('h')
 	app.Version(buildinfo.VersionString)

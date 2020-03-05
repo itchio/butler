@@ -13,7 +13,7 @@ type walkResult struct {
 	pool      lake.Pool
 }
 
-func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts *tlc.WalkOpts) {
+func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts tlc.WalkOpts) {
 	container, err := tlc.WalkAny(path, walkOpts)
 	if err != nil {
 		errs <- errors.WithStack(err)

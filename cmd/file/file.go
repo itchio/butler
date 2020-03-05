@@ -16,8 +16,8 @@ import (
 
 	"github.com/itchio/lake/tlc"
 
-	"github.com/itchio/wizardry/wizardry/wizutil"
 	"github.com/itchio/spellbook"
+	"github.com/itchio/wizardry/wizardry/wizutil"
 
 	"github.com/itchio/wharf/pwr"
 	"github.com/itchio/wharf/wire"
@@ -252,9 +252,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 				return
 			}
 
-			container, err := tlc.WalkZip(zr, &tlc.WalkOpts{
-				Filter: func(fi os.FileInfo) bool { return true },
-			})
+			container, err := tlc.WalkZip(zr, tlc.WalkOpts{})
 			ctx.Must(err)
 
 			prettyUncompressed := united.FormatBytes(container.Size)

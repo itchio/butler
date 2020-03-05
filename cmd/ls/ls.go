@@ -68,7 +68,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	}
 
 	if stats.IsDir() {
-		walkOpts := &tlc.WalkOpts{
+		walkOpts := tlc.WalkOpts{
 			Filter: filtering.FilterPaths,
 		}
 		walkOpts.AutoWrap(&inPath, consumer)
@@ -223,9 +223,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 				return false
 			}
 
-			container, err := tlc.WalkZip(zr, &tlc.WalkOpts{
-				Filter: func(fi os.FileInfo) bool { return true },
-			})
+			container, err := tlc.WalkZip(zr, tlc.WalkOpts{})
 			ctx.Must(err)
 			container.Print(log)
 

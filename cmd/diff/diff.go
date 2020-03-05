@@ -113,7 +113,7 @@ func Do(params Params) error {
 	if err != nil {
 		if errors.Cause(err) == wire.ErrFormat || errors.Cause(err) == io.EOF {
 			// must be a container then
-			targetSignature.Container, err = tlc.WalkAny(params.Target, &tlc.WalkOpts{Filter: filtering.FilterPaths})
+			targetSignature.Container, err = tlc.WalkAny(params.Target, tlc.WalkOpts{Filter: filtering.FilterPaths})
 			if err != nil {
 				return err
 			}
@@ -147,7 +147,7 @@ func Do(params Params) error {
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(params.Source, &tlc.WalkOpts{Filter: filtering.FilterPaths})
+	sourceContainer, err = tlc.WalkAny(params.Source, tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
 	}

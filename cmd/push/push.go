@@ -97,7 +97,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
 	walkErrs := make(chan error)
-	walkOpts := &tlc.WalkOpts{
+	walkOpts := tlc.WalkOpts{
 		Filter:      filtering.FilterPaths,
 		Dereference: dereference,
 	}

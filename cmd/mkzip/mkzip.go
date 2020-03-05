@@ -46,7 +46,7 @@ func do(ctx *mansion.Context) error {
 	consumer := comm.NewStateConsumer()
 
 	consumer.Opf("Walking %s...", args.dir)
-	walkOpts := &tlc.WalkOpts{
+	walkOpts := tlc.WalkOpts{
 		Filter: filtering.FilterPaths,
 	}
 	walkOpts.Wrap(&args.dir)
