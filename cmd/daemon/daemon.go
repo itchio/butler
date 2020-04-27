@@ -103,7 +103,7 @@ func do(ctx *mansion.Context) {
 
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
-	router := getRouter(dbPool, mansionContext)
+	router := GetRouter(dbPool, mansionContext)
 	consumer := comm.NewStateConsumer()
 
 	switch args.transport {

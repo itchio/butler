@@ -21,7 +21,7 @@ import (
 
 var mainRouter *butlerd.Router
 
-func getRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.Router {
+func GetRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.Router {
 	if mainRouter != nil {
 		return mainRouter
 	}
