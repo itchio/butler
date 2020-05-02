@@ -1,12 +1,10 @@
 package jsonrpc2
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"log"
-	"net"
 	"sync"
 
 	"github.com/helloeave/json"
@@ -63,10 +61,16 @@ type Conn interface {
 
 var _ Conn = (*connImpl)(nil)
 
+type Transport interface {
+	Read() ([]byte, error)
+	Write(msg []byte) error
+	Close() error
+}
+
 type connImpl struct {
-	netconnImpl net.Conn
-	ctx         context.Context
-	cancel      context.CancelFunc
+	transport Transport
+	ctx       context.Context
+	cancel    context.CancelFunc
 
 	handler Handler
 
@@ -83,13 +87,13 @@ type connImpl struct {
 	writeMutex sync.Mutex
 }
 
-func NewConn(parentCtx context.Context, netconnImpl net.Conn, handler Handler) *connImpl {
+func NewConn(parentCtx context.Context, transport Transport, handler Handler) *connImpl {
 	ctx, cancel := context.WithCancel(parentCtx)
 
 	conn := &connImpl{
-		netconnImpl: netconnImpl,
-		ctx:         ctx,
-		cancel:      cancel,
+		transport: transport,
+		ctx:       ctx,
+		cancel:    cancel,
 
 		handler: handler,
 
@@ -147,8 +151,6 @@ func (c *connImpl) warn(f string, args ...interface{}) {
 	log.Printf("json-rpc2: %s", fmt.Sprintf(f, args...))
 }
 
-var separator = []byte{'\n'}
-
 func (c *connImpl) send(msg Message) error {
 	msg.JsonRPC = "2.0"
 
@@ -160,11 +162,7 @@ func (c *connImpl) send(msg Message) error {
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
-	_, err = c.netconnImpl.Write(msgText)
-	if err != nil {
-		return err
-	}
-	_, err = c.netconnImpl.Write(separator)
+	err = c.transport.Write(msgText)
 	if err != nil {
 		return err
 	}
@@ -173,24 +171,22 @@ func (c *connImpl) send(msg Message) error {
 }
 
 func (c *connImpl) receiveLoop() {
-	scanner := bufio.NewScanner(c.netconnImpl)
-	for scanner.Scan() {
-		msgText := json.RawMessage(scanner.Bytes())
+	defer c.Close()
+
+	for {
+		msgText, err := c.transport.Read()
+		if err != nil {
+			c.warn("%+v", err)
+		}
 
 		var msg Message
-		err := DecodeJSON(msgText, &msg)
+		err = DecodeJSON(msgText, &msg)
 		if err != nil {
 			c.warn("%+v", err)
 			continue
 		}
 		c.handleIncomingMessage(msg)
 	}
-	err := scanner.Err()
-	if err != nil {
-		c.warn("%+v", err)
-	}
-
-	c.Close()
 }
 
 func (c *connImpl) handleIncomingMessage(msg Message) {
@@ -341,7 +337,7 @@ func (c *connImpl) Close() {
 	if !c.closed {
 		c.closed = true
 		c.cancel()
-		c.netconnImpl.Close()
+		c.transport.Close()
 		close(c.disconnectNotify)
 	}
 }

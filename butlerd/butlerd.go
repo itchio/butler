@@ -95,7 +95,7 @@ func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams,
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
-	conn := jsonrpc2.NewConn(ctx, tcpConn, gh)
+	conn := jsonrpc2.NewConn(ctx, jsonrpc2.NewRwcTransport(tcpConn), gh)
 	<-conn.DisconnectNotify()
 
 	return nil

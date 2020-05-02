@@ -227,7 +227,7 @@ func (bi *ButlerInstance) Connect() (*butlerd.RequestContext, *handler, context.
 	tcpConn, err := net.DialTimeout("tcp", bi.Address, 2*time.Second)
 	must(err)
 
-	jc := jsonrpc2.NewConn(ctx, tcpConn, h)
+	jc := jsonrpc2.NewConn(ctx, jsonrpc2.NewRwcTransport(tcpConn), h)
 
 	rc := &butlerd.RequestContext{
 		Conn:     jc,
