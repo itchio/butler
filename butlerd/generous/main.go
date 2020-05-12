@@ -13,7 +13,8 @@ import (
 // generousContext regroups global state for the generous tool
 // along with a few utility methods
 type generousContext struct {
-	Dir string
+	Dir         string
+	SupportPath string
 }
 
 func main() {
@@ -36,7 +37,8 @@ func main() {
 	must(err)
 
 	gc := &generousContext{
-		Dir: baseDir,
+		Dir:         baseDir,
+		SupportPath: "butlerd/lib/support",
 	}
 
 	switch mode {
@@ -45,11 +47,39 @@ func main() {
 		must(gc.generateGoCode())
 		must(gc.generateSpec())
 	case "ts":
-		if len(os.Args) < 2 {
+		var tsOut string
+
+		tsArgs := os.Args[2:]
+
+		i := 0
+		for i < len(tsArgs) {
+			arg := tsArgs[i]
+			i += 1
+
+			if strings.HasPrefix(arg, "--") {
+				key := strings.TrimPrefix(arg, "--")
+				value := tsArgs[i]
+				i += 1
+				if key == "support-path" {
+					gc.SupportPath = value
+				} else {
+					log.Printf("generous ts: unknown option --%s", key)
+					os.Exit(1)
+				}
+			} else {
+				if tsOut != "" {
+					log.Printf("generous ts: multiple output paths specified: %q %q", tsOut, arg)
+					os.Exit(1)
+				}
+				tsOut = arg
+			}
+		}
+
+		if tsOut == "" {
 			log.Printf("generous ts: missing output path")
 			os.Exit(1)
 		}
-		tsOut := os.Args[2]
+
 		must(gc.generateTsCode(tsOut))
 	}
 }

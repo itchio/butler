@@ -15,7 +15,7 @@ func (gc *generousContext) generateTsCode(outPath string) error {
 	doc.line("// See <https://docs.itch.ovh/butlerd/master/> for a human-friendly documentation")
 
 	doc.line("")
-	doc.line("import { createRequest, createNotification } from %#v;", "butlerd/lib/support")
+	doc.line("import { createRequest, createNotification } from %#v;", gc.SupportPath)
 
 	doc.line("")
 	doc.line("// Type alias for RFC3339-nano date strings")
