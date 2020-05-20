@@ -178,16 +178,16 @@ func (c *connImpl) receiveLoop() {
 		msgText, err := c.transport.Read()
 		if err != nil {
 			if !errors.Is(err, io.EOF) {
-				// we're done here
-				return
+				c.warn("%+v", err)
 			}
-			c.warn("%+v", err)
+			// we're done here
+			return
 		}
 
 		var msg Message
 		err = DecodeJSON(msgText, &msg)
 		if err != nil {
-			c.warn("%+v, for input %s", err, string(msgText))
+			c.warn("%+v, for input %q", err, string(msgText))
 			continue
 		}
 		c.handleIncomingMessage(msg)
