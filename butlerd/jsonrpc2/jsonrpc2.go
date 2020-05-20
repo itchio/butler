@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 
@@ -176,13 +177,17 @@ func (c *connImpl) receiveLoop() {
 	for {
 		msgText, err := c.transport.Read()
 		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				// we're done here
+				return
+			}
 			c.warn("%+v", err)
 		}
 
 		var msg Message
 		err = DecodeJSON(msgText, &msg)
 		if err != nil {
-			c.warn("%+v", err)
+			c.warn("%+v, for input %s", err, string(msgText))
 			continue
 		}
 		c.handleIncomingMessage(msg)
