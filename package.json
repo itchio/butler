@@ -1,0 +1,27 @@
+{
+  "name": "@itchio/butler",
+  "version": "1.0.0",
+  "description": "[![Build Status](https://git.itch.ovh/itchio/butler/badges/master/build.svg)](https://git.itch.ovh/itchio/butler/builds) [![codecov](https://codecov.io/gh/itchio/butler/branch/master/graph/badge.svg)](https://codecov.io/gh/itchio/butler) [![Go Report Card](https://goreportcard.com/badge/github.com/itchio/butler)](https://goreportcard.com/report/github.com/itchio/butler) ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itchio/butler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/itchio/butler/issues"
+  },
+  "homepage": "https://github.com/itchio/butler#readme",
+  "devDependencies": {
+    "@itchio/bob": "^2.0.0",
+    "@types/node": "^14.0.9"
+  }
+}
