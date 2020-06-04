@@ -6,10 +6,19 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/helloeave/json"
 )
+
+var debugEnabled = os.Getenv("JSON_RPC_DEBUG") == "1"
+
+func debug(format string, args ...interface{}) {
+	if debugEnabled {
+		log.Printf("[jsonrpc debug] %s", fmt.Sprintf(format, args...))
+	}
+}
 
 // A JSON-RPC 2.0 error, see https://www.jsonrpc.org/specification#error_object
 type Error struct {
@@ -195,6 +204,8 @@ func (c *connImpl) receiveLoop() {
 }
 
 func (c *connImpl) handleIncomingMessage(msg Message) {
+	debug("incoming message %+#v", msg)
+
 	if msg.JsonRPC != "2.0" {
 		c.warn("received message lacking 'jsonrpc: \"2.0\"', ignoring")
 		return
@@ -209,7 +220,7 @@ func (c *connImpl) handleIncomingMessage(msg Message) {
 			defer c.outgoingCallsMutex.Unlock()
 			if oc, ok := c.outgoingCalls[id]; ok {
 				delete(c.outgoingCalls, id)
-				oc(msg)
+				go oc(msg)
 			}
 		} else {
 			c.warn("received message with no method nor ID, ignoring")
@@ -317,11 +328,9 @@ func (c *connImpl) Call(method string, params interface{}, result interface{}) e
 			return DecodeJSON(*msg.Result, result)
 		})()
 	}
-	(func() {
-		c.outgoingCallsMutex.Lock()
-		c.outgoingCalls[id] = f
-		c.outgoingCallsMutex.Unlock()
-	})()
+	c.outgoingCallsMutex.Lock()
+	c.outgoingCalls[id] = f
+	c.outgoingCallsMutex.Unlock()
 
 	select {
 	case err := <-done:

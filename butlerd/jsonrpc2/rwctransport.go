@@ -27,16 +27,19 @@ func NewRwcTransport(rwc ReadWriteClose) Transport {
 
 func (rwc *rwcTransport) Read() ([]byte, error) {
 	if rwc.closed {
+		debug("[read] is closed")
 		return nil, io.EOF
 	}
 
 	if rwc.scanner.Scan() {
 		bs := rwc.scanner.Bytes()
+		debug("[read] %s", string(bs))
 		return bs, nil
 	}
 
 	err := rwc.scanner.Err()
 	if err != nil {
+		debug("[read] scanner had err")
 		return nil, err
 	}
 
@@ -44,6 +47,7 @@ func (rwc *rwcTransport) Read() ([]byte, error) {
 }
 
 func (rwc *rwcTransport) Write(msg []byte) error {
+	debug("[write] %s", string(msg))
 	_, err := rwc.inner.Write(msg)
 	if err != nil {
 		return err
