@@ -12,7 +12,7 @@ const {
   setVerbose,
 } = require("@itchio/bob");
 
-const { join, resolve } = require("path");
+const { resolve } = require("path");
 const { mkdirSync } = require("fs");
 
 const DEFAULT_ARCH = "x86_64";
@@ -234,21 +234,17 @@ async function main(args) {
   }
 
   header("Packaging...");
-  let artifactDir = join(`./artifacts`, `${opts.os}-${goArch}`);
+  let artifactDir = `./artifacts/${opts.os}-${goArch}`;
   mkdirSync(artifactDir, { recursive: true });
 
-  let fullTarget = join(artifactDir, target);
+  let fullTarget = `${artifactDir}/${target}`;
   $(`mv ${target} ${fullTarget}`);
   $(`file ${fullTarget}`);
   $(`${fullTarget} -V`);
   $(`${fullTarget} fetch-7z-libs`);
 
-  $(
-    `go test -v ./butlerd/integrate --butlerPath=${resolve(
-      process.cwd(),
-      fullTarget,
-    )}`,
-  );
+  let fullButlerPath = resolve(process.cwd(), fullTarget);
+  $(`go test -v ./butlerd/integrate --butlerPath=${fullButlerPath}`);
 }
 
 /**
