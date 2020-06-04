@@ -48,7 +48,7 @@ build:linux:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - broth
+      - artifacts
 
 build:darwin:amd64:
   stage: build
@@ -60,7 +60,7 @@ build:darwin:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - broth
+      - artifacts
 
 build:windows:386:
   stage: build
@@ -72,7 +72,7 @@ build:windows:386:
   artifacts:
     expire_in: 1 week
     paths:
-      - broth
+      - artifacts
 
 build:windows:amd64:
   stage: build
@@ -84,7 +84,7 @@ build:windows:amd64:
   artifacts:
     expire_in: 1 week
     paths:
-      - broth
+      - artifacts
 
 deploy-itchio:
   stage: deploy
