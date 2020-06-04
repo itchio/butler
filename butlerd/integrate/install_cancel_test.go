@@ -143,7 +143,9 @@ func Test_InstallCancel(t *testing.T) {
 		if params.Progress > 0.5 {
 			hardCancelOnce.Do(func() {
 				bi.Logf("Sending hard cancel")
+				h.notificationHandlersMutex.Lock()
 				delete(h.notificationHandlers, messages.Progress.Method())
+				h.notificationHandlersMutex.Unlock()
 				bi.Logf("Disconnecting...")
 				bi.Disconnect()
 				bi.Logf("Okay, we disconnected")

@@ -22,7 +22,8 @@ test:linux:
   tags:
     - linux
   script:
-    - scripts/ci-test.sh
+    - npm ci --no-audit
+    - node release/test.js
 
 test:macos:
   stage: test

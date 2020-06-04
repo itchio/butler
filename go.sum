@@ -128,6 +128,7 @@ github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a h1:lTvuTme0PqU2gIzNK
 github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a/go.mod h1:63w5zpLrbzfhdIWsEkVs+iyfQquaf6KNQTSpaAubtDc=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 h1:jipXtdsZClshNO8fKK8ItiVyqE9bKA09as+qjW/yjG0=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51/go.mod h1:iLS+Eq+S26jTC4pbdDH6N5XtDqrjb4IOXtjj1HCzbuk=
+github.com/itchio/lake v0.0.0-20200301160735-98172e1a6370/go.mod h1:yF1QEd82Erd4OseK1riuaowmTZBPt/Xx+Y/zixJguKc=
 github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a h1:wiwopNWPhAzU5qnXW6vcn06Zd/bpXBdre1XNrXDjy5I=
 github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a/go.mod h1:yF1QEd82Erd4OseK1riuaowmTZBPt/Xx+Y/zixJguKc=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=

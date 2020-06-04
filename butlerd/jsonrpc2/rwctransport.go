@@ -3,6 +3,7 @@ package jsonrpc2
 import (
 	"bufio"
 	"io"
+	"sync"
 )
 
 type ReadWriteClose interface {
@@ -12,22 +13,28 @@ type ReadWriteClose interface {
 }
 
 type rwcTransport struct {
-	inner   ReadWriteClose
-	scanner *bufio.Scanner
-	closed  bool
+	inner      ReadWriteClose
+	scanner    *bufio.Scanner
+	closed     bool
+	closeChan  chan struct{}
+	closeMutex sync.Mutex
 }
 
 func NewRwcTransport(rwc ReadWriteClose) Transport {
 	return &rwcTransport{
-		inner:   rwc,
-		scanner: bufio.NewScanner(rwc),
-		closed:  false,
+		inner:     rwc,
+		scanner:   bufio.NewScanner(rwc),
+		closed:    false,
+		closeChan: make(chan struct{}),
 	}
 }
 
 func (rwc *rwcTransport) Read() ([]byte, error) {
-	if rwc.closed {
+	select {
+	case <-rwc.closeChan:
 		return nil, io.EOF
+	default:
+		// continue
 	}
 
 	if rwc.scanner.Scan() {
@@ -59,10 +66,14 @@ func (rwc *rwcTransport) Write(msg []byte) error {
 }
 
 func (rwc *rwcTransport) Close() error {
+	rwc.closeMutex.Lock()
+	defer rwc.closeMutex.Unlock()
+
 	if rwc.closed {
 		return nil
 	}
 
+	close(rwc.closeChan)
 	rwc.closed = true
 	return rwc.inner.Close()
 }
