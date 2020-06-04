@@ -39,7 +39,7 @@ import (
 import "C"
 
 var (
-	app                 = kingpin.New("butler", "Your happy little itch.io helper")
+	app = kingpin.New("butler", "Your happy little itch.io helper")
 
 	scriptCmd = app.Command("script", "Run a series of butler commands").Hidden()
 )
@@ -261,13 +261,18 @@ func doMain(args []string) {
 }
 
 func setupHTTPDebug() {
+	debugHost := os.Getenv("BUTLER_DEBUG_HOST")
 	debugPort := os.Getenv("BUTLER_DEBUG_PORT")
 
 	if debugPort == "" {
 		return
 	}
 
-	addr := fmt.Sprintf("localhost:%s", debugPort)
+	if debugHost == "" {
+		debugHost = "localhost"
+	}
+
+	addr := fmt.Sprintf("%s:%s", debugHost, debugPort)
 	go func() {
 		err := http.ListenAndServe(addr, nil)
 		if err != nil {
@@ -302,4 +307,3 @@ func doScript(scriptPath string) error {
 	}
 	return nil
 }
-

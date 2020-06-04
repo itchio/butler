@@ -204,14 +204,13 @@ func (c *connImpl) receiveLoop() {
 }
 
 func (c *connImpl) handleIncomingMessage(msg Message) {
-	debug("incoming message %+#v", msg)
-
 	if msg.JsonRPC != "2.0" {
 		c.warn("received message lacking 'jsonrpc: \"2.0\"', ignoring")
 		return
 	}
 
 	if msg.Method == nil {
+
 		// no method = result or error
 		if msg.ID != nil {
 			id := *msg.ID
@@ -220,7 +219,9 @@ func (c *connImpl) handleIncomingMessage(msg Message) {
 			defer c.outgoingCallsMutex.Unlock()
 			if oc, ok := c.outgoingCalls[id]; ok {
 				delete(c.outgoingCalls, id)
-				go oc(msg)
+				oc(msg)
+			} else {
+			c.warn("received message with ID %v, but we don't have a corresponding outoing call", id)
 			}
 		} else {
 			c.warn("received message with no method nor ID, ignoring")
@@ -308,10 +309,6 @@ func (c *connImpl) Call(method string, params interface{}, result interface{}) e
 		Method: &method,
 		Params: &paramsText,
 	}
-	err = c.send(msg)
-	if err != nil {
-		return err
-	}
 
 	done := make(chan error)
 
@@ -331,6 +328,11 @@ func (c *connImpl) Call(method string, params interface{}, result interface{}) e
 	c.outgoingCallsMutex.Lock()
 	c.outgoingCalls[id] = f
 	c.outgoingCallsMutex.Unlock()
+
+	err = c.send(msg)
+	if err != nil {
+		return err
+	}
 
 	select {
 	case err := <-done:
