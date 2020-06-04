@@ -12,6 +12,9 @@ const {
   setVerbose,
 } = require("@itchio/bob");
 
+const { join } = require("path");
+const { mkdirSync } = require("fs");
+
 const DEFAULT_ARCH = "x86_64";
 
 /**
@@ -108,7 +111,7 @@ async function main(args) {
     console.log(`Using user-specified OS ${chalk.yellow(opts.os)}`);
   } else {
     console.log(
-      `Using detected OS ${chalk.yellow(opts.os)} (use --os to override)`
+      `Using detected OS ${chalk.yellow(opts.os)} (use --os to override)`,
     );
   }
 
@@ -116,7 +119,7 @@ async function main(args) {
     console.log(`Using user-specified arch ${chalk.yellow(opts.arch)}`);
   } else {
     console.log(
-      `Using detected arch ${chalk.yellow(opts.arch)} (use --arch to override)`
+      `Using detected arch ${chalk.yellow(opts.arch)} (use --arch to override)`,
     );
   }
 
@@ -137,8 +140,8 @@ async function main(args) {
       let prependPath = $$(`cygpath -w ${archInfo.prependPath}`).trim();
       console.log(
         `Prepending ${chalk.yellow(archInfo.prependPath)} (aka ${chalk.yellow(
-          prependPath
-        )}) to $PATH`
+          prependPath,
+        )}) to $PATH`,
       );
       process.env.PATH = `${prependPath};${process.env.PATH}`;
     } else {
@@ -196,7 +199,15 @@ async function main(args) {
 
   if (opts.os === "linux") {
     console.log(`Checking minimum glibc version`);
-    $(`./butler diag --no-net --glibc`);
+    try {
+      $(`./butler diag --no-net --glibc`);
+    } catch (e) {
+      if (process.env.CI) {
+        throw e;
+      } else {
+        console.log(`Ignoring butler diag failure becaus we're not on CI`);
+      }
+    }
   }
 
   if (opts.os === "windows") {
@@ -221,6 +232,18 @@ async function main(args) {
     // We don't use spctl -a on purpose, see
     // https://stackoverflow.com/questions/39811791/mac-os-gatekeeper-blocking-signed-command-line-tool
   }
+
+  header("Packaging...");
+  let artifactDir = join(process.cwd(), `artifacts`, `${opts.os}-${goArch}`);
+  mkdirSync(artifactDir, { recursive: true });
+
+  let fullTarget = join(artifactDir, target);
+  $(`mv ${target} ${fullTarget}`);
+  $(`file ${fullTarget}`);
+  $(`${fullTarget} -V`);
+  $(`${fullTarget} fetch-7z-libs`);
+
+  $(`go test -v ./butlerd/integrate --butlerPath=${fullTarget}`);
 }
 
 /**

@@ -24,7 +24,7 @@ popd
 
 ${TOOLS_DIR}/butler -V
 
-pushd broth
+pushd artifacts
 for i in *; do
     CHANNEL_NAME="${i}${CHANNEL_SUFFIX}"
     ${TOOLS_DIR}/butler push --userversion "${USER_VERSION}" ./$i "fasterthanlime/butler:${CHANNEL_NAME}"

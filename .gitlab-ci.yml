@@ -45,7 +45,6 @@ build:linux:amd64:
   script:
     - npm ci --no-audit
     - node release/build.js --os linux --arch x86_64
-    - scripts/ci-package.sh
   artifacts:
     expire_in: 1 week
     paths:
@@ -56,7 +55,6 @@ build:darwin:amd64:
   script:
     - npm ci --no-audit
     - node release/build.js --os darwin --arch x86_64
-    - scripts/ci-package.sh
   tags:
     - darwin
   artifacts:
@@ -69,7 +67,6 @@ build:windows:386:
   script:
     - npm ci --no-audit
     - node release/build.js --os windows --arch i686
-    - scripts/ci-package.sh
   tags:
     - windows
   artifacts:
@@ -82,7 +79,6 @@ build:windows:amd64:
   script:
     - npm ci --no-audit
     - node release/build.js --os windows --arch x86_64
-    - scripts/ci-package.sh
   tags:
     - windows
   artifacts:
