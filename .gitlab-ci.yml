@@ -30,14 +30,16 @@ test:macos:
   tags:
     - darwin
   script:
-    - scripts/ci-test.sh
+    - npm ci --no-audit
+    - node release/test.js
 
 test:windows:
   stage: test
   tags:
     - windows
   script:
-    - scripts/ci-test.sh
+    - npm ci --no-audit
+    - node release/test.js
 
 build:linux:x86_64:
   stage: build
