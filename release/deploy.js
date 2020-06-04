@@ -19,17 +19,14 @@ async function main(_args) {
     channelSuffix = "";
     // v9.0.0 => 9.0.0
     userVersion = process.env.CI_COMMIT_TAG.replace(/^v/, "");
-  } else if (
-    process.env.CI_COMMIT_REF_NAME &&
-    process.env.CI_COMMIT_REF_NAME !== "master"
-  ) {
+  } else if (process.env.CI_COMMIT_REF_NAME == "master") {
     // pushing head
     channelSuffix = "-head";
     userVersion = process.env.CI_COMMIT_SHA || "";
   } else {
     // pushing a branch that isn't master
     console.log(
-      `Not pushing non-master branch ${process.env.CI_COMMIT_REF_NAME}`,
+      `Not pushing non-master branch ${process.env.CI_COMMIT_REF_NAME}`
     );
     return;
   }
