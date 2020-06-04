@@ -244,7 +244,7 @@ async function main(args) {
   $(`${fullTarget} fetch-7z-libs`);
 
   let fullButlerPath = resolve(process.cwd(), fullTarget);
-  $(`go test -v ./butlerd/integrate --butlerPath=${fullButlerPath}`);
+  $(`go test -v ./butlerd/integrate --butlerPath='${fullButlerPath}'`);
 }
 
 /**
