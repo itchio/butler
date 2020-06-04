@@ -8,14 +8,16 @@ book:
   tags:
     - dropsy
   script:
-    - scripts/ci-book.sh
+    - npm ci --no-audit
+    - node release/book.js
 
 generous:
   stage: deploy
   tags:
     - dropsy
   script:
-    - scripts/ci-generous.sh
+    - npm ci --no-audit
+    - node release/generous.js
 
 test:linux:
   stage: test
