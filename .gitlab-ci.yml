@@ -38,7 +38,7 @@ test:windows:
   script:
     - scripts/ci-test.sh
 
-build:linux:amd64:
+build:linux:x86_64:
   stage: build
   tags:
     - docker-capsule-64
@@ -50,7 +50,7 @@ build:linux:amd64:
     paths:
       - artifacts
 
-build:darwin:amd64:
+build:darwin:x86_64:
   stage: build
   script:
     - npm ci --no-audit
@@ -62,7 +62,7 @@ build:darwin:amd64:
     paths:
       - artifacts
 
-build:windows:386:
+build:windows:i686:
   stage: build
   script:
     - npm ci --no-audit
@@ -74,7 +74,7 @@ build:windows:386:
     paths:
       - artifacts
 
-build:windows:amd64:
+build:windows:x86_64:
   stage: build
   script:
     - npm ci --no-audit
@@ -91,4 +91,5 @@ deploy-itchio:
   tags:
     - linux
   script:
-    - scripts/ci-deploy-itchio.sh
+    - npm ci --no-audit
+    - node release/deploy.js
