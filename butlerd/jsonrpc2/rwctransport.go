@@ -39,7 +39,7 @@ func (rwc *rwcTransport) Read() ([]byte, error) {
 
 	err := rwc.scanner.Err()
 	if err != nil {
-		debug("[read] scanner had err")
+		debug("[read] scanner had err: %v", err)
 		return nil, err
 	}
 
