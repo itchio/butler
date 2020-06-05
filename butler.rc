@@ -1,4 +1,6 @@
 #include "winver.h"
+#define RT_MANIFEST 24
+#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define IDI_ICON_S 101
 
 1 VERSIONINFO
@@ -28,3 +30,4 @@ END
 
 IDI_ICON_S       ICON      "butler.ico"
 
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST MOVEABLE PURE "butler.manifest.xml"
