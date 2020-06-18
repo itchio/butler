@@ -3,7 +3,7 @@ module github.com/itchio/butler
 go 1.14
 
 require (
-	crawshaw.io/sqlite v0.2.5
+	crawshaw.io/sqlite v0.3.2
 	github.com/BurntSushi/toml v0.3.1
 	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185
@@ -11,16 +11,19 @@ require (
 	github.com/efarrer/iothrottler v0.0.1
 	github.com/fatih/color v1.9.0
 	github.com/fatih/structtag v1.2.0
+	github.com/getlantern/mtime v0.0.0-20200417132445-23682092d1f7 // indirect
+	github.com/getlantern/ops v0.0.0-20200403153110-8476b16edcd6 // indirect
 	github.com/go-ole/go-ole v1.2.4
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/google/gops v0.3.7
+	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/google/gops v0.3.10
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe
 	github.com/itchio/boar v0.0.0-20200305195307-d2befc01fa9e
 	github.com/itchio/dash v0.0.0-20200305193527-478357e813a2
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
-	github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c
+	github.com/itchio/go-itchio v0.0.0-20200402182019-61224e60358e
 	github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4
 	github.com/itchio/headway v0.0.0-20200301160421-e15721f23905
 	github.com/itchio/httpkit v0.0.0-20200618110940-5044e418b971
@@ -36,25 +39,29 @@ require (
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20200618110241-8896e2c6e09b
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
+	github.com/klauspost/compress v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/mattn/go-runewidth v0.0.8 // indirect
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mitchellh/mapstructure v1.3.2
 	github.com/natefinch/npipe v0.0.0-20160621034901-c1b8fa8bdcce
+	github.com/nightlyone/lockfile v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday v2.0.0+incompatible
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
-	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
-	golang.org/x/text v0.3.2
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+	github.com/stretchr/testify v1.6.1
+	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
+	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
+	golang.org/x/text v0.3.3
+	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
+	google.golang.org/protobuf v1.24.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	xorm.io/builder v0.3.6
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	xorm.io/builder v0.3.7
 )

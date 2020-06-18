@@ -125,6 +125,9 @@ func Test_InstallUpdateNonWharf(t *testing.T) {
 	err = sign.Do(referenceFolder, sigPath, pwr.CompressionSettings{}, false)
 	must(err)
 
-	err = verify.Do(sigPath, actualFolder, "", "")
+	err = verify.Do(verify.Args{
+		SignaturePath: sigPath,
+		Dir:           actualFolder,
+	})
 	assert.NoError(err)
 }
