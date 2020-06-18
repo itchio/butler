@@ -9,50 +9,52 @@ import (
 
 	"github.com/itchio/headway/united"
 
-	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/httpkit/eos"
+	"github.com/itchio/savior/seeksource"
 
 	"github.com/itchio/wharf/pwr"
 	"github.com/pkg/errors"
 )
 
-var args = struct {
-	signature *string
-	dir       *string
-	wounds    *string
-	heal      *string
-}{}
+type Args struct {
+	SignaturePath string
+	Dir           string
+	WoundsPath    string
+	HealPath      string
+}
+
+var args = Args{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("verify", "(Advanced) Use a signature to verify the integrity of a directory")
-	args.signature = cmd.Arg("signature", "Path to read signature file from").Required().String()
-	args.dir = cmd.Arg("dir", "Path of directory to verify").Required().String()
-	args.wounds = cmd.Flag("wounds", "When given, writes wounds to this path").String()
-	args.heal = cmd.Flag("heal", "When given, heal wounds using this path").String()
+	cmd.Arg("signature", "Path to read signature file from").Required().StringVar(&args.SignaturePath)
+	cmd.Arg("dir", "Path of directory to verify").Required().StringVar(&args.Dir)
+	cmd.Flag("wounds", "When given, writes wounds to this path").StringVar(&args.WoundsPath)
+	cmd.Flag("heal", "When given, heal wounds using this path").StringVar(&args.HealPath)
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.signature, *args.dir, *args.wounds, *args.heal))
+	ctx.Must(Do(args))
 }
 
-func Do(signaturePath string, dir string, woundsPath string, healPath string) error {
-	if woundsPath == "" {
-		if healPath == "" {
-			comm.Opf("Verifying %s", dir)
+func Do(args Args) error {
+	if args.WoundsPath == "" {
+		if args.HealPath == "" {
+			comm.Opf("Verifying %s", args.Dir)
 		} else {
-			comm.Opf("Verifying %s, healing as we go", dir)
+			comm.Opf("Verifying %s, healing as we go", args.Dir)
 		}
 	} else {
-		if healPath == "" {
-			comm.Opf("Verifying %s, writing wounds to %s", dir, woundsPath)
+		if args.HealPath == "" {
+			comm.Opf("Verifying %s, writing wounds to %s", args.Dir, args.WoundsPath)
 		} else {
 			comm.Dief("Options --wounds and --heal cannot be used at the same time")
 		}
 	}
 	startTime := time.Now()
 
-	signatureReader, err := eos.Open(signaturePath)
+	signatureReader, err := eos.Open(args.SignaturePath)
 	if err != nil {
 		return errors.Wrap(err, "opening signature file")
 	}
@@ -72,13 +74,13 @@ func Do(signaturePath string, dir string, woundsPath string, healPath string) er
 
 	vc := &pwr.ValidatorContext{
 		Consumer:   comm.NewStateConsumer(),
-		WoundsPath: woundsPath,
-		HealPath:   healPath,
+		WoundsPath: args.WoundsPath,
+		HealPath:   args.HealPath,
 	}
 
 	comm.StartProgressWithTotalBytes(signature.Container.Size)
 
-	err = vc.Validate(context.Background(), dir, signature)
+	err = vc.Validate(context.Background(), args.Dir, signature)
 	if err != nil {
 		return errors.Wrap(err, "while validating")
 	}

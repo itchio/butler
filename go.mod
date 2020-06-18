@@ -16,14 +16,14 @@ require (
 	github.com/google/gops v0.3.7
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
-	github.com/itchio/arkive v0.0.0-20200301155608-aeded25a0494
+	github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe
 	github.com/itchio/boar v0.0.0-20200305195307-d2befc01fa9e
 	github.com/itchio/dash v0.0.0-20200305193527-478357e813a2
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c
 	github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4
 	github.com/itchio/headway v0.0.0-20200301160421-e15721f23905
-	github.com/itchio/httpkit v0.0.0-20200304092139-56c2e1e88c9b
+	github.com/itchio/httpkit v0.0.0-20200618110940-5044e418b971
 	github.com/itchio/hush v0.0.0-20200305195452-67599c102343
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
 	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
@@ -34,7 +34,7 @@ require (
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
 	github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
-	github.com/itchio/wharf v0.0.0-20200305150844-3ed0814c4e98
+	github.com/itchio/wharf v0.0.0-20200618110241-8896e2c6e09b
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -58,4 +58,3 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	xorm.io/builder v0.3.6
 )
-

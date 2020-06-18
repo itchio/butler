@@ -47,9 +47,8 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 	healSpec := fmt.Sprintf("archive,%s", archiveURL)
 
 	vc := &pwr.ValidatorContext{
-		Consumer:   consumer,
-		NumWorkers: 1,
-		HealPath:   healSpec,
+		Consumer: consumer,
+		HealPath: healSpec,
 	}
 
 	signatureFile, err := eos.Open(signatureURL, option.WithConsumer(consumer))
