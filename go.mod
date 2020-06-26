@@ -32,7 +32,7 @@ require (
 	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
 	github.com/itchio/ox v0.0.0-20200301160301-4e131878ba64
-	github.com/itchio/pelican v0.0.0-20200305192721-308c3772290a
+	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20200303195615-7cac7998294c
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
 	github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355

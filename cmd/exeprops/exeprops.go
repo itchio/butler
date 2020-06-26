@@ -36,7 +36,6 @@ func do(ctx *mansion.Context) {
 			comm.Logf(string(js))
 		}
 	})
-
 }
 
 func Do(f eos.File, consumer *state.Consumer) (*pelican.PeInfo, error) {
