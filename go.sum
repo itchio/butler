@@ -172,6 +172,8 @@ github.com/itchio/ox v0.0.0-20191031175435-32d876f09b55 h1:EDWFa5o0RY51WpqKkZVax
 github.com/itchio/ox v0.0.0-20191031175435-32d876f09b55/go.mod h1:OkOgnS4mtvTl2n9S65jTihpuQJxeldLBA/x3QSFHQFQ=
 github.com/itchio/ox v0.0.0-20200301160301-4e131878ba64 h1:Gj6bndN7NcJNYbymItdc55apxCYfhMj9DPSVLlilWSI=
 github.com/itchio/ox v0.0.0-20200301160301-4e131878ba64/go.mod h1:WaIT8roTpS2W9zJKdHq4j+Zs5PcEY42H0FQZHQqEZFs=
+github.com/itchio/ox v0.0.0-20200728133515-5b7a81fb16fe h1:BBy+C9Eeq8uTWOhvb1EZm11XkUPgEBkzLZiGbd6idas=
+github.com/itchio/ox v0.0.0-20200728133515-5b7a81fb16fe/go.mod h1:WaIT8roTpS2W9zJKdHq4j+Zs5PcEY42H0FQZHQqEZFs=
 github.com/itchio/pelican v0.0.0-20200305192721-308c3772290a h1:BxkdM/65Z8iA/Uz6hWY3bcC8B32CJbQ8emyRF/9rb+Q=
 github.com/itchio/pelican v0.0.0-20200305192721-308c3772290a/go.mod h1:yO1VTrLzhasSPQrOvDpfZnkAmNVD6Cv+pbF6hTsWSpM=
 github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2 h1:XrbJuHHAiZ1YEWXjNM+2vWBWZfxxSu66LLOQ5WoYd88=
