@@ -2,7 +2,6 @@ package profile
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/database/models"
@@ -10,6 +9,7 @@ import (
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func Register(router *butlerd.Router) {
@@ -62,8 +62,9 @@ func LoginWithPassword(rc *butlerd.RequestContext, params butlerd.ProfileLoginWi
 
 	{
 		loginRes, err := rootClient.LoginWithPassword(rc.Ctx, itchio.LoginWithPasswordParams{
-			Username: params.Username,
-			Password: params.Password,
+			Username:       params.Username,
+			Password:       params.Password,
+			ForceRecaptcha: params.ForceRecaptcha,
 		})
 		if err != nil {
 			return nil, errors.WithStack(err)

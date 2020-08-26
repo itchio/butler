@@ -634,6 +634,12 @@ as if there were no network connections</p>
 <td><p>The password to use</p>
 </td>
 </tr>
+<tr>
+<td><code>forceRecaptcha</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Set to true if you want to force recaptcha</p>
+</td>
+</tr>
 </table>
 
 
@@ -675,6 +681,10 @@ as if there were no network connections</p>
 <tr>
 <td><code>password</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>forceRecaptcha</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

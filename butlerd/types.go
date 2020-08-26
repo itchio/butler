@@ -179,6 +179,10 @@ type ProfileLoginWithPasswordParams struct {
 
 	// The password to use
 	Password string `json:"password"`
+
+	// Set to true if you want to force recaptcha
+	// @optional
+	ForceRecaptcha bool `json:"forceRecaptcha"`
 }
 
 func (p ProfileLoginWithPasswordParams) Validate() error {

@@ -138,6 +138,11 @@
             "name": "password",
             "doc": "The password to use",
             "type": "string"
+          },
+          {
+            "name": "forceRecaptcha",
+            "doc": "Set to true if you want to force recaptcha",
+            "type": "boolean"
           }
         ]
       },

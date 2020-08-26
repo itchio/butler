@@ -141,6 +141,8 @@ github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c h1:f83qW+wZxr/usV
 github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
 github.com/itchio/go-itchio v0.0.0-20200402182019-61224e60358e h1:vf7lNl4at9hPcz9ASnL6Z7GYExAW0bCsfuWDpW9sj/E=
 github.com/itchio/go-itchio v0.0.0-20200402182019-61224e60358e/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
+github.com/itchio/go-itchio v0.0.0-20200826214038-a03acb9221a2 h1:ok3pvrVr/Z6PfGoXWV3q0XE1OMEH1e90aJnFb1U4emI=
+github.com/itchio/go-itchio v0.0.0-20200826214038-a03acb9221a2/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
 github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4 h1:gSA/VsLRFVpNsEbgAdugcG6+wKLfJQu1yqLiwRdxTQI=
 github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4/go.mod h1:sQqNZysbPmPulFOtaNU/50b6gMLPvuQfrp6x6HIo8c8=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de h1:RQW9xPqYtvjdHHRZR95XsaEA9B4URCuNHK78IuJcc+Y=
