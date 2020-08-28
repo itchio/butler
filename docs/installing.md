@@ -5,7 +5,7 @@
 
 You can download stable and bleeding-edge builds of butler from its itch.io page:
 
-  - <https://fasterthanlime.itch.io/butler>
+  - <https://itchio.itch.io/butler>
 
 Better yet, you can install it using the [itch app](https://itch.io/app), so it stays up-to-date.
 

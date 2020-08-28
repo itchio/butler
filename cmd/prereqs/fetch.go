@@ -25,7 +25,7 @@ var RedistsGame = &itchio.Game{
 	ID:        222417,
 	Title:     "itch-redists",
 	ShortText: "Redistributables for the itch.io app",
-	URL:       "https://fasterthanlime.itch.io/itch-redists",
+	URL:       "https://itchio.itch.io/itch-redists",
 }
 
 type TaskStateConsumer struct {
