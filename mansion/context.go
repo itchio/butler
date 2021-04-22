@@ -117,7 +117,7 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 }
 
 func (ctx *Context) DefaultCtx() context.Context {
-	defaultCtx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	defaultCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
 	return defaultCtx
 }
 
