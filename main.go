@@ -144,7 +144,7 @@ func doMain(args []string) {
 	app.HelpFlag.Short('h')
 	app.Version(buildinfo.VersionString)
 	app.VersionFlag.Short('V')
-	app.Author("Amos Wenger <amos@itch.io>")
+	app.Author("itch corp. <support@itch.io>")
 
 	cmd, err := app.Parse(args)
 	if err != nil {
