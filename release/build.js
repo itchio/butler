@@ -219,6 +219,7 @@ async function main(args) {
       `//fd sha256`, // file digest algo (default is SHA-1)
       `//tr http://timestamp.comodoca.com/?td=sha256`, // URL of RFC 3161 timestamp server
       `//td sha256`, // timestamp digest algo
+      `//a`, // choose best cert
       target,
     ];
 
@@ -226,7 +227,7 @@ async function main(args) {
   }
 
   if (opts.os === "darwin") {
-    let signKey = "Developer ID Application: Amos Wenger (B2N6FSRTPV)";
+    let signKey = "Developer ID Application: itch corp. (AK2D34UDP2)";
     $(`codesign --deep --force --verbose --sign "${signKey}" "${target}"`);
     $(`codesign --verify -vvvv "${target}"`);
     // We don't use spctl -a on purpose, see
