@@ -41,6 +41,8 @@ type Context struct {
 	CompressionAlgorithm string
 	CompressionQuality   int
 
+	ContextTimeout int64
+
 	HTTPClient    *http.Client
 	HTTPTransport *http.Transport
 
@@ -117,7 +119,7 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 }
 
 func (ctx *Context) DefaultCtx() context.Context {
-	defaultCtx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+	defaultCtx, _ := context.WithTimeout(context.Background(), time.Duration(ctx.ContextTimeout)*time.Second)
 	return defaultCtx
 }
 
