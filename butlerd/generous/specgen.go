@@ -81,22 +81,19 @@ func (gc *generousContext) generateSpec() error {
 				}
 				s.Notifications = append(s.Notifications, ns)
 			case entryKindType:
-				switch entry.typeKind {
-				case entryTypeKindStruct:
-					sts := &spec.StructTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Fields: encodeStruct(entry),
-					}
-					s.StructTypes = append(s.StructTypes, sts)
-				case entryTypeKindEnum:
-					ets := &spec.EnumTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Values: encodeEnum(entry),
-					}
-					s.EnumTypes = append(s.EnumTypes, ets)
+				sts := &spec.StructTypeSpec{
+					Name:   entry.name,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Fields: encodeStruct(entry),
 				}
+				s.StructTypes = append(s.StructTypes, sts)
+			case entryKindEnum:
+				ets := &spec.EnumTypeSpec{
+					Name:   entry.name,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Values: encodeEnum(entry),
+				}
+				s.EnumTypes = append(s.EnumTypes, ets)
 			}
 		}
 	}
