@@ -1152,6 +1152,46 @@ func (r *FetchGameUploadsType) TestCall(rc *butlerd.RequestContext, params butle
 
 var FetchGameUploads *FetchGameUploadsType
 
+// Fetch.UploadBuilds (Request)
+
+type FetchUploadBuildsType struct {}
+
+var _ RequestMessage = (*FetchUploadBuildsType)(nil)
+
+func (r *FetchUploadBuildsType) Method() string {
+  return "Fetch.UploadBuilds"
+}
+
+func (r *FetchUploadBuildsType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchUploadBuildsParams) (*butlerd.FetchUploadBuildsResult, error)) {
+  router.Register("Fetch.UploadBuilds", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchUploadBuildsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.UploadBuilds")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchUploadBuildsType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchUploadBuildsParams) (*butlerd.FetchUploadBuildsResult, error) {
+  var result butlerd.FetchUploadBuildsResult
+  err := rc.Call("Fetch.UploadBuilds", params, &result)
+  return &result, err
+}
+
+var FetchUploadBuilds *FetchUploadBuildsType
+
 // Fetch.User (Request)
 
 type FetchUserType struct {}
@@ -3544,6 +3584,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.DownloadKey"]; !ok { panic("missing request handler for (Fetch.DownloadKey)") }
   if _, ok := router.Handlers["Fetch.DownloadKeys"]; !ok { panic("missing request handler for (Fetch.DownloadKeys)") }
   if _, ok := router.Handlers["Fetch.GameUploads"]; !ok { panic("missing request handler for (Fetch.GameUploads)") }
+  if _, ok := router.Handlers["Fetch.UploadBuilds"]; !ok { panic("missing request handler for (Fetch.UploadBuilds)") }
   if _, ok := router.Handlers["Fetch.User"]; !ok { panic("missing request handler for (Fetch.User)") }
   if _, ok := router.Handlers["Fetch.Sale"]; !ok { panic("missing request handler for (Fetch.Sale)") }
   if _, ok := router.Handlers["Fetch.Collection"]; !ok { panic("missing request handler for (Fetch.Collection)") }

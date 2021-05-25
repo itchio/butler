@@ -715,6 +715,31 @@ func (r *FetchGameUploadsResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// Fetches builds for an itch.io game
+//
+// @name Fetch.UploadBuilds
+// @category Fetch
+// @caller client
+type FetchUploadBuildsParams struct {
+	// Game whose builds we should look for
+	Game *itchio.Game `json:"game"`
+
+	// Upload whose builds we should look for
+	Upload *itchio.Upload `json:"upload"`
+}
+
+func (p FetchUploadBuildsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Game, validation.Required),
+		validation.Field(&p.Upload, validation.Required),
+	)
+}
+
+type FetchUploadBuildsResult struct {
+	// List of builds
+	Builds []*itchio.Build `json:"builds"`
+}
+
 // Fetches information for an itch.io user.
 //
 // @name Fetch.User
