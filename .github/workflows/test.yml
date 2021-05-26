@@ -1,0 +1,46 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: test
+      run: |
+        npm ci --no-audit
+
+    - name: release
+      run: |
+        node release/test.js
+
+  test-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: test
+      run: |
+        npm ci --no-audit
+
+    - name: release
+      run: |
+        node release/test.js
+
+  test-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: test
+      run: |
+        npm ci --no-audit
+
+    - name: release
+      run: |
+        node release/test.js
