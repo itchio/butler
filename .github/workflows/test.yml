@@ -16,3 +16,31 @@ jobs:
     - name: release
       run: |
         node release/test.js
+
+  test-win:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: test
+      run: |
+        npm ci --no-audit
+
+    - name: release
+      run: |
+        node release/test.js
+
+  test-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: test
+      run: |
+        npm ci --no-audit
+
+    - name: release
+      run: |
+        node release/test.js
