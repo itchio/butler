@@ -22,9 +22,10 @@ func (gc *generousContext) generateSpec() error {
 		var res []*spec.FieldSpec
 		for _, sf := range entry.structFields {
 			fs := &spec.FieldSpec{
-				Name: sf.name,
-				Type: sf.typeString,
-				Doc:  strings.Join(sf.doc, "\n"),
+				Name:     sf.name,
+				Type:     sf.typeString,
+				Doc:      strings.Join(sf.doc, "\n"),
+				Optional: sf.optional,
 			}
 			res = append(res, fs)
 		}
