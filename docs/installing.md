@@ -7,7 +7,11 @@ You can download stable and bleeding-edge builds of butler from its itch.io page
 
   - <https://itchio.itch.io/butler>
 
-Better yet, you can install it using the [itch app](https://itch.io/app), so it stays up-to-date.
+Better yet, if you install the [itch app](https://itch.io/app), butler comes bundled with it.
+
+The itch app will keep the butler installation up-to-date.
+
+After installing itch, you need to add butler to your path (described further down)
 
 ## The automation-friendly way
 
@@ -54,6 +58,8 @@ Adding an executable to your path allows you to launch it from anywhere,
 no matter which directory you're currently in.
 
 ### On Windows
+
+For those who installed the itch app, butler can be found at `%appdata%\itch\broth\butler\versions\`.
 
 [Follow this article](http://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/) to add the folder where you downloaded butler.exe to your path.
 
