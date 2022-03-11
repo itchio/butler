@@ -3,10 +3,14 @@ stages:
   - build
   - deploy
 
+
+variables:
+  SKIP_CODECOV: 1 # codecov is run on github actions, not necessary on gitlab build
+
 book:
   stage: deploy
   tags:
-    - dropsy
+    - linux
   script:
     - npm ci --no-audit
     - node release/book.js
@@ -14,7 +18,7 @@ book:
 generous:
   stage: deploy
   tags:
-    - dropsy
+    - linux
   script:
     - npm ci --no-audit
     - node release/generous.js
@@ -46,7 +50,7 @@ test:windows:
 build:linux:x86_64:
   stage: build
   tags:
-    - docker-capsule-64
+    - linux
   script:
     - npm ci --no-audit
     - node release/build.js --os linux --arch x86_64
