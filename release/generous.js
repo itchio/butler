@@ -9,6 +9,7 @@ async function main() {
   process.env.PATH += `:${gopath}/bin`;
 
   $(`go get -v -x ./butlerd/generous`);
+  $(`echo $PATH`);
   $(`generous godocs`);
 
   if (process.env.CI_BUILD_REF_NAME) {
