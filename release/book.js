@@ -13,16 +13,16 @@ async function main() {
     await cd(
       `${npm_prefix}/lib/node_modules/gitbook-cli/node_modules/npm/node_modules`,
       async () => {
-        $(`npm install graceful-fs@latest --save`);
+        $(`npm install graceful-fs@4.1.4 --save`);
       }
     );
 
-    await cd(
-      `${process.env.HOME}/.gitbook/versions/3.2.3/node_modules/npm`,
-      async () => {
-        $(`npm install graceful-fs@latest --save`);
-      }
-    );
+    // await cd(
+    //   `${process.env.HOME}/.gitbook/versions/3.2.3/node_modules/npm`,
+    //   async () => {
+    //     $(`npm install graceful-fs@latest --save`);
+    //   }
+    // );
   }
 
   await cd("docs", async () => {
