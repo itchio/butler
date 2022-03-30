@@ -16,13 +16,6 @@ async function main() {
         $(`npm install graceful-fs@4.1.4 --save`);
       }
     );
-
-    // await cd(
-    //   `${process.env.HOME}/.gitbook/versions/3.2.3/node_modules/npm`,
-    //   async () => {
-    //     $(`npm install graceful-fs@latest --save`);
-    //   }
-    // );
   }
 
   await cd("docs", async () => {
