@@ -9,7 +9,8 @@
           {
             "name": "secret",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -18,7 +19,8 @@
           {
             "name": "ok",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -57,12 +59,14 @@
           {
             "name": "version",
             "doc": "Something short, like `v8.0.0`",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "versionString",
             "doc": "Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290`",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -76,7 +80,8 @@
           {
             "name": "enabled",
             "doc": "If true, all operations after this point will behave\nas if there were no network connections",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       },
@@ -93,12 +98,14 @@
           {
             "name": "enabled",
             "doc": "If true, will limit. If false, will clear any bandwidth throttles in place",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           },
           {
             "name": "rate",
             "doc": "The target bandwidth, in kbps",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -118,7 +125,8 @@
           {
             "name": "profiles",
             "doc": "A list of remembered profiles",
-            "type": "Profile[]"
+            "type": "Profile[]",
+            "optional": false
           }
         ]
       }
@@ -132,17 +140,20 @@
           {
             "name": "username",
             "doc": "The username (or e-mail) to use for login",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "password",
             "doc": "The password to use",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "forceRecaptcha",
             "doc": "Set to true if you want to force recaptcha",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -151,12 +162,14 @@
           {
             "name": "profile",
             "doc": "Information for the new profile, now remembered",
-            "type": "Profile"
+            "type": "Profile",
+            "optional": false
           },
           {
             "name": "cookie",
             "doc": "Profile cookie for website",
-            "type": "{ [key: string]: string }"
+            "type": "{ [key: string]: string }",
+            "optional": false
           }
         ]
       }
@@ -170,7 +183,8 @@
           {
             "name": "apiKey",
             "doc": "The API token to use",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -179,7 +193,8 @@
           {
             "name": "profile",
             "doc": "Information for the new profile, now remembered",
-            "type": "Profile"
+            "type": "Profile",
+            "optional": false
           }
         ]
       }
@@ -193,7 +208,8 @@
           {
             "name": "recaptchaUrl",
             "doc": "Address of page containing a recaptcha widget",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -202,7 +218,8 @@
           {
             "name": "recaptchaResponse",
             "doc": "The response given by recaptcha after it's been filled",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -219,7 +236,8 @@
           {
             "name": "code",
             "doc": "The TOTP code entered by the user",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -233,7 +251,8 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -242,7 +261,8 @@
           {
             "name": "profile",
             "doc": "Information for the now validated profile",
-            "type": "Profile"
+            "type": "Profile",
+            "optional": false
           }
         ]
       }
@@ -256,7 +276,8 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -265,7 +286,8 @@
           {
             "name": "success",
             "doc": "True if the profile did exist (and was successfully forgotten)",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -279,17 +301,20 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "key",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "value",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -306,12 +331,14 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "key",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -320,12 +347,14 @@
           {
             "name": "ok",
             "doc": "True if the value existed",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           },
           {
             "name": "value",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -339,12 +368,14 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "query",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -353,7 +384,8 @@
           {
             "name": "games",
             "doc": "",
-            "type": "Game[]"
+            "type": "Game[]",
+            "optional": false
           }
         ]
       }
@@ -367,12 +399,14 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "query",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -381,7 +415,8 @@
           {
             "name": "users",
             "doc": "",
-            "type": "User[]"
+            "type": "User[]",
+            "optional": false
           }
         ]
       }
@@ -395,12 +430,14 @@
           {
             "name": "gameId",
             "doc": "Identifier of game to look for",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "fresh",
             "doc": "Force an API request",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -409,12 +446,14 @@
           {
             "name": "game",
             "doc": "Game info",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -428,52 +467,62 @@
           {
             "name": "profileId",
             "doc": "Profile to use to fetch game",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "source",
             "doc": "Source from which to fetch games",
-            "type": "GameRecordsSource"
+            "type": "GameRecordsSource",
+            "optional": false
           },
           {
             "name": "collectionId",
             "doc": "Collection ID, required if `Source` is \"collection\"",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "limit",
             "doc": "Maximum number of games to return at a time",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "offset",
             "doc": "Games to skip",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "Criterion to sort by",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filters",
-            "type": "GameRecordsFilters"
+            "type": "GameRecordsFilters",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "If set, will force fresh data",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -482,12 +531,14 @@
           {
             "name": "records",
             "doc": "All the records that were fetched",
-            "type": "GameRecord[]"
+            "type": "GameRecord[]",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -501,17 +552,20 @@
           {
             "name": "downloadKeyId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "fresh",
             "doc": "Force an API request",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -520,12 +574,14 @@
           {
             "name": "downloadKey",
             "doc": "",
-            "type": "DownloadKey"
+            "type": "DownloadKey",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -539,27 +595,32 @@
           {
             "name": "profileId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "offset",
             "doc": "Number of items to skip",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "limit",
             "doc": "Max number of results per page (default = 5)",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filter results",
-            "type": "FetchDownloadKeysFilter"
+            "type": "FetchDownloadKeysFilter",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "Force an API request",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -568,12 +629,14 @@
           {
             "name": "items",
             "doc": "All the download keys found in the local DB.",
-            "type": "DownloadKey[]"
+            "type": "DownloadKey[]",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Whether the information was fetched from a stale cache,\nand could warrant a refresh if online.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -587,17 +650,20 @@
           {
             "name": "gameId",
             "doc": "Identifier of the game whose uploads we should look for",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "compatible",
             "doc": "Only returns compatible uploads",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           },
           {
             "name": "fresh",
             "doc": "Force an API request",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -606,12 +672,14 @@
           {
             "name": "uploads",
             "doc": "List of uploads",
-            "type": "Upload[]"
+            "type": "Upload[]",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -625,17 +693,20 @@
           {
             "name": "userId",
             "doc": "Identifier of the user to look for",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "profileId",
             "doc": "Profile to use to look upser",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "fresh",
             "doc": "Force an API request",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -644,12 +715,14 @@
           {
             "name": "user",
             "doc": "User info",
-            "type": "User"
+            "type": "User",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -663,7 +736,8 @@
           {
             "name": "gameId",
             "doc": "Identifier of the game for which to look for a sale",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -672,7 +746,8 @@
           {
             "name": "sale",
             "doc": "",
-            "type": "Sale"
+            "type": "Sale",
+            "optional": true
           }
         ]
       }
@@ -686,17 +761,20 @@
           {
             "name": "profileId",
             "doc": "Profile to use to fetch collection",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "collectionId",
             "doc": "Collection to fetch",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "fresh",
             "doc": "Force an API request before replying.\nUsually set after getting 'stale' in the response.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -705,12 +783,14 @@
           {
             "name": "collection",
             "doc": "Collection info",
-            "type": "Collection"
+            "type": "Collection",
+            "optional": false
           },
           {
             "name": "stale",
             "doc": "True if the info was from local DB and\nit should be re-queried using \"Fresh\"",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -724,47 +804,56 @@
           {
             "name": "profileId",
             "doc": "Profile to use to fetch collection",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "collectionId",
             "doc": "Identifier of the collection to look for",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "limit",
             "doc": "Maximum number of games to return at a time.",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "Criterion to sort by",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filters",
-            "type": "CollectionGamesFilters"
+            "type": "CollectionGamesFilters",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "If set, will force fresh data",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -773,17 +862,20 @@
           {
             "name": "items",
             "doc": "Requested games for this collection",
-            "type": "CollectionGame[]"
+            "type": "CollectionGame[]",
+            "optional": false
           },
           {
             "name": "nextCursor",
             "doc": "Use to fetch the next 'page' of results",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "stale",
             "doc": "If true, re-issue request with 'Fresh'",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -797,37 +889,44 @@
           {
             "name": "profileId",
             "doc": "Profile for which to fetch collections",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "limit",
             "doc": "Maximum number of collections to return at a time.",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows collection titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "Criterion to sort by",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "If set, will force fresh data",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -836,17 +935,20 @@
           {
             "name": "items",
             "doc": "Collections belonging to the profile",
-            "type": "Collection[]"
+            "type": "Collection[]",
+            "optional": false
           },
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "stale",
             "doc": "If true, re-issue request with \"Fresh\"",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -860,42 +962,50 @@
           {
             "name": "profileId",
             "doc": "Profile for which to fetch games",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "limit",
             "doc": "Maximum number of items to return at a time.",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "Criterion to sort by",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filters",
-            "type": "ProfileGameFilters"
+            "type": "ProfileGameFilters",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "If set, will force fresh data",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -904,17 +1014,20 @@
           {
             "name": "items",
             "doc": "Profile games",
-            "type": "ProfileGame[]"
+            "type": "ProfileGame[]",
+            "optional": false
           },
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "stale",
             "doc": "If true, re-issue request with \"Fresh\"",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -928,42 +1041,50 @@
           {
             "name": "profileId",
             "doc": "Profile to use to fetch game",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "limit",
             "doc": "Maximum number of owned keys to return at a time.",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "Criterion to sort by",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filters",
-            "type": "ProfileOwnedKeysFilters"
+            "type": "ProfileOwnedKeysFilters",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "fresh",
             "doc": "If set, will force fresh data",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -972,17 +1093,20 @@
           {
             "name": "items",
             "doc": "Download keys fetched for profile",
-            "type": "DownloadKey[]"
+            "type": "DownloadKey[]",
+            "optional": false
           },
           {
             "name": "nextCursor",
             "doc": "Used to fetch the next page",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           },
           {
             "name": "stale",
             "doc": "If true, re-issue request with \"Fresh\"",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       }
@@ -999,17 +1123,20 @@
           {
             "name": "downloadKeys",
             "doc": "",
-            "type": "DownloadKeySummary[]"
+            "type": "DownloadKeySummary[]",
+            "optional": false
           },
           {
             "name": "caves",
             "doc": "",
-            "type": "CaveSummary[]"
+            "type": "CaveSummary[]",
+            "optional": false
           },
           {
             "name": "installLocations",
             "doc": "",
-            "type": "InstallLocationSummary[]"
+            "type": "InstallLocationSummary[]",
+            "optional": false
           }
         ]
       }
@@ -1023,32 +1150,38 @@
           {
             "name": "limit",
             "doc": "Maximum number of caves to return at a time.",
-            "type": "number"
+            "type": "number",
+            "optional": true
           },
           {
             "name": "search",
             "doc": "When specified only shows game titles that contain this string",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "sortBy",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "filters",
             "doc": "Filters",
-            "type": "CavesFilters"
+            "type": "CavesFilters",
+            "optional": true
           },
           {
             "name": "reverse",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "cursor",
             "doc": "Used for pagination, if specified",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           }
         ]
       },
@@ -1057,12 +1190,14 @@
           {
             "name": "items",
             "doc": "",
-            "type": "Cave[]"
+            "type": "Cave[]",
+            "optional": false
           },
           {
             "name": "nextCursor",
             "doc": "Use to fetch the next 'page' of results",
-            "type": "Cursor"
+            "type": "Cursor",
+            "optional": true
           }
         ]
       }
@@ -1076,7 +1211,8 @@
           {
             "name": "caveId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1085,7 +1221,8 @@
           {
             "name": "cave",
             "doc": "",
-            "type": "Cave"
+            "type": "Cave",
+            "optional": false
           }
         ]
       }
@@ -1110,7 +1247,8 @@
           {
             "name": "game",
             "doc": "Which game to find uploads for",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           }
         ]
       },
@@ -1119,7 +1257,8 @@
           {
             "name": "uploads",
             "doc": "A list of uploads that were found to be compatible.",
-            "type": "Upload[]"
+            "type": "Upload[]",
+            "optional": false
           }
         ]
       }
@@ -1133,62 +1272,74 @@
           {
             "name": "caveId",
             "doc": "ID of the cave to perform the install for.\nIf not specified, will create a new cave.",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "reason",
             "doc": "If unspecified, will default to 'install'",
-            "type": "DownloadReason"
+            "type": "DownloadReason",
+            "optional": true
           },
           {
             "name": "installLocationId",
             "doc": "If CaveID is not specified, ID of an install location\nto install to.",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "noCave",
             "doc": "If set, InstallFolder can be set and no cave\nrecord will be read or modified",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "installFolder",
             "doc": "When NoCave is set, exactly where to install",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "game",
             "doc": "Which game to install.\n\nIf unspecified and caveId is specified, the same game will be used.",
-            "type": "Game"
+            "type": "Game",
+            "optional": true
           },
           {
             "name": "upload",
             "doc": "Which upload to install.\n\nIf unspecified and caveId is specified, the same upload will be used.",
-            "type": "Upload"
+            "type": "Upload",
+            "optional": true
           },
           {
             "name": "build",
             "doc": "Which build to install\n\nIf unspecified and caveId is specified, the same build will be used.",
-            "type": "Build"
+            "type": "Build",
+            "optional": true
           },
           {
             "name": "ignoreInstallers",
             "doc": "If true, do not run windows installers, just extract\nwhatever to the install folder.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "stagingFolder",
             "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "queueDownload",
             "doc": "If set, and the install operation is successfully disambiguated,\nwill queue it as a download for butler to drive.\nSee @@DownloadsDriveParams.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "fastQueue",
             "doc": "Don't run install prepare (assume we can just run it at perform time)",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -1197,47 +1348,56 @@
           {
             "name": "id",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "reason",
             "doc": "",
-            "type": "DownloadReason"
+            "type": "DownloadReason",
+            "optional": false
           },
           {
             "name": "caveId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "game",
             "doc": "",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           },
           {
             "name": "upload",
             "doc": "",
-            "type": "Upload"
+            "type": "Upload",
+            "optional": false
           },
           {
             "name": "build",
             "doc": "",
-            "type": "Build"
+            "type": "Build",
+            "optional": false
           },
           {
             "name": "installFolder",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "stagingFolder",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "installLocationId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -1251,17 +1411,20 @@
           {
             "name": "gameId",
             "doc": "The ID of the game we're planning to install",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "downloadSessionId",
             "doc": "The download session ID to use for this install plan",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "uploadId",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -1270,17 +1433,20 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           },
           {
             "name": "uploads",
             "doc": "",
-            "type": "Upload[]"
+            "type": "Upload[]",
+            "optional": false
           },
           {
             "name": "info",
             "doc": "",
-            "type": "InstallPlanInfo"
+            "type": "InstallPlanInfo",
+            "optional": false
           }
         ]
       }
@@ -1294,12 +1460,14 @@
           {
             "name": "caveId",
             "doc": "ID of the cave to pin/unpin",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "pinned",
             "doc": "Pinned state the cave should have after this call",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       },
@@ -1316,7 +1484,8 @@
           {
             "name": "caveId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1333,12 +1502,14 @@
           {
             "name": "id",
             "doc": "ID that can be later used in @@InstallCancelParams",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "stagingFolder",
             "doc": "The folder turned by @@InstallQueueParams",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1347,12 +1518,14 @@
           {
             "name": "caveId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "events",
             "doc": "",
-            "type": "InstallEvent[]"
+            "type": "InstallEvent[]",
+            "optional": false
           }
         ]
       }
@@ -1366,7 +1539,8 @@
           {
             "name": "id",
             "doc": "The UUID of the task to cancel, as passed to @@OperationStartParams",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1375,7 +1549,8 @@
           {
             "name": "didCancel",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1389,12 +1564,14 @@
           {
             "name": "caveId",
             "doc": "The cave to uninstall",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "hard",
             "doc": "If true, don't attempt to run any uninstallers, just\nremove the DB record and burn the install folder to the ground.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -1411,7 +1588,8 @@
           {
             "name": "caveId",
             "doc": "The cave to switch to a different version",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1428,17 +1606,20 @@
           {
             "name": "cave",
             "doc": "",
-            "type": "Cave"
+            "type": "Cave",
+            "optional": false
           },
           {
             "name": "upload",
             "doc": "",
-            "type": "Upload"
+            "type": "Upload",
+            "optional": false
           },
           {
             "name": "builds",
             "doc": "",
-            "type": "Build[]"
+            "type": "Build[]",
+            "optional": false
           }
         ]
       },
@@ -1447,7 +1628,8 @@
           {
             "name": "index",
             "doc": "A negative index aborts the version switch",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -1461,7 +1643,8 @@
           {
             "name": "uploads",
             "doc": "An array of upload objects to choose from",
-            "type": "Upload[]"
+            "type": "Upload[]",
+            "optional": false
           }
         ]
       },
@@ -1470,7 +1653,8 @@
           {
             "name": "index",
             "doc": "The index (in the original array) of the upload that was picked,\nor a negative value to cancel.",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -1487,7 +1671,8 @@
           {
             "name": "installLocations",
             "doc": "",
-            "type": "InstallLocationSummary[]"
+            "type": "InstallLocationSummary[]",
+            "optional": false
           }
         ]
       }
@@ -1501,12 +1686,14 @@
           {
             "name": "id",
             "doc": "identifier of the new install location.\nif not specified, will be generated.",
-            "type": "string"
+            "type": "string",
+            "optional": true
           },
           {
             "name": "path",
             "doc": "path of the new install location",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1515,7 +1702,8 @@
           {
             "name": "installLocation",
             "doc": "",
-            "type": "InstallLocationSummary"
+            "type": "InstallLocationSummary",
+            "optional": false
           }
         ]
       }
@@ -1529,7 +1717,8 @@
           {
             "name": "id",
             "doc": "identifier of the install location to remove",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1546,7 +1735,8 @@
           {
             "name": "id",
             "doc": "identifier of the install location to remove",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1555,7 +1745,8 @@
           {
             "name": "installLocation",
             "doc": "",
-            "type": "InstallLocationSummary"
+            "type": "InstallLocationSummary",
+            "optional": false
           }
         ]
       }
@@ -1569,7 +1760,8 @@
           {
             "name": "legacyMarketPath",
             "doc": "path to a legacy marketDB",
-            "type": "string"
+            "type": "string",
+            "optional": true
           }
         ]
       },
@@ -1578,12 +1770,14 @@
           {
             "name": "numFoundItems",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "numImportedItems",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -1597,7 +1791,8 @@
           {
             "name": "numItems",
             "doc": "number of items that will be imported",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -1606,7 +1801,8 @@
           {
             "name": "confirm",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1620,7 +1816,8 @@
           {
             "name": "item",
             "doc": "",
-            "type": "InstallQueueResult"
+            "type": "InstallQueueResult",
+            "optional": false
           }
         ]
       },
@@ -1637,7 +1834,8 @@
           {
             "name": "downloadId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1657,7 +1855,8 @@
           {
             "name": "downloads",
             "doc": "",
-            "type": "Download[]"
+            "type": "Download[]",
+            "optional": false
           }
         ]
       }
@@ -1696,7 +1895,8 @@
           {
             "name": "didCancel",
             "doc": "",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1710,7 +1910,8 @@
           {
             "name": "downloadId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1727,7 +1928,8 @@
           {
             "name": "downloadId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1744,12 +1946,14 @@
           {
             "name": "caveIds",
             "doc": "If specified, will only look for updates to these caves",
-            "type": "string[]"
+            "type": "string[]",
+            "optional": true
           },
           {
             "name": "verbose",
             "doc": "If specified, will log information even when we have no warnings/errors",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -1758,12 +1962,14 @@
           {
             "name": "updates",
             "doc": "Any updates found (might be empty)",
-            "type": "GameUpdate[]"
+            "type": "GameUpdate[]",
+            "optional": false
           },
           {
             "name": "warnings",
             "doc": "Warnings messages logged while looking for updates",
-            "type": "string[]"
+            "type": "string[]",
+            "optional": false
           }
         ]
       }
@@ -1777,7 +1983,8 @@
           {
             "name": "caveId",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1794,22 +2001,26 @@
           {
             "name": "caveId",
             "doc": "The ID of the cave to launch",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "prereqsDir",
             "doc": "The directory to use to store installer files for prerequisites",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "forcePrereqs",
             "doc": "Force installing all prerequisites, even if they're already marked as installed",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           },
           {
             "name": "sandbox",
             "doc": "Enable sandbox (regardless of manifest opt-in)",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -1826,7 +2037,8 @@
           {
             "name": "text",
             "doc": "The full text of the license agreement, in its default\nlanguage, which is usually English.",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1835,7 +2047,8 @@
           {
             "name": "accept",
             "doc": "true if the user accepts the terms of the license, false otherwise.\nNote that false will cancel the launch.",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1849,7 +2062,8 @@
           {
             "name": "actions",
             "doc": "A list of actions to pick from. Must be shown to the user in the order they're passed.",
-            "type": "Action[]"
+            "type": "Action[]",
+            "optional": false
           }
         ]
       },
@@ -1858,7 +2072,8 @@
           {
             "name": "index",
             "doc": "Index of action picked by user, or negative if aborting",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -1872,7 +2087,8 @@
           {
             "name": "itemPath",
             "doc": "Absolute path of item to open, e.g. `D:\\\\Games\\\\Itch\\\\garden\\\\README.txt`",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1889,22 +2105,26 @@
           {
             "name": "rootFolder",
             "doc": "Absolute path on disk to serve",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "indexPath",
             "doc": "Path of index file, relative to root folder",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "args",
             "doc": "Command-line arguments, to pass as `global.Itch.args`",
-            "type": "string[]"
+            "type": "string[]",
+            "optional": false
           },
           {
             "name": "env",
             "doc": "Environment variables, to pass as `global.Itch.env`",
-            "type": "{ [key: string]: string }"
+            "type": "{ [key: string]: string }",
+            "optional": false
           }
         ]
       },
@@ -1921,7 +2141,8 @@
           {
             "name": "url",
             "doc": "URL to open, e.g. `https://itch.io/community`",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1941,7 +2162,8 @@
           {
             "name": "allow",
             "doc": "Set to true if user allowed the sandbox setup, false otherwise",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1955,12 +2177,14 @@
           {
             "name": "error",
             "doc": "Short error",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "errorStack",
             "doc": "Longer error (to include in logs)",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -1969,7 +2193,8 @@
           {
             "name": "continue",
             "doc": "Set to true if the user wants to proceed with the launch in spite of the prerequisites failure",
-            "type": "boolean"
+            "type": "boolean",
+            "optional": false
           }
         ]
       }
@@ -1983,12 +2208,14 @@
           {
             "name": "roots",
             "doc": "A list of folders to scan for potential subfolders to clean up",
-            "type": "string[]"
+            "type": "string[]",
+            "optional": false
           },
           {
             "name": "whitelist",
             "doc": "A list of subfolders to not consider when cleaning\n(staging folders for in-progress downloads)",
-            "type": "string[]"
+            "type": "string[]",
+            "optional": false
           }
         ]
       },
@@ -1997,7 +2224,8 @@
           {
             "name": "entries",
             "doc": "Entries we found that could use some cleaning (with path and size information)",
-            "type": "CleanDownloadsEntry[]"
+            "type": "CleanDownloadsEntry[]",
+            "optional": false
           }
         ]
       }
@@ -2011,7 +2239,8 @@
           {
             "name": "entries",
             "doc": "",
-            "type": "CleanDownloadsEntry[]"
+            "type": "CleanDownloadsEntry[]",
+            "optional": false
           }
         ]
       },
@@ -2028,7 +2257,8 @@
           {
             "name": "path",
             "doc": "",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       },
@@ -2037,12 +2267,14 @@
           {
             "name": "freeSize",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "totalSize",
             "doc": "",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2056,7 +2288,8 @@
           {
             "name": "number",
             "doc": "The number to quadruple",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -2065,7 +2298,8 @@
           {
             "name": "number",
             "doc": "The input, quadrupled",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2079,7 +2313,8 @@
           {
             "name": "number",
             "doc": "The number to double",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       },
@@ -2088,7 +2323,8 @@
           {
             "name": "number",
             "doc": "The number, doubled",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2103,17 +2339,20 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download"
+            "type": "Download",
+            "optional": false
           },
           {
             "name": "progress",
             "doc": "",
-            "type": "DownloadProgress"
+            "type": "DownloadProgress",
+            "optional": false
           },
           {
             "name": "speedHistory",
             "doc": "BPS values for the last minute",
-            "type": "number[]"
+            "type": "number[]",
+            "optional": false
           }
         ]
       }
@@ -2126,7 +2365,8 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download"
+            "type": "Download",
+            "optional": false
           }
         ]
       }
@@ -2139,7 +2379,8 @@
           {
             "name": "download",
             "doc": "The download that errored. It contains all the error\ninformation: a short message, a full stack trace,\nand a butlerd error code.",
-            "type": "Download"
+            "type": "Download",
+            "optional": false
           }
         ]
       }
@@ -2152,7 +2393,8 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download"
+            "type": "Download",
+            "optional": false
           }
         ]
       }
@@ -2165,7 +2407,8 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download"
+            "type": "Download",
+            "optional": false
           }
         ]
       }
@@ -2178,7 +2421,8 @@
           {
             "name": "status",
             "doc": "The current network status",
-            "type": "NetworkStatus"
+            "type": "NetworkStatus",
+            "optional": false
           }
         ]
       }
@@ -2191,12 +2435,14 @@
           {
             "name": "level",
             "doc": "Level of the message (`info`, `warn`, etc.)",
-            "type": "LogLevel"
+            "type": "LogLevel",
+            "optional": false
           },
           {
             "name": "message",
             "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
-            "type": "string"
+            "type": "string",
+            "optional": false
           }
         ]
       }
@@ -2209,7 +2455,8 @@
           {
             "name": "pid",
             "doc": "The identifier of the daemon process for which the flow was established",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2222,17 +2469,20 @@
           {
             "name": "progress",
             "doc": "An overall progress value between 0 and 1",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "eta",
             "doc": "Estimated completion time for the operation, in seconds (floating)",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "bps",
             "doc": "Network bandwidth used, in bytes per second (floating)",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2245,32 +2495,38 @@
           {
             "name": "reason",
             "doc": "Why this task was started",
-            "type": "TaskReason"
+            "type": "TaskReason",
+            "optional": false
           },
           {
             "name": "type",
             "doc": "Is this task a download? An install?",
-            "type": "TaskType"
+            "type": "TaskType",
+            "optional": false
           },
           {
             "name": "game",
             "doc": "The game this task is dealing with",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           },
           {
             "name": "upload",
             "doc": "The upload this task is dealing with",
-            "type": "Upload"
+            "type": "Upload",
+            "optional": false
           },
           {
             "name": "build",
             "doc": "The build this task is dealing with (if any)",
-            "type": "Build"
+            "type": "Build",
+            "optional": false
           },
           {
             "name": "totalSize",
             "doc": "Total size in bytes",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2283,12 +2539,14 @@
           {
             "name": "type",
             "doc": "",
-            "type": "TaskType"
+            "type": "TaskType",
+            "optional": false
           },
           {
             "name": "installResult",
             "doc": "If the task installed something, then this contains\ninfo about the game, upload, build that were installed",
-            "type": "InstallResult"
+            "type": "InstallResult",
+            "optional": false
           }
         ]
       }
@@ -2301,7 +2559,8 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game"
+            "type": "Game",
+            "optional": false
           }
         ]
       }
@@ -2314,7 +2573,8 @@
           {
             "name": "update",
             "doc": "",
-            "type": "GameUpdate"
+            "type": "GameUpdate",
+            "optional": false
           }
         ]
       }
@@ -2341,7 +2601,8 @@
           {
             "name": "tasks",
             "doc": "A list of prereqs that need to be tended to",
-            "type": "{ [key: string]: PrereqTask }"
+            "type": "{ [key: string]: PrereqTask }",
+            "optional": false
           }
         ]
       }
@@ -2354,27 +2615,32 @@
           {
             "name": "name",
             "doc": "Short name of the prerequisite task (e.g. `xna-4.0`)",
-            "type": "string"
+            "type": "string",
+            "optional": false
           },
           {
             "name": "status",
             "doc": "Current status of the prereq",
-            "type": "PrereqStatus"
+            "type": "PrereqStatus",
+            "optional": false
           },
           {
             "name": "progress",
             "doc": "Value between 0 and 1 (floating)",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "eta",
             "doc": "ETA in seconds (floating)",
-            "type": "number"
+            "type": "number",
+            "optional": false
           },
           {
             "name": "bps",
             "doc": "Network bandwidth used in bytes per second (floating)",
-            "type": "number"
+            "type": "number",
+            "optional": false
           }
         ]
       }
@@ -2395,17 +2661,20 @@
         {
           "name": "action",
           "doc": "The manifest action corresponding to this launch target.\nFor implicit launch targets, a minimal one will be generated.",
-          "type": "Action"
+          "type": "Action",
+          "optional": false
         },
         {
           "name": "host",
           "doc": "Host this launch target was found for",
-          "type": "Host"
+          "type": "Host",
+          "optional": false
         },
         {
           "name": "strategy",
           "doc": "Detailed launch strategy",
-          "type": "StrategyResult"
+          "type": "StrategyResult",
+          "optional": false
         }
       ]
     },
@@ -2416,17 +2685,20 @@
         {
           "name": "id",
           "doc": "itch.io user ID, doubling as profile ID",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "lastConnected",
           "doc": "Timestamp the user last connected at (to the client)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "user",
           "doc": "User information",
-          "type": "User"
+          "type": "User",
+          "optional": false
         }
       ]
     },
@@ -2437,27 +2709,32 @@
         {
           "name": "id",
           "doc": "Game ID",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "title",
           "doc": "Game title",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "cover",
           "doc": "Game cover",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "owned",
           "doc": "True if owned",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "installedAt",
           "doc": "Non-nil if installed (has caves)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -2468,17 +2745,20 @@
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": true
         },
         {
           "name": "installed",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": true
         },
         {
           "name": "owned",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": true
         }
       ]
     },
@@ -2489,7 +2769,8 @@
         {
           "name": "gameId",
           "doc": "Return only download keys for given game",
-          "type": "number"
+          "type": "number",
+          "optional": true
         }
       ]
     },
@@ -2500,12 +2781,14 @@
         {
           "name": "installed",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": false
         }
       ]
     },
@@ -2516,12 +2799,14 @@
         {
           "name": "visibility",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "paidStatus",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -2532,27 +2817,32 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "viewsCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "downloadsCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "purchasesCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "published",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -2563,12 +2853,14 @@
         {
           "name": "installed",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": false
         }
       ]
     },
@@ -2579,17 +2871,20 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "gameId",
           "doc": "Identifier of the game to which this download key grants access",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date this key was created at (often coincides with purchase time)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -2600,27 +2895,32 @@
         {
           "name": "id",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "gameId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "lastTouchedAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "secondsRun",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "installedSize",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -2631,32 +2931,38 @@
         {
           "name": "id",
           "doc": "Unique identifier of this cave (UUID)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "game",
           "doc": "Game that's installed in this cave",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "upload",
           "doc": "Upload that's installed in this cave",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "Build that's installed in this cave, if the upload is wharf-powered",
-          "type": "Build"
+          "type": "Build",
+          "optional": true
         },
         {
           "name": "stats",
           "doc": "Stats about cave usage and first install",
-          "type": "CaveStats"
+          "type": "CaveStats",
+          "optional": false
         },
         {
           "name": "installInfo",
           "doc": "Information about where the cave is installed, how much space it takes up etc.",
-          "type": "CaveInstallInfo"
+          "type": "CaveInstallInfo",
+          "optional": false
         }
       ]
     },
@@ -2667,17 +2973,20 @@
         {
           "name": "installedAt",
           "doc": "Time the cave was first installed",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "lastTouchedAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "secondsRun",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -2688,22 +2997,26 @@
         {
           "name": "installedSize",
           "doc": "Size the cave takes up - or at least, size it took up when we finished\ninstalling it. Does not include files generated by the game in the install folder.",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "installLocation",
           "doc": "Name of the install location for this cave. This may change if the cave\nis moved.",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "installFolder",
           "doc": "Absolute path to the install folder",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "pinned",
           "doc": "If true, this cave is ignored while checking for updates",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -2714,17 +3027,20 @@
         {
           "name": "id",
           "doc": "Unique identifier for this install location",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "path",
           "doc": "Absolute path on disk for this install location",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "sizeInfo",
           "doc": "Information about the size used and available at this install location",
-          "type": "InstallLocationSizeInfo"
+          "type": "InstallLocationSizeInfo",
+          "optional": false
         }
       ]
     },
@@ -2735,17 +3051,20 @@
         {
           "name": "installedSize",
           "doc": "Number of bytes used by caves installed in this location",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "freeSize",
           "doc": "Free space at this location (depends on the partition/disk on which\nit is), or a negative value if we can't find it",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "totalSize",
           "doc": "Total space of this location (depends on the partition/disk on which\nit is), or a negative value if we can't find it",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -2756,17 +3075,20 @@
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": true
         },
         {
           "name": "gameId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": true
         },
         {
           "name": "installLocationId",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -2777,37 +3099,44 @@
         {
           "name": "upload",
           "doc": "",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "",
-          "type": "Build"
+          "type": "Build",
+          "optional": false
         },
         {
           "name": "type",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "diskUsage",
           "doc": "",
-          "type": "DiskUsageInfo"
+          "type": "DiskUsageInfo",
+          "optional": false
         },
         {
           "name": "error",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "errorMessage",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "errorCode",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -2818,17 +3147,20 @@
         {
           "name": "finalDiskUsage",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "neededFreeSpace",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "accuracy",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -2839,12 +3171,14 @@
         {
           "name": "apiKey",
           "doc": "A valid itch.io API key",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "downloadKey",
           "doc": "A download key identifier, or 0 if no download key is available",
-          "type": "number"
+          "type": "number",
+          "optional": true
         }
       ]
     },
@@ -2855,67 +3189,80 @@
         {
           "name": "id",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "error",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "errorMessage",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "errorCode",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "reason",
           "doc": "",
-          "type": "DownloadReason"
+          "type": "DownloadReason",
+          "optional": false
         },
         {
           "name": "position",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "caveId",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "game",
           "doc": "",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "upload",
           "doc": "",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "",
-          "type": "Build"
+          "type": "Build",
+          "optional": false
         },
         {
           "name": "startedAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "finishedAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "stagingFolder",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -2926,22 +3273,26 @@
         {
           "name": "stage",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "progress",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "eta",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "bps",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -2952,17 +3303,20 @@
         {
           "name": "runtime",
           "doc": "os + arch, e.g. windows-i386, linux-amd64",
-          "type": "Runtime"
+          "type": "Runtime",
+          "optional": false
         },
         {
           "name": "wrapper",
           "doc": "wrapper tool (wine, etc.) that butler can launch itself",
-          "type": "Wrapper"
+          "type": "Wrapper",
+          "optional": false
         },
         {
           "name": "remoteLaunchName",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -2973,32 +3327,38 @@
         {
           "name": "beforeTarget",
           "doc": "wrapper {HERE} game.exe --launch-editor",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": false
         },
         {
           "name": "betweenTargetAndArgs",
           "doc": "wrapper game.exe {HERE} --launch-editor",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": false
         },
         {
           "name": "afterArgs",
           "doc": "wrapper game.exe --launch-editor {HERE}",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": false
         },
         {
           "name": "wrapperBinary",
           "doc": "full path to the wrapper, like \"wine\"",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "env",
           "doc": "additional environment variables",
-          "type": "{ [key: string]: string }"
+          "type": "{ [key: string]: string }",
+          "optional": false
         },
         {
           "name": "needRelativeTarget",
           "doc": "When this is true, the wrapper can't function like this:\n\n$ wine /path/to/game.exe\n\nIt needs to function like this:\n\n$ cd /path/to\n$ wine game.exe\n\nThis is at least true for wine, which cannot find required DLLs\notherwise. This might be true for other wrappers, so it's an option here.",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -3009,17 +3369,20 @@
         {
           "name": "basePath",
           "doc": "BasePath is the absolute path of the folder that was configured",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "totalSize",
           "doc": "TotalSize is the size in bytes of the folder and all its children, recursively",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "candidates",
           "doc": "Candidates is a list of potentially interesting files, with a lot of additional info",
-          "type": "Candidate[]"
+          "type": "Candidate[]",
+          "optional": false
         }
       ]
     },
@@ -3030,67 +3393,80 @@
         {
           "name": "path",
           "doc": "Path is relative to the configured folder",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "mode",
           "doc": "Mode describes file permissions",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "depth",
           "doc": "Depth is the number of path elements leading up to this candidate",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "flavor",
           "doc": "Flavor is the type of a candidate - native, html, jar etc.",
-          "type": "Flavor"
+          "type": "Flavor",
+          "optional": false
         },
         {
           "name": "arch",
           "doc": "Arch describes the architecture of a candidate (where relevant)",
-          "type": "Arch"
+          "type": "Arch",
+          "optional": false
         },
         {
           "name": "size",
           "doc": "Size is the size of the candidate's file, in bytes",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "spell",
           "doc": "Spell contains raw output from \u003chttps://github.com/itchio/wizardry\u003e",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": true
         },
         {
           "name": "windowsInfo",
           "doc": "WindowsInfo contains information specific to native Windows candidates",
-          "type": "WindowsInfo"
+          "type": "WindowsInfo",
+          "optional": true
         },
         {
           "name": "linuxInfo",
           "doc": "LinuxInfo contains information specific to native Linux candidates",
-          "type": "LinuxInfo"
+          "type": "LinuxInfo",
+          "optional": true
         },
         {
           "name": "macosInfo",
           "doc": "MacosInfo contains information specific to native macOS candidates",
-          "type": "MacosInfo"
+          "type": "MacosInfo",
+          "optional": true
         },
         {
           "name": "loveInfo",
           "doc": "LoveInfo contains information specific to Love2D bundles (`.love` files)",
-          "type": "LoveInfo"
+          "type": "LoveInfo",
+          "optional": true
         },
         {
           "name": "scriptInfo",
           "doc": "ScriptInfo contains information specific to shell scripts (`.sh`, `.bat` etc.)",
-          "type": "ScriptInfo"
+          "type": "ScriptInfo",
+          "optional": true
         },
         {
           "name": "jarInfo",
           "doc": "JarInfo contains information specific to Java archives (`.jar` files)",
-          "type": "JarInfo"
+          "type": "JarInfo",
+          "optional": true
         }
       ]
     },
@@ -3101,22 +3477,26 @@
         {
           "name": "installerType",
           "doc": "Particular type of installer (msi, inno, etc.)",
-          "type": "WindowsInstallerType"
+          "type": "WindowsInstallerType",
+          "optional": true
         },
         {
           "name": "uninstaller",
           "doc": "True if we suspect this might be an uninstaller rather than an installer",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": true
         },
         {
           "name": "gui",
           "doc": "Is this executable marked as GUI? This can be false and still pop a GUI, it's just a hint.",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": true
         },
         {
           "name": "dotNet",
           "doc": "Is this a .NET assembly?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": true
         }
       ]
     },
@@ -3137,7 +3517,8 @@
         {
           "name": "version",
           "doc": "The version of love2D required to open this bundle. May be empty",
-          "type": "string"
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -3148,7 +3529,8 @@
         {
           "name": "interpreter",
           "doc": "Something like `/bin/bash`",
-          "type": "string"
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -3159,7 +3541,8 @@
         {
           "name": "mainClass",
           "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
-          "type": "string"
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -3170,42 +3553,50 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "username",
           "doc": "The user's username (used for login)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "displayName",
           "doc": "The user's display name: human-friendly, may contain spaces, unicode etc.",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "developer",
           "doc": "Has the user opted into creating games?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "pressUser",
           "doc": "Is the user part of itch.io's press program?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "url",
           "doc": "The address of the user's page on itch.io",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "coverUrl",
           "doc": "User's avatar, may be a GIF",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "stillCoverUrl",
           "doc": "Static version of user's avatar, only set if the main cover URL is a GIF",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3216,117 +3607,140 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "url",
           "doc": "Canonical address of the game's page on itch.io",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "title",
           "doc": "Human-friendly title (may contain any character)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "shortText",
           "doc": "Human-friendly short description",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "type",
           "doc": "Downloadable game, html game, etc.",
-          "type": "GameType"
+          "type": "GameType",
+          "optional": false
         },
         {
           "name": "classification",
           "doc": "Classification: game, tool, comic, etc.",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": false
         },
         {
           "name": "embed",
           "doc": "Configuration for embedded (HTML5) games",
-          "type": "GameEmbedData"
+          "type": "GameEmbedData",
+          "optional": true
         },
         {
           "name": "coverUrl",
           "doc": "Cover url (might be a GIF)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "stillCoverUrl",
           "doc": "Non-gif cover url, only set if main cover url is a GIF",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date the game was created",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "publishedAt",
           "doc": "Date the game was published, empty if not currently published",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "minPrice",
           "doc": "Price in cents of a dollar",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "canBeBought",
           "doc": "Are payments accepted?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "hasDemo",
           "doc": "Does this game have a demo available?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "inPressSystem",
           "doc": "Is this game part of the itch.io press system?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "platforms",
           "doc": "Platforms this game is available for",
-          "type": "Platforms"
+          "type": "Platforms",
+          "optional": false
         },
         {
           "name": "user",
           "doc": "The user account this game is associated to",
-          "type": "User"
+          "type": "User",
+          "optional": true
         },
         {
           "name": "userId",
           "doc": "ID of the user account this game is associated to",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "sale",
           "doc": "The best current sale for this game",
-          "type": "Sale"
+          "type": "Sale",
+          "optional": true
         },
         {
           "name": "viewsCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "downloadsCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "purchasesCount",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "published",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -3337,17 +3751,20 @@
         {
           "name": "windows",
           "doc": "",
-          "type": "Architectures"
+          "type": "Architectures",
+          "optional": false
         },
         {
           "name": "linux",
           "doc": "",
-          "type": "Architectures"
+          "type": "Architectures",
+          "optional": false
         },
         {
           "name": "osx",
           "doc": "",
-          "type": "Architectures"
+          "type": "Architectures",
+          "optional": false
         }
       ]
     },
@@ -3358,22 +3775,26 @@
         {
           "name": "gameId",
           "doc": "Game this embed info is for",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "width",
           "doc": "width of the initial viewport, in pixels",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "height",
           "doc": "height of the initial viewport, in pixels",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "fullscreen",
           "doc": "for itch.io website, whether or not a fullscreen button should be shown",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -3384,27 +3805,32 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "gameId",
           "doc": "Game this sale is for",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "rate",
           "doc": "Discount rate in percent.\nCan be negative, see https://itch.io/updates/introducing-reverse-sales",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "startDate",
           "doc": "Timestamp the sale started at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "endDate",
           "doc": "Timestamp the sale ends at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -3415,77 +3841,92 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "storage",
           "doc": "Storage (hosted, external, etc.)",
-          "type": "UploadStorage"
+          "type": "UploadStorage",
+          "optional": false
         },
         {
           "name": "host",
           "doc": "Host (if external storage)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "filename",
           "doc": "Original file name (example: `Overland_x64.zip`)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "displayName",
           "doc": "Human-friendly name set by developer (example: `Overland for Windows 64-bit`)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "size",
           "doc": "Size of upload in bytes. For wharf-enabled uploads, it's the archive size.",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "channelName",
           "doc": "Name of the wharf channel for this upload, if it's a wharf-enabled upload",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "Latest build for this upload, if it's a wharf-enabled upload",
-          "type": "Build"
+          "type": "Build",
+          "optional": false
         },
         {
           "name": "buildId",
           "doc": "ID of the latest build for this upload, if it's a wharf-enabled upload",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "type",
           "doc": "Upload type: default, soundtrack, etc.",
-          "type": "UploadType"
+          "type": "UploadType",
+          "optional": false
         },
         {
           "name": "preorder",
           "doc": "Is this upload a pre-order placeholder?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "demo",
           "doc": "Is this upload a free demo?",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "platforms",
           "doc": "Platforms this upload is compatible with",
-          "type": "Platforms"
+          "type": "Platforms",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date this upload was created at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "Date this upload was last updated at (order changed, display name set, etc.)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -3496,42 +3937,50 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "title",
           "doc": "Human-friendly title for collection, for example `Couch coop games`",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date this collection was created at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "Date this collection was last updated at (item added, title set, etc.)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "gamesCount",
           "doc": "Number of games in the collection. This might not be accurate\nas some games might not be accessible to whoever is asking (project\npage deleted, visibility level changed, etc.)",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "collectionGames",
           "doc": "Games in this collection, with additional info",
-          "type": "CollectionGame[]"
+          "type": "CollectionGame[]",
+          "optional": false
         },
         {
           "name": "userId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "user",
           "doc": "",
-          "type": "User"
+          "type": "User",
+          "optional": false
         }
       ]
     },
@@ -3542,47 +3991,56 @@
         {
           "name": "collectionId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "collection",
           "doc": "",
-          "type": "Collection"
+          "type": "Collection",
+          "optional": false
         },
         {
           "name": "gameId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "game",
           "doc": "",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "position",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "blurb",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "userId",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -3593,32 +4051,38 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "gameId",
           "doc": "Identifier of the game to which this download key grants access",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "game",
           "doc": "Game to which this download key grants access",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date this key was created at (often coincides with purchase time)",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "Date this key was last updated at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "ownerId",
           "doc": "Identifier of the itch.io user to which this key belongs",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -3629,47 +4093,56 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "parentBuildId",
           "doc": "Identifier of the build before this one on the same channel,\nor 0 if this is the initial build.",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "state",
           "doc": "State of the build: started, processing, etc.",
-          "type": "BuildState"
+          "type": "BuildState",
+          "optional": false
         },
         {
           "name": "version",
           "doc": "Automatically-incremented version number, starting with 1",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "userVersion",
           "doc": "Value specified by developer with `--userversion` when pushing a build\nMight not be unique across builds of a given channel.",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "files",
           "doc": "Files associated with this build - often at least an archive,\na signature, and a patch. Some might be missing while the build\nis still processing or if processing has failed.",
-          "type": "BuildFile[]"
+          "type": "BuildFile[]",
+          "optional": false
         },
         {
           "name": "user",
           "doc": "User who pushed the build",
-          "type": "User"
+          "type": "User",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Timestamp the build was created at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "Timestamp the build was last updated at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -3680,37 +4153,44 @@
         {
           "name": "id",
           "doc": "Site-wide unique identifier generated by itch.io",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "size",
           "doc": "Size of this build file",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "state",
           "doc": "State of this file: created, uploading, uploaded, etc.",
-          "type": "BuildFileState"
+          "type": "BuildFileState",
+          "optional": false
         },
         {
           "name": "type",
           "doc": "Type of this build file: archive, signature, patch, etc.",
-          "type": "BuildFileType"
+          "type": "BuildFileType",
+          "optional": false
         },
         {
           "name": "subType",
           "doc": "Subtype of this build file, usually indicates compression",
-          "type": "BuildFileSubType"
+          "type": "BuildFileSubType",
+          "optional": false
         },
         {
           "name": "createdAt",
           "doc": "Date this build file was created at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "updatedAt",
           "doc": "Date this build file was last updated at",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         }
       ]
     },
@@ -3721,47 +4201,56 @@
         {
           "name": "type",
           "doc": "",
-          "type": "InstallEventType"
+          "type": "InstallEventType",
+          "optional": false
         },
         {
           "name": "timestamp",
           "doc": "",
-          "type": "RFCDate"
+          "type": "RFCDate",
+          "optional": false
         },
         {
           "name": "heal",
           "doc": "",
-          "type": "HealInstallEvent"
+          "type": "HealInstallEvent",
+          "optional": false
         },
         {
           "name": "install",
           "doc": "",
-          "type": "InstallInstallEvent"
+          "type": "InstallInstallEvent",
+          "optional": false
         },
         {
           "name": "upgrade",
           "doc": "",
-          "type": "UpgradeInstallEvent"
+          "type": "UpgradeInstallEvent",
+          "optional": false
         },
         {
           "name": "ghostBusting",
           "doc": "",
-          "type": "GhostBustingInstallEvent"
+          "type": "GhostBustingInstallEvent",
+          "optional": false
         },
         {
           "name": "patching",
           "doc": "",
-          "type": "PatchingInstallEvent"
+          "type": "PatchingInstallEvent",
+          "optional": false
         },
         {
           "name": "problem",
           "doc": "",
-          "type": "ProblemInstallEvent"
+          "type": "ProblemInstallEvent",
+          "optional": false
         },
         {
           "name": "fallback",
           "doc": "",
-          "type": "FallbackInstallEvent"
+          "type": "FallbackInstallEvent",
+          "optional": false
         }
       ]
     },
@@ -3772,7 +4261,8 @@
         {
           "name": "manager",
           "doc": "",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3783,12 +4273,14 @@
         {
           "name": "totalCorrupted",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "appliedCaseFixes",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -3799,7 +4291,8 @@
         {
           "name": "numPatches",
           "doc": "",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -3810,12 +4303,14 @@
         {
           "name": "error",
           "doc": "Short error",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "errorStack",
           "doc": "Longer error",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3826,17 +4321,20 @@
         {
           "name": "attempted",
           "doc": "Name of the operation we were trying to do",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "problem",
           "doc": "Problem encountered while trying \"attempted\"",
-          "type": "ProblemInstallEvent"
+          "type": "ProblemInstallEvent",
+          "optional": false
         },
         {
           "name": "nowTrying",
           "doc": "Name of the operation we're falling back to",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3847,12 +4345,14 @@
         {
           "name": "buildID",
           "doc": "Build we patched to",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "subtype",
           "doc": "\"default\" or \"optimized\" (for the +bsdiff variant)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3863,17 +4363,20 @@
         {
           "name": "operation",
           "doc": "Operation that requested the ghost busting (install, upgrade, heal)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "found",
           "doc": "Number of ghost files found",
-          "type": "number"
+          "type": "number",
+          "optional": false
         },
         {
           "name": "removed",
           "doc": "Number of ghost files removed",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -3884,27 +4387,32 @@
         {
           "name": "game",
           "doc": "The itch.io game installed at this location",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "upload",
           "doc": "The itch.io upload installed at this location",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "The itch.io build installed at this location. Null for non-wharf upload.",
-          "type": "Build"
+          "type": "Build",
+          "optional": false
         },
         {
           "name": "files",
           "doc": "A list of installed files (slash-separated paths, relative to install folder)",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": false
         },
         {
           "name": "installerName",
           "doc": "The installer used to install at this location",
-          "type": "string"
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -3915,12 +4423,14 @@
         {
           "name": "actions",
           "doc": "Actions are a list of options to give the user when launching a game.",
-          "type": "Actions"
+          "type": "Actions",
+          "optional": false
         },
         {
           "name": "prereqs",
           "doc": "Prereqs describe libraries or frameworks that must be installed\nprior to launching a game",
-          "type": "Prereq[]"
+          "type": "Prereq[]",
+          "optional": false
         }
       ]
     },
@@ -3931,47 +4441,56 @@
         {
           "name": "name",
           "doc": "human-readable or standard name",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "path",
           "doc": "file path (relative to manifest or absolute), URL, etc.",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "icon",
           "doc": "icon name (see static/fonts/icomoon/demo.html, don't include `icon-` prefix)",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "args",
           "doc": "command-line arguments",
-          "type": "string[]"
+          "type": "string[]",
+          "optional": false
         },
         {
           "name": "sandbox",
           "doc": "sandbox opt-in",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "scope",
           "doc": "requested API scope",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "console",
           "doc": "don't redirect stdout/stderr, open in new console window",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "platform",
           "doc": "platform to restrict this action to",
-          "type": "Platform"
+          "type": "Platform",
+          "optional": false
         },
         {
           "name": "locales",
           "doc": "localized action name",
-          "type": "{ [key: string]: ActionLocale }"
+          "type": "{ [key: string]: ActionLocale }",
+          "optional": false
         }
       ]
     },
@@ -3982,7 +4501,8 @@
         {
           "name": "name",
           "doc": "A prerequisite to be installed, see \u003chttps://itch.io/docs/itch/integrating/prereqs/\u003e for the full list.",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -3993,7 +4513,8 @@
         {
           "name": "name",
           "doc": "A localized action name",
-          "type": "string"
+          "type": "string",
+          "optional": false
         }
       ]
     },
@@ -4004,12 +4525,14 @@
         {
           "name": "platform",
           "doc": "",
-          "type": "Platform"
+          "type": "Platform",
+          "optional": false
         },
         {
           "name": "is64",
           "doc": "",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         }
       ]
     },
@@ -4020,17 +4543,20 @@
         {
           "name": "game",
           "doc": "The game we installed",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "upload",
           "doc": "The upload we installed",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "The build we installed",
-          "type": "Build"
+          "type": "Build",
+          "optional": true
         }
       ]
     },
@@ -4041,22 +4567,26 @@
         {
           "name": "caveId",
           "doc": "Cave we found an update for",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "game",
           "doc": "Game we found an update for",
-          "type": "Game"
+          "type": "Game",
+          "optional": false
         },
         {
           "name": "direct",
           "doc": "True if this is a direct update, ie. we're on\na channel that still exists, and there's a new build\nFalse if it's an indirect update, for example a new\nupload that appeared after we installed, but we're\nnot sure if it's an upgrade or other additional content",
-          "type": "boolean"
+          "type": "boolean",
+          "optional": false
         },
         {
           "name": "choices",
           "doc": "Available choice of updates",
-          "type": "GameUpdateChoice[]"
+          "type": "GameUpdateChoice[]",
+          "optional": false
         }
       ]
     },
@@ -4067,17 +4597,20 @@
         {
           "name": "upload",
           "doc": "Upload to be installed",
-          "type": "Upload"
+          "type": "Upload",
+          "optional": false
         },
         {
           "name": "build",
           "doc": "Build to be installed (may be nil)",
-          "type": "Build"
+          "type": "Build",
+          "optional": false
         },
         {
           "name": "confidence",
           "doc": "How confident we are that this is the right upgrade",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -4088,12 +4621,14 @@
         {
           "name": "fullName",
           "doc": "Full name of the prerequisite, for example: `Microsoft .NET Framework 4.6.2`",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "order",
           "doc": "Order of task in the list. Respect this order in the UI if you want consistent progress indicators.",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     },
@@ -4104,12 +4639,14 @@
         {
           "name": "path",
           "doc": "The complete path of the file or folder we intend to remove",
-          "type": "string"
+          "type": "string",
+          "optional": false
         },
         {
           "name": "size",
           "doc": "The size of the folder or file, in bytes",
-          "type": "number"
+          "type": "number",
+          "optional": false
         }
       ]
     }
