@@ -40,7 +40,11 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	if err != nil {
 		return nil, err
 	}
-	baseUploads = narrowRes.Uploads
+
+	if len(narrowRes.Uploads) != 0 {
+		consumer.Statf("No compatible uploads, showing incompatible uploads as well.")
+		baseUploads = narrowRes.Uploads
+	}
 
 	// exclude already-installed and currently-installing uploads
 	var uploadIDs []interface{}
