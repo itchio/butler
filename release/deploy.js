@@ -35,7 +35,8 @@ async function main(_args) {
   let toolsDir = join(process.cwd(), `tools`);
   mkdirSync(toolsDir, { recursive: true });
   await cd(toolsDir, async () => {
-    let ref = `65bf13509d214308111a7b9c0f227099034536c7`;
+    // this is hard coded old vesrion that is known to work, so that we can use butler to upload butler
+    let ref = `898b30bb2cadaaf561d91c4f7784aa1927c5cfb2`;
     let url = `https://broth.itch.zone/butler/linux-amd64-head/${ref}/.zip`;
     $(`curl -sLo butler.zip "${url}"`);
     $(`unzip butler.zip`);
