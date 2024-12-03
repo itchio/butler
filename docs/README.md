@@ -18,7 +18,7 @@ It is also a good showcase of the *Wharf open specification*, using only
 openly documented algorithms and file formats, encouraging the development
 of compatible tools:
 
-  * <https://docs.itch.ovh/wharf>
+  * <https://docs.itch.zone/wharf>
 
 And is used by [the itch app](https://itch.io/app) for various operations.
 

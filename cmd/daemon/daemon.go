@@ -38,7 +38,7 @@ func Register(ctx *mansion.Context) {
 
 func do(ctx *mansion.Context) {
 	if !comm.JsonEnabled() {
-		comm.Notice("Hello from butler daemon", []string{"We can't do anything interesting without --json, bailing out", "", "Learn more: https://docs.itch.ovh/butlerd/master/"})
+		comm.Notice("Hello from butler daemon", []string{"We can't do anything interesting without --json, bailing out", "", "Learn more: https://docs.itch.zone/butlerd/master/"})
 		os.Exit(1)
 	}
 

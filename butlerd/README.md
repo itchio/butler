@@ -5,5 +5,5 @@ using butler for long-running tasks (called operations) or one-off requests.
 
 ### Documentation
 
-Comprehensive documentation is available at <http://docs.itch.ovh/butlerd/master/>
+Comprehensive documentation is available at <http://docs.itch.zone/butlerd/master/>
 

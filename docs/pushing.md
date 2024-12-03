@@ -33,7 +33,7 @@ These are two extreme cases — most of the time, you'll be somewhere in the mid
 with maybe 5% to 20% fresh data in a push, saving 80% to 95% (more with compression)
 of your data/time/internet bandwidth.
 
-*Note: the first push is a `patch` too (from [the empty container](https://docs.itch.ovh/wharf/master/terminology.html) to the first version
+*Note: the first push is a `patch` too (from [the empty container](https://docs.itch.zone/wharf/master/terminology.html) to the first version
 of your game). It has savings as well, because butler uploads compressed data: you could be pushing a 300MB build but only sending 120MB over the network.*
 
 Pushing to a new channel will make a corresponding file appear on your game's page:
@@ -155,7 +155,7 @@ the error 'invalid game', to avoid potentially leaking information about unrelea
   * Signature of the previous build (if any) is downloaded
   * Files from the local directory/archive are scanned
   * Differences between the local (newer) & remote (older) build are
-    * computed (by comparing hashes, see the [Wharf specification](https://docs.itch.ovh/wharf/))
+    * computed (by comparing hashes, see the [Wharf specification](https://docs.itch.zone/wharf/))
     * ...and compressed (with a fast preset)
     * ...and uploaded to [itch.io](https://itch.io)
 
