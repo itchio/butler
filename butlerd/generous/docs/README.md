@@ -155,7 +155,7 @@ installing them.
 
 Use the following HTTP endpoint to check for a newer version:
 
-  * <https://broth.itch.ovh/butler/windows-amd64/LATEST>
+  * <https://broth.itch.zone/butler/windows-amd64/LATEST>
 
 Where `windows-amd64` is one of:
 
@@ -169,7 +169,7 @@ Where `windows-amd64` is one of:
 For example, if the contents of `LATEST` is `11.1.0`, then
 the latest version of butler can be downloaded via:
 
-  * <https://broth.itch.ovh/butler/windows-amd64/11.1.0/butler/.zip>
+  * <https://broth.itch.zone/butler/windows-amd64/11.1.0/butler/.zip>
 
 Make sure when you unzip it, that the executable bit is set on Linux & macOS.
 

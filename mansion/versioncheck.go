@@ -17,7 +17,7 @@ func (ctx *Context) UpdateBaseURL(variant VersionVariant) string {
 	if variant == VersionVariantHead {
 		channel += "-head"
 	}
-	return fmt.Sprintf("https://broth.itch.ovh/butler/%s", channel)
+	return fmt.Sprintf("https://broth.itch.zone/butler/%s", channel)
 }
 
 func (ctx *Context) DoVersionCheck() {

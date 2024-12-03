@@ -174,7 +174,7 @@ func fetchWindowsButler(params RunSelfParams, info *launchInfo) error {
 
 	installFolder := filepath.Join(params.PrereqsDir, osarch, "butler", version)
 	consumer.Debugf("Will install to: (%s)", installFolder)
-	url := fmt.Sprintf("https://broth.itch.ovh/butler/%s/%s/archive/default", channel, version)
+	url := fmt.Sprintf("https://broth.itch.zone/butler/%s/%s/archive/default", channel, version)
 
 	f, err := eos.Open(url, option.WithConsumer(consumer))
 	if err != nil {

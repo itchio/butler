@@ -21,7 +21,7 @@ import (
 func Test(ctx *mansion.Context, prereqs []string) error {
 	comm.Opf("Fetching registry...")
 
-	baseURL := "https://broth.itch.ovh/itch-redists"
+	baseURL := "https://broth.itch.zone/itch-redists"
 
 	infoURL := fmt.Sprintf("%s/info/LATEST/unpacked/default", baseURL)
 	res, err := http.Get(infoURL)

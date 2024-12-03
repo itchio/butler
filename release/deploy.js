@@ -36,7 +36,7 @@ async function main(_args) {
   mkdirSync(toolsDir, { recursive: true });
   await cd(toolsDir, async () => {
     let ref = `65bf13509d214308111a7b9c0f227099034536c7`;
-    let url = `https://broth.itch.ovh/butler/linux-amd64-head/${ref}/.zip`;
+    let url = `https://broth.itch.zone/butler/linux-amd64-head/${ref}/.zip`;
     $(`curl -sLo butler.zip "${url}"`);
     $(`unzip butler.zip`);
   });

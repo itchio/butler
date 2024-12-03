@@ -13,7 +13,7 @@ Better yet, you can install it using the [itch app](https://itch.io/app), so it 
 
 You can download the latest, bleeding-edge version of butler from broth:
 
-  - <https://broth.itch.ovh/butler>
+  - <https://broth.itch.zone/butler>
 
 broth is the download server used by the desktop app to install its own copy of butler.
 
@@ -23,7 +23,7 @@ This is recommended if you need to install butler as part of a script, perhaps f
 
 If you want to get the latest stable, for example, you could curl or wget the following URL:
 
-  - <https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default>
+  - <https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default>
 
 You can substitute `linux-amd64` with any channel listed on broth.
 
@@ -33,7 +33,7 @@ an example bash script to install the latest stable butler for Linux:
 ```
 # -L follows redirects
 # -O specifies output name
-curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+curl -L -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
 unzip butler.zip
 # GNU unzip tends to not set the executable bit even though it's set in the .zip
 chmod +x butler
@@ -138,20 +138,3 @@ about PowerShell you probably didn't need to read most of this page anyway.*
 If you ever forget where you put your butler.exe, the `butler which` command
 will print its complete path.
 
-## Appendix: What happened to dl.itch.ovh ?
-
-If you followed these instructions before September 2018, you might have
-download URLs starting with `dl.itch.ovh`. While new versions of butler are
-still being deployed to that server for the time being, it is deprecated
-and new CI setups should use the latest `broth.itch.ovh` URLs instead.
-
-`dl.itch.ovh` was a simple storage bucket with a proxy in front. It did
-the job, but some users were unable to access it, and download speeds were
-sometimes suboptimal for non-US users. `broth.itch.ovh` serves downloads
-through itch.io's CDN, which means every should have access and reasonable
-download speeds.
-
-Additionally, `dl.itch.ovh` served "naked binaries", whereas `broth.itch.ovh`
-now serves .zip archives, because the full butler distribution is more than
-one file. See the install instructions above for what these files are, and
-example bash code on how to install butler from broth.

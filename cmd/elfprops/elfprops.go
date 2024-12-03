@@ -119,7 +119,7 @@ func do(ctx *mansion.Context) {
 			processLib := func(libName string) {
 				values := make(url.Values)
 				values.Add("file", libName)
-				searchURL := fmt.Sprintf("https://broth.itch.ovh/debsearch/by-file-path/ubuntu/%s/%s?%s", codeword, debarch, values.Encode())
+				searchURL := fmt.Sprintf("https://broth.itch.zone/debsearch/by-file-path/ubuntu/%s/%s?%s", codeword, debarch, values.Encode())
 				log.Printf("Querying broth (%s)...", searchURL)
 
 				res, err := client.Get(searchURL)

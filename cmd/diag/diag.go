@@ -121,7 +121,7 @@ func do(mc *mansion.Context) {
 		runTest("CDN reachable", httpTest("https://static.itch.io/ping.txt", 200))
 		runTest("Web reachable", httpTest("https://itch.io/static/ping.txt", 200))
 		runTest("API reachable", httpTest("https://api.itch.io/login", 405))
-		runTest("Broth reachable", httpTest("https://broth.itch.ovh", 200))
+		runTest("Broth reachable", httpTest("https://broth.itch.zone", 200))
 	}
 
 	if params.Glibc {
@@ -169,7 +169,7 @@ func do(mc *mansion.Context) {
 	}
 
 	if params.Speed {
-		testFileURL := "https://broth.itch.ovh/speedtest/100mib/LATEST/archive/default"
+		testFileURL := "https://broth.itch.zone/speedtest/100mib/LATEST/archive/default"
 
 		runTracker := func(contentLength int64, cancel context.CancelFunc, f func(t tracker.Tracker) error) (string, error) {
 			t := tracker.New(tracker.Opts{
