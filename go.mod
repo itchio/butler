@@ -56,7 +56,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
-	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
+	golang.org/x/sys v0.2.0
 	golang.org/x/text v0.3.3
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	google.golang.org/protobuf v1.24.0 // indirect
