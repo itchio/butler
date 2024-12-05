@@ -4,6 +4,14 @@
 butler was designed to be integrated into your workflow, no matter which tools
 you prefer. Here's a list of existing integrations.
 
+## butlerswarm
+
+[butlerswarm](https://gitlab.com/zacryol/butlerswarm) is a CLI app for
+pushing multiple builds to itch.io. Due to its simplicity, it can be
+implemented as a component of a larger workflow, or run directly.
+
+  * [View butlerswarm on Gitlab](https://gitlab.com/zacryol/butlerswarm)
+
 ## unity-build
 
 [unity-build](https://github.com/Chaser324/unity-build) is a set of a build
