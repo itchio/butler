@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe
-	github.com/itchio/boar v0.0.0-20200305195307-d2befc01fa9e
+	github.com/itchio/boar v0.0.0-20241212212617-458ddb7ee42c
 	github.com/itchio/dash v0.0.0-20200305193527-478357e813a2
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20200826214038-a03acb9221a2
