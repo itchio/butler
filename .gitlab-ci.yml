@@ -3,7 +3,6 @@ stages:
   - build
   - deploy
 
-
 variables:
   SKIP_CODECOV: 1 # codecov is run on github actions, not necessary on gitlab build
 
@@ -52,6 +51,7 @@ build:linux:x86_64:
   tags:
     - linux
   script:
+    - env
     - npm ci --no-audit
     - node release/build.js --os linux --arch x86_64
   artifacts:
