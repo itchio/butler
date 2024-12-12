@@ -6,13 +6,13 @@ stages:
 variables:
   SKIP_CODECOV: 1 # codecov is run on github actions, not necessary on gitlab build
 
-book:
-  stage: deploy
-  tags:
-    - linux
-  script:
-    - npm ci --no-audit
-    - node release/book.js
+# book:
+#   stage: deploy
+#   tags:
+#     - linux
+#   script:
+#     - npm ci --no-audit
+#     - node release/book.js
 
 generous:
   stage: deploy
