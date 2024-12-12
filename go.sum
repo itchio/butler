@@ -117,13 +117,14 @@ github.com/itchio/arkive v0.0.0-20200301155608-aeded25a0494/go.mod h1:EcWY5f3+D6
 github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe h1:/Ah2KhQIStcm+a/Ha/RlxVhpQUgVdcS3AEz7fLTm0tU=
 github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe/go.mod h1:EcWY5f3+D6wMuNE1T+zuixVjXN8o1n9dWaRjHEvFd70=
 github.com/itchio/boar v0.0.0-20200305195307-d2befc01fa9e/go.mod h1:vA899hvhYA1wBwEvssCBtuBFdlKLIfxWw+vvr8TT7MI=
-github.com/itchio/boar v0.0.0-20241212212617-458ddb7ee42c h1:SAUM7cAtw1DMHTEoPYpa+DBPPq59L+4MlZVvXpoSqYg=
-github.com/itchio/boar v0.0.0-20241212212617-458ddb7ee42c/go.mod h1:vA899hvhYA1wBwEvssCBtuBFdlKLIfxWw+vvr8TT7MI=
+github.com/itchio/boar v0.0.0-20241212231610-4b0ac4400297 h1:hL591CNfKCRyuyhvF8MvFUmitqUXkhm2x+OiMdxplD8=
+github.com/itchio/boar v0.0.0-20241212231610-4b0ac4400297/go.mod h1:zW3eP7Q4XlFb15SlsXgBSIup0rK1IYfyhcLQ9kLSSY0=
 github.com/itchio/dash v0.0.0-20200305193527-478357e813a2 h1:7D1qbveVnrES+MCh+DoVMnFGSVnxYZbOCzInIF4E6eo=
 github.com/itchio/dash v0.0.0-20200305193527-478357e813a2/go.mod h1:f27hhErRVUtpFG1vshSnKgj2RC1EGlhQy0+6CdTjaiA=
 github.com/itchio/dmcunrar-go v0.0.0-20200301160520-3f7579536695/go.mod h1:rUrDMGTBACKKDvlSJludmw2F3+vsyYHyhF2YM4E0Mrc=
-github.com/itchio/dmcunrar-go v0.0.0-20200303200038-d0b2e3ba28f6 h1:SnQh8jp6mdFsTX0J8WKFJbdiPmrKxwOHWHVv/3RnvKk=
 github.com/itchio/dmcunrar-go v0.0.0-20200303200038-d0b2e3ba28f6/go.mod h1:rUrDMGTBACKKDvlSJludmw2F3+vsyYHyhF2YM4E0Mrc=
+github.com/itchio/dmcunrar-go v0.0.0-20241212230744-bd86d6b265e9 h1:IvEDt0GFOsRYPNMU3OkW8Kd+HltfMV8xOlHeFy5mzzM=
+github.com/itchio/dmcunrar-go v0.0.0-20241212230744-bd86d6b265e9/go.mod h1:rUrDMGTBACKKDvlSJludmw2F3+vsyYHyhF2YM4E0Mrc=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697/go.mod h1:clqOV8HXYpbDC3Bzia6urYIkfgwP1FnDr/C0q8KELmo=
 github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90 h1:FwpOlE4Zcycf7bw+1uLxeZh3Qqz533DQBRPzy1bccbw=
