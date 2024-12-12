@@ -275,7 +275,7 @@ func send(msgType string, obj JsonMessage) {
 }
 
 func showLogin(uri string) {
-	log.Println("\n" + art.ItchLogo)
+	log.Print("\n" + art.ItchLogo + "\n")
 	log.Println("\nWelcome to the itch.io command-line tools!")
 	open.Start(uri) // disregard error
 	log.Println("If it hasn't already, open the following link in your browser to authenticate:")
