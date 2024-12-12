@@ -156,13 +156,13 @@ async function main(args) {
 
   let version = "head";
   let builtAt = $$(`date +%s`);
-  if (process.env.CI_BUILD_TAG) {
-    version = process.env.CI_BUILD_TAG;
+  if (process.env.CI_COMMIT_TAG) {
+    version = process.env.CI_COMMIT_TAG;
   } else if (
-    process.env.CI_BUILD_REF_NAME &&
-    process.env.CI_BUILD_REF_NAME !== "master"
+    process.env.CI_COMMIT_REF_NAME &&
+    process.env.CI_COMMIT_REF_NAME !== "master"
   ) {
-    version = process.env.CI_BUILD_REF_NAME;
+    version = process.env.CI_COMMIT_REF_NAME;
   }
 
   let bi = `github.com/itchio/butler/buildinfo`;

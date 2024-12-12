@@ -51,7 +51,6 @@ build:linux:x86_64:
   tags:
     - linux
   script:
-    - env
     - npm ci --no-audit
     - node release/build.js --os linux --arch x86_64
   artifacts:
