@@ -170,7 +170,7 @@ async function main(args) {
   let ldflags = [
     `-X ${bi}.Version=${version}`,
     `-X ${bi}.BuiltAt=${builtAt}`,
-    `-X ${bi}.Commit=${process.env.CI_BUILD_REF || ""}`,
+    `-X ${bi}.Commit=${process.env.CI_COMMIT_SHA || ""}`,
     "-w",
     "-s",
   ].join(" ");
