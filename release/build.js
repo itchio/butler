@@ -50,6 +50,7 @@ const OS_INFOS = {
   darwin: {
     architectures: {
       x86_64: {},
+      arm64: {},
     },
   },
 };
@@ -61,7 +62,7 @@ async function main(args) {
   /**
    * @type {{
    *   os: "windows" | "linux" | "darwin",
-   *   arch: "i686" | "x86_64",
+   *   arch: "i686" | "x86_64" | "arm64",
    *   userSpecifiedOS?: boolean,
    *   userSpecifiedArch?: boolean,
    * }}
@@ -94,7 +95,7 @@ async function main(args) {
             throw new Error(`Unsupported os ${chalk.yellow(v)}`);
           }
         } else if (k === "arch") {
-          if (v === "i686" || v === "x86_64") {
+          if (v === "i686" || v === "x86_64" || v === "arm64") {
             opts.arch = v;
             opts.userSpecifiedArch = true;
           } else {
@@ -249,8 +250,8 @@ async function main(args) {
 }
 
 /**
- * @param {"i686" | "x86_64"} arch
- * @returns {"386" | "amd64"}
+ * @param {"i686" | "x86_64" | "arm64"} arch
+ * @returns {"386" | "amd64" | "arm64"}
  */
 function archToGoArch(arch) {
   switch (arch) {
@@ -258,6 +259,8 @@ function archToGoArch(arch) {
       return "386";
     case "x86_64":
       return "amd64";
+    case "arm64":
+      return "arm64";
     default:
       throw new Error(`unsupported arch: ${chalk.yellow(arch)}`);
   }
