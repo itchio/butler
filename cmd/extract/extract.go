@@ -1,6 +1,7 @@
 package extract
 
 import (
+	"context"
 	"time"
 
 	"github.com/itchio/boar"
@@ -16,18 +17,22 @@ import (
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/united"
 
+	"github.com/itchio/hush/intervalsaveconsumer"
+
 	"github.com/pkg/errors"
 )
 
 var args = struct {
 	file *string
 	dir  *string
+	resumeFile *string
 }{}
 
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("extract", "Extract any archive file supported by butler or 7-zip").Hidden()
 	args.file = cmd.Arg("file", "Path of the archive to extract").Required().String()
 	args.dir = cmd.Flag("dir", "An optional directory to which to extract files (defaults to CWD)").Default(".").Short('d').String()
+	args.resumeFile = cmd.Flag("resume-file", "When given, write current progress to this file, resume from last location if it exists.").Short('f').String()
 	ctx.Register(cmd, do)
 
 	fetch7zLibsCmd := ctx.App.Command("fetch-7z-libs", "Fetch 7-zip dependencies").Hidden()
@@ -43,6 +48,7 @@ func do(ctx *mansion.Context) {
 		File: *args.file,
 		Dir:  *args.dir,
 
+		ResumeFile: *args.resumeFile,
 		Consumer: comm.NewStateConsumer(),
 	}))
 }
@@ -51,6 +57,7 @@ type ExtractParams struct {
 	File string
 	Dir  string
 
+	ResumeFile string
 	Consumer *state.Consumer
 }
 
@@ -116,12 +123,24 @@ func Do(ctx *mansion.Context, params ExtractParams) error {
 
 		ex.SetConsumer(&delayedConsumer)
 
+		var checkpoint *savior.ExtractorCheckpoint = nil
+
+		if params.ResumeFile != "" {
+			sc := intervalsaveconsumer.New(params.ResumeFile, intervalsaveconsumer.DefaultInterval, &delayedConsumer, context.TODO())
+			ex.SetSaveConsumer(sc)
+			check, err := sc.Load()
+			checkpoint = check
+			if err != nil {
+				consumer.Warnf("Could not load checkpoint: %s", err.Error())
+			}
+		}
+
 		sink := &savior.FolderSink{
 			Directory: params.Dir,
 		}
 		defer sink.Close()
 
-		res, err := ex.Resume(nil, sink)
+		res, err := ex.Resume(checkpoint, sink)
 		comm.EndProgress()
 
 		if err != nil {
