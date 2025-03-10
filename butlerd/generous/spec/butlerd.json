@@ -2410,6 +2410,85 @@
       ]
     },
     {
+      "name": "StrategyResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "strategy",
+          "doc": "Name of launch strategy used for launch target",
+          "type": "LaunchStrategy"
+        },
+        {
+          "name": "fullTargetPath",
+          "doc": "Absolute filesystem path of the target.",
+          "type": "string"
+        },
+        {
+          "name": "candidate",
+          "doc": "If a local file, result of dash configure",
+          "type": "Candidate"
+        }
+      ]
+    },
+    {
+      "name": "MetaAuthenticateResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "ok",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "MetaFlowResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "MetaShutdownResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "VersionGetResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "version",
+          "doc": "Something short, like `v8.0.0`",
+          "type": "string"
+        },
+        {
+          "name": "versionString",
+          "doc": "Something long, like `v8.0.0, built on Aug 27 2017 @ 01:13:55, ref d833cc0aeea81c236c81dffb27bc18b2b8d8b290`",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "NetworkSetSimulateOfflineResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "NetworkSetBandwidthThrottleResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "ProfileListResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profiles",
+          "doc": "A list of remembered profiles",
+          "type": "Profile[]"
+        }
+      ]
+    },
+    {
       "name": "Profile",
       "doc": "Represents a user for which we have profile information,\nie. that we can connect as, etc.",
       "fields": [
@@ -2427,6 +2506,136 @@
           "name": "user",
           "doc": "User information",
           "type": "User"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithPasswordResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profile",
+          "doc": "Information for the new profile, now remembered",
+          "type": "Profile"
+        },
+        {
+          "name": "cookie",
+          "doc": "Profile cookie for website",
+          "type": "{ [key: string]: string }"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithAPIKeyResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profile",
+          "doc": "Information for the new profile, now remembered",
+          "type": "Profile"
+        }
+      ]
+    },
+    {
+      "name": "ProfileRequestCaptchaResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "recaptchaResponse",
+          "doc": "The response given by recaptcha after it's been filled",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProfileRequestTOTPResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "code",
+          "doc": "The TOTP code entered by the user",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProfileUseSavedLoginResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profile",
+          "doc": "Information for the now validated profile",
+          "type": "Profile"
+        }
+      ]
+    },
+    {
+      "name": "ProfileForgetResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "success",
+          "doc": "True if the profile did exist (and was successfully forgotten)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "ProfileDataPutResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "ProfileDataGetResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "ok",
+          "doc": "True if the value existed",
+          "type": "boolean"
+        },
+        {
+          "name": "value",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SearchGamesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "games",
+          "doc": "",
+          "type": "Game[]"
+        }
+      ]
+    },
+    {
+      "name": "SearchUsersResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "users",
+          "doc": "",
+          "type": "User[]"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "Game info",
+          "type": "Game"
+        },
+        {
+          "name": "stale",
+          "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
+          "type": "boolean"
         }
       ]
     },
@@ -2483,6 +2692,38 @@
       ]
     },
     {
+      "name": "FetchGameRecordsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "records",
+          "doc": "All the records that were fetched",
+          "type": "GameRecord[]"
+        },
+        {
+          "name": "stale",
+          "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchDownloadKeyResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "downloadKey",
+          "doc": "",
+          "type": "DownloadKey"
+        },
+        {
+          "name": "stale",
+          "doc": "Marks that a request should be issued afterwards with 'Fresh' set",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
       "name": "FetchDownloadKeysFilter",
       "doc": "",
       "fields": [
@@ -2490,6 +2731,81 @@
           "name": "gameId",
           "doc": "Return only download keys for given game",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "FetchDownloadKeysResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "All the download keys found in the local DB.",
+          "type": "DownloadKey[]"
+        },
+        {
+          "name": "stale",
+          "doc": "Whether the information was fetched from a stale cache,\nand could warrant a refresh if online.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameUploadsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "uploads",
+          "doc": "List of uploads",
+          "type": "Upload[]"
+        },
+        {
+          "name": "stale",
+          "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchUserResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "user",
+          "doc": "User info",
+          "type": "User"
+        },
+        {
+          "name": "stale",
+          "doc": "Marks that a request should be issued\nafterwards with 'Fresh' set",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchSaleResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "sale",
+          "doc": "",
+          "type": "Sale"
+        }
+      ]
+    },
+    {
+      "name": "FetchCollectionResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "collection",
+          "doc": "Collection info",
+          "type": "Collection"
+        },
+        {
+          "name": "stale",
+          "doc": "True if the info was from local DB and\nit should be re-queried using \"Fresh\"",
+          "type": "boolean"
         }
       ]
     },
@@ -2506,6 +2822,48 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        }
+      ]
+    },
+    {
+      "name": "FetchCollectionGamesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Requested games for this collection",
+          "type": "CollectionGame[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Use to fetch the next 'page' of results",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with 'Fresh'",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileCollectionsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Collections belonging to the profile",
+          "type": "Collection[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Used to fetch the next page",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
         }
       ]
     },
@@ -2557,6 +2915,27 @@
       ]
     },
     {
+      "name": "FetchProfileGamesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Profile games",
+          "type": "ProfileGame[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Used to fetch the next page",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
       "name": "ProfileOwnedKeysFilters",
       "doc": "",
       "fields": [
@@ -2569,6 +2948,48 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileOwnedKeysResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Download keys fetched for profile",
+          "type": "DownloadKey[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Used to fetch the next page",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchCommonsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "downloadKeys",
+          "doc": "",
+          "type": "DownloadKeySummary[]"
+        },
+        {
+          "name": "caves",
+          "doc": "",
+          "type": "CaveSummary[]"
+        },
+        {
+          "name": "installLocations",
+          "doc": "",
+          "type": "InstallLocationSummary[]"
         }
       ]
     },
@@ -2771,6 +3192,121 @@
       ]
     },
     {
+      "name": "FetchCavesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "",
+          "type": "Cave[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Use to fetch the next 'page' of results",
+          "type": "Cursor"
+        }
+      ]
+    },
+    {
+      "name": "FetchCaveResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "cave",
+          "doc": "",
+          "type": "Cave"
+        }
+      ]
+    },
+    {
+      "name": "FetchExpireAllResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "GameFindUploadsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "uploads",
+          "doc": "A list of uploads that were found to be compatible.",
+          "type": "Upload[]"
+        }
+      ]
+    },
+    {
+      "name": "InstallQueueResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "doc": "",
+          "type": "DownloadReason"
+        },
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "",
+          "type": "Build"
+        },
+        {
+          "name": "installFolder",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "stagingFolder",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "installLocationId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallPlanResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "uploads",
+          "doc": "",
+          "type": "Upload[]"
+        },
+        {
+          "name": "info",
+          "doc": "",
+          "type": "InstallPlanInfo"
+        }
+      ]
+    },
+    {
       "name": "InstallPlanInfo",
       "doc": "",
       "fields": [
@@ -2833,6 +3369,64 @@
       ]
     },
     {
+      "name": "CavesSetPinnedResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallCreateShortcutResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallPerformResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "events",
+          "doc": "",
+          "type": "InstallEvent[]"
+        }
+      ]
+    },
+    {
+      "name": "InstallCancelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "didCancel",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "UninstallPerformResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallVersionSwitchQueueResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallVersionSwitchPickResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "index",
+          "doc": "A negative index aborts the version switch",
+          "type": "number"
+        }
+      ]
+    },
+    {
       "name": "GameCredentials",
       "doc": "GameCredentials contains all the credentials required to make API requests\nincluding the download key if any.",
       "fields": [
@@ -2845,6 +3439,124 @@
           "name": "downloadKey",
           "doc": "A download key identifier, or 0 if no download key is available",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PickUploadResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "index",
+          "doc": "The index (in the original array) of the upload that was picked,\nor a negative value to cancel.",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsListResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installLocations",
+          "doc": "",
+          "type": "InstallLocationSummary[]"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsAddResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installLocation",
+          "doc": "",
+          "type": "InstallLocationSummary"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsRemoveResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallLocationsGetByIDResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installLocation",
+          "doc": "",
+          "type": "InstallLocationSummary"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsScanConfirmImportResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "confirm",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsScanResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "numFoundItems",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "numImportedItems",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsQueueResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "DownloadsPrioritizeResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "DownloadsListResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "downloads",
+          "doc": "",
+          "type": "Download[]"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsClearFinishedResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "DownloadsDriveResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "DownloadsDriveCancelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "didCancel",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },
@@ -2941,6 +3653,128 @@
         {
           "name": "bps",
           "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsRetryResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "DownloadsDiscardResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "CheckUpdateResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "updates",
+          "doc": "Any updates found (might be empty)",
+          "type": "GameUpdate[]"
+        },
+        {
+          "name": "warnings",
+          "doc": "Warnings messages logged while looking for updates",
+          "type": "string[]"
+        }
+      ]
+    },
+    {
+      "name": "SnoozeCaveResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "LaunchResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "AcceptLicenseResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "accept",
+          "doc": "true if the user accepts the terms of the license, false otherwise.\nNote that false will cancel the launch.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PickManifestActionResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "index",
+          "doc": "Index of action picked by user, or negative if aborting",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ShellLaunchResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "HTMLLaunchResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "URLLaunchResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "AllowSandboxSetupResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "allow",
+          "doc": "Set to true if user allowed the sandbox setup, false otherwise",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PrereqsFailedResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "continue",
+          "doc": "Set to true if the user wants to proceed with the launch in spite of the prerequisites failure",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "SystemStatFSResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "freeSize",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "totalSize",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "TestDoubleResult",
+      "doc": "Result for Test.Double",
+      "fields": [
+        {
+          "name": "number",
+          "doc": "The number, doubled",
           "type": "number"
         }
       ]
@@ -4014,6 +4848,853 @@
       ]
     },
     {
+      "name": "MetaAuthenticateParams",
+      "doc": "When using TCP transport, must be the first message sent",
+      "fields": [
+        {
+          "name": "secret",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "MetaFlowParams",
+      "doc": "When called, defines the entire duration of the daemon's life.\n\nCancelling that conversation (or closing the TCP connection) will\nshut down the daemon after all other requests have finished. This\nallows gracefully switching to another daemon.\n\nThis conversation is also used to send all global notifications,\nregarding data that's fetched, network state, etc.\n\nNote that this call never returns - you have to cancel it when you're\ndone with the daemon.",
+      "fields": null
+    },
+    {
+      "name": "MetaShutdownParams",
+      "doc": "When called, gracefully shutdown the butler daemon.",
+      "fields": null
+    },
+    {
+      "name": "VersionGetParams",
+      "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
+      "fields": null
+    },
+    {
+      "name": "NetworkSetSimulateOfflineParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "enabled",
+          "doc": "If true, all operations after this point will behave\nas if there were no network connections",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "NetworkSetBandwidthThrottleParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "enabled",
+          "doc": "If true, will limit. If false, will clear any bandwidth throttles in place",
+          "type": "boolean"
+        },
+        {
+          "name": "rate",
+          "doc": "The target bandwidth, in kbps",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ProfileListParams",
+      "doc": "Lists remembered profiles",
+      "fields": null
+    },
+    {
+      "name": "ProfileLoginWithPasswordParams",
+      "doc": "Add a new profile by password login",
+      "fields": [
+        {
+          "name": "username",
+          "doc": "The username (or e-mail) to use for login",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "doc": "The password to use",
+          "type": "string"
+        },
+        {
+          "name": "forceRecaptcha",
+          "doc": "Set to true if you want to force recaptcha",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithAPIKeyParams",
+      "doc": "Add a new profile by API key login. This can be used\nfor integration tests, for example. Note that no cookies\nare returned for this kind of login.",
+      "fields": [
+        {
+          "name": "apiKey",
+          "doc": "The API token to use",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProfileRequestCaptchaParams",
+      "doc": "Ask the user to solve a captcha challenge\nSent during @@ProfileLoginWithPasswordParams if certain\nconditions are met.",
+      "fields": [
+        {
+          "name": "recaptchaUrl",
+          "doc": "Address of page containing a recaptcha widget",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProfileRequestTOTPParams",
+      "doc": "Ask the user to provide a TOTP token.\nSent during @@ProfileLoginWithPasswordParams if the user has\ntwo-factor authentication enabled.",
+      "fields": null
+    },
+    {
+      "name": "ProfileUseSavedLoginParams",
+      "doc": "Use saved login credentials to validate a profile.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ProfileForgetParams",
+      "doc": "Forgets a remembered profile - it won't appear in the\n@@ProfileListParams results anymore.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "ProfileDataPutParams",
+      "doc": "Stores some data associated to a profile, by key.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "key",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProfileDataGetParams",
+      "doc": "Retrieves some data associated to a profile, by key.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "key",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SearchGamesParams",
+      "doc": "Searches for games.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "query",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SearchUsersParams",
+      "doc": "Searches for users.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "query",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameParams",
+      "doc": "Fetches information for an itch.io game.",
+      "fields": [
+        {
+          "name": "gameId",
+          "doc": "Identifier of game to look for",
+          "type": "number"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameRecordsParams",
+      "doc": "Fetches game records - owned, installed, in collection,\nwith search, etc. Includes download key info, cave info, etc.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile to use to fetch game",
+          "type": "number"
+        },
+        {
+          "name": "source",
+          "doc": "Source from which to fetch games",
+          "type": "GameRecordsSource"
+        },
+        {
+          "name": "collectionId",
+          "doc": "Collection ID, required if `Source` is \"collection\"",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Maximum number of games to return at a time",
+          "type": "number"
+        },
+        {
+          "name": "offset",
+          "doc": "Games to skip",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows game titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "Criterion to sort by",
+          "type": "string"
+        },
+        {
+          "name": "filters",
+          "doc": "Filters",
+          "type": "GameRecordsFilters"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "fresh",
+          "doc": "If set, will force fresh data",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchDownloadKeyParams",
+      "doc": "Fetches a download key",
+      "fields": [
+        {
+          "name": "downloadKeyId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchDownloadKeysParams",
+      "doc": "Fetches multiple download keys",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "offset",
+          "doc": "Number of items to skip",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Max number of results per page (default = 5)",
+          "type": "number"
+        },
+        {
+          "name": "filters",
+          "doc": "Filter results",
+          "type": "FetchDownloadKeysFilter"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameUploadsParams",
+      "doc": "Fetches uploads for an itch.io game",
+      "fields": [
+        {
+          "name": "gameId",
+          "doc": "Identifier of the game whose uploads we should look for",
+          "type": "number"
+        },
+        {
+          "name": "compatible",
+          "doc": "Only returns compatible uploads",
+          "type": "boolean"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchUserParams",
+      "doc": "Fetches information for an itch.io user.",
+      "fields": [
+        {
+          "name": "userId",
+          "doc": "Identifier of the user to look for",
+          "type": "number"
+        },
+        {
+          "name": "profileId",
+          "doc": "Profile to use to look upser",
+          "type": "number"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchSaleParams",
+      "doc": "Fetches the best current *locally cached* sale for a given\ngame.",
+      "fields": [
+        {
+          "name": "gameId",
+          "doc": "Identifier of the game for which to look for a sale",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "FetchCollectionParams",
+      "doc": "Fetch a collection's title, gamesCount, etc.\nbut not its games.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile to use to fetch collection",
+          "type": "number"
+        },
+        {
+          "name": "collectionId",
+          "doc": "Collection to fetch",
+          "type": "number"
+        },
+        {
+          "name": "fresh",
+          "doc": "Force an API request before replying.\nUsually set after getting 'stale' in the response.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchCollectionGamesParams",
+      "doc": "Fetches information about a collection and the games it\ncontains.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile to use to fetch collection",
+          "type": "number"
+        },
+        {
+          "name": "collectionId",
+          "doc": "Identifier of the collection to look for",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Maximum number of games to return at a time.",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows game titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "Criterion to sort by",
+          "type": "string"
+        },
+        {
+          "name": "filters",
+          "doc": "Filters",
+          "type": "CollectionGamesFilters"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "cursor",
+          "doc": "Used for pagination, if specified",
+          "type": "Cursor"
+        },
+        {
+          "name": "fresh",
+          "doc": "If set, will force fresh data",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileCollectionsParams",
+      "doc": "Lists collections for a profile. Does not contain\ngames.",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile for which to fetch collections",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Maximum number of collections to return at a time.",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows collection titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "Criterion to sort by",
+          "type": "string"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "cursor",
+          "doc": "Used for pagination, if specified",
+          "type": "Cursor"
+        },
+        {
+          "name": "fresh",
+          "doc": "If set, will force fresh data",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileGamesParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile for which to fetch games",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Maximum number of items to return at a time.",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows game titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "Criterion to sort by",
+          "type": "string"
+        },
+        {
+          "name": "filters",
+          "doc": "Filters",
+          "type": "ProfileGameFilters"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "cursor",
+          "doc": "Used for pagination, if specified",
+          "type": "Cursor"
+        },
+        {
+          "name": "fresh",
+          "doc": "If set, will force fresh data",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileOwnedKeysParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profileId",
+          "doc": "Profile to use to fetch game",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "doc": "Maximum number of owned keys to return at a time.",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows game titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "Criterion to sort by",
+          "type": "string"
+        },
+        {
+          "name": "filters",
+          "doc": "Filters",
+          "type": "ProfileOwnedKeysFilters"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "cursor",
+          "doc": "Used for pagination, if specified",
+          "type": "Cursor"
+        },
+        {
+          "name": "fresh",
+          "doc": "If set, will force fresh data",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchCommonsParams",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "FetchCavesParams",
+      "doc": "Retrieve info for all caves.",
+      "fields": [
+        {
+          "name": "limit",
+          "doc": "Maximum number of caves to return at a time.",
+          "type": "number"
+        },
+        {
+          "name": "search",
+          "doc": "When specified only shows game titles that contain this string",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "filters",
+          "doc": "Filters",
+          "type": "CavesFilters"
+        },
+        {
+          "name": "reverse",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "cursor",
+          "doc": "Used for pagination, if specified",
+          "type": "Cursor"
+        }
+      ]
+    },
+    {
+      "name": "FetchCaveParams",
+      "doc": "Retrieve info on a cave by ID.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FetchExpireAllParams",
+      "doc": "Mark all local data as stale.",
+      "fields": null
+    },
+    {
+      "name": "GameFindUploadsParams",
+      "doc": "Finds uploads compatible with the current runtime, for a given game.",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "Which game to find uploads for",
+          "type": "Game"
+        }
+      ]
+    },
+    {
+      "name": "InstallQueueParams",
+      "doc": "Queues an install operation to be later performed\nvia @@InstallPerformParams.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "ID of the cave to perform the install for.\nIf not specified, will create a new cave.",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "doc": "If unspecified, will default to 'install'",
+          "type": "DownloadReason"
+        },
+        {
+          "name": "installLocationId",
+          "doc": "If CaveID is not specified, ID of an install location\nto install to.",
+          "type": "string"
+        },
+        {
+          "name": "noCave",
+          "doc": "If set, InstallFolder can be set and no cave\nrecord will be read or modified",
+          "type": "boolean"
+        },
+        {
+          "name": "installFolder",
+          "doc": "When NoCave is set, exactly where to install",
+          "type": "string"
+        },
+        {
+          "name": "game",
+          "doc": "Which game to install.\n\nIf unspecified and caveId is specified, the same game will be used.",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "Which upload to install.\n\nIf unspecified and caveId is specified, the same upload will be used.",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "Which build to install\n\nIf unspecified and caveId is specified, the same build will be used.",
+          "type": "Build"
+        },
+        {
+          "name": "ignoreInstallers",
+          "doc": "If true, do not run windows installers, just extract\nwhatever to the install folder.",
+          "type": "boolean"
+        },
+        {
+          "name": "stagingFolder",
+          "doc": "A folder that butler can use to store temporary files, like\npartial downloads, checkpoint files, etc.",
+          "type": "string"
+        },
+        {
+          "name": "queueDownload",
+          "doc": "If set, and the install operation is successfully disambiguated,\nwill queue it as a download for butler to drive.\nSee @@DownloadsDriveParams.",
+          "type": "boolean"
+        },
+        {
+          "name": "fastQueue",
+          "doc": "Don't run install prepare (assume we can just run it at perform time)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "InstallPlanParams",
+      "doc": "For modal-first install",
+      "fields": [
+        {
+          "name": "gameId",
+          "doc": "The ID of the game we're planning to install",
+          "type": "number"
+        },
+        {
+          "name": "downloadSessionId",
+          "doc": "The download session ID to use for this install plan",
+          "type": "string"
+        },
+        {
+          "name": "uploadId",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CavesSetPinnedParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "ID of the cave to pin/unpin",
+          "type": "string"
+        },
+        {
+          "name": "pinned",
+          "doc": "Pinned state the cave should have after this call",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "InstallCreateShortcutParams",
+      "doc": "Create a shortcut for an existing cave .",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallPerformParams",
+      "doc": "Perform an install that was previously queued via\n@@InstallQueueParams.\n\nCan be cancelled by passing the same `ID` to @@InstallCancelParams.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "ID that can be later used in @@InstallCancelParams",
+          "type": "string"
+        },
+        {
+          "name": "stagingFolder",
+          "doc": "The folder turned by @@InstallQueueParams",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallCancelParams",
+      "doc": "Attempt to gracefully cancel an ongoing operation.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "The UUID of the task to cancel, as passed to @@OperationStartParams",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "UninstallPerformParams",
+      "doc": "UninstallParams contains all the parameters needed to perform\nan uninstallation for a game via @@OperationStartParams.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "The cave to uninstall",
+          "type": "string"
+        },
+        {
+          "name": "hard",
+          "doc": "If true, don't attempt to run any uninstallers, just\nremove the DB record and burn the install folder to the ground.",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "InstallVersionSwitchQueueParams",
+      "doc": "Prepare to queue a version switch. The client will\nreceive an @@InstallVersionSwitchPickParams.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "The cave to switch to a different version",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallVersionSwitchPickParams",
+      "doc": "Let the user pick which version to switch to.",
+      "fields": [
+        {
+          "name": "cave",
+          "doc": "",
+          "type": "Cave"
+        },
+        {
+          "name": "upload",
+          "doc": "",
+          "type": "Upload"
+        },
+        {
+          "name": "builds",
+          "doc": "",
+          "type": "Build[]"
+        }
+      ]
+    },
+    {
+      "name": "PickUploadParams",
+      "doc": "Asks the user to pick between multiple available uploads",
+      "fields": [
+        {
+          "name": "uploads",
+          "doc": "An array of upload objects to choose from",
+          "type": "Upload[]"
+        }
+      ]
+    },
+    {
       "name": "InstallResult",
       "doc": "What was installed by a subtask of @@OperationStartParams.\n\nSee @@TaskSucceededNotification.",
       "fields": [
@@ -4031,6 +5712,151 @@
           "name": "build",
           "doc": "The build we installed",
           "type": "Build"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsListParams",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "InstallLocationsAddParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "identifier of the new install location.\nif not specified, will be generated.",
+          "type": "string"
+        },
+        {
+          "name": "path",
+          "doc": "path of the new install location",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsRemoveParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "identifier of the install location to remove",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsGetByIDParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "identifier of the install location to remove",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsScanParams",
+      "doc": "",
+      "fields": [
+        {
+          "name": "legacyMarketPath",
+          "doc": "path to a legacy marketDB",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsScanConfirmImportParams",
+      "doc": "Sent at the end of @@InstallLocationsScanParams",
+      "fields": [
+        {
+          "name": "numItems",
+          "doc": "number of items that will be imported",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsQueueParams",
+      "doc": "Queue a download that will be performed later by\n@@DownloadsDriveParams.",
+      "fields": [
+        {
+          "name": "item",
+          "doc": "",
+          "type": "InstallQueueResult"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsPrioritizeParams",
+      "doc": "Put a download on top of the queue.",
+      "fields": [
+        {
+          "name": "downloadId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsListParams",
+      "doc": "List all known downloads.",
+      "fields": null
+    },
+    {
+      "name": "DownloadsClearFinishedParams",
+      "doc": "Removes all finished downloads from the queue.",
+      "fields": null
+    },
+    {
+      "name": "DownloadsDriveParams",
+      "doc": "Drive downloads, which is: perform them one at a time,\nuntil they're all finished.",
+      "fields": null
+    },
+    {
+      "name": "DownloadsDriveCancelParams",
+      "doc": "Stop driving downloads gracefully.",
+      "fields": null
+    },
+    {
+      "name": "DownloadsRetryParams",
+      "doc": "Retries a download that has errored",
+      "fields": [
+        {
+          "name": "downloadId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDiscardParams",
+      "doc": "Attempts to discard a download",
+      "fields": [
+        {
+          "name": "downloadId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "CheckUpdateParams",
+      "doc": "Looks for game updates.\n\nIf a list of cave identifiers is passed, will only look for\nupdates for these caves *and will ignore snooze*.\n\nOtherwise, will look for updates for all games, respecting snooze.\n\nUpdates found are regularly sent via @@GameUpdateAvailableNotification, and\nthen all at once in the result.",
+      "fields": [
+        {
+          "name": "caveIds",
+          "doc": "If specified, will only look for updates to these caves",
+          "type": "string[]"
+        },
+        {
+          "name": "verbose",
+          "doc": "If specified, will log information even when we have no warnings/errors",
+          "type": "boolean"
         }
       ]
     },
@@ -4061,6 +5887,17 @@
       ]
     },
     {
+      "name": "SnoozeCaveParams",
+      "doc": "Snoozing a cave means we ignore all new uploads (that would\nbe potential updates) between the cave's last install operation\nand now.\n\nThis can be undone by calling @@CheckUpdateParams with this specific\ncave identifier.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "GameUpdateChoice",
       "doc": "One possible upload/build choice to upgrade a cave",
       "fields": [
@@ -4082,6 +5919,107 @@
       ]
     },
     {
+      "name": "LaunchParams",
+      "doc": "Attempt to launch an installed game.",
+      "fields": [
+        {
+          "name": "caveId",
+          "doc": "The ID of the cave to launch",
+          "type": "string"
+        },
+        {
+          "name": "prereqsDir",
+          "doc": "The directory to use to store installer files for prerequisites",
+          "type": "string"
+        },
+        {
+          "name": "forcePrereqs",
+          "doc": "Force installing all prerequisites, even if they're already marked as installed",
+          "type": "boolean"
+        },
+        {
+          "name": "sandbox",
+          "doc": "Enable sandbox (regardless of manifest opt-in)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "AcceptLicenseParams",
+      "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement.",
+      "fields": [
+        {
+          "name": "text",
+          "doc": "The full text of the license agreement, in its default\nlanguage, which is usually English.",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PickManifestActionParams",
+      "doc": "Sent during @@LaunchParams, ask the user to pick a manifest action to launch.\n\nSee [itch app manifests](https://itch.io/docs/itch/integrating/manifest.html).",
+      "fields": [
+        {
+          "name": "actions",
+          "doc": "A list of actions to pick from. Must be shown to the user in the order they're passed.",
+          "type": "Action[]"
+        }
+      ]
+    },
+    {
+      "name": "ShellLaunchParams",
+      "doc": "Ask the client to perform a shell launch, ie. open an item\nwith the operating system's default handler (File explorer).\n\nSent during @@LaunchParams.",
+      "fields": [
+        {
+          "name": "itemPath",
+          "doc": "Absolute path of item to open, e.g. `D:\\\\Games\\\\Itch\\\\garden\\\\README.txt`",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "HTMLLaunchParams",
+      "doc": "Ask the client to perform an HTML launch, ie. open an HTML5\ngame, ideally in an embedded browser.\n\nSent during @@LaunchParams.",
+      "fields": [
+        {
+          "name": "rootFolder",
+          "doc": "Absolute path on disk to serve",
+          "type": "string"
+        },
+        {
+          "name": "indexPath",
+          "doc": "Path of index file, relative to root folder",
+          "type": "string"
+        },
+        {
+          "name": "args",
+          "doc": "Command-line arguments, to pass as `global.Itch.args`",
+          "type": "string[]"
+        },
+        {
+          "name": "env",
+          "doc": "Environment variables, to pass as `global.Itch.env`",
+          "type": "{ [key: string]: string }"
+        }
+      ]
+    },
+    {
+      "name": "URLLaunchParams",
+      "doc": "Ask the client to perform an URL launch, ie. open an address\nwith the system browser or appropriate.\n\nSent during @@LaunchParams.",
+      "fields": [
+        {
+          "name": "url",
+          "doc": "URL to open, e.g. `https://itch.io/community`",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "AllowSandboxSetupParams",
+      "doc": "Ask the user to allow sandbox setup. Will be followed by\na UAC prompt (on Windows) or a pkexec dialog (on Linux) if\nthe user allows.\n\nSent during @@LaunchParams.",
+      "fields": null
+    },
+    {
       "name": "PrereqTask",
       "doc": "Information about a prerequisite task.",
       "fields": [
@@ -4094,6 +6032,49 @@
           "name": "order",
           "doc": "Order of task in the list. Respect this order in the UI if you want consistent progress indicators.",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PrereqsFailedParams",
+      "doc": "Sent during @@LaunchParams, when one or more prerequisites have failed to install.\nThe user may choose to proceed with the launch anyway.",
+      "fields": [
+        {
+          "name": "error",
+          "doc": "Short error",
+          "type": "string"
+        },
+        {
+          "name": "errorStack",
+          "doc": "Longer error (to include in logs)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "CleanDownloadsSearchParams",
+      "doc": "Look for folders we can clean up in various download folders.\nThis finds anything that doesn't correspond to any current downloads\nwe know about.",
+      "fields": [
+        {
+          "name": "roots",
+          "doc": "A list of folders to scan for potential subfolders to clean up",
+          "type": "string[]"
+        },
+        {
+          "name": "whitelist",
+          "doc": "A list of subfolders to not consider when cleaning\n(staging folders for in-progress downloads)",
+          "type": "string[]"
+        }
+      ]
+    },
+    {
+      "name": "CleanDownloadsSearchResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "entries",
+          "doc": "Entries we found that could use some cleaning (with path and size information)",
+          "type": "CleanDownloadsEntry[]"
         }
       ]
     },
@@ -4112,7 +6093,811 @@
           "type": "number"
         }
       ]
+    },
+    {
+      "name": "CleanDownloadsApplyParams",
+      "doc": "Remove the specified entries from disk, freeing up disk space.",
+      "fields": [
+        {
+          "name": "entries",
+          "doc": "",
+          "type": "CleanDownloadsEntry[]"
+        }
+      ]
+    },
+    {
+      "name": "CleanDownloadsApplyResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "SystemStatFSParams",
+      "doc": "Get information on a filesystem.",
+      "fields": [
+        {
+          "name": "path",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "TestDoubleTwiceParams",
+      "doc": "Test request: asks butler to double a number twice.\nFirst by calling @@TestDoubleParams, then by\nreturning the result of that call doubled.\n\nUse that to try out your JSON-RPC 2.0 over TCP implementation.",
+      "fields": [
+        {
+          "name": "number",
+          "doc": "The number to quadruple",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "TestDoubleTwiceResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "number",
+          "doc": "The input, quadrupled",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "TestDoubleParams",
+      "doc": "Test request: return a number, doubled. Implement that to\nuse @@TestDoubleTwiceParams in your testing.",
+      "fields": [
+        {
+          "name": "number",
+          "doc": "The number to double",
+          "type": "number"
+        }
+      ]
     }
   ],
-  "enumTypes": null
+  "enumTypes": [
+    {
+      "name": "LaunchStrategy",
+      "doc": "",
+      "values": [
+        {
+          "name": "Unknown",
+          "doc": "",
+          "value": "\"\""
+        },
+        {
+          "name": "Native",
+          "doc": "",
+          "value": "\"native\""
+        },
+        {
+          "name": "HTML",
+          "doc": "",
+          "value": "\"html\""
+        },
+        {
+          "name": "URL",
+          "doc": "",
+          "value": "\"url\""
+        },
+        {
+          "name": "Shell",
+          "doc": "",
+          "value": "\"shell\""
+        }
+      ]
+    },
+    {
+      "name": "GameRecordsSource",
+      "doc": "",
+      "values": [
+        {
+          "name": "Owned",
+          "doc": "Games for which the profile has a download key",
+          "value": "\"owned\""
+        },
+        {
+          "name": "Installed",
+          "doc": "Games for which a cave exists (regardless of the profile)",
+          "value": "\"installed\""
+        },
+        {
+          "name": "Profile",
+          "doc": "Games authored by profile, or for whom profile is an admin of",
+          "value": "\"profile\""
+        },
+        {
+          "name": "Collection",
+          "doc": "Games from a collection",
+          "value": "\"collection\""
+        }
+      ]
+    },
+    {
+      "name": "NetworkStatus",
+      "doc": "",
+      "values": [
+        {
+          "name": "Online",
+          "doc": "",
+          "value": "\"online\""
+        },
+        {
+          "name": "Offline",
+          "doc": "",
+          "value": "\"offline\""
+        }
+      ]
+    },
+    {
+      "name": "DownloadReason",
+      "doc": "",
+      "values": [
+        {
+          "name": "Install",
+          "doc": "",
+          "value": "\"install\""
+        },
+        {
+          "name": "Reinstall",
+          "doc": "",
+          "value": "\"reinstall\""
+        },
+        {
+          "name": "Update",
+          "doc": "",
+          "value": "\"update\""
+        },
+        {
+          "name": "VersionSwitch",
+          "doc": "",
+          "value": "\"version-switch\""
+        }
+      ]
+    },
+    {
+      "name": "LogLevel",
+      "doc": "",
+      "values": [
+        {
+          "name": "Debug",
+          "doc": "Hidden from logs by default, noisy",
+          "value": "\"debug\""
+        },
+        {
+          "name": "Info",
+          "doc": "Just thinking out loud",
+          "value": "\"info\""
+        },
+        {
+          "name": "Warning",
+          "doc": "We're continuing, but we're not thrilled about it",
+          "value": "\"warning\""
+        },
+        {
+          "name": "Error",
+          "doc": "We're eventually going to fail loudly",
+          "value": "\"error\""
+        }
+      ]
+    },
+    {
+      "name": "Code",
+      "doc": "butlerd JSON-RPC 2.0 error codes",
+      "values": [
+        {
+          "name": "OperationCancelled",
+          "doc": "An operation was cancelled gracefully",
+          "value": "499"
+        },
+        {
+          "name": "OperationAborted",
+          "doc": "An operation was aborted by the user",
+          "value": "410"
+        },
+        {
+          "name": "InstallFolderDisappeared",
+          "doc": "We tried to launch something, but the install folder just wasn't there",
+          "value": "404"
+        },
+        {
+          "name": "NoCompatibleUploads",
+          "doc": "We tried to install something, but could not find compatible uploads",
+          "value": "2001"
+        },
+        {
+          "name": "UnsupportedHost",
+          "doc": "This title is hosted on an incompatible third-party website",
+          "value": "3001"
+        },
+        {
+          "name": "NoLaunchCandidates",
+          "doc": "Nothing that can be launched was found",
+          "value": "5000"
+        },
+        {
+          "name": "JavaRuntimeNeeded",
+          "doc": "Java Runtime Environment is required to launch this title.",
+          "value": "6000"
+        },
+        {
+          "name": "NetworkDisconnected",
+          "doc": "There is no Internet connection",
+          "value": "9000"
+        },
+        {
+          "name": "APIError",
+          "doc": "API error",
+          "value": "12000"
+        },
+        {
+          "name": "DatabaseBusy",
+          "doc": "The database is busy",
+          "value": "16000"
+        },
+        {
+          "name": "CantRemoveLocationBecauseOfActiveDownloads",
+          "doc": "An install location could not be removed because it has active downloads",
+          "value": "18000"
+        }
+      ]
+    },
+    {
+      "name": "Flavor",
+      "doc": "Flavor describes whether we're dealing with a native executables, a Java archive, a love2d bundle, etc.",
+      "values": [
+        {
+          "name": "NativeLinux",
+          "doc": "FlavorNativeLinux denotes native linux executables",
+          "value": "\"linux\""
+        },
+        {
+          "name": "NativeMacos",
+          "doc": "ExecNativeMacos denotes native macOS executables",
+          "value": "\"macos\""
+        },
+        {
+          "name": "NativeWindows",
+          "doc": "FlavorPe denotes native windows executables",
+          "value": "\"windows\""
+        },
+        {
+          "name": "AppMacos",
+          "doc": "FlavorAppMacos denotes a macOS app bundle",
+          "value": "\"app-macos\""
+        },
+        {
+          "name": "Script",
+          "doc": "FlavorScript denotes scripts starting with a shebang (#!)",
+          "value": "\"script\""
+        },
+        {
+          "name": "ScriptWindows",
+          "doc": "FlavorScriptWindows denotes windows scripts (.bat or .cmd)",
+          "value": "\"windows-script\""
+        },
+        {
+          "name": "Jar",
+          "doc": "FlavorJar denotes a .jar archive with a Main-Class",
+          "value": "\"jar\""
+        },
+        {
+          "name": "HTML",
+          "doc": "FlavorHTML denotes an index html file",
+          "value": "\"html\""
+        },
+        {
+          "name": "Love",
+          "doc": "FlavorLove denotes a love package",
+          "value": "\"love\""
+        },
+        {
+          "name": "MSI",
+          "doc": "Microsoft installer packages",
+          "value": "\"msi\""
+        }
+      ]
+    },
+    {
+      "name": "Arch",
+      "doc": "The architecture of an executable",
+      "values": [
+        {
+          "name": "386",
+          "doc": "32-bit",
+          "value": "\"386\""
+        },
+        {
+          "name": "Amd64",
+          "doc": "64-bit",
+          "value": "\"amd64\""
+        }
+      ]
+    },
+    {
+      "name": "WindowsInstallerType",
+      "doc": "Which particular type of windows-specific installer",
+      "values": [
+        {
+          "name": "Msi",
+          "doc": "Microsoft install packages (`.msi` files)",
+          "value": "\"msi\""
+        },
+        {
+          "name": "Inno",
+          "doc": "InnoSetup installers",
+          "value": "\"inno\""
+        },
+        {
+          "name": "Nullsoft",
+          "doc": "NSIS installers",
+          "value": "\"nsis\""
+        },
+        {
+          "name": "Archive",
+          "doc": "Self-extracting installers that 7-zip knows how to extract",
+          "value": "\"archive\""
+        }
+      ]
+    },
+    {
+      "name": "Architectures",
+      "doc": "Architectures describes a set of processor architectures (mostly 32-bit vs 64-bit)",
+      "values": [
+        {
+          "name": "All",
+          "doc": "ArchitecturesAll represents any processor architecture",
+          "value": "\"all\""
+        },
+        {
+          "name": "386",
+          "doc": "Architectures386 represents 32-bit processor architectures",
+          "value": "\"386\""
+        },
+        {
+          "name": "Amd64",
+          "doc": "ArchitecturesAmd64 represents 64-bit processor architectures",
+          "value": "\"amd64\""
+        }
+      ]
+    },
+    {
+      "name": "GameType",
+      "doc": "GameType is the type of an itch.io game page, mostly related to\nhow it should be presented on web (downloadable or embed)",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "GameTypeDefault is downloadable games",
+          "value": "\"default\""
+        },
+        {
+          "name": "Flash",
+          "doc": "GameTypeFlash is for .swf (legacy)",
+          "value": "\"flash\""
+        },
+        {
+          "name": "Unity",
+          "doc": "GameTypeUnity is for .unity3d (legacy)",
+          "value": "\"unity\""
+        },
+        {
+          "name": "Java",
+          "doc": "GameTypeJava is for .jar (legacy)",
+          "value": "\"java\""
+        },
+        {
+          "name": "HTML",
+          "doc": "GameTypeHTML is for .html (thriving)",
+          "value": "\"html\""
+        }
+      ]
+    },
+    {
+      "name": "GameClassification",
+      "doc": "GameClassification is the creator-picked classification for a page",
+      "values": [
+        {
+          "name": "Game",
+          "doc": "GameClassificationGame is something you can play",
+          "value": "\"game\""
+        },
+        {
+          "name": "Tool",
+          "doc": "GameClassificationTool includes all software pretty much",
+          "value": "\"tool\""
+        },
+        {
+          "name": "Assets",
+          "doc": "GameClassificationAssets includes assets: graphics, sounds, etc.",
+          "value": "\"assets\""
+        },
+        {
+          "name": "GameMod",
+          "doc": "GameClassificationGameMod are game mods (no link to game, purely creator tagging)",
+          "value": "\"game_mod\""
+        },
+        {
+          "name": "PhysicalGame",
+          "doc": "GameClassificationPhysicalGame is for a printable / board / card game",
+          "value": "\"physical_game\""
+        },
+        {
+          "name": "Soundtrack",
+          "doc": "GameClassificationSoundtrack is a bunch of music files",
+          "value": "\"soundtrack\""
+        },
+        {
+          "name": "Other",
+          "doc": "GameClassificationOther is anything that creators think don't fit in any other category",
+          "value": "\"other\""
+        },
+        {
+          "name": "Comic",
+          "doc": "GameClassificationComic is a comic book (pdf, jpg, specific comic formats, etc.)",
+          "value": "\"comic\""
+        },
+        {
+          "name": "Book",
+          "doc": "GameClassificationBook is a book (pdf, jpg, specific e-book formats, etc.)",
+          "value": "\"book\""
+        }
+      ]
+    },
+    {
+      "name": "UploadStorage",
+      "doc": "UploadStorage describes where an upload file is stored.",
+      "values": [
+        {
+          "name": "Hosted",
+          "doc": "UploadStorageHosted is a classic upload (web) - no versioning",
+          "value": "\"hosted\""
+        },
+        {
+          "name": "Build",
+          "doc": "UploadStorageBuild is a wharf upload (butler)",
+          "value": "\"build\""
+        },
+        {
+          "name": "External",
+          "doc": "UploadStorageExternal is an external upload - alllllllll bets are off.",
+          "value": "\"external\""
+        }
+      ]
+    },
+    {
+      "name": "UploadType",
+      "doc": "UploadType describes what's in an upload - an executable,\na web game, some music, etc.",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "UploadTypeDefault is for executables",
+          "value": "\"default\""
+        },
+        {
+          "name": "Flash",
+          "doc": "UploadTypeFlash is for .swf files",
+          "value": "\"flash\""
+        },
+        {
+          "name": "Unity",
+          "doc": "UploadTypeUnity is for .unity3d files",
+          "value": "\"unity\""
+        },
+        {
+          "name": "Java",
+          "doc": "UploadTypeJava is for .jar files",
+          "value": "\"java\""
+        },
+        {
+          "name": "HTML",
+          "doc": "UploadTypeHTML is for .html files",
+          "value": "\"html\""
+        },
+        {
+          "name": "Soundtrack",
+          "doc": "UploadTypeSoundtrack is for archives with .mp3/.ogg/.flac/etc files",
+          "value": "\"soundtrack\""
+        },
+        {
+          "name": "Book",
+          "doc": "UploadTypeBook is for books (epubs, pdfs, etc.)",
+          "value": "\"book\""
+        },
+        {
+          "name": "Video",
+          "doc": "UploadTypeVideo is for videos",
+          "value": "\"video\""
+        },
+        {
+          "name": "Documentation",
+          "doc": "UploadTypeDocumentation is for documentation (pdf, maybe uhh doxygen?)",
+          "value": "\"documentation\""
+        },
+        {
+          "name": "Mod",
+          "doc": "UploadTypeMod is a bunch of loose files with no clear instructions how to apply them to a game",
+          "value": "\"mod\""
+        },
+        {
+          "name": "AudioAssets",
+          "doc": "UploadTypeAudioAssets is a bunch of .ogg/.wav files",
+          "value": "\"audio_assets\""
+        },
+        {
+          "name": "GraphicalAssets",
+          "doc": "UploadTypeGraphicalAssets is a bunch of .png/.svg/.gif files, maybe some .objs thrown in there",
+          "value": "\"graphical_assets\""
+        },
+        {
+          "name": "Sourcecode",
+          "doc": "UploadTypeSourcecode is for source code. No further comments.",
+          "value": "\"sourcecode\""
+        },
+        {
+          "name": "Other",
+          "doc": "UploadTypeOther is for literally anything that isn't an existing category,\nor for stuff that isn't tagged properly.",
+          "value": "\"other\""
+        }
+      ]
+    },
+    {
+      "name": "BuildState",
+      "doc": "BuildState describes the state of a build, relative to its initial upload, and\nits processing.",
+      "values": [
+        {
+          "name": "Started",
+          "doc": "BuildStateStarted is the state of a build from its creation until the initial upload is complete",
+          "value": "\"started\""
+        },
+        {
+          "name": "Processing",
+          "doc": "BuildStateProcessing is the state of a build from the initial upload's completion to its fully-processed state.\nThis state does not mean the build is actually being processed right now, it's just queued for processing.",
+          "value": "\"processing\""
+        },
+        {
+          "name": "Completed",
+          "doc": "BuildStateCompleted means the build was successfully processed. Its patch hasn't necessarily been\nrediff'd yet, but we have the holy (patch,signature,archive) trinity.",
+          "value": "\"completed\""
+        },
+        {
+          "name": "Failed",
+          "doc": "BuildStateFailed means something went wrong with the build. A failing build will not update the channel\nhead and can be requeued by the itch.io team, although if a new build is pushed before they do,\nthat new build will \"win\".",
+          "value": "\"failed\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileState",
+      "doc": "BuildFileState describes the state of a specific file for a build",
+      "values": [
+        {
+          "name": "Created",
+          "doc": "BuildFileStateCreated means the file entry exists on itch.io",
+          "value": "\"created\""
+        },
+        {
+          "name": "Uploading",
+          "doc": "BuildFileStateUploading means the file is currently being uploaded to storage",
+          "value": "\"uploading\""
+        },
+        {
+          "name": "Uploaded",
+          "doc": "BuildFileStateUploaded means the file is ready",
+          "value": "\"uploaded\""
+        },
+        {
+          "name": "Failed",
+          "doc": "BuildFileStateFailed means the file failed uploading",
+          "value": "\"failed\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileType",
+      "doc": "BuildFileType describes the type of a build file: patch, archive, signature, etc.",
+      "values": [
+        {
+          "name": "Patch",
+          "doc": "BuildFileTypePatch describes wharf patch files (.pwr)",
+          "value": "\"patch\""
+        },
+        {
+          "name": "Archive",
+          "doc": "BuildFileTypeArchive describes canonical archive form (.zip)",
+          "value": "\"archive\""
+        },
+        {
+          "name": "Signature",
+          "doc": "BuildFileTypeSignature describes wharf signature files (.pws)",
+          "value": "\"signature\""
+        },
+        {
+          "name": "Manifest",
+          "doc": "BuildFileTypeManifest is reserved",
+          "value": "\"manifest\""
+        },
+        {
+          "name": "Unpacked",
+          "doc": "BuildFileTypeUnpacked describes the single file that is in the build (if it was just a single file)",
+          "value": "\"unpacked\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileSubType",
+      "doc": "BuildFileSubType describes the subtype of a build file: mostly its compression\nlevel. For example, rediff'd patches are \"optimized\", whereas initial patches are \"default\"",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "BuildFileSubTypeDefault describes default compression (rsync patches)",
+          "value": "\"default\""
+        },
+        {
+          "name": "Gzip",
+          "doc": "BuildFileSubTypeGzip is reserved",
+          "value": "\"gzip\""
+        },
+        {
+          "name": "Optimized",
+          "doc": "BuildFileSubTypeOptimized describes optimized compression (rediff'd / bsdiff patches)",
+          "value": "\"optimized\""
+        }
+      ]
+    },
+    {
+      "name": "InstallEventType",
+      "doc": "",
+      "values": [
+        {
+          "name": "InstallEventResume",
+          "doc": "Started for the first time or resumed after a pause\nor exit or whatever",
+          "value": "\"resume\""
+        },
+        {
+          "name": "InstallEventStop",
+          "doc": "Stopped explicitly (pausing downloads), can't rely\non this being present because BRÜTAL PÖWER LÖSS will\nnot announce itself 🔥",
+          "value": "\"stop\""
+        },
+        {
+          "name": "InstallEventInstall",
+          "doc": "Regular install from archive or naked file",
+          "value": "\"install\""
+        },
+        {
+          "name": "InstallEventHeal",
+          "doc": "Reverting to previous version or re-installing\nwharf-powered upload",
+          "value": "\"heal\""
+        },
+        {
+          "name": "InstallEventUpgrade",
+          "doc": "Applying one or more wharf patches",
+          "value": "\"upgrade\""
+        },
+        {
+          "name": "InstallEventPatching",
+          "doc": "Applying a single wharf patch",
+          "value": "\"patching\""
+        },
+        {
+          "name": "InstallEventGhostBusting",
+          "doc": "Cleaning up ghost files",
+          "value": "\"ghostBusting\""
+        },
+        {
+          "name": "InstallEventProblem",
+          "doc": "Any kind of step failing",
+          "value": "\"problem\""
+        },
+        {
+          "name": "InstallEventFallback",
+          "doc": "Any operation we do as a result of another one failing,\nbut in a case where we're still expecting a favorable\noutcome eventually.",
+          "value": "\"fallback\""
+        }
+      ]
+    },
+    {
+      "name": "Platform",
+      "doc": "",
+      "values": [
+        {
+          "name": "OSX",
+          "doc": "",
+          "value": "\"osx\""
+        },
+        {
+          "name": "Windows",
+          "doc": "",
+          "value": "\"windows\""
+        },
+        {
+          "name": "Linux",
+          "doc": "",
+          "value": "\"linux\""
+        },
+        {
+          "name": "Unknown",
+          "doc": "",
+          "value": "\"unknown\""
+        }
+      ]
+    },
+    {
+      "name": "TaskReason",
+      "doc": "",
+      "values": [
+        {
+          "name": "Install",
+          "doc": "Task was started for an install operation",
+          "value": "\"install\""
+        },
+        {
+          "name": "Uninstall",
+          "doc": "Task was started for an uninstall operation",
+          "value": "\"uninstall\""
+        }
+      ]
+    },
+    {
+      "name": "TaskType",
+      "doc": "",
+      "values": [
+        {
+          "name": "Download",
+          "doc": "We're fetching files from a remote server",
+          "value": "\"download\""
+        },
+        {
+          "name": "Install",
+          "doc": "We're running an installer",
+          "value": "\"install\""
+        },
+        {
+          "name": "Uninstall",
+          "doc": "We're running an uninstaller",
+          "value": "\"uninstall\""
+        },
+        {
+          "name": "Update",
+          "doc": "We're applying some patches",
+          "value": "\"update\""
+        },
+        {
+          "name": "Heal",
+          "doc": "We're healing from a signature and heal source",
+          "value": "\"heal\""
+        }
+      ]
+    },
+    {
+      "name": "PrereqStatus",
+      "doc": "",
+      "values": [
+        {
+          "name": "Pending",
+          "doc": "Prerequisite has not started downloading yet",
+          "value": "\"pending\""
+        },
+        {
+          "name": "Downloading",
+          "doc": "Prerequisite is currently being downloaded",
+          "value": "\"downloading\""
+        },
+        {
+          "name": "Ready",
+          "doc": "Prerequisite has been downloaded and is pending installation",
+          "value": "\"ready\""
+        },
+        {
+          "name": "Installing",
+          "doc": "Prerequisite is currently installing",
+          "value": "\"installing\""
+        },
+        {
+          "name": "Done",
+          "doc": "Prerequisite was installed (successfully or not)",
+          "value": "\"done\""
+        }
+      ]
+    }
+  ]
 }
