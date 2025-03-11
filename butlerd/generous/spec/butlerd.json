@@ -3561,6 +3561,82 @@
       ]
     },
     {
+      "name": "DownloadsDriveProgressNotification",
+      "doc": "",
+      "fields": [
+        {
+          "name": "download",
+          "doc": "",
+          "type": "Download"
+        },
+        {
+          "name": "progress",
+          "doc": "",
+          "type": "DownloadProgress"
+        },
+        {
+          "name": "speedHistory",
+          "doc": "BPS values for the last minute",
+          "type": "number[]"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDriveStartedNotification",
+      "doc": "",
+      "fields": [
+        {
+          "name": "download",
+          "doc": "",
+          "type": "Download"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDriveErroredNotification",
+      "doc": "",
+      "fields": [
+        {
+          "name": "download",
+          "doc": "The download that errored. It contains all the error\ninformation: a short message, a full stack trace,\nand a butlerd error code.",
+          "type": "Download"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDriveFinishedNotification",
+      "doc": "",
+      "fields": [
+        {
+          "name": "download",
+          "doc": "",
+          "type": "Download"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDriveDiscardedNotification",
+      "doc": "",
+      "fields": [
+        {
+          "name": "download",
+          "doc": "",
+          "type": "Download"
+        }
+      ]
+    },
+    {
+      "name": "DownloadsDriveNetworkStatusNotification",
+      "doc": "Sent during @@DownloadsDriveParams to inform on network\nstatus changes.",
+      "fields": [
+        {
+          "name": "status",
+          "doc": "The current network status",
+          "type": "NetworkStatus"
+        }
+      ]
+    },
+    {
       "name": "Download",
       "doc": "Represents a download queued, which will be\nperformed whenever @@DownloadsDriveParams is called.",
       "fields": [
@@ -3765,6 +3841,22 @@
           "name": "totalSize",
           "doc": "",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "LogNotification",
+      "doc": "Sent any time butler needs to send a log message. The client should\nrelay them in their own stdout / stderr, and collect them so they\ncan be part of an issue report if something goes wrong.",
+      "fields": [
+        {
+          "name": "level",
+          "doc": "Level of the message (`info`, `warn`, etc.)",
+          "type": "LogLevel"
+        },
+        {
+          "name": "message",
+          "doc": "Contents of the message.\n\nNote: logs may contain non-ASCII characters, or even emojis.",
+          "type": "string"
         }
       ]
     },
@@ -4869,6 +4961,17 @@
       "fields": null
     },
     {
+      "name": "MetaFlowEstablishedNotification",
+      "doc": "The first notification sent when @@MetaFlowParams is called.",
+      "fields": [
+        {
+          "name": "pid",
+          "doc": "The identifier of the daemon process for which the flow was established",
+          "type": "number"
+        }
+      ]
+    },
+    {
       "name": "VersionGetParams",
       "doc": "Retrieves the version of the butler instance the client\nis connected to.\n\nThis endpoint is meant to gather information when reporting\nissues, rather than feature sniffing. Conforming clients should\nautomatically download new versions of butler, see the **Updating** section.",
       "fields": null
@@ -5695,6 +5798,79 @@
       ]
     },
     {
+      "name": "ProgressNotification",
+      "doc": "Sent periodically during @@InstallPerformParams to inform on the current state of an install",
+      "fields": [
+        {
+          "name": "progress",
+          "doc": "An overall progress value between 0 and 1",
+          "type": "number"
+        },
+        {
+          "name": "eta",
+          "doc": "Estimated completion time for the operation, in seconds (floating)",
+          "type": "number"
+        },
+        {
+          "name": "bps",
+          "doc": "Network bandwidth used, in bytes per second (floating)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "TaskStartedNotification",
+      "doc": "Each operation is made up of one or more tasks. This notification\nis sent during @@OperationStartParams whenever a specific task starts.",
+      "fields": [
+        {
+          "name": "reason",
+          "doc": "Why this task was started",
+          "type": "TaskReason"
+        },
+        {
+          "name": "type",
+          "doc": "Is this task a download? An install?",
+          "type": "TaskType"
+        },
+        {
+          "name": "game",
+          "doc": "The game this task is dealing with",
+          "type": "Game"
+        },
+        {
+          "name": "upload",
+          "doc": "The upload this task is dealing with",
+          "type": "Upload"
+        },
+        {
+          "name": "build",
+          "doc": "The build this task is dealing with (if any)",
+          "type": "Build"
+        },
+        {
+          "name": "totalSize",
+          "doc": "Total size in bytes",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "TaskSucceededNotification",
+      "doc": "Sent during @@OperationStartParams whenever a task succeeds for an operation.",
+      "fields": [
+        {
+          "name": "type",
+          "doc": "",
+          "type": "TaskType"
+        },
+        {
+          "name": "installResult",
+          "doc": "If the task installed something, then this contains\ninfo about the game, upload, build that were installed",
+          "type": "InstallResult"
+        }
+      ]
+    },
+    {
       "name": "InstallResult",
       "doc": "What was installed by a subtask of @@OperationStartParams.\n\nSee @@TaskSucceededNotification.",
       "fields": [
@@ -5766,6 +5942,17 @@
           "name": "legacyMarketPath",
           "doc": "path to a legacy marketDB",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "InstallLocationsScanYieldNotification",
+      "doc": "Sent during @@InstallLocationsScanParams whenever\na game is found.",
+      "fields": [
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
         }
       ]
     },
@@ -5861,6 +6048,17 @@
       ]
     },
     {
+      "name": "GameUpdateAvailableNotification",
+      "doc": "Sent during @@CheckUpdateParams, every time butler\nfinds an update for a game. Can be safely ignored if displaying\nupdates as they are found is not a requirement for the client.",
+      "fields": [
+        {
+          "name": "update",
+          "doc": "",
+          "type": "GameUpdate"
+        }
+      ]
+    },
+    {
       "name": "GameUpdate",
       "doc": "Describes an available update for a particular game install.",
       "fields": [
@@ -5945,6 +6143,16 @@
       ]
     },
     {
+      "name": "LaunchRunningNotification",
+      "doc": "Sent during @@LaunchParams, when the game is configured, prerequisites are installed\nsandbox is set up (if enabled), and the game is actually running.",
+      "fields": null
+    },
+    {
+      "name": "LaunchExitedNotification",
+      "doc": "Sent during @@LaunchParams, when the game has actually exited.",
+      "fields": null
+    },
+    {
       "name": "AcceptLicenseParams",
       "doc": "Sent during @@LaunchParams if the game/application comes with a service license\nagreement.",
       "fields": [
@@ -6020,6 +6228,17 @@
       "fields": null
     },
     {
+      "name": "PrereqsStartedNotification",
+      "doc": "Sent during @@LaunchParams, when some prerequisites are about to be installed.\n\nThis is a good time to start showing a UI element with the state of prereq\ntasks.\n\nUpdates are regularly provided via @@PrereqsTaskStateNotification.",
+      "fields": [
+        {
+          "name": "tasks",
+          "doc": "A list of prereqs that need to be tended to",
+          "type": "{ [key: string]: PrereqTask }"
+        }
+      ]
+    },
+    {
       "name": "PrereqTask",
       "doc": "Information about a prerequisite task.",
       "fields": [
@@ -6034,6 +6253,42 @@
           "type": "number"
         }
       ]
+    },
+    {
+      "name": "PrereqsTaskStateNotification",
+      "doc": "Current status of a prerequisite task\n\nSent during @@LaunchParams, after @@PrereqsStartedNotification, repeatedly\nuntil all prereq tasks are done.",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "Short name of the prerequisite task (e.g. `xna-4.0`)",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "doc": "Current status of the prereq",
+          "type": "PrereqStatus"
+        },
+        {
+          "name": "progress",
+          "doc": "Value between 0 and 1 (floating)",
+          "type": "number"
+        },
+        {
+          "name": "eta",
+          "doc": "ETA in seconds (floating)",
+          "type": "number"
+        },
+        {
+          "name": "bps",
+          "doc": "Network bandwidth used in bytes per second (floating)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PrereqsEndedNotification",
+      "doc": "Sent during @@LaunchParams, when all prereqs have finished installing (successfully or not)\n\nAfter this is received, it's safe to close any UI element showing prereq task state.",
+      "fields": null
     },
     {
       "name": "PrereqsFailedParams",

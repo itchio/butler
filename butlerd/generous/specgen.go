@@ -151,6 +151,12 @@ func (gc *generousContext) generateSpec() error {
 					Doc: strings.Join(entry.doc, "\n"),
 				}
 				s.Notifications = append(s.Notifications, ns)
+				sts := &spec.StructTypeSpec {
+					Name: entry.typeName,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Fields: encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
 			case entryKindType:
 				switch entry.typeKind {
 					case entryTypeKindStruct:
