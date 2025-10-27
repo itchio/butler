@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"go/ast"
+	"strconv"
 	"strings"
 
 	"github.com/itchio/butler/butlerd/generous/spec"
@@ -55,9 +56,13 @@ func (gc *generousContext) generateSpec() error {
 	encodeEnum := func(entry *entryInfo) []*spec.EnumValueSpec {
 		var res []*spec.EnumValueSpec
 		for _, ev := range entry.enumValues {
+			value, err := strconv.Unquote(ev.value)
+			if err != nil {
+				value = ev.value
+			}
 			evs := &spec.EnumValueSpec{
 				Name:  ev.name,
-				Value: ev.value,
+				Value: value,
 				Doc:   strings.Join(ev.doc, "\n"),
 			}
 			res = append(res, evs)

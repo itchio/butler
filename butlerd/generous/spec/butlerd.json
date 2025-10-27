@@ -6418,27 +6418,27 @@
         {
           "name": "Unknown",
           "doc": "",
-          "value": "\"\""
+          "value": ""
         },
         {
           "name": "Native",
           "doc": "",
-          "value": "\"native\""
+          "value": "native"
         },
         {
           "name": "HTML",
           "doc": "",
-          "value": "\"html\""
+          "value": "html"
         },
         {
           "name": "URL",
           "doc": "",
-          "value": "\"url\""
+          "value": "url"
         },
         {
           "name": "Shell",
           "doc": "",
-          "value": "\"shell\""
+          "value": "shell"
         }
       ]
     },
@@ -6449,22 +6449,22 @@
         {
           "name": "Owned",
           "doc": "Games for which the profile has a download key",
-          "value": "\"owned\""
+          "value": "owned"
         },
         {
           "name": "Installed",
           "doc": "Games for which a cave exists (regardless of the profile)",
-          "value": "\"installed\""
+          "value": "installed"
         },
         {
           "name": "Profile",
           "doc": "Games authored by profile, or for whom profile is an admin of",
-          "value": "\"profile\""
+          "value": "profile"
         },
         {
           "name": "Collection",
           "doc": "Games from a collection",
-          "value": "\"collection\""
+          "value": "collection"
         }
       ]
     },
@@ -6475,12 +6475,12 @@
         {
           "name": "Online",
           "doc": "",
-          "value": "\"online\""
+          "value": "online"
         },
         {
           "name": "Offline",
           "doc": "",
-          "value": "\"offline\""
+          "value": "offline"
         }
       ]
     },
@@ -6491,22 +6491,22 @@
         {
           "name": "Install",
           "doc": "",
-          "value": "\"install\""
+          "value": "install"
         },
         {
           "name": "Reinstall",
           "doc": "",
-          "value": "\"reinstall\""
+          "value": "reinstall"
         },
         {
           "name": "Update",
           "doc": "",
-          "value": "\"update\""
+          "value": "update"
         },
         {
           "name": "VersionSwitch",
           "doc": "",
-          "value": "\"version-switch\""
+          "value": "version-switch"
         }
       ]
     },
@@ -6517,22 +6517,22 @@
         {
           "name": "Debug",
           "doc": "Hidden from logs by default, noisy",
-          "value": "\"debug\""
+          "value": "debug"
         },
         {
           "name": "Info",
           "doc": "Just thinking out loud",
-          "value": "\"info\""
+          "value": "info"
         },
         {
           "name": "Warning",
           "doc": "We're continuing, but we're not thrilled about it",
-          "value": "\"warning\""
+          "value": "warning"
         },
         {
           "name": "Error",
           "doc": "We're eventually going to fail loudly",
-          "value": "\"error\""
+          "value": "error"
         }
       ]
     },
@@ -6604,52 +6604,52 @@
         {
           "name": "NativeLinux",
           "doc": "FlavorNativeLinux denotes native linux executables",
-          "value": "\"linux\""
+          "value": "linux"
         },
         {
           "name": "NativeMacos",
           "doc": "ExecNativeMacos denotes native macOS executables",
-          "value": "\"macos\""
+          "value": "macos"
         },
         {
           "name": "NativeWindows",
           "doc": "FlavorPe denotes native windows executables",
-          "value": "\"windows\""
+          "value": "windows"
         },
         {
           "name": "AppMacos",
           "doc": "FlavorAppMacos denotes a macOS app bundle",
-          "value": "\"app-macos\""
+          "value": "app-macos"
         },
         {
           "name": "Script",
           "doc": "FlavorScript denotes scripts starting with a shebang (#!)",
-          "value": "\"script\""
+          "value": "script"
         },
         {
           "name": "ScriptWindows",
           "doc": "FlavorScriptWindows denotes windows scripts (.bat or .cmd)",
-          "value": "\"windows-script\""
+          "value": "windows-script"
         },
         {
           "name": "Jar",
           "doc": "FlavorJar denotes a .jar archive with a Main-Class",
-          "value": "\"jar\""
+          "value": "jar"
         },
         {
           "name": "HTML",
           "doc": "FlavorHTML denotes an index html file",
-          "value": "\"html\""
+          "value": "html"
         },
         {
           "name": "Love",
           "doc": "FlavorLove denotes a love package",
-          "value": "\"love\""
+          "value": "love"
         },
         {
           "name": "MSI",
           "doc": "Microsoft installer packages",
-          "value": "\"msi\""
+          "value": "msi"
         }
       ]
     },
@@ -6660,12 +6660,12 @@
         {
           "name": "386",
           "doc": "32-bit",
-          "value": "\"386\""
+          "value": "386"
         },
         {
           "name": "Amd64",
           "doc": "64-bit",
-          "value": "\"amd64\""
+          "value": "amd64"
         }
       ]
     },
@@ -6676,22 +6676,22 @@
         {
           "name": "Msi",
           "doc": "Microsoft install packages (`.msi` files)",
-          "value": "\"msi\""
+          "value": "msi"
         },
         {
           "name": "Inno",
           "doc": "InnoSetup installers",
-          "value": "\"inno\""
+          "value": "inno"
         },
         {
           "name": "Nullsoft",
           "doc": "NSIS installers",
-          "value": "\"nsis\""
+          "value": "nsis"
         },
         {
           "name": "Archive",
           "doc": "Self-extracting installers that 7-zip knows how to extract",
-          "value": "\"archive\""
+          "value": "archive"
         }
       ]
     },
@@ -6702,17 +6702,17 @@
         {
           "name": "All",
           "doc": "ArchitecturesAll represents any processor architecture",
-          "value": "\"all\""
+          "value": "all"
         },
         {
           "name": "386",
           "doc": "Architectures386 represents 32-bit processor architectures",
-          "value": "\"386\""
+          "value": "386"
         },
         {
           "name": "Amd64",
           "doc": "ArchitecturesAmd64 represents 64-bit processor architectures",
-          "value": "\"amd64\""
+          "value": "amd64"
         }
       ]
     },
@@ -6723,27 +6723,27 @@
         {
           "name": "Default",
           "doc": "GameTypeDefault is downloadable games",
-          "value": "\"default\""
+          "value": "default"
         },
         {
           "name": "Flash",
           "doc": "GameTypeFlash is for .swf (legacy)",
-          "value": "\"flash\""
+          "value": "flash"
         },
         {
           "name": "Unity",
           "doc": "GameTypeUnity is for .unity3d (legacy)",
-          "value": "\"unity\""
+          "value": "unity"
         },
         {
           "name": "Java",
           "doc": "GameTypeJava is for .jar (legacy)",
-          "value": "\"java\""
+          "value": "java"
         },
         {
           "name": "HTML",
           "doc": "GameTypeHTML is for .html (thriving)",
-          "value": "\"html\""
+          "value": "html"
         }
       ]
     },
@@ -6754,47 +6754,47 @@
         {
           "name": "Game",
           "doc": "GameClassificationGame is something you can play",
-          "value": "\"game\""
+          "value": "game"
         },
         {
           "name": "Tool",
           "doc": "GameClassificationTool includes all software pretty much",
-          "value": "\"tool\""
+          "value": "tool"
         },
         {
           "name": "Assets",
           "doc": "GameClassificationAssets includes assets: graphics, sounds, etc.",
-          "value": "\"assets\""
+          "value": "assets"
         },
         {
           "name": "GameMod",
           "doc": "GameClassificationGameMod are game mods (no link to game, purely creator tagging)",
-          "value": "\"game_mod\""
+          "value": "game_mod"
         },
         {
           "name": "PhysicalGame",
           "doc": "GameClassificationPhysicalGame is for a printable / board / card game",
-          "value": "\"physical_game\""
+          "value": "physical_game"
         },
         {
           "name": "Soundtrack",
           "doc": "GameClassificationSoundtrack is a bunch of music files",
-          "value": "\"soundtrack\""
+          "value": "soundtrack"
         },
         {
           "name": "Other",
           "doc": "GameClassificationOther is anything that creators think don't fit in any other category",
-          "value": "\"other\""
+          "value": "other"
         },
         {
           "name": "Comic",
           "doc": "GameClassificationComic is a comic book (pdf, jpg, specific comic formats, etc.)",
-          "value": "\"comic\""
+          "value": "comic"
         },
         {
           "name": "Book",
           "doc": "GameClassificationBook is a book (pdf, jpg, specific e-book formats, etc.)",
-          "value": "\"book\""
+          "value": "book"
         }
       ]
     },
@@ -6805,17 +6805,17 @@
         {
           "name": "Hosted",
           "doc": "UploadStorageHosted is a classic upload (web) - no versioning",
-          "value": "\"hosted\""
+          "value": "hosted"
         },
         {
           "name": "Build",
           "doc": "UploadStorageBuild is a wharf upload (butler)",
-          "value": "\"build\""
+          "value": "build"
         },
         {
           "name": "External",
           "doc": "UploadStorageExternal is an external upload - alllllllll bets are off.",
-          "value": "\"external\""
+          "value": "external"
         }
       ]
     },
@@ -6826,72 +6826,72 @@
         {
           "name": "Default",
           "doc": "UploadTypeDefault is for executables",
-          "value": "\"default\""
+          "value": "default"
         },
         {
           "name": "Flash",
           "doc": "UploadTypeFlash is for .swf files",
-          "value": "\"flash\""
+          "value": "flash"
         },
         {
           "name": "Unity",
           "doc": "UploadTypeUnity is for .unity3d files",
-          "value": "\"unity\""
+          "value": "unity"
         },
         {
           "name": "Java",
           "doc": "UploadTypeJava is for .jar files",
-          "value": "\"java\""
+          "value": "java"
         },
         {
           "name": "HTML",
           "doc": "UploadTypeHTML is for .html files",
-          "value": "\"html\""
+          "value": "html"
         },
         {
           "name": "Soundtrack",
           "doc": "UploadTypeSoundtrack is for archives with .mp3/.ogg/.flac/etc files",
-          "value": "\"soundtrack\""
+          "value": "soundtrack"
         },
         {
           "name": "Book",
           "doc": "UploadTypeBook is for books (epubs, pdfs, etc.)",
-          "value": "\"book\""
+          "value": "book"
         },
         {
           "name": "Video",
           "doc": "UploadTypeVideo is for videos",
-          "value": "\"video\""
+          "value": "video"
         },
         {
           "name": "Documentation",
           "doc": "UploadTypeDocumentation is for documentation (pdf, maybe uhh doxygen?)",
-          "value": "\"documentation\""
+          "value": "documentation"
         },
         {
           "name": "Mod",
           "doc": "UploadTypeMod is a bunch of loose files with no clear instructions how to apply them to a game",
-          "value": "\"mod\""
+          "value": "mod"
         },
         {
           "name": "AudioAssets",
           "doc": "UploadTypeAudioAssets is a bunch of .ogg/.wav files",
-          "value": "\"audio_assets\""
+          "value": "audio_assets"
         },
         {
           "name": "GraphicalAssets",
           "doc": "UploadTypeGraphicalAssets is a bunch of .png/.svg/.gif files, maybe some .objs thrown in there",
-          "value": "\"graphical_assets\""
+          "value": "graphical_assets"
         },
         {
           "name": "Sourcecode",
           "doc": "UploadTypeSourcecode is for source code. No further comments.",
-          "value": "\"sourcecode\""
+          "value": "sourcecode"
         },
         {
           "name": "Other",
           "doc": "UploadTypeOther is for literally anything that isn't an existing category,\nor for stuff that isn't tagged properly.",
-          "value": "\"other\""
+          "value": "other"
         }
       ]
     },
@@ -6902,22 +6902,22 @@
         {
           "name": "Started",
           "doc": "BuildStateStarted is the state of a build from its creation until the initial upload is complete",
-          "value": "\"started\""
+          "value": "started"
         },
         {
           "name": "Processing",
           "doc": "BuildStateProcessing is the state of a build from the initial upload's completion to its fully-processed state.\nThis state does not mean the build is actually being processed right now, it's just queued for processing.",
-          "value": "\"processing\""
+          "value": "processing"
         },
         {
           "name": "Completed",
           "doc": "BuildStateCompleted means the build was successfully processed. Its patch hasn't necessarily been\nrediff'd yet, but we have the holy (patch,signature,archive) trinity.",
-          "value": "\"completed\""
+          "value": "completed"
         },
         {
           "name": "Failed",
           "doc": "BuildStateFailed means something went wrong with the build. A failing build will not update the channel\nhead and can be requeued by the itch.io team, although if a new build is pushed before they do,\nthat new build will \"win\".",
-          "value": "\"failed\""
+          "value": "failed"
         }
       ]
     },
@@ -6928,22 +6928,22 @@
         {
           "name": "Created",
           "doc": "BuildFileStateCreated means the file entry exists on itch.io",
-          "value": "\"created\""
+          "value": "created"
         },
         {
           "name": "Uploading",
           "doc": "BuildFileStateUploading means the file is currently being uploaded to storage",
-          "value": "\"uploading\""
+          "value": "uploading"
         },
         {
           "name": "Uploaded",
           "doc": "BuildFileStateUploaded means the file is ready",
-          "value": "\"uploaded\""
+          "value": "uploaded"
         },
         {
           "name": "Failed",
           "doc": "BuildFileStateFailed means the file failed uploading",
-          "value": "\"failed\""
+          "value": "failed"
         }
       ]
     },
@@ -6954,27 +6954,27 @@
         {
           "name": "Patch",
           "doc": "BuildFileTypePatch describes wharf patch files (.pwr)",
-          "value": "\"patch\""
+          "value": "patch"
         },
         {
           "name": "Archive",
           "doc": "BuildFileTypeArchive describes canonical archive form (.zip)",
-          "value": "\"archive\""
+          "value": "archive"
         },
         {
           "name": "Signature",
           "doc": "BuildFileTypeSignature describes wharf signature files (.pws)",
-          "value": "\"signature\""
+          "value": "signature"
         },
         {
           "name": "Manifest",
           "doc": "BuildFileTypeManifest is reserved",
-          "value": "\"manifest\""
+          "value": "manifest"
         },
         {
           "name": "Unpacked",
           "doc": "BuildFileTypeUnpacked describes the single file that is in the build (if it was just a single file)",
-          "value": "\"unpacked\""
+          "value": "unpacked"
         }
       ]
     },
@@ -6985,17 +6985,17 @@
         {
           "name": "Default",
           "doc": "BuildFileSubTypeDefault describes default compression (rsync patches)",
-          "value": "\"default\""
+          "value": "default"
         },
         {
           "name": "Gzip",
           "doc": "BuildFileSubTypeGzip is reserved",
-          "value": "\"gzip\""
+          "value": "gzip"
         },
         {
           "name": "Optimized",
           "doc": "BuildFileSubTypeOptimized describes optimized compression (rediff'd / bsdiff patches)",
-          "value": "\"optimized\""
+          "value": "optimized"
         }
       ]
     },
@@ -7006,47 +7006,47 @@
         {
           "name": "InstallEventResume",
           "doc": "Started for the first time or resumed after a pause\nor exit or whatever",
-          "value": "\"resume\""
+          "value": "resume"
         },
         {
           "name": "InstallEventStop",
           "doc": "Stopped explicitly (pausing downloads), can't rely\non this being present because BRÜTAL PÖWER LÖSS will\nnot announce itself 🔥",
-          "value": "\"stop\""
+          "value": "stop"
         },
         {
           "name": "InstallEventInstall",
           "doc": "Regular install from archive or naked file",
-          "value": "\"install\""
+          "value": "install"
         },
         {
           "name": "InstallEventHeal",
           "doc": "Reverting to previous version or re-installing\nwharf-powered upload",
-          "value": "\"heal\""
+          "value": "heal"
         },
         {
           "name": "InstallEventUpgrade",
           "doc": "Applying one or more wharf patches",
-          "value": "\"upgrade\""
+          "value": "upgrade"
         },
         {
           "name": "InstallEventPatching",
           "doc": "Applying a single wharf patch",
-          "value": "\"patching\""
+          "value": "patching"
         },
         {
           "name": "InstallEventGhostBusting",
           "doc": "Cleaning up ghost files",
-          "value": "\"ghostBusting\""
+          "value": "ghostBusting"
         },
         {
           "name": "InstallEventProblem",
           "doc": "Any kind of step failing",
-          "value": "\"problem\""
+          "value": "problem"
         },
         {
           "name": "InstallEventFallback",
           "doc": "Any operation we do as a result of another one failing,\nbut in a case where we're still expecting a favorable\noutcome eventually.",
-          "value": "\"fallback\""
+          "value": "fallback"
         }
       ]
     },
@@ -7057,22 +7057,22 @@
         {
           "name": "OSX",
           "doc": "",
-          "value": "\"osx\""
+          "value": "osx"
         },
         {
           "name": "Windows",
           "doc": "",
-          "value": "\"windows\""
+          "value": "windows"
         },
         {
           "name": "Linux",
           "doc": "",
-          "value": "\"linux\""
+          "value": "linux"
         },
         {
           "name": "Unknown",
           "doc": "",
-          "value": "\"unknown\""
+          "value": "unknown"
         }
       ]
     },
@@ -7083,12 +7083,12 @@
         {
           "name": "Install",
           "doc": "Task was started for an install operation",
-          "value": "\"install\""
+          "value": "install"
         },
         {
           "name": "Uninstall",
           "doc": "Task was started for an uninstall operation",
-          "value": "\"uninstall\""
+          "value": "uninstall"
         }
       ]
     },
@@ -7099,27 +7099,27 @@
         {
           "name": "Download",
           "doc": "We're fetching files from a remote server",
-          "value": "\"download\""
+          "value": "download"
         },
         {
           "name": "Install",
           "doc": "We're running an installer",
-          "value": "\"install\""
+          "value": "install"
         },
         {
           "name": "Uninstall",
           "doc": "We're running an uninstaller",
-          "value": "\"uninstall\""
+          "value": "uninstall"
         },
         {
           "name": "Update",
           "doc": "We're applying some patches",
-          "value": "\"update\""
+          "value": "update"
         },
         {
           "name": "Heal",
           "doc": "We're healing from a signature and heal source",
-          "value": "\"heal\""
+          "value": "heal"
         }
       ]
     },
@@ -7130,27 +7130,27 @@
         {
           "name": "Pending",
           "doc": "Prerequisite has not started downloading yet",
-          "value": "\"pending\""
+          "value": "pending"
         },
         {
           "name": "Downloading",
           "doc": "Prerequisite is currently being downloaded",
-          "value": "\"downloading\""
+          "value": "downloading"
         },
         {
           "name": "Ready",
           "doc": "Prerequisite has been downloaded and is pending installation",
-          "value": "\"ready\""
+          "value": "ready"
         },
         {
           "name": "Installing",
           "doc": "Prerequisite is currently installing",
-          "value": "\"installing\""
+          "value": "installing"
         },
         {
           "name": "Done",
           "doc": "Prerequisite was installed (successfully or not)",
-          "value": "\"done\""
+          "value": "done"
         }
       ]
     }
