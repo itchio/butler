@@ -15,7 +15,6 @@ require (
 	github.com/getlantern/ops v0.0.0-20200403153110-8476b16edcd6 // indirect
 	github.com/go-ole/go-ole v1.2.4
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/gops v0.3.10
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
@@ -59,7 +58,7 @@ require (
 	golang.org/x/sys v0.28.0
 	golang.org/x/text v0.21.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	google.golang.org/protobuf v1.24.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
