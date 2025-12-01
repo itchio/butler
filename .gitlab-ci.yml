@@ -93,7 +93,7 @@ build:darwin:universal:
     - mkdir -p artifacts/darwin-universal
     - lipo -create -output artifacts/darwin-universal/butler artifacts/darwin-amd64/butler artifacts/darwin-arm64/butler
     - file artifacts/darwin-universal/butler
-    - codesign --deep --force --verbose --sign "Developer ID Application: itch corp. (AK2D34UDP2)" artifacts/darwin-universal/butler
+    - 'codesign --deep --force --verbose --sign "Developer ID Application: itch corp. (AK2D34UDP2)" artifacts/darwin-universal/butler'
     - codesign --verify -vvvv artifacts/darwin-universal/butler
     - artifacts/darwin-universal/butler -V
   artifacts:
