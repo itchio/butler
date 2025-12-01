@@ -19,10 +19,10 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
 
-    - name: test
+    - name: setup npm
       run: |
         npm ci --no-audit
 
-    - name: release
+    - name: test
       run: |
         node release/test.js
