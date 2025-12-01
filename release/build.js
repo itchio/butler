@@ -50,6 +50,7 @@ const OS_INFOS = {
   darwin: {
     architectures: {
       x86_64: {},
+      arm64: {},
     },
   },
 };
@@ -94,7 +95,7 @@ async function main(args) {
             throw new Error(`Unsupported os ${chalk.yellow(v)}`);
           }
         } else if (k === "arch") {
-          if (v === "i686" || v === "x86_64") {
+          if (v === "i686" || v === "x86_64" || v === "arm64") {
             opts.arch = v;
             opts.userSpecifiedArch = true;
           } else {
@@ -176,8 +177,10 @@ async function main(args) {
   ].join(" ");
 
   if (opts.os === "darwin") {
-    setenv(`CGO_CFLAGS`, `-mmacosx-version-min=10.10`);
-    setenv(`CGO_LDFLAGS`, `-mmacosx-version-min=10.10`);
+    // Add -arch flag for cross-compilation on ARM Mac
+    let archFlag = opts.arch === "x86_64" ? "-arch x86_64" : "";
+    setenv(`CGO_CFLAGS`, `-mmacosx-version-min=10.10 ${archFlag}`.trim());
+    setenv(`CGO_LDFLAGS`, `-mmacosx-version-min=10.10 ${archFlag}`.trim());
   }
 
   let target = `butler`;
@@ -258,6 +261,8 @@ function archToGoArch(arch) {
       return "386";
     case "x86_64":
       return "amd64";
+    case "arm64":
+      return "arm64";
     default:
       throw new Error(`unsupported arch: ${chalk.yellow(arch)}`);
   }

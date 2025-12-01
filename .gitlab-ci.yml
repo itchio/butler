@@ -33,7 +33,7 @@ test:linux:
 test:macos:
   stage: test
   tags:
-    - darwin
+    - darwin-arm64
   script:
     - npm ci --no-audit
     - node release/test.js
@@ -64,11 +64,42 @@ build:darwin:x86_64:
     - npm ci --no-audit
     - node release/build.js --os darwin --arch x86_64
   tags:
-    - darwin
+    - darwin-arm64
   artifacts:
     expire_in: 1 week
     paths:
       - artifacts
+
+build:darwin:arm64:
+  stage: build
+  script:
+    - npm ci --no-audit
+    - node release/build.js --os darwin --arch arm64
+  tags:
+    - darwin-arm64
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - artifacts
+
+build:darwin:universal:
+  stage: build
+  needs:
+    - build:darwin:x86_64
+    - build:darwin:arm64
+  tags:
+    - darwin-arm64
+  script:
+    - mkdir -p artifacts/darwin-universal
+    - lipo -create -output artifacts/darwin-universal/butler artifacts/darwin-amd64/butler artifacts/darwin-arm64/butler
+    - file artifacts/darwin-universal/butler
+    - codesign --deep --force --verbose --sign "Developer ID Application: itch corp. (AK2D34UDP2)" artifacts/darwin-universal/butler
+    - codesign --verify -vvvv artifacts/darwin-universal/butler
+    - artifacts/darwin-universal/butler -V
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - artifacts/darwin-universal
 
 build:windows:i686:
   stage: build
