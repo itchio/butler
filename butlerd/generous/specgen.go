@@ -2,11 +2,33 @@ package main
 
 import (
 	"encoding/json"
+	"go/ast"
+	"strconv"
 	"strings"
 
 	"github.com/itchio/butler/butlerd/generous/spec"
 	"github.com/pkg/errors"
 )
+
+func resolveTypeName(typeName string, aliasMap map[string]*ast.Ident, aliasIsArrayMap map[string]bool) string {
+	isArray := strings.HasSuffix(typeName, "[]")
+	nonArray := strings.TrimSuffix(typeName, "[]")
+	if target, ok :=  aliasMap[nonArray]; ok {
+		resolved := target.Name
+		// Does not consider an array of array aliases
+		if aliasIsArrayMap[nonArray] || isArray {
+			resolved = resolved + "[]"
+		}
+		return resolved
+	}
+	return typeName
+}
+
+func resolveEntryAliases(entry *entryInfo, aliasMap map[string]*ast.Ident, aliasIsArrayMap map[string]bool) {
+	for _, field := range entry.structFields {
+		field.name = resolveTypeName(field.name, aliasMap, aliasIsArrayMap)
+	}
+}
 
 func (gc *generousContext) generateSpec() error {
 	gc.task("Generating JSON spec")
@@ -34,9 +56,13 @@ func (gc *generousContext) generateSpec() error {
 	encodeEnum := func(entry *entryInfo) []*spec.EnumValueSpec {
 		var res []*spec.EnumValueSpec
 		for _, ev := range entry.enumValues {
+			value, err := strconv.Unquote(ev.value)
+			if err != nil {
+				value = ev.value
+			}
 			evs := &spec.EnumValueSpec{
 				Name:  ev.name,
-				Value: ev.value,
+				Value: value,
 				Doc:   strings.Join(ev.doc, "\n"),
 			}
 			res = append(res, evs)
@@ -44,9 +70,46 @@ func (gc *generousContext) generateSpec() error {
 		return res
 	}
 
+	aliasMap := make(map[string]*ast.Ident)
+	aliasIsArrayMap := make(map[string]bool)
+
+	// Replace aliases with the real type
+	for _, category := range scope.categoryList {
+		for _, entry := range scope.categories[category].entries {
+			isArray := false
+			switch entry.kind {
+			case entryKindArrayAlias:
+				isArray = true
+				fallthrough
+			case entryKindAlias:
+				if target, ok := entry.typeSpec.Type.(*ast.Ident); ok {
+					aliasMap[entry.typeName] = target
+					aliasIsArrayMap[entry.typeName] = isArray
+				}
+			}
+		}
+	}
+
+	for _, category := range scope.categoryList {
+		for _, entry := range scope.categories[category].entries {
+			isArray := false
+			switch entry.kind {
+			case entryKindArrayAlias:
+				isArray = true
+				fallthrough
+			case entryKindAlias:
+				if target, ok := entry.typeSpec.Type.(*ast.Ident); ok {
+					aliasMap[entry.typeName] = target
+					aliasIsArrayMap[entry.typeName] = isArray
+				}
+			}
+		}
+	}
+
 	for _, category := range scope.categoryList {
 		cat := scope.categories[category]
 		for _, entry := range cat.entries {
+			resolveEntryAliases(entry, aliasMap, aliasIsArrayMap)
 			switch entry.kind {
 			case entryKindParams:
 				params := entry
@@ -71,6 +134,19 @@ func (gc *generousContext) generateSpec() error {
 					Doc: strings.Join(params.doc, "\n"),
 				}
 				s.Requests = append(s.Requests, rs)
+				sts := &spec.StructTypeSpec {
+					Name: entry.typeName,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Fields: encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
+			case entryKindResult:
+				sts := &spec.StructTypeSpec {
+					Name: entry.typeName,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Fields: encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
 			case entryKindNotification:
 				ns := &spec.NotificationSpec{
 					Method: entry.name,
@@ -80,23 +156,47 @@ func (gc *generousContext) generateSpec() error {
 					Doc: strings.Join(entry.doc, "\n"),
 				}
 				s.Notifications = append(s.Notifications, ns)
+				sts := &spec.StructTypeSpec {
+					Name: entry.typeName,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Fields: encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
 			case entryKindType:
 				switch entry.typeKind {
-				case entryTypeKindStruct:
-					sts := &spec.StructTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Fields: encodeStruct(entry),
-					}
-					s.StructTypes = append(s.StructTypes, sts)
-				case entryTypeKindEnum:
-					ets := &spec.EnumTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Values: encodeEnum(entry),
-					}
-					s.EnumTypes = append(s.EnumTypes, ets)
+					case entryTypeKindStruct:
+						sts := &spec.StructTypeSpec{
+							Name:   entry.name,
+							Doc:    strings.Join(entry.doc, "\n"),
+							Fields: encodeStruct(entry),
+						}
+						s.StructTypes = append(s.StructTypes, sts)
+					case entryTypeKindEnum:
+						ets := &spec.EnumTypeSpec{
+							Name:   entry.name,
+							Doc:    strings.Join(entry.doc, "\n"),
+							Values: encodeEnum(entry),
+						}
+						s.EnumTypes = append(s.EnumTypes, ets)
+					case entryTypeKindArrayAlias:
+						// Handled by encodeStruct
+					case entryTypeKindAlias:
+						// Handled by encodeStruct
+					case entryTypeKindInvalid:
+
 				}
+			case entryKindEnum:
+				ets := &spec.EnumTypeSpec{
+					Name:   entry.name,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Values: encodeEnum(entry),
+				}
+				s.EnumTypes = append(s.EnumTypes, ets)
+			case entryKindArrayAlias:
+				// Handled by encodeStruct
+			case entryKindAlias:
+				// Handled by encodeStruct
+			case entryKindInvalid:
 			}
 		}
 	}
