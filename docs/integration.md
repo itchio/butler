@@ -4,6 +4,14 @@
 butler was designed to be integrated into your workflow, no matter which tools
 you prefer. Here's a list of existing integrations.
 
+## setup-butler
+
+[setup-butler](https://github.com/remarkablegames/setup-butler) is a GitHub Action
+that installs and configures butler for use in GitHub Actions workflows. This makes
+it easy to automate pushing builds to itch.io as part of your CI/CD pipeline.
+
+  * [View setup-butler on GitHub Marketplace](https://github.com/marketplace/actions/setup-butler)
+
 ## unity-build
 
 [unity-build](https://github.com/Chaser324/unity-build) is a set of a build

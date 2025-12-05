@@ -11,6 +11,7 @@
   * [Update check API](pushing.md#looking-for-updates)
   * [Progress bar design](pushing.md#appendix-a-understanding-the-progress-bar)
 * [Third-party integrations](integration.md)
+  * [setup-butler](integration.md#setup-butler)
   * [unity-build](integration.md#unity-build)
   * [itchy-electron](integration.md#itchy-electron)
   * [gradle-butler-plugin](integration.md#gradle-butler-plugin)
