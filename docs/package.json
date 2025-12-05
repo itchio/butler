@@ -4,10 +4,11 @@
   "description": "butler is the itch.io command-line tool",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "honkit build",
+    "serve": "honkit serve"
   },
   "author": "",
-  "dependencies": {
-    "gitbook-plugin-anchors": "^0.5.0"
+  "devDependencies": {
+    "honkit": "^5.1.0"
   }
 }
