@@ -25,7 +25,7 @@ async function main() {
   });
 
   if (process.env.CI_COMMIT_REF_NAME) {
-    $(`gsutil -m cp -r -a public-read docs/_book/* gs://docs.itch.ovh/butler/${process.env.CI_COMMIT_REF_NAME}/`);
+    $(`gsutil -m cp -r -a public-read docs/_book/* gs://docs.itch.zone/butler/${process.env.CI_COMMIT_REF_NAME}/`);
   } else {
     console.warn("Skipping uploading book, no CI_COMMIT_REF_NAME environment variable set")
   }

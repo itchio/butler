@@ -12,7 +12,7 @@ async function main() {
   $(`generous godocs`);
 
   if (process.env.CI_COMMIT_REF_NAME) {
-    $(`gsutil -m cp -r -a public-read ./butlerd/generous/docs/* gs://docs.itch.ovh/butlerd/${process.env.CI_COMMIT_REF_NAME}/`);
+    $(`gsutil -m cp -r -a public-read ./butlerd/generous/docs/* gs://docs.itch.zone/butlerd/${process.env.CI_COMMIT_REF_NAME}/`);
   } else {
     console.warn("Skipping uploading generous docs, no CI_COMMIT_REF_NAME environment variable set")
   }
