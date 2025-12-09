@@ -17,6 +17,8 @@ Where:
 
 *Channel names will determine the initial set of tags of a slot, but you can always fix them later.*
 
+If you run into errors, see the [Troubleshooting](troubleshooting.md) page for help with common issues like incorrect paths, spaces in file names, or authentication problems.
+
 ## Okay, show me
 
 If you push the same directory twice:
