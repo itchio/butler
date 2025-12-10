@@ -62,7 +62,7 @@ async function main(args) {
   /**
    * @type {{
    *   os: "windows" | "linux" | "darwin",
-   *   arch: "i686" | "x86_64",
+   *   arch: "i686" | "x86_64" | "arm64",
    *   userSpecifiedOS?: boolean,
    *   userSpecifiedArch?: boolean,
    * }}
@@ -252,8 +252,8 @@ async function main(args) {
 }
 
 /**
- * @param {"i686" | "x86_64"} arch
- * @returns {"386" | "amd64"}
+ * @param {"i686" | "x86_64" | "arm64"} arch
+ * @returns {"386" | "amd64" | "arm64"}
  */
 function archToGoArch(arch) {
   switch (arch) {
