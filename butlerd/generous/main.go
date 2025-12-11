@@ -38,7 +38,7 @@ func main() {
 
 	gc := &generousContext{
 		Dir:         baseDir,
-		SupportPath: "butlerd/lib/support",
+		SupportPath: "@itchio/butlerd/lib/support",
 	}
 
 	switch mode {
