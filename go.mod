@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20200618123031-1a30392a8cfe
-	github.com/itchio/boar v0.0.0-20241212231610-4b0ac4400297
+	github.com/itchio/boar v0.0.0-20251211225247-f3b18cabd7b3
 	github.com/itchio/dash v0.0.0-20200305193527-478357e813a2
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20251211222425-a42aa87087f9
@@ -35,7 +35,6 @@ require (
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20200303195615-7cac7998294c
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
-	github.com/itchio/sevenzip-go v0.0.0-20251211223017-abb980fcfad0 // indirect
 	github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20200618110241-8896e2c6e09b
