@@ -24,6 +24,10 @@ jobs:
         with:
           node-version: 20
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
       - name: Install dependencies
         working-directory: docs
         run: npm ci
@@ -32,11 +36,20 @@ jobs:
         working-directory: docs
         run: npm run build
 
+      - name: Generate generous docs
+        run: go run ./butlerd/generous godocs
+
+      - name: Merge docs
+        run: |
+          mkdir -p _site/butlerd
+          cp -r docs/_book/* _site/
+          cp -r butlerd/generous/docs/* _site/butlerd/
+
       - name: Upload artifact
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_book
+          path: _site
 
   deploy:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
