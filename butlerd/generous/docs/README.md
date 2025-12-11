@@ -782,6 +782,108 @@ are returned for this kind of login.</p>
 
 </div>
 
+### Profile.LoginWithOAuthCode (client request)
+
+
+<p>
+<p>Add a new profile by exchanging an OAuth authorization code.
+Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>code</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The authorization code from OAuth redirect</p>
+</td>
+</tr>
+<tr>
+<td><code>codeVerifier</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The PKCE code verifier (the original random string used to generate code_challenge)</p>
+</td>
+</tr>
+<tr>
+<td><code>redirectUri</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The redirect URI that was used in the authorization request</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><p>Information for the new profile, now remembered</p>
+</td>
+</tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p>Profile cookie for website</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithOAuthCodeParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithOAuthCode (client request) <a href="#/?id=profileloginwithoauthcode-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Add a new profile by exchanging an OAuth authorization code.
+Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>code</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>codeVerifier</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>redirectUri</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileLoginWithOAuthCodeResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithOAuthCode  <a href="#/?id=profileloginwithoauthcode-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type">Profile</span></code></td>
+</tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Profile.RequestCaptcha (client caller)
 
 

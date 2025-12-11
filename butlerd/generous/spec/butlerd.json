@@ -185,6 +185,44 @@
       }
     },
     {
+      "method": "Profile.LoginWithOAuthCode",
+      "doc": "Add a new profile by exchanging an OAuth authorization code.\nUsed by the itch.io desktop app for OAuth login flow with PKCE.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "code",
+            "doc": "The authorization code from OAuth redirect",
+            "type": "string"
+          },
+          {
+            "name": "codeVerifier",
+            "doc": "The PKCE code verifier (the original random string used to generate code_challenge)",
+            "type": "string"
+          },
+          {
+            "name": "redirectUri",
+            "doc": "The redirect URI that was used in the authorization request",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "profile",
+            "doc": "Information for the new profile, now remembered",
+            "type": "Profile"
+          },
+          {
+            "name": "cookie",
+            "doc": "Profile cookie for website",
+            "type": "{ [key: string]: string }"
+          }
+        ]
+      }
+    },
+    {
       "method": "Profile.RequestCaptcha",
       "doc": "Ask the user to solve a captcha challenge\nSent during @@ProfileLoginWithPasswordParams if certain\nconditions are met.",
       "caller": "server",

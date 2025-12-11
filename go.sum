@@ -134,8 +134,8 @@ github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eS
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
 github.com/itchio/go-itchio v0.0.0-20200228193535-6db26dd84c8d/go.mod h1:e+p+TibRAP98eQIOwtpeU/ERmrpT4T9Fcn1mRICQAFo=
 github.com/itchio/go-itchio v0.0.0-20200301160906-508e37e43b9c/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
-github.com/itchio/go-itchio v0.0.0-20200826214038-a03acb9221a2 h1:ok3pvrVr/Z6PfGoXWV3q0XE1OMEH1e90aJnFb1U4emI=
-github.com/itchio/go-itchio v0.0.0-20200826214038-a03acb9221a2/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
+github.com/itchio/go-itchio v0.0.0-20251211222425-a42aa87087f9 h1:z264w5+iJbJZtzZzO67kNlYXj2yjzbM4RdsDrw7Kpns=
+github.com/itchio/go-itchio v0.0.0-20251211222425-a42aa87087f9/go.mod h1:Tb8Evdn++JVWXgKXsxMkIGm7Hk0PYayw98S7j0bT8pA=
 github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4 h1:gSA/VsLRFVpNsEbgAdugcG6+wKLfJQu1yqLiwRdxTQI=
 github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4/go.mod h1:sQqNZysbPmPulFOtaNU/50b6gMLPvuQfrp6x6HIo8c8=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
@@ -173,8 +173,9 @@ github.com/itchio/savior v0.0.0-20200303195615-7cac7998294c h1:TiSCUnQWpiGj3n4h4
 github.com/itchio/savior v0.0.0-20200303195615-7cac7998294c/go.mod h1:GpmxUXrnJ4hMcKGkwsZJHcDy3XTmOkha6yrp7M/SHS0=
 github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38 h1:Mn30eeqfaJDXRxiQzHrh0BLtHVaMgU39xZtpwmoKss8=
 github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38/go.mod h1:niqRh/zemDC1HOJiMwUHIsmbgw4t3NTAogGD53Uleqs=
-github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376 h1:Qhfx6SvjhcmJzUgwYvBAa2aRqfIGZczXHauOu901uac=
 github.com/itchio/sevenzip-go v0.0.0-20190703112252-e327cec6c376/go.mod h1:5ppm0m2hS/bHydxUQbmuY/U6dsCVaFLmfu+7vY2lwcU=
+github.com/itchio/sevenzip-go v0.0.0-20251211223017-abb980fcfad0 h1:srCFEByJjmfU7YqYpD298HRukkGj0d4TKF6vI+5oitM=
+github.com/itchio/sevenzip-go v0.0.0-20251211223017-abb980fcfad0/go.mod h1:5ppm0m2hS/bHydxUQbmuY/U6dsCVaFLmfu+7vY2lwcU=
 github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355 h1:YiB7AyKJykyXoRYgJ5gnHT0f2cZiXqHMAqzt2f0TN40=
 github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355/go.mod h1:TEwKiqrIit2uNSmu8FndFMIUX7egGtfZigrjQYBRZ+Q=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725 h1:zD1SEqqiqaCgJnSauy1+LBq1tDrXFGymk09v90Wr0bA=

@@ -16,6 +16,7 @@ func Register(router *butlerd.Router) {
 	messages.ProfileList.Register(router, List)
 	messages.ProfileLoginWithPassword.Register(router, LoginWithPassword)
 	messages.ProfileLoginWithAPIKey.Register(router, LoginWithAPIKey)
+	messages.ProfileLoginWithOAuthCode.Register(router, LoginWithOAuthCode)
 	messages.ProfileUseSavedLogin.Register(router, UseSavedLogin)
 	messages.ProfileForget.Register(router, Forget)
 	messages.ProfileDataPut.Register(router, DataPut)
@@ -162,6 +163,40 @@ func LoginWithAPIKey(rc *butlerd.RequestContext, params butlerd.ProfileLoginWith
 	rc.WithConn(profile.Save)
 
 	res := &butlerd.ProfileLoginWithAPIKeyResult{
+		Profile: formatProfile(profile),
+	}
+	return res, nil
+}
+
+func LoginWithOAuthCode(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithOAuthCodeParams) (*butlerd.ProfileLoginWithOAuthCodeResult, error) {
+	rootClient := rc.RootClient()
+
+	// Exchange OAuth code for API key
+	tokenRes, err := rootClient.ExchangeOAuthCode(rc.Ctx, itchio.ExchangeOAuthCodeParams{
+		Code:         params.Code,
+		CodeVerifier: params.CodeVerifier,
+		RedirectURI:  params.RedirectURI,
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	client := rc.Client(tokenRes.Key.Key)
+
+	profileRes, err := client.GetProfile(rc.Ctx)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	profile := &models.Profile{
+		ID:     profileRes.User.ID,
+		APIKey: tokenRes.Key.Key,
+	}
+	profile.UpdateFromUser(profileRes.User)
+	rc.WithConn(profile.Save)
+
+	res := &butlerd.ProfileLoginWithOAuthCodeResult{
+		Cookie:  tokenRes.Cookie,
 		Profile: formatProfile(profile),
 	}
 	return res, nil

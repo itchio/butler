@@ -622,6 +622,46 @@ func (r *ProfileLoginWithAPIKeyType) TestCall(rc *butlerd.RequestContext, params
 
 var ProfileLoginWithAPIKey *ProfileLoginWithAPIKeyType
 
+// Profile.LoginWithOAuthCode (Request)
+
+type ProfileLoginWithOAuthCodeType struct {}
+
+var _ RequestMessage = (*ProfileLoginWithOAuthCodeType)(nil)
+
+func (r *ProfileLoginWithOAuthCodeType) Method() string {
+  return "Profile.LoginWithOAuthCode"
+}
+
+func (r *ProfileLoginWithOAuthCodeType) Register(router router, f func(*butlerd.RequestContext, butlerd.ProfileLoginWithOAuthCodeParams) (*butlerd.ProfileLoginWithOAuthCodeResult, error)) {
+  router.Register("Profile.LoginWithOAuthCode", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileLoginWithOAuthCodeParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.LoginWithOAuthCode")
+    }
+    return res, nil
+  })
+}
+
+func (r *ProfileLoginWithOAuthCodeType) TestCall(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithOAuthCodeParams) (*butlerd.ProfileLoginWithOAuthCodeResult, error) {
+  var result butlerd.ProfileLoginWithOAuthCodeResult
+  err := rc.Call("Profile.LoginWithOAuthCode", params, &result)
+  return &result, err
+}
+
+var ProfileLoginWithOAuthCode *ProfileLoginWithOAuthCodeType
+
 // Profile.RequestCaptcha (Request)
 
 type ProfileRequestCaptchaType struct {}
@@ -3533,6 +3573,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Profile.List"]; !ok { panic("missing request handler for (Profile.List)") }
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
   if _, ok := router.Handlers["Profile.LoginWithAPIKey"]; !ok { panic("missing request handler for (Profile.LoginWithAPIKey)") }
+  if _, ok := router.Handlers["Profile.LoginWithOAuthCode"]; !ok { panic("missing request handler for (Profile.LoginWithOAuthCode)") }
   if _, ok := router.Handlers["Profile.UseSavedLogin"]; !ok { panic("missing request handler for (Profile.UseSavedLogin)") }
   if _, ok := router.Handlers["Profile.Forget"]; !ok { panic("missing request handler for (Profile.Forget)") }
   if _, ok := router.Handlers["Profile.Data.Put"]; !ok { panic("missing request handler for (Profile.Data.Put)") }

@@ -223,6 +223,39 @@ type ProfileLoginWithAPIKeyResult struct {
 	Profile *Profile `json:"profile"`
 }
 
+// Add a new profile by exchanging an OAuth authorization code.
+// Used by the itch.io desktop app for OAuth login flow with PKCE.
+//
+// @name Profile.LoginWithOAuthCode
+// @category Profile
+// @caller client
+type ProfileLoginWithOAuthCodeParams struct {
+	// The authorization code from OAuth redirect
+	Code string `json:"code"`
+
+	// The PKCE code verifier (the original random string used to generate code_challenge)
+	CodeVerifier string `json:"codeVerifier"`
+
+	// The redirect URI that was used in the authorization request
+	RedirectURI string `json:"redirectUri"`
+}
+
+func (p ProfileLoginWithOAuthCodeParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Code, validation.Required),
+		validation.Field(&p.CodeVerifier, validation.Required),
+		validation.Field(&p.RedirectURI, validation.Required),
+	)
+}
+
+type ProfileLoginWithOAuthCodeResult struct {
+	// Information for the new profile, now remembered
+	Profile *Profile `json:"profile"`
+
+	// Profile cookie for website
+	Cookie map[string]string `json:"cookie"`
+}
+
 // Ask the user to solve a captcha challenge
 // Sent during @@ProfileLoginWithPasswordParams if certain
 // conditions are met.
