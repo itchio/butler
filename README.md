@@ -13,9 +13,9 @@ butler is *the itch.io command-line tools* - all by itself.
 
 ## Documentation
 
-Documentation for butler is available as a Gitbook:
-
-  * :memo: <https://itch.io/docs/butler>
+  * **butler docs:** <https://itch.io/docs/butler>
+  * **butler docs (bleeding edge):** <https://itchio.github.io/butler/>
+  * **butlerd (daemon) API docs (bleeding edge):** <https://itchio.github.io/butler/butlerd/>
 
 Questions about butler are welcome on its [Issue tracker](https://github.com/itchio/butler/issues),
 or, if the matter is private, [itch.io support](https://itch.io/support).
