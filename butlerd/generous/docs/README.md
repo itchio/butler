@@ -815,6 +815,12 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 <td><p>The redirect URI that was used in the authorization request</p>
 </td>
 </tr>
+<tr>
+<td><code>clientId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The OAuth client ID used in the authorization request</p>
+</td>
+</tr>
 </table>
 
 
@@ -860,6 +866,10 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 </tr>
 <tr>
 <td><code>redirectUri</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>clientId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>

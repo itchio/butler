@@ -204,6 +204,11 @@
             "name": "redirectUri",
             "doc": "The redirect URI that was used in the authorization request",
             "type": "string"
+          },
+          {
+            "name": "clientId",
+            "doc": "The OAuth client ID used in the authorization request",
+            "type": "string"
           }
         ]
       },

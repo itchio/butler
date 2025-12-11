@@ -238,6 +238,9 @@ type ProfileLoginWithOAuthCodeParams struct {
 
 	// The redirect URI that was used in the authorization request
 	RedirectURI string `json:"redirectUri"`
+
+	// The OAuth client ID used in the authorization request
+	ClientID string `json:"clientId"`
 }
 
 func (p ProfileLoginWithOAuthCodeParams) Validate() error {
@@ -245,6 +248,7 @@ func (p ProfileLoginWithOAuthCodeParams) Validate() error {
 		validation.Field(&p.Code, validation.Required),
 		validation.Field(&p.CodeVerifier, validation.Required),
 		validation.Field(&p.RedirectURI, validation.Required),
+		validation.Field(&p.ClientID, validation.Required),
 	)
 }
 

@@ -176,6 +176,7 @@ func LoginWithOAuthCode(rc *butlerd.RequestContext, params butlerd.ProfileLoginW
 		Code:         params.Code,
 		CodeVerifier: params.CodeVerifier,
 		RedirectURI:  params.RedirectURI,
+		ClientID:     params.ClientID,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
