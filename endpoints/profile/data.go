@@ -2,9 +2,9 @@ package profile
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"xorm.io/builder"
 )
 
 func DataPut(rc *butlerd.RequestContext, params butlerd.ProfileDataPutParams) (*butlerd.ProfileDataPutResult, error) {

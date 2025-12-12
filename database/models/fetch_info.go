@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 type FetchInfo struct {

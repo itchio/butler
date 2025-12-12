@@ -2,9 +2,9 @@ package models
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func DownloadKeysByGameID(conn *sqlite.Conn, gameID int64) []*itchio.DownloadKey {

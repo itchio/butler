@@ -1,3 +1,4 @@
+//go:build linux || darwin || freebsd || netbsd || openbsd || dragonfly
 // +build linux darwin freebsd netbsd openbsd dragonfly
 
 package mansion

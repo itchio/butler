@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func FetchSale(rc *butlerd.RequestContext, params butlerd.FetchSaleParams) (*butlerd.FetchSaleResult, error) {

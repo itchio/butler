@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 type CaveHistoricalPlayTime struct {

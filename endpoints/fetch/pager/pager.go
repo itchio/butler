@@ -6,11 +6,11 @@ import (
 	"reflect"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 type PagedRequest interface {

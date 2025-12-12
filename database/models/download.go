@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"xorm.io/builder"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 
 	"crawshaw.io/sqlite"
 	itchio "github.com/itchio/go-itchio"

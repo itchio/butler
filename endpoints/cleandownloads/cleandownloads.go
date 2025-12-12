@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/wipe"
 

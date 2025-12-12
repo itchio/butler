@@ -2,8 +2,8 @@ package models
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	itchio "github.com/itchio/go-itchio"
+	"xorm.io/builder"
 )
 
 // User is defined in `go-itchio`, but helper functions are here

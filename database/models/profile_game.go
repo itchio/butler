@@ -2,9 +2,9 @@ package models
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 // Join table for Profile <has many> Games

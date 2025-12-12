@@ -2,12 +2,12 @@ package fetch
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/system"
 	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
+	"xorm.io/builder"
 )
 
 func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {

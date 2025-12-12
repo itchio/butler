@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 // This package implements a sandbox for Windows. It works by
@@ -17,8 +18,8 @@ import (
 	"github.com/itchio/ox/syscallex"
 
 	"github.com/itchio/butler/comm"
-	"github.com/itchio/ox/winox"
 	"github.com/itchio/headway/state"
+	"github.com/itchio/ox/winox"
 	"github.com/pkg/errors"
 
 	"github.com/itchio/butler/mansion"

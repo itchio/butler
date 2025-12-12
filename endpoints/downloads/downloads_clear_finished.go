@@ -2,10 +2,10 @@ package downloads
 
 import (
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/hades"
+	"xorm.io/builder"
 )
 
 func DownloadsClearFinished(rc *butlerd.RequestContext, params butlerd.DownloadsClearFinishedParams) (*butlerd.DownloadsClearFinishedResult, error) {

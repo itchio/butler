@@ -221,7 +221,7 @@ func (c *connImpl) handleIncomingMessage(msg Message) {
 				delete(c.outgoingCalls, id)
 				oc(msg)
 			} else {
-			c.warn("received message with ID %v, but we don't have a corresponding outoing call", id)
+				c.warn("received message with ID %v, but we don't have a corresponding outoing call", id)
 			}
 		} else {
 			c.warn("received message with no method nor ID, ignoring")

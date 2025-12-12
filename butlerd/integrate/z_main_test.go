@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/itchio/butler/butlerd/jsonrpc2"
+	"github.com/pkg/errors"
 )
 
 type IntegrateConfig struct {

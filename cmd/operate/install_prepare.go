@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/itchio/butler/butlerd"
-	"github.com/itchio/hush"
-	"github.com/itchio/hush/bfs"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/united"
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"
+	"github.com/itchio/hush"
+	"github.com/itchio/hush/bfs"
 	"github.com/pkg/errors"
 )
 

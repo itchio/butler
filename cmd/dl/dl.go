@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/itchio/intact"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/headway/counter"
 	"github.com/itchio/headway/united"
 	"github.com/itchio/httpkit/timeout"
+	"github.com/itchio/intact"
 	"github.com/pkg/errors"
 )
 

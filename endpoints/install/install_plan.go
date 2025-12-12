@@ -9,11 +9,11 @@ import (
 	itchio "github.com/itchio/go-itchio"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/manager"
-	"github.com/itchio/butler/butlerd/jsonrpc2"
 
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/eos"

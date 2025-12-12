@@ -12,8 +12,8 @@ import (
 
 	"github.com/itchio/headway/united"
 
-	"github.com/itchio/savior/seeksource"
 	"github.com/itchio/savior/countingsource"
+	"github.com/itchio/savior/seeksource"
 
 	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/httpkit/eos/option"

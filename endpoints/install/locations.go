@@ -6,13 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"xorm.io/builder"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func InstallLocationsGetByID(rc *butlerd.RequestContext, params butlerd.InstallLocationsGetByIDParams) (*butlerd.InstallLocationsGetByIDResult, error) {

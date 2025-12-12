@@ -4,10 +4,10 @@ import (
 	"sort"
 	"time"
 
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/hades"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 
 	"crawshaw.io/sqlite"
 	"crawshaw.io/sqlite/sqlitex"

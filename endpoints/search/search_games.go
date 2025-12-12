@@ -5,13 +5,13 @@ import (
 	"log"
 
 	"crawshaw.io/sqlite"
-	"xorm.io/builder"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/itchio/httpkit/neterr"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (*butlerd.SearchGamesResult, error) {

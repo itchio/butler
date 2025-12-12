@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	"xorm.io/builder"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"

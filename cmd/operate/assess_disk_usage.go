@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/itchio/httpkit/eos"
 	"github.com/itchio/hush"
 	"github.com/itchio/hush/bfs"
-	"github.com/itchio/httpkit/eos"
 	"github.com/pkg/errors"
 )
 

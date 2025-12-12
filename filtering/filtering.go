@@ -24,4 +24,3 @@ var FilterPaths tlc.FilterFunc = func(name string) tlc.FilterResult {
 
 	return tlc.FilterKeep
 }
-

@@ -15,8 +15,8 @@ import (
 	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/cmd/msi"
-	"github.com/itchio/butler/shell"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/shell"
 	"github.com/pkg/errors"
 )
 
