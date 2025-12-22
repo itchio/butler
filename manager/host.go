@@ -50,9 +50,19 @@ func (dre *defaultHostEnumerator) Enumerate(consumer *state.Consumer) (Hosts, er
 	if native.Runtime.Platform != ox.PlatformWindows {
 		consumer.Debugf("Looking for wine...")
 
-		// determine if wine is installed
-		winePath, err := exec.LookPath("wine")
-		if err == nil {
+		// determine if wine is installed, fallback to flatpak wine
+		winePath, wineErr := exec.LookPath("wine")
+		pakPath, pakErr := exec.LookPath("org.winehq.Wine")
+
+		foundWinePath := nil
+
+		if wineErr =! nil {
+			foundWinePath := winePath
+		} else if pakErr =! nil {
+			foundWinePath := pakPath
+		}
+
+		if foundWinePath =! nil {
 			consumer.Debugf("Found wine at: (%s)", winePath)
 			rts = append(rts, Host{
 				Runtime: ox.Runtime{
@@ -60,12 +70,14 @@ func (dre *defaultHostEnumerator) Enumerate(consumer *state.Consumer) (Hosts, er
 					Is64:     false, // 32-bit windows supports both
 				},
 				Wrapper: &Wrapper{
-					WrapperBinary:      winePath,
+					WrapperBinary:      foundWinePath,
 					NeedRelativeTarget: true,
 				},
 			})
 		} else {
-			consumer.Debugf("While looking for wine: %+v", err)
+			consumer.Debugf("While looking for wine:")
+			consumer.Debugf("	%+v", wineErr)
+			consumer.Debugf("	%+v", pakErr)
 		}
 	}
 
