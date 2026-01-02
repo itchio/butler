@@ -37,7 +37,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	var id string
 	if queueParams.NoCave {
 		if queueParams.StagingFolder == "" {
-			return nil, errors.New("With noCave, installFolder must be specified")
+			return nil, errors.New("With noCave, StagingFolder must be specified")
 		}
 		stagingFolder = queueParams.StagingFolder
 		id = uuid.New().String()
