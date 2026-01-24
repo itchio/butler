@@ -46,8 +46,45 @@ jobs:
           path: artifacts/linux-amd64/
           retention-days: 7
 
+  build-linux-arm64:
+    runs-on: ubuntu-22.04-arm64
+    container:
+      image: debian:bullseye
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl git ca-certificates build-essential file
+          git config --global --add safe.directory '*'
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build Linux arm64
+        run: node release/build.js --os linux --arch arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: artifacts/linux-arm64/
+          retention-days: 7
+
   deploy:
-    needs: build-linux-x86_64
+    needs: [build-linux-x86_64, build-linux-arm64]
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
@@ -68,11 +105,17 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit
 
-      - name: Download artifacts
+      - name: Download x86_64 artifacts
         uses: actions/download-artifact@v4
         with:
           name: linux-amd64
           path: artifacts/linux-amd64/
+
+      - name: Download arm64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-arm64
+          path: artifacts/linux-arm64/
 
       - name: Deploy
         run: node release/deploy.js
