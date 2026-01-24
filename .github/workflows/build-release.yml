@@ -17,7 +17,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y curl git ca-certificates build-essential
+          apt-get install -y curl git ca-certificates build-essential file
           git config --global --add safe.directory '*'
 
       - name: Checkout code
