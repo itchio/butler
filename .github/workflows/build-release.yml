@@ -11,7 +11,15 @@ on:
 jobs:
   build-linux-x86_64:
     runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye
     steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl git ca-certificates
+
+
       - name: Checkout code
         uses: actions/checkout@v4
 

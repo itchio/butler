@@ -161,8 +161,8 @@ func do(mc *mansion.Context) {
 				return "", errors.WithStack(err)
 			}
 
-			if major != 2 || minor > 28 {
-				return "", fmt.Errorf("butler should require GLIBC 2.28 at most, but this binary requires %s", props.GlibcVersion)
+			if major != 2 || minor > 31 {
+				return "", fmt.Errorf("butler should require GLIBC 2.31 at most, but this binary requires %s", props.GlibcVersion)
 			}
 			return props.GlibcVersion, nil
 		})
