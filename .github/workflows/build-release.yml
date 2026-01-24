@@ -47,7 +47,7 @@ jobs:
           retention-days: 7
 
   build-linux-arm64:
-    runs-on: ubuntu-22.04-arm64
+    runs-on: ubuntu-22.04-arm
     container:
       image: debian:bullseye
     steps:
