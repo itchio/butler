@@ -18,7 +18,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y curl git ca-certificates
-
+          git config --global --add safe.directory '*'
 
       - name: Checkout code
         uses: actions/checkout@v4
