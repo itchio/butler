@@ -45,6 +45,7 @@ const OS_INFOS = {
   linux: {
     architectures: {
       x86_64: {},
+      arm64: {},
     },
   },
   darwin: {
