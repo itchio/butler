@@ -217,7 +217,7 @@ func handleUE4Prereqs(params launch.LauncherParams) error {
 	if installRes.ExitCode != 0 {
 		if installRes.ExitCode == elevate.ExitCodeAccessDenied {
 			msg := "User or system did not grant elevation privileges"
-			consumer.Errorf(msg)
+			consumer.Errorf("%s", msg)
 			return errors.WithStack(butlerd.CodeOperationAborted)
 		}
 
