@@ -160,7 +160,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 
 	err = messages.PrereqsEnded.Notify(params.RequestContext, butlerd.PrereqsEndedNotification{})
 	if err != nil {
-		consumer.Warnf(err.Error())
+		consumer.Warnf("%s", err.Error())
 	}
 
 	return nil
