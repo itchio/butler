@@ -20,6 +20,132 @@ butler is *the itch.io command-line tools* - all by itself.
 Questions about butler are welcome on its [Issue tracker](https://github.com/itchio/butler/issues),
 or, if the matter is private, [itch.io support](https://itch.io/support).
 
+## Butler architecture
+
+Butler has a somewhat complicated collection of sub-packages to facilitate its
+various features. Here's a high level overview to help with understanding and
+development:
+
+```mermaid
+flowchart TD
+    butler[butler]
+
+    %% High-level packages
+    butler --> hush
+    butler --> wharf
+    butler --> boar
+    butler --> go-itchio[go-itchio]
+
+    %% Mid-level packages
+    butler --> savior
+    butler --> httpkit
+
+    %% Leaf packages (direct deps)
+    butler --> headway
+    butler --> arkive
+    butler --> dash
+    butler --> elefant
+    butler --> hades
+    butler --> intact
+    butler --> lake
+    butler --> mitch
+    butler --> ox
+    butler --> pelican
+    butler --> screw
+    butler --> smaug
+    butler --> spellbook
+    butler --> wizardry
+
+    %% Compression packages
+    butler --> kompress
+    butler --> dskompress
+    butler --> go-brotli[go-brotli]
+    butler --> lzma
+    butler --> randsource
+
+    %% Archive extraction packages
+    butler --> sevenzip-go[sevenzip-go]
+    butler --> dmcunrar-go[dmcunrar-go]
+
+    %% External native libraries
+    sevenzip-go -.->|dynamic link| libc7zip
+
+    %% Inter-package dependencies
+    hush --> boar
+    hush --> go-itchio
+    hush --> savior
+    hush --> intact
+    hush --> lake
+    hush --> screw
+
+    wharf --> savior
+    wharf --> lake
+    wharf --> screw
+
+    boar --> savior
+    boar --> dash
+    boar --> arkive
+    boar --> sevenzip-go
+    boar --> dmcunrar-go
+
+    go-itchio --> httpkit
+
+    savior --> arkive
+    savior --> ox
+    savior --> kompress
+
+    kompress --> dskompress
+    kompress --> go-brotli
+    kompress --> lzma
+
+    httpkit --> headway
+
+    %% Styling
+    classDef leaf fill:#e8f5e9,stroke:#4caf50
+    classDef infra fill:#e3f2fd,stroke:#2196f3
+    classDef mid fill:#fff3e0,stroke:#ff9800
+    classDef high fill:#fce4ec,stroke:#e91e63
+    classDef compression fill:#f3e5f5,stroke:#9c27b0
+    classDef native fill:#fff9c4,stroke:#fbc02d
+
+    class headway,httpkit infra
+    class savior,go-itchio mid
+    class hush,wharf,boar high
+    class arkive,dash,elefant,hades,intact,lake,mitch,ox,pelican,screw,smaug,spellbook,wizardry,randsource leaf
+    class kompress,dskompress,go-brotli,lzma,sevenzip-go,dmcunrar-go compression
+    class libc7zip native
+```
+
+| Package | Purpose |
+|---------|---------|
+| [go-itchio](https://github.com/itchio/go-itchio) | itch.io API client library |
+| [wharf](https://github.com/itchio/wharf) | Delta patching, binary diffing, pwr format |
+| [hush](https://github.com/itchio/hush) | Installation receipts and manifests |
+| [boar](https://github.com/itchio/boar) | Multi-format archive extraction (7z, RAR, ZIP) |
+| [savior](https://github.com/itchio/savior) | Archive extraction and seeking |
+| [httpkit](https://github.com/itchio/httpkit) | HTTP utilities and streaming |
+| [headway](https://github.com/itchio/headway) | Progress tracking and unit formatting |
+| [arkive](https://github.com/itchio/arkive) | ZIP/archive format support |
+| [dash](https://github.com/itchio/dash) | Game configuration and metadata |
+| [elefant](https://github.com/itchio/elefant) | ELF binary parser (Linux) |
+| [pelican](https://github.com/itchio/pelican) | PE binary parser (Windows) |
+| [lake](https://github.com/itchio/lake) | Binary storage pools, file structure tracking |
+| [intact](https://github.com/itchio/intact) | File integrity verification |
+| [ox](https://github.com/itchio/ox) | OS abstractions (registry, system calls) |
+| [smaug](https://github.com/itchio/smaug) | Windows installer/runtime detection |
+| [spellbook](https://github.com/itchio/spellbook) | File magic number detection |
+| [wizardry](https://github.com/itchio/wizardry) | Binary file utilities |
+| [hades](https://github.com/itchio/hades) | SQLite schema and queries |
+| [screw](https://github.com/itchio/screw) | Game manifest utilities |
+| [mitch](https://github.com/itchio/mitch) | Test fixtures (dev only) |
+| [kompress](https://github.com/itchio/kompress) | Compression abstraction layer |
+| [dskompress](https://github.com/itchio/dskompress) | Decompression utilities |
+| [go-brotli](https://github.com/itchio/go-brotli) | Brotli compression support |
+| [lzma](https://github.com/itchio/lzma) | LZMA compression support |
+| [randsource](https://github.com/itchio/randsource) | Random source utilities |
+| [sevenzip-go](https://github.com/itchio/sevenzip-go) | 7-zip library bindings (dynamically links to [libc7zip](https://github.com/itchio/libc7zip)) |
+| [dmcunrar-go](https://github.com/itchio/dmcunrar-go) | RAR decompression support |
+
 ## Integrations
 
 The following projects integrate butler as part of their workflow:
