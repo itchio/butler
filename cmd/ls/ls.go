@@ -64,7 +64,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 	}
 
 	log := func(line string) {
-		comm.Logf(line)
+		comm.Logf("%s", line)
 	}
 
 	if stats.IsDir() {
@@ -204,7 +204,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 						return errors.WithStack(err)
 					}
 				}
-				comm.Logf(wound.PrettyString(container))
+				comm.Logf("%s", wound.PrettyString(container))
 			}
 		}
 

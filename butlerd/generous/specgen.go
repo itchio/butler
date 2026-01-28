@@ -106,7 +106,7 @@ func (gc *generousContext) generateSpec() error {
 		return errors.WithStack(err)
 	}
 
-	doc.line(string(js))
+	doc.line("%s", string(js))
 	doc.commit("")
 	doc.write()
 

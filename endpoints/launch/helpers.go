@@ -238,7 +238,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 				return nil, err
 			}
 			targets = append(targets, target)
-			consumer.Logf(target.Strategy.String())
+			consumer.Logf("%s", target.Strategy.String())
 		}
 	}
 

@@ -78,7 +78,7 @@ func Install(ctx *mansion.Context, planPath string, pipePath string) error {
 	consumer.Infof("")
 	if len(failed) > 0 {
 		errMsg := fmt.Sprintf("Some prereqs failed to install: %s", strings.Join(failed, ", "))
-		consumer.Errorf(errMsg)
+		consumer.Errorf("%s", errMsg)
 		return errors.New(errMsg)
 	}
 

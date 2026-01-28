@@ -22,7 +22,7 @@ func (bc *generousContext) generateDocs() error {
 		doc.line("")
 		if len(entry.doc) > 0 {
 			doc.line("<p>")
-			doc.line(scope.markdownAll(entry.doc, showDesc))
+			doc.line("%s", scope.markdownAll(entry.doc, showDesc))
 			doc.line("</p>")
 		}
 
@@ -75,7 +75,7 @@ func (bc *generousContext) generateDocs() error {
 		doc.line("")
 		if len(entry.doc) > 0 {
 			doc.line("<p>")
-			doc.line(scope.markdownAll(entry.doc, showDesc))
+			doc.line("%s", scope.markdownAll(entry.doc, showDesc))
 			doc.line("</p>")
 		}
 
@@ -205,7 +205,7 @@ func (bc *generousContext) generateDocs() error {
 		doc.line("")
 		if len(entry.doc) > 0 {
 			doc.line("<p>")
-			doc.line(scope.markdownAll(entry.doc, true))
+			doc.line("%s", scope.markdownAll(entry.doc, true))
 			doc.line("</p>")
 		}
 		if id, ok := entry.typeSpec.Type.(*ast.Ident); ok {

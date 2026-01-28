@@ -123,7 +123,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 
 		err = messages.PrereqsStarted.Notify(params.RequestContext, psn)
 		if err != nil {
-			consumer.Warnf(err.Error())
+			consumer.Warnf("%s", err.Error())
 		}
 	}
 
@@ -131,7 +131,7 @@ func handlePrereqs(params launch.LauncherParams) error {
 		OnState: func(state butlerd.PrereqsTaskStateNotification) {
 			err = messages.PrereqsTaskState.Notify(params.RequestContext, state)
 			if err != nil {
-				consumer.Warnf(err.Error())
+				consumer.Warnf("%s", err.Error())
 			}
 		},
 	}

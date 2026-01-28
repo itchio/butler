@@ -114,7 +114,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			return errors.Wrap(walkErr, "walking directory to push")
 		case walkies := <-sourceContainerChan:
 			log := func(line string) {
-				comm.Logf(line)
+				comm.Logf("%s", line)
 			}
 			walkies.container.Print(log)
 			comm.Statf("Would push %s", walkies.container)

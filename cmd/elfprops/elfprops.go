@@ -47,7 +47,7 @@ func do(ctx *mansion.Context) {
 	comm.ResultOrPrint(info, func() {
 		js, err := json.MarshalIndent(info, "", "  ")
 		if err == nil {
-			comm.Logf(string(js))
+			comm.Logf("%s", string(js))
 		}
 	})
 

@@ -251,7 +251,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 
 			exeName := filepath.Base(params.FullTargetPath)
 			msg := fmt.Sprintf("Exit code 0x%x (%d) for (%s)", uint32(exitCode), signedExitCode, exeName)
-			consumer.Warnf(msg)
+			consumer.Warnf("%s", msg)
 
 			if runDuration.Seconds() > 10 {
 				consumer.Warnf("That's after running for %s, ignoring non-zero exit code", runDuration)

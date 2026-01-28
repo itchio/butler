@@ -154,7 +154,7 @@ func (sc *scanContext) Do() error {
 		consumer.Progress(float64(i) / float64(len(sc.tasks)))
 		err := sc.importLegacyCave(t.legacyCave, t.files)
 		if err != nil {
-			consumer.Warnf(err.Error())
+			consumer.Warnf("%s", err.Error())
 		}
 	}
 	rc.EndProgress()
