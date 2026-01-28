@@ -9378,6 +9378,12 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <td><p><span class="tag">Optional</span> JarInfo contains information specific to Java archives (<code>.jar</code> files)</p>
 </td>
 </tr>
+<tr>
+<td><code>metadata</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
+<td><p><span class="tag">Optional</span> Any other info.</p>
+</td>
+</tr>
 </table>
 
 
@@ -9442,6 +9448,10 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>jarInfo</code></td>
 <td><code class="typename"><span class="type">JarInfo</span></code></td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
 </tr>
 </table>
 

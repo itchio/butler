@@ -94,6 +94,8 @@ func typeToString(e ast.Expr) string {
 		return typeToString(node.Elt) + "[]"
 	case *ast.MapType:
 		return "{ [key: " + typeToString(node.Key) + "]: " + typeToString(node.Value) + " }"
+	case *ast.InterfaceType:
+		return "any"
 	default:
 		return fmt.Sprintf("%#v", node)
 	}

@@ -3134,6 +3134,11 @@
           "name": "jarInfo",
           "doc": "JarInfo contains information specific to Java archives (`.jar` files)",
           "type": "JarInfo"
+        },
+        {
+          "name": "metadata",
+          "doc": "Any other info.",
+          "type": "{ [key: string]: any }"
         }
       ]
     },
