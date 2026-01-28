@@ -114,6 +114,37 @@ flowchart LR
     class arkive,dash,elefant,hades,intact,lake,mitch,ox,pelican,screw,smaug,spellbook,wizardry,randsource leaf
     class kompress,dskompress,go-brotli,lzma,sevenzip-go,dmcunrar-go compression
     class libc7zip native
+
+    %% Links to GitHub repos
+    click butler "https://github.com/itchio/butler" "itch.io command-line tools"
+    click hush "https://github.com/itchio/hush" "Installation receipts and manifests"
+    click wharf "https://github.com/itchio/wharf" "Delta patching, binary diffing, pwr format"
+    click boar "https://github.com/itchio/boar" "Multi-format archive extraction (7z, RAR, ZIP)"
+    click go-itchio "https://github.com/itchio/go-itchio" "itch.io API client library"
+    click savior "https://github.com/itchio/savior" "Archive extraction and seeking"
+    click httpkit "https://github.com/itchio/httpkit" "HTTP utilities and streaming"
+    click headway "https://github.com/itchio/headway" "Progress tracking and unit formatting"
+    click arkive "https://github.com/itchio/arkive" "ZIP/archive format support"
+    click dash "https://github.com/itchio/dash" "Game configuration and metadata"
+    click elefant "https://github.com/itchio/elefant" "ELF binary parser (Linux)"
+    click hades "https://github.com/itchio/hades" "SQLite schema and queries"
+    click intact "https://github.com/itchio/intact" "File integrity verification"
+    click lake "https://github.com/itchio/lake" "Binary storage pools, file structure tracking"
+    click mitch "https://github.com/itchio/mitch" "Test fixtures (dev only)"
+    click ox "https://github.com/itchio/ox" "OS abstractions (registry, system calls)"
+    click pelican "https://github.com/itchio/pelican" "PE binary parser (Windows)"
+    click screw "https://github.com/itchio/screw" "Game manifest utilities"
+    click smaug "https://github.com/itchio/smaug" "Windows installer/runtime detection"
+    click spellbook "https://github.com/itchio/spellbook" "File magic number detection"
+    click wizardry "https://github.com/itchio/wizardry" "Binary file utilities"
+    click kompress "https://github.com/itchio/kompress" "Compression abstraction layer"
+    click dskompress "https://github.com/itchio/dskompress" "Decompression utilities"
+    click go-brotli "https://github.com/itchio/go-brotli" "Brotli compression support"
+    click lzma "https://github.com/itchio/lzma" "LZMA compression support"
+    click randsource "https://github.com/itchio/randsource" "Random source utilities"
+    click sevenzip-go "https://github.com/itchio/sevenzip-go" "7-zip library bindings"
+    click dmcunrar-go "https://github.com/itchio/dmcunrar-go" "RAR decompression support"
+    click libc7zip "https://github.com/itchio/libc7zip" "C wrapper for 7-zip"
 ```
 
 | Package | Purpose |
