@@ -27,7 +27,7 @@ various features. Here's a high level overview to help with understanding and
 development:
 
 ```mermaid
-flowchart TD
+flowchart LR
     butler[butler]
 
     %% High-level packages
@@ -101,12 +101,12 @@ flowchart TD
     httpkit --> headway
 
     %% Styling
-    classDef leaf fill:#e8f5e9,stroke:#4caf50
-    classDef infra fill:#e3f2fd,stroke:#2196f3
-    classDef mid fill:#fff3e0,stroke:#ff9800
-    classDef high fill:#fce4ec,stroke:#e91e63
-    classDef compression fill:#f3e5f5,stroke:#9c27b0
-    classDef native fill:#fff9c4,stroke:#fbc02d
+    classDef leaf fill:#e8f5e9,stroke:#4caf50,color:#1b5e20
+    classDef infra fill:#e3f2fd,stroke:#2196f3,color:#0d47a1
+    classDef mid fill:#fff3e0,stroke:#ff9800,color:#e65100
+    classDef high fill:#fce4ec,stroke:#e91e63,color:#880e4f
+    classDef compression fill:#f3e5f5,stroke:#9c27b0,color:#4a148c
+    classDef native fill:#fff9c4,stroke:#fbc02d,color:#f57f17
 
     class headway,httpkit infra
     class savior,go-itchio mid
