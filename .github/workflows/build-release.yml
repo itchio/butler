@@ -49,7 +49,7 @@ jobs:
         run: node release/build.js --os linux --arch x86_64
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-amd64
           path: artifacts/linux-amd64/
