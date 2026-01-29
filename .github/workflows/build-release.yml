@@ -1,9 +1,6 @@
 name: Build and Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       deploy_linux_amd64:
@@ -88,7 +85,7 @@ jobs:
         run: node release/build.js --os linux --arch arm64
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-arm64
           path: artifacts/linux-arm64/
@@ -157,7 +154,6 @@ jobs:
 
   deploy:
     needs: [build-linux-x86_64, build-linux-arm64, sign-windows]
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
     env:
