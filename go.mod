@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	crawshaw.io/sqlite v0.3.2
-	github.com/BurntSushi/toml v0.3.1
+	github.com/BurntSushi/toml v1.6.0
 	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
