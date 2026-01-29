@@ -134,16 +134,12 @@ jobs:
           name: windows-amd64-unsigned
           path: artifacts/windows-amd64/
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-
       - name: Sign butler.exe with Azure
         uses: azure/artifact-signing-action@v1
         with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           endpoint: https://wus2.codesigning.azure.net
           signing-account-name: itchio
           certificate-profile-name: itchio
