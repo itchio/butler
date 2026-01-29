@@ -22,11 +22,6 @@ function main() {
 
   header(`Running tests...`);
   $(`go test -v -race -cover -coverprofile=coverage.txt ./...`);
-
-  if (!process.env.SKIP_CODECOV) {
-    header(`Uploading coverage information...`);
-    $(`curl -s https://codecov.io/bash | bash`);
-  }
 }
 
 main();

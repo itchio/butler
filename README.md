@@ -1,6 +1,5 @@
 # butler
 
-[![codecov](https://codecov.io/gh/itchio/butler/branch/master/graph/badge.svg)](https://codecov.io/gh/itchio/butler)
 [![Go Report Card](https://goreportcard.com/badge/github.com/itchio/butler)](https://goreportcard.com/report/github.com/itchio/butler)
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 

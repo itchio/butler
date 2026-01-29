@@ -3,9 +3,6 @@ stages:
   - build
   - deploy
 
-variables:
-  SKIP_CODECOV: 1 # codecov is run on github actions, not necessary on gitlab build
-
 # book:
 #   stage: deploy
 #   tags:
