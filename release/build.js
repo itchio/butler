@@ -71,6 +71,7 @@ async function main(args) {
   let opts = {
     os: detectOS(),
     arch: DEFAULT_ARCH,
+    skipSigning: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -81,6 +82,11 @@ async function main(args) {
       let k = matches[1];
       if (k == "verbose") {
         setVerbose(true);
+        continue;
+      }
+
+      if (k === "skip-signing") {
+        opts.skipSigning = true;
         continue;
       }
 
@@ -214,7 +220,7 @@ async function main(args) {
     }
   }
 
-  if (opts.os === "windows") {
+  if (opts.os === "windows" && !opts.skipSigning) {
     let signArgs = [
       "sign", // verb
       "//v", // verbose

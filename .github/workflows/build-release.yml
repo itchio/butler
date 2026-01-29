@@ -14,6 +14,10 @@ on:
         description: 'Deploy Linux arm64'
         type: boolean
         default: true
+      deploy_windows_amd64:
+        description: 'Deploy Windows x86_64'
+        type: boolean
+        default: true
 
 jobs:
   build-linux-x86_64:
@@ -90,8 +94,73 @@ jobs:
           path: artifacts/linux-arm64/
           retention-days: 7
 
+  build-windows-x86_64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build Windows x86_64
+        run: node release/build.js --os windows --arch x86_64 --skip-signing
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-amd64-unsigned
+          path: artifacts/windows-amd64/
+          retention-days: 7
+
+  sign-windows:
+    needs: [build-windows-x86_64]
+    runs-on: windows-latest
+    environment: signing-windows
+    steps:
+      - name: Download unsigned artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-amd64-unsigned
+          path: artifacts/windows-amd64/
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Sign butler.exe with Azure
+        uses: azure/artifact-signing-action@v1
+        with:
+          endpoint: https://wus2.codesigning.azure.net
+          signing-account-name: itchio
+          certificate-profile-name: itchio
+          files: ${{ github.workspace }}/artifacts/windows-amd64/butler.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-amd64
+          path: artifacts/windows-amd64/
+          retention-days: 7
+
   deploy:
-    needs: [build-linux-x86_64, build-linux-arm64]
+    needs: [build-linux-x86_64, build-linux-arm64, sign-windows]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
@@ -125,6 +194,13 @@ jobs:
         with:
           name: linux-arm64
           path: artifacts/linux-arm64/
+
+      - name: Download Windows x86_64 artifacts
+        if: inputs.deploy_windows_amd64 != false
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-amd64
+          path: artifacts/windows-amd64/
 
       - name: Deploy
         run: node release/deploy.js
