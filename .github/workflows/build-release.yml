@@ -15,6 +15,14 @@ on:
         description: 'Deploy Windows x86_64'
         type: boolean
         default: true
+      deploy_darwin_amd64:
+        description: 'Deploy macOS x86_64'
+        type: boolean
+        default: true
+      deploy_darwin_arm64:
+        description: 'Deploy macOS arm64'
+        type: boolean
+        default: true
 
 jobs:
   build-linux-x86_64:
@@ -123,6 +131,66 @@ jobs:
           path: artifacts/windows-amd64/
           retention-days: 7
 
+  build-darwin-x86_64:
+    if: inputs.deploy_darwin_amd64
+    runs-on: macos-13
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build macOS x86_64
+        run: node release/build.js --os darwin --arch x86_64 --skip-signing
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: darwin-amd64-unsigned
+          path: artifacts/darwin-amd64/
+          retention-days: 7
+
+  build-darwin-arm64:
+    if: inputs.deploy_darwin_arm64
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build macOS arm64
+        run: node release/build.js --os darwin --arch arm64 --skip-signing
+
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: darwin-arm64-unsigned
+          path: artifacts/darwin-arm64/
+          retention-days: 7
+
   sign-windows:
     needs: [build-windows-x86_64]
     if: inputs.deploy_windows_amd64
@@ -167,9 +235,167 @@ jobs:
           path: artifacts/windows-amd64/
           retention-days: 7
 
+  sign-darwin:
+    needs: [build-darwin-x86_64, build-darwin-arm64]
+    if: ${{ always() && !cancelled() && (inputs.deploy_darwin_amd64 || inputs.deploy_darwin_arm64) && (!inputs.deploy_darwin_amd64 || needs.build-darwin-x86_64.result == 'success') && (!inputs.deploy_darwin_arm64 || needs.build-darwin-arm64.result == 'success') }}
+    runs-on: macos-14
+    environment: signing-macos
+    steps:
+      - name: Download x86_64 unsigned artifact
+        if: inputs.deploy_darwin_amd64
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-amd64-unsigned
+          path: artifacts/darwin-amd64/
+
+      - name: Download arm64 unsigned artifact
+        if: inputs.deploy_darwin_arm64
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-arm64-unsigned
+          path: artifacts/darwin-arm64/
+
+      - name: Import certificate
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 32)
+
+          # Decode certificate
+          echo "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > $RUNNER_TEMP/certificate.p12
+
+          # Create and configure keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
+
+          # Save keychain path for later steps
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
+
+      - name: Create universal binary
+        if: inputs.deploy_darwin_amd64 && inputs.deploy_darwin_arm64
+        run: |
+          mkdir -p artifacts/darwin-universal
+          lipo -create \
+            artifacts/darwin-amd64/butler \
+            artifacts/darwin-arm64/butler \
+            -output artifacts/darwin-universal/butler
+          chmod +x artifacts/darwin-universal/butler
+          file artifacts/darwin-universal/butler
+
+      - name: Sign binaries
+        env:
+          SIGN_KEY: "Developer ID Application: itch corp. (AK2D34UDP2)"
+        run: |
+          # Sign x86_64 binary
+          if [ -f "artifacts/darwin-amd64/butler" ]; then
+            echo "Signing darwin-amd64..."
+            codesign --deep --force --verbose --options runtime \
+              --sign "$SIGN_KEY" "artifacts/darwin-amd64/butler"
+          fi
+
+          # Sign arm64 binary
+          if [ -f "artifacts/darwin-arm64/butler" ]; then
+            echo "Signing darwin-arm64..."
+            codesign --deep --force --verbose --options runtime \
+              --sign "$SIGN_KEY" "artifacts/darwin-arm64/butler"
+          fi
+
+          # Sign universal binary
+          if [ -f "artifacts/darwin-universal/butler" ]; then
+            echo "Signing darwin-universal..."
+            codesign --deep --force --verbose --options runtime \
+              --sign "$SIGN_KEY" "artifacts/darwin-universal/butler"
+          fi
+
+      - name: Verify signatures
+        run: |
+          for dir in darwin-amd64 darwin-arm64 darwin-universal; do
+            if [ -f "artifacts/$dir/butler" ]; then
+              echo "Verifying $dir..."
+              codesign --verify -vvvv "artifacts/$dir/butler"
+            fi
+          done
+
+      - name: Notarize binaries
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for dir in darwin-amd64 darwin-arm64 darwin-universal; do
+            if [ -f "artifacts/$dir/butler" ]; then
+              echo "Notarizing $dir..."
+              ZIP_FILE="$RUNNER_TEMP/butler-$dir.zip"
+
+              # CLI tools must be zipped for notarization
+              ditto -c -k --keepParent "artifacts/$dir/butler" "$ZIP_FILE"
+
+              xcrun notarytool submit "$ZIP_FILE" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait
+
+              rm "$ZIP_FILE"
+            fi
+          done
+
+      - name: Test binaries
+        run: |
+          for dir in darwin-amd64 darwin-arm64 darwin-universal; do
+            if [ -f "artifacts/$dir/butler" ]; then
+              echo "Testing $dir..."
+              "artifacts/$dir/butler" -V
+            fi
+          done
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          if [ -n "$KEYCHAIN_PATH" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+          rm -f $RUNNER_TEMP/certificate.p12 || true
+
+      - name: Upload signed darwin-amd64
+        if: inputs.deploy_darwin_amd64
+        uses: actions/upload-artifact@v6
+        with:
+          name: darwin-amd64
+          path: artifacts/darwin-amd64/
+          retention-days: 7
+
+      - name: Upload signed darwin-arm64
+        if: inputs.deploy_darwin_arm64
+        uses: actions/upload-artifact@v6
+        with:
+          name: darwin-arm64
+          path: artifacts/darwin-arm64/
+          retention-days: 7
+
+      - name: Upload signed darwin-universal
+        if: inputs.deploy_darwin_amd64 && inputs.deploy_darwin_arm64
+        uses: actions/upload-artifact@v6
+        with:
+          name: darwin-universal
+          path: artifacts/darwin-universal/
+          retention-days: 7
+
   deploy:
-    needs: [build-linux-x86_64, build-linux-arm64, sign-windows]
-    if: ${{ always() && !cancelled() && (inputs.deploy_linux_amd64 || inputs.deploy_linux_arm64 || inputs.deploy_windows_amd64) && (!inputs.deploy_linux_amd64 || needs.build-linux-x86_64.result == 'success') && (!inputs.deploy_linux_arm64 || needs.build-linux-arm64.result == 'success') && (!inputs.deploy_windows_amd64 || needs.sign-windows.result == 'success') }}
+    needs: [build-linux-x86_64, build-linux-arm64, sign-windows, sign-darwin]
+    if: ${{ always() && !cancelled() && (inputs.deploy_linux_amd64 || inputs.deploy_linux_arm64 || inputs.deploy_windows_amd64 || inputs.deploy_darwin_amd64 || inputs.deploy_darwin_arm64) && (!inputs.deploy_linux_amd64 || needs.build-linux-x86_64.result == 'success') && (!inputs.deploy_linux_arm64 || needs.build-linux-arm64.result == 'success') && (!inputs.deploy_windows_amd64 || needs.sign-windows.result == 'success') && ((!inputs.deploy_darwin_amd64 && !inputs.deploy_darwin_arm64) || needs.sign-darwin.result == 'success') }}
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -209,6 +435,27 @@ jobs:
         with:
           name: windows-amd64
           path: artifacts/windows-amd64/
+
+      - name: Download macOS x86_64 artifacts
+        if: inputs.deploy_darwin_amd64 != false
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-amd64
+          path: artifacts/darwin-amd64/
+
+      - name: Download macOS arm64 artifacts
+        if: inputs.deploy_darwin_arm64 != false
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-arm64
+          path: artifacts/darwin-arm64/
+
+      - name: Download macOS universal artifacts
+        if: inputs.deploy_darwin_amd64 != false && inputs.deploy_darwin_arm64 != false
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-universal
+          path: artifacts/darwin-universal/
 
       - name: Deploy
         run: node release/deploy.js

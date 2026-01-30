@@ -236,7 +236,7 @@ async function main(args) {
     $(`tools/signtool.exe ${signArgs.join(" ")}`);
   }
 
-  if (opts.os === "darwin") {
+  if (opts.os === "darwin" && !opts.skipSigning) {
     let signKey = "Developer ID Application: itch corp. (AK2D34UDP2)";
     $(`codesign --deep --force --verbose --sign "${signKey}" "${target}"`);
     $(`codesign --verify -vvvv "${target}"`);
