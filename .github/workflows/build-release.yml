@@ -198,7 +198,7 @@ jobs:
     environment: signing-windows
     steps:
       - name: Download unsigned artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: windows-amd64-unsigned
           path: artifacts/windows-amd64/
@@ -243,17 +243,31 @@ jobs:
     steps:
       - name: Download x86_64 unsigned artifact
         if: inputs.deploy_darwin_amd64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: darwin-amd64-unsigned
           path: artifacts/darwin-amd64/
 
       - name: Download arm64 unsigned artifact
         if: inputs.deploy_darwin_arm64
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: darwin-arm64-unsigned
           path: artifacts/darwin-arm64/
+
+      - name: Check execute permissions
+        run: |
+          for dir in darwin-amd64 darwin-arm64; do
+            if [ -f "artifacts/$dir/butler" ]; then
+              echo "=== $dir before chmod ==="
+              ls -la "artifacts/$dir/butler"
+              file "artifacts/$dir/butler"
+              xattr -l "artifacts/$dir/butler" || true
+              chmod +x "artifacts/$dir/butler"
+              echo "=== $dir after chmod ==="
+              ls -la "artifacts/$dir/butler"
+            fi
+          done
 
       - name: Import certificate
         env:
@@ -417,42 +431,42 @@ jobs:
 
       - name: Download x86_64 artifacts
         if: inputs.deploy_linux_amd64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: linux-amd64
           path: artifacts/linux-amd64/
 
       - name: Download arm64 artifacts
         if: inputs.deploy_linux_arm64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: linux-arm64
           path: artifacts/linux-arm64/
 
       - name: Download Windows x86_64 artifacts
         if: inputs.deploy_windows_amd64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: windows-amd64
           path: artifacts/windows-amd64/
 
       - name: Download macOS x86_64 artifacts
         if: inputs.deploy_darwin_amd64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: darwin-amd64
           path: artifacts/darwin-amd64/
 
       - name: Download macOS arm64 artifacts
         if: inputs.deploy_darwin_arm64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: darwin-arm64
           path: artifacts/darwin-arm64/
 
       - name: Download macOS universal artifacts
         if: inputs.deploy_darwin_amd64 != false && inputs.deploy_darwin_arm64 != false
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: darwin-universal
           path: artifacts/darwin-universal/
