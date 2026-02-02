@@ -25,82 +25,6 @@ on:
         default: true
 
 jobs:
-  build-linux-x86_64:
-    if: inputs.deploy_linux_amd64
-    runs-on: ubuntu-latest
-    container:
-      image: debian:bullseye
-    steps:
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y curl git ca-certificates build-essential file
-          git config --global --add safe.directory '*'
-
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: 'go.mod'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci --no-audit
-
-      - name: Build Linux x86_64
-        run: node release/build.js --os linux --arch x86_64
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: linux-amd64
-          path: artifacts/linux-amd64/
-          retention-days: 7
-
-  build-linux-arm64:
-    if: inputs.deploy_linux_arm64
-    runs-on: ubuntu-22.04-arm
-    container:
-      image: debian:bullseye
-    steps:
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y curl git ca-certificates build-essential file
-          git config --global --add safe.directory '*'
-
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: 'go.mod'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci --no-audit
-
-      - name: Build Linux arm64
-        run: node release/build.js --os linux --arch arm64
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: linux-arm64
-          path: artifacts/linux-arm64/
-          retention-days: 7
-
   build-windows-x86_64:
     if: inputs.deploy_windows_amd64
     runs-on: windows-latest
@@ -190,6 +114,83 @@ jobs:
           name: darwin-arm64-unsigned
           path: artifacts/darwin-arm64/
           retention-days: 7
+
+  build-linux-x86_64:
+    if: inputs.deploy_linux_amd64
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl git ca-certificates build-essential file
+          git config --global --add safe.directory '*'
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build Linux x86_64
+        run: node release/build.js --os linux --arch x86_64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: linux-amd64
+          path: artifacts/linux-amd64/
+          retention-days: 7
+
+  build-linux-arm64:
+    if: inputs.deploy_linux_arm64
+    runs-on: ubuntu-22.04-arm
+    container:
+      image: debian:bullseye
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl git ca-certificates build-essential file
+          git config --global --add safe.directory '*'
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Build Linux arm64
+        run: node release/build.js --os linux --arch arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: linux-arm64
+          path: artifacts/linux-arm64/
+          retention-days: 7
+
 
   sign-windows:
     needs: [build-windows-x86_64]
