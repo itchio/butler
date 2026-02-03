@@ -23,7 +23,7 @@ import (
 
 	"crawshaw.io/sqlite"
 	"crawshaw.io/sqlite/sqlitex"
-	"github.com/helloeave/json"
+	"github.com/homelight/json"
 
 	"github.com/pkg/errors"
 )
