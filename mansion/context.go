@@ -11,7 +11,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/pwr"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	kingpin "github.com/alecthomas/kingpin/v2"
 )
 
 type DoCommand func(ctx *Context)
