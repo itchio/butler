@@ -11,7 +11,7 @@ require (
 	github.com/efarrer/iothrottler v0.0.3
 	github.com/fatih/color v1.18.0
 	github.com/fatih/structtag v1.2.0
-	github.com/go-ole/go-ole v1.2.6
+	github.com/go-ole/go-ole v1.3.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/google/gops v0.3.29
 	github.com/google/uuid v1.1.1
