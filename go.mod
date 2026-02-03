@@ -51,7 +51,7 @@ require (
 	golang.org/x/text v0.33.0
 	golang.org/x/time v0.14.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	xorm.io/builder v0.3.7
+	xorm.io/builder v0.3.13
 )
 
 require (
