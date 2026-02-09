@@ -9,12 +9,12 @@ require (
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/efarrer/iothrottler v0.0.3
-	github.com/fatih/color v1.9.0
+	github.com/fatih/color v1.18.0
 	github.com/fatih/structtag v1.2.0
-	github.com/go-ole/go-ole v1.2.4
+	github.com/go-ole/go-ole v1.3.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/google/gops v0.3.10
-	github.com/google/uuid v1.1.1
+	github.com/google/gops v0.3.29
+	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260129195250-d003d2dc1a31
 	github.com/itchio/boar v0.0.0-20260130230637-862e70c1e0d7
@@ -39,7 +39,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/natefinch/npipe v0.0.0-20160621034901-c1b8fa8bdcce
-	github.com/olekukonko/tablewriter v0.0.4
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday v2.0.0+incompatible
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e
@@ -60,6 +60,7 @@ require (
 	github.com/basgys/goxml2json v1.1.0 // indirect
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/detailyang/go-fallocate v0.0.0-20180908115635-432fa640bd2e // indirect
 	github.com/getlantern/context v0.0.0-20220418194847-3d5e7a086201 // indirect
@@ -89,9 +90,9 @@ require (
 	github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.3 // indirect
-	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
