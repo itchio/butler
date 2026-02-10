@@ -30,6 +30,27 @@ type ServeTCPParams struct {
 	ShutdownChan chan struct{}
 }
 
+type ServeStdioParams struct {
+	Handler      jsonrpc2.Handler
+	ShutdownChan chan struct{}
+}
+
+func (s *Server) ServeStdio(ctx context.Context, params ServeStdioParams, rwc jsonrpc2.ReadWriteClose) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// No gatedHandler for stdio — the transport is inherently secure
+	conn := jsonrpc2.NewConn(ctx, jsonrpc2.NewRwcTransport(rwc), params.Handler)
+
+	select {
+	case <-conn.DisconnectNotify():
+	case <-params.ShutdownChan:
+	case <-ctx.Done():
+	}
+
+	return nil
+}
+
 func (s *Server) ServeTCP(ctx context.Context, params ServeTCPParams) error {
 	if params.KeepAlive {
 		return s.serveTCPKeepAlive(ctx, params)
