@@ -21,6 +21,10 @@ Use the `--log` command-line option to log all TCP message exchanges.
 
 ## Making requests
 
+butlerd supports two transports: **TCP** (default) and **stdio**.
+
+### TCP transport
+
 By default, butlerd listens over TCP. It'll let the OS pick a random port on startup.
 
 When started, it will output a line of JSON to stdout with the following structure:
@@ -118,6 +122,25 @@ with the secret included in the `butlerd/listen-notification` JSON line printed 
   }
 }
 ```
+
+### Stdio transport
+
+The stdio transport uses stdin/stdout for JSON-RPC 2.0 communication instead of TCP.
+To use it, pass `--transport stdio` to the daemon command:
+
+```bash
+butler daemon --json --transport stdio --dbpath path/to/butler.db
+```
+
+In stdio mode:
+
+  * JSON-RPC messages are read from stdin and written to stdout (newline-delimited, same as TCP)
+  * Logging and other non-JSON output is redirected to stderr
+  * `Meta.Authenticate` is **not required** — the transport is inherently secure since only the parent process has access to the pipes
+  * Only a single connection is supported (the stdin/stdout pair)
+
+This transport is useful for embedding butlerd as a subprocess where TCP port management
+is unnecessary or undesirable.
 
 ## Instances and connections
 

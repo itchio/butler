@@ -30,7 +30,7 @@ var args = struct {
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
-	cmd.Flag("transport", "Which transport to use").Default("tcp").EnumVar(&args.transport, "http", "tcp")
+	cmd.Flag("transport", "Which transport to use").Default("tcp").EnumVar(&args.transport, "http", "tcp", "stdio")
 	cmd.Flag("keep-alive", "Accept multiple TCP connections, stay up until killed or a destiny PID shuts down").BoolVar(&args.keepAlive)
 	cmd.Flag("log", "Log all requests to stderr").BoolVar(&args.log)
 	ctx.Register(cmd, do)
@@ -133,9 +133,44 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Po
 		if err != nil {
 			return err
 		}
+	case "stdio":
+		// Save original stdout for the transport, then redirect os.Stdout
+		// to stderr so comm package output doesn't corrupt the transport.
+		origStdout := os.Stdout
+		os.Stdout = os.Stderr
+
+		rwc := &stdioReadWriteCloser{
+			in:  os.Stdin,
+			out: origStdout,
+		}
+
+		err := s.ServeStdio(ctx, butlerd.ServeStdioParams{
+			Handler:      router,
+			ShutdownChan: router.ShutdownChan,
+		}, rwc)
+		if err != nil {
+			return err
+		}
 	case "http":
 		comm.Dief("The HTTP transport is deprecated. Use TCP instead.")
 	}
 
 	return nil
+}
+
+type stdioReadWriteCloser struct {
+	in  *os.File
+	out *os.File
+}
+
+func (s *stdioReadWriteCloser) Read(p []byte) (int, error) {
+	return s.in.Read(p)
+}
+
+func (s *stdioReadWriteCloser) Write(p []byte) (int, error) {
+	return s.out.Write(p)
+}
+
+func (s *stdioReadWriteCloser) Close() error {
+	return s.in.Close()
 }
