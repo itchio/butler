@@ -12,7 +12,7 @@ import (
 	"github.com/homelight/json"
 )
 
-var debugEnabled = os.Getenv("JSON_RPC_DEBUG") == "1"
+var debugEnabled = os.Getenv("BUTLER_JSON_RPC_DEBUG") == "1"
 
 func debug(format string, args ...interface{}) {
 	if debugEnabled {

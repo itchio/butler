@@ -176,6 +176,18 @@ flowchart LR
 | [sevenzip-go](https://github.com/itchio/sevenzip-go) | 7-zip library bindings (dynamically links to [libc7zip](https://github.com/itchio/libc7zip)) |
 | [dmcunrar-go](https://github.com/itchio/dmcunrar-go) | RAR decompression support |
 
+## Debug environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `BUTLER_SQL_DEBUG=1` | Log all SQL queries through the hades ORM |
+| `BUTLER_JSON_RPC_DEBUG=1` | Log JSON-RPC 2.0 request/response messages |
+| `BUTLER_DEBUG_HOST` | Host for the pprof HTTP debug server (default: `localhost`) |
+| `BUTLER_DEBUG_PORT` | Port for the pprof HTTP debug server (enables it when set) |
+| `BUTLER_FULL_MSI_LOG=1` | Show full MSI installer log output (Windows) |
+| `BUTLER_API_KEY` | Provide an itch.io API key via environment instead of `butler login` |
+| `BUTLER_MANUAL_OAUTH=1` | Use manual copy-paste OAuth flow for headless/remote login |
+
 ## Integrations
 
 The following projects integrate butler as part of their workflow:
