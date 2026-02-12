@@ -182,10 +182,10 @@ Use the following HTTP endpoint to check for a newer version:
 
 Where `windows-amd64` is one of:
 
-  * `windows-386` - 32-bit Windows
   * `windows-amd64` - 64-bit Windows
   * `linux-amd64` - 64-bit Linux
   * `darwin-amd64` - 64-bit macOS
+  * `darwin-arm64` - Apple Silicon macOS
 
 `LATEST` is a text file that contains a version number.
 
@@ -198,9 +198,5 @@ Make sure when you unzip it, that the executable bit is set on Linux & macOS.
 
 (The permissions are set properly in the zip file, but not all zip extractors
 faithfully restore them)
-
-### Friendly update deployment
-
-See <https://github.com/itchio/itch/issues/1721>
 
 {{EVERYTHING}}
