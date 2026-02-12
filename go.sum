@@ -165,8 +165,8 @@ github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9 h1:nW0B/lNYxI62tQbxrB
 github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9/go.mod h1:/2oHKe4uysZDjIr+UMuX6nTrQ3zWUiGAAj80DT0ligY=
 github.com/itchio/ox v0.0.0-20191031175435-32d876f09b55/go.mod h1:OkOgnS4mtvTl2n9S65jTihpuQJxeldLBA/x3QSFHQFQ=
 github.com/itchio/ox v0.0.0-20200301160301-4e131878ba64/go.mod h1:WaIT8roTpS2W9zJKdHq4j+Zs5PcEY42H0FQZHQqEZFs=
-github.com/itchio/ox v0.0.0-20260204011704-8e7bc5639671 h1:e78FK2tPyEA7uJlPhB36sqezp262LKuFsj8q/nPrdjM=
-github.com/itchio/ox v0.0.0-20260204011704-8e7bc5639671/go.mod h1:433sW0ck7/e5u7yycn9pmuK84/askPuhm3MqtwFl9zk=
+github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382 h1:FKGDIamOblBuLCYDxJkGEGCKZ5YG5gJvhCEXb6IcZA8=
+github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382/go.mod h1:433sW0ck7/e5u7yycn9pmuK84/askPuhm3MqtwFl9zk=
 github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2 h1:XrbJuHHAiZ1YEWXjNM+2vWBWZfxxSu66LLOQ5WoYd88=
 github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2/go.mod h1:yO1VTrLzhasSPQrOvDpfZnkAmNVD6Cv+pbF6hTsWSpM=
 github.com/itchio/randsource v0.0.0-20190703104731-3f6d22f91927 h1:5abFAYun3PFycBSXZnvXk0wqaPNiioSTIOZFf3I0J+A=
@@ -178,8 +178,8 @@ github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38 h1:Mn30eeqfaJDXRxiQzH
 github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38/go.mod h1:niqRh/zemDC1HOJiMwUHIsmbgw4t3NTAogGD53Uleqs=
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c h1:Mo6j+q53lWHsX+39KWfYudUX2fv8O0Rg1XnQBRX1aOU=
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c/go.mod h1:j77mJOxTb3sD0+h/c7nqwth7Y7DcI8TyBhxUI2ZEs0o=
-github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355 h1:YiB7AyKJykyXoRYgJ5gnHT0f2cZiXqHMAqzt2f0TN40=
-github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355/go.mod h1:TEwKiqrIit2uNSmu8FndFMIUX7egGtfZigrjQYBRZ+Q=
+github.com/itchio/smaug v0.0.0-20260212201406-1bd5f3fc1c90 h1:dsoZB0unSz/hWHE01megcNC6wzrruPr7U6vuoZ+G1rU=
+github.com/itchio/smaug v0.0.0-20260212201406-1bd5f3fc1c90/go.mod h1:cvvHbM3mtzDynJyUcb8mwpinK14Sy691ch1CV1D8jjE=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725 h1:zD1SEqqiqaCgJnSauy1+LBq1tDrXFGymk09v90Wr0bA=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725/go.mod h1:rrZhjXwnFHxTTvfrzI0aeIQDCGqlbGFu7SXam+QcJ94=
 github.com/itchio/wharf v0.0.0-20200305150844-3ed0814c4e98/go.mod h1:ZTnhOpjGKeKcysGbew3pIIQWgjHIFSHRGznCORTiA6w=
