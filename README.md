@@ -176,6 +176,27 @@ flowchart LR
 | [sevenzip-go](https://github.com/itchio/sevenzip-go) | 7-zip library bindings (dynamically links to [libc7zip](https://github.com/itchio/libc7zip)) |
 | [dmcunrar-go](https://github.com/itchio/dmcunrar-go) | RAR decompression support |
 
+## generous (Code Generation)
+
+butler includes a code generation tool called **generous** (`butlerd/generous/`) that parses Go type definitions (primarily `butlerd/types.go` and `butlerd/types_launch.go`) and their comment annotations (e.g. `@name`, `@category`, `@caller`) to generate API bindings and documentation.
+
+**After changing butler's API types**, run the following from the butler repo:
+
+```bash
+# Regenerate Go code, JSON spec, and API docs
+go run ./butlerd/generous godocs
+```
+
+This generates three files that should be committed to this repo:
+
+| File | Purpose |
+|------|---------|
+| `butlerd/messages/messages.go` | Go request/notification handlers used by butler |
+| `butlerd/generous/spec/butlerd.json` | JSON API spec |
+| `butlerd/generous/docs/README.md` | API docs (uploaded to docs.itch.zone by CI) |
+
+generous also has a `ts` mode for generating TypeScript bindings used by the [itch](https://github.com/itchio/itch) app. From the itch repo, run `npm run sync-butler` (which requires this repo checked out as a sibling directory).
+
 ## Debug environment variables
 
 | Variable | Description |
