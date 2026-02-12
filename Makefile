@@ -10,7 +10,7 @@ LDFLAGS := -X $(BUILDINFO_PKG).Version=$(VERSION) \
            -X $(BUILDINFO_PKG).BuiltAt=$(BUILT_AT) \
            -w -s
 
-.PHONY: build install test clean
+.PHONY: build install test clean generous
 
 build:
 	CGO_ENABLED=1 go build -ldflags "$(LDFLAGS)" -o butler .
@@ -20,6 +20,9 @@ install:
 
 test:
 	go test -v -race -cover ./...
+
+generous:
+	go run ./butlerd/generous godocs
 
 clean:
 	rm -f butler

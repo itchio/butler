@@ -3630,6 +3630,12 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 <table class="field-table">
 <tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> ID for cancellation support. If provided, can be cancelled via Install.Cancel</p>
+</td>
+</tr>
+<tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>The ID of the game we&rsquo;re planning to install</p>
@@ -3684,6 +3690,10 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 </p>
 
 <table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
