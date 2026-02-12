@@ -293,11 +293,15 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 }
 
 func (l *Launcher) FirejailParams(params launch.LauncherParams) runner.FirejailParams {
+	// Prefer system-installed firejail
+	if systemPath, err := exec.LookPath("firejail"); err == nil {
+		return runner.FirejailParams{BinaryPath: systemPath}
+	}
+
+	// Fall back to prereqs-installed firejail
 	name := fmt.Sprintf("firejail-%s", params.Host.Runtime.Arch())
 	binaryPath := filepath.Join(params.PrereqsDir, name, "firejail")
-	return runner.FirejailParams{
-		BinaryPath: binaryPath,
-	}
+	return runner.FirejailParams{BinaryPath: binaryPath}
 }
 
 func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
