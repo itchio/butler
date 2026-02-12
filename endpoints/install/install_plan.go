@@ -1,6 +1,7 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,15 +27,39 @@ import (
 	"xorm.io/builder"
 )
 
+func checkCancelled(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return errors.WithStack(butlerd.CodeOperationCancelled)
+	default:
+		return nil
+	}
+}
+
 func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
 	consumer := rc.Consumer
+
+	ctx := rc.Ctx
+	if params.ID != "" {
+		var cancelFunc context.CancelFunc
+		ctx, cancelFunc = context.WithCancel(ctx)
+		rc.CancelFuncs.Add(params.ID, cancelFunc)
+		defer rc.CancelFuncs.Remove(params.ID)
+	}
+
 	conn := rc.GetConn()
 	defer rc.PutConn(conn)
 
 	game := fetch.LazyFetchGame(rc, params.GameID)
+	if err := checkCancelled(ctx); err != nil {
+		return nil, err
+	}
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
+	if err := checkCancelled(ctx); err != nil {
+		return nil, err
+	}
 
 	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.HostEnumerator())
 	if err != nil {
@@ -142,6 +167,10 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	sourceURL := operate.MakeSourceURL(client, consumer, sessionID, installParams, "")
 
+	if err := checkCancelled(ctx); err != nil {
+		return nil, err
+	}
+
 	beforeOpen := time.Now()
 	file, err := eos.Open(sourceURL, option.WithConsumer(consumer))
 	consumer.Infof("(opening file took %s)", time.Since(beforeOpen))
@@ -150,6 +179,10 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		return res, nil
 	}
 	defer file.Close()
+
+	if err := checkCancelled(ctx); err != nil {
+		return nil, err
+	}
 
 	installerInfo, err := hush.GetInstallerInfo(consumer, file)
 	if err != nil {

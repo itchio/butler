@@ -1532,6 +1532,10 @@ type InstallQueueResult struct {
 // @category Install
 // @caller client
 type InstallPlanParams struct {
+	// ID for cancellation support. If provided, can be cancelled via Install.Cancel
+	// @optional
+	ID string `json:"id"`
+
 	// The ID of the game we're planning to install
 	GameID int64 `json:"gameId"`
 
