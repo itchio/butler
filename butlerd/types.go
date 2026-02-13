@@ -1526,7 +1526,7 @@ type InstallQueueResult struct {
 	InstallLocationID string         `json:"installLocationId"`
 }
 
-// @deprecated Use Install.GetUploads + Install.PlanUpload instead.
+// @deprecated Install.Plan can take a long time calculating space requirements and can't be canceled. Use Install.GetUploads to quickly list available uploads, then Install.PlanUpload to calculate extraction details for a specific upload (with cancellation support).
 //
 // @name Install.Plan
 // @category Install

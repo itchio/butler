@@ -139,9 +139,9 @@ func (bc *generousContext) generateDocs() error {
 		doc.line("### %s %s", entry.name, kindString(entry))
 		doc.line("")
 		if entry.deprecated != "" {
-			doc.line(`<p style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px; padding: 8px 12px; color: #856404; font-weight: bold;">`)
-			doc.line("Deprecated: %s", scope.markdown(entry.deprecated, true))
-			doc.line("</p>")
+			doc.line(`<div class="deprecation-notice">`)
+			doc.line("<strong>Deprecated:</strong> %s", scope.markdown(entry.deprecated, true))
+			doc.line("</div>")
 			doc.line("")
 		}
 	}

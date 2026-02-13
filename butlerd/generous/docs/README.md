@@ -3617,10 +3617,10 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 ### Install.Plan (client request)
 
-<p style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px; padding: 8px 12px; color: #856404; font-weight: bold;">
-Deprecated: <p>Use Install.GetUploads + Install.PlanUpload instead.</p>
+<div class="deprecation-notice">
+<strong>Deprecated:</strong> <p>Install.Plan can take a long time calculating space requirements and can&rsquo;t be canceled. Use Install.GetUploads to quickly list available uploads, then Install.PlanUpload to calculate extraction details for a specific upload (with cancellation support).</p>
 
-</p>
+</div>
 
 
 
