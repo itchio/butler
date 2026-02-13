@@ -3617,11 +3617,12 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 ### Install.Plan (client request)
 
-
-<p>
-<p>Deprecated: Use Install.GetUploads + Install.PlanUpload instead.</p>
+<p style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px; padding: 8px 12px; color: #856404; font-weight: bold;">
+Deprecated: <p>Use Install.GetUploads + Install.PlanUpload instead.</p>
 
 </p>
+
+
 
 <p>
 <span class="header">Parameters</span> 
@@ -3677,10 +3678,6 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <div id="InstallPlanParams__TypeHint" class="tip-content">
 <p>Install.Plan (client request) <a href="#/?id=installplan-client-request">(Go to definition)</a></p>
 
-<p>
-<p>Deprecated: Use Install.GetUploads + Install.PlanUpload instead.</p>
-
-</p>
 
 <table class="field-table">
 <tr>

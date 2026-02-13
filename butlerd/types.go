@@ -1526,7 +1526,7 @@ type InstallQueueResult struct {
 	InstallLocationID string         `json:"installLocationId"`
 }
 
-// Deprecated: Use Install.GetUploads + Install.PlanUpload instead.
+// @deprecated Use Install.GetUploads + Install.PlanUpload instead.
 //
 // @name Install.Plan
 // @category Install
@@ -1583,7 +1583,7 @@ type InstallPlanUploadParams struct {
 	// @optional
 	ID string `json:"id"`
 
-	UploadID          int64  `json:"uploadId"`
+	UploadID int64 `json:"uploadId"`
 	// @optional
 	DownloadSessionID string `json:"downloadSessionId"`
 }

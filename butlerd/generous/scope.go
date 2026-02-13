@@ -45,6 +45,7 @@ type entryInfo struct {
 	name         string
 	typeName     string
 	caller       callerInfo
+	deprecated   string
 	enumValues   []*enumValue
 	structFields []*structField
 }
@@ -151,6 +152,7 @@ func (s *scope) assimilate(pkg string, file string) error {
 						var customName string
 						var doc []string
 						var caller = callerUnknown
+						var deprecated string
 
 						lines := getCommentLines(gd.Doc)
 						if len(lines) > 0 {
@@ -178,6 +180,11 @@ func (s *scope) assimilate(pkg string, file string) error {
 										caller = callerClient
 									default:
 										panic(fmt.Sprintf("invalid caller specified for (%s): %s (must be server or client)", tsName, value))
+									}
+								case "deprecated":
+									deprecated = value
+									if deprecated == "" {
+										deprecated = "This method is deprecated."
 									}
 								default:
 									doc = append(doc, line)
@@ -214,16 +221,17 @@ func (s *scope) assimilate(pkg string, file string) error {
 						}
 
 						e := &entryInfo{
-							kind:     kind,
-							typeKind: typeKind,
-							name:     prefix + name,
-							typeName: tsName,
-							typeSpec: ts,
-							gd:       gd,
-							tags:     tags,
-							category: category,
-							doc:      doc,
-							caller:   caller,
+							kind:       kind,
+							typeKind:   typeKind,
+							name:       prefix + name,
+							typeName:   tsName,
+							typeSpec:   ts,
+							gd:         gd,
+							tags:       tags,
+							category:   category,
+							doc:        doc,
+							caller:     caller,
+							deprecated: deprecated,
 						}
 
 						if typeKind == entryTypeKindStruct {

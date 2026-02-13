@@ -60,8 +60,9 @@ func (gc *generousContext) generateSpec() error {
 				}
 
 				rs := &spec.RequestSpec{
-					Method: entry.name,
-					Caller: caller,
+					Method:     entry.name,
+					Caller:     caller,
+					Deprecated: entry.deprecated,
 					Params: &spec.StructSpec{
 						Fields: encodeStruct(params),
 					},
@@ -73,7 +74,8 @@ func (gc *generousContext) generateSpec() error {
 				s.Requests = append(s.Requests, rs)
 			case entryKindNotification:
 				ns := &spec.NotificationSpec{
-					Method: entry.name,
+					Method:     entry.name,
+					Deprecated: entry.deprecated,
 					Params: &spec.StructSpec{
 						Fields: encodeStruct(entry),
 					},
@@ -84,9 +86,10 @@ func (gc *generousContext) generateSpec() error {
 				switch entry.typeKind {
 				case entryTypeKindStruct:
 					sts := &spec.StructTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Fields: encodeStruct(entry),
+						Name:       entry.name,
+						Doc:        strings.Join(entry.doc, "\n"),
+						Deprecated: entry.deprecated,
+						Fields:     encodeStruct(entry),
 					}
 					s.StructTypes = append(s.StructTypes, sts)
 				case entryTypeKindEnum:

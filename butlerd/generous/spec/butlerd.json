@@ -1287,8 +1287,9 @@
     },
     {
       "method": "Install.Plan",
-      "doc": "Deprecated: Use Install.GetUploads + Install.PlanUpload instead.",
+      "doc": "",
       "caller": "client",
+      "deprecated": "Use Install.GetUploads + Install.PlanUpload instead.",
       "params": {
         "fields": [
           {
