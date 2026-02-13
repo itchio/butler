@@ -39,25 +39,22 @@ func checkCancelled(ctx context.Context) error {
 func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
 	consumer := rc.Consumer
 
-	ctx := rc.Ctx
 	if params.ID != "" {
-		var cancelFunc context.CancelFunc
-		ctx, cancelFunc = context.WithCancel(ctx)
-		rc.CancelFuncs.Add(params.ID, cancelFunc)
-		defer rc.CancelFuncs.Remove(params.ID)
+		_, cleanup := rc.MakeCancelable(params.ID)
+		defer cleanup()
 	}
 
 	conn := rc.GetConn()
 	defer rc.PutConn(conn)
 
 	game := fetch.LazyFetchGame(rc, params.GameID)
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
 	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 
@@ -136,7 +133,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	info.Upload = upload
 	if upload.Build != nil {
-		buildRes, err := client.GetBuild(ctx, itchio.GetBuildParams{
+		buildRes, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
 			BuildID:     upload.Build.ID,
 			Credentials: access.Credentials,
 		})
@@ -167,7 +164,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	sourceURL := operate.MakeSourceURL(client, consumer, sessionID, installParams, "")
 
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 
@@ -180,7 +177,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	defer file.Close()
 
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 

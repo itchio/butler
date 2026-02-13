@@ -566,6 +566,31 @@ func (rc *RequestContext) WithConnString(f func(conn *sqlite.Conn) string) strin
 	return f(conn)
 }
 
+// MakeCancelable creates a child context, installs it as rc.Ctx for this scope,
+// optionally registers cancellation by id, and returns cleanup that cancels and restores rc.Ctx.
+func (rc *RequestContext) MakeCancelable(id string) (context.Context, func()) {
+	parentCtx := rc.Ctx
+	ctx, cancelFunc := context.WithCancel(parentCtx)
+	rc.Ctx = ctx
+
+	if id != "" && rc.CancelFuncs != nil {
+		rc.CancelFuncs.Add(id, cancelFunc)
+	}
+
+	var once sync.Once
+	cleanup := func() {
+		once.Do(func() {
+			cancelFunc()
+			rc.Ctx = parentCtx
+			if id != "" && rc.CancelFuncs != nil {
+				rc.CancelFuncs.Remove(id)
+			}
+		})
+	}
+
+	return ctx, cleanup
+}
+
 type CancelFuncs struct {
 	funcs map[string]context.CancelFunc
 	lock  sync.Mutex
