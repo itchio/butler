@@ -82,13 +82,11 @@ func NewRouter(dbPool *sqlitex.Pool, getClient GetClientFunc, httpClient *http.C
 	return &Router{
 		Handlers:             make(map[string]RequestHandler),
 		NotificationHandlers: make(map[string]NotificationHandler),
-		CancelFuncs: &CancelFuncs{
-			Funcs: make(map[string]context.CancelFunc),
-		},
-		dbPool:        dbPool,
-		getClient:     getClient,
-		httpClient:    httpClient,
-		httpTransport: httpTransport,
+		CancelFuncs:          NewCancelFuncs(),
+		dbPool:               dbPool,
+		getClient:            getClient,
+		httpClient:           httpClient,
+		httpTransport:        httpTransport,
 
 		backgroundContext: backgroundContext,
 		backgroundCancel:  backgroundCancel,
@@ -569,23 +567,40 @@ func (rc *RequestContext) WithConnString(f func(conn *sqlite.Conn) string) strin
 }
 
 type CancelFuncs struct {
-	Funcs map[string]context.CancelFunc
+	funcs map[string]context.CancelFunc
+	lock  sync.Mutex
+}
+
+func NewCancelFuncs() *CancelFuncs {
+	return &CancelFuncs{
+		funcs: make(map[string]context.CancelFunc),
+	}
 }
 
 func (cf *CancelFuncs) Add(id string, f context.CancelFunc) {
-	cf.Funcs[id] = f
+	cf.lock.Lock()
+	defer cf.lock.Unlock()
+	cf.funcs[id] = f
 }
 
 func (cf *CancelFuncs) Remove(id string) {
-	delete(cf.Funcs, id)
+	cf.lock.Lock()
+	defer cf.lock.Unlock()
+	delete(cf.funcs, id)
 }
 
 func (cf *CancelFuncs) Call(id string) bool {
-	if f, ok := cf.Funcs[id]; ok {
-		f()
-		delete(cf.Funcs, id)
-		return true
+	cf.lock.Lock()
+	f, ok := cf.funcs[id]
+	if ok {
+		delete(cf.funcs, id)
+	}
+	cf.lock.Unlock()
+
+	if !ok {
+		return false
 	}
 
-	return false
+	f()
+	return true
 }
