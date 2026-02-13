@@ -1532,19 +1532,8 @@ type InstallQueueResult struct {
 // @category Install
 // @caller client
 type InstallPlanParams struct {
-	// ID for cancellation support. If provided, can be cancelled via Install.Cancel
-	// @optional
-	ID string `json:"id"`
-
 	// The ID of the game we're planning to install
 	GameID int64 `json:"gameId"`
-
-	// The download session ID to use for this install plan
-	// @optional
-	DownloadSessionID string `json:"downloadSessionId"`
-
-	// @optional
-	UploadID int64 `json:"uploadId"`
 }
 
 func (p InstallPlanParams) Validate() error {
@@ -1556,7 +1545,31 @@ func (p InstallPlanParams) Validate() error {
 type InstallPlanResult struct {
 	Game    *itchio.Game     `json:"game"`
 	Uploads []*itchio.Upload `json:"uploads"`
+}
 
+// Returns installer type and disk usage info for a specific upload.
+// This is the slow part of install planning (network I/O + file inspection).
+//
+// @name Install.PlanUpload
+// @category Install
+// @caller client
+type InstallPlanUploadParams struct {
+	// ID for cancellation support. If provided, can be cancelled via Install.Cancel
+	// @optional
+	ID string `json:"id"`
+
+	UploadID          int64  `json:"uploadId"`
+	// @optional
+	DownloadSessionID string `json:"downloadSessionId"`
+}
+
+func (p InstallPlanUploadParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.UploadID, validation.Required),
+	)
+}
+
+type InstallPlanUploadResult struct {
 	Info *InstallPlanInfo `json:"info"`
 }
 

@@ -27,14 +27,21 @@ func Test_Plan(t *testing.T) {
 	_untaggedUpload := _game.MakeUpload("untagged.zip")
 	_untaggedUpload.SetZipContents()
 
-	res, err := messages.InstallPlan.TestCall(rc, butlerd.InstallPlanParams{
-		DownloadSessionID: "test",
-		GameID:            _game.ID,
-		UploadID:          _untaggedUpload.ID,
+	planRes, err := messages.InstallPlan.TestCall(rc, butlerd.InstallPlanParams{
+		GameID: _game.ID,
 	})
 	assert.NoError(err)
+	assert.NotNil(planRes.Game)
+	assert.NotEmpty(planRes.Uploads)
 
-	assert.NotNil(res.Info)
-	assert.NotNil(res.Info.Upload)
-	assert.NotEqual(_untaggedUpload.ID, res.Info.Upload.ID)
+	// Use the first upload from the plan to get disk usage info
+	upload := planRes.Uploads[0]
+
+	infoRes, err := messages.InstallPlanUpload.TestCall(rc, butlerd.InstallPlanUploadParams{
+		UploadID:          upload.ID,
+		DownloadSessionID: "test",
+	})
+	assert.NoError(err)
+	assert.NotNil(infoRes.Info)
+	assert.NotNil(infoRes.Info.Upload)
 }

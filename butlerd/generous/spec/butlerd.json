@@ -1292,23 +1292,8 @@
       "params": {
         "fields": [
           {
-            "name": "id",
-            "doc": "ID for cancellation support. If provided, can be cancelled via Install.Cancel",
-            "type": "string"
-          },
-          {
             "name": "gameId",
             "doc": "The ID of the game we're planning to install",
-            "type": "number"
-          },
-          {
-            "name": "downloadSessionId",
-            "doc": "The download session ID to use for this install plan",
-            "type": "string"
-          },
-          {
-            "name": "uploadId",
-            "doc": "",
             "type": "number"
           }
         ]
@@ -1324,7 +1309,35 @@
             "name": "uploads",
             "doc": "",
             "type": "Upload[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.PlanUpload",
+      "doc": "Returns installer type and disk usage info for a specific upload.\nThis is the slow part of install planning (network I/O + file inspection).",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "ID for cancellation support. If provided, can be cancelled via Install.Cancel",
+            "type": "string"
           },
+          {
+            "name": "uploadId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "downloadSessionId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
           {
             "name": "info",
             "doc": "",
