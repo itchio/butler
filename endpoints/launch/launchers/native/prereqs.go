@@ -2,6 +2,7 @@ package native
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/itchio/butler/butlerd/messages"
@@ -58,8 +59,10 @@ func handlePrereqs(params launch.LauncherParams) error {
 	{
 		runtime := params.Host.Runtime
 		if runtime.Platform == ox.PlatformLinux && params.Sandbox {
-			firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
-			wanted = append(wanted, firejailName)
+			if _, err := exec.LookPath("firejail"); err != nil {
+				firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
+				wanted = append(wanted, firejailName)
+			}
 		}
 	}
 

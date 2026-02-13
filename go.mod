@@ -29,11 +29,11 @@ require (
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
 	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
-	github.com/itchio/ox v0.0.0-20260204011704-8e7bc5639671
+	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
-	github.com/itchio/smaug v0.0.0-20200301160222-710c5b556355
+	github.com/itchio/smaug v0.0.0-20260212201406-1bd5f3fc1c90
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488

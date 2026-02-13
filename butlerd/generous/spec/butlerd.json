@@ -1292,6 +1292,11 @@
       "params": {
         "fields": [
           {
+            "name": "id",
+            "doc": "ID for cancellation support. If provided, can be cancelled via Install.Cancel",
+            "type": "string"
+          },
+          {
             "name": "gameId",
             "doc": "The ID of the game we're planning to install",
             "type": "number"
@@ -4058,6 +4063,11 @@
           "name": "is64",
           "doc": "",
           "type": "boolean"
+        },
+        {
+          "name": "arch",
+          "doc": "",
+          "type": "string"
         }
       ]
     },
