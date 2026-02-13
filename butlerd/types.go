@@ -1526,14 +1526,17 @@ type InstallQueueResult struct {
 	InstallLocationID string         `json:"installLocationId"`
 }
 
-// For modal-first install
+// Deprecated: Use Install.GetUploads + Install.PlanUpload instead.
 //
 // @name Install.Plan
 // @category Install
 // @caller client
 type InstallPlanParams struct {
-	// The ID of the game we're planning to install
 	GameID int64 `json:"gameId"`
+	// @optional
+	DownloadSessionID string `json:"downloadSessionId"`
+	// @optional
+	UploadID int64 `json:"uploadId"`
 }
 
 func (p InstallPlanParams) Validate() error {
@@ -1543,6 +1546,28 @@ func (p InstallPlanParams) Validate() error {
 }
 
 type InstallPlanResult struct {
+	Game    *itchio.Game     `json:"game"`
+	Uploads []*itchio.Upload `json:"uploads"`
+	Info    *InstallPlanInfo `json:"info"`
+}
+
+// Returns the list of available uploads for a game, narrowed by platform/format.
+// This is the fast part of install planning (no file I/O).
+//
+// @name Install.GetUploads
+// @category Install
+// @caller client
+type InstallGetUploadsParams struct {
+	GameID int64 `json:"gameId"`
+}
+
+func (p InstallGetUploadsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type InstallGetUploadsResult struct {
 	Game    *itchio.Game     `json:"game"`
 	Uploads []*itchio.Upload `json:"uploads"`
 }

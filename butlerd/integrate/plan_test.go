@@ -5,11 +5,11 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Plan(t *testing.T) {
-	assert := assert.New(t)
+	require := require.New(t)
 
 	bi := newInstance(t)
 	rc, _, cancel := bi.Unwrap()
@@ -27,21 +27,34 @@ func Test_Plan(t *testing.T) {
 	_untaggedUpload := _game.MakeUpload("untagged.zip")
 	_untaggedUpload.SetZipContents()
 
+	// Test Install.Plan (deprecated): verify Info is populated
 	planRes, err := messages.InstallPlan.TestCall(rc, butlerd.InstallPlanParams{
 		GameID: _game.ID,
 	})
-	assert.NoError(err)
-	assert.NotNil(planRes.Game)
-	assert.NotEmpty(planRes.Uploads)
+	require.NoError(err)
+	require.NotNil(planRes.Game)
+	require.NotEmpty(planRes.Uploads)
+	require.NotNil(planRes.Info)
+	require.NotNil(planRes.Info.Upload)
+	require.NotNil(planRes.Info.DiskUsage)
 
-	// Use the first upload from the plan to get disk usage info
-	upload := planRes.Uploads[0]
+	// Test Install.GetUploads: fast path, no Info
+	getUploadsRes, err := messages.InstallGetUploads.TestCall(rc, butlerd.InstallGetUploadsParams{
+		GameID: _game.ID,
+	})
+	require.NoError(err)
+	require.NotNil(getUploadsRes.Game)
+	require.NotEmpty(getUploadsRes.Uploads)
+
+	// Test Install.PlanUpload: get info for a specific upload
+	upload := getUploadsRes.Uploads[0]
 
 	infoRes, err := messages.InstallPlanUpload.TestCall(rc, butlerd.InstallPlanUploadParams{
 		UploadID:          upload.ID,
 		DownloadSessionID: "test",
 	})
-	assert.NoError(err)
-	assert.NotNil(infoRes.Info)
-	assert.NotNil(infoRes.Info.Upload)
+	require.NoError(err)
+	require.NotNil(infoRes.Info)
+	require.NotNil(infoRes.Info.Upload)
+	require.NotNil(infoRes.Info.DiskUsage)
 }

@@ -1757,6 +1757,46 @@ func (r *InstallPlanType) TestCall(rc *butlerd.RequestContext, params butlerd.In
 
 var InstallPlan *InstallPlanType
 
+// Install.GetUploads (Request)
+
+type InstallGetUploadsType struct {}
+
+var _ RequestMessage = (*InstallGetUploadsType)(nil)
+
+func (r *InstallGetUploadsType) Method() string {
+  return "Install.GetUploads"
+}
+
+func (r *InstallGetUploadsType) Register(router router, f func(*butlerd.RequestContext, butlerd.InstallGetUploadsParams) (*butlerd.InstallGetUploadsResult, error)) {
+  router.Register("Install.GetUploads", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.InstallGetUploadsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.GetUploads")
+    }
+    return res, nil
+  })
+}
+
+func (r *InstallGetUploadsType) TestCall(rc *butlerd.RequestContext, params butlerd.InstallGetUploadsParams) (*butlerd.InstallGetUploadsResult, error) {
+  var result butlerd.InstallGetUploadsResult
+  err := rc.Call("Install.GetUploads", params, &result)
+  return &result, err
+}
+
+var InstallGetUploads *InstallGetUploadsType
+
 // Install.PlanUpload (Request)
 
 type InstallPlanUploadType struct {}
@@ -3639,6 +3679,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
   if _, ok := router.Handlers["Install.Plan"]; !ok { panic("missing request handler for (Install.Plan)") }
+  if _, ok := router.Handlers["Install.GetUploads"]; !ok { panic("missing request handler for (Install.GetUploads)") }
   if _, ok := router.Handlers["Install.PlanUpload"]; !ok { panic("missing request handler for (Install.PlanUpload)") }
   if _, ok := router.Handlers["Caves.SetPinned"]; !ok { panic("missing request handler for (Caves.SetPinned)") }
   if _, ok := router.Handlers["Install.CreateShortcut"]; !ok { panic("missing request handler for (Install.CreateShortcut)") }

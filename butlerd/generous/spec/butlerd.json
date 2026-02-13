@@ -1287,13 +1287,56 @@
     },
     {
       "method": "Install.Plan",
-      "doc": "For modal-first install",
+      "doc": "Deprecated: Use Install.GetUploads + Install.PlanUpload instead.",
       "caller": "client",
       "params": {
         "fields": [
           {
             "name": "gameId",
-            "doc": "The ID of the game we're planning to install",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "downloadSessionId",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "uploadId",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "",
+            "type": "Game"
+          },
+          {
+            "name": "uploads",
+            "doc": "",
+            "type": "Upload[]"
+          },
+          {
+            "name": "info",
+            "doc": "",
+            "type": "InstallPlanInfo"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.GetUploads",
+      "doc": "Returns the list of available uploads for a game, narrowed by platform/format.\nThis is the fast part of install planning (no file I/O).",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "",
             "type": "number"
           }
         ]
