@@ -136,7 +136,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	info.Upload = upload
 	if upload.Build != nil {
-		buildRes, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
+		buildRes, err := client.GetBuild(ctx, itchio.GetBuildParams{
 			BuildID:     upload.Build.ID,
 			Credentials: access.Credentials,
 		})
