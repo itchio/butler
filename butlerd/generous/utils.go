@@ -56,9 +56,11 @@ func parseTag(line string) (tag string, value string) {
 			if line[i] == ' ' {
 				tag = line[1:i]
 				value = line[i+1:]
-				break
+				return
 			}
 		}
+		// No space found — tag with no value (e.g. "@deprecated")
+		tag = line[1:]
 	}
 	return
 }

@@ -3617,11 +3617,12 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 ### Install.Plan (client request)
 
+<div class="deprecation-notice">
+<strong>Deprecated:</strong> <p>Install.Plan can take a long time calculating space requirements and can&rsquo;t be canceled. Use Install.GetUploads to quickly list available uploads, then Install.PlanUpload to calculate extraction details for a specific upload (with cancellation support).</p>
 
-<p>
-<p>For modal-first install</p>
+</div>
 
-</p>
+
 
 <p>
 <span class="header">Parameters</span> 
@@ -3630,21 +3631,14 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 
 <table class="field-table">
 <tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> ID for cancellation support. If provided, can be cancelled via Install.Cancel</p>
-</td>
-</tr>
-<tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>The ID of the game we&rsquo;re planning to install</p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>downloadSessionId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> The download session ID to use for this install plan</p>
+<td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
 <tr>
@@ -3684,16 +3678,8 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <div id="InstallPlanParams__TypeHint" class="tip-content">
 <p>Install.Plan (client request) <a href="#/?id=installplan-client-request">(Go to definition)</a></p>
 
-<p>
-<p>For modal-first install</p>
-
-</p>
 
 <table class="field-table">
-<tr>
-<td><code>id</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-</tr>
 <tr>
 <td><code>gameId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
@@ -3724,6 +3710,175 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <td><code>uploads</code></td>
 <td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
+<tr>
+<td><code>info</code></td>
+<td><code class="typename"><span class="type">InstallPlanInfo</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Install.GetUploads (client request)
+
+
+<p>
+<p>Returns the list of available uploads for a game, narrowed by platform/format.
+This is the fast part of install planning (no file I/O).</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallGetUploadsParams__TypeHint" class="tip-content">
+<p>Install.GetUploads (client request) <a href="#/?id=installgetuploads-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Returns the list of available uploads for a game, narrowed by platform/format.
+This is the fast part of install planning (no file I/O).</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallGetUploadsResult__TypeHint" class="tip-content">
+<p>InstallGetUploads  <a href="#/?id=installgetuploads-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>uploads</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### Install.PlanUpload (client request)
+
+
+<p>
+<p>Returns installer type and disk usage info for a specific upload.
+This is the slow part of install planning (network I/O + file inspection).</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> ID for cancellation support. If provided, can be cancelled via Install.Cancel</p>
+</td>
+</tr>
+<tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>downloadSessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>info</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallPlanUploadParams__TypeHint" class="tip-content">
+<p>Install.PlanUpload (client request) <a href="#/?id=installplanupload-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Returns installer type and disk usage info for a specific upload.
+This is the slow part of install planning (network I/O + file inspection).</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>downloadSessionId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallPlanUploadResult__TypeHint" class="tip-content">
+<p>InstallPlanUpload  <a href="#/?id=installplanupload-">(Go to definition)</a></p>
+
+
+<table class="field-table">
 <tr>
 <td><code>info</code></td>
 <td><code class="typename"><span class="type">InstallPlanInfo</span></code></td>

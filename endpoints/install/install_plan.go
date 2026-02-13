@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"crawshaw.io/sqlite"
+
 	itchio "github.com/itchio/go-itchio"
 
 	"github.com/itchio/butler/butlerd"
@@ -36,34 +38,25 @@ func checkCancelled(ctx context.Context) error {
 	}
 }
 
-func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
+// getGameUploads fetches the game and its uploads, narrows by platform/format,
+// and excludes already-installed or in-progress uploads.
+func getGameUploads(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64) (*itchio.Game, []*itchio.Upload, error) {
 	consumer := rc.Consumer
 
-	ctx := rc.Ctx
-	if params.ID != "" {
-		var cancelFunc context.CancelFunc
-		ctx, cancelFunc = context.WithCancel(ctx)
-		rc.CancelFuncs.Add(params.ID, cancelFunc)
-		defer rc.CancelFuncs.Remove(params.ID)
-	}
-
-	conn := rc.GetConn()
-	defer rc.PutConn(conn)
-
-	game := fetch.LazyFetchGame(rc, params.GameID)
-	if err := checkCancelled(ctx); err != nil {
-		return nil, err
+	game := fetch.LazyFetchGame(rc, gameID)
+	if err := checkCancelled(rc.Ctx); err != nil {
+		return nil, nil, err
 	}
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
-	baseUploads := fetch.LazyFetchGameUploads(rc, params.GameID)
-	if err := checkCancelled(ctx); err != nil {
-		return nil, err
+	baseUploads := fetch.LazyFetchGameUploads(rc, gameID)
+	if err := checkCancelled(rc.Ctx); err != nil {
+		return nil, nil, err
 	}
 
 	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.HostEnumerator())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	baseUploads = narrowRes.Uploads
 
@@ -82,7 +75,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	for _, u := range validUploads {
 		validUploadIDs[u.ID] = true
 	}
-	// do a little dance to keep the ordering proper
+	// keep the ordering proper
 	var uploads []*itchio.Upload
 	for _, u := range baseUploads {
 		if validUploadIDs[u.ID] {
@@ -90,20 +83,19 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		}
 	}
 
-	res := &butlerd.InstallPlanResult{
-		Game:    game,
-		Uploads: uploads,
-	}
+	return game, uploads, nil
+}
 
-	if len(uploads) == 0 {
-		consumer.Statf("No compatible uploads, returning early.")
-		return res, nil
-	}
+// getPlanInfo resolves build info, opens the remote file, gets installer info,
+// and assesses disk usage for a single upload. Errors are stored in the returned
+// InstallPlanInfo rather than returned, matching the original behavior where
+// planning errors are soft failures.
+func getPlanInfo(rc *butlerd.RequestContext, conn *sqlite.Conn, upload *itchio.Upload, gameID int64, downloadSessionID string) (*butlerd.InstallPlanInfo, error) {
+	consumer := rc.Consumer
 
 	info := &butlerd.InstallPlanInfo{}
-	res.Info = info
 
-	setResError := func(err error) {
+	setInfoError := func(err error) {
 		consumer.Errorf("Planning failed: %+v", err)
 		info.Error = fmt.Sprintf("%+v", err)
 		if be, ok := butlerd.AsButlerdError(err); ok {
@@ -115,23 +107,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		}
 	}
 
-	var upload *itchio.Upload
-	if params.UploadID != 0 {
-		for _, u := range uploads {
-			if u.ID == params.UploadID {
-				consumer.Infof("Using specified upload.")
-				upload = u
-				break
-			}
-		}
-	}
-
-	if upload == nil {
-		consumer.Infof("Picking first upload.")
-		upload = uploads[0]
-	}
-
-	access := operate.AccessForGameID(conn, game.ID)
+	access := operate.AccessForGameID(conn, gameID)
 	client := rc.Client(access.APIKey)
 
 	info.Upload = upload
@@ -150,11 +126,11 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	operate.LogUpload(consumer, upload, upload.Build)
 
 	if upload.Storage == itchio.UploadStorageExternal && operate.IsBadExternalHost(upload.Host) {
-		setResError(errors.WithStack(butlerd.CodeUnsupportedHost))
-		return res, nil
+		setInfoError(errors.WithStack(butlerd.CodeUnsupportedHost))
+		return info, nil
 	}
 
-	sessionID := params.DownloadSessionID
+	sessionID := downloadSessionID
 	if sessionID == "" {
 		sessionID = uuid.New().String()
 		consumer.Infof("No download session ID passed, using %s", sessionID)
@@ -167,7 +143,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	}
 	sourceURL := operate.MakeSourceURL(client, consumer, sessionID, installParams, "")
 
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 
@@ -175,19 +151,19 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	file, err := eos.Open(sourceURL, option.WithConsumer(consumer))
 	consumer.Infof("(opening file took %s)", time.Since(beforeOpen))
 	if err != nil {
-		setResError(errors.WithStack(err))
-		return res, nil
+		setInfoError(errors.WithStack(err))
+		return info, nil
 	}
 	defer file.Close()
 
-	if err := checkCancelled(ctx); err != nil {
+	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
 	}
 
 	installerInfo, err := hush.GetInstallerInfo(consumer, file)
 	if err != nil {
-		setResError(errors.WithStack(err))
-		return res, nil
+		setInfoError(errors.WithStack(err))
+		return info, nil
 	}
 
 	info.Type = string(installerInfo.Type)
@@ -198,8 +174,8 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 
 	dui, err := operate.AssessDiskUsage(file, receiptIn, installFolder, installerInfo)
 	if err != nil {
-		setResError(errors.WithStack(err))
-		return res, nil
+		setInfoError(errors.WithStack(err))
+		return info, nil
 	}
 
 	info.DiskUsage = &butlerd.DiskUsageInfo{
@@ -208,5 +184,60 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		Accuracy:        dui.Accuracy.String(),
 	}
 
+	return info, nil
+}
+
+// InstallPlan is the deprecated handler that returns Game, Uploads, and Info.
+func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (*butlerd.InstallPlanResult, error) {
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
+
+	game, uploads, err := getGameUploads(rc, conn, params.GameID)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &butlerd.InstallPlanResult{
+		Game:    game,
+		Uploads: uploads,
+	}
+
+	// Select the upload to plan: explicit UploadID or first available
+	var selectedUpload *itchio.Upload
+	if params.UploadID != 0 {
+		for _, u := range uploads {
+			if u.ID == params.UploadID {
+				selectedUpload = u
+				break
+			}
+		}
+	} else if len(uploads) > 0 {
+		selectedUpload = uploads[0]
+	}
+
+	if selectedUpload != nil {
+		info, err := getPlanInfo(rc, conn, selectedUpload, params.GameID, params.DownloadSessionID)
+		if err != nil {
+			return nil, err
+		}
+		res.Info = info
+	}
+
 	return res, nil
+}
+
+// InstallGetUploads returns the game and available uploads (fast path, no file I/O).
+func InstallGetUploads(rc *butlerd.RequestContext, params butlerd.InstallGetUploadsParams) (*butlerd.InstallGetUploadsResult, error) {
+	conn := rc.GetConn()
+	defer rc.PutConn(conn)
+
+	game, uploads, err := getGameUploads(rc, conn, params.GameID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &butlerd.InstallGetUploadsResult{
+		Game:    game,
+		Uploads: uploads,
+	}, nil
 }

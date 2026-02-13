@@ -1526,23 +1526,15 @@ type InstallQueueResult struct {
 	InstallLocationID string         `json:"installLocationId"`
 }
 
-// For modal-first install
+// @deprecated Install.Plan can take a long time calculating space requirements and can't be canceled. Use Install.GetUploads to quickly list available uploads, then Install.PlanUpload to calculate extraction details for a specific upload (with cancellation support).
 //
 // @name Install.Plan
 // @category Install
 // @caller client
 type InstallPlanParams struct {
-	// ID for cancellation support. If provided, can be cancelled via Install.Cancel
-	// @optional
-	ID string `json:"id"`
-
-	// The ID of the game we're planning to install
 	GameID int64 `json:"gameId"`
-
-	// The download session ID to use for this install plan
 	// @optional
 	DownloadSessionID string `json:"downloadSessionId"`
-
 	// @optional
 	UploadID int64 `json:"uploadId"`
 }
@@ -1556,7 +1548,53 @@ func (p InstallPlanParams) Validate() error {
 type InstallPlanResult struct {
 	Game    *itchio.Game     `json:"game"`
 	Uploads []*itchio.Upload `json:"uploads"`
+	Info    *InstallPlanInfo `json:"info"`
+}
 
+// Returns the list of available uploads for a game, narrowed by platform/format.
+// This is the fast part of install planning (no file I/O).
+//
+// @name Install.GetUploads
+// @category Install
+// @caller client
+type InstallGetUploadsParams struct {
+	GameID int64 `json:"gameId"`
+}
+
+func (p InstallGetUploadsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type InstallGetUploadsResult struct {
+	Game    *itchio.Game     `json:"game"`
+	Uploads []*itchio.Upload `json:"uploads"`
+}
+
+// Returns installer type and disk usage info for a specific upload.
+// This is the slow part of install planning (network I/O + file inspection).
+//
+// @name Install.PlanUpload
+// @category Install
+// @caller client
+type InstallPlanUploadParams struct {
+	// ID for cancellation support. If provided, can be cancelled via Install.Cancel
+	// @optional
+	ID string `json:"id"`
+
+	UploadID int64 `json:"uploadId"`
+	// @optional
+	DownloadSessionID string `json:"downloadSessionId"`
+}
+
+func (p InstallPlanUploadParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.UploadID, validation.Required),
+	)
+}
+
+type InstallPlanUploadResult struct {
 	Info *InstallPlanInfo `json:"info"`
 }
 

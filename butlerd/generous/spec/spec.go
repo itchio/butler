@@ -8,17 +8,19 @@ type Spec struct {
 }
 
 type RequestSpec struct {
-	Method string      `json:"method"`
-	Doc    string      `json:"doc"`
-	Caller string      `json:"caller"`
-	Params *StructSpec `json:"params"`
-	Result *StructSpec `json:"result"`
+	Method     string      `json:"method"`
+	Doc        string      `json:"doc"`
+	Caller     string      `json:"caller"`
+	Deprecated string      `json:"deprecated,omitempty"`
+	Params     *StructSpec `json:"params"`
+	Result     *StructSpec `json:"result"`
 }
 
 type StructTypeSpec struct {
-	Name   string       `json:"name"`
-	Doc    string       `json:"doc"`
-	Fields []*FieldSpec `json:"fields"`
+	Name       string       `json:"name"`
+	Doc        string       `json:"doc"`
+	Deprecated string       `json:"deprecated,omitempty"`
+	Fields     []*FieldSpec `json:"fields"`
 }
 
 type EnumTypeSpec struct {
@@ -44,7 +46,8 @@ type FieldSpec struct {
 }
 
 type NotificationSpec struct {
-	Method string      `json:"method"`
-	Doc    string      `json:"doc"`
-	Params *StructSpec `json:"params"`
+	Method     string      `json:"method"`
+	Doc        string      `json:"doc"`
+	Deprecated string      `json:"deprecated,omitempty"`
+	Params     *StructSpec `json:"params"`
 }

@@ -47,11 +47,8 @@ func DownloadsDrive(rc *butlerd.RequestContext, params butlerd.DownloadsDrivePar
 
 	consumer.Infof("Now driving downloads...")
 
-	parentCtx := rc.Ctx
-	ctx, cancelFunc := context.WithCancel(parentCtx)
-
-	rc.CancelFuncs.Add(downloadsDriveCancelID, cancelFunc)
-	defer rc.CancelFuncs.Remove(downloadsDriveCancelID)
+	ctx, cleanup := rc.MakeCancelable(downloadsDriveCancelID)
+	defer cleanup()
 
 	status := &Status{
 		Online: true,

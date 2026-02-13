@@ -138,6 +138,12 @@ func (bc *generousContext) generateDocs() error {
 	renderHeader := func(entry *entryInfo) {
 		doc.line("### %s %s", entry.name, kindString(entry))
 		doc.line("")
+		if entry.deprecated != "" {
+			doc.line(`<div class="deprecation-notice">`)
+			doc.line("<strong>Deprecated:</strong> %s", scope.markdown(entry.deprecated, true))
+			doc.line("</div>")
+			doc.line("")
+		}
 	}
 
 	invalidHrefCharacters := regexp.MustCompile("[^A-Za-z-]")

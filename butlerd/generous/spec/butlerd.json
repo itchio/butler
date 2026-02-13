@@ -1287,23 +1287,19 @@
     },
     {
       "method": "Install.Plan",
-      "doc": "For modal-first install",
+      "doc": "",
       "caller": "client",
+      "deprecated": "Install.Plan can take a long time calculating space requirements and can't be canceled. Use Install.GetUploads to quickly list available uploads, then Install.PlanUpload to calculate extraction details for a specific upload (with cancellation support).",
       "params": {
         "fields": [
           {
-            "name": "id",
-            "doc": "ID for cancellation support. If provided, can be cancelled via Install.Cancel",
-            "type": "string"
-          },
-          {
             "name": "gameId",
-            "doc": "The ID of the game we're planning to install",
+            "doc": "",
             "type": "number"
           },
           {
             "name": "downloadSessionId",
-            "doc": "The download session ID to use for this install plan",
+            "doc": "",
             "type": "string"
           },
           {
@@ -1325,6 +1321,67 @@
             "doc": "",
             "type": "Upload[]"
           },
+          {
+            "name": "info",
+            "doc": "",
+            "type": "InstallPlanInfo"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.GetUploads",
+      "doc": "Returns the list of available uploads for a game, narrowed by platform/format.\nThis is the fast part of install planning (no file I/O).",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "",
+            "type": "Game"
+          },
+          {
+            "name": "uploads",
+            "doc": "",
+            "type": "Upload[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Install.PlanUpload",
+      "doc": "Returns installer type and disk usage info for a specific upload.\nThis is the slow part of install planning (network I/O + file inspection).",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "ID for cancellation support. If provided, can be cancelled via Install.Cancel",
+            "type": "string"
+          },
+          {
+            "name": "uploadId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "downloadSessionId",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
           {
             "name": "info",
             "doc": "",
