@@ -151,8 +151,8 @@ github.com/itchio/headway v0.0.0-20200301160421-e15721f23905/go.mod h1:JpKeIqKW8
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4 h1:vOYjkMs+aVNeHU0d6MCctyEyxn02n0l3Zw6dsU9AsEs=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4/go.mod h1:1/4tbTrV3G/Su53pnKBpa5mv3cVkLweRAq/xRnulSQI=
 github.com/itchio/httpkit v0.0.0-20200301151414-2207154e44d1/go.mod h1:ttQmJg3MrzSL0TYYqececx1WLJWjUedAMWoJ0dUbbKA=
-github.com/itchio/httpkit v0.0.0-20260206074201-1eca5ee147e9 h1:D5CTzk6QpDuiGp39GfWZWIEureHv43lazYnyMSr6GH0=
-github.com/itchio/httpkit v0.0.0-20260206074201-1eca5ee147e9/go.mod h1:/eodDULLFn8KrWObOlT7AF5LcFi8Ff1beHXcwdLMe5g=
+github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9 h1:xSd/0N0YIsPZrLCIdRgUXSg40/OdvRoklto3KiSzCuE=
+github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9/go.mod h1:/eodDULLFn8KrWObOlT7AF5LcFi8Ff1beHXcwdLMe5g=
 github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347 h1:+0bzH4uU0pp1IRcn45xdJD5ln0SeTvOvL/0eSBd4PZM=
 github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347/go.mod h1:wrOwhEXLO5Ne1HwFBB3KF3lnpoi74DEBJZS+hhhaO/E=
 github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a h1:lTvuTme0PqU2gIzNK3ZPW2vaarAQ2MGNo54SycrJY48=

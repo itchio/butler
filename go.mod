@@ -24,7 +24,7 @@ require (
 	github.com/itchio/go-itchio v0.0.0-20251229221754-554b6b9748f0
 	github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
-	github.com/itchio/httpkit v0.0.0-20260206074201-1eca5ee147e9
+	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
 	github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
 	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
