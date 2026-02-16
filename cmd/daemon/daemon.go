@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -27,6 +28,9 @@ var args = struct {
 	log         bool
 }{}
 
+// origStdout holds the real stdout before redirecting it for stdio transport.
+var origStdout *os.File
+
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
@@ -40,6 +44,15 @@ func do(ctx *mansion.Context) {
 	if !comm.JsonEnabled() {
 		comm.Notice("Hello from butler daemon", []string{"We can't do anything interesting without --json, bailing out", "", "Learn more: https://docs.itch.zone/butlerd/master/"})
 		os.Exit(1)
+	}
+
+	// For stdio transport, redirect os.Stdout to stderr early so that
+	// comm package log messages don't corrupt the JSON-RPC transport.
+	// Also redirect Go's log package, which main.go pointed at stdout.
+	if args.transport == "stdio" {
+		origStdout = os.Stdout
+		os.Stdout = os.Stderr
+		log.SetOutput(os.Stderr)
 	}
 
 	ctx.EnsureDBPath()
@@ -134,11 +147,6 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Po
 			return err
 		}
 	case "stdio":
-		// Save original stdout for the transport, then redirect os.Stdout
-		// to stderr so comm package output doesn't corrupt the transport.
-		origStdout := os.Stdout
-		os.Stdout = os.Stderr
-
 		rwc := &stdioReadWriteCloser{
 			in:  os.Stdin,
 			out: origStdout,
