@@ -210,9 +210,11 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		InstallFolder: params.InstallFolder,
 		Runtime:       params.Host.Runtime,
 
-		AttachParams:   l.AttachParams(params),
-		FirejailParams: l.FirejailParams(params),
-		FujiParams:     l.FujiParams(params),
+		AttachParams:       l.AttachParams(params),
+		FirejailParams:     l.FirejailParams(params),
+		BubblewrapParams:   l.BubblewrapParams(params),
+		FlatpakSpawnParams: l.FlatpakSpawnParams(params),
+		FujiParams:         l.FujiParams(params),
 	}
 
 	run, err := runner.GetRunner(runParams)
@@ -302,6 +304,17 @@ func (l *Launcher) FirejailParams(params launch.LauncherParams) runner.FirejailP
 	name := fmt.Sprintf("firejail-%s", params.Host.Runtime.Arch())
 	binaryPath := filepath.Join(params.PrereqsDir, name, "firejail")
 	return runner.FirejailParams{BinaryPath: binaryPath}
+}
+
+func (l *Launcher) BubblewrapParams(params launch.LauncherParams) runner.BubblewrapParams {
+	if bwrapPath, err := exec.LookPath("bwrap"); err == nil {
+		return runner.BubblewrapParams{BinaryPath: bwrapPath}
+	}
+	return runner.BubblewrapParams{}
+}
+
+func (l *Launcher) FlatpakSpawnParams(params launch.LauncherParams) runner.FlatpakSpawnParams {
+	return runner.FlatpakSpawnParams{}
 }
 
 func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
