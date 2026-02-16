@@ -39,7 +39,7 @@ type Params struct {
 	Source string
 	// Patch is where to write the patch
 	Patch       string
-	Compression pwr.CompressionSettings
+	Compression *pwr.CompressionSettings
 	// Verify enables dry-run apply patch validation (slow)
 	Verify bool
 }
@@ -56,11 +56,12 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	params.Compression = ctx.CompressionSettings()
-	ctx.Must(Do(params))
+	compression := ctx.CompressionSettings()
+	params.Compression = &compression
+	ctx.Must(Do(&params))
 }
 
-func Do(params Params) error {
+func Do(params *Params) error {
 	var err error
 
 	startTime := time.Now()
@@ -75,6 +76,9 @@ func Do(params Params) error {
 	}
 	if params.Patch == "" {
 		return errors.New("diff: must specify Patch")
+	}
+	if params.Compression == nil {
+		return errors.New("diff: must specify Compression")
 	}
 
 	readAsSignature := func() error {
@@ -182,7 +186,7 @@ func Do(params Params) error {
 		TargetSignature: targetSignature.Hashes,
 
 		Consumer:    comm.NewStateConsumer(),
-		Compression: &params.Compression,
+		Compression: params.Compression,
 	}
 
 	comm.Opf("Diffing %s", params.Source)

@@ -118,9 +118,8 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 	}
 }
 
-func (ctx *Context) DefaultCtx() context.Context {
-	defaultCtx, _ := context.WithTimeout(context.Background(), time.Duration(ctx.ContextTimeout)*time.Second)
-	return defaultCtx
+func (ctx *Context) DefaultCtx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), time.Duration(ctx.ContextTimeout)*time.Second)
 }
 
 func (ctx *Context) NewClient(key string) *itchio.Client {

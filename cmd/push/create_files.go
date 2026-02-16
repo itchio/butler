@@ -16,7 +16,10 @@ type createBothFilesResponse struct {
 
 func createBothFiles(ctx *mansion.Context, client *itchio.Client, buildID int64) (*createBothFilesResponse, error) {
 	createFile := func(buildType itchio.BuildFileType, result **itchio.CreateBuildFileResponse) error {
-		buildFileRes, err := client.CreateBuildFile(ctx.DefaultCtx(), itchio.CreateBuildFileParams{
+		requestCtx, cancel := ctx.DefaultCtx()
+		defer cancel()
+
+		buildFileRes, err := client.CreateBuildFile(requestCtx, itchio.CreateBuildFileParams{
 			BuildID:        buildID,
 			Type:           buildType,
 			SubType:        itchio.BuildFileSubTypeDefault,

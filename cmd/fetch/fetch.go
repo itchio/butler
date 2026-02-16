@@ -64,7 +64,9 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	comm.Opf("Getting last build of channel %s", spec.Channel)
 
-	channelResponse, err := client.GetChannel(ctx.DefaultCtx(), spec.Target, spec.Channel)
+	requestCtx, cancel := ctx.DefaultCtx()
+	channelResponse, err := client.GetChannel(requestCtx, spec.Target, spec.Channel)
+	cancel()
 	if err != nil {
 		return err
 	}
@@ -75,7 +77,9 @@ func Do(ctx *mansion.Context, specStr string, outPath string) error {
 
 	buildID := channelResponse.Channel.Head.ID
 
-	buildFilesRes, err := client.ListBuildFiles(ctx.DefaultCtx(), buildID)
+	requestCtx, cancel = ctx.DefaultCtx()
+	buildFilesRes, err := client.ListBuildFiles(requestCtx, buildID)
+	cancel()
 	if err != nil {
 		return err
 	}

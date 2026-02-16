@@ -42,7 +42,9 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 		return errors.Wrap(err, "authenticating")
 	}
 
-	listChannelsResp, err := client.ListChannels(ctx.DefaultCtx(), spec.Target)
+	requestCtx, cancel := ctx.DefaultCtx()
+	listChannelsResp, err := client.ListChannels(requestCtx, spec.Target)
+	cancel()
 	if err != nil {
 		return errors.Wrap(err, "listing channels")
 	}
