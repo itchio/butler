@@ -1,6 +1,7 @@
 package butlerd
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/itchio/hush"
@@ -2359,12 +2360,20 @@ type LaunchParams struct {
 type SandboxType string
 
 const (
-	SandboxTypeAuto       SandboxType = ""
+	SandboxTypeAuto       SandboxType = "auto"
 	SandboxTypeBubblewrap SandboxType = "bubblewrap"
 	SandboxTypeFirejail   SandboxType = "firejail"
 	SandboxTypeFlatpak    SandboxType = "flatpak"
 	SandboxTypeFuji       SandboxType = "fuji"
 )
+
+var SandboxTypeList = []interface{}{
+	SandboxTypeAuto,
+	SandboxTypeBubblewrap,
+	SandboxTypeFirejail,
+	SandboxTypeFlatpak,
+	SandboxTypeFuji,
+}
 
 // Options for controlling sandbox behavior.
 type SandboxOptions struct {
@@ -2382,10 +2391,20 @@ type SandboxOptions struct {
 }
 
 func (p LaunchParams) Validate() error {
-	return validation.ValidateStruct(&p,
+	err := validation.ValidateStruct(&p,
 		validation.Field(&p.CaveID, validation.Required),
 		validation.Field(&p.PrereqsDir, validation.Required),
 	)
+	if err != nil {
+		return err
+	}
+	if p.SandboxOptions != nil && p.SandboxOptions.Type != "" {
+		err = validation.Validate(p.SandboxOptions.Type, validation.In(SandboxTypeList...))
+		if err != nil {
+			return fmt.Errorf("sandboxOptions.type: %w", err)
+		}
+	}
+	return nil
 }
 
 type LaunchResult struct {

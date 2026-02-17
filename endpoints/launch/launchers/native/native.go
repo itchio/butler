@@ -192,8 +192,12 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 
 	var sandboxConfig runner.SandboxConfig
 	if params.SandboxOptions != nil {
+		sandboxType := runner.SandboxType(string(params.SandboxOptions.Type))
+		if params.SandboxOptions.Type == butlerd.SandboxTypeAuto || params.SandboxOptions.Type == "" {
+			sandboxType = runner.SandboxTypeAuto
+		}
 		sandboxConfig = runner.SandboxConfig{
-			Type:      runner.SandboxType(string(params.SandboxOptions.Type)),
+			Type:      sandboxType,
 			NoNetwork: params.SandboxOptions.NoNetwork,
 			AllowEnv:  params.SandboxOptions.AllowEnv,
 		}
