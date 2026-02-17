@@ -92,14 +92,14 @@ func (gc *generousContext) generateSpec() error {
 						Fields:     encodeStruct(entry),
 					}
 					s.StructTypes = append(s.StructTypes, sts)
-				case entryTypeKindEnum:
-					ets := &spec.EnumTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Values: encodeEnum(entry),
-					}
-					s.EnumTypes = append(s.EnumTypes, ets)
 				}
+			case entryKindEnum:
+				ets := &spec.EnumTypeSpec{
+					Name:   entry.name,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Values: encodeEnum(entry),
+				}
+				s.EnumTypes = append(s.EnumTypes, ets)
 			}
 		}
 	}

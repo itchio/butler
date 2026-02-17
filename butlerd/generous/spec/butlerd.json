@@ -4229,5 +4229,749 @@
       ]
     }
   ],
-  "enumTypes": null
+  "enumTypes": [
+    {
+      "name": "LaunchStrategy",
+      "doc": "",
+      "values": [
+        {
+          "name": "Unknown",
+          "doc": "",
+          "value": "\"\""
+        },
+        {
+          "name": "Native",
+          "doc": "",
+          "value": "\"native\""
+        },
+        {
+          "name": "HTML",
+          "doc": "",
+          "value": "\"html\""
+        },
+        {
+          "name": "URL",
+          "doc": "",
+          "value": "\"url\""
+        },
+        {
+          "name": "Shell",
+          "doc": "",
+          "value": "\"shell\""
+        }
+      ]
+    },
+    {
+      "name": "GameRecordsSource",
+      "doc": "",
+      "values": [
+        {
+          "name": "Owned",
+          "doc": "Games for which the profile has a download key",
+          "value": "\"owned\""
+        },
+        {
+          "name": "Installed",
+          "doc": "Games for which a cave exists (regardless of the profile)",
+          "value": "\"installed\""
+        },
+        {
+          "name": "Profile",
+          "doc": "Games authored by profile, or for whom profile is an admin of",
+          "value": "\"profile\""
+        },
+        {
+          "name": "Collection",
+          "doc": "Games from a collection",
+          "value": "\"collection\""
+        }
+      ]
+    },
+    {
+      "name": "NetworkStatus",
+      "doc": "",
+      "values": [
+        {
+          "name": "Online",
+          "doc": "",
+          "value": "\"online\""
+        },
+        {
+          "name": "Offline",
+          "doc": "",
+          "value": "\"offline\""
+        }
+      ]
+    },
+    {
+      "name": "DownloadReason",
+      "doc": "",
+      "values": [
+        {
+          "name": "Install",
+          "doc": "",
+          "value": "\"install\""
+        },
+        {
+          "name": "Reinstall",
+          "doc": "",
+          "value": "\"reinstall\""
+        },
+        {
+          "name": "Update",
+          "doc": "",
+          "value": "\"update\""
+        },
+        {
+          "name": "VersionSwitch",
+          "doc": "",
+          "value": "\"version-switch\""
+        }
+      ]
+    },
+    {
+      "name": "LogLevel",
+      "doc": "",
+      "values": [
+        {
+          "name": "Debug",
+          "doc": "Hidden from logs by default, noisy",
+          "value": "\"debug\""
+        },
+        {
+          "name": "Info",
+          "doc": "Just thinking out loud",
+          "value": "\"info\""
+        },
+        {
+          "name": "Warning",
+          "doc": "We're continuing, but we're not thrilled about it",
+          "value": "\"warning\""
+        },
+        {
+          "name": "Error",
+          "doc": "We're eventually going to fail loudly",
+          "value": "\"error\""
+        }
+      ]
+    },
+    {
+      "name": "Code",
+      "doc": "butlerd JSON-RPC 2.0 error codes",
+      "values": [
+        {
+          "name": "OperationCancelled",
+          "doc": "An operation was cancelled gracefully",
+          "value": "499"
+        },
+        {
+          "name": "OperationAborted",
+          "doc": "An operation was aborted by the user",
+          "value": "410"
+        },
+        {
+          "name": "InstallFolderDisappeared",
+          "doc": "We tried to launch something, but the install folder just wasn't there",
+          "value": "404"
+        },
+        {
+          "name": "NoCompatibleUploads",
+          "doc": "We tried to install something, but could not find compatible uploads",
+          "value": "2001"
+        },
+        {
+          "name": "UnsupportedHost",
+          "doc": "This title is hosted on an incompatible third-party website",
+          "value": "3001"
+        },
+        {
+          "name": "NoLaunchCandidates",
+          "doc": "Nothing that can be launched was found",
+          "value": "5000"
+        },
+        {
+          "name": "JavaRuntimeNeeded",
+          "doc": "Java Runtime Environment is required to launch this title.",
+          "value": "6000"
+        },
+        {
+          "name": "NetworkDisconnected",
+          "doc": "There is no Internet connection",
+          "value": "9000"
+        },
+        {
+          "name": "APIError",
+          "doc": "API error",
+          "value": "12000"
+        },
+        {
+          "name": "DatabaseBusy",
+          "doc": "The database is busy",
+          "value": "16000"
+        },
+        {
+          "name": "CantRemoveLocationBecauseOfActiveDownloads",
+          "doc": "An install location could not be removed because it has active downloads",
+          "value": "18000"
+        }
+      ]
+    },
+    {
+      "name": "Flavor",
+      "doc": "Flavor describes whether we're dealing with a native executables, a Java archive, a love2d bundle, etc.",
+      "values": [
+        {
+          "name": "NativeLinux",
+          "doc": "FlavorNativeLinux denotes native linux executables",
+          "value": "\"linux\""
+        },
+        {
+          "name": "NativeMacos",
+          "doc": "ExecNativeMacos denotes native macOS executables",
+          "value": "\"macos\""
+        },
+        {
+          "name": "NativeWindows",
+          "doc": "FlavorPe denotes native windows executables",
+          "value": "\"windows\""
+        },
+        {
+          "name": "AppMacos",
+          "doc": "FlavorAppMacos denotes a macOS app bundle",
+          "value": "\"app-macos\""
+        },
+        {
+          "name": "Script",
+          "doc": "FlavorScript denotes scripts starting with a shebang (#!)",
+          "value": "\"script\""
+        },
+        {
+          "name": "ScriptWindows",
+          "doc": "FlavorScriptWindows denotes windows scripts (.bat or .cmd)",
+          "value": "\"windows-script\""
+        },
+        {
+          "name": "Jar",
+          "doc": "FlavorJar denotes a .jar archive with a Main-Class",
+          "value": "\"jar\""
+        },
+        {
+          "name": "HTML",
+          "doc": "FlavorHTML denotes an index html file",
+          "value": "\"html\""
+        },
+        {
+          "name": "Love",
+          "doc": "FlavorLove denotes a love package",
+          "value": "\"love\""
+        },
+        {
+          "name": "MSI",
+          "doc": "Microsoft installer packages",
+          "value": "\"msi\""
+        }
+      ]
+    },
+    {
+      "name": "Arch",
+      "doc": "The architecture of an executable",
+      "values": [
+        {
+          "name": "386",
+          "doc": "32-bit",
+          "value": "\"386\""
+        },
+        {
+          "name": "Amd64",
+          "doc": "64-bit",
+          "value": "\"amd64\""
+        }
+      ]
+    },
+    {
+      "name": "WindowsInstallerType",
+      "doc": "Which particular type of windows-specific installer",
+      "values": [
+        {
+          "name": "Msi",
+          "doc": "Microsoft install packages (`.msi` files)",
+          "value": "\"msi\""
+        },
+        {
+          "name": "Inno",
+          "doc": "InnoSetup installers",
+          "value": "\"inno\""
+        },
+        {
+          "name": "Nullsoft",
+          "doc": "NSIS installers",
+          "value": "\"nsis\""
+        },
+        {
+          "name": "Archive",
+          "doc": "Self-extracting installers that 7-zip knows how to extract",
+          "value": "\"archive\""
+        }
+      ]
+    },
+    {
+      "name": "Architectures",
+      "doc": "Architectures describes a set of processor architectures (mostly 32-bit vs 64-bit)",
+      "values": [
+        {
+          "name": "All",
+          "doc": "ArchitecturesAll represents any processor architecture",
+          "value": "\"all\""
+        },
+        {
+          "name": "386",
+          "doc": "Architectures386 represents 32-bit processor architectures",
+          "value": "\"386\""
+        },
+        {
+          "name": "Amd64",
+          "doc": "ArchitecturesAmd64 represents 64-bit processor architectures",
+          "value": "\"amd64\""
+        }
+      ]
+    },
+    {
+      "name": "GameType",
+      "doc": "GameType is the type of an itch.io game page, mostly related to\nhow it should be presented on web (downloadable or embed)",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "GameTypeDefault is downloadable games",
+          "value": "\"default\""
+        },
+        {
+          "name": "Flash",
+          "doc": "GameTypeFlash is for .swf (legacy)",
+          "value": "\"flash\""
+        },
+        {
+          "name": "Unity",
+          "doc": "GameTypeUnity is for .unity3d (legacy)",
+          "value": "\"unity\""
+        },
+        {
+          "name": "Java",
+          "doc": "GameTypeJava is for .jar (legacy)",
+          "value": "\"java\""
+        },
+        {
+          "name": "HTML",
+          "doc": "GameTypeHTML is for .html (thriving)",
+          "value": "\"html\""
+        }
+      ]
+    },
+    {
+      "name": "GameClassification",
+      "doc": "GameClassification is the creator-picked classification for a page",
+      "values": [
+        {
+          "name": "Game",
+          "doc": "GameClassificationGame is something you can play",
+          "value": "\"game\""
+        },
+        {
+          "name": "Tool",
+          "doc": "GameClassificationTool includes all software pretty much",
+          "value": "\"tool\""
+        },
+        {
+          "name": "Assets",
+          "doc": "GameClassificationAssets includes assets: graphics, sounds, etc.",
+          "value": "\"assets\""
+        },
+        {
+          "name": "GameMod",
+          "doc": "GameClassificationGameMod are game mods (no link to game, purely creator tagging)",
+          "value": "\"game_mod\""
+        },
+        {
+          "name": "PhysicalGame",
+          "doc": "GameClassificationPhysicalGame is for a printable / board / card game",
+          "value": "\"physical_game\""
+        },
+        {
+          "name": "Soundtrack",
+          "doc": "GameClassificationSoundtrack is a bunch of music files",
+          "value": "\"soundtrack\""
+        },
+        {
+          "name": "Other",
+          "doc": "GameClassificationOther is anything that creators think don't fit in any other category",
+          "value": "\"other\""
+        },
+        {
+          "name": "Comic",
+          "doc": "GameClassificationComic is a comic book (pdf, jpg, specific comic formats, etc.)",
+          "value": "\"comic\""
+        },
+        {
+          "name": "Book",
+          "doc": "GameClassificationBook is a book (pdf, jpg, specific e-book formats, etc.)",
+          "value": "\"book\""
+        }
+      ]
+    },
+    {
+      "name": "UploadStorage",
+      "doc": "UploadStorage describes where an upload file is stored.",
+      "values": [
+        {
+          "name": "Hosted",
+          "doc": "UploadStorageHosted is a classic upload (web) - no versioning",
+          "value": "\"hosted\""
+        },
+        {
+          "name": "Build",
+          "doc": "UploadStorageBuild is a wharf upload (butler)",
+          "value": "\"build\""
+        },
+        {
+          "name": "External",
+          "doc": "UploadStorageExternal is an external upload - alllllllll bets are off.",
+          "value": "\"external\""
+        }
+      ]
+    },
+    {
+      "name": "UploadType",
+      "doc": "UploadType describes what's in an upload - an executable,\na web game, some music, etc.",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "UploadTypeDefault is for executables",
+          "value": "\"default\""
+        },
+        {
+          "name": "Flash",
+          "doc": "UploadTypeFlash is for .swf files",
+          "value": "\"flash\""
+        },
+        {
+          "name": "Unity",
+          "doc": "UploadTypeUnity is for .unity3d files",
+          "value": "\"unity\""
+        },
+        {
+          "name": "Java",
+          "doc": "UploadTypeJava is for .jar files",
+          "value": "\"java\""
+        },
+        {
+          "name": "HTML",
+          "doc": "UploadTypeHTML is for .html files",
+          "value": "\"html\""
+        },
+        {
+          "name": "Soundtrack",
+          "doc": "UploadTypeSoundtrack is for archives with .mp3/.ogg/.flac/etc files",
+          "value": "\"soundtrack\""
+        },
+        {
+          "name": "Book",
+          "doc": "UploadTypeBook is for books (epubs, pdfs, etc.)",
+          "value": "\"book\""
+        },
+        {
+          "name": "Video",
+          "doc": "UploadTypeVideo is for videos",
+          "value": "\"video\""
+        },
+        {
+          "name": "Documentation",
+          "doc": "UploadTypeDocumentation is for documentation (pdf, maybe uhh doxygen?)",
+          "value": "\"documentation\""
+        },
+        {
+          "name": "Mod",
+          "doc": "UploadTypeMod is a bunch of loose files with no clear instructions how to apply them to a game",
+          "value": "\"mod\""
+        },
+        {
+          "name": "AudioAssets",
+          "doc": "UploadTypeAudioAssets is a bunch of .ogg/.wav files",
+          "value": "\"audio_assets\""
+        },
+        {
+          "name": "GraphicalAssets",
+          "doc": "UploadTypeGraphicalAssets is a bunch of .png/.svg/.gif files, maybe some .objs thrown in there",
+          "value": "\"graphical_assets\""
+        },
+        {
+          "name": "Sourcecode",
+          "doc": "UploadTypeSourcecode is for source code. No further comments.",
+          "value": "\"sourcecode\""
+        },
+        {
+          "name": "Other",
+          "doc": "UploadTypeOther is for literally anything that isn't an existing category,\nor for stuff that isn't tagged properly.",
+          "value": "\"other\""
+        }
+      ]
+    },
+    {
+      "name": "BuildState",
+      "doc": "BuildState describes the state of a build, relative to its initial upload, and\nits processing.",
+      "values": [
+        {
+          "name": "Started",
+          "doc": "BuildStateStarted is the state of a build from its creation until the initial upload is complete",
+          "value": "\"started\""
+        },
+        {
+          "name": "Processing",
+          "doc": "BuildStateProcessing is the state of a build from the initial upload's completion to its fully-processed state.\nThis state does not mean the build is actually being processed right now, it's just queued for processing.",
+          "value": "\"processing\""
+        },
+        {
+          "name": "Completed",
+          "doc": "BuildStateCompleted means the build was successfully processed. Its patch hasn't necessarily been\nrediff'd yet, but we have the holy (patch,signature,archive) trinity.",
+          "value": "\"completed\""
+        },
+        {
+          "name": "Failed",
+          "doc": "BuildStateFailed means something went wrong with the build. A failing build will not update the channel\nhead and can be requeued by the itch.io team, although if a new build is pushed before they do,\nthat new build will \"win\".",
+          "value": "\"failed\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileState",
+      "doc": "BuildFileState describes the state of a specific file for a build",
+      "values": [
+        {
+          "name": "Created",
+          "doc": "BuildFileStateCreated means the file entry exists on itch.io",
+          "value": "\"created\""
+        },
+        {
+          "name": "Uploading",
+          "doc": "BuildFileStateUploading means the file is currently being uploaded to storage",
+          "value": "\"uploading\""
+        },
+        {
+          "name": "Uploaded",
+          "doc": "BuildFileStateUploaded means the file is ready",
+          "value": "\"uploaded\""
+        },
+        {
+          "name": "Failed",
+          "doc": "BuildFileStateFailed means the file failed uploading",
+          "value": "\"failed\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileType",
+      "doc": "BuildFileType describes the type of a build file: patch, archive, signature, etc.",
+      "values": [
+        {
+          "name": "Patch",
+          "doc": "BuildFileTypePatch describes wharf patch files (.pwr)",
+          "value": "\"patch\""
+        },
+        {
+          "name": "Archive",
+          "doc": "BuildFileTypeArchive describes canonical archive form (.zip)",
+          "value": "\"archive\""
+        },
+        {
+          "name": "Signature",
+          "doc": "BuildFileTypeSignature describes wharf signature files (.pws)",
+          "value": "\"signature\""
+        },
+        {
+          "name": "Manifest",
+          "doc": "BuildFileTypeManifest is reserved",
+          "value": "\"manifest\""
+        },
+        {
+          "name": "Unpacked",
+          "doc": "BuildFileTypeUnpacked describes the single file that is in the build (if it was just a single file)",
+          "value": "\"unpacked\""
+        }
+      ]
+    },
+    {
+      "name": "BuildFileSubType",
+      "doc": "BuildFileSubType describes the subtype of a build file: mostly its compression\nlevel. For example, rediff'd patches are \"optimized\", whereas initial patches are \"default\"",
+      "values": [
+        {
+          "name": "Default",
+          "doc": "BuildFileSubTypeDefault describes default compression (rsync patches)",
+          "value": "\"default\""
+        },
+        {
+          "name": "Gzip",
+          "doc": "BuildFileSubTypeGzip is reserved",
+          "value": "\"gzip\""
+        },
+        {
+          "name": "Optimized",
+          "doc": "BuildFileSubTypeOptimized describes optimized compression (rediff'd / bsdiff patches)",
+          "value": "\"optimized\""
+        }
+      ]
+    },
+    {
+      "name": "InstallEventType",
+      "doc": "",
+      "values": [
+        {
+          "name": "InstallEventResume",
+          "doc": "Started for the first time or resumed after a pause\nor exit or whatever",
+          "value": "\"resume\""
+        },
+        {
+          "name": "InstallEventStop",
+          "doc": "Stopped explicitly (pausing downloads), can't rely\non this being present because BRÜTAL PÖWER LÖSS will\nnot announce itself 🔥",
+          "value": "\"stop\""
+        },
+        {
+          "name": "InstallEventInstall",
+          "doc": "Regular install from archive or naked file",
+          "value": "\"install\""
+        },
+        {
+          "name": "InstallEventHeal",
+          "doc": "Reverting to previous version or re-installing\nwharf-powered upload",
+          "value": "\"heal\""
+        },
+        {
+          "name": "InstallEventUpgrade",
+          "doc": "Applying one or more wharf patches",
+          "value": "\"upgrade\""
+        },
+        {
+          "name": "InstallEventPatching",
+          "doc": "Applying a single wharf patch",
+          "value": "\"patching\""
+        },
+        {
+          "name": "InstallEventGhostBusting",
+          "doc": "Cleaning up ghost files",
+          "value": "\"ghostBusting\""
+        },
+        {
+          "name": "InstallEventProblem",
+          "doc": "Any kind of step failing",
+          "value": "\"problem\""
+        },
+        {
+          "name": "InstallEventFallback",
+          "doc": "Any operation we do as a result of another one failing,\nbut in a case where we're still expecting a favorable\noutcome eventually.",
+          "value": "\"fallback\""
+        }
+      ]
+    },
+    {
+      "name": "Platform",
+      "doc": "",
+      "values": [
+        {
+          "name": "OSX",
+          "doc": "",
+          "value": "\"osx\""
+        },
+        {
+          "name": "Windows",
+          "doc": "",
+          "value": "\"windows\""
+        },
+        {
+          "name": "Linux",
+          "doc": "",
+          "value": "\"linux\""
+        },
+        {
+          "name": "Unknown",
+          "doc": "",
+          "value": "\"unknown\""
+        }
+      ]
+    },
+    {
+      "name": "TaskReason",
+      "doc": "",
+      "values": [
+        {
+          "name": "Install",
+          "doc": "Task was started for an install operation",
+          "value": "\"install\""
+        },
+        {
+          "name": "Uninstall",
+          "doc": "Task was started for an uninstall operation",
+          "value": "\"uninstall\""
+        }
+      ]
+    },
+    {
+      "name": "TaskType",
+      "doc": "",
+      "values": [
+        {
+          "name": "Download",
+          "doc": "We're fetching files from a remote server",
+          "value": "\"download\""
+        },
+        {
+          "name": "Install",
+          "doc": "We're running an installer",
+          "value": "\"install\""
+        },
+        {
+          "name": "Uninstall",
+          "doc": "We're running an uninstaller",
+          "value": "\"uninstall\""
+        },
+        {
+          "name": "Update",
+          "doc": "We're applying some patches",
+          "value": "\"update\""
+        },
+        {
+          "name": "Heal",
+          "doc": "We're healing from a signature and heal source",
+          "value": "\"heal\""
+        }
+      ]
+    },
+    {
+      "name": "PrereqStatus",
+      "doc": "",
+      "values": [
+        {
+          "name": "Pending",
+          "doc": "Prerequisite has not started downloading yet",
+          "value": "\"pending\""
+        },
+        {
+          "name": "Downloading",
+          "doc": "Prerequisite is currently being downloaded",
+          "value": "\"downloading\""
+        },
+        {
+          "name": "Ready",
+          "doc": "Prerequisite has been downloaded and is pending installation",
+          "value": "\"ready\""
+        },
+        {
+          "name": "Installing",
+          "doc": "Prerequisite is currently installing",
+          "value": "\"installing\""
+        },
+        {
+          "name": "Done",
+          "doc": "Prerequisite was installed (successfully or not)",
+          "value": "\"done\""
+        }
+      ]
+    }
+  ]
 }
