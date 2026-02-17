@@ -36,7 +36,7 @@ func (gc *generousContext) generateSpec() error {
 		for _, ev := range entry.enumValues {
 			evs := &spec.EnumValueSpec{
 				Name:  ev.name,
-				Value: ev.value,
+				Value: ev.jsonValue,
 				Doc:   strings.Join(ev.doc, "\n"),
 			}
 			res = append(res, evs)

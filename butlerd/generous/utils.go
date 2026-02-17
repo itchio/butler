@@ -30,7 +30,8 @@ func isEnum(ts *ast.TypeSpec) bool {
 	}
 
 	if id, ok := ts.Type.(*ast.Ident); ok {
-		if id.Name == "string" || id.Name == "int64" {
+		switch id.Name {
+		case "string", "int", "int32", "int64", "uint32", "uint64", "float64", "bool":
 			return true
 		}
 	}

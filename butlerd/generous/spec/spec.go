@@ -32,7 +32,7 @@ type EnumTypeSpec struct {
 type EnumValueSpec struct {
 	Name  string `json:"name"`
 	Doc   string `json:"doc"`
-	Value string `json:"value"`
+	Value any    `json:"value"`
 }
 
 type StructSpec struct {
