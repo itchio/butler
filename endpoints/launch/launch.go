@@ -253,6 +253,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			AppManifest:      targetRes.appManifest,
 			Action:           target.Action,
 			Sandbox:          sandbox,
+			SandboxOptions:   params.SandboxOptions,
 			WorkingDirectory: workingDirectory,
 			Args:             args,
 			Env:              env,

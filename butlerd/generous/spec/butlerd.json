@@ -1915,6 +1915,11 @@
             "name": "sandbox",
             "doc": "Enable sandbox (regardless of manifest opt-in)",
             "type": "boolean"
+          },
+          {
+            "name": "sandboxOptions",
+            "doc": "Sandbox configuration options. Only applied when sandbox is enabled.",
+            "type": "SandboxOptions"
           }
         ]
       },
@@ -3047,6 +3052,27 @@
           "name": "bps",
           "doc": "",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "SandboxOptions",
+      "doc": "Options for controlling sandbox behavior.",
+      "fields": [
+        {
+          "name": "type",
+          "doc": "Which sandbox runner to use. Empty string means auto-detect.",
+          "type": "SandboxType"
+        },
+        {
+          "name": "noNetwork",
+          "doc": "(Linux Only) If true, disable network access within the sandbox.",
+          "type": "boolean"
+        },
+        {
+          "name": "allowEnv",
+          "doc": "(Linux Only) List of environment variable names to allow through from the host into the sandbox.",
+          "type": "string[]"
         }
       ]
     },
@@ -4326,6 +4352,37 @@
           "name": "VersionSwitch",
           "doc": "",
           "value": "version-switch"
+        }
+      ]
+    },
+    {
+      "name": "SandboxType",
+      "doc": "",
+      "values": [
+        {
+          "name": "Auto",
+          "doc": "",
+          "value": ""
+        },
+        {
+          "name": "Bubblewrap",
+          "doc": "",
+          "value": "bubblewrap"
+        },
+        {
+          "name": "Firejail",
+          "doc": "",
+          "value": "firejail"
+        },
+        {
+          "name": "Flatpak",
+          "doc": "",
+          "value": "flatpak"
+        },
+        {
+          "name": "Fuji",
+          "doc": "",
+          "value": "fuji"
         }
       ]
     },

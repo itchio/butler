@@ -5970,6 +5970,12 @@ cave identifier.</p>
 <td><p><span class="tag">Optional</span> Enable sandbox (regardless of manifest opt-in)</p>
 </td>
 </tr>
+<tr>
+<td><code>sandboxOptions</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#SandboxOptions__TypeHint">SandboxOptions</span></code></td>
+<td><p><span class="tag">Optional</span> Sandbox configuration options. Only applied when sandbox is enabled.</p>
+</td>
+</tr>
 </table>
 
 
@@ -6003,6 +6009,10 @@ cave identifier.</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxOptions</code></td>
+<td><code class="typename"><span class="type">SandboxOptions</span></code></td>
 </tr>
 </table>
 
@@ -9022,6 +9032,123 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 <tr>
 <td><code>bps</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### SandboxType (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"bubblewrap"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"firejail"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"flatpak"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"fuji"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SandboxType__TypeHint" class="tip-content">
+<p>SandboxType (enum) <a href="#/?id=sandboxtype-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>""</code></td>
+</tr>
+<tr>
+<td><code>"bubblewrap"</code></td>
+</tr>
+<tr>
+<td><code>"firejail"</code></td>
+</tr>
+<tr>
+<td><code>"flatpak"</code></td>
+</tr>
+<tr>
+<td><code>"fuji"</code></td>
+</tr>
+</table>
+
+</div>
+
+### SandboxOptions (struct)
+
+
+<p>
+<p>Options for controlling sandbox behavior.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#SandboxType__TypeHint">SandboxType</span></code></td>
+<td><p><span class="tag">Optional</span> Which sandbox runner to use. Empty string means auto-detect.</p>
+</td>
+</tr>
+<tr>
+<td><code>noNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> (Linux Only) If true, disable network access within the sandbox.</p>
+</td>
+</tr>
+<tr>
+<td><code>allowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> (Linux Only) List of environment variable names to allow through from the host into the sandbox.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SandboxOptions__TypeHint" class="tip-content">
+<p>SandboxOptions (struct) <a href="#/?id=sandboxoptions-struct">(Go to definition)</a></p>
+
+<p>
+<p>Options for controlling sandbox behavior.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type">SandboxType</span></code></td>
+</tr>
+<tr>
+<td><code>noNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>allowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 

@@ -190,12 +190,22 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		consumer.Infof("Console launch requested")
 	}
 
+	var sandboxConfig runner.SandboxConfig
+	if params.SandboxOptions != nil {
+		sandboxConfig = runner.SandboxConfig{
+			Type:      runner.SandboxType(string(params.SandboxOptions.Type)),
+			NoNetwork: params.SandboxOptions.NoNetwork,
+			AllowEnv:  params.SandboxOptions.AllowEnv,
+		}
+	}
+
 	runParams := runner.RunnerParams{
 		Consumer: consumer,
 		Ctx:      params.Ctx,
 
-		Sandbox: params.Sandbox,
-		Console: console,
+		Sandbox:       params.Sandbox,
+		SandboxConfig: sandboxConfig,
+		Console:       console,
 
 		FullTargetPath: fullTargetPath,
 

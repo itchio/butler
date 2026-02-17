@@ -2350,6 +2350,35 @@ type LaunchParams struct {
 	// Enable sandbox (regardless of manifest opt-in)
 	// @optional
 	Sandbox bool `json:"sandbox,omitempty"`
+
+	// Sandbox configuration options. Only applied when sandbox is enabled.
+	// @optional
+	SandboxOptions *SandboxOptions `json:"sandboxOptions,omitempty"`
+}
+
+type SandboxType string
+
+const (
+	SandboxTypeAuto       SandboxType = ""
+	SandboxTypeBubblewrap SandboxType = "bubblewrap"
+	SandboxTypeFirejail   SandboxType = "firejail"
+	SandboxTypeFlatpak    SandboxType = "flatpak"
+	SandboxTypeFuji       SandboxType = "fuji"
+)
+
+// Options for controlling sandbox behavior.
+type SandboxOptions struct {
+	// Which sandbox runner to use. Empty string means auto-detect.
+	// @optional
+	Type SandboxType `json:"type,omitempty"`
+
+	// (Linux Only) If true, disable network access within the sandbox.
+	// @optional
+	NoNetwork bool `json:"noNetwork,omitempty"`
+
+	// (Linux Only) List of environment variable names to allow through from the host into the sandbox.
+	// @optional
+	AllowEnv []string `json:"allowEnv,omitempty"`
 }
 
 func (p LaunchParams) Validate() error {

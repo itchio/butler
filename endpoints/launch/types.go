@@ -44,6 +44,9 @@ type LauncherParams struct {
 	// If true, enable sandbox
 	Sandbox bool
 
+	// Sandbox configuration options (may be nil)
+	SandboxOptions *butlerd.SandboxOptions
+
 	// Additional command-line arguments
 	Args []string
 
