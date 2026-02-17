@@ -72,6 +72,14 @@ func (gc *generousContext) generateSpec() error {
 					Doc: strings.Join(params.doc, "\n"),
 				}
 				s.Requests = append(s.Requests, rs)
+			case entryKindResult:
+				sts := &spec.StructTypeSpec{
+					Name:       entry.typeName,
+					Doc:        strings.Join(entry.doc, "\n"),
+					Deprecated: entry.deprecated,
+					Fields:     encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
 			case entryKindNotification:
 				ns := &spec.NotificationSpec{
 					Method:     entry.name,
