@@ -32,7 +32,7 @@ require (
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
 	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
-	github.com/itchio/smaug v0.0.0-20260217205404-17f32f5b4643
+	github.com/itchio/smaug v0.0.0-20260217221049-5573bc706c44
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
