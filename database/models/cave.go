@@ -60,20 +60,6 @@ func (c *Cave) GetVerdict() *dash.Verdict {
 	return v
 }
 
-func (c *Cave) SetSettings(settings interface{}) {
-	err := MarshalJSON(settings, &c.Settings, "cave settings")
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (c *Cave) GetSettings(out interface{}) {
-	err := UnmarshalJSONAllowEmpty(c.Settings, out, "cave settings")
-	if err != nil {
-		panic(err)
-	}
-}
-
 func CaveByID(conn *sqlite.Conn, id string) *Cave {
 	var c Cave
 	if MustSelectOne(conn, &c, builder.Eq{"id": id}) {
