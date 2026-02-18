@@ -1391,6 +1391,51 @@
       }
     },
     {
+      "method": "Caves.GetSettings",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "ID of the cave to retrieve settings for.",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "settings",
+            "doc": "",
+            "type": "CaveSettings"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Caves.SetSettings",
+      "doc": "",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "ID of the cave to store settings for.",
+            "type": "string"
+          },
+          {
+            "name": "settings",
+            "doc": "Full settings object replacement.",
+            "type": "CaveSettings"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
       "method": "Caves.SetPinned",
       "doc": "",
       "caller": "client",
@@ -1920,6 +1965,11 @@
             "name": "sandboxOptions",
             "doc": "Sandbox configuration options. Only applied when sandbox is enabled.",
             "type": "SandboxOptions"
+          },
+          {
+            "name": "extraArgs",
+            "doc": "Additional command-line arguments appended after manifest action args.",
+            "type": "string[]"
           }
         ]
       },
@@ -3255,6 +3305,37 @@
       ]
     },
     {
+      "name": "CaveSettings",
+      "doc": "Per-cave launch settings that override global preferences.",
+      "fields": [
+        {
+          "name": "sandbox",
+          "doc": "Overrides the global sandbox enabled/disabled preference.\nnil = inherit global, true = force on, false = force off",
+          "type": "boolean"
+        },
+        {
+          "name": "sandboxType",
+          "doc": "Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).",
+          "type": "SandboxType"
+        },
+        {
+          "name": "sandboxNoNetwork",
+          "doc": "Override network restriction within the sandbox.",
+          "type": "boolean"
+        },
+        {
+          "name": "sandboxAllowEnv",
+          "doc": "Override allowed environment variables within the sandbox.",
+          "type": "string[]"
+        },
+        {
+          "name": "extraArgs",
+          "doc": "Additional command-line arguments appended after manifest action args.",
+          "type": "string[]"
+        }
+      ]
+    },
+    {
       "name": "InstallLocationSummary",
       "doc": "",
       "fields": [
@@ -3520,6 +3601,22 @@
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "CavesGetSettingsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "settings",
+          "doc": "",
+          "type": "CaveSettings"
+        }
+      ]
+    },
+    {
+      "name": "CavesSetSettingsResult",
+      "doc": "",
+      "fields": null
     },
     {
       "name": "CavesSetPinnedResult",
@@ -5266,7 +5363,7 @@
         {
           "name": "Auto",
           "doc": "",
-          "value": ""
+          "value": "auto"
         },
         {
           "name": "Bubblewrap",

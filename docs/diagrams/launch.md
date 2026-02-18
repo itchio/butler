@@ -15,7 +15,7 @@ sequenceDiagram
     participant Butlerd as butlerd
     participant API as itch.io API
 
-    Client->>Butlerd: Launch(caveId, prereqsDir, sandbox?)
+    Client->>Butlerd: Launch(caveId, prereqsDir, sandbox?, extraArgs?)
 
     Note over Butlerd: Acquire install folder lock
 
@@ -140,6 +140,8 @@ sequenceDiagram
 - **HTML** - Hands off to the itch app to open an HTML5 game in an embedded browser.
 - **Shell** - Opens the install folder in the OS file manager.
 - **URL** - Opens a URL in the system browser.
+
+When provided, `extraArgs` is appended after manifest action args before launch.
 
 ## Sandbox Details
 

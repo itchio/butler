@@ -33,6 +33,7 @@ type Cave struct {
 	SnoozedAt *time.Time `json:"snoozedAt"`
 
 	Verdict       JSON  `json:"verdict"`
+	Settings      JSON  `json:"settings"`
 	InstalledSize int64 `json:"installedSize"`
 
 	InstallLocationID string           `json:"installLocationId"`
@@ -57,6 +58,20 @@ func (c *Cave) GetVerdict() *dash.Verdict {
 		panic(err)
 	}
 	return v
+}
+
+func (c *Cave) SetSettings(settings interface{}) {
+	err := MarshalJSON(settings, &c.Settings, "cave settings")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (c *Cave) GetSettings(out interface{}) {
+	err := UnmarshalJSONAllowEmpty(c.Settings, out, "cave settings")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func CaveByID(conn *sqlite.Conn, id string) *Cave {

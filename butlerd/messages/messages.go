@@ -1837,6 +1837,86 @@ func (r *InstallPlanUploadType) TestCall(rc *butlerd.RequestContext, params butl
 
 var InstallPlanUpload *InstallPlanUploadType
 
+// Caves.GetSettings (Request)
+
+type CavesGetSettingsType struct {}
+
+var _ RequestMessage = (*CavesGetSettingsType)(nil)
+
+func (r *CavesGetSettingsType) Method() string {
+  return "Caves.GetSettings"
+}
+
+func (r *CavesGetSettingsType) Register(router router, f func(*butlerd.RequestContext, butlerd.CavesGetSettingsParams) (*butlerd.CavesGetSettingsResult, error)) {
+  router.Register("Caves.GetSettings", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CavesGetSettingsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Caves.GetSettings")
+    }
+    return res, nil
+  })
+}
+
+func (r *CavesGetSettingsType) TestCall(rc *butlerd.RequestContext, params butlerd.CavesGetSettingsParams) (*butlerd.CavesGetSettingsResult, error) {
+  var result butlerd.CavesGetSettingsResult
+  err := rc.Call("Caves.GetSettings", params, &result)
+  return &result, err
+}
+
+var CavesGetSettings *CavesGetSettingsType
+
+// Caves.SetSettings (Request)
+
+type CavesSetSettingsType struct {}
+
+var _ RequestMessage = (*CavesSetSettingsType)(nil)
+
+func (r *CavesSetSettingsType) Method() string {
+  return "Caves.SetSettings"
+}
+
+func (r *CavesSetSettingsType) Register(router router, f func(*butlerd.RequestContext, butlerd.CavesSetSettingsParams) (*butlerd.CavesSetSettingsResult, error)) {
+  router.Register("Caves.SetSettings", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CavesSetSettingsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Caves.SetSettings")
+    }
+    return res, nil
+  })
+}
+
+func (r *CavesSetSettingsType) TestCall(rc *butlerd.RequestContext, params butlerd.CavesSetSettingsParams) (*butlerd.CavesSetSettingsResult, error) {
+  var result butlerd.CavesSetSettingsResult
+  err := rc.Call("Caves.SetSettings", params, &result)
+  return &result, err
+}
+
+var CavesSetSettings *CavesSetSettingsType
+
 // Caves.SetPinned (Request)
 
 type CavesSetPinnedType struct {}
@@ -3681,6 +3761,8 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Install.Plan"]; !ok { panic("missing request handler for (Install.Plan)") }
   if _, ok := router.Handlers["Install.GetUploads"]; !ok { panic("missing request handler for (Install.GetUploads)") }
   if _, ok := router.Handlers["Install.PlanUpload"]; !ok { panic("missing request handler for (Install.PlanUpload)") }
+  if _, ok := router.Handlers["Caves.GetSettings"]; !ok { panic("missing request handler for (Caves.GetSettings)") }
+  if _, ok := router.Handlers["Caves.SetSettings"]; !ok { panic("missing request handler for (Caves.SetSettings)") }
   if _, ok := router.Handlers["Caves.SetPinned"]; !ok { panic("missing request handler for (Caves.SetPinned)") }
   if _, ok := router.Handlers["Install.CreateShortcut"]; !ok { panic("missing request handler for (Install.CreateShortcut)") }
   if _, ok := router.Handlers["Install.Perform"]; !ok { panic("missing request handler for (Install.Perform)") }

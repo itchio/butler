@@ -3887,6 +3887,121 @@ This is the slow part of install planning (network I/O + file inspection).</p>
 
 </div>
 
+### Caves.GetSettings (client request)
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID of the cave to retrieve settings for.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>settings</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CaveSettings__TypeHint">CaveSettings</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="CavesGetSettingsParams__TypeHint" class="tip-content">
+<p>Caves.GetSettings (client request) <a href="#/?id=cavesgetsettings-client-request">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CavesGetSettingsResult__TypeHint" class="tip-content">
+<p>CavesGetSettings  <a href="#/?id=cavesgetsettings-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>settings</code></td>
+<td><code class="typename"><span class="type">CaveSettings</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Caves.SetSettings (client request)
+
+
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID of the cave to store settings for.</p>
+</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CaveSettings__TypeHint">CaveSettings</span></code></td>
+<td><p>Full settings object replacement.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="CavesSetSettingsParams__TypeHint" class="tip-content">
+<p>Caves.SetSettings (client request) <a href="#/?id=cavessetsettings-client-request">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td><code class="typename"><span class="type">CaveSettings</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CavesSetSettingsResult__TypeHint" class="tip-content">
+<p>CavesSetSettings  <a href="#/?id=cavessetsettings-">(Go to definition)</a></p>
+
+</div>
+
 ### Caves.SetPinned (client request)
 
 
@@ -5976,6 +6091,12 @@ cave identifier.</p>
 <td><p><span class="tag">Optional</span> Sandbox configuration options. Only applied when sandbox is enabled.</p>
 </td>
 </tr>
+<tr>
+<td><code>extraArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Additional command-line arguments appended after manifest action args.</p>
+</td>
+</tr>
 </table>
 
 
@@ -6013,6 +6134,10 @@ cave identifier.</p>
 <tr>
 <td><code>sandboxOptions</code></td>
 <td><code class="typename"><span class="type">SandboxOptions</span></code></td>
+</tr>
+<tr>
+<td><code>extraArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -8181,6 +8306,87 @@ much space it takes up, etc.</p>
 
 </div>
 
+### CaveSettings (struct)
+
+
+<p>
+<p>Per-cave launch settings that override global preferences.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Overrides the global sandbox enabled/disabled preference.
+nil = inherit global, true = force on, false = force off</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxType</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#SandboxType__TypeHint">SandboxType</span></code></td>
+<td><p><span class="tag">Optional</span> Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxNoNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Override network restriction within the sandbox.</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxAllowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Override allowed environment variables within the sandbox.</p>
+</td>
+</tr>
+<tr>
+<td><code>extraArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Additional command-line arguments appended after manifest action args.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CaveSettings__TypeHint" class="tip-content">
+<p>CaveSettings (struct) <a href="#/?id=cavesettings-struct">(Go to definition)</a></p>
+
+<p>
+<p>Per-cave launch settings that override global preferences.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxType</code></td>
+<td><code class="typename"><span class="type">SandboxType</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxNoNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxAllowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>extraArgs</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### InstallLocationSummary (struct)
 
 
@@ -9048,7 +9254,7 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 
 <table class="field-table">
 <tr>
-<td><code>""</code></td>
+<td><code>"auto"</code></td>
 <td></td>
 </tr>
 <tr>
@@ -9076,7 +9282,7 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 
 <table class="field-table">
 <tr>
-<td><code>""</code></td>
+<td><code>"auto"</code></td>
 </tr>
 <tr>
 <td><code>"bubblewrap"</code></td>
