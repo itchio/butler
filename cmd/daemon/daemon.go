@@ -103,6 +103,8 @@ func do(ctx *mansion.Context) {
 	}
 	defer dbPool.Close()
 
+	dbPrepareLogger := slog.New(comm.NewSlogHandler(slog.LevelDebug)).With("source", "db_prepare")
+
 	err = func() (retErr error) {
 		defer horror.RecoverInto(&retErr)
 
@@ -110,7 +112,7 @@ func do(ctx *mansion.Context) {
 		defer dbPool.Put(conn)
 		return database.Prepare(&state.Consumer{
 			OnMessage: func(lvl string, msg string) {
-				comm.Logf("[db prepare] [%s] %s", lvl, msg)
+				dbPrepareLogger.Log(context.Background(), stateLevelToSlogLevel(lvl), msg)
 			},
 		}, conn, justCreated)
 	}()
@@ -186,4 +188,19 @@ func (s *stdioReadWriteCloser) Write(p []byte) (int, error) {
 
 func (s *stdioReadWriteCloser) Close() error {
 	return s.in.Close()
+}
+
+func stateLevelToSlogLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warning":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }
