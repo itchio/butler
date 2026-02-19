@@ -48,6 +48,11 @@ func do(ctx *mansion.Context) {
 		os.Exit(1)
 	}
 
+	// Configure hades SQL logging before any DB work (including Prepare/AutoMigrate).
+	if models.LogSql {
+		models.SetHadesLogger(slog.New(comm.NewSlogHandler(slog.LevelDebug)))
+	}
+
 	// For stdio transport, redirect os.Stdout to stderr early so that
 	// comm package log messages don't corrupt the JSON-RPC transport.
 	// Also redirect Go's log package, which main.go pointed at stdout.
@@ -119,14 +124,6 @@ func do(ctx *mansion.Context) {
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := GetRouter(dbPool, mansionContext)
-
-	// For daemon mode, keep SQL debug logs on stderr as structured JSON, so they
-	// can be parsed without interfering with protocol data on stdout/stdio transport.
-	if models.LogSql {
-		models.SetHadesLogger(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		})))
-	}
 
 	switch args.transport {
 	case "tcp":
