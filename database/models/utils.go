@@ -1,38 +1,35 @@
 package models
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/hades"
-	"github.com/itchio/headway/state"
 	"xorm.io/builder"
 )
 
-var dbConsumer *state.Consumer
-var logSql = os.Getenv("BUTLER_SQL_DEBUG") == "1"
-
-func init() {
-	dbConsumer = &state.Consumer{}
-	if logSql {
-		dbConsumer.OnMessage = func(lvl string, message string) {
-			log.Printf("[hades] [%s] %s", lvl, message)
-		}
-	}
-}
+var LogSql = os.Getenv("BUTLER_SQL_DEBUG") == "1"
 
 var hadesContext *hades.Context
 
 func HadesContext() *hades.Context {
 	if hadesContext == nil {
 		var err error
-		hadesContext, err = hades.NewContext(dbConsumer, AllModels...)
-		hadesContext.Log = logSql
+		hadesContext, err = hades.NewContext(AllModels...)
+		if LogSql {
+			hadesContext.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		}
 		Must(err)
 	}
 	return hadesContext
+}
+
+// SetHadesLogger sets a custom slog.Logger on the hades context.
+// Call this before any database operations to override the default stderr text logger.
+func SetHadesLogger(logger *slog.Logger) {
+	HadesContext().Logger = logger
 }
 
 func Must(err error) {

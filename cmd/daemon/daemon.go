@@ -3,6 +3,7 @@ package daemon
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/comm"
@@ -117,6 +119,14 @@ func do(ctx *mansion.Context) {
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := GetRouter(dbPool, mansionContext)
+
+	// For daemon mode, keep SQL debug logs on stderr as structured JSON, so they
+	// can be parsed without interfering with protocol data on stdout/stdio transport.
+	if models.LogSql {
+		models.SetHadesLogger(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})))
+	}
 
 	switch args.transport {
 	case "tcp":

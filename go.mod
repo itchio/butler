@@ -21,7 +21,7 @@ require (
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20251229221754-554b6b9748f0
-	github.com/itchio/hades v0.0.0-20260210234829-d62f958c1445
+	github.com/itchio/hades v0.0.0-20260219080741-55750b20dd32
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
 	github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347
@@ -93,8 +93,6 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
