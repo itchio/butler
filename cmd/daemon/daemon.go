@@ -117,7 +117,6 @@ func do(ctx *mansion.Context) {
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := GetRouter(dbPool, mansionContext)
-	consumer := comm.NewStateConsumer()
 
 	switch args.transport {
 	case "tcp":
@@ -135,7 +134,6 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Po
 
 		err = s.ServeTCP(ctx, butlerd.ServeTCPParams{
 			Handler:   router,
-			Consumer:  consumer,
 			Listener:  listener,
 			Secret:    secret,
 			Log:       args.log,
