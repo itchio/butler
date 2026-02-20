@@ -3,7 +3,9 @@ package mansion
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/itchio/butler/buildinfo"
@@ -13,6 +15,8 @@ import (
 	"github.com/itchio/wharf/pwr"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
+
+var LogHttp = os.Getenv("BUTLER_HTTP_DEBUG") == "1"
 
 type DoCommand func(ctx *Context)
 
@@ -45,6 +49,9 @@ type Context struct {
 
 	HTTPClient    *http.Client
 	HTTPTransport *http.Transport
+
+	// ClientLogger, when set, is passed to go-itchio clients for HTTP debug logging
+	ClientLogger *slog.Logger
 
 	// url of the itch.io API server we're talking to
 	apiAddress string
@@ -122,11 +129,22 @@ func (ctx *Context) DefaultCtx() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(ctx.ContextTimeout)*time.Second)
 }
 
+func (ctx *Context) SetClientLogger(logger *slog.Logger) {
+	ctx.ClientLogger = logger
+}
+
 func (ctx *Context) NewClient(key string) *itchio.Client {
 	client := itchio.ClientWithKey(key)
 	client.HTTPClient = ctx.HTTPClient
 	client.SetServer(ctx.APIAddress())
 	client.UserAgent = ctx.UserAgent()
+
+	if ctx.ClientLogger != nil {
+		client.Logger = ctx.ClientLogger
+	} else if LogHttp {
+		client.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	}
+
 	return client
 }
 

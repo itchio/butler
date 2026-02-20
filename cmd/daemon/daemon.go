@@ -53,6 +53,11 @@ func do(ctx *mansion.Context) {
 		models.SetHadesLogger(slog.New(comm.NewSlogHandler(slog.LevelDebug)))
 	}
 
+	// Configure HTTP debug logging for go-itchio clients.
+	if mansion.LogHttp {
+		ctx.SetClientLogger(slog.New(comm.NewSlogHandler(slog.LevelDebug)))
+	}
+
 	// For stdio transport, redirect os.Stdout to stderr early so that
 	// comm package log messages don't corrupt the JSON-RPC transport.
 	// Also redirect Go's log package, which main.go pointed at stdout.

@@ -202,6 +202,7 @@ generous also has a `ts` mode for generating TypeScript bindings used by the [it
 | Variable | Description |
 |----------|-------------|
 | `BUTLER_SQL_DEBUG=1` | Log all SQL queries through the hades ORM |
+| `BUTLER_HTTP_DEBUG=1` | Log HTTP requests made by the go-itchio API client (method, URL, status, duration) |
 | `BUTLER_JSON_RPC_DEBUG=1` | Log JSON-RPC 2.0 request/response messages |
 | `BUTLER_DEBUG_HOST` | Host for the pprof HTTP debug server (default: `localhost`) |
 | `BUTLER_DEBUG_PORT` | Port for the pprof HTTP debug server (enables it when set) |
