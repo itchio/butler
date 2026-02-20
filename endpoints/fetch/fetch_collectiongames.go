@@ -16,14 +16,19 @@ func LazyFetchCollectionGames(rc *butlerd.RequestContext, params lazyfetch.Profi
 	ft := models.FetchTargetForCollectionGames(collectionID)
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		_, client := rc.ProfileClient(params.GetProfileID())
+		maxGamesToFetch := maxCollectionGamesLimit
 
 		var fakeColl = &itchio.Collection{
 			ID: collectionID,
 		}
 		var collectionGames []*itchio.CollectionGame
 
-		var offset int64
 		for page := int64(1); ; page++ {
+			if int64(len(collectionGames)) >= maxGamesToFetch {
+				rc.Consumer.Warnf("Reached collection fetch cap (%d items), stopping early", maxGamesToFetch)
+				break
+			}
+
 			rc.Consumer.Infof("Fetching page %d (of unknown)", page)
 
 			gamesRes, err := client.GetCollectionGames(rc.Ctx, itchio.GetCollectionGamesParams{
@@ -37,10 +42,17 @@ func LazyFetchCollectionGames(rc *butlerd.RequestContext, params lazyfetch.Profi
 				break
 			}
 
-			collectionGames = append(collectionGames, gamesRes.CollectionGames...)
+			pageGames := gamesRes.CollectionGames
+			remaining := maxGamesToFetch - int64(len(collectionGames))
+			if int64(len(pageGames)) > remaining {
+				pageGames = pageGames[:remaining]
+			}
+
+			collectionGames = append(collectionGames, pageGames...)
 
 			rc.WithConn(func(conn *sqlite.Conn) {
-				fakeColl.CollectionGames = collectionGames
+				// Save only this page incrementally to avoid reprocessing all previous pages.
+				fakeColl.CollectionGames = pageGames
 				models.MustSave(conn, fakeColl,
 					hades.OmitRoot(),
 					hades.Assoc("CollectionGames",
@@ -51,12 +63,15 @@ func LazyFetchCollectionGames(rc *butlerd.RequestContext, params lazyfetch.Profi
 				)
 			})
 
-			offset += numPageGames
-		}
+			for _, cg := range pageGames {
+				g := cg.Game
+				targets.Add(models.FetchTargetForGame(g.ID))
+			}
 
-		for _, cg := range collectionGames {
-			g := cg.Game
-			targets.Add(models.FetchTargetForGame(g.ID))
+			if len(pageGames) < len(gamesRes.CollectionGames) {
+				rc.Consumer.Warnf("Reached collection fetch cap (%d items), stopping early", maxGamesToFetch)
+				break
+			}
 		}
 
 		rc.WithConn(func(conn *sqlite.Conn) {
@@ -73,7 +88,6 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 	if params.CollectionID == 0 {
 		return nil, errors.New("collectionId must be non-zero")
 	}
-
 	res := &butlerd.FetchCollectionGamesResult{}
 	LazyFetchCollectionGames(rc, params, res, params.CollectionID)
 
