@@ -181,6 +181,8 @@ github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c h1:Mo6j+q53lWHs
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c/go.mod h1:j77mJOxTb3sD0+h/c7nqwth7Y7DcI8TyBhxUI2ZEs0o=
 github.com/itchio/smaug v0.0.0-20260217224320-8a13201f0bd7 h1:hefmA54AtS8t4xCCra/ytJbrIhAEy/2E57Bko3cuj8o=
 github.com/itchio/smaug v0.0.0-20260217224320-8a13201f0bd7/go.mod h1:cvvHbM3mtzDynJyUcb8mwpinK14Sy691ch1CV1D8jjE=
+github.com/itchio/smaug v0.0.0-20260220192824-5537d771ebb7 h1:E/eriECw4YCtSpA6ywAjwrW01ILrsN+5FdcjdiyctaI=
+github.com/itchio/smaug v0.0.0-20260220192824-5537d771ebb7/go.mod h1:cvvHbM3mtzDynJyUcb8mwpinK14Sy691ch1CV1D8jjE=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725 h1:zD1SEqqiqaCgJnSauy1+LBq1tDrXFGymk09v90Wr0bA=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725/go.mod h1:rrZhjXwnFHxTTvfrzI0aeIQDCGqlbGFu7SXam+QcJ94=
 github.com/itchio/wharf v0.0.0-20200305150844-3ed0814c4e98/go.mod h1:ZTnhOpjGKeKcysGbew3pIIQWgjHIFSHRGznCORTiA6w=
