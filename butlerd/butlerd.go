@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/itchio/butler/butlerd/jsonrpc2"
-	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +20,6 @@ func NewServer(secret string) *Server {
 
 type ServeTCPParams struct {
 	Handler   jsonrpc2.Handler
-	Consumer  *state.Consumer
 	Listener  net.Listener
 	Secret    string
 	Log       bool
@@ -117,6 +115,7 @@ func (s *Server) handleTCPConn(parentCtx context.Context, params ServeTCPParams,
 	defer cancel()
 
 	conn := jsonrpc2.NewConn(ctx, jsonrpc2.NewRwcTransport(tcpConn), gh)
+
 	<-conn.DisconnectNotify()
 
 	return nil

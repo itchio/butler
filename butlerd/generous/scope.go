@@ -6,8 +6,10 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"math"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -51,9 +53,69 @@ type entryInfo struct {
 }
 
 type enumValue struct {
-	name  string
-	value string
-	doc   []string
+	name      string
+	value     string
+	jsonValue any
+	doc       []string
+}
+
+func enumLiteral(expr ast.Expr) (string, any, bool) {
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		switch e.Kind {
+		case token.STRING:
+			s, err := strconv.Unquote(e.Value)
+			if err != nil {
+				return "", nil, false
+			}
+			return e.Value, s, true
+		case token.INT:
+			if i, err := strconv.ParseInt(e.Value, 0, 64); err == nil {
+				return e.Value, i, true
+			}
+			if u, err := strconv.ParseUint(e.Value, 0, 64); err == nil {
+				return e.Value, u, true
+			}
+		case token.FLOAT:
+			if f, err := strconv.ParseFloat(e.Value, 64); err == nil {
+				return e.Value, f, true
+			}
+		}
+	case *ast.Ident:
+		if e.Name == "true" || e.Name == "false" {
+			return e.Name, e.Name == "true", true
+		}
+	case *ast.UnaryExpr:
+		if e.Op == token.SUB || e.Op == token.ADD {
+			innerRaw, innerTyped, ok := enumLiteral(e.X)
+			if !ok {
+				return "", nil, false
+			}
+
+			raw := e.Op.String() + innerRaw
+			switch v := innerTyped.(type) {
+			case int64:
+				if e.Op == token.SUB {
+					return raw, -v, true
+				}
+				return raw, v, true
+			case uint64:
+				if e.Op == token.SUB {
+					if v > math.MaxInt64 {
+						return "", nil, false
+					}
+					return raw, -int64(v), true
+				}
+				return raw, v, true
+			case float64:
+				if e.Op == token.SUB {
+					return raw, -v, true
+				}
+				return raw, v, true
+			}
+		}
+	}
+	return "", nil, false
 }
 
 type structField struct {
@@ -298,16 +360,18 @@ func (s *scope) assimilate(pkg string, file string) error {
 							if enum, ok := s.entries[typeid.Name]; ok && enum.kind == entryKindEnum {
 								hadValidType = true
 								name := vs.Names[0]
-								val := vs.Values[0]
-								if bl, ok := val.(*ast.BasicLit); ok {
-									if bl.Kind == token.STRING || bl.Kind == token.INT {
-										shortName := strings.TrimPrefix(name.Name, enum.typeName)
-										enum.enumValues = append(enum.enumValues, &enumValue{
-											name:  shortName,
-											value: bl.Value,
-											doc:   getCommentLines(vs.Doc),
-										})
-									}
+								if len(vs.Values) == 0 {
+									continue
+								}
+								rawValue, typedValue, ok := enumLiteral(vs.Values[0])
+								if ok {
+									shortName := strings.TrimPrefix(name.Name, enum.typeName)
+									enum.enumValues = append(enum.enumValues, &enumValue{
+										name:      shortName,
+										value:     rawValue,
+										jsonValue: typedValue,
+										doc:       getCommentLines(vs.Doc),
+									})
 								}
 							}
 						} else {

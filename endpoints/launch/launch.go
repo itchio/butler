@@ -113,6 +113,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		var env = make(map[string]string)
 
 		args = append(args, target.Action.Args...)
+		args = append(args, params.ExtraArgs...)
 		fullTargetPath := target.Strategy.FullTargetPath
 
 		err = requestAPIKeyIfNecessary(rc, target.Action, game, access, env)
@@ -253,6 +254,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			AppManifest:      targetRes.appManifest,
 			Action:           target.Action,
 			Sandbox:          sandbox,
+			SandboxOptions:   params.SandboxOptions,
 			WorkingDirectory: workingDirectory,
 			Args:             args,
 			Env:              env,

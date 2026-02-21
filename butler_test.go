@@ -114,14 +114,14 @@ func TestAllTheThings(t *testing.T) {
 
 	for _, q := range []int{1, 9} {
 		t.Logf("============ Quality %d ============", q)
-		compression := pwr.CompressionSettings{
+		compression := &pwr.CompressionSettings{
 			Algorithm: pwr.CompressionAlgorithm_BROTLI,
 			Quality:   int32(q),
 		}
 
 		for lhs := range files {
 			for rhs := range files {
-				wtest.Must(t, diff.Do(diff.Params{
+				wtest.Must(t, diff.Do(&diff.Params{
 					Target:      files[lhs],
 					Source:      files[rhs],
 					Patch:       patch,
@@ -134,7 +134,7 @@ func TestAllTheThings(t *testing.T) {
 		}
 	}
 
-	compression := pwr.CompressionSettings{
+	compression := &pwr.CompressionSettings{
 		Algorithm: pwr.CompressionAlgorithm_BROTLI,
 		Quality:   1,
 	}
@@ -183,7 +183,7 @@ func TestAllTheThings(t *testing.T) {
 
 		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm2, "dummy1.dat"))))
 
-		wtest.Must(t, diff.Do(diff.Params{
+		wtest.Must(t, diff.Do(&diff.Params{
 			Target:      samplePerm1,
 			Source:      samplePerm2,
 			Patch:       patch,

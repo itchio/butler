@@ -17,37 +17,58 @@ func LazyFetchProfileOwnedKeys(rc *butlerd.RequestContext, params lazyfetch.Prof
 
 	ft := models.FetchTargetForProfileOwnedKeys(params.GetProfileID())
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
+		maxKeysToFetch := maxProfileOwnedKeysLimit
+		fakeProfile := &models.Profile{
+			ID: profile.ID,
+		}
 		profile.OwnedKeys = nil
 		for page := int64(1); ; page++ {
+			if int64(len(profile.OwnedKeys)) >= maxKeysToFetch {
+				consumer.Warnf("Reached owned keys fetch cap (%d items), stopping early", maxKeysToFetch)
+				break
+			}
+
 			consumer.Infof("Fetching page %d", page)
 
 			ownedRes, err := client.ListProfileOwnedKeys(rc.Ctx, itchio.ListProfileOwnedKeysParams{
 				Page: page,
 			})
 			models.Must(err)
-			numPageItems := int64(len(ownedRes.OwnedKeys))
 
-			if numPageItems == 0 {
+			if len(ownedRes.OwnedKeys) == 0 {
 				break
 			}
 
-			profile.OwnedKeys = append(profile.OwnedKeys, ownedRes.OwnedKeys...)
+			pageKeys := ownedRes.OwnedKeys
+			remaining := maxKeysToFetch - int64(len(profile.OwnedKeys))
+			if int64(len(pageKeys)) > remaining {
+				pageKeys = pageKeys[:remaining]
+			}
+
+			profile.OwnedKeys = append(profile.OwnedKeys, pageKeys...)
 			rc.WithConn(func(conn *sqlite.Conn) {
-				models.MustSave(conn, profile,
+				// Save only this page incrementally to avoid reprocessing all previous pages.
+				fakeProfile.OwnedKeys = pageKeys
+				models.MustSave(conn, fakeProfile,
 					hades.OmitRoot(),
 					hades.Assoc("OwnedKeys",
 						hades.Assoc("Game"),
 					),
 				)
 			})
-		}
+			for _, dk := range pageKeys {
+				targets.Add(models.FetchTargetForGame(dk.Game.ID))
+			}
 
-		for _, dk := range profile.OwnedKeys {
-			targets.Add(models.FetchTargetForGame(dk.Game.ID))
+			if len(pageKeys) < len(ownedRes.OwnedKeys) {
+				consumer.Warnf("Reached owned keys fetch cap (%d items), stopping early", maxKeysToFetch)
+				break
+			}
 		}
 
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustSave(conn, profile,
+			fakeProfile.OwnedKeys = profile.OwnedKeys
+			models.MustSave(conn, fakeProfile,
 				hades.OmitRoot(),
 				hades.AssocReplace("OwnedKeys",
 					hades.Assoc("Game"),

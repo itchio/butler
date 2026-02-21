@@ -138,7 +138,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	getSignature := func(ID int64) (*pwr.SignatureInfo, error) {
-		buildFiles, err := client.ListBuildFiles(ctx.DefaultCtx(), ID)
+		requestCtx, cancel := ctx.DefaultCtx()
+		buildFiles, err := client.ListBuildFiles(requestCtx, ID)
+		cancel()
 		if err != nil {
 			return nil, errors.Wrap(err, "listing build files")
 		}
@@ -175,7 +177,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	if ifChanged {
-		chanInfo, err := client.GetChannel(ctx.DefaultCtx(), spec.Target, spec.Channel)
+		requestCtx, cancel := ctx.DefaultCtx()
+		chanInfo, err := client.GetChannel(requestCtx, spec.Target, spec.Channel)
+		cancel()
 		if err == nil && chanInfo != nil && chanInfo.Channel != nil && chanInfo.Channel.Head != nil {
 			comm.Opf("Comparing against previous build...")
 			sig, err := getSignature(chanInfo.Channel.Head.ID)
@@ -199,11 +203,13 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	newBuildRes, err := client.CreateBuild(ctx.DefaultCtx(), itchio.CreateBuildParams{
+	requestCtx, cancel := ctx.DefaultCtx()
+	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{
 		Target:      spec.Target,
 		Channel:     spec.Channel,
 		UserVersion: userVersion,
 	})
+	cancel()
 	if err != nil {
 		return errors.Wrap(err, "creating build on remote server")
 	}
@@ -392,12 +398,15 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		errs := make(chan error)
 
 		doFinalize := func(fileID int64, fileSize int64, done chan error) {
-			_, err = client.FinalizeBuildFile(ctx.DefaultCtx(), itchio.FinalizeBuildFileParams{
+			requestCtx, cancel := ctx.DefaultCtx()
+			defer cancel()
+
+			_, finalizeErr := client.FinalizeBuildFile(requestCtx, itchio.FinalizeBuildFileParams{
 				BuildID: buildID,
 				FileID:  fileID,
 				Size:    fileSize,
 			})
-			done <- err
+			done <- finalizeErr
 		}
 
 		go doFinalize(newPatchRes.File.ID, patchCounter.Count(), errs)

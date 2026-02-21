@@ -2,6 +2,8 @@ package daemon
 
 import (
 	"context"
+	"log"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/comm"
@@ -27,6 +30,9 @@ var args = struct {
 	log         bool
 }{}
 
+// origStdout holds the real stdout before redirecting it for stdio transport.
+var origStdout *os.File
+
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("daemon", "Start a butlerd instance").Hidden()
 	cmd.Flag("destiny-pid", "The daemon will shutdown whenever any of its destiny PIDs shuts down").Int64ListVar(&args.destinyPids)
@@ -40,6 +46,25 @@ func do(ctx *mansion.Context) {
 	if !comm.JsonEnabled() {
 		comm.Notice("Hello from butler daemon", []string{"We can't do anything interesting without --json, bailing out", "", "Learn more: https://docs.itch.zone/butlerd/master/"})
 		os.Exit(1)
+	}
+
+	// Configure hades SQL logging before any DB work (including Prepare/AutoMigrate).
+	if models.LogSql {
+		models.SetHadesLogger(slog.New(comm.NewSlogHandler(slog.LevelDebug)))
+	}
+
+	// Configure HTTP debug logging for go-itchio clients.
+	if mansion.LogHttp {
+		ctx.SetClientLogger(slog.New(comm.NewSlogHandler(slog.LevelDebug)))
+	}
+
+	// For stdio transport, redirect os.Stdout to stderr early so that
+	// comm package log messages don't corrupt the JSON-RPC transport.
+	// Also redirect Go's log package, which main.go pointed at stdout.
+	if args.transport == "stdio" {
+		origStdout = os.Stdout
+		os.Stdout = os.Stderr
+		log.SetOutput(os.Stderr)
 	}
 
 	ctx.EnsureDBPath()
@@ -83,6 +108,8 @@ func do(ctx *mansion.Context) {
 	}
 	defer dbPool.Close()
 
+	dbPrepareLogger := slog.New(comm.NewSlogHandler(slog.LevelDebug)).With("source", "db_prepare")
+
 	err = func() (retErr error) {
 		defer horror.RecoverInto(&retErr)
 
@@ -90,7 +117,7 @@ func do(ctx *mansion.Context) {
 		defer dbPool.Put(conn)
 		return database.Prepare(&state.Consumer{
 			OnMessage: func(lvl string, msg string) {
-				comm.Logf("[db prepare] [%s] %s", lvl, msg)
+				dbPrepareLogger.Log(context.Background(), stateLevelToSlogLevel(lvl), msg)
 			},
 		}, conn, justCreated)
 	}()
@@ -104,7 +131,6 @@ func do(ctx *mansion.Context) {
 func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := GetRouter(dbPool, mansionContext)
-	consumer := comm.NewStateConsumer()
 
 	switch args.transport {
 	case "tcp":
@@ -122,7 +148,6 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Po
 
 		err = s.ServeTCP(ctx, butlerd.ServeTCPParams{
 			Handler:   router,
-			Consumer:  consumer,
 			Listener:  listener,
 			Secret:    secret,
 			Log:       args.log,
@@ -134,11 +159,6 @@ func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Po
 			return err
 		}
 	case "stdio":
-		// Save original stdout for the transport, then redirect os.Stdout
-		// to stderr so comm package output doesn't corrupt the transport.
-		origStdout := os.Stdout
-		os.Stdout = os.Stderr
-
 		rwc := &stdioReadWriteCloser{
 			in:  os.Stdin,
 			out: origStdout,
@@ -173,4 +193,19 @@ func (s *stdioReadWriteCloser) Write(p []byte) (int, error) {
 
 func (s *stdioReadWriteCloser) Close() error {
 	return s.in.Close()
+}
+
+func stateLevelToSlogLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warning":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }

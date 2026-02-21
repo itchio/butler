@@ -179,7 +179,9 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 			matches := callbackRe.FindStringSubmatch(r.RequestURI)
 			if matches != nil {
 				client := ctx.NewClient(matches[1])
-				client.WharfStatus(ctx.DefaultCtx())
+				statusCtx, cancel := ctx.DefaultCtx()
+				client.WharfStatus(statusCtx)
+				cancel()
 
 				w.Header().Set("Content-Type", "text/plain")
 				fmt.Fprintf(w, art.ItchLogo)
@@ -251,7 +253,9 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 
 			client := ctx.NewClient(key)
 
-			_, err = client.WharfStatus(ctx.DefaultCtx())
+			statusCtx, cancel := ctx.DefaultCtx()
+			_, err = client.WharfStatus(statusCtx)
+			cancel()
 			if err != nil {
 				return nil, errors.Wrap(err, "retrieving wharf status")
 			}

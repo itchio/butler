@@ -1,6 +1,7 @@
 package butlerd
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/itchio/hush"
@@ -1291,6 +1292,30 @@ type CaveInstallInfo struct {
 	Pinned bool `json:"pinned,omitempty"`
 }
 
+// Per-cave launch settings that override global preferences.
+type CaveSettings struct {
+	// Overrides the global sandbox enabled/disabled preference.
+	// nil = inherit global, true = force on, false = force off
+	// @optional
+	Sandbox *bool `json:"sandbox,omitempty"`
+
+	// Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).
+	// @optional
+	SandboxType *SandboxType `json:"sandboxType,omitempty"`
+
+	// Override network restriction within the sandbox.
+	// @optional
+	SandboxNoNetwork *bool `json:"sandboxNoNetwork,omitempty"`
+
+	// Override allowed environment variables within the sandbox.
+	// @optional
+	SandboxAllowEnv *[]string `json:"sandboxAllowEnv,omitempty"`
+
+	// Additional command-line arguments appended after manifest action args.
+	// @optional
+	ExtraArgs []string `json:"extraArgs,omitempty"`
+}
+
 type InstallLocationSummary struct {
 	// Unique identifier for this install location
 	ID string `json:"id"`
@@ -1614,6 +1639,49 @@ type DiskUsageInfo struct {
 	NeededFreeSpace int64  `json:"neededFreeSpace"`
 	Accuracy        string `json:"accuracy"`
 }
+
+// @name Caves.GetSettings
+// @category Install
+// @caller client
+type CavesGetSettingsParams struct {
+	// ID of the cave to retrieve settings for.
+	CaveID string `json:"caveId"`
+}
+
+func (p CavesGetSettingsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
+type CavesGetSettingsResult struct {
+	Settings CaveSettings `json:"settings"`
+}
+
+// @name Caves.SetSettings
+// @category Install
+// @caller client
+type CavesSetSettingsParams struct {
+	// ID of the cave to store settings for.
+	CaveID string `json:"caveId"`
+
+	// Full settings object replacement.
+	Settings *CaveSettings `json:"settings"`
+}
+
+func (p CavesSetSettingsParams) Validate() error {
+	err := validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+		validation.Field(&p.Settings, validation.Required),
+	)
+	if err != nil {
+		return err
+	}
+
+	return validateCaveSettings(p.Settings)
+}
+
+type CavesSetSettingsResult struct{}
 
 // @name Caves.SetPinned
 // @category Install
@@ -2350,13 +2418,77 @@ type LaunchParams struct {
 	// Enable sandbox (regardless of manifest opt-in)
 	// @optional
 	Sandbox bool `json:"sandbox,omitempty"`
+
+	// Sandbox configuration options. Only applied when sandbox is enabled.
+	// @optional
+	SandboxOptions *SandboxOptions `json:"sandboxOptions,omitempty"`
+
+	// Additional command-line arguments appended after manifest action args.
+	// @optional
+	ExtraArgs []string `json:"extraArgs,omitempty"`
+}
+
+type SandboxType string
+
+const (
+	SandboxTypeAuto       SandboxType = "auto"
+	SandboxTypeBubblewrap SandboxType = "bubblewrap"
+	SandboxTypeFirejail   SandboxType = "firejail"
+	SandboxTypeFlatpak    SandboxType = "flatpak"
+	SandboxTypeFuji       SandboxType = "fuji"
+)
+
+var SandboxTypeList = []interface{}{
+	SandboxTypeAuto,
+	SandboxTypeBubblewrap,
+	SandboxTypeFirejail,
+	SandboxTypeFlatpak,
+	SandboxTypeFuji,
+}
+
+// Options for controlling sandbox behavior.
+type SandboxOptions struct {
+	// Which sandbox runner to use. Empty string means auto-detect.
+	// @optional
+	Type SandboxType `json:"type,omitempty"`
+
+	// (Linux Only) If true, disable network access within the sandbox.
+	// @optional
+	NoNetwork bool `json:"noNetwork,omitempty"`
+
+	// (Linux Only) List of environment variable names to allow through from the host into the sandbox.
+	// @optional
+	AllowEnv []string `json:"allowEnv,omitempty"`
+}
+
+func validateCaveSettings(settings *CaveSettings) error {
+	if settings == nil || settings.SandboxType == nil || *settings.SandboxType == "" {
+		return nil
+	}
+
+	err := validation.Validate(*settings.SandboxType, validation.In(SandboxTypeList...))
+	if err != nil {
+		return fmt.Errorf("settings.sandboxType: %w", err)
+	}
+
+	return nil
 }
 
 func (p LaunchParams) Validate() error {
-	return validation.ValidateStruct(&p,
+	err := validation.ValidateStruct(&p,
 		validation.Field(&p.CaveID, validation.Required),
 		validation.Field(&p.PrereqsDir, validation.Required),
 	)
+	if err != nil {
+		return err
+	}
+	if p.SandboxOptions != nil && p.SandboxOptions.Type != "" {
+		err = validation.Validate(p.SandboxOptions.Type, validation.In(SandboxTypeList...))
+		if err != nil {
+			return fmt.Errorf("sandboxOptions.type: %w", err)
+		}
+	}
+	return nil
 }
 
 type LaunchResult struct {

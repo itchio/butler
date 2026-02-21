@@ -21,19 +21,19 @@ require (
 	github.com/itchio/boar v0.0.0-20260130230637-862e70c1e0d7
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
-	github.com/itchio/go-itchio v0.0.0-20251229221754-554b6b9748f0
-	github.com/itchio/hades v0.0.0-20200218173536-5021c7c6d6e4
+	github.com/itchio/go-itchio v0.0.0-20260219215812-1c5026457495
+	github.com/itchio/hades v0.0.0-20260219080741-55750b20dd32
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
 	github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
-	github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a
+	github.com/itchio/lake v0.0.0-20260214042742-d93a9d33bb65
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
-	github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38
-	github.com/itchio/smaug v0.0.0-20260212201406-1bd5f3fc1c90
+	github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3
+	github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
@@ -84,7 +84,7 @@ require (
 	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
 	github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 // indirect
 	github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 // indirect
-	github.com/itchio/randsource v0.0.0-20190703104731-3f6d22f91927 // indirect
+	github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5 // indirect
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c // indirect
 	github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -92,8 +92,6 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

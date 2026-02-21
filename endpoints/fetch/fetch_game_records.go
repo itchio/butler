@@ -9,7 +9,6 @@ import (
 )
 
 func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecordsParams) (*butlerd.FetchGameRecordsResult, error) {
-	consumer := rc.Consumer
 	res := &butlerd.FetchGameRecordsResult{}
 
 	switch params.Source {
@@ -138,12 +137,6 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		search.ApplyJoins(builder)
 
 		hcx := models.HadesContext()
-		hcx.Consumer = consumer
-		hcx.Log = true
-		defer func() {
-			hcx.Consumer = nil
-			hcx.Log = false
-		}()
 		models.MustExecWithSearch(conn, builder, search, func(stmt *sqlite.Stmt) error {
 			return hcx.ScanIntoRows(stmt, &res.Records)
 		})

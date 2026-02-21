@@ -36,7 +36,7 @@ func (gc *generousContext) generateSpec() error {
 		for _, ev := range entry.enumValues {
 			evs := &spec.EnumValueSpec{
 				Name:  ev.name,
-				Value: ev.value,
+				Value: ev.jsonValue,
 				Doc:   strings.Join(ev.doc, "\n"),
 			}
 			res = append(res, evs)
@@ -72,6 +72,14 @@ func (gc *generousContext) generateSpec() error {
 					Doc: strings.Join(params.doc, "\n"),
 				}
 				s.Requests = append(s.Requests, rs)
+			case entryKindResult:
+				sts := &spec.StructTypeSpec{
+					Name:       entry.typeName,
+					Doc:        strings.Join(entry.doc, "\n"),
+					Deprecated: entry.deprecated,
+					Fields:     encodeStruct(entry),
+				}
+				s.StructTypes = append(s.StructTypes, sts)
 			case entryKindNotification:
 				ns := &spec.NotificationSpec{
 					Method:     entry.name,
@@ -92,14 +100,14 @@ func (gc *generousContext) generateSpec() error {
 						Fields:     encodeStruct(entry),
 					}
 					s.StructTypes = append(s.StructTypes, sts)
-				case entryTypeKindEnum:
-					ets := &spec.EnumTypeSpec{
-						Name:   entry.name,
-						Doc:    strings.Join(entry.doc, "\n"),
-						Values: encodeEnum(entry),
-					}
-					s.EnumTypes = append(s.EnumTypes, ets)
 				}
+			case entryKindEnum:
+				ets := &spec.EnumTypeSpec{
+					Name:   entry.name,
+					Doc:    strings.Join(entry.doc, "\n"),
+					Values: encodeEnum(entry),
+				}
+				s.EnumTypes = append(s.EnumTypes, ets)
 			}
 		}
 	}

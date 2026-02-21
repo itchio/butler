@@ -36,10 +36,11 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.output, *args.signature, ctx.CompressionSettings(), *args.fixPerms))
+	compression := ctx.CompressionSettings()
+	ctx.Must(Do(*args.output, *args.signature, &compression, *args.fixPerms))
 }
 
-func Do(output string, signature string, compression pwr.CompressionSettings, fixPerms bool) error {
+func Do(output string, signature string, compression *pwr.CompressionSettings, fixPerms bool) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
@@ -67,10 +68,10 @@ func Do(output string, signature string, compression pwr.CompressionSettings, fi
 	rawSigWire.WriteMagic(pwr.SignatureMagic)
 
 	rawSigWire.WriteMessage(&pwr.SignatureHeader{
-		Compression: &compression,
+		Compression: compression,
 	})
 
-	sigWire, err := pwr.CompressWire(rawSigWire, &compression)
+	sigWire, err := pwr.CompressWire(rawSigWire, compression)
 	if err != nil {
 		return errors.Wrap(err, "setting up compression for signature file")
 	}

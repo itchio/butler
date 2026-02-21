@@ -59,9 +59,12 @@ func handlePrereqs(params launch.LauncherParams) error {
 	{
 		runtime := params.Host.Runtime
 		if runtime.Platform == ox.PlatformLinux && params.Sandbox {
-			if _, err := exec.LookPath("firejail"); err != nil {
-				firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
-				wanted = append(wanted, firejailName)
+			if _, err := exec.LookPath("bwrap"); err != nil {
+				// bubblewrap not available, ensure firejail is present
+				if _, err := exec.LookPath("firejail"); err != nil {
+					firejailName := fmt.Sprintf("firejail-%s", runtime.Arch())
+					wanted = append(wanted, firejailName)
+				}
 			}
 		}
 	}

@@ -12,7 +12,6 @@ import (
 
 func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
-
 	ft := models.FetchTargetForProfileCollections(profile.ID)
 	res := &butlerd.FetchProfileCollectionsResult{}
 
