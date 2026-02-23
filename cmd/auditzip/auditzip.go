@@ -261,7 +261,7 @@ func Do(consumer *state.Consumer, file string, upstream bool) error {
 
 		actualSize, err := io.Copy(ioutil.Discard, rc)
 		if err != nil {
-			markError(path, err.Error())
+			markError(path, "%s", err.Error())
 			return nil
 		}
 
