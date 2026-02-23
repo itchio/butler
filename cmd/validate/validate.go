@@ -127,7 +127,7 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("  → Implicit launch target %d", i+1)
 				target, err := launch.CandidateToLaunchTarget(nil, dir, host, candidate)
 				if err != nil {
-					showError(err.Error())
+					showError("%s", err.Error())
 				} else {
 					printStrategyResult(target.Strategy)
 				}
@@ -244,7 +244,7 @@ func Validate(consumer *state.Consumer) error {
 			if hasDir {
 				target, err := launch.ActionToLaunchTarget(consumer, host, dir, action)
 				if err != nil {
-					showError(err.Error())
+					showError("%s", err.Error())
 				} else {
 					printStrategyResult(target.Strategy)
 				}
