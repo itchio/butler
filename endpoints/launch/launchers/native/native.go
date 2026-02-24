@@ -231,6 +231,13 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		FujiParams:         l.FujiParams(params),
 	}
 
+	if params.Sandbox && runParams.SandboxConfig.Type == runner.SandboxTypeBubblewrap && runParams.BubblewrapParams.BinaryPath == "" {
+		return sandboxNotAvailableError("bubblewrap")
+	}
+	if params.Sandbox && runParams.SandboxConfig.Type == runner.SandboxTypeFirejail && runParams.FirejailParams.BinaryPath == "" {
+		return sandboxNotAvailableError("firejail")
+	}
+
 	run, err := runner.GetRunner(runParams)
 	if err != nil {
 		return errors.WithStack(err)
@@ -325,6 +332,13 @@ func (l *Launcher) BubblewrapParams(params launch.LauncherParams) runner.Bubblew
 		return runner.BubblewrapParams{BinaryPath: bwrapPath}
 	}
 	return runner.BubblewrapParams{}
+}
+
+func sandboxNotAvailableError(sandboxType string) *butlerd.RpcError {
+	return &butlerd.RpcError{
+		Code:    int64(butlerd.CodeSandboxNotAvailable),
+		Message: fmt.Sprintf("The %s sandbox was selected but could not be found on this system.", sandboxType),
+	}
 }
 
 func (l *Launcher) FlatpakSpawnParams(params launch.LauncherParams) runner.FlatpakSpawnParams {

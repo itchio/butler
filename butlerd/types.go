@@ -2926,6 +2926,9 @@ const (
 
 	// An install location could not be removed because it has active downloads
 	CodeCantRemoveLocationBecauseOfActiveDownloads Code = 18000
+
+	// The selected sandbox is not available on this system
+	CodeSandboxNotAvailable Code = 19000
 )
 
 // Dates

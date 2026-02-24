@@ -5471,6 +5471,11 @@
           "name": "CantRemoveLocationBecauseOfActiveDownloads",
           "doc": "An install location could not be removed because it has active downloads",
           "value": 18000
+        },
+        {
+          "name": "SandboxNotAvailable",
+          "doc": "The selected sandbox is not available on this system",
+          "value": 19000
         }
       ]
     },

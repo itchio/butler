@@ -25,6 +25,8 @@ var codeMessages = map[Code]string{
 	CodeDatabaseBusy: "The database is busy",
 
 	CodeCantRemoveLocationBecauseOfActiveDownloads: "An install location could not be removed because it has active downloads",
+
+	CodeSandboxNotAvailable: "The selected sandbox is not available on this system.",
 }
 
 func (code Code) RpcErrorMessage() string {
