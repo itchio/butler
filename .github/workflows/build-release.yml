@@ -412,6 +412,8 @@ jobs:
     needs: [build-linux-x86_64, build-linux-arm64, sign-windows, sign-darwin]
     if: ${{ always() && !cancelled() && (inputs.deploy_linux_amd64 || inputs.deploy_linux_arm64 || inputs.deploy_windows_amd64 || inputs.deploy_darwin_amd64 || inputs.deploy_darwin_arm64) && (!inputs.deploy_linux_amd64 || needs.build-linux-x86_64.result == 'success') && (!inputs.deploy_linux_arm64 || needs.build-linux-arm64.result == 'success') && (!inputs.deploy_windows_amd64 || needs.sign-windows.result == 'success') && ((!inputs.deploy_darwin_amd64 && !inputs.deploy_darwin_arm64) || needs.sign-darwin.result == 'success') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: production
     env:
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
@@ -471,3 +473,18 @@ jobs:
 
       - name: Deploy
         run: node release/deploy.js
+
+      - name: Package artifacts for GitHub Release
+        if: github.ref_type == 'tag'
+        run: |
+          cd artifacts
+          for variant in */; do
+            variant="${variant%/}"
+            zip -r "../butler-${variant}.zip" "$variant"
+          done
+
+      - name: Upload to GitHub Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.ref_name }}" butler-*.zip --clobber
