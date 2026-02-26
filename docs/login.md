@@ -29,11 +29,11 @@ Logging in from a remote server looks like this:
   * Copy the address of that page
   * Paste it into the terminal where `butler login` is running, and press enter.
 
-## Running butler from CI builds (Travis CI, Gitlab CI etc.)
+## Running butler from CI builds (GitHub Actions, GitLab CI, etc.)
 
 If you're using butler to push builds from a continuous integration environment such
-as [Travis CI](https://travis-ci.org/), [Gitlab CI](https://about.gitlab.com/gitlab-ci/), or
-[Jenkins](https://jenkins.io/), the easiest way to go is:
+as [GitHub Actions](https://github.com/features/actions) or
+[GitLab CI](https://docs.gitlab.com/ci/), the easiest way to go is:
 
   * Go through the `butler login` flow locally
   * In your CI configuration, set the environment variable `BUTLER_API_KEY`
