@@ -414,9 +414,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      CI_COMMIT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-      CI_COMMIT_REF_NAME: ${{ github.ref_name }}
-      CI_COMMIT_SHA: ${{ github.sha }}
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
     steps:
       - name: Checkout code

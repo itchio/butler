@@ -164,13 +164,13 @@ async function main(args) {
 
   let version = "head";
   let builtAt = $$(`date +%s`);
-  if (process.env.CI_COMMIT_TAG) {
-    version = process.env.CI_COMMIT_TAG;
+  if (process.env.GITHUB_REF_TYPE === "tag") {
+    version = process.env.GITHUB_REF_NAME;
   } else if (
-    process.env.CI_COMMIT_REF_NAME &&
-    process.env.CI_COMMIT_REF_NAME !== "master"
+    process.env.GITHUB_REF_NAME &&
+    process.env.GITHUB_REF_NAME !== "master"
   ) {
-    version = process.env.CI_COMMIT_REF_NAME;
+    version = process.env.GITHUB_REF_NAME;
   }
 
   let bi = `github.com/itchio/butler/buildinfo`;
@@ -178,7 +178,7 @@ async function main(args) {
   let ldflags = [
     `-X ${bi}.Version=${version}`,
     `-X ${bi}.BuiltAt=${builtAt}`,
-    `-X ${bi}.Commit=${process.env.CI_COMMIT_SHA || ""}`,
+    `-X ${bi}.Commit=${process.env.GITHUB_SHA || ""}`,
     "-w",
     "-s",
   ].join(" ");
