@@ -2079,6 +2079,86 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 
 </div>
 
+### Fetch.UploadBuilds (client request)
+
+
+<p>
+<p>Fetches builds for an itch.io game</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Game whose builds we should look for</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>Upload whose builds we should look for</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
+<td><p>List of builds</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchUploadBuildsParams__TypeHint" class="tip-content">
+<p>Fetch.UploadBuilds (client request) <a href="#/?id=fetchuploadbuilds-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Fetches builds for an itch.io game</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchUploadBuildsResult__TypeHint" class="tip-content">
+<p>FetchUploadBuilds  <a href="#/?id=fetchuploadbuilds-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type">Build</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### Fetch.User (client request)
 
 
