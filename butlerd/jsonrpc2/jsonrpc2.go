@@ -9,7 +9,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/helloeave/json"
+	"github.com/homelight/json"
 )
 
 var debugEnabled = os.Getenv("BUTLER_JSON_RPC_DEBUG") == "1"

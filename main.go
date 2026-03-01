@@ -33,7 +33,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 import "C"

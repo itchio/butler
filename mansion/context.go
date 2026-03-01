@@ -13,7 +13,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/httpkit/timeout"
 	"github.com/itchio/wharf/pwr"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	kingpin "github.com/alecthomas/kingpin/v2"
 )
 
 var LogHttp = os.Getenv("BUTLER_HTTP_DEBUG") == "1"
