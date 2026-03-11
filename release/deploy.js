@@ -14,19 +14,19 @@ async function main(_args) {
   /** @type {string} */
   let userVersion;
 
-  if (process.env.CI_COMMIT_TAG) {
+  if (process.env.GITHUB_REF_TYPE === "tag") {
     // pushing a stable version
     channelSuffix = "";
     // v9.0.0 => 9.0.0
-    userVersion = process.env.CI_COMMIT_TAG.replace(/^v/, "");
-  } else if (process.env.CI_COMMIT_REF_NAME == "master") {
+    userVersion = process.env.GITHUB_REF_NAME.replace(/^v/, "");
+  } else if (process.env.GITHUB_REF_NAME == "master") {
     // pushing head
     channelSuffix = "-head";
-    userVersion = process.env.CI_COMMIT_SHA || "";
+    userVersion = process.env.GITHUB_SHA || "";
   } else {
     // pushing a branch that isn't master
     console.log(
-      `Not pushing non-master branch ${process.env.CI_COMMIT_REF_NAME}`
+      `Not pushing non-master branch ${process.env.GITHUB_REF_NAME}`
     );
     return;
   }

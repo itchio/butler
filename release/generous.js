@@ -11,10 +11,10 @@ async function main() {
   $(`go get -v -x ./butlerd/generous`);
   $(`generous godocs`);
 
-  if (process.env.CI_COMMIT_REF_NAME) {
-    $(`gsutil -m cp -r -a public-read ./butlerd/generous/docs/* gs://docs.itch.zone/butlerd/${process.env.CI_COMMIT_REF_NAME}/`);
+  if (process.env.GITHUB_REF_NAME) {
+    $(`gsutil -m cp -r -a public-read ./butlerd/generous/docs/* gs://docs.itch.zone/butlerd/${process.env.GITHUB_REF_NAME}/`);
   } else {
-    console.warn("Skipping uploading generous docs, no CI_COMMIT_REF_NAME environment variable set")
+    console.warn("Skipping uploading generous docs, no GITHUB_REF_NAME environment variable set")
   }
 }
 

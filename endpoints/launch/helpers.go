@@ -1,8 +1,6 @@
 package launch
 
 import (
-	"path/filepath"
-
 	"crawshaw.io/sqlite"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/butlerd"
@@ -184,6 +182,10 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	consumer.Opf("Seeking launch targets for host (%s)", host)
 
 	var targets []*butlerd.LaunchTarget
+	nativeHost := host.Runtime == info.runtime && host.Wrapper == nil && host.RemoteLaunchName == ""
+	actionsForHostCount := 0
+	failedActionCount := 0
+	var firstActionErr error
 
 	if appManifest == nil {
 		consumer.Infof("No app manifest.")
@@ -192,7 +194,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 			if action.Path == "" {
 				return action, nil
 			}
-			actionPath := filepath.Join(info.installFolder, action.Path)
+			actionPath := action.ExpandPath(host.Runtime.Platform, info.installFolder)
 			_, err := screw.Lstat(actionPath)
 			if err != nil {
 				consumer.Warnf("Could not stat (%s)", actionPath)
@@ -231,11 +233,17 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 		}
 
 		actions = actions.FilterByPlatform(host.Runtime.Platform)
+		actionsForHostCount = len(actions)
 
 		for _, action := range actions {
 			target, err := ActionToLaunchTarget(consumer, host, info.installFolder, action)
 			if err != nil {
-				return nil, err
+				failedActionCount++
+				if firstActionErr == nil {
+					firstActionErr = err
+				}
+				consumer.Warnf("Could not resolve launch target for action '%s' on host %s: %v", action.Name, host, err)
+				continue
 			}
 			targets = append(targets, target)
 			consumer.Logf("%s", target.Strategy.String())
@@ -244,6 +252,13 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 
 	if len(targets) > 0 {
 		return targets, nil
+	}
+
+	if nativeHost && actionsForHostCount > 0 && failedActionCount == actionsForHostCount {
+		return nil, errors.Errorf(
+			"failed to resolve %d/%d manifest actions for native host %s (first error: %v)",
+			failedActionCount, actionsForHostCount, host, firstActionErr,
+		)
 	}
 
 	consumer.Infof("Filtering verdict for host %v", host)
