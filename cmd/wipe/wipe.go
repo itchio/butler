@@ -1,3 +1,7 @@
+// Completely removes a file or directory and its contents (rm -rf), with retry
+// logic and permission escalation to handle locked files on Windows. Also used
+// internally by butlerd for cleaning up downloads, staging folders, and
+// uninstalling games.
 package wipe
 
 import (

@@ -1,3 +1,9 @@
+// Extracts a .tar archive preserving permissions and symlinks, creating missing
+// directory entries as needed. Internal utility for testing and development, not
+// intended for end users. The main game install pipeline uses boar/savior instead.
+//
+// TODO: legacy extraction path using wharf/archiver instead of savior.
+// Consider removal.
 package untar
 
 import (

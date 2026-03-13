@@ -1,3 +1,9 @@
+// Extracts a .zip archive with support for resumable extraction, dry runs, and
+// configurable concurrency. Internal utility for testing and development, not
+// intended for end users. The main game install pipeline uses boar/savior instead.
+//
+// TODO: legacy extraction path using wharf/archiver instead of savior.
+// Consider removal.
 package unzip
 
 import (

@@ -14,6 +14,5 @@
 * [Prerequisites](prerequisites.md)
 * [Third-party integrations](integration.md)
 * [Offline usage (diffing/patching)](offline.md)
-* [Utility commands](utilities.md)
 * [Single files](single-files.md)
 

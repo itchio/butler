@@ -1,3 +1,6 @@
+// Downloads a file from a URL to disk with resume support (via HTTP byte
+// range requests) and optional integrity checking (crc32c hash from GCS headers).
+// Internal utility for testing and development, not intended for end users.
 package dl
 
 import (

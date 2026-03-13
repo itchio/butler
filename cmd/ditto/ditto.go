@@ -1,3 +1,6 @@
+// Mirrors a directory to another location, preserving symlinks and permissions
+// (similar to rsync -az). Internal utility for testing and development, not
+// intended for end users.
 package ditto
 
 import (
