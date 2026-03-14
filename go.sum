@@ -184,8 +184,8 @@ github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310/go.mod h1:cvvHbM3mtzD
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725 h1:zD1SEqqiqaCgJnSauy1+LBq1tDrXFGymk09v90Wr0bA=
 github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725/go.mod h1:rrZhjXwnFHxTTvfrzI0aeIQDCGqlbGFu7SXam+QcJ94=
 github.com/itchio/wharf v0.0.0-20200305150844-3ed0814c4e98/go.mod h1:ZTnhOpjGKeKcysGbew3pIIQWgjHIFSHRGznCORTiA6w=
-github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb h1:eYORwfc7f5caxvdBTJEJdPyjtqBfzNX/PAnZJdBVpzo=
-github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb/go.mod h1:1e8MRfte3p/+QyNrh/TFRYXTnMiKNTqyUuehIORorG4=
+github.com/itchio/wharf v0.0.0-20260314032032-5343a90f618c h1:kX4hswRs3+y2S91asuGPzKN/HqVSrqdnbA27LUiC5RY=
+github.com/itchio/wharf v0.0.0-20260314032032-5343a90f618c/go.mod h1:1e8MRfte3p/+QyNrh/TFRYXTnMiKNTqyUuehIORorG4=
 github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488 h1:vCTwoe0nfTAKoYUCuIf8lYBz3F4tUzSgREhRwRZ7NDU=
 github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488/go.mod h1:iEoodCzQvPux9TAAd8txqHiO6z9Oo9Tqww8EBDKDmL4=
 github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 h1:VlCjOBMvVsqr/L/w7k4CW8WEQog5Hj53CihNyYyvvo4=

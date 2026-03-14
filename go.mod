@@ -34,7 +34,7 @@ require (
 	github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3
 	github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
-	github.com/itchio/wharf v0.0.0-20260121214545-5e5efc838cdb
+	github.com/itchio/wharf v0.0.0-20260314032032-5343a90f618c
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mitchellh/mapstructure v1.5.0
