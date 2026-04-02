@@ -305,6 +305,27 @@ in a git repository, and they're all deployed in the same CI pipeline. Typically
 only one or two channels actually get changed, and `--if-changed` reduces patching
 noise.
 
+## Appendix F: Pushing to a hidden channel
+
+By default, pushing to a new channel will immediately make the upload visible
+on your game's page. If you'd rather review things before making them available,
+you can use the `--hidden` flag:
+
+```bash
+butler push mygame user/mygame:win64-beta --hidden
+```
+
+When the `--hidden` flag is used and the push creates a new channel, the
+resulting upload will be marked as hidden, it won't appear on the game's
+page and won't be downloadable by players. You can then unhide it from
+the *Edit game* page when you're ready.
+
+This flag only takes effect when a new channel is created (i.e. the first
+push to that channel name). At this time, because of how our patching
+distribution works, we don't support pushing hidden patches on top of
+existing channels. Pushing with `--hidden` to an existing channel will
+result in an error.
+
 [^1]: It still isn't really, but you get the idea.
 [^2]: Historically, from your computer's [PC speaker](https://en.wikipedia.org/wiki/PC_speaker). Now, probably whatever sound Microsoft bundles with your version of Windows.
 

@@ -10,6 +10,7 @@
   * [Version numbers](pushing.md#specifying-your-own-version-number)
   * [Update check API](pushing.md#looking-for-updates)
   * [Progress bar design](pushing.md#appendix-a-understanding-the-progress-bar)
+  * [Hidden channels](pushing.md#appendix-f-pushing-to-a-hidden-channel)
   * [Troubleshooting](troubleshooting.md)
 * [Prerequisites](prerequisites.md)
 * [Third-party integrations](integration.md)

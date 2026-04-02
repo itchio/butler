@@ -56,6 +56,7 @@ var args = struct {
 	ifChanged       bool
 	dryRun          bool
 	autoWrap        bool
+	hidden          bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -69,6 +70,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").BoolVar(&args.ifChanged)
 	cmd.Flag("dry-run", "Don't push anything, just show what would be pushed").Default("false").BoolVar(&args.dryRun)
 	cmd.Flag("auto-wrap", "Apply workaround for https://github.com/itchio/itch/issues/2147").Default("true").BoolVar(&args.autoWrap)
+	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").Default("false").BoolVar(&args.hidden)
 	ctx.Register(cmd, do)
 }
 
@@ -88,10 +90,10 @@ func do(ctx *mansion.Context) {
 		}
 	}
 
-	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap))
+	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.hidden))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, hidden bool) error {
 	consumer := comm.NewStateConsumer()
 
 	// start walking source container while waiting on auth flow
@@ -208,6 +210,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		Target:      spec.Target,
 		Channel:     spec.Channel,
 		UserVersion: userVersion,
+		Hidden:      hidden,
 	})
 	cancel()
 	if err != nil {
