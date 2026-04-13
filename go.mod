@@ -17,7 +17,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260129195250-d003d2dc1a31
-	github.com/itchio/boar v0.0.0-20260130230637-862e70c1e0d7
+	github.com/itchio/boar v0.0.0-20260413210554-997228649976
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
 	github.com/itchio/go-itchio v0.0.0-20260402213116-b04bbf8b30a7
@@ -32,6 +32,7 @@ require (
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
 	github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3
+	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
 	github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20260314032032-5343a90f618c
@@ -86,7 +87,6 @@ require (
 	github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 // indirect
 	github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 // indirect
 	github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5 // indirect
-	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c // indirect
 	github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.3 // indirect

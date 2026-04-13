@@ -1,10 +1,13 @@
 package extract
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/itchio/boar"
 	"github.com/itchio/boar/szextractor"
+	"github.com/itchio/sevenzip-go/sz"
 
 	"github.com/itchio/savior"
 
@@ -31,11 +34,24 @@ func Register(ctx *mansion.Context) {
 	ctx.Register(cmd, do)
 
 	fetch7zLibsCmd := ctx.App.Command("fetch-7z-libs", "Fetch 7-zip dependencies").Hidden()
+	fetch7zLibsForce = fetch7zLibsCmd.Flag("force", "Force re-download of 7-zip dependencies even if already present").Bool()
 	ctx.Register(fetch7zLibsCmd, doFetch7zLibs)
 }
 
+var fetch7zLibsForce *bool
+
 func doFetch7zLibs(ctx *mansion.Context) {
-	ctx.Must(szextractor.EnsureDeps(comm.NewStateConsumer()))
+	consumer := comm.NewStateConsumer()
+	if *fetch7zLibsForce {
+		ctx.Must(szextractor.InstallDeps(consumer))
+	} else {
+		ctx.Must(szextractor.EnsureDeps(consumer))
+	}
+
+	lib, err := sz.NewLib()
+	ctx.Must(err)
+	defer lib.Free()
+	fmt.Fprintf(os.Stderr, "7-zip version: %s\n", lib.GetVersion())
 }
 
 func do(ctx *mansion.Context) {
