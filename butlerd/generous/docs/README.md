@@ -9539,6 +9539,11 @@ can be part of an issue report if something goes wrong.</p>
 <td><p>An install location could not be removed because it has active downloads</p>
 </td>
 </tr>
+<tr>
+<td><code>19000</code></td>
+<td><p>The selected sandbox is not available on this system</p>
+</td>
+</tr>
 </table>
 
 
@@ -9583,6 +9588,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>18000</code></td>
+</tr>
+<tr>
+<td><code>19000</code></td>
 </tr>
 </table>
 
