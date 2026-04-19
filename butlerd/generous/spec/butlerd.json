@@ -660,6 +660,34 @@
       }
     },
     {
+      "method": "Fetch.UploadBuilds",
+      "doc": "Fetches builds for an itch.io game",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "game",
+            "doc": "Game whose builds we should look for",
+            "type": "Game"
+          },
+          {
+            "name": "upload",
+            "doc": "Upload whose builds we should look for",
+            "type": "Upload"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "builds",
+            "doc": "List of builds",
+            "type": "Build[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.User",
       "doc": "Fetches information for an itch.io user.",
       "caller": "client",
