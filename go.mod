@@ -16,7 +16,7 @@ require (
 	github.com/google/gops v0.3.29
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
-	github.com/itchio/arkive v0.0.0-20260129195250-d003d2dc1a31
+	github.com/itchio/arkive v0.0.0-20260424164943-5eabdbdce5c8
 	github.com/itchio/boar v0.0.0-20260413210554-997228649976
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
@@ -26,12 +26,12 @@ require (
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
 	github.com/itchio/hush v0.0.0-20260123230201-fb8be8976347
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
-	github.com/itchio/lake v0.0.0-20260214042742-d93a9d33bb65
+	github.com/itchio/lake v0.0.0-20260424174833-e992cf8b06b3
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
-	github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3
+	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
 	github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725

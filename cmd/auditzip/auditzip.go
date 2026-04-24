@@ -3,6 +3,7 @@ package auditzip
 import (
 	"bytes"
 	"encoding/binary"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -313,7 +314,7 @@ var _ ZipImpl = (*itchioImpl)(nil)
 
 func (a *itchioImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int64, cb EachEntryFunc) error {
 	zr, err := itchiozip.NewReader(r, size)
-	if err != nil {
+	if err != nil && !stderrors.Is(err, itchiozip.ErrInsecurePath) {
 		return errors.WithStack(err)
 	}
 
@@ -363,7 +364,7 @@ var _ ZipImpl = (*upstreamImpl)(nil)
 
 func (a *upstreamImpl) EachEntry(consumer *state.Consumer, r io.ReaderAt, size int64, cb EachEntryFunc) error {
 	zr, err := upstreamzip.NewReader(r, size)
-	if err != nil {
+	if err != nil && !stderrors.Is(err, upstreamzip.ErrInsecurePath) {
 		return errors.WithStack(err)
 	}
 

@@ -3,6 +3,7 @@ package ls
 import (
 	"archive/tar"
 	"encoding/binary"
+	stderrors "errors"
 	"io"
 	"os"
 
@@ -216,11 +217,11 @@ func Do(ctx *mansion.Context, inPath string) error {
 
 		wasZip := func() bool {
 			zr, err := zip.NewReader(reader, stats.Size())
-			if err != nil {
-				if err != zip.ErrFormat {
-					ctx.Must(err)
-				}
+			if stderrors.Is(err, zip.ErrFormat) {
 				return false
+			}
+			if err != nil && !stderrors.Is(err, zip.ErrInsecurePath) {
+				ctx.Must(err)
 			}
 
 			container, err := tlc.WalkZip(zr, tlc.WalkOpts{})

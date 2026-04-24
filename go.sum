@@ -123,8 +123,8 @@ github.com/hashicorp/golang-lru v1.0.2/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uG
 github.com/helloeave/json v1.13.0 h1:gCsw/v7D6c+zMxfa1fAOJsc1nRcW8oBH9OzfkONQj6E=
 github.com/helloeave/json v1.13.0/go.mod h1:uTHhuUsgnrpm9cc7Gi3tfIUwgf1dq/7+uLfpUFLBFEQ=
 github.com/itchio/arkive v0.0.0-20200301155608-aeded25a0494/go.mod h1:EcWY5f3+D6wMuNE1T+zuixVjXN8o1n9dWaRjHEvFd70=
-github.com/itchio/arkive v0.0.0-20260129195250-d003d2dc1a31 h1:/zTg6X2qwQvV56RXQ6QrVOZPxEDSHgDTyb5MBzVrw50=
-github.com/itchio/arkive v0.0.0-20260129195250-d003d2dc1a31/go.mod h1:1jjAAhUnNDwHiqnC9YpwH5inlJ1/zZ+eL+MmEh8oGb0=
+github.com/itchio/arkive v0.0.0-20260424164943-5eabdbdce5c8 h1:pSMXKB+oJ1ebQykvGnSFmmf+Uk3eSh1ppaDdCy9sefM=
+github.com/itchio/arkive v0.0.0-20260424164943-5eabdbdce5c8/go.mod h1:1jjAAhUnNDwHiqnC9YpwH5inlJ1/zZ+eL+MmEh8oGb0=
 github.com/itchio/boar v0.0.0-20260413210554-997228649976 h1:PVYZ+94a8CctgaAvfQqY1vbk06TrsMnlcPgOPDHw+XM=
 github.com/itchio/boar v0.0.0-20260413210554-997228649976/go.mod h1:3p5oDb4iuQ7y3sLhiTikaYpfZHWV6qRGott2KlSKfmw=
 github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea h1:Pu54UbjT+DcKHH04FNTh2olXLObfVl8mIDmAtAa52oI=
@@ -156,8 +156,8 @@ github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a/go.mod h1:63w5zpLrbz
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 h1:jipXtdsZClshNO8fKK8ItiVyqE9bKA09as+qjW/yjG0=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51/go.mod h1:iLS+Eq+S26jTC4pbdDH6N5XtDqrjb4IOXtjj1HCzbuk=
 github.com/itchio/lake v0.0.0-20200305150023-cc4284ec2b2a/go.mod h1:yF1QEd82Erd4OseK1riuaowmTZBPt/Xx+Y/zixJguKc=
-github.com/itchio/lake v0.0.0-20260214042742-d93a9d33bb65 h1:cE8T4mvglhWfWhu8tRVf0BSVCa8wfvNtXV/X7p4vzbw=
-github.com/itchio/lake v0.0.0-20260214042742-d93a9d33bb65/go.mod h1:9Zf8jYiKUDob8J+VH2YdLjf63qoL8Ox5lNBf5amM4w4=
+github.com/itchio/lake v0.0.0-20260424174833-e992cf8b06b3 h1:n/cUxJUXAaAPV3lXuQnkbDenUDiL31Qb5ctojz1c+4U=
+github.com/itchio/lake v0.0.0-20260424174833-e992cf8b06b3/go.mod h1:ajw9UcYrdG4y78l4YeWZOAcHAaMx024gTOuufMer8g4=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49/go.mod h1:avNrevQMli1pYPsz1+HIHMvx95pk6O+6otbWqCZPeZI=
 github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9 h1:nW0B/lNYxI62tQbxrBjdLGsjIpwwMms7GcoE7fKB5Xg=
@@ -175,8 +175,8 @@ github.com/itchio/savior v0.0.0-20200301160120-c73741a23f8b/go.mod h1:GpmxUXrnJ4
 github.com/itchio/savior v0.0.0-20260128212141-556ab9757054 h1:2i4ywwRfk0jt+10HbOa4S9JpK/IZyNOgZmlVBRspecg=
 github.com/itchio/savior v0.0.0-20260128212141-556ab9757054/go.mod h1:8EmhrNePUgdrnI8bKrsMdk71qv7+TcFQLxcbxlF9VlE=
 github.com/itchio/screw v0.0.0-20200301160148-75fc2d65fb38/go.mod h1:niqRh/zemDC1HOJiMwUHIsmbgw4t3NTAogGD53Uleqs=
-github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3 h1:dBi+7uW40wOmVU2kCW6O5m/+mgwap8UMcJmkZVTXWiY=
-github.com/itchio/screw v0.0.0-20260217205324-77dbfa8b7bd3/go.mod h1:YwbHHVRIS/rkm1kHtab0wnYLWxiJXUdvr4oOYlv1dOA=
+github.com/itchio/screw v0.0.0-20260221011136-e674b460b040 h1:2nzurbZLgBSqNyLlIuO2iClpivQ7L5DX75kvCMqZ9e0=
+github.com/itchio/screw v0.0.0-20260221011136-e674b460b040/go.mod h1:YwbHHVRIS/rkm1kHtab0wnYLWxiJXUdvr4oOYlv1dOA=
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c h1:Mo6j+q53lWHsX+39KWfYudUX2fv8O0Rg1XnQBRX1aOU=
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c/go.mod h1:j77mJOxTb3sD0+h/c7nqwth7Y7DcI8TyBhxUI2ZEs0o=
 github.com/itchio/smaug v0.0.0-20260221030659-51a9124f1310 h1:G5RPdfsM96+yF16sfiMi07n488Bz/6qPBMdbQmCQQNI=
