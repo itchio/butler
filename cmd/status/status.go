@@ -49,16 +49,32 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 		return errors.Wrap(err, "listing channels")
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Channel", "Upload", "Build", "Version"})
-
-	found := false
-
 	sortedChannelNames := []string{}
 	for name := range listChannelsResp.Channels {
 		sortedChannelNames = append(sortedChannelNames, name)
 	}
 	sort.Strings(sortedChannelNames)
+
+	if comm.JsonEnabled() {
+		channels := []map[string]interface{}{}
+		for _, channelName := range sortedChannelNames {
+			ch := listChannelsResp.Channels[channelName]
+			if spec.Channel != "" && ch.Name != spec.Channel {
+				continue
+			}
+			channels = append(channels, channelToJSON(ch))
+		}
+		comm.Result(map[string]interface{}{
+			"target":   spec.Target,
+			"channels": channels,
+		})
+		return nil
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Channel", "Upload", "Build", "Version"})
+
+	found := false
 
 	for _, channelName := range sortedChannelNames {
 		ch := listChannelsResp.Channels[channelName]
@@ -88,6 +104,38 @@ func Do(ctx *mansion.Context, specStr string, showAllFiles bool) error {
 	}
 
 	return nil
+}
+
+func channelToJSON(ch *itchio.Channel) map[string]interface{} {
+	out := map[string]interface{}{
+		"name": ch.Name,
+		"tags": ch.Tags,
+	}
+	if ch.Upload != nil {
+		out["uploadId"] = ch.Upload.ID
+	}
+	if ch.Head != nil {
+		out["head"] = buildToJSON(ch.Head)
+	}
+	if ch.Pending != nil {
+		out["pending"] = buildToJSON(ch.Pending)
+	}
+	return out
+}
+
+func buildToJSON(b *itchio.Build) map[string]interface{} {
+	out := map[string]interface{}{
+		"id":          b.ID,
+		"state":       string(b.State),
+		"version":     b.Version,
+		"userVersion": b.UserVersion,
+		"createdAt":   b.CreatedAt,
+		"updatedAt":   b.UpdatedAt,
+	}
+	if b.ParentBuildID > 0 {
+		out["parentBuildId"] = b.ParentBuildID
+	}
+	return out
 }
 
 func buildState(build *itchio.Build) string {

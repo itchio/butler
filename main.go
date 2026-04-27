@@ -58,6 +58,7 @@ var appArgs = struct {
 	address              *string
 	userAgentAddition    *string
 	dbPath               *string
+	butlerdProfileID     *int64
 	compressionAlgorithm *string
 	compressionQuality   *int
 
@@ -81,7 +82,8 @@ var appArgs = struct {
 	app.Flag("identity", "Path to your itch.io API token").Default(defaultKeyPath()).Short('i').String(),
 	app.Flag("address", "itch.io server to talk to").Default("https://api.itch.io").Short('a').Hidden().String(),
 	app.Flag("user-agent", "string to include in user-agent for all http requests").Default("").Hidden().String(),
-	app.Flag("dbpath", "Path of the sqlite database path to use (for butlerd)").Default("").Hidden().String(),
+	app.Flag("dbpath", "Path of the sqlite database path to use (for butlerd, or to read butlerd-stored credentials when paired with --butlerd-profile)").Default("").Hidden().String(),
+	app.Flag("butlerd-profile", "Authenticate using the apiKey stored for this butlerd profile id; requires --dbpath. When set, BUTLER_API_KEY / keyfile / interactive OAuth are bypassed.").Default("0").Hidden().Int64(),
 
 	app.Flag("compression", "Compression algorithm to use when writing patch or signature files").Default("brotli").Hidden().Enum("none", "brotli", "gzip"),
 	app.Flag("quality", "Quality level to use when writing patch or signature files").Default("1").Short('q').Hidden().Int(),
@@ -232,6 +234,7 @@ func doMain(args []string) {
 	ctx.SetAddress(*appArgs.address)
 	ctx.UserAgentAddition = *appArgs.userAgentAddition
 	ctx.DBPath = *appArgs.dbPath
+	ctx.ButlerdProfileID = *appArgs.butlerdProfileID
 	ctx.Quiet = *appArgs.quiet
 	ctx.Verbose = *appArgs.verbose
 	ctx.ContextTimeout = *appArgs.contextTimeout

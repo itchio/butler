@@ -42,6 +42,11 @@ type Context struct {
 	// Path to the local sqlite database
 	DBPath string
 
+	// When non-zero (and DBPath is set), authenticate by reading the
+	// stored apiKey for this butlerd profile id, instead of using
+	// BUTLER_API_KEY / the keyfile / interactive OAuth.
+	ButlerdProfileID int64
+
 	CompressionAlgorithm string
 	CompressionQuality   int
 

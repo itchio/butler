@@ -13,10 +13,13 @@ import (
 	"runtime"
 	"strings"
 
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/art"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
+	"xorm.io/builder"
 )
 
 // read+write for owner, no permissions for others
@@ -96,7 +99,12 @@ var callbackRe = regexp.MustCompile(`^\/oauth\/callback\/(.*)$`)
 const environmentApiKeyVariable = "BUTLER_API_KEY"
 
 func (ctx *Context) HasSavedCredentials() bool {
-	// environment has priority
+	// butlerd DB has priority
+	if ctx.ButlerdProfileID != 0 && ctx.DBPath != "" {
+		return true
+	}
+
+	// then environment
 	if os.Getenv(environmentApiKeyVariable) != "" {
 		return true
 	}
@@ -144,10 +152,49 @@ func writeKeyFile(path string, key string) error {
 	return ioutil.WriteFile(path, []byte(key), os.FileMode(keyFileMode))
 }
 
+// loadAPIKeyFromButlerdDB opens butlerd's sqlite DB read-only and returns the
+// apiKey stored for the given profile. The DB is opened in WAL-friendly mode
+// so concurrent access from a running butlerd is safe.
+func loadAPIKeyFromButlerdDB(dbPath string, profileID int64) (string, error) {
+	if dbPath == "" {
+		return "", errors.New("--butlerd-profile requires --dbpath")
+	}
+	if profileID == 0 {
+		return "", errors.New("--butlerd-profile must be a non-zero profile id")
+	}
+
+	conn, err := sqlite.OpenConn(dbPath, sqlite.SQLITE_OPEN_READONLY)
+	if err != nil {
+		return "", errors.Wrapf(err, "opening butlerd db at %s", dbPath)
+	}
+	defer conn.Close()
+
+	var profile models.Profile
+	ok, err := models.SelectOne(conn, &profile, builder.Eq{"id": profileID})
+	if err != nil {
+		return "", errors.Wrapf(err, "querying profile %d in butlerd db", profileID)
+	}
+	if !ok {
+		return "", errors.Errorf("no profile with id %d in butlerd db", profileID)
+	}
+	if profile.APIKey == "" {
+		return "", errors.Errorf("profile %d has no stored apiKey", profileID)
+	}
+	return profile.APIKey, nil
+}
+
 func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 	var err error
 	var identity = ctx.Identity
 	var key string
+
+	if ctx.ButlerdProfileID != 0 {
+		butlerdKey, err := loadAPIKeyFromButlerdDB(ctx.DBPath, ctx.ButlerdProfileID)
+		if err != nil {
+			return nil, errors.Wrap(err, "authenticating via butlerd db")
+		}
+		return ctx.NewClient(butlerdKey), nil
+	}
 
 	envKey := os.Getenv(environmentApiKeyVariable)
 	if envKey != "" {
