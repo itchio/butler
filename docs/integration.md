@@ -21,6 +21,10 @@ as preparing/uploading builds for services like itch.io and Steam.
 
   * [View unity-build on Github](https://github.com/Chaser324/unity-build)
 
+## godot-butlerexportplugin
+
+[Godot-ButlerExportPlugin](https://github.com/NovaDC/Godot-ButlerExportPlugin) is a simple export plugin for Godot that allows for game exports to be pushed automatically after building.
+
 ## itchy-electron
 
 [itchy-electron](https://github.com/erbridge/itchy-electron) is a CLI app
