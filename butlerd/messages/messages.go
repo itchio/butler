@@ -3723,6 +3723,200 @@ func (r *TestDoubleType) Call(rc *butlerd.RequestContext, params butlerd.TestDou
 var TestDouble *TestDoubleType
 
 
+//==============================
+// Wharf
+//==============================
+
+// Wharf.Push (Request)
+
+type WharfPushType struct {}
+
+var _ RequestMessage = (*WharfPushType)(nil)
+
+func (r *WharfPushType) Method() string {
+  return "Wharf.Push"
+}
+
+func (r *WharfPushType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfPushParams) (*butlerd.WharfPushResult, error)) {
+  router.Register("Wharf.Push", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfPushParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.Push")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfPushType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.WharfPushResult, error) {
+  var result butlerd.WharfPushResult
+  err := rc.Call("Wharf.Push", params, &result)
+  return &result, err
+}
+
+var WharfPush *WharfPushType
+
+// Wharf.Push.Progress (Notification)
+
+type WharfPushProgressType struct {}
+
+var _ NotificationMessage = (*WharfPushProgressType)(nil)
+
+func (r *WharfPushProgressType) Method() string {
+  return "Wharf.Push.Progress"
+}
+
+func (r *WharfPushProgressType) Notify(rc *butlerd.RequestContext, params butlerd.WharfPushProgressNotification) (error) {
+  return rc.Notify("Wharf.Push.Progress", params)
+}
+
+func (r *WharfPushProgressType) Register(router router, f func(butlerd.WharfPushProgressNotification)) {
+  router.RegisterNotification("Wharf.Push.Progress", func (notif jsonrpc2.Notification) {
+    var params butlerd.WharfPushProgressNotification
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
+    }
+    f(params)
+  })
+}
+
+var WharfPushProgress *WharfPushProgressType
+
+// Wharf.ListChannels (Request)
+
+type WharfListChannelsType struct {}
+
+var _ RequestMessage = (*WharfListChannelsType)(nil)
+
+func (r *WharfListChannelsType) Method() string {
+  return "Wharf.ListChannels"
+}
+
+func (r *WharfListChannelsType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfListChannelsParams) (*butlerd.WharfListChannelsResult, error)) {
+  router.Register("Wharf.ListChannels", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfListChannelsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.ListChannels")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfListChannelsType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfListChannelsParams) (*butlerd.WharfListChannelsResult, error) {
+  var result butlerd.WharfListChannelsResult
+  err := rc.Call("Wharf.ListChannels", params, &result)
+  return &result, err
+}
+
+var WharfListChannels *WharfListChannelsType
+
+// Wharf.GetChannel (Request)
+
+type WharfGetChannelType struct {}
+
+var _ RequestMessage = (*WharfGetChannelType)(nil)
+
+func (r *WharfGetChannelType) Method() string {
+  return "Wharf.GetChannel"
+}
+
+func (r *WharfGetChannelType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfGetChannelParams) (*butlerd.WharfGetChannelResult, error)) {
+  router.Register("Wharf.GetChannel", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfGetChannelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.GetChannel")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfGetChannelType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfGetChannelParams) (*butlerd.WharfGetChannelResult, error) {
+  var result butlerd.WharfGetChannelResult
+  err := rc.Call("Wharf.GetChannel", params, &result)
+  return &result, err
+}
+
+var WharfGetChannel *WharfGetChannelType
+
+// Wharf.GetBuild (Request)
+
+type WharfGetBuildType struct {}
+
+var _ RequestMessage = (*WharfGetBuildType)(nil)
+
+func (r *WharfGetBuildType) Method() string {
+  return "Wharf.GetBuild"
+}
+
+func (r *WharfGetBuildType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfGetBuildParams) (*butlerd.WharfGetBuildResult, error)) {
+  router.Register("Wharf.GetBuild", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfGetBuildParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.GetBuild")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfGetBuildType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfGetBuildParams) (*butlerd.WharfGetBuildResult, error) {
+  var result butlerd.WharfGetBuildResult
+  err := rc.Call("Wharf.GetBuild", params, &result)
+  return &result, err
+}
+
+var WharfGetBuild *WharfGetBuildType
+
+
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
   if _, ok := router.Handlers["Meta.Flow"]; !ok { panic("missing request handler for (Meta.Flow)") }
@@ -3789,5 +3983,9 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }
   if _, ok := router.Handlers["Test.DoubleTwice"]; !ok { panic("missing request handler for (Test.DoubleTwice)") }
+  if _, ok := router.Handlers["Wharf.Push"]; !ok { panic("missing request handler for (Wharf.Push)") }
+  if _, ok := router.Handlers["Wharf.ListChannels"]; !ok { panic("missing request handler for (Wharf.ListChannels)") }
+  if _, ok := router.Handlers["Wharf.GetChannel"]; !ok { panic("missing request handler for (Wharf.GetChannel)") }
+  if _, ok := router.Handlers["Wharf.GetBuild"]; !ok { panic("missing request handler for (Wharf.GetBuild)") }
 }
 

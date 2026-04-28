@@ -7386,6 +7386,525 @@ use <code class="typename"><span class="type">Test.DoubleTwice</span></code> in 
 </div>
 
 
+## Wharf Category
+
+### Wharf.Push (client request)
+
+
+<p>
+<p>Pushes a new build to itch.io for a given target+channel. Heavy lifting
+(walk, diff, upload) runs in a <code>butler push</code> worker subprocess that butlerd
+spawns; butlerd brokers progress over WharfPushProgress notifications and
+kills the worker if the RPC&rsquo;s context is cancelled.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io profile to authenticate as</p>
+</td>
+</tr>
+<tr>
+<td><code>src</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Source path: directory or zip archive</p>
+</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Push target in user/slug or numeric form, e.g. &ldquo;leafo/x-moon&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Channel name, e.g. &ldquo;win-64&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>userVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Optional user-supplied version string for the build</p>
+</td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Mark new channel as hidden on creation</p>
+</td>
+</tr>
+<tr>
+<td><code>ifChanged</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Skip push if the source matches the previous build</p>
+</td>
+</tr>
+<tr>
+<td><code>dryRun</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Walk and report what would be pushed without uploading</p>
+</td>
+</tr>
+<tr>
+<td><code>dereference</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Dereference symlinks during walk</p>
+</td>
+</tr>
+<tr>
+<td><code>fixPermissions</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When non-nil, overrides butler&rsquo;s default (&ndash;fix-permissions, default true)</p>
+</td>
+</tr>
+<tr>
+<td><code>autoWrap</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When non-nil, overrides butler&rsquo;s default (&ndash;auto-wrap, default true)</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>ID of the build that was created (0 if dryRun or skipped)</p>
+</td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>dryRun</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when no build was created because this was a dry run</p>
+</td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when no build was created because ifChanged found no diff</p>
+</td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Machine-readable reason for a no-op result, empty when a build was created</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfPushParams__TypeHint" class="tip-content">
+<p>Wharf.Push (client request) <a href="#/?id=wharfpush-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Pushes a new build to itch.io for a given target+channel. Heavy lifting
+(walk, diff, upload) runs in a <code>butler push</code> worker subprocess that butlerd
+spawns; butlerd brokers progress over WharfPushProgress notifications and
+kills the worker if the RPC&rsquo;s context is cancelled.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>src</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>userVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>ifChanged</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>dryRun</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>dereference</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>fixPermissions</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>autoWrap</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfPushResult__TypeHint" class="tip-content">
+<p>WharfPush  <a href="#/?id=wharfpush-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>dryRun</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Wharf.Push.Progress (notification)
+
+
+<p>
+<p>Periodic progress update emitted while a Wharf.Push is in flight.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>0..1</p>
+</td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Estimated seconds remaining (0 if unknown)</p>
+</td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bytes per second (0 if unknown)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfPushProgressNotification__TypeHint" class="tip-content">
+<p>Wharf.Push.Progress (notification) <a href="#/?id=wharfpushprogress-notification">(Go to definition)</a></p>
+
+<p>
+<p>Periodic progress update emitted while a Wharf.Push is in flight.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Wharf.ListChannels (client request)
+
+
+<p>
+<p>Lists all channels for a given push target via the wharf API.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: WharfChannel }</span></code></td>
+<td><p>Channels keyed by name</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfListChannelsParams__TypeHint" class="tip-content">
+<p>Wharf.ListChannels (client request) <a href="#/?id=wharflistchannels-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Lists all channels for a given push target via the wharf API.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfListChannelsResult__TypeHint" class="tip-content">
+<p>WharfListChannels  <a href="#/?id=wharflistchannels-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: WharfChannel }</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Wharf.GetChannel (client request)
+
+
+<p>
+<p>Returns information about a single channel.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WharfChannel__TypeHint">WharfChannel</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="WharfGetChannelParams__TypeHint" class="tip-content">
+<p>Wharf.GetChannel (client request) <a href="#/?id=wharfgetchannel-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Returns information about a single channel.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfGetChannelResult__TypeHint" class="tip-content">
+<p>WharfGetChannel  <a href="#/?id=wharfgetchannel-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type">WharfChannel</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Wharf.GetBuild (client request)
+
+
+<p>
+<p>Returns information about a single build by ID.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="WharfGetBuildParams__TypeHint" class="tip-content">
+<p>Wharf.GetBuild (client request) <a href="#/?id=wharfgetbuild-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Returns information about a single build by ID.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfGetBuildResult__TypeHint" class="tip-content">
+<p>WharfGetBuild  <a href="#/?id=wharfgetbuild-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>build</code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
 ## Miscellaneous Category
 
 ### LaunchTarget (struct)
@@ -9591,6 +10110,90 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>19000</code></td>
+</tr>
+</table>
+
+</div>
+
+### WharfChannel (struct)
+
+
+<p>
+<p>WharfChannel mirrors itchio.Channel — defined here so generous picks it
+up for the butlerd spec / TS bindings (the itchio.Channel definition lives
+in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Channel name, e.g. &ldquo;win-64&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Platform tags for this channel</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p><span class="tag">Optional</span> Latest upload tied to this channel</p>
+</td>
+</tr>
+<tr>
+<td><code>head</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><span class="tag">Optional</span> Most recent successfully-processed build, if any</p>
+</td>
+</tr>
+<tr>
+<td><code>pending</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
+<td><p><span class="tag">Optional</span> In-flight build that hasn&rsquo;t finished processing, if any</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfChannel__TypeHint" class="tip-content">
+<p>WharfChannel (struct) <a href="#/?id=wharfchannel-struct">(Go to definition)</a></p>
+
+<p>
+<p>WharfChannel mirrors itchio.Channel — defined here so generous picks it
+up for the butlerd spec / TS bindings (the itchio.Channel definition lives
+in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>head</code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
+</tr>
+<tr>
+<td><code>pending</code></td>
+<td><code class="typename"><span class="type">Build</span></code></td>
 </tr>
 </table>
 

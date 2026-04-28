@@ -2252,6 +2252,188 @@
           }
         ]
       }
+    },
+    {
+      "method": "Wharf.Push",
+      "doc": "Pushes a new build to itch.io for a given target+channel. Heavy lifting\n(walk, diff, upload) runs in a `butler push` worker subprocess that butlerd\nspawns; butlerd brokers progress over WharfPushProgress notifications and\nkills the worker if the RPC's context is cancelled.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "itch.io profile to authenticate as",
+            "type": "number"
+          },
+          {
+            "name": "src",
+            "doc": "Source path: directory or zip archive",
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "doc": "Push target in user/slug or numeric form, e.g. \"leafo/x-moon\"",
+            "type": "string"
+          },
+          {
+            "name": "channel",
+            "doc": "Channel name, e.g. \"win-64\"",
+            "type": "string"
+          },
+          {
+            "name": "userVersion",
+            "doc": "Optional user-supplied version string for the build",
+            "type": "string"
+          },
+          {
+            "name": "hidden",
+            "doc": "Mark new channel as hidden on creation",
+            "type": "boolean"
+          },
+          {
+            "name": "ifChanged",
+            "doc": "Skip push if the source matches the previous build",
+            "type": "boolean"
+          },
+          {
+            "name": "dryRun",
+            "doc": "Walk and report what would be pushed without uploading",
+            "type": "boolean"
+          },
+          {
+            "name": "dereference",
+            "doc": "Dereference symlinks during walk",
+            "type": "boolean"
+          },
+          {
+            "name": "fixPermissions",
+            "doc": "When non-nil, overrides butler's default (--fix-permissions, default true)",
+            "type": "boolean"
+          },
+          {
+            "name": "autoWrap",
+            "doc": "When non-nil, overrides butler's default (--auto-wrap, default true)",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "buildId",
+            "doc": "ID of the build that was created (0 if dryRun or skipped)",
+            "type": "number"
+          },
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "dryRun",
+            "doc": "True when no build was created because this was a dry run",
+            "type": "boolean"
+          },
+          {
+            "name": "skipped",
+            "doc": "True when no build was created because ifChanged found no diff",
+            "type": "boolean"
+          },
+          {
+            "name": "reason",
+            "doc": "Machine-readable reason for a no-op result, empty when a build was created",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Wharf.ListChannels",
+      "doc": "Lists all channels for a given push target via the wharf API.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "target",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "channels",
+            "doc": "Channels keyed by name",
+            "type": "{ [key: string]: WharfChannel }"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Wharf.GetChannel",
+      "doc": "Returns information about a single channel.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "target",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "WharfChannel"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Wharf.GetBuild",
+      "doc": "Returns information about a single build by ID.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "buildId",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "build",
+            "doc": "",
+            "type": "Build"
+          }
+        ]
+      }
     }
   ],
   "notifications": [
@@ -2544,6 +2726,29 @@
       "doc": "Sent during @@LaunchParams, when all prereqs have finished installing (successfully or not)\n\nAfter this is received, it's safe to close any UI element showing prereq task state.",
       "params": {
         "fields": null
+      }
+    },
+    {
+      "method": "Wharf.Push.Progress",
+      "doc": "Periodic progress update emitted while a Wharf.Push is in flight.",
+      "params": {
+        "fields": [
+          {
+            "name": "progress",
+            "doc": "0..1",
+            "type": "number"
+          },
+          {
+            "name": "eta",
+            "doc": "Estimated seconds remaining (0 if unknown)",
+            "type": "number"
+          },
+          {
+            "name": "bps",
+            "doc": "Bytes per second (0 if unknown)",
+            "type": "number"
+          }
+        ]
       }
     }
   ],
@@ -4047,6 +4252,101 @@
           "name": "number",
           "doc": "The number, doubled",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "WharfPushResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "buildId",
+          "doc": "ID of the build that was created (0 if dryRun or skipped)",
+          "type": "number"
+        },
+        {
+          "name": "channel",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "dryRun",
+          "doc": "True when no build was created because this was a dry run",
+          "type": "boolean"
+        },
+        {
+          "name": "skipped",
+          "doc": "True when no build was created because ifChanged found no diff",
+          "type": "boolean"
+        },
+        {
+          "name": "reason",
+          "doc": "Machine-readable reason for a no-op result, empty when a build was created",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "WharfListChannelsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "channels",
+          "doc": "Channels keyed by name",
+          "type": "{ [key: string]: WharfChannel }"
+        }
+      ]
+    },
+    {
+      "name": "WharfChannel",
+      "doc": "WharfChannel mirrors itchio.Channel — defined here so generous picks it\nup for the butlerd spec / TS bindings (the itchio.Channel definition lives\nin go-itchio/endpoints_wharf.go, which is not part of the assimilated set).",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "Channel name, e.g. \"win-64\"",
+          "type": "string"
+        },
+        {
+          "name": "tags",
+          "doc": "Platform tags for this channel",
+          "type": "string"
+        },
+        {
+          "name": "upload",
+          "doc": "Latest upload tied to this channel",
+          "type": "Upload"
+        },
+        {
+          "name": "head",
+          "doc": "Most recent successfully-processed build, if any",
+          "type": "Build"
+        },
+        {
+          "name": "pending",
+          "doc": "In-flight build that hasn't finished processing, if any",
+          "type": "Build"
+        }
+      ]
+    },
+    {
+      "name": "WharfGetChannelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "channel",
+          "doc": "",
+          "type": "WharfChannel"
+        }
+      ]
+    },
+    {
+      "name": "WharfGetBuildResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "build",
+          "doc": "",
+          "type": "Build"
         }
       ]
     },

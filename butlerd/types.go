@@ -2931,6 +2931,168 @@ const (
 	CodeSandboxNotAvailable Code = 19000
 )
 
+// Wharf
+
+// Pushes a new build to itch.io for a given target+channel. Heavy lifting
+// (walk, diff, upload) runs in a `butler push` worker subprocess that butlerd
+// spawns; butlerd brokers progress over WharfPushProgress notifications and
+// kills the worker if the RPC's context is cancelled.
+//
+// @name Wharf.Push
+// @category Wharf
+// @caller client
+type WharfPushParams struct {
+	// itch.io profile to authenticate as
+	ProfileID int64 `json:"profileId"`
+	// Source path: directory or zip archive
+	Src string `json:"src"`
+	// Push target in user/slug or numeric form, e.g. "leafo/x-moon"
+	Target string `json:"target"`
+	// Channel name, e.g. "win-64"
+	Channel string `json:"channel"`
+
+	// Optional user-supplied version string for the build
+	// @optional
+	UserVersion string `json:"userVersion"`
+	// Mark new channel as hidden on creation
+	// @optional
+	Hidden bool `json:"hidden"`
+	// Skip push if the source matches the previous build
+	// @optional
+	IfChanged bool `json:"ifChanged"`
+	// Walk and report what would be pushed without uploading
+	// @optional
+	DryRun bool `json:"dryRun"`
+	// Dereference symlinks during walk
+	// @optional
+	Dereference bool `json:"dereference"`
+	// When non-nil, overrides butler's default (--fix-permissions, default true)
+	// @optional
+	FixPermissions *bool `json:"fixPermissions"`
+	// When non-nil, overrides butler's default (--auto-wrap, default true)
+	// @optional
+	AutoWrap *bool `json:"autoWrap"`
+}
+
+func (p WharfPushParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Src, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+		validation.Field(&p.Channel, validation.Required),
+	)
+}
+
+type WharfPushResult struct {
+	// ID of the build that was created (0 if dryRun or skipped)
+	BuildID int64  `json:"buildId"`
+	Channel string `json:"channel"`
+	// True when no build was created because this was a dry run
+	DryRun bool `json:"dryRun"`
+	// True when no build was created because ifChanged found no diff
+	Skipped bool `json:"skipped"`
+	// Machine-readable reason for a no-op result, empty when a build was created
+	Reason string `json:"reason"`
+}
+
+// Periodic progress update emitted while a Wharf.Push is in flight.
+//
+// @name Wharf.Push.Progress
+// @category Wharf
+type WharfPushProgressNotification struct {
+	// 0..1
+	Progress float64 `json:"progress"`
+	// Estimated seconds remaining (0 if unknown)
+	ETA float64 `json:"eta"`
+	// Bytes per second (0 if unknown)
+	BPS float64 `json:"bps"`
+}
+
+// Lists all channels for a given push target via the wharf API.
+//
+// @name Wharf.ListChannels
+// @category Wharf
+// @caller client
+type WharfListChannelsParams struct {
+	ProfileID int64  `json:"profileId"`
+	Target    string `json:"target"`
+}
+
+func (p WharfListChannelsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+	)
+}
+
+type WharfListChannelsResult struct {
+	// Channels keyed by name
+	Channels map[string]*WharfChannel `json:"channels"`
+}
+
+// WharfChannel mirrors itchio.Channel — defined here so generous picks it
+// up for the butlerd spec / TS bindings (the itchio.Channel definition lives
+// in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).
+type WharfChannel struct {
+	// Channel name, e.g. "win-64"
+	Name string `json:"name"`
+	// Platform tags for this channel
+	Tags string `json:"tags"`
+	// Latest upload tied to this channel
+	// @optional
+	Upload *itchio.Upload `json:"upload"`
+	// Most recent successfully-processed build, if any
+	// @optional
+	Head *itchio.Build `json:"head"`
+	// In-flight build that hasn't finished processing, if any
+	// @optional
+	Pending *itchio.Build `json:"pending"`
+}
+
+// Returns information about a single channel.
+//
+// @name Wharf.GetChannel
+// @category Wharf
+// @caller client
+type WharfGetChannelParams struct {
+	ProfileID int64  `json:"profileId"`
+	Target    string `json:"target"`
+	Channel   string `json:"channel"`
+}
+
+func (p WharfGetChannelParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+		validation.Field(&p.Channel, validation.Required),
+	)
+}
+
+type WharfGetChannelResult struct {
+	Channel *WharfChannel `json:"channel"`
+}
+
+// Returns information about a single build by ID.
+//
+// @name Wharf.GetBuild
+// @category Wharf
+// @caller client
+type WharfGetBuildParams struct {
+	ProfileID int64 `json:"profileId"`
+	BuildID   int64 `json:"buildId"`
+}
+
+func (p WharfGetBuildParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.BuildID, validation.Required),
+	)
+}
+
+type WharfGetBuildResult struct {
+	Build *itchio.Build `json:"build"`
+}
+
 // Dates
 
 func FromDateTime(s string) (time.Time, error) {

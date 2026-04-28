@@ -109,6 +109,16 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
 
+	spec, err := itchio.ParseSpec(specStr)
+	if err != nil {
+		return errors.Wrapf(err, "parsing push target '%s'", specStr)
+	}
+
+	err = spec.EnsureChannel()
+	if err != nil {
+		return err
+	}
+
 	if args.dryRun {
 		comm.Opf("Dry run, listing files we would push...")
 		select {
@@ -121,17 +131,8 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			walkies.container.Print(log)
 			comm.Statf("Would push %s", walkies.container)
 		}
+		pushResult(0, spec.Channel, true, false, "dry-run")
 		return nil
-	}
-
-	spec, err := itchio.ParseSpec(specStr)
-	if err != nil {
-		return errors.Wrapf(err, "parsing push target '%s'", specStr)
-	}
-
-	err = spec.EnsureChannel()
-	if err != nil {
-		return err
 	}
 
 	client, err := ctx.AuthenticateViaOauth()
@@ -192,6 +193,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			err = pwr.AssertValid(buildPath, sig)
 			if err == nil {
 				comm.Statf("No changes and --if-changed used, not pushing anything")
+				pushResult(0, spec.Channel, false, true, "if-changed")
 				return nil
 			}
 
@@ -450,7 +452,19 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.Logf("Use the `butler status %s` for more information.", specStr)
 	comm.Logf("")
 
+	pushResult(buildID, spec.Channel, false, false, "")
+
 	return nil
+}
+
+func pushResult(buildID int64, channel string, dryRun bool, skipped bool, reason string) {
+	comm.Result(map[string]interface{}{
+		"buildId": buildID,
+		"channel": channel,
+		"dryRun":  dryRun,
+		"skipped": skipped,
+		"reason":  reason,
+	})
 }
 
 func min(a, b float64) float64 {
