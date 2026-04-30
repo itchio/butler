@@ -3093,6 +3093,65 @@ type WharfGetBuildResult struct {
 	Build *itchio.Build `json:"build"`
 }
 
+// Lists builds across every game the current user develops or admins,
+// powering the app's "Uploads" view. Results are fetched live from the
+// itch.io API on every call (no local caching) so build state always
+// reflects the server's current view.
+//
+// @name Wharf.ListBuilds
+// @category Wharf
+// @caller client
+type WharfListBuildsParams struct {
+	ProfileID int64 `json:"profileId"`
+
+	// Page number, 1-based. Defaults to 1.
+	// @optional
+	Page int64 `json:"page"`
+
+	// Page size. Server-capped at 100.
+	// @optional
+	PerPage int64 `json:"perPage"`
+
+	// State filter. One of "live", "processing", "failed". Empty for all.
+	// @optional
+	State string `json:"state"`
+
+	// If set, include aggregate totals in the response.
+	// @optional
+	IncludeTotals bool `json:"includeTotals"`
+}
+
+func (p WharfListBuildsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.State, validation.In("live", "processing", "failed")),
+	)
+}
+
+// Per-state counts plus editable project count, so the client can render
+// filter-tab badges (All / Live / Processing / Failed) without re-querying.
+type WharfBuildTotals struct {
+	All          int64 `json:"all"`
+	Live         int64 `json:"live"`
+	Processing   int64 `json:"processing"`
+	Failed       int64 `json:"failed"`
+	ProjectCount int64 `json:"projectCount"`
+}
+
+type WharfListBuildsResult struct {
+	// Builds for the requested page, ordered newest first. Each carries
+	// nested game and upload context.
+	Builds []*itchio.Build `json:"builds"`
+
+	Page    int64 `json:"page"`
+	PerPage int64 `json:"perPage"`
+
+	// Counts across the unfiltered set, for tab badges. Only populated when
+	// requested with includeTotals.
+	// @optional
+	Totals *WharfBuildTotals `json:"totals,omitempty"`
+}
+
 // Dates
 
 func FromDateTime(s string) (time.Time, error) {

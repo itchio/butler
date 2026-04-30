@@ -3916,6 +3916,46 @@ func (r *WharfGetBuildType) TestCall(rc *butlerd.RequestContext, params butlerd.
 
 var WharfGetBuild *WharfGetBuildType
 
+// Wharf.ListBuilds (Request)
+
+type WharfListBuildsType struct {}
+
+var _ RequestMessage = (*WharfListBuildsType)(nil)
+
+func (r *WharfListBuildsType) Method() string {
+  return "Wharf.ListBuilds"
+}
+
+func (r *WharfListBuildsType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfListBuildsParams) (*butlerd.WharfListBuildsResult, error)) {
+  router.Register("Wharf.ListBuilds", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfListBuildsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.ListBuilds")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfListBuildsType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfListBuildsParams) (*butlerd.WharfListBuildsResult, error) {
+  var result butlerd.WharfListBuildsResult
+  err := rc.Call("Wharf.ListBuilds", params, &result)
+  return &result, err
+}
+
+var WharfListBuilds *WharfListBuildsType
+
 
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
@@ -3987,5 +4027,6 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Wharf.ListChannels"]; !ok { panic("missing request handler for (Wharf.ListChannels)") }
   if _, ok := router.Handlers["Wharf.GetChannel"]; !ok { panic("missing request handler for (Wharf.GetChannel)") }
   if _, ok := router.Handlers["Wharf.GetBuild"]; !ok { panic("missing request handler for (Wharf.GetBuild)") }
+  if _, ok := router.Handlers["Wharf.ListBuilds"]; !ok { panic("missing request handler for (Wharf.ListBuilds)") }
 }
 

@@ -2434,6 +2434,64 @@
           }
         ]
       }
+    },
+    {
+      "method": "Wharf.ListBuilds",
+      "doc": "Lists builds across every game the current user develops or admins,\npowering the app's \"Uploads\" view. Results are fetched live from the\nitch.io API on every call (no local caching) so build state always\nreflects the server's current view.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "page",
+            "doc": "Page number, 1-based. Defaults to 1.",
+            "type": "number"
+          },
+          {
+            "name": "perPage",
+            "doc": "Page size. Server-capped at 100.",
+            "type": "number"
+          },
+          {
+            "name": "state",
+            "doc": "State filter. One of \"live\", \"processing\", \"failed\". Empty for all.",
+            "type": "string"
+          },
+          {
+            "name": "includeTotals",
+            "doc": "If set, include aggregate totals in the response.",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "builds",
+            "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game and upload context.",
+            "type": "Build[]"
+          },
+          {
+            "name": "page",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "perPage",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "totals",
+            "doc": "Counts across the unfiltered set, for tab badges. Only populated when\nrequested with includeTotals.",
+            "type": "WharfBuildTotals"
+          }
+        ]
+      }
     }
   ],
   "notifications": [
@@ -4351,6 +4409,63 @@
       ]
     },
     {
+      "name": "WharfBuildTotals",
+      "doc": "Per-state counts plus editable project count, so the client can render\nfilter-tab badges (All / Live / Processing / Failed) without re-querying.",
+      "fields": [
+        {
+          "name": "all",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "live",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "processing",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "failed",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "projectCount",
+          "doc": "",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "WharfListBuildsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "builds",
+          "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game and upload context.",
+          "type": "Build[]"
+        },
+        {
+          "name": "page",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "perPage",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "totals",
+          "doc": "Counts across the unfiltered set, for tab badges. Only populated when\nrequested with includeTotals.",
+          "type": "WharfBuildTotals"
+        }
+      ]
+    },
+    {
       "name": "Host",
       "doc": "",
       "fields": [
@@ -5043,13 +5158,28 @@
         },
         {
           "name": "parentBuildId",
-          "doc": "Identifier of the build before this one on the same channel,\nor 0 if this is the initial build.",
+          "doc": "Identifier of the build before this one on the same channel,\nor -1 if this is the initial build.",
           "type": "number"
         },
         {
           "name": "state",
           "doc": "State of the build: started, processing, etc.",
           "type": "BuildState"
+        },
+        {
+          "name": "uploadId",
+          "doc": "Upload this build belongs to",
+          "type": "number"
+        },
+        {
+          "name": "gameId",
+          "doc": "Game this build belongs to",
+          "type": "number"
+        },
+        {
+          "name": "userId",
+          "doc": "User who pushed the build",
+          "type": "number"
         },
         {
           "name": "version",
@@ -5070,6 +5200,16 @@
           "name": "user",
           "doc": "User who pushed the build",
           "type": "User"
+        },
+        {
+          "name": "upload",
+          "doc": "Upload this build belongs to (only populated by endpoints that nest it)",
+          "type": "Upload"
+        },
+        {
+          "name": "game",
+          "doc": "Game this build belongs to (only populated by endpoints that nest it)",
+          "type": "Game"
         },
         {
           "name": "createdAt",

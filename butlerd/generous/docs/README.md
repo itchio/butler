@@ -7904,6 +7904,151 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 
 </div>
 
+### Wharf.ListBuilds (client request)
+
+
+<p>
+<p>Lists builds across every game the current user develops or admins,
+powering the app&rsquo;s &ldquo;Uploads&rdquo; view. Results are fetched live from the
+itch.io API on every call (no local caching) so build state always
+reflects the server&rsquo;s current view.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Page number, 1-based. Defaults to 1.</p>
+</td>
+</tr>
+<tr>
+<td><code>perPage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Page size. Server-capped at 100.</p>
+</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> State filter. One of &ldquo;live&rdquo;, &ldquo;processing&rdquo;, &ldquo;failed&rdquo;. Empty for all.</p>
+</td>
+</tr>
+<tr>
+<td><code>includeTotals</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, include aggregate totals in the response.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
+<td><p>Builds for the requested page, ordered newest first. Each carries
+nested game and upload context.</p>
+</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>perPage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>totals</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WharfBuildTotals__TypeHint">WharfBuildTotals</span></code></td>
+<td><p><span class="tag">Optional</span> Counts across the unfiltered set, for tab badges. Only populated when
+requested with includeTotals.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfListBuildsParams__TypeHint" class="tip-content">
+<p>Wharf.ListBuilds (client request) <a href="#/?id=wharflistbuilds-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Lists builds across every game the current user develops or admins,
+powering the app&rsquo;s &ldquo;Uploads&rdquo; view. Results are fetched live from the
+itch.io API on every call (no local caching) so build state always
+reflects the server&rsquo;s current view.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>perPage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>includeTotals</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfListBuildsResult__TypeHint" class="tip-content">
+<p>WharfListBuilds  <a href="#/?id=wharflistbuilds-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>builds</code></td>
+<td><code class="typename"><span class="type">Build</span>[]</code></td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>perPage</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totals</code></td>
+<td><code class="typename"><span class="type">WharfBuildTotals</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Miscellaneous Category
 
@@ -10194,6 +10339,83 @@ in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
 <tr>
 <td><code>pending</code></td>
 <td><code class="typename"><span class="type">Build</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### WharfBuildTotals (struct)
+
+
+<p>
+<p>Per-state counts plus editable project count, so the client can render
+filter-tab badges (All / Live / Processing / Failed) without re-querying.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>all</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>live</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>processing</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>projectCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="WharfBuildTotals__TypeHint" class="tip-content">
+<p>WharfBuildTotals (struct) <a href="#/?id=wharfbuildtotals-struct">(Go to definition)</a></p>
+
+<p>
+<p>Per-state counts plus editable project count, so the client can render
+filter-tab badges (All / Live / Processing / Failed) without re-querying.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>all</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>live</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>processing</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>projectCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -12569,13 +12791,31 @@ for free. It can also be generated by other means.</p>
 <td><code>parentBuildId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td><p>Identifier of the build before this one on the same channel,
-or 0 if this is the initial build.</p>
+or -1 if this is the initial build.</p>
 </td>
 </tr>
 <tr>
 <td><code>state</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#BuildState__TypeHint">BuildState</span></code></td>
 <td><p>State of the build: started, processing, etc.</p>
+</td>
+</tr>
+<tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Upload this build belongs to</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game this build belongs to</p>
+</td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>User who pushed the build</p>
 </td>
 </tr>
 <tr>
@@ -12603,6 +12843,18 @@ is still processing or if processing has failed.</p>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p>User who pushed the build</p>
+</td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
+<td><p>Upload this build belongs to (only populated by endpoints that nest it)</p>
+</td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td><p>Game this build belongs to (only populated by endpoints that nest it)</p>
 </td>
 </tr>
 <tr>
@@ -12642,6 +12894,18 @@ is still processing or if processing has failed.</p>
 <td><code class="typename"><span class="type">BuildState</span></code></td>
 </tr>
 <tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
 <td><code>version</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
@@ -12656,6 +12920,14 @@ is still processing or if processing has failed.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type">User</span></code></td>
+</tr>
+<tr>
+<td><code>upload</code></td>
+<td><code class="typename"><span class="type">Upload</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>

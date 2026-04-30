@@ -10,4 +10,5 @@ func Register(router *butlerd.Router) {
 	messages.WharfListChannels.Register(router, ListChannels)
 	messages.WharfGetChannel.Register(router, GetChannel)
 	messages.WharfGetBuild.Register(router, GetBuild)
+	messages.WharfListBuilds.Register(router, ListBuilds)
 }
