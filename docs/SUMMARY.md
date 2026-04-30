@@ -9,6 +9,7 @@
   * [HTML / Playable in browser games](pushing.md#html--playable-in-browser-games)
   * [Version numbers](pushing.md#specifying-your-own-version-number)
   * [Update check API](pushing.md#looking-for-updates)
+  * [Previewing what would change](pushing.md#previewing-what-would-change)
   * [Progress bar design](pushing.md#appendix-a-understanding-the-progress-bar)
   * [Hidden channels](pushing.md#appendix-f-pushing-to-a-hidden-channel)
   * [Troubleshooting](troubleshooting.md)

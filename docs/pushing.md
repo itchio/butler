@@ -150,6 +150,51 @@ https://itch.io/api/1/x/wharf/latest?game_id=123&channel_name=osx-final
 *Note: if the game's visibility level is set to `Private`, this endpoint will return
 the error 'invalid game', to avoid potentially leaking information about unreleased games.*
 
+## Previewing what would change
+
+Before pushing, you can ask butler to compare a directory against the
+channel's previous build and report which files would be added, modified,
+deleted, or left unchanged. This is what the `butler push-preview` command
+does:
+
+```bash
+butler push-preview my-game user/mygame:win-64
+```
+
+Unlike `butler push --dry-run` (which just lists every file that would
+get sent, with no diff), `push-preview` authenticates, downloads the
+previous build's signature, hashes the local files, and prints a per-entry
+classification:
+
+```
+NEW       drwxr-xr-x          - my-game/levels/extra/
+MODIFIED  -rw-r--r--   12.30 KiB my-game/data/save.json
+DELETED   -rw-r--r--    1.00 KiB my-game/data/old.txt
+SAME      -rw-r--r--    8.50 KiB my-game/readme.md
+✓ Comparison vs build 12345: 1 new, 1 modified, 1 deleted, 1 unchanged
+```
+
+Hashing the source costs roughly the same as the diff pass of a real push,
+so plan accordingly on large builds.
+
+If the channel doesn't have a previous build yet, every entry is reported
+as `NEW`.
+
+To hide unchanged entries from the listing on big builds, pass
+`--changes-only`:
+
+```bash
+butler push-preview --changes-only my-game user/mygame:win-64
+```
+
+The summary line still reflects the full counts.
+
+`push-preview` accepts the walk-related flags from `butler push`
+(`--dereference`, `--fix-permissions`, `--auto-wrap`, `--ignore`) so the
+classification reflects exactly what an actual push would upload. Build
+creation flags (`--userversion`, `--hidden`, `--if-changed`) are not
+applicable since `push-preview` never creates a build.
+
 ## Appendix A: Understanding the progress bar
 
 `butler push` does a lot of work, most of it in parallel:
