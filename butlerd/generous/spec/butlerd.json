@@ -2255,7 +2255,7 @@
     },
     {
       "method": "Wharf.Push",
-      "doc": "Pushes a new build to itch.io for a given target+channel. Heavy lifting\n(walk, diff, upload) runs in a `butler push` worker subprocess that butlerd\nspawns; butlerd brokers progress over WharfPushProgress notifications and\nkills the worker if the RPC's context is cancelled.",
+      "doc": "Pushes a new build to itch.io for a given target+channel. Heavy lifting\n(walk, diff, upload) runs in a `butler push` worker subprocess that butlerd\nspawns; butlerd brokers progress over WharfPushProgress notifications and\nkills the worker if the RPC's context is cancelled.\n\nFor a no-side-effects \"what would change?\" preview, call Wharf.PushPreview\ninstead.",
       "caller": "client",
       "params": {
         "fields": [
@@ -2295,9 +2295,67 @@
             "type": "boolean"
           },
           {
-            "name": "dryRun",
-            "doc": "Walk and report what would be pushed without uploading",
+            "name": "dereference",
+            "doc": "Dereference symlinks during walk",
             "type": "boolean"
+          },
+          {
+            "name": "fixPermissions",
+            "doc": "When non-nil, overrides butler's default (--fix-permissions, default true)",
+            "type": "boolean"
+          },
+          {
+            "name": "autoWrap",
+            "doc": "When non-nil, overrides butler's default (--auto-wrap, default true)",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "buildId",
+            "doc": "ID of the build that was created (0 if skipped)",
+            "type": "number"
+          },
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "skipped",
+            "doc": "True when no build was created because ifChanged found no diff",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Wharf.PushPreview",
+      "doc": "Reports what would change if Src were pushed to the given channel,\nwithout creating a build or uploading anything. Hashes the source; same\ncost as the diffing pass of a real push.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "itch.io profile to authenticate as",
+            "type": "number"
+          },
+          {
+            "name": "src",
+            "doc": "Source path: directory or zip archive",
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "doc": "Push target in user/slug or numeric form, e.g. \"leafo/x-moon\"",
+            "type": "string"
+          },
+          {
+            "name": "channel",
+            "doc": "Channel name, e.g. \"win-64\"",
+            "type": "string"
           },
           {
             "name": "dereference",
@@ -2319,29 +2377,24 @@
       "result": {
         "fields": [
           {
-            "name": "buildId",
-            "doc": "ID of the build that was created (0 if dryRun or skipped)",
-            "type": "number"
-          },
-          {
             "name": "channel",
             "doc": "",
             "type": "string"
           },
           {
-            "name": "dryRun",
-            "doc": "True when no build was created because this was a dry run",
+            "name": "hasParent",
+            "doc": "False when the channel has no previous build to compare against;\nin that case every entry in the source is treated as new.",
             "type": "boolean"
           },
           {
-            "name": "skipped",
-            "doc": "True when no build was created because ifChanged found no diff",
-            "type": "boolean"
+            "name": "parentBuildId",
+            "doc": "ID of the build the preview compared against. Absent when !HasParent.",
+            "type": "number"
           },
           {
-            "name": "reason",
-            "doc": "Machine-readable reason for a no-op result, empty when a build was created",
-            "type": "string"
+            "name": "comparison",
+            "doc": "Per-entry change counts (files, dirs, symlinks combined).",
+            "type": "WharfPushComparison"
           }
         ]
       }
@@ -4319,7 +4372,7 @@
       "fields": [
         {
           "name": "buildId",
-          "doc": "ID of the build that was created (0 if dryRun or skipped)",
+          "doc": "ID of the build that was created (0 if skipped)",
           "type": "number"
         },
         {
@@ -4328,19 +4381,61 @@
           "type": "string"
         },
         {
-          "name": "dryRun",
-          "doc": "True when no build was created because this was a dry run",
-          "type": "boolean"
-        },
-        {
           "name": "skipped",
           "doc": "True when no build was created because ifChanged found no diff",
           "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "WharfPushPreviewResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "channel",
+          "doc": "",
+          "type": "string"
         },
         {
-          "name": "reason",
-          "doc": "Machine-readable reason for a no-op result, empty when a build was created",
-          "type": "string"
+          "name": "hasParent",
+          "doc": "False when the channel has no previous build to compare against;\nin that case every entry in the source is treated as new.",
+          "type": "boolean"
+        },
+        {
+          "name": "parentBuildId",
+          "doc": "ID of the build the preview compared against. Absent when !HasParent.",
+          "type": "number"
+        },
+        {
+          "name": "comparison",
+          "doc": "Per-entry change counts (files, dirs, symlinks combined).",
+          "type": "WharfPushComparison"
+        }
+      ]
+    },
+    {
+      "name": "WharfPushComparison",
+      "doc": "WharfPushComparison summarises how the source compares to the channel's\nprevious build. Counts cover files, dirs, and symlinks together.",
+      "fields": [
+        {
+          "name": "new",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "modified",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "deleted",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "same",
+          "doc": "",
+          "type": "number"
         }
       ]
     },

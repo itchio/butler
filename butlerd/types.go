@@ -2938,6 +2938,9 @@ const (
 // spawns; butlerd brokers progress over WharfPushProgress notifications and
 // kills the worker if the RPC's context is cancelled.
 //
+// For a no-side-effects "what would change?" preview, call Wharf.PushPreview
+// instead.
+//
 // @name Wharf.Push
 // @category Wharf
 // @caller client
@@ -2960,9 +2963,6 @@ type WharfPushParams struct {
 	// Skip push if the source matches the previous build
 	// @optional
 	IfChanged bool `json:"ifChanged"`
-	// Walk and report what would be pushed without uploading
-	// @optional
-	DryRun bool `json:"dryRun"`
 	// Dereference symlinks during walk
 	// @optional
 	Dereference bool `json:"dereference"`
@@ -2984,15 +2984,68 @@ func (p WharfPushParams) Validate() error {
 }
 
 type WharfPushResult struct {
-	// ID of the build that was created (0 if dryRun or skipped)
+	// ID of the build that was created (0 if skipped)
 	BuildID int64  `json:"buildId"`
 	Channel string `json:"channel"`
-	// True when no build was created because this was a dry run
-	DryRun bool `json:"dryRun"`
 	// True when no build was created because ifChanged found no diff
 	Skipped bool `json:"skipped"`
-	// Machine-readable reason for a no-op result, empty when a build was created
-	Reason string `json:"reason"`
+}
+
+// Reports what would change if Src were pushed to the given channel,
+// without creating a build or uploading anything. Hashes the source; same
+// cost as the diffing pass of a real push.
+//
+// @name Wharf.PushPreview
+// @category Wharf
+// @caller client
+type WharfPushPreviewParams struct {
+	// itch.io profile to authenticate as
+	ProfileID int64 `json:"profileId"`
+	// Source path: directory or zip archive
+	Src string `json:"src"`
+	// Push target in user/slug or numeric form, e.g. "leafo/x-moon"
+	Target string `json:"target"`
+	// Channel name, e.g. "win-64"
+	Channel string `json:"channel"`
+
+	// Dereference symlinks during walk
+	// @optional
+	Dereference bool `json:"dereference"`
+	// When non-nil, overrides butler's default (--fix-permissions, default true)
+	// @optional
+	FixPermissions *bool `json:"fixPermissions"`
+	// When non-nil, overrides butler's default (--auto-wrap, default true)
+	// @optional
+	AutoWrap *bool `json:"autoWrap"`
+}
+
+func (p WharfPushPreviewParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Src, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+		validation.Field(&p.Channel, validation.Required),
+	)
+}
+
+type WharfPushPreviewResult struct {
+	Channel string `json:"channel"`
+	// False when the channel has no previous build to compare against;
+	// in that case every entry in the source is treated as new.
+	HasParent bool `json:"hasParent"`
+	// ID of the build the preview compared against. Absent when !HasParent.
+	ParentBuildID int64 `json:"parentBuildId,omitempty"`
+	// Per-entry change counts (files, dirs, symlinks combined).
+	Comparison WharfPushComparison `json:"comparison"`
+}
+
+// WharfPushComparison summarises how the source compares to the channel's
+// previous build. Counts cover files, dirs, and symlinks together.
+type WharfPushComparison struct {
+	New      int `json:"new"`
+	Modified int `json:"modified"`
+	Deleted  int `json:"deleted"`
+	Same     int `json:"same"`
 }
 
 // Periodic progress update emitted while a Wharf.Push is in flight.

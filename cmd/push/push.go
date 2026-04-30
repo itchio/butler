@@ -68,7 +68,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").BoolVar(&args.fixPerms)
 	cmd.Flag("dereference", "Dereference symlinks").Default("false").BoolVar(&args.dereference)
 	cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").BoolVar(&args.ifChanged)
-	cmd.Flag("dry-run", "Don't push anything, just show what would be pushed").Default("false").BoolVar(&args.dryRun)
+	cmd.Flag("dry-run", "Don't push anything, just show what would be pushed. Use `butler push-preview` for a per-file diff vs the previous build.").Default("false").BoolVar(&args.dryRun)
 	cmd.Flag("auto-wrap", "Apply workaround for https://github.com/itchio/itch/issues/2147").Default("true").BoolVar(&args.autoWrap)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").Default("false").BoolVar(&args.hidden)
 	ctx.Register(cmd, do)
@@ -140,52 +140,13 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, "authenticating")
 	}
 
-	getSignature := func(ID int64) (*pwr.SignatureInfo, error) {
-		requestCtx, cancel := ctx.DefaultCtx()
-		buildFiles, err := client.ListBuildFiles(requestCtx, ID)
-		cancel()
-		if err != nil {
-			return nil, errors.Wrap(err, "listing build files")
-		}
-
-		signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
-		if signatureFile == nil {
-			comm.Dief("Could not find signature for parent build %d, aborting", ID)
-		}
-
-		signatureURL := client.MakeBuildFileDownloadURL(itchio.MakeBuildFileDownloadURLParams{
-			BuildID: ID,
-			FileID:  signatureFile.ID,
-		})
-
-		signatureReader, err := eos.Open(signatureURL, option.WithConsumer(consumer))
-		if err != nil {
-			return nil, errors.Wrap(err, "opening signature")
-		}
-		defer signatureReader.Close()
-
-		signatureSource := seeksource.FromFile(signatureReader)
-
-		_, err = signatureSource.Resume(nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "opening signature")
-		}
-
-		signature, err := pwr.ReadSignature(context.Background(), signatureSource)
-		if err != nil {
-			return nil, errors.Wrap(err, "reading signature")
-		}
-
-		return signature, nil
-	}
-
 	if ifChanged {
 		requestCtx, cancel := ctx.DefaultCtx()
 		chanInfo, err := client.GetChannel(requestCtx, spec.Target, spec.Channel)
 		cancel()
 		if err == nil && chanInfo != nil && chanInfo.Channel != nil && chanInfo.Channel.Head != nil {
 			comm.Opf("Comparing against previous build...")
-			sig, err := getSignature(chanInfo.Channel.Head.ID)
+			sig, err := getSignature(ctx, client, consumer, chanInfo.Channel.Head.ID)
 			if err != nil {
 				return errors.Wrap(err, "getting previous build signature")
 			}
@@ -233,7 +194,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	} else {
 		comm.Opf("For channel `%s`: last build is %d, downloading its signature", spec.Channel, parentID)
 		var err error
-		targetSignature, err = getSignature(parentID)
+		targetSignature, err = getSignature(ctx, client, consumer, parentID)
 		if err != nil {
 			return errors.Wrap(err, "searching for parent build signature")
 		}
@@ -457,6 +418,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	return nil
 }
 
+// pushResult emits the final structured `result` event for a `butler push`
+// run. The shape matches what the CLI has always emitted; butlerd's
+// Wharf.Push parser ignores fields it doesn't surface in WharfPushResult.
 func pushResult(buildID int64, channel string, dryRun bool, skipped bool, reason string) {
 	comm.Result(map[string]interface{}{
 		"buildId": buildID,
@@ -465,6 +429,48 @@ func pushResult(buildID int64, channel string, dryRun bool, skipped bool, reason
 		"skipped": skipped,
 		"reason":  reason,
 	})
+}
+
+// getSignature downloads and parses the wharf signature for the given build.
+// Used by both --if-changed (validation) and `butler push-preview`'s
+// per-file diff.
+func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.Consumer, buildID int64) (*pwr.SignatureInfo, error) {
+	requestCtx, cancel := ctx.DefaultCtx()
+	buildFiles, err := client.ListBuildFiles(requestCtx, buildID)
+	cancel()
+	if err != nil {
+		return nil, errors.Wrap(err, "listing build files")
+	}
+
+	signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
+	if signatureFile == nil {
+		comm.Dief("Could not find signature for parent build %d, aborting", buildID)
+	}
+
+	signatureURL := client.MakeBuildFileDownloadURL(itchio.MakeBuildFileDownloadURLParams{
+		BuildID: buildID,
+		FileID:  signatureFile.ID,
+	})
+
+	signatureReader, err := eos.Open(signatureURL, option.WithConsumer(consumer))
+	if err != nil {
+		return nil, errors.Wrap(err, "opening signature")
+	}
+	defer signatureReader.Close()
+
+	signatureSource := seeksource.FromFile(signatureReader)
+
+	_, err = signatureSource.Resume(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "opening signature")
+	}
+
+	signature, err := pwr.ReadSignature(context.Background(), signatureSource)
+	if err != nil {
+		return nil, errors.Wrap(err, "reading signature")
+	}
+
+	return signature, nil
 }
 
 func min(a, b float64) float64 {

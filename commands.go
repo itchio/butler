@@ -59,6 +59,7 @@ func registerCommands(ctx *mansion.Context) {
 	logout.Register(ctx)
 
 	push.Register(ctx)
+	push.RegisterPreview(ctx)
 	fetch.Register(ctx)
 	status.Register(ctx)
 

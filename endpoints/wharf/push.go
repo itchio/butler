@@ -15,12 +15,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// pushResult mirrors the JSON `result` event emitted by `butler push --json`.
+// Fields not relevant to a given run stay zero — the caller picks what it
+// needs.
 type pushResult struct {
-	BuildID int64  `json:"buildId"`
-	Channel string `json:"channel"`
-	DryRun  bool   `json:"dryRun"`
-	Skipped bool   `json:"skipped"`
-	Reason  string `json:"reason"`
+	BuildID       int64                        `json:"buildId"`
+	Channel       string                       `json:"channel"`
+	Skipped       bool                         `json:"skipped"`
+	HasParent     bool                         `json:"hasParent"`
+	ParentBuildID int64                        `json:"parentBuildId"`
+	Comparison    *butlerd.WharfPushComparison `json:"comparison,omitempty"`
 }
 
 // pushEvent is a discriminated union of every JSON message the butler push
@@ -39,16 +43,37 @@ type pushEvent struct {
 // butlerd notifications. The worker is killed if the RPC's context is
 // cancelled (via exec.CommandContext).
 func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.WharfPushResult, error) {
+	args := buildPushArgs(params)
+	result, err := runPushWorker(rc, params.ProfileID, args)
+	if err != nil {
+		return nil, err
+	}
+
+	channel := result.Channel
+	if channel == "" {
+		channel = params.Channel
+	}
+	return &butlerd.WharfPushResult{
+		BuildID: result.BuildID,
+		Channel: channel,
+		Skipped: result.Skipped,
+	}, nil
+}
+
+// runPushWorker handles the shared subprocess lifecycle for both
+// Wharf.Push and Wharf.PushPreview: spawn `butler` with the given args,
+// stream JSON events as butlerd notifications, return the final result
+// event.
+func runPushWorker(rc *butlerd.RequestContext, profileID int64, args []string) (*pushResult, error) {
 	consumer := rc.Consumer
 
-	profile, _ := rc.ProfileClient(params.ProfileID)
+	profile, _ := rc.ProfileClient(profileID)
 
 	selfPath, err := os.Executable()
 	if err != nil {
 		return nil, errors.Wrap(err, "resolving butler executable path")
 	}
 
-	args := buildPushArgs(params)
 	consumer.Infof("Spawning butler push worker: %s %v", selfPath, args)
 
 	cmd := exec.CommandContext(rc.Ctx, selfPath, args...)
@@ -84,18 +109,7 @@ func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.
 	if !gotResult {
 		return nil, errors.New("butler push worker completed without emitting a result")
 	}
-
-	channel := result.Channel
-	if channel == "" {
-		channel = params.Channel
-	}
-	return &butlerd.WharfPushResult{
-		BuildID: result.BuildID,
-		Channel: channel,
-		DryRun:  result.DryRun,
-		Skipped: result.Skipped,
-		Reason:  result.Reason,
-	}, nil
+	return &result, nil
 }
 
 // buildPushArgs only emits flags that diverge from butler's CLI defaults,
@@ -113,9 +127,6 @@ func buildPushArgs(p butlerd.WharfPushParams) []string {
 	}
 	if p.IfChanged {
 		args = append(args, "--if-changed")
-	}
-	if p.DryRun {
-		args = append(args, "--dry-run")
 	}
 	if p.Dereference {
 		args = append(args, "--dereference")

@@ -3767,6 +3767,46 @@ func (r *WharfPushType) TestCall(rc *butlerd.RequestContext, params butlerd.Whar
 
 var WharfPush *WharfPushType
 
+// Wharf.PushPreview (Request)
+
+type WharfPushPreviewType struct {}
+
+var _ RequestMessage = (*WharfPushPreviewType)(nil)
+
+func (r *WharfPushPreviewType) Method() string {
+  return "Wharf.PushPreview"
+}
+
+func (r *WharfPushPreviewType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error)) {
+  router.Register("Wharf.PushPreview", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.WharfPushPreviewParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Wharf.PushPreview")
+    }
+    return res, nil
+  })
+}
+
+func (r *WharfPushPreviewType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error) {
+  var result butlerd.WharfPushPreviewResult
+  err := rc.Call("Wharf.PushPreview", params, &result)
+  return &result, err
+}
+
+var WharfPushPreview *WharfPushPreviewType
+
 // Wharf.Push.Progress (Notification)
 
 type WharfPushProgressType struct {}
@@ -4024,6 +4064,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }
   if _, ok := router.Handlers["Test.DoubleTwice"]; !ok { panic("missing request handler for (Test.DoubleTwice)") }
   if _, ok := router.Handlers["Wharf.Push"]; !ok { panic("missing request handler for (Wharf.Push)") }
+  if _, ok := router.Handlers["Wharf.PushPreview"]; !ok { panic("missing request handler for (Wharf.PushPreview)") }
   if _, ok := router.Handlers["Wharf.ListChannels"]; !ok { panic("missing request handler for (Wharf.ListChannels)") }
   if _, ok := router.Handlers["Wharf.GetChannel"]; !ok { panic("missing request handler for (Wharf.GetChannel)") }
   if _, ok := router.Handlers["Wharf.GetBuild"]; !ok { panic("missing request handler for (Wharf.GetBuild)") }

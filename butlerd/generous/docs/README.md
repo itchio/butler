@@ -7397,6 +7397,9 @@ use <code class="typename"><span class="type">Test.DoubleTwice</span></code> in 
 spawns; butlerd brokers progress over WharfPushProgress notifications and
 kills the worker if the RPC&rsquo;s context is cancelled.</p>
 
+<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Wharf.PushPreview
+instead.</p>
+
 </p>
 
 <p>
@@ -7448,12 +7451,6 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 </td>
 </tr>
 <tr>
-<td><code>dryRun</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Walk and report what would be pushed without uploading</p>
-</td>
-</tr>
-<tr>
 <td><code>dereference</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p><span class="tag">Optional</span> Dereference symlinks during walk</p>
@@ -7484,7 +7481,7 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 <tr>
 <td><code>buildId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>ID of the build that was created (0 if dryRun or skipped)</p>
+<td><p>ID of the build that was created (0 if skipped)</p>
 </td>
 </tr>
 <tr>
@@ -7493,21 +7490,9 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 <td></td>
 </tr>
 <tr>
-<td><code>dryRun</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>True when no build was created because this was a dry run</p>
-</td>
-</tr>
-<tr>
 <td><code>skipped</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 <td><p>True when no build was created because ifChanged found no diff</p>
-</td>
-</tr>
-<tr>
-<td><code>reason</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Machine-readable reason for a no-op result, empty when a build was created</p>
 </td>
 </tr>
 </table>
@@ -7521,6 +7506,9 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 (walk, diff, upload) runs in a <code>butler push</code> worker subprocess that butlerd
 spawns; butlerd brokers progress over WharfPushProgress notifications and
 kills the worker if the RPC&rsquo;s context is cancelled.</p>
+
+<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Wharf.PushPreview
+instead.</p>
 
 </p>
 
@@ -7554,10 +7542,6 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
-<td><code>dryRun</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
 <td><code>dereference</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
@@ -7588,16 +7572,172 @@ kills the worker if the RPC&rsquo;s context is cancelled.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
-<td><code>dryRun</code></td>
-<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-</tr>
-<tr>
 <td><code>skipped</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
+</table>
+
+</div>
+
+### Wharf.PushPreview (client request)
+
+
+<p>
+<p>Reports what would change if Src were pushed to the given channel,
+without creating a build or uploading anything. Hashes the source; same
+cost as the diffing pass of a real push.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
 <tr>
-<td><code>reason</code></td>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io profile to authenticate as</p>
+</td>
+</tr>
+<tr>
+<td><code>src</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Source path: directory or zip archive</p>
+</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Push target in user/slug or numeric form, e.g. &ldquo;leafo/x-moon&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Channel name, e.g. &ldquo;win-64&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>dereference</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Dereference symlinks during walk</p>
+</td>
+</tr>
+<tr>
+<td><code>fixPermissions</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When non-nil, overrides butler&rsquo;s default (&ndash;fix-permissions, default true)</p>
+</td>
+</tr>
+<tr>
+<td><code>autoWrap</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When non-nil, overrides butler&rsquo;s default (&ndash;auto-wrap, default true)</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>hasParent</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>False when the channel has no previous build to compare against;
+in that case every entry in the source is treated as new.</p>
+</td>
+</tr>
+<tr>
+<td><code>parentBuildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>ID of the build the preview compared against. Absent when !HasParent.</p>
+</td>
+</tr>
+<tr>
+<td><code>comparison</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WharfPushComparison__TypeHint">WharfPushComparison</span></code></td>
+<td><p>Per-entry change counts (files, dirs, symlinks combined).</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfPushPreviewParams__TypeHint" class="tip-content">
+<p>Wharf.PushPreview (client request) <a href="#/?id=wharfpushpreview-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Reports what would change if Src were pushed to the given channel,
+without creating a build or uploading anything. Hashes the source; same
+cost as the diffing pass of a real push.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>src</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>dereference</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>fixPermissions</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>autoWrap</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="WharfPushPreviewResult__TypeHint" class="tip-content">
+<p>WharfPushPreview  <a href="#/?id=wharfpushpreview-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>hasParent</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>parentBuildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>comparison</code></td>
+<td><code class="typename"><span class="type">WharfPushComparison</span></code></td>
 </tr>
 </table>
 
@@ -10255,6 +10395,74 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>19000</code></td>
+</tr>
+</table>
+
+</div>
+
+### WharfPushComparison (struct)
+
+
+<p>
+<p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
+previous build. Counts cover files, dirs, and symlinks together.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>new</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>modified</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>deleted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>same</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="WharfPushComparison__TypeHint" class="tip-content">
+<p>WharfPushComparison (struct) <a href="#/?id=wharfpushcomparison-struct">(Go to definition)</a></p>
+
+<p>
+<p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
+previous build. Counts cover files, dirs, and symlinks together.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>new</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>modified</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>deleted</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>same</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
