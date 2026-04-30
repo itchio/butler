@@ -111,6 +111,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		var workingDirectory = ""
 		var args = []string{}
 		var env = make(map[string]string)
+		env["ITCHIO_APP"] = "1"
 
 		args = append(args, target.Action.Args...)
 		args = append(args, params.ExtraArgs...)
