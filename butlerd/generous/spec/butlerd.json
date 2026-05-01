@@ -2846,17 +2846,37 @@
         "fields": [
           {
             "name": "progress",
-            "doc": "0..1",
+            "doc": "0..1; conservative estimate based on uploaded vs source size, since\npatch size isn't known until the diff is fully written.",
             "type": "number"
           },
           {
             "name": "eta",
-            "doc": "Estimated seconds remaining (0 if unknown)",
+            "doc": "Estimated seconds remaining (0 if unknown). Refers to the upload, so\nit's only meaningful once bytes are actually flowing to itch.io.",
             "type": "number"
           },
           {
             "name": "bps",
-            "doc": "Bytes per second (0 if unknown)",
+            "doc": "Upload bytes per second (0 if unknown). This is wire throughput, not\ndisk read speed.",
+            "type": "number"
+          },
+          {
+            "name": "readBytes",
+            "doc": "Bytes read from the source container so far while computing the\npatch. Compare to TotalBytes for diff-pass progress, which can\noutpace UploadedBytes since reused/compressed-away bytes never hit\nthe wire.",
+            "type": "number"
+          },
+          {
+            "name": "totalBytes",
+            "doc": "Total bytes in the source container.",
+            "type": "number"
+          },
+          {
+            "name": "uploadedBytes",
+            "doc": "Bytes of the patch uploaded to itch.io so far.",
+            "type": "number"
+          },
+          {
+            "name": "patchBytes",
+            "doc": "Compressed patch size produced so far. Equals UploadedBytes once\nupload catches up; the gap between them is the in-flight buffer.",
             "type": "number"
           }
         ]

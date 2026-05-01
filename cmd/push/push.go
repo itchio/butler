@@ -283,7 +283,12 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 		conservativeProgress := float64(patchUploadedBytes) / float64(conservativeTotalBytes)
 		conservativeProgress = min(1.0, conservativeProgress)
-		comm.Progress(conservativeProgress)
+		comm.ProgressWith(conservativeProgress, comm.JsonMessage{
+			"readBytes":     readBytes,
+			"totalBytes":    sourceContainer.Size,
+			"uploadedBytes": patchUploadedBytes,
+			"patchBytes":    patchCounter.Count(),
+		})
 
 		comm.ProgressScale(float64(readBytes) / float64(sourceContainer.Size))
 	}

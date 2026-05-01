@@ -93,8 +93,19 @@ func compareContainers(
 	consumer *state.Consumer,
 ) (*comparisonResult, error) {
 	comm.Opf("Hashing source files...")
-	comm.StartProgress()
-	sourceHashes, err := pwr.ComputeSignature(ctx, sourceContainer, sourcePool, consumer)
+	hashConsumer := *consumer
+	hashConsumer.OnProgress = func(progress float64) {
+		readBytes := int64(float64(sourceContainer.Size) * progress)
+		comm.ProgressWith(progress, comm.JsonMessage{
+			"readBytes":     readBytes,
+			"totalBytes":    sourceContainer.Size,
+			"uploadedBytes": int64(0),
+			"patchBytes":    int64(0),
+		})
+	}
+
+	comm.StartProgressWithTotalBytes(sourceContainer.Size)
+	sourceHashes, err := pwr.ComputeSignature(ctx, sourceContainer, sourcePool, &hashConsumer)
 	comm.EndProgress()
 	if err != nil {
 		return nil, errors.Wrap(err, "computing source signature")

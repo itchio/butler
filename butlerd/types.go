@@ -3053,12 +3053,27 @@ type WharfPushComparison struct {
 // @name Wharf.Push.Progress
 // @category Wharf
 type WharfPushProgressNotification struct {
-	// 0..1
+	// 0..1; conservative estimate based on uploaded vs source size, since
+	// patch size isn't known until the diff is fully written.
 	Progress float64 `json:"progress"`
-	// Estimated seconds remaining (0 if unknown)
+	// Estimated seconds remaining (0 if unknown). Refers to the upload, so
+	// it's only meaningful once bytes are actually flowing to itch.io.
 	ETA float64 `json:"eta"`
-	// Bytes per second (0 if unknown)
+	// Upload bytes per second (0 if unknown). This is wire throughput, not
+	// disk read speed.
 	BPS float64 `json:"bps"`
+	// Bytes read from the source container so far while computing the
+	// patch. Compare to TotalBytes for diff-pass progress, which can
+	// outpace UploadedBytes since reused/compressed-away bytes never hit
+	// the wire.
+	ReadBytes int64 `json:"readBytes"`
+	// Total bytes in the source container.
+	TotalBytes int64 `json:"totalBytes"`
+	// Bytes of the patch uploaded to itch.io so far.
+	UploadedBytes int64 `json:"uploadedBytes"`
+	// Compressed patch size produced so far. Equals UploadedBytes once
+	// upload catches up; the gap between them is the in-flight buffer.
+	PatchBytes int64 `json:"patchBytes"`
 }
 
 // Lists all channels for a given push target via the wharf API.

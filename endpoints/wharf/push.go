@@ -30,13 +30,17 @@ type pushResult struct {
 // pushEvent is a discriminated union of every JSON message the butler push
 // worker emits over stdout. Fields not relevant to a given Type stay zero.
 type pushEvent struct {
-	Type     string     `json:"type"`
-	Progress float64    `json:"progress"`
-	ETA      float64    `json:"eta"`
-	BPS      float64    `json:"bps"`
-	Level    string     `json:"level"`
-	Message  string     `json:"message"`
-	Value    pushResult `json:"value"`
+	Type          string     `json:"type"`
+	Progress      float64    `json:"progress"`
+	ETA           float64    `json:"eta"`
+	BPS           float64    `json:"bps"`
+	ReadBytes     int64      `json:"readBytes"`
+	TotalBytes    int64      `json:"totalBytes"`
+	UploadedBytes int64      `json:"uploadedBytes"`
+	PatchBytes    int64      `json:"patchBytes"`
+	Level         string     `json:"level"`
+	Message       string     `json:"message"`
+	Value         pushResult `json:"value"`
 }
 
 // Push spawns a `butler push` worker subprocess and brokers its output as
@@ -155,9 +159,13 @@ func scanStdout(rc *butlerd.RequestContext, stdout io.Reader, result *pushResult
 		switch ev.Type {
 		case "progress":
 			_ = messages.WharfPushProgress.Notify(rc, butlerd.WharfPushProgressNotification{
-				Progress: ev.Progress,
-				ETA:      ev.ETA,
-				BPS:      ev.BPS,
+				Progress:      ev.Progress,
+				ETA:           ev.ETA,
+				BPS:           ev.BPS,
+				ReadBytes:     ev.ReadBytes,
+				TotalBytes:    ev.TotalBytes,
+				UploadedBytes: ev.UploadedBytes,
+				PatchBytes:    ev.PatchBytes,
 			})
 		case "log":
 			switch ev.Level {

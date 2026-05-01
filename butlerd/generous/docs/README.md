@@ -7760,19 +7760,50 @@ cost as the diffing pass of a real push.</p>
 <tr>
 <td><code>progress</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>0..1</p>
+<td><p>0..1; conservative estimate based on uploaded vs source size, since
+patch size isn&rsquo;t known until the diff is fully written.</p>
 </td>
 </tr>
 <tr>
 <td><code>eta</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Estimated seconds remaining (0 if unknown)</p>
+<td><p>Estimated seconds remaining (0 if unknown). Refers to the upload, so
+it&rsquo;s only meaningful once bytes are actually flowing to itch.io.</p>
 </td>
 </tr>
 <tr>
 <td><code>bps</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Bytes per second (0 if unknown)</p>
+<td><p>Upload bytes per second (0 if unknown). This is wire throughput, not
+disk read speed.</p>
+</td>
+</tr>
+<tr>
+<td><code>readBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bytes read from the source container so far while computing the
+patch. Compare to TotalBytes for diff-pass progress, which can
+outpace UploadedBytes since reused/compressed-away bytes never hit
+the wire.</p>
+</td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total bytes in the source container.</p>
+</td>
+</tr>
+<tr>
+<td><code>uploadedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bytes of the patch uploaded to itch.io so far.</p>
+</td>
+</tr>
+<tr>
+<td><code>patchBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Compressed patch size produced so far. Equals UploadedBytes once
+upload catches up; the gap between them is the in-flight buffer.</p>
 </td>
 </tr>
 </table>
@@ -7797,6 +7828,22 @@ cost as the diffing pass of a real push.</p>
 </tr>
 <tr>
 <td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>readBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>uploadedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>patchBytes</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>

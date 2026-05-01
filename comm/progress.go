@@ -76,6 +76,14 @@ var maxJSONPrintDuration = 500 * time.Millisecond
 // Progress sets the completion of a task whose progress is being printed
 // It only has an effect if StartProgress was already called.
 func Progress(alpha float64) {
+	ProgressWith(alpha, nil)
+}
+
+// ProgressWith is Progress, but merges extra fields into the JSON progress
+// event. Use it when a command can report richer state alongside the
+// overall percentage (e.g. byte counters, phase names) without introducing
+// a separate event type.
+func ProgressWith(alpha float64, extras JsonMessage) {
 	lastProgressAlpha = alpha
 
 	if globalTracker == nil {
@@ -105,11 +113,15 @@ func Progress(alpha float64) {
 			}
 		}
 
-		send("progress", JsonMessage{
+		msg := JsonMessage{
 			"progress": alpha,
 			"eta":      eta,
 			"bps":      bps,
-		})
+		}
+		for k, v := range extras {
+			msg[k] = v
+		}
+		send("progress", msg)
 	}
 }
 
