@@ -82,7 +82,8 @@ func Progress(alpha float64) {
 // ProgressWith is Progress, but merges extra fields into the JSON progress
 // event. Use it when a command can report richer state alongside the
 // overall percentage (e.g. byte counters, phase names) without introducing
-// a separate event type.
+// a separate event type. Extra fields take precedence over the default
+// tracker-derived fields.
 func ProgressWith(alpha float64, extras JsonMessage) {
 	lastProgressAlpha = alpha
 
