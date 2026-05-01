@@ -20,12 +20,87 @@ import (
 )
 
 // pushComparisonCounts is the structured per-entry classification summary
-// emitted on the result event from `butler push-preview --json`.
+// emitted on the result event from `butler push-preview --json`. Counts
+// cover every entry (files, dirs, symlinks together); byte totals only
+// reflect file sizes — dirs and symlinks contribute zero. Deleted bytes
+// reflect the size of the entries on the previous build that wouldn't
+// exist in the new push.
 type pushComparisonCounts struct {
 	New      int `json:"new"`
 	Modified int `json:"modified"`
 	Deleted  int `json:"deleted"`
 	Same     int `json:"same"`
+
+	NewBytes      int64 `json:"newBytes"`
+	ModifiedBytes int64 `json:"modifiedBytes"`
+	DeletedBytes  int64 `json:"deletedBytes"`
+	SameBytes     int64 `json:"sameBytes"`
+}
+
+// topChangedFileEntry is a single row in the "biggest changes" list
+// emitted on the result event. Mirrors WharfPushPreviewEntry on the
+// butlerd side; kept as a separate type here to keep cmd/push free of
+// butlerd imports.
+type topChangedFileEntry struct {
+	Path   string `json:"path"`
+	Status string `json:"status"`
+	Size   int64  `json:"size"`
+}
+
+// maxTopChangedFiles caps the result-event payload so a 50k-file project
+// doesn't bloat the JSON. 20 is enough to spot the heavy hitters without
+// turning the listing into its own UI problem on the client.
+const maxTopChangedFiles = 20
+
+// topChangedFiles returns up to maxTopChangedFiles file entries whose
+// status is NEW, MODIFIED, or DELETED, sorted by size descending. Dirs
+// and symlinks are excluded — they have no meaningful size. SAME entries
+// are excluded — they aren't part of the change set the caller cares
+// about.
+//
+// Size is taken from the source side for new/modified, from the target
+// side for deleted (the entry doesn't exist in source). Ties are broken
+// by path for deterministic ordering.
+func topChangedFiles(result *comparisonResult) []topChangedFileEntry {
+	var changed []topChangedFileEntry
+	for _, e := range result.Files {
+		switch e.Status {
+		case statusNew:
+			if e.SourceFile != nil {
+				changed = append(changed, topChangedFileEntry{
+					Path:   e.Path,
+					Status: "new",
+					Size:   e.SourceFile.Size,
+				})
+			}
+		case statusModified:
+			if e.SourceFile != nil {
+				changed = append(changed, topChangedFileEntry{
+					Path:   e.Path,
+					Status: "modified",
+					Size:   e.SourceFile.Size,
+				})
+			}
+		case statusDeleted:
+			if e.TargetFile != nil {
+				changed = append(changed, topChangedFileEntry{
+					Path:   e.Path,
+					Status: "deleted",
+					Size:   e.TargetFile.Size,
+				})
+			}
+		}
+	}
+	sort.SliceStable(changed, func(i, j int) bool {
+		if changed[i].Size != changed[j].Size {
+			return changed[i].Size > changed[j].Size
+		}
+		return changed[i].Path < changed[j].Path
+	})
+	if len(changed) > maxTopChangedFiles {
+		changed = changed[:maxTopChangedFiles]
+	}
+	return changed
 }
 
 type fileStatus int
@@ -226,6 +301,29 @@ func compareContainers(
 			}
 		}
 	}
+	// Bytes are only meaningful for files. NewBytes/SameBytes/ModifiedBytes
+	// come from the source side; DeletedBytes from the target side (the
+	// entry doesn't exist in source).
+	for _, e := range result.Files {
+		switch e.Status {
+		case statusNew:
+			if e.SourceFile != nil {
+				result.Counts.NewBytes += e.SourceFile.Size
+			}
+		case statusModified:
+			if e.SourceFile != nil {
+				result.Counts.ModifiedBytes += e.SourceFile.Size
+			}
+		case statusDeleted:
+			if e.TargetFile != nil {
+				result.Counts.DeletedBytes += e.TargetFile.Size
+			}
+		case statusSame:
+			if e.SourceFile != nil {
+				result.Counts.SameBytes += e.SourceFile.Size
+			}
+		}
+	}
 
 	sortEntries(result.Files)
 	sortEntries(result.Dirs)
@@ -246,6 +344,7 @@ func allNewFromContainer(c *tlc.Container) *comparisonResult {
 	}
 	for _, f := range c.Files {
 		result.Files = append(result.Files, entryComparison{Status: statusNew, Path: f.Path, SourceFile: f})
+		result.Counts.NewBytes += f.Size
 	}
 	result.Counts.New = len(result.Dirs) + len(result.Symlinks) + len(result.Files)
 	return result

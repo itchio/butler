@@ -143,15 +143,23 @@ func DoPreview(ctx *mansion.Context, buildPath string, specStr string, changesOn
 		comm.Statf("All %d entries are new (no previous build)", result.Counts.New)
 	}
 
-	previewResult(spec.Channel, hasParent, parentID, &result.Counts)
+	previewResult(spec.Channel, hasParent, parentID, walkies.container.Size, &result.Counts, topChangedFiles(result))
 	return nil
 }
 
-func previewResult(channel string, hasParent bool, parentBuildID int64, comparison *pushComparisonCounts) {
+func previewResult(channel string, hasParent bool, parentBuildID int64, sourceSize int64, comparison *pushComparisonCounts, topChanged []topChangedFileEntry) {
+	// Always emit the field as a non-nil array — clients can then treat
+	// `topChangedFiles: []` as the "no changes / all SAME" case without a
+	// nil check.
+	if topChanged == nil {
+		topChanged = []topChangedFileEntry{}
+	}
 	out := map[string]interface{}{
-		"channel":    channel,
-		"hasParent":  hasParent,
-		"comparison": comparison,
+		"channel":         channel,
+		"hasParent":       hasParent,
+		"sourceSize":      sourceSize,
+		"comparison":      comparison,
+		"topChangedFiles": topChanged,
 	}
 	if hasParent {
 		out["parentBuildId"] = parentBuildID

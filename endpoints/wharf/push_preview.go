@@ -23,9 +23,16 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewPara
 	}
 
 	res := &butlerd.WharfPushPreviewResult{
-		Channel:       channel,
-		HasParent:     result.HasParent,
-		ParentBuildID: result.ParentBuildID,
+		Channel:         channel,
+		HasParent:       result.HasParent,
+		ParentBuildID:   result.ParentBuildID,
+		SourceSize:      result.SourceSize,
+		TopChangedFiles: result.TopChangedFiles,
+	}
+	if res.TopChangedFiles == nil {
+		// Promise the client a non-nil array even when the worker emits
+		// nothing — matches the JSON-side contract from cmd/push/preview.go.
+		res.TopChangedFiles = []butlerd.WharfPushPreviewEntry{}
 	}
 	if result.Comparison != nil {
 		res.Comparison = *result.Comparison

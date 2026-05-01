@@ -3039,17 +3039,45 @@ type WharfPushPreviewResult struct {
 	HasParent bool `json:"hasParent"`
 	// ID of the build the preview compared against. Absent when !HasParent.
 	ParentBuildID int64 `json:"parentBuildId,omitempty"`
+	// Total uncompressed size of the source container, in bytes. Header
+	// context for the comparison summary.
+	SourceSize int64 `json:"sourceSize"`
 	// Per-entry change counts (files, dirs, symlinks combined).
 	Comparison WharfPushComparison `json:"comparison"`
+	// Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
+	// descending. Dirs and symlinks are excluded — they have no meaningful
+	// size. Empty when nothing changed.
+	TopChangedFiles []WharfPushPreviewEntry `json:"topChangedFiles"`
+}
+
+// WharfPushPreviewEntry is a single row in the "biggest changes" listing
+// emitted with a push preview.
+type WharfPushPreviewEntry struct {
+	// Path within the source container.
+	Path string `json:"path"`
+	// One of "new", "modified", "deleted".
+	Status string `json:"status"`
+	// File size in bytes. For "deleted" this is the size on the previous
+	// build (since the entry no longer exists in source); for "new" and
+	// "modified" it's the size on the source side.
+	Size int64 `json:"size"`
 }
 
 // WharfPushComparison summarises how the source compares to the channel's
-// previous build. Counts cover files, dirs, and symlinks together.
+// previous build. Counts cover files, dirs, and symlinks together; byte
+// sums only reflect file sizes — dirs and symlinks contribute zero. New /
+// Modified / Same byte sums are taken from the source side; Deleted bytes
+// are taken from the previous build (those entries don't exist in source).
 type WharfPushComparison struct {
 	New      int `json:"new"`
 	Modified int `json:"modified"`
 	Deleted  int `json:"deleted"`
 	Same     int `json:"same"`
+
+	NewBytes      int64 `json:"newBytes"`
+	ModifiedBytes int64 `json:"modifiedBytes"`
+	DeletedBytes  int64 `json:"deletedBytes"`
+	SameBytes     int64 `json:"sameBytes"`
 }
 
 // Periodic progress update emitted while a Wharf.Push is in flight.

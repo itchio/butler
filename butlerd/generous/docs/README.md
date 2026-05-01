@@ -7677,9 +7677,24 @@ in that case every entry in the source is treated as new.</p>
 </td>
 </tr>
 <tr>
+<td><code>sourceSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total uncompressed size of the source container, in bytes. Header
+context for the comparison summary.</p>
+</td>
+</tr>
+<tr>
 <td><code>comparison</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#WharfPushComparison__TypeHint">WharfPushComparison</span></code></td>
 <td><p>Per-entry change counts (files, dirs, symlinks combined).</p>
+</td>
+</tr>
+<tr>
+<td><code>topChangedFiles</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#WharfPushPreviewEntry__TypeHint">WharfPushPreviewEntry</span>[]</code></td>
+<td><p>Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
+descending. Dirs and symlinks are excluded — they have no meaningful
+size. Empty when nothing changed.</p>
 </td>
 </tr>
 </table>
@@ -7747,8 +7762,16 @@ cost as the diffing pass of a real push.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
+<td><code>sourceSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
 <td><code>comparison</code></td>
 <td><code class="typename"><span class="type">WharfPushComparison</span></code></td>
+</tr>
+<tr>
+<td><code>topChangedFiles</code></td>
+<td><code class="typename"><span class="type">WharfPushPreviewEntry</span>[]</code></td>
 </tr>
 </table>
 
@@ -10458,12 +10481,79 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
+### WharfPushPreviewEntry (struct)
+
+
+<p>
+<p>WharfPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
+emitted with a push preview.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Path within the source container.</p>
+</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>One of &ldquo;new&rdquo;, &ldquo;modified&rdquo;, &ldquo;deleted&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>File size in bytes. For &ldquo;deleted&rdquo; this is the size on the previous
+build (since the entry no longer exists in source); for &ldquo;new&rdquo; and
+&ldquo;modified&rdquo; it&rsquo;s the size on the source side.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="WharfPushPreviewEntry__TypeHint" class="tip-content">
+<p>WharfPushPreviewEntry (struct) <a href="#/?id=wharfpushpreviewentry-struct">(Go to definition)</a></p>
+
+<p>
+<p>WharfPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
+emitted with a push preview.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>path</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### WharfPushComparison (struct)
 
 
 <p>
 <p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
-previous build. Counts cover files, dirs, and symlinks together.</p>
+previous build. Counts cover files, dirs, and symlinks together; byte
+sums only reflect file sizes — dirs and symlinks contribute zero. New /
+Modified / Same byte sums are taken from the source side; Deleted bytes
+are taken from the previous build (those entries don&rsquo;t exist in source).</p>
 
 </p>
 
@@ -10493,6 +10583,26 @@ previous build. Counts cover files, dirs, and symlinks together.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>newBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>modifiedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>deletedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sameBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
 </table>
 
 
@@ -10501,7 +10611,10 @@ previous build. Counts cover files, dirs, and symlinks together.</p>
 
 <p>
 <p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
-previous build. Counts cover files, dirs, and symlinks together.</p>
+previous build. Counts cover files, dirs, and symlinks together; byte
+sums only reflect file sizes — dirs and symlinks contribute zero. New /
+Modified / Same byte sums are taken from the source side; Deleted bytes
+are taken from the previous build (those entries don&rsquo;t exist in source).</p>
 
 </p>
 
@@ -10520,6 +10633,22 @@ previous build. Counts cover files, dirs, and symlinks together.</p>
 </tr>
 <tr>
 <td><code>same</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>newBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>modifiedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>deletedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>sameBytes</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>

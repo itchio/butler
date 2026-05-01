@@ -2397,9 +2397,19 @@
             "type": "number"
           },
           {
+            "name": "sourceSize",
+            "doc": "Total uncompressed size of the source container, in bytes. Header\ncontext for the comparison summary.",
+            "type": "number"
+          },
+          {
             "name": "comparison",
             "doc": "Per-entry change counts (files, dirs, symlinks combined).",
             "type": "WharfPushComparison"
+          },
+          {
+            "name": "topChangedFiles",
+            "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
+            "type": "WharfPushPreviewEntry[]"
           }
         ]
       }
@@ -4432,15 +4442,46 @@
           "type": "number"
         },
         {
+          "name": "sourceSize",
+          "doc": "Total uncompressed size of the source container, in bytes. Header\ncontext for the comparison summary.",
+          "type": "number"
+        },
+        {
           "name": "comparison",
           "doc": "Per-entry change counts (files, dirs, symlinks combined).",
           "type": "WharfPushComparison"
+        },
+        {
+          "name": "topChangedFiles",
+          "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
+          "type": "WharfPushPreviewEntry[]"
+        }
+      ]
+    },
+    {
+      "name": "WharfPushPreviewEntry",
+      "doc": "WharfPushPreviewEntry is a single row in the \"biggest changes\" listing\nemitted with a push preview.",
+      "fields": [
+        {
+          "name": "path",
+          "doc": "Path within the source container.",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "doc": "One of \"new\", \"modified\", \"deleted\".",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "doc": "File size in bytes. For \"deleted\" this is the size on the previous\nbuild (since the entry no longer exists in source); for \"new\" and\n\"modified\" it's the size on the source side.",
+          "type": "number"
         }
       ]
     },
     {
       "name": "WharfPushComparison",
-      "doc": "WharfPushComparison summarises how the source compares to the channel's\nprevious build. Counts cover files, dirs, and symlinks together.",
+      "doc": "WharfPushComparison summarises how the source compares to the channel's\nprevious build. Counts cover files, dirs, and symlinks together; byte\nsums only reflect file sizes — dirs and symlinks contribute zero. New /\nModified / Same byte sums are taken from the source side; Deleted bytes\nare taken from the previous build (those entries don't exist in source).",
       "fields": [
         {
           "name": "new",
@@ -4459,6 +4500,26 @@
         },
         {
           "name": "same",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "newBytes",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "modifiedBytes",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "deletedBytes",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "sameBytes",
           "doc": "",
           "type": "number"
         }
