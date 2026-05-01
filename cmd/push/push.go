@@ -17,6 +17,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/walkutil"
 
 	"github.com/itchio/headway/counter"
 	"github.com/itchio/headway/state"
@@ -56,6 +57,7 @@ var args = struct {
 	ifChanged       bool
 	dryRun          bool
 	autoWrap        bool
+	autoUnzip       bool
 	hidden          bool
 }{}
 
@@ -70,6 +72,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("if-changed", "Don't push anything if it would be an empty patch").Default("false").BoolVar(&args.ifChanged)
 	cmd.Flag("dry-run", "Don't push anything, just show what would be pushed. Use `butler push-preview` for a per-file diff vs the previous build.").Default("false").BoolVar(&args.dryRun)
 	cmd.Flag("auto-wrap", "Apply workaround for https://github.com/itchio/itch/issues/2147").Default("true").BoolVar(&args.autoWrap)
+	cmd.Flag("auto-unzip", "If src is a directory containing a single .zip file, push the zip's contents instead of the zip-as-a-blob").Default("true").BoolVar(&args.autoUnzip)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").Default("false").BoolVar(&args.hidden)
 	ctx.Register(cmd, do)
 }
@@ -90,11 +93,15 @@ func do(ctx *mansion.Context) {
 		}
 	}
 
-	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.hidden))
+	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.autoUnzip, args.hidden))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, hidden bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, autoUnzip bool, hidden bool) error {
 	consumer := comm.NewStateConsumer()
+
+	if autoUnzip {
+		buildPath = walkutil.ResolveSingleZipDir(buildPath, filtering.FilterPaths)
+	}
 
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
