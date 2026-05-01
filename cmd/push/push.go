@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"strings"
 	"time"
 
@@ -175,12 +176,18 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
+	source := os.Getenv("BUTLER_PUSH_SOURCE")
+	if source == "" {
+		source = "cli"
+	}
+
 	requestCtx, cancel := ctx.DefaultCtx()
 	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{
 		Target:      spec.Target,
 		Channel:     spec.Channel,
 		UserVersion: userVersion,
 		Hidden:      hidden,
+		Source:      source,
 	})
 	cancel()
 	if err != nil {

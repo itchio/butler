@@ -2308,6 +2308,11 @@
             "name": "autoWrap",
             "doc": "When non-nil, overrides butler's default (--auto-wrap, default true)",
             "type": "boolean"
+          },
+          {
+            "name": "source",
+            "doc": "Tags the originating client for analytics (e.g. \"app\").\nDefaults to \"butlerd\" if unset.",
+            "type": "string"
           }
         ]
       },

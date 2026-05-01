@@ -12,7 +12,7 @@ import (
 // is created and no data is uploaded.
 func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error) {
 	args := buildPushPreviewArgs(params)
-	result, err := runPushWorker(rc, params.ProfileID, args)
+	result, err := runPushWorker(rc, params.ProfileID, args, "")
 	if err != nil {
 		return nil, err
 	}

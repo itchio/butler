@@ -48,7 +48,11 @@ type pushEvent struct {
 // cancelled (via exec.CommandContext).
 func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.WharfPushResult, error) {
 	args := buildPushArgs(params)
-	result, err := runPushWorker(rc, params.ProfileID, args)
+	source := params.Source
+	if source == "" {
+		source = "butlerd"
+	}
+	result, err := runPushWorker(rc, params.ProfileID, args, source)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +71,10 @@ func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.
 // runPushWorker handles the shared subprocess lifecycle for both
 // Wharf.Push and Wharf.PushPreview: spawn `butler` with the given args,
 // stream JSON events as butlerd notifications, return the final result
-// event.
-func runPushWorker(rc *butlerd.RequestContext, profileID int64, args []string) (*pushResult, error) {
+// event. pushSource is forwarded as BUTLER_PUSH_SOURCE so the worker can
+// tag the originating client when calling the API; pass "" to skip
+// (push-preview never reaches CreateBuild).
+func runPushWorker(rc *butlerd.RequestContext, profileID int64, args []string, pushSource string) (*pushResult, error) {
 	consumer := rc.Consumer
 
 	profile, _ := rc.ProfileClient(profileID)
@@ -82,6 +88,9 @@ func runPushWorker(rc *butlerd.RequestContext, profileID int64, args []string) (
 
 	cmd := exec.CommandContext(rc.Ctx, selfPath, args...)
 	cmd.Env = append(os.Environ(), "BUTLER_API_KEY="+profile.APIKey)
+	if pushSource != "" {
+		cmd.Env = append(cmd.Env, "BUTLER_PUSH_SOURCE="+pushSource)
+	}
 	cmd.Stderr = loggerwriter.New(consumer, "err")
 
 	stdout, err := cmd.StdoutPipe()

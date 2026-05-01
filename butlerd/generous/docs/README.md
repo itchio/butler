@@ -7468,6 +7468,13 @@ instead.</p>
 <td><p><span class="tag">Optional</span> When non-nil, overrides butler&rsquo;s default (&ndash;auto-wrap, default true)</p>
 </td>
 </tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Tags the originating client for analytics (e.g. &ldquo;app&rdquo;).
+Defaults to &ldquo;butlerd&rdquo; if unset.</p>
+</td>
+</tr>
 </table>
 
 
@@ -7552,6 +7559,10 @@ instead.</p>
 <tr>
 <td><code>autoWrap</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 

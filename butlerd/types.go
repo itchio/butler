@@ -2972,6 +2972,10 @@ type WharfPushParams struct {
 	// When non-nil, overrides butler's default (--auto-wrap, default true)
 	// @optional
 	AutoWrap *bool `json:"autoWrap"`
+	// Tags the originating client for analytics (e.g. "app").
+	// Defaults to "butlerd" if unset.
+	// @optional
+	Source string `json:"source"`
 }
 
 func (p WharfPushParams) Validate() error {
