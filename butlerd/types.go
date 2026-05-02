@@ -3038,6 +3038,7 @@ type WharfPushPreviewResult struct {
 	// in that case every entry in the source is treated as new.
 	HasParent bool `json:"hasParent"`
 	// ID of the build the preview compared against. Absent when !HasParent.
+	// @optional
 	ParentBuildID int64 `json:"parentBuildId,omitempty"`
 	// Total uncompressed size of the source container, in bytes. Header
 	// context for the comparison summary.
