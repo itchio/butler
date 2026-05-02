@@ -3256,6 +3256,14 @@ type PublishListBuildsParams struct {
 	// If set, include aggregate totals in the response.
 	// @optional
 	IncludeTotals bool `json:"includeTotals"`
+
+	// Build IDs in the "started" state to surface in the listing. Started
+	// builds are normally hidden (most are abandoned pushes); naming them
+	// here opts them in for the default and "processing" views, so the
+	// dashboard can show its own in-flight pushes without leaking other
+	// stale started builds. Server-capped at 100 IDs.
+	// @optional
+	StartedBuildIDs []int64 `json:"startedBuildIds"`
 }
 
 func (p PublishListBuildsParams) Validate() error {

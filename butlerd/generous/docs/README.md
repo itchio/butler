@@ -8228,6 +8228,16 @@ reflects the server&rsquo;s current view.</p>
 <td><p><span class="tag">Optional</span> If set, include aggregate totals in the response.</p>
 </td>
 </tr>
+<tr>
+<td><code>startedBuildIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Build IDs in the &ldquo;started&rdquo; state to surface in the listing. Started
+builds are normally hidden (most are abandoned pushes); naming them
+here opts them in for the default and &ldquo;processing&rdquo; views, so the
+dashboard can show its own in-flight pushes without leaking other
+stale started builds. Server-capped at 100 IDs.</p>
+</td>
+</tr>
 </table>
 
 
@@ -8296,6 +8306,10 @@ reflects the server&rsquo;s current view.</p>
 <tr>
 <td><code>includeTotals</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>startedBuildIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
 </tr>
 </table>
 

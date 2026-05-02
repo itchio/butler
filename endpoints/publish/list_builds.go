@@ -10,10 +10,11 @@ func ListBuilds(rc *butlerd.RequestContext, params butlerd.PublishListBuildsPara
 	_, client := rc.ProfileClient(params.ProfileID)
 
 	res, err := client.ListProfileBuilds(rc.Ctx, itchio.ListProfileBuildsParams{
-		Page:          params.Page,
-		PerPage:       params.PerPage,
-		State:         params.State,
-		IncludeTotals: params.IncludeTotals,
+		Page:            params.Page,
+		PerPage:         params.PerPage,
+		State:           params.State,
+		IncludeTotals:   params.IncludeTotals,
+		StartedBuildIDs: params.StartedBuildIDs,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "listing profile builds")

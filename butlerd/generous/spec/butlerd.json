@@ -2533,6 +2533,11 @@
             "name": "includeTotals",
             "doc": "If set, include aggregate totals in the response.",
             "type": "boolean"
+          },
+          {
+            "name": "startedBuildIds",
+            "doc": "Build IDs in the \"started\" state to surface in the listing. Started\nbuilds are normally hidden (most are abandoned pushes); naming them\nhere opts them in for the default and \"processing\" views, so the\ndashboard can show its own in-flight pushes without leaking other\nstale started builds. Server-capped at 100 IDs.",
+            "type": "number[]"
           }
         ]
       },
