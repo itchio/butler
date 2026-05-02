@@ -143,16 +143,23 @@ func DoPreview(ctx *mansion.Context, buildPath string, specStr string, changesOn
 		comm.Statf("All %d entries are new (no previous build)", result.Counts.New)
 	}
 
-	previewResult(spec.Channel, hasParent, parentID, walkies.container.Size, &result.Counts, topChangedFiles(result))
+	previewResult(spec.Channel, hasParent, parentID, walkies.container.Size, &result.Counts, computeTopChangedFiles(result))
 	return nil
 }
 
-func previewResult(channel string, hasParent bool, parentBuildID int64, sourceSize int64, comparison *pushComparisonCounts, topChanged []topChangedFileEntry) {
-	// Always emit the field as a non-nil array — clients can then treat
-	// `topChangedFiles: []` as the "no changes / all SAME" case without a
-	// nil check.
-	if topChanged == nil {
-		topChanged = []topChangedFileEntry{}
+func previewResult(channel string, hasParent bool, parentBuildID int64, sourceSize int64, comparison *pushComparisonCounts, topChanged topChangedFiles) {
+	// Each sub-list is always emitted as a non-nil array — clients can
+	// treat each empty category as the "no changes of this kind" case
+	// without a nil check. computeTopChangedFiles guarantees this, but
+	// belt-and-suspenders for safety.
+	if topChanged.New == nil {
+		topChanged.New = []topChangedFileEntry{}
+	}
+	if topChanged.Modified == nil {
+		topChanged.Modified = []topChangedFileEntry{}
+	}
+	if topChanged.Deleted == nil {
+		topChanged.Deleted = []topChangedFileEntry{}
 	}
 	out := map[string]interface{}{
 		"channel":         channel,

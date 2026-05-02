@@ -25,8 +25,8 @@ type pushResult struct {
 	HasParent       bool                              `json:"hasParent"`
 	ParentBuildID   int64                             `json:"parentBuildId"`
 	SourceSize      int64                             `json:"sourceSize"`
-	Comparison      *butlerd.PublishPushComparison    `json:"comparison,omitempty"`
-	TopChangedFiles []butlerd.PublishPushPreviewEntry `json:"topChangedFiles,omitempty"`
+	Comparison      *butlerd.PublishPushComparison     `json:"comparison,omitempty"`
+	TopChangedFiles butlerd.PublishPushTopChangedFiles `json:"topChangedFiles"`
 }
 
 // pushEvent is a discriminated union of every JSON message the butler push

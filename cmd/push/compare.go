@@ -48,20 +48,31 @@ type topChangedFileEntry struct {
 }
 
 // maxTopChangedFiles caps the result-event payload so a 50k-file project
-// doesn't bloat the JSON. 20 is enough to spot the heavy hitters without
-// turning the listing into its own UI problem on the client.
+// doesn't bloat the JSON. 20 per category is enough to spot the heavy
+// hitters without turning the listing into its own UI problem on the
+// client.
 const maxTopChangedFiles = 20
 
-// topChangedFiles returns up to maxTopChangedFiles file entries whose
-// status is NEW, MODIFIED, or DELETED, sorted by size descending. Dirs
-// and symlinks are excluded — they have no meaningful size. SAME entries
-// are excluded — they aren't part of the change set the caller cares
-// about.
+// topChangedFiles is the per-category "biggest changes" listing emitted
+// on the result event. Each list is capped at maxTopChangedFiles and
+// sorted by size desc, path asc; the renderer reconstructs a merged
+// "biggest changes overall" view by combining the three lists. Mirrors
+// PublishPushTopChangedFiles on the butlerd side.
+type topChangedFiles struct {
+	New      []topChangedFileEntry `json:"new"`
+	Modified []topChangedFileEntry `json:"modified"`
+	Deleted  []topChangedFileEntry `json:"deleted"`
+}
+
+// computeTopChangedFiles returns up to maxTopChangedFiles entries per
+// category (NEW, MODIFIED, DELETED), sorted by size descending. Dirs and
+// symlinks are excluded — they have no meaningful size. SAME entries are
+// excluded — they aren't part of the change set the caller cares about.
 //
 // Size is taken from the source side for new/modified, from the target
 // side for deleted (the entry doesn't exist in source). Ties are broken
 // by path for deterministic ordering.
-func topChangedFiles(result *comparisonResult) []topChangedFileEntry {
+func computeTopChangedFiles(result *comparisonResult) topChangedFiles {
 	var changed []topChangedFileEntry
 	for _, e := range result.Files {
 		switch e.Status {
@@ -97,10 +108,28 @@ func topChangedFiles(result *comparisonResult) []topChangedFileEntry {
 		}
 		return changed[i].Path < changed[j].Path
 	})
-	if len(changed) > maxTopChangedFiles {
-		changed = changed[:maxTopChangedFiles]
+	out := topChangedFiles{
+		New:      []topChangedFileEntry{},
+		Modified: []topChangedFileEntry{},
+		Deleted:  []topChangedFileEntry{},
 	}
-	return changed
+	for _, e := range changed {
+		switch e.Status {
+		case "new":
+			if len(out.New) < maxTopChangedFiles {
+				out.New = append(out.New, e)
+			}
+		case "modified":
+			if len(out.Modified) < maxTopChangedFiles {
+				out.Modified = append(out.Modified, e)
+			}
+		case "deleted":
+			if len(out.Deleted) < maxTopChangedFiles {
+				out.Deleted = append(out.Deleted, e)
+			}
+		}
+	}
+	return out
 }
 
 type fileStatus int

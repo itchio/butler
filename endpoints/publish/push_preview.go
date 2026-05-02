@@ -29,10 +29,17 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.PublishPushPreviewPa
 		SourceSize:      result.SourceSize,
 		TopChangedFiles: result.TopChangedFiles,
 	}
-	if res.TopChangedFiles == nil {
-		// Promise the client a non-nil array even when the worker emits
-		// nothing — matches the JSON-side contract from cmd/push/preview.go.
-		res.TopChangedFiles = []butlerd.PublishPushPreviewEntry{}
+	// Promise the client non-nil arrays for every category — matches the
+	// JSON-side contract from cmd/push/preview.go and lets the renderer
+	// treat an empty list as "no changes of this kind" without nil checks.
+	if res.TopChangedFiles.New == nil {
+		res.TopChangedFiles.New = []butlerd.PublishPushPreviewEntry{}
+	}
+	if res.TopChangedFiles.Modified == nil {
+		res.TopChangedFiles.Modified = []butlerd.PublishPushPreviewEntry{}
+	}
+	if res.TopChangedFiles.Deleted == nil {
+		res.TopChangedFiles.Deleted = []butlerd.PublishPushPreviewEntry{}
 	}
 	if result.Comparison != nil {
 		res.Comparison = *result.Comparison

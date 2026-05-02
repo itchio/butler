@@ -7691,10 +7691,13 @@ context for the comparison summary.</p>
 </tr>
 <tr>
 <td><code>topChangedFiles</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#PublishPushPreviewEntry__TypeHint">PublishPushPreviewEntry</span>[]</code></td>
-<td><p>Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
-descending. Dirs and symlinks are excluded — they have no meaningful
-size. Empty when nothing changed.</p>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushTopChangedFiles__TypeHint">PublishPushTopChangedFiles</span></code></td>
+<td><p>Per-category top changed files. Each list holds up to 20 entries
+sorted by size descending (path ascending as tie-breaker). Dirs and
+symlinks are excluded — they have no meaningful size. Unchanged
+entries are never included. Each sub-slice is non-nil (empty when
+the category has no changes); the renderer reconstructs the
+cross-category &ldquo;biggest changes overall&rdquo; view by merging them.</p>
 </td>
 </tr>
 </table>
@@ -7771,7 +7774,7 @@ cost as the diffing pass of a real push.</p>
 </tr>
 <tr>
 <td><code>topChangedFiles</code></td>
-<td><code class="typename"><span class="type">PublishPushPreviewEntry</span>[]</code></td>
+<td><code class="typename"><span class="type">PublishPushTopChangedFiles</span></code></td>
 </tr>
 </table>
 
@@ -10479,6 +10482,67 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>19000</code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishPushTopChangedFiles (struct)
+
+
+<p>
+<p>PublishPushTopChangedFiles groups the largest changed files in a push
+preview by status. See PublishPushPreviewResult.TopChangedFiles for the
+guarantees on each list.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>new</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushPreviewEntry__TypeHint">PublishPushPreviewEntry</span>[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>modified</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushPreviewEntry__TypeHint">PublishPushPreviewEntry</span>[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>deleted</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushPreviewEntry__TypeHint">PublishPushPreviewEntry</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishPushTopChangedFiles__TypeHint" class="tip-content">
+<p>PublishPushTopChangedFiles (struct) <a href="#/?id=publishpushtopchangedfiles-struct">(Go to definition)</a></p>
+
+<p>
+<p>PublishPushTopChangedFiles groups the largest changed files in a push
+preview by status. See PublishPushPreviewResult.TopChangedFiles for the
+guarantees on each list.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>new</code></td>
+<td><code class="typename"><span class="type">PublishPushPreviewEntry</span>[]</code></td>
+</tr>
+<tr>
+<td><code>modified</code></td>
+<td><code class="typename"><span class="type">PublishPushPreviewEntry</span>[]</code></td>
+</tr>
+<tr>
+<td><code>deleted</code></td>
+<td><code class="typename"><span class="type">PublishPushPreviewEntry</span>[]</code></td>
 </tr>
 </table>
 

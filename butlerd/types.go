@@ -3057,10 +3057,22 @@ type PublishPushPreviewResult struct {
 	SourceSize int64 `json:"sourceSize"`
 	// Per-entry change counts (files, dirs, symlinks combined).
 	Comparison PublishPushComparison `json:"comparison"`
-	// Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
-	// descending. Dirs and symlinks are excluded — they have no meaningful
-	// size. Empty when nothing changed.
-	TopChangedFiles []PublishPushPreviewEntry `json:"topChangedFiles"`
+	// Per-category top changed files. Each list holds up to 20 entries
+	// sorted by size descending (path ascending as tie-breaker). Dirs and
+	// symlinks are excluded — they have no meaningful size. Unchanged
+	// entries are never included. Each sub-slice is non-nil (empty when
+	// the category has no changes); the renderer reconstructs the
+	// cross-category "biggest changes overall" view by merging them.
+	TopChangedFiles PublishPushTopChangedFiles `json:"topChangedFiles"`
+}
+
+// PublishPushTopChangedFiles groups the largest changed files in a push
+// preview by status. See PublishPushPreviewResult.TopChangedFiles for the
+// guarantees on each list.
+type PublishPushTopChangedFiles struct {
+	New      []PublishPushPreviewEntry `json:"new"`
+	Modified []PublishPushPreviewEntry `json:"modified"`
+	Deleted  []PublishPushPreviewEntry `json:"deleted"`
 }
 
 // PublishPushPreviewEntry is a single row in the "biggest changes" listing

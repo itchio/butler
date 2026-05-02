@@ -2408,8 +2408,8 @@
           },
           {
             "name": "topChangedFiles",
-            "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
-            "type": "PublishPushPreviewEntry[]"
+            "doc": "Per-category top changed files. Each list holds up to 20 entries\nsorted by size descending (path ascending as tie-breaker). Dirs and\nsymlinks are excluded — they have no meaningful size. Unchanged\nentries are never included. Each sub-slice is non-nil (empty when\nthe category has no changes); the renderer reconstructs the\ncross-category \"biggest changes overall\" view by merging them.",
+            "type": "PublishPushTopChangedFiles"
           }
         ]
       }
@@ -4453,7 +4453,28 @@
         },
         {
           "name": "topChangedFiles",
-          "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
+          "doc": "Per-category top changed files. Each list holds up to 20 entries\nsorted by size descending (path ascending as tie-breaker). Dirs and\nsymlinks are excluded — they have no meaningful size. Unchanged\nentries are never included. Each sub-slice is non-nil (empty when\nthe category has no changes); the renderer reconstructs the\ncross-category \"biggest changes overall\" view by merging them.",
+          "type": "PublishPushTopChangedFiles"
+        }
+      ]
+    },
+    {
+      "name": "PublishPushTopChangedFiles",
+      "doc": "PublishPushTopChangedFiles groups the largest changed files in a push\npreview by status. See PublishPushPreviewResult.TopChangedFiles for the\nguarantees on each list.",
+      "fields": [
+        {
+          "name": "new",
+          "doc": "",
+          "type": "PublishPushPreviewEntry[]"
+        },
+        {
+          "name": "modified",
+          "doc": "",
+          "type": "PublishPushPreviewEntry[]"
+        },
+        {
+          "name": "deleted",
+          "doc": "",
           "type": "PublishPushPreviewEntry[]"
         }
       ]
