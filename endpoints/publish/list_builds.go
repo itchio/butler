@@ -19,10 +19,11 @@ func ListBuilds(rc *butlerd.RequestContext, params butlerd.PublishListBuildsPara
 		return nil, errors.Wrap(err, "listing profile builds")
 	}
 
-	// The API returns games/uploads normalized (one entry each, referenced by
-	// id) to avoid response inflation when many builds share a game or upload.
-	// Re-attach them here so butlerd consumers see each build with its
-	// game/upload nested, which is more convenient for the app to render.
+	// The API returns games/uploads/users normalized (one entry each,
+	// referenced by id) to avoid response inflation when many builds share a
+	// game, upload, or user. Re-attach them here so butlerd consumers see each
+	// build with its game/upload/user nested, which is more convenient for the
+	// app to render.
 	games := make(map[int64]*itchio.Game, len(res.Games))
 	for _, g := range res.Games {
 		games[g.ID] = g
@@ -31,9 +32,14 @@ func ListBuilds(rc *butlerd.RequestContext, params butlerd.PublishListBuildsPara
 	for _, u := range res.Uploads {
 		uploads[u.ID] = u
 	}
+	users := make(map[int64]*itchio.User, len(res.Users))
+	for _, u := range res.Users {
+		users[u.ID] = u
+	}
 	for _, b := range res.Builds {
 		b.Game = games[b.GameID]
 		b.Upload = uploads[b.UploadID]
+		b.User = users[b.UserID]
 	}
 
 	out := &butlerd.PublishListBuildsResult{

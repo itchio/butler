@@ -8185,7 +8185,7 @@ reflects the server&rsquo;s current view.</p>
 <td><code>builds</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span>[]</code></td>
 <td><p>Builds for the requested page, ordered newest first. Each carries
-nested game and upload context.</p>
+nested game, upload, and user context.</p>
 </td>
 </tr>
 <tr>

@@ -2540,7 +2540,7 @@
         "fields": [
           {
             "name": "builds",
-            "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game and upload context.",
+            "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game, upload, and user context.",
             "type": "Build[]"
           },
           {
@@ -4626,7 +4626,7 @@
       "fields": [
         {
           "name": "builds",
-          "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game and upload context.",
+          "doc": "Builds for the requested page, ordered newest first. Each carries\nnested game, upload, and user context.",
           "type": "Build[]"
         },
         {

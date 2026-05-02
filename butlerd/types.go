@@ -3253,7 +3253,7 @@ type PublishBuildTotals struct {
 
 type PublishListBuildsResult struct {
 	// Builds for the requested page, ordered newest first. Each carries
-	// nested game and upload context.
+	// nested game, upload, and user context.
 	Builds []*itchio.Build `json:"builds"`
 
 	Page    int64 `json:"page"`
