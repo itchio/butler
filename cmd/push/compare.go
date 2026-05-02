@@ -38,7 +38,7 @@ type pushComparisonCounts struct {
 }
 
 // topChangedFileEntry is a single row in the "biggest changes" list
-// emitted on the result event. Mirrors WharfPushPreviewEntry on the
+// emitted on the result event. Mirrors PublishPushPreviewEntry on the
 // butlerd side; kept as a separate type here to keep cmd/push free of
 // butlerd imports.
 type topChangedFileEntry struct {

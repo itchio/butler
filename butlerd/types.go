@@ -2943,20 +2943,20 @@ const (
 	CodeSandboxNotAvailable Code = 19000
 )
 
-// Wharf
+// Publish
 
 // Pushes a new build to itch.io for a given target+channel. Heavy lifting
 // (walk, diff, upload) runs in a `butler push` worker subprocess that butlerd
-// spawns; butlerd brokers progress over WharfPushProgress notifications and
+// spawns; butlerd brokers progress over PublishPushProgress notifications and
 // kills the worker if the RPC's context is cancelled.
 //
-// For a no-side-effects "what would change?" preview, call Wharf.PushPreview
+// For a no-side-effects "what would change?" preview, call Publish.PushPreview
 // instead.
 //
-// @name Wharf.Push
-// @category Wharf
+// @name Publish.Push
+// @category Publish
 // @caller client
-type WharfPushParams struct {
+type PublishPushParams struct {
 	// itch.io profile to authenticate as
 	ProfileID int64 `json:"profileId"`
 	// Source path: directory or zip archive
@@ -2990,7 +2990,7 @@ type WharfPushParams struct {
 	Source string `json:"source"`
 }
 
-func (p WharfPushParams) Validate() error {
+func (p PublishPushParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Src, validation.Required),
@@ -2999,7 +2999,7 @@ func (p WharfPushParams) Validate() error {
 	)
 }
 
-type WharfPushResult struct {
+type PublishPushResult struct {
 	// ID of the build that was created (0 if skipped)
 	BuildID int64  `json:"buildId"`
 	Channel string `json:"channel"`
@@ -3011,10 +3011,10 @@ type WharfPushResult struct {
 // without creating a build or uploading anything. Hashes the source; same
 // cost as the diffing pass of a real push.
 //
-// @name Wharf.PushPreview
-// @category Wharf
+// @name Publish.PushPreview
+// @category Publish
 // @caller client
-type WharfPushPreviewParams struct {
+type PublishPushPreviewParams struct {
 	// itch.io profile to authenticate as
 	ProfileID int64 `json:"profileId"`
 	// Source path: directory or zip archive
@@ -3035,7 +3035,7 @@ type WharfPushPreviewParams struct {
 	AutoWrap *bool `json:"autoWrap"`
 }
 
-func (p WharfPushPreviewParams) Validate() error {
+func (p PublishPushPreviewParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Src, validation.Required),
@@ -3044,7 +3044,7 @@ func (p WharfPushPreviewParams) Validate() error {
 	)
 }
 
-type WharfPushPreviewResult struct {
+type PublishPushPreviewResult struct {
 	Channel string `json:"channel"`
 	// False when the channel has no previous build to compare against;
 	// in that case every entry in the source is treated as new.
@@ -3056,16 +3056,16 @@ type WharfPushPreviewResult struct {
 	// context for the comparison summary.
 	SourceSize int64 `json:"sourceSize"`
 	// Per-entry change counts (files, dirs, symlinks combined).
-	Comparison WharfPushComparison `json:"comparison"`
+	Comparison PublishPushComparison `json:"comparison"`
 	// Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
 	// descending. Dirs and symlinks are excluded — they have no meaningful
 	// size. Empty when nothing changed.
-	TopChangedFiles []WharfPushPreviewEntry `json:"topChangedFiles"`
+	TopChangedFiles []PublishPushPreviewEntry `json:"topChangedFiles"`
 }
 
-// WharfPushPreviewEntry is a single row in the "biggest changes" listing
+// PublishPushPreviewEntry is a single row in the "biggest changes" listing
 // emitted with a push preview.
-type WharfPushPreviewEntry struct {
+type PublishPushPreviewEntry struct {
 	// Path within the source container.
 	Path string `json:"path"`
 	// One of "new", "modified", "deleted".
@@ -3076,12 +3076,12 @@ type WharfPushPreviewEntry struct {
 	Size int64 `json:"size"`
 }
 
-// WharfPushComparison summarises how the source compares to the channel's
+// PublishPushComparison summarises how the source compares to the channel's
 // previous build. Counts cover files, dirs, and symlinks together; byte
 // sums only reflect file sizes — dirs and symlinks contribute zero. New /
 // Modified / Same byte sums are taken from the source side; Deleted bytes
 // are taken from the previous build (those entries don't exist in source).
-type WharfPushComparison struct {
+type PublishPushComparison struct {
 	New      int `json:"new"`
 	Modified int `json:"modified"`
 	Deleted  int `json:"deleted"`
@@ -3093,11 +3093,11 @@ type WharfPushComparison struct {
 	SameBytes     int64 `json:"sameBytes"`
 }
 
-// Periodic progress update emitted while a Wharf.Push is in flight.
+// Periodic progress update emitted while a Publish.Push is in flight.
 //
-// @name Wharf.Push.Progress
-// @category Wharf
-type WharfPushProgressNotification struct {
+// @name Publish.Push.Progress
+// @category Publish
+type PublishPushProgressNotification struct {
 	// 0..1; conservative estimate based on uploaded vs source size, since
 	// patch size isn't known until the diff is fully written.
 	Progress float64 `json:"progress"`
@@ -3123,30 +3123,30 @@ type WharfPushProgressNotification struct {
 
 // Lists all channels for a given push target via the wharf API.
 //
-// @name Wharf.ListChannels
-// @category Wharf
+// @name Publish.ListChannels
+// @category Publish
 // @caller client
-type WharfListChannelsParams struct {
+type PublishListChannelsParams struct {
 	ProfileID int64  `json:"profileId"`
 	Target    string `json:"target"`
 }
 
-func (p WharfListChannelsParams) Validate() error {
+func (p PublishListChannelsParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Target, validation.Required),
 	)
 }
 
-type WharfListChannelsResult struct {
+type PublishListChannelsResult struct {
 	// Channels keyed by name
-	Channels map[string]*WharfChannel `json:"channels"`
+	Channels map[string]*PublishChannel `json:"channels"`
 }
 
-// WharfChannel mirrors itchio.Channel — defined here so generous picks it
+// PublishChannel mirrors itchio.Channel — defined here so generous picks it
 // up for the butlerd spec / TS bindings (the itchio.Channel definition lives
 // in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).
-type WharfChannel struct {
+type PublishChannel struct {
 	// Channel name, e.g. "win-64"
 	Name string `json:"name"`
 	// Platform tags for this channel
@@ -3164,16 +3164,16 @@ type WharfChannel struct {
 
 // Returns information about a single channel.
 //
-// @name Wharf.GetChannel
-// @category Wharf
+// @name Publish.GetChannel
+// @category Publish
 // @caller client
-type WharfGetChannelParams struct {
+type PublishGetChannelParams struct {
 	ProfileID int64  `json:"profileId"`
 	Target    string `json:"target"`
 	Channel   string `json:"channel"`
 }
 
-func (p WharfGetChannelParams) Validate() error {
+func (p PublishGetChannelParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Target, validation.Required),
@@ -3181,28 +3181,28 @@ func (p WharfGetChannelParams) Validate() error {
 	)
 }
 
-type WharfGetChannelResult struct {
-	Channel *WharfChannel `json:"channel"`
+type PublishGetChannelResult struct {
+	Channel *PublishChannel `json:"channel"`
 }
 
 // Returns information about a single build by ID.
 //
-// @name Wharf.GetBuild
-// @category Wharf
+// @name Publish.GetBuild
+// @category Publish
 // @caller client
-type WharfGetBuildParams struct {
+type PublishGetBuildParams struct {
 	ProfileID int64 `json:"profileId"`
 	BuildID   int64 `json:"buildId"`
 }
 
-func (p WharfGetBuildParams) Validate() error {
+func (p PublishGetBuildParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.BuildID, validation.Required),
 	)
 }
 
-type WharfGetBuildResult struct {
+type PublishGetBuildResult struct {
 	Build *itchio.Build `json:"build"`
 }
 
@@ -3211,10 +3211,10 @@ type WharfGetBuildResult struct {
 // itch.io API on every call (no local caching) so build state always
 // reflects the server's current view.
 //
-// @name Wharf.ListBuilds
-// @category Wharf
+// @name Publish.ListBuilds
+// @category Publish
 // @caller client
-type WharfListBuildsParams struct {
+type PublishListBuildsParams struct {
 	ProfileID int64 `json:"profileId"`
 
 	// Page number, 1-based. Defaults to 1.
@@ -3234,7 +3234,7 @@ type WharfListBuildsParams struct {
 	IncludeTotals bool `json:"includeTotals"`
 }
 
-func (p WharfListBuildsParams) Validate() error {
+func (p PublishListBuildsParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.State, validation.In("live", "processing", "failed")),
@@ -3243,7 +3243,7 @@ func (p WharfListBuildsParams) Validate() error {
 
 // Per-state counts plus editable project count, so the client can render
 // filter-tab badges (All / Live / Processing / Failed) without re-querying.
-type WharfBuildTotals struct {
+type PublishBuildTotals struct {
 	All          int64 `json:"all"`
 	Live         int64 `json:"live"`
 	Processing   int64 `json:"processing"`
@@ -3251,7 +3251,7 @@ type WharfBuildTotals struct {
 	ProjectCount int64 `json:"projectCount"`
 }
 
-type WharfListBuildsResult struct {
+type PublishListBuildsResult struct {
 	// Builds for the requested page, ordered newest first. Each carries
 	// nested game and upload context.
 	Builds []*itchio.Build `json:"builds"`
@@ -3262,7 +3262,7 @@ type WharfListBuildsResult struct {
 	// Counts across the unfiltered set, for tab badges. Only populated when
 	// requested with includeTotals.
 	// @optional
-	Totals *WharfBuildTotals `json:"totals,omitempty"`
+	Totals *PublishBuildTotals `json:"totals,omitempty"`
 }
 
 // Dates

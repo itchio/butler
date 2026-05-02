@@ -1,4 +1,4 @@
-package wharf
+package publish
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 // PushPreview spawns a `butler push --dry-run --compare` worker subprocess
 // to report what would change if Src were pushed to the channel. No build
 // is created and no data is uploaded.
-func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error) {
+func PushPreview(rc *butlerd.RequestContext, params butlerd.PublishPushPreviewParams) (*butlerd.PublishPushPreviewResult, error) {
 	args := buildPushPreviewArgs(params)
 	result, err := runPushWorker(rc, params.ProfileID, args, "")
 	if err != nil {
@@ -22,7 +22,7 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewPara
 		channel = params.Channel
 	}
 
-	res := &butlerd.WharfPushPreviewResult{
+	res := &butlerd.PublishPushPreviewResult{
 		Channel:         channel,
 		HasParent:       result.HasParent,
 		ParentBuildID:   result.ParentBuildID,
@@ -32,7 +32,7 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewPara
 	if res.TopChangedFiles == nil {
 		// Promise the client a non-nil array even when the worker emits
 		// nothing — matches the JSON-side contract from cmd/push/preview.go.
-		res.TopChangedFiles = []butlerd.WharfPushPreviewEntry{}
+		res.TopChangedFiles = []butlerd.PublishPushPreviewEntry{}
 	}
 	if result.Comparison != nil {
 		res.Comparison = *result.Comparison
@@ -40,7 +40,7 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewPara
 	return res, nil
 }
 
-func buildPushPreviewArgs(p butlerd.WharfPushPreviewParams) []string {
+func buildPushPreviewArgs(p butlerd.PublishPushPreviewParams) []string {
 	specStr := fmt.Sprintf("%s:%s", p.Target, p.Channel)
 	args := []string{"push-preview", p.Src, specStr, "--json"}
 

@@ -2254,8 +2254,8 @@
       }
     },
     {
-      "method": "Wharf.Push",
-      "doc": "Pushes a new build to itch.io for a given target+channel. Heavy lifting\n(walk, diff, upload) runs in a `butler push` worker subprocess that butlerd\nspawns; butlerd brokers progress over WharfPushProgress notifications and\nkills the worker if the RPC's context is cancelled.\n\nFor a no-side-effects \"what would change?\" preview, call Wharf.PushPreview\ninstead.",
+      "method": "Publish.Push",
+      "doc": "Pushes a new build to itch.io for a given target+channel. Heavy lifting\n(walk, diff, upload) runs in a `butler push` worker subprocess that butlerd\nspawns; butlerd brokers progress over PublishPushProgress notifications and\nkills the worker if the RPC's context is cancelled.\n\nFor a no-side-effects \"what would change?\" preview, call Publish.PushPreview\ninstead.",
       "caller": "client",
       "params": {
         "fields": [
@@ -2337,7 +2337,7 @@
       }
     },
     {
-      "method": "Wharf.PushPreview",
+      "method": "Publish.PushPreview",
       "doc": "Reports what would change if Src were pushed to the given channel,\nwithout creating a build or uploading anything. Hashes the source; same\ncost as the diffing pass of a real push.",
       "caller": "client",
       "params": {
@@ -2404,18 +2404,18 @@
           {
             "name": "comparison",
             "doc": "Per-entry change counts (files, dirs, symlinks combined).",
-            "type": "WharfPushComparison"
+            "type": "PublishPushComparison"
           },
           {
             "name": "topChangedFiles",
             "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
-            "type": "WharfPushPreviewEntry[]"
+            "type": "PublishPushPreviewEntry[]"
           }
         ]
       }
     },
     {
-      "method": "Wharf.ListChannels",
+      "method": "Publish.ListChannels",
       "doc": "Lists all channels for a given push target via the wharf API.",
       "caller": "client",
       "params": {
@@ -2437,13 +2437,13 @@
           {
             "name": "channels",
             "doc": "Channels keyed by name",
-            "type": "{ [key: string]: WharfChannel }"
+            "type": "{ [key: string]: PublishChannel }"
           }
         ]
       }
     },
     {
-      "method": "Wharf.GetChannel",
+      "method": "Publish.GetChannel",
       "doc": "Returns information about a single channel.",
       "caller": "client",
       "params": {
@@ -2470,13 +2470,13 @@
           {
             "name": "channel",
             "doc": "",
-            "type": "WharfChannel"
+            "type": "PublishChannel"
           }
         ]
       }
     },
     {
-      "method": "Wharf.GetBuild",
+      "method": "Publish.GetBuild",
       "doc": "Returns information about a single build by ID.",
       "caller": "client",
       "params": {
@@ -2504,7 +2504,7 @@
       }
     },
     {
-      "method": "Wharf.ListBuilds",
+      "method": "Publish.ListBuilds",
       "doc": "Lists builds across every game the current user develops or admins,\npowering the app's \"Uploads\" view. Results are fetched live from the\nitch.io API on every call (no local caching) so build state always\nreflects the server's current view.",
       "caller": "client",
       "params": {
@@ -2556,7 +2556,7 @@
           {
             "name": "totals",
             "doc": "Counts across the unfiltered set, for tab badges. Only populated when\nrequested with includeTotals.",
-            "type": "WharfBuildTotals"
+            "type": "PublishBuildTotals"
           }
         ]
       }
@@ -2855,8 +2855,8 @@
       }
     },
     {
-      "method": "Wharf.Push.Progress",
-      "doc": "Periodic progress update emitted while a Wharf.Push is in flight.",
+      "method": "Publish.Push.Progress",
+      "doc": "Periodic progress update emitted while a Publish.Push is in flight.",
       "params": {
         "fields": [
           {
@@ -4402,7 +4402,7 @@
       ]
     },
     {
-      "name": "WharfPushResult",
+      "name": "PublishPushResult",
       "doc": "",
       "fields": [
         {
@@ -4423,7 +4423,7 @@
       ]
     },
     {
-      "name": "WharfPushPreviewResult",
+      "name": "PublishPushPreviewResult",
       "doc": "",
       "fields": [
         {
@@ -4449,18 +4449,18 @@
         {
           "name": "comparison",
           "doc": "Per-entry change counts (files, dirs, symlinks combined).",
-          "type": "WharfPushComparison"
+          "type": "PublishPushComparison"
         },
         {
           "name": "topChangedFiles",
           "doc": "Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size\ndescending. Dirs and symlinks are excluded — they have no meaningful\nsize. Empty when nothing changed.",
-          "type": "WharfPushPreviewEntry[]"
+          "type": "PublishPushPreviewEntry[]"
         }
       ]
     },
     {
-      "name": "WharfPushPreviewEntry",
-      "doc": "WharfPushPreviewEntry is a single row in the \"biggest changes\" listing\nemitted with a push preview.",
+      "name": "PublishPushPreviewEntry",
+      "doc": "PublishPushPreviewEntry is a single row in the \"biggest changes\" listing\nemitted with a push preview.",
       "fields": [
         {
           "name": "path",
@@ -4480,8 +4480,8 @@
       ]
     },
     {
-      "name": "WharfPushComparison",
-      "doc": "WharfPushComparison summarises how the source compares to the channel's\nprevious build. Counts cover files, dirs, and symlinks together; byte\nsums only reflect file sizes — dirs and symlinks contribute zero. New /\nModified / Same byte sums are taken from the source side; Deleted bytes\nare taken from the previous build (those entries don't exist in source).",
+      "name": "PublishPushComparison",
+      "doc": "PublishPushComparison summarises how the source compares to the channel's\nprevious build. Counts cover files, dirs, and symlinks together; byte\nsums only reflect file sizes — dirs and symlinks contribute zero. New /\nModified / Same byte sums are taken from the source side; Deleted bytes\nare taken from the previous build (those entries don't exist in source).",
       "fields": [
         {
           "name": "new",
@@ -4526,19 +4526,19 @@
       ]
     },
     {
-      "name": "WharfListChannelsResult",
+      "name": "PublishListChannelsResult",
       "doc": "",
       "fields": [
         {
           "name": "channels",
           "doc": "Channels keyed by name",
-          "type": "{ [key: string]: WharfChannel }"
+          "type": "{ [key: string]: PublishChannel }"
         }
       ]
     },
     {
-      "name": "WharfChannel",
-      "doc": "WharfChannel mirrors itchio.Channel — defined here so generous picks it\nup for the butlerd spec / TS bindings (the itchio.Channel definition lives\nin go-itchio/endpoints_wharf.go, which is not part of the assimilated set).",
+      "name": "PublishChannel",
+      "doc": "PublishChannel mirrors itchio.Channel — defined here so generous picks it\nup for the butlerd spec / TS bindings (the itchio.Channel definition lives\nin go-itchio/endpoints_wharf.go, which is not part of the assimilated set).",
       "fields": [
         {
           "name": "name",
@@ -4568,18 +4568,18 @@
       ]
     },
     {
-      "name": "WharfGetChannelResult",
+      "name": "PublishGetChannelResult",
       "doc": "",
       "fields": [
         {
           "name": "channel",
           "doc": "",
-          "type": "WharfChannel"
+          "type": "PublishChannel"
         }
       ]
     },
     {
-      "name": "WharfGetBuildResult",
+      "name": "PublishGetBuildResult",
       "doc": "",
       "fields": [
         {
@@ -4590,7 +4590,7 @@
       ]
     },
     {
-      "name": "WharfBuildTotals",
+      "name": "PublishBuildTotals",
       "doc": "Per-state counts plus editable project count, so the client can render\nfilter-tab badges (All / Live / Processing / Failed) without re-querying.",
       "fields": [
         {
@@ -4621,7 +4621,7 @@
       ]
     },
     {
-      "name": "WharfListBuildsResult",
+      "name": "PublishListBuildsResult",
       "doc": "",
       "fields": [
         {
@@ -4642,7 +4642,7 @@
         {
           "name": "totals",
           "doc": "Counts across the unfiltered set, for tab badges. Only populated when\nrequested with includeTotals.",
-          "type": "WharfBuildTotals"
+          "type": "PublishBuildTotals"
         }
       ]
     },

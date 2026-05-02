@@ -3724,22 +3724,22 @@ var TestDouble *TestDoubleType
 
 
 //==============================
-// Wharf
+// Publish
 //==============================
 
-// Wharf.Push (Request)
+// Publish.Push (Request)
 
-type WharfPushType struct {}
+type PublishPushType struct {}
 
-var _ RequestMessage = (*WharfPushType)(nil)
+var _ RequestMessage = (*PublishPushType)(nil)
 
-func (r *WharfPushType) Method() string {
-  return "Wharf.Push"
+func (r *PublishPushType) Method() string {
+  return "Publish.Push"
 }
 
-func (r *WharfPushType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfPushParams) (*butlerd.WharfPushResult, error)) {
-  router.Register("Wharf.Push", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfPushParams
+func (r *PublishPushType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishPushParams) (*butlerd.PublishPushResult, error)) {
+  router.Register("Publish.Push", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishPushParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3753,33 +3753,33 @@ func (r *WharfPushType) Register(router router, f func(*butlerd.RequestContext, 
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.Push")
+    	return nil, errors.New("internal error: nil result for Publish.Push")
     }
     return res, nil
   })
 }
 
-func (r *WharfPushType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.WharfPushResult, error) {
-  var result butlerd.WharfPushResult
-  err := rc.Call("Wharf.Push", params, &result)
+func (r *PublishPushType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishPushParams) (*butlerd.PublishPushResult, error) {
+  var result butlerd.PublishPushResult
+  err := rc.Call("Publish.Push", params, &result)
   return &result, err
 }
 
-var WharfPush *WharfPushType
+var PublishPush *PublishPushType
 
-// Wharf.PushPreview (Request)
+// Publish.PushPreview (Request)
 
-type WharfPushPreviewType struct {}
+type PublishPushPreviewType struct {}
 
-var _ RequestMessage = (*WharfPushPreviewType)(nil)
+var _ RequestMessage = (*PublishPushPreviewType)(nil)
 
-func (r *WharfPushPreviewType) Method() string {
-  return "Wharf.PushPreview"
+func (r *PublishPushPreviewType) Method() string {
+  return "Publish.PushPreview"
 }
 
-func (r *WharfPushPreviewType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error)) {
-  router.Register("Wharf.PushPreview", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfPushPreviewParams
+func (r *PublishPushPreviewType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishPushPreviewParams) (*butlerd.PublishPushPreviewResult, error)) {
+  router.Register("Publish.PushPreview", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishPushPreviewParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3793,37 +3793,37 @@ func (r *WharfPushPreviewType) Register(router router, f func(*butlerd.RequestCo
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.PushPreview")
+    	return nil, errors.New("internal error: nil result for Publish.PushPreview")
     }
     return res, nil
   })
 }
 
-func (r *WharfPushPreviewType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfPushPreviewParams) (*butlerd.WharfPushPreviewResult, error) {
-  var result butlerd.WharfPushPreviewResult
-  err := rc.Call("Wharf.PushPreview", params, &result)
+func (r *PublishPushPreviewType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishPushPreviewParams) (*butlerd.PublishPushPreviewResult, error) {
+  var result butlerd.PublishPushPreviewResult
+  err := rc.Call("Publish.PushPreview", params, &result)
   return &result, err
 }
 
-var WharfPushPreview *WharfPushPreviewType
+var PublishPushPreview *PublishPushPreviewType
 
-// Wharf.Push.Progress (Notification)
+// Publish.Push.Progress (Notification)
 
-type WharfPushProgressType struct {}
+type PublishPushProgressType struct {}
 
-var _ NotificationMessage = (*WharfPushProgressType)(nil)
+var _ NotificationMessage = (*PublishPushProgressType)(nil)
 
-func (r *WharfPushProgressType) Method() string {
-  return "Wharf.Push.Progress"
+func (r *PublishPushProgressType) Method() string {
+  return "Publish.Push.Progress"
 }
 
-func (r *WharfPushProgressType) Notify(rc *butlerd.RequestContext, params butlerd.WharfPushProgressNotification) (error) {
-  return rc.Notify("Wharf.Push.Progress", params)
+func (r *PublishPushProgressType) Notify(rc *butlerd.RequestContext, params butlerd.PublishPushProgressNotification) (error) {
+  return rc.Notify("Publish.Push.Progress", params)
 }
 
-func (r *WharfPushProgressType) Register(router router, f func(butlerd.WharfPushProgressNotification)) {
-  router.RegisterNotification("Wharf.Push.Progress", func (notif jsonrpc2.Notification) {
-    var params butlerd.WharfPushProgressNotification
+func (r *PublishPushProgressType) Register(router router, f func(butlerd.PublishPushProgressNotification)) {
+  router.RegisterNotification("Publish.Push.Progress", func (notif jsonrpc2.Notification) {
+    var params butlerd.PublishPushProgressNotification
     if notif.Params != nil {
       err := json.Unmarshal(*notif.Params, &params)
       if err != nil {
@@ -3834,21 +3834,21 @@ func (r *WharfPushProgressType) Register(router router, f func(butlerd.WharfPush
   })
 }
 
-var WharfPushProgress *WharfPushProgressType
+var PublishPushProgress *PublishPushProgressType
 
-// Wharf.ListChannels (Request)
+// Publish.ListChannels (Request)
 
-type WharfListChannelsType struct {}
+type PublishListChannelsType struct {}
 
-var _ RequestMessage = (*WharfListChannelsType)(nil)
+var _ RequestMessage = (*PublishListChannelsType)(nil)
 
-func (r *WharfListChannelsType) Method() string {
-  return "Wharf.ListChannels"
+func (r *PublishListChannelsType) Method() string {
+  return "Publish.ListChannels"
 }
 
-func (r *WharfListChannelsType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfListChannelsParams) (*butlerd.WharfListChannelsResult, error)) {
-  router.Register("Wharf.ListChannels", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfListChannelsParams
+func (r *PublishListChannelsType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishListChannelsParams) (*butlerd.PublishListChannelsResult, error)) {
+  router.Register("Publish.ListChannels", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishListChannelsParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3862,33 +3862,33 @@ func (r *WharfListChannelsType) Register(router router, f func(*butlerd.RequestC
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.ListChannels")
+    	return nil, errors.New("internal error: nil result for Publish.ListChannels")
     }
     return res, nil
   })
 }
 
-func (r *WharfListChannelsType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfListChannelsParams) (*butlerd.WharfListChannelsResult, error) {
-  var result butlerd.WharfListChannelsResult
-  err := rc.Call("Wharf.ListChannels", params, &result)
+func (r *PublishListChannelsType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishListChannelsParams) (*butlerd.PublishListChannelsResult, error) {
+  var result butlerd.PublishListChannelsResult
+  err := rc.Call("Publish.ListChannels", params, &result)
   return &result, err
 }
 
-var WharfListChannels *WharfListChannelsType
+var PublishListChannels *PublishListChannelsType
 
-// Wharf.GetChannel (Request)
+// Publish.GetChannel (Request)
 
-type WharfGetChannelType struct {}
+type PublishGetChannelType struct {}
 
-var _ RequestMessage = (*WharfGetChannelType)(nil)
+var _ RequestMessage = (*PublishGetChannelType)(nil)
 
-func (r *WharfGetChannelType) Method() string {
-  return "Wharf.GetChannel"
+func (r *PublishGetChannelType) Method() string {
+  return "Publish.GetChannel"
 }
 
-func (r *WharfGetChannelType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfGetChannelParams) (*butlerd.WharfGetChannelResult, error)) {
-  router.Register("Wharf.GetChannel", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfGetChannelParams
+func (r *PublishGetChannelType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishGetChannelParams) (*butlerd.PublishGetChannelResult, error)) {
+  router.Register("Publish.GetChannel", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishGetChannelParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3902,33 +3902,33 @@ func (r *WharfGetChannelType) Register(router router, f func(*butlerd.RequestCon
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.GetChannel")
+    	return nil, errors.New("internal error: nil result for Publish.GetChannel")
     }
     return res, nil
   })
 }
 
-func (r *WharfGetChannelType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfGetChannelParams) (*butlerd.WharfGetChannelResult, error) {
-  var result butlerd.WharfGetChannelResult
-  err := rc.Call("Wharf.GetChannel", params, &result)
+func (r *PublishGetChannelType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishGetChannelParams) (*butlerd.PublishGetChannelResult, error) {
+  var result butlerd.PublishGetChannelResult
+  err := rc.Call("Publish.GetChannel", params, &result)
   return &result, err
 }
 
-var WharfGetChannel *WharfGetChannelType
+var PublishGetChannel *PublishGetChannelType
 
-// Wharf.GetBuild (Request)
+// Publish.GetBuild (Request)
 
-type WharfGetBuildType struct {}
+type PublishGetBuildType struct {}
 
-var _ RequestMessage = (*WharfGetBuildType)(nil)
+var _ RequestMessage = (*PublishGetBuildType)(nil)
 
-func (r *WharfGetBuildType) Method() string {
-  return "Wharf.GetBuild"
+func (r *PublishGetBuildType) Method() string {
+  return "Publish.GetBuild"
 }
 
-func (r *WharfGetBuildType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfGetBuildParams) (*butlerd.WharfGetBuildResult, error)) {
-  router.Register("Wharf.GetBuild", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfGetBuildParams
+func (r *PublishGetBuildType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishGetBuildParams) (*butlerd.PublishGetBuildResult, error)) {
+  router.Register("Publish.GetBuild", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishGetBuildParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3942,33 +3942,33 @@ func (r *WharfGetBuildType) Register(router router, f func(*butlerd.RequestConte
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.GetBuild")
+    	return nil, errors.New("internal error: nil result for Publish.GetBuild")
     }
     return res, nil
   })
 }
 
-func (r *WharfGetBuildType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfGetBuildParams) (*butlerd.WharfGetBuildResult, error) {
-  var result butlerd.WharfGetBuildResult
-  err := rc.Call("Wharf.GetBuild", params, &result)
+func (r *PublishGetBuildType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishGetBuildParams) (*butlerd.PublishGetBuildResult, error) {
+  var result butlerd.PublishGetBuildResult
+  err := rc.Call("Publish.GetBuild", params, &result)
   return &result, err
 }
 
-var WharfGetBuild *WharfGetBuildType
+var PublishGetBuild *PublishGetBuildType
 
-// Wharf.ListBuilds (Request)
+// Publish.ListBuilds (Request)
 
-type WharfListBuildsType struct {}
+type PublishListBuildsType struct {}
 
-var _ RequestMessage = (*WharfListBuildsType)(nil)
+var _ RequestMessage = (*PublishListBuildsType)(nil)
 
-func (r *WharfListBuildsType) Method() string {
-  return "Wharf.ListBuilds"
+func (r *PublishListBuildsType) Method() string {
+  return "Publish.ListBuilds"
 }
 
-func (r *WharfListBuildsType) Register(router router, f func(*butlerd.RequestContext, butlerd.WharfListBuildsParams) (*butlerd.WharfListBuildsResult, error)) {
-  router.Register("Wharf.ListBuilds", func (rc *butlerd.RequestContext) (interface{}, error) {
-    var params butlerd.WharfListBuildsParams
+func (r *PublishListBuildsType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishListBuildsParams) (*butlerd.PublishListBuildsResult, error)) {
+  router.Register("Publish.ListBuilds", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishListBuildsParams
     err := json.Unmarshal(*rc.Params, &params)
     if err != nil {
     	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
@@ -3982,19 +3982,19 @@ func (r *WharfListBuildsType) Register(router router, f func(*butlerd.RequestCon
     	return nil, err
     }
     if res == nil {
-    	return nil, errors.New("internal error: nil result for Wharf.ListBuilds")
+    	return nil, errors.New("internal error: nil result for Publish.ListBuilds")
     }
     return res, nil
   })
 }
 
-func (r *WharfListBuildsType) TestCall(rc *butlerd.RequestContext, params butlerd.WharfListBuildsParams) (*butlerd.WharfListBuildsResult, error) {
-  var result butlerd.WharfListBuildsResult
-  err := rc.Call("Wharf.ListBuilds", params, &result)
+func (r *PublishListBuildsType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishListBuildsParams) (*butlerd.PublishListBuildsResult, error) {
+  var result butlerd.PublishListBuildsResult
+  err := rc.Call("Publish.ListBuilds", params, &result)
   return &result, err
 }
 
-var WharfListBuilds *WharfListBuildsType
+var PublishListBuilds *PublishListBuildsType
 
 
 func EnsureAllRequests(router *butlerd.Router) {
@@ -4063,11 +4063,11 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["CleanDownloads.Apply"]; !ok { panic("missing request handler for (CleanDownloads.Apply)") }
   if _, ok := router.Handlers["System.StatFS"]; !ok { panic("missing request handler for (System.StatFS)") }
   if _, ok := router.Handlers["Test.DoubleTwice"]; !ok { panic("missing request handler for (Test.DoubleTwice)") }
-  if _, ok := router.Handlers["Wharf.Push"]; !ok { panic("missing request handler for (Wharf.Push)") }
-  if _, ok := router.Handlers["Wharf.PushPreview"]; !ok { panic("missing request handler for (Wharf.PushPreview)") }
-  if _, ok := router.Handlers["Wharf.ListChannels"]; !ok { panic("missing request handler for (Wharf.ListChannels)") }
-  if _, ok := router.Handlers["Wharf.GetChannel"]; !ok { panic("missing request handler for (Wharf.GetChannel)") }
-  if _, ok := router.Handlers["Wharf.GetBuild"]; !ok { panic("missing request handler for (Wharf.GetBuild)") }
-  if _, ok := router.Handlers["Wharf.ListBuilds"]; !ok { panic("missing request handler for (Wharf.ListBuilds)") }
+  if _, ok := router.Handlers["Publish.Push"]; !ok { panic("missing request handler for (Publish.Push)") }
+  if _, ok := router.Handlers["Publish.PushPreview"]; !ok { panic("missing request handler for (Publish.PushPreview)") }
+  if _, ok := router.Handlers["Publish.ListChannels"]; !ok { panic("missing request handler for (Publish.ListChannels)") }
+  if _, ok := router.Handlers["Publish.GetChannel"]; !ok { panic("missing request handler for (Publish.GetChannel)") }
+  if _, ok := router.Handlers["Publish.GetBuild"]; !ok { panic("missing request handler for (Publish.GetBuild)") }
+  if _, ok := router.Handlers["Publish.ListBuilds"]; !ok { panic("missing request handler for (Publish.ListBuilds)") }
 }
 

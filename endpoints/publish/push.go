@@ -1,4 +1,4 @@
-package wharf
+package publish
 
 import (
 	"bufio"
@@ -19,14 +19,14 @@ import (
 // Fields not relevant to a given run stay zero — the caller picks what it
 // needs.
 type pushResult struct {
-	BuildID         int64                          `json:"buildId"`
-	Channel         string                         `json:"channel"`
-	Skipped         bool                           `json:"skipped"`
-	HasParent       bool                           `json:"hasParent"`
-	ParentBuildID   int64                          `json:"parentBuildId"`
-	SourceSize      int64                          `json:"sourceSize"`
-	Comparison      *butlerd.WharfPushComparison   `json:"comparison,omitempty"`
-	TopChangedFiles []butlerd.WharfPushPreviewEntry `json:"topChangedFiles,omitempty"`
+	BuildID         int64                             `json:"buildId"`
+	Channel         string                            `json:"channel"`
+	Skipped         bool                              `json:"skipped"`
+	HasParent       bool                              `json:"hasParent"`
+	ParentBuildID   int64                             `json:"parentBuildId"`
+	SourceSize      int64                             `json:"sourceSize"`
+	Comparison      *butlerd.PublishPushComparison    `json:"comparison,omitempty"`
+	TopChangedFiles []butlerd.PublishPushPreviewEntry `json:"topChangedFiles,omitempty"`
 }
 
 // pushEvent is a discriminated union of every JSON message the butler push
@@ -48,7 +48,7 @@ type pushEvent struct {
 // Push spawns a `butler push` worker subprocess and brokers its output as
 // butlerd notifications. The worker is killed if the RPC's context is
 // cancelled (via exec.CommandContext).
-func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.WharfPushResult, error) {
+func Push(rc *butlerd.RequestContext, params butlerd.PublishPushParams) (*butlerd.PublishPushResult, error) {
 	args := buildPushArgs(params)
 	source := params.Source
 	if source == "" {
@@ -63,7 +63,7 @@ func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.
 	if channel == "" {
 		channel = params.Channel
 	}
-	return &butlerd.WharfPushResult{
+	return &butlerd.PublishPushResult{
 		BuildID: result.BuildID,
 		Channel: channel,
 		Skipped: result.Skipped,
@@ -71,7 +71,7 @@ func Push(rc *butlerd.RequestContext, params butlerd.WharfPushParams) (*butlerd.
 }
 
 // runPushWorker handles the shared subprocess lifecycle for both
-// Wharf.Push and Wharf.PushPreview: spawn `butler` with the given args,
+// Publish.Push and Publish.PushPreview: spawn `butler` with the given args,
 // stream JSON events as butlerd notifications, return the final result
 // event. pushSource is forwarded as BUTLER_PUSH_SOURCE so the worker can
 // tag the originating client when calling the API; pass "" to skip
@@ -128,9 +128,9 @@ func runPushWorker(rc *butlerd.RequestContext, profileID int64, args []string, p
 }
 
 // buildPushArgs only emits flags that diverge from butler's CLI defaults,
-// so a zero-valued WharfPushParams produces the same behaviour as a bare
+// so a zero-valued PublishPushParams produces the same behaviour as a bare
 // `butler push <src> <target> --json`.
-func buildPushArgs(p butlerd.WharfPushParams) []string {
+func buildPushArgs(p butlerd.PublishPushParams) []string {
 	specStr := fmt.Sprintf("%s:%s", p.Target, p.Channel)
 	args := []string{"push", p.Src, specStr, "--json"}
 
@@ -169,7 +169,7 @@ func scanStdout(rc *butlerd.RequestContext, stdout io.Reader, result *pushResult
 		}
 		switch ev.Type {
 		case "progress":
-			_ = messages.WharfPushProgress.Notify(rc, butlerd.WharfPushProgressNotification{
+			_ = messages.PublishPushProgress.Notify(rc, butlerd.PublishPushProgressNotification{
 				Progress:      ev.Progress,
 				ETA:           ev.ETA,
 				BPS:           ev.BPS,

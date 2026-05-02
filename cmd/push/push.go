@@ -445,7 +445,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 // pushResult emits the final structured `result` event for a `butler push`
 // run. The shape matches what the CLI has always emitted; butlerd's
-// Wharf.Push parser ignores fields it doesn't surface in WharfPushResult.
+// Publish.Push parser ignores fields it doesn't surface in PublishPushResult.
 func pushResult(buildID int64, channel string, dryRun bool, skipped bool, reason string) {
 	comm.Result(map[string]interface{}{
 		"buildId": buildID,

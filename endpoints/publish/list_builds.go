@@ -1,4 +1,4 @@
-package wharf
+package publish
 
 import (
 	"github.com/itchio/butler/butlerd"
@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ListBuilds(rc *butlerd.RequestContext, params butlerd.WharfListBuildsParams) (*butlerd.WharfListBuildsResult, error) {
+func ListBuilds(rc *butlerd.RequestContext, params butlerd.PublishListBuildsParams) (*butlerd.PublishListBuildsResult, error) {
 	_, client := rc.ProfileClient(params.ProfileID)
 
 	res, err := client.ListProfileBuilds(rc.Ctx, itchio.ListProfileBuildsParams{
@@ -36,13 +36,13 @@ func ListBuilds(rc *butlerd.RequestContext, params butlerd.WharfListBuildsParams
 		b.Upload = uploads[b.UploadID]
 	}
 
-	out := &butlerd.WharfListBuildsResult{
+	out := &butlerd.PublishListBuildsResult{
 		Builds:  res.Builds,
 		Page:    res.Page,
 		PerPage: res.PerPage,
 	}
 	if res.Totals != nil {
-		out.Totals = &butlerd.WharfBuildTotals{
+		out.Totals = &butlerd.PublishBuildTotals{
 			All:          res.Totals.All,
 			Live:         res.Totals.Live,
 			Processing:   res.Totals.Processing,

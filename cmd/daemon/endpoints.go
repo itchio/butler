@@ -11,12 +11,12 @@ import (
 	"github.com/itchio/butler/endpoints/launch"
 	"github.com/itchio/butler/endpoints/meta"
 	"github.com/itchio/butler/endpoints/profile"
+	"github.com/itchio/butler/endpoints/publish"
 	"github.com/itchio/butler/endpoints/search"
 	"github.com/itchio/butler/endpoints/system"
 	"github.com/itchio/butler/endpoints/tests"
 	"github.com/itchio/butler/endpoints/update"
 	"github.com/itchio/butler/endpoints/utilities"
-	"github.com/itchio/butler/endpoints/wharf"
 	"github.com/itchio/butler/mansion"
 )
 
@@ -41,7 +41,7 @@ func GetRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.R
 	downloads.Register(mainRouter)
 	search.Register(mainRouter)
 	system.Register(mainRouter)
-	wharf.Register(mainRouter)
+	publish.Register(mainRouter)
 
 	messages.EnsureAllRequests(mainRouter)
 

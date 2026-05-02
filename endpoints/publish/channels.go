@@ -1,4 +1,4 @@
-package wharf
+package publish
 
 import (
 	"github.com/itchio/butler/butlerd"
@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ListChannels(rc *butlerd.RequestContext, params butlerd.WharfListChannelsParams) (*butlerd.WharfListChannelsResult, error) {
+func ListChannels(rc *butlerd.RequestContext, params butlerd.PublishListChannelsParams) (*butlerd.PublishListChannelsResult, error) {
 	_, client := rc.ProfileClient(params.ProfileID)
 
 	res, err := client.ListChannels(rc.Ctx, params.Target)
@@ -14,16 +14,16 @@ func ListChannels(rc *butlerd.RequestContext, params butlerd.WharfListChannelsPa
 		return nil, errors.Wrap(err, "listing channels")
 	}
 
-	out := make(map[string]*butlerd.WharfChannel, len(res.Channels))
+	out := make(map[string]*butlerd.PublishChannel, len(res.Channels))
 	for k, ch := range res.Channels {
-		out[k] = toWharfChannel(ch)
+		out[k] = toPublishChannel(ch)
 	}
-	return &butlerd.WharfListChannelsResult{
+	return &butlerd.PublishListChannelsResult{
 		Channels: out,
 	}, nil
 }
 
-func GetChannel(rc *butlerd.RequestContext, params butlerd.WharfGetChannelParams) (*butlerd.WharfGetChannelResult, error) {
+func GetChannel(rc *butlerd.RequestContext, params butlerd.PublishGetChannelParams) (*butlerd.PublishGetChannelResult, error) {
 	_, client := rc.ProfileClient(params.ProfileID)
 
 	res, err := client.GetChannel(rc.Ctx, params.Target, params.Channel)
@@ -31,16 +31,16 @@ func GetChannel(rc *butlerd.RequestContext, params butlerd.WharfGetChannelParams
 		return nil, errors.Wrap(err, "getting channel")
 	}
 
-	return &butlerd.WharfGetChannelResult{
-		Channel: toWharfChannel(res.Channel),
+	return &butlerd.PublishGetChannelResult{
+		Channel: toPublishChannel(res.Channel),
 	}, nil
 }
 
-func toWharfChannel(c *itchio.Channel) *butlerd.WharfChannel {
+func toPublishChannel(c *itchio.Channel) *butlerd.PublishChannel {
 	if c == nil {
 		return nil
 	}
-	return &butlerd.WharfChannel{
+	return &butlerd.PublishChannel{
 		Name:    c.Name,
 		Tags:    c.Tags,
 		Upload:  c.Upload,

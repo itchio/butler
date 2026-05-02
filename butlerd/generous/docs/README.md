@@ -1920,7 +1920,7 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <tr>
 <td><code>stale</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Whether the information was fetched from a stale cache,
+<td><p><span class="tag">Optional</span> Whether the information was fetched from a stale cache,
 and could warrant a refresh if online.</p>
 </td>
 </tr>
@@ -4749,13 +4749,13 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>The build this task is dealing with (if any)</p>
+<td><p><span class="tag">Optional</span> The build this task is dealing with (if any)</p>
 </td>
 </tr>
 <tr>
 <td><code>totalSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Total size in bytes</p>
+<td><p><span class="tag">Optional</span> Total size in bytes</p>
 </td>
 </tr>
 </table>
@@ -4821,7 +4821,7 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <tr>
 <td><code>installResult</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallResult__TypeHint">InstallResult</span></code></td>
-<td><p>If the task installed something, then this contains
+<td><p><span class="tag">Optional</span> If the task installed something, then this contains
 info about the game, upload, build that were installed</p>
 </td>
 </tr>
@@ -7386,18 +7386,18 @@ use <code class="typename"><span class="type">Test.DoubleTwice</span></code> in 
 </div>
 
 
-## Wharf Category
+## Publish Category
 
-### Wharf.Push (client request)
+### Publish.Push (client request)
 
 
 <p>
 <p>Pushes a new build to itch.io for a given target+channel. Heavy lifting
 (walk, diff, upload) runs in a <code>butler push</code> worker subprocess that butlerd
-spawns; butlerd brokers progress over WharfPushProgress notifications and
+spawns; butlerd brokers progress over PublishPushProgress notifications and
 kills the worker if the RPC&rsquo;s context is cancelled.</p>
 
-<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Wharf.PushPreview
+<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Publish.PushPreview
 instead.</p>
 
 </p>
@@ -7505,16 +7505,16 @@ Defaults to &ldquo;butlerd&rdquo; if unset.</p>
 </table>
 
 
-<div id="WharfPushParams__TypeHint" class="tip-content">
-<p>Wharf.Push (client request) <a href="#/?id=wharfpush-client-request">(Go to definition)</a></p>
+<div id="PublishPushParams__TypeHint" class="tip-content">
+<p>Publish.Push (client request) <a href="#/?id=publishpush-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Pushes a new build to itch.io for a given target+channel. Heavy lifting
 (walk, diff, upload) runs in a <code>butler push</code> worker subprocess that butlerd
-spawns; butlerd brokers progress over WharfPushProgress notifications and
+spawns; butlerd brokers progress over PublishPushProgress notifications and
 kills the worker if the RPC&rsquo;s context is cancelled.</p>
 
-<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Wharf.PushPreview
+<p>For a no-side-effects &ldquo;what would change?&rdquo; preview, call Publish.PushPreview
 instead.</p>
 
 </p>
@@ -7569,8 +7569,8 @@ instead.</p>
 </div>
 
 
-<div id="WharfPushResult__TypeHint" class="tip-content">
-<p>WharfPush  <a href="#/?id=wharfpush-">(Go to definition)</a></p>
+<div id="PublishPushResult__TypeHint" class="tip-content">
+<p>PublishPush  <a href="#/?id=publishpush-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7590,7 +7590,7 @@ instead.</p>
 
 </div>
 
-### Wharf.PushPreview (client request)
+### Publish.PushPreview (client request)
 
 
 <p>
@@ -7673,7 +7673,7 @@ in that case every entry in the source is treated as new.</p>
 <tr>
 <td><code>parentBuildId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>ID of the build the preview compared against. Absent when !HasParent.</p>
+<td><p><span class="tag">Optional</span> ID of the build the preview compared against. Absent when !HasParent.</p>
 </td>
 </tr>
 <tr>
@@ -7685,13 +7685,13 @@ context for the comparison summary.</p>
 </tr>
 <tr>
 <td><code>comparison</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WharfPushComparison__TypeHint">WharfPushComparison</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushComparison__TypeHint">PublishPushComparison</span></code></td>
 <td><p>Per-entry change counts (files, dirs, symlinks combined).</p>
 </td>
 </tr>
 <tr>
 <td><code>topChangedFiles</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WharfPushPreviewEntry__TypeHint">WharfPushPreviewEntry</span>[]</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishPushPreviewEntry__TypeHint">PublishPushPreviewEntry</span>[]</code></td>
 <td><p>Up to 20 changed files (NEW, MODIFIED, or DELETED), sorted by size
 descending. Dirs and symlinks are excluded — they have no meaningful
 size. Empty when nothing changed.</p>
@@ -7700,8 +7700,8 @@ size. Empty when nothing changed.</p>
 </table>
 
 
-<div id="WharfPushPreviewParams__TypeHint" class="tip-content">
-<p>Wharf.PushPreview (client request) <a href="#/?id=wharfpushpreview-client-request">(Go to definition)</a></p>
+<div id="PublishPushPreviewParams__TypeHint" class="tip-content">
+<p>Publish.PushPreview (client request) <a href="#/?id=publishpushpreview-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Reports what would change if Src were pushed to the given channel,
@@ -7744,8 +7744,8 @@ cost as the diffing pass of a real push.</p>
 </div>
 
 
-<div id="WharfPushPreviewResult__TypeHint" class="tip-content">
-<p>WharfPushPreview  <a href="#/?id=wharfpushpreview-">(Go to definition)</a></p>
+<div id="PublishPushPreviewResult__TypeHint" class="tip-content">
+<p>PublishPushPreview  <a href="#/?id=publishpushpreview-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -7767,21 +7767,21 @@ cost as the diffing pass of a real push.</p>
 </tr>
 <tr>
 <td><code>comparison</code></td>
-<td><code class="typename"><span class="type">WharfPushComparison</span></code></td>
+<td><code class="typename"><span class="type">PublishPushComparison</span></code></td>
 </tr>
 <tr>
 <td><code>topChangedFiles</code></td>
-<td><code class="typename"><span class="type">WharfPushPreviewEntry</span>[]</code></td>
+<td><code class="typename"><span class="type">PublishPushPreviewEntry</span>[]</code></td>
 </tr>
 </table>
 
 </div>
 
-### Wharf.Push.Progress (notification)
+### Publish.Push.Progress (notification)
 
 
 <p>
-<p>Periodic progress update emitted while a Wharf.Push is in flight.</p>
+<p>Periodic progress update emitted while a Publish.Push is in flight.</p>
 
 </p>
 
@@ -7843,11 +7843,11 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 </table>
 
 
-<div id="WharfPushProgressNotification__TypeHint" class="tip-content">
-<p>Wharf.Push.Progress (notification) <a href="#/?id=wharfpushprogress-notification">(Go to definition)</a></p>
+<div id="PublishPushProgressNotification__TypeHint" class="tip-content">
+<p>Publish.Push.Progress (notification) <a href="#/?id=publishpushprogress-notification">(Go to definition)</a></p>
 
 <p>
-<p>Periodic progress update emitted while a Wharf.Push is in flight.</p>
+<p>Periodic progress update emitted while a Publish.Push is in flight.</p>
 
 </p>
 
@@ -7884,7 +7884,7 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 
 </div>
 
-### Wharf.ListChannels (client request)
+### Publish.ListChannels (client request)
 
 
 <p>
@@ -7920,15 +7920,15 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <table class="field-table">
 <tr>
 <td><code>channels</code></td>
-<td><code class="typename"><span class="type builtin-type">{ [key: string]: WharfChannel }</span></code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: PublishChannel }</span></code></td>
 <td><p>Channels keyed by name</p>
 </td>
 </tr>
 </table>
 
 
-<div id="WharfListChannelsParams__TypeHint" class="tip-content">
-<p>Wharf.ListChannels (client request) <a href="#/?id=wharflistchannels-client-request">(Go to definition)</a></p>
+<div id="PublishListChannelsParams__TypeHint" class="tip-content">
+<p>Publish.ListChannels (client request) <a href="#/?id=publishlistchannels-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Lists all channels for a given push target via the wharf API.</p>
@@ -7949,20 +7949,20 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 </div>
 
 
-<div id="WharfListChannelsResult__TypeHint" class="tip-content">
-<p>WharfListChannels  <a href="#/?id=wharflistchannels-">(Go to definition)</a></p>
+<div id="PublishListChannelsResult__TypeHint" class="tip-content">
+<p>PublishListChannels  <a href="#/?id=publishlistchannels-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>channels</code></td>
-<td><code class="typename"><span class="type builtin-type">{ [key: string]: WharfChannel }</span></code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: PublishChannel }</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### Wharf.GetChannel (client request)
+### Publish.GetChannel (client request)
 
 
 <p>
@@ -8003,14 +8003,14 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <table class="field-table">
 <tr>
 <td><code>channel</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WharfChannel__TypeHint">WharfChannel</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishChannel__TypeHint">PublishChannel</span></code></td>
 <td></td>
 </tr>
 </table>
 
 
-<div id="WharfGetChannelParams__TypeHint" class="tip-content">
-<p>Wharf.GetChannel (client request) <a href="#/?id=wharfgetchannel-client-request">(Go to definition)</a></p>
+<div id="PublishGetChannelParams__TypeHint" class="tip-content">
+<p>Publish.GetChannel (client request) <a href="#/?id=publishgetchannel-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Returns information about a single channel.</p>
@@ -8035,20 +8035,20 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 </div>
 
 
-<div id="WharfGetChannelResult__TypeHint" class="tip-content">
-<p>WharfGetChannel  <a href="#/?id=wharfgetchannel-">(Go to definition)</a></p>
+<div id="PublishGetChannelResult__TypeHint" class="tip-content">
+<p>PublishGetChannel  <a href="#/?id=publishgetchannel-">(Go to definition)</a></p>
 
 
 <table class="field-table">
 <tr>
 <td><code>channel</code></td>
-<td><code class="typename"><span class="type">WharfChannel</span></code></td>
+<td><code class="typename"><span class="type">PublishChannel</span></code></td>
 </tr>
 </table>
 
 </div>
 
-### Wharf.GetBuild (client request)
+### Publish.GetBuild (client request)
 
 
 <p>
@@ -8090,8 +8090,8 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 </table>
 
 
-<div id="WharfGetBuildParams__TypeHint" class="tip-content">
-<p>Wharf.GetBuild (client request) <a href="#/?id=wharfgetbuild-client-request">(Go to definition)</a></p>
+<div id="PublishGetBuildParams__TypeHint" class="tip-content">
+<p>Publish.GetBuild (client request) <a href="#/?id=publishgetbuild-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Returns information about a single build by ID.</p>
@@ -8112,8 +8112,8 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 </div>
 
 
-<div id="WharfGetBuildResult__TypeHint" class="tip-content">
-<p>WharfGetBuild  <a href="#/?id=wharfgetbuild-">(Go to definition)</a></p>
+<div id="PublishGetBuildResult__TypeHint" class="tip-content">
+<p>PublishGetBuild  <a href="#/?id=publishgetbuild-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8125,7 +8125,7 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 
 </div>
 
-### Wharf.ListBuilds (client request)
+### Publish.ListBuilds (client request)
 
 
 <p>
@@ -8200,7 +8200,7 @@ nested game and upload context.</p>
 </tr>
 <tr>
 <td><code>totals</code></td>
-<td><code class="typename"><span class="type" data-tip-selector="#WharfBuildTotals__TypeHint">WharfBuildTotals</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishBuildTotals__TypeHint">PublishBuildTotals</span></code></td>
 <td><p><span class="tag">Optional</span> Counts across the unfiltered set, for tab badges. Only populated when
 requested with includeTotals.</p>
 </td>
@@ -8208,8 +8208,8 @@ requested with includeTotals.</p>
 </table>
 
 
-<div id="WharfListBuildsParams__TypeHint" class="tip-content">
-<p>Wharf.ListBuilds (client request) <a href="#/?id=wharflistbuilds-client-request">(Go to definition)</a></p>
+<div id="PublishListBuildsParams__TypeHint" class="tip-content">
+<p>Publish.ListBuilds (client request) <a href="#/?id=publishlistbuilds-client-request">(Go to definition)</a></p>
 
 <p>
 <p>Lists builds across every game the current user develops or admins,
@@ -8245,8 +8245,8 @@ reflects the server&rsquo;s current view.</p>
 </div>
 
 
-<div id="WharfListBuildsResult__TypeHint" class="tip-content">
-<p>WharfListBuilds  <a href="#/?id=wharflistbuilds-">(Go to definition)</a></p>
+<div id="PublishListBuildsResult__TypeHint" class="tip-content">
+<p>PublishListBuilds  <a href="#/?id=publishlistbuilds-">(Go to definition)</a></p>
 
 
 <table class="field-table">
@@ -8264,7 +8264,7 @@ reflects the server&rsquo;s current view.</p>
 </tr>
 <tr>
 <td><code>totals</code></td>
-<td><code class="typename"><span class="type">WharfBuildTotals</span></code></td>
+<td><code class="typename"><span class="type">PublishBuildTotals</span></code></td>
 </tr>
 </table>
 
@@ -8470,19 +8470,19 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>cover</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Game cover</p>
+<td><p><span class="tag">Optional</span> Game cover</p>
 </td>
 </tr>
 <tr>
 <td><code>owned</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>True if owned</p>
+<td><p><span class="tag">Optional</span> True if owned</p>
 </td>
 </tr>
 <tr>
 <td><code>installedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Non-nil if installed (has caves)</p>
+<td><p><span class="tag">Optional</span> Non-nil if installed (has caves)</p>
 </td>
 </tr>
 </table>
@@ -9155,7 +9155,7 @@ is moved.</p>
 <tr>
 <td><code>pinned</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>If true, this cave is ignored while checking for updates</p>
+<td><p><span class="tag">Optional</span> If true, this cave is ignored while checking for updates</p>
 </td>
 </tr>
 </table>
@@ -9297,7 +9297,7 @@ nil = inherit global, true = force on, false = force off</p>
 <tr>
 <td><code>sizeInfo</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSizeInfo__TypeHint">InstallLocationSizeInfo</span></code></td>
-<td><p>Information about the size used and available at this install location</p>
+<td><p><span class="tag">Optional</span> Information about the size used and available at this install location</p>
 </td>
 </tr>
 </table>
@@ -9463,17 +9463,20 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>errorMessage</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>errorCode</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -10481,11 +10484,11 @@ can be part of an issue report if something goes wrong.</p>
 
 </div>
 
-### WharfPushPreviewEntry (struct)
+### PublishPushPreviewEntry (struct)
 
 
 <p>
-<p>WharfPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
+<p>PublishPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
 emitted with a push preview.</p>
 
 </p>
@@ -10519,11 +10522,11 @@ build (since the entry no longer exists in source); for &ldquo;new&rdquo; and
 </table>
 
 
-<div id="WharfPushPreviewEntry__TypeHint" class="tip-content">
-<p>WharfPushPreviewEntry (struct) <a href="#/?id=wharfpushpreviewentry-struct">(Go to definition)</a></p>
+<div id="PublishPushPreviewEntry__TypeHint" class="tip-content">
+<p>PublishPushPreviewEntry (struct) <a href="#/?id=publishpushpreviewentry-struct">(Go to definition)</a></p>
 
 <p>
-<p>WharfPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
+<p>PublishPushPreviewEntry is a single row in the &ldquo;biggest changes&rdquo; listing
 emitted with a push preview.</p>
 
 </p>
@@ -10545,11 +10548,11 @@ emitted with a push preview.</p>
 
 </div>
 
-### WharfPushComparison (struct)
+### PublishPushComparison (struct)
 
 
 <p>
-<p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
+<p>PublishPushComparison summarises how the source compares to the channel&rsquo;s
 previous build. Counts cover files, dirs, and symlinks together; byte
 sums only reflect file sizes — dirs and symlinks contribute zero. New /
 Modified / Same byte sums are taken from the source side; Deleted bytes
@@ -10606,11 +10609,11 @@ are taken from the previous build (those entries don&rsquo;t exist in source).</
 </table>
 
 
-<div id="WharfPushComparison__TypeHint" class="tip-content">
-<p>WharfPushComparison (struct) <a href="#/?id=wharfpushcomparison-struct">(Go to definition)</a></p>
+<div id="PublishPushComparison__TypeHint" class="tip-content">
+<p>PublishPushComparison (struct) <a href="#/?id=publishpushcomparison-struct">(Go to definition)</a></p>
 
 <p>
-<p>WharfPushComparison summarises how the source compares to the channel&rsquo;s
+<p>PublishPushComparison summarises how the source compares to the channel&rsquo;s
 previous build. Counts cover files, dirs, and symlinks together; byte
 sums only reflect file sizes — dirs and symlinks contribute zero. New /
 Modified / Same byte sums are taken from the source side; Deleted bytes
@@ -10655,11 +10658,11 @@ are taken from the previous build (those entries don&rsquo;t exist in source).</
 
 </div>
 
-### WharfChannel (struct)
+### PublishChannel (struct)
 
 
 <p>
-<p>WharfChannel mirrors itchio.Channel — defined here so generous picks it
+<p>PublishChannel mirrors itchio.Channel — defined here so generous picks it
 up for the butlerd spec / TS bindings (the itchio.Channel definition lives
 in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
 
@@ -10704,11 +10707,11 @@ in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
 </table>
 
 
-<div id="WharfChannel__TypeHint" class="tip-content">
-<p>WharfChannel (struct) <a href="#/?id=wharfchannel-struct">(Go to definition)</a></p>
+<div id="PublishChannel__TypeHint" class="tip-content">
+<p>PublishChannel (struct) <a href="#/?id=publishchannel-struct">(Go to definition)</a></p>
 
 <p>
-<p>WharfChannel mirrors itchio.Channel — defined here so generous picks it
+<p>PublishChannel mirrors itchio.Channel — defined here so generous picks it
 up for the butlerd spec / TS bindings (the itchio.Channel definition lives
 in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
 
@@ -10739,7 +10742,7 @@ in go-itchio/endpoints_wharf.go, which is not part of the assimilated set).</p>
 
 </div>
 
-### WharfBuildTotals (struct)
+### PublishBuildTotals (struct)
 
 
 <p>
@@ -10782,8 +10785,8 @@ filter-tab badges (All / Live / Processing / Failed) without re-querying.</p>
 </table>
 
 
-<div id="WharfBuildTotals__TypeHint" class="tip-content">
-<p>WharfBuildTotals (struct) <a href="#/?id=wharfbuildtotals-struct">(Go to definition)</a></p>
+<div id="PublishBuildTotals__TypeHint" class="tip-content">
+<p>PublishBuildTotals (struct) <a href="#/?id=publishbuildtotals-struct">(Go to definition)</a></p>
 
 <p>
 <p>Per-state counts plus editable project count, so the client can render
