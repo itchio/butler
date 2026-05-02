@@ -9,7 +9,7 @@ import (
 func GetBuild(rc *butlerd.RequestContext, params butlerd.PublishGetBuildParams) (*butlerd.PublishGetBuildResult, error) {
 	_, client := rc.ProfileClient(params.ProfileID)
 
-	res, err := client.GetBuild(rc.Ctx, itchio.GetBuildParams{
+	res, err := client.GetWharfBuild(rc.Ctx, itchio.GetWharfBuildParams{
 		BuildID: params.BuildID,
 	})
 	if err != nil {
