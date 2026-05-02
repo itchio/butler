@@ -486,12 +486,15 @@ type GameRecord struct {
 	Title string `json:"title"`
 
 	// Game cover
+	// @optional
 	Cover string `json:"cover,omitempty"`
 
 	// True if owned
+	// @optional
 	Owned bool `json:"owned,omitempty"`
 
 	// Non-nil if installed (has caves)
+	// @optional
 	InstalledAt *time.Time `json:"installedAt,omitempty"`
 }
 
@@ -709,6 +712,7 @@ type FetchDownloadKeysResult struct {
 
 	// Whether the information was fetched from a stale cache,
 	// and could warrant a refresh if online.
+	// @optional
 	Stale bool `json:"stale,omitempty"`
 }
 
@@ -1289,6 +1293,7 @@ type CaveInstallInfo struct {
 	// Absolute path to the install folder
 	InstallFolder string `json:"installFolder"`
 	// If true, this cave is ignored while checking for updates
+	// @optional
 	Pinned bool `json:"pinned,omitempty"`
 }
 
@@ -1322,6 +1327,7 @@ type InstallLocationSummary struct {
 	// Absolute path on disk for this install location
 	Path string `json:"path"`
 	// Information about the size used and available at this install location
+	// @optional
 	SizeInfo *InstallLocationSizeInfo `json:"sizeInfo,omitempty"`
 }
 
@@ -1629,9 +1635,12 @@ type InstallPlanInfo struct {
 	Type      string         `json:"type"`
 	DiskUsage *DiskUsageInfo `json:"diskUsage"`
 
-	Error        string `json:"error,omitempty"`
+	// @optional
+	Error string `json:"error,omitempty"`
+	// @optional
 	ErrorMessage string `json:"errorMessage,omitempty"`
-	ErrorCode    int64  `json:"errorCode,omitempty"`
+	// @optional
+	ErrorCode int64 `json:"errorCode,omitempty"`
 }
 
 type DiskUsageInfo struct {
@@ -1926,8 +1935,10 @@ type TaskStartedNotification struct {
 	// The upload this task is dealing with
 	Upload *itchio.Upload `json:"upload"`
 	// The build this task is dealing with (if any)
+	// @optional
 	Build *itchio.Build `json:"build,omitempty"`
 	// Total size in bytes
+	// @optional
 	TotalSize int64 `json:"totalSize,omitempty"`
 }
 
@@ -1938,6 +1949,7 @@ type TaskSucceededNotification struct {
 	Type TaskType `json:"type"`
 	// If the task installed something, then this contains
 	// info about the game, upload, build that were installed
+	// @optional
 	InstallResult *InstallResult `json:"installResult,omitempty"`
 }
 
