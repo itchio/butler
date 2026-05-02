@@ -7780,6 +7780,60 @@ cost as the diffing pass of a real push.</p>
 
 </div>
 
+### Publish.Push.BuildAssigned (notification)
+
+
+<p>
+<p>Emitted once, as soon as the worker has obtained a build ID from the
+itch.io API (i.e. after CreateBuild succeeds, before any data flows).
+Lets the caller associate its in-flight push with the server-side
+build before the upload completes.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishPushBuildAssignedNotification__TypeHint" class="tip-content">
+<p>Publish.Push.BuildAssigned (notification) <a href="#/?id=publishpushbuildassigned-notification">(Go to definition)</a></p>
+
+<p>
+<p>Emitted once, as soon as the worker has obtained a build ID from the
+itch.io API (i.e. after CreateBuild succeeds, before any data flows).
+Lets the caller associate its in-flight push with the server-side
+build before the upload completes.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Publish.Push.Progress (notification)
 
 

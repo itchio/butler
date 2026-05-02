@@ -197,6 +197,12 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	buildID := newBuildRes.Build.ID
 	parentID := newBuildRes.Build.ParentBuild.ID
 
+	// notify that build id has been obtained
+	comm.Object("buildCreated", comm.JsonMessage{
+		"buildId": buildID,
+		"channel": spec.Channel,
+	})
+
 	var targetSignature *pwr.SignatureInfo
 
 	if parentID == 0 {

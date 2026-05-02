@@ -3105,6 +3105,18 @@ type PublishPushComparison struct {
 	SameBytes     int64 `json:"sameBytes"`
 }
 
+// Emitted once, as soon as the worker has obtained a build ID from the
+// itch.io API (i.e. after CreateBuild succeeds, before any data flows).
+// Lets the caller associate its in-flight push with the server-side
+// build before the upload completes.
+//
+// @name Publish.Push.BuildAssigned
+// @category Publish
+type PublishPushBuildAssignedNotification struct {
+	BuildID int64  `json:"buildId"`
+	Channel string `json:"channel"`
+}
+
 // Periodic progress update emitted while a Publish.Push is in flight.
 //
 // @name Publish.Push.Progress

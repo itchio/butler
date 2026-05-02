@@ -3807,6 +3807,35 @@ func (r *PublishPushPreviewType) TestCall(rc *butlerd.RequestContext, params but
 
 var PublishPushPreview *PublishPushPreviewType
 
+// Publish.Push.BuildAssigned (Notification)
+
+type PublishPushBuildAssignedType struct {}
+
+var _ NotificationMessage = (*PublishPushBuildAssignedType)(nil)
+
+func (r *PublishPushBuildAssignedType) Method() string {
+  return "Publish.Push.BuildAssigned"
+}
+
+func (r *PublishPushBuildAssignedType) Notify(rc *butlerd.RequestContext, params butlerd.PublishPushBuildAssignedNotification) (error) {
+  return rc.Notify("Publish.Push.BuildAssigned", params)
+}
+
+func (r *PublishPushBuildAssignedType) Register(router router, f func(butlerd.PublishPushBuildAssignedNotification)) {
+  router.RegisterNotification("Publish.Push.BuildAssigned", func (notif jsonrpc2.Notification) {
+    var params butlerd.PublishPushBuildAssignedNotification
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
+    }
+    f(params)
+  })
+}
+
+var PublishPushBuildAssigned *PublishPushBuildAssignedType
+
 // Publish.Push.Progress (Notification)
 
 type PublishPushProgressType struct {}

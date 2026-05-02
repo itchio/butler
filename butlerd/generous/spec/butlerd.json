@@ -2855,6 +2855,24 @@
       }
     },
     {
+      "method": "Publish.Push.BuildAssigned",
+      "doc": "Emitted once, as soon as the worker has obtained a build ID from the\nitch.io API (i.e. after CreateBuild succeeds, before any data flows).\nLets the caller associate its in-flight push with the server-side\nbuild before the upload completes.",
+      "params": {
+        "fields": [
+          {
+            "name": "buildId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Publish.Push.Progress",
       "doc": "Periodic progress update emitted while a Publish.Push is in flight.",
       "params": {
