@@ -268,6 +268,8 @@ func send(msgType string, obj JsonMessage) {
 			showLogin(uri)
 		case "progress":
 			// already handled by pb
+		case "buildCreated", "buildFailed":
+			// structured events for butlerd consumers; not useful in CLI mode
 		default:
 			log.Println(msgType, obj)
 		}

@@ -20,7 +20,7 @@ require (
 	github.com/itchio/boar v0.0.0-20260413210554-997228649976
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
-	github.com/itchio/go-itchio v0.0.0-20260502230305-f13be2ffccd1
+	github.com/itchio/go-itchio v0.0.0-20260503004014-7e41878069cb
 	github.com/itchio/hades v0.0.0-20260219080741-55750b20dd32
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
