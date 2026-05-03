@@ -3836,6 +3836,35 @@ func (r *PublishPushBuildAssignedType) Register(router router, f func(butlerd.Pu
 
 var PublishPushBuildAssigned *PublishPushBuildAssignedType
 
+// Publish.Push.BuildFailed (Notification)
+
+type PublishPushBuildFailedType struct {}
+
+var _ NotificationMessage = (*PublishPushBuildFailedType)(nil)
+
+func (r *PublishPushBuildFailedType) Method() string {
+  return "Publish.Push.BuildFailed"
+}
+
+func (r *PublishPushBuildFailedType) Notify(rc *butlerd.RequestContext, params butlerd.PublishPushBuildFailedNotification) (error) {
+  return rc.Notify("Publish.Push.BuildFailed", params)
+}
+
+func (r *PublishPushBuildFailedType) Register(router router, f func(butlerd.PublishPushBuildFailedNotification)) {
+  router.RegisterNotification("Publish.Push.BuildFailed", func (notif jsonrpc2.Notification) {
+    var params butlerd.PublishPushBuildFailedNotification
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
+    }
+    f(params)
+  })
+}
+
+var PublishPushBuildFailed *PublishPushBuildFailedType
+
 // Publish.Push.Progress (Notification)
 
 type PublishPushProgressType struct {}

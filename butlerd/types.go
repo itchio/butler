@@ -3117,6 +3117,21 @@ type PublishPushBuildAssignedNotification struct {
 	Channel string `json:"channel"`
 }
 
+// Emitted if Publish.Push errors out after a build was assigned and the
+// worker successfully marked the build as failed on the server. Lets the
+// caller update its local view of the build to "failed" without having
+// to poll. If the push fails before a build was assigned, no notification
+// is emitted (only the RPC error is surfaced).
+//
+// @name Publish.Push.BuildFailed
+// @category Publish
+type PublishPushBuildFailedNotification struct {
+	BuildID int64  `json:"buildId"`
+	Channel string `json:"channel"`
+	// Error message that was reported to the server.
+	Message string `json:"message"`
+}
+
 // Periodic progress update emitted while a Publish.Push is in flight.
 //
 // @name Publish.Push.Progress

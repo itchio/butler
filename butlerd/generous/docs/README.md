@@ -7834,6 +7834,72 @@ build before the upload completes.</p>
 
 </div>
 
+### Publish.Push.BuildFailed (notification)
+
+
+<p>
+<p>Emitted if Publish.Push errors out after a build was assigned and the
+worker successfully marked the build as failed on the server. Lets the
+caller update its local view of the build to &ldquo;failed&rdquo; without having
+to poll. If the push fails before a build was assigned, no notification
+is emitted (only the RPC error is surfaced).</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Error message that was reported to the server.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishPushBuildFailedNotification__TypeHint" class="tip-content">
+<p>Publish.Push.BuildFailed (notification) <a href="#/?id=publishpushbuildfailed-notification">(Go to definition)</a></p>
+
+<p>
+<p>Emitted if Publish.Push errors out after a build was assigned and the
+worker successfully marked the build as failed on the server. Lets the
+caller update its local view of the build to &ldquo;failed&rdquo; without having
+to poll. If the push fails before a build was assigned, no notification
+is emitted (only the RPC error is surfaced).</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Publish.Push.Progress (notification)
 
 

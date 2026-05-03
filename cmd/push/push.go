@@ -97,12 +97,24 @@ func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.autoUnzip, args.hidden))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, autoUnzip bool, hidden bool) error {
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, autoUnzip bool, hidden bool) (retErr error) {
 	consumer := comm.NewStateConsumer()
 
 	if autoUnzip {
 		buildPath = walkutil.ResolveSingleZipDir(buildPath, filtering.FilterPaths)
 	}
+
+	// Captured by the defer below so any error returned after CreateBuild
+	// succeeds gets reported back to the server as a build failure. Without
+	// this the build is left stuck in "started" state forever.
+	var buildID int64
+	var client *itchio.Client
+	var channel string
+	defer func() {
+		if retErr != nil && buildID != 0 && client != nil {
+			reportBuildFailure(ctx, client, buildID, channel, retErr)
+		}
+	}()
 
 	// start walking source container while waiting on auth flow
 	sourceContainerChan := make(chan walkResult)
@@ -126,6 +138,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	if err != nil {
 		return err
 	}
+	channel = spec.Channel
 
 	if args.dryRun {
 		comm.Opf("Dry run, listing files we would push...")
@@ -143,7 +156,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return nil
 	}
 
-	client, err := ctx.AuthenticateViaOauth()
+	client, err = ctx.AuthenticateViaOauth()
 	if err != nil {
 		return errors.Wrap(err, "authenticating")
 	}
@@ -194,7 +207,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, "creating build on remote server")
 	}
 
-	buildID := newBuildRes.Build.ID
+	buildID = newBuildRes.Build.ID
 	parentID := newBuildRes.Build.ParentBuild.ID
 
 	// notify that build id has been obtained
@@ -269,7 +282,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			"The errors found duration validation follow.",
 		})
 		comm.Logf("%s", err)
-		comm.Die("Refusing to push invalid container (see above)")
+		return errors.Wrap(err, "refusing to push invalid container")
 	}
 
 	comm.Opf("Pushing %s", sourceContainer)
@@ -449,6 +462,34 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	return nil
 }
 
+// reportBuildFailure marks a build as failed on the server so it doesn't
+// get stuck in "started" state forever. Best-effort: any error from the
+// API call is logged as a warning but does not shadow the original push
+// error. We use ctx.DefaultCtx (which is rooted in context.Background)
+// so an upstream cancellation doesn't prevent the failure from being
+// reported.
+func reportBuildFailure(ctx *mansion.Context, client *itchio.Client, buildID int64, channel string, pushErr error) {
+	msg := pushErr.Error()
+
+	requestCtx, cancel := ctx.DefaultCtx()
+	_, err := client.CreateBuildFailure(requestCtx, itchio.CreateBuildFailureParams{
+		BuildID: buildID,
+		Message: msg,
+		Fatal:   true,
+	})
+	cancel()
+	if err != nil {
+		comm.Warnf("Could not mark build %d as failed: %s", buildID, err.Error())
+		return
+	}
+
+	comm.Object("buildFailed", comm.JsonMessage{
+		"buildId": buildID,
+		"channel": channel,
+		"message": msg,
+	})
+}
+
 // pushResult emits the final structured `result` event for a `butler push`
 // run. The shape matches what the CLI has always emitted; butlerd's
 // Publish.Push parser ignores fields it doesn't surface in PublishPushResult.
@@ -475,7 +516,7 @@ func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.C
 
 	signatureFile := itchio.FindBuildFile(itchio.BuildFileTypeSignature, buildFiles.Files)
 	if signatureFile == nil {
-		comm.Dief("Could not find signature for parent build %d, aborting", buildID)
+		return nil, errors.Errorf("could not find signature for parent build %d, aborting", buildID)
 	}
 
 	signatureURL := client.MakeBuildFileDownloadURL(itchio.MakeBuildFileDownloadURLParams{

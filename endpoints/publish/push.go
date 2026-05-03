@@ -177,6 +177,12 @@ func scanStdout(rc *butlerd.RequestContext, stdout io.Reader, result *pushResult
 				BuildID: ev.BuildID,
 				Channel: ev.Channel,
 			})
+		case "buildFailed":
+			_ = messages.PublishPushBuildFailed.Notify(rc, butlerd.PublishPushBuildFailedNotification{
+				BuildID: ev.BuildID,
+				Channel: ev.Channel,
+				Message: ev.Message,
+			})
 		case "progress":
 			_ = messages.PublishPushProgress.Notify(rc, butlerd.PublishPushProgressNotification{
 				Progress:      ev.Progress,

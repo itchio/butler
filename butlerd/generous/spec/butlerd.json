@@ -2878,6 +2878,29 @@
       }
     },
     {
+      "method": "Publish.Push.BuildFailed",
+      "doc": "Emitted if Publish.Push errors out after a build was assigned and the\nworker successfully marked the build as failed on the server. Lets the\ncaller update its local view of the build to \"failed\" without having\nto poll. If the push fails before a build was assigned, no notification\nis emitted (only the RPC error is surfaced).",
+      "params": {
+        "fields": [
+          {
+            "name": "buildId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "doc": "Error message that was reported to the server.",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Publish.Push.Progress",
       "doc": "Periodic progress update emitted while a Publish.Push is in flight.",
       "params": {
