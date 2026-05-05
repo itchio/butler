@@ -49,7 +49,7 @@ func PushPreview(rc *butlerd.RequestContext, params butlerd.PublishPushPreviewPa
 
 func buildPushPreviewArgs(p butlerd.PublishPushPreviewParams) []string {
 	specStr := fmt.Sprintf("%s:%s", p.Target, p.Channel)
-	args := []string{"push-preview", p.Src, specStr, "--json"}
+	args := []string{"push-preview", p.Src, specStr, "--json", "--changes-only"}
 
 	if p.Dereference {
 		args = append(args, "--dereference")
