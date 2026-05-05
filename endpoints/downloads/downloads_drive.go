@@ -230,7 +230,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 							builder.Not{builder.Expr("discarded")},
 						),
 					),
-					hades.Search{}.Limit(1),
+					hades.Search{}.OrderBy("position ASC").Limit(1),
 					func(stmt *sqlite.Stmt) error {
 						priorityDownloadID = stmt.ColumnText(0)
 						return nil
