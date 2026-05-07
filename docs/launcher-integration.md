@@ -48,7 +48,7 @@ reasonable approaches:
     but you are responsible for updating it. **Updating is critical to ensure
     that your butler binary is compatible with the current live version of the
     itch.io API.**
-  * **Download butler at runtime** from the broth distribution channel, the
+  * **Download butler at runtime** from the [broth](https://broth.itch.zone/) distribution channel, the
     same one [the itch.io app][itch-app] uses to keep its bundled butler up to
     date. The latest version string for a platform lives at
     `https://broth.itch.zone/butler/<goos>-<goarch>/LATEST`, and the matching
