@@ -113,8 +113,12 @@ don't get automatic updates. You can use the following API endpoint to query the
 of a game and notify your players from within the game, that a new version is available:
 
 ```
-GET https://itch.io/api/1/x/wharf/latest
+GET https://api.itch.io/wharf/latest
 ```
+
+This endpoint does not require authentication. See the [server-side API
+reference](https://itch.io/docs/api/serverside) for more information about
+the modern `api.itch.io` endpoints.
 
 *Parameters*:
 
@@ -136,13 +140,13 @@ If the latest build doesn't have a user-version, the `latest` field will not be 
 *Example requests*:
 
 ```
-https://itch.io/api/1/x/wharf/latest?target=user/game&channel_name=win32-beta
+https://api.itch.io/wharf/latest?target=user/game&channel_name=win32-beta
 ```
 
 or
 
 ```
-https://itch.io/api/1/x/wharf/latest?game_id=123&channel_name=osx-final
+https://api.itch.io/wharf/latest?game_id=123&channel_name=osx-final
 ```
 
 (You can find the `game_id` from the *Edit game* page's address)
