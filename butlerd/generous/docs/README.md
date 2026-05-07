@@ -629,6 +629,11 @@ as if there were no network connections</p>
 
 ### Profile.LoginWithPassword (client request)
 
+<div class="deprecation-notice">
+<strong>Deprecated:</strong> <p>Password login over API is deprecated and will be removed in a future version, as it is not compatible with all login types (e.g. social logins) or two-factor authentication. Use Profile.LoginWithOAuthCode instead.</p>
+
+</div>
+
 
 <p>
 <p>Add a new profile by password login</p>

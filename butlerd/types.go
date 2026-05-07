@@ -171,6 +171,8 @@ type Profile struct {
 
 // Add a new profile by password login
 //
+// @deprecated Password login over API is deprecated and will be removed in a future version, as it is not compatible with all login types (e.g. social logins) or two-factor authentication. Use Profile.LoginWithOAuthCode instead.
+//
 // @name Profile.LoginWithPassword
 // @category Profile
 // @caller client
