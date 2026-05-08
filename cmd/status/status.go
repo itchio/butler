@@ -145,6 +145,8 @@ func buildState(build *itchio.Build) string {
 	switch build.State {
 	case itchio.BuildStateCompleted:
 		s = fmt.Sprintf("%s #%d", theme.StatSign, build.ID)
+	case itchio.BuildStateQueued:
+		s = fmt.Sprintf("%s #%d", theme.OpSign, build.ID)
 	case itchio.BuildStateProcessing:
 		s = fmt.Sprintf("%s #%d", theme.OpSign, build.ID)
 	default:

@@ -6476,8 +6476,13 @@
           "value": "started"
         },
         {
+          "name": "Queued",
+          "doc": "BuildStateQueued is the state of a build after its initial upload is complete,\nbefore a worker has claimed it for processing.",
+          "value": "queued"
+        },
+        {
           "name": "Processing",
-          "doc": "BuildStateProcessing is the state of a build from the initial upload's completion to its fully-processed state.\nThis state does not mean the build is actually being processed right now, it's just queued for processing.",
+          "doc": "BuildStateProcessing is the state of a build that has been claimed by a worker\nand is actively being processed.",
           "value": "processing"
         },
         {

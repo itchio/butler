@@ -13563,9 +13563,15 @@ its processing.</p>
 </td>
 </tr>
 <tr>
+<td><code>"queued"</code></td>
+<td><p>BuildStateQueued is the state of a build after its initial upload is complete,
+before a worker has claimed it for processing.</p>
+</td>
+</tr>
+<tr>
 <td><code>"processing"</code></td>
-<td><p>BuildStateProcessing is the state of a build from the initial upload&rsquo;s completion to its fully-processed state.
-This state does not mean the build is actually being processed right now, it&rsquo;s just queued for processing.</p>
+<td><p>BuildStateProcessing is the state of a build that has been claimed by a worker
+and is actively being processed.</p>
 </td>
 </tr>
 <tr>
@@ -13596,6 +13602,9 @@ its processing.</p>
 <table class="field-table">
 <tr>
 <td><code>"started"</code></td>
+</tr>
+<tr>
+<td><code>"queued"</code></td>
 </tr>
 <tr>
 <td><code>"processing"</code></td>
