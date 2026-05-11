@@ -1,9 +1,9 @@
-# Caution: this is a draft
-
-!> This document is a draft! It should not be used yet for implementing
-   clients for butlerd. The API and recommendations are still subject to change.
-
 # Overview
+
+!> This specification can evolve with new versions of butler. We try to minimize
+   breaking changes, but they do happen, so keep an eye on the
+   [release notes](https://github.com/itchio/butler/releases) when updating.
+
 
 butlerd (butler daemon) is a JSON-RPC 2.0 service.
 
