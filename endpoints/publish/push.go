@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/shell/loggerwriter"
@@ -56,7 +57,7 @@ func Push(rc *butlerd.RequestContext, params butlerd.PublishPushParams) (*butler
 	args := buildPushArgs(params)
 	source := params.Source
 	if source == "" {
-		source = "butlerd"
+		source = fmt.Sprintf("butlerd/%s", buildinfo.Version)
 	}
 	result, err := runPushWorker(rc, params.ProfileID, args, source)
 	if err != nil {

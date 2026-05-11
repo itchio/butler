@@ -15,6 +15,7 @@ import (
 
 	itchio "github.com/itchio/go-itchio"
 
+	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -191,7 +192,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	source := os.Getenv("BUTLER_PUSH_SOURCE")
 	if source == "" {
-		source = "cli"
+		source = fmt.Sprintf("cli/%s", buildinfo.Version)
 	}
 
 	requestCtx, cancel := ctx.DefaultCtx()
