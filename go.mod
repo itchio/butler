@@ -19,7 +19,7 @@ require (
 	github.com/itchio/arkive v0.0.0-20260424164943-5eabdbdce5c8
 	github.com/itchio/boar v0.0.0-20260413210554-997228649976
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
-	github.com/itchio/elefant v0.0.0-20200305193251-d52333c6ec90
+	github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4
 	github.com/itchio/go-itchio v0.0.0-20260508212529-127b57c39d4a
 	github.com/itchio/hades v0.0.0-20260219080741-55750b20dd32
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4

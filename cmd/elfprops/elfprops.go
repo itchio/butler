@@ -52,7 +52,7 @@ func do(ctx *mansion.Context) {
 	})
 
 	if args.trace {
-		root, err := elefant.Trace(info, args.path)
+		root, err := elefant.Trace(info, args.path, elefant.TraceParams{Consumer: consumer})
 		ctx.Must(err)
 
 		comm.Logf("%s", root)
