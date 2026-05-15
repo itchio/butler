@@ -184,6 +184,13 @@ func formatUploadType(uploadType itchio.UploadType) string {
 type GameAccess struct {
 	APIKey      string                 `json:"api_key"`
 	Credentials itchio.GameCredentials `json:"credentials"`
+
+	// Owner profile used for later materialization persistence.
+	ProfileID int64 `json:"profile_id,omitempty"`
+
+	// Nonzero when ownership is via a bundle key whose DownloadKey has not
+	// been claimed yet. Cleared by the materialization gate.
+	BundleID int64 `json:"bundle_id,omitempty"`
 }
 
 func (ga *GameAccess) OnlyAPIKey() *GameAccess {
@@ -193,18 +200,74 @@ func (ga *GameAccess) OnlyAPIKey() *GameAccess {
 }
 
 func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
-	// TODO: write unit test for this
+	return AccessForGameIDForProfile(conn, gameID, 0)
+}
+
+// AccessForGameIDForProfile resolves game credentials for a given game,
+// preferring the supplied profile when nonzero. Profile-scoped resolution
+// matters for bundle ownership: install should materialize against the same
+// profile the renderer reported as owning the game.
+func AccessForGameIDForProfile(conn *sqlite.Conn, gameID int64, preferredProfileID int64) *GameAccess {
+	pgs := models.ProfileGamesByGameID(conn, gameID)
+	dks := models.DownloadKeysByGameID(conn, gameID)
+
+	// If a profile was supplied, prefer any valid access path for that
+	// profile before falling back to access owned by other profiles.
+	if preferredProfileID != 0 {
+		for _, pg := range pgs {
+			if pg.ProfileID != preferredProfileID {
+				continue
+			}
+			profile := models.ProfileByID(conn, pg.ProfileID)
+			if profile == nil {
+				continue
+			}
+			return &GameAccess{
+				APIKey:    profile.APIKey,
+				ProfileID: profile.ID,
+			}
+		}
+
+		for _, dk := range dks {
+			if dk.OwnerID != preferredProfileID {
+				continue
+			}
+			profile := models.ProfileByID(conn, dk.OwnerID)
+			if profile == nil {
+				continue
+			}
+			return &GameAccess{
+				APIKey:    profile.APIKey,
+				ProfileID: profile.ID,
+				Credentials: itchio.GameCredentials{
+					DownloadKeyID: dk.ID,
+				},
+			}
+		}
+
+		bundleID := models.BundleIDOwningGameForProfile(conn, gameID, preferredProfileID)
+		if bundleID != 0 {
+			profile := models.ProfileByID(conn, preferredProfileID)
+			if profile != nil {
+				return &GameAccess{
+					APIKey:    profile.APIKey,
+					ProfileID: preferredProfileID,
+					BundleID:  bundleID,
+				}
+			}
+		}
+	}
 
 	// look for owner access
 	{
-		pgs := models.ProfileGamesByGameID(conn, gameID)
 		if len(pgs) > 0 {
 			pg := pgs[0]
 			profile := models.ProfileByID(conn, pg.ProfileID)
 
 			if profile != nil {
 				access := &GameAccess{
-					APIKey: profile.APIKey,
+					APIKey:    profile.APIKey,
+					ProfileID: profile.ID,
 				}
 				return access
 			}
@@ -213,8 +276,6 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 
 	// look for a download key
 	{
-		dks := models.DownloadKeysByGameID(conn, gameID)
-
 		for _, dk := range dks {
 			profile := models.ProfileByID(conn, dk.OwnerID)
 			if profile == nil {
@@ -222,12 +283,28 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 			}
 
 			access := &GameAccess{
-				APIKey: profile.APIKey,
+				APIKey:    profile.APIKey,
+				ProfileID: profile.ID,
 				Credentials: itchio.GameCredentials{
 					DownloadKeyID: dk.ID,
 				},
 			}
 			return access
+		}
+	}
+
+	// look for bundle ownership (deferred download key materialization)
+	{
+		bundleID, profileID := models.BundleIDOwningGameAnyProfile(conn, gameID)
+		if bundleID != 0 {
+			profile := models.ProfileByID(conn, profileID)
+			if profile != nil {
+				return &GameAccess{
+					APIKey:    profile.APIKey,
+					ProfileID: profileID,
+					BundleID:  bundleID,
+				}
+			}
 		}
 	}
 
@@ -243,7 +320,8 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 		for _, profile := range profiles {
 			if profile.PressUser {
 				access := &GameAccess{
-					APIKey: profile.APIKey,
+					APIKey:    profile.APIKey,
+					ProfileID: profile.ID,
 				}
 				return access
 			}
@@ -252,7 +330,8 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 		// just take the most recent then
 		profile := profiles[0]
 		access := &GameAccess{
-			APIKey: profile.APIKey,
+			APIKey:    profile.APIKey,
+			ProfileID: profile.ID,
 		}
 		return access
 	}

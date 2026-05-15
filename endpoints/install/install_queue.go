@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/downloads"
 	itchio "github.com/itchio/go-itchio"
+	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
 	"github.com/pkg/errors"
 	"xorm.io/builder"
@@ -94,9 +95,17 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	}
 
 	params.Game = queueParams.Game
-	params.Access = operate.AccessForGameID(conn, params.Game.ID)
+	params.Access = operate.AccessForGameIDForProfile(conn, params.Game.ID, queueParams.ProfileID)
 
 	client := rc.Client(params.Access.APIKey)
+
+	// If ownership is via a bundle and no DownloadKey has been claimed yet,
+	// materialize one now (before any upload listing or build resolution).
+	// ClaimBundleGame is the single network call that converts bundle
+	// ownership into a real DownloadKey row both server-side and locally.
+	if err := ensureBundleAccessMaterialized(rc, conn, client, params.Game, params.Access); err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	consumer.Infof("Queuing install for %s", operate.GameToString(params.Game))
 
@@ -278,6 +287,45 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	}
 
 	return res, nil
+}
+
+// ensureBundleAccessMaterialized turns a deferred bundle ownership into a
+// real DownloadKey by calling ClaimBundleGame and persisting the resulting
+// key locally with owner_id set to access.ProfileID. Idempotent on the
+// server. No-op when access is not bundle-owned or already has a
+// DownloadKeyID.
+func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Conn, client *itchio.Client, game *itchio.Game, access *operate.GameAccess) error {
+	if access == nil || access.BundleID == 0 || access.Credentials.DownloadKeyID != 0 {
+		return nil
+	}
+	if access.ProfileID == 0 {
+		return errors.New("cannot materialize bundle ownership without a profileId on access")
+	}
+
+	claimRes, err := client.ClaimBundleGame(rc.Ctx, itchio.ClaimBundleGameParams{
+		BundleID: access.BundleID,
+		GameID:   game.ID,
+	})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	dk := claimRes.DownloadKey
+	if dk == nil {
+		return errors.New("ClaimBundleGame returned no download key")
+	}
+
+	fakeProfile := &models.Profile{ID: access.ProfileID}
+	fakeProfile.OwnedKeys = []*itchio.DownloadKey{dk}
+	models.MustSave(conn, fakeProfile,
+		hades.OmitRoot(),
+		hades.Assoc("OwnedKeys",
+			hades.Assoc("Game"),
+		),
+	)
+
+	access.Credentials.DownloadKeyID = dk.ID
+	access.BundleID = 0
+	return nil
 }
 
 func makeInstallFolderName(game *itchio.Game, consumer *state.Consumer) string {
