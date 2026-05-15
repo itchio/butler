@@ -51,6 +51,22 @@ var migrations = map[int64]Migration{
 
 		return nil
 	},
+	// add explicit lookup indexes for bundle ownership tables
+	1747200000: func(consumer *state.Consumer, conn *sqlite.Conn) error {
+		stmts := []string{
+			"CREATE INDEX IF NOT EXISTS idx_bundle_keys_owner_id ON bundle_keys(owner_id)",
+			"CREATE INDEX IF NOT EXISTS idx_bundle_keys_owner_bundle ON bundle_keys(owner_id, bundle_id)",
+			"CREATE INDEX IF NOT EXISTS idx_bundle_games_game_bundle ON bundle_games(game_id, bundle_id)",
+			"CREATE INDEX IF NOT EXISTS idx_bundle_games_bundle_game ON bundle_games(bundle_id, game_id)",
+		}
+		for _, s := range stmts {
+			err := sqlitex.Exec(conn, s, nil)
+			if err != nil {
+				return errors.Wrapf(err, "executing %q", s)
+			}
+		}
+		return nil
+	},
 }
 
 func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
@@ -79,7 +95,9 @@ func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
 			models.SetSchemaVersion(conn, key)
 			return nil
 		}()
-		return errors.Wrapf(err, "While running migration %d", key)
+		if err != nil {
+			return errors.Wrapf(err, "While running migration %d", key)
+		}
 	}
 
 	return nil

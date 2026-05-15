@@ -24,6 +24,7 @@ type Profile struct {
 	ProfileCollections []*ProfileCollection  `json:"profileCollections,omitempty"`
 	ProfileGames       []*ProfileGame        `json:"profileGames,omitempty"`
 	OwnedKeys          []*itchio.DownloadKey `json:"ownedKeys,omitempty" hades:"foreign_key:owner_id"`
+	BundleKeys         []*itchio.BundleKey   `json:"bundleKeys,omitempty" hades:"foreign_key:owner_id"`
 }
 
 func (p *Profile) UpdateFromUser(user *itchio.User) {
