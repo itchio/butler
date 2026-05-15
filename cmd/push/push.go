@@ -162,6 +162,34 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		return errors.Wrap(err, "authenticating")
 	}
 
+	// Consume the walk result before any further API calls so an invalid
+	// source path doesn't cause a build to be created and immediately marked
+	// failed on the server.
+	var sourceContainer *tlc.Container
+	var sourcePool lake.Pool
+	select {
+	case walkErr := <-walkErrs:
+		return errors.Wrap(walkErr, "walking directory to push")
+	case walkies := <-sourceContainerChan:
+		sourceContainer = walkies.container
+		sourcePool = walkies.pool
+	}
+
+	showSingleFileWarningIfNecessary(sourceContainer)
+
+	err = sourceContainer.Validate()
+	if err != nil {
+		comm.Notice("Validation failed", []string{
+			fmt.Sprintf("(%s) cannot be pushed, because it is invalid.", buildPath),
+			"",
+			"If you're pushing a .zip file, try pushing a folder directly instead. Pushing a folder is not only faster, it eliminates a whole class of errors.",
+			"",
+			"The errors found duration validation follow.",
+		})
+		comm.Logf("%s", err)
+		return errors.Wrap(err, "refusing to push invalid container")
+	}
+
 	if ifChanged {
 		requestCtx, cancel := ctx.DefaultCtx()
 		chanInfo, err := client.GetChannel(requestCtx, spec.Target, spec.Channel)
@@ -252,39 +280,6 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	patchCounter := counter.NewWriter(patchWriter)
 	signatureCounter := counter.NewWriter(signatureWriter)
-
-	// we started walking the source container in the beginning,
-	// we actually need it now.
-	// note that we could actually start diffing before all the file
-	// creation & upload setup is done
-
-	var sourceContainer *tlc.Container
-	var sourcePool lake.Pool
-
-	comm.Debugf("Waiting for source container")
-	select {
-	case walkErr := <-walkErrs:
-		return errors.Wrap(walkErr, "walking directory to push")
-	case walkies := <-sourceContainerChan:
-		sourceContainer = walkies.container
-		sourcePool = walkies.pool
-		break
-	}
-
-	showSingleFileWarningIfNecessary(sourceContainer)
-
-	err = sourceContainer.Validate()
-	if err != nil {
-		comm.Notice("Validation failed", []string{
-			fmt.Sprintf("(%s) cannot be pushed, because it is invalid.", buildPath),
-			"",
-			"If you're pushing a .zip file, try pushing a folder directly instead. Pushing a folder is not only faster, it eliminates a whole class of errors.",
-			"",
-			"The errors found duration validation follow.",
-		})
-		comm.Logf("%s", err)
-		return errors.Wrap(err, "refusing to push invalid container")
-	}
 
 	comm.Opf("Pushing %s", sourceContainer)
 
