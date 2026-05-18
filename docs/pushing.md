@@ -47,6 +47,35 @@ Pushing to the same channel again will update that file, once the build is proce
 *Limits: currently, the itch.io backend will reject builds with a total uncompressed
 size that exceeds 30GB.*
 
+## Default and optimized patches
+
+The patch for a build is generated in two phases. The first phase runs on your
+machine when you push. The second phase runs on the itch.io backend afterwards.
+
+When you run `butler push`, butler diffs your build against the previous one
+with an rsync-style algorithm that matches fixed-size blocks, and compresses
+the result with Brotli at a low quality setting. This is the *default patch*.
+The block-based diff and the fast compression are both chosen so the push stays
+quick and butler's memory use stays low.
+
+As soon as the upload finishes, the build is live. Players can download it and
+update to it right away, using the default patch.
+
+After the push is received, the backend regenerates the patch with a different
+set of algorithms. It re-diffs files with bsdiff, a byte-level diff that catches
+changes the block-based rsync pass misses, and recompresses with Brotli at a
+much higher quality. The result is the *optimized patch*, which is usually
+significantly smaller. bsdiff and high-quality Brotli cost far more CPU and
+memory, which is why this runs on the backend rather than on your machine. How
+long it takes depends on the size of your build, and for a large game it can
+run for around 30 minutes. This is the "processing" step, and you can see its
+status in the channel's build list.
+
+While processing is going on, players are able to update with the default
+patch, so nobody is held up waiting for the optimized patch. Once the optimized
+patch is ready it replaces the default patch automatically, and players who
+update after that point download the smaller version instead.
+
 ## Channel names
 
 The name of a channel has meaning:
