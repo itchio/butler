@@ -184,7 +184,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 			"",
 			"If you're pushing a .zip file, try pushing a folder directly instead. Pushing a folder is not only faster, it eliminates a whole class of errors.",
 			"",
-			"The errors found duration validation follow.",
+			"The errors found during validation follow.",
 		})
 		comm.Logf("%s", err)
 		return errors.Wrap(err, "refusing to push invalid container")
@@ -536,6 +536,22 @@ func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.C
 	signature, err := pwr.ReadSignature(context.Background(), signatureSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "reading signature")
+	}
+
+	err = signature.Container.Validate()
+	if err != nil {
+		comm.Notice("Invalid parent build", []string{
+			fmt.Sprintf("The latest build of this channel (build %d) has an invalid container,", buildID),
+			"most likely because it was pushed from a corrupt zip file.",
+			"",
+			"It cannot be used as the base for a new patch.",
+			"To recover, delete this channel's upload from your dashboard and push again,",
+			"or contact support.",
+			"",
+			"The errors found during validation follow.",
+		})
+		comm.Logf("%s", err)
+		return nil, errors.Wrap(err, "validating parent build container")
 	}
 
 	return signature, nil
