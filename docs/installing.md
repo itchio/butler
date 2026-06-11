@@ -1,6 +1,14 @@
 
 # Installing butler
 
+**Note:** if you only want to push builds and would rather skip the command
+line entirely, the [itch app](https://itch.io/app) (v26.12.0 or later) includes
+a graphical interface for pushing builds with butler. The app keeps its bundled
+butler up to date automatically, so there is nothing to install or configure.
+See [the announcement](https://itch.io/updates/pushing-builds-with-butler-is-now-in-the-itch-app)
+for details. The instructions below are for installing the standalone
+command-line tool.
+
 ## Downloading
 
 You can download stable and bleeding-edge builds of butler from its itch.io page:
@@ -202,6 +210,11 @@ will print its complete path.
 ## Appendix: Using butler from the itch app
 
 The itch desktop app includes its own copy of butler. If you already have the app installed, you can use this bundled version directly instead of downloading it separately.
+
+*This section covers running the bundled binary from the command line. If you
+just want to push builds, the app also has a [graphical interface for
+that](https://itch.io/updates/pushing-builds-with-butler-is-now-in-the-itch-app),
+with no command line needed.*
 
 ### Paths by platform
 

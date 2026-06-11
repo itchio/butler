@@ -8,6 +8,14 @@ butler is a small command-line tool that lets you:
 
 When someone refers to **the itch.io command-line tools**, they're talking about butler.
 
+**Prefer not to use the command line?** The [itch app](https://itch.io/app)
+(v26.12.0 or later) includes a graphical interface for pushing builds with
+butler, with no terminal required. It handles uploads, change previews, and
+build management from a Builds page in the sidebar. Read the announcement for
+details:
+
+  * <https://itch.io/updates/pushing-builds-with-butler-is-now-in-the-itch-app>
+
 butler is easily integrated into an automated build/deploy pipeline. Like most
 of the itch.io delivery infrastructure, it is open-source (MIT licensed):
 
