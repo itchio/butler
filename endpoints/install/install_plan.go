@@ -58,7 +58,11 @@ func getGameUploads(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64)
 	if err != nil {
 		return nil, nil, err
 	}
-	baseUploads = narrowRes.Uploads
+
+	if len(narrowRes.Uploads) != 0 {
+		consumer.Statf("No compatible uploads, showing incompatible uploads as well.")
+		baseUploads = narrowRes.Uploads
+	}
 
 	// exclude already-installed and currently-installing uploads
 	var uploadIDs []interface{}
