@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/itchio/butler/comm"
@@ -45,6 +46,19 @@ func Do(planPath string) error {
 
 	for _, entry := range plan.Entries {
 		fullPath := filepath.Join(plan.BasePath, entry)
+
+		// Resolve any path traversal sequences (e.g., "..")
+		fullPath = filepath.Clean(fullPath)
+		basePath := filepath.Clean(plan.BasePath)
+
+		// Ensure the resolved path is within the base path
+		if !strings.HasPrefix(fullPath, basePath) {
+			return errors.Errorf("path traversal attempt detected: %s is not within %s", entry, plan.BasePath)
+		}
+		// Ensure there's a path separator to prevent /basepathABC matching /basepath
+		if len(fullPath) > len(basePath) && fullPath[len(basePath)] != filepath.Separator {
+			return errors.Errorf("path traversal attempt detected: %s is not within %s", entry, plan.BasePath)
+		}
 
 		stat, err := os.Lstat(fullPath)
 		if err != nil {
