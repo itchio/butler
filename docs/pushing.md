@@ -223,7 +223,7 @@ butler push-preview --changes-only my-game user/mygame:win-64
 The summary line still reflects the full counts.
 
 `push-preview` accepts the walk-related flags from `butler push`
-(`--dereference`, `--fix-permissions`, `--auto-wrap`, `--ignore`) so the
+(`--dereference`, `--fix-permissions`, `--auto-wrap`, `--auto-unzip`, `--ignore`) so the
 classification reflects exactly what an actual push would upload. Build
 creation flags (`--userversion`, `--hidden`, `--if-changed`) are not
 applicable since `push-preview` never creates a build.
@@ -403,6 +403,26 @@ push to that channel name). At this time, because of how our patching
 distribution works, we don't support pushing hidden patches on top of
 existing channels. Pushing with `--hidden` to an existing channel will
 result in an error.
+
+## Appendix G: Single-zip directories (auto-unzip)
+
+If the directory you push contains exactly one `.zip` file (and nothing else),
+butler unpacks that archive and pushes its contents, rather than uploading the
+`.zip` as a single opaque blob. This is to prevent a "zip in a zip" archive
+being uploaded as your game.
+
+You'll see a line like this when it happens:
+
+```
+• (my-game) contains a single .zip file, treating my-game.zip as the container
+```
+
+This is on by default. To turn it off and push the `.zip` as-is, use the
+`--no-auto-unzip` flag:
+
+```bash
+butler push --no-auto-unzip my-game user/mygame:win-64
+```
 
 [^1]: It still isn't really, but you get the idea.
 [^2]: Historically, from your computer's [PC speaker](https://en.wikipedia.org/wiki/PC_speaker). Now, probably whatever sound Microsoft bundles with your version of Windows.
