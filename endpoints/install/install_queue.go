@@ -15,6 +15,7 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/downloads"
+	"github.com/itchio/butler/endpoints/fetch"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
@@ -323,9 +324,30 @@ func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Con
 		),
 	)
 
+	// upload listings cached before the claim were fetched without owned
+	// credentials (for paid games the server returns none); expire them so
+	// the next read refetches with the new key
+	models.FetchTargetForGameUploads(game.ID).MustExpire(conn)
+
 	access.Credentials.DownloadKeyID = dk.ID
 	access.BundleID = 0
 	return nil
+}
+
+// maybeMaterializeBundleAccess claims a download key for a game owned via a
+// bundle, and is a no-op otherwise. Install-intent endpoints that list
+// uploads (Install.GetUploads, Install.Plan, Game.FindUploads) call this
+// first: the server does not list paid uploads without owned credentials,
+// so an unclaimed bundle game would show no available downloads. Fetch-only
+// endpoints (Fetch.GameUploads etc.) deliberately stay non-materializing.
+func maybeMaterializeBundleAccess(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64) error {
+	access := operate.AccessForGameID(conn, gameID)
+	if access == nil || access.BundleID == 0 || access.Credentials.DownloadKeyID != 0 {
+		return nil
+	}
+	game := fetch.LazyFetchGame(rc, gameID)
+	client := rc.Client(access.APIKey)
+	return ensureBundleAccessMaterialized(rc, conn, client, game, access)
 }
 
 func makeInstallFolderName(game *itchio.Game, consumer *state.Consumer) string {

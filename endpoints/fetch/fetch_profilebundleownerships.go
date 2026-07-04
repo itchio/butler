@@ -33,14 +33,22 @@ func FetchProfileBundleOwnerships(rc *butlerd.RequestContext, params butlerd.Fet
 
 		lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 			for _, bundleID := range bundleIDs {
-				bgRes := &butlerd.FetchBundleGamesResult{}
-				LazyFetchBundleGames(rc, butlerd.FetchBundleGamesParams{
+				// Ensure this bundle's membership is fresh, respecting the
+				// per-bundle TTL: only bundles whose local game list is
+				// stale get re-walked, so a profile-wide fresh sync stays
+				// cheap when most bundles are already synced.
+				bgParams := butlerd.FetchBundleGamesParams{
 					ProfileID: profile.ID,
 					BundleID:  bundleID,
-					Fresh:     true,
-				}, bgRes, bundleID)
+				}
+				bgRes := &butlerd.FetchBundleGamesResult{}
+				LazyFetchBundleGames(rc, bgParams, bgRes, bundleID)
+				if bgRes.Stale {
+					bgParams.Fresh = true
+					bgRes = &butlerd.FetchBundleGamesResult{}
+					LazyFetchBundleGames(rc, bgParams, bgRes, bundleID)
+				}
 				res.SyncedBundles++
-				targets.Add(models.FetchTargetForBundleGames(bundleID))
 			}
 		})
 

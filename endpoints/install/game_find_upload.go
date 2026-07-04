@@ -1,6 +1,7 @@
 package install
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/pkg/errors"
@@ -14,6 +15,15 @@ func GameFindUploads(rc *butlerd.RequestContext, params butlerd.GameFindUploadsP
 	}
 
 	consumer.Infof("Looking for compatible uploads for game %s", operate.GameToString(params.Game))
+
+	// install intent: claim bundle-owned games before listing uploads
+	var materializeErr error
+	rc.WithConn(func(conn *sqlite.Conn) {
+		materializeErr = maybeMaterializeBundleAccess(rc, conn, params.Game.ID)
+	})
+	if materializeErr != nil {
+		return nil, errors.WithStack(materializeErr)
+	}
 
 	uploads, err := operate.GetFilteredUploads(rc, params.Game)
 	if err != nil {

@@ -207,105 +207,24 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 // preferring the supplied profile when nonzero. Profile-scoped resolution
 // matters for bundle ownership: install should materialize against the same
 // profile the renderer reported as owning the game.
+//
+// When the preferred profile has no access path of its own, this
+// deliberately falls back to access owned by other cached profiles
+// (matching the legacy any-profile behavior), so e.g. launching a cave
+// installed under another profile keeps working. That also means an
+// install with an explicit profileId can still resolve — and materialize —
+// through another profile if the preferred one owns nothing.
 func AccessForGameIDForProfile(conn *sqlite.Conn, gameID int64, preferredProfileID int64) *GameAccess {
 	pgs := models.ProfileGamesByGameID(conn, gameID)
 	dks := models.DownloadKeysByGameID(conn, gameID)
 
-	// If a profile was supplied, prefer any valid access path for that
-	// profile before falling back to access owned by other profiles.
 	if preferredProfileID != 0 {
-		for _, pg := range pgs {
-			if pg.ProfileID != preferredProfileID {
-				continue
-			}
-			profile := models.ProfileByID(conn, pg.ProfileID)
-			if profile == nil {
-				continue
-			}
-			return &GameAccess{
-				APIKey:    profile.APIKey,
-				ProfileID: profile.ID,
-			}
-		}
-
-		for _, dk := range dks {
-			if dk.OwnerID != preferredProfileID {
-				continue
-			}
-			profile := models.ProfileByID(conn, dk.OwnerID)
-			if profile == nil {
-				continue
-			}
-			return &GameAccess{
-				APIKey:    profile.APIKey,
-				ProfileID: profile.ID,
-				Credentials: itchio.GameCredentials{
-					DownloadKeyID: dk.ID,
-				},
-			}
-		}
-
-		bundleID := models.BundleIDOwningGameForProfile(conn, gameID, preferredProfileID)
-		if bundleID != 0 {
-			profile := models.ProfileByID(conn, preferredProfileID)
-			if profile != nil {
-				return &GameAccess{
-					APIKey:    profile.APIKey,
-					ProfileID: preferredProfileID,
-					BundleID:  bundleID,
-				}
-			}
-		}
-	}
-
-	// look for owner access
-	{
-		if len(pgs) > 0 {
-			pg := pgs[0]
-			profile := models.ProfileByID(conn, pg.ProfileID)
-
-			if profile != nil {
-				access := &GameAccess{
-					APIKey:    profile.APIKey,
-					ProfileID: profile.ID,
-				}
-				return access
-			}
-		}
-	}
-
-	// look for a download key
-	{
-		for _, dk := range dks {
-			profile := models.ProfileByID(conn, dk.OwnerID)
-			if profile == nil {
-				continue
-			}
-
-			access := &GameAccess{
-				APIKey:    profile.APIKey,
-				ProfileID: profile.ID,
-				Credentials: itchio.GameCredentials{
-					DownloadKeyID: dk.ID,
-				},
-			}
+		if access := ownedAccessForGame(conn, gameID, preferredProfileID, pgs, dks); access != nil {
 			return access
 		}
 	}
-
-	// look for bundle ownership (deferred download key materialization)
-	{
-		bundleID, profileID := models.BundleIDOwningGameAnyProfile(conn, gameID)
-		if bundleID != 0 {
-			profile := models.ProfileByID(conn, profileID)
-			if profile != nil {
-				return &GameAccess{
-					APIKey:    profile.APIKey,
-					ProfileID: profileID,
-					BundleID:  bundleID,
-				}
-			}
-		}
+	if access := ownedAccessForGame(conn, gameID, 0, pgs, dks); access != nil {
+		return access
 	}
 
 	// no special credentials
@@ -335,6 +254,65 @@ func AccessForGameIDForProfile(conn *sqlite.Conn, gameID int64, preferredProfile
 		}
 		return access
 	}
+}
+
+// ownedAccessForGame checks the owner → download-key → bundle access tiers,
+// optionally restricted to a single profile (profileID == 0 means any).
+// Returns nil when none of the tiers yield access.
+func ownedAccessForGame(conn *sqlite.Conn, gameID int64, profileID int64, pgs []*models.ProfileGame, dks []*itchio.DownloadKey) *GameAccess {
+	// game owner (has edit rights)
+	for _, pg := range pgs {
+		if profileID != 0 && pg.ProfileID != profileID {
+			continue
+		}
+		profile := models.ProfileByID(conn, pg.ProfileID)
+		if profile == nil {
+			continue
+		}
+		return &GameAccess{
+			APIKey:    profile.APIKey,
+			ProfileID: profile.ID,
+		}
+	}
+
+	// materialized download key
+	for _, dk := range dks {
+		if profileID != 0 && dk.OwnerID != profileID {
+			continue
+		}
+		profile := models.ProfileByID(conn, dk.OwnerID)
+		if profile == nil {
+			continue
+		}
+		return &GameAccess{
+			APIKey:    profile.APIKey,
+			ProfileID: profile.ID,
+			Credentials: itchio.GameCredentials{
+				DownloadKeyID: dk.ID,
+			},
+		}
+	}
+
+	// bundle ownership (deferred download key materialization)
+	var bundleID, ownerID int64
+	if profileID != 0 {
+		bundleID = models.BundleIDOwningGameForProfile(conn, gameID, profileID)
+		ownerID = profileID
+	} else {
+		bundleID, ownerID = models.BundleIDOwningGameAnyProfile(conn, gameID)
+	}
+	if bundleID != 0 {
+		profile := models.ProfileByID(conn, ownerID)
+		if profile != nil {
+			return &GameAccess{
+				APIKey:    profile.APIKey,
+				ProfileID: ownerID,
+				BundleID:  bundleID,
+			}
+		}
+	}
+
+	return nil
 }
 
 func ValidateCave(rc *butlerd.RequestContext, caveID string) *models.Cave {

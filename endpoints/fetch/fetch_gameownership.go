@@ -27,7 +27,6 @@ func FetchGameOwnership(rc *butlerd.RequestContext, params butlerd.FetchGameOwne
 
 		bundleID := models.BundleIDOwningGameForProfile(conn, params.GameID, params.ProfileID)
 
-		ownedKeysStale := models.FetchTargetForProfileOwnedKeys(params.ProfileID).MustIsStale(conn)
 		ownedBundlesStale := models.FetchTargetForProfileOwnedBundles(params.ProfileID).MustIsStale(conn)
 		bundleOwnershipsStale := models.FetchTargetForProfileBundleOwnerships(params.ProfileID).MustIsStale(conn)
 
@@ -41,9 +40,14 @@ func FetchGameOwnership(rc *butlerd.RequestContext, params butlerd.FetchGameOwne
 			return
 		}
 
-		// No local ownership. If direct or bundle ownership data is stale,
-		// the negative answer may not yet reflect newly-purchased games.
-		if ownedKeysStale || ownedBundlesStale || bundleOwnershipsStale {
+		// No local ownership. If the bundle ownership index is stale, the
+		// negative answer may not yet reflect newly-purchased bundles.
+		// Deliberately not tied to the owned-keys target: its short TTL
+		// would make almost every negative answer stale, and clients react
+		// to stale by triggering the profile-wide bundle sync. Materialized
+		// download keys owned by this profile were already checked above,
+		// and direct-purchase ownership is the renderer's commons' job.
+		if ownedBundlesStale || bundleOwnershipsStale {
 			res.Stale = true
 		}
 	})

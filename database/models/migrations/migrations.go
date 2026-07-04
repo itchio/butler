@@ -70,11 +70,18 @@ var migrations = map[int64]Migration{
 }
 
 func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
+	return run(consumer, conn, migrations)
+}
+
+// run applies every pending migration from the given table in ascending key
+// order, committing the schema version after each one. Split from Do so the
+// loop can be tested with a synthetic migration table.
+func run(consumer *state.Consumer, conn *sqlite.Conn, table map[int64]Migration) error {
 	currentVersion := models.GetSchemaVersion(conn)
 	consumer.Debugf("Current DB version is %d", currentVersion)
-	consumer.Debugf("Latest migration is   %d", LatestSchemaVersion())
+	consumer.Debugf("Latest migration is   %d", latestKey(table))
 
-	todo := getKeysAfter(currentVersion)
+	todo := keysAfter(table, currentVersion)
 	if len(todo) == 0 {
 		consumer.Debugf("No migrations to run")
 		return nil
@@ -83,7 +90,7 @@ func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
 	consumer.Debugf("%d migrations to run (%v)", len(todo), todo)
 	for _, key := range todo {
 		consumer.Debugf("Running migration %d...", key)
-		migration := migrations[key]
+		migration := table[key]
 		err := func() (retErr error) {
 			defer horror.RecoverInto(&retErr)
 			// run migration in a transaction
@@ -103,25 +110,20 @@ func Do(consumer *state.Consumer, conn *sqlite.Conn) error {
 	return nil
 }
 
-var sortedKeys []int64
-
-func getSortedKeys() []int64 {
-	if sortedKeys == nil {
-		var keys []int64
-		for k := range migrations {
-			keys = append(keys, k)
-		}
-		sort.Slice(keys, func(i int, j int) bool {
-			return keys[i] < keys[j]
-		})
-		sortedKeys = keys
+func sortedKeys(table map[int64]Migration) []int64 {
+	var keys []int64
+	for k := range table {
+		keys = append(keys, k)
 	}
-	return sortedKeys
+	sort.Slice(keys, func(i int, j int) bool {
+		return keys[i] < keys[j]
+	})
+	return keys
 }
 
-func getKeysAfter(version int64) []int64 {
+func keysAfter(table map[int64]Migration, version int64) []int64 {
 	var result []int64
-	for _, k := range getSortedKeys() {
+	for _, k := range sortedKeys(table) {
 		if k > version {
 			result = append(result, k)
 		}
@@ -129,10 +131,14 @@ func getKeysAfter(version int64) []int64 {
 	return result
 }
 
-func LatestSchemaVersion() int64 {
-	keys := getSortedKeys()
+func latestKey(table map[int64]Migration) int64 {
+	keys := sortedKeys(table)
 	if len(keys) == 0 {
 		return 0
 	}
 	return keys[len(keys)-1]
+}
+
+func LatestSchemaVersion() int64 {
+	return latestKey(migrations)
 }

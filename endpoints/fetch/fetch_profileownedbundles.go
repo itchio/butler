@@ -44,11 +44,11 @@ func FetchProfileOwnedBundles(rc *butlerd.RequestContext, params butlerd.FetchPr
 		// Dedupe by bundle_id: keep the newest bundle_key (max created_at,
 		// tie-break by max id) for each distinct bundle owned by the profile.
 		dedupedExpr := builder.Expr(
-			"bundle_keys.id in ("+
-				"select id from bundle_keys bk2 "+
-				"where bk2.owner_id = bundle_keys.owner_id "+
-				"and bk2.bundle_id = bundle_keys.bundle_id "+
-				"order by bk2.created_at desc, bk2.id desc limit 1"+
+			"bundle_keys.id in (" +
+				"select id from bundle_keys bk2 " +
+				"where bk2.owner_id = bundle_keys.owner_id " +
+				"and bk2.bundle_id = bundle_keys.bundle_id " +
+				"order by bk2.created_at desc, bk2.id desc limit 1" +
 				")",
 		)
 		cond := builder.And(

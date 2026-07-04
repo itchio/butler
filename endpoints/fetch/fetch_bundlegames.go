@@ -14,12 +14,16 @@ import (
 
 func LazyFetchBundleGames(rc *butlerd.RequestContext, params lazyfetch.ProfiledLazyFetchParams, res lazyfetch.LazyFetchResponse, bundleID int64) {
 	ft := models.FetchTargetForBundleGames(bundleID)
+	truncated := false
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 		_, client := rc.ProfileClient(params.GetProfileID())
 
 		var fakeBundle = &itchio.Bundle{
 			ID: bundleID,
 		}
+		// The full membership is accumulated in memory for the final
+		// AssocReplace; this is bounded by bundle size (a few thousand
+		// rows for the largest bundles).
 		var bundleGames []*itchio.BundleGame
 
 		for page := int64(1); ; page++ {
@@ -64,8 +68,40 @@ func LazyFetchBundleGames(rc *butlerd.RequestContext, params lazyfetch.ProfiledL
 				hades.OmitRoot(),
 				hades.AssocReplace("BundleGames"),
 			)
+
+			// Ownership inference depends on complete membership: if the
+			// walk came up far short of the bundle's advertised games_count,
+			// treat the sync as truncated rather than trusting it for a full
+			// TTL. Small drift is normal (games_count can include delisted
+			// games), so only large gaps count.
+			var bundle itchio.Bundle
+			if models.MustSelectOne(conn, &bundle, builder.Eq{"id": bundleID}) && bundle.GamesCount > 0 {
+				fetched := int64(len(bundleGames))
+				missing := bundle.GamesCount - fetched
+				if missing > 0 {
+					tolerance := bundle.GamesCount / 20
+					if tolerance < 5 {
+						tolerance = 5
+					}
+					if missing > tolerance {
+						truncated = true
+					}
+					rc.Consumer.Warnf(
+						"Bundle %d: fetched %d games, expected %d (missing %d, tolerance %d)",
+						bundleID, fetched, bundle.GamesCount, missing, tolerance,
+					)
+				}
+			}
 		})
 	})
+
+	if truncated {
+		// leave the target stale so the next sync retries, instead of
+		// serving a truncated membership set as fresh for a whole TTL
+		rc.WithConn(func(conn *sqlite.Conn) {
+			ft.MustExpire(conn)
+		})
+	}
 }
 
 func FetchBundleGames(rc *butlerd.RequestContext, params butlerd.FetchBundleGamesParams) (*butlerd.FetchBundleGamesResult, error) {

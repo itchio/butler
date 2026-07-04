@@ -56,8 +56,8 @@ Bundle resync should follow that model:
 1. `Fetch.ProfileOwnedBundles(fresh:false)` is cheap and should be called on app startup, login/profile switch, and app resume/focus. It returns cached bundle keys immediately and marks stale after `defaultTTL` (currently 2 minutes).
 2. If stale, the renderer or reactor reissues `Fetch.ProfileOwnedBundles(fresh:true)`. This catches newly purchased bundles, removed/refunded bundle keys, and changed bundle metadata.
 3. `Fetch.ProfileBundleOwnerships(fresh:false)` is the profile-level local sync status endpoint. It returns counts/status only, not the full game list. It is stale when `profile_owned_bundles` is stale or any owned bundle's `bundle_games` target is missing/stale.
-4. `Fetch.ProfileBundleOwnerships(fresh:true)` refreshes `Fetch.ProfileOwnedBundles`, then ensures every distinct owned bundle's `bundle_games` target is fresh. This is the potentially expensive sync job, and it should run from deliberate/background library sync flows, not from high-frequency renderer interactions.
-5. `Fetch.GameOwnership` is the small, targeted endpoint for direct game-page CTA state. It never talks to itch.io. It reads local `download_keys` first, then local `bundle_keys`/`bundle_games`, and returns a compact ownership/access summary for one game. It marks stale if the profile bundle ownership sync is stale or incomplete.
+4. `Fetch.ProfileBundleOwnerships(fresh:true)` refreshes `Fetch.ProfileOwnedBundles`, then ensures every distinct owned bundle's `bundle_games` target is fresh — *ensures*, not forces: only bundles whose own `bundle_games` target is stale get their pages re-walked, so the common case (owned-bundles list expired but memberships still fresh under `longTTL`) costs one HTTP call, not a full re-crawl. This makes it safe to trigger from focus/login reactors.
+5. `Fetch.GameOwnership` is the small, targeted endpoint for direct game-page CTA state. It never talks to itch.io. It reads local `download_keys` first, then local `bundle_keys`/`bundle_games`, and returns a compact ownership/access summary for one game. It marks stale if the profile bundle ownership sync is stale or incomplete. Negative (not-owned) answers only report staleness of the *bundle* ownership index, deliberately ignoring the short-TTL owned-keys target: clients react to stale by triggering the profile-wide bundle sync, and tying negatives to a 2-minute TTL would make nearly every unowned game page a sync trigger.
 6. `Fetch.Commons` remains unchanged and local-only. It should continue to return materialized `DownloadKey` rows and installed cave state, but not bundle-game ownership.
 
 So if a user buys a bundle in the browser and returns to the app, the maximum automatic detection delay for the owned bundle list is the `profile_owned_bundles` TTL unless the app explicitly forces refresh on focus. Direct game pages should not crawl remote bundles themselves; when they see stale ownership, they can show the cached/local answer and optionally trigger `Fetch.ProfileBundleOwnerships(fresh:true)` in the background or through an explicit refresh.
@@ -406,11 +406,12 @@ if params.Access.BundleID != 0 && params.Access.Credentials.DownloadKeyID == 0 {
 
 After this gate the rest of the install flow is unchanged. **Update flow stays untouched** (`endpoints/update/update.go`) — "owned via bundle, key not yet claimed" is a legitimate state and we don't want update checks to trigger server round trips just to mint a key.
 
-Other upload-listing endpoints need an explicit decision:
+Other upload-listing endpoints, decided as follows:
 
 - `Fetch.GameUploads` stays non-materializing. It is a fetch/view endpoint and must not call `ClaimBundleGame`.
 - `Install.Queue` must materialize before upload filtering/listing because it is the actual install mutation path.
-- If the renderer uses `Game.FindUploads`, `Install.GetUploads`, or deprecated `Install.Plan` as part of the pre-queue install modal for bundle-owned paid games, those endpoints either need to call the same materialization helper or be bypassed for bundle-owned games until `Install.Queue`. Do not accidentally put claim logic inside `operate.GetFilteredUploads` unless every caller has been audited, because it is also used by non-queue endpoints.
+- `Install.GetUploads`, deprecated `Install.Plan`, and `Game.FindUploads` all materialize via `maybeMaterializeBundleAccess` before listing uploads. They are only called with install intent (they back pre-install modals), and the server does not list paid uploads without owned credentials — an unclaimed bundle game would otherwise show "no available downloads". This was verified against production: press accounts mask the problem (uploads list regardless), so any testing of this path must use a non-press account. Claim logic stays out of `operate.GetFilteredUploads` itself, which is also used by non-install endpoints.
+- Materialization also expires `FetchTargetForGameUploads(gameID)`: any upload listing cached before the claim was fetched without owned credentials (empty for paid games) and must not be served for the rest of its TTL.
 - `InstallVersionSwitchQueue`, `Update.Check`, launch, and legacy location scan should not materialize unclaimed bundle ownership. In normal operation they deal with already-installed caves, which should already have a materialized download key if the install came from a bundle.
 
 ### 14. Renderer ownership plumbing
@@ -482,6 +483,13 @@ This means bundle ownership can be complete enough for the current view while av
    - Re-running install on the same game does not re-claim (idempotent on server, and locally the second pass sees `DownloadKeyID != 0`).
    - `Update.Check` for a still-unclaimed bundle game does not trigger a `ClaimBundleGame` call.
 4. **Schema migration**: confirm hades emits the three new tables (`bundles`, `bundle_games`, `bundle_keys`) on butlerd startup against an existing user DB, and confirm the explicit lookup indexes exist (`idx_bundle_keys_owner_id`, `idx_bundle_keys_owner_bundle`, `idx_bundle_games_game_bundle`, and `idx_bundle_games_bundle_game` if needed). Add a regression check for `migrations.Do` with two pending migrations so the loop bug cannot reappear.
+
+## Known limitations and caveats
+
+- **>100 owned bundle keys**: `/profile/owned-bundles` is deduped and capped at 100 server-side, and the local save uses `AssocReplace("BundleKeys")` — an account past the cap would silently lose local bundle keys beyond it, and with them ownership inference for every game in the dropped bundles. Unlikely today, but the endpoint should grow server-side pagination before this is a realistic account shape.
+- **Truncated membership walks**: `LazyFetchBundleGames` compares the fetched row count against `bundles.games_count` and leaves the `bundle_games` target stale (instead of fresh) when the gap exceeds `max(5, games_count/20)`. Small drift is expected — `games_count` can include delisted games (observed: 1741 advertised vs 1740 returned for the Bundle for Racial Justice and Equality) — so exact matching would cause permanent re-walk loops.
+- **Press accounts mask upload-listing bugs**: the server lists paid uploads for press users even without a download key, so bundle install-path testing must use a non-press account or the "no uploads without owned credentials" behavior is invisible.
+- **Preferred-profile fallthrough**: `AccessForGameIDForProfile` falls back to other cached profiles' access when the preferred profile has none, so an install with an explicit `profileId` can still resolve (and materialize) through another profile. This preserves legacy launch/update behavior; revisit if strict profile isolation is ever needed.
 
 ## Out of scope (separate issue)
 
