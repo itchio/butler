@@ -156,32 +156,21 @@ All profile scoping is via `bundle_keys.owner_id`, just like owned-key queries u
 
 Bundle support adds joins that run on hot paths (`Fetch.GameOwnership`, `AccessForGameID`, bundle detail pages), so add explicit indexes instead of relying only on hades primary-key indexes.
 
-Before adding the index migration, fix the existing migration loop in `database/models/migrations/migrations.go`: `Do` currently returns from inside the `for _, key := range todo` loop unconditionally after the first migration. The bundle index migration will be the second migration in this file, so without that fix it will silently never run on databases that also need the older migration. The loop should only return on error and continue through every pending migration before returning `nil`.
+Butler's migrations table is the **wrong vehicle** for these indexes, for two reasons discovered during review:
 
-```sql
-CREATE INDEX IF NOT EXISTS idx_bundle_keys_owner_id
-ON bundle_keys(owner_id);
+1. `database.Prepare` stamps freshly-created databases with `LatestSchemaVersion()` and never runs migrations on them, on the assumption that hades `AutoMigrate` produces the complete schema. An index-creating migration would silently never run on new installs.
+2. hades `AutoMigrate` rebuilds a table (temp copy → `DROP TABLE` → recreate → copy back) whenever a model gains columns, and SQLite drops all secondary indexes with the table. Migration-created indexes would be destroyed by any future model change and never re-created, since the schema version is already past the migration.
 
-CREATE INDEX IF NOT EXISTS idx_bundle_keys_owner_bundle
-ON bundle_keys(owner_id, bundle_id);
+Instead, hades itself owns index lifecycle: `Context.DeclareIndex(model, columns...)` registers a spec, and `AutoMigrate` converges the database to the declared set at the end of every run — creating missing indexes (fresh databases included), re-creating ones lost to table rebuilds in the same run, and dropping hades-managed indexes (name prefix `hades_idx_`) that are no longer declared. Index names encode the table and column list, so changing a declaration retires the old index automatically.
 
-CREATE INDEX IF NOT EXISTS idx_bundle_games_game_bundle
-ON bundle_games(game_id, bundle_id);
-```
+Butler declares the indexes in `database/models/all_models.go` (`declareIndexes`, wired into `HadesContext()`):
 
-`bundle_games` should already have a composite primary key on `(bundle_id, game_id)` from `itchio.BundleGame`, which covers bundle detail page queries and `AssocReplace("BundleGames")`. If automigration does not create that index, add it explicitly too:
-
-```sql
-CREATE INDEX IF NOT EXISTS idx_bundle_games_bundle_game
-ON bundle_games(bundle_id, game_id);
-```
-
-Access paths covered:
-
-- `bundle_keys(owner_id)` — local owned-bundle list for a profile.
-- `bundle_keys(owner_id, bundle_id)` — duplicate-purchase dedupe and distinct bundle IDs for ownership-index sync.
+- `bundle_keys(owner_id, bundle_id)` — local owned-bundle list for a profile (owner-only lookups use the index prefix), duplicate-purchase dedupe, and distinct bundle IDs for ownership-index sync.
 - `bundle_games(game_id, bundle_id)` — `AccessForGameID` and "does this profile own this game through any bundle?"
-- `bundle_games(bundle_id, game_id)` — bundle detail pages and replacing a bundle's membership after a full sync.
+
+`bundle_games` has a composite primary key on `(bundle_id, game_id)` from `itchio.BundleGame`, whose implicit SQLite index covers bundle detail page queries and `AssocReplace("BundleGames")`; no declaration is needed for that direction.
+
+Separately, fix the existing migration loop in `database/models/migrations/migrations.go`: `Do` used to return from inside the `for _, key := range todo` loop unconditionally after the first migration, so any second pending migration would silently never run. The loop should only return on error and continue through every pending migration before returning `nil`.
 
 ### 6. butlerd request/response types
 
@@ -441,9 +430,9 @@ This means bundle ownership can be complete enough for the current view while av
 
 ## Critical files
 
-- `database/models/all_models.go` — register types
+- `database/models/all_models.go` — register types, declare bundle lookup indexes (hades-managed)
 - `database/models/freshness.go` — TTL targets
-- `database/models/migrations/migrations.go` — fix migration loop, then add explicit bundle lookup indexes
+- `database/models/migrations/migrations.go` — fix migration loop
 - `database/models/bundle_key_ext.go` — **new**, ownership helpers
 - `butlerd/types.go` — RPC params/results for bundle endpoints + `FetchGameOwnership`
 - `endpoints/fetch/fetch_profileownedbundles.go` — **new**
@@ -482,7 +471,7 @@ This means bundle ownership can be complete enough for the current view while av
    - With two cached profiles, install from profile A's bundle ownership materializes and saves the resulting `DownloadKey` with `owner_id = profileA.ID`, not whichever profile `AccessForGameID` would have picked globally.
    - Re-running install on the same game does not re-claim (idempotent on server, and locally the second pass sees `DownloadKeyID != 0`).
    - `Update.Check` for a still-unclaimed bundle game does not trigger a `ClaimBundleGame` call.
-4. **Schema migration**: confirm hades emits the three new tables (`bundles`, `bundle_games`, `bundle_keys`) on butlerd startup against an existing user DB, and confirm the explicit lookup indexes exist (`idx_bundle_keys_owner_id`, `idx_bundle_keys_owner_bundle`, `idx_bundle_games_game_bundle`, and `idx_bundle_games_bundle_game` if needed). Add a regression check for `migrations.Do` with two pending migrations so the loop bug cannot reappear.
+4. **Schema migration**: confirm hades emits the three new tables (`bundles`, `bundle_games`, `bundle_keys`) on butlerd startup against both an existing user DB and a freshly-created DB, and confirm the declared lookup indexes exist in both cases (`hades_idx_bundle_keys__owner_id__bundle_id`, `hades_idx_bundle_games__game_id__bundle_id`). Add a regression check for `migrations.Do` with two pending migrations so the loop bug cannot reappear.
 
 ## Known limitations and caveats
 

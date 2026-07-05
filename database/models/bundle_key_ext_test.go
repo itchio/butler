@@ -34,6 +34,25 @@ func seedBundleOwnership(t *testing.T, conn *sqlite.Conn) {
 	MustSave(conn, &itchio.BundleKey{ID: 2000, BundleID: 20, OwnerID: 2})
 }
 
+// Declared indexes must come out of a plain AutoMigrate: freshly-created
+// databases never run the migrations table.
+func Test_BundleIndexesCreatedByAutoMigrate(t *testing.T) {
+	conn := bundleTestConn(t)
+
+	var names []string
+	MustExecRaw(conn,
+		"select name from sqlite_master where type = 'index' and name like 'hades_idx_%'",
+		func(stmt *sqlite.Stmt) error {
+			names = append(names, stmt.ColumnText(0))
+			return nil
+		},
+	)
+	require.ElementsMatch(t, []string{
+		"hades_idx_bundle_keys__owner_id__bundle_id",
+		"hades_idx_bundle_games__game_id__bundle_id",
+	}, names)
+}
+
 func Test_ProfileOwnsGameViaBundle(t *testing.T) {
 	conn := bundleTestConn(t)
 	seedBundleOwnership(t, conn)

@@ -22,6 +22,7 @@ func HadesContext() *hades.Context {
 			hadesContext.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 		}
 		Must(err)
+		Must(declareIndexes(hadesContext))
 	}
 	return hadesContext
 }
