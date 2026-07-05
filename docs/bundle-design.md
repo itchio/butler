@@ -222,7 +222,7 @@ type FetchGameOwnershipResult struct {
     Owned         bool   `json:"owned"`
     DownloadKeyID int64  `json:"downloadKeyId,omitempty"`
     BundleID      int64  `json:"bundleId,omitempty"`
-    Source        string `json:"source,omitempty"` // "download_key", "bundle", or empty
+    Source        GameOwnershipSource `json:"source,omitempty"` // "download_key", "bundle", or empty
     Stale         bool   `json:"stale,omitempty"`
 }
 
@@ -417,7 +417,7 @@ type FetchGameOwnershipResult struct {
     Owned         bool   `json:"owned"`
     DownloadKeyID int64  `json:"downloadKeyId,omitempty"`
     BundleID      int64  `json:"bundleId,omitempty"`
-    Source        string `json:"source,omitempty"` // "download_key", "bundle", or empty
+    Source        GameOwnershipSource `json:"source,omitempty"` // "download_key", "bundle", or empty
     Stale         bool   `json:"stale,omitempty"`
 }
 ```
