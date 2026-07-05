@@ -2989,6 +2989,512 @@ games.</p>
 
 </div>
 
+### Fetch.ProfileOwnedBundles (client request)
+
+
+<p>
+<p>Lists bundles owned by a profile.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to use to fetch bundle keys</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of bundle keys to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> When specified only shows bundle titles that contain this string</p>
+</td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Criterion to sort by</p>
+</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BundleKey__TypeHint">BundleKey</span>[]</code></td>
+<td><p>Bundle keys fetched for profile (deduped by bundle id)</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used to fetch the next page</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchProfileOwnedBundlesParams__TypeHint" class="tip-content">
+<p>Fetch.ProfileOwnedBundles (client request) <a href="#/?id=fetchprofileownedbundles-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Lists bundles owned by a profile.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchProfileOwnedBundlesResult__TypeHint" class="tip-content">
+<p>FetchProfileOwnedBundles  <a href="#/?id=fetchprofileownedbundles-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type">BundleKey</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Fetch.BundleGames (client request)
+
+
+<p>
+<p>Lists the games inside a bundle the current profile owns.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to use to fetch bundle</p>
+</td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the bundle to fetch games for</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of games to return at a time.</p>
+</td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BundleGame__TypeHint">BundleGame</span>[]</code></td>
+<td><p>Requested games for this bundle</p>
+</td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
+<td><p><span class="tag">Optional</span> Used to fetch the next page</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchBundleGamesParams__TypeHint" class="tip-content">
+<p>Fetch.BundleGames (client request) <a href="#/?id=fetchbundlegames-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Lists the games inside a bundle the current profile owns.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>cursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchBundleGamesResult__TypeHint" class="tip-content">
+<p>FetchBundleGames  <a href="#/?id=fetchbundlegames-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>items</code></td>
+<td><code class="typename"><span class="type">BundleGame</span>[]</code></td>
+</tr>
+<tr>
+<td><code>nextCursor</code></td>
+<td><code class="typename"><span class="type">Cursor</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Fetch.GameOwnership (client request)
+
+
+<p>
+<p>Returns whether a profile owns a particular game, either directly
+(via a download key) or indirectly (via a bundle key). Local-only:
+never performs HTTP I/O.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to check ownership against</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the game to check</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True if the profile owns the game directly or via a bundle</p>
+</td>
+</tr>
+<tr>
+<td><code>downloadKeyId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Set when ownership comes from a materialized download key</p>
+</td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Set when ownership is derived from a bundle key</p>
+</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameOwnershipSource__TypeHint">GameOwnershipSource</span></code></td>
+<td><p><span class="tag">Optional</span> How the profile owns the game; empty when not owned</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when the cached ownership answer may be out of date</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchGameOwnershipParams__TypeHint" class="tip-content">
+<p>Fetch.GameOwnership (client request) <a href="#/?id=fetchgameownership-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Returns whether a profile owns a particular game, either directly
+(via a download key) or indirectly (via a bundle key). Local-only:
+never performs HTTP I/O.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchGameOwnershipResult__TypeHint" class="tip-content">
+<p>FetchGameOwnership  <a href="#/?id=fetchgameownership-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>owned</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>downloadKeyId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code class="typename"><span class="type">GameOwnershipSource</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Fetch.ProfileBundleOwnerships (client request)
+
+
+<p>
+<p>Reports/refreshes the profile-wide bundle ownership sync status.
+Returns only counts; does not return bundle game rows.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to sync bundle game ownership for</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If set, will force fresh data</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>syncedBundles</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of owned bundles whose membership has been synced locally</p>
+</td>
+</tr>
+<tr>
+<td><code>totalBundles</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total number of distinct bundles owned by this profile</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> If true, re-issue request with &ldquo;Fresh&rdquo;</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchProfileBundleOwnershipsParams__TypeHint" class="tip-content">
+<p>Fetch.ProfileBundleOwnerships (client request) <a href="#/?id=fetchprofilebundleownerships-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Reports/refreshes the profile-wide bundle ownership sync status.
+Returns only counts; does not return bundle game rows.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchProfileBundleOwnershipsResult__TypeHint" class="tip-content">
+<p>FetchProfileBundleOwnerships  <a href="#/?id=fetchprofilebundleownerships-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>syncedBundles</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalBundles</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Fetch.Commons (client request)
 
 
@@ -3304,6 +3810,14 @@ games.</p>
 <td><p>Which game to find uploads for</p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3335,6 +3849,10 @@ games.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -3454,6 +3972,15 @@ See <code class="typename"><span class="type" data-tip-selector="#DownloadsDrive
 <td><p><span class="tag">Optional</span> Don&rsquo;t run install prepare (assume we can just run it at perform time)</p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to attribute the install to. Used to scope bundle ownership
+materialization (so a bundle-owned game is claimed against the profile
+that the renderer reported as owning it). Optional; when zero,
+resolution falls back to the legacy &ldquo;any suitable profile&rdquo; behavior.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3570,6 +4097,10 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <td><code>fastQueue</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
 </table>
 
 </div>
@@ -3652,6 +4183,14 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3695,6 +4234,10 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 </tr>
 <tr>
 <td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -3743,6 +4286,14 @@ This is the fast part of install planning (no file I/O).</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3778,6 +4329,10 @@ This is the fast part of install planning (no file I/O).</p>
 <table class="field-table">
 <tr>
 <td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -8984,6 +9539,52 @@ ie. that we can connect as, etc.</p>
 
 </div>
 
+### GameOwnershipSource (enum)
+
+
+<p>
+<p>How a profile owns a game</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"download_key"</code></td>
+<td><p>Owned via a materialized download key</p>
+</td>
+</tr>
+<tr>
+<td><code>"bundle"</code></td>
+<td><p>Owned via a bundle key (download key not claimed yet)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameOwnershipSource__TypeHint" class="tip-content">
+<p>GameOwnershipSource (enum) <a href="#/?id=gameownershipsource-enum">(Go to definition)</a></p>
+
+<p>
+<p>How a profile owns a game</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"download_key"</code></td>
+</tr>
+<tr>
+<td><code>"bundle"</code></td>
+</tr>
+</table>
+
+</div>
+
 ### DownloadKeySummary (struct)
 
 
@@ -13268,6 +13869,320 @@ page deleted, visibility level changed, etc.)</p>
 </tr>
 <tr>
 <td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Bundle (struct)
+
+
+<p>
+<p>A Bundle is a collection of games sold together as a single purchase,
+like the Bundle for Racial Justice and Equality or the Bundle for Ukraine.
+Ownership of a bundle is tracked by a BundleKey.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Site-wide unique identifier generated by itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Human-friendly title for the bundle</p>
+</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Canonical address of the bundle&rsquo;s page on itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>coverUrl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Cover url for the bundle (the social_banner image), if any</p>
+</td>
+</tr>
+<tr>
+<td><code>gamesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of games in this bundle.</p>
+</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p>Date the bundle was created at</p>
+</td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p>Date the bundle was last updated at</p>
+</td>
+</tr>
+<tr>
+<td><code>bundleGames</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BundleGame__TypeHint">BundleGame</span>[]</code></td>
+<td><p>Games in this bundle, with additional info. Not populated by the current
+API but kept for hades relationship mapping; butler nulls this slice out
+before persistence so the locally-paginated bundle_games table is not
+clobbered by partial inline data.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="Bundle__TypeHint" class="tip-content">
+<p>Bundle (struct) <a href="#/?id=bundle-struct">(Go to definition)</a></p>
+
+<p>
+<p>A Bundle is a collection of games sold together as a single purchase,
+like the Bundle for Racial Justice and Equality or the Bundle for Ukraine.
+Ownership of a bundle is tracked by a BundleKey.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>coverUrl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>gamesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>bundleGames</code></td>
+<td><code class="typename"><span class="type">BundleGame</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### BundleGame (struct)
+
+
+<p>
+<p>BundleGame represents a game&rsquo;s membership in a bundle.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>minPrice</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Minimum price for this game inside the bundle, in cents of a dollar.</p>
+</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="BundleGame__TypeHint" class="tip-content">
+<p>BundleGame (struct) <a href="#/?id=bundlegame-struct">(Go to definition)</a></p>
+
+<p>
+<p>BundleGame represents a game&rsquo;s membership in a bundle.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td><code class="typename"><span class="type">Bundle</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>game</code></td>
+<td><code class="typename"><span class="type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>minPrice</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>updatedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### BundleKey (struct)
+
+
+<p>
+<p>A BundleKey records a profile&rsquo;s ownership of a Bundle via a specific
+purchase. It&rsquo;s the bundle analogue of DownloadKey: instead of granting
+access to a single game, it grants access to every game in the bundle.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Site-wide unique identifier generated by itch.io</p>
+</td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the bundle this key grants access to</p>
+</td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span></code></td>
+<td><p>Bundle this key grants access to</p>
+</td>
+</tr>
+<tr>
+<td><code>purchaseId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the purchase that granted this key</p>
+</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p>Date this key was created at (often coincides with purchase time)</p>
+</td>
+</tr>
+<tr>
+<td><code>ownerId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Identifier of the itch.io user to which this key belongs</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BundleKey__TypeHint" class="tip-content">
+<p>BundleKey (struct) <a href="#/?id=bundlekey-struct">(Go to definition)</a></p>
+
+<p>
+<p>A BundleKey records a profile&rsquo;s ownership of a Bundle via a specific
+purchase. It&rsquo;s the bundle analogue of DownloadKey: instead of granting
+access to a single game, it grants access to every game in the bundle.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bundleId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td><code class="typename"><span class="type">Bundle</span></code></td>
+</tr>
+<tr>
+<td><code>purchaseId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>ownerId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>

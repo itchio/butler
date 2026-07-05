@@ -78,3 +78,27 @@ func FetchTargetForCollectionGames(collectionID int64) FetchTarget {
 		TTL:  longTTL,
 	}
 }
+
+func FetchTargetForProfileOwnedBundles(profileID int64) FetchTarget {
+	return FetchTarget{
+		ID:   profileID,
+		Type: "profile_owned_bundles",
+		TTL:  defaultTTL,
+	}
+}
+
+func FetchTargetForBundleGames(bundleID int64) FetchTarget {
+	return FetchTarget{
+		ID:   bundleID,
+		Type: "bundle_games",
+		TTL:  longTTL,
+	}
+}
+
+func FetchTargetForProfileBundleOwnerships(profileID int64) FetchTarget {
+	return FetchTarget{
+		ID:   profileID,
+		Type: "profile_bundle_ownerships",
+		TTL:  longTTL,
+	}
+}

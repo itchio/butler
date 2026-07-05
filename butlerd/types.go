@@ -1216,6 +1216,250 @@ func (r *FetchProfileOwnedKeysResult) SetStale(stale bool) {
 	r.Stale = stale
 }
 
+// Lists bundles owned by a profile.
+//
+// @name Fetch.ProfileOwnedBundles
+// @category Fetch
+// @caller client
+type FetchProfileOwnedBundlesParams struct {
+	// Profile to use to fetch bundle keys
+	ProfileID int64 `json:"profileId"`
+
+	// Maximum number of bundle keys to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// When specified only shows bundle titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor Cursor `json:"cursor"`
+
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+func (p FetchProfileOwnedBundlesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.SortBy, validation.In("acquiredAt", "title", "updatedAt", "gamesCount")),
+	)
+}
+
+func (p FetchProfileOwnedBundlesParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
+func (p FetchProfileOwnedBundlesParams) IsFresh() bool {
+	return p.Fresh
+}
+
+func (p FetchProfileOwnedBundlesParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p FetchProfileOwnedBundlesParams) GetLimit() int64 {
+	return p.Limit
+}
+
+type FetchProfileOwnedBundlesResult struct {
+	// Bundle keys fetched for profile (deduped by bundle id)
+	Items []*itchio.BundleKey `json:"items"`
+
+	// Used to fetch the next page
+	// @optional
+	NextCursor Cursor `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchProfileOwnedBundlesResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
+// Lists the games inside a bundle the current profile owns.
+//
+// @name Fetch.BundleGames
+// @category Fetch
+// @caller client
+type FetchBundleGamesParams struct {
+	// Profile to use to fetch bundle
+	ProfileID int64 `json:"profileId"`
+
+	// Identifier of the bundle to fetch games for
+	BundleID int64 `json:"bundleId"`
+
+	// Maximum number of games to return at a time.
+	// @optional
+	Limit int64 `json:"limit"`
+
+	// Used for pagination, if specified
+	// @optional
+	Cursor Cursor `json:"cursor"`
+
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+func (p FetchBundleGamesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.BundleID, validation.Required),
+	)
+}
+
+func (p FetchBundleGamesParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
+func (p FetchBundleGamesParams) IsFresh() bool {
+	return p.Fresh
+}
+
+func (p FetchBundleGamesParams) GetCursor() Cursor {
+	return p.Cursor
+}
+
+func (p FetchBundleGamesParams) GetLimit() int64 {
+	return p.Limit
+}
+
+type FetchBundleGamesResult struct {
+	// Requested games for this bundle
+	Items []*itchio.BundleGame `json:"items"`
+
+	// Used to fetch the next page
+	// @optional
+	NextCursor Cursor `json:"nextCursor,omitempty"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchBundleGamesResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
+// Returns whether a profile owns a particular game, either directly
+// (via a download key) or indirectly (via a bundle key). Local-only:
+// never performs HTTP I/O.
+//
+// @name Fetch.GameOwnership
+// @category Fetch
+// @caller client
+type FetchGameOwnershipParams struct {
+	// Profile to check ownership against
+	ProfileID int64 `json:"profileId"`
+
+	// Identifier of the game to check
+	GameID int64 `json:"gameId"`
+}
+
+func (p FetchGameOwnershipParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+func (p FetchGameOwnershipParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
+type FetchGameOwnershipResult struct {
+	// True if the profile owns the game directly or via a bundle
+	Owned bool `json:"owned"`
+
+	// Set when ownership comes from a materialized download key
+	// @optional
+	DownloadKeyID int64 `json:"downloadKeyId,omitempty"`
+
+	// Set when ownership is derived from a bundle key
+	// @optional
+	BundleID int64 `json:"bundleId,omitempty"`
+
+	// How the profile owns the game; empty when not owned
+	// @optional
+	Source GameOwnershipSource `json:"source,omitempty"`
+
+	// True when the cached ownership answer may be out of date
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchGameOwnershipResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
+// How a profile owns a game
+type GameOwnershipSource string
+
+const (
+	// Owned via a materialized download key
+	GameOwnershipSourceDownloadKey GameOwnershipSource = "download_key"
+	// Owned via a bundle key (download key not claimed yet)
+	GameOwnershipSourceBundle GameOwnershipSource = "bundle"
+)
+
+// Reports/refreshes the profile-wide bundle ownership sync status.
+// Returns only counts; does not return bundle game rows.
+//
+// @name Fetch.ProfileBundleOwnerships
+// @category Fetch
+// @caller client
+type FetchProfileBundleOwnershipsParams struct {
+	// Profile to sync bundle game ownership for
+	ProfileID int64 `json:"profileId"`
+
+	// If set, will force fresh data
+	// @optional
+	Fresh bool `json:"fresh"`
+}
+
+func (p FetchProfileBundleOwnershipsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+	)
+}
+
+func (p FetchProfileBundleOwnershipsParams) GetProfileID() int64 {
+	return p.ProfileID
+}
+
+func (p FetchProfileBundleOwnershipsParams) IsFresh() bool {
+	return p.Fresh
+}
+
+type FetchProfileBundleOwnershipsResult struct {
+	// Number of owned bundles whose membership has been synced locally
+	SyncedBundles int64 `json:"syncedBundles"`
+
+	// Total number of distinct bundles owned by this profile
+	TotalBundles int64 `json:"totalBundles"`
+
+	// If true, re-issue request with "Fresh"
+	// @optional
+	Stale bool `json:"stale,omitempty"`
+}
+
+func (r *FetchProfileBundleOwnershipsResult) SetStale(stale bool) {
+	r.Stale = stale
+}
+
 // @name Fetch.Commons
 // @category Fetch
 // @caller client
@@ -1457,6 +1701,12 @@ type FetchExpireAllResult struct{}
 type GameFindUploadsParams struct {
 	// Which game to find uploads for
 	Game *itchio.Game `json:"game"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p GameFindUploadsParams) Validate() error {
@@ -1541,6 +1791,13 @@ type InstallQueueParams struct {
 	// Don't run install prepare (assume we can just run it at perform time)
 	// @optional
 	FastQueue bool `json:"fastQueue"`
+
+	// Profile to attribute the install to. Used to scope bundle ownership
+	// materialization (so a bundle-owned game is claimed against the profile
+	// that the renderer reported as owning it). Optional; when zero,
+	// resolution falls back to the legacy "any suitable profile" behavior.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p InstallQueueParams) Validate() error {
@@ -1570,6 +1827,12 @@ type InstallPlanParams struct {
 	DownloadSessionID string `json:"downloadSessionId"`
 	// @optional
 	UploadID int64 `json:"uploadId"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p InstallPlanParams) Validate() error {
@@ -1592,6 +1855,12 @@ type InstallPlanResult struct {
 // @caller client
 type InstallGetUploadsParams struct {
 	GameID int64 `json:"gameId"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p InstallGetUploadsParams) Validate() error {

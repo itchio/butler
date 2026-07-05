@@ -132,6 +132,29 @@ func (ft FetchTarget) MustMarkFresh(conn *sqlite.Conn) {
 	Must(err)
 }
 
+// Expire deletes the fetch info for this target, so the next staleness
+// check considers it stale regardless of TTL.
+func (ft FetchTarget) Expire(conn *sqlite.Conn) error {
+	err := ft.Validate()
+	if err != nil {
+		return err
+	}
+
+	objectID := ft.StringID
+	if objectID == "" {
+		objectID = strconv.FormatInt(ft.ID, 10)
+	}
+	return Delete(conn, &FetchInfo{}, builder.And(
+		builder.Eq{"object_type": ft.Type},
+		builder.Eq{"object_id": objectID},
+	))
+}
+
+func (ft FetchTarget) MustExpire(conn *sqlite.Conn) {
+	err := ft.Expire(conn)
+	Must(err)
+}
+
 func MustMarkAllFresh(conn *sqlite.Conn, fts []FetchTarget) {
 	err := MarkAllFresh(conn, fts)
 	Must(err)

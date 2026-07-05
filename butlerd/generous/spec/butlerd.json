@@ -1032,6 +1032,208 @@
       }
     },
     {
+      "method": "Fetch.ProfileOwnedBundles",
+      "doc": "Lists bundles owned by a profile.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to use to fetch bundle keys",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of bundle keys to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "search",
+            "doc": "When specified only shows bundle titles that contain this string",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "doc": "Criterion to sort by",
+            "type": "string"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "Cursor"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "items",
+            "doc": "Bundle keys fetched for profile (deduped by bundle id)",
+            "type": "BundleKey[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Used to fetch the next page",
+            "type": "Cursor"
+          },
+          {
+            "name": "stale",
+            "doc": "If true, re-issue request with \"Fresh\"",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.BundleGames",
+      "doc": "Lists the games inside a bundle the current profile owns.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to use to fetch bundle",
+            "type": "number"
+          },
+          {
+            "name": "bundleId",
+            "doc": "Identifier of the bundle to fetch games for",
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of games to return at a time.",
+            "type": "number"
+          },
+          {
+            "name": "cursor",
+            "doc": "Used for pagination, if specified",
+            "type": "Cursor"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "items",
+            "doc": "Requested games for this bundle",
+            "type": "BundleGame[]"
+          },
+          {
+            "name": "nextCursor",
+            "doc": "Used to fetch the next page",
+            "type": "Cursor"
+          },
+          {
+            "name": "stale",
+            "doc": "If true, re-issue request with \"Fresh\"",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.GameOwnership",
+      "doc": "Returns whether a profile owns a particular game, either directly\n(via a download key) or indirectly (via a bundle key). Local-only:\nnever performs HTTP I/O.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to check ownership against",
+            "type": "number"
+          },
+          {
+            "name": "gameId",
+            "doc": "Identifier of the game to check",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "owned",
+            "doc": "True if the profile owns the game directly or via a bundle",
+            "type": "boolean"
+          },
+          {
+            "name": "downloadKeyId",
+            "doc": "Set when ownership comes from a materialized download key",
+            "type": "number"
+          },
+          {
+            "name": "bundleId",
+            "doc": "Set when ownership is derived from a bundle key",
+            "type": "number"
+          },
+          {
+            "name": "source",
+            "doc": "How the profile owns the game; empty when not owned",
+            "type": "GameOwnershipSource"
+          },
+          {
+            "name": "stale",
+            "doc": "True when the cached ownership answer may be out of date",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.ProfileBundleOwnerships",
+      "doc": "Reports/refreshes the profile-wide bundle ownership sync status.\nReturns only counts; does not return bundle game rows.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to sync bundle game ownership for",
+            "type": "number"
+          },
+          {
+            "name": "fresh",
+            "doc": "If set, will force fresh data",
+            "type": "boolean"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "syncedBundles",
+            "doc": "Number of owned bundles whose membership has been synced locally",
+            "type": "number"
+          },
+          {
+            "name": "totalBundles",
+            "doc": "Total number of distinct bundles owned by this profile",
+            "type": "number"
+          },
+          {
+            "name": "stale",
+            "doc": "If true, re-issue request with \"Fresh\"",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
       "method": "Fetch.Commons",
       "doc": "",
       "caller": "client",
@@ -1155,6 +1357,11 @@
             "name": "game",
             "doc": "Which game to find uploads for",
             "type": "Game"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
+            "type": "number"
           }
         ]
       },
@@ -1233,6 +1440,11 @@
             "name": "fastQueue",
             "doc": "Don't run install prepare (assume we can just run it at perform time)",
             "type": "boolean"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to attribute the install to. Used to scope bundle ownership\nmaterialization (so a bundle-owned game is claimed against the profile\nthat the renderer reported as owning it). Optional; when zero,\nresolution falls back to the legacy \"any suitable profile\" behavior.",
+            "type": "number"
           }
         ]
       },
@@ -1307,6 +1519,11 @@
             "name": "uploadId",
             "doc": "",
             "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
+            "type": "number"
           }
         ]
       },
@@ -1339,6 +1556,11 @@
           {
             "name": "gameId",
             "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
             "type": "number"
           }
         ]
@@ -3547,6 +3769,100 @@
       ]
     },
     {
+      "name": "FetchProfileOwnedBundlesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Bundle keys fetched for profile (deduped by bundle id)",
+          "type": "BundleKey[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Used to fetch the next page",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchBundleGamesResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "items",
+          "doc": "Requested games for this bundle",
+          "type": "BundleGame[]"
+        },
+        {
+          "name": "nextCursor",
+          "doc": "Used to fetch the next page",
+          "type": "Cursor"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchGameOwnershipResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "owned",
+          "doc": "True if the profile owns the game directly or via a bundle",
+          "type": "boolean"
+        },
+        {
+          "name": "downloadKeyId",
+          "doc": "Set when ownership comes from a materialized download key",
+          "type": "number"
+        },
+        {
+          "name": "bundleId",
+          "doc": "Set when ownership is derived from a bundle key",
+          "type": "number"
+        },
+        {
+          "name": "source",
+          "doc": "How the profile owns the game; empty when not owned",
+          "type": "GameOwnershipSource"
+        },
+        {
+          "name": "stale",
+          "doc": "True when the cached ownership answer may be out of date",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "FetchProfileBundleOwnershipsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "syncedBundles",
+          "doc": "Number of owned bundles whose membership has been synced locally",
+          "type": "number"
+        },
+        {
+          "name": "totalBundles",
+          "doc": "Total number of distinct bundles owned by this profile",
+          "type": "number"
+        },
+        {
+          "name": "stale",
+          "doc": "If true, re-issue request with \"Fresh\"",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
       "name": "FetchCommonsResult",
       "doc": "",
       "fields": [
@@ -5361,6 +5677,134 @@
       ]
     },
     {
+      "name": "Bundle",
+      "doc": "A Bundle is a collection of games sold together as a single purchase,\nlike the Bundle for Racial Justice and Equality or the Bundle for Ukraine.\nOwnership of a bundle is tracked by a BundleKey.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "title",
+          "doc": "Human-friendly title for the bundle",
+          "type": "string"
+        },
+        {
+          "name": "url",
+          "doc": "Canonical address of the bundle's page on itch.io",
+          "type": "string"
+        },
+        {
+          "name": "coverUrl",
+          "doc": "Cover url for the bundle (the social_banner image), if any",
+          "type": "string"
+        },
+        {
+          "name": "gamesCount",
+          "doc": "Number of games in this bundle.",
+          "type": "number"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date the bundle was created at",
+          "type": "RFCDate"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "Date the bundle was last updated at",
+          "type": "RFCDate"
+        },
+        {
+          "name": "bundleGames",
+          "doc": "Games in this bundle, with additional info. Not populated by the current\nAPI but kept for hades relationship mapping; butler nulls this slice out\nbefore persistence so the locally-paginated bundle_games table is not\nclobbered by partial inline data.",
+          "type": "BundleGame[]"
+        }
+      ]
+    },
+    {
+      "name": "BundleGame",
+      "doc": "BundleGame represents a game's membership in a bundle.",
+      "fields": [
+        {
+          "name": "bundleId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "bundle",
+          "doc": "",
+          "type": "Bundle"
+        },
+        {
+          "name": "gameId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "game",
+          "doc": "",
+          "type": "Game"
+        },
+        {
+          "name": "position",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "minPrice",
+          "doc": "Minimum price for this game inside the bundle, in cents of a dollar.",
+          "type": "number"
+        },
+        {
+          "name": "createdAt",
+          "doc": "",
+          "type": "RFCDate"
+        },
+        {
+          "name": "updatedAt",
+          "doc": "",
+          "type": "RFCDate"
+        }
+      ]
+    },
+    {
+      "name": "BundleKey",
+      "doc": "A BundleKey records a profile's ownership of a Bundle via a specific\npurchase. It's the bundle analogue of DownloadKey: instead of granting\naccess to a single game, it grants access to every game in the bundle.",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Site-wide unique identifier generated by itch.io",
+          "type": "number"
+        },
+        {
+          "name": "bundleId",
+          "doc": "Identifier of the bundle this key grants access to",
+          "type": "number"
+        },
+        {
+          "name": "bundle",
+          "doc": "Bundle this key grants access to",
+          "type": "Bundle"
+        },
+        {
+          "name": "purchaseId",
+          "doc": "Identifier of the purchase that granted this key",
+          "type": "number"
+        },
+        {
+          "name": "createdAt",
+          "doc": "Date this key was created at (often coincides with purchase time)",
+          "type": "RFCDate"
+        },
+        {
+          "name": "ownerId",
+          "doc": "Identifier of the itch.io user to which this key belongs",
+          "type": "number"
+        }
+      ]
+    },
+    {
       "name": "DownloadKey",
       "doc": "A DownloadKey is often generated when a purchase is made, it\nallows downloading uploads for a game that are not available\nfor free. It can also be generated by other means.",
       "fields": [
@@ -6000,6 +6444,22 @@
           "name": "Collection",
           "doc": "Games from a collection",
           "value": "collection"
+        }
+      ]
+    },
+    {
+      "name": "GameOwnershipSource",
+      "doc": "How a profile owns a game",
+      "values": [
+        {
+          "name": "DownloadKey",
+          "doc": "Owned via a materialized download key",
+          "value": "download_key"
+        },
+        {
+          "name": "Bundle",
+          "doc": "Owned via a bundle key (download key not claimed yet)",
+          "value": "bundle"
         }
       ]
     },

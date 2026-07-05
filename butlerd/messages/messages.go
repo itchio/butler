@@ -1472,6 +1472,166 @@ func (r *FetchProfileOwnedKeysType) TestCall(rc *butlerd.RequestContext, params 
 
 var FetchProfileOwnedKeys *FetchProfileOwnedKeysType
 
+// Fetch.ProfileOwnedBundles (Request)
+
+type FetchProfileOwnedBundlesType struct {}
+
+var _ RequestMessage = (*FetchProfileOwnedBundlesType)(nil)
+
+func (r *FetchProfileOwnedBundlesType) Method() string {
+  return "Fetch.ProfileOwnedBundles"
+}
+
+func (r *FetchProfileOwnedBundlesType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchProfileOwnedBundlesParams) (*butlerd.FetchProfileOwnedBundlesResult, error)) {
+  router.Register("Fetch.ProfileOwnedBundles", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchProfileOwnedBundlesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.ProfileOwnedBundles")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchProfileOwnedBundlesType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedBundlesParams) (*butlerd.FetchProfileOwnedBundlesResult, error) {
+  var result butlerd.FetchProfileOwnedBundlesResult
+  err := rc.Call("Fetch.ProfileOwnedBundles", params, &result)
+  return &result, err
+}
+
+var FetchProfileOwnedBundles *FetchProfileOwnedBundlesType
+
+// Fetch.BundleGames (Request)
+
+type FetchBundleGamesType struct {}
+
+var _ RequestMessage = (*FetchBundleGamesType)(nil)
+
+func (r *FetchBundleGamesType) Method() string {
+  return "Fetch.BundleGames"
+}
+
+func (r *FetchBundleGamesType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchBundleGamesParams) (*butlerd.FetchBundleGamesResult, error)) {
+  router.Register("Fetch.BundleGames", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchBundleGamesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.BundleGames")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchBundleGamesType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchBundleGamesParams) (*butlerd.FetchBundleGamesResult, error) {
+  var result butlerd.FetchBundleGamesResult
+  err := rc.Call("Fetch.BundleGames", params, &result)
+  return &result, err
+}
+
+var FetchBundleGames *FetchBundleGamesType
+
+// Fetch.GameOwnership (Request)
+
+type FetchGameOwnershipType struct {}
+
+var _ RequestMessage = (*FetchGameOwnershipType)(nil)
+
+func (r *FetchGameOwnershipType) Method() string {
+  return "Fetch.GameOwnership"
+}
+
+func (r *FetchGameOwnershipType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchGameOwnershipParams) (*butlerd.FetchGameOwnershipResult, error)) {
+  router.Register("Fetch.GameOwnership", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchGameOwnershipParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.GameOwnership")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchGameOwnershipType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchGameOwnershipParams) (*butlerd.FetchGameOwnershipResult, error) {
+  var result butlerd.FetchGameOwnershipResult
+  err := rc.Call("Fetch.GameOwnership", params, &result)
+  return &result, err
+}
+
+var FetchGameOwnership *FetchGameOwnershipType
+
+// Fetch.ProfileBundleOwnerships (Request)
+
+type FetchProfileBundleOwnershipsType struct {}
+
+var _ RequestMessage = (*FetchProfileBundleOwnershipsType)(nil)
+
+func (r *FetchProfileBundleOwnershipsType) Method() string {
+  return "Fetch.ProfileBundleOwnerships"
+}
+
+func (r *FetchProfileBundleOwnershipsType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchProfileBundleOwnershipsParams) (*butlerd.FetchProfileBundleOwnershipsResult, error)) {
+  router.Register("Fetch.ProfileBundleOwnerships", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchProfileBundleOwnershipsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.ProfileBundleOwnerships")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchProfileBundleOwnershipsType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchProfileBundleOwnershipsParams) (*butlerd.FetchProfileBundleOwnershipsResult, error) {
+  var result butlerd.FetchProfileBundleOwnershipsResult
+  err := rc.Call("Fetch.ProfileBundleOwnerships", params, &result)
+  return &result, err
+}
+
+var FetchProfileBundleOwnerships *FetchProfileBundleOwnershipsType
+
 // Fetch.Commons (Request)
 
 type FetchCommonsType struct {}
@@ -4084,6 +4244,10 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.ProfileCollections"]; !ok { panic("missing request handler for (Fetch.ProfileCollections)") }
   if _, ok := router.Handlers["Fetch.ProfileGames"]; !ok { panic("missing request handler for (Fetch.ProfileGames)") }
   if _, ok := router.Handlers["Fetch.ProfileOwnedKeys"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedKeys)") }
+  if _, ok := router.Handlers["Fetch.ProfileOwnedBundles"]; !ok { panic("missing request handler for (Fetch.ProfileOwnedBundles)") }
+  if _, ok := router.Handlers["Fetch.BundleGames"]; !ok { panic("missing request handler for (Fetch.BundleGames)") }
+  if _, ok := router.Handlers["Fetch.GameOwnership"]; !ok { panic("missing request handler for (Fetch.GameOwnership)") }
+  if _, ok := router.Handlers["Fetch.ProfileBundleOwnerships"]; !ok { panic("missing request handler for (Fetch.ProfileBundleOwnerships)") }
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Caves"]; !ok { panic("missing request handler for (Fetch.Caves)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
