@@ -113,7 +113,10 @@ func FetchBundleGames(rc *butlerd.RequestContext, params butlerd.FetchBundleGame
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		cond := builder.Eq{"bundle_id": params.BundleID}
-		search := hades.Search{}.OrderBy("position " + pager.Ordering("ASC", false))
+		// game_id tiebreak keeps pagination stable if positions repeat
+		search := hades.Search{}.
+			OrderBy("position " + pager.Ordering("ASC", false)).
+			OrderBy("game_id ASC")
 
 		var items []*itchio.BundleGame
 		pg := pager.New(params)

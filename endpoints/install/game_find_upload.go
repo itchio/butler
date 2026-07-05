@@ -19,7 +19,7 @@ func GameFindUploads(rc *butlerd.RequestContext, params butlerd.GameFindUploadsP
 	// install intent: claim bundle-owned games before listing uploads
 	var materializeErr error
 	rc.WithConn(func(conn *sqlite.Conn) {
-		materializeErr = maybeMaterializeBundleAccess(rc, conn, params.Game.ID)
+		materializeErr = maybeMaterializeBundleAccess(rc, conn, params.Game.ID, params.ProfileID)
 	})
 	if materializeErr != nil {
 		return nil, errors.WithStack(materializeErr)

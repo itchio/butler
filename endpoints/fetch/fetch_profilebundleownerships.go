@@ -29,8 +29,6 @@ func FetchProfileBundleOwnerships(rc *butlerd.RequestContext, params butlerd.Fet
 			bundleIDs = models.DistinctOwnedBundleIDs(conn, profile.ID)
 		})
 
-		res.TotalBundles = int64(len(bundleIDs))
-
 		lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
 			for _, bundleID := range bundleIDs {
 				// Ensure this bundle's membership is fresh, respecting the
@@ -48,7 +46,20 @@ func FetchProfileBundleOwnerships(rc *butlerd.RequestContext, params butlerd.Fet
 					bgRes = &butlerd.FetchBundleGamesResult{}
 					LazyFetchBundleGames(rc, bgParams, bgRes, bundleID)
 				}
-				res.SyncedBundles++
+			}
+		})
+
+		rc.WithConn(func(conn *sqlite.Conn) {
+			// Counts and staleness come from the per-bundle targets rather
+			// than the loop above: a concurrent caller shares the
+			// singleflight without running the task, and a truncated walk
+			// leaves its bundle target stale even though the loop completed.
+			summarizeBundleOwnerships(conn, profile.ID, ft, res)
+			if res.Stale {
+				// Fetch.GameOwnership trusts the profile-level target as
+				// "membership index is complete"; don't leave it fresh over
+				// an incomplete sync.
+				ft.MustExpire(conn)
 			}
 		})
 
@@ -57,27 +68,29 @@ func FetchProfileBundleOwnerships(rc *butlerd.RequestContext, params butlerd.Fet
 
 	// Fresh:false - report cached status only.
 	rc.WithConn(func(conn *sqlite.Conn) {
-		bundleIDs := models.DistinctOwnedBundleIDs(conn, profile.ID)
-		res.TotalBundles = int64(len(bundleIDs))
-
-		stale := false
-		if models.FetchTargetForProfileOwnedBundles(profile.ID).MustIsStale(conn) {
-			stale = true
-		}
-		if ft.MustIsStale(conn) {
-			stale = true
-		}
-		var synced int64
-		for _, bundleID := range bundleIDs {
-			if !models.FetchTargetForBundleGames(bundleID).MustIsStale(conn) {
-				synced++
-			} else {
-				stale = true
-			}
-		}
-		res.SyncedBundles = synced
-		res.Stale = stale
+		summarizeBundleOwnerships(conn, profile.ID, ft, res)
 	})
 
 	return res, nil
+}
+
+// summarizeBundleOwnerships fills res with the profile's bundle sync status
+// as recorded by fetch targets: total distinct owned bundles, how many have
+// a fresh bundle_games target, and whether anything involved is stale.
+func summarizeBundleOwnerships(conn *sqlite.Conn, profileID int64, ft models.FetchTarget, res *butlerd.FetchProfileBundleOwnershipsResult) {
+	bundleIDs := models.DistinctOwnedBundleIDs(conn, profileID)
+	res.TotalBundles = int64(len(bundleIDs))
+
+	stale := models.FetchTargetForProfileOwnedBundles(profileID).MustIsStale(conn) ||
+		ft.MustIsStale(conn)
+	var synced int64
+	for _, bundleID := range bundleIDs {
+		if models.FetchTargetForBundleGames(bundleID).MustIsStale(conn) {
+			stale = true
+		} else {
+			synced++
+		}
+	}
+	res.SyncedBundles = synced
+	res.Stale = stale
 }

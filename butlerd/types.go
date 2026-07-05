@@ -1691,6 +1691,12 @@ type FetchExpireAllResult struct{}
 type GameFindUploadsParams struct {
 	// Which game to find uploads for
 	Game *itchio.Game `json:"game"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p GameFindUploadsParams) Validate() error {
@@ -1811,6 +1817,12 @@ type InstallPlanParams struct {
 	DownloadSessionID string `json:"downloadSessionId"`
 	// @optional
 	UploadID int64 `json:"uploadId"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p InstallPlanParams) Validate() error {
@@ -1833,6 +1845,12 @@ type InstallPlanResult struct {
 // @caller client
 type InstallGetUploadsParams struct {
 	GameID int64 `json:"gameId"`
+
+	// Profile to scope bundle ownership materialization to (this endpoint
+	// has install intent, so it may claim a download key for a bundle-owned
+	// game). When zero, falls back to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p InstallGetUploadsParams) Validate() error {

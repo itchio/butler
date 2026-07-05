@@ -15,7 +15,6 @@ import (
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/downloads"
-	"github.com/itchio/butler/endpoints/fetch"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"github.com/itchio/headway/state"
@@ -104,7 +103,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 	// materialize one now (before any upload listing or build resolution).
 	// ClaimBundleGame is the single network call that converts bundle
 	// ownership into a real DownloadKey row both server-side and locally.
-	if err := ensureBundleAccessMaterialized(rc, conn, client, params.Game, params.Access); err != nil {
+	if err := ensureBundleAccessMaterialized(rc, conn, client, params.Game.ID, params.Access); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
@@ -295,7 +294,7 @@ func InstallQueue(rc *butlerd.RequestContext, queueParams butlerd.InstallQueuePa
 // key locally with owner_id set to access.ProfileID. Idempotent on the
 // server. No-op when access is not bundle-owned or already has a
 // DownloadKeyID.
-func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Conn, client *itchio.Client, game *itchio.Game, access *operate.GameAccess) error {
+func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Conn, client *itchio.Client, gameID int64, access *operate.GameAccess) error {
 	if access == nil || access.BundleID == 0 || access.Credentials.DownloadKeyID != 0 {
 		return nil
 	}
@@ -305,7 +304,7 @@ func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Con
 
 	claimRes, err := client.ClaimBundleGame(rc.Ctx, itchio.ClaimBundleGameParams{
 		BundleID: access.BundleID,
-		GameID:   game.ID,
+		GameID:   gameID,
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -327,7 +326,7 @@ func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Con
 	// upload listings cached before the claim were fetched without owned
 	// credentials (for paid games the server returns none); expire them so
 	// the next read refetches with the new key
-	models.FetchTargetForGameUploads(game.ID).MustExpire(conn)
+	models.FetchTargetForGameUploads(gameID).MustExpire(conn)
 
 	access.Credentials.DownloadKeyID = dk.ID
 	access.BundleID = 0
@@ -340,14 +339,16 @@ func ensureBundleAccessMaterialized(rc *butlerd.RequestContext, conn *sqlite.Con
 // first: the server does not list paid uploads without owned credentials,
 // so an unclaimed bundle game would show no available downloads. Fetch-only
 // endpoints (Fetch.GameUploads etc.) deliberately stay non-materializing.
-func maybeMaterializeBundleAccess(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64) error {
-	access := operate.AccessForGameID(conn, gameID)
+//
+// profileID scopes which profile the key is claimed against; zero falls
+// back to any suitable profile.
+func maybeMaterializeBundleAccess(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64, profileID int64) error {
+	access := operate.AccessForGameIDForProfile(conn, gameID, profileID)
 	if access == nil || access.BundleID == 0 || access.Credentials.DownloadKeyID != 0 {
 		return nil
 	}
-	game := fetch.LazyFetchGame(rc, gameID)
 	client := rc.Client(access.APIKey)
-	return ensureBundleAccessMaterialized(rc, conn, client, game, access)
+	return ensureBundleAccessMaterialized(rc, conn, client, gameID, access)
 }
 
 func makeInstallFolderName(game *itchio.Game, consumer *state.Consumer) string {

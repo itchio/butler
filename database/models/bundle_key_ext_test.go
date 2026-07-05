@@ -103,22 +103,6 @@ func Test_BundleIDOwningGameAnyProfile(t *testing.T) {
 	require.EqualValues(t, 0, profileID)
 }
 
-func Test_BundleKeysByGameID(t *testing.T) {
-	conn := bundleTestConn(t)
-	seedBundleOwnership(t, conn)
-
-	// game 101 is in bundle 10 (two keys, duplicate purchase) and
-	// bundle 20 (one key)
-	keys := BundleKeysByGameID(conn, 101)
-	var ids []int64
-	for _, bk := range keys {
-		ids = append(ids, bk.ID)
-	}
-	require.ElementsMatch(t, []int64{1000, 1001, 2000}, ids)
-
-	require.Empty(t, BundleKeysByGameID(conn, 999))
-}
-
 func Test_DistinctOwnedBundleIDs(t *testing.T) {
 	conn := bundleTestConn(t)
 	seedBundleOwnership(t, conn)

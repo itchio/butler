@@ -193,7 +193,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 	defer rc.PutConn(conn)
 
 	// install intent: claim bundle-owned games before listing uploads
-	if err := maybeMaterializeBundleAccess(rc, conn, params.GameID); err != nil {
+	if err := maybeMaterializeBundleAccess(rc, conn, params.GameID, params.ProfileID); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
@@ -239,7 +239,7 @@ func InstallGetUploads(rc *butlerd.RequestContext, params butlerd.InstallGetUplo
 	// This endpoint backs the pre-install modal, so it's an install intent:
 	// claim bundle-owned games now so the upload listing sees owned
 	// credentials (materializing also expires the cached listing).
-	if err := maybeMaterializeBundleAccess(rc, conn, params.GameID); err != nil {
+	if err := maybeMaterializeBundleAccess(rc, conn, params.GameID, params.ProfileID); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

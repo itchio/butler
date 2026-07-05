@@ -1357,6 +1357,11 @@
             "name": "game",
             "doc": "Which game to find uploads for",
             "type": "Game"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
+            "type": "number"
           }
         ]
       },
@@ -1514,6 +1519,11 @@
             "name": "uploadId",
             "doc": "",
             "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
+            "type": "number"
           }
         ]
       },
@@ -1546,6 +1556,11 @@
           {
             "name": "gameId",
             "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to scope bundle ownership materialization to (this endpoint\nhas install intent, so it may claim a download key for a bundle-owned\ngame). When zero, falls back to any suitable profile.",
             "type": "number"
           }
         ]

@@ -3,24 +3,8 @@ package models
 import (
 	"crawshaw.io/sqlite"
 	itchio "github.com/itchio/go-itchio"
-	"github.com/itchio/hades"
 	"xorm.io/builder"
 )
-
-// BundleKeysByGameID returns all bundle keys held by any profile that grant
-// access to the given game via bundle membership. May return multiple keys
-// for the same profile/bundle if a bundle was purchased more than once.
-func BundleKeysByGameID(conn *sqlite.Conn, gameID int64) []*itchio.BundleKey {
-	var bks []*itchio.BundleKey
-	MustSelect(conn, &bks,
-		builder.Expr(
-			"exists (select 1 from bundle_games where bundle_games.bundle_id = bundle_keys.bundle_id and bundle_games.game_id = ?)",
-			gameID,
-		),
-		hades.Search{},
-	)
-	return bks
-}
 
 // ProfileOwnsGameViaBundle reports whether the given profile owns a bundle
 // that contains the given game.

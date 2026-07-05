@@ -183,6 +183,9 @@ Separately, fix the existing migration loop in `database/models/migrations/migra
 type FetchProfileOwnedBundlesParams struct {
     ProfileID int64  `json:"profileId"`
     Limit     int64  `json:"limit"`
+    Search    string `json:"search"`
+    SortBy    string `json:"sortBy"` // "acquiredAt" (default), "title", "updatedAt", "gamesCount"
+    Reverse   bool   `json:"reverse"`
     Cursor    Cursor `json:"cursor"`
     Fresh     bool   `json:"fresh"`
 }
@@ -399,7 +402,7 @@ Other upload-listing endpoints, decided as follows:
 
 - `Fetch.GameUploads` stays non-materializing. It is a fetch/view endpoint and must not call `ClaimBundleGame`.
 - `Install.Queue` must materialize before upload filtering/listing because it is the actual install mutation path.
-- `Install.GetUploads`, deprecated `Install.Plan`, and `Game.FindUploads` all materialize via `maybeMaterializeBundleAccess` before listing uploads. They are only called with install intent (they back pre-install modals), and the server does not list paid uploads without owned credentials — an unclaimed bundle game would otherwise show "no available downloads". This was verified against production: press accounts mask the problem (uploads list regardless), so any testing of this path must use a non-press account. Claim logic stays out of `operate.GetFilteredUploads` itself, which is also used by non-install endpoints.
+- `Install.GetUploads`, deprecated `Install.Plan`, and `Game.FindUploads` all materialize via `maybeMaterializeBundleAccess` before listing uploads. They are only called with install intent (they back pre-install modals), and the server does not list paid uploads without owned credentials — an unclaimed bundle game would otherwise show "no available downloads". This was verified against production: press accounts mask the problem (uploads list regardless), so any testing of this path must use a non-press account. Claim logic stays out of `operate.GetFilteredUploads` itself, which is also used by non-install endpoints. All three take an optional `profileId` (like `Install.Queue`) so multi-profile users claim against the profile the renderer showed as owning the game; the renderer should pass it wherever it has one.
 - Materialization also expires `FetchTargetForGameUploads(gameID)`: any upload listing cached before the claim was fetched without owned credentials (empty for paid games) and must not be served for the rest of its TTL.
 - `InstallVersionSwitchQueue`, `Update.Check`, launch, and legacy location scan should not materialize unclaimed bundle ownership. In normal operation they deal with already-installed caves, which should already have a materialized download key if the install came from a bundle.
 

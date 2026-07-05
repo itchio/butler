@@ -3810,6 +3810,14 @@ Returns only counts; does not return bundle game rows.</p>
 <td><p>Which game to find uploads for</p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3841,6 +3849,10 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type">Game</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -4171,6 +4183,14 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -4214,6 +4234,10 @@ via <code class="typename"><span class="type">Install.Perform</span></code>.</p>
 </tr>
 <tr>
 <td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
@@ -4262,6 +4286,14 @@ This is the fast part of install planning (no file I/O).</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to scope bundle ownership materialization to (this endpoint
+has install intent, so it may claim a download key for a bundle-owned
+game). When zero, falls back to any suitable profile.</p>
+</td>
+</tr>
 </table>
 
 
@@ -4297,6 +4329,10 @@ This is the fast part of install planning (no file I/O).</p>
 <table class="field-table">
 <tr>
 <td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
