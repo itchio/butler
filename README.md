@@ -1,6 +1,6 @@
 # butler
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/itchio/butler)](https://goreportcard.com/report/github.com/itchio/butler)
+[![test](https://github.com/itchio/butler/actions/workflows/test.yml/badge.svg)](https://github.com/itchio/butler/actions/workflows/test.yml)
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 
 butler is *the itch.io command-line tools* - all by itself.
