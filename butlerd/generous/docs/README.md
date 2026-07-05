@@ -3327,8 +3327,8 @@ never performs HTTP I/O.</p>
 </tr>
 <tr>
 <td><code>source</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> &ldquo;download_key&rdquo;, &ldquo;bundle&rdquo;, or empty</p>
+<td><code class="typename"><span class="type" data-tip-selector="#GameOwnershipSource__TypeHint">GameOwnershipSource</span></code></td>
+<td><p><span class="tag">Optional</span> How the profile owns the game; empty when not owned</p>
 </td>
 </tr>
 <tr>
@@ -3383,7 +3383,7 @@ never performs HTTP I/O.</p>
 </tr>
 <tr>
 <td><code>source</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><code class="typename"><span class="type">GameOwnershipSource</span></code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -9534,6 +9534,52 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type">GameClassification</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### GameOwnershipSource (enum)
+
+
+<p>
+<p>How a profile owns a game</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"download_key"</code></td>
+<td><p>Owned via a materialized download key</p>
+</td>
+</tr>
+<tr>
+<td><code>"bundle"</code></td>
+<td><p>Owned via a bundle key (download key not claimed yet)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="GameOwnershipSource__TypeHint" class="tip-content">
+<p>GameOwnershipSource (enum) <a href="#/?id=gameownershipsource-enum">(Go to definition)</a></p>
+
+<p>
+<p>How a profile owns a game</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"download_key"</code></td>
+</tr>
+<tr>
+<td><code>"bundle"</code></td>
 </tr>
 </table>
 

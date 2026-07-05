@@ -27,7 +27,7 @@ func gameOwnershipFromConn(conn *sqlite.Conn, profileID int64, gameID int64, res
 		),
 	) {
 		res.Owned = true
-		res.Source = "download_key"
+		res.Source = butlerd.GameOwnershipSourceDownloadKey
 		res.DownloadKeyID = dk.ID
 		return
 	}
@@ -39,7 +39,7 @@ func gameOwnershipFromConn(conn *sqlite.Conn, profileID int64, gameID int64, res
 
 	if bundleID != 0 {
 		res.Owned = true
-		res.Source = "bundle"
+		res.Source = butlerd.GameOwnershipSourceBundle
 		res.BundleID = bundleID
 		if ownedBundlesStale || bundleOwnershipsStale {
 			res.Stale = true

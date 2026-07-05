@@ -1184,8 +1184,8 @@
           },
           {
             "name": "source",
-            "doc": "\"download_key\", \"bundle\", or empty",
-            "type": "string"
+            "doc": "How the profile owns the game; empty when not owned",
+            "type": "GameOwnershipSource"
           },
           {
             "name": "stale",
@@ -3831,8 +3831,8 @@
         },
         {
           "name": "source",
-          "doc": "\"download_key\", \"bundle\", or empty",
-          "type": "string"
+          "doc": "How the profile owns the game; empty when not owned",
+          "type": "GameOwnershipSource"
         },
         {
           "name": "stale",
@@ -6444,6 +6444,22 @@
           "name": "Collection",
           "doc": "Games from a collection",
           "value": "collection"
+        }
+      ]
+    },
+    {
+      "name": "GameOwnershipSource",
+      "doc": "How a profile owns a game",
+      "values": [
+        {
+          "name": "DownloadKey",
+          "doc": "Owned via a materialized download key",
+          "value": "download_key"
+        },
+        {
+          "name": "Bundle",
+          "doc": "Owned via a bundle key (download key not claimed yet)",
+          "value": "bundle"
         }
       ]
     },

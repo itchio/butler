@@ -1392,9 +1392,9 @@ type FetchGameOwnershipResult struct {
 	// @optional
 	BundleID int64 `json:"bundleId,omitempty"`
 
-	// "download_key", "bundle", or empty
+	// How the profile owns the game; empty when not owned
 	// @optional
-	Source string `json:"source,omitempty"`
+	Source GameOwnershipSource `json:"source,omitempty"`
 
 	// True when the cached ownership answer may be out of date
 	// @optional
@@ -1404,6 +1404,16 @@ type FetchGameOwnershipResult struct {
 func (r *FetchGameOwnershipResult) SetStale(stale bool) {
 	r.Stale = stale
 }
+
+// How a profile owns a game
+type GameOwnershipSource string
+
+const (
+	// Owned via a materialized download key
+	GameOwnershipSourceDownloadKey GameOwnershipSource = "download_key"
+	// Owned via a bundle key (download key not claimed yet)
+	GameOwnershipSourceBundle GameOwnershipSource = "bundle"
+)
 
 // Reports/refreshes the profile-wide bundle ownership sync status.
 // Returns only counts; does not return bundle game rows.
