@@ -450,9 +450,9 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 			err = ddc.analyzeSeries(sh)
 		} else {
 			err = ddc.skipSeries(sh)
-			if err != nil {
-				return errors.WithStack(err)
-			}
+		}
+		if err != nil {
+			return errors.WithStack(err)
 		}
 	}
 
@@ -591,7 +591,6 @@ func (ddc *deepDiveContext) analyzeBsdiff(sh *pwr.SyncHeader) error {
 		}
 
 		if bc.Eof {
-			readingOps = false
 			break
 		}
 

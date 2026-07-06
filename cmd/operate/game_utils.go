@@ -122,6 +122,7 @@ func LogUpload(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 func LogBuild(consumer *state.Consumer, u *itchio.Upload, b *itchio.Build) {
 	if b == nil {
 		consumer.Infof("    Nil build")
+		return
 	}
 
 	version := ""

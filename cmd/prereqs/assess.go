@@ -23,6 +23,9 @@ func (h *handler) AssessPrereqs(names []string) (*PrereqAssessment, error) {
 
 	for _, name := range names {
 		entry, err := h.GetEntry(name)
+		if err != nil {
+			return nil, errors.Wrapf(err, "getting registry entry for %s", name)
+		}
 		if entry == nil {
 			h.consumer().Warnf("Prereq (%s) not found in registry, skipping...", name)
 			continue
