@@ -98,6 +98,10 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		if params.Filters.Classification != "" {
 			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
 		}
+		// every source already joins the games table
+		if pc := condForPlatformFilter(params.Filters.Platform); pc != nil {
+			cond = builder.And(cond, pc)
+		}
 		if params.Filters.Installed {
 			cond = builder.And(cond, builder.NotNull{"installed_at"})
 		}

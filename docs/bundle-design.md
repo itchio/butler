@@ -204,7 +204,7 @@ type FetchBundleGamesParams struct {
     Limit     int64              `json:"limit"`
     Search    string             `json:"search"`  // substring match on game title
     SortBy    string             `json:"sortBy"`  // "default" (bundle position), "title"
-    Filters   BundleGamesFilters `json:"filters"` // installed, classification
+    Filters   BundleGamesFilters `json:"filters"` // installed, classification, platform
     Reverse   bool               `json:"reverse"`
     Cursor    Cursor             `json:"cursor"`
     Fresh     bool               `json:"fresh"`

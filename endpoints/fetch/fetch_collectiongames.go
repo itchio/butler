@@ -113,6 +113,11 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 			joinGames = true
 		}
 
+		if pc := condForPlatformFilter(params.Filters.Platform); pc != nil {
+			cond = builder.And(cond, pc)
+			joinGames = true
+		}
+
 		if params.Search != "" {
 			cond = builder.And(cond, builder.Like{"games.title", params.Search})
 			joinGames = true

@@ -572,11 +572,17 @@ type GameRecordsFilters struct {
 	Installed bool `json:"installed"`
 	// @optional
 	Owned bool `json:"owned"`
+
+	// Only include games with a download tagged for this platform
+	// ("windows", "linux", "osx"), or web-playable games ("web").
+	// @optional
+	Platform string `json:"platform"`
 }
 
 func (p GameRecordsFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
 	)
 }
 
@@ -911,11 +917,17 @@ type FetchCollectionGamesParams struct {
 type CollectionGamesFilters struct {
 	Installed      bool                      `json:"installed"`
 	Classification itchio.GameClassification `json:"classification"`
+
+	// Only include games with a download tagged for this platform
+	// ("windows", "linux", "osx"), or web-playable games ("web").
+	// @optional
+	Platform string `json:"platform"`
 }
 
 func (p CollectionGamesFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
 	)
 }
 
@@ -1167,11 +1179,17 @@ type FetchProfileOwnedKeysParams struct {
 type ProfileOwnedKeysFilters struct {
 	Installed      bool                      `json:"installed"`
 	Classification itchio.GameClassification `json:"classification"`
+
+	// Only include games with a download tagged for this platform
+	// ("windows", "linux", "osx"), or web-playable games ("web").
+	// @optional
+	Platform string `json:"platform"`
 }
 
 func (p ProfileOwnedKeysFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
 	)
 }
 
@@ -1332,12 +1350,26 @@ type FetchBundleGamesParams struct {
 type BundleGamesFilters struct {
 	Installed      bool                      `json:"installed"`
 	Classification itchio.GameClassification `json:"classification"`
+
+	// Only include games with a download tagged for this platform
+	// ("windows", "linux", "osx"), or web-playable games ("web").
+	// @optional
+	Platform string `json:"platform"`
 }
 
 func (p BundleGamesFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
 	)
+}
+
+// Accepted values for the platform filter on games listings.
+var GamePlatformFilterList = []interface{}{
+	"windows",
+	"linux",
+	"osx",
+	"web",
 }
 
 func (p FetchBundleGamesParams) Validate() error {
