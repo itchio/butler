@@ -1305,6 +1305,21 @@ type FetchBundleGamesParams struct {
 	// @optional
 	Limit int64 `json:"limit"`
 
+	// When specified only shows game titles that contain this string
+	// @optional
+	Search string `json:"search"`
+
+	// Criterion to sort by
+	// @optional
+	SortBy string `json:"sortBy"`
+
+	// Filters
+	// @optional
+	Filters BundleGamesFilters `json:"filters"`
+
+	// @optional
+	Reverse bool `json:"reverse"`
+
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
@@ -1314,10 +1329,23 @@ type FetchBundleGamesParams struct {
 	Fresh bool `json:"fresh"`
 }
 
+type BundleGamesFilters struct {
+	Installed      bool                      `json:"installed"`
+	Classification itchio.GameClassification `json:"classification"`
+}
+
+func (p BundleGamesFilters) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
+	)
+}
+
 func (p FetchBundleGamesParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.BundleID, validation.Required),
+		validation.Field(&p.Filters),
+		validation.Field(&p.SortBy, validation.In("default", "title")),
 	)
 }
 

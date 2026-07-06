@@ -199,11 +199,15 @@ type FetchProfileOwnedBundlesResult struct {
 // @category Fetch
 // @caller client
 type FetchBundleGamesParams struct {
-    ProfileID int64  `json:"profileId"`
-    BundleID  int64  `json:"bundleId"`
-    Limit     int64  `json:"limit"`
-    Cursor    Cursor `json:"cursor"`
-    Fresh     bool   `json:"fresh"`
+    ProfileID int64              `json:"profileId"`
+    BundleID  int64              `json:"bundleId"`
+    Limit     int64              `json:"limit"`
+    Search    string             `json:"search"`  // substring match on game title
+    SortBy    string             `json:"sortBy"`  // "default" (bundle position), "title"
+    Filters   BundleGamesFilters `json:"filters"` // installed, classification
+    Reverse   bool               `json:"reverse"`
+    Cursor    Cursor             `json:"cursor"`
+    Fresh     bool               `json:"fresh"`
 }
 type FetchBundleGamesResult struct {
     Items      []*itchio.BundleGame `json:"items"`

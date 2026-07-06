@@ -112,11 +112,37 @@ func FetchBundleGames(rc *butlerd.RequestContext, params butlerd.FetchBundleGame
 	LazyFetchBundleGames(rc, params, res, params.BundleID)
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		cond := builder.Eq{"bundle_id": params.BundleID}
-		// game_id tiebreak keeps pagination stable if positions repeat
-		search := hades.Search{}.
-			OrderBy("position " + pager.Ordering("ASC", false)).
-			OrderBy("game_id ASC")
+		var cond builder.Cond = builder.Eq{"bundle_id": params.BundleID}
+		joinGames := false
+		search := hades.Search{}
+
+		switch params.SortBy {
+		case "default", "":
+			search = search.OrderBy("position " + pager.Ordering("ASC", params.Reverse))
+		case "title":
+			search = search.OrderBy("lower(games.title) " + pager.Ordering("ASC", params.Reverse))
+			joinGames = true
+		}
+		// game_id tiebreak keeps pagination stable if positions or titles repeat
+		search = search.OrderBy("game_id ASC")
+
+		if params.Filters.Installed {
+			cond = builder.And(cond, builder.Expr("exists (select 1 from caves where caves.game_id = bundle_games.game_id)"))
+		}
+
+		if params.Filters.Classification != "" {
+			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
+			joinGames = true
+		}
+
+		if params.Search != "" {
+			cond = builder.And(cond, builder.Like{"games.title", params.Search})
+			joinGames = true
+		}
+
+		if joinGames {
+			search = search.InnerJoin("games", "games.id = bundle_games.game_id")
+		}
 
 		var items []*itchio.BundleGame
 		pg := pager.New(params)
