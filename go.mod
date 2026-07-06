@@ -1,6 +1,6 @@
 module github.com/itchio/butler
 
-go 1.24.0
+go 1.25.0
 
 require (
 	crawshaw.io/sqlite v0.3.2
@@ -16,8 +16,8 @@ require (
 	github.com/google/gops v0.3.29
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
-	github.com/itchio/arkive v0.0.0-20260424164943-5eabdbdce5c8
-	github.com/itchio/boar v0.0.0-20260413210554-997228649976
+	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
+	github.com/itchio/boar v0.0.0-20260417011146-418a6ee74f35
 	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
 	github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4
 	github.com/itchio/go-itchio v0.0.0-20260515034518-c81f950ec3c4
@@ -29,7 +29,7 @@ require (
 	github.com/itchio/lake v0.0.0-20260609175358-7830e8bc546a
 	github.com/itchio/mitch v0.0.0-20200305160145-f3a01c4897c9
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
-	github.com/itchio/pelican v0.0.0-20200626221820-739b3d7708d2
+	github.com/itchio/pelican v0.0.0-20260515051627-03ecc612cf1c
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
@@ -46,11 +46,11 @@ require (
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.47.0
-	golang.org/x/sync v0.19.0
-	golang.org/x/sys v0.41.0
-	golang.org/x/text v0.33.0
-	golang.org/x/time v0.14.0
+	golang.org/x/crypto v0.53.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/sys v0.46.0
+	golang.org/x/text v0.39.0
+	golang.org/x/time v0.15.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	xorm.io/builder v0.3.7
 )
@@ -81,7 +81,7 @@ require (
 	github.com/gorilla/handlers v1.4.2 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/itchio/dmcunrar-go v0.0.0-20260128194444-1ffa7219a4a2 // indirect
+	github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729 // indirect
 	github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 // indirect
 	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
 	github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 // indirect
@@ -103,8 +103,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/term v0.39.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/term v0.44.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
