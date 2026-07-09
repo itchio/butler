@@ -2,15 +2,12 @@ package search
 
 import (
 	"fmt"
-	"log"
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
-	"github.com/itchio/httpkit/neterr"
-	"github.com/pkg/errors"
 	"xorm.io/builder"
 )
 
@@ -41,62 +38,7 @@ func SearchGames(rc *butlerd.RequestContext, params butlerd.SearchGamesParams) (
 
 	doLocalSearch()
 
-	//----------------------------------
-	// perform API request
-	//----------------------------------
-
-	_, client := rc.ProfileClient(params.ProfileID)
-	searchRes, err := client.SearchGames(rc.Ctx, itchio.SearchGamesParams{
-		Query: params.Query,
-		Page:  1,
-	})
-	if err != nil {
-		if neterr.IsNetworkError(err) {
-			log.Printf("Seemingly offline, returning local results only")
-			return &butlerd.SearchGamesResult{
-				Games: games,
-			}, nil
-		}
-
-		return nil, errors.WithStack(err)
-	}
-
-	//----------------------------------
-	// save remote results which were already in local cache
-	//----------------------------------
-
-	localMap := make(map[int64]bool)
-	for _, g := range games {
-		localMap[g.ID] = true
-	}
-
-	var updatedGames []*itchio.Game
-	for _, g := range searchRes.Games {
-		if localMap[g.ID] {
-			updatedGames = append(updatedGames, g)
-		}
-	}
-	rc.WithConn(func(conn *sqlite.Conn) {
-		models.MustSave(conn, updatedGames)
-	})
-
-	//----------------------------------
-	// send local + remote results
-	//----------------------------------
-
-	doLocalSearch()
-	for _, g := range searchRes.Games {
-		if len(games) > 15 {
-			break
-		}
-
-		if _, ok := localMap[g.ID]; !ok {
-			games = append(games, g)
-		}
-	}
-
-	res := &butlerd.SearchGamesResult{
+	return &butlerd.SearchGamesResult{
 		Games: games,
-	}
-	return res, nil
+	}, nil
 }
