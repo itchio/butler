@@ -328,6 +328,16 @@ func (s *scope) assimilate(pkg string, file string) error {
 									doc = append(doc, line)
 								}
 
+								// fields that may be absent from the wire format
+								// (omitempty) or serialized as null (pointers)
+								// are optional even without an @optional tag
+								if jsonTag.HasOption("omitempty") {
+									optional = true
+								}
+								if _, isPointer := sf.Type.(*ast.StarExpr); isPointer {
+									optional = true
+								}
+
 								e.structFields = append(e.structFields, &structField{
 									goName:     sf.Names[0].Name,
 									name:       jsonTag.Name,

@@ -677,7 +677,7 @@ as if there were no network connections</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p>Information for the new profile, now remembered</p>
+<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
 </td>
 </tr>
 <tr>
@@ -767,7 +767,7 @@ are returned for this kind of login.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p>Information for the new profile, now remembered</p>
+<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
 </td>
 </tr>
 </table>
@@ -858,7 +858,7 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p>Information for the new profile, now remembered</p>
+<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
 </td>
 </tr>
 <tr>
@@ -1080,7 +1080,7 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p>Information for the now validated profile</p>
+<td><p><span class="tag">Optional</span> Information for the now validated profile</p>
 </td>
 </tr>
 </table>
@@ -1662,7 +1662,7 @@ owns and collections in the profile&rsquo;s collection list are returned.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game info</p>
+<td><p><span class="tag">Optional</span> Game info</p>
 </td>
 </tr>
 <tr>
@@ -1928,7 +1928,8 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <tr>
 <td><code>downloadKey</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>stale</code></td>
@@ -2248,7 +2249,7 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p>User info</p>
+<td><p><span class="tag">Optional</span> User info</p>
 </td>
 </tr>
 <tr>
@@ -2423,7 +2424,7 @@ Usually set after getting &lsquo;stale&rsquo; in the response.</p>
 <tr>
 <td><code>collection</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td><p>Collection info</p>
+<td><p><span class="tag">Optional</span> Collection info</p>
 </td>
 </tr>
 <tr>
@@ -3876,7 +3877,8 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>cave</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -3966,7 +3968,7 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Which game to find uploads for</p>
+<td><p><span class="tag">Optional</span> Which game to find uploads for</p>
 </td>
 </tr>
 <tr>
@@ -4168,17 +4170,20 @@ resolution falls back to the legacy &ldquo;any suitable profile&rdquo; behavior.
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>installFolder</code></td>
@@ -4363,7 +4368,8 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
@@ -4373,7 +4379,8 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>info</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -4466,7 +4473,8 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
@@ -4561,7 +4569,8 @@ This is the slow part of install planning (network I/O + file inspection).</p>
 <tr>
 <td><code>info</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -4686,7 +4695,7 @@ This is the slow part of install planning (network I/O + file inspection).</p>
 <tr>
 <td><code>settings</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveSettings__TypeHint">CaveSettings</span></code></td>
-<td><p>Full settings object replacement.</p>
+<td><p><span class="tag">Optional</span> Full settings object replacement.</p>
 </td>
 </tr>
 </table>
@@ -5125,12 +5134,14 @@ receive an <code class="typename"><span class="type">InstallVersionSwitchPick</s
 <tr>
 <td><code>cave</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>builds</code></td>
@@ -5456,13 +5467,13 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The game this task is dealing with</p>
+<td><p><span class="tag">Optional</span> The game this task is dealing with</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The upload this task is dealing with</p>
+<td><p><span class="tag">Optional</span> The upload this task is dealing with</p>
 </td>
 </tr>
 <tr>
@@ -5587,13 +5598,13 @@ info about the game, upload, build that were installed</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The game we installed</p>
+<td><p><span class="tag">Optional</span> The game we installed</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The upload we installed</p>
+<td><p><span class="tag">Optional</span> The upload we installed</p>
 </td>
 </tr>
 <tr>
@@ -5711,7 +5722,8 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>installLocation</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -5820,7 +5832,8 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>installLocation</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -5940,7 +5953,8 @@ a game is found.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -6053,7 +6067,8 @@ a game is found.</p>
 <tr>
 <td><code>item</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallQueueResult__TypeHint">InstallQueue</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -6541,7 +6556,8 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>update</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -6588,7 +6604,7 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game we found an update for</p>
+<td><p><span class="tag">Optional</span> Game we found an update for</p>
 </td>
 </tr>
 <tr>
@@ -6720,13 +6736,13 @@ cave identifier.</p>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>Upload to be installed</p>
+<td><p><span class="tag">Optional</span> Upload to be installed</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>Build to be installed (may be nil)</p>
+<td><p><span class="tag">Optional</span> Build to be installed (may be nil)</p>
 </td>
 </tr>
 <tr>
@@ -8846,7 +8862,8 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <tr>
 <td><code>channel</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#PublishChannel__TypeHint">PublishChannel</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -8927,7 +8944,8 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -9142,7 +9160,7 @@ reflects the server&rsquo;s current view.</p>
 <tr>
 <td><code>action</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
-<td><p>The manifest action corresponding to this launch target.
+<td><p><span class="tag">Optional</span> The manifest action corresponding to this launch target.
 For implicit launch targets, a minimal one will be generated.</p>
 </td>
 </tr>
@@ -9155,7 +9173,7 @@ For implicit launch targets, a minimal one will be generated.</p>
 <tr>
 <td><code>strategy</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
-<td><p>Detailed launch strategy</p>
+<td><p><span class="tag">Optional</span> Detailed launch strategy</p>
 </td>
 </tr>
 </table>
@@ -9269,7 +9287,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p>User information</p>
+<td><p><span class="tag">Optional</span> User information</p>
 </td>
 </tr>
 </table>
@@ -9626,7 +9644,8 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>viewsCount</code></td>
@@ -9853,7 +9872,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this key was created at (often coincides with purchase time)</p>
+<td><p><span class="tag">Optional</span> Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
 </table>
@@ -9903,7 +9922,8 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>lastTouchedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>secondsRun</code></td>
@@ -9974,13 +9994,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game that&rsquo;s installed in this cave</p>
+<td><p><span class="tag">Optional</span> Game that&rsquo;s installed in this cave</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>Upload that&rsquo;s installed in this cave</p>
+<td><p><span class="tag">Optional</span> Upload that&rsquo;s installed in this cave</p>
 </td>
 </tr>
 <tr>
@@ -9992,13 +10012,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>stats</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveStats__TypeHint">CaveStats</span></code></td>
-<td><p>Stats about cave usage and first install</p>
+<td><p><span class="tag">Optional</span> Stats about cave usage and first install</p>
 </td>
 </tr>
 <tr>
 <td><code>installInfo</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveInstallInfo__TypeHint">CaveInstallInfo</span></code></td>
-<td><p>Information about where the cave is installed, how much space it takes up etc.</p>
+<td><p><span class="tag">Optional</span> Information about where the cave is installed, how much space it takes up etc.</p>
 </td>
 </tr>
 </table>
@@ -10062,13 +10082,14 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>installedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Time the cave was first installed</p>
+<td><p><span class="tag">Optional</span> Time the cave was first installed</p>
 </td>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>secondsRun</code></td>
@@ -10429,12 +10450,14 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>type</code></td>
@@ -10444,7 +10467,8 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>diskUsage</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>error</code></td>
@@ -10618,12 +10642,14 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>progress</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>speedHistory</code></td>
@@ -10668,7 +10694,8 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -10699,7 +10726,7 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p>The download that errored. It contains all the error
+<td><p><span class="tag">Optional</span> The download that errored. It contains all the error
 information: a short message, a full stack trace,
 and a butlerd error code.</p>
 </td>
@@ -10733,7 +10760,8 @@ and a butlerd error code.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -10764,7 +10792,8 @@ and a butlerd error code.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -10933,17 +10962,20 @@ performed whenever <code class="typename"><span class="type" data-tip-selector="
 <tr>
 <td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>errorMessage</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>errorCode</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>reason</code></td>
@@ -10963,27 +10995,32 @@ performed whenever <code class="typename"><span class="type" data-tip-selector="
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>startedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>finishedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>stagingFolder</code></td>
@@ -11894,13 +11931,14 @@ Type alias for string
 <tr>
 <td><code>wrapper</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Wrapper__TypeHint">Wrapper</span></code></td>
-<td><p>wrapper tool (wine, etc.) that butler can launch itself</p>
+<td><p><span class="tag">Optional</span> wrapper tool (wine, etc.) that butler can launch itself</p>
 </td>
 </tr>
 <tr>
 <td><code>remoteLaunchName</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -12104,7 +12142,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>mode</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Mode describes file permissions</p>
+<td><p><span class="tag">Optional</span> Mode describes file permissions</p>
 </td>
 </tr>
 <tr>
@@ -12122,7 +12160,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>arch</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
-<td><p>Arch describes the architecture of a candidate (where relevant)</p>
+<td><p><span class="tag">Optional</span> Arch describes the architecture of a candidate (where relevant)</p>
 </td>
 </tr>
 <tr>
@@ -12842,31 +12880,31 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>url</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Canonical address of the game&rsquo;s page on itch.io</p>
+<td><p><span class="tag">Optional</span> Canonical address of the game&rsquo;s page on itch.io</p>
 </td>
 </tr>
 <tr>
 <td><code>title</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Human-friendly title (may contain any character)</p>
+<td><p><span class="tag">Optional</span> Human-friendly title (may contain any character)</p>
 </td>
 </tr>
 <tr>
 <td><code>shortText</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Human-friendly short description</p>
+<td><p><span class="tag">Optional</span> Human-friendly short description</p>
 </td>
 </tr>
 <tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameType__TypeHint">GameType</span></code></td>
-<td><p>Downloadable game, html game, etc.</p>
+<td><p><span class="tag">Optional</span> Downloadable game, html game, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td><p>Classification: game, tool, comic, etc.</p>
+<td><p><span class="tag">Optional</span> Classification: game, tool, comic, etc.</p>
 </td>
 </tr>
 <tr>
@@ -12878,49 +12916,49 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>coverUrl</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Cover url (might be a GIF)</p>
+<td><p><span class="tag">Optional</span> Cover url (might be a GIF)</p>
 </td>
 </tr>
 <tr>
 <td><code>stillCoverUrl</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Non-gif cover url, only set if main cover url is a GIF</p>
+<td><p><span class="tag">Optional</span> Non-gif cover url, only set if main cover url is a GIF</p>
 </td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date the game was created</p>
+<td><p><span class="tag">Optional</span> Date the game was created</p>
 </td>
 </tr>
 <tr>
 <td><code>publishedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date the game was published, empty if not currently published</p>
+<td><p><span class="tag">Optional</span> Date the game was published, empty if not currently published</p>
 </td>
 </tr>
 <tr>
 <td><code>minPrice</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Price in cents of a dollar</p>
+<td><p><span class="tag">Optional</span> Price in cents of a dollar</p>
 </td>
 </tr>
 <tr>
 <td><code>canBeBought</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Are payments accepted?</p>
+<td><p><span class="tag">Optional</span> Are payments accepted?</p>
 </td>
 </tr>
 <tr>
 <td><code>hasDemo</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Does this game have a demo available?</p>
+<td><p><span class="tag">Optional</span> Does this game have a demo available?</p>
 </td>
 </tr>
 <tr>
 <td><code>inPressSystem</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>Is this game part of the itch.io press system?</p>
+<td><p><span class="tag">Optional</span> Is this game part of the itch.io press system?</p>
 </td>
 </tr>
 <tr>
@@ -12938,7 +12976,7 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>userId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>ID of the user account this game is associated to</p>
+<td><p><span class="tag">Optional</span> ID of the user account this game is associated to</p>
 </td>
 </tr>
 <tr>
@@ -12950,22 +12988,26 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>viewsCount</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>downloadsCount</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>purchasesCount</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>published</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -13094,17 +13136,20 @@ is compatible with.</p>
 <tr>
 <td><code>windows</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>linux</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>osx</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Architectures__TypeHint">Architectures</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -13545,7 +13590,7 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>host</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Host (if external storage)</p>
+<td><p><span class="tag">Optional</span> Host (if external storage)</p>
 </td>
 </tr>
 <tr>
@@ -13575,13 +13620,13 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>Latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
+<td><p><span class="tag">Optional</span> Latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
 </td>
 </tr>
 <tr>
 <td><code>buildId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>ID of the latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
+<td><p><span class="tag">Optional</span> ID of the latest build for this upload, if it&rsquo;s a wharf-enabled upload</p>
 </td>
 </tr>
 <tr>
@@ -13611,13 +13656,13 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this upload was created at</p>
+<td><p><span class="tag">Optional</span> Date this upload was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this upload was last updated at (order changed, display name set, etc.)</p>
+<td><p><span class="tag">Optional</span> Date this upload was last updated at (order changed, display name set, etc.)</p>
 </td>
 </tr>
 </table>
@@ -13926,13 +13971,13 @@ a web game, some music, etc.</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this collection was created at</p>
+<td><p><span class="tag">Optional</span> Date this collection was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this collection was last updated at (item added, title set, etc.)</p>
+<td><p><span class="tag">Optional</span> Date this collection was last updated at (item added, title set, etc.)</p>
 </td>
 </tr>
 <tr>
@@ -13946,7 +13991,7 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>collectionGames</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span>[]</code></td>
-<td><p>Games in this collection, with additional info</p>
+<td><p><span class="tag">Optional</span> Games in this collection, with additional info</p>
 </td>
 </tr>
 <tr>
@@ -13957,7 +14002,8 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -14029,7 +14075,8 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>collection</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>gameId</code></td>
@@ -14039,7 +14086,8 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>position</code></td>
@@ -14049,12 +14097,14 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>blurb</code></td>
@@ -14149,13 +14199,13 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>url</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Canonical address of the bundle&rsquo;s page on itch.io</p>
+<td><p><span class="tag">Optional</span> Canonical address of the bundle&rsquo;s page on itch.io</p>
 </td>
 </tr>
 <tr>
 <td><code>coverUrl</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>Cover url for the bundle (the social_banner image), if any</p>
+<td><p><span class="tag">Optional</span> Cover url for the bundle (the social_banner image), if any</p>
 </td>
 </tr>
 <tr>
@@ -14167,19 +14217,19 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date the bundle was created at</p>
+<td><p><span class="tag">Optional</span> Date the bundle was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date the bundle was last updated at</p>
+<td><p><span class="tag">Optional</span> Date the bundle was last updated at</p>
 </td>
 </tr>
 <tr>
 <td><code>bundleGames</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#BundleGame__TypeHint">BundleGame</span>[]</code></td>
-<td><p>Games in this bundle, with additional info. Not populated by the current
+<td><p><span class="tag">Optional</span> Games in this bundle, with additional info. Not populated by the current
 API but kept for hades relationship mapping; butler nulls this slice out
 before persistence so the locally-paginated bundle_games table is not
 clobbered by partial inline data.</p>
@@ -14257,7 +14307,8 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>bundle</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>gameId</code></td>
@@ -14267,7 +14318,8 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>position</code></td>
@@ -14277,18 +14329,20 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>minPrice</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Minimum price for this game inside the bundle, in cents of a dollar.</p>
+<td><p><span class="tag">Optional</span> Minimum price for this game inside the bundle, in cents of a dollar.</p>
 </td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -14369,7 +14423,7 @@ access to a single game, it grants access to every game in the bundle.</p>
 <tr>
 <td><code>bundle</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span></code></td>
-<td><p>Bundle this key grants access to</p>
+<td><p><span class="tag">Optional</span> Bundle this key grants access to</p>
 </td>
 </tr>
 <tr>
@@ -14381,7 +14435,7 @@ access to a single game, it grants access to every game in the bundle.</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this key was created at (often coincides with purchase time)</p>
+<td><p><span class="tag">Optional</span> Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
 <tr>
@@ -14463,19 +14517,19 @@ for free. It can also be generated by other means.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game to which this download key grants access</p>
+<td><p><span class="tag">Optional</span> Game to which this download key grants access</p>
 </td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this key was created at (often coincides with purchase time)</p>
+<td><p><span class="tag">Optional</span> Date this key was created at (often coincides with purchase time)</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this key was last updated at</p>
+<td><p><span class="tag">Optional</span> Date this key was last updated at</p>
 </td>
 </tr>
 <tr>
@@ -14601,31 +14655,31 @@ is still processing or if processing has failed.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p>User who pushed the build</p>
+<td><p><span class="tag">Optional</span> User who pushed the build</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>Upload this build belongs to (only populated by endpoints that nest it)</p>
+<td><p><span class="tag">Optional</span> Upload this build belongs to (only populated by endpoints that nest it)</p>
 </td>
 </tr>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>Game this build belongs to (only populated by endpoints that nest it)</p>
+<td><p><span class="tag">Optional</span> Game this build belongs to (only populated by endpoints that nest it)</p>
 </td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Timestamp the build was created at</p>
+<td><p><span class="tag">Optional</span> Timestamp the build was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Timestamp the build was last updated at</p>
+<td><p><span class="tag">Optional</span> Timestamp the build was last updated at</p>
 </td>
 </tr>
 </table>
@@ -14825,13 +14879,13 @@ archive, its signature, its patch, etc.</p>
 <tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this build file was created at</p>
+<td><p><span class="tag">Optional</span> Date this build file was created at</p>
 </td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p>Date this build file was last updated at</p>
+<td><p><span class="tag">Optional</span> Date this build file was last updated at</p>
 </td>
 </tr>
 </table>
@@ -15090,37 +15144,44 @@ level. For example, rediff&rsquo;d patches are &ldquo;optimized&rdquo;, whereas 
 <tr>
 <td><code>heal</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#HealInstallEvent__TypeHint">HealInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>install</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallInstallEvent__TypeHint">InstallInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>upgrade</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#UpgradeInstallEvent__TypeHint">UpgradeInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>ghostBusting</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GhostBustingInstallEvent__TypeHint">GhostBustingInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>patching</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#PatchingInstallEvent__TypeHint">PatchingInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>problem</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#ProblemInstallEvent__TypeHint">ProblemInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>fallback</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#FallbackInstallEvent__TypeHint">FallbackInstallEvent</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 
@@ -15582,19 +15643,19 @@ angels are saved.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p>The itch.io game installed at this location</p>
+<td><p><span class="tag">Optional</span> The itch.io game installed at this location</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p>The itch.io upload installed at this location</p>
+<td><p><span class="tag">Optional</span> The itch.io upload installed at this location</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p>The itch.io build installed at this location. Null for non-wharf upload.</p>
+<td><p><span class="tag">Optional</span> The itch.io build installed at this location. Null for non-wharf upload.</p>
 </td>
 </tr>
 <tr>
@@ -15674,7 +15735,7 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>prereqs</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Prereq__TypeHint">Prereq</span>[]</code></td>
-<td><p>Prereqs describe libraries or frameworks that must be installed
+<td><p><span class="tag">Optional</span> Prereqs describe libraries or frameworks that must be installed
 prior to launching a game</p>
 </td>
 </tr>
@@ -15734,43 +15795,43 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>icon</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
+<td><p><span class="tag">Optional</span> icon name (see static/fonts/icomoon/demo.html, don&rsquo;t include <code>icon-</code> prefix)</p>
 </td>
 </tr>
 <tr>
 <td><code>args</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p>command-line arguments</p>
+<td><p><span class="tag">Optional</span> command-line arguments</p>
 </td>
 </tr>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>sandbox opt-in</p>
+<td><p><span class="tag">Optional</span> sandbox opt-in</p>
 </td>
 </tr>
 <tr>
 <td><code>scope</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>requested API scope</p>
+<td><p><span class="tag">Optional</span> requested API scope</p>
 </td>
 </tr>
 <tr>
 <td><code>console</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p>don&rsquo;t redirect stdout/stderr, open in new console window</p>
+<td><p><span class="tag">Optional</span> don&rsquo;t redirect stdout/stderr, open in new console window</p>
 </td>
 </tr>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Platform__TypeHint">Platform</span></code></td>
-<td><p>platform to restrict this action to</p>
+<td><p><span class="tag">Optional</span> platform to restrict this action to</p>
 </td>
 </tr>
 <tr>
 <td><code>locales</code></td>
 <td><code class="typename"><span class="type builtin-type">{ [key: string]: ActionLocale }</span></code></td>
-<td><p>localized action name</p>
+<td><p><span class="tag">Optional</span> localized action name</p>
 </td>
 </tr>
 </table>
@@ -15968,7 +16029,8 @@ can be taken while launching a game.</p>
 <tr>
 <td><code>arch</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 </table>
 

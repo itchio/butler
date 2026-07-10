@@ -40,9 +40,10 @@ type StructSpec struct {
 }
 
 type FieldSpec struct {
-	Name string `json:"name"`
-	Doc  string `json:"doc"`
-	Type string `json:"type"`
+	Name     string `json:"name"`
+	Doc      string `json:"doc"`
+	Type     string `json:"type"`
+	Optional bool   `json:"optional,omitempty"`
 }
 
 type NotificationSpec struct {
