@@ -30,7 +30,7 @@ type StrategyResult struct {
 
 	// If a local file, result of dash configure
 	// @optional
-	Candidate *dash.Candidate `json:"candidate"`
+	Candidate *dash.Candidate `json:"candidate,omitempty"`
 }
 
 func (sr *StrategyResult) String() string {
