@@ -10291,7 +10291,8 @@ nil = inherit global, true = force on, false = force off</p>
 <tr>
 <td><code>sizeInfo</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSizeInfo__TypeHint">InstallLocationSizeInfo</span></code></td>
-<td><p><span class="tag">Optional</span> Information about the size used and available at this install location</p>
+<td><p>Information about the size used and available at this install location.
+Sizes that could not be determined are -1.</p>
 </td>
 </tr>
 </table>
@@ -12955,7 +12956,7 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>userId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p><span class="tag">Optional</span> ID of the user account this game is associated to</p>
+<td><p>ID of the user account this game is associated to</p>
 </td>
 </tr>
 <tr>
@@ -14065,8 +14066,7 @@ page deleted, visibility level changed, etc.)</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>position</code></td>
@@ -14178,7 +14178,7 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>url</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Canonical address of the bundle&rsquo;s page on itch.io</p>
+<td><p>Canonical address of the bundle&rsquo;s page on itch.io</p>
 </td>
 </tr>
 <tr>
@@ -14308,8 +14308,7 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>position</code></td>

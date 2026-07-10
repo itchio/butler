@@ -95,6 +95,11 @@ func FetchProfileGames(rc *butlerd.RequestContext, params butlerd.FetchProfileGa
 		res.NextCursor = pg.Fetch(conn, &items, cond, search)
 		models.MustPreload(conn, items, hades.Assoc("Game"))
 		for _, item := range items {
+			if item.Game == nil {
+				// ProfileGame.game is a required field; skip rows
+				// whose game record is missing
+				continue
+			}
 			res.Items = append(res.Items, FormatProfileGame(item))
 		}
 	})

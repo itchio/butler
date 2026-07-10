@@ -131,7 +131,14 @@ func FetchCollectionGames(rc *butlerd.RequestContext, params butlerd.FetchCollec
 		pg := pager.New(params)
 		res.NextCursor = pg.Fetch(conn, &items, cond, search)
 		models.MustPreload(conn, items, hades.Assoc("Game"))
-		res.Items = items
+		for _, item := range items {
+			if item.Game == nil {
+				// CollectionGame.game is a required field; skip rows
+				// whose game record is missing
+				continue
+			}
+			res.Items = append(res.Items, item)
+		}
 	})
 	return res, nil
 }

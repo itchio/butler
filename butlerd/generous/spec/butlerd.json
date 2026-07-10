@@ -4385,9 +4385,8 @@
         },
         {
           "name": "sizeInfo",
-          "doc": "Information about the size used and available at this install location",
-          "type": "InstallLocationSizeInfo",
-          "optional": true
+          "doc": "Information about the size used and available at this install location.\nSizes that could not be determined are -1.",
+          "type": "InstallLocationSizeInfo"
         }
       ]
     },
@@ -5770,8 +5769,7 @@
         {
           "name": "userId",
           "doc": "ID of the user account this game is associated to",
-          "type": "number",
-          "optional": true
+          "type": "number"
         },
         {
           "name": "sale",
@@ -6045,8 +6043,7 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "position",
@@ -6094,8 +6091,7 @@
         {
           "name": "url",
           "doc": "Canonical address of the bundle's page on itch.io",
-          "type": "string",
-          "optional": true
+          "type": "string"
         },
         {
           "name": "coverUrl",
@@ -6156,8 +6152,7 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "position",

@@ -15,6 +15,9 @@ func GetBuild(rc *butlerd.RequestContext, params butlerd.PublishGetBuildParams) 
 	if err != nil {
 		return nil, errors.Wrap(err, "getting build")
 	}
+	if res.Build == nil {
+		return nil, errors.Errorf("API returned no build for id %d", params.BuildID)
+	}
 
 	return &butlerd.PublishGetBuildResult{
 		Build: res.Build,

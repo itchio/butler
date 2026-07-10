@@ -153,7 +153,14 @@ func FetchBundleGames(rc *butlerd.RequestContext, params butlerd.FetchBundleGame
 		pg := pager.New(params)
 		res.NextCursor = pg.Fetch(conn, &items, cond, search)
 		models.MustPreload(conn, items, hades.Assoc("Game"))
-		res.Items = items
+		for _, item := range items {
+			if item.Game == nil {
+				// BundleGame.game is a required field; skip rows
+				// whose game record is missing
+				continue
+			}
+			res.Items = append(res.Items, item)
+		}
 	})
 
 	return res, nil

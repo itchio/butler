@@ -1682,9 +1682,9 @@ type InstallLocationSummary struct {
 	ID string `json:"id"`
 	// Absolute path on disk for this install location
 	Path string `json:"path"`
-	// Information about the size used and available at this install location
-	// @optional
-	SizeInfo *InstallLocationSizeInfo `json:"sizeInfo,omitempty"`
+	// Information about the size used and available at this install location.
+	// Sizes that could not be determined are -1.
+	SizeInfo *InstallLocationSizeInfo `json:"sizeInfo"`
 }
 
 type InstallLocationSizeInfo struct {

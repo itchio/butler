@@ -32,6 +32,11 @@ func List(rc *butlerd.RequestContext, params butlerd.ProfileListParams) (*butler
 
 	var formattedProfiles []*butlerd.Profile
 	for _, profile := range profiles {
+		if profile.User == nil {
+			// Profile.user is a required field; a profile row whose
+			// user record is missing is unusable, don't list it
+			continue
+		}
 		formattedProfiles = append(formattedProfiles, formatProfile(profile))
 	}
 
