@@ -1,14 +1,10 @@
 package auditzip
 
 import (
-	"bytes"
-	"encoding/binary"
 	stderrors "errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"os/exec"
 
 	upstreamzip "archive/zip"
 
@@ -29,172 +25,11 @@ var args = struct {
 	upstream *bool
 }{}
 
-var doArgs = struct {
-	file *string
-	rfc  *bool
-}{}
-
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("auditzip", "Audit a zip file for common errors")
 	args.file = cmd.Arg("file", ".zip file to audit").Required().String()
 	args.upstream = cmd.Flag("upstream", "Use upstream zip implementation (archive/zip)").Bool()
 	ctx.Register(cmd, do)
-
-	doCmd := ctx.App.Command("mkprotozip", "Make a zip with all supported entry types")
-	doArgs.file = doCmd.Arg("file", ".zip file to make").Required().String()
-	doArgs.rfc = doCmd.Flag("rfc", "If set, only use STORE and DEFLATE methods").Bool()
-	ctx.Register(doCmd, doMk)
-}
-
-type lzmaWriter struct {
-	buf *bytes.Buffer
-	w   io.Writer
-}
-
-func (lw *lzmaWriter) Write(buf []byte) (int, error) {
-	n, err := lw.buf.Write(buf)
-	return n, err
-}
-
-func (lw *lzmaWriter) Close() error {
-	f, err := ioutil.TempFile("", "lzma-in")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer f.Close()
-	defer os.Remove(f.Name())
-
-	_, err = f.Write(lw.buf.Bytes())
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	f.Close()
-
-	cmd := exec.Command("lzma", "--compress", f.Name(), "--stdout")
-	outBuf := new(bytes.Buffer)
-	cmd.Stdout = outBuf
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	var versionInfo uint16 = 5129
-	var propSize uint16 = 5
-	err = binary.Write(lw.w, binary.LittleEndian, versionInfo)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	err = binary.Write(lw.w, binary.LittleEndian, propSize)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	outReader := bytes.NewReader(outBuf.Bytes())
-
-	lzmaProps := make([]byte, 5)
-	_, err = io.ReadFull(outReader, lzmaProps)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	lzmaSize := make([]byte, 8)
-	_, err = io.ReadFull(outReader, lzmaSize)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	var unpackSize uint64
-	for i := 0; i < 8; i++ {
-		b := lzmaSize[i]
-		unpackSize = unpackSize | uint64(b)<<uint64(8*i)
-	}
-
-	_, err = lw.w.Write(lzmaProps)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	_, err = io.Copy(lw.w, outReader)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
-}
-
-func doMk(ctx *mansion.Context) {
-	consumer := comm.NewStateConsumer()
-	ctx.Must(DoMk(consumer, *doArgs.file, *doArgs.rfc))
-}
-
-func DoMk(consumer *state.Consumer, file string, rfc bool) error {
-	f, err := os.Create(file)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer f.Close()
-
-	itchiozip.RegisterCompressor(itchiozip.LZMA, func(s itchiozip.CompressionSettings, w io.Writer) (io.WriteCloser, error) {
-		buf := new(bytes.Buffer)
-		return &lzmaWriter{buf, w}, nil
-	})
-
-	w := itchiozip.NewWriter(f)
-	defer w.Close()
-
-	{
-		bs := []byte("I'm a stored file")
-		ew, err := w.CreateHeader(&itchiozip.FileHeader{
-			Name:               "store-item",
-			Method:             itchiozip.Store,
-			UncompressedSize64: uint64(len(bs)),
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		_, err = ew.Write(bs)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	}
-
-	{
-		bs := []byte("I'm a deflated file")
-		ew, err := w.CreateHeader(&itchiozip.FileHeader{
-			Name:               "deflate-item",
-			Method:             itchiozip.Deflate,
-			UncompressedSize64: uint64(len(bs)),
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		_, err = ew.Write(bs)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	}
-
-	if !rfc {
-		bs := []byte("I'm an LZMA-compressed file")
-		ew, err := w.CreateHeader(&itchiozip.FileHeader{
-			Name:               "lzma-item",
-			Method:             itchiozip.LZMA,
-			UncompressedSize64: uint64(len(bs)),
-		})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		ew.Write(bs)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	}
-
-	return nil
 }
 
 func do(ctx *mansion.Context) {

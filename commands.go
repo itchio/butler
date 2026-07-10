@@ -28,7 +28,6 @@ import (
 	"github.com/itchio/butler/cmd/prereqs"
 	"github.com/itchio/butler/cmd/probe"
 	"github.com/itchio/butler/cmd/push"
-	"github.com/itchio/butler/cmd/ratetest"
 	"github.com/itchio/butler/cmd/rediff"
 	"github.com/itchio/butler/cmd/repack"
 	"github.com/itchio/butler/cmd/run"
@@ -116,6 +115,5 @@ func registerCommands(ctx *mansion.Context) {
 	rediff.Register(ctx)
 	mkzip.Register(ctx)
 
-	ratetest.Register(ctx)
 	diag.Register(ctx)
 }
