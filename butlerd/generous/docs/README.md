@@ -1349,6 +1349,11 @@ two-factor authentication enabled.</p>
 
 ### Search.Games (client request)
 
+<div class="deprecation-notice">
+<strong>Deprecated:</strong> <p>Use Search.Local instead. It searches the same locally-cached games, and also returns the profile&rsquo;s owned bundles and collections.</p>
+
+</div>
+
 
 <p>
 <p>Searches for games.</p>
@@ -1426,6 +1431,11 @@ two-factor authentication enabled.</p>
 
 ### Search.Users (client request)
 
+<div class="deprecation-notice">
+<strong>Deprecated:</strong> <p>Use Search.Local for local search. Search.Users mixes local results with an API request and is no longer used by the itch app.</p>
+
+</div>
+
 
 <p>
 <p>Searches for users.</p>
@@ -1496,6 +1506,115 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>users</code></td>
 <td><code class="typename"><span class="type">User</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### Search.Local (client request)
+
+
+<p>
+<p>Searches butler&rsquo;s local database for games, bundles, and collections.
+Does not perform any API requests.</p>
+
+<p>Games are searched across everything locally cached. Bundles and
+collections are scoped to the given profile: only bundles the profile
+owns and collections in the profile&rsquo;s collection list are returned.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile whose owned bundles and collections are searched</p>
+</td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
+<td><p>Locally-cached games matching the query</p>
+</td>
+</tr>
+<tr>
+<td><code>bundles</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span>[]</code></td>
+<td><p>Bundles owned by the profile matching the query</p>
+</td>
+</tr>
+<tr>
+<td><code>collections</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
+<td><p>Collections in the profile&rsquo;s collection list matching the query</p>
+</td>
+</tr>
+</table>
+
+
+<div id="SearchLocalParams__TypeHint" class="tip-content">
+<p>Search.Local (client request) <a href="#/?id=searchlocal-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Searches butler&rsquo;s local database for games, bundles, and collections.
+Does not perform any API requests.</p>
+
+<p>Games are searched across everything locally cached. Bundles and
+collections are scoped to the given profile: only bundles the profile
+owns and collections in the profile&rsquo;s collection list are returned.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="SearchLocalResult__TypeHint" class="tip-content">
+<p>SearchLocal  <a href="#/?id=searchlocal-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>games</code></td>
+<td><code class="typename"><span class="type">Game</span>[]</code></td>
+</tr>
+<tr>
+<td><code>bundles</code></td>
+<td><code class="typename"><span class="type">Bundle</span>[]</code></td>
+</tr>
+<tr>
+<td><code>collections</code></td>
+<td><code class="typename"><span class="type">Collection</span>[]</code></td>
 </tr>
 </table>
 
@@ -3172,6 +3291,30 @@ games.</p>
 </td>
 </tr>
 <tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> When specified only shows game titles that contain this string</p>
+</td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Criterion to sort by</p>
+</td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#BundleGamesFilters__TypeHint">BundleGamesFilters</span></code></td>
+<td><p><span class="tag">Optional</span> Filters</p>
+</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
 <td><code>cursor</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Cursor__TypeHint">Cursor</span></code></td>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
@@ -3234,6 +3377,22 @@ games.</p>
 <tr>
 <td><code>limit</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sortBy</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td><code class="typename"><span class="type">BundleGamesFilters</span></code></td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>cursor</code></td>
@@ -9296,6 +9455,13 @@ ie. that we can connect as, etc.</p>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Only include games with a download tagged for this platform
+(&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
+</td>
+</tr>
 </table>
 
 
@@ -9315,6 +9481,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>owned</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -9372,6 +9542,13 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Only include games with a download tagged for this platform
+(&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
+</td>
+</tr>
 </table>
 
 
@@ -9387,6 +9564,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -9519,6 +9700,13 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Only include games with a download tagged for this platform
+(&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
+</td>
+</tr>
 </table>
 
 
@@ -9534,6 +9722,61 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### BundleGamesFilters (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Only include games with a download tagged for this platform
+(&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
+</td>
+</tr>
+</table>
+
+
+<div id="BundleGamesFilters__TypeHint" class="tip-content">
+<p>BundleGamesFilters (struct) <a href="#/?id=bundlegamesfilters-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>installed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code class="typename"><span class="type">GameClassification</span></code></td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 

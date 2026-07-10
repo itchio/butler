@@ -397,6 +397,8 @@ type ProfileDataGetResult struct {
 
 // Searches for games.
 //
+// @deprecated Use Search.Local instead. It searches the same locally-cached games, and also returns the profile's owned bundles and collections.
+//
 // @name Search.Games
 // @category Search
 // @caller client
@@ -419,6 +421,8 @@ type SearchGamesResult struct {
 
 // Searches for users.
 //
+// @deprecated Use Search.Local for local search. Search.Users mixes local results with an API request and is no longer used by the itch app.
+//
 // @name Search.Users
 // @category Search
 // @caller client
@@ -437,6 +441,41 @@ func (p SearchUsersParams) Validate() error {
 
 type SearchUsersResult struct {
 	Users []*itchio.User `json:"users"`
+}
+
+// Searches butler's local database for games, bundles, and collections.
+// Does not perform any API requests.
+//
+// Games are searched across everything locally cached. Bundles and
+// collections are scoped to the given profile: only bundles the profile
+// owns and collections in the profile's collection list are returned.
+//
+// @name Search.Local
+// @category Search
+// @caller client
+type SearchLocalParams struct {
+	// Profile whose owned bundles and collections are searched
+	ProfileID int64 `json:"profileId"`
+
+	Query string `json:"query"`
+}
+
+func (p SearchLocalParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Query, validation.Required),
+	)
+}
+
+type SearchLocalResult struct {
+	// Locally-cached games matching the query
+	Games []*itchio.Game `json:"games"`
+
+	// Bundles owned by the profile matching the query
+	Bundles []*itchio.Bundle `json:"bundles"`
+
+	// Collections in the profile's collection list matching the query
+	Collections []*itchio.Collection `json:"collections"`
 }
 
 //----------------------------------------------------------------------

@@ -378,6 +378,7 @@
       "method": "Search.Games",
       "doc": "Searches for games.",
       "caller": "client",
+      "deprecated": "Use Search.Local instead. It searches the same locally-cached games, and also returns the profile's owned bundles and collections.",
       "params": {
         "fields": [
           {
@@ -406,6 +407,7 @@
       "method": "Search.Users",
       "doc": "Searches for users.",
       "caller": "client",
+      "deprecated": "Use Search.Local for local search. Search.Users mixes local results with an API request and is no longer used by the itch app.",
       "params": {
         "fields": [
           {
@@ -426,6 +428,44 @@
             "name": "users",
             "doc": "",
             "type": "User[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Search.Local",
+      "doc": "Searches butler's local database for games, bundles, and collections.\nDoes not perform any API requests.\n\nGames are searched across everything locally cached. Bundles and\ncollections are scoped to the given profile: only bundles the profile\nowns and collections in the profile's collection list are returned.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile whose owned bundles and collections are searched",
+            "type": "number"
+          },
+          {
+            "name": "query",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "games",
+            "doc": "Locally-cached games matching the query",
+            "type": "Game[]"
+          },
+          {
+            "name": "bundles",
+            "doc": "Bundles owned by the profile matching the query",
+            "type": "Bundle[]"
+          },
+          {
+            "name": "collections",
+            "doc": "Collections in the profile's collection list matching the query",
+            "type": "Collection[]"
           }
         ]
       }
@@ -1114,6 +1154,26 @@
             "name": "limit",
             "doc": "Maximum number of games to return at a time.",
             "type": "number"
+          },
+          {
+            "name": "search",
+            "doc": "When specified only shows game titles that contain this string",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "doc": "Criterion to sort by",
+            "type": "string"
+          },
+          {
+            "name": "filters",
+            "doc": "Filters",
+            "type": "BundleGamesFilters"
+          },
+          {
+            "name": "reverse",
+            "doc": "",
+            "type": "boolean"
           },
           {
             "name": "cursor",
@@ -3420,6 +3480,27 @@
       ]
     },
     {
+      "name": "SearchLocalResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "games",
+          "doc": "Locally-cached games matching the query",
+          "type": "Game[]"
+        },
+        {
+          "name": "bundles",
+          "doc": "Bundles owned by the profile matching the query",
+          "type": "Bundle[]"
+        },
+        {
+          "name": "collections",
+          "doc": "Collections in the profile's collection list matching the query",
+          "type": "Collection[]"
+        }
+      ]
+    },
+    {
       "name": "FetchGameResult",
       "doc": "",
       "fields": [
@@ -3484,6 +3565,11 @@
           "name": "owned",
           "doc": "",
           "type": "boolean"
+        },
+        {
+          "name": "platform",
+          "doc": "Only include games with a download tagged for this platform\n(\"windows\", \"linux\", \"osx\"), or web-playable games (\"web\").",
+          "type": "string"
         }
       ]
     },
@@ -3618,6 +3704,11 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        },
+        {
+          "name": "platform",
+          "doc": "Only include games with a download tagged for this platform\n(\"windows\", \"linux\", \"osx\"), or web-playable games (\"web\").",
+          "type": "string"
         }
       ]
     },
@@ -3744,6 +3835,11 @@
           "name": "classification",
           "doc": "",
           "type": "GameClassification"
+        },
+        {
+          "name": "platform",
+          "doc": "Only include games with a download tagged for this platform\n(\"windows\", \"linux\", \"osx\"), or web-playable games (\"web\").",
+          "type": "string"
         }
       ]
     },
@@ -3786,6 +3882,27 @@
           "name": "stale",
           "doc": "If true, re-issue request with \"Fresh\"",
           "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "BundleGamesFilters",
+      "doc": "",
+      "fields": [
+        {
+          "name": "installed",
+          "doc": "",
+          "type": "boolean"
+        },
+        {
+          "name": "classification",
+          "doc": "",
+          "type": "GameClassification"
+        },
+        {
+          "name": "platform",
+          "doc": "Only include games with a download tagged for this platform\n(\"windows\", \"linux\", \"osx\"), or web-playable games (\"web\").",
+          "type": "string"
         }
       ]
     },
