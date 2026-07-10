@@ -73,6 +73,28 @@ func Test_SearchLocalGames(t *testing.T) {
 	require.Empty(t, searchLocalGames(conn, "nothing matches this"))
 }
 
+func Test_SearchLocalGamesRelevanceOrder(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	models.MustSave(conn, &itchio.Game{ID: 1, Title: "A Very Cozy Adventure"}) // substring, longest
+	models.MustSave(conn, &itchio.Game{ID: 2, Title: "So Cozy"})               // substring
+	models.MustSave(conn, &itchio.Game{ID: 3, Title: "Cozy Grove"})            // prefix
+	models.MustSave(conn, &itchio.Game{ID: 4, Title: "cozy"})                  // exact (case-insensitive)
+	models.MustSave(conn, &itchio.Game{ID: 5, Title: "Cozy Den"})              // prefix, shorter than Cozy Grove
+
+	// exact first, then prefixes by title length, then substrings by title
+	// length; the longest substring match falls off the limit of 4
+	require.Equal(t, []int64{4, 5, 3, 2}, gameIDs(searchLocalGames(conn, "Cozy")))
+}
+
+func Test_SearchLocalGamesOrderIsDeterministic(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	// same tier, same title length: id breaks the tie
+	models.MustSave(conn, &itchio.Game{ID: 9, Title: "Cozy Web"})
+	models.MustSave(conn, &itchio.Game{ID: 4, Title: "Cozy Den"})
+
+	require.Equal(t, []int64{4, 9}, gameIDs(searchLocalGames(conn, "cozy")))
+}
+
 func Test_SearchLocalGamesLimit(t *testing.T) {
 	conn := searchLocalTestConn(t)
 	for i := int64(1); i <= 10; i++ {
