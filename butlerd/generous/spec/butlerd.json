@@ -5679,14 +5679,12 @@
         {
           "name": "url",
           "doc": "Canonical address of the game's page on itch.io",
-          "type": "string",
-          "optional": true
+          "type": "string"
         },
         {
           "name": "title",
           "doc": "Human-friendly title (may contain any character)",
-          "type": "string",
-          "optional": true
+          "type": "string"
         },
         {
           "name": "shortText",
@@ -5697,14 +5695,12 @@
         {
           "name": "type",
           "doc": "Downloadable game, html game, etc.",
-          "type": "GameType",
-          "optional": true
+          "type": "GameType"
         },
         {
           "name": "classification",
           "doc": "Classification: game, tool, comic, etc.",
-          "type": "GameClassification",
-          "optional": true
+          "type": "GameClassification"
         },
         {
           "name": "embed",

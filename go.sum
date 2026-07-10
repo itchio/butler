@@ -136,8 +136,8 @@ github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4 h1:aIYigfaBXcHQCbLF
 github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4/go.mod h1:gBj03mUWxPUnQjAU3tau8bOR7KTWDFdzfFVYMk0JYek=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
-github.com/itchio/go-itchio v0.0.0-20260710191455-f40b6b70b0ad h1:KU4Iiw7QhlKL93EfsVvAsAjBujP9JHIXXkNocR4phhA=
-github.com/itchio/go-itchio v0.0.0-20260710191455-f40b6b70b0ad/go.mod h1:q3pbo9hFXuq1Ck7t71v5hTOfgWylxJJ8kibX3CxsiiQ=
+github.com/itchio/go-itchio v0.0.0-20260710193057-82ade477da06 h1:TnJhoYdBBysKd9r4xMPn3wx2TRJAzXFnxb+jjTPphe4=
+github.com/itchio/go-itchio v0.0.0-20260710193057-82ade477da06/go.mod h1:q3pbo9hFXuq1Ck7t71v5hTOfgWylxJJ8kibX3CxsiiQ=
 github.com/itchio/hades v0.0.0-20260710055636-aea3bcf3b1ba h1:a4DfVLC6mIRd9cobGibJ848dYoUgsc/EfPNd8ifBnig=
 github.com/itchio/hades v0.0.0-20260710055636-aea3bcf3b1ba/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=

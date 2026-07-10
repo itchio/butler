@@ -12859,13 +12859,13 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>url</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Canonical address of the game&rsquo;s page on itch.io</p>
+<td><p>Canonical address of the game&rsquo;s page on itch.io</p>
 </td>
 </tr>
 <tr>
 <td><code>title</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span> Human-friendly title (may contain any character)</p>
+<td><p>Human-friendly title (may contain any character)</p>
 </td>
 </tr>
 <tr>
@@ -12877,13 +12877,13 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameType__TypeHint">GameType</span></code></td>
-<td><p><span class="tag">Optional</span> Downloadable game, html game, etc.</p>
+<td><p>Downloadable game, html game, etc.</p>
 </td>
 </tr>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td><p><span class="tag">Optional</span> Classification: game, tool, comic, etc.</p>
+<td><p>Classification: game, tool, comic, etc.</p>
 </td>
 </tr>
 <tr>
