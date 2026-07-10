@@ -328,13 +328,13 @@ func (s *scope) assimilate(pkg string, file string) error {
 									doc = append(doc, line)
 								}
 
-								// fields that may be absent from the wire format
-								// (omitempty) or serialized as null (pointers)
-								// are optional even without an @optional tag
+								// omitempty fields may be absent from the wire
+								// format entirely, so they are optional even
+								// without an @optional tag. pointer-ness alone is
+								// NOT treated as optional: most pointer fields are
+								// always populated and only use a pointer as a Go
+								// convention for struct references.
 								if jsonTag.HasOption("omitempty") {
-									optional = true
-								}
-								if _, isPointer := sf.Type.(*ast.StarExpr); isPointer {
 									optional = true
 								}
 

@@ -153,8 +153,7 @@
           {
             "name": "profile",
             "doc": "Information for the new profile, now remembered",
-            "type": "Profile",
-            "optional": true
+            "type": "Profile"
           },
           {
             "name": "cookie",
@@ -182,8 +181,7 @@
           {
             "name": "profile",
             "doc": "Information for the new profile, now remembered",
-            "type": "Profile",
-            "optional": true
+            "type": "Profile"
           }
         ]
       }
@@ -221,8 +219,7 @@
           {
             "name": "profile",
             "doc": "Information for the new profile, now remembered",
-            "type": "Profile",
-            "optional": true
+            "type": "Profile"
           },
           {
             "name": "cookie",
@@ -290,8 +287,7 @@
           {
             "name": "profile",
             "doc": "Information for the now validated profile",
-            "type": "Profile",
-            "optional": true
+            "type": "Profile"
           }
         ]
       }
@@ -498,7 +494,7 @@
         "fields": [
           {
             "name": "game",
-            "doc": "Game info",
+            "doc": "Game info, null if the game is not known locally (yet)",
             "type": "Game",
             "optional": true
           },
@@ -621,7 +617,7 @@
         "fields": [
           {
             "name": "downloadKey",
-            "doc": "",
+            "doc": "Download key info, null if the profile owns no key for the game",
             "type": "DownloadKey",
             "optional": true
           },
@@ -755,7 +751,7 @@
         "fields": [
           {
             "name": "user",
-            "doc": "User info",
+            "doc": "User info, null if the user is not known locally (yet)",
             "type": "User",
             "optional": true
           },
@@ -820,7 +816,7 @@
         "fields": [
           {
             "name": "collection",
-            "doc": "Collection info",
+            "doc": "Collection info, null if the collection is not known locally (yet)",
             "type": "Collection",
             "optional": true
           },
@@ -1489,7 +1485,7 @@
         "fields": [
           {
             "name": "cave",
-            "doc": "",
+            "doc": "Cave info, null if there is no cave with the given ID",
             "type": "Cave",
             "optional": true
           }
@@ -1516,8 +1512,7 @@
           {
             "name": "game",
             "doc": "Which game to find uploads for",
-            "type": "Game",
-            "optional": true
+            "type": "Game"
           },
           {
             "name": "profileId",
@@ -1643,18 +1638,16 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game",
-            "optional": true
+            "type": "Game"
           },
           {
             "name": "upload",
             "doc": "",
-            "type": "Upload",
-            "optional": true
+            "type": "Upload"
           },
           {
             "name": "build",
-            "doc": "",
+            "doc": "Build that will be installed, null for non-wharf uploads",
             "type": "Build",
             "optional": true
           },
@@ -1713,8 +1706,7 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game",
-            "optional": true
+            "type": "Game"
           },
           {
             "name": "uploads",
@@ -1723,7 +1715,7 @@
           },
           {
             "name": "info",
-            "doc": "",
+            "doc": "Null when the game has no compatible uploads",
             "type": "InstallPlanInfo",
             "optional": true
           }
@@ -1754,8 +1746,7 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game",
-            "optional": true
+            "type": "Game"
           },
           {
             "name": "uploads",
@@ -1795,8 +1786,7 @@
           {
             "name": "info",
             "doc": "",
-            "type": "InstallPlanInfo",
-            "optional": true
+            "type": "InstallPlanInfo"
           }
         ]
       }
@@ -1838,8 +1828,7 @@
           {
             "name": "settings",
             "doc": "Full settings object replacement.",
-            "type": "CaveSettings",
-            "optional": true
+            "type": "CaveSettings"
           }
         ]
       },
@@ -1991,14 +1980,12 @@
           {
             "name": "cave",
             "doc": "",
-            "type": "Cave",
-            "optional": true
+            "type": "Cave"
           },
           {
             "name": "upload",
             "doc": "",
-            "type": "Upload",
-            "optional": true
+            "type": "Upload"
           },
           {
             "name": "builds",
@@ -2080,7 +2067,7 @@
         "fields": [
           {
             "name": "installLocation",
-            "doc": "",
+            "doc": "Null when the install location already existed at the same path",
             "type": "InstallLocationSummary",
             "optional": true
           }
@@ -2122,8 +2109,7 @@
           {
             "name": "installLocation",
             "doc": "",
-            "type": "InstallLocationSummary",
-            "optional": true
+            "type": "InstallLocationSummary"
           }
         ]
       }
@@ -2189,8 +2175,7 @@
           {
             "name": "item",
             "doc": "",
-            "type": "InstallQueueResult",
-            "optional": true
+            "type": "InstallQueueResult"
           }
         ]
       },
@@ -2906,7 +2891,7 @@
         "fields": [
           {
             "name": "channel",
-            "doc": "",
+            "doc": "Null if the channel does not exist",
             "type": "PublishChannel",
             "optional": true
           }
@@ -2936,8 +2921,7 @@
           {
             "name": "build",
             "doc": "",
-            "type": "Build",
-            "optional": true
+            "type": "Build"
           }
         ]
       }
@@ -3021,14 +3005,12 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download",
-            "optional": true
+            "type": "Download"
           },
           {
             "name": "progress",
             "doc": "",
-            "type": "DownloadProgress",
-            "optional": true
+            "type": "DownloadProgress"
           },
           {
             "name": "speedHistory",
@@ -3046,8 +3028,7 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download",
-            "optional": true
+            "type": "Download"
           }
         ]
       }
@@ -3060,8 +3041,7 @@
           {
             "name": "download",
             "doc": "The download that errored. It contains all the error\ninformation: a short message, a full stack trace,\nand a butlerd error code.",
-            "type": "Download",
-            "optional": true
+            "type": "Download"
           }
         ]
       }
@@ -3074,8 +3054,7 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download",
-            "optional": true
+            "type": "Download"
           }
         ]
       }
@@ -3088,8 +3067,7 @@
           {
             "name": "download",
             "doc": "",
-            "type": "Download",
-            "optional": true
+            "type": "Download"
           }
         ]
       }
@@ -3178,13 +3156,13 @@
           },
           {
             "name": "game",
-            "doc": "The game this task is dealing with",
+            "doc": "The game this task is dealing with, absent for uninstall tasks",
             "type": "Game",
             "optional": true
           },
           {
             "name": "upload",
-            "doc": "The upload this task is dealing with",
+            "doc": "The upload this task is dealing with, absent for uninstall tasks",
             "type": "Upload",
             "optional": true
           },
@@ -3230,8 +3208,7 @@
           {
             "name": "game",
             "doc": "",
-            "type": "Game",
-            "optional": true
+            "type": "Game"
           }
         ]
       }
@@ -3244,8 +3221,7 @@
           {
             "name": "update",
             "doc": "",
-            "type": "GameUpdate",
-            "optional": true
+            "type": "GameUpdate"
           }
         ]
       }
@@ -3410,8 +3386,7 @@
         {
           "name": "action",
           "doc": "The manifest action corresponding to this launch target.\nFor implicit launch targets, a minimal one will be generated.",
-          "type": "Action",
-          "optional": true
+          "type": "Action"
         },
         {
           "name": "host",
@@ -3421,8 +3396,7 @@
         {
           "name": "strategy",
           "doc": "Detailed launch strategy",
-          "type": "StrategyResult",
-          "optional": true
+          "type": "StrategyResult"
         }
       ]
     },
@@ -3523,8 +3497,7 @@
         {
           "name": "user",
           "doc": "User information",
-          "type": "User",
-          "optional": true
+          "type": "User"
         }
       ]
     },
@@ -3535,8 +3508,7 @@
         {
           "name": "profile",
           "doc": "Information for the new profile, now remembered",
-          "type": "Profile",
-          "optional": true
+          "type": "Profile"
         },
         {
           "name": "cookie",
@@ -3552,8 +3524,7 @@
         {
           "name": "profile",
           "doc": "Information for the new profile, now remembered",
-          "type": "Profile",
-          "optional": true
+          "type": "Profile"
         }
       ]
     },
@@ -3564,8 +3535,7 @@
         {
           "name": "profile",
           "doc": "Information for the new profile, now remembered",
-          "type": "Profile",
-          "optional": true
+          "type": "Profile"
         },
         {
           "name": "cookie",
@@ -3603,8 +3573,7 @@
         {
           "name": "profile",
           "doc": "Information for the now validated profile",
-          "type": "Profile",
-          "optional": true
+          "type": "Profile"
         }
       ]
     },
@@ -3689,7 +3658,7 @@
       "fields": [
         {
           "name": "game",
-          "doc": "Game info",
+          "doc": "Game info, null if the game is not known locally (yet)",
           "type": "Game",
           "optional": true
         },
@@ -3788,7 +3757,7 @@
       "fields": [
         {
           "name": "downloadKey",
-          "doc": "",
+          "doc": "Download key info, null if the profile owns no key for the game",
           "type": "DownloadKey",
           "optional": true
         },
@@ -3852,7 +3821,7 @@
       "fields": [
         {
           "name": "user",
-          "doc": "User info",
+          "doc": "User info, null if the user is not known locally (yet)",
           "type": "User",
           "optional": true
         },
@@ -3882,7 +3851,7 @@
       "fields": [
         {
           "name": "collection",
-          "doc": "Collection info",
+          "doc": "Collection info, null if the collection is not known locally (yet)",
           "type": "Collection",
           "optional": true
         },
@@ -3985,8 +3954,7 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "viewsCount",
@@ -4262,7 +4230,7 @@
         },
         {
           "name": "lastTouchedAt",
-          "doc": "",
+          "doc": "Null if the cave was never played",
           "type": "RFCDate",
           "optional": true
         },
@@ -4290,14 +4258,12 @@
         {
           "name": "game",
           "doc": "Game that's installed in this cave",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "upload",
           "doc": "Upload that's installed in this cave",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
@@ -4308,14 +4274,12 @@
         {
           "name": "stats",
           "doc": "Stats about cave usage and first install",
-          "type": "CaveStats",
-          "optional": true
+          "type": "CaveStats"
         },
         {
           "name": "installInfo",
           "doc": "Information about where the cave is installed, how much space it takes up etc.",
-          "type": "CaveInstallInfo",
-          "optional": true
+          "type": "CaveInstallInfo"
         }
       ]
     },
@@ -4325,13 +4289,13 @@
       "fields": [
         {
           "name": "installedAt",
-          "doc": "Time the cave was first installed",
+          "doc": "Time the cave was first installed, null while the install is still pending",
           "type": "RFCDate",
           "optional": true
         },
         {
           "name": "lastTouchedAt",
-          "doc": "",
+          "doc": "Null if the cave was never played",
           "type": "RFCDate",
           "optional": true
         },
@@ -4495,7 +4459,7 @@
       "fields": [
         {
           "name": "cave",
-          "doc": "",
+          "doc": "Cave info, null if there is no cave with the given ID",
           "type": "Cave",
           "optional": true
         }
@@ -4539,18 +4503,16 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "upload",
           "doc": "",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
-          "doc": "",
+          "doc": "Build that will be installed, null for non-wharf uploads",
           "type": "Build",
           "optional": true
         },
@@ -4578,8 +4540,7 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "uploads",
@@ -4588,7 +4549,7 @@
         },
         {
           "name": "info",
-          "doc": "",
+          "doc": "Null when the game has no compatible uploads",
           "type": "InstallPlanInfo",
           "optional": true
         }
@@ -4601,8 +4562,7 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "uploads",
@@ -4618,8 +4578,7 @@
         {
           "name": "info",
           "doc": "",
-          "type": "InstallPlanInfo",
-          "optional": true
+          "type": "InstallPlanInfo"
         }
       ]
     },
@@ -4630,12 +4589,11 @@
         {
           "name": "upload",
           "doc": "",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
-          "doc": "",
+          "doc": "Null for non-wharf uploads",
           "type": "Build",
           "optional": true
         },
@@ -4646,7 +4604,7 @@
         },
         {
           "name": "diskUsage",
-          "doc": "",
+          "doc": "Null when planning failed before disk usage could be assessed\n(see Error / ErrorCode)",
           "type": "DiskUsageInfo",
           "optional": true
         },
@@ -4810,7 +4768,7 @@
       "fields": [
         {
           "name": "installLocation",
-          "doc": "",
+          "doc": "Null when the install location already existed at the same path",
           "type": "InstallLocationSummary",
           "optional": true
         }
@@ -4828,8 +4786,7 @@
         {
           "name": "installLocation",
           "doc": "",
-          "type": "InstallLocationSummary",
-          "optional": true
+          "type": "InstallLocationSummary"
         }
       ]
     },
@@ -4913,19 +4870,19 @@
         },
         {
           "name": "error",
-          "doc": "",
+          "doc": "Only set if the download errored",
           "type": "string",
           "optional": true
         },
         {
           "name": "errorMessage",
-          "doc": "",
+          "doc": "Only set if the download errored",
           "type": "string",
           "optional": true
         },
         {
           "name": "errorCode",
-          "doc": "",
+          "doc": "Only set if the download errored",
           "type": "number",
           "optional": true
         },
@@ -4947,30 +4904,27 @@
         {
           "name": "game",
           "doc": "",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "upload",
           "doc": "",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
-          "doc": "",
+          "doc": "Null for non-wharf uploads",
           "type": "Build",
           "optional": true
         },
         {
           "name": "startedAt",
           "doc": "",
-          "type": "RFCDate",
-          "optional": true
+          "type": "RFCDate"
         },
         {
           "name": "finishedAt",
-          "doc": "",
+          "doc": "Null until the download finishes or errors",
           "type": "RFCDate",
           "optional": true
         },
@@ -5350,7 +5304,7 @@
       "fields": [
         {
           "name": "channel",
-          "doc": "",
+          "doc": "Null if the channel does not exist",
           "type": "PublishChannel",
           "optional": true
         }
@@ -5363,8 +5317,7 @@
         {
           "name": "build",
           "doc": "",
-          "type": "Build",
-          "optional": true
+          "type": "Build"
         }
       ]
     },
@@ -6160,6 +6113,11 @@
           "type": "number"
         },
         {
+          "name": "version",
+          "doc": "Bumped by itch.io whenever the bundle's game list changes. Compare\nagainst a stored value to skip re-fetching an unchanged bundle.",
+          "type": "number"
+        },
+        {
           "name": "createdAt",
           "doc": "Date the bundle was created at",
           "type": "RFCDate",
@@ -6358,7 +6316,7 @@
         },
         {
           "name": "user",
-          "doc": "User who pushed the build",
+          "doc": "User who pushed the build (not preserved by butler's local database cache)",
           "type": "User",
           "optional": true
         },
@@ -6608,14 +6566,12 @@
         {
           "name": "game",
           "doc": "The itch.io game installed at this location",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "upload",
           "doc": "The itch.io upload installed at this location",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
@@ -6762,14 +6718,12 @@
         {
           "name": "game",
           "doc": "The game we installed",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "upload",
           "doc": "The upload we installed",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
@@ -6791,8 +6745,7 @@
         {
           "name": "game",
           "doc": "Game we found an update for",
-          "type": "Game",
-          "optional": true
+          "type": "Game"
         },
         {
           "name": "direct",
@@ -6813,12 +6766,11 @@
         {
           "name": "upload",
           "doc": "Upload to be installed",
-          "type": "Upload",
-          "optional": true
+          "type": "Upload"
         },
         {
           "name": "build",
-          "doc": "Build to be installed (may be nil)",
+          "doc": "Build to be installed, null for non-wharf uploads",
           "type": "Build",
           "optional": true
         },

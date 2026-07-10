@@ -677,7 +677,7 @@ as if there were no network connections</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
+<td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
 <tr>
@@ -767,7 +767,7 @@ are returned for this kind of login.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
+<td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
 </table>
@@ -858,7 +858,7 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p><span class="tag">Optional</span> Information for the new profile, now remembered</p>
+<td><p>Information for the new profile, now remembered</p>
 </td>
 </tr>
 <tr>
@@ -1080,7 +1080,7 @@ two-factor authentication enabled.</p>
 <tr>
 <td><code>profile</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
-<td><p><span class="tag">Optional</span> Information for the now validated profile</p>
+<td><p>Information for the now validated profile</p>
 </td>
 </tr>
 </table>
@@ -1662,7 +1662,7 @@ owns and collections in the profile&rsquo;s collection list are returned.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> Game info</p>
+<td><p><span class="tag">Optional</span> Game info, null if the game is not known locally (yet)</p>
 </td>
 </tr>
 <tr>
@@ -1928,7 +1928,7 @@ with search, etc. Includes download key info, cave info, etc.</p>
 <tr>
 <td><code>downloadKey</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DownloadKey__TypeHint">DownloadKey</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Download key info, null if the profile owns no key for the game</p>
 </td>
 </tr>
 <tr>
@@ -2249,7 +2249,7 @@ afterwards with &lsquo;Fresh&rsquo; set</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p><span class="tag">Optional</span> User info</p>
+<td><p><span class="tag">Optional</span> User info, null if the user is not known locally (yet)</p>
 </td>
 </tr>
 <tr>
@@ -2424,7 +2424,7 @@ Usually set after getting &lsquo;stale&rsquo; in the response.</p>
 <tr>
 <td><code>collection</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
-<td><p><span class="tag">Optional</span> Collection info</p>
+<td><p><span class="tag">Optional</span> Collection info, null if the collection is not known locally (yet)</p>
 </td>
 </tr>
 <tr>
@@ -3877,7 +3877,7 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>cave</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Cave info, null if there is no cave with the given ID</p>
 </td>
 </tr>
 </table>
@@ -3968,7 +3968,7 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> Which game to find uploads for</p>
+<td><p>Which game to find uploads for</p>
 </td>
 </tr>
 <tr>
@@ -4170,19 +4170,17 @@ resolution falls back to the legacy &ldquo;any suitable profile&rdquo; behavior.
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Build that will be installed, null for non-wharf uploads</p>
 </td>
 </tr>
 <tr>
@@ -4368,8 +4366,7 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
@@ -4379,7 +4376,7 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>info</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null when the game has no compatible uploads</p>
 </td>
 </tr>
 </table>
@@ -4473,8 +4470,7 @@ game). When zero, falls back to any suitable profile.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>uploads</code></td>
@@ -4569,8 +4565,7 @@ This is the slow part of install planning (network I/O + file inspection).</p>
 <tr>
 <td><code>info</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallPlanInfo__TypeHint">InstallPlanInfo</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -4695,7 +4690,7 @@ This is the slow part of install planning (network I/O + file inspection).</p>
 <tr>
 <td><code>settings</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveSettings__TypeHint">CaveSettings</span></code></td>
-<td><p><span class="tag">Optional</span> Full settings object replacement.</p>
+<td><p>Full settings object replacement.</p>
 </td>
 </tr>
 </table>
@@ -5134,14 +5129,12 @@ receive an <code class="typename"><span class="type">InstallVersionSwitchPick</s
 <tr>
 <td><code>cave</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>builds</code></td>
@@ -5467,13 +5460,13 @@ is sent during <code class="typename"><span class="type builtin-type">OperationS
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> The game this task is dealing with</p>
+<td><p><span class="tag">Optional</span> The game this task is dealing with, absent for uninstall tasks</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> The upload this task is dealing with</p>
+<td><p><span class="tag">Optional</span> The upload this task is dealing with, absent for uninstall tasks</p>
 </td>
 </tr>
 <tr>
@@ -5598,13 +5591,13 @@ info about the game, upload, build that were installed</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> The game we installed</p>
+<td><p>The game we installed</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> The upload we installed</p>
+<td><p>The upload we installed</p>
 </td>
 </tr>
 <tr>
@@ -5722,7 +5715,7 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>installLocation</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null when the install location already existed at the same path</p>
 </td>
 </tr>
 </table>
@@ -5832,8 +5825,7 @@ if not specified, will be generated.</p>
 <tr>
 <td><code>installLocation</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallLocationSummary__TypeHint">InstallLocationSummary</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -5953,8 +5945,7 @@ a game is found.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -6067,8 +6058,7 @@ a game is found.</p>
 <tr>
 <td><code>item</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#InstallQueueResult__TypeHint">InstallQueue</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -6556,8 +6546,7 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>update</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameUpdate__TypeHint">GameUpdate</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -6604,7 +6593,7 @@ updates as they are found is not a requirement for the client.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> Game we found an update for</p>
+<td><p>Game we found an update for</p>
 </td>
 </tr>
 <tr>
@@ -6736,13 +6725,13 @@ cave identifier.</p>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> Upload to be installed</p>
+<td><p>Upload to be installed</p>
 </td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span> Build to be installed (may be nil)</p>
+<td><p><span class="tag">Optional</span> Build to be installed, null for non-wharf uploads</p>
 </td>
 </tr>
 <tr>
@@ -8862,7 +8851,7 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <tr>
 <td><code>channel</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#PublishChannel__TypeHint">PublishChannel</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null if the channel does not exist</p>
 </td>
 </tr>
 </table>
@@ -8944,8 +8933,7 @@ upload catches up; the gap between them is the in-flight buffer.</p>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -9160,7 +9148,7 @@ reflects the server&rsquo;s current view.</p>
 <tr>
 <td><code>action</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Action__TypeHint">Action</span></code></td>
-<td><p><span class="tag">Optional</span> The manifest action corresponding to this launch target.
+<td><p>The manifest action corresponding to this launch target.
 For implicit launch targets, a minimal one will be generated.</p>
 </td>
 </tr>
@@ -9173,7 +9161,7 @@ For implicit launch targets, a minimal one will be generated.</p>
 <tr>
 <td><code>strategy</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#StrategyResult__TypeHint">Strategy</span></code></td>
-<td><p><span class="tag">Optional</span> Detailed launch strategy</p>
+<td><p>Detailed launch strategy</p>
 </td>
 </tr>
 </table>
@@ -9287,7 +9275,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p><span class="tag">Optional</span> User information</p>
+<td><p>User information</p>
 </td>
 </tr>
 </table>
@@ -9644,8 +9632,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>viewsCount</code></td>
@@ -9922,7 +9909,7 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>lastTouchedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null if the cave was never played</p>
 </td>
 </tr>
 <tr>
@@ -9994,13 +9981,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> Game that&rsquo;s installed in this cave</p>
+<td><p>Game that&rsquo;s installed in this cave</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> Upload that&rsquo;s installed in this cave</p>
+<td><p>Upload that&rsquo;s installed in this cave</p>
 </td>
 </tr>
 <tr>
@@ -10012,13 +9999,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>stats</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveStats__TypeHint">CaveStats</span></code></td>
-<td><p><span class="tag">Optional</span> Stats about cave usage and first install</p>
+<td><p>Stats about cave usage and first install</p>
 </td>
 </tr>
 <tr>
 <td><code>installInfo</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#CaveInstallInfo__TypeHint">CaveInstallInfo</span></code></td>
-<td><p><span class="tag">Optional</span> Information about where the cave is installed, how much space it takes up etc.</p>
+<td><p>Information about where the cave is installed, how much space it takes up etc.</p>
 </td>
 </tr>
 </table>
@@ -10082,13 +10069,13 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>installedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p><span class="tag">Optional</span> Time the cave was first installed</p>
+<td><p><span class="tag">Optional</span> Time the cave was first installed, null while the install is still pending</p>
 </td>
 </tr>
 <tr>
 <td><code>lastTouchedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null if the cave was never played</p>
 </td>
 </tr>
 <tr>
@@ -10450,13 +10437,12 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null for non-wharf uploads</p>
 </td>
 </tr>
 <tr>
@@ -10467,7 +10453,8 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>diskUsage</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DiskUsageInfo__TypeHint">DiskUsageInfo</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null when planning failed before disk usage could be assessed
+(see Error / ErrorCode)</p>
 </td>
 </tr>
 <tr>
@@ -10642,14 +10629,12 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>progress</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#DownloadProgress__TypeHint">DownloadProgress</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>speedHistory</code></td>
@@ -10694,8 +10679,7 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -10726,7 +10710,7 @@ including the download key if any.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p><span class="tag">Optional</span> The download that errored. It contains all the error
+<td><p>The download that errored. It contains all the error
 information: a short message, a full stack trace,
 and a butlerd error code.</p>
 </td>
@@ -10760,8 +10744,7 @@ and a butlerd error code.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -10792,8 +10775,7 @@ and a butlerd error code.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 </table>
 
@@ -10962,19 +10944,19 @@ performed whenever <code class="typename"><span class="type" data-tip-selector="
 <tr>
 <td><code>error</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Only set if the download errored</p>
 </td>
 </tr>
 <tr>
 <td><code>errorMessage</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Only set if the download errored</p>
 </td>
 </tr>
 <tr>
 <td><code>errorCode</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Only set if the download errored</p>
 </td>
 </tr>
 <tr>
@@ -10995,31 +10977,28 @@ performed whenever <code class="typename"><span class="type" data-tip-selector="
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>build</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Build__TypeHint">Build</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null for non-wharf uploads</p>
 </td>
 </tr>
 <tr>
 <td><code>startedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p><span class="tag">Optional</span></p>
-</td>
+<td></td>
 </tr>
 <tr>
 <td><code>finishedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
-<td><p><span class="tag">Optional</span></p>
+<td><p><span class="tag">Optional</span> Null until the download finishes or errors</p>
 </td>
 </tr>
 <tr>
@@ -14215,6 +14194,13 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 </td>
 </tr>
 <tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bumped by itch.io whenever the bundle&rsquo;s game list changes. Compare
+against a stored value to skip re-fetching an unchanged bundle.</p>
+</td>
+</tr>
+<tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p><span class="tag">Optional</span> Date the bundle was created at</p>
@@ -14267,6 +14253,10 @@ Ownership of a bundle is tracked by a BundleKey.</p>
 </tr>
 <tr>
 <td><code>gamesCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>version</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
@@ -14655,7 +14645,7 @@ is still processing or if processing has failed.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
-<td><p><span class="tag">Optional</span> User who pushed the build</p>
+<td><p><span class="tag">Optional</span> User who pushed the build (not preserved by butler&rsquo;s local database cache)</p>
 </td>
 </tr>
 <tr>
@@ -15643,13 +15633,13 @@ angels are saved.</p>
 <tr>
 <td><code>game</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span></code></td>
-<td><p><span class="tag">Optional</span> The itch.io game installed at this location</p>
+<td><p>The itch.io game installed at this location</p>
 </td>
 </tr>
 <tr>
 <td><code>upload</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span></code></td>
-<td><p><span class="tag">Optional</span> The itch.io upload installed at this location</p>
+<td><p>The itch.io upload installed at this location</p>
 </td>
 </tr>
 <tr>
