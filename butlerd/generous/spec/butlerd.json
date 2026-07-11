@@ -3875,7 +3875,8 @@
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": true
         },
         {
           "name": "platform",
@@ -3937,13 +3938,15 @@
       "fields": [
         {
           "name": "visibility",
-          "doc": "",
-          "type": "string"
+          "doc": "\"draft\" or \"published\"; absent means both",
+          "type": "string",
+          "optional": true
         },
         {
           "name": "paidStatus",
-          "doc": "",
-          "type": "string"
+          "doc": "\"paid\" or \"free\"; absent means both",
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -4013,7 +4016,8 @@
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": true
         },
         {
           "name": "platform",
@@ -4081,7 +4085,8 @@
         {
           "name": "classification",
           "doc": "",
-          "type": "GameClassification"
+          "type": "GameClassification",
+          "optional": true
         },
         {
           "name": "platform",

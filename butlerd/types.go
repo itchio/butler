@@ -959,7 +959,9 @@ type FetchCollectionGamesParams struct {
 }
 
 type CollectionGamesFilters struct {
-	Installed      bool                      `json:"installed"`
+	Installed bool `json:"installed"`
+
+	// @optional
 	Classification itchio.GameClassification `json:"classification"`
 
 	// Only include games with a download tagged for this platform
@@ -1123,7 +1125,12 @@ type FetchProfileGamesParams struct {
 }
 
 type ProfileGameFilters struct {
+	// "draft" or "published"; absent means both
+	// @optional
 	Visibility string `json:"visibility"`
+
+	// "paid" or "free"; absent means both
+	// @optional
 	PaidStatus string `json:"paidStatus"`
 }
 
@@ -1221,7 +1228,9 @@ type FetchProfileOwnedKeysParams struct {
 }
 
 type ProfileOwnedKeysFilters struct {
-	Installed      bool                      `json:"installed"`
+	Installed bool `json:"installed"`
+
+	// @optional
 	Classification itchio.GameClassification `json:"classification"`
 
 	// Only include games with a download tagged for this platform
@@ -1392,7 +1401,9 @@ type FetchBundleGamesParams struct {
 }
 
 type BundleGamesFilters struct {
-	Installed      bool                      `json:"installed"`
+	Installed bool `json:"installed"`
+
+	// @optional
 	Classification itchio.GameClassification `json:"classification"`
 
 	// Only include games with a download tagged for this platform

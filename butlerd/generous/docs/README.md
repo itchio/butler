@@ -9546,7 +9546,8 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>platform</code></td>
@@ -9592,12 +9593,14 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>visibility</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> &ldquo;draft&rdquo; or &ldquo;published&rdquo;; absent means both</p>
+</td>
 </tr>
 <tr>
 <td><code>paidStatus</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span> &ldquo;paid&rdquo; or &ldquo;free&rdquo;; absent means both</p>
+</td>
 </tr>
 </table>
 
@@ -9704,7 +9707,8 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>platform</code></td>
@@ -9755,7 +9759,8 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>classification</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#GameClassification__TypeHint">GameClassification</span></code></td>
-<td></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
 </tr>
 <tr>
 <td><code>platform</code></td>
