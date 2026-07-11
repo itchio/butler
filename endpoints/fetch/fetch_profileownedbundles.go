@@ -11,12 +11,45 @@ import (
 	"xorm.io/builder"
 )
 
+func bundleChanged(previous, current *itchio.Bundle) bool {
+	if previous == nil {
+		return true
+	}
+	if previous.GamesCount != current.GamesCount {
+		return true
+	}
+	return previous.Version != current.Version
+}
+
+func expireChangedBundleGames(conn *sqlite.Conn, previous map[int64]*itchio.Bundle, current []*itchio.BundleKey) {
+	for _, bk := range current {
+		if bk.Bundle == nil {
+			continue
+		}
+		if bundleChanged(previous[bk.BundleID], bk.Bundle) {
+			models.FetchTargetForBundleGames(bk.BundleID).MustExpire(conn)
+		}
+	}
+}
+
 func FetchProfileOwnedBundles(rc *butlerd.RequestContext, params butlerd.FetchProfileOwnedBundlesParams) (*butlerd.FetchProfileOwnedBundlesResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 	ft := models.FetchTargetForProfileOwnedBundles(profile.ID)
 	res := &butlerd.FetchProfileOwnedBundlesResult{}
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
+		previousBundles := make(map[int64]*itchio.Bundle)
+		rc.WithConn(func(conn *sqlite.Conn) {
+			var items []*itchio.BundleKey
+			models.MustSelect(conn, &items, builder.Eq{"owner_id": profile.ID}, hades.Search{})
+			models.MustPreload(conn, items, hades.Assoc("Bundle"))
+			for _, item := range items {
+				if item.Bundle != nil {
+					previousBundles[item.BundleID] = item.Bundle
+				}
+			}
+		})
+
 		bundleKeysRes, err := client.ListProfileOwnedBundles(rc.Ctx)
 		models.Must(err)
 
@@ -37,6 +70,7 @@ func FetchProfileOwnedBundles(rc *butlerd.RequestContext, params butlerd.FetchPr
 					hades.Assoc("Bundle"),
 				),
 			)
+			expireChangedBundleGames(conn, previousBundles, bundleKeysRes.BundleKeys)
 		})
 	})
 
