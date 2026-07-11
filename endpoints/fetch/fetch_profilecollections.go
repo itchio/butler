@@ -6,9 +6,32 @@ import (
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"xorm.io/builder"
 )
+
+func collectionChanged(previous, current *itchio.Collection) bool {
+	if previous == nil {
+		return true
+	}
+	if previous.GamesCount != current.GamesCount {
+		return true
+	}
+	if previous.UpdatedAt == nil || current.UpdatedAt == nil {
+		// changed if exactly one side is nil
+		return previous.UpdatedAt != current.UpdatedAt
+	}
+	return !previous.UpdatedAt.Equal(*current.UpdatedAt)
+}
+
+func expireChangedCollectionGames(conn *sqlite.Conn, previous map[int64]*itchio.Collection, current []*itchio.Collection) {
+	for _, collection := range current {
+		if collectionChanged(previous[collection.ID], collection) {
+			models.FetchTargetForCollectionGames(collection.ID).MustExpire(conn)
+		}
+	}
+}
 
 func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
@@ -16,6 +39,16 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 	res := &butlerd.FetchProfileCollectionsResult{}
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
+		previousCollections := make(map[int64]*itchio.Collection)
+		rc.WithConn(func(conn *sqlite.Conn) {
+			var items []*models.ProfileCollection
+			models.MustSelect(conn, &items, builder.Eq{"profile_id": profile.ID}, hades.Search{})
+			models.MustPreload(conn, items, hades.Assoc("Collection"))
+			for _, item := range items {
+				previousCollections[item.CollectionID] = item.Collection
+			}
+		})
+
 		collRes, err := client.ListProfileCollections(rc.Ctx)
 		models.Must(err)
 
@@ -36,6 +69,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 					hades.Assoc("Collection"),
 				),
 			)
+			expireChangedCollectionGames(conn, previousCollections, collRes.Collections)
 		})
 	})
 

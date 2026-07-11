@@ -6,6 +6,7 @@ import (
 
 const defaultTTL = 2 * time.Minute
 const longTTL = 10 * time.Minute
+const collectionGamesTTL = 7 * 24 * time.Hour
 
 func FetchTargetForGame(gameID int64) FetchTarget {
 	return FetchTarget{
@@ -75,7 +76,7 @@ func FetchTargetForCollectionGames(collectionID int64) FetchTarget {
 	return FetchTarget{
 		ID:   collectionID,
 		Type: "collection_games",
-		TTL:  longTTL,
+		TTL:  collectionGamesTTL,
 	}
 }
 

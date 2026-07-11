@@ -29,7 +29,10 @@ func FetchCollection(rc *butlerd.RequestContext, params butlerd.FetchCollectionP
 		collection.CollectionGames = nil
 
 		rc.WithConn(func(conn *sqlite.Conn) {
-			models.MustSave(conn, collRes.Collection)
+			if collectionChanged(models.CollectionByID(conn, collection.ID), collection) {
+				models.FetchTargetForCollectionGames(collection.ID).MustExpire(conn)
+			}
+			models.MustSave(conn, collection)
 		})
 	})
 
