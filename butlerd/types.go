@@ -1671,7 +1671,7 @@ type CaveSettings struct {
 	// @optional
 	Sandbox *bool `json:"sandbox,omitempty"`
 
-	// Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).
+	// Override sandbox runner type (bubblewrap, firejail, fuji, auto).
 	// @optional
 	SandboxType *SandboxType `json:"sandboxType,omitempty"`
 
@@ -2864,7 +2864,6 @@ const (
 	SandboxTypeAuto       SandboxType = "auto"
 	SandboxTypeBubblewrap SandboxType = "bubblewrap"
 	SandboxTypeFirejail   SandboxType = "firejail"
-	SandboxTypeFlatpak    SandboxType = "flatpak"
 	SandboxTypeFuji       SandboxType = "fuji"
 )
 
@@ -2872,7 +2871,6 @@ var SandboxTypeList = []interface{}{
 	SandboxTypeAuto,
 	SandboxTypeBubblewrap,
 	SandboxTypeFirejail,
-	SandboxTypeFlatpak,
 	SandboxTypeFuji,
 }
 

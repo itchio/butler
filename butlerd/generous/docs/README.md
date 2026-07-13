@@ -10214,7 +10214,7 @@ nil = inherit global, true = force on, false = force off</p>
 <tr>
 <td><code>sandboxType</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#SandboxType__TypeHint">SandboxType</span></code></td>
-<td><p><span class="tag">Optional</span> Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).</p>
+<td><p><span class="tag">Optional</span> Override sandbox runner type (bubblewrap, firejail, fuji, auto).</p>
 </td>
 </tr>
 <tr>
@@ -11162,10 +11162,6 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 <td></td>
 </tr>
 <tr>
-<td><code>"flatpak"</code></td>
-<td></td>
-</tr>
-<tr>
 <td><code>"fuji"</code></td>
 <td></td>
 </tr>
@@ -11185,9 +11181,6 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 </tr>
 <tr>
 <td><code>"firejail"</code></td>
-</tr>
-<tr>
-<td><code>"flatpak"</code></td>
 </tr>
 <tr>
 <td><code>"fuji"</code></td>

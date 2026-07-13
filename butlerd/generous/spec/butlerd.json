@@ -4350,7 +4350,7 @@
         },
         {
           "name": "sandboxType",
-          "doc": "Override sandbox runner type (bubblewrap, firejail, flatpak, fuji, auto).",
+          "doc": "Override sandbox runner type (bubblewrap, firejail, fuji, auto).",
           "type": "SandboxType",
           "optional": true
         },
@@ -6971,11 +6971,6 @@
           "name": "Firejail",
           "doc": "",
           "value": "firejail"
-        },
-        {
-          "name": "Flatpak",
-          "doc": "",
-          "value": "flatpak"
         },
         {
           "name": "Fuji",
