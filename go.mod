@@ -33,7 +33,7 @@ require (
 	github.com/itchio/savior v0.0.0-20260128212141-556ab9757054
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
-	github.com/itchio/smaug v0.0.0-20260713184002-ff4d0bbc061c
+	github.com/itchio/smaug v0.0.0-20260713192329-3859079146ba
 	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
 	github.com/itchio/wharf v0.0.0-20260314032032-5343a90f618c
 	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
