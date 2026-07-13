@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/itchio/butler/buildinfo"
@@ -139,7 +140,7 @@ func (ctx *Context) SetClientLogger(logger *slog.Logger) {
 }
 
 func (ctx *Context) NewClient(key string) *itchio.Client {
-	client := itchio.ClientWithKey(key)
+	client := itchio.ClientWithKey(strings.TrimSpace(key))
 	client.HTTPClient = ctx.HTTPClient
 	client.SetServer(ctx.APIAddress())
 	client.UserAgent = ctx.UserAgent()
