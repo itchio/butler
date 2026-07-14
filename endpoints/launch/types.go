@@ -53,6 +53,9 @@ type LauncherParams struct {
 	// Additional environment variables
 	Env map[string]string
 
+	// User-provided command template applied after runtime and host wrappers.
+	CommandTemplate string
+
 	PrereqsDir    string
 	ForcePrereqs  bool
 	Access        *operate.GameAccess

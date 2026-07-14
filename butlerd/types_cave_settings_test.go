@@ -47,3 +47,32 @@ func Test_CavesSetSettingsParams_Validate_RequiresSettings(t *testing.T) {
 	err := params.Validate()
 	require.Error(err)
 }
+
+func Test_CavesSetSettingsParams_Validate_CommandTemplate(t *testing.T) {
+	require := require.New(t)
+
+	params := CavesSetSettingsParams{
+		CaveID: "cave-1",
+		Settings: &CaveSettings{
+			CommandTemplate: "%command% %command%",
+		},
+	}
+
+	err := params.Validate()
+	require.Error(err)
+	require.Contains(err.Error(), "settings.commandTemplate")
+}
+
+func Test_LaunchParams_Validate_CommandTemplate(t *testing.T) {
+	require := require.New(t)
+
+	params := LaunchParams{
+		CaveID:          "cave-1",
+		PrereqsDir:      "/tmp/prereqs",
+		CommandTemplate: `%command% "unterminated`,
+	}
+
+	err := params.Validate()
+	require.Error(err)
+	require.Contains(err.Error(), "commandTemplate")
+}

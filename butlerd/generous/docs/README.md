@@ -6817,9 +6817,11 @@ sandboxing. An explicit value overrides the manifest preference.</p>
 </td>
 </tr>
 <tr>
-<td><code>extraArgs</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p><span class="tag">Optional</span> Additional command-line arguments appended after manifest action args.</p>
+<td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Command template applied to native launches. Use %command% as a standalone
+token to place the resolved game command. Without it, tokens are appended
+as arguments to the resolved command.</p>
 </td>
 </tr>
 </table>
@@ -6861,8 +6863,8 @@ sandboxing. An explicit value overrides the manifest preference.</p>
 <td><code class="typename"><span class="type">SandboxOptions</span></code></td>
 </tr>
 <tr>
-<td><code>extraArgs</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -10231,9 +10233,11 @@ nil = inherit global, true = force on, false = force off</p>
 </td>
 </tr>
 <tr>
-<td><code>extraArgs</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
-<td><p><span class="tag">Optional</span> Additional command-line arguments appended after manifest action args.</p>
+<td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Command template applied to native launches. Use %command% as a standalone
+token to place the resolved game command. Without it, tokens are appended
+as arguments to the resolved command.</p>
 </td>
 </tr>
 </table>
@@ -10265,8 +10269,8 @@ nil = inherit global, true = force on, false = force off</p>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 <tr>
-<td><code>extraArgs</code></td>
-<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 

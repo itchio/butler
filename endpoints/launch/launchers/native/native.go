@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -123,18 +124,6 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		envMap["ITCHIO_SANDBOX"] = "1"
 	}
 
-	var envKeys []string
-	for k := range envMap {
-		envKeys = append(envKeys, k)
-	}
-	consumer.Infof("Environment variables passed: %s", strings.Join(envKeys, ", "))
-
-	// TODO: sanitize environment somewhat?
-	envBlock := os.Environ()
-	for k, v := range envMap {
-		envBlock = append(envBlock, fmt.Sprintf("%s=%s", k, v))
-	}
-
 	const maxLines = 40
 	stdout := newOutputCollector(maxLines)
 	stderr := newOutputCollector(maxLines)
@@ -184,22 +173,57 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		}
 	}
 
+	var commandEnvironmentOverrides []string
+	fullTargetPath, args, envMap, commandEnvironmentOverrides, err = butlerd.ApplyCommandTemplate(
+		params.CommandTemplate,
+		fullTargetPath,
+		args,
+		envMap,
+	)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	var envKeys []string
+	for k := range envMap {
+		envKeys = append(envKeys, k)
+	}
+	consumer.Infof("Environment variables passed: %s", strings.Join(envKeys, ", "))
+
+	// TODO: sanitize environment somewhat?
+	envBlock := buildEnvBlock(os.Environ(), envMap)
+
 	console := false
 	if params.Action != nil && params.Action.Console {
 		console = true
 		consumer.Infof("Console launch requested")
 	}
 
-	var sandboxConfig runner.SandboxConfig
+	var sandboxOptions *butlerd.SandboxOptions
 	if params.SandboxOptions != nil {
-		sandboxType := runner.SandboxType(string(params.SandboxOptions.Type))
-		if params.SandboxOptions.Type == butlerd.SandboxTypeAuto || params.SandboxOptions.Type == "" {
+		optionsCopy := *params.SandboxOptions
+		optionsCopy.AllowEnv = append([]string{}, params.SandboxOptions.AllowEnv...)
+		sandboxOptions = &optionsCopy
+	} else if len(commandEnvironmentOverrides) > 0 {
+		sandboxOptions = &butlerd.SandboxOptions{}
+	}
+
+	var sandboxConfig runner.SandboxConfig
+	if sandboxOptions != nil {
+		for _, envName := range commandEnvironmentOverrides {
+			if !slices.Contains(sandboxOptions.AllowEnv, envName) {
+				sandboxOptions.AllowEnv = append(sandboxOptions.AllowEnv, envName)
+			}
+		}
+
+		sandboxType := runner.SandboxType(string(sandboxOptions.Type))
+		if sandboxOptions.Type == butlerd.SandboxTypeAuto || sandboxOptions.Type == "" {
 			sandboxType = runner.SandboxTypeAuto
 		}
 		sandboxConfig = runner.SandboxConfig{
 			Type:      sandboxType,
-			NoNetwork: params.SandboxOptions.NoNetwork,
-			AllowEnv:  params.SandboxOptions.AllowEnv,
+			NoNetwork: sandboxOptions.NoNetwork,
+			AllowEnv:  sandboxOptions.AllowEnv,
 		}
 	}
 

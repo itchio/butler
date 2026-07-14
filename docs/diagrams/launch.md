@@ -15,7 +15,7 @@ sequenceDiagram
     participant Butlerd as butlerd
     participant API as itch.io API
 
-    Client->>Butlerd: Launch(caveId, prereqsDir, sandbox?, extraArgs?)
+    Client->>Butlerd: Launch(caveId, prereqsDir, sandbox?, commandTemplate?)
 
     Note over Butlerd: Acquire install folder lock
 
@@ -141,7 +141,21 @@ sequenceDiagram
 - **Shell** - Opens the install folder in the OS file manager.
 - **URL** - Opens a URL in the system browser.
 
-When provided, `extraArgs` is appended after manifest action args before launch.
+For native launches, `commandTemplate` can add arguments, environment variables,
+or a wrapper around the fully resolved game command. A standalone `%command%`
+token is replaced by the executable and all its arguments. If the placeholder is
+omitted, the template tokens are appended as arguments. For example:
+
+```text
+--fullscreen
+mangohud %command%
+MESA_GL_VERSION_OVERRIDE=4.5 %command% --fullscreen
+```
+
+Templates support shell-style quotes and backslash escapes, but they are not run
+through a shell: expansion, globbing, pipes, redirects, and command substitution
+are not performed. Command templates do not apply to HTML, shell, or URL launch
+strategies.
 
 ## Sandbox Details
 

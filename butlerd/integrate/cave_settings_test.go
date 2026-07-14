@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_CaveSettings_GetSetAndLaunchExtraArgs(t *testing.T) {
+func Test_CaveSettings_GetSetAndLaunchCommandTemplate(t *testing.T) {
 	assert := assert.New(t)
 
 	bi := newInstance(t)
@@ -56,7 +56,7 @@ args = ["--manifest-flag", "hello"]
 	assert.Nil(getInitialRes.Settings.SandboxType)
 	assert.Nil(getInitialRes.Settings.SandboxNoNetwork)
 	assert.Nil(getInitialRes.Settings.SandboxAllowEnv)
-	assert.Len(getInitialRes.Settings.ExtraArgs, 0)
+	assert.Empty(getInitialRes.Settings.CommandTemplate)
 
 	sandbox := false
 	sandboxType := butlerd.SandboxTypeAuto
@@ -70,7 +70,7 @@ args = ["--manifest-flag", "hello"]
 			SandboxType:      &sandboxType,
 			SandboxNoNetwork: &noNetwork,
 			SandboxAllowEnv:  &allowEnv,
-			ExtraArgs:        []string{"--saved-arg"},
+			CommandTemplate:  `MANGOHUD=1 mangohud %command% --saved-arg`,
 		},
 	})
 	must(err)
@@ -91,7 +91,7 @@ args = ["--manifest-flag", "hello"]
 	if assert.NotNil(getRes.Settings.SandboxAllowEnv) {
 		assert.Equal([]string{"PATH", "HOME"}, *getRes.Settings.SandboxAllowEnv)
 	}
-	assert.Equal([]string{"--saved-arg"}, getRes.Settings.ExtraArgs)
+	assert.Equal(`MANGOHUD=1 mangohud %command% --saved-arg`, getRes.Settings.CommandTemplate)
 
 	var gotLaunchArgs []string
 	messages.HTMLLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.HTMLLaunchParams) (*butlerd.HTMLLaunchResult, error) {
@@ -100,13 +100,15 @@ args = ["--manifest-flag", "hello"]
 	})
 
 	_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
-		CaveID:     queueRes.CaveID,
-		PrereqsDir: "/tmp/prereqs",
-		ExtraArgs:  []string{"--launch-extra", "world"},
+		CaveID:          queueRes.CaveID,
+		PrereqsDir:      "/tmp/prereqs",
+		CommandTemplate: `mangohud %command% --launch-extra world`,
 	})
 	must(err)
 
-	assert.Equal([]string{"--manifest-flag", "hello", "--launch-extra", "world"}, gotLaunchArgs)
+	// HTML launches do not represent a native process and are intentionally not
+	// transformed by command templates.
+	assert.Equal([]string{"--manifest-flag", "hello"}, gotLaunchArgs)
 }
 
 func Test_CaveSettings_InvalidCaveReturnsInternalError(t *testing.T) {
@@ -129,7 +131,7 @@ func Test_CaveSettings_InvalidCaveReturnsInternalError(t *testing.T) {
 	_, err = messages.CavesSetSettings.TestCall(rc, butlerd.CavesSetSettingsParams{
 		CaveID: unknownCaveID,
 		Settings: &butlerd.CaveSettings{
-			ExtraArgs: []string{"--x"},
+			CommandTemplate: "%command% --x",
 		},
 	})
 	assert.Error(err)

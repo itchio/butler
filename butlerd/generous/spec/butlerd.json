@@ -2377,9 +2377,9 @@
             "optional": true
           },
           {
-            "name": "extraArgs",
-            "doc": "Additional command-line arguments appended after manifest action args.",
-            "type": "string[]",
+            "name": "commandTemplate",
+            "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command.",
+            "type": "string",
             "optional": true
           }
         ]
@@ -4367,9 +4367,9 @@
           "optional": true
         },
         {
-          "name": "extraArgs",
-          "doc": "Additional command-line arguments appended after manifest action args.",
-          "type": "string[]",
+          "name": "commandTemplate",
+          "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command.",
+          "type": "string",
           "optional": true
         }
       ]

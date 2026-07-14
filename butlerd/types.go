@@ -1683,9 +1683,11 @@ type CaveSettings struct {
 	// @optional
 	SandboxAllowEnv *[]string `json:"sandboxAllowEnv,omitempty"`
 
-	// Additional command-line arguments appended after manifest action args.
+	// Command template applied to native launches. Use %command% as a standalone
+	// token to place the resolved game command. Without it, tokens are appended
+	// as arguments to the resolved command.
 	// @optional
-	ExtraArgs []string `json:"extraArgs,omitempty"`
+	CommandTemplate string `json:"commandTemplate,omitempty"`
 }
 
 type InstallLocationSummary struct {
@@ -2854,9 +2856,11 @@ type LaunchParams struct {
 	// @optional
 	SandboxOptions *SandboxOptions `json:"sandboxOptions,omitempty"`
 
-	// Additional command-line arguments appended after manifest action args.
+	// Command template applied to native launches. Use %command% as a standalone
+	// token to place the resolved game command. Without it, tokens are appended
+	// as arguments to the resolved command.
 	// @optional
-	ExtraArgs []string `json:"extraArgs,omitempty"`
+	CommandTemplate string `json:"commandTemplate,omitempty"`
 }
 
 type SandboxType string
@@ -2891,13 +2895,19 @@ type SandboxOptions struct {
 }
 
 func validateCaveSettings(settings *CaveSettings) error {
-	if settings == nil || settings.SandboxType == nil || *settings.SandboxType == "" {
+	if settings == nil {
 		return nil
 	}
 
-	err := validation.Validate(*settings.SandboxType, validation.In(SandboxTypeList...))
-	if err != nil {
-		return fmt.Errorf("settings.sandboxType: %w", err)
+	if settings.SandboxType != nil && *settings.SandboxType != "" {
+		err := validation.Validate(*settings.SandboxType, validation.In(SandboxTypeList...))
+		if err != nil {
+			return fmt.Errorf("settings.sandboxType: %w", err)
+		}
+	}
+
+	if err := ValidateCommandTemplate(settings.CommandTemplate); err != nil {
+		return fmt.Errorf("settings.commandTemplate: %w", err)
 	}
 
 	return nil
@@ -2916,6 +2926,9 @@ func (p LaunchParams) Validate() error {
 		if err != nil {
 			return fmt.Errorf("sandboxOptions.type: %w", err)
 		}
+	}
+	if err := ValidateCommandTemplate(p.CommandTemplate); err != nil {
+		return fmt.Errorf("commandTemplate: %w", err)
 	}
 	return nil
 }
