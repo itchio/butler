@@ -39,28 +39,41 @@ func checkCancelled(ctx context.Context) error {
 }
 
 // getGameUploads fetches the game and its uploads, narrows by platform/format,
-// and excludes already-installed or in-progress uploads.
-func getGameUploads(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64) (*itchio.Game, []*itchio.Upload, error) {
+// and excludes already-installed or in-progress uploads. Uploads that didn't
+// survive narrowing are returned separately (same installed/in-progress
+// exclusion applied), so callers can offer them behind a warning.
+func getGameUploads(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64) (*itchio.Game, []*itchio.Upload, []*itchio.Upload, error) {
 	consumer := rc.Consumer
 
 	game := fetch.LazyFetchGame(rc, gameID)
 	if err := checkCancelled(rc.Ctx); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	consumer.Opf("Planning install for %s", operate.GameToString(game))
 
 	baseUploads := fetch.LazyFetchGameUploads(rc, gameID)
 	if err := checkCancelled(rc.Ctx); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	narrowRes, err := manager.NarrowDownUploads(consumer, game, baseUploads, rc.HostEnumerator())
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	baseUploads = narrowRes.Uploads
 
-	// exclude already-installed and currently-installing uploads
+	uploads := excludeInstalledUploads(conn, narrowRes.Uploads)
+	incompatibleUploads := excludeInstalledUploads(conn, narrowRes.IncompatibleUploads)
+
+	return game, uploads, incompatibleUploads, nil
+}
+
+// excludeInstalledUploads filters out already-installed and
+// currently-installing uploads, preserving order.
+func excludeInstalledUploads(conn *sqlite.Conn, baseUploads []*itchio.Upload) []*itchio.Upload {
+	if len(baseUploads) == 0 {
+		return nil
+	}
+
 	var uploadIDs []interface{}
 	for _, u := range baseUploads {
 		uploadIDs = append(uploadIDs, u.ID)
@@ -82,8 +95,7 @@ func getGameUploads(rc *butlerd.RequestContext, conn *sqlite.Conn, gameID int64)
 			uploads = append(uploads, u)
 		}
 	}
-
-	return game, uploads, nil
+	return uploads
 }
 
 // getPlanInfo resolves build info, opens the remote file, gets installer info,
@@ -197,7 +209,7 @@ func InstallPlan(rc *butlerd.RequestContext, params butlerd.InstallPlanParams) (
 		return nil, errors.WithStack(err)
 	}
 
-	game, uploads, err := getGameUploads(rc, conn, params.GameID)
+	game, uploads, _, err := getGameUploads(rc, conn, params.GameID)
 	if err != nil {
 		return nil, err
 	}
@@ -243,13 +255,14 @@ func InstallGetUploads(rc *butlerd.RequestContext, params butlerd.InstallGetUplo
 		return nil, errors.WithStack(err)
 	}
 
-	game, uploads, err := getGameUploads(rc, conn, params.GameID)
+	game, uploads, incompatibleUploads, err := getGameUploads(rc, conn, params.GameID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &butlerd.InstallGetUploadsResult{
-		Game:    game,
-		Uploads: uploads,
+		Game:                game,
+		Uploads:             uploads,
+		IncompatibleUploads: incompatibleUploads,
 	}, nil
 }

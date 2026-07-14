@@ -4477,6 +4477,14 @@ game). When zero, falls back to any suitable profile.</p>
 <td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>incompatibleUploads</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Upload__TypeHint">Upload</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Uploads that were filtered out as not compatible with the current
+runtime — untagged, or tagged for other platforms. They can still be
+installed by explicitly passing them to <code class="typename"><span class="type" data-tip-selector="#InstallQueueParams__TypeHint">Install.Queue</span></code>.</p>
+</td>
+</tr>
 </table>
 
 
@@ -4514,6 +4522,10 @@ This is the fast part of install planning (no file I/O).</p>
 </tr>
 <tr>
 <td><code>uploads</code></td>
+<td><code class="typename"><span class="type">Upload</span>[]</code></td>
+</tr>
+<tr>
+<td><code>incompatibleUploads</code></td>
 <td><code class="typename"><span class="type">Upload</span>[]</code></td>
 </tr>
 </table>

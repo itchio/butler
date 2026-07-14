@@ -19,8 +19,11 @@ type uploadFilter struct {
 type NarrowDownUploadsResult struct {
 	InitialUploads []*itchio.Upload
 	Uploads        []*itchio.Upload
-	HadWrongFormat bool
-	HadWrongArch   bool
+	// Uploads that were filtered out (untagged, wrong platform,
+	// wrong format or wrong arch), in their original order
+	IncompatibleUploads []*itchio.Upload
+	HadWrongFormat      bool
+	HadWrongArch        bool
 }
 
 func NarrowDownUploads(consumer *state.Consumer, game *itchio.Game, uploads []*itchio.Upload, runtimeEnum HostEnumerator) (*NarrowDownUploadsResult, error) {
@@ -53,11 +56,24 @@ func (uf *uploadFilter) narrowDownUploads(uploads []*itchio.Upload) *NarrowDownU
 
 	sortedUploads := uf.sortUploads(archUploads)
 
+	// everything that didn't survive narrowing, in original order
+	kept := make(map[*itchio.Upload]bool, len(sortedUploads))
+	for _, u := range sortedUploads {
+		kept[u] = true
+	}
+	var incompatibleUploads []*itchio.Upload
+	for _, u := range uploads {
+		if !kept[u] {
+			incompatibleUploads = append(incompatibleUploads, u)
+		}
+	}
+
 	return &NarrowDownUploadsResult{
-		InitialUploads: uploads,
-		Uploads:        sortedUploads,
-		HadWrongFormat: hadWrongFormat,
-		HadWrongArch:   hadWrongArch,
+		InitialUploads:      uploads,
+		Uploads:             sortedUploads,
+		IncompatibleUploads: incompatibleUploads,
+		HadWrongFormat:      hadWrongFormat,
+		HadWrongArch:        hadWrongArch,
 	}
 }
 

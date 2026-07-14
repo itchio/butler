@@ -2001,6 +2001,12 @@ func (p InstallGetUploadsParams) Validate() error {
 type InstallGetUploadsResult struct {
 	Game    *itchio.Game     `json:"game"`
 	Uploads []*itchio.Upload `json:"uploads"`
+
+	// Uploads that were filtered out as not compatible with the current
+	// runtime — untagged, or tagged for other platforms. They can still be
+	// installed by explicitly passing them to @@InstallQueueParams.
+	// @optional
+	IncompatibleUploads []*itchio.Upload `json:"incompatibleUploads,omitempty"`
 }
 
 // Returns installer type and disk usage info for a specific upload.

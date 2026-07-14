@@ -53,10 +53,11 @@ func Test_NarrowDownUploads_FormatBlacklist(t *testing.T) {
 	}
 
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadWrongFormat: true,
-		HadWrongArch:   false,
-		Uploads:        nil,
-		InitialUploads: debrpm,
+		HadWrongFormat:      true,
+		HadWrongArch:        false,
+		Uploads:             nil,
+		IncompatibleUploads: debrpm,
+		InitialUploads:      debrpm,
 	}, ndu(debrpm, linux64), "blacklist .deb and .rpm files")
 }
 
@@ -98,10 +99,11 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		HadWrongFormat: true,
-		HadWrongArch:   false,
-		Uploads:        nil,
-		InitialUploads: blacklistPkg,
+		HadWrongFormat:      true,
+		HadWrongArch:        false,
+		Uploads:             nil,
+		IncompatibleUploads: blacklistPkg,
+		InitialUploads:      blacklistPkg,
 	}, ndu(blacklistPkg, mac64), "blacklist .pkg files")
 
 	love := &itchio.Upload{
@@ -118,10 +120,11 @@ func Test_NarrowDownUploads(t *testing.T) {
 		},
 	}
 	assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-		InitialUploads: excludeUntagged,
-		Uploads:        []*itchio.Upload{love},
-		HadWrongFormat: false,
-		HadWrongArch:   false,
+		InitialUploads:      excludeUntagged,
+		Uploads:             []*itchio.Upload{love},
+		IncompatibleUploads: []*itchio.Upload{excludeUntagged[1]},
+		HadWrongFormat:      false,
+		HadWrongArch:        false,
 	}, ndu(excludeUntagged, linux64), "exclude untagged, flag it")
 
 	sources := &itchio.Upload{
@@ -267,8 +270,9 @@ func Test_NarrowDownUploads(t *testing.T) {
 			loveWin,
 			loveAll,
 		},
-		HadWrongFormat: false,
-		HadWrongArch:   false,
+		IncompatibleUploads: []*itchio.Upload{loveMac},
+		HadWrongFormat:      false,
+		HadWrongArch:        false,
 	}, ndu(preferExclusive, windows64), "prefer builds exclusive to platform")
 
 	universalUpload := &itchio.Upload{
@@ -311,15 +315,17 @@ func Test_NarrowDownUploads(t *testing.T) {
 		}
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-			InitialUploads: bothLinuxUploads,
-			Uploads:        []*itchio.Upload{linux64Upload},
-			HadWrongArch:   true,
+			InitialUploads:      bothLinuxUploads,
+			Uploads:             []*itchio.Upload{linux64Upload},
+			IncompatibleUploads: []*itchio.Upload{linux32Upload},
+			HadWrongArch:        true,
 		}, ndu(bothLinuxUploads, linux64), "do exclude 32-bit on 64-bit linux, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-			InitialUploads: bothLinuxUploads,
-			Uploads:        []*itchio.Upload{linux32Upload},
-			HadWrongArch:   true,
+			InitialUploads:      bothLinuxUploads,
+			Uploads:             []*itchio.Upload{linux32Upload},
+			IncompatibleUploads: []*itchio.Upload{linux64Upload},
+			HadWrongArch:        true,
 		}, ndu(bothLinuxUploads, linux32), "do exclude 64-bit on 32-bit linux, if we have both")
 	}
 
@@ -341,15 +347,17 @@ func Test_NarrowDownUploads(t *testing.T) {
 		}
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-			InitialUploads: bothWindowsUploads,
-			Uploads:        []*itchio.Upload{windows64Upload},
-			HadWrongArch:   true,
+			InitialUploads:      bothWindowsUploads,
+			Uploads:             []*itchio.Upload{windows64Upload},
+			IncompatibleUploads: []*itchio.Upload{windows32Upload},
+			HadWrongArch:        true,
 		}, ndu(bothWindowsUploads, windows64), "do exclude 32-bit on 64-bit windows, if we have both")
 
 		assert.EqualValues(t, &manager.NarrowDownUploadsResult{
-			InitialUploads: bothWindowsUploads,
-			Uploads:        []*itchio.Upload{windows32Upload},
-			HadWrongArch:   true,
+			InitialUploads:      bothWindowsUploads,
+			Uploads:             []*itchio.Upload{windows32Upload},
+			IncompatibleUploads: []*itchio.Upload{windows64Upload},
+			HadWrongArch:        true,
 		}, ndu(bothWindowsUploads, windows32), "do exclude 64-bit on 32-bit windows, if we have both")
 	}
 }

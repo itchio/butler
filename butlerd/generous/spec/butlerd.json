@@ -1752,6 +1752,12 @@
             "name": "uploads",
             "doc": "",
             "type": "Upload[]"
+          },
+          {
+            "name": "incompatibleUploads",
+            "doc": "Uploads that were filtered out as not compatible with the current\nruntime — untagged, or tagged for other platforms. They can still be\ninstalled by explicitly passing them to @@InstallQueueParams.",
+            "type": "Upload[]",
+            "optional": true
           }
         ]
       }
@@ -4572,6 +4578,12 @@
           "name": "uploads",
           "doc": "",
           "type": "Upload[]"
+        },
+        {
+          "name": "incompatibleUploads",
+          "doc": "Uploads that were filtered out as not compatible with the current\nruntime — untagged, or tagged for other platforms. They can still be\ninstalled by explicitly passing them to @@InstallQueueParams.",
+          "type": "Upload[]",
+          "optional": true
         }
       ]
     },
