@@ -17,6 +17,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// resolveSandbox gives an explicit client preference precedence over the
+// manifest opt-in.
+func resolveSandbox(pref *bool, manifestOptIn bool) bool {
+	if pref != nil {
+		return *pref
+	}
+	return manifestOptIn
+}
+
 func getUploadAndBuild(rc *butlerd.RequestContext, info withInstallFolderInfo) (upload *itchio.Upload, build *itchio.Build, err error) {
 	consumer := rc.Consumer
 

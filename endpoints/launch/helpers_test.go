@@ -121,3 +121,34 @@ func TestGetTargetsForHost_NativePartialManifestResolution(t *testing.T) {
 		t.Fatalf("expected at least one resolved target")
 	}
 }
+
+func TestResolveSandbox(t *testing.T) {
+	t.Parallel()
+
+	yes := true
+	no := false
+
+	tests := []struct {
+		name          string
+		pref          *bool
+		manifestOptIn bool
+		want          bool
+	}{
+		{"no preference, no opt-in", nil, false, false},
+		{"no preference, manifest opts in", nil, true, true},
+		{"forced on", &yes, false, true},
+		{"forced on, manifest also opts in", &yes, true, true},
+		{"forced off", &no, false, false},
+		{"forced off overrides manifest opt-in", &no, true, false},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := resolveSandbox(tt.pref, tt.manifestOptIn)
+			if got != tt.want {
+				t.Errorf("resolveSandbox(%v, %v) = %v, want %v", tt.pref, tt.manifestOptIn, got, tt.want)
+			}
+		})
+	}
+}

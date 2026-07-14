@@ -6806,7 +6806,8 @@ cave identifier.</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Enable sandbox (regardless of manifest opt-in)</p>
+<td><p><span class="tag">Optional</span> Sandbox preference for this launch. When omitted, the manifest may enable
+sandboxing. An explicit value overrides the manifest preference.</p>
 </td>
 </tr>
 <tr>

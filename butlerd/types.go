@@ -2845,9 +2845,10 @@ type LaunchParams struct {
 	// @optional
 	ForcePrereqs bool `json:"forcePrereqs,omitempty"`
 
-	// Enable sandbox (regardless of manifest opt-in)
+	// Sandbox preference for this launch. When omitted, the manifest may enable
+	// sandboxing. An explicit value overrides the manifest preference.
 	// @optional
-	Sandbox bool `json:"sandbox,omitempty"`
+	Sandbox *bool `json:"sandbox,omitempty"`
 
 	// Sandbox configuration options. Only applied when sandbox is enabled.
 	// @optional

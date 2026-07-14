@@ -2366,7 +2366,7 @@
           },
           {
             "name": "sandbox",
-            "doc": "Enable sandbox (regardless of manifest opt-in)",
+            "doc": "Sandbox preference for this launch. When omitted, the manifest may enable\nsandboxing. An explicit value overrides the manifest preference.",
             "type": "boolean",
             "optional": true
           },

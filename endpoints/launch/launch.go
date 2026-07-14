@@ -122,10 +122,13 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			return errors.WithMessage(err, "While requesting API key")
 		}
 
-		sandbox := params.Sandbox
+		sandbox := resolveSandbox(params.Sandbox, target.Action.Sandbox)
 		if target.Action.Sandbox {
-			consumer.Infof("Enabling sandbox because of manifest opt-in")
-			sandbox = true
+			if sandbox {
+				consumer.Infof("Enabling sandbox because of manifest opt-in")
+			} else {
+				consumer.Infof("Ignoring manifest sandbox opt-in: sandbox explicitly disabled for this game")
+			}
 		}
 
 		crashed := false
