@@ -18,7 +18,7 @@ require (
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
 	github.com/itchio/boar v0.0.0-20260417011146-418a6ee74f35
-	github.com/itchio/dash v0.0.0-20260128225838-1643ccf89aea
+	github.com/itchio/dash v0.0.0-20260716013811-2f199733a0e5
 	github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4
 	github.com/itchio/go-itchio v0.0.0-20260710194225-a8581d36bf19
 	github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd
