@@ -1757,6 +1757,10 @@ type CavesFilters struct {
 
 	// @optional
 	InstallLocationID string `json:"installLocationId"`
+
+	// When true, only return caves that have never been played
+	// @optional
+	NeverPlayed bool `json:"neverPlayed"`
 }
 
 func (p CavesFilters) Validate() error {

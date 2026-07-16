@@ -49,6 +49,12 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 			cond = builder.And(cond, builder.Eq{"caves.game_id": params.Filters.GameID})
 		}
 
+		if params.Filters.NeverPlayed {
+			// matches the app's "never played" display, which keys on
+			// lastTouchedAt being unset
+			cond = builder.And(cond, builder.IsNull{"caves.last_touched_at"})
+		}
+
 		if params.Search != "" {
 			cond = builder.And(cond, builder.Like{"games.title", params.Search})
 			joinGames = true
