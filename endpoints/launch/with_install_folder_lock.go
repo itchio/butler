@@ -29,6 +29,36 @@ type withInstallFolderInfo struct {
 	runtime       ox.Runtime
 }
 
+func resolveInstallFolderInfo(rc *butlerd.RequestContext, caveID string) (withInstallFolderInfo, error) {
+	cave := operate.ValidateCave(rc, caveID)
+	var installFolder string
+	rc.WithConn(func(conn *sqlite.Conn) {
+		installFolder = cave.GetInstallFolder(conn)
+	})
+
+	_, err := os.Stat(installFolder)
+	if err != nil && os.IsNotExist(err) {
+		return withInstallFolderInfo{}, &butlerd.RpcError{
+			Code:    int64(butlerd.CodeInstallFolderDisappeared),
+			Message: fmt.Sprintf("Could not find install folder (%s)", installFolder),
+		}
+	}
+
+	var access *operate.GameAccess
+	rc.WithConn(func(conn *sqlite.Conn) {
+		access = operate.AccessForGameID(conn, cave.Game.ID).OnlyAPIKey()
+	})
+
+	runtime := ox.CurrentRuntime()
+
+	return withInstallFolderInfo{
+		installFolder,
+		cave,
+		access,
+		runtime,
+	}, nil
+}
+
 func withInstallFolderLock(params withInstallFolderLockParams, f func(info withInstallFolderInfo) error) error {
 	err := validation.ValidateStruct(&params,
 		validation.Field(&params.rc, validation.Required),
@@ -42,40 +72,17 @@ func withInstallFolderLock(params withInstallFolderLockParams, f func(info withI
 	rc := params.rc
 	consumer := rc.Consumer
 
-	cave := operate.ValidateCave(rc, params.caveID)
-	var installFolder string
-	rc.WithConn(func(conn *sqlite.Conn) {
-		installFolder = cave.GetInstallFolder(conn)
-	})
-
-	_, err = os.Stat(installFolder)
-	if err != nil && os.IsNotExist(err) {
-		return &butlerd.RpcError{
-			Code:    int64(butlerd.CodeInstallFolderDisappeared),
-			Message: fmt.Sprintf("Could not find install folder (%s)", installFolder),
-		}
+	info, err := resolveInstallFolderInfo(rc, params.caveID)
+	if err != nil {
+		return err
 	}
 
-	rlock := runlock.New(consumer, installFolder)
+	rlock := runlock.New(consumer, info.installFolder)
 	err = rlock.Lock(rc.Ctx, params.reason)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	defer rlock.Unlock()
-
-	var access *operate.GameAccess
-	rc.WithConn(func(conn *sqlite.Conn) {
-		access = operate.AccessForGameID(conn, cave.Game.ID).OnlyAPIKey()
-	})
-
-	runtime := ox.CurrentRuntime()
-
-	info := withInstallFolderInfo{
-		installFolder,
-		cave,
-		access,
-		runtime,
-	}
 
 	return f(info)
 }

@@ -1688,6 +1688,14 @@ type CaveSettings struct {
 	// as arguments to the resolved command.
 	// @optional
 	CommandTemplate string `json:"commandTemplate,omitempty"`
+
+	// Preferred launch target for this game, skipping the target picker.
+	// Matched against manifest action names first, then against target
+	// paths (relative to the install folder); the first match in host
+	// preference order wins. If it matches no target (e.g. it went stale
+	// after a game update), the normal selection behavior applies.
+	// @optional
+	LaunchTarget string `json:"launchTarget,omitempty"`
 }
 
 type InstallLocationSummary struct {
@@ -2837,6 +2845,36 @@ type SnoozeCaveResult struct {
 // Launch
 //----------------------------------------------------------------------
 
+// List the launch targets found for a cave, without launching anything.
+// This is the same list @@LaunchParams considers when picking (or asking
+// the client to pick) what to launch.
+//
+// May refresh the upload's metadata from the itch.io API (and save it to
+// the local database); works offline with a warning. Unlike @@LaunchParams,
+// this does not wait for the install folder lock, so it returns while a
+// game is running; results obtained during an install operation may be
+// transient.
+//
+// @name Launch.GetTargets
+// @category Launch
+// @caller client
+type LaunchGetTargetsParams struct {
+	// The ID of the cave to list launch targets for
+	CaveID string `json:"caveId"`
+}
+
+func (p LaunchGetTargetsParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.CaveID, validation.Required),
+	)
+}
+
+type LaunchGetTargetsResult struct {
+	// All launch targets found for the cave, in host preference order
+	// (targets for the native host come first)
+	Targets []*LaunchTarget `json:"targets"`
+}
+
 // Attempt to launch an installed game.
 //
 // @name Launch
@@ -2867,6 +2905,14 @@ type LaunchParams struct {
 	// as arguments to the resolved command.
 	// @optional
 	CommandTemplate string `json:"commandTemplate,omitempty"`
+
+	// Launch target to use, skipping the target picker. Matched against
+	// manifest action names first, then against target paths (relative to
+	// the install folder); the first match in host preference order wins.
+	// Takes precedence over the launchTarget cave setting. If it matches
+	// no target, the launch fails with CodeLaunchTargetNotFound.
+	// @optional
+	Target string `json:"target,omitempty"`
 }
 
 type SandboxType string
@@ -3359,6 +3405,10 @@ const (
 
 	// Nothing that can be launched was found
 	CodeNoLaunchCandidates Code = 5000
+
+	// The launch target explicitly requested via LaunchParams.target
+	// did not match any launch target
+	CodeLaunchTargetNotFound Code = 5001
 
 	// Java Runtime Environment is required to launch this title.
 	CodeJavaRuntimeNeeded Code = 6000

@@ -2349,6 +2349,29 @@
       }
     },
     {
+      "method": "Launch.GetTargets",
+      "doc": "List the launch targets found for a cave, without launching anything.\nThis is the same list @@LaunchParams considers when picking (or asking\nthe client to pick) what to launch.\n\nMay refresh the upload's metadata from the itch.io API (and save it to\nthe local database); works offline with a warning. Unlike @@LaunchParams,\nthis does not wait for the install folder lock, so it returns while a\ngame is running; results obtained during an install operation may be\ntransient.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "caveId",
+            "doc": "The ID of the cave to list launch targets for",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "targets",
+            "doc": "All launch targets found for the cave, in host preference order\n(targets for the native host come first)",
+            "type": "LaunchTarget[]"
+          }
+        ]
+      }
+    },
+    {
       "method": "Launch",
       "doc": "Attempt to launch an installed game.",
       "caller": "client",
@@ -2385,6 +2408,12 @@
           {
             "name": "commandTemplate",
             "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command.",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "target",
+            "doc": "Launch target to use, skipping the target picker. Matched against\nmanifest action names first, then against target paths (relative to\nthe install folder); the first match in host preference order wins.\nTakes precedence over the launchTarget cave setting. If it matches\nno target, the launch fails with CodeLaunchTargetNotFound.",
             "type": "string",
             "optional": true
           }
@@ -4377,6 +4406,12 @@
           "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command.",
           "type": "string",
           "optional": true
+        },
+        {
+          "name": "launchTarget",
+          "doc": "Preferred launch target for this game, skipping the target picker.\nMatched against manifest action names first, then against target\npaths (relative to the install folder); the first match in host\npreference order wins. If it matches no target (e.g. it went stale\nafter a game update), the normal selection behavior applies.",
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -5007,6 +5042,17 @@
       "name": "SnoozeCaveResult",
       "doc": "",
       "fields": null
+    },
+    {
+      "name": "LaunchGetTargetsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "targets",
+          "doc": "All launch targets found for the cave, in host preference order\n(targets for the native host come first)",
+          "type": "LaunchTarget[]"
+        }
+      ]
     },
     {
       "name": "SandboxOptions",
@@ -7050,6 +7096,11 @@
           "name": "NoLaunchCandidates",
           "doc": "Nothing that can be launched was found",
           "value": 5000
+        },
+        {
+          "name": "LaunchTargetNotFound",
+          "doc": "The launch target explicitly requested via LaunchParams.target\ndid not match any launch target",
+          "value": 5001
         },
         {
           "name": "JavaRuntimeNeeded",

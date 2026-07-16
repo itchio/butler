@@ -6783,6 +6783,93 @@ cave identifier.</p>
 
 ## Launch Category
 
+### Launch.GetTargets (client request)
+
+
+<p>
+<p>List the launch targets found for a cave, without launching anything.
+This is the same list <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code> considers when picking (or asking
+the client to pick) what to launch.</p>
+
+<p>May refresh the upload&rsquo;s metadata from the itch.io API (and save it to
+the local database); works offline with a warning. Unlike <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>,
+this does not wait for the install folder lock, so it returns while a
+game is running; results obtained during an install operation may be
+transient.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID of the cave to list launch targets for</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>targets</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LaunchTarget__TypeHint">LaunchTarget</span>[]</code></td>
+<td><p>All launch targets found for the cave, in host preference order
+(targets for the native host come first)</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchGetTargetsParams__TypeHint" class="tip-content">
+<p>Launch.GetTargets (client request) <a href="#/?id=launchgettargets-client-request">(Go to definition)</a></p>
+
+<p>
+<p>List the launch targets found for a cave, without launching anything.
+This is the same list <code class="typename"><span class="type">Launch</span></code> considers when picking (or asking
+the client to pick) what to launch.</p>
+
+<p>May refresh the upload&rsquo;s metadata from the itch.io API (and save it to
+the local database); works offline with a warning. Unlike <code class="typename"><span class="type">Launch</span></code>,
+this does not wait for the install folder lock, so it returns while a
+game is running; results obtained during an install operation may be
+transient.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>caveId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="LaunchGetTargetsResult__TypeHint" class="tip-content">
+<p>LaunchGetTargets  <a href="#/?id=launchgettargets-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>targets</code></td>
+<td><code class="typename"><span class="type">LaunchTarget</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 ### Launch (client request)
 
 
@@ -6836,6 +6923,16 @@ token to place the resolved game command. Without it, tokens are appended
 as arguments to the resolved command.</p>
 </td>
 </tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Launch target to use, skipping the target picker. Matched against
+manifest action names first, then against target paths (relative to
+the install folder); the first match in host preference order wins.
+Takes precedence over the launchTarget cave setting. If it matches
+no target, the launch fails with CodeLaunchTargetNotFound.</p>
+</td>
+</tr>
 </table>
 
 
@@ -6876,6 +6973,10 @@ as arguments to the resolved command.</p>
 </tr>
 <tr>
 <td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
@@ -10252,6 +10353,16 @@ token to place the resolved game command. Without it, tokens are appended
 as arguments to the resolved command.</p>
 </td>
 </tr>
+<tr>
+<td><code>launchTarget</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Preferred launch target for this game, skipping the target picker.
+Matched against manifest action names first, then against target
+paths (relative to the install folder); the first match in host
+preference order wins. If it matches no target (e.g. it went stale
+after a game update), the normal selection behavior applies.</p>
+</td>
+</tr>
 </table>
 
 
@@ -10282,6 +10393,10 @@ as arguments to the resolved command.</p>
 </tr>
 <tr>
 <td><code>commandTemplate</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>launchTarget</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
@@ -11421,6 +11536,12 @@ can be part of an issue report if something goes wrong.</p>
 </td>
 </tr>
 <tr>
+<td><code>5001</code></td>
+<td><p>The launch target explicitly requested via LaunchParams.target
+did not match any launch target</p>
+</td>
+</tr>
+<tr>
 <td><code>6000</code></td>
 <td><p>Java Runtime Environment is required to launch this title.</p>
 </td>
@@ -11479,6 +11600,9 @@ can be part of an issue report if something goes wrong.</p>
 </tr>
 <tr>
 <td><code>5000</code></td>
+</tr>
+<tr>
+<td><code>5001</code></td>
 </tr>
 <tr>
 <td><code>6000</code></td>

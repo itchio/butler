@@ -26,6 +26,7 @@ var ErrCandidateDisappeared = goerrors.New("candidate disappeared from disk!")
 
 func Register(router *butlerd.Router) {
 	messages.Launch.Register(router, Launch)
+	messages.LaunchGetTargets.Register(router, GetTargets)
 }
 
 func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.LaunchResult, error) {
@@ -69,6 +70,32 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		var target *butlerd.LaunchTarget
 		if len(targets) == 0 {
 			return errors.WithStack(butlerd.CodeNoLaunchCandidates)
+		}
+
+		if params.Target != "" {
+			// an explicit per-launch target is an API contract: fail rather
+			// than surprising a non-interactive caller with a picker callback
+			target = findTarget(targets, params.Target)
+			if target == nil {
+				consumer.Errorf("Requested target (%s) matched none of the (%d) targets", params.Target, len(targets))
+				return errors.WithStack(butlerd.CodeLaunchTargetNotFound)
+			}
+			consumer.Infof("Using requested target (%s):", params.Target)
+			consumer.Logf("%s", target.Strategy.String())
+		} else if preferred := settingsLaunchTarget(rc, cave); preferred != "" {
+			// a persisted preference is best-effort: it may go stale when the
+			// game updates, so fall back to normal selection instead of failing
+			target = findTarget(targets, preferred)
+			if target != nil {
+				consumer.Infof("Using preferred target (%s):", preferred)
+				consumer.Logf("%s", target.Strategy.String())
+			} else {
+				consumer.Warnf("Preferred target (%s) matched none of the (%d) targets, using normal selection", preferred, len(targets))
+			}
+		}
+
+		if target != nil {
+			// preferred target found above
 		} else if len(targets) == 1 {
 			consumer.Infof("Single target, picking it:")
 			target = targets[0]
