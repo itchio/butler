@@ -49,6 +49,7 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 			interactionsRes, err := client.GetGameSessionsSummary(rc.Ctx, gameID)
 			if err != nil {
 				consumer.Warnf("While fetching user game sessions: %+v", err)
+				return err
 			}
 
 			for _, cave := range caves {

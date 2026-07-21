@@ -50,9 +50,12 @@ func FetchCaves(rc *butlerd.RequestContext, params butlerd.FetchCavesParams) (*b
 		}
 
 		if params.Filters.NeverPlayed {
-			// matches the app's "never played" display, which keys on
-			// lastTouchedAt being unset
-			cond = builder.And(cond, builder.IsNull{"caves.last_touched_at"})
+			// check seconds_run too: a legacy scan import can leave seconds_run
+			// > 0 with a null last_touched_at, which isn't "never played".
+			cond = builder.And(cond,
+				builder.IsNull{"caves.last_touched_at"},
+				builder.Eq{"caves.seconds_run": 0},
+			)
 		}
 
 		if params.Search != "" {

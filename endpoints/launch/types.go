@@ -120,6 +120,19 @@ type Launcher interface {
 	Do(params LauncherParams) error
 }
 
+// sessionTrackingLauncher lets a launcher declare whether butler can observe
+// its game as a process. Not implementing it defaults to tracking (true).
+type sessionTrackingLauncher interface {
+	TracksSession() bool
+}
+
+func launcherTracksSession(launcher Launcher) bool {
+	if l, ok := launcher.(sessionTrackingLauncher); ok {
+		return l.TracksSession()
+	}
+	return true
+}
+
 var launchers = make(map[butlerd.LaunchStrategy]Launcher)
 
 func RegisterLauncher(strategy butlerd.LaunchStrategy, launcher Launcher) {

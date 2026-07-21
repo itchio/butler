@@ -15,6 +15,8 @@ type Launcher struct{}
 
 var _ launch.Launcher = (*Launcher)(nil)
 
+func (l *Launcher) TracksSession() bool { return false }
+
 func (l *Launcher) Do(params launch.LauncherParams) error {
 	_, err := messages.URLLaunch.Call(params.RequestContext, butlerd.URLLaunchParams{
 		URL: params.FullTargetPath,

@@ -10,6 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"crawshaw.io/sqlite"
+
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/butlerd/messages"
@@ -160,123 +162,60 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			}
 		}
 
-		crashed := false
-		sessionWatcherDone := make(chan struct{})
-		sessionStartedChan := make(chan struct{})
-		var startSessionOnce sync.Once
-		sessionEndedChan := make(chan struct{})
+		tracksSession := launcherTracksSession(launcher)
 
-		sessionCtx, sessionCancel := context.WithCancel(rc.Ctx)
-		defer sessionCancel()
+		var (
+			sessionWatcherDone chan struct{}
+			sessionStartedChan chan time.Time
+			sessionEndedChan   chan sessionEnd
+			sessionCancel      context.CancelFunc
+			startSessionOnce   sync.Once
+		)
+		sessionStarted := func() {}
 
-		sessionWatcher := func() {
-			defer close(sessionWatcherDone)
-			defer horror.RecoverAndLog(consumer)
+		if tracksSession {
+			sessionWatcherDone = make(chan struct{})
+			sessionStartedChan = make(chan time.Time, 1)
+			sessionEndedChan = make(chan sessionEnd, 1)
 
-			lastRunAt := time.Now().UTC()
-			sessionStartedAt := time.Now().UTC()
-			var secondsRun int64 = 0
+			var sessionCtx context.Context
+			sessionCtx, sessionCancel = context.WithCancel(rc.Ctx)
+			defer sessionCancel()
 
-			conn := rc.GetConn()
-			defer rc.PutConn(conn)
-			access := operate.AccessForGameID(conn, cave.GameID)
-			client := rc.Client(access.APIKey)
+			// Resolve credentials once, up front, with a short-lived conn: the
+			// watcher must not hold a pool connection for the game's lifetime.
+			var sessionAccess *operate.GameAccess
+			rc.WithConn(func(conn *sqlite.Conn) {
+				sessionAccess = operate.AccessForGameID(conn, cave.GameID)
+			})
 
-			var session *itchio.UserGameSession
+			tracker := &sessionTracker{
+				consumer:     consumer,
+				client:       rc.Client(sessionAccess.APIKey),
+				gameID:       cave.GameID,
+				uploadID:     cave.UploadID,
+				buildID:      cave.BuildID,
+				credentials:  sessionAccess.Credentials,
+				platform:     interactionPlatform(runtime),
+				architecture: interactionArchitecture(runtime),
+				persistSummary: func(summary *itchio.UserGameInteractionsSummary) {
+					cave.UpdateInteractions(summary)
+					rc.WithConn(cave.Save)
+				},
+			}
 
-			createSession := func() (retErr error) {
-				defer horror.RecoverInto(&retErr)
+			go func() {
+				defer close(sessionWatcherDone)
+				defer horror.RecoverAndLog(consumer)
+				tracker.run(sessionCtx, sessionStartedChan, sessionEndedChan)
+			}()
 
-				res, err := client.CreateUserGameSession(rc.Ctx, itchio.CreateUserGameSessionParams{
-					GameID:       cave.GameID,
-					UploadID:     cave.UploadID,
-					BuildID:      cave.BuildID,
-					Credentials:  access.Credentials,
-					Platform:     interactionPlatform(runtime),
-					Architecture: interactionArchitecture(runtime),
-
-					SecondsRun: 0,
-					LastRunAt:  &lastRunAt,
+			sessionStarted = func() {
+				startSessionOnce.Do(func() {
+					sessionStartedChan <- time.Now()
 				})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				session = res.UserGameSession
-
-				cave.UpdateInteractions(res.Summary)
-				rc.WithConn(cave.Save)
-
-				return
 			}
-
-			updateSession := func() (retErr error) {
-				defer horror.RecoverInto(&retErr)
-
-				lastRunAt = time.Now().UTC()
-				secondsRun = int64(lastRunAt.Sub(sessionStartedAt).Seconds())
-				res, err := client.UpdateUserGameSession(rc.Ctx, itchio.UpdateUserGameSessionParams{
-					SessionID: session.ID,
-
-					SecondsRun: secondsRun,
-					LastRunAt:  &lastRunAt,
-					Crashed:    crashed,
-				})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				session = res.UserGameSession
-
-				cave.UpdateInteractions(res.Summary)
-				rc.WithConn(cave.Save)
-
-				return
-			}
-
-			// At game launch, create a session
-			err := createSession()
-			if err != nil {
-				consumer.Warnf("Initial session creation: %+v", err)
-				return
-			}
-
-			// Then wait for session to actually start
-			select {
-			case <-sessionCtx.Done():
-				consumer.Debugf("Launch cancelled while waiting for session to start, bailing out")
-				return
-			case <-sessionStartedChan:
-				sessionStartedAt = time.Now().UTC()
-				lastRunAt = time.Now().UTC()
-			}
-
-		regularUpdates:
-			for {
-				select {
-				case <-sessionCtx.Done():
-					consumer.Debugf("Launch cancelled while updating session regularly, bailing out")
-					return
-				case <-time.After(1 * time.Minute):
-					err := updateSession()
-					if err != nil {
-						consumer.Warnf("Regular session update: %+v", err)
-					}
-				case <-sessionEndedChan:
-					consumer.Debugf("Session ended normally!")
-					break regularUpdates
-				}
-			}
-
-			// Then, do a final session update for accurate stats
-			err = updateSession()
-			if err != nil {
-				consumer.Warnf("Final session update: %+v", err)
-				return
-			}
-
-			consumer.Debugf("Entire session committed successfully!")
 		}
-
-		go sessionWatcher()
 
 		launcherParams := LauncherParams{
 			RequestContext: rc,
@@ -299,27 +238,27 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			InstallFolder: installFolder,
 			Host:          target.Host,
 
-			SessionStarted: func() {
-				startSessionOnce.Do(func() {
-					close(sessionStartedChan)
-				})
-			},
+			SessionStarted: sessionStarted,
 		}
 
 		err = launcher.Do(launcherParams)
-		close(sessionEndedChan)
-		if err != nil {
-			crashed = true
-			return err
+
+		if tracksSession {
+			sessionEndedChan <- sessionEnd{at: time.Now(), crashed: err != nil}
+
+			// go-itchio's retry backoffs are not context-aware, so this is a soft bound.
+			consumer.Debugf("Waiting on session watcher...")
+			select {
+			case <-sessionWatcherDone:
+				consumer.Debugf("Session watcher completed")
+			case <-time.After(finalSessionUpdateTimeout + sessionWatcherJoinGrace):
+				consumer.Warnf("Timed out waiting on session watcher")
+			}
+			sessionCancel()
 		}
 
-		consumer.Debugf("Waiting on session watcher...")
-		sessionCancel()
-		select {
-		case <-sessionWatcherDone:
-			consumer.Debugf("Session watcher completed")
-		case <-time.After(5 * time.Second):
-			consumer.Warnf("Timed out waiting on session watcher")
+		if err != nil {
+			return err
 		}
 
 		res = &butlerd.LaunchResult{}

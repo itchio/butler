@@ -84,11 +84,6 @@ func (c *Cave) UpdateInstallTime() {
 	c.InstalledAt = &installedAt
 }
 
-func (c *Cave) RecordPlayTime(playTime time.Duration) {
-	c.SecondsRun += int64(playTime.Seconds())
-	c.Touch()
-}
-
 func (c *Cave) UpdateInteractions(summary *itchio.UserGameInteractionsSummary) {
 	c.SecondsRun = summary.SecondsRun
 	if summary.LastRunAt != nil {
