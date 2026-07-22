@@ -27,8 +27,6 @@ func UserGameInteractionByUserAndGame(conn *sqlite.Conn, userID, gameID int64) *
 	return nil
 }
 
-// The cave columns are a legacy projection for app versions that predate the
-// normalized row.
 func SaveUserGameInteractionSummary(conn *sqlite.Conn, userID, gameID int64, summary *itchio.UserGameInteractionsSummary) (retErr error) {
 	if summary == nil {
 		return nil
@@ -53,6 +51,7 @@ func SaveUserGameInteractionSummary(conn *sqlite.Conn, userID, gameID int64, sum
 		return err
 	}
 
+	// Keep cave fields synchronized for older app versions.
 	for _, cave := range CavesByGameID(conn, gameID) {
 		cave.UpdateInteractions(summary)
 		if err := Save(conn, cave); err != nil {

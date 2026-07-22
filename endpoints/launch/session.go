@@ -33,7 +33,6 @@ type sessionTracker struct {
 	platform     itchio.SessionPlatform
 	architecture itchio.SessionArchitecture
 
-	// persistSummary updates the legacy cave projection.
 	persistSummary func(summary *itchio.UserGameInteractionsSummary)
 
 	updateInterval     time.Duration
