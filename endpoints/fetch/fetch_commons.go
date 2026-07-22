@@ -18,6 +18,15 @@ func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams)
 	var downloadKeys []*butlerd.DownloadKeySummary
 	var installLocations []*models.InstallLocation
 	var flocs []*butlerd.InstallLocationSummary
+
+	var interactions map[int64]*butlerd.UserGameInteraction
+	if params.ProfileID != 0 {
+		if _, err := requireProfile(conn, params.ProfileID); err != nil {
+			return nil, err
+		}
+		interactions = interactionsForUser(conn, params.ProfileID)
+	}
+
 	models.MustExec(
 		conn,
 		builder.Select("id", "game_id", "last_touched_at", "seconds_run", "installed_size").From("caves"),
@@ -28,6 +37,7 @@ func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams)
 				LastTouchedAt: models.ColumnTime(2, stmt),
 				SecondsRun:    stmt.ColumnInt64(3),
 				InstalledSize: stmt.ColumnInt64(4),
+				Interaction:   interactions[stmt.ColumnInt64(1)],
 			})
 			return nil
 		},

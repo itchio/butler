@@ -8,13 +8,27 @@ import (
 
 func FetchCave(rc *butlerd.RequestContext, params butlerd.FetchCaveParams) (*butlerd.FetchCaveResult, error) {
 	var res *butlerd.FetchCaveResult
+	var err error
 	rc.WithConn(func(conn *sqlite.Conn) {
+		if params.ProfileID != 0 {
+			if _, err = requireProfile(conn, params.ProfileID); err != nil {
+				return
+			}
+		}
 		cave := models.CaveByID(conn, params.CaveID)
 		cave.Preload(conn)
+		formatted := FormatCave(conn, cave)
+		if formatted != nil && params.ProfileID != 0 {
+			row := models.UserGameInteractionByUserAndGame(conn, params.ProfileID, cave.GameID)
+			formatted.Interaction = formatInteraction(row)
+		}
 		res = &butlerd.FetchCaveResult{
-			Cave: FormatCave(conn, cave),
+			Cave: formatted,
 		}
 	})
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 

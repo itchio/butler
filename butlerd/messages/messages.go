@@ -1792,6 +1792,46 @@ func (r *FetchCaveType) TestCall(rc *butlerd.RequestContext, params butlerd.Fetc
 
 var FetchCave *FetchCaveType
 
+// Fetch.GameInteraction (Request)
+
+type FetchGameInteractionType struct {}
+
+var _ RequestMessage = (*FetchGameInteractionType)(nil)
+
+func (r *FetchGameInteractionType) Method() string {
+  return "Fetch.GameInteraction"
+}
+
+func (r *FetchGameInteractionType) Register(router router, f func(*butlerd.RequestContext, butlerd.FetchGameInteractionParams) (*butlerd.FetchGameInteractionResult, error)) {
+  router.Register("Fetch.GameInteraction", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.FetchGameInteractionParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Fetch.GameInteraction")
+    }
+    return res, nil
+  })
+}
+
+func (r *FetchGameInteractionType) TestCall(rc *butlerd.RequestContext, params butlerd.FetchGameInteractionParams) (*butlerd.FetchGameInteractionResult, error) {
+  var result butlerd.FetchGameInteractionResult
+  err := rc.Call("Fetch.GameInteraction", params, &result)
+  return &result, err
+}
+
+var FetchGameInteraction *FetchGameInteractionType
+
 // Fetch.ExpireAll (Request)
 
 type FetchExpireAllType struct {}
@@ -4332,6 +4372,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.Commons"]; !ok { panic("missing request handler for (Fetch.Commons)") }
   if _, ok := router.Handlers["Fetch.Caves"]; !ok { panic("missing request handler for (Fetch.Caves)") }
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
+  if _, ok := router.Handlers["Fetch.GameInteraction"]; !ok { panic("missing request handler for (Fetch.GameInteraction)") }
   if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }

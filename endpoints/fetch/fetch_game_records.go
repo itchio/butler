@@ -1,6 +1,8 @@
 package fetch
 
 import (
+	"fmt"
+
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
@@ -10,6 +12,14 @@ import (
 
 func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecordsParams) (*butlerd.FetchGameRecordsResult, error) {
 	res := &butlerd.FetchGameRecordsResult{}
+
+	var profileErr error
+	rc.WithConn(func(conn *sqlite.Conn) {
+		_, profileErr = requireProfile(conn, params.ProfileID)
+	})
+	if profileErr != nil {
+		return nil, profileErr
+	}
 
 	switch params.Source {
 	case butlerd.GameRecordsSourceOwned:
@@ -81,6 +91,9 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		case butlerd.GameRecordsSourceInstalled:
 			sourceTable = "caves"
 			search = search.InnerJoin("games", "games.id = caves.game_id")
+			search = search.LeftJoin("user_game_interactions", fmt.Sprintf(
+				"user_game_interactions.game_id = caves.game_id AND user_game_interactions.user_id = %d",
+				params.ProfileID))
 			switch params.SortBy {
 			case "installedSize":
 				// biggest first
@@ -89,9 +102,9 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 				titleAZ()
 			case "playTime":
 				// most played first
-				search = search.OrderBy("caves.seconds_run" + desc)
+				search = search.OrderBy("coalesce(user_game_interactions.seconds_run, 0)" + desc)
 			default: // + "lastTouched"
-				search = search.OrderBy("coalesce(caves.last_touched_at, caves.installed_at)" + desc)
+				search = search.OrderBy("coalesce(user_game_interactions.last_run_at, caves.installed_at)" + desc)
 			}
 		}
 

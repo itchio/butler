@@ -1386,7 +1386,14 @@
       "doc": "",
       "caller": "client",
       "params": {
-        "fields": null
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "When set, each cave summary carries this profile's interaction summary.",
+            "type": "number",
+            "optional": true
+          }
+        ]
       },
       "result": {
         "fields": [
@@ -1449,6 +1456,12 @@
             "doc": "Used for pagination, if specified",
             "type": "Cursor",
             "optional": true
+          },
+          {
+            "name": "profileId",
+            "doc": "When set, play-time sorting and filtering use this profile's account\ninstead of the unscoped cave columns, and each cave carries its\ninteraction summary.",
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -1478,6 +1491,12 @@
             "name": "caveId",
             "doc": "",
             "type": "string"
+          },
+          {
+            "name": "profileId",
+            "doc": "When set, the cave carries this profile's interaction summary.",
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -1487,6 +1506,47 @@
             "name": "cave",
             "doc": "Cave info, null if there is no cave with the given ID",
             "type": "Cave",
+            "optional": true
+          }
+        ]
+      }
+    },
+    {
+      "method": "Fetch.GameInteraction",
+      "doc": "Fetch the play time summary for a game, as seen by a profile's account.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile whose account's interaction to fetch",
+            "type": "number"
+          },
+          {
+            "name": "gameId",
+            "doc": "Game to fetch the interaction for",
+            "type": "number"
+          },
+          {
+            "name": "fresh",
+            "doc": "When true, refresh from the itch.io API before returning",
+            "type": "boolean",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "interaction",
+            "doc": "The cached interaction, omitted if none has been synced yet",
+            "type": "UserGameInteraction",
+            "optional": true
+          },
+          {
+            "name": "stale",
+            "doc": "True when no interaction is cached locally",
+            "type": "boolean",
             "optional": true
           }
         ]
@@ -4289,6 +4349,12 @@
           "name": "installedSize",
           "doc": "",
           "type": "number"
+        },
+        {
+          "name": "interaction",
+          "doc": "Profile-scoped play time, omitted when nothing has been synced yet.",
+          "type": "UserGameInteraction",
+          "optional": true
         }
       ]
     },
@@ -4326,6 +4392,12 @@
           "name": "installInfo",
           "doc": "Information about where the cave is installed, how much space it takes up etc.",
           "type": "CaveInstallInfo"
+        },
+        {
+          "name": "interaction",
+          "doc": "Profile-scoped play time, omitted when nothing has been synced yet.",
+          "type": "UserGameInteraction",
+          "optional": true
         }
       ]
     },
@@ -4518,6 +4590,57 @@
           "name": "cave",
           "doc": "Cave info, null if there is no cave with the given ID",
           "type": "Cave",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "UserGameInteraction",
+      "doc": "Play time and last run info for a game, as seen by one itch.io account.\nCached from the itch.io session API; the same for every cave of the game.",
+      "fields": [
+        {
+          "name": "userId",
+          "doc": "itch.io user the summary belongs to",
+          "type": "number"
+        },
+        {
+          "name": "gameId",
+          "doc": "Game the summary is for",
+          "type": "number"
+        },
+        {
+          "name": "secondsRun",
+          "doc": "Total play time in seconds, as confirmed by the server",
+          "type": "number"
+        },
+        {
+          "name": "lastRunAt",
+          "doc": "Last time the user ran the game, null if never",
+          "type": "RFCDate",
+          "optional": true
+        },
+        {
+          "name": "syncedAt",
+          "doc": "When butler last received this summary from the server",
+          "type": "RFCDate",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "FetchGameInteractionResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "interaction",
+          "doc": "The cached interaction, omitted if none has been synced yet",
+          "type": "UserGameInteraction",
+          "optional": true
+        },
+        {
+          "name": "stale",
+          "doc": "True when no interaction is cached locally",
+          "type": "boolean",
           "optional": true
         }
       ]

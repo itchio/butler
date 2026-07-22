@@ -1578,7 +1578,11 @@ func (r *FetchProfileBundleOwnershipsResult) SetStale(stale bool) {
 // @name Fetch.Commons
 // @category Fetch
 // @caller client
-type FetchCommonsParams struct{}
+type FetchCommonsParams struct {
+	// When set, each cave summary carries this profile's interaction summary.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
+}
 
 func (p FetchCommonsParams) Validate() error {
 	return nil
@@ -1612,6 +1616,10 @@ type CaveSummary struct {
 	LastTouchedAt *time.Time `json:"lastTouchedAt,omitempty"`
 	SecondsRun    int64      `json:"secondsRun"`
 	InstalledSize int64      `json:"installedSize"`
+
+	// Profile-scoped play time, omitted when nothing has been synced yet.
+	// @optional
+	Interaction *UserGameInteraction `json:"interaction,omitempty"`
 }
 
 // A Cave corresponds to an "installed item" for a game.
@@ -1635,6 +1643,10 @@ type Cave struct {
 	Stats *CaveStats `json:"stats"`
 	// Information about where the cave is installed, how much space it takes up etc.
 	InstallInfo *CaveInstallInfo `json:"installInfo"`
+
+	// Profile-scoped play time, omitted when nothing has been synced yet.
+	// @optional
+	Interaction *UserGameInteraction `json:"interaction,omitempty"`
 }
 
 // CaveStats contains stats about cave usage and first install
@@ -1746,6 +1758,12 @@ type FetchCavesParams struct {
 	// Used for pagination, if specified
 	// @optional
 	Cursor Cursor `json:"cursor"`
+
+	// When set, play-time sorting and filtering use this profile's account
+	// instead of the unscoped cave columns, and each cave carries its
+	// interaction summary.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 type CavesFilters struct {
@@ -1799,6 +1817,10 @@ type FetchCavesResult struct {
 // @caller client
 type FetchCaveParams struct {
 	CaveID string `json:"caveId"`
+
+	// When set, the cave carries this profile's interaction summary.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 func (p FetchCaveParams) Validate() error {
@@ -1811,6 +1833,57 @@ type FetchCaveResult struct {
 	// Cave info, null if there is no cave with the given ID
 	// @optional
 	Cave *Cave `json:"cave,omitempty"`
+}
+
+// Play time and last run info for a game, as seen by one itch.io account.
+// Cached from the itch.io session API; the same for every cave of the game.
+type UserGameInteraction struct {
+	// itch.io user the summary belongs to
+	UserID int64 `json:"userId"`
+	// Game the summary is for
+	GameID int64 `json:"gameId"`
+	// Total play time in seconds, as confirmed by the server
+	SecondsRun int64 `json:"secondsRun"`
+	// Last time the user ran the game, null if never
+	// @optional
+	LastRunAt *time.Time `json:"lastRunAt,omitempty"`
+	// When butler last received this summary from the server
+	// @optional
+	SyncedAt *time.Time `json:"syncedAt,omitempty"`
+}
+
+// Fetch the play time summary for a game, as seen by a profile's account.
+//
+// @name Fetch.GameInteraction
+// @category Fetch
+// @caller client
+type FetchGameInteractionParams struct {
+	// Profile whose account's interaction to fetch
+	ProfileID int64 `json:"profileId"`
+
+	// Game to fetch the interaction for
+	GameID int64 `json:"gameId"`
+
+	// When true, refresh from the itch.io API before returning
+	// @optional
+	Fresh bool `json:"fresh,omitempty"`
+}
+
+func (p FetchGameInteractionParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type FetchGameInteractionResult struct {
+	// The cached interaction, omitted if none has been synced yet
+	// @optional
+	Interaction *UserGameInteraction `json:"interaction,omitempty"`
+
+	// True when no interaction is cached locally
+	// @optional
+	Stale bool `json:"stale,omitempty"`
 }
 
 // Mark all local data as stale.

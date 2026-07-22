@@ -3660,8 +3660,18 @@ Returns only counts; does not return bundle game rows.</p>
 
 
 <p>
-<span class="header">Parameters</span> <em>none</em>
+<span class="header">Parameters</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> When set, each cave summary carries this profile&rsquo;s interaction summary.</p>
+</td>
+</tr>
+</table>
 
 
 
@@ -3691,6 +3701,14 @@ Returns only counts; does not return bundle game rows.</p>
 
 <div id="FetchCommonsParams__TypeHint" class="tip-content">
 <p>Fetch.Commons (client request) <a href="#/?id=fetchcommons-client-request">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
 
 </div>
 
@@ -3766,6 +3784,14 @@ Returns only counts; does not return bundle game rows.</p>
 <td><p><span class="tag">Optional</span> Used for pagination, if specified</p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> When set, play-time sorting and filtering use this profile&rsquo;s account
+instead of the unscoped cave columns, and each cave carries its
+interaction summary.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3823,6 +3849,10 @@ Returns only counts; does not return bundle game rows.</p>
 <td><code>cursor</code></td>
 <td><code class="typename"><span class="type">Cursor</span></code></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
 </table>
 
 </div>
@@ -3864,6 +3894,12 @@ Returns only counts; does not return bundle game rows.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> When set, the cave carries this profile&rsquo;s interaction summary.</p>
+</td>
+</tr>
 </table>
 
 
@@ -3896,6 +3932,10 @@ Returns only counts; does not return bundle game rows.</p>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
 </table>
 
 </div>
@@ -3909,6 +3949,106 @@ Returns only counts; does not return bundle game rows.</p>
 <tr>
 <td><code>cave</code></td>
 <td><code class="typename"><span class="type">Cave</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Fetch.GameInteraction (client request)
+
+
+<p>
+<p>Fetch the play time summary for a game, as seen by a profile&rsquo;s account.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile whose account&rsquo;s interaction to fetch</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game to fetch the interaction for</p>
+</td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When true, refresh from the itch.io API before returning</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UserGameInteraction__TypeHint">UserGameInteraction</span></code></td>
+<td><p><span class="tag">Optional</span> The cached interaction, omitted if none has been synced yet</p>
+</td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when no interaction is cached locally</p>
+</td>
+</tr>
+</table>
+
+
+<div id="FetchGameInteractionParams__TypeHint" class="tip-content">
+<p>Fetch.GameInteraction (client request) <a href="#/?id=fetchgameinteraction-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Fetch the play time summary for a game, as seen by a profile&rsquo;s account.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>fresh</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="FetchGameInteractionResult__TypeHint" class="tip-content">
+<p>FetchGameInteraction  <a href="#/?id=fetchgameinteraction-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type">UserGameInteraction</span></code></td>
+</tr>
+<tr>
+<td><code>stale</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -10054,6 +10194,12 @@ ie. that we can connect as, etc.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UserGameInteraction__TypeHint">UserGameInteraction</span></code></td>
+<td><p><span class="tag">Optional</span> Profile-scoped play time, omitted when nothing has been synced yet.</p>
+</td>
+</tr>
 </table>
 
 
@@ -10081,6 +10227,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>installedSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type">UserGameInteraction</span></code></td>
 </tr>
 </table>
 
@@ -10140,6 +10290,12 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <td><p>Information about where the cave is installed, how much space it takes up etc.</p>
 </td>
 </tr>
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#UserGameInteraction__TypeHint">UserGameInteraction</span></code></td>
+<td><p><span class="tag">Optional</span> Profile-scoped play time, omitted when nothing has been synced yet.</p>
+</td>
+</tr>
 </table>
 
 
@@ -10179,6 +10335,10 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>installInfo</code></td>
 <td><code class="typename"><span class="type">CaveInstallInfo</span></code></td>
+</tr>
+<tr>
+<td><code>interaction</code></td>
+<td><code class="typename"><span class="type">UserGameInteraction</span></code></td>
 </tr>
 </table>
 
@@ -10578,6 +10738,88 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>neverPlayed</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### UserGameInteraction (struct)
+
+
+<p>
+<p>Play time and last run info for a game, as seen by one itch.io account.
+Cached from the itch.io session API; the same for every cave of the game.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io user the summary belongs to</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game the summary is for</p>
+</td>
+</tr>
+<tr>
+<td><code>secondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Total play time in seconds, as confirmed by the server</p>
+</td>
+</tr>
+<tr>
+<td><code>lastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p><span class="tag">Optional</span> Last time the user ran the game, null if never</p>
+</td>
+</tr>
+<tr>
+<td><code>syncedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p><span class="tag">Optional</span> When butler last received this summary from the server</p>
+</td>
+</tr>
+</table>
+
+
+<div id="UserGameInteraction__TypeHint" class="tip-content">
+<p>UserGameInteraction (struct) <a href="#/?id=usergameinteraction-struct">(Go to definition)</a></p>
+
+<p>
+<p>Play time and last run info for a game, as seen by one itch.io account.
+Cached from the itch.io session API; the same for every cave of the game.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>userId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>secondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>lastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+<tr>
+<td><code>syncedAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
