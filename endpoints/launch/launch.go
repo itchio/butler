@@ -37,9 +37,10 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 	var res *butlerd.LaunchResult
 
 	err := withInstallFolderLock(withInstallFolderLockParams{
-		rc:     rc,
-		caveID: params.CaveID,
-		reason: "Launch",
+		rc:        rc,
+		caveID:    params.CaveID,
+		profileID: params.ProfileID,
+		reason:    "Launch",
 	}, func(info withInstallFolderInfo) error {
 		cave := info.cave
 		installFolder := info.installFolder
@@ -183,25 +184,18 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			sessionCtx, sessionCancel = context.WithCancel(rc.Ctx)
 			defer sessionCancel()
 
-			// Resolve credentials once, up front, with a short-lived conn: the
-			// watcher must not hold a pool connection for the game's lifetime.
-			var sessionAccess *operate.GameAccess
-			rc.WithConn(func(conn *sqlite.Conn) {
-				sessionAccess = operate.AccessForGameID(conn, cave.GameID)
-			})
-
 			tracker := &sessionTracker{
 				consumer:     consumer,
-				client:       rc.Client(sessionAccess.APIKey),
+				client:       rc.Client(access.APIKey),
 				gameID:       cave.GameID,
 				uploadID:     cave.UploadID,
 				buildID:      cave.BuildID,
-				credentials:  sessionAccess.Credentials,
+				credentials:  access.Credentials,
 				platform:     interactionPlatform(runtime),
 				architecture: interactionArchitecture(runtime),
 				persistSummary: func(summary *itchio.UserGameInteractionsSummary) {
 					rc.WithConn(func(conn *sqlite.Conn) {
-						if err := models.SaveUserGameInteractionSummary(conn, sessionAccess.ProfileID, cave.GameID, summary); err != nil {
+						if err := models.SaveUserGameInteractionSummary(conn, access.ProfileID, cave.GameID, summary); err != nil {
 							consumer.Warnf("Could not persist interaction summary: %+v", err)
 						}
 					})
@@ -238,7 +232,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 			PrereqsDir:    params.PrereqsDir,
 			ForcePrereqs:  params.ForcePrereqs,
-			Access:        access,
+			Access:        access.OnlyAPIKey(),
 			InstallFolder: installFolder,
 			Host:          target.Host,
 

@@ -14,7 +14,7 @@ func GetTargets(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParam
 	// UI until the game exits. Discovery only reads the install folder, and
 	// Launch re-derives targets under its own lock, so a snapshot taken
 	// during an install operation can at worst fail to match later.
-	info, err := resolveInstallFolderInfo(rc, params.CaveID)
+	info, err := resolveInstallFolderInfo(rc, params.CaveID, 0)
 	if err != nil {
 		return nil, err
 	}

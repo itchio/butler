@@ -17,9 +17,10 @@ import (
 )
 
 type withInstallFolderLockParams struct {
-	rc     *butlerd.RequestContext
-	caveID string
-	reason string
+	rc        *butlerd.RequestContext
+	caveID    string
+	profileID int64
+	reason    string
 }
 
 type withInstallFolderInfo struct {
@@ -29,7 +30,7 @@ type withInstallFolderInfo struct {
 	runtime       ox.Runtime
 }
 
-func resolveInstallFolderInfo(rc *butlerd.RequestContext, caveID string) (withInstallFolderInfo, error) {
+func resolveInstallFolderInfo(rc *butlerd.RequestContext, caveID string, profileID int64) (withInstallFolderInfo, error) {
 	cave := operate.ValidateCave(rc, caveID)
 	var installFolder string
 	rc.WithConn(func(conn *sqlite.Conn) {
@@ -45,9 +46,17 @@ func resolveInstallFolderInfo(rc *butlerd.RequestContext, caveID string) (withIn
 	}
 
 	var access *operate.GameAccess
+	var accessErr error
 	rc.WithConn(func(conn *sqlite.Conn) {
-		access = operate.AccessForGameID(conn, cave.Game.ID).OnlyAPIKey()
+		if profileID != 0 {
+			access, accessErr = operate.StrictAccessForGameID(conn, cave.GameID, profileID)
+		} else {
+			access = operate.AccessForGameID(conn, cave.GameID)
+		}
 	})
+	if accessErr != nil {
+		return withInstallFolderInfo{}, accessErr
+	}
 
 	runtime := ox.CurrentRuntime()
 
@@ -72,7 +81,7 @@ func withInstallFolderLock(params withInstallFolderLockParams, f func(info withI
 	rc := params.rc
 	consumer := rc.Consumer
 
-	info, err := resolveInstallFolderInfo(rc, params.caveID)
+	info, err := resolveInstallFolderInfo(rc, params.caveID, params.profileID)
 	if err != nil {
 		return err
 	}

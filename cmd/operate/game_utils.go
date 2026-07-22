@@ -204,6 +204,27 @@ func AccessForGameID(conn *sqlite.Conn, gameID int64) *GameAccess {
 	return AccessForGameIDForProfile(conn, gameID, 0)
 }
 
+// Never falls back to another profile, unlike AccessForGameIDForProfile. A
+// missing profile is CodeNoSuchProfile; a profile that owns nothing yields a
+// bare API key with no credentials.
+func StrictAccessForGameID(conn *sqlite.Conn, gameID, profileID int64) (*GameAccess, error) {
+	profile := models.ProfileByID(conn, profileID)
+	if profile == nil {
+		return nil, errors.WithStack(butlerd.CodeNoSuchProfile)
+	}
+
+	pgs := models.ProfileGamesByGameID(conn, gameID)
+	dks := models.DownloadKeysByGameID(conn, gameID)
+	if access := ownedAccessForGame(conn, gameID, profileID, pgs, dks); access != nil {
+		return access, nil
+	}
+
+	return &GameAccess{
+		APIKey:    profile.APIKey,
+		ProfileID: profile.ID,
+	}, nil
+}
+
 // AccessForGameIDForProfile resolves game credentials for a given game,
 // preferring the supplied profile when nonzero. Profile-scoped resolution
 // matters for bundle ownership: install should materialize against the same

@@ -29,6 +29,8 @@ var codeMessages = map[Code]string{
 	CodeCantRemoveLocationBecauseOfActiveDownloads: "An install location could not be removed because it has active downloads",
 
 	CodeSandboxNotAvailable: "The selected sandbox is not available on this system.",
+
+	CodeNoSuchProfile: "The requested profile does not exist.",
 }
 
 func (code Code) RpcErrorMessage() string {

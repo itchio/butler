@@ -6933,6 +6933,13 @@ Takes precedence over the launchTarget cave setting. If it matches
 no target, the launch fails with CodeLaunchTargetNotFound.</p>
 </td>
 </tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile whose account receives gameplay-session updates. When zero,
+Butler resolves any suitable profile (legacy behavior).</p>
+</td>
+</tr>
 </table>
 
 
@@ -6978,6 +6985,10 @@ no target, the launch fails with CodeLaunchTargetNotFound.</p>
 <tr>
 <td><code>target</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -10538,6 +10549,12 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <td><p><span class="tag">Optional</span></p>
 </td>
 </tr>
+<tr>
+<td><code>neverPlayed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> When true, only return caves that have never been played</p>
+</td>
+</tr>
 </table>
 
 
@@ -10557,6 +10574,10 @@ it is), or a negative value if we can&rsquo;t find it</p>
 <tr>
 <td><code>installLocationId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>neverPlayed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 
@@ -11571,6 +11592,11 @@ did not match any launch target</p>
 <td><p>The selected sandbox is not available on this system</p>
 </td>
 </tr>
+<tr>
+<td><code>20000</code></td>
+<td><p>The profile explicitly requested for an operation does not exist</p>
+</td>
+</tr>
 </table>
 
 
@@ -11621,6 +11647,9 @@ did not match any launch target</p>
 </tr>
 <tr>
 <td><code>19000</code></td>
+</tr>
+<tr>
+<td><code>20000</code></td>
 </tr>
 </table>
 

@@ -2416,6 +2416,12 @@
             "doc": "Launch target to use, skipping the target picker. Matched against\nmanifest action names first, then against target paths (relative to\nthe install folder); the first match in host preference order wins.\nTakes precedence over the launchTarget cave setting. If it matches\nno target, the launch fails with CodeLaunchTargetNotFound.",
             "type": "string",
             "optional": true
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile whose account receives gameplay-session updates. When zero,\nButler resolves any suitable profile (legacy behavior).",
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -4477,6 +4483,12 @@
           "name": "installLocationId",
           "doc": "",
           "type": "string",
+          "optional": true
+        },
+        {
+          "name": "neverPlayed",
+          "doc": "When true, only return caves that have never been played",
+          "type": "boolean",
           "optional": true
         }
       ]
@@ -7131,6 +7143,11 @@
           "name": "SandboxNotAvailable",
           "doc": "The selected sandbox is not available on this system",
           "value": 19000
+        },
+        {
+          "name": "NoSuchProfile",
+          "doc": "The profile explicitly requested for an operation does not exist",
+          "value": 20000
         }
       ]
     },

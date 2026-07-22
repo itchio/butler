@@ -2917,6 +2917,11 @@ type LaunchParams struct {
 	// no target, the launch fails with CodeLaunchTargetNotFound.
 	// @optional
 	Target string `json:"target,omitempty"`
+
+	// Profile whose account receives gameplay-session updates. When zero,
+	// Butler resolves any suitable profile (legacy behavior).
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
 }
 
 type SandboxType string
@@ -3431,6 +3436,9 @@ const (
 
 	// The selected sandbox is not available on this system
 	CodeSandboxNotAvailable Code = 19000
+
+	// The profile explicitly requested for an operation does not exist
+	CodeNoSuchProfile Code = 20000
 )
 
 // Publish
