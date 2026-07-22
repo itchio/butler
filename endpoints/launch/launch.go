@@ -318,8 +318,15 @@ func interactionPlatform(runtime ox.Runtime) itchio.SessionPlatform {
 }
 
 func interactionArchitecture(runtime ox.Runtime) itchio.SessionArchitecture {
-	if runtime.Is64 {
+	switch runtime.Arch() {
+	case "amd64":
 		return itchio.SessionArchitectureAmd64
+	case "arm64":
+		return itchio.SessionArchitectureArm64
+	case "386":
+		return itchio.SessionArchitecture386
+	case "arm":
+		return itchio.SessionArchitectureArm
 	}
-	return itchio.SessionArchitecture386
+	return itchio.SessionArchitecture("")
 }
