@@ -30,6 +30,7 @@ var AllModels = []interface{}{
 	&FetchInfo{},
 	&GameUpload{},
 	&CaveHistoricalPlayTime{},
+	&UserGameInteraction{},
 }
 
 // declareIndexes registers secondary indexes for the bundle ownership

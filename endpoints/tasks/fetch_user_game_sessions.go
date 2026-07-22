@@ -52,12 +52,7 @@ func FetchUserGameSessions(gameID int64) butlerd.BackgroundTask {
 				return err
 			}
 
-			for _, cave := range caves {
-				cave.UpdateInteractions(interactionsRes.Summary)
-				cave.Save(conn)
-			}
-
-			return nil
+			return models.SaveUserGameInteractionSummary(conn, access.ProfileID, gameID, interactionsRes.Summary)
 		},
 	}
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
+	"github.com/itchio/butler/database/models"
 	"github.com/itchio/hush/manifest"
 
 	"github.com/itchio/httpkit/neterr"
@@ -199,8 +200,11 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				platform:     interactionPlatform(runtime),
 				architecture: interactionArchitecture(runtime),
 				persistSummary: func(summary *itchio.UserGameInteractionsSummary) {
-					cave.UpdateInteractions(summary)
-					rc.WithConn(cave.Save)
+					rc.WithConn(func(conn *sqlite.Conn) {
+						if err := models.SaveUserGameInteractionSummary(conn, sessionAccess.ProfileID, cave.GameID, summary); err != nil {
+							consumer.Warnf("Could not persist interaction summary: %+v", err)
+						}
+					})
 				},
 			}
 
