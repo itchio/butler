@@ -4351,6 +4351,18 @@
           "type": "number"
         },
         {
+          "name": "localSecondsRun",
+          "doc": "Play time observed on this device for this install, regardless of\nwhether gameplay-session sync succeeded. Not attributable to an\naccount and never summed with server-confirmed totals.",
+          "type": "number",
+          "optional": true
+        },
+        {
+          "name": "localLastRunAt",
+          "doc": "Last time a game was observed running on this device for this install",
+          "type": "RFCDate",
+          "optional": true
+        },
+        {
           "name": "interaction",
           "doc": "Profile-scoped play time, omitted when nothing has been synced yet.",
           "type": "UserGameInteraction",
@@ -4421,6 +4433,18 @@
           "name": "secondsRun",
           "doc": "",
           "type": "number"
+        },
+        {
+          "name": "localSecondsRun",
+          "doc": "Play time observed on this device for this install, regardless of\nwhether gameplay-session sync succeeded. Not attributable to an\naccount and never summed with server-confirmed totals.",
+          "type": "number",
+          "optional": true
+        },
+        {
+          "name": "localLastRunAt",
+          "doc": "Last time a game was observed running on this device for this install",
+          "type": "RFCDate",
+          "optional": true
         }
       ]
     },

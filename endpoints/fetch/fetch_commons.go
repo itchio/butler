@@ -29,15 +29,18 @@ func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams)
 
 	models.MustExec(
 		conn,
-		builder.Select("id", "game_id", "last_touched_at", "seconds_run", "installed_size").From("caves"),
+		builder.Select("id", "game_id", "last_touched_at", "seconds_run", "installed_size",
+			"local_seconds_run", "local_last_run_at").From("caves"),
 		func(stmt *sqlite.Stmt) error {
 			caves = append(caves, &butlerd.CaveSummary{
-				ID:            stmt.ColumnText(0),
-				GameID:        stmt.ColumnInt64(1),
-				LastTouchedAt: models.ColumnTime(2, stmt),
-				SecondsRun:    stmt.ColumnInt64(3),
-				InstalledSize: stmt.ColumnInt64(4),
-				Interaction:   interactions[stmt.ColumnInt64(1)],
+				ID:              stmt.ColumnText(0),
+				GameID:          stmt.ColumnInt64(1),
+				LastTouchedAt:   models.ColumnTime(2, stmt),
+				SecondsRun:      stmt.ColumnInt64(3),
+				InstalledSize:   stmt.ColumnInt64(4),
+				LocalSecondsRun: stmt.ColumnInt64(5),
+				LocalLastRunAt:  models.ColumnTime(6, stmt),
+				Interaction:     interactions[stmt.ColumnInt64(1)],
 			})
 			return nil
 		},

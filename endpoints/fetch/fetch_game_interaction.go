@@ -1,6 +1,8 @@
 package fetch
 
 import (
+	"fmt"
+
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
@@ -65,6 +67,14 @@ func formatInteraction(row *models.UserGameInteraction) *butlerd.UserGameInterac
 		LastRunAt:  row.LastRunAt,
 		SyncedAt:   row.SyncedAt,
 	}
+}
+
+// interactionsJoin returns LeftJoin arguments scoping user_game_interactions
+// to one user, keyed against caves.game_id.
+func interactionsJoin(profileID int64) (table string, cond string) {
+	return "user_game_interactions", fmt.Sprintf(
+		"user_game_interactions.game_id = caves.game_id AND user_game_interactions.user_id = %d",
+		profileID)
 }
 
 func interactionsForUser(conn *sqlite.Conn, userID int64) map[int64]*butlerd.UserGameInteraction {

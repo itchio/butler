@@ -52,9 +52,11 @@ func FormatCave(conn *sqlite.Conn, cave *models.Cave) *butlerd.Cave {
 		},
 
 		Stats: &butlerd.CaveStats{
-			InstalledAt:   cave.InstalledAt,
-			LastTouchedAt: cave.LastTouchedAt,
-			SecondsRun:    cave.SecondsRun,
+			InstalledAt:     cave.InstalledAt,
+			LastTouchedAt:   cave.LastTouchedAt,
+			SecondsRun:      cave.SecondsRun,
+			LocalSecondsRun: cave.LocalSecondsRun,
+			LocalLastRunAt:  cave.LocalLastRunAt,
 		},
 	}
 }

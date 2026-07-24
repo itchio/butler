@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	goerrors "errors"
@@ -172,6 +173,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			sessionEndedChan   chan sessionEnd
 			sessionCancel      context.CancelFunc
 			startSessionOnce   sync.Once
+			localStartedAt     atomic.Pointer[time.Time]
 		)
 		sessionStarted := func() {}
 
@@ -210,7 +212,9 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 			sessionStarted = func() {
 				startSessionOnce.Do(func() {
-					sessionStartedChan <- time.Now()
+					startedAt := time.Now()
+					localStartedAt.Store(&startedAt)
+					sessionStartedChan <- startedAt
 				})
 			}
 		}
@@ -240,9 +244,10 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		}
 
 		err = launcher.Do(launcherParams)
+		launchEndedAt := time.Now()
 
 		if tracksSession {
-			sessionEndedChan <- sessionEnd{at: time.Now(), crashed: err != nil}
+			sessionEndedChan <- sessionEnd{at: launchEndedAt, crashed: err != nil}
 
 			// go-itchio's retry backoffs are not context-aware, so this is a soft bound.
 			consumer.Debugf("Waiting on session watcher...")
@@ -253,6 +258,16 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				consumer.Warnf("Timed out waiting on session watcher")
 			}
 			sessionCancel()
+
+			// Reload because the session watcher may have updated the cave.
+			if startedAt := localStartedAt.Load(); startedAt != nil {
+				rc.WithConn(func(conn *sqlite.Conn) {
+					if fresh := models.CaveByID(conn, cave.ID); fresh != nil {
+						fresh.RecordLocalPlayTime(launchEndedAt.Sub(*startedAt), launchEndedAt)
+						fresh.Save(conn)
+					}
+				})
+			}
 		}
 
 		if err != nil {

@@ -30,6 +30,9 @@ type Cave struct {
 	LastTouchedAt *time.Time `json:"lastTouchedAt"`
 	SecondsRun    int64      `json:"secondsRun"`
 
+	LocalSecondsRun int64      `json:"localSecondsRun"`
+	LocalLastRunAt  *time.Time `json:"localLastRunAt"`
+
 	SnoozedAt *time.Time `json:"snoozedAt"`
 
 	Verdict       JSON  `json:"verdict"`
@@ -82,6 +85,12 @@ func (c *Cave) Touch() {
 func (c *Cave) UpdateInstallTime() {
 	installedAt := time.Now().UTC()
 	c.InstalledAt = &installedAt
+}
+
+func (c *Cave) RecordLocalPlayTime(d time.Duration, endedAt time.Time) {
+	c.LocalSecondsRun += int64(d.Seconds())
+	endedAt = endedAt.UTC()
+	c.LocalLastRunAt = &endedAt
 }
 
 func (c *Cave) UpdateInteractions(summary *itchio.UserGameInteractionsSummary) {

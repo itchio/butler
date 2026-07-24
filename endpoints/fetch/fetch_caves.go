@@ -1,8 +1,6 @@
 package fetch
 
 import (
-	"fmt"
-
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
@@ -89,6 +87,7 @@ func fetchCavesWithConn(conn *sqlite.Conn, params butlerd.FetchCavesParams, res 
 			cond = builder.And(cond,
 				builder.IsNull{"caves.last_touched_at"},
 				builder.Eq{"caves.seconds_run": 0},
+				builder.Expr("coalesce(caves.local_seconds_run, 0) = 0"),
 			)
 		}
 	}
@@ -102,9 +101,7 @@ func fetchCavesWithConn(conn *sqlite.Conn, params butlerd.FetchCavesParams, res 
 		search = search.InnerJoin("games", "games.id = caves.game_id")
 	}
 	if joinInteractions {
-		search = search.LeftJoin("user_game_interactions", fmt.Sprintf(
-			"user_game_interactions.game_id = caves.game_id AND user_game_interactions.user_id = %d",
-			params.ProfileID))
+		search = search.LeftJoin(interactionsJoin(params.ProfileID))
 	}
 
 	var items []*models.Cave

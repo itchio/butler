@@ -1617,6 +1617,15 @@ type CaveSummary struct {
 	SecondsRun    int64      `json:"secondsRun"`
 	InstalledSize int64      `json:"installedSize"`
 
+	// Play time observed on this device for this install, regardless of
+	// whether gameplay-session sync succeeded. Not attributable to an
+	// account and never summed with server-confirmed totals.
+	// @optional
+	LocalSecondsRun int64 `json:"localSecondsRun,omitempty"`
+	// Last time a game was observed running on this device for this install
+	// @optional
+	LocalLastRunAt *time.Time `json:"localLastRunAt,omitempty"`
+
 	// Profile-scoped play time, omitted when nothing has been synced yet.
 	// @optional
 	Interaction *UserGameInteraction `json:"interaction,omitempty"`
@@ -1658,6 +1667,15 @@ type CaveStats struct {
 	// @optional
 	LastTouchedAt *time.Time `json:"lastTouchedAt,omitempty"`
 	SecondsRun    int64      `json:"secondsRun"`
+
+	// Play time observed on this device for this install, regardless of
+	// whether gameplay-session sync succeeded. Not attributable to an
+	// account and never summed with server-confirmed totals.
+	// @optional
+	LocalSecondsRun int64 `json:"localSecondsRun,omitempty"`
+	// Last time a game was observed running on this device for this install
+	// @optional
+	LocalLastRunAt *time.Time `json:"localLastRunAt,omitempty"`
 }
 
 // CaveInstallInfo contains information about where the cave is installed, how

@@ -1,8 +1,6 @@
 package fetch
 
 import (
-	"fmt"
-
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
@@ -91,9 +89,7 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		case butlerd.GameRecordsSourceInstalled:
 			sourceTable = "caves"
 			search = search.InnerJoin("games", "games.id = caves.game_id")
-			search = search.LeftJoin("user_game_interactions", fmt.Sprintf(
-				"user_game_interactions.game_id = caves.game_id AND user_game_interactions.user_id = %d",
-				params.ProfileID))
+			search = search.LeftJoin(interactionsJoin(params.ProfileID))
 			switch params.SortBy {
 			case "installedSize":
 				// biggest first

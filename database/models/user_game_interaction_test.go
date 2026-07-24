@@ -88,6 +88,29 @@ func TestSaveSummaryRejectsZeroIdentity(t *testing.T) {
 	require.Nil(t, UserGameInteractionByUserAndGame(conn, 1, 100))
 }
 
+func TestRecordLocalPlayTime(t *testing.T) {
+	conn := interactionTestConn(t)
+
+	MustSave(conn, &Cave{ID: "cave-a", GameID: 100})
+
+	end1 := time.Date(2026, 7, 22, 10, 0, 0, 0, time.UTC)
+	c := CaveByID(conn, "cave-a")
+	c.RecordLocalPlayTime(90*time.Second, end1)
+	c.Save(conn)
+
+	end2 := end1.Add(time.Hour)
+	c = CaveByID(conn, "cave-a")
+	c.RecordLocalPlayTime(30*time.Second, end2)
+	c.Save(conn)
+
+	c = CaveByID(conn, "cave-a")
+	require.EqualValues(t, 120, c.LocalSecondsRun)
+	require.NotNil(t, c.LocalLastRunAt)
+	require.True(t, end2.Equal(*c.LocalLastRunAt))
+	require.EqualValues(t, 0, c.SecondsRun)
+	require.Nil(t, c.LastTouchedAt)
+}
+
 func TestFreshDatabaseCreatesInteractionTable(t *testing.T) {
 	conn := interactionTestConn(t)
 

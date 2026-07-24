@@ -114,6 +114,12 @@ path = "index.html"
 	assert.EqualValues(_game.ID, interactionRes.Interaction.GameID)
 	assert.NotNil(interactionRes.Interaction.SyncedAt)
 
+	caveRes, err := messages.FetchCave.TestCall(rc, butlerd.FetchCaveParams{
+		CaveID: queueRes.CaveID,
+	})
+	must(err)
+	assert.NotNil(caveRes.Cave.Stats.LocalLastRunAt)
+
 	cavesRes, err := messages.FetchCaves.TestCall(rc, butlerd.FetchCavesParams{
 		ProfileID: profile.ID,
 	})
@@ -133,6 +139,7 @@ path = "index.html"
 	must(err)
 	assert.Len(commonsRes.Caves, 1)
 	assert.NotNil(commonsRes.Caves[0].Interaction)
+	assert.NotNil(commonsRes.Caves[0].LocalLastRunAt)
 }
 
 func Test_GameInteractionMultiProfile(t *testing.T) {

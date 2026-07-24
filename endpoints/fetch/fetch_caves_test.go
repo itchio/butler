@@ -125,3 +125,54 @@ func TestFetchCavesLegacyNeverPlayed(t *testing.T) {
 	}, res)
 	require.Empty(t, caveOrder(res))
 }
+
+func TestNeverPlayedCountsLocalPlay(t *testing.T) {
+	conn := cavesTestConn(t)
+	models.MustSave(conn, &itchio.Game{ID: 100, Title: "Alpha"})
+	models.MustSave(conn, &models.Cave{ID: "cave-local", GameID: 100, CustomInstallFolder: "/tmp/cl", LocalSecondsRun: 60})
+	models.MustSave(conn, &itchio.Game{ID: 200, Title: "Beta"})
+	models.MustSave(conn, &models.Cave{ID: "cave-untouched", GameID: 200, CustomInstallFolder: "/tmp/cu"})
+
+	res := &butlerd.FetchCavesResult{}
+	fetchCavesWithConn(conn, butlerd.FetchCavesParams{
+		Filters: butlerd.CavesFilters{NeverPlayed: true},
+	}, res)
+	require.Equal(t, []string{"cave-untouched"}, caveOrder(res))
+
+	res = &butlerd.FetchCavesResult{}
+	fetchCavesWithConn(conn, butlerd.FetchCavesParams{
+		ProfileID: 1,
+		Filters:   butlerd.CavesFilters{NeverPlayed: true},
+	}, res)
+	require.ElementsMatch(t, []string{"cave-local", "cave-untouched"}, caveOrder(res))
+}
+
+func TestNeverPlayedAfterCaveSchemaUpgrade(t *testing.T) {
+	conn, err := sqlite.OpenConn("file::memory:?mode=memory", 0)
+	require.NoError(t, err)
+	t.Cleanup(func() { conn.Close() })
+
+	models.MustExecRaw(conn, `
+		create table caves (
+			id text not null,
+			game_id integer,
+			last_touched_at datetime,
+			seconds_run integer,
+			custom_install_folder text,
+			primary key (id)
+		)
+	`, nil)
+	models.MustExecRaw(conn, `
+		insert into caves (id, game_id, seconds_run, custom_install_folder)
+		values ('legacy-cave', 100, 0, '/tmp/legacy-cave')
+	`, nil)
+
+	require.NoError(t, models.HadesContext().AutoMigrate(conn))
+	models.MustSave(conn, &itchio.Game{ID: 100, Title: "Alpha"})
+
+	res := &butlerd.FetchCavesResult{}
+	fetchCavesWithConn(conn, butlerd.FetchCavesParams{
+		Filters: butlerd.CavesFilters{NeverPlayed: true},
+	}, res)
+	require.Equal(t, []string{"legacy-cave"}, caveOrder(res))
+}

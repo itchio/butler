@@ -10195,6 +10195,20 @@ ie. that we can connect as, etc.</p>
 <td></td>
 </tr>
 <tr>
+<td><code>localSecondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Play time observed on this device for this install, regardless of
+whether gameplay-session sync succeeded. Not attributable to an
+account and never summed with server-confirmed totals.</p>
+</td>
+</tr>
+<tr>
+<td><code>localLastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p><span class="tag">Optional</span> Last time a game was observed running on this device for this install</p>
+</td>
+</tr>
+<tr>
 <td><code>interaction</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#UserGameInteraction__TypeHint">UserGameInteraction</span></code></td>
 <td><p><span class="tag">Optional</span> Profile-scoped play time, omitted when nothing has been synced yet.</p>
@@ -10227,6 +10241,14 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>installedSize</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>localSecondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>localLastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>interaction</code></td>
@@ -10375,6 +10397,20 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>localSecondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Play time observed on this device for this install, regardless of
+whether gameplay-session sync succeeded. Not attributable to an
+account and never summed with server-confirmed totals.</p>
+</td>
+</tr>
+<tr>
+<td><code>localLastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+<td><p><span class="tag">Optional</span> Last time a game was observed running on this device for this install</p>
+</td>
+</tr>
 </table>
 
 
@@ -10398,6 +10434,14 @@ case (single-page bundles, bonus content) but one that should be handled.</p>
 <tr>
 <td><code>secondsRun</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>localSecondsRun</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>localLastRunAt</code></td>
+<td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 </table>
 
