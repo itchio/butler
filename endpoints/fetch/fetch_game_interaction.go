@@ -69,8 +69,8 @@ func formatInteraction(row *models.UserGameInteraction) *butlerd.UserGameInterac
 	}
 }
 
-// interactionsJoin returns LeftJoin arguments scoping user_game_interactions
-// to one user, keyed against caves.game_id.
+// The join condition is keyed against caves.game_id, so it only composes
+// with queries that select from or join the caves table.
 func interactionsJoin(profileID int64) (table string, cond string) {
 	return "user_game_interactions", fmt.Sprintf(
 		"user_game_interactions.game_id = caves.game_id AND user_game_interactions.user_id = %d",
