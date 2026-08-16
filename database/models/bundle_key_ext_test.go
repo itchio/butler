@@ -36,7 +36,7 @@ func seedBundleOwnership(t *testing.T, conn *sqlite.Conn) {
 
 // Declared indexes must come out of a plain AutoMigrate: freshly-created
 // databases never run the migrations table.
-func Test_BundleIndexesCreatedByAutoMigrate(t *testing.T) {
+func Test_IndexesCreatedByAutoMigrate(t *testing.T) {
 	conn := bundleTestConn(t)
 
 	var names []string
@@ -50,6 +50,9 @@ func Test_BundleIndexesCreatedByAutoMigrate(t *testing.T) {
 	require.ElementsMatch(t, []string{
 		"hades_idx_bundle_keys__owner_id__bundle_id",
 		"hades_idx_bundle_games__game_id__bundle_id",
+		"hades_idx_collection_games__game_id__collection_id",
+		"hades_idx_download_keys__game_id__owner_id",
+		"hades_idx_caves__game_id",
 	}, names)
 }
 

@@ -6,16 +6,24 @@ import (
 	"xorm.io/builder"
 )
 
+// bundleContainsGameCond matches bundle_keys rows whose bundle contains the
+// given game. This is the row form of the bundle-ownership rule; the set
+// form correlated on games.id lives in GameInProfileLibraryCond, which needs
+// a different query shape to drive from bundle_games' game_id index.
+func bundleContainsGameCond(gameID int64) builder.Cond {
+	return builder.Expr(
+		"exists (select 1 from bundle_games where bundle_games.bundle_id = bundle_keys.bundle_id and bundle_games.game_id = ?)",
+		gameID,
+	)
+}
+
 // ProfileOwnsGameViaBundle reports whether the given profile owns a bundle
 // that contains the given game.
 func ProfileOwnsGameViaBundle(conn *sqlite.Conn, profileID int64, gameID int64) bool {
 	count := MustCount(conn, &itchio.BundleKey{},
 		builder.And(
 			builder.Eq{"bundle_keys.owner_id": profileID},
-			builder.Expr(
-				"exists (select 1 from bundle_games where bundle_games.bundle_id = bundle_keys.bundle_id and bundle_games.game_id = ?)",
-				gameID,
-			),
+			bundleContainsGameCond(gameID),
 		),
 	)
 	return count > 0
@@ -28,10 +36,7 @@ func BundleIDOwningGameForProfile(conn *sqlite.Conn, gameID int64, profileID int
 	if MustSelectOne(conn, &bk,
 		builder.And(
 			builder.Eq{"bundle_keys.owner_id": profileID},
-			builder.Expr(
-				"exists (select 1 from bundle_games where bundle_games.bundle_id = bundle_keys.bundle_id and bundle_games.game_id = ?)",
-				gameID,
-			),
+			bundleContainsGameCond(gameID),
 		),
 	) {
 		return bk.BundleID
@@ -45,10 +50,7 @@ func BundleIDOwningGameForProfile(conn *sqlite.Conn, gameID int64, profileID int
 func BundleIDOwningGameAnyProfile(conn *sqlite.Conn, gameID int64) (bundleID int64, profileID int64) {
 	var bk itchio.BundleKey
 	if MustSelectOne(conn, &bk,
-		builder.Expr(
-			"exists (select 1 from bundle_games where bundle_games.bundle_id = bundle_keys.bundle_id and bundle_games.game_id = ?)",
-			gameID,
-		),
+		bundleContainsGameCond(gameID),
 	) {
 		return bk.BundleID, bk.OwnerID
 	}

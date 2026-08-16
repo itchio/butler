@@ -24,7 +24,7 @@ func SearchLocal(rc *butlerd.RequestContext, params butlerd.SearchLocalParams) (
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		res.Games = searchLocalGames(conn, params.Query)
+		res.Games = searchLocalGames(conn, params.ProfileID, params.Query)
 		res.Bundles = searchLocalBundles(conn, params.ProfileID, params.Query)
 		res.Collections = searchLocalCollections(conn, params.ProfileID, params.Query)
 	})
@@ -47,10 +47,13 @@ func relevanceSearch(query string, limit int64) (builder.Cond, hades.Search) {
 	return cond, search
 }
 
-func searchLocalGames(conn *sqlite.Conn, query string) []*itchio.Game {
+func searchLocalGames(conn *sqlite.Conn, profileID int64, query string) []*itchio.Game {
 	var games []*itchio.Game
 	cond, search := relevanceSearch(query, searchLocalGamesLimit)
-	models.MustSelect(conn, &games, cond, search)
+	models.MustSelect(conn, &games,
+		builder.And(cond, models.GameInProfileLibraryCond(profileID)),
+		search,
+	)
 	return games
 }
 

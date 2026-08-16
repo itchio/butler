@@ -379,7 +379,7 @@
       "method": "Search.Games",
       "doc": "Searches for games.",
       "caller": "client",
-      "deprecated": "Use Search.Local instead. It searches the same locally-cached games, and also returns the profile's owned bundles and collections.",
+      "deprecated": "Use Search.Local instead. It scopes games to the profile's library, and also returns the profile's owned bundles and collections.",
       "params": {
         "fields": [
           {
@@ -435,13 +435,13 @@
     },
     {
       "method": "Search.Local",
-      "doc": "Searches butler's local database for games, bundles, and collections.\nDoes not perform any API requests.\n\nGames are searched across everything locally cached. Bundles and\ncollections are scoped to the given profile: only bundles the profile\nowns and collections in the profile's collection list are returned.",
+      "doc": "Searches butler's local database for games, bundles, and collections.\nDoes not perform any API requests.\n\nResults are scoped to the given profile: games in the profile's library\n(owned, in an owned bundle, in one of their collections, on their\ndashboard, or installed), bundles the profile owns, and collections in\nthe profile's collection list.",
       "caller": "client",
       "params": {
         "fields": [
           {
             "name": "profileId",
-            "doc": "Profile whose owned bundles and collections are searched",
+            "doc": "Profile whose library, bundles, and collections are searched",
             "type": "number"
           },
           {
@@ -455,7 +455,7 @@
         "fields": [
           {
             "name": "games",
-            "doc": "Locally-cached games matching the query",
+            "doc": "Games in the profile's library matching the query",
             "type": "Game[]"
           },
           {
@@ -3738,7 +3738,7 @@
       "fields": [
         {
           "name": "games",
-          "doc": "Locally-cached games matching the query",
+          "doc": "Games in the profile's library matching the query",
           "type": "Game[]"
         },
         {

@@ -33,13 +33,26 @@ var AllModels = []interface{}{
 	&UserGameInteraction{},
 }
 
-// declareIndexes registers secondary indexes for the bundle ownership
-// lookups (Fetch.GameOwnership, AccessForGameID, owned-bundles listing).
-// bundle_games' composite primary key already covers the (bundle_id,
-// game_id) direction.
+// declareIndexes registers secondary indexes for the game-to-profile
+// lookups: bundle ownership (Fetch.GameOwnership, AccessForGameID,
+// owned-bundles listing) and the library scoping in
+// GameInProfileLibraryCond. bundle_games' and collection_games' composite
+// primary keys already cover the (container, game) direction, and
+// profile_games' primary key starts with game_id so the game-first lookup
+// needs no extra index (profile-first listings like Fetch.ProfileGames
+// still scan).
 func declareIndexes(c *hades.Context) error {
 	if err := c.DeclareIndex(&itchio.BundleKey{}, "owner_id", "bundle_id"); err != nil {
 		return err
 	}
-	return c.DeclareIndex(&itchio.BundleGame{}, "game_id", "bundle_id")
+	if err := c.DeclareIndex(&itchio.BundleGame{}, "game_id", "bundle_id"); err != nil {
+		return err
+	}
+	if err := c.DeclareIndex(&itchio.CollectionGame{}, "game_id", "collection_id"); err != nil {
+		return err
+	}
+	if err := c.DeclareIndex(&itchio.DownloadKey{}, "game_id", "owner_id"); err != nil {
+		return err
+	}
+	return c.DeclareIndex(&Cave{}, "game_id")
 }

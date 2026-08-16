@@ -1350,7 +1350,7 @@ two-factor authentication enabled.</p>
 ### Search.Games (client request)
 
 <div class="deprecation-notice">
-<strong>Deprecated:</strong> <p>Use Search.Local instead. It searches the same locally-cached games, and also returns the profile&rsquo;s owned bundles and collections.</p>
+<strong>Deprecated:</strong> <p>Use Search.Local instead. It scopes games to the profile&rsquo;s library, and also returns the profile&rsquo;s owned bundles and collections.</p>
 
 </div>
 
@@ -1518,9 +1518,10 @@ two-factor authentication enabled.</p>
 <p>Searches butler&rsquo;s local database for games, bundles, and collections.
 Does not perform any API requests.</p>
 
-<p>Games are searched across everything locally cached. Bundles and
-collections are scoped to the given profile: only bundles the profile
-owns and collections in the profile&rsquo;s collection list are returned.</p>
+<p>Results are scoped to the given profile: games in the profile&rsquo;s library
+(owned, in an owned bundle, in one of their collections, on their
+dashboard, or installed), bundles the profile owns, and collections in
+the profile&rsquo;s collection list.</p>
 
 </p>
 
@@ -1533,7 +1534,7 @@ owns and collections in the profile&rsquo;s collection list are returned.</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
-<td><p>Profile whose owned bundles and collections are searched</p>
+<td><p>Profile whose library, bundles, and collections are searched</p>
 </td>
 </tr>
 <tr>
@@ -1554,7 +1555,7 @@ owns and collections in the profile&rsquo;s collection list are returned.</p>
 <tr>
 <td><code>games</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td><p>Locally-cached games matching the query</p>
+<td><p>Games in the profile&rsquo;s library matching the query</p>
 </td>
 </tr>
 <tr>
@@ -1579,9 +1580,10 @@ owns and collections in the profile&rsquo;s collection list are returned.</p>
 <p>Searches butler&rsquo;s local database for games, bundles, and collections.
 Does not perform any API requests.</p>
 
-<p>Games are searched across everything locally cached. Bundles and
-collections are scoped to the given profile: only bundles the profile
-owns and collections in the profile&rsquo;s collection list are returned.</p>
+<p>Results are scoped to the given profile: games in the profile&rsquo;s library
+(owned, in an owned bundle, in one of their collections, on their
+dashboard, or installed), bundles the profile owns, and collections in
+the profile&rsquo;s collection list.</p>
 
 </p>
 
