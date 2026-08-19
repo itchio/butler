@@ -220,7 +220,11 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	if istate.InstallerInfo == nil || istate.InstallerInfo.Type == hush.InstallerTypeUnknown {
 		consumer.Infof("Determining source information...")
 
-		installerInfo, err := hush.GetInstallerInfo(consumer, file)
+		installerInfo, err := hush.GetInstallerInfoWithParams(hush.GetInstallerInfoParams{
+			Consumer:                consumer,
+			File:                    file,
+			NormalizeZipBackslashes: true,
+		})
 		if err != nil {
 			return errors.WithStack(err)
 		}

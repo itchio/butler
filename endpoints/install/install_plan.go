@@ -172,7 +172,11 @@ func getPlanInfo(rc *butlerd.RequestContext, conn *sqlite.Conn, upload *itchio.U
 		return nil, err
 	}
 
-	installerInfo, err := hush.GetInstallerInfo(consumer, file)
+	installerInfo, err := hush.GetInstallerInfoWithParams(hush.GetInstallerInfoParams{
+		Consumer:                consumer,
+		File:                    file,
+		NormalizeZipBackslashes: true,
+	})
 	if err != nil {
 		setInfoError(errors.WithStack(err))
 		return info, nil

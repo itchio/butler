@@ -275,8 +275,9 @@ func Do(ctx *mansion.Context, inPath string) error {
 		wasBoar := func() bool {
 			numEntries := 0
 			info, err := boar.Probe(boar.ProbeParams{
-				File:     reader,
-				Consumer: consumer,
+				File:                    reader,
+				Consumer:                consumer,
+				NormalizeZipBackslashes: true,
 				OnEntries: func(entries []*savior.Entry) {
 					numEntries += len(entries)
 					for _, e := range entries {
