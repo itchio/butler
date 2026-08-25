@@ -1593,6 +1593,56 @@
       }
     },
     {
+      "method": "Install.Adopt",
+      "doc": "Registers an existing, ready-to-run folder as an installed item without\ndownloading or copying its contents. Adoption transfers management of the\nentire folder to butler: uninstalling the resulting cave deletes the folder\nand all of its contents.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "gameId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "uploadId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "buildId",
+            "doc": "Exact build represented by the folder, including a historical build.\nWhen omitted for a wharf upload, the upload's latest advertised build is\nused.",
+            "type": "number",
+            "optional": true
+          },
+          {
+            "name": "installLocationId",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "installFolderName",
+            "doc": "A single folder name directly beneath the install location.",
+            "type": "string"
+          },
+          {
+            "name": "profileId",
+            "doc": "Profile to use when resolving access to the game. When zero, falls back\nto any suitable profile.",
+            "type": "number",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "cave",
+            "doc": "",
+            "type": "Cave"
+          }
+        ]
+      }
+    },
+    {
       "method": "Install.Queue",
       "doc": "Queues an install operation to be later performed\nvia @@InstallPerformParams.",
       "caller": "client",
@@ -4682,6 +4732,17 @@
           "name": "uploads",
           "doc": "A list of uploads that were found to be compatible.",
           "type": "Upload[]"
+        }
+      ]
+    },
+    {
+      "name": "InstallAdoptResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "cave",
+          "doc": "",
+          "type": "Cave"
         }
       ]
     },

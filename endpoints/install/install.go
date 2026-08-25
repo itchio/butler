@@ -10,6 +10,7 @@ func Register(router *butlerd.Router) {
 	messages.InstallPlan.Register(router, InstallPlan)
 	messages.InstallGetUploads.Register(router, InstallGetUploads)
 	messages.InstallPlanUpload.Register(router, InstallPlanUpload)
+	messages.InstallAdopt.Register(router, InstallAdopt)
 	messages.InstallQueue.Register(router, InstallQueue)
 	messages.InstallPerform.Register(router, InstallPerform)
 	messages.InstallCancel.Register(router, InstallCancel)

@@ -1953,6 +1953,47 @@ type GameFindUploadsResult struct {
 // Install
 //----------------------------------------------------------------------
 
+// Registers an existing, ready-to-run folder as an installed item without
+// downloading or copying its contents. Adoption transfers management of the
+// entire folder to butler: uninstalling the resulting cave deletes the folder
+// and all of its contents.
+//
+// @name Install.Adopt
+// @category Install
+// @caller client
+type InstallAdoptParams struct {
+	GameID   int64 `json:"gameId"`
+	UploadID int64 `json:"uploadId"`
+
+	// Exact build represented by the folder, including a historical build.
+	// When omitted for a wharf upload, the upload's latest advertised build is
+	// used.
+	// @optional
+	BuildID int64 `json:"buildId,omitempty"`
+
+	InstallLocationID string `json:"installLocationId"`
+	// A single folder name directly beneath the install location.
+	InstallFolderName string `json:"installFolderName"`
+
+	// Profile to use when resolving access to the game. When zero, falls back
+	// to any suitable profile.
+	// @optional
+	ProfileID int64 `json:"profileId,omitempty"`
+}
+
+func (p InstallAdoptParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.GameID, validation.Required),
+		validation.Field(&p.UploadID, validation.Required),
+		validation.Field(&p.InstallLocationID, validation.Required),
+		validation.Field(&p.InstallFolderName, validation.Required),
+	)
+}
+
+type InstallAdoptResult struct {
+	Cave *Cave `json:"cave"`
+}
+
 // Queues an install operation to be later performed
 // via @@InstallPerformParams.
 //

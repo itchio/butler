@@ -4175,6 +4175,131 @@ game). When zero, falls back to any suitable profile.</p>
 
 </div>
 
+### Install.Adopt (client request)
+
+
+<p>
+<p>Registers an existing, ready-to-run folder as an installed item without
+downloading or copying its contents. Adoption transfers management of the
+entire folder to butler: uninstalling the resulting cave deletes the folder
+and all of its contents.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Exact build represented by the folder, including a historical build.
+When omitted for a wharf upload, the upload&rsquo;s latest advertised build is
+used.</p>
+</td>
+</tr>
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>installFolderName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>A single folder name directly beneath the install location.</p>
+</td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Profile to use when resolving access to the game. When zero, falls back
+to any suitable profile.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>cave</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Cave__TypeHint">Cave</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="InstallAdoptParams__TypeHint" class="tip-content">
+<p>Install.Adopt (client request) <a href="#/?id=installadopt-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Registers an existing, ready-to-run folder as an installed item without
+downloading or copying its contents. Adoption transfers management of the
+entire folder to butler: uninstalling the resulting cave deletes the folder
+and all of its contents.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>uploadId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>installLocationId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>installFolderName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="InstallAdoptResult__TypeHint" class="tip-content">
+<p>InstallAdopt  <a href="#/?id=installadopt-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>cave</code></td>
+<td><code class="typename"><span class="type">Cave</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Install.Queue (client request)
 
 

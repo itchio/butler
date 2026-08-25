@@ -1917,6 +1917,46 @@ func (r *GameFindUploadsType) TestCall(rc *butlerd.RequestContext, params butler
 
 var GameFindUploads *GameFindUploadsType
 
+// Install.Adopt (Request)
+
+type InstallAdoptType struct {}
+
+var _ RequestMessage = (*InstallAdoptType)(nil)
+
+func (r *InstallAdoptType) Method() string {
+  return "Install.Adopt"
+}
+
+func (r *InstallAdoptType) Register(router router, f func(*butlerd.RequestContext, butlerd.InstallAdoptParams) (*butlerd.InstallAdoptResult, error)) {
+  router.Register("Install.Adopt", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.InstallAdoptParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Install.Adopt")
+    }
+    return res, nil
+  })
+}
+
+func (r *InstallAdoptType) TestCall(rc *butlerd.RequestContext, params butlerd.InstallAdoptParams) (*butlerd.InstallAdoptResult, error) {
+  var result butlerd.InstallAdoptResult
+  err := rc.Call("Install.Adopt", params, &result)
+  return &result, err
+}
+
+var InstallAdopt *InstallAdoptType
+
 // Install.Queue (Request)
 
 type InstallQueueType struct {}
@@ -4375,6 +4415,7 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.GameInteraction"]; !ok { panic("missing request handler for (Fetch.GameInteraction)") }
   if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
+  if _, ok := router.Handlers["Install.Adopt"]; !ok { panic("missing request handler for (Install.Adopt)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
   if _, ok := router.Handlers["Install.Plan"]; !ok { panic("missing request handler for (Install.Plan)") }
   if _, ok := router.Handlers["Install.GetUploads"]; !ok { panic("missing request handler for (Install.GetUploads)") }
