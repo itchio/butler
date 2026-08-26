@@ -10,6 +10,24 @@ import (
 	"xorm.io/builder"
 )
 
+// Commons is an always-on hot payload: the app fetches it at boot and
+// refetches the full result after login, focus changes, and
+// install/uninstall events, shipping the whole thing to the renderer each
+// time, where it is cached and used to derive per-game state (e.g. the
+// install/buy CTA). Considerations before adding a field:
+//
+//   - Keep it to small, bounded, machine-global state: materialized download
+//     keys, caves, install locations. Anything unbounded or per-profile
+//     (e.g. bundle-game ownership, which can be thousands of rows per
+//     profile) belongs in a targeted endpoint such as Fetch.GameOwnership,
+//     Fetch.ProfileBundleOwnerships, or Fetch.BundleGames, not here.
+//   - Every query here reruns on each refetch whether or not anything
+//     changed, so no expensive joins or per-row work.
+//   - Ownership rows are machine-global (download_keys is not filtered by
+//     owner, and DownloadKeySummary carries no ownerId). Adding
+//     profile-scoped ownership alongside them gives one response two
+//     different ownership scopes, which clients will conflate when
+//     computing "owned".
 func FetchCommons(rc *butlerd.RequestContext, params butlerd.FetchCommonsParams) (*butlerd.FetchCommonsResult, error) {
 	conn := rc.GetConn()
 	defer rc.PutConn(conn)
