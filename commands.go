@@ -18,6 +18,7 @@ import (
 	"github.com/itchio/butler/cmd/file"
 	"github.com/itchio/butler/cmd/fujicmd"
 	"github.com/itchio/butler/cmd/heal"
+	"github.com/itchio/butler/cmd/launchcmd"
 	"github.com/itchio/butler/cmd/login"
 	"github.com/itchio/butler/cmd/logout"
 	"github.com/itchio/butler/cmd/ls"
@@ -107,6 +108,7 @@ func registerCommands(ctx *mansion.Context) {
 	configure.Register(ctx)
 
 	daemon.Register(ctx)
+	launchcmd.Register(ctx)
 
 	fujicmd.Register(ctx)
 	validate.Register(ctx)

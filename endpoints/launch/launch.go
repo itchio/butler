@@ -79,23 +79,49 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 		if params.Target != "" {
 			// an explicit per-launch target is an API contract: fail rather
-			// than surprising a non-interactive caller with a picker callback
+			// than surprising a non-interactive caller with a picker callback.
+			// Matched against the unfiltered list so a disallowed strategy is
+			// reported as such rather than as "not found".
 			target = findTarget(targets, params.Target)
 			if target == nil {
 				consumer.Errorf("Requested target (%s) matched none of the (%d) targets", params.Target, len(targets))
 				return errors.WithStack(butlerd.CodeLaunchTargetNotFound)
 			}
+			if !strategyAllowed(params.AllowedStrategies, target.Strategy.Strategy) {
+				consumer.Errorf("Requested target (%s) uses strategy (%s), which the client declared it cannot serve %v",
+					params.Target, target.Strategy.Strategy, params.AllowedStrategies)
+				return errors.WithStack(butlerd.CodeLaunchStrategyNotAllowed)
+			}
 			consumer.Infof("Using requested target (%s):", params.Target)
 			consumer.Logf("%s", target.Strategy.String())
-		} else if preferred := settingsLaunchTarget(rc, cave); preferred != "" {
-			// a persisted preference is best-effort: it may go stale when the
-			// game updates, so fall back to normal selection instead of failing
-			target = findTarget(targets, preferred)
-			if target != nil {
-				consumer.Infof("Using preferred target (%s):", preferred)
-				consumer.Logf("%s", target.Strategy.String())
-			} else {
-				consumer.Warnf("Preferred target (%s) matched none of the (%d) targets, using normal selection", preferred, len(targets))
+		} else {
+			// filter before selection so a game with both servable and
+			// unservable targets launches without a needless rejection
+			if len(params.AllowedStrategies) > 0 {
+				var filtered []*butlerd.LaunchTarget
+				for _, t := range targets {
+					if strategyAllowed(params.AllowedStrategies, t.Strategy.Strategy) {
+						filtered = append(filtered, t)
+					}
+				}
+				if len(filtered) == 0 {
+					consumer.Warnf("None of the (%d) targets use a strategy the client can serve %v",
+						len(targets), params.AllowedStrategies)
+					return errors.WithStack(butlerd.CodeLaunchStrategyNotAllowed)
+				}
+				targets = filtered
+			}
+
+			if preferred := settingsLaunchTarget(rc, cave); preferred != "" {
+				// a persisted preference is best-effort: it may go stale when the
+				// game updates, so fall back to normal selection instead of failing
+				target = findTarget(targets, preferred)
+				if target != nil {
+					consumer.Infof("Using preferred target (%s):", preferred)
+					consumer.Logf("%s", target.Strategy.String())
+				} else {
+					consumer.Warnf("Preferred target (%s) matched none of the (%d) targets, using normal selection", preferred, len(targets))
+				}
 			}
 		}
 
@@ -281,6 +307,18 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		return nil, err
 	}
 	return res, nil
+}
+
+func strategyAllowed(allowed []butlerd.LaunchStrategy, s butlerd.LaunchStrategy) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+	for _, a := range allowed {
+		if a == s {
+			return true
+		}
+	}
+	return false
 }
 
 func requestAPIKeyIfNecessary(rc *butlerd.RequestContext, manifestAction *manifest.Action, game *itchio.Game, access *operate.GameAccess, env map[string]string) error {

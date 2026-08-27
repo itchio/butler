@@ -7207,6 +7207,17 @@ no target, the launch fails with CodeLaunchTargetNotFound.</p>
 Butler resolves any suitable profile (legacy behavior).</p>
 </td>
 </tr>
+<tr>
+<td><code>allowedStrategies</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LaunchStrategy__TypeHint">LaunchStrategy</span>[]</code></td>
+<td><p><span class="tag">Optional</span> When non-empty, declares the launch strategies this client can
+serve. If the selected target&rsquo;s strategy is not in the list, the
+launch fails with CodeLaunchStrategyNotAllowed before any launcher or
+session side effects. Checked under the install folder lock, so it is
+not subject to the Launch.GetTargets race. Target discovery may still
+refresh metadata over the network before this check.</p>
+</td>
+</tr>
 </table>
 
 
@@ -7256,6 +7267,10 @@ Butler resolves any suitable profile (legacy behavior).</p>
 <tr>
 <td><code>profileId</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>allowedStrategies</code></td>
+<td><code class="typename"><span class="type">LaunchStrategy</span>[]</code></td>
 </tr>
 </table>
 
@@ -11976,6 +11991,12 @@ did not match any launch target</p>
 </td>
 </tr>
 <tr>
+<td><code>5002</code></td>
+<td><p>The selected target&rsquo;s strategy is not in
+LaunchParams.allowedStrategies</p>
+</td>
+</tr>
+<tr>
 <td><code>6000</code></td>
 <td><p>Java Runtime Environment is required to launch this title.</p>
 </td>
@@ -12042,6 +12063,9 @@ did not match any launch target</p>
 </tr>
 <tr>
 <td><code>5001</code></td>
+</tr>
+<tr>
+<td><code>5002</code></td>
 </tr>
 <tr>
 <td><code>6000</code></td>

@@ -2532,6 +2532,12 @@
             "doc": "Profile whose account receives gameplay-session updates. When zero,\nButler resolves any suitable profile (legacy behavior).",
             "type": "number",
             "optional": true
+          },
+          {
+            "name": "allowedStrategies",
+            "doc": "When non-empty, declares the launch strategies this client can\nserve. If the selected target's strategy is not in the list, the\nlaunch fails with CodeLaunchStrategyNotAllowed before any launcher or\nsession side effects. Checked under the install folder lock, so it is\nnot subject to the Launch.GetTargets race. Target discovery may still\nrefresh metadata over the network before this check.",
+            "type": "LaunchStrategy[]",
+            "optional": true
           }
         ]
       },
@@ -7321,6 +7327,11 @@
           "name": "LaunchTargetNotFound",
           "doc": "The launch target explicitly requested via LaunchParams.target\ndid not match any launch target",
           "value": 5001
+        },
+        {
+          "name": "LaunchStrategyNotAllowed",
+          "doc": "The selected target's strategy is not in\nLaunchParams.allowedStrategies",
+          "value": 5002
         },
         {
           "name": "JavaRuntimeNeeded",

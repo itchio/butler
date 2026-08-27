@@ -18,6 +18,8 @@ var codeMessages = map[Code]string{
 
 	CodeLaunchTargetNotFound: "The requested launch target was not found.",
 
+	CodeLaunchStrategyNotAllowed: "This title cannot be launched by this client.",
+
 	CodeJavaRuntimeNeeded: "Java Runtime Environment is required to launch this title.",
 
 	CodeNetworkDisconnected: "There is no Internet connection",
