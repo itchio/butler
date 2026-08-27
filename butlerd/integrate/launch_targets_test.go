@@ -73,6 +73,21 @@ path = "help.html"
 	assert.EqualValues("play", targetsRes.Targets[0].Action.Name)
 	assert.EqualValues("help", targetsRes.Targets[1].Action.Name)
 
+	// strategy restrictions are checked after target selection but before
+	// invoking the launcher, so a headless client can reject HTML without
+	// producing launch/session side effects.
+	_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
+		CaveID:            queueRes.CaveID,
+		PrereqsDir:        "/tmp/prereqs",
+		Target:            "help",
+		AllowedStrategies: []butlerd.LaunchStrategy{butlerd.LaunchStrategyNative},
+	})
+	assert.Error(err)
+	je := err.(*jsonrpc2.Error)
+	assert.EqualValues(butlerd.CodeLaunchStrategyNotAllowed, je.Code)
+	assert.Empty(launched)
+	assert.EqualValues(0, picks)
+
 	// an explicit target launches without asking the client to pick
 	_, err = messages.Launch.TestCall(rc, butlerd.LaunchParams{
 		CaveID:     queueRes.CaveID,
@@ -90,7 +105,7 @@ path = "help.html"
 		Target:     "no-such-target",
 	})
 	assert.Error(err)
-	je := err.(*jsonrpc2.Error)
+	je = err.(*jsonrpc2.Error)
 	assert.EqualValues(butlerd.CodeLaunchTargetNotFound, je.Code)
 	assert.EqualValues(0, picks)
 

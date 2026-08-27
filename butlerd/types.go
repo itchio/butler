@@ -3055,6 +3055,16 @@ type LaunchParams struct {
 	// Butler resolves any suitable profile (legacy behavior).
 	// @optional
 	ProfileID int64 `json:"profileId,omitempty"`
+
+	// When non-empty, declares the launch strategies this client can
+	// serve. Targets using other strategies are excluded from selection;
+	// if none remain, or an explicit target uses an excluded strategy, the
+	// launch fails with CodeLaunchStrategyNotAllowed before any launcher or
+	// session side effects. Checked under the install folder lock, so it is
+	// not subject to the Launch.GetTargets race. Target discovery may still
+	// refresh metadata over the network before this check.
+	// @optional
+	AllowedStrategies []LaunchStrategy `json:"allowedStrategies,omitempty"`
 }
 
 type SandboxType string
@@ -3551,6 +3561,10 @@ const (
 	// The launch target explicitly requested via LaunchParams.target
 	// did not match any launch target
 	CodeLaunchTargetNotFound Code = 5001
+
+	// The selected target's strategy is not in
+	// LaunchParams.allowedStrategies
+	CodeLaunchStrategyNotAllowed Code = 5002
 
 	// Java Runtime Environment is required to launch this title.
 	CodeJavaRuntimeNeeded Code = 6000
