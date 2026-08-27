@@ -64,6 +64,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFo
 			target.Strategy = &butlerd.StrategyResult{
 				Strategy:       butlerd.LaunchStrategyNative,
 				FullTargetPath: fullPath,
+				Candidate:      appBundleCandidate(installFolder, fullPath, manifestAction.Path),
 			}
 			return target, nil
 		}
@@ -104,6 +105,22 @@ func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFo
 		FullTargetPath: fullPath,
 	}
 	return target, nil
+}
+
+// appBundleCandidate builds the candidate dash.Configure would yield for
+// this bundle. Clients filter targets by candidate flavor, so manifest
+// targets must carry one like heuristic targets do.
+func appBundleCandidate(installFolder string, fullPath string, actionPath string) *dash.Candidate {
+	relPath := actionPath
+	if rel, err := filepath.Rel(installFolder, fullPath); err == nil {
+		relPath = rel
+	}
+	relPath = filepath.ToSlash(relPath)
+	return &dash.Candidate{
+		Path:   relPath,
+		Depth:  len(strings.Split(relPath, "/")),
+		Flavor: dash.FlavorAppMacos,
+	}
 }
 
 func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, host manager.Host, candidate *dash.Candidate) (*butlerd.LaunchTarget, error) {
