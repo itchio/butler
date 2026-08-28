@@ -12,7 +12,10 @@
 // license, a prereqs failure, no profile, schema mismatch), the command
 // exits with needsAppExitCode and emits a "launch/needs-app" JSON line
 // carrying the reason and game/upload IDs. The frontend decides whether
-// to hand the launch to the app; butler never starts the app itself.
+// to hand the launch to the app; butler never starts the app itself. A
+// --profile-id that no longer exists exits with profileGoneExitCode
+// instead, so frontends holding a stale baked profile can retry without
+// it.
 //
 // A running itch app is deliberately not forwarded to: external
 // launchers track their shortcut's process tree (and preloads like
@@ -54,6 +57,12 @@ import (
 // Exit code signalling that the launch needs the itch app. Accompanied
 // by a "launch/needs-app" JSON line with the reason and game/upload IDs.
 const needsAppExitCode = 3
+
+// Exit code signalling that the requested --profile-id is gone from the
+// database (logged out since it was recorded). Accompanied by a
+// "launch/profile-not-found" JSON line; frontends holding a stale baked
+// profile retry without it.
+const profileGoneExitCode = 4
 
 var args = struct {
 	game                       *int64
@@ -97,6 +106,14 @@ func do(ctx *mansion.Context) {
 		comm.Logf("The itch app is needed to launch this: %s", na.reason)
 		os.Exit(needsAppExitCode)
 	}
+	var pg *profileGoneError
+	if goerrors.As(err, &pg) {
+		comm.Object("launch/profile-not-found", map[string]interface{}{
+			"profileId": pg.profileID,
+		})
+		comm.Logf("%s", pg.Error())
+		os.Exit(profileGoneExitCode)
+	}
 	ctx.Must(err)
 }
 
@@ -110,6 +127,16 @@ type needsAppError struct {
 
 func (e *needsAppError) Error() string {
 	return "the itch app is needed: " + e.reason
+}
+
+// profileGoneError marks a --profile-id that no longer exists; do()
+// translates it into profileGoneExitCode plus the profile-not-found line.
+type profileGoneError struct {
+	profileID int64
+}
+
+func (e *profileGoneError) Error() string {
+	return fmt.Sprintf("profile (%d) not found in the database", e.profileID)
 }
 
 func Do(ctx *mansion.Context) error {
@@ -156,10 +183,11 @@ func Do(ctx *mansion.Context) error {
 	}
 
 	if *args.profileID != 0 {
-		// validated here so a typo'd ID fails before the launch machinery
-		// runs; the server's strict path never falls back to another profile
+		// validated here so a stale or typo'd ID fails before the launch
+		// machinery runs; the server's strict path never falls back to
+		// another profile
 		if !profileExists(dbPool, *args.profileID) {
-			return errors.Errorf("profile (%d) not found in the database", *args.profileID)
+			return &profileGoneError{profileID: *args.profileID}
 		}
 	} else if !hasProfile(dbPool) {
 		// launch machinery panics without a profile row; the app owns login
