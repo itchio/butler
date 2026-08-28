@@ -55,6 +55,7 @@ var args = struct {
 	game                       *int64
 	cave                       *string
 	target                     *string
+	profileID                  *int64
 	prereqsDir                 *string
 	fallbackToApp              *bool
 	acceptLicenses             *bool
@@ -66,6 +67,7 @@ func Register(ctx *mansion.Context) {
 	args.game = cmd.Flag("game", "itch.io game ID to launch (picks the most recently used install)").Int64()
 	args.cave = cmd.Flag("cave", "Cave ID to launch (takes precedence over --game)").String()
 	args.target = cmd.Flag("target", "Launch target, matched against manifest action names then paths").String()
+	args.profileID = cmd.Flag("profile-id", "itch.io user ID of the profile to launch as (default: resolve one with access to the game)").Int64()
 	args.prereqsDir = cmd.Flag("prereqs-dir", "Directory to store prerequisite installers in").String()
 	args.fallbackToApp = cmd.Flag("fallback-to-app", "Hand the launch to the itch app when it cannot run headlessly (detached: external launchers can no longer track the game process)").Bool()
 	args.acceptLicenses = cmd.Flag("accept-licenses", "Accept any license agreement the game requires").Bool()
@@ -127,7 +129,13 @@ func Do(ctx *mansion.Context) error {
 		return err
 	}
 
-	if !hasProfile(dbPool) {
+	if *args.profileID != 0 {
+		// validated here so a typo'd ID fails before the launch machinery
+		// runs; the server's strict path never falls back to another profile
+		if !profileExists(dbPool, *args.profileID) {
+			return errors.Errorf("profile (%d) not found in the database", *args.profileID)
+		}
+	} else if !hasProfile(dbPool) {
 		// launch machinery panics without a profile row; the app owns login
 		return fallback(cave.GameID, cave.UploadID, "no itch.io profile found in the database")
 	}
@@ -179,6 +187,7 @@ func Do(ctx *mansion.Context) error {
 		CaveID:     cave.ID,
 		PrereqsDir: prereqsDir,
 		Target:     *args.target,
+		ProfileID:  *args.profileID,
 		// enforced server-side under the launch lock, before any launcher or
 		// session side effects
 		AllowedStrategies: []butlerd.LaunchStrategy{butlerd.LaunchStrategyNative},
@@ -260,6 +269,12 @@ func hasProfile(dbPool *sqlitex.Pool) bool {
 	return len(models.AllProfiles(conn)) > 0
 }
 
+func profileExists(dbPool *sqlitex.Pool, id int64) bool {
+	conn := dbPool.Get(context.Background())
+	defer dbPool.Put(conn)
+	return models.ProfileByID(conn, id) != nil
+}
+
 // defaultDBPath returns the itch app's database location for this
 // platform (under Electron's userData dir), or "" if undeterminable.
 func defaultDBPath() string {
@@ -328,13 +343,16 @@ func fallback(gameID int64, uploadID int64, reason string) error {
 	if !*args.fallbackToApp {
 		return errors.Errorf("cannot launch headlessly (%s): pass --fallback-to-app to hand the launch to the itch app", reason)
 	}
-	// the itch:// URL can't carry a target or a cave id, so falling back
-	// would silently ignore those explicit flags
+	// the itch:// URL can't carry a target, cave, or profile, so falling
+	// back would silently ignore those explicit flags
 	if *args.target != "" {
 		return errors.Errorf("cannot launch headlessly (%s) and --target cannot be honored by the itch app", reason)
 	}
 	if *args.cave != "" {
 		return errors.Errorf("cannot launch headlessly (%s) and --cave cannot be honored by the itch app", reason)
+	}
+	if *args.profileID != 0 {
+		return errors.Errorf("cannot launch headlessly (%s) and --profile-id cannot be honored by the itch app", reason)
 	}
 	comm.Logf("Handing launch to the itch app: %s", reason)
 	return openItchURL(gameID, uploadID)
