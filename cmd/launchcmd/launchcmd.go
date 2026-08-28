@@ -19,10 +19,9 @@
 // installs across processes. A locked install folder makes a launch
 // wait, so launching an already-running game queues until it exits.
 //
-// TODO: lifetime tracking follows smaug's semantics (same as the app):
-// the direct child, plus anything holding its inherited stdio pipes. A
-// game that fully daemonizes escapes tracking; fixing that needs
-// process-group polling or a child subreaper in smaug.
+// Lifetime tracking follows smaug's semantics (same as the app): the
+// direct child, plus anything holding its inherited stdio pipes. A game
+// that fully daemonizes escapes tracking.
 package launchcmd
 
 import (
@@ -159,9 +158,9 @@ func Do(ctx *mansion.Context) error {
 
 	tracker := newLaunchTracker(router)
 
-	// cancelling launchCtx cancels the Launch request's context, which
-	// SIGTERMs the game's process group; it also tears down the conn (so
-	// the reply is lost), which is why tracker watches the endpoint itself
+	// cancelling launchCtx cancels the Launch request's context and stops
+	// the game's process group; it also tears down the conn (so the reply
+	// is lost), which is why tracker watches the endpoint itself
 	serverTransport, clientTransport := loopbackPipe()
 	serverConn := jsonrpc2.NewConn(launchCtx, serverTransport, tracker)
 	defer serverConn.Close()
