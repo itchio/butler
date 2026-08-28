@@ -402,7 +402,7 @@ when an install succeeds, but a long-running launcher should periodically
 call `CleanDownloads.Search` and `CleanDownloads.Apply` to reclaim space
 from cancelled or failed jobs.
 
-The cave-to-folder mapping lives **only in butler.db**. Each cave row stores
+The cave-to-folder mapping lives **only in `butler.db`**. Each cave row stores
 its install-location ID and folder name, plus all the associated metadata
 (game, upload, build, last-played, seconds run, and so on). butler does drop
 a `.itch/receipt.json.gz` inside each install folder describing what was
@@ -412,7 +412,7 @@ possible but not free, so back up `--dbpath`.
 
 ### Multiple launchers and shared install locations
 
-Each butler.db is independent. If two launchers each have their own
+Each `butler.db` is independent. If two launchers each have their own
 `--dbpath` but point at the **same** install-location path on disk, neither
 one's database can see the other's caves.
 
@@ -489,6 +489,77 @@ Each of these arrives as a JSON-RPC request from the server during the
 
 Sandboxing is opt-in and currently only meaningful on Linux. See the spec for
 `SandboxOptions`.
+
+### Launching without a daemon
+
+The `butler` cli provides a `launch` subcommand that can be used to launch an
+installed game for the life of the command without the need to manage a daemon
+process.
+
+This is beneficial for a thin shortcut binary, a CLI entry point, or any context
+where the game has to run as a direct child of the process that was invoked,
+because something up the process tree is tracking it.
+
+It runs the same launch machinery in-process against an existing `butler.db`,
+answers the interactive requests non-interactively, and stays alive until the
+game exits:
+
+    butler --json --dbpath /path/to/butler.db launch --game 123456 \
+      --prereqs-dir /path/to/prereqs
+
+Flags:
+
+  * `--game` picks the game's most recently used install; `--cave` names an
+    exact cave instead.
+  * `--target` picks a manifest action by name or path. Without it, the
+    cave's saved launch target applies, then the first available target.
+  * `--profile-id` attributes the play session to a specific profile.
+    Without it, butler resolves one with access to the game.
+  * `--prereqs-dir` is only needed for titles with prerequisites; a launch
+    that turns out to need them fails without it.
+  * `--accept-licenses` and `--continue-after-prereq-failure` answer the
+    interactive requests a daemon client would show UI for. Without them, a
+    launch that hits either case exits with code 3.
+  * `--default-sandbox`, `--default-sandbox-type`,
+    `--default-sandbox-no-network` and `--default-sandbox-allow-env` carry
+    your launcher's global preferences. Per-cave settings stored in the
+    database override them.
+
+Only native executables can run this way. Anything that needs a client to
+provide UI is out of scope: HTML5 games need a browser window (the daemon
+flow hands them to your launcher through `HTMLLaunch`; the official app
+embeds a browser for them), shell targets like soundtracks or books need
+the OS shell to open a file, and url targets need a browser. Launching one
+of these exits with code 3.
+
+Exit codes:
+
+  * 0: the game ran and exited.
+  * 3: the launch needs a full client: an html/shell/url target, an
+    unaccepted license, a failed prerequisite install, no profile in the
+    database, or a schema version mismatch. A `launch/needs-app` JSON line
+    on stdout carries the reason plus game and upload IDs. Route these
+    launches through your daemon-connected launcher instead.
+  * 4: the requested `--profile-id` no longer exists (logged out since it
+    was recorded). A `launch/profile-not-found` line carries the ID. Retry
+    without the flag to keep the launch headless.
+
+Anything else nonzero is a regular failure. The JSON lines only appear with
+`--json`.
+
+`butler launch` never migrates the database and refuses to run when the
+database's schema version doesn't match its own, so invoke the same butler
+binary that maintains the database. It is safe alongside a running daemon:
+launches coordinate through the install folder lock, and the command writes
+nothing beyond play time records. SIGINT or SIGTERM stop the game's process
+group, and the play session is still recorded on the way out. The
+environment is passed through to the game, so overlay libraries preloaded
+by whatever invoked butler reach it.
+
+This command works against your own `butler.db`. To launch a game from the
+official itch.io app's library, use `itch-setup --run-game <gameId>`
+instead: it locates the app's butler, database, and preferences, and falls
+back to opening the app itself when butler exits with code 3.
 
 ## 9. Updates and uninstalls
 
