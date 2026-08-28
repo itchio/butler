@@ -2494,8 +2494,9 @@
           },
           {
             "name": "prereqsDir",
-            "doc": "The directory to use to store installer files for prerequisites",
-            "type": "string"
+            "doc": "The directory to use to store installer files for prerequisites.\nWhen empty, launching a title that turns out to require\nprerequisites fails (via the PrereqsFailed flow); most titles\nrequire none.",
+            "type": "string",
+            "optional": true
           },
           {
             "name": "forcePrereqs",
@@ -2511,7 +2512,7 @@
           },
           {
             "name": "sandboxOptions",
-            "doc": "Sandbox configuration options. Only applied when sandbox is enabled.\nWhen omitted, the cave's persisted sandbox overrides apply; an explicit\nvalue replaces them as a whole.",
+            "doc": "Sandbox configuration options. Only applied when sandbox is enabled.\nWhen omitted, the cave's persisted sandbox overrides merge per knob\nover the client defaults; an explicit value replaces both as a whole.",
             "type": "SandboxOptions",
             "optional": true
           },
@@ -2535,8 +2536,14 @@
           },
           {
             "name": "allowedStrategies",
-            "doc": "When non-empty, declares the launch strategies this client can\nserve. Targets using other strategies are excluded from selection;\nif none remain, or an explicit target uses an excluded strategy, the\nlaunch fails with CodeLaunchStrategyNotAllowed before any launcher or\nsession side effects. Checked under the install folder lock, so it is\nnot subject to the Launch.GetTargets race. Target discovery may still\nrefresh metadata over the network before this check.",
+            "doc": "When non-empty, declares the launch strategies this client can\nserve. Targets using other strategies are excluded from selection;\nif none remain, or an explicit target or the cave's saved launch\ntarget names an excluded one, the launch fails with\nCodeLaunchStrategyNotAllowed before any launcher or session side\neffects. Checked under the install folder lock, so it is\nnot subject to the Launch.GetTargets race. Target discovery may still\nrefresh metadata over the network before this check.",
             "type": "LaunchStrategy[]",
+            "optional": true
+          },
+          {
+            "name": "defaults",
+            "doc": "Client-supplied defaults for knobs that both the explicit params and\nthe cave's settings leave unset, typically sourced from a frontend's\nglobal preferences. Resolution order: explicit params, then cave\nsettings, then these defaults, then the manifest (for the sandbox\nopt-in). Sandbox options resolve per knob between settings and\ndefaults, but an explicit sandboxOptions param replaces both as a\nwhole.",
+            "type": "LaunchDefaults",
             "optional": true
           }
         ]
@@ -5277,6 +5284,36 @@
           "name": "targets",
           "doc": "All launch targets found for the cave, in host preference order\n(targets for the native host come first)",
           "type": "LaunchTarget[]"
+        }
+      ]
+    },
+    {
+      "name": "LaunchDefaults",
+      "doc": "Client-supplied launch defaults, applied below per-cave settings.\nSee @@LaunchParams.",
+      "fields": [
+        {
+          "name": "sandbox",
+          "doc": "Sandbox default. Absent (not false) when the frontend has no global\nsandbox preference, so a manifest opt-in still applies.",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "sandboxType",
+          "doc": "Default sandbox runner type.",
+          "type": "SandboxType",
+          "optional": true
+        },
+        {
+          "name": "sandboxNoNetwork",
+          "doc": "Default for cutting network access inside the sandbox.",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "sandboxAllowEnv",
+          "doc": "Default extra environment variables allowed through the sandbox.",
+          "type": "string[]",
+          "optional": true
         }
       ]
     },

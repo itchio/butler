@@ -26,25 +26,51 @@ func resolveSandbox(pref *bool, manifestOptIn bool) bool {
 	return manifestOptIn
 }
 
-// resolveSandboxOptions gives explicit client options precedence (as a
-// whole) over the cave's persisted sandbox overrides. Returns nil when
-// neither says anything.
-func resolveSandboxOptions(fromParams *butlerd.SandboxOptions, settings butlerd.CaveSettings) *butlerd.SandboxOptions {
+// resolveSandboxOptions resolves the sandbox-options tiers. An explicit
+// client options object replaces everything below it as a whole: its
+// fields aren't pointers, so sending a block is the only way a client
+// can express false/empty knobs. Without one, cave settings merge over
+// client defaults per knob; both are pointer-typed there, so an explicit
+// false or empty list shadows a default. Returns nil when no tier says
+// anything.
+func resolveSandboxOptions(fromParams *butlerd.SandboxOptions, settings butlerd.CaveSettings, defaults *butlerd.LaunchDefaults) *butlerd.SandboxOptions {
 	if fromParams != nil {
 		return fromParams
 	}
-	if settings.SandboxType == nil && settings.SandboxNoNetwork == nil && settings.SandboxAllowEnv == nil {
-		return nil
-	}
+
 	opts := &butlerd.SandboxOptions{}
-	if settings.SandboxType != nil {
+	any := false
+
+	switch {
+	case settings.SandboxType != nil:
 		opts.Type = *settings.SandboxType
+		any = true
+	case defaults != nil && defaults.SandboxType != nil:
+		opts.Type = *defaults.SandboxType
+		any = true
 	}
-	if settings.SandboxNoNetwork != nil {
+
+	switch {
+	case settings.SandboxNoNetwork != nil:
 		opts.NoNetwork = *settings.SandboxNoNetwork
+		any = true
+	case defaults != nil && defaults.SandboxNoNetwork != nil:
+		opts.NoNetwork = *defaults.SandboxNoNetwork
+		any = true
 	}
-	if settings.SandboxAllowEnv != nil {
+
+	// defaults' list is a plain slice where empty means unset
+	switch {
+	case settings.SandboxAllowEnv != nil:
 		opts.AllowEnv = *settings.SandboxAllowEnv
+		any = true
+	case defaults != nil && len(defaults.SandboxAllowEnv) > 0:
+		opts.AllowEnv = defaults.SandboxAllowEnv
+		any = true
+	}
+
+	if !any {
+		return nil
 	}
 	return opts
 }

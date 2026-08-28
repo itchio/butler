@@ -11,7 +11,6 @@ import (
 	"strings"
 	"syscall"
 
-	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/butler/shell/loggerwriter"
@@ -53,16 +52,13 @@ type launchInfo struct {
 }
 
 func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
-	err := validation.ValidateStruct(&params,
-		validation.Field(&params.PrereqsDir, validation.Required),
-	)
+	err := params.Host.Validate()
 	if err != nil {
 		return nil, err
 	}
 
-	err = params.Host.Validate()
-	if err != nil {
-		return nil, err
+	if !params.Host.Runtime.Equals(ox.CurrentRuntime()) && params.PrereqsDir == "" {
+		return nil, errors.New("RunSelf: PrereqsDir is required to run a non-native butler")
 	}
 
 	var info launchInfo

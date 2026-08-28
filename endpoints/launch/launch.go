@@ -98,6 +98,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		} else {
 			// filter before selection so a game with both servable and
 			// unservable targets launches without a needless rejection
+			allowedTargets := targets
 			if len(params.AllowedStrategies) > 0 {
 				var filtered []*butlerd.LaunchTarget
 				for _, t := range targets {
@@ -110,20 +111,30 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 						len(targets), params.AllowedStrategies)
 					return errors.WithStack(butlerd.CodeLaunchStrategyNotAllowed)
 				}
-				targets = filtered
+				allowedTargets = filtered
 			}
 
 			if preferred := settings.LaunchTarget; preferred != "" {
-				// a persisted preference is best-effort: it may go stale when the
-				// game updates, so fall back to normal selection instead of failing
+				// a preference matching nothing is stale and falls through to
+				// normal selection, but one matching a target this client
+				// can't serve is a live user choice: refuse instead of
+				// silently launching something else. Matched against the
+				// unfiltered list to tell the two apart.
 				target = findTarget(targets, preferred)
+				if target != nil && !strategyAllowed(params.AllowedStrategies, target.Strategy.Strategy) {
+					consumer.Warnf("Preferred target (%s) uses strategy (%s), which the client declared it cannot serve %v",
+						preferred, target.Strategy.Strategy, params.AllowedStrategies)
+					return errors.WithStack(butlerd.CodeLaunchStrategyNotAllowed)
+				}
 				if target != nil {
 					consumer.Infof("Using preferred target (%s):", preferred)
 					consumer.Logf("%s", target.Strategy.String())
 				} else {
-					consumer.Warnf("Preferred target (%s) matched none of the (%d) targets, using normal selection", preferred, len(targets))
+					consumer.Warnf("Preferred target (%s) matched none of the (%d) targets, using normal selection", preferred, len(allowedTargets))
 				}
 			}
+
+			targets = allowedTargets
 		}
 
 		if target != nil {
@@ -194,6 +205,9 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		sandboxPref := params.Sandbox
 		if sandboxPref == nil {
 			sandboxPref = settings.Sandbox
+		}
+		if sandboxPref == nil && params.Defaults != nil {
+			sandboxPref = params.Defaults.Sandbox
 		}
 		sandbox := resolveSandbox(sandboxPref, target.Action.Sandbox)
 		if target.Action.Sandbox {
@@ -272,7 +286,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			AppManifest:      targetRes.appManifest,
 			Action:           target.Action,
 			Sandbox:          sandbox,
-			SandboxOptions:   resolveSandboxOptions(params.SandboxOptions, settings),
+			SandboxOptions:   resolveSandboxOptions(params.SandboxOptions, settings, params.Defaults),
 			WorkingDirectory: workingDirectory,
 			Args:             args,
 			Env:              env,

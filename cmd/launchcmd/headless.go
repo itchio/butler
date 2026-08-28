@@ -10,7 +10,7 @@ import (
 
 // headlessClient answers the server->client requests a Launch can emit
 // with non-interactive defaults. Requests that need a person or a UI are
-// refused and recorded so the caller can fall back to the itch app.
+// refused and recorded so the caller can report that the app is needed.
 type headlessClient struct {
 	acceptLicenses             bool
 	continueAfterPrereqFailure bool
@@ -73,7 +73,7 @@ func (h *headlessClient) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request)
 		}
 	}
 	// an unknown callback is by definition one we can't serve headlessly,
-	// so give the caller the app-fallback option instead of a raw rpc error
+	// so report it as needing the app instead of a raw rpc error
 	h.setNeedsApp("this game's launch flow requires " + req.Method + ", which needs the itch app")
 	return nil, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,

@@ -74,7 +74,8 @@ func handlePrereqs(params launch.LauncherParams) error {
 	}
 
 	if params.PrereqsDir == "" {
-		return errors.New("PrereqsDir cannot be empty")
+		return errors.Errorf("this title requires prerequisites (%s) but no prereqs directory was provided",
+			strings.Join(wanted, ", "))
 	}
 
 	var pending []string

@@ -7160,7 +7160,10 @@ transient.</p>
 <tr>
 <td><code>prereqsDir</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
-<td><p>The directory to use to store installer files for prerequisites</p>
+<td><p><span class="tag">Optional</span> The directory to use to store installer files for prerequisites.
+When empty, launching a title that turns out to require
+prerequisites fails (via the PrereqsFailed flow); most titles
+require none.</p>
 </td>
 </tr>
 <tr>
@@ -7181,8 +7184,8 @@ both.</p>
 <td><code>sandboxOptions</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#SandboxOptions__TypeHint">SandboxOptions</span></code></td>
 <td><p><span class="tag">Optional</span> Sandbox configuration options. Only applied when sandbox is enabled.
-When omitted, the cave&rsquo;s persisted sandbox overrides apply; an explicit
-value replaces them as a whole.</p>
+When omitted, the cave&rsquo;s persisted sandbox overrides merge per knob
+over the client defaults; an explicit value replaces both as a whole.</p>
 </td>
 </tr>
 <tr>
@@ -7216,11 +7219,24 @@ Butler resolves any suitable profile (legacy behavior).</p>
 <td><code class="typename"><span class="type" data-tip-selector="#LaunchStrategy__TypeHint">LaunchStrategy</span>[]</code></td>
 <td><p><span class="tag">Optional</span> When non-empty, declares the launch strategies this client can
 serve. Targets using other strategies are excluded from selection;
-if none remain, or an explicit target uses an excluded strategy, the
-launch fails with CodeLaunchStrategyNotAllowed before any launcher or
-session side effects. Checked under the install folder lock, so it is
+if none remain, or an explicit target or the cave&rsquo;s saved launch
+target names an excluded one, the launch fails with
+CodeLaunchStrategyNotAllowed before any launcher or session side
+effects. Checked under the install folder lock, so it is
 not subject to the Launch.GetTargets race. Target discovery may still
 refresh metadata over the network before this check.</p>
+</td>
+</tr>
+<tr>
+<td><code>defaults</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LaunchDefaults__TypeHint">LaunchDefaults</span></code></td>
+<td><p><span class="tag">Optional</span> Client-supplied defaults for knobs that both the explicit params and
+the cave&rsquo;s settings leave unset, typically sourced from a frontend&rsquo;s
+global preferences. Resolution order: explicit params, then cave
+settings, then these defaults, then the manifest (for the sandbox
+opt-in). Sandbox options resolve per knob between settings and
+defaults, but an explicit sandboxOptions param replaces both as a
+whole.</p>
 </td>
 </tr>
 </table>
@@ -7276,6 +7292,10 @@ refresh metadata over the network before this check.</p>
 <tr>
 <td><code>allowedStrategies</code></td>
 <td><code class="typename"><span class="type">LaunchStrategy</span>[]</code></td>
+</tr>
+<tr>
+<td><code>defaults</code></td>
+<td><code class="typename"><span class="type">LaunchDefaults</span></code></td>
 </tr>
 </table>
 
@@ -11720,6 +11740,79 @@ performed whenever <code class="typename"><span class="type">Downloads.Drive</sp
 <tr>
 <td><code>bps</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### LaunchDefaults (struct)
+
+
+<p>
+<p>Client-supplied launch defaults, applied below per-cave settings.
+See <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Sandbox default. Absent (not false) when the frontend has no global
+sandbox preference, so a manifest opt-in still applies.</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxType</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#SandboxType__TypeHint">SandboxType</span></code></td>
+<td><p><span class="tag">Optional</span> Default sandbox runner type.</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxNoNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Default for cutting network access inside the sandbox.</p>
+</td>
+</tr>
+<tr>
+<td><code>sandboxAllowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Default extra environment variables allowed through the sandbox.</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchDefaults__TypeHint" class="tip-content">
+<p>LaunchDefaults (struct) <a href="#/?id=launchdefaults-struct">(Go to definition)</a></p>
+
+<p>
+<p>Client-supplied launch defaults, applied below per-cave settings.
+See <code class="typename"><span class="type">Launch</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>sandbox</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxType</code></td>
+<td><code class="typename"><span class="type">SandboxType</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxNoNetwork</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sandboxAllowEnv</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 

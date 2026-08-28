@@ -156,23 +156,54 @@ func TestResolveSandbox(t *testing.T) {
 func TestResolveSandboxOptions(t *testing.T) {
 	t.Parallel()
 
-	if got := resolveSandboxOptions(nil, butlerd.CaveSettings{}); got != nil {
-		t.Errorf("expected nil options when neither params nor settings say anything, got %+v", got)
+	if got := resolveSandboxOptions(nil, butlerd.CaveSettings{}, nil); got != nil {
+		t.Errorf("expected nil options when no tier says anything, got %+v", got)
 	}
 
-	explicit := &butlerd.SandboxOptions{Type: butlerd.SandboxTypeFirejail}
+	yes := true
+	no := false
+	bubblewrap := butlerd.SandboxTypeBubblewrap
+
 	noNetwork := true
 	settings := butlerd.CaveSettings{
 		SandboxNoNetwork: &noNetwork,
 		SandboxAllowEnv:  &[]string{"DISPLAY"},
 	}
 
-	if got := resolveSandboxOptions(explicit, settings); got != explicit {
-		t.Errorf("explicit params should win as a whole, got %+v", got)
+	// an explicit params block replaces the lower tiers as a whole
+	explicit := &butlerd.SandboxOptions{Type: butlerd.SandboxTypeFirejail}
+	if got := resolveSandboxOptions(explicit, settings, nil); got != explicit {
+		t.Errorf("expected explicit params to win as a whole, got %+v", got)
 	}
 
-	got := resolveSandboxOptions(nil, settings)
+	got := resolveSandboxOptions(nil, settings, nil)
 	if got == nil || !got.NoNetwork || len(got.AllowEnv) != 1 || got.AllowEnv[0] != "DISPLAY" || got.Type != "" {
 		t.Errorf("expected options built from settings, got %+v", got)
+	}
+
+	defaults := &butlerd.LaunchDefaults{
+		SandboxType:      &bubblewrap,
+		SandboxNoNetwork: &yes,
+		SandboxAllowEnv:  []string{"PULSE_SERVER"},
+	}
+
+	got = resolveSandboxOptions(nil, butlerd.CaveSettings{}, defaults)
+	if got == nil || got.Type != butlerd.SandboxTypeBubblewrap || !got.NoNetwork ||
+		len(got.AllowEnv) != 1 || got.AllowEnv[0] != "PULSE_SERVER" {
+		t.Errorf("expected options built from defaults, got %+v", got)
+	}
+
+	// a per-game override beats a default, including an explicit false
+	settingsNoNetworkOff := butlerd.CaveSettings{SandboxNoNetwork: &no}
+	got = resolveSandboxOptions(nil, settingsNoNetworkOff, defaults)
+	if got == nil || got.NoNetwork {
+		t.Errorf("expected settings' explicit false to beat the default true, got %+v", got)
+	}
+
+	// a present-but-empty per-game allowlist clears the default one
+	settingsEmptyAllowEnv := butlerd.CaveSettings{SandboxAllowEnv: &[]string{}}
+	got = resolveSandboxOptions(nil, settingsEmptyAllowEnv, defaults)
+	if got == nil || len(got.AllowEnv) != 0 {
+		t.Errorf("expected settings' empty allowlist to shadow the default, got %+v", got)
 	}
 }

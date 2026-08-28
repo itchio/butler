@@ -1,15 +1,18 @@
 // Package launchcmd implements `butler launch`, a headless game runner.
 //
-// It drives butlerd's Launch endpoint in-process against the itch app's
+// It drives butlerd's Launch endpoint in-process against a butler
 // database, so an installed game can be started (prereqs, wine, sandbox,
-// env, playtime tracking included) without booting the Electron app.
-// Strategies that need a UI (html, shell, url) fail by default; with
-// --fallback-to-app they hand the launch to the itch app via its itch://
-// URL handler instead.
+// env, playtime tracking included) without booting the itch app. The
+// invoking frontend (itch-setup) supplies all app conventions explicitly:
+// --dbpath, --prereqs-dir, and --default-* flags carrying its global
+// preferences. Butler resolves precedence itself: explicit params, then
+// per-cave settings, then those defaults, then the manifest.
 //
-// Generated shortcuts (for launchers like Steam) should use --game with
-// --fallback-to-app rather than --cave: the itch:// fallback URL cannot
-// carry a cave, so --cave forfeits the fallback.
+// When a launch needs the app (html/shell/url strategy, an unaccepted
+// license, a prereqs failure, no profile, schema mismatch), the command
+// exits with needsAppExitCode and emits a "launch/needs-app" JSON line
+// carrying the reason and game/upload IDs. The frontend decides whether
+// to hand the launch to the app; butler never starts the app itself.
 //
 // A running itch app is deliberately not forwarded to: external
 // launchers track their shortcut's process tree (and preloads like
@@ -30,8 +33,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
-	"runtime"
 	"sort"
 	"sync/atomic"
 	"syscall"
@@ -50,15 +51,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Exit code signalling that the launch needs the itch app. Accompanied
+// by a "launch/needs-app" JSON line with the reason and game/upload IDs.
+const needsAppExitCode = 3
+
 var args = struct {
 	game                       *int64
 	cave                       *string
 	target                     *string
 	profileID                  *int64
 	prereqsDir                 *string
-	fallbackToApp              *bool
 	acceptLicenses             *bool
 	continueAfterPrereqFailure *bool
+	defaultSandbox             *bool
+	defaultSandboxType         *string
+	defaultSandboxNoNetwork    *bool
+	defaultSandboxAllowEnv     *[]string
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -67,15 +75,41 @@ func Register(ctx *mansion.Context) {
 	args.cave = cmd.Flag("cave", "Cave ID to launch (takes precedence over --game)").String()
 	args.target = cmd.Flag("target", "Launch target, matched against manifest action names then paths").String()
 	args.profileID = cmd.Flag("profile-id", "itch.io user ID of the profile to launch as (default: resolve one with access to the game)").Int64()
-	args.prereqsDir = cmd.Flag("prereqs-dir", "Directory to store prerequisite installers in").String()
-	args.fallbackToApp = cmd.Flag("fallback-to-app", "Hand the launch to the itch app when it cannot run headlessly (detached: external launchers can no longer track the game process)").Bool()
+	args.prereqsDir = cmd.Flag("prereqs-dir", "Directory to store prerequisite installers in (without it, titles that require prerequisites fail)").String()
 	args.acceptLicenses = cmd.Flag("accept-licenses", "Accept any license agreement the game requires").Bool()
 	args.continueAfterPrereqFailure = cmd.Flag("continue-after-prereq-failure", "Try to launch even when prerequisite installation fails").Bool()
+	args.defaultSandbox = cmd.Flag("default-sandbox", "Sandbox games unless their per-game setting says otherwise").Bool()
+	args.defaultSandboxType = cmd.Flag("default-sandbox-type", "Default sandbox runner").Enum("auto", "bubblewrap", "firejail", "fuji")
+	args.defaultSandboxNoNetwork = cmd.Flag("default-sandbox-no-network", "Cut network access inside the sandbox unless the per-game setting says otherwise").Bool()
+	args.defaultSandboxAllowEnv = cmd.Flag("default-sandbox-allow-env", "Environment variable to allow through the sandbox (repeatable)").Strings()
 	ctx.Register(cmd, do)
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(ctx))
+	err := Do(ctx)
+	var na *needsAppError
+	if goerrors.As(err, &na) {
+		comm.Object("launch/needs-app", map[string]interface{}{
+			"reason":   na.reason,
+			"gameId":   na.gameID,
+			"uploadId": na.uploadID,
+		})
+		comm.Logf("The itch app is needed to launch this: %s", na.reason)
+		os.Exit(needsAppExitCode)
+	}
+	ctx.Must(err)
+}
+
+// needsAppError marks a launch butler cannot serve headlessly; do()
+// translates it into needsAppExitCode plus the launch/needs-app line.
+type needsAppError struct {
+	reason   string
+	gameID   int64
+	uploadID int64
+}
+
+func (e *needsAppError) Error() string {
+	return "the itch app is needed: " + e.reason
 }
 
 func Do(ctx *mansion.Context) error {
@@ -83,15 +117,9 @@ func Do(ctx *mansion.Context) error {
 		return errors.New("one of --game or --cave must be given")
 	}
 
-	if ctx.DBPath == "" {
-		if p := defaultDBPath(); p != "" {
-			comm.Logf("Using itch app database (%s)", p)
-			ctx.DBPath = p
-		}
-	}
 	ctx.EnsureDBPath()
 	if _, err := os.Stat(ctx.DBPath); err != nil {
-		return errors.Errorf("no butler database at (%s): install the itch app and log in first", ctx.DBPath)
+		return errors.Errorf("no butler database at (%s)", ctx.DBPath)
 	}
 
 	// no SQLITE_OPEN_CREATE: this command must never produce an empty DB
@@ -115,12 +143,11 @@ func Do(ctx *mansion.Context) error {
 		return errors.WithMessagef(err, "reading schema version from (%s) (not a butler database?)", ctx.DBPath)
 	}
 	if dbVersion != migrations.LatestSchemaVersion() {
-		reason := fmt.Sprintf("database schema version (%d) doesn't match this butler (%d)",
-			dbVersion, migrations.LatestSchemaVersion())
-		if *args.game != 0 {
-			return fallback(*args.game, 0, reason)
+		return &needsAppError{
+			reason: fmt.Sprintf("database schema version (%d) doesn't match this butler (%d)",
+				dbVersion, migrations.LatestSchemaVersion()),
+			gameID: *args.game,
 		}
-		return errors.Errorf("%s: launch through the itch app instead", reason)
 	}
 
 	cave, err := resolveCave(dbPool)
@@ -136,13 +163,11 @@ func Do(ctx *mansion.Context) error {
 		}
 	} else if !hasProfile(dbPool) {
 		// launch machinery panics without a profile row; the app owns login
-		return fallback(cave.GameID, cave.UploadID, "no itch.io profile found in the database")
-	}
-
-	prereqsDir := *args.prereqsDir
-	if prereqsDir == "" {
-		// the app's layout is <userData>/db/butler.db and <userData>/prereqs
-		prereqsDir = filepath.Join(filepath.Dir(filepath.Dir(ctx.DBPath)), "prereqs")
+		return &needsAppError{
+			reason:   "no itch.io profile found in the database",
+			gameID:   cave.GameID,
+			uploadID: cave.UploadID,
+		}
 	}
 
 	comm.Logf("Launching cave (%s) for game (%d)", cave.ID, cave.GameID)
@@ -183,13 +208,12 @@ func Do(ctx *mansion.Context) error {
 	}()
 
 	params := butlerd.LaunchParams{
-		CaveID:     cave.ID,
-		PrereqsDir: prereqsDir,
-		Target:     *args.target,
-		ProfileID:  *args.profileID,
-		// enforced server-side under the launch lock, before any launcher or
-		// session side effects
+		CaveID:            cave.ID,
+		PrereqsDir:        *args.prereqsDir,
+		Target:            *args.target,
+		ProfileID:         *args.profileID,
 		AllowedStrategies: []butlerd.LaunchStrategy{butlerd.LaunchStrategyNative},
+		Defaults:          launchDefaults(),
 	}
 
 	var res butlerd.LaunchResult
@@ -203,12 +227,16 @@ func Do(ctx *mansion.Context) error {
 
 	if err != nil {
 		if reason := client.needsApp(); reason != "" {
-			return fallback(cave.GameID, cave.UploadID, reason)
+			return &needsAppError{reason: reason, gameID: cave.GameID, uploadID: cave.UploadID}
 		}
 		var rpcErr *jsonrpc2.Error
 		if goerrors.As(err, &rpcErr) &&
 			rpcErr.Code == butlerd.CodeLaunchStrategyNotAllowed.RpcErrorCode() {
-			return fallback(cave.GameID, cave.UploadID, "the game's launch strategy needs the app")
+			return &needsAppError{
+				reason:   "the game's launch strategy needs the app",
+				gameID:   cave.GameID,
+				uploadID: cave.UploadID,
+			}
 		}
 		return err
 	}
@@ -274,29 +302,35 @@ func profileExists(dbPool *sqlitex.Pool, id int64) bool {
 	return models.ProfileByID(conn, id) != nil
 }
 
-// defaultDBPath returns the itch app's database location for this
-// platform (under Electron's userData dir), or "" if undeterminable.
-func defaultDBPath() string {
-	var base string
-	switch runtime.GOOS {
-	case "windows":
-		base = os.Getenv("APPDATA")
-	case "darwin":
-		if home, err := os.UserHomeDir(); err == nil {
-			base = filepath.Join(home, "Library", "Application Support")
-		}
-	default:
-		base = os.Getenv("XDG_CONFIG_HOME")
-		if base == "" {
-			if home, err := os.UserHomeDir(); err == nil {
-				base = filepath.Join(home, ".config")
-			}
-		}
+// launchDefaults builds the defaults tier from the --default-* flags, or
+// nil when none were passed. Flags are presence-only, so an unset knob is
+// absent (never false), leaving lower tiers free to apply.
+func launchDefaults() *butlerd.LaunchDefaults {
+	d := &butlerd.LaunchDefaults{}
+	set := false
+	if *args.defaultSandbox {
+		t := true
+		d.Sandbox = &t
+		set = true
 	}
-	if base == "" {
-		return ""
+	if *args.defaultSandboxType != "" {
+		st := butlerd.SandboxType(*args.defaultSandboxType)
+		d.SandboxType = &st
+		set = true
 	}
-	return filepath.Join(base, "itch", "db", "butler.db")
+	if *args.defaultSandboxNoNetwork {
+		t := true
+		d.SandboxNoNetwork = &t
+		set = true
+	}
+	if len(*args.defaultSandboxAllowEnv) > 0 {
+		d.SandboxAllowEnv = *args.defaultSandboxAllowEnv
+		set = true
+	}
+	if !set {
+		return nil
+	}
+	return d
 }
 
 // launchTracker wraps the router to expose when the Launch request has
@@ -336,23 +370,4 @@ func (t *launchTracker) waitForTeardown() {
 	case <-time.After(timeout):
 		comm.Warnf("Timed out waiting for the launch to clean up")
 	}
-}
-
-func fallback(gameID int64, uploadID int64, reason string) error {
-	if !*args.fallbackToApp {
-		return errors.Errorf("cannot launch headlessly (%s): pass --fallback-to-app to hand the launch to the itch app", reason)
-	}
-	// the itch:// URL can't carry a target, cave, or profile, so falling
-	// back would silently ignore those explicit flags
-	if *args.target != "" {
-		return errors.Errorf("cannot launch headlessly (%s) and --target cannot be honored by the itch app", reason)
-	}
-	if *args.cave != "" {
-		return errors.Errorf("cannot launch headlessly (%s) and --cave cannot be honored by the itch app", reason)
-	}
-	if *args.profileID != 0 {
-		return errors.Errorf("cannot launch headlessly (%s) and --profile-id cannot be honored by the itch app", reason)
-	}
-	comm.Logf("Handing launch to the itch app: %s", reason)
-	return openItchURL(gameID, uploadID)
 }

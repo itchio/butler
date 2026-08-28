@@ -3021,8 +3021,12 @@ type LaunchParams struct {
 	// The ID of the cave to launch
 	CaveID string `json:"caveId"`
 
-	// The directory to use to store installer files for prerequisites
-	PrereqsDir string `json:"prereqsDir"`
+	// The directory to use to store installer files for prerequisites.
+	// When empty, launching a title that turns out to require
+	// prerequisites fails (via the PrereqsFailed flow); most titles
+	// require none.
+	// @optional
+	PrereqsDir string `json:"prereqsDir,omitempty"`
 
 	// Force installing all prerequisites, even if they're already marked as installed
 	// @optional
@@ -3035,8 +3039,8 @@ type LaunchParams struct {
 	Sandbox *bool `json:"sandbox,omitempty"`
 
 	// Sandbox configuration options. Only applied when sandbox is enabled.
-	// When omitted, the cave's persisted sandbox overrides apply; an explicit
-	// value replaces them as a whole.
+	// When omitted, the cave's persisted sandbox overrides merge per knob
+	// over the client defaults; an explicit value replaces both as a whole.
 	// @optional
 	SandboxOptions *SandboxOptions `json:"sandboxOptions,omitempty"`
 
@@ -3062,13 +3066,45 @@ type LaunchParams struct {
 
 	// When non-empty, declares the launch strategies this client can
 	// serve. Targets using other strategies are excluded from selection;
-	// if none remain, or an explicit target uses an excluded strategy, the
-	// launch fails with CodeLaunchStrategyNotAllowed before any launcher or
-	// session side effects. Checked under the install folder lock, so it is
+	// if none remain, or an explicit target or the cave's saved launch
+	// target names an excluded one, the launch fails with
+	// CodeLaunchStrategyNotAllowed before any launcher or session side
+	// effects. Checked under the install folder lock, so it is
 	// not subject to the Launch.GetTargets race. Target discovery may still
 	// refresh metadata over the network before this check.
 	// @optional
 	AllowedStrategies []LaunchStrategy `json:"allowedStrategies,omitempty"`
+
+	// Client-supplied defaults for knobs that both the explicit params and
+	// the cave's settings leave unset, typically sourced from a frontend's
+	// global preferences. Resolution order: explicit params, then cave
+	// settings, then these defaults, then the manifest (for the sandbox
+	// opt-in). Sandbox options resolve per knob between settings and
+	// defaults, but an explicit sandboxOptions param replaces both as a
+	// whole.
+	// @optional
+	Defaults *LaunchDefaults `json:"defaults,omitempty"`
+}
+
+// Client-supplied launch defaults, applied below per-cave settings.
+// See @@LaunchParams.
+type LaunchDefaults struct {
+	// Sandbox default. Absent (not false) when the frontend has no global
+	// sandbox preference, so a manifest opt-in still applies.
+	// @optional
+	Sandbox *bool `json:"sandbox,omitempty"`
+
+	// Default sandbox runner type.
+	// @optional
+	SandboxType *SandboxType `json:"sandboxType,omitempty"`
+
+	// Default for cutting network access inside the sandbox.
+	// @optional
+	SandboxNoNetwork *bool `json:"sandboxNoNetwork,omitempty"`
+
+	// Default extra environment variables allowed through the sandbox.
+	// @optional
+	SandboxAllowEnv []string `json:"sandboxAllowEnv,omitempty"`
 }
 
 type SandboxType string
@@ -3124,7 +3160,6 @@ func validateCaveSettings(settings *CaveSettings) error {
 func (p LaunchParams) Validate() error {
 	err := validation.ValidateStruct(&p,
 		validation.Field(&p.CaveID, validation.Required),
-		validation.Field(&p.PrereqsDir, validation.Required),
 	)
 	if err != nil {
 		return err
