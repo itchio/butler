@@ -507,6 +507,24 @@ game exits:
     butler --json --dbpath /path/to/butler.db launch --game 123456 \
       --prereqs-dir /path/to/prereqs
 
+**Finding what to launch.** Everything `butler launch` can start is a cave
+in the database, so use your daemon to decide what to launch:
+
+  * `Fetch.Caves` filtered by `gameId` lists a game's installs. Each cave
+    carries its `id`, the `game`, and the `upload` it was installed from.
+    Pass the cave's `id` as `--cave` to launch that exact install, or just
+    pass `--game` and butler picks the game's most recently played one.
+  * `Fetch.Commons` is the cheap bulk version: flat id-only records of
+    every cave, enough to map the games in your UI to launchable caves.
+  * `Launch.GetTargets` with a `caveId` returns what a launch would run:
+    the resolved targets, each with a `strategy` field. Anything other
+    than `native` won't run headlessly, so this is how you decide up front
+    whether to spawn `butler launch` or route through your daemon flow.
+
+The daemon doesn't need to be running during the launch itself. Gather the
+ids while your launcher is open, store them (in a shortcut, a config file,
+wherever), and spawn `butler launch` on its own later.
+
 Flags:
 
   * `--game` picks the game's most recently used install; `--cave` names an
@@ -546,6 +564,25 @@ Exit codes:
 
 Anything else nonzero is a regular failure. The JSON lines only appear with
 `--json`.
+
+**Running it as a subprocess.** Practical details for the spawning side:
+
+  * Read stdout line by line and keep draining until the process exits.
+    `log` lines are butler's log stream, worth mirroring into your own
+    logs; `launch/needs-app` and `launch/profile-not-found` are the
+    payloads behind exit codes 3 and 4.
+  * Pass your environment through untouched. butler forwards it to the
+    game, which is what makes overlays and other preloads work.
+  * To stop the game, send butler SIGTERM or SIGINT. It terminates the
+    game's process group, records the play session, and exits 0. A second
+    signal means "exit immediately" and skips that cleanup.
+  * On Unix, spawn butler in its own process group (`setpgid`). If it
+    shares yours, a terminal Ctrl+C reaches it directly and your forwarded
+    copy becomes its second signal.
+  * On Windows, butler is a console binary: spawn with `CREATE_NO_WINDOW`
+    if your launcher is a GUI process. To make a force-killed launcher
+    take the game down with it, put butler in a kill-on-close job object;
+    butler already does the same for the game.
 
 `butler launch` never migrates the database and refuses to run when the
 database's schema version doesn't match its own, so invoke the same butler
