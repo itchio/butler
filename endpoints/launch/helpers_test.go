@@ -152,3 +152,27 @@ func TestResolveSandbox(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveSandboxOptions(t *testing.T) {
+	t.Parallel()
+
+	if got := resolveSandboxOptions(nil, butlerd.CaveSettings{}); got != nil {
+		t.Errorf("expected nil options when neither params nor settings say anything, got %+v", got)
+	}
+
+	explicit := &butlerd.SandboxOptions{Type: butlerd.SandboxTypeFirejail}
+	noNetwork := true
+	settings := butlerd.CaveSettings{
+		SandboxNoNetwork: &noNetwork,
+		SandboxAllowEnv:  &[]string{"DISPLAY"},
+	}
+
+	if got := resolveSandboxOptions(explicit, settings); got != explicit {
+		t.Errorf("explicit params should win as a whole, got %+v", got)
+	}
+
+	got := resolveSandboxOptions(nil, settings)
+	if got == nil || !got.NoNetwork || len(got.AllowEnv) != 1 || got.AllowEnv[0] != "DISPLAY" || got.Type != "" {
+		t.Errorf("expected options built from settings, got %+v", got)
+	}
+}

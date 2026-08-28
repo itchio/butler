@@ -6,6 +6,23 @@
 // Strategies that need a UI (html, shell, url) fail by default; with
 // --fallback-to-app they hand the launch to the itch app via its itch://
 // URL handler instead.
+//
+// Generated shortcuts (for launchers like Steam) should use --game with
+// --fallback-to-app rather than --cave: the itch:// fallback URL cannot
+// carry a cave, so --cave forfeits the fallback.
+//
+// A running itch app is deliberately not forwarded to: external
+// launchers track their shortcut's process tree (and preloads like
+// overlays ride on env inheritance), so the game must be this process's
+// child. Sharing the app's database is safe: WAL handles concurrent
+// access, and the install-folder runlock coordinates launches and
+// installs across processes. A locked install folder makes a launch
+// wait, so launching an already-running game queues until it exits.
+//
+// TODO: lifetime tracking follows smaug's semantics (same as the app):
+// the direct child, plus anything holding its inherited stdio pipes. A
+// game that fully daemonizes escapes tracking; fixing that needs
+// process-group polling or a child subreaper in smaug.
 package launchcmd
 
 import (
@@ -13,8 +30,12 @@ import (
 	goerrors "errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"runtime"
 	"sort"
+	"sync/atomic"
+	"syscall"
 	"time"
 
 	"crawshaw.io/sqlite"
@@ -46,7 +67,7 @@ func Register(ctx *mansion.Context) {
 	args.cave = cmd.Flag("cave", "Cave ID to launch (takes precedence over --game)").String()
 	args.target = cmd.Flag("target", "Launch target, matched against manifest action names then paths").String()
 	args.prereqsDir = cmd.Flag("prereqs-dir", "Directory to store prerequisite installers in").String()
-	args.fallbackToApp = cmd.Flag("fallback-to-app", "Hand the launch to the itch app when it cannot run headlessly (detached: Steam-style process tracking is lost)").Bool()
+	args.fallbackToApp = cmd.Flag("fallback-to-app", "Hand the launch to the itch app when it cannot run headlessly (detached: external launchers can no longer track the game process)").Bool()
 	args.acceptLicenses = cmd.Flag("accept-licenses", "Accept any license agreement the game requires").Bool()
 	args.continueAfterPrereqFailure = cmd.Flag("continue-after-prereq-failure", "Try to launch even when prerequisite installation fails").Bool()
 	ctx.Register(cmd, do)
@@ -61,15 +82,16 @@ func Do(ctx *mansion.Context) error {
 		return errors.New("one of --game or --cave must be given")
 	}
 
+	if ctx.DBPath == "" {
+		if p := defaultDBPath(); p != "" {
+			comm.Logf("Using itch app database (%s)", p)
+			ctx.DBPath = p
+		}
+	}
 	ctx.EnsureDBPath()
 	if _, err := os.Stat(ctx.DBPath); err != nil {
 		return errors.Errorf("no butler database at (%s): install the itch app and log in first", ctx.DBPath)
 	}
-
-	// TODO: if the itch app is already running, forward to it instead of
-	// opening the DB (butlerd is single-tenant per dbpath). Needs either an
-	// endpoint discovery file written by the app's butlerd, or a check on
-	// the app's single-instance lock.
 
 	// no SQLITE_OPEN_CREATE: this command must never produce an empty DB
 	openFlags := sqlite.SQLITE_OPEN_READWRITE | sqlite.SQLITE_OPEN_WAL |
@@ -124,11 +146,34 @@ func Do(ctx *mansion.Context) error {
 		continueAfterPrereqFailure: *args.continueAfterPrereqFailure,
 	}
 
+	launchCtx, stopLaunch := context.WithCancel(context.Background())
+	defer stopLaunch()
+
+	tracker := newLaunchTracker(router)
+
+	// cancelling launchCtx cancels the Launch request's context, which
+	// SIGTERMs the game's process group; it also tears down the conn (so
+	// the reply is lost), which is why tracker watches the endpoint itself
 	serverTransport, clientTransport := loopbackPipe()
-	serverConn := jsonrpc2.NewConn(context.Background(), serverTransport, router)
+	serverConn := jsonrpc2.NewConn(launchCtx, serverTransport, tracker)
 	defer serverConn.Close()
 	clientConn := jsonrpc2.NewConn(context.Background(), clientTransport, client)
 	defer clientConn.Close()
+
+	// tie the game's lifetime to ours: an external launcher (or Ctrl+C)
+	// stopping butler should stop the game rather than orphan it, with the
+	// play session still recorded on the way out
+	sigs := make(chan os.Signal, 2)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(sigs)
+	go func() {
+		sig := <-sigs
+		comm.Warnf("Got %s, stopping the game...", sig)
+		stopLaunch()
+		<-sigs
+		comm.Warnf("Got a second signal, exiting immediately")
+		os.Exit(1)
+	}()
 
 	params := butlerd.LaunchParams{
 		CaveID:     cave.ID,
@@ -141,6 +186,13 @@ func Do(ctx *mansion.Context) error {
 
 	var res butlerd.LaunchResult
 	err = clientConn.Call("Launch", params, &res)
+
+	if launchCtx.Err() != nil {
+		tracker.waitForTeardown()
+		comm.Statf("Launch stopped")
+		return nil
+	}
+
 	if err != nil {
 		if reason := client.needsApp(); reason != "" {
 			return fallback(cave.GameID, cave.UploadID, reason)
@@ -180,8 +232,8 @@ func resolveCave(dbPool *sqlitex.Pool) (*models.Cave, error) {
 	return caves[0], nil
 }
 
-// caveFreshness matches the ordering the itch app's Steam shortcuts
-// dialog uses to pick a cave for a game.
+// caveFreshness matches the ordering the itch app uses when it has to
+// pick one cave for a game.
 func caveFreshness(c *models.Cave) time.Time {
 	for _, t := range []*time.Time{c.LocalLastRunAt, c.LastTouchedAt, c.InstalledAt} {
 		if t != nil {
@@ -206,6 +258,70 @@ func hasProfile(dbPool *sqlitex.Pool) bool {
 	conn := dbPool.Get(context.Background())
 	defer dbPool.Put(conn)
 	return len(models.AllProfiles(conn)) > 0
+}
+
+// defaultDBPath returns the itch app's database location for this
+// platform (under Electron's userData dir), or "" if undeterminable.
+func defaultDBPath() string {
+	var base string
+	switch runtime.GOOS {
+	case "windows":
+		base = os.Getenv("APPDATA")
+	case "darwin":
+		if home, err := os.UserHomeDir(); err == nil {
+			base = filepath.Join(home, "Library", "Application Support")
+		}
+	default:
+		base = os.Getenv("XDG_CONFIG_HOME")
+		if base == "" {
+			if home, err := os.UserHomeDir(); err == nil {
+				base = filepath.Join(home, ".config")
+			}
+		}
+	}
+	if base == "" {
+		return ""
+	}
+	return filepath.Join(base, "itch", "db", "butler.db")
+}
+
+// launchTracker wraps the router to expose when the Launch request has
+// finished: an interrupt tears down the conn before the reply, but the
+// endpoint keeps running in-process to kill the game, record the play
+// session, and release the install folder lock.
+type launchTracker struct {
+	jsonrpc2.Handler
+	launchStarted atomic.Bool
+	launchDone    chan struct{}
+}
+
+func newLaunchTracker(router jsonrpc2.Handler) *launchTracker {
+	return &launchTracker{Handler: router, launchDone: make(chan struct{})}
+}
+
+func (t *launchTracker) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interface{}, error) {
+	if req.Method != "Launch" {
+		return t.Handler.HandleRequest(conn, req)
+	}
+	t.launchStarted.Store(true)
+	defer close(t.launchDone)
+	return t.Handler.HandleRequest(conn, req)
+}
+
+func (t *launchTracker) waitForTeardown() {
+	// the final session update alone can take up to ~40s
+	timeout := 60 * time.Second
+	if !t.launchStarted.Load() {
+		// the Launch request may still sneak in right as we cancel; with a
+		// cancelled context it fails within milliseconds, so a short wait
+		// covers it without stalling the common did-not-start case
+		timeout = 2 * time.Second
+	}
+	select {
+	case <-t.launchDone:
+	case <-time.After(timeout):
+		comm.Warnf("Timed out waiting for the launch to clean up")
+	}
 }
 
 func fallback(gameID int64, uploadID int64, reason string) error {

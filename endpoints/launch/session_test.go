@@ -248,6 +248,82 @@ func TestSessionCancelledBeforeStart(t *testing.T) {
 	}
 }
 
+// waitForCreate blocks until the tracker has created the remote session,
+// so a test can cancel the context strictly after startup.
+func waitForCreate(t *testing.T, client *fakeSessionClient) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		creates, _ := client.snapshot()
+		if creates == 1 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("session was never created")
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestSessionCancelledWhileRunning(t *testing.T) {
+	client := &fakeSessionClient{}
+	st := newTestTracker(client)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	started, ended := newChans()
+	done := runTracker(st, ctx, started, ended)
+
+	start := time.Now()
+	started <- start
+	waitForCreate(t, client)
+
+	// force close: cancellation races the end report, which the launcher
+	// sends right after killing the game
+	cancel()
+	ended <- sessionEnd{at: start.Add(3 * time.Second), crashed: true}
+	waitDone(t, done)
+
+	creates, updates := client.snapshot()
+	if creates != 1 {
+		t.Fatalf("expected 1 create, got %d", creates)
+	}
+	if len(updates) != 1 {
+		t.Fatalf("expected the final update to survive cancellation, got %d updates", len(updates))
+	}
+	if !updates[0].Crashed {
+		t.Fatalf("final update should carry the reported crashed=true")
+	}
+	if updates[0].SecondsRun != 3 {
+		t.Fatalf("expected SecondsRun=3 from the end report, got %d", updates[0].SecondsRun)
+	}
+}
+
+func TestSessionCancelledEndNeverReported(t *testing.T) {
+	client := &fakeSessionClient{}
+	st := newTestTracker(client)
+	st.cancelGrace = 10 * time.Millisecond
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	started, ended := newChans()
+	done := runTracker(st, ctx, started, ended)
+	_ = ended
+
+	started <- time.Now()
+	waitForCreate(t, client)
+
+	cancel()
+	waitDone(t, done)
+
+	_, updates := client.snapshot()
+	if len(updates) != 1 {
+		t.Fatalf("expected a best-effort final update after the grace period, got %d", len(updates))
+	}
+}
+
 func TestSessionCreateFailure(t *testing.T) {
 	client := &fakeSessionClient{createErr: errors.New("boom")}
 	st := newTestTracker(client)

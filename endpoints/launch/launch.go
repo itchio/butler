@@ -49,6 +49,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 		runtime := info.runtime
 
 		game := cave.Game
+		settings := caveSettings(rc, cave)
 
 		consumer.Infof("→ Launching %s", operate.GameToString(game))
 		consumer.Infof("   (%s) is our install folder", installFolder)
@@ -112,7 +113,7 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				targets = filtered
 			}
 
-			if preferred := settingsLaunchTarget(rc, cave); preferred != "" {
+			if preferred := settings.LaunchTarget; preferred != "" {
 				// a persisted preference is best-effort: it may go stale when the
 				// game updates, so fall back to normal selection instead of failing
 				target = findTarget(targets, preferred)
@@ -173,7 +174,15 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 
 		args = append(args, target.Action.Args...)
 		fullTargetPath := target.Strategy.FullTargetPath
-		if params.CommandTemplate != "" && target.Strategy.Strategy != butlerd.LaunchStrategyNative {
+
+		// per-game settings apply when the client leaves a knob unset, so
+		// clients that don't resolve settings themselves (headless) match
+		// the app's behavior
+		commandTemplate := params.CommandTemplate
+		if commandTemplate == "" {
+			commandTemplate = settings.CommandTemplate
+		}
+		if commandTemplate != "" && target.Strategy.Strategy != butlerd.LaunchStrategyNative {
 			consumer.Warnf("Custom command template does not apply to %s launches", target.Strategy.Strategy)
 		}
 
@@ -182,7 +191,11 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			return errors.WithMessage(err, "While requesting API key")
 		}
 
-		sandbox := resolveSandbox(params.Sandbox, target.Action.Sandbox)
+		sandboxPref := params.Sandbox
+		if sandboxPref == nil {
+			sandboxPref = settings.Sandbox
+		}
+		sandbox := resolveSandbox(sandboxPref, target.Action.Sandbox)
 		if target.Action.Sandbox {
 			if sandbox {
 				consumer.Infof("Enabling sandbox because of manifest opt-in")
@@ -222,11 +235,16 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 				platform:     interactionPlatform(runtime),
 				architecture: interactionArchitecture(runtime),
 				persistSummary: func(summary *itchio.UserGameInteractionsSummary) {
-					rc.WithConn(func(conn *sqlite.Conn) {
+					// detached: the final summary lands after a force close
+					// has already cancelled rc.Ctx
+					err := rc.WithConnDetached(func(conn *sqlite.Conn) {
 						if err := models.SaveUserGameInteractionSummary(conn, access.ProfileID, cave.GameID, summary); err != nil {
 							consumer.Warnf("Could not persist interaction summary: %+v", err)
 						}
 					})
+					if err != nil {
+						consumer.Warnf("Could not persist interaction summary: %+v", err)
+					}
 				},
 			}
 
@@ -254,11 +272,11 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			AppManifest:      targetRes.appManifest,
 			Action:           target.Action,
 			Sandbox:          sandbox,
-			SandboxOptions:   params.SandboxOptions,
+			SandboxOptions:   resolveSandboxOptions(params.SandboxOptions, settings),
 			WorkingDirectory: workingDirectory,
 			Args:             args,
 			Env:              env,
-			CommandTemplate:  params.CommandTemplate,
+			CommandTemplate:  commandTemplate,
 
 			PrereqsDir:    params.PrereqsDir,
 			ForcePrereqs:  params.ForcePrereqs,
@@ -286,13 +304,18 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			sessionCancel()
 
 			// Reload because the session watcher may have updated the cave.
+			// Detached: play time must be recorded even when rc.Ctx was
+			// cancelled by a force close.
 			if startedAt := localStartedAt.Load(); startedAt != nil {
-				rc.WithConn(func(conn *sqlite.Conn) {
+				dbErr := rc.WithConnDetached(func(conn *sqlite.Conn) {
 					if fresh := models.CaveByID(conn, cave.ID); fresh != nil {
 						fresh.RecordLocalPlayTime(launchEndedAt.Sub(*startedAt), launchEndedAt)
 						fresh.Save(conn)
 					}
 				})
+				if dbErr != nil {
+					consumer.Warnf("Could not record local play time: %+v", dbErr)
+				}
 			}
 		}
 

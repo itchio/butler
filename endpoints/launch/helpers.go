@@ -26,6 +26,29 @@ func resolveSandbox(pref *bool, manifestOptIn bool) bool {
 	return manifestOptIn
 }
 
+// resolveSandboxOptions gives explicit client options precedence (as a
+// whole) over the cave's persisted sandbox overrides. Returns nil when
+// neither says anything.
+func resolveSandboxOptions(fromParams *butlerd.SandboxOptions, settings butlerd.CaveSettings) *butlerd.SandboxOptions {
+	if fromParams != nil {
+		return fromParams
+	}
+	if settings.SandboxType == nil && settings.SandboxNoNetwork == nil && settings.SandboxAllowEnv == nil {
+		return nil
+	}
+	opts := &butlerd.SandboxOptions{}
+	if settings.SandboxType != nil {
+		opts.Type = *settings.SandboxType
+	}
+	if settings.SandboxNoNetwork != nil {
+		opts.NoNetwork = *settings.SandboxNoNetwork
+	}
+	if settings.SandboxAllowEnv != nil {
+		opts.AllowEnv = *settings.SandboxAllowEnv
+	}
+	return opts
+}
+
 func getUploadAndBuild(rc *butlerd.RequestContext, info withInstallFolderInfo) (upload *itchio.Upload, build *itchio.Build, err error) {
 	consumer := rc.Consumer
 

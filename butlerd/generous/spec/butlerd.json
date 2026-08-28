@@ -2505,19 +2505,19 @@
           },
           {
             "name": "sandbox",
-            "doc": "Sandbox preference for this launch. When omitted, the manifest may enable\nsandboxing. An explicit value overrides the manifest preference.",
+            "doc": "Sandbox preference for this launch. When omitted, the cave's sandbox\nsetting applies, then the manifest opt-in. An explicit value overrides\nboth.",
             "type": "boolean",
             "optional": true
           },
           {
             "name": "sandboxOptions",
-            "doc": "Sandbox configuration options. Only applied when sandbox is enabled.",
+            "doc": "Sandbox configuration options. Only applied when sandbox is enabled.\nWhen omitted, the cave's persisted sandbox overrides apply; an explicit\nvalue replaces them as a whole.",
             "type": "SandboxOptions",
             "optional": true
           },
           {
             "name": "commandTemplate",
-            "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command.",
+            "doc": "Command template applied to native launches. Use %command% as a standalone\ntoken to place the resolved game command. Without it, tokens are appended\nas arguments to the resolved command. When omitted, the cave's\ncommandTemplate setting applies.",
             "type": "string",
             "optional": true
           },
@@ -2535,7 +2535,7 @@
           },
           {
             "name": "allowedStrategies",
-            "doc": "When non-empty, declares the launch strategies this client can\nserve. If the selected target's strategy is not in the list, the\nlaunch fails with CodeLaunchStrategyNotAllowed before any launcher or\nsession side effects. Checked under the install folder lock, so it is\nnot subject to the Launch.GetTargets race. Target discovery may still\nrefresh metadata over the network before this check.",
+            "doc": "When non-empty, declares the launch strategies this client can\nserve. Targets using other strategies are excluded from selection;\nif none remain, or an explicit target uses an excluded strategy, the\nlaunch fails with CodeLaunchStrategyNotAllowed before any launcher or\nsession side effects. Checked under the install folder lock, so it is\nnot subject to the Launch.GetTargets race. Target discovery may still\nrefresh metadata over the network before this check.",
             "type": "LaunchStrategy[]",
             "optional": true
           }

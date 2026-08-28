@@ -7172,14 +7172,17 @@ transient.</p>
 <tr>
 <td><code>sandbox</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> Sandbox preference for this launch. When omitted, the manifest may enable
-sandboxing. An explicit value overrides the manifest preference.</p>
+<td><p><span class="tag">Optional</span> Sandbox preference for this launch. When omitted, the cave&rsquo;s sandbox
+setting applies, then the manifest opt-in. An explicit value overrides
+both.</p>
 </td>
 </tr>
 <tr>
 <td><code>sandboxOptions</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#SandboxOptions__TypeHint">SandboxOptions</span></code></td>
-<td><p><span class="tag">Optional</span> Sandbox configuration options. Only applied when sandbox is enabled.</p>
+<td><p><span class="tag">Optional</span> Sandbox configuration options. Only applied when sandbox is enabled.
+When omitted, the cave&rsquo;s persisted sandbox overrides apply; an explicit
+value replaces them as a whole.</p>
 </td>
 </tr>
 <tr>
@@ -7187,7 +7190,8 @@ sandboxing. An explicit value overrides the manifest preference.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> Command template applied to native launches. Use %command% as a standalone
 token to place the resolved game command. Without it, tokens are appended
-as arguments to the resolved command.</p>
+as arguments to the resolved command. When omitted, the cave&rsquo;s
+commandTemplate setting applies.</p>
 </td>
 </tr>
 <tr>
@@ -7211,7 +7215,8 @@ Butler resolves any suitable profile (legacy behavior).</p>
 <td><code>allowedStrategies</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#LaunchStrategy__TypeHint">LaunchStrategy</span>[]</code></td>
 <td><p><span class="tag">Optional</span> When non-empty, declares the launch strategies this client can
-serve. If the selected target&rsquo;s strategy is not in the list, the
+serve. Targets using other strategies are excluded from selection;
+if none remain, or an explicit target uses an excluded strategy, the
 launch fails with CodeLaunchStrategyNotAllowed before any launcher or
 session side effects. Checked under the install folder lock, so it is
 not subject to the Launch.GetTargets race. Target discovery may still
