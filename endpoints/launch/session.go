@@ -37,6 +37,7 @@ type sessionTracker struct {
 
 	updateInterval     time.Duration
 	finalUpdateTimeout time.Duration
+	cancelGrace        time.Duration
 }
 
 func (st *sessionTracker) interval() time.Duration {
@@ -51,6 +52,13 @@ func (st *sessionTracker) finalTimeout() time.Duration {
 		return st.finalUpdateTimeout
 	}
 	return finalSessionUpdateTimeout
+}
+
+func (st *sessionTracker) grace() time.Duration {
+	if st.cancelGrace > 0 {
+		return st.cancelGrace
+	}
+	return sessionWatcherJoinGrace
 }
 
 // Keep at's monotonic reading so network delays and wall-clock adjustments do
@@ -95,8 +103,16 @@ func (st *sessionTracker) run(ctx context.Context, started <-chan time.Time, end
 		for {
 			select {
 			case <-ctx.Done():
-				st.consumer.Debugf("Launch cancelled while running, skipping final update")
-				return
+				// Force close: the launcher reports the session end right
+				// after killing the game, so wait briefly for the accurate
+				// end report instead of dropping the session's play time.
+				st.consumer.Debugf("Launch cancelled while running, waiting for session end")
+				select {
+				case end = <-ended:
+				case <-time.After(st.grace()):
+					end = sessionEnd{at: time.Now()}
+				}
+				break regularUpdates
 			case <-ticker.C:
 				if err := st.updateSession(ctx, sessionID, startedAt, time.Now(), false); err != nil {
 					st.consumer.Warnf("Regular session update: %+v", err)

@@ -9,8 +9,9 @@ import (
 )
 
 // openItchURL hands the launch to the itch app via its URL handler,
-// booting the app if needed. Note the process returns immediately, so a
-// Steam shortcut going through this path loses accurate playtime state.
+// booting the app if needed. Note the process returns immediately, so an
+// external launcher going through this path can no longer tell whether
+// the game is running.
 func openItchURL(gameID int64, uploadID int64) error {
 	url := fmt.Sprintf("itch://install?game_id=%d&launch", gameID)
 	if uploadID != 0 {
@@ -30,9 +31,9 @@ func openItchURL(gameID int64, uploadID int64) error {
 	return cmd.Run()
 }
 
-// Steam preloads its overlay into every descendant of a shortcut process,
-// which deadlocks the app's Chromium startup. The itch-mode shortcut strips
-// it with LD_PRELOAD="" %command%; this fallback has to do the same.
+// Launchers may preload libraries (e.g. Steam's overlay) into every
+// descendant of a shortcut process, which deadlocks the app's Chromium
+// startup. Games want the preload; the app must not get it.
 func envWithoutOverlayPreload() []string {
 	var env []string
 	for _, kv := range os.Environ() {

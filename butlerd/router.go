@@ -566,6 +566,29 @@ func (rc *RequestContext) WithConnString(f func(conn *sqlite.Conn) string) strin
 	return f(conn)
 }
 
+// WithConnDetached is like WithConn, but not subject to rc.Ctx: teardown
+// bookkeeping (play time, session summaries) must still be able to write
+// after the request has been cancelled by a force close or a client
+// disconnect. Returns an error instead of panicking when the pool is busy.
+func (rc *RequestContext) WithConnDetached(f func(conn *sqlite.Conn)) error {
+	getCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	conn := rc.dbPool.Get(getCtx)
+	if conn == nil {
+		return errors.WithStack(CodeDatabaseBusy)
+	}
+	defer rc.dbPool.Put(conn)
+
+	// Pool.Get tied the interrupt to getCtx, which expires in seconds;
+	// rebind it to a work bound of its own so a wedged write can't hold
+	// the conn past teardown and panic dbPool.Close
+	workCtx, cancelWork := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancelWork()
+	conn.SetInterrupt(workCtx.Done())
+	f(conn)
+	return nil
+}
+
 // MakeCancelable creates a child context, installs it as rc.Ctx for this scope,
 // optionally registers cancellation by id, and returns cleanup that cancels and restores rc.Ctx.
 func (rc *RequestContext) MakeCancelable(id string) (context.Context, func()) {

@@ -3028,18 +3028,22 @@ type LaunchParams struct {
 	// @optional
 	ForcePrereqs bool `json:"forcePrereqs,omitempty"`
 
-	// Sandbox preference for this launch. When omitted, the manifest may enable
-	// sandboxing. An explicit value overrides the manifest preference.
+	// Sandbox preference for this launch. When omitted, the cave's sandbox
+	// setting applies, then the manifest opt-in. An explicit value overrides
+	// both.
 	// @optional
 	Sandbox *bool `json:"sandbox,omitempty"`
 
 	// Sandbox configuration options. Only applied when sandbox is enabled.
+	// When omitted, the cave's persisted sandbox overrides apply; an explicit
+	// value replaces them as a whole.
 	// @optional
 	SandboxOptions *SandboxOptions `json:"sandboxOptions,omitempty"`
 
 	// Command template applied to native launches. Use %command% as a standalone
 	// token to place the resolved game command. Without it, tokens are appended
-	// as arguments to the resolved command.
+	// as arguments to the resolved command. When omitted, the cave's
+	// commandTemplate setting applies.
 	// @optional
 	CommandTemplate string `json:"commandTemplate,omitempty"`
 

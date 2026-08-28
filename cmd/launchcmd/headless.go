@@ -42,7 +42,9 @@ func (h *headlessClient) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request)
 	case "AcceptLicense":
 		var params butlerd.AcceptLicenseParams
 		if req.Params != nil {
-			_ = jsonrpc2.DecodeJSON(*req.Params, &params)
+			if err := jsonrpc2.DecodeJSON(*req.Params, &params); err != nil {
+				comm.Warnf("Could not decode license params: %v", err)
+			}
 		}
 		if h.acceptLicenses {
 			comm.Notice("License agreement (accepted via --accept-licenses)", []string{params.Text})
@@ -70,6 +72,9 @@ func (h *headlessClient) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request)
 			Message: req.Method + " requires the itch app",
 		}
 	}
+	// an unknown callback is by definition one we can't serve headlessly,
+	// so give the caller the app-fallback option instead of a raw rpc error
+	h.setNeedsApp("this game's launch flow requires " + req.Method + ", which needs the itch app")
 	return nil, &jsonrpc2.Error{
 		Code:    jsonrpc2.CodeMethodNotFound,
 		Message: "headless launch cannot answer " + req.Method,
