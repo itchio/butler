@@ -309,6 +309,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		return nil
 	})
 
+	var performRes *butlerd.InstallPerformResult
 	err := func() (err error) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -325,7 +326,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			Download: formatDownload(download),
 		})
 
-		_, err = operate.InstallPerform(ctx, rc, butlerd.InstallPerformParams{
+		performRes, err = operate.InstallPerform(ctx, rc, butlerd.InstallPerformParams{
 			ID:            download.ID,
 			StagingFolder: download.StagingFolder,
 		})
@@ -393,9 +394,13 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	download.FinishedAt = &finishedAt
 	rc.WithConn(download.Save)
 
-	messages.DownloadsDriveFinished.Notify(rc, butlerd.DownloadsDriveFinishedNotification{
+	finishedNotif := butlerd.DownloadsDriveFinishedNotification{
 		Download: formatDownload(download),
-	})
+	}
+	if performRes != nil {
+		finishedNotif.Events = performRes.Events
+	}
+	messages.DownloadsDriveFinished.Notify(rc, finishedNotif)
 
 	return nil
 }

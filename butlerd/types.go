@@ -2774,6 +2774,11 @@ type DownloadsDriveErroredNotification struct {
 // @name Downloads.Drive.Finished
 type DownloadsDriveFinishedNotification struct {
 	Download *Download `json:"download"`
+	// Events recorded during the operation (install, upgrade, heal...).
+	// Not persisted with the download, so this notification is the only
+	// place to get them.
+	// @optional
+	Events []hush.InstallEvent `json:"events,omitempty"`
 }
 
 // @name Downloads.Drive.Discarded

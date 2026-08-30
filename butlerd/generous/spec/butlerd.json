@@ -3219,6 +3219,12 @@
             "name": "download",
             "doc": "",
             "type": "Download"
+          },
+          {
+            "name": "events",
+            "doc": "Events recorded during the operation (install, upgrade, heal...).\nNot persisted with the download, so this notification is the only\nplace to get them.",
+            "type": "InstallEvent[]",
+            "optional": true
           }
         ]
       }

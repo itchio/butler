@@ -11358,6 +11358,14 @@ and a butlerd error code.</p>
 <td><code class="typename"><span class="type" data-tip-selector="#Download__TypeHint">Download</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>events</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#InstallEvent__TypeHint">InstallEvent</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Events recorded during the operation (install, upgrade, heal&hellip;).
+Not persisted with the download, so this notification is the only
+place to get them.</p>
+</td>
+</tr>
 </table>
 
 
@@ -11369,6 +11377,10 @@ and a butlerd error code.</p>
 <tr>
 <td><code>download</code></td>
 <td><code class="typename"><span class="type">Download</span></code></td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td><code class="typename"><span class="type">InstallEvent</span>[]</code></td>
 </tr>
 </table>
 
