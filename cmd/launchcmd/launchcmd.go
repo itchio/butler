@@ -385,17 +385,28 @@ func (t *launchTracker) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) 
 }
 
 func (t *launchTracker) waitForTeardown() {
-	// the final session update alone can take up to ~40s
-	timeout := 60 * time.Second
-	if !t.launchStarted.Load() {
-		// the Launch request may still sneak in right as we cancel; with a
-		// cancelled context it fails within milliseconds, so a short wait
-		// covers it without stalling the common did-not-start case
-		timeout = 2 * time.Second
+	if t.launchStarted.Load() {
+		// The handler owns the database pool until it returns. Do not let a
+		// slow final session update or bookkeeping write outlive Do and race
+		// dbPool.Close. A second signal remains the explicit hard-exit path.
+		select {
+		case <-t.launchDone:
+		case <-time.After(60 * time.Second):
+			comm.Warnf("Still waiting for launch teardown (a second signal exits immediately)")
+			<-t.launchDone
+		}
+		return
 	}
+
+	// The Launch request may still sneak in right as we cancel; with a
+	// cancelled context it fails within milliseconds, so a short wait
+	// covers it without stalling the common did-not-start case.
 	select {
 	case <-t.launchDone:
-	case <-time.After(timeout):
-		comm.Warnf("Timed out waiting for the launch to clean up")
+	case <-time.After(2 * time.Second):
+		// If dispatch raced the initial check, it now owns the pool too.
+		if t.launchStarted.Load() {
+			<-t.launchDone
+		}
 	}
 }
