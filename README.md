@@ -197,6 +197,8 @@ This generates three files that should be committed to this repo:
 
 generous also has a `ts` mode for generating TypeScript bindings used by the [itch](https://github.com/itchio/itch) app. From the itch repo, run `npm run sync-butler` (which requires this repo checked out as a sibling directory).
 
+The `rust` mode generates serde bindings for Rust clients such as zitch: `go run ./butlerd/generous rust path/to/types.rs`, then `rustfmt` the result (the output is not formatted). The output expects `Request`, `Notification` and `ServerRequest` traits in the parent module (`--support-path` changes where they are imported from). Pointer fields become `Option<T>`, every field has a serde default, string enums keep an `Unknown` variant for values newer than the bindings, and fields on a reference cycle are boxed.
+
 ## Debug environment variables
 
 | Variable | Description |

@@ -23,9 +23,10 @@ func main() {
 	if len(os.Args) < 2 {
 		log.Printf("generous is a documentation & bindings generator for butlerd")
 		log.Printf("")
-		log.Printf("Usage: generous (godocs|ts [OUT])")
+		log.Printf("Usage: generous (godocs|ts OUT|rust OUT)")
 		log.Printf("  - godocs: generate directly in the butler sources")
 		log.Printf("  - ts: give a target path to generate")
+		log.Printf("  - rust: give a target path to generate")
 		os.Exit(1)
 	}
 	mode := os.Args[1]
@@ -46,41 +47,50 @@ func main() {
 		must(gc.generateDocs())
 		must(gc.generateGoCode())
 		must(gc.generateSpec())
-	case "ts":
-		var tsOut string
+	case "ts", "rust":
+		if mode == "rust" {
+			// The Rust module that defines the Request, Notification and
+			// ServerRequest traits the generated impls refer to.
+			gc.SupportPath = "super"
+		}
+		var out string
 
-		tsArgs := os.Args[2:]
+		args := os.Args[2:]
 
 		i := 0
-		for i < len(tsArgs) {
-			arg := tsArgs[i]
+		for i < len(args) {
+			arg := args[i]
 			i += 1
 
 			if strings.HasPrefix(arg, "--") {
 				key := strings.TrimPrefix(arg, "--")
-				value := tsArgs[i]
+				value := args[i]
 				i += 1
 				if key == "support-path" {
 					gc.SupportPath = value
 				} else {
-					log.Printf("generous ts: unknown option --%s", key)
+					log.Printf("generous %s: unknown option --%s", mode, key)
 					os.Exit(1)
 				}
 			} else {
-				if tsOut != "" {
-					log.Printf("generous ts: multiple output paths specified: %q %q", tsOut, arg)
+				if out != "" {
+					log.Printf("generous %s: multiple output paths specified: %q %q", mode, out, arg)
 					os.Exit(1)
 				}
-				tsOut = arg
+				out = arg
 			}
 		}
 
-		if tsOut == "" {
-			log.Printf("generous ts: missing output path")
+		if out == "" {
+			log.Printf("generous %s: missing output path", mode)
 			os.Exit(1)
 		}
 
-		must(gc.generateTsCode(tsOut))
+		if mode == "ts" {
+			must(gc.generateTsCode(out))
+		} else {
+			must(gc.generateRustCode(out))
+		}
 	}
 }
 
