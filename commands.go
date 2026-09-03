@@ -36,6 +36,7 @@ import (
 	"github.com/itchio/butler/cmd/singlediff"
 	"github.com/itchio/butler/cmd/sizeof"
 	"github.com/itchio/butler/cmd/status"
+	"github.com/itchio/butler/cmd/steamsync"
 	"github.com/itchio/butler/cmd/unsz"
 	"github.com/itchio/butler/cmd/untar"
 	"github.com/itchio/butler/cmd/unzip"
@@ -76,6 +77,9 @@ func registerCommands(ctx *mansion.Context) {
 	heal.Register(ctx)
 
 	// hidden commands
+
+	steamsync.RegisterLogin(ctx)
+	steamsync.RegisterApps(ctx)
 
 	dl.Register(ctx)
 	cp.Register(ctx)
