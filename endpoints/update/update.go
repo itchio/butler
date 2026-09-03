@@ -11,6 +11,7 @@ import (
 	"github.com/arbovm/levenshtein"
 
 	"github.com/itchio/butler/manager"
+	"github.com/itchio/ox"
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
@@ -387,7 +388,16 @@ func checkUpdateCave(params checkUpdateCaveParams, consumer *state.Consumer, cav
 		return nil, err
 	}
 	newerUploads = narrowDownResult.Uploads
-	consumer.Infof("→ %d uploads to consider (%d eliminated by narrow-down)", len(newerUploads), len(newerUploads)-countBeforeNarrow)
+	consumer.Infof("→ %d uploads to consider (%d eliminated by narrow-down)", len(newerUploads), countBeforeNarrow-len(newerUploads))
+
+	// narrow-down keeps anything this machine can run, including through a
+	// wrapper like wine. An update should stay on the platform we already
+	// use: a windows-only zip is never a newer version of a linux install.
+	countBeforePlatform := len(newerUploads)
+	newerUploads = excludeForeignPlatform(currentUpload, newerUploads, ox.CurrentRuntime())
+	if len(newerUploads) < countBeforePlatform {
+		consumer.Infof("→ %d uploads to consider (%d eliminated for not sharing a platform with the installed upload)", len(newerUploads), countBeforePlatform-len(newerUploads))
+	}
 
 	for _, s := range skipped {
 		consumer.Infof("  %s: ", s.reason)
@@ -473,4 +483,52 @@ func SnoozeCave(rc *butlerd.RequestContext, params butlerd.SnoozeCaveParams) (*b
 	cave.Save(conn)
 
 	return &butlerd.SnoozeCaveResult{}, nil
+}
+
+// excludeForeignPlatform drops uploads that don't run on the platform the
+// installed upload is used on: the native one when the installed upload
+// supports it, otherwise whichever wrapper platform it carries (a windows
+// build under wine). Placeholder uploads with no platform info and
+// non-executable content are left alone.
+func excludeForeignPlatform(current *itchio.Upload, uploads []*itchio.Upload, rt ox.Runtime) []*itchio.Upload {
+	if current == nil || current.Type != "default" || !hasAnyPlatform(current.Platforms) {
+		return uploads
+	}
+
+	effective := current.Platforms
+	if manager.IsCompatible(current.Platforms, rt) {
+		effective = onlyPlatform(rt)
+	}
+
+	var res []*itchio.Upload
+	for _, u := range uploads {
+		if u.Type == "default" && hasAnyPlatform(u.Platforms) && !sharesPlatform(effective, u.Platforms) {
+			continue
+		}
+		res = append(res, u)
+	}
+	return res
+}
+
+func onlyPlatform(rt ox.Runtime) itchio.Platforms {
+	var p itchio.Platforms
+	switch rt.Platform {
+	case ox.PlatformLinux:
+		p.Linux = itchio.ArchitecturesAll
+	case ox.PlatformOSX:
+		p.OSX = itchio.ArchitecturesAll
+	case ox.PlatformWindows:
+		p.Windows = itchio.ArchitecturesAll
+	}
+	return p
+}
+
+func hasAnyPlatform(p itchio.Platforms) bool {
+	return p.Windows != "" || p.Linux != "" || p.OSX != ""
+}
+
+func sharesPlatform(a itchio.Platforms, b itchio.Platforms) bool {
+	return (a.Windows != "" && b.Windows != "") ||
+		(a.Linux != "" && b.Linux != "") ||
+		(a.OSX != "" && b.OSX != "")
 }
