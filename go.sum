@@ -125,6 +125,8 @@ github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4 h1:aIYigfaBXcHQCbLF
 github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4/go.mod h1:gBj03mUWxPUnQjAU3tau8bOR7KTWDFdzfFVYMk0JYek=
 github.com/itchio/fresh-steamer v0.0.0-20260903004301-de28596ec69b h1:sxygOVnQQGve7CogOJBK92C3vX/AKpGyBJbRRX6vVWA=
 github.com/itchio/fresh-steamer v0.0.0-20260903004301-de28596ec69b/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
+github.com/itchio/fresh-steamer v0.0.0-20260903011311-0f305b5a00f7 h1:m4REbSYhnDKwG2nyogUChAUAIs+y3bLeWwWqjhbDTc8=
+github.com/itchio/fresh-steamer v0.0.0-20260903011311-0f305b5a00f7/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
 github.com/itchio/go-itchio v0.0.0-20260722142243-6e0c1ede75c4 h1:0nNO6cODHHhK4KclwzlzZ97bEIxIuywMaZ18l/ewd2Y=
