@@ -1571,7 +1571,7 @@
     },
     {
       "method": "Collections.Create",
-      "doc": "Creates a collection owned by the profile's user.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Creates a collection owned by the profile's user.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1630,7 +1630,7 @@
     },
     {
       "method": "Collections.Update",
-      "doc": "Changes a collection's title, description, visibility, layout, or\nwhether it is shown on the profile. Fields that are omitted are\nleft unchanged.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Changes a collection's title, description, visibility, layout, or\nwhether it is shown on the profile. Fields that are omitted are\nleft unchanged.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1688,7 +1688,7 @@
     },
     {
       "method": "Collections.Delete",
-      "doc": "Deletes a collection and everything in it.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Deletes a collection and everything in it.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1710,7 +1710,7 @@
     },
     {
       "method": "Collections.AddGame",
-      "doc": "Adds a game to the end of a collection. Adding a game that is\nalready in the collection returns the existing entry.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Adds a game to the end of a collection. Adding a game that is\nalready in the collection returns the existing entry.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1749,7 +1749,7 @@
     },
     {
       "method": "Collections.RemoveGame",
-      "doc": "Removes a game from a collection.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Removes a game from a collection.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1782,7 +1782,7 @@
     },
     {
       "method": "Collections.UpdateGame",
-      "doc": "Edits a game's entry in a collection.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Edits a game's entry in a collection.",
       "caller": "client",
       "params": {
         "fields": [
@@ -1821,7 +1821,7 @@
     },
     {
       "method": "Collections.OrderGames",
-      "doc": "Sets the order of the games in a collection, optionally removing\nsome games at the same time.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "doc": "Sets the order of the games in a collection, optionally removing\nsome games at the same time.",
       "caller": "client",
       "params": {
         "fields": [

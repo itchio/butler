@@ -4110,8 +4110,6 @@ interaction summary.</p>
 <p>
 <p>Creates a collection owned by the profile&rsquo;s user.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <p>
@@ -4188,8 +4186,6 @@ given, &ldquo;grid&rdquo; otherwise.</p>
 <p>
 <p>Creates a collection owned by the profile&rsquo;s user.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4246,8 +4242,6 @@ given, &ldquo;grid&rdquo; otherwise.</p>
 <p>Changes a collection&rsquo;s title, description, visibility, layout, or
 whether it is shown on the profile. Fields that are omitted are
 left unchanged.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 
@@ -4326,8 +4320,6 @@ left unchanged.</p>
 whether it is shown on the profile. Fields that are omitted are
 left unchanged.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4383,8 +4375,6 @@ left unchanged.</p>
 <p>
 <p>Deletes a collection and everything in it.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <p>
@@ -4420,8 +4410,6 @@ left unchanged.</p>
 <p>
 <p>Deletes a collection and everything in it.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4449,8 +4437,6 @@ left unchanged.</p>
 <p>
 <p>Adds a game to the end of a collection. Adding a game that is
 already in the collection returns the existing entry.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 
@@ -4510,8 +4496,6 @@ already in the collection returns the existing entry.</p>
 <p>Adds a game to the end of a collection. Adding a game that is
 already in the collection returns the existing entry.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4554,8 +4538,6 @@ already in the collection returns the existing entry.</p>
 
 <p>
 <p>Removes a game from a collection.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 
@@ -4608,8 +4590,6 @@ already in the collection returns the existing entry.</p>
 <p>
 <p>Removes a game from a collection.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4648,8 +4628,6 @@ already in the collection returns the existing entry.</p>
 
 <p>
 <p>Edits a game&rsquo;s entry in a collection.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 
@@ -4709,8 +4687,6 @@ it unchanged.</p>
 <p>
 <p>Edits a game&rsquo;s entry in a collection.</p>
 
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
-
 </p>
 
 <table class="field-table">
@@ -4754,8 +4730,6 @@ it unchanged.</p>
 <p>
 <p>Sets the order of the games in a collection, optionally removing
 some games at the same time.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 
@@ -4805,8 +4779,6 @@ Up to 500 games.</p>
 <p>
 <p>Sets the order of the games in a collection, optionally removing
 some games at the same time.</p>
-
-<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
 
 </p>
 

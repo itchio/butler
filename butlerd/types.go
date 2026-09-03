@@ -1929,8 +1929,6 @@ type FetchExpireAllResult struct{}
 
 // Creates a collection owned by the profile's user.
 //
-// The profile's API key needs the `collection:edit` scope.
-//
 // @name Collections.Create
 // @category Collections
 // @caller client
@@ -1980,8 +1978,6 @@ type CollectionsCreateResult struct {
 // whether it is shown on the profile. Fields that are omitted are
 // left unchanged.
 //
-// The profile's API key needs the `collection:edit` scope.
-//
 // @name Collections.Update
 // @category Collections
 // @caller client
@@ -2028,8 +2024,6 @@ type CollectionsUpdateResult struct {
 
 // Deletes a collection and everything in it.
 //
-// The profile's API key needs the `collection:edit` scope.
-//
 // @name Collections.Delete
 // @category Collections
 // @caller client
@@ -2052,8 +2046,6 @@ type CollectionsDeleteResult struct{}
 
 // Adds a game to the end of a collection. Adding a game that is
 // already in the collection returns the existing entry.
-//
-// The profile's API key needs the `collection:edit` scope.
 //
 // @name Collections.AddGame
 // @category Collections
@@ -2088,8 +2080,6 @@ type CollectionsAddGameResult struct {
 
 // Removes a game from a collection.
 //
-// The profile's API key needs the `collection:edit` scope.
-//
 // @name Collections.RemoveGame
 // @category Collections
 // @caller client
@@ -2118,8 +2108,6 @@ type CollectionsRemoveGameResult struct {
 }
 
 // Edits a game's entry in a collection.
-//
-// The profile's API key needs the `collection:edit` scope.
 //
 // @name Collections.UpdateGame
 // @category Collections
@@ -2155,8 +2143,6 @@ type CollectionsUpdateGameResult struct {
 
 // Sets the order of the games in a collection, optionally removing
 // some games at the same time.
-//
-// The profile's API key needs the `collection:edit` scope.
 //
 // @name Collections.OrderGames
 // @category Collections
