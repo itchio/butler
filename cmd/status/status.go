@@ -22,7 +22,7 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("status", "Show a list of channels and the status of their latest and pending builds.")
 	ctx.Register(cmd, do)
 
-	args.target = cmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon'").Required().String()
+	args.target = cmd.Arg("target", "Which user/project to show the status of, for example 'leafo/x-moon' or 'https://leafo.itch.io/x-moon'").Required().String()
 	args.showAllFiles = cmd.Flag("show-all-files", "Show status of all files, not just archive").Bool()
 }
 

@@ -66,7 +66,7 @@ var args = struct {
 func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("push", "Upload a new build to itch.io. See `butler help push`.")
 	cmd.Arg("src", "Directory to upload. May also be a zip archive (slower)").Required().StringVar(&args.src)
-	cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game or game_id.").Required().StringVar(&args.target)
+	cmd.Arg("target", "Where to push, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel, where project is username/game, game_id, or a game page URL like https://leafo.itch.io/x-moon.").Required().StringVar(&args.target)
 	cmd.Flag("userversion", "A user-supplied version number that you can later query builds by").StringVar(&args.userVersion)
 	cmd.Flag("userversion-file", "A file containing a user-supplied version number that you can later query builds by").StringVar(&args.userVersionFile)
 	cmd.Flag("fix-permissions", "Detect Mac & Linux executables and adjust their permissions automatically").Default("true").BoolVar(&args.fixPerms)

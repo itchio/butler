@@ -22,7 +22,7 @@ func Register(ctx *mansion.Context) {
 	cmd := ctx.App.Command("fetch", "Download and extract the latest build of a channel from itch.io")
 	ctx.Register(cmd, do)
 
-	args.target = cmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel where project is username/game or game_id.").Required().String()
+	args.target = cmd.Arg("target", "Which user/project:channel to fetch from, for example 'leafo/x-moon:win-64'. Targets are of the form project:channel where project is username/game, game_id, or a game page URL like https://leafo.itch.io/x-moon.").Required().String()
 	args.out = cmd.Arg("out", "Directory to fetch and extract build to").Required().String()
 }
 
