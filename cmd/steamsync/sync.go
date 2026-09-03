@@ -183,8 +183,9 @@ func Sync(ctx *mansion.Context) error {
 	return nil
 }
 
-// alreadySynced reports whether the channel's newest build was pushed
-// with this Steam build id as its user version.
+// alreadySynced reports whether the channel's newest build, processed
+// or still pending, was pushed with this Steam build id as its user
+// version.
 func alreadySynced(ctx *mansion.Context, client *itchio.Client, plan *Plan, c *ChannelPlan) (bool, error) {
 	reqCtx, cancel := ctx.DefaultCtx()
 	defer cancel()
@@ -194,10 +195,16 @@ func alreadySynced(ctx *mansion.Context, client *itchio.Client, plan *Plan, c *C
 		comm.Debugf("channel %s lookup: %v", c.Name, err)
 		return false, nil
 	}
-	if info == nil || info.Channel == nil || info.Channel.Head == nil {
+	if info == nil || info.Channel == nil {
 		return false, nil
 	}
-	return info.Channel.Head.UserVersion == strconv.FormatUint(uint64(plan.BuildID), 10), nil
+	want := strconv.FormatUint(uint64(plan.BuildID), 10)
+	for _, b := range []*itchio.Build{info.Channel.Pending, info.Channel.Head} {
+		if b != nil && b.UserVersion == want {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func printPlan(p *Plan) {
