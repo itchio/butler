@@ -13,7 +13,7 @@ const {
 } = require("@itchio/bob");
 
 const { resolve } = require("path");
-const { mkdirSync } = require("fs");
+const { mkdirSync, readFileSync, writeFileSync } = require("fs");
 
 const DEFAULT_ARCH = "x86_64";
 
@@ -197,7 +197,15 @@ async function main(args) {
 
   if (opts.os === "windows") {
     console.log(`Compiling Windows manifest`);
-    $(`windres -o butler.syso butler.rc`);
+    // FILEVERSION wants four comma-separated numbers; tags look like v15.31.0
+    let m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(version);
+    let versionNum = m ? `${m[1]},${m[2]},${m[3]},0` : "0,0,0,0";
+    // Substitute in JS rather than via -D so we don't depend on shell quoting
+    let rc = readFileSync("butler.rc", "utf8")
+      .replace(/^#define BUTLER_VERSION_NUM .*$/m, `#define BUTLER_VERSION_NUM ${versionNum}`)
+      .replace(/^#define BUTLER_VERSION_STR .*$/m, `#define BUTLER_VERSION_STR "${version}"`);
+    writeFileSync("butler.gen.rc", rc);
+    $(`windres -o butler.syso butler.gen.rc`);
   }
 
   console.log(`Compiling binary`);

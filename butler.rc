@@ -3,28 +3,36 @@
 #define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 #define IDI_ICON_S 101
 
+/* Filled in by release/build.js from the git tag; "head" builds get 0,0,0,0 */
+#ifndef BUTLER_VERSION_NUM
+#define BUTLER_VERSION_NUM 0,0,0,0
+#endif
+#ifndef BUTLER_VERSION_STR
+#define BUTLER_VERSION_STR "head"
+#endif
+
 1 VERSIONINFO
-FILEVERSION     1,0,0,0
-PRODUCTVERSION  1,0,0,0
+FILEVERSION     BUTLER_VERSION_NUM
+PRODUCTVERSION  BUTLER_VERSION_NUM
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
-    BLOCK "080904E4"
+    BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName", "itch corp."
       VALUE "FileDescription", "Helper program for the itch app"
-      VALUE "FileVersion", "1.0"
+      VALUE "FileVersion", BUTLER_VERSION_STR
       VALUE "InternalName", "butler"
       VALUE "LegalCopyright", "itch corp."
       VALUE "OriginalFilename", "butler.exe"
       VALUE "ProductName", "butler"
-      VALUE "ProductVersion", "1.0"
+      VALUE "ProductVersion", BUTLER_VERSION_STR
     END
   END
 
   BLOCK "VarFileInfo"
   BEGIN
-    VALUE "Translation", 0x809, 1252
+    VALUE "Translation", 0x409, 1252
   END
 END
 

@@ -12,3 +12,4 @@ node_modules
 debug.test
 .idea
 coverage.txt
+butler.gen.rc
