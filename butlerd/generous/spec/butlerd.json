@@ -957,6 +957,12 @@
             "doc": "If set, will force fresh data",
             "type": "boolean",
             "optional": true
+          },
+          {
+            "name": "gameId",
+            "doc": "When set, every returned collection has `hasGame` filled in\nfor this game. This always asks the API, regardless of `fresh`.",
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -1558,6 +1564,289 @@
       "caller": "client",
       "params": {
         "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Collections.Create",
+      "doc": "Creates a collection owned by the profile's user.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to create the collection as",
+            "type": "number"
+          },
+          {
+            "name": "title",
+            "doc": "Title of the collection. Defaults to \"\u003cusername\u003e's Collection\" when empty.",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "private",
+            "doc": "Whether the collection is hidden from everyone but its editors",
+            "type": "boolean",
+            "optional": true
+          },
+          {
+            "name": "description",
+            "doc": "HTML description shown on the collection page",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "layout",
+            "doc": "How games are displayed. Defaults to \"list\" when a blurb is\ngiven, \"grid\" otherwise.",
+            "type": "CollectionLayout",
+            "optional": true
+          },
+          {
+            "name": "gameId",
+            "doc": "A game to add to the collection right away",
+            "type": "number",
+            "optional": true
+          },
+          {
+            "name": "blurb",
+            "doc": "HTML blurb for that game. Only used together with gameId.",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "collection",
+            "doc": "The newly created collection",
+            "type": "Collection"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Collections.Update",
+      "doc": "Changes a collection's title, description, visibility, layout, or\nwhether it is shown on the profile. Fields that are omitted are\nleft unchanged.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to edit the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection to edit",
+            "type": "number"
+          },
+          {
+            "name": "title",
+            "doc": "New title",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "description",
+            "doc": "New HTML description. An empty string clears it.",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "private",
+            "doc": "Whether the collection is hidden from everyone but its editors",
+            "type": "boolean",
+            "optional": true
+          },
+          {
+            "name": "layout",
+            "doc": "How games are displayed",
+            "type": "CollectionLayout",
+            "optional": true
+          },
+          {
+            "name": "onProfile",
+            "doc": "Whether the collection is shown on the profile's user page",
+            "type": "boolean",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "collection",
+            "doc": "The collection after the update",
+            "type": "Collection"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Collections.Delete",
+      "doc": "Deletes a collection and everything in it.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to delete the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection to delete",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Collections.AddGame",
+      "doc": "Adds a game to the end of a collection. Adding a game that is\nalready in the collection returns the existing entry.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to edit the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection to add the game to",
+            "type": "number"
+          },
+          {
+            "name": "gameId",
+            "doc": "Game to add",
+            "type": "number"
+          },
+          {
+            "name": "blurb",
+            "doc": "HTML blurb shown next to the game in \"list\" layout",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "collectionGame",
+            "doc": "The game's entry in the collection",
+            "type": "CollectionGame"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Collections.RemoveGame",
+      "doc": "Removes a game from a collection.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to edit the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection to remove the game from",
+            "type": "number"
+          },
+          {
+            "name": "gameId",
+            "doc": "Game to remove",
+            "type": "number"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "removed",
+            "doc": "False if the game was not in the collection to begin with",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Collections.UpdateGame",
+      "doc": "Edits a game's entry in a collection.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to edit the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection the game is in",
+            "type": "number"
+          },
+          {
+            "name": "gameId",
+            "doc": "Game whose entry to edit",
+            "type": "number"
+          },
+          {
+            "name": "blurb",
+            "doc": "New HTML blurb. An empty string clears it, omitting it leaves\nit unchanged.",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "collectionGame",
+            "doc": "The game's entry in the collection after the update",
+            "type": "CollectionGame"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Collections.OrderGames",
+      "doc": "Sets the order of the games in a collection, optionally removing\nsome games at the same time.\n\nThe profile's API key needs the `collection:edit` scope.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "profileId",
+            "doc": "Profile to edit the collection as",
+            "type": "number"
+          },
+          {
+            "name": "collectionId",
+            "doc": "Collection to reorder",
+            "type": "number"
+          },
+          {
+            "name": "gameIds",
+            "doc": "Game IDs in the desired order, the first one is shown first.\nUp to 500 games.",
+            "type": "number[]"
+          },
+          {
+            "name": "removeGameIds",
+            "doc": "Games to remove from the collection before ordering",
+            "type": "number[]",
+            "optional": true
+          }
+        ]
       },
       "result": {
         "fields": null
@@ -4744,6 +5033,71 @@
       "fields": null
     },
     {
+      "name": "CollectionsCreateResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "collection",
+          "doc": "The newly created collection",
+          "type": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "CollectionsUpdateResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "collection",
+          "doc": "The collection after the update",
+          "type": "Collection"
+        }
+      ]
+    },
+    {
+      "name": "CollectionsDeleteResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "CollectionsAddGameResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "collectionGame",
+          "doc": "The game's entry in the collection",
+          "type": "CollectionGame"
+        }
+      ]
+    },
+    {
+      "name": "CollectionsRemoveGameResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "removed",
+          "doc": "False if the game was not in the collection to begin with",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "CollectionsUpdateGameResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "collectionGame",
+          "doc": "The game's entry in the collection after the update",
+          "type": "CollectionGame"
+        }
+      ]
+    },
+    {
+      "name": "CollectionsOrderGamesResult",
+      "doc": "",
+      "fields": null
+    },
+    {
       "name": "GameFindUploadsResult",
       "doc": "",
       "fields": [
@@ -6312,9 +6666,38 @@
           "type": "number"
         },
         {
+          "name": "url",
+          "doc": "Canonical address of the collection's page on itch.io",
+          "type": "string",
+          "optional": true
+        },
+        {
           "name": "title",
           "doc": "Human-friendly title for collection, for example `Couch coop games`",
           "type": "string"
+        },
+        {
+          "name": "description",
+          "doc": "HTML description shown on the collection page",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "private",
+          "doc": "Whether the collection is hidden from everyone but its editors",
+          "type": "boolean"
+        },
+        {
+          "name": "layout",
+          "doc": "How games are displayed",
+          "type": "CollectionLayout",
+          "optional": true
+        },
+        {
+          "name": "hasGame",
+          "doc": "Only set when listing collections filtered by a game: whether\nthat game is in this collection",
+          "type": "boolean",
+          "optional": true
         },
         {
           "name": "createdAt",
@@ -7708,6 +8091,22 @@
           "name": "Other",
           "doc": "UploadTypeOther is for literally anything that isn't an existing category,\nor for stuff that isn't tagged properly.",
           "value": "other"
+        }
+      ]
+    },
+    {
+      "name": "CollectionLayout",
+      "doc": "CollectionLayout is how a collection's games are displayed on itch.io",
+      "values": [
+        {
+          "name": "Grid",
+          "doc": "CollectionLayoutGrid shows games as a grid of covers",
+          "value": "grid"
+        },
+        {
+          "name": "List",
+          "doc": "CollectionLayoutList shows games as a list, with blurbs",
+          "value": "list"
         }
       ]
     },

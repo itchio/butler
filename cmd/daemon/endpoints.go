@@ -5,6 +5,7 @@ import (
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/endpoints/cleandownloads"
+	"github.com/itchio/butler/endpoints/collections"
 	"github.com/itchio/butler/endpoints/downloads"
 	"github.com/itchio/butler/endpoints/fetch"
 	"github.com/itchio/butler/endpoints/install"
@@ -42,6 +43,7 @@ func GetRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.R
 	search.Register(mainRouter)
 	system.Register(mainRouter)
 	publish.Register(mainRouter)
+	collections.Register(mainRouter)
 
 	messages.EnsureAllRequests(mainRouter)
 

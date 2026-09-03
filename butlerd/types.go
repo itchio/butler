@@ -1052,6 +1052,11 @@ type FetchProfileCollectionsParams struct {
 	// If set, will force fresh data
 	// @optional
 	Fresh bool `json:"fresh"`
+
+	// When set, every returned collection has `hasGame` filled in
+	// for this game. This always asks the API, regardless of `fresh`.
+	// @optional
+	GameID int64 `json:"gameId"`
 }
 
 func (p FetchProfileCollectionsParams) Validate() error {
@@ -1917,6 +1922,270 @@ func (p FetchExpireAllParams) Validate() error {
 }
 
 type FetchExpireAllResult struct{}
+
+//----------------------------------------------------------------------
+// Collections
+//----------------------------------------------------------------------
+
+// Creates a collection owned by the profile's user.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.Create
+// @category Collections
+// @caller client
+type CollectionsCreateParams struct {
+	// Profile to create the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Title of the collection. Defaults to "<username>'s Collection" when empty.
+	// @optional
+	Title string `json:"title"`
+
+	// Whether the collection is hidden from everyone but its editors
+	// @optional
+	Private bool `json:"private"`
+
+	// HTML description shown on the collection page
+	// @optional
+	Description string `json:"description"`
+
+	// How games are displayed. Defaults to "list" when a blurb is
+	// given, "grid" otherwise.
+	// @optional
+	Layout itchio.CollectionLayout `json:"layout"`
+
+	// A game to add to the collection right away
+	// @optional
+	GameID int64 `json:"gameId"`
+
+	// HTML blurb for that game. Only used together with gameId.
+	// @optional
+	Blurb string `json:"blurb"`
+}
+
+func (p CollectionsCreateParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.Layout, validation.In(itchio.CollectionLayoutGrid, itchio.CollectionLayoutList)),
+	)
+}
+
+type CollectionsCreateResult struct {
+	// The newly created collection
+	Collection *itchio.Collection `json:"collection"`
+}
+
+// Changes a collection's title, description, visibility, layout, or
+// whether it is shown on the profile. Fields that are omitted are
+// left unchanged.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.Update
+// @category Collections
+// @caller client
+type CollectionsUpdateParams struct {
+	// Profile to edit the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to edit
+	CollectionID int64 `json:"collectionId"`
+
+	// New title
+	// @optional
+	Title *string `json:"title,omitempty"`
+
+	// New HTML description. An empty string clears it.
+	// @optional
+	Description *string `json:"description,omitempty"`
+
+	// Whether the collection is hidden from everyone but its editors
+	// @optional
+	Private *bool `json:"private,omitempty"`
+
+	// How games are displayed
+	// @optional
+	Layout *itchio.CollectionLayout `json:"layout,omitempty"`
+
+	// Whether the collection is shown on the profile's user page
+	// @optional
+	OnProfile *bool `json:"onProfile,omitempty"`
+}
+
+func (p CollectionsUpdateParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+		validation.Field(&p.Layout, validation.In(itchio.CollectionLayoutGrid, itchio.CollectionLayoutList)),
+	)
+}
+
+type CollectionsUpdateResult struct {
+	// The collection after the update
+	Collection *itchio.Collection `json:"collection"`
+}
+
+// Deletes a collection and everything in it.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.Delete
+// @category Collections
+// @caller client
+type CollectionsDeleteParams struct {
+	// Profile to delete the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to delete
+	CollectionID int64 `json:"collectionId"`
+}
+
+func (p CollectionsDeleteParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+	)
+}
+
+type CollectionsDeleteResult struct{}
+
+// Adds a game to the end of a collection. Adding a game that is
+// already in the collection returns the existing entry.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.AddGame
+// @category Collections
+// @caller client
+type CollectionsAddGameParams struct {
+	// Profile to edit the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to add the game to
+	CollectionID int64 `json:"collectionId"`
+
+	// Game to add
+	GameID int64 `json:"gameId"`
+
+	// HTML blurb shown next to the game in "list" layout
+	// @optional
+	Blurb string `json:"blurb"`
+}
+
+func (p CollectionsAddGameParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type CollectionsAddGameResult struct {
+	// The game's entry in the collection
+	CollectionGame *itchio.CollectionGame `json:"collectionGame"`
+}
+
+// Removes a game from a collection.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.RemoveGame
+// @category Collections
+// @caller client
+type CollectionsRemoveGameParams struct {
+	// Profile to edit the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to remove the game from
+	CollectionID int64 `json:"collectionId"`
+
+	// Game to remove
+	GameID int64 `json:"gameId"`
+}
+
+func (p CollectionsRemoveGameParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type CollectionsRemoveGameResult struct {
+	// False if the game was not in the collection to begin with
+	Removed bool `json:"removed"`
+}
+
+// Edits a game's entry in a collection.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.UpdateGame
+// @category Collections
+// @caller client
+type CollectionsUpdateGameParams struct {
+	// Profile to edit the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection the game is in
+	CollectionID int64 `json:"collectionId"`
+
+	// Game whose entry to edit
+	GameID int64 `json:"gameId"`
+
+	// New HTML blurb. An empty string clears it, omitting it leaves
+	// it unchanged.
+	// @optional
+	Blurb *string `json:"blurb,omitempty"`
+}
+
+func (p CollectionsUpdateGameParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+		validation.Field(&p.GameID, validation.Required),
+	)
+}
+
+type CollectionsUpdateGameResult struct {
+	// The game's entry in the collection after the update
+	CollectionGame *itchio.CollectionGame `json:"collectionGame"`
+}
+
+// Sets the order of the games in a collection, optionally removing
+// some games at the same time.
+//
+// The profile's API key needs the `collection:edit` scope.
+//
+// @name Collections.OrderGames
+// @category Collections
+// @caller client
+type CollectionsOrderGamesParams struct {
+	// Profile to edit the collection as
+	ProfileID int64 `json:"profileId"`
+
+	// Collection to reorder
+	CollectionID int64 `json:"collectionId"`
+
+	// Game IDs in the desired order, the first one is shown first.
+	// Up to 500 games.
+	GameIDs []int64 `json:"gameIds"`
+
+	// Games to remove from the collection before ordering
+	// @optional
+	RemoveGameIDs []int64 `json:"removeGameIds,omitempty"`
+}
+
+func (p CollectionsOrderGamesParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.CollectionID, validation.Required),
+		validation.Field(&p.GameIDs, validation.Length(0, 500)),
+	)
+}
+
+type CollectionsOrderGamesResult struct{}
 
 //----------------------------------------------------------------------
 // Game

@@ -2712,6 +2712,13 @@ games.</p>
 <td><p><span class="tag">Optional</span> If set, will force fresh data</p>
 </td>
 </tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> When set, every returned collection has <code>hasGame</code> filled in
+for this game. This always asks the API, regardless of <code>fresh</code>.</p>
+</td>
+</tr>
 </table>
 
 
@@ -2780,6 +2787,10 @@ games.</p>
 <tr>
 <td><code>fresh</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -4087,6 +4098,742 @@ interaction summary.</p>
 
 <div id="FetchExpireAllResult__TypeHint" class="tip-content">
 <p>FetchExpireAll  <a href="#/?id=fetchexpireall-">(Go to definition)</a></p>
+
+</div>
+
+
+## Collections Category
+
+### Collections.Create (client request)
+
+
+<p>
+<p>Creates a collection owned by the profile&rsquo;s user.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to create the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Title of the collection. Defaults to &ldquo;<username>&rsquo;s Collection&rdquo; when empty.</p>
+</td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Whether the collection is hidden from everyone but its editors</p>
+</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> HTML description shown on the collection page</p>
+</td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionLayout__TypeHint">CollectionLayout</span></code></td>
+<td><p><span class="tag">Optional</span> How games are displayed. Defaults to &ldquo;list&rdquo; when a blurb is
+given, &ldquo;grid&rdquo; otherwise.</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> A game to add to the collection right away</p>
+</td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> HTML blurb for that game. Only used together with gameId.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><p>The newly created collection</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionsCreateParams__TypeHint" class="tip-content">
+<p>Collections.Create (client request) <a href="#/?id=collectionscreate-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Creates a collection owned by the profile&rsquo;s user.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type">CollectionLayout</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsCreateResult__TypeHint" class="tip-content">
+<p>CollectionsCreate  <a href="#/?id=collectionscreate-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type">Collection</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Collections.Update (client request)
+
+
+<p>
+<p>Changes a collection&rsquo;s title, description, visibility, layout, or
+whether it is shown on the profile. Fields that are omitted are
+left unchanged.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to edit the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to edit</p>
+</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> New title</p>
+</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> New HTML description. An empty string clears it.</p>
+</td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Whether the collection is hidden from everyone but its editors</p>
+</td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionLayout__TypeHint">CollectionLayout</span></code></td>
+<td><p><span class="tag">Optional</span> How games are displayed</p>
+</td>
+</tr>
+<tr>
+<td><code>onProfile</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Whether the collection is shown on the profile&rsquo;s user page</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span></code></td>
+<td><p>The collection after the update</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionsUpdateParams__TypeHint" class="tip-content">
+<p>Collections.Update (client request) <a href="#/?id=collectionsupdate-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Changes a collection&rsquo;s title, description, visibility, layout, or
+whether it is shown on the profile. Fields that are omitted are
+left unchanged.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type">CollectionLayout</span></code></td>
+</tr>
+<tr>
+<td><code>onProfile</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsUpdateResult__TypeHint" class="tip-content">
+<p>CollectionsUpdate  <a href="#/?id=collectionsupdate-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collection</code></td>
+<td><code class="typename"><span class="type">Collection</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Collections.Delete (client request)
+
+
+<p>
+<p>Deletes a collection and everything in it.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to delete the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to delete</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="CollectionsDeleteParams__TypeHint" class="tip-content">
+<p>Collections.Delete (client request) <a href="#/?id=collectionsdelete-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Deletes a collection and everything in it.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsDeleteResult__TypeHint" class="tip-content">
+<p>CollectionsDelete  <a href="#/?id=collectionsdelete-">(Go to definition)</a></p>
+
+</div>
+
+### Collections.AddGame (client request)
+
+
+<p>
+<p>Adds a game to the end of a collection. Adding a game that is
+already in the collection returns the existing entry.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to edit the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to add the game to</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game to add</p>
+</td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> HTML blurb shown next to the game in &ldquo;list&rdquo; layout</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionGame</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span></code></td>
+<td><p>The game&rsquo;s entry in the collection</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionsAddGameParams__TypeHint" class="tip-content">
+<p>Collections.AddGame (client request) <a href="#/?id=collectionsaddgame-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Adds a game to the end of a collection. Adding a game that is
+already in the collection returns the existing entry.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsAddGameResult__TypeHint" class="tip-content">
+<p>CollectionsAddGame  <a href="#/?id=collectionsaddgame-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionGame</code></td>
+<td><code class="typename"><span class="type">CollectionGame</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Collections.RemoveGame (client request)
+
+
+<p>
+<p>Removes a game from a collection.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to edit the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to remove the game from</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game to remove</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>False if the game was not in the collection to begin with</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionsRemoveGameParams__TypeHint" class="tip-content">
+<p>Collections.RemoveGame (client request) <a href="#/?id=collectionsremovegame-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Removes a game from a collection.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsRemoveGameResult__TypeHint" class="tip-content">
+<p>CollectionsRemoveGame  <a href="#/?id=collectionsremovegame-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>removed</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Collections.UpdateGame (client request)
+
+
+<p>
+<p>Edits a game&rsquo;s entry in a collection.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to edit the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection the game is in</p>
+</td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Game whose entry to edit</p>
+</td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> New HTML blurb. An empty string clears it, omitting it leaves
+it unchanged.</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionGame</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionGame__TypeHint">CollectionGame</span></code></td>
+<td><p>The game&rsquo;s entry in the collection after the update</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionsUpdateGameParams__TypeHint" class="tip-content">
+<p>Collections.UpdateGame (client request) <a href="#/?id=collectionsupdategame-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Edits a game&rsquo;s entry in a collection.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>blurb</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsUpdateGameResult__TypeHint" class="tip-content">
+<p>CollectionsUpdateGame  <a href="#/?id=collectionsupdategame-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>collectionGame</code></td>
+<td><code class="typename"><span class="type">CollectionGame</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Collections.OrderGames (client request)
+
+
+<p>
+<p>Sets the order of the games in a collection, optionally removing
+some games at the same time.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Profile to edit the collection as</p>
+</td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Collection to reorder</p>
+</td>
+</tr>
+<tr>
+<td><code>gameIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p>Game IDs in the desired order, the first one is shown first.
+Up to 500 games.</p>
+</td>
+</tr>
+<tr>
+<td><code>removeGameIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Games to remove from the collection before ordering</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="CollectionsOrderGamesParams__TypeHint" class="tip-content">
+<p>Collections.OrderGames (client request) <a href="#/?id=collectionsordergames-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Sets the order of the games in a collection, optionally removing
+some games at the same time.</p>
+
+<p>The profile&rsquo;s API key needs the <code>collection:edit</code> scope.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>collectionId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>gameIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+</tr>
+<tr>
+<td><code>removeGameIds</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="CollectionsOrderGamesResult__TypeHint" class="tip-content">
+<p>CollectionsOrderGames  <a href="#/?id=collectionsordergames-">(Go to definition)</a></p>
 
 </div>
 
@@ -14637,6 +15384,52 @@ a web game, some music, etc.</p>
 
 </div>
 
+### CollectionLayout (enum)
+
+
+<p>
+<p>CollectionLayout is how a collection&rsquo;s games are displayed on itch.io</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"grid"</code></td>
+<td><p>CollectionLayoutGrid shows games as a grid of covers</p>
+</td>
+</tr>
+<tr>
+<td><code>"list"</code></td>
+<td><p>CollectionLayoutList shows games as a list, with blurbs</p>
+</td>
+</tr>
+</table>
+
+
+<div id="CollectionLayout__TypeHint" class="tip-content">
+<p>CollectionLayout (enum) <a href="#/?id=collectionlayout-enum">(Go to definition)</a></p>
+
+<p>
+<p>CollectionLayout is how a collection&rsquo;s games are displayed on itch.io</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"grid"</code></td>
+</tr>
+<tr>
+<td><code>"list"</code></td>
+</tr>
+</table>
+
+</div>
+
 ### Collection (struct)
 
 
@@ -14658,9 +15451,40 @@ a web game, some music, etc.</p>
 </td>
 </tr>
 <tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Canonical address of the collection&rsquo;s page on itch.io</p>
+</td>
+</tr>
+<tr>
 <td><code>title</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p>Human-friendly title for collection, for example <code>Couch coop games</code></p>
+</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> HTML description shown on the collection page</p>
+</td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>Whether the collection is hidden from everyone but its editors</p>
+</td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#CollectionLayout__TypeHint">CollectionLayout</span></code></td>
+<td><p><span class="tag">Optional</span> How games are displayed</p>
+</td>
+</tr>
+<tr>
+<td><code>hasGame</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Only set when listing collections filtered by a game: whether
+that game is in this collection</p>
 </td>
 </tr>
 <tr>
@@ -14717,8 +15541,28 @@ page deleted, visibility level changed, etc.)</p>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
 <td><code>title</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>private</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td><code class="typename"><span class="type">CollectionLayout</span></code></td>
+</tr>
+<tr>
+<td><code>hasGame</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>

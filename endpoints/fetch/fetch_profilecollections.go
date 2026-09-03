@@ -33,12 +33,25 @@ func expireChangedCollectionGames(conn *sqlite.Conn, previous map[int64]*itchio.
 	}
 }
 
+// fetchTargetList collects fetch targets outside of lazyfetch.Do
+type fetchTargetList struct {
+	items []models.FetchTarget
+}
+
+func (l *fetchTargetList) Add(ft models.FetchTarget) {
+	l.items = append(l.items, ft)
+}
+
 func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchProfileCollectionsParams) (*butlerd.FetchProfileCollectionsResult, error) {
 	profile, client := rc.ProfileClient(params.ProfileID)
 	ft := models.FetchTargetForProfileCollections(profile.ID)
 	res := &butlerd.FetchProfileCollectionsResult{}
 
-	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
+	// Membership of a specific game is never stored locally, only
+	// carried from the API response to this reply.
+	hasGame := make(map[int64]*bool)
+
+	refresh := func(targets lazyfetch.Targets) {
 		previousCollections := make(map[int64]*itchio.Collection)
 		rc.WithConn(func(conn *sqlite.Conn) {
 			var items []*models.ProfileCollection
@@ -49,12 +62,15 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 			}
 		})
 
-		collRes, err := client.ListProfileCollections(rc.Ctx)
+		collRes, err := client.ListProfileCollections(rc.Ctx, itchio.ListProfileCollectionsParams{
+			GameID: params.GameID,
+		})
 		models.Must(err)
 
 		profile.ProfileCollections = nil
 		for i, c := range collRes.Collections {
 			targets.Add(models.FetchTargetForCollection(c.ID))
+			hasGame[c.ID] = c.HasGame
 
 			profile.ProfileCollections = append(profile.ProfileCollections, &models.ProfileCollection{
 				// Other fields are set when saving the association
@@ -71,7 +87,21 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 			)
 			expireChangedCollectionGames(conn, previousCollections, collRes.Collections)
 		})
-	})
+	}
+
+	if params.GameID != 0 {
+		// Always ask the API, and don't share the request with other
+		// callers through lazyfetch: they wouldn't be asking about the
+		// same game.
+		rc.Consumer.Infof("Fetching fresh data (with membership for game %d)...", params.GameID)
+		targets := &fetchTargetList{items: []models.FetchTarget{ft}}
+		refresh(targets)
+		rc.WithConn(func(conn *sqlite.Conn) {
+			models.MustMarkAllFresh(conn, targets.items)
+		})
+	} else {
+		lazyfetch.Do(rc, ft, params, res, refresh)
+	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
 		var cond builder.Cond = builder.Eq{"profile_id": profile.ID}
@@ -103,6 +133,14 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 		res.NextCursor = pg.Fetch(conn, &items, cond, search)
 		models.MustPreload(conn, items, hades.Assoc("Collection"))
 		for _, item := range items {
+			if params.GameID != 0 {
+				item.Collection.HasGame = hasGame[item.CollectionID]
+				if item.Collection.HasGame == nil {
+					// the contract is that every item answers when a game was asked about
+					notIn := false
+					item.Collection.HasGame = &notIn
+				}
+			}
 			res.Items = append(res.Items, item.Collection)
 		}
 	})

@@ -1874,6 +1874,291 @@ var FetchExpireAll *FetchExpireAllType
 
 
 //==============================
+// Collections
+//==============================
+
+// Collections.Create (Request)
+
+type CollectionsCreateType struct {}
+
+var _ RequestMessage = (*CollectionsCreateType)(nil)
+
+func (r *CollectionsCreateType) Method() string {
+  return "Collections.Create"
+}
+
+func (r *CollectionsCreateType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsCreateParams) (*butlerd.CollectionsCreateResult, error)) {
+  router.Register("Collections.Create", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsCreateParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.Create")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsCreateType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsCreateParams) (*butlerd.CollectionsCreateResult, error) {
+  var result butlerd.CollectionsCreateResult
+  err := rc.Call("Collections.Create", params, &result)
+  return &result, err
+}
+
+var CollectionsCreate *CollectionsCreateType
+
+// Collections.Update (Request)
+
+type CollectionsUpdateType struct {}
+
+var _ RequestMessage = (*CollectionsUpdateType)(nil)
+
+func (r *CollectionsUpdateType) Method() string {
+  return "Collections.Update"
+}
+
+func (r *CollectionsUpdateType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsUpdateParams) (*butlerd.CollectionsUpdateResult, error)) {
+  router.Register("Collections.Update", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsUpdateParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.Update")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsUpdateType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsUpdateParams) (*butlerd.CollectionsUpdateResult, error) {
+  var result butlerd.CollectionsUpdateResult
+  err := rc.Call("Collections.Update", params, &result)
+  return &result, err
+}
+
+var CollectionsUpdate *CollectionsUpdateType
+
+// Collections.Delete (Request)
+
+type CollectionsDeleteType struct {}
+
+var _ RequestMessage = (*CollectionsDeleteType)(nil)
+
+func (r *CollectionsDeleteType) Method() string {
+  return "Collections.Delete"
+}
+
+func (r *CollectionsDeleteType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsDeleteParams) (*butlerd.CollectionsDeleteResult, error)) {
+  router.Register("Collections.Delete", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsDeleteParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.Delete")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsDeleteType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsDeleteParams) (*butlerd.CollectionsDeleteResult, error) {
+  var result butlerd.CollectionsDeleteResult
+  err := rc.Call("Collections.Delete", params, &result)
+  return &result, err
+}
+
+var CollectionsDelete *CollectionsDeleteType
+
+// Collections.AddGame (Request)
+
+type CollectionsAddGameType struct {}
+
+var _ RequestMessage = (*CollectionsAddGameType)(nil)
+
+func (r *CollectionsAddGameType) Method() string {
+  return "Collections.AddGame"
+}
+
+func (r *CollectionsAddGameType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsAddGameParams) (*butlerd.CollectionsAddGameResult, error)) {
+  router.Register("Collections.AddGame", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsAddGameParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.AddGame")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsAddGameType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsAddGameParams) (*butlerd.CollectionsAddGameResult, error) {
+  var result butlerd.CollectionsAddGameResult
+  err := rc.Call("Collections.AddGame", params, &result)
+  return &result, err
+}
+
+var CollectionsAddGame *CollectionsAddGameType
+
+// Collections.RemoveGame (Request)
+
+type CollectionsRemoveGameType struct {}
+
+var _ RequestMessage = (*CollectionsRemoveGameType)(nil)
+
+func (r *CollectionsRemoveGameType) Method() string {
+  return "Collections.RemoveGame"
+}
+
+func (r *CollectionsRemoveGameType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsRemoveGameParams) (*butlerd.CollectionsRemoveGameResult, error)) {
+  router.Register("Collections.RemoveGame", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsRemoveGameParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.RemoveGame")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsRemoveGameType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsRemoveGameParams) (*butlerd.CollectionsRemoveGameResult, error) {
+  var result butlerd.CollectionsRemoveGameResult
+  err := rc.Call("Collections.RemoveGame", params, &result)
+  return &result, err
+}
+
+var CollectionsRemoveGame *CollectionsRemoveGameType
+
+// Collections.UpdateGame (Request)
+
+type CollectionsUpdateGameType struct {}
+
+var _ RequestMessage = (*CollectionsUpdateGameType)(nil)
+
+func (r *CollectionsUpdateGameType) Method() string {
+  return "Collections.UpdateGame"
+}
+
+func (r *CollectionsUpdateGameType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsUpdateGameParams) (*butlerd.CollectionsUpdateGameResult, error)) {
+  router.Register("Collections.UpdateGame", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsUpdateGameParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.UpdateGame")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsUpdateGameType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsUpdateGameParams) (*butlerd.CollectionsUpdateGameResult, error) {
+  var result butlerd.CollectionsUpdateGameResult
+  err := rc.Call("Collections.UpdateGame", params, &result)
+  return &result, err
+}
+
+var CollectionsUpdateGame *CollectionsUpdateGameType
+
+// Collections.OrderGames (Request)
+
+type CollectionsOrderGamesType struct {}
+
+var _ RequestMessage = (*CollectionsOrderGamesType)(nil)
+
+func (r *CollectionsOrderGamesType) Method() string {
+  return "Collections.OrderGames"
+}
+
+func (r *CollectionsOrderGamesType) Register(router router, f func(*butlerd.RequestContext, butlerd.CollectionsOrderGamesParams) (*butlerd.CollectionsOrderGamesResult, error)) {
+  router.Register("Collections.OrderGames", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.CollectionsOrderGamesParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Collections.OrderGames")
+    }
+    return res, nil
+  })
+}
+
+func (r *CollectionsOrderGamesType) TestCall(rc *butlerd.RequestContext, params butlerd.CollectionsOrderGamesParams) (*butlerd.CollectionsOrderGamesResult, error) {
+  var result butlerd.CollectionsOrderGamesResult
+  err := rc.Call("Collections.OrderGames", params, &result)
+  return &result, err
+}
+
+var CollectionsOrderGames *CollectionsOrderGamesType
+
+
+//==============================
 // Install
 //==============================
 
@@ -4414,6 +4699,13 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Fetch.Cave"]; !ok { panic("missing request handler for (Fetch.Cave)") }
   if _, ok := router.Handlers["Fetch.GameInteraction"]; !ok { panic("missing request handler for (Fetch.GameInteraction)") }
   if _, ok := router.Handlers["Fetch.ExpireAll"]; !ok { panic("missing request handler for (Fetch.ExpireAll)") }
+  if _, ok := router.Handlers["Collections.Create"]; !ok { panic("missing request handler for (Collections.Create)") }
+  if _, ok := router.Handlers["Collections.Update"]; !ok { panic("missing request handler for (Collections.Update)") }
+  if _, ok := router.Handlers["Collections.Delete"]; !ok { panic("missing request handler for (Collections.Delete)") }
+  if _, ok := router.Handlers["Collections.AddGame"]; !ok { panic("missing request handler for (Collections.AddGame)") }
+  if _, ok := router.Handlers["Collections.RemoveGame"]; !ok { panic("missing request handler for (Collections.RemoveGame)") }
+  if _, ok := router.Handlers["Collections.UpdateGame"]; !ok { panic("missing request handler for (Collections.UpdateGame)") }
+  if _, ok := router.Handlers["Collections.OrderGames"]; !ok { panic("missing request handler for (Collections.OrderGames)") }
   if _, ok := router.Handlers["Game.FindUploads"]; !ok { panic("missing request handler for (Game.FindUploads)") }
   if _, ok := router.Handlers["Install.Adopt"]; !ok { panic("missing request handler for (Install.Adopt)") }
   if _, ok := router.Handlers["Install.Queue"]; !ok { panic("missing request handler for (Install.Queue)") }
