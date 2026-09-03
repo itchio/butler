@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
@@ -17,20 +18,67 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Staging layout under the sync directory for one app:
+// Staging layout under the sync directory:
 //
 //	depots/<depot id>/    one download per depot, reused across syncs
 //	store/                manifests and resume journals for those downloads
 //	channels/<name>/      what gets pushed, hardlinked from depots/
 //
-// Depots are downloaded once even when several channels share them, and
-// unchanged files are skipped on the next sync.
+// Depots are downloaded once even when several channels share them. With a
+// persistent --cache-dir, unchanged files are skipped on the next sync and
+// an interrupted download resumes.
 type stage struct {
 	Dir string
 }
 
-func defaultStageDir(ctx *mansion.Context, appID uint32) string {
-	return filepath.Join(filepath.Dir(ctx.Identity), "steam-sync", strconv.FormatUint(uint64(appID), 10))
+// openStage returns the staging directory for this run. With cacheDir set
+// it is used as is and kept. Otherwise a fresh directory is created under
+// butler's own data directory rather than the system temp dir, which on
+// Linux is often RAM-backed, and the returned cleanup removes it.
+func openStage(ctx *mansion.Context, cacheDir string) (*stage, func(), error) {
+	if cacheDir != "" {
+		return &stage{Dir: cacheDir}, func() {}, nil
+	}
+	base := filepath.Join(filepath.Dir(ctx.Identity), "steam-sync")
+	if err := os.MkdirAll(base, 0o755); err != nil {
+		return nil, nil, errors.Wrapf(err, "creating %s", base)
+	}
+	sweepStale(base)
+	dir, err := os.MkdirTemp(base, "tmp-")
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "creating temporary directory in %s", base)
+	}
+	comm.Debugf("Staging in %s (pass --cache-dir to keep downloads between syncs)", dir)
+	cleanup := func() {
+		if err := os.RemoveAll(dir); err != nil {
+			comm.Warnf("Could not remove %s: %v", dir, err)
+		}
+	}
+	return &stage{Dir: dir}, cleanup, nil
+}
+
+// sweepStale removes temporary staging directories left behind by runs
+// that were killed before cleanup. Anything touched in the last day is
+// assumed to belong to a sync still in progress.
+func sweepStale(base string) {
+	entries, err := os.ReadDir(base)
+	if err != nil {
+		return
+	}
+	for _, e := range entries {
+		if !e.IsDir() || !strings.HasPrefix(e.Name(), "tmp-") {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil || time.Since(info.ModTime()) < 24*time.Hour {
+			continue
+		}
+		p := filepath.Join(base, e.Name())
+		comm.Debugf("Removing stale staging directory %s", p)
+		if err := os.RemoveAll(p); err != nil {
+			comm.Warnf("Could not remove %s: %v", p, err)
+		}
+	}
 }
 
 func (st *stage) depotDir(id uint32) string {

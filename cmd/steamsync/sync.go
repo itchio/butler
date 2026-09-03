@@ -23,7 +23,7 @@ var syncArgs = struct {
 	skips    []uint32
 	dryRun   bool
 	noGate   bool
-	dir      string
+	cacheDir string
 	force    bool
 	noPush   bool
 	hidden   bool
@@ -38,9 +38,9 @@ func RegisterSync(ctx *mansion.Context) {
 	cmd.Flag("map", "Send a depot to a specific channel, as DEPOTID=CHANNEL. Repeatable.").StringsVar(&syncArgs.mappings)
 	cmd.Flag("skip", "Leave a depot out. Repeatable.").Uint32ListVar(&syncArgs.skips)
 	cmd.Flag("dry-run", "Show the plan without downloading or pushing anything").BoolVar(&syncArgs.dryRun)
-	cmd.Flag("dir", "Where to keep downloaded depots between syncs. Defaults to steam-sync/APPID next to butler's credentials.").StringVar(&syncArgs.dir)
+	cmd.Flag("cache-dir", "Keep downloaded depots here between syncs so the next one only fetches what changed on Steam. Without it everything is downloaded into a temporary directory and removed once the push is done.").StringVar(&syncArgs.cacheDir)
 	cmd.Flag("force", "Push even when the channel's latest build already has this Steam build id").BoolVar(&syncArgs.force)
-	cmd.Flag("no-push", "Download and assemble the channel directories, then stop").BoolVar(&syncArgs.noPush)
+	cmd.Flag("no-push", "Download and assemble the channel directories, then stop. Requires --cache-dir, otherwise there would be nothing left to look at.").BoolVar(&syncArgs.noPush)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").BoolVar(&syncArgs.hidden)
 	// Development only. Lets a dry run plan an app the publisher key does
 	// not control. Never honored when bytes would actually move.
@@ -76,6 +76,10 @@ func Sync(ctx *mansion.Context) error {
 	skip := map[uint32]bool{}
 	for _, id := range syncArgs.skips {
 		skip[id] = true
+	}
+
+	if syncArgs.noPush && syncArgs.cacheDir == "" && !syncArgs.dryRun {
+		return errors.New("--no-push needs --cache-dir, since the temporary directory is removed when the command exits")
 	}
 
 	if !(syncArgs.dryRun && syncArgs.noGate) {
@@ -114,11 +118,11 @@ func Sync(ctx *mansion.Context) error {
 		return nil
 	}
 
-	dir := syncArgs.dir
-	if dir == "" {
-		dir = defaultStageDir(ctx, plan.AppID)
+	st, cleanup, err := openStage(ctx, syncArgs.cacheDir)
+	if err != nil {
+		return err
 	}
-	st := &stage{Dir: dir}
+	defer cleanup()
 
 	// Authenticate with itch.io before downloading anything so a bad
 	// target fails in seconds rather than after gigabytes.
