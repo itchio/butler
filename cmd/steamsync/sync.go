@@ -118,12 +118,6 @@ func Sync(ctx *mansion.Context) error {
 		return nil
 	}
 
-	st, cleanup, err := openStage(ctx, syncArgs.cacheDir)
-	if err != nil {
-		return err
-	}
-	defer cleanup()
-
 	// Authenticate with itch.io before downloading anything so a bad
 	// target fails in seconds rather than after gigabytes.
 	var client *itchio.Client
@@ -152,6 +146,12 @@ func Sync(ctx *mansion.Context) error {
 		comm.Statf("Everything is up to date.")
 		return nil
 	}
+
+	st, cleanup, err := openStage(ctx, syncArgs.cacheDir)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 
 	downloaded := map[uint32]bool{}
 	for _, c := range todo {
