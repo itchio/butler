@@ -10285,6 +10285,502 @@ reflects the server&rsquo;s current view.</p>
 
 </div>
 
+### Publish.SteamSync.GetStatus (client request)
+
+
+<p>
+<p>Reports what Steam credentials are stored. Reads a local file only;
+whether the login is still accepted by Steam is found out by the
+operations that use it, which fail with CodePublishSteamSyncNotLoggedIn.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>loggedIn</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when a Steam login is stored</p>
+</td>
+</tr>
+<tr>
+<td><code>accountName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Steam account name, when logged in</p>
+</td>
+</tr>
+<tr>
+<td><code>steamId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> 64-bit Steam ID as a string, when logged in</p>
+</td>
+</tr>
+<tr>
+<td><code>hasPublisherKey</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when a publisher Web API key is stored</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncGetStatusParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.GetStatus (client request) <a href="#/?id=publishsteamsyncgetstatus-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Reports what Steam credentials are stored. Reads a local file only;
+whether the login is still accepted by Steam is found out by the
+operations that use it, which fail with CodePublishSteamSyncNotLoggedIn.</p>
+
+</p>
+</div>
+
+
+<div id="PublishSteamSyncGetStatusResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncGetStatus  <a href="#/?id=publishsteamsyncgetstatus-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>loggedIn</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>accountName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>steamId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>hasPublisherKey</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Login (client request)
+
+
+<p>
+<p>Log in to a Steam account by QR code. Steam&rsquo;s mobile app scans the
+code and the user approves there; no password reaches butler.</p>
+
+<p>A <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginChallengeNotification__TypeHint">Publish.SteamSync.Login.Challenge</span></code> carries the URL to render as a QR
+code, and is sent again whenever Steam rotates the challenge. The
+request returns once the login is approved. Cancel it with
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginCancelParams__TypeHint">Publish.SteamSync.Login.Cancel</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID that can be later used in <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginCancelParams__TypeHint">Publish.SteamSync.Login.Cancel</span></code></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>accountName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Steam account name</p>
+</td>
+</tr>
+<tr>
+<td><code>steamId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>64-bit Steam ID as a string</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncLoginParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Login (client request) <a href="#/?id=publishsteamsynclogin-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Log in to a Steam account by QR code. Steam&rsquo;s mobile app scans the
+code and the user approves there; no password reaches butler.</p>
+
+<p>A <code class="typename"><span class="type">Publish.SteamSync.Login.Challenge</span></code> carries the URL to render as a QR
+code, and is sent again whenever Steam rotates the challenge. The
+request returns once the login is approved. Cancel it with
+<code class="typename"><span class="type">Publish.SteamSync.Login.Cancel</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncLoginResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncLogin  <a href="#/?id=publishsteamsynclogin-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>accountName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>steamId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Login.Cancel (client request)
+
+
+<p>
+<p>Cancel a pending <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID passed to <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncLoginCancelParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Login.Cancel (client request) <a href="#/?id=publishsteamsynclogincancel-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Cancel a pending <code class="typename"><span class="type">Publish.SteamSync.Login</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncLoginCancelResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncLoginCancel  <a href="#/?id=publishsteamsynclogincancel-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Login.Challenge (notification)
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code> with the URL to show as a QR code.
+Show the URL as a link too, for people whose phone is this device.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID passed to <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code></p>
+</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Challenge URL, to be rendered as a QR code</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncLoginChallengeNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Login.Challenge (notification) <a href="#/?id=publishsteamsyncloginchallenge-notification">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type">Publish.SteamSync.Login</span></code> with the URL to show as a QR code.
+Show the URL as a link too, for people whose phone is this device.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Logout (client request)
+
+
+<p>
+<p>Remove the stored Steam login, publisher key and cached depot keys.
+Nothing is revoked on Steam&rsquo;s side.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="PublishSteamSyncLogoutParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Logout (client request) <a href="#/?id=publishsteamsynclogout-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Remove the stored Steam login, publisher key and cached depot keys.
+Nothing is revoked on Steam&rsquo;s side.</p>
+
+</p>
+</div>
+
+
+<div id="PublishSteamSyncLogoutResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncLogout  <a href="#/?id=publishsteamsynclogout-">(Go to definition)</a></p>
+
+</div>
+
+### Publish.SteamSync.SetPublisherKey (client request)
+
+
+<p>
+<p>Store a Steam publisher Web API key after checking it with the partner
+API. The key proves which apps the developer controls; syncing is only
+allowed for those. Keys are created at
+<a href="https://partner.steamgames.com/pub/groups/">https://partner.steamgames.com/pub/groups/</a> under a publisher group.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>key</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The publisher Web API key</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>appCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Number of apps the key controls</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncSetPublisherKeyParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.SetPublisherKey (client request) <a href="#/?id=publishsteamsyncsetpublisherkey-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Store a Steam publisher Web API key after checking it with the partner
+API. The key proves which apps the developer controls; syncing is only
+allowed for those. Keys are created at
+<a href="https://partner.steamgames.com/pub/groups/">https://partner.steamgames.com/pub/groups/</a> under a publisher group.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>key</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncSetPublisherKeyResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncSetPublisherKey  <a href="#/?id=publishsteamsyncsetpublisherkey-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>appCount</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.RemovePublisherKey (client request)
+
+
+<p>
+<p>Remove the stored publisher key, keeping the login.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="PublishSteamSyncRemovePublisherKeyParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.RemovePublisherKey (client request) <a href="#/?id=publishsteamsyncremovepublisherkey-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Remove the stored publisher key, keeping the login.</p>
+
+</p>
+</div>
+
+
+<div id="PublishSteamSyncRemovePublisherKeyResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncRemovePublisherKey  <a href="#/?id=publishsteamsyncremovepublisherkey-">(Go to definition)</a></p>
+
+</div>
+
+### Publish.SteamSync.ListApps (client request)
+
+
+<p>
+<p>List the Steam apps the stored publisher key controls.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> <em>none</em>
+</p>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>apps</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncApp__TypeHint">PublishSteamSyncApp</span>[]</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncListAppsParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.ListApps (client request) <a href="#/?id=publishsteamsynclistapps-client-request">(Go to definition)</a></p>
+
+<p>
+<p>List the Steam apps the stored publisher key controls.</p>
+
+</p>
+</div>
+
+
+<div id="PublishSteamSyncListAppsResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncListApps  <a href="#/?id=publishsteamsynclistapps-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>apps</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncApp</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Miscellaneous Category
 
@@ -12860,6 +13356,32 @@ LaunchParams.allowedStrategies</p>
 <td><p>The profile explicitly requested for an operation does not exist</p>
 </td>
 </tr>
+<tr>
+<td><code>21000</code></td>
+<td><p>No Steam login is stored, or Steam rejected the stored one.
+Call <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code>.</p>
+</td>
+</tr>
+<tr>
+<td><code>21001</code></td>
+<td><p>No Steam publisher key is stored. Call <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncSetPublisherKeyParams__TypeHint">Publish.SteamSync.SetPublisherKey</span></code>.</p>
+</td>
+</tr>
+<tr>
+<td><code>21002</code></td>
+<td><p>The partner API rejected the publisher key.</p>
+</td>
+</tr>
+<tr>
+<td><code>21003</code></td>
+<td><p>The user declined the login on their phone, or the challenge expired.</p>
+</td>
+</tr>
+<tr>
+<td><code>21004</code></td>
+<td><p>Another <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code> call is still waiting for approval.</p>
+</td>
+</tr>
 </table>
 
 
@@ -12916,6 +13438,21 @@ LaunchParams.allowedStrategies</p>
 </tr>
 <tr>
 <td><code>20000</code></td>
+</tr>
+<tr>
+<td><code>21000</code></td>
+</tr>
+<tr>
+<td><code>21001</code></td>
+</tr>
+<tr>
+<td><code>21002</code></td>
+</tr>
+<tr>
+<td><code>21003</code></td>
+</tr>
+<tr>
+<td><code>21004</code></td>
 </tr>
 </table>
 
@@ -13324,6 +13861,66 @@ Type alias for string
 
 <div id="Cursor__TypeHint" class="tip-content">
 <p>Cursor  <a href="#/?id=cursor-">(Go to definition)</a></p>
+</div>
+
+### PublishSteamSyncApp (struct)
+
+
+<p>
+<p>A Steam app the publisher key controls</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Steam app ID</p>
+</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Name on Steam</p>
+</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>One of game, application, tool, demo, dlc, music</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncApp__TypeHint" class="tip-content">
+<p>PublishSteamSyncApp (struct) <a href="#/?id=publishsteamsyncapp-struct">(Go to definition)</a></p>
+
+<p>
+<p>A Steam app the publisher key controls</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### Host (struct)

@@ -12,4 +12,5 @@ func Register(router *butlerd.Router) {
 	messages.PublishGetChannel.Register(router, GetChannel)
 	messages.PublishGetBuild.Register(router, GetBuild)
 	messages.PublishListBuilds.Register(router, ListBuilds)
+	registerSteam(router)
 }

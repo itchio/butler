@@ -4659,6 +4659,315 @@ func (r *PublishListBuildsType) TestCall(rc *butlerd.RequestContext, params butl
 
 var PublishListBuilds *PublishListBuildsType
 
+// Publish.SteamSync.GetStatus (Request)
+
+type PublishSteamSyncGetStatusType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncGetStatusType)(nil)
+
+func (r *PublishSteamSyncGetStatusType) Method() string {
+  return "Publish.SteamSync.GetStatus"
+}
+
+func (r *PublishSteamSyncGetStatusType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncGetStatusParams) (*butlerd.PublishSteamSyncGetStatusResult, error)) {
+  router.Register("Publish.SteamSync.GetStatus", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncGetStatusParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.GetStatus")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncGetStatusType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncGetStatusParams) (*butlerd.PublishSteamSyncGetStatusResult, error) {
+  var result butlerd.PublishSteamSyncGetStatusResult
+  err := rc.Call("Publish.SteamSync.GetStatus", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncGetStatus *PublishSteamSyncGetStatusType
+
+// Publish.SteamSync.Login (Request)
+
+type PublishSteamSyncLoginType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncLoginType)(nil)
+
+func (r *PublishSteamSyncLoginType) Method() string {
+  return "Publish.SteamSync.Login"
+}
+
+func (r *PublishSteamSyncLoginType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncLoginParams) (*butlerd.PublishSteamSyncLoginResult, error)) {
+  router.Register("Publish.SteamSync.Login", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncLoginParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.Login")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncLoginType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncLoginParams) (*butlerd.PublishSteamSyncLoginResult, error) {
+  var result butlerd.PublishSteamSyncLoginResult
+  err := rc.Call("Publish.SteamSync.Login", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncLogin *PublishSteamSyncLoginType
+
+// Publish.SteamSync.Login.Cancel (Request)
+
+type PublishSteamSyncLoginCancelType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncLoginCancelType)(nil)
+
+func (r *PublishSteamSyncLoginCancelType) Method() string {
+  return "Publish.SteamSync.Login.Cancel"
+}
+
+func (r *PublishSteamSyncLoginCancelType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncLoginCancelParams) (*butlerd.PublishSteamSyncLoginCancelResult, error)) {
+  router.Register("Publish.SteamSync.Login.Cancel", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncLoginCancelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.Login.Cancel")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncLoginCancelType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncLoginCancelParams) (*butlerd.PublishSteamSyncLoginCancelResult, error) {
+  var result butlerd.PublishSteamSyncLoginCancelResult
+  err := rc.Call("Publish.SteamSync.Login.Cancel", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncLoginCancel *PublishSteamSyncLoginCancelType
+
+// Publish.SteamSync.Login.Challenge (Notification)
+
+type PublishSteamSyncLoginChallengeType struct {}
+
+var _ NotificationMessage = (*PublishSteamSyncLoginChallengeType)(nil)
+
+func (r *PublishSteamSyncLoginChallengeType) Method() string {
+  return "Publish.SteamSync.Login.Challenge"
+}
+
+func (r *PublishSteamSyncLoginChallengeType) Notify(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncLoginChallengeNotification) (error) {
+  return rc.Notify("Publish.SteamSync.Login.Challenge", params)
+}
+
+func (r *PublishSteamSyncLoginChallengeType) Register(router router, f func(butlerd.PublishSteamSyncLoginChallengeNotification)) {
+  router.RegisterNotification("Publish.SteamSync.Login.Challenge", func (notif jsonrpc2.Notification) {
+    var params butlerd.PublishSteamSyncLoginChallengeNotification
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
+    }
+    f(params)
+  })
+}
+
+var PublishSteamSyncLoginChallenge *PublishSteamSyncLoginChallengeType
+
+// Publish.SteamSync.Logout (Request)
+
+type PublishSteamSyncLogoutType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncLogoutType)(nil)
+
+func (r *PublishSteamSyncLogoutType) Method() string {
+  return "Publish.SteamSync.Logout"
+}
+
+func (r *PublishSteamSyncLogoutType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncLogoutParams) (*butlerd.PublishSteamSyncLogoutResult, error)) {
+  router.Register("Publish.SteamSync.Logout", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncLogoutParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.Logout")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncLogoutType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncLogoutParams) (*butlerd.PublishSteamSyncLogoutResult, error) {
+  var result butlerd.PublishSteamSyncLogoutResult
+  err := rc.Call("Publish.SteamSync.Logout", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncLogout *PublishSteamSyncLogoutType
+
+// Publish.SteamSync.SetPublisherKey (Request)
+
+type PublishSteamSyncSetPublisherKeyType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncSetPublisherKeyType)(nil)
+
+func (r *PublishSteamSyncSetPublisherKeyType) Method() string {
+  return "Publish.SteamSync.SetPublisherKey"
+}
+
+func (r *PublishSteamSyncSetPublisherKeyType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncSetPublisherKeyParams) (*butlerd.PublishSteamSyncSetPublisherKeyResult, error)) {
+  router.Register("Publish.SteamSync.SetPublisherKey", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncSetPublisherKeyParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.SetPublisherKey")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncSetPublisherKeyType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncSetPublisherKeyParams) (*butlerd.PublishSteamSyncSetPublisherKeyResult, error) {
+  var result butlerd.PublishSteamSyncSetPublisherKeyResult
+  err := rc.Call("Publish.SteamSync.SetPublisherKey", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncSetPublisherKey *PublishSteamSyncSetPublisherKeyType
+
+// Publish.SteamSync.RemovePublisherKey (Request)
+
+type PublishSteamSyncRemovePublisherKeyType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncRemovePublisherKeyType)(nil)
+
+func (r *PublishSteamSyncRemovePublisherKeyType) Method() string {
+  return "Publish.SteamSync.RemovePublisherKey"
+}
+
+func (r *PublishSteamSyncRemovePublisherKeyType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncRemovePublisherKeyParams) (*butlerd.PublishSteamSyncRemovePublisherKeyResult, error)) {
+  router.Register("Publish.SteamSync.RemovePublisherKey", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncRemovePublisherKeyParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.RemovePublisherKey")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncRemovePublisherKeyType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncRemovePublisherKeyParams) (*butlerd.PublishSteamSyncRemovePublisherKeyResult, error) {
+  var result butlerd.PublishSteamSyncRemovePublisherKeyResult
+  err := rc.Call("Publish.SteamSync.RemovePublisherKey", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncRemovePublisherKey *PublishSteamSyncRemovePublisherKeyType
+
+// Publish.SteamSync.ListApps (Request)
+
+type PublishSteamSyncListAppsType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncListAppsType)(nil)
+
+func (r *PublishSteamSyncListAppsType) Method() string {
+  return "Publish.SteamSync.ListApps"
+}
+
+func (r *PublishSteamSyncListAppsType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncListAppsParams) (*butlerd.PublishSteamSyncListAppsResult, error)) {
+  router.Register("Publish.SteamSync.ListApps", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncListAppsParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.ListApps")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncListAppsType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncListAppsParams) (*butlerd.PublishSteamSyncListAppsResult, error) {
+  var result butlerd.PublishSteamSyncListAppsResult
+  err := rc.Call("Publish.SteamSync.ListApps", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncListApps *PublishSteamSyncListAppsType
+
 
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
@@ -4747,5 +5056,12 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Publish.GetChannel"]; !ok { panic("missing request handler for (Publish.GetChannel)") }
   if _, ok := router.Handlers["Publish.GetBuild"]; !ok { panic("missing request handler for (Publish.GetBuild)") }
   if _, ok := router.Handlers["Publish.ListBuilds"]; !ok { panic("missing request handler for (Publish.ListBuilds)") }
+  if _, ok := router.Handlers["Publish.SteamSync.GetStatus"]; !ok { panic("missing request handler for (Publish.SteamSync.GetStatus)") }
+  if _, ok := router.Handlers["Publish.SteamSync.Login"]; !ok { panic("missing request handler for (Publish.SteamSync.Login)") }
+  if _, ok := router.Handlers["Publish.SteamSync.Login.Cancel"]; !ok { panic("missing request handler for (Publish.SteamSync.Login.Cancel)") }
+  if _, ok := router.Handlers["Publish.SteamSync.Logout"]; !ok { panic("missing request handler for (Publish.SteamSync.Logout)") }
+  if _, ok := router.Handlers["Publish.SteamSync.SetPublisherKey"]; !ok { panic("missing request handler for (Publish.SteamSync.SetPublisherKey)") }
+  if _, ok := router.Handlers["Publish.SteamSync.RemovePublisherKey"]; !ok { panic("missing request handler for (Publish.SteamSync.RemovePublisherKey)") }
+  if _, ok := router.Handlers["Publish.SteamSync.ListApps"]; !ok { panic("missing request handler for (Publish.SteamSync.ListApps)") }
 }
 

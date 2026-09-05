@@ -29,6 +29,7 @@ func GetRouter(dbPool *sqlitex.Pool, mansionContext *mansion.Context) *butlerd.R
 	}
 
 	mainRouter = butlerd.NewRouter(dbPool, mansionContext.NewClient, mansionContext.HTTPClient, mansionContext.HTTPTransport)
+	mainRouter.Identity = mansionContext.Identity
 
 	meta.Register(mainRouter)
 	utilities.Register(mainRouter)

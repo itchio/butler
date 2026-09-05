@@ -59,6 +59,10 @@ type Router struct {
 	httpClient           *http.Client
 	httpTransport        *http.Transport
 
+	// Path to butler's credentials file. Global state such as Steam
+	// credentials lives next to it rather than in the per-profile database.
+	Identity string
+
 	Group                *singleflight.Group
 	ShutdownChan         chan struct{}
 	initiateShutdownOnce sync.Once
@@ -248,6 +252,7 @@ func (r *Router) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interf
 			Conn:        conn,
 			CancelFuncs: r.CancelFuncs,
 			dbPool:      r.dbPool,
+			Identity:    r.Identity,
 			Client:      r.getClient,
 
 			HTTPClient:    r.httpClient,
@@ -382,6 +387,7 @@ func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
 		Conn:        nil,
 		CancelFuncs: r.CancelFuncs,
 		dbPool:      r.dbPool,
+		Identity:    r.Identity,
 		Client:      r.getClient,
 
 		HTTPClient:    r.httpClient,
@@ -436,6 +442,7 @@ type RequestContext struct {
 	Conn        jsonrpc2.Conn
 	CancelFuncs *CancelFuncs
 	dbPool      *sqlitex.Pool
+	Identity    string
 
 	Group    *singleflight.Group
 	Shutdown func()

@@ -3447,6 +3447,153 @@
           }
         ]
       }
+    },
+    {
+      "method": "Publish.SteamSync.GetStatus",
+      "doc": "Reports what Steam credentials are stored. Reads a local file only;\nwhether the login is still accepted by Steam is found out by the\noperations that use it, which fail with CodePublishSteamSyncNotLoggedIn.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "loggedIn",
+            "doc": "True when a Steam login is stored",
+            "type": "boolean"
+          },
+          {
+            "name": "accountName",
+            "doc": "Steam account name, when logged in",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "steamId",
+            "doc": "64-bit Steam ID as a string, when logged in",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "hasPublisherKey",
+            "doc": "True when a publisher Web API key is stored",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Login",
+      "doc": "Log in to a Steam account by QR code. Steam's mobile app scans the\ncode and the user approves there; no password reaches butler.\n\nA @@PublishSteamSyncLoginChallengeNotification carries the URL to render as a QR\ncode, and is sent again whenever Steam rotates the challenge. The\nrequest returns once the login is approved. Cancel it with\n@@PublishSteamSyncLoginCancelParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "ID that can be later used in @@PublishSteamSyncLoginCancelParams",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "accountName",
+            "doc": "Steam account name",
+            "type": "string"
+          },
+          {
+            "name": "steamId",
+            "doc": "64-bit Steam ID as a string",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Login.Cancel",
+      "doc": "Cancel a pending @@PublishSteamSyncLoginParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The ID passed to @@PublishSteamSyncLoginParams",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Logout",
+      "doc": "Remove the stored Steam login, publisher key and cached depot keys.\nNothing is revoked on Steam's side.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Publish.SteamSync.SetPublisherKey",
+      "doc": "Store a Steam publisher Web API key after checking it with the partner\nAPI. The key proves which apps the developer controls; syncing is only\nallowed for those. Keys are created at\nhttps://partner.steamgames.com/pub/groups/ under a publisher group.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "key",
+            "doc": "The publisher Web API key",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "appCount",
+            "doc": "Number of apps the key controls",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.RemovePublisherKey",
+      "doc": "Remove the stored publisher key, keeping the login.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "Publish.SteamSync.ListApps",
+      "doc": "List the Steam apps the stored publisher key controls.",
+      "caller": "client",
+      "params": {
+        "fields": null
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "apps",
+            "doc": "",
+            "type": "PublishSteamSyncApp[]"
+          }
+        ]
+      }
     }
   ],
   "notifications": [
@@ -3832,6 +3979,24 @@
             "name": "patchBytes",
             "doc": "Compressed patch size produced so far. Equals UploadedBytes once\nupload catches up; the gap between them is the in-flight buffer.",
             "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Login.Challenge",
+      "doc": "Sent during @@PublishSteamSyncLoginParams with the URL to show as a QR code.\nShow the URL as a link too, for people whose phone is this device.",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The ID passed to @@PublishSteamSyncLoginParams",
+            "type": "string"
+          },
+          {
+            "name": "url",
+            "doc": "Challenge URL, to be rendered as a QR code",
+            "type": "string"
           }
         ]
       }
@@ -6065,6 +6230,114 @@
       ]
     },
     {
+      "name": "PublishSteamSyncGetStatusResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "loggedIn",
+          "doc": "True when a Steam login is stored",
+          "type": "boolean"
+        },
+        {
+          "name": "accountName",
+          "doc": "Steam account name, when logged in",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "steamId",
+          "doc": "64-bit Steam ID as a string, when logged in",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "hasPublisherKey",
+          "doc": "True when a publisher Web API key is stored",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncLoginResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "accountName",
+          "doc": "Steam account name",
+          "type": "string"
+        },
+        {
+          "name": "steamId",
+          "doc": "64-bit Steam ID as a string",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncLoginCancelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "didCancel",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncLogoutResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "PublishSteamSyncSetPublisherKeyResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "appCount",
+          "doc": "Number of apps the key controls",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncRemovePublisherKeyResult",
+      "doc": "",
+      "fields": null
+    },
+    {
+      "name": "PublishSteamSyncListAppsResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "apps",
+          "doc": "",
+          "type": "PublishSteamSyncApp[]"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncApp",
+      "doc": "A Steam app the publisher key controls",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "Steam app ID",
+          "type": "number"
+        },
+        {
+          "name": "name",
+          "doc": "Name on Steam",
+          "type": "string"
+        },
+        {
+          "name": "type",
+          "doc": "One of game, application, tool, demo, dlc, music",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "Host",
       "doc": "",
       "fields": [
@@ -7793,6 +8066,31 @@
           "name": "NoSuchProfile",
           "doc": "The profile explicitly requested for an operation does not exist",
           "value": 20000
+        },
+        {
+          "name": "PublishSteamSyncNotLoggedIn",
+          "doc": "No Steam login is stored, or Steam rejected the stored one.\nCall @@PublishSteamSyncLoginParams.",
+          "value": 21000
+        },
+        {
+          "name": "PublishSteamSyncNoPublisherKey",
+          "doc": "No Steam publisher key is stored. Call @@PublishSteamSyncSetPublisherKeyParams.",
+          "value": 21001
+        },
+        {
+          "name": "PublishSteamSyncPublisherKeyInvalid",
+          "doc": "The partner API rejected the publisher key.",
+          "value": 21002
+        },
+        {
+          "name": "PublishSteamSyncLoginDenied",
+          "doc": "The user declined the login on their phone, or the challenge expired.",
+          "value": 21003
+        },
+        {
+          "name": "PublishSteamSyncLoginInProgress",
+          "doc": "Another @@PublishSteamSyncLoginParams call is still waiting for approval.",
+          "value": 21004
         }
       ]
     },

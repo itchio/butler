@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -118,6 +119,9 @@ func newInstance(t *testing.T, options ...instanceOpt) *ButlerInstance {
 		"--transport", "tcp",
 		"--keep-alive",
 		"--dbpath", "file::memory:?cache=shared",
+		// keeps state stored next to the identity file, like Steam
+		// credentials, out of the developer's real config directory
+		"--identity", filepath.Join(t.TempDir(), "butler_creds"),
 		"--destiny-pid", conf.PidString,
 		"--destiny-pid", conf.PpidString,
 	}

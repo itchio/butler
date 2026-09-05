@@ -3885,6 +3885,18 @@ const (
 
 	// The profile explicitly requested for an operation does not exist
 	CodeNoSuchProfile Code = 20000
+
+	// No Steam login is stored, or Steam rejected the stored one.
+	// Call @@PublishSteamSyncLoginParams.
+	CodePublishSteamSyncNotLoggedIn Code = 21000
+	// No Steam publisher key is stored. Call @@PublishSteamSyncSetPublisherKeyParams.
+	CodePublishSteamSyncNoPublisherKey Code = 21001
+	// The partner API rejected the publisher key.
+	CodePublishSteamSyncPublisherKeyInvalid Code = 21002
+	// The user declined the login on their phone, or the challenge expired.
+	CodePublishSteamSyncLoginDenied Code = 21003
+	// Another @@PublishSteamSyncLoginParams call is still waiting for approval.
+	CodePublishSteamSyncLoginInProgress Code = 21004
 )
 
 // Publish
@@ -4284,4 +4296,182 @@ var GameClassificationList = []interface{}{
 	itchio.GameClassificationOther,
 	itchio.GameClassificationComic,
 	itchio.GameClassificationBook,
+}
+
+// Publish.SteamSync
+
+// Steam credentials are global, not per profile: the publisher key
+// belongs to a Steam partner account, not an itch.io user. They are kept
+// in a file next to butler's own credentials, shared with the
+// `butler steam-*` commands.
+
+// Reports what Steam credentials are stored. Reads a local file only;
+// whether the login is still accepted by Steam is found out by the
+// operations that use it, which fail with CodePublishSteamSyncNotLoggedIn.
+//
+// @name Publish.SteamSync.GetStatus
+// @category Publish
+// @tags Offline
+// @caller client
+type PublishSteamSyncGetStatusParams struct {
+}
+
+func (p PublishSteamSyncGetStatusParams) Validate() error {
+	return nil
+}
+
+type PublishSteamSyncGetStatusResult struct {
+	// True when a Steam login is stored
+	LoggedIn bool `json:"loggedIn"`
+	// Steam account name, when logged in
+	AccountName string `json:"accountName,omitempty"`
+	// 64-bit Steam ID as a string, when logged in
+	SteamID string `json:"steamId,omitempty"`
+	// True when a publisher Web API key is stored
+	HasPublisherKey bool `json:"hasPublisherKey"`
+}
+
+// Log in to a Steam account by QR code. Steam's mobile app scans the
+// code and the user approves there; no password reaches butler.
+//
+// A @@PublishSteamSyncLoginChallengeNotification carries the URL to render as a QR
+// code, and is sent again whenever Steam rotates the challenge. The
+// request returns once the login is approved. Cancel it with
+// @@PublishSteamSyncLoginCancelParams.
+//
+// @name Publish.SteamSync.Login
+// @category Publish
+// @tags Cancellable
+// @caller client
+type PublishSteamSyncLoginParams struct {
+	// ID that can be later used in @@PublishSteamSyncLoginCancelParams
+	ID string `json:"id"`
+}
+
+func (p PublishSteamSyncLoginParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
+}
+
+type PublishSteamSyncLoginResult struct {
+	// Steam account name
+	AccountName string `json:"accountName"`
+	// 64-bit Steam ID as a string
+	SteamID string `json:"steamId"`
+}
+
+// Cancel a pending @@PublishSteamSyncLoginParams.
+//
+// @name Publish.SteamSync.Login.Cancel
+// @category Publish
+// @caller client
+type PublishSteamSyncLoginCancelParams struct {
+	// The ID passed to @@PublishSteamSyncLoginParams
+	ID string `json:"id"`
+}
+
+func (p PublishSteamSyncLoginCancelParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
+}
+
+type PublishSteamSyncLoginCancelResult struct {
+	DidCancel bool `json:"didCancel"`
+}
+
+// Sent during @@PublishSteamSyncLoginParams with the URL to show as a QR code.
+// Show the URL as a link too, for people whose phone is this device.
+//
+// @name Publish.SteamSync.Login.Challenge
+// @category Publish
+type PublishSteamSyncLoginChallengeNotification struct {
+	// The ID passed to @@PublishSteamSyncLoginParams
+	ID string `json:"id"`
+	// Challenge URL, to be rendered as a QR code
+	URL string `json:"url"`
+}
+
+// Remove the stored Steam login, publisher key and cached depot keys.
+// Nothing is revoked on Steam's side.
+//
+// @name Publish.SteamSync.Logout
+// @category Publish
+// @tags Offline
+// @caller client
+type PublishSteamSyncLogoutParams struct {
+}
+
+func (p PublishSteamSyncLogoutParams) Validate() error {
+	return nil
+}
+
+type PublishSteamSyncLogoutResult struct {
+}
+
+// Store a Steam publisher Web API key after checking it with the partner
+// API. The key proves which apps the developer controls; syncing is only
+// allowed for those. Keys are created at
+// https://partner.steamgames.com/pub/groups/ under a publisher group.
+//
+// @name Publish.SteamSync.SetPublisherKey
+// @category Publish
+// @caller client
+type PublishSteamSyncSetPublisherKeyParams struct {
+	// The publisher Web API key
+	Key string `json:"key"`
+}
+
+func (p PublishSteamSyncSetPublisherKeyParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.Key, validation.Required),
+	)
+}
+
+type PublishSteamSyncSetPublisherKeyResult struct {
+	// Number of apps the key controls
+	AppCount int64 `json:"appCount"`
+}
+
+// Remove the stored publisher key, keeping the login.
+//
+// @name Publish.SteamSync.RemovePublisherKey
+// @category Publish
+// @tags Offline
+// @caller client
+type PublishSteamSyncRemovePublisherKeyParams struct {
+}
+
+func (p PublishSteamSyncRemovePublisherKeyParams) Validate() error {
+	return nil
+}
+
+type PublishSteamSyncRemovePublisherKeyResult struct {
+}
+
+// List the Steam apps the stored publisher key controls.
+//
+// @name Publish.SteamSync.ListApps
+// @category Publish
+// @caller client
+type PublishSteamSyncListAppsParams struct {
+}
+
+func (p PublishSteamSyncListAppsParams) Validate() error {
+	return nil
+}
+
+type PublishSteamSyncListAppsResult struct {
+	Apps []*PublishSteamSyncApp `json:"apps"`
+}
+
+// A Steam app the publisher key controls
+type PublishSteamSyncApp struct {
+	// Steam app ID
+	ID int64 `json:"id"`
+	// Name on Steam
+	Name string `json:"name"`
+	// One of game, application, tool, demo, dlc, music
+	Type string `json:"type"`
 }
