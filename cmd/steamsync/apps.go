@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/steam"
 	"github.com/itchio/fresh-steamer/appinfo"
 	"github.com/pkg/errors"
 )
@@ -40,13 +41,9 @@ func Apps(ctx *mansion.Context) error {
 	goCtx, cancel := ctx.DefaultCtx()
 	defer cancel()
 
-	pc, err := partnerClient(ctx)
+	apps, err := steam.ListApps(goCtx, store(ctx))
 	if err != nil {
-		return err
-	}
-	apps, err := pc.Apps(goCtx)
-	if err != nil {
-		return errors.Wrap(err, "listing partner apps")
+		return hint(err)
 	}
 	rows := make([]appRow, 0, len(apps))
 	for _, a := range apps {

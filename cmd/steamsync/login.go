@@ -7,8 +7,8 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/steam"
 	"github.com/itchio/fresh-steamer/auth"
-	"github.com/itchio/fresh-steamer/partner"
 	"github.com/mdp/qrterminal/v3"
 	"github.com/pkg/errors"
 )
@@ -44,64 +44,55 @@ func Login(ctx *mansion.Context, usePassword bool, user string) error {
 	goCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	existing, err := loadCreds(ctx)
+	st := store(ctx)
+	existing, err := st.Load()
 	if err != nil {
 		return err
 	}
-	if existing.RefreshToken != "" {
+	if existing.LoggedIn() {
 		comm.Logf("Already logged in to Steam as %s. Run `butler steam-logout` to switch accounts.", existing.AccountName)
 		comm.Result(map[string]string{"status": "success", "account_name": existing.AccountName})
 		return nil
 	}
 
-	var c *auth.Credentials
+	var acct *steam.Account
 	if usePassword {
-		c, err = loginPassword(goCtx, user)
+		acct, err = loginPassword(goCtx, st, user)
 	} else {
-		c, err = loginQR(goCtx)
+		acct, err = steam.LoginQR(goCtx, st, showChallenge)
 	}
 	if err != nil {
-		return errors.Wrap(err, "logging in to Steam")
-	}
-
-	existing.AccountName = c.AccountName
-	existing.SteamID = c.SteamID
-	existing.RefreshToken = c.RefreshToken
-	if err := saveCreds(ctx, existing); err != nil {
 		return err
 	}
-	comm.Logf("Logged in to Steam as %s, credentials saved to %s", c.AccountName, credsPath(ctx))
-	if existing.PublisherKey == "" {
+
+	comm.Logf("Logged in to Steam as %s, credentials saved to %s", acct.AccountName, st.CredsPath())
+	if !existing.HasPublisherKey() {
 		comm.Logf("Next, run `butler steam-key` to store the publisher key that proves which apps you control.")
 	}
-	comm.Result(map[string]string{"status": "success", "account_name": c.AccountName})
+	comm.Result(map[string]string{"status": "success", "account_name": acct.AccountName})
 	return nil
 }
 
-func loginQR(goCtx context.Context) (*auth.Credentials, error) {
-	return auth.LoginQR(goCtx, auth.QROptions{
-		OnChallenge: func(url string) {
-			comm.Logf("")
-			comm.Logf("Scan with the Steam mobile app, then approve the login there.")
-			comm.Logf("Or open this link on your phone: %s", url)
-			comm.Logf("")
-			qrterminal.GenerateWithConfig(url, qrterminal.Config{
-				Level:          qrterminal.L,
-				Writer:         os.Stderr,
-				HalfBlocks:     true,
-				BlackChar:      qrterminal.BLACK_BLACK,
-				WhiteChar:      qrterminal.WHITE_WHITE,
-				BlackWhiteChar: qrterminal.BLACK_WHITE,
-				WhiteBlackChar: qrterminal.WHITE_BLACK,
-				QuietZone:      2,
-			})
-			comm.Logf("")
-			comm.Logf("Waiting for approval... (ctrl-c to cancel, or use `butler steam-login --password`)")
-		},
+func showChallenge(url string) {
+	comm.Logf("")
+	comm.Logf("Scan with the Steam mobile app, then approve the login there.")
+	comm.Logf("Or open this link on your phone: %s", url)
+	comm.Logf("")
+	qrterminal.GenerateWithConfig(url, qrterminal.Config{
+		Level:          qrterminal.L,
+		Writer:         os.Stderr,
+		HalfBlocks:     true,
+		BlackChar:      qrterminal.BLACK_BLACK,
+		WhiteChar:      qrterminal.WHITE_WHITE,
+		BlackWhiteChar: qrterminal.BLACK_WHITE,
+		WhiteBlackChar: qrterminal.WHITE_BLACK,
+		QuietZone:      2,
 	})
+	comm.Logf("")
+	comm.Logf("Waiting for approval... (ctrl-c to cancel, or use `butler steam-login --password`)")
 }
 
-func loginPassword(goCtx context.Context, name string) (*auth.Credentials, error) {
+func loginPassword(goCtx context.Context, st steam.Store, name string) (*steam.Account, error) {
 	var err error
 	if name == "" {
 		if name, err = prompt("Steam account name: ", false); err != nil {
@@ -112,21 +103,18 @@ func loginPassword(goCtx context.Context, name string) (*auth.Credentials, error
 	if err != nil {
 		return nil, err
 	}
-	return auth.Login(goCtx, auth.Options{
-		AccountName: name,
-		Password:    pass,
-		Guard: auth.GuardFunc(func(ctx context.Context, kind auth.GuardType, msg string) (string, error) {
-			if kind == auth.GuardDeviceConfirmation {
-				comm.Logf("Approve the login in the Steam mobile app...")
-				return "", nil
-			}
-			label := fmt.Sprintf("Steam Guard %s", kind)
-			if msg != "" {
-				label += " (" + msg + ")"
-			}
-			return prompt(label+": ", false)
-		}),
+	guard := auth.GuardFunc(func(ctx context.Context, kind auth.GuardType, msg string) (string, error) {
+		if kind == auth.GuardDeviceConfirmation {
+			comm.Logf("Approve the login in the Steam mobile app...")
+			return "", nil
+		}
+		label := fmt.Sprintf("Steam Guard %s", kind)
+		if msg != "" {
+			label += " (" + msg + ")"
+		}
+		return prompt(label+": ", false)
 	})
+	return steam.LoginPassword(goCtx, st, name, pass, guard)
 }
 
 func doLogout(ctx *mansion.Context) {
@@ -134,9 +122,9 @@ func doLogout(ctx *mansion.Context) {
 }
 
 func Logout(ctx *mansion.Context) error {
-	p := credsPath(ctx)
-	if _, err := os.Lstat(p); os.IsNotExist(err) {
-		comm.Logf("No saved Steam credentials at %s", p)
+	st := store(ctx)
+	if _, err := os.Lstat(st.CredsPath()); os.IsNotExist(err) {
+		comm.Logf("No saved Steam credentials at %s", st.CredsPath())
 		comm.Log("Nothing to do.")
 		return nil
 	}
@@ -153,11 +141,8 @@ func Logout(ctx *mansion.Context) error {
 		return nil
 	}
 
-	if err := os.Remove(p); err != nil {
+	if err := st.Logout(); err != nil {
 		return errors.Wrap(err, "deleting steam credentials")
-	}
-	if err := os.Remove(keysPath(ctx)); err != nil && !os.IsNotExist(err) {
-		return errors.Wrap(err, "deleting cached depot keys")
 	}
 	comm.Log("Erased the Steam credentials saved on this computer.")
 	return nil
@@ -183,20 +168,12 @@ func Key(ctx *mansion.Context, key string) error {
 		return errors.New("no key given")
 	}
 
-	apps, err := partner.NewClient(key).Apps(goCtx)
-	if err != nil {
-		return errors.Wrap(err, "verifying publisher key")
-	}
-
-	c, err := loadCreds(ctx)
+	st := store(ctx)
+	apps, err := steam.SetPublisherKey(goCtx, st, key)
 	if err != nil {
 		return err
 	}
-	c.PublisherKey = key
-	if err := saveCreds(ctx, c); err != nil {
-		return err
-	}
-	comm.Logf("Key verified, it controls %d app(s). Saved to %s", len(apps), credsPath(ctx))
+	comm.Logf("Key verified, it controls %d app(s). Saved to %s", len(apps), st.CredsPath())
 	comm.Result(map[string]interface{}{"status": "success", "app_count": len(apps)})
 	return nil
 }
