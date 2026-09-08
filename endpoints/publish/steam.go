@@ -23,6 +23,9 @@ func registerSteam(router *butlerd.Router) {
 }
 
 func steamStore(rc *butlerd.RequestContext) steam.Store {
+	if steam.Ungated() {
+		rc.Consumer.Warnf("%s is set: the publisher key is not checked and any owned app can be synced. Development only.", steam.EnvUngated)
+	}
 	return steam.StoreFor(rc.Identity)
 }
 

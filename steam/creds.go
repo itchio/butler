@@ -245,6 +245,9 @@ func (s Store) OpenSession(ctx context.Context, logf func(string, ...interface{}
 // depot protocol would happily serve any owned game, and this tool is for
 // developers moving their own builds, not for copying a library.
 func (s Store) CheckAppAccess(ctx context.Context, appID uint32) error {
+	if Ungated() {
+		return nil
+	}
 	pc, err := s.PartnerClient()
 	if err != nil {
 		return err

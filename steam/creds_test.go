@@ -1,6 +1,7 @@
 package steam
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 )
@@ -67,5 +68,31 @@ func TestStoreLayers(t *testing.T) {
 	disk, _ = s.Persisted()
 	if disk.LoggedIn() || disk.HasPublisherKey() {
 		t.Fatalf("logout should clear the file: %+v", disk)
+	}
+}
+
+func TestUngated(t *testing.T) {
+	s := StoreFor(filepath.Join(t.TempDir(), "butler_creds"))
+	// keep the gated half of the test off the network
+	t.Setenv("BUTLER_STEAM_PARTNER_URL", "http://127.0.0.1:9")
+	t.Setenv(EnvUngated, "1")
+
+	// No partner server is reachable here, so this only passes because
+	// the key is not verified.
+	apps, err := SetPublisherKey(context.Background(), s, "anything")
+	if err != nil || len(apps) != 0 {
+		t.Fatalf("ungated key should be stored without verification: %v %v", apps, err)
+	}
+	c, _ := s.Persisted()
+	if c.PublisherKey != "anything" {
+		t.Fatalf("key not stored: %+v", c)
+	}
+	if err := s.CheckAppAccess(context.Background(), 480); err != nil {
+		t.Fatalf("ungated access check should pass: %v", err)
+	}
+
+	t.Setenv(EnvUngated, "")
+	if err := s.CheckAppAccess(context.Background(), 480); err == nil {
+		t.Fatal("gated access check should fail when the partner API is unreachable")
 	}
 }

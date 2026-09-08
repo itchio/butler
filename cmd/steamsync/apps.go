@@ -42,6 +42,7 @@ func Apps(ctx *mansion.Context) error {
 	goCtx, cancel := ctx.DefaultCtx()
 	defer cancel()
 
+	warnUngated()
 	apps, err := steam.ListApps(goCtx, store(ctx))
 	if err != nil {
 		return hint(err)

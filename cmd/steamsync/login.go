@@ -180,11 +180,16 @@ func Key(ctx *mansion.Context, key string) error {
 	}
 
 	st := store(ctx)
+	warnUngated()
 	apps, err := steam.SetPublisherKey(goCtx, st, key)
 	if err != nil {
 		return err
 	}
-	comm.Logf("Key verified, it controls %d app(s). Saved to %s", len(apps), st.CredsPath())
+	if steam.Ungated() {
+		comm.Logf("Key saved without verification to %s", st.CredsPath())
+	} else {
+		comm.Logf("Key verified, it controls %d app(s). Saved to %s", len(apps), st.CredsPath())
+	}
 	comm.Result(map[string]interface{}{"status": "success", "app_count": len(apps)})
 	return nil
 }

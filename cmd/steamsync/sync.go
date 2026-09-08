@@ -22,7 +22,6 @@ var syncArgs = struct {
 	mappings []string
 	skips    []uint32
 	dryRun   bool
-	noGate   bool
 	cacheDir string
 	force    bool
 	noPush   bool
@@ -42,9 +41,6 @@ func RegisterSync(ctx *mansion.Context) {
 	cmd.Flag("force", "Push even when the channel's latest build already has this Steam build id").BoolVar(&syncArgs.force)
 	cmd.Flag("no-push", "Download and assemble the channel directories, then stop. Requires --cache-dir, otherwise there would be nothing left to look at.").BoolVar(&syncArgs.noPush)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").BoolVar(&syncArgs.hidden)
-	// Development only. Lets a dry run plan an app the publisher key does
-	// not control. Never honored when bytes would actually move.
-	cmd.Flag("no-gate", "").Hidden().BoolVar(&syncArgs.noGate)
 	registerCredFlags(cmd)
 	ctx.Register(cmd, doSync)
 }
@@ -83,10 +79,8 @@ func Sync(ctx *mansion.Context) error {
 		return errors.New("--no-push needs --cache-dir, since the temporary directory is removed when the command exits")
 	}
 
-	if !(syncArgs.dryRun && syncArgs.noGate) {
-		if err := checkAppAccess(ctx, goCtx, syncArgs.appID); err != nil {
-			return err
-		}
+	if err := checkAppAccess(ctx, goCtx, syncArgs.appID); err != nil {
+		return err
 	}
 
 	s, err := openSession(ctx, goCtx)

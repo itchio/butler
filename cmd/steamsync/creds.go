@@ -54,7 +54,14 @@ func openSession(ctx *mansion.Context, goCtx context.Context) (*session.Session,
 }
 
 func checkAppAccess(ctx *mansion.Context, goCtx context.Context, appID uint32) error {
+	warnUngated()
 	return hint(store(ctx).CheckAppAccess(goCtx, appID))
+}
+
+func warnUngated() {
+	if steam.Ungated() {
+		comm.Warnf("%s is set: the publisher key is not checked and any owned app can be synced. Development only.", steam.EnvUngated)
+	}
 }
 
 func prompt(label string, secret bool) (string, error) {

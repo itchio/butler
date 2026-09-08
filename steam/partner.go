@@ -13,9 +13,13 @@ func SetPublisherKey(ctx context.Context, s Store, key string) ([]partner.App, e
 	if key == "" {
 		return nil, errors.New("empty publisher key")
 	}
-	apps, err := newPartnerClient(key).Apps(ctx)
-	if err != nil {
-		return nil, wrapPartnerErr(err, "verifying publisher key")
+	var apps []partner.App
+	if !Ungated() {
+		var err error
+		apps, err = newPartnerClient(key).Apps(ctx)
+		if err != nil {
+			return nil, wrapPartnerErr(err, "verifying publisher key")
+		}
 	}
 	if _, err := s.Update(func(c *Creds) { c.PublisherKey = key }); err != nil {
 		return nil, err
@@ -35,8 +39,12 @@ func RemovePublisherKey(s Store) error {
 	return err
 }
 
-// ListApps returns the apps the stored publisher key controls.
+// ListApps returns the apps the stored publisher key controls, or the
+// owned apps when ungated.
 func ListApps(ctx context.Context, s Store) ([]partner.App, error) {
+	if Ungated() {
+		return OwnedApps(ctx, s)
+	}
 	pc, err := s.PartnerClient()
 	if err != nil {
 		return nil, err
