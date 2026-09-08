@@ -145,6 +145,51 @@ Since the Steam build id is stored as the version of every itch.io build,
 syncing the same Steam build twice does nothing. Pass `--force` to push
 anyway.
 
+### Using a config file
+
+A config file can be used to sync several apps in one run, and to keep each
+app's branch, depot overrides and cache directory with it. It is a TOML file
+with any name:
+
+```toml
+[[sync]]
+app = 123456
+target = "user/game"
+
+[[sync]]
+app = 234567
+target = "user/other-game"
+branch = "beta"
+skip = [234570]
+cache_dir = ".steam-sync-cache"
+
+[sync.map]
+234568 = "win-64"
+```
+
+Run `butler steam-sync --from-config path/to/file.toml`. Each entry is synced
+in order. A failed entry is reported and the remaining entries still run; the
+exit status is non-zero if any failed.
+
+Each `[[sync]]` entry takes:
+
+  * `app` and `target`: required, the same two arguments as the command line
+  * `branch`: default `public`
+  * `skip`: depot ids to leave out
+  * `map`: depot id to channel name, in a `[sync.map]` table
+  * `cache_dir`: keep downloads between syncs. A relative path is relative to
+    the config file.
+  * `hidden`: create new channels as hidden
+
+There is no password field. A private branch's password is given with
+`--password` or the `BUTLER_STEAM_BRANCH_PASSWORD` environment variable.
+
+The file and the command line are not combined. `--from-config` cannot be
+given together with an app id, and with it the per-app flags (`--branch`,
+`--map`, `--skip`, `--cache-dir`, `--hidden`) are an error.
+`--dry-run`, `--force` and `--no-push` apply in both cases. `--dry-run` with
+a config file prints the plan for every entry.
+
 ### How depots become channels
 
 Each depot on Steam declares which operating systems it targets, and
@@ -271,6 +316,12 @@ A sync job then looks like this:
 butler steam-sync 123456 user/game --cache-dir "$CACHE_DIR"
 ```
 
+or, with a config file:
+
+```bash
+butler steam-sync --from-config sync.toml
+```
+
 Steam refresh tokens eventually expire, and are revoked when you sign out of
 all devices from your Steam account. When that happens the sync fails and
 asks you to log in again. Run `butler steam-login --no-save` once more and
@@ -335,19 +386,27 @@ butler steam-logout
 butler steam-key [KEY]
 butler steam-apps [--owned]
 butler steam-sync APPID user/game [flags]
+butler steam-sync --from-config FILE [flags]
 ```
 
-Flags for `steam-sync`:
+Flags for `steam-sync`, per app (command line only):
 
   * `--branch NAME`: Steam branch to sync, default `public`
-  * `--password PASS`: password for a private branch
   * `--map DEPOTID=CHANNEL`: send a depot to a specific channel, repeatable
   * `--skip DEPOTID`: leave a depot out, repeatable
-  * `--dry-run`: print the plan and exit
   * `--cache-dir DIR`: keep downloads here between syncs
-  * `--no-push`: download and assemble, then stop. Requires `--cache-dir`
-  * `--force`: push even if the channel already has this Steam build
   * `--hidden`: create new channels as hidden
+
+Flags that apply to the run, with or without a config file:
+
+  * `--from-config FILE`: run every entry of a sync config file instead of
+    taking an app id and target
+  * `--password PASS`: password for a private branch, also read from
+    `BUTLER_STEAM_BRANCH_PASSWORD`
+  * `--dry-run`: print the plan and exit
+  * `--no-push`: download and assemble, then stop. Every entry needs a cache
+    directory
+  * `--force`: push even if the channel already has this Steam build
 
 All of these commands support `--json` for machine-readable JSON-lines
 output, like the rest of butler. With it, `butler steam-sync --dry-run` emits
