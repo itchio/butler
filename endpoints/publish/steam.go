@@ -21,6 +21,8 @@ func registerSteam(router *butlerd.Router) {
 	messages.PublishSteamSyncRemovePublisherKey.Register(router, SteamRemovePublisherKey)
 	messages.PublishSteamSyncListApps.Register(router, SteamListApps)
 	messages.PublishSteamSyncPlan.Register(router, SteamPlan)
+	messages.PublishSteamSyncSync.Register(router, SteamSync)
+	messages.PublishSteamSyncCancel.Register(router, SteamSyncCancel)
 }
 
 func steamStore(rc *butlerd.RequestContext) steam.Store {

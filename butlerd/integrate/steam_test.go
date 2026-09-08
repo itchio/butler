@@ -120,3 +120,37 @@ func Test_PublishSteamSync_PlanGate(t *testing.T) {
 	assert.Error(err)
 	assert.NotEqual(butlerd.CodePublishSteamSyncNotLoggedIn, err.(*jsonrpc2.Error).Code)
 }
+
+func Test_PublishSteamSync_SyncWorker(t *testing.T) {
+	assert := assert.New(t)
+
+	srv := fakePartnerServer(t, "GOODKEY")
+	t.Setenv("BUTLER_STEAM_PARTNER_URL", srv.URL)
+
+	bi := newInstance(t)
+	rc, _, cancel := bi.Unwrap()
+	defer cancel()
+	profile := bi.Authenticate()
+
+	sync := butlerd.PublishSteamSyncSyncParams{ID: "sync-1", ProfileID: profile.ID, AppID: 480, Target: "leafo/spacewar"}
+
+	// The worker runs the same gate as Plan, so its text comes back as a code.
+	_, err := messages.PublishSteamSyncSync.TestCall(rc, sync)
+	assert.Error(err)
+	assert.EqualValues(butlerd.CodePublishSteamSyncNoPublisherKey, err.(*jsonrpc2.Error).Code)
+
+	_, err = messages.PublishSteamSyncSetPublisherKey.TestCall(rc, butlerd.PublishSteamSyncSetPublisherKeyParams{Key: "GOODKEY"})
+	must(err)
+
+	_, err = messages.PublishSteamSyncSync.TestCall(rc, sync)
+	assert.Error(err)
+	assert.EqualValues(butlerd.CodePublishSteamSyncNotLoggedIn, err.(*jsonrpc2.Error).Code)
+
+	_, err = messages.PublishSteamSyncSync.TestCall(rc, butlerd.PublishSteamSyncSyncParams{ID: "sync-2", ProfileID: profile.ID, AppID: 480, Target: "leafo/spacewar:windows"})
+	assert.Error(err)
+	assert.Contains(err.Error(), "channel")
+
+	cancelRes, err := messages.PublishSteamSyncCancel.TestCall(rc, butlerd.PublishSteamSyncCancelParams{ID: "nope"})
+	must(err)
+	assert.False(cancelRes.DidCancel)
+}

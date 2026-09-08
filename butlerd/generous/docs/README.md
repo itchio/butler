@@ -10912,6 +10912,671 @@ a choice and call again with a different branch.</p>
 
 </div>
 
+### Publish.SteamSync.Sync (client request)
+
+
+<p>
+<p>Syncs a Steam app to an itch.io project: plans, downloads the depots,
+assembles one directory per channel and pushes each, with the Steam
+build ID as the user version. Channels whose latest build already has
+that version are skipped unless Force is set.</p>
+
+<p>The work runs in a <code>butler steam-sync</code> worker subprocess, like
+<code class="typename"><span class="type" data-tip-selector="#PublishPushParams__TypeHint">Publish.Push</span></code>. Progress arrives as notifications: first
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncPlannedNotification__TypeHint">Publish.SteamSync.Planned</span></code>, then
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncDepotProgressNotification__TypeHint">Publish.SteamSync.DepotProgress</span></code> while downloading, then per
+channel <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncPushStartedNotification__TypeHint">Publish.SteamSync.PushStarted</span></code>,
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncBuildAssignedNotification__TypeHint">Publish.SteamSync.BuildAssigned</span></code> and
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncPushProgressNotification__TypeHint">Publish.SteamSync.PushProgress</span></code>, or
+<code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncChannelUpToDateNotification__TypeHint">Publish.SteamSync.ChannelUpToDate</span></code> when there is nothing to
+push. Cancel with <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncCancelParams__TypeHint">Publish.SteamSync.Cancel</span></code>.</p>
+
+<p>Downloads are kept in a per-app cache under butler&rsquo;s directory so the
+next sync of the same app only fetches what changed.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID that can be later used in <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncCancelParams__TypeHint">Publish.SteamSync.Cancel</span></code></p>
+</td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io profile to push as</p>
+</td>
+</tr>
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Steam app ID</p>
+</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>itch.io project in user/slug form, without a channel</p>
+</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Steam branch, default &ldquo;public&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Password for a private branch</p>
+</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p><span class="tag">Optional</span> Depot ID to channel name, overriding platform detection</p>
+</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Depot IDs to leave out</p>
+</td>
+</tr>
+<tr>
+<td><code>force</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Push even when the channel already has this Steam build</p>
+</td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Mark new channels as hidden on creation</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Steam build ID that was synced</p>
+</td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncSyncedChannel__TypeHint">PublishSteamSyncSyncedChannel</span>[]</code></td>
+<td><p>One entry per channel of the plan</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncSyncParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Sync (client request) <a href="#/?id=publishsteamsyncsync-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Syncs a Steam app to an itch.io project: plans, downloads the depots,
+assembles one directory per channel and pushes each, with the Steam
+build ID as the user version. Channels whose latest build already has
+that version are skipped unless Force is set.</p>
+
+<p>The work runs in a <code>butler steam-sync</code> worker subprocess, like
+<code class="typename"><span class="type">Publish.Push</span></code>. Progress arrives as notifications: first
+<code class="typename"><span class="type">Publish.SteamSync.Planned</span></code>, then
+<code class="typename"><span class="type">Publish.SteamSync.DepotProgress</span></code> while downloading, then per
+channel <code class="typename"><span class="type">Publish.SteamSync.PushStarted</span></code>,
+<code class="typename"><span class="type">Publish.SteamSync.BuildAssigned</span></code> and
+<code class="typename"><span class="type">Publish.SteamSync.PushProgress</span></code>, or
+<code class="typename"><span class="type">Publish.SteamSync.ChannelUpToDate</span></code> when there is nothing to
+push. Cancel with <code class="typename"><span class="type">Publish.SteamSync.Cancel</span></code>.</p>
+
+<p>Downloads are kept in a per-app cache under butler&rsquo;s directory so the
+next sync of the same app only fetches what changed.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>profileId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+</tr>
+<tr>
+<td><code>force</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncSyncResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncSync  <a href="#/?id=publishsteamsyncsync-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncSyncedChannel</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Planned (notification)
+
+
+<p>
+<p>Sent once the worker has planned the sync, before any download.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>plan</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncPlan__TypeHint">PublishSteamSyncPlan</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncPlannedNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Planned (notification) <a href="#/?id=publishsteamsyncplanned-notification">(Go to definition)</a></p>
+
+<p>
+<p>Sent once the worker has planned the sync, before any download.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>plan</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncPlan</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.DepotProgress (notification)
+
+
+<p>
+<p>Download progress for one depot. Depots download one at a time; sum
+TotalBytes over the plan&rsquo;s channels for the whole picture, counting
+shared depots once.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>depotId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>doneBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncDepotProgressNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.DepotProgress (notification) <a href="#/?id=publishsteamsyncdepotprogress-notification">(Go to definition)</a></p>
+
+<p>
+<p>Download progress for one depot. Depots download one at a time; sum
+TotalBytes over the plan&rsquo;s channels for the whole picture, counting
+shared depots once.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>depotId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>doneBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.ChannelUpToDate (notification)
+
+
+<p>
+<p>The channel&rsquo;s latest build already has this Steam build ID, so it
+is skipped.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncChannelUpToDateNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.ChannelUpToDate (notification) <a href="#/?id=publishsteamsyncchanneluptodate-notification">(Go to definition)</a></p>
+
+<p>
+<p>The channel&rsquo;s latest build already has this Steam build ID, so it
+is skipped.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.PushStarted (notification)
+
+
+<p>
+<p>The channel&rsquo;s directory is assembled and its push is starting.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncPushStartedNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.PushStarted (notification) <a href="#/?id=publishsteamsyncpushstarted-notification">(Go to definition)</a></p>
+
+<p>
+<p>The channel&rsquo;s directory is assembled and its push is starting.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.BuildAssigned (notification)
+
+
+<p>
+<p>The push for a channel has a build ID. Same meaning as
+<code class="typename"><span class="type" data-tip-selector="#PublishPushBuildAssignedNotification__TypeHint">Publish.Push.BuildAssigned</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncBuildAssignedNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.BuildAssigned (notification) <a href="#/?id=publishsteamsyncbuildassigned-notification">(Go to definition)</a></p>
+
+<p>
+<p>The push for a channel has a build ID. Same meaning as
+<code class="typename"><span class="type">Publish.Push.BuildAssigned</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.BuildFailed (notification)
+
+
+<p>
+<p>The push for a channel failed after its build was created. The sync
+stops at the first failed channel.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncBuildFailedNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.BuildFailed (notification) <a href="#/?id=publishsteamsyncbuildfailed-notification">(Go to definition)</a></p>
+
+<p>
+<p>The push for a channel failed after its build was created. The sync
+stops at the first failed channel.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.PushProgress (notification)
+
+
+<p>
+<p>Push progress for a channel. Fields as in
+<code class="typename"><span class="type" data-tip-selector="#PublishPushProgressNotification__TypeHint">Publish.Push.Progress</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>readBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uploadedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>patchBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncPushProgressNotification__TypeHint" class="tip-content">
+<p>Publish.SteamSync.PushProgress (notification) <a href="#/?id=publishsteamsyncpushprogress-notification">(Go to definition)</a></p>
+
+<p>
+<p>Push progress for a channel. Fields as in
+<code class="typename"><span class="type">Publish.Push.Progress</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>eta</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>bps</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>readBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>totalBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>uploadedBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>patchBytes</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Publish.SteamSync.Cancel (client request)
+
+
+<p>
+<p>Cancels a running <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncSyncParams__TypeHint">Publish.SteamSync.Sync</span></code>. The worker is killed;
+a push in flight leaves its build in the failed state on itch.io.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncCancelParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Cancel (client request) <a href="#/?id=publishsteamsynccancel-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Cancels a running <code class="typename"><span class="type">Publish.SteamSync.Sync</span></code>. The worker is killed;
+a push in flight leaves its build in the failed state on itch.io.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncCancelResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncCancel  <a href="#/?id=publishsteamsynccancel-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Miscellaneous Category
 
@@ -14435,6 +15100,57 @@ Type alias for string
 <tr>
 <td><code>timeUpdated</code></td>
 <td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncSyncedChannel (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>itch.io build created for the channel, 0 when up to date</p>
+</td>
+</tr>
+<tr>
+<td><code>upToDate</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when the channel already had this Steam build and was skipped</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncSyncedChannel__TypeHint" class="tip-content">
+<p>PublishSteamSyncSyncedChannel (struct) <a href="#/?id=publishsteamsyncsyncedchannel-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>channel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>upToDate</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

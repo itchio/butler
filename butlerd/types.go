@@ -4575,3 +4575,172 @@ type PublishSteamSyncBranch struct {
 	// Unix seconds of the last build on the branch
 	TimeUpdated int64 `json:"timeUpdated"`
 }
+
+// Syncs a Steam app to an itch.io project: plans, downloads the depots,
+// assembles one directory per channel and pushes each, with the Steam
+// build ID as the user version. Channels whose latest build already has
+// that version are skipped unless Force is set.
+//
+// The work runs in a `butler steam-sync` worker subprocess, like
+// @@PublishPushParams. Progress arrives as notifications: first
+// @@PublishSteamSyncPlannedNotification, then
+// @@PublishSteamSyncDepotProgressNotification while downloading, then per
+// channel @@PublishSteamSyncPushStartedNotification,
+// @@PublishSteamSyncBuildAssignedNotification and
+// @@PublishSteamSyncPushProgressNotification, or
+// @@PublishSteamSyncChannelUpToDateNotification when there is nothing to
+// push. Cancel with @@PublishSteamSyncCancelParams.
+//
+// Downloads are kept in a per-app cache under butler's directory so the
+// next sync of the same app only fetches what changed.
+//
+// @name Publish.SteamSync.Sync
+// @category Publish
+// @tags Cancellable
+// @caller client
+type PublishSteamSyncSyncParams struct {
+	// ID that can be later used in @@PublishSteamSyncCancelParams
+	ID string `json:"id"`
+	// itch.io profile to push as
+	ProfileID int64 `json:"profileId"`
+	// Steam app ID
+	AppID int64 `json:"appId"`
+	// itch.io project in user/slug form, without a channel
+	Target string `json:"target"`
+	// Steam branch, default "public"
+	// @optional
+	Branch string `json:"branch"`
+	// Password for a private branch
+	// @optional
+	Password string `json:"password"`
+	// Depot ID to channel name, overriding platform detection
+	// @optional
+	Map map[string]string `json:"map"`
+	// Depot IDs to leave out
+	// @optional
+	Skip []int64 `json:"skip"`
+	// Push even when the channel already has this Steam build
+	// @optional
+	Force bool `json:"force"`
+	// Mark new channels as hidden on creation
+	// @optional
+	Hidden bool `json:"hidden"`
+}
+
+func (p PublishSteamSyncSyncParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+		validation.Field(&p.ProfileID, validation.Required),
+		validation.Field(&p.AppID, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+	)
+}
+
+type PublishSteamSyncSyncResult struct {
+	// Steam build ID that was synced
+	BuildID int64 `json:"buildId"`
+	// One entry per channel of the plan
+	Channels []*PublishSteamSyncSyncedChannel `json:"channels"`
+}
+
+type PublishSteamSyncSyncedChannel struct {
+	Channel string `json:"channel"`
+	// itch.io build created for the channel, 0 when up to date
+	BuildID int64 `json:"buildId"`
+	// True when the channel already had this Steam build and was skipped
+	UpToDate bool `json:"upToDate"`
+}
+
+// Sent once the worker has planned the sync, before any download.
+//
+// @name Publish.SteamSync.Planned
+// @category Publish
+type PublishSteamSyncPlannedNotification struct {
+	Plan *PublishSteamSyncPlan `json:"plan"`
+}
+
+// Download progress for one depot. Depots download one at a time; sum
+// TotalBytes over the plan's channels for the whole picture, counting
+// shared depots once.
+//
+// @name Publish.SteamSync.DepotProgress
+// @category Publish
+type PublishSteamSyncDepotProgressNotification struct {
+	DepotID    int64 `json:"depotId"`
+	DoneBytes  int64 `json:"doneBytes"`
+	TotalBytes int64 `json:"totalBytes"`
+}
+
+// The channel's latest build already has this Steam build ID, so it
+// is skipped.
+//
+// @name Publish.SteamSync.ChannelUpToDate
+// @category Publish
+type PublishSteamSyncChannelUpToDateNotification struct {
+	Channel string `json:"channel"`
+}
+
+// The channel's directory is assembled and its push is starting.
+//
+// @name Publish.SteamSync.PushStarted
+// @category Publish
+type PublishSteamSyncPushStartedNotification struct {
+	Channel string `json:"channel"`
+}
+
+// The push for a channel has a build ID. Same meaning as
+// @@PublishPushBuildAssignedNotification.
+//
+// @name Publish.SteamSync.BuildAssigned
+// @category Publish
+type PublishSteamSyncBuildAssignedNotification struct {
+	Channel string `json:"channel"`
+	BuildID int64  `json:"buildId"`
+}
+
+// The push for a channel failed after its build was created. The sync
+// stops at the first failed channel.
+//
+// @name Publish.SteamSync.BuildFailed
+// @category Publish
+type PublishSteamSyncBuildFailedNotification struct {
+	Channel string `json:"channel"`
+	BuildID int64  `json:"buildId"`
+	Message string `json:"message"`
+}
+
+// Push progress for a channel. Fields as in
+// @@PublishPushProgressNotification.
+//
+// @name Publish.SteamSync.PushProgress
+// @category Publish
+type PublishSteamSyncPushProgressNotification struct {
+	Channel       string  `json:"channel"`
+	Progress      float64 `json:"progress"`
+	ETA           float64 `json:"eta"`
+	BPS           float64 `json:"bps"`
+	ReadBytes     int64   `json:"readBytes"`
+	TotalBytes    int64   `json:"totalBytes"`
+	UploadedBytes int64   `json:"uploadedBytes"`
+	PatchBytes    int64   `json:"patchBytes"`
+}
+
+// Cancels a running @@PublishSteamSyncSyncParams. The worker is killed;
+// a push in flight leaves its build in the failed state on itch.io.
+//
+// @name Publish.SteamSync.Cancel
+// @category Publish
+// @caller client
+type PublishSteamSyncCancelParams struct {
+	ID string `json:"id"`
+}
+
+func (p PublishSteamSyncCancelParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
+}
+
+type PublishSteamSyncCancelResult struct {
+	DidCancel bool `json:"didCancel"`
+}

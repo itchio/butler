@@ -3646,6 +3646,108 @@
           }
         ]
       }
+    },
+    {
+      "method": "Publish.SteamSync.Sync",
+      "doc": "Syncs a Steam app to an itch.io project: plans, downloads the depots,\nassembles one directory per channel and pushes each, with the Steam\nbuild ID as the user version. Channels whose latest build already has\nthat version are skipped unless Force is set.\n\nThe work runs in a `butler steam-sync` worker subprocess, like\n@@PublishPushParams. Progress arrives as notifications: first\n@@PublishSteamSyncPlannedNotification, then\n@@PublishSteamSyncDepotProgressNotification while downloading, then per\nchannel @@PublishSteamSyncPushStartedNotification,\n@@PublishSteamSyncBuildAssignedNotification and\n@@PublishSteamSyncPushProgressNotification, or\n@@PublishSteamSyncChannelUpToDateNotification when there is nothing to\npush. Cancel with @@PublishSteamSyncCancelParams.\n\nDownloads are kept in a per-app cache under butler's directory so the\nnext sync of the same app only fetches what changed.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "ID that can be later used in @@PublishSteamSyncCancelParams",
+            "type": "string"
+          },
+          {
+            "name": "profileId",
+            "doc": "itch.io profile to push as",
+            "type": "number"
+          },
+          {
+            "name": "appId",
+            "doc": "Steam app ID",
+            "type": "number"
+          },
+          {
+            "name": "target",
+            "doc": "itch.io project in user/slug form, without a channel",
+            "type": "string"
+          },
+          {
+            "name": "branch",
+            "doc": "Steam branch, default \"public\"",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "password",
+            "doc": "Password for a private branch",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "map",
+            "doc": "Depot ID to channel name, overriding platform detection",
+            "type": "{ [key: string]: string }",
+            "optional": true
+          },
+          {
+            "name": "skip",
+            "doc": "Depot IDs to leave out",
+            "type": "number[]",
+            "optional": true
+          },
+          {
+            "name": "force",
+            "doc": "Push even when the channel already has this Steam build",
+            "type": "boolean",
+            "optional": true
+          },
+          {
+            "name": "hidden",
+            "doc": "Mark new channels as hidden on creation",
+            "type": "boolean",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "buildId",
+            "doc": "Steam build ID that was synced",
+            "type": "number"
+          },
+          {
+            "name": "channels",
+            "doc": "One entry per channel of the plan",
+            "type": "PublishSteamSyncSyncedChannel[]"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Cancel",
+      "doc": "Cancels a running @@PublishSteamSyncSyncParams. The worker is killed;\na push in flight leaves its build in the failed state on itch.io.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      }
     }
   ],
   "notifications": [
@@ -4049,6 +4151,157 @@
             "name": "url",
             "doc": "Challenge URL, to be rendered as a QR code",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.Planned",
+      "doc": "Sent once the worker has planned the sync, before any download.",
+      "params": {
+        "fields": [
+          {
+            "name": "plan",
+            "doc": "",
+            "type": "PublishSteamSyncPlan"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.DepotProgress",
+      "doc": "Download progress for one depot. Depots download one at a time; sum\nTotalBytes over the plan's channels for the whole picture, counting\nshared depots once.",
+      "params": {
+        "fields": [
+          {
+            "name": "depotId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "doneBytes",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "totalBytes",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.ChannelUpToDate",
+      "doc": "The channel's latest build already has this Steam build ID, so it\nis skipped.",
+      "params": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.PushStarted",
+      "doc": "The channel's directory is assembled and its push is starting.",
+      "params": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.BuildAssigned",
+      "doc": "The push for a channel has a build ID. Same meaning as\n@@PublishPushBuildAssignedNotification.",
+      "params": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "buildId",
+            "doc": "",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.BuildFailed",
+      "doc": "The push for a channel failed after its build was created. The sync\nstops at the first failed channel.",
+      "params": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "buildId",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "message",
+            "doc": "",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Publish.SteamSync.PushProgress",
+      "doc": "Push progress for a channel. Fields as in\n@@PublishPushProgressNotification.",
+      "params": {
+        "fields": [
+          {
+            "name": "channel",
+            "doc": "",
+            "type": "string"
+          },
+          {
+            "name": "progress",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "eta",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "bps",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "readBytes",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "totalBytes",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "uploadedBytes",
+            "doc": "",
+            "type": "number"
+          },
+          {
+            "name": "patchBytes",
+            "doc": "",
+            "type": "number"
           }
         ]
       }
@@ -6573,6 +6826,54 @@
           "name": "timeUpdated",
           "doc": "Unix seconds of the last build on the branch",
           "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncSyncResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "buildId",
+          "doc": "Steam build ID that was synced",
+          "type": "number"
+        },
+        {
+          "name": "channels",
+          "doc": "One entry per channel of the plan",
+          "type": "PublishSteamSyncSyncedChannel[]"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncSyncedChannel",
+      "doc": "",
+      "fields": [
+        {
+          "name": "channel",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "buildId",
+          "doc": "itch.io build created for the channel, 0 when up to date",
+          "type": "number"
+        },
+        {
+          "name": "upToDate",
+          "doc": "True when the channel already had this Steam build and was skipped",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncCancelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "didCancel",
+          "doc": "",
+          "type": "boolean"
         }
       ]
     },
