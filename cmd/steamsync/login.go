@@ -16,6 +16,7 @@ import (
 var loginArgs = struct {
 	password bool
 	user     string
+	noSave   bool
 }{}
 
 var keyArgs = struct {
@@ -26,6 +27,7 @@ func RegisterLogin(ctx *mansion.Context) {
 	cmd := ctx.App.Command("steam-login", "Log in to a Steam account so butler can download your builds.").Hidden()
 	cmd.Flag("password", "Log in with account name and password instead of scanning a QR code").BoolVar(&loginArgs.password)
 	cmd.Flag("user", "Steam account name (password login only)").StringVar(&loginArgs.user)
+	cmd.Flag("no-save", "Print the login token instead of storing it, for passing to later commands via --steam-refresh-token or "+steam.EnvRefreshToken+".").BoolVar(&loginArgs.noSave)
 	ctx.Register(cmd, doLogin)
 
 	logout := ctx.App.Command("steam-logout", "Remove saved Steam credentials and publisher key.").Hidden()
@@ -37,39 +39,48 @@ func RegisterLogin(ctx *mansion.Context) {
 }
 
 func doLogin(ctx *mansion.Context) {
-	ctx.Must(Login(ctx, loginArgs.password, loginArgs.user))
+	ctx.Must(Login(ctx, loginArgs.password, loginArgs.user, loginArgs.noSave))
 }
 
-func Login(ctx *mansion.Context, usePassword bool, user string) error {
+func Login(ctx *mansion.Context, usePassword bool, user string, noSave bool) error {
 	goCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	st := store(ctx)
-	existing, err := st.Load()
+	existing, err := st.Persisted()
 	if err != nil {
 		return err
 	}
-	if existing.LoggedIn() {
+	if existing.LoggedIn() && !noSave {
 		comm.Logf("Already logged in to Steam as %s. Run `butler steam-logout` to switch accounts.", existing.AccountName)
 		comm.Result(map[string]string{"status": "success", "account_name": existing.AccountName})
 		return nil
 	}
 
-	var acct *steam.Account
+	opts := steam.LoginOptions{Persist: !noSave}
+	var login *steam.Creds
 	if usePassword {
-		acct, err = loginPassword(goCtx, st, user)
+		login, err = loginPassword(goCtx, st, user, opts)
 	} else {
-		acct, err = steam.LoginQR(goCtx, st, showChallenge)
+		login, err = steam.LoginQR(goCtx, st, showChallenge, opts)
 	}
 	if err != nil {
 		return err
 	}
 
-	comm.Logf("Logged in to Steam as %s, credentials saved to %s", acct.AccountName, st.CredsPath())
+	if noSave {
+		comm.Logf("Logged in to Steam as %s. Nothing was saved; the token below is the only copy.", login.AccountName)
+		comm.ResultOrPrint(map[string]string{"status": "success", "account_name": login.AccountName, "refresh_token": login.RefreshToken}, func() {
+			fmt.Println(login.RefreshToken)
+		})
+		return nil
+	}
+
+	comm.Logf("Logged in to Steam as %s, credentials saved to %s", login.AccountName, st.CredsPath())
 	if !existing.HasPublisherKey() {
 		comm.Logf("Next, run `butler steam-key` to store the publisher key that proves which apps you control.")
 	}
-	comm.Result(map[string]string{"status": "success", "account_name": acct.AccountName})
+	comm.Result(map[string]string{"status": "success", "account_name": login.AccountName})
 	return nil
 }
 
@@ -92,7 +103,7 @@ func showChallenge(url string) {
 	comm.Logf("Waiting for approval... (ctrl-c to cancel, or use `butler steam-login --password`)")
 }
 
-func loginPassword(goCtx context.Context, st steam.Store, name string) (*steam.Account, error) {
+func loginPassword(goCtx context.Context, st steam.Store, name string, opts steam.LoginOptions) (*steam.Creds, error) {
 	var err error
 	if name == "" {
 		if name, err = prompt("Steam account name: ", false); err != nil {
@@ -114,7 +125,7 @@ func loginPassword(goCtx context.Context, st steam.Store, name string) (*steam.A
 		}
 		return prompt(label+": ", false)
 	})
-	return steam.LoginPassword(goCtx, st, name, pass, guard)
+	return steam.LoginPassword(goCtx, st, name, pass, guard, opts)
 }
 
 func doLogout(ctx *mansion.Context) {

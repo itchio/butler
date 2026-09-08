@@ -19,6 +19,7 @@ var appsArgs = struct {
 func RegisterApps(ctx *mansion.Context) {
 	cmd := ctx.App.Command("steam-apps", "List the Steam apps your publisher key controls.").Hidden()
 	cmd.Flag("owned", "List apps the logged-in Steam account holds a license for instead. Those cannot be synced unless the publisher key also controls them.").BoolVar(&appsArgs.owned)
+	registerCredFlags(cmd)
 	ctx.Register(cmd, doApps)
 }
 

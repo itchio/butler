@@ -47,11 +47,69 @@ type Creds struct {
 func (c *Creds) LoggedIn() bool        { return c.RefreshToken != "" }
 func (c *Creds) HasPublisherKey() bool { return c.PublisherKey != "" }
 
+// overlay replaces the login as a unit when o carries a token, since a
+// token only works with the account name it was issued to, and the key
+// on its own.
+func (c *Creds) overlay(o *Creds) {
+	if o.RefreshToken != "" {
+		c.RefreshToken = o.RefreshToken
+		c.AccountName = o.AccountName
+		c.SteamID = o.SteamID
+	}
+	if o.PublisherKey != "" {
+		c.PublisherKey = o.PublisherKey
+	}
+}
+
+// merge fills in each field of c from o independently.
+func (c *Creds) merge(o *Creds) {
+	if o == nil {
+		return
+	}
+	if o.RefreshToken != "" {
+		c.RefreshToken = o.RefreshToken
+	}
+	if o.AccountName != "" {
+		c.AccountName = o.AccountName
+	}
+	if o.SteamID != 0 {
+		c.SteamID = o.SteamID
+	}
+	if o.PublisherKey != "" {
+		c.PublisherKey = o.PublisherKey
+	}
+}
+
+// Environment variables that supply credentials without a file, for CI
+// and for callers that hold a login in memory and spawn butler.
+const (
+	EnvRefreshToken = "BUTLER_STEAM_REFRESH_TOKEN"
+	EnvAccountName  = "BUTLER_STEAM_ACCOUNT_NAME"
+	EnvPublisherKey = "BUTLER_STEAM_PUBLISHER_KEY"
+)
+
+func fromEnv() *Creds {
+	return &Creds{
+		AccountName:  os.Getenv(EnvAccountName),
+		RefreshToken: os.Getenv(EnvRefreshToken),
+		PublisherKey: os.Getenv(EnvPublisherKey),
+	}
+}
+
 // Store is where Steam state lives on disk: next to butler_creds, so
 // `-i` moves it along with the itch.io identity and the CLI and the app
 // see the same login.
+//
+// Reads see the file underneath whatever the caller gives through the
+// environment and Override. Those two combine field by field, so a token
+// from one and an account name from the other form one login, which then
+// replaces the file's login as a unit. Writes only ever touch the file,
+// so a login given on the command line never lands on disk through an
+// unrelated save such as storing a publisher key.
 type Store struct {
 	Dir string
+	// Override is per-call, for credentials given as flags.
+	Override *Creds
 }
 
 func StoreFor(identityPath string) Store {
@@ -61,8 +119,23 @@ func StoreFor(identityPath string) Store {
 func (s Store) CredsPath() string { return filepath.Join(s.Dir, "steam_creds.json") }
 func (s Store) KeysPath() string  { return filepath.Join(s.Dir, "steam_depot_keys.json") }
 
-// Load returns empty credentials when nothing is stored yet.
+// Load returns the effective credentials, empty when there are none.
 func (s Store) Load() (*Creds, error) {
+	c, err := s.Persisted()
+	if err != nil {
+		return nil, err
+	}
+	given := fromEnv()
+	given.merge(s.Override)
+	if given.RefreshToken != "" && given.AccountName == "" {
+		return nil, fmt.Errorf("a Steam refresh token was given without an account name (%s or --steam-account-name)", EnvAccountName)
+	}
+	c.overlay(given)
+	return c, nil
+}
+
+// Persisted returns only what is in the file.
+func (s Store) Persisted() (*Creds, error) {
 	data, err := os.ReadFile(s.CredsPath())
 	if os.IsNotExist(err) {
 		return &Creds{}, nil
@@ -92,9 +165,9 @@ func (s Store) Save(c *Creds) error {
 	return nil
 }
 
-// Update applies f to the stored credentials and saves the result.
+// Update applies f to the persisted credentials and saves the result.
 func (s Store) Update(f func(c *Creds)) (*Creds, error) {
-	c, err := s.Load()
+	c, err := s.Persisted()
 	if err != nil {
 		return nil, err
 	}

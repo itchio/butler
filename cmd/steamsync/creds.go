@@ -16,10 +16,22 @@ import (
 	"github.com/itchio/fresh-steamer/session"
 	"github.com/pkg/errors"
 	"golang.org/x/term"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
+// Credentials given as flags win over the environment and the file.
+var credArgs steam.Creds
+
+func registerCredFlags(cmd *kingpin.CmdClause) {
+	cmd.Flag("steam-refresh-token", "Steam login token to use instead of the stored one. Also read from "+steam.EnvRefreshToken+".").StringVar(&credArgs.RefreshToken)
+	cmd.Flag("steam-account-name", "Steam account name that goes with --steam-refresh-token. Also read from "+steam.EnvAccountName+".").StringVar(&credArgs.AccountName)
+	cmd.Flag("steam-publisher-key", "Steam publisher Web API key to use instead of the stored one. Also read from "+steam.EnvPublisherKey+".").StringVar(&credArgs.PublisherKey)
+}
+
 func store(ctx *mansion.Context) steam.Store {
-	return steam.StoreFor(ctx.Identity)
+	s := steam.StoreFor(ctx.Identity)
+	s.Override = &credArgs
+	return s
 }
 
 // hint turns the library's sentinel errors into the command to run.

@@ -73,7 +73,7 @@ func SteamLogin(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncLogin
 			ID:  params.ID,
 			URL: url,
 		})
-	})
+	}, steam.LoginOptions{Persist: true})
 	if err != nil {
 		if ctx.Err() != nil {
 			return nil, butlerd.CodeOperationCancelled

@@ -45,6 +45,7 @@ func RegisterSync(ctx *mansion.Context) {
 	// Development only. Lets a dry run plan an app the publisher key does
 	// not control. Never honored when bytes would actually move.
 	cmd.Flag("no-gate", "").Hidden().BoolVar(&syncArgs.noGate)
+	registerCredFlags(cmd)
 	ctx.Register(cmd, doSync)
 }
 
