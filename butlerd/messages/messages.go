@@ -4968,6 +4968,46 @@ func (r *PublishSteamSyncListAppsType) TestCall(rc *butlerd.RequestContext, para
 
 var PublishSteamSyncListApps *PublishSteamSyncListAppsType
 
+// Publish.SteamSync.Plan (Request)
+
+type PublishSteamSyncPlanType struct {}
+
+var _ RequestMessage = (*PublishSteamSyncPlanType)(nil)
+
+func (r *PublishSteamSyncPlanType) Method() string {
+  return "Publish.SteamSync.Plan"
+}
+
+func (r *PublishSteamSyncPlanType) Register(router router, f func(*butlerd.RequestContext, butlerd.PublishSteamSyncPlanParams) (*butlerd.PublishSteamSyncPlanResult, error)) {
+  router.Register("Publish.SteamSync.Plan", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.PublishSteamSyncPlanParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Publish.SteamSync.Plan")
+    }
+    return res, nil
+  })
+}
+
+func (r *PublishSteamSyncPlanType) TestCall(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncPlanParams) (*butlerd.PublishSteamSyncPlanResult, error) {
+  var result butlerd.PublishSteamSyncPlanResult
+  err := rc.Call("Publish.SteamSync.Plan", params, &result)
+  return &result, err
+}
+
+var PublishSteamSyncPlan *PublishSteamSyncPlanType
+
 
 func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Meta.Authenticate"]; !ok { panic("missing request handler for (Meta.Authenticate)") }
@@ -5063,5 +5103,6 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Publish.SteamSync.SetPublisherKey"]; !ok { panic("missing request handler for (Publish.SteamSync.SetPublisherKey)") }
   if _, ok := router.Handlers["Publish.SteamSync.RemovePublisherKey"]; !ok { panic("missing request handler for (Publish.SteamSync.RemovePublisherKey)") }
   if _, ok := router.Handlers["Publish.SteamSync.ListApps"]; !ok { panic("missing request handler for (Publish.SteamSync.ListApps)") }
+  if _, ok := router.Handlers["Publish.SteamSync.Plan"]; !ok { panic("missing request handler for (Publish.SteamSync.Plan)") }
 }
 

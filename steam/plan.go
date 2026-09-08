@@ -23,6 +23,17 @@ type SyncPlan struct {
 	Channels []*ChannelPlan `json:"channels"`
 	Skipped  []SkippedDepot `json:"skipped,omitempty"`
 	Warnings []string       `json:"warnings,omitempty"`
+	// Branches is every branch of the app, so a caller can offer a choice
+	// without a second round trip.
+	Branches []BranchInfo `json:"branches,omitempty"`
+}
+
+type BranchInfo struct {
+	Name             string `json:"name"`
+	BuildID          uint32 `json:"build_id"`
+	Description      string `json:"description,omitempty"`
+	PasswordRequired bool   `json:"password_required,omitempty"`
+	TimeUpdated      uint64 `json:"time_updated,omitempty"`
 }
 
 type ChannelPlan struct {
@@ -123,6 +134,15 @@ func buildPlan(goCtx context.Context, s *session.Session, app *appinfo.App, opts
 		Branch:  branch.Name,
 		BuildID: branch.BuildID,
 		Target:  opts.Target,
+	}
+	for _, b := range app.Branches {
+		plan.Branches = append(plan.Branches, BranchInfo{
+			Name:             b.Name,
+			BuildID:          b.BuildID,
+			Description:      b.Description,
+			PasswordRequired: b.PasswordRequired,
+			TimeUpdated:      b.TimeUpdated,
+		})
 	}
 
 	type placed struct {

@@ -20,6 +20,7 @@ func registerSteam(router *butlerd.Router) {
 	messages.PublishSteamSyncSetPublisherKey.Register(router, SteamSetPublisherKey)
 	messages.PublishSteamSyncRemovePublisherKey.Register(router, SteamRemovePublisherKey)
 	messages.PublishSteamSyncListApps.Register(router, SteamListApps)
+	messages.PublishSteamSyncPlan.Register(router, SteamPlan)
 }
 
 func steamStore(rc *butlerd.RequestContext) steam.Store {
@@ -41,6 +42,22 @@ func mapSteamErr(err error) error {
 		return butlerd.CodePublishSteamSyncPublisherKeyInvalid
 	}
 	return err
+}
+
+func steamPlanOptions(appID int64, target, branch, password string, m map[string]string, skip []int64) (steam.PlanOptions, error) {
+	entry := steam.SyncEntry{
+		App:    uint32(appID),
+		Target: target,
+		Branch: branch,
+		Map:    m,
+	}
+	for _, id := range skip {
+		entry.Skip = append(entry.Skip, uint32(id))
+	}
+	if err := entry.Validate(); err != nil {
+		return steam.PlanOptions{}, err
+	}
+	return entry.PlanOptions(password)
 }
 
 func SteamGetStatus(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncGetStatusParams) (*butlerd.PublishSteamSyncGetStatusResult, error) {
@@ -145,6 +162,70 @@ func convertSteamApps(apps []partner.App) []*butlerd.PublishSteamSyncApp {
 	out := make([]*butlerd.PublishSteamSyncApp, 0, len(apps))
 	for _, a := range apps {
 		out = append(out, &butlerd.PublishSteamSyncApp{ID: int64(a.ID), Name: a.Name, Type: a.Type})
+	}
+	return out
+}
+
+func SteamPlan(rc *butlerd.RequestContext, params butlerd.PublishSteamSyncPlanParams) (*butlerd.PublishSteamSyncPlanResult, error) {
+	opts, err := steamPlanOptions(params.AppID, params.Target, params.Branch, params.Password, params.Map, params.Skip)
+	if err != nil {
+		return nil, err
+	}
+	plan, err := steam.Plan(rc.Ctx, steamStore(rc), opts)
+	if err != nil {
+		return nil, mapSteamErr(err)
+	}
+	return &butlerd.PublishSteamSyncPlanResult{Plan: convertSteamPlan(plan)}, nil
+}
+
+func convertSteamPlan(p *steam.SyncPlan) *butlerd.PublishSteamSyncPlan {
+	out := &butlerd.PublishSteamSyncPlan{
+		AppID:    int64(p.AppID),
+		AppName:  p.AppName,
+		Branch:   p.Branch,
+		BuildID:  int64(p.BuildID),
+		Target:   p.Target,
+		Channels: []*butlerd.PublishSteamSyncChannel{},
+		Skipped:  []*butlerd.PublishSteamSyncSkippedDepot{},
+		Warnings: p.Warnings,
+		Branches: []*butlerd.PublishSteamSyncBranch{},
+	}
+	if out.Warnings == nil {
+		out.Warnings = []string{}
+	}
+	for _, c := range p.Channels {
+		size, download := c.Size()
+		ch := &butlerd.PublishSteamSyncChannel{
+			Name:     c.Name,
+			OS:       c.OS,
+			Arch:     c.Arch,
+			Depots:   []*butlerd.PublishSteamSyncDepot{},
+			Size:     int64(size),
+			Download: int64(download),
+		}
+		for _, d := range c.Depots {
+			ch.Depots = append(ch.Depots, &butlerd.PublishSteamSyncDepot{
+				ID:       int64(d.ID),
+				Name:     d.Name,
+				Manifest: strconv.FormatUint(d.GID, 10),
+				Size:     int64(d.Size),
+				Download: int64(d.Download),
+				Shared:   d.Shared,
+			})
+		}
+		out.Channels = append(out.Channels, ch)
+	}
+	for _, d := range p.Skipped {
+		out.Skipped = append(out.Skipped, &butlerd.PublishSteamSyncSkippedDepot{ID: int64(d.ID), Name: d.Name, Reason: d.Reason})
+	}
+	for _, b := range p.Branches {
+		out.Branches = append(out.Branches, &butlerd.PublishSteamSyncBranch{
+			Name:             b.Name,
+			BuildID:          int64(b.BuildID),
+			Description:      b.Description,
+			PasswordRequired: b.PasswordRequired,
+			TimeUpdated:      int64(b.TimeUpdated),
+		})
 	}
 	return out
 }

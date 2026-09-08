@@ -87,3 +87,36 @@ func Test_PublishSteamSync_PublisherKeyFlow(t *testing.T) {
 	must(err)
 	assert.False(cancelRes.DidCancel)
 }
+
+func Test_PublishSteamSync_PlanGate(t *testing.T) {
+	assert := assert.New(t)
+
+	srv := fakePartnerServer(t, "GOODKEY")
+	t.Setenv("BUTLER_STEAM_PARTNER_URL", srv.URL)
+
+	bi := newInstance(t)
+	rc, _, cancel := bi.Unwrap()
+	defer cancel()
+
+	plan := butlerd.PublishSteamSyncPlanParams{AppID: 480, Target: "leafo/spacewar"}
+
+	_, err := messages.PublishSteamSyncPlan.TestCall(rc, plan)
+	assert.Error(err)
+	assert.EqualValues(butlerd.CodePublishSteamSyncNoPublisherKey, err.(*jsonrpc2.Error).Code)
+
+	_, err = messages.PublishSteamSyncSetPublisherKey.TestCall(rc, butlerd.PublishSteamSyncSetPublisherKeyParams{Key: "GOODKEY"})
+	must(err)
+
+	_, err = messages.PublishSteamSyncPlan.TestCall(rc, butlerd.PublishSteamSyncPlanParams{AppID: 999, Target: "leafo/spacewar"})
+	assert.Error(err)
+	assert.Contains(err.Error(), "999")
+
+	// The key controls the app, so the next thing needed is a Steam login.
+	_, err = messages.PublishSteamSyncPlan.TestCall(rc, plan)
+	assert.Error(err)
+	assert.EqualValues(butlerd.CodePublishSteamSyncNotLoggedIn, err.(*jsonrpc2.Error).Code)
+
+	_, err = messages.PublishSteamSyncPlan.TestCall(rc, butlerd.PublishSteamSyncPlanParams{AppID: 480, Target: "leafo/spacewar", Map: map[string]string{"x": "win"}})
+	assert.Error(err)
+	assert.NotEqual(butlerd.CodePublishSteamSyncNotLoggedIn, err.(*jsonrpc2.Error).Code)
+}

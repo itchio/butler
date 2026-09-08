@@ -3594,6 +3594,58 @@
           }
         ]
       }
+    },
+    {
+      "method": "Publish.SteamSync.Plan",
+      "doc": "Works out what syncing a Steam app to an itch.io project would do:\nwhich depots go to which channel, what would be downloaded, and what\nis left out. Nothing is downloaded or pushed. Connects to Steam with\nthe stored login, so it takes a few seconds.\n\nThe result also lists every branch of the app, so the caller can offer\na choice and call again with a different branch.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "appId",
+            "doc": "Steam app ID",
+            "type": "number"
+          },
+          {
+            "name": "target",
+            "doc": "itch.io project in user/slug form, without a channel",
+            "type": "string"
+          },
+          {
+            "name": "branch",
+            "doc": "Steam branch, default \"public\"",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "password",
+            "doc": "Password for a private branch",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "map",
+            "doc": "Depot ID to channel name, overriding platform detection",
+            "type": "{ [key: string]: string }",
+            "optional": true
+          },
+          {
+            "name": "skip",
+            "doc": "Depot IDs to leave out",
+            "type": "number[]",
+            "optional": true
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "plan",
+            "doc": "",
+            "type": "PublishSteamSyncPlan"
+          }
+        ]
+      }
     }
   ],
   "notifications": [
@@ -6334,6 +6386,193 @@
           "name": "type",
           "doc": "One of game, application, tool, demo, dlc, music",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncPlanResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "plan",
+          "doc": "",
+          "type": "PublishSteamSyncPlan"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncPlan",
+      "doc": "",
+      "fields": [
+        {
+          "name": "appId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "appName",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "branch",
+          "doc": "Branch the plan is for",
+          "type": "string"
+        },
+        {
+          "name": "buildId",
+          "doc": "Steam build ID on that branch, used as the itch.io user version",
+          "type": "number"
+        },
+        {
+          "name": "target",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "channels",
+          "doc": "One itch.io channel per entry",
+          "type": "PublishSteamSyncChannel[]"
+        },
+        {
+          "name": "skipped",
+          "doc": "Depots left out, with the reason",
+          "type": "PublishSteamSyncSkippedDepot[]"
+        },
+        {
+          "name": "warnings",
+          "doc": "",
+          "type": "string[]"
+        },
+        {
+          "name": "branches",
+          "doc": "Every branch of the app",
+          "type": "PublishSteamSyncBranch[]"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncChannel",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "itch.io channel name, e.g. \"windows\" or \"linux-64\"",
+          "type": "string"
+        },
+        {
+          "name": "os",
+          "doc": "itch.io platform the name maps to, empty when unknown",
+          "type": "string"
+        },
+        {
+          "name": "arch",
+          "doc": "\"32\" or \"64\" when the channel is architecture specific",
+          "type": "string"
+        },
+        {
+          "name": "depots",
+          "doc": "",
+          "type": "PublishSteamSyncDepot[]"
+        },
+        {
+          "name": "size",
+          "doc": "Bytes on disk once assembled",
+          "type": "number"
+        },
+        {
+          "name": "download",
+          "doc": "Bytes to download from Steam",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncDepot",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "name",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "manifest",
+          "doc": "Manifest GID as a string",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "download",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "shared",
+          "doc": "True when the depot is copied into every channel",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncSkippedDepot",
+      "doc": "",
+      "fields": [
+        {
+          "name": "id",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "name",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "doc": "",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PublishSteamSyncBranch",
+      "doc": "",
+      "fields": [
+        {
+          "name": "name",
+          "doc": "",
+          "type": "string"
+        },
+        {
+          "name": "buildId",
+          "doc": "",
+          "type": "number"
+        },
+        {
+          "name": "description",
+          "doc": "",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "passwordRequired",
+          "doc": "True when the branch needs a password",
+          "type": "boolean"
+        },
+        {
+          "name": "timeUpdated",
+          "doc": "Unix seconds of the last build on the branch",
+          "type": "number"
         }
       ]
     },

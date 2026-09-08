@@ -10781,6 +10781,137 @@ allowed for those. Keys are created at
 
 </div>
 
+### Publish.SteamSync.Plan (client request)
+
+
+<p>
+<p>Works out what syncing a Steam app to an itch.io project would do:
+which depots go to which channel, what would be downloaded, and what
+is left out. Nothing is downloaded or pushed. Connects to Steam with
+the stored login, so it takes a few seconds.</p>
+
+<p>The result also lists every branch of the app, so the caller can offer
+a choice and call again with a different branch.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Steam app ID</p>
+</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>itch.io project in user/slug form, without a channel</p>
+</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Steam branch, default &ldquo;public&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Password for a private branch</p>
+</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p><span class="tag">Optional</span> Depot ID to channel name, overriding platform detection</p>
+</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Depot IDs to leave out</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>plan</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncPlan__TypeHint">PublishSteamSyncPlan</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncPlanParams__TypeHint" class="tip-content">
+<p>Publish.SteamSync.Plan (client request) <a href="#/?id=publishsteamsyncplan-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Works out what syncing a Steam app to an itch.io project would do:
+which depots go to which channel, what would be downloaded, and what
+is left out. Nothing is downloaded or pushed. Connects to Steam with
+the stored login, so it takes a few seconds.</p>
+
+<p>The result also lists every branch of the app, so the caller can offer
+a choice and call again with a different branch.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="PublishSteamSyncPlanResult__TypeHint" class="tip-content">
+<p>PublishSteamSyncPlan  <a href="#/?id=publishsteamsyncplan-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>plan</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncPlan</span></code></td>
+</tr>
+</table>
+
+</div>
+
 
 ## Miscellaneous Category
 
@@ -13918,6 +14049,392 @@ Type alias for string
 <tr>
 <td><code>type</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncPlan (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>appName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Branch the plan is for</p>
+</td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Steam build ID on that branch, used as the itch.io user version</p>
+</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncChannel__TypeHint">PublishSteamSyncChannel</span>[]</code></td>
+<td><p>One itch.io channel per entry</p>
+</td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncSkippedDepot__TypeHint">PublishSteamSyncSkippedDepot</span>[]</code></td>
+<td><p>Depots left out, with the reason</p>
+</td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>branches</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncBranch__TypeHint">PublishSteamSyncBranch</span>[]</code></td>
+<td><p>Every branch of the app</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncPlan__TypeHint" class="tip-content">
+<p>PublishSteamSyncPlan (struct) <a href="#/?id=publishsteamsyncplan-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>appId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>appName</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncChannel</span>[]</code></td>
+</tr>
+<tr>
+<td><code>skipped</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncSkippedDepot</span>[]</code></td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>branches</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncBranch</span>[]</code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncChannel (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>itch.io channel name, e.g. &ldquo;windows&rdquo; or &ldquo;linux-64&rdquo;</p>
+</td>
+</tr>
+<tr>
+<td><code>os</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>itch.io platform the name maps to, empty when unknown</p>
+</td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>&ldquo;32&rdquo; or &ldquo;64&rdquo; when the channel is architecture specific</p>
+</td>
+</tr>
+<tr>
+<td><code>depots</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncDepot__TypeHint">PublishSteamSyncDepot</span>[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bytes on disk once assembled</p>
+</td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Bytes to download from Steam</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncChannel__TypeHint" class="tip-content">
+<p>PublishSteamSyncChannel (struct) <a href="#/?id=publishsteamsyncchannel-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>os</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>depots</code></td>
+<td><code class="typename"><span class="type">PublishSteamSyncDepot</span>[]</code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncDepot (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>manifest</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Manifest GID as a string</p>
+</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>shared</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when the depot is copied into every channel</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncDepot__TypeHint" class="tip-content">
+<p>PublishSteamSyncDepot (struct) <a href="#/?id=publishsteamsyncdepot-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>manifest</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>shared</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncSkippedDepot (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncSkippedDepot__TypeHint" class="tip-content">
+<p>PublishSteamSyncSkippedDepot (struct) <a href="#/?id=publishsteamsyncskippeddepot-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### PublishSteamSyncBranch (struct)
+
+
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span></p>
+</td>
+</tr>
+<tr>
+<td><code>passwordRequired</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p>True when the branch needs a password</p>
+</td>
+</tr>
+<tr>
+<td><code>timeUpdated</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Unix seconds of the last build on the branch</p>
+</td>
+</tr>
+</table>
+
+
+<div id="PublishSteamSyncBranch__TypeHint" class="tip-content">
+<p>PublishSteamSyncBranch (struct) <a href="#/?id=publishsteamsyncbranch-struct">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>name</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>buildId</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>passwordRequired</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>timeUpdated</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 

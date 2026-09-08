@@ -4475,3 +4475,103 @@ type PublishSteamSyncApp struct {
 	// One of game, application, tool, demo, dlc, music
 	Type string `json:"type"`
 }
+
+// Works out what syncing a Steam app to an itch.io project would do:
+// which depots go to which channel, what would be downloaded, and what
+// is left out. Nothing is downloaded or pushed. Connects to Steam with
+// the stored login, so it takes a few seconds.
+//
+// The result also lists every branch of the app, so the caller can offer
+// a choice and call again with a different branch.
+//
+// @name Publish.SteamSync.Plan
+// @category Publish
+// @caller client
+type PublishSteamSyncPlanParams struct {
+	// Steam app ID
+	AppID int64 `json:"appId"`
+	// itch.io project in user/slug form, without a channel
+	Target string `json:"target"`
+	// Steam branch, default "public"
+	// @optional
+	Branch string `json:"branch"`
+	// Password for a private branch
+	// @optional
+	Password string `json:"password"`
+	// Depot ID to channel name, overriding platform detection
+	// @optional
+	Map map[string]string `json:"map"`
+	// Depot IDs to leave out
+	// @optional
+	Skip []int64 `json:"skip"`
+}
+
+func (p PublishSteamSyncPlanParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.AppID, validation.Required),
+		validation.Field(&p.Target, validation.Required),
+	)
+}
+
+type PublishSteamSyncPlanResult struct {
+	Plan *PublishSteamSyncPlan `json:"plan"`
+}
+
+type PublishSteamSyncPlan struct {
+	AppID   int64  `json:"appId"`
+	AppName string `json:"appName"`
+	// Branch the plan is for
+	Branch string `json:"branch"`
+	// Steam build ID on that branch, used as the itch.io user version
+	BuildID int64  `json:"buildId"`
+	Target  string `json:"target"`
+	// One itch.io channel per entry
+	Channels []*PublishSteamSyncChannel `json:"channels"`
+	// Depots left out, with the reason
+	Skipped  []*PublishSteamSyncSkippedDepot `json:"skipped"`
+	Warnings []string                        `json:"warnings"`
+	// Every branch of the app
+	Branches []*PublishSteamSyncBranch `json:"branches"`
+}
+
+type PublishSteamSyncChannel struct {
+	// itch.io channel name, e.g. "windows" or "linux-64"
+	Name string `json:"name"`
+	// itch.io platform the name maps to, empty when unknown
+	OS string `json:"os"`
+	// "32" or "64" when the channel is architecture specific
+	Arch   string                   `json:"arch"`
+	Depots []*PublishSteamSyncDepot `json:"depots"`
+	// Bytes on disk once assembled
+	Size int64 `json:"size"`
+	// Bytes to download from Steam
+	Download int64 `json:"download"`
+}
+
+type PublishSteamSyncDepot struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	// Manifest GID as a string
+	Manifest string `json:"manifest"`
+	Size     int64  `json:"size"`
+	Download int64  `json:"download"`
+	// True when the depot is copied into every channel
+	Shared bool `json:"shared"`
+}
+
+type PublishSteamSyncSkippedDepot struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Reason string `json:"reason"`
+}
+
+type PublishSteamSyncBranch struct {
+	Name    string `json:"name"`
+	BuildID int64  `json:"buildId"`
+	// @optional
+	Description string `json:"description"`
+	// True when the branch needs a password
+	PasswordRequired bool `json:"passwordRequired"`
+	// Unix seconds of the last build on the branch
+	TimeUpdated int64 `json:"timeUpdated"`
+}
