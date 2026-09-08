@@ -9,6 +9,7 @@ import (
 	"github.com/itchio/butler/cmd/push"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
+	"github.com/itchio/butler/steam"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/united"
 	"github.com/pkg/errors"
@@ -79,134 +80,120 @@ func Sync(ctx *mansion.Context) error {
 		return errors.New("--no-push needs --cache-dir, since the temporary directory is removed when the command exits")
 	}
 
-	if err := checkAppAccess(ctx, goCtx, syncArgs.appID); err != nil {
-		return err
-	}
-
-	s, err := openSession(ctx, goCtx)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	comm.Opf("Fetching Steam app info for %d", syncArgs.appID)
-	app, err := s.AppInfo(goCtx, syncArgs.appID)
-	if err != nil {
-		return errors.Wrapf(err, "fetching app info for %d", syncArgs.appID)
-	}
-
-	plan, err := BuildPlan(goCtx, s, PlanOptions{
-		App:      app,
+	warnUngated()
+	planOpts := steam.PlanOptions{
+		AppID:    syncArgs.appID,
 		Branch:   syncArgs.branch,
 		Password: syncArgs.password,
 		Target:   spec.Target,
 		Map:      mapping,
 		Skip:     skip,
-	})
-	if err != nil {
-		return err
 	}
 
-	comm.ResultOrPrint(plan, func() { printPlan(plan) })
-
 	if syncArgs.dryRun {
+		comm.Opf("Fetching Steam app info for %d", syncArgs.appID)
+		plan, err := steam.Plan(goCtx, store(ctx), planOpts)
+		if err != nil {
+			return hint(err)
+		}
+		comm.ResultOrPrint(plan, func() { printPlan(plan) })
 		return nil
 	}
 
-	// Authenticate with itch.io before downloading anything so a bad
-	// target fails in seconds rather than after gigabytes.
-	var client *itchio.Client
+	opts := steam.SyncOptions{
+		PlanOptions: planOpts,
+		CacheDir:    syncArgs.cacheDir,
+		Force:       syncArgs.force,
+		Hidden:      syncArgs.hidden,
+		Events:      &cliEvents{},
+		Logf:        comm.Debugf,
+	}
 	if !syncArgs.noPush {
-		client, err = ctx.AuthenticateViaOauth()
+		// Authenticate with itch.io before downloading anything so a bad
+		// target fails in seconds rather than after gigabytes.
+		client, err := ctx.AuthenticateViaOauth()
 		if err != nil {
 			return errors.Wrap(err, "authenticating with itch.io")
 		}
-	}
-
-	var todo []*ChannelPlan
-	for _, c := range plan.Channels {
-		if client != nil && !syncArgs.force {
-			synced, err := alreadySynced(ctx, client, plan, c)
-			if err != nil {
-				return err
-			}
-			if synced {
-				comm.Statf("%s:%s already has Steam build %d, skipping (use --force to push anyway)", plan.Target, c.Name, plan.BuildID)
-				continue
-			}
+		opts.Client = client
+		opts.Push = func(goCtx context.Context, dir, target, userVersion string, hidden bool) error {
+			comm.Opf("Pushing %s", target)
+			return push.Do(ctx, dir, target, userVersion, true, false, false, true, false, hidden)
 		}
-		todo = append(todo, c)
-	}
-	if len(todo) == 0 {
-		comm.Statf("Everything is up to date.")
-		return nil
 	}
 
-	st, cleanup, err := openStage(ctx, syncArgs.cacheDir)
+	comm.Opf("Fetching Steam app info for %d", syncArgs.appID)
+	result, err := steam.Sync(goCtx, store(ctx), opts)
 	if err != nil {
-		return err
+		return hint(err)
 	}
-	defer cleanup()
-
-	downloaded := map[uint32]bool{}
-	for _, c := range todo {
-		for _, dp := range c.Depots {
-			if downloaded[dp.ID] {
-				continue
-			}
-			if err := st.downloadDepot(goCtx, s, plan, dp, syncArgs.password); err != nil {
-				return err
-			}
-			downloaded[dp.ID] = true
-		}
-	}
-
-	for _, c := range todo {
-		comm.Opf("Assembling %s from %d depot(s)", c.Name, len(c.Depots))
-		chanDir, err := st.assembleChannel(c)
-		if err != nil {
-			return err
-		}
-		warnSteamworks(c.Name, steamworksFiles(chanDir))
-		if syncArgs.noPush {
-			comm.Statf("%s:%s ready at %s", plan.Target, c.Name, chanDir)
+	pushed := 0
+	for _, c := range result.Channels {
+		if c.UpToDate {
 			continue
 		}
-		target := plan.Target + ":" + c.Name
-		comm.Opf("Pushing %s", target)
-		err = push.Do(ctx, chanDir, target, strconv.FormatUint(uint64(plan.BuildID), 10), true, false, false, true, false, syncArgs.hidden)
-		if err != nil {
-			return errors.Wrapf(err, "pushing %s", target)
+		pushed++
+		if syncArgs.noPush {
+			comm.Statf("%s:%s ready at %s", result.Plan.Target, c.Name, c.Dir)
 		}
+	}
+	if pushed == 0 {
+		comm.Statf("Everything is up to date.")
 	}
 	return nil
 }
 
-// alreadySynced reports whether the channel's newest build, processed
-// or still pending, was pushed with this Steam build id as its user
-// version.
-func alreadySynced(ctx *mansion.Context, client *itchio.Client, plan *Plan, c *ChannelPlan) (bool, error) {
-	reqCtx, cancel := ctx.DefaultCtx()
-	defer cancel()
-	info, err := client.GetChannel(reqCtx, plan.Target, c.Name)
-	if err != nil {
-		// A channel that does not exist yet is the common first-sync case.
-		comm.Debugf("channel %s lookup: %v", c.Name, err)
-		return false, nil
-	}
-	if info == nil || info.Channel == nil {
-		return false, nil
-	}
-	want := strconv.FormatUint(uint64(plan.BuildID), 10)
-	for _, b := range []*itchio.Build{info.Channel.Pending, info.Channel.Head} {
-		if b != nil && b.UserVersion == want {
-			return true, nil
-		}
-	}
-	return false, nil
+// cliEvents renders sync progress the way the rest of butler does.
+type cliEvents struct{}
+
+func (cliEvents) Planned(plan *steam.SyncPlan) {
+	comm.ResultOrPrint(plan, func() { printPlan(plan) })
 }
 
-func printPlan(p *Plan) {
+func (cliEvents) ChannelUpToDate(channel string) {
+	comm.Statf("%s already has this Steam build, skipping (use --force to push anyway)", channel)
+}
+
+func (cliEvents) DepotStart(dp *steam.DepotPlan, files int, totalBytes uint64) {
+	comm.Opf("Downloading depot %d (%d files)", dp.ID, files)
+	comm.StartProgressWithTotalBytes(int64(totalBytes))
+}
+
+func (cliEvents) DepotProgress(dp *steam.DepotPlan, done, total uint64) {
+	if total > 0 {
+		comm.Progress(float64(done) / float64(total))
+	}
+}
+
+func (cliEvents) DepotDone(dp *steam.DepotPlan, st steam.DepotStats) {
+	comm.EndProgress()
+	comm.Statf("Depot %d: %s fetched, %s reused from previous files, %s unchanged",
+		dp.ID, united.FormatBytes(int64(st.Fetched)), united.FormatBytes(int64(st.Reused)), united.FormatBytes(int64(st.Skipped)))
+}
+
+func (cliEvents) ChannelAssembled(channel, dir string, steamworks []string) {
+	comm.Opf("Assembled %s", channel)
+	warnSteamworks(channel, steamworks)
+}
+
+func warnSteamworks(channel string, files []string) {
+	if len(files) == 0 {
+		return
+	}
+	lines := []string{
+		fmt.Sprintf("The %s build ships the Steamworks SDK:", channel),
+		"",
+	}
+	for _, f := range files {
+		lines = append(lines, "  "+f)
+	}
+	lines = append(lines, "",
+		"If the game initializes Steam at startup it may not run for itch.io players.",
+		"Consider a build with Steam integration disabled for this channel.")
+	comm.Notice("Steamworks SDK detected", lines)
+}
+
+func printPlan(p *steam.SyncPlan) {
 	comm.Logf("")
 	comm.Statf("%s (app %d), branch %s, build %d", p.AppName, p.AppID, p.Branch, p.BuildID)
 	for _, c := range p.Channels {

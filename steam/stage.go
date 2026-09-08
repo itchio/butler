@@ -1,8 +1,7 @@
-package steamsync
+package steam
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,11 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/butler/comm"
-	"github.com/itchio/butler/mansion"
 	"github.com/itchio/fresh-steamer/depot"
 	"github.com/itchio/fresh-steamer/session"
-	"github.com/itchio/headway/united"
 	"github.com/pkg/errors"
 )
 
@@ -33,25 +29,25 @@ type stage struct {
 
 // openStage returns the staging directory for this run. With cacheDir set
 // it is used as is and kept. Otherwise a fresh directory is created under
-// butler's own data directory rather than the system temp dir, which on
-// Linux is often RAM-backed, and the returned cleanup removes it.
-func openStage(ctx *mansion.Context, cacheDir string) (*stage, func(), error) {
+// the store's directory rather than the system temp dir, which on Linux
+// is often RAM-backed, and the returned cleanup removes it.
+func openStage(s Store, cacheDir string, logf Logf) (*stage, func(), error) {
 	if cacheDir != "" {
 		return &stage{Dir: cacheDir}, func() {}, nil
 	}
-	base := filepath.Join(filepath.Dir(ctx.Identity), "steam-sync")
+	base := filepath.Join(s.Dir, "steam-sync")
 	if err := os.MkdirAll(base, 0o755); err != nil {
 		return nil, nil, errors.Wrapf(err, "creating %s", base)
 	}
-	sweepStale(base)
+	sweepStale(base, logf)
 	dir, err := os.MkdirTemp(base, "tmp-")
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "creating temporary directory in %s", base)
 	}
-	comm.Debugf("Staging in %s (pass --cache-dir to keep downloads between syncs)", dir)
+	logf("Staging in %s (pass --cache-dir to keep downloads between syncs)", dir)
 	cleanup := func() {
 		if err := os.RemoveAll(dir); err != nil {
-			comm.Warnf("Could not remove %s: %v", dir, err)
+			logf("Could not remove %s: %v", dir, err)
 		}
 	}
 	return &stage{Dir: dir}, cleanup, nil
@@ -60,7 +56,7 @@ func openStage(ctx *mansion.Context, cacheDir string) (*stage, func(), error) {
 // sweepStale removes temporary staging directories left behind by runs
 // that were killed before cleanup. Anything touched in the last day is
 // assumed to belong to a sync still in progress.
-func sweepStale(base string) {
+func sweepStale(base string, logf Logf) {
 	entries, err := os.ReadDir(base)
 	if err != nil {
 		return
@@ -74,9 +70,9 @@ func sweepStale(base string) {
 			continue
 		}
 		p := filepath.Join(base, e.Name())
-		comm.Debugf("Removing stale staging directory %s", p)
+		logf("Removing stale staging directory %s", p)
 		if err := os.RemoveAll(p); err != nil {
-			comm.Warnf("Could not remove %s: %v", p, err)
+			logf("Could not remove %s: %v", p, err)
 		}
 	}
 }
@@ -94,7 +90,7 @@ func (st *stage) store() *depot.Store {
 }
 
 // downloadDepot brings depots/<id> up to date with the planned manifest.
-func (st *stage) downloadDepot(goCtx context.Context, s *session.Session, plan *Plan, dp *DepotPlan, password string) error {
+func (st *stage) downloadDepot(goCtx context.Context, s *session.Session, plan *SyncPlan, dp *DepotPlan, password string, ev SyncEvents, logf Logf) error {
 	key, err := s.DepotKey(goCtx, plan.AppID, dp.ID)
 	if err != nil {
 		return errors.Wrapf(err, "getting decryption key for depot %d (Steam refuses keys for some unreleased apps unless the account owns them)", dp.ID)
@@ -112,8 +108,7 @@ func (st *stage) downloadDepot(goCtx context.Context, s *session.Session, plan *
 		return errors.Wrapf(err, "fetching manifest for depot %d", dp.ID)
 	}
 
-	comm.Opf("Downloading depot %d (%d files)", dp.ID, len(manifest.Files))
-	comm.StartProgressWithTotalBytes(int64(manifest.TotalSize))
+	ev.DepotStart(dp, len(manifest.Files), manifest.TotalSize)
 	var last depot.Progress
 	err = depot.Download(goCtx, cdnClient, depot.Options{
 		Dir:      st.depotDir(dp.ID),
@@ -121,21 +116,20 @@ func (st *stage) downloadDepot(goCtx context.Context, s *session.Session, plan *
 		DepotKey: key,
 		Manifest: manifest,
 		Store:    st.store(),
-		Logf:     comm.Debugf,
+		Logf:     logf,
 		OnProgress: func(p depot.Progress) {
 			last = p
-			if p.BytesTotal > 0 {
-				comm.Progress(float64(p.BytesDone) / float64(p.BytesTotal))
-			}
+			ev.DepotProgress(dp, p.BytesDone, p.BytesTotal)
 		},
 	})
-	comm.EndProgress()
 	if err != nil {
 		return errors.Wrapf(err, "downloading depot %d", dp.ID)
 	}
-	fetched := last.BytesTotal - last.BytesSkipped - last.BytesReused
-	comm.Statf("Depot %d: %s fetched, %s reused from previous files, %s unchanged",
-		dp.ID, united.FormatBytes(int64(fetched)), united.FormatBytes(int64(last.BytesReused)), united.FormatBytes(int64(last.BytesSkipped)))
+	ev.DepotDone(dp, DepotStats{
+		Fetched: last.BytesTotal - last.BytesSkipped - last.BytesReused,
+		Reused:  last.BytesReused,
+		Skipped: last.BytesSkipped,
+	})
 	return nil
 }
 
@@ -219,9 +213,9 @@ func link(src, dst string) error {
 	return out.Close()
 }
 
-// steamworksFiles lists files in dir that mean the build talks to the
+// SteamworksFiles lists files in dir that mean the build talks to the
 // Steam client. Such a build may refuse to start outside Steam.
-func steamworksFiles(dir string) []string {
+func SteamworksFiles(dir string) []string {
 	var found []string
 	filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
@@ -239,21 +233,4 @@ func steamworksFiles(dir string) []string {
 		return nil
 	})
 	return found
-}
-
-func warnSteamworks(channel string, files []string) {
-	if len(files) == 0 {
-		return
-	}
-	lines := []string{
-		fmt.Sprintf("The %s build ships the Steamworks SDK:", channel),
-		"",
-	}
-	for _, f := range files {
-		lines = append(lines, "  "+f)
-	}
-	lines = append(lines, "",
-		"If the game initializes Steam at startup it may not run for itch.io players.",
-		"Consider a build with Steam integration disabled for this channel.")
-	comm.Notice("Steamworks SDK detected", lines)
 }

@@ -1,4 +1,4 @@
-package steamsync
+package steam
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Plan is everything a sync needs to know, computed before any bytes move.
-// It is the shape that will eventually be stored on the itch.io channel so
-// later syncs do not have to be told the app id and mapping again.
-type Plan struct {
+// SyncPlan is everything a sync needs to know, computed before any bytes
+// move. It is the shape that will eventually be stored alongside a
+// connection so later syncs do not have to be told the mapping again.
+type SyncPlan struct {
 	AppID    uint32         `json:"app_id"`
 	AppName  string         `json:"app_name"`
 	Branch   string         `json:"branch"`
@@ -50,7 +50,7 @@ type SkippedDepot struct {
 }
 
 type PlanOptions struct {
-	App      *appinfo.App
+	AppID    uint32
 	Branch   string
 	Password string
 	Target   string
@@ -58,6 +58,29 @@ type PlanOptions struct {
 	Map map[uint32]string
 	// Skip leaves depots out entirely.
 	Skip map[uint32]bool
+}
+
+// Plan connects to Steam and works out what a sync of the app would do.
+// The gate is checked first: apps the publisher key does not control are
+// refused before any app info is fetched.
+func Plan(ctx context.Context, s Store, opts PlanOptions) (*SyncPlan, error) {
+	if err := s.CheckAppAccess(ctx, opts.AppID); err != nil {
+		return nil, err
+	}
+	sess, err := s.OpenSession(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer sess.Close()
+	return planWith(ctx, sess, opts)
+}
+
+func planWith(ctx context.Context, sess *session.Session, opts PlanOptions) (*SyncPlan, error) {
+	app, err := sess.AppInfo(ctx, opts.AppID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "fetching app info for %d", opts.AppID)
+	}
+	return buildPlan(ctx, sess, app, opts)
 }
 
 func (c *ChannelPlan) Size() (size, download uint64) {
@@ -76,7 +99,7 @@ var channelOS = map[string]string{
 	"macos":   "mac",
 }
 
-// BuildPlan decides which depots go to which itch.io channel.
+// buildPlan decides which depots go to which itch.io channel.
 //
 // Platform-specific depots create one channel per platform. When a
 // platform has depots that declare an architecture, it gets one channel
@@ -84,8 +107,7 @@ var channelOS = map[string]string{
 // Depots with no platform at all are copied into every channel. DLC,
 // depots borrowed from another app, and non-English language packs are
 // left out.
-func BuildPlan(goCtx context.Context, s *session.Session, opts PlanOptions) (*Plan, error) {
-	app := opts.App
+func buildPlan(goCtx context.Context, s *session.Session, app *appinfo.App, opts PlanOptions) (*SyncPlan, error) {
 	branch := app.Branch(opts.Branch)
 	if branch == nil {
 		var names []string
@@ -95,7 +117,7 @@ func BuildPlan(goCtx context.Context, s *session.Session, opts PlanOptions) (*Pl
 		return nil, errors.Errorf("app %d has no branch %q, available: %s", app.ID, opts.Branch, strings.Join(names, ", "))
 	}
 
-	plan := &Plan{
+	plan := &SyncPlan{
 		AppID:   app.ID,
 		AppName: app.Name,
 		Branch:  branch.Name,
