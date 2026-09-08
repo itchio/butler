@@ -18,6 +18,7 @@
   * [Storing the publisher key](steam-sync.md#storing-the-publisher-key)
   * [Running a sync](steam-sync.md#running-a-sync)
   * [Running from CI](steam-sync.md#running-from-ci)
+  * [Troubleshooting](steam-sync.md#troubleshooting)
 * [Prerequisites](prerequisites.md)
 * [Third-party integrations](integration.md)
 * [Building a launcher with butlerd](launcher-integration.md)

@@ -5,8 +5,8 @@ itch.io. It downloads the depots of a Steam app, groups them into one
 directory per platform, and pushes each directory to an itch.io channel with
 `butler push`. You don't need to rebuild or re-upload anything yourself.
 
-The commands in this section are still experimental. They don't show up in
-`butler --help`, but they are available in every butler release that has them.
+This feature is experimental. The commands don't show up in `butler --help`
+yet, and if you hit a problem, let us know.
 
 ## Overview
 
@@ -30,8 +30,8 @@ butler steam-login
 ```
 
 By default this shows a QR code. Scan it with the Steam mobile app and approve
-the login there. Your password never passes through butler this way. If you'd
-rather type your credentials:
+the login there. Your password never passes through butler this way. If the
+code doesn't render in your terminal, or you'd rather type your credentials:
 
 ```bash
 butler steam-login --password
@@ -108,7 +108,8 @@ Where:
 
   * `123456` is the Steam app id
   * `user/game` is the itch.io project, the same target you'd give to `butler push`
-    but without a channel. Channels are chosen per platform, see below.
+    but without a channel. Channels are chosen per platform, see below. A
+    target with a channel such as `user/game:windows` is rejected.
 
 A dry run prints the plan and stops:
 
@@ -169,7 +170,11 @@ butler steam-sync 123456 user/game --map 123461=french --map 123459=windows
 
 A mapped depot goes only where you sent it. Depots mapped by hand aren't
 copied into the platform channels, and platform detection doesn't apply to
-them.
+them. This is also how you keep a depot the automatic placement would skip,
+such as a language pack.
+
+When two depots in the same channel ship the same file path, the depot with
+the higher id wins. That matches how Steam mounts them.
 
 To leave a depot out entirely:
 
@@ -270,6 +275,57 @@ Steam refresh tokens eventually expire, and are revoked when you sign out of
 all devices from your Steam account. When that happens the sync fails and
 asks you to log in again. Run `butler steam-login --no-save` once more and
 update the secret.
+
+## Troubleshooting
+
+Since this feature is new, you may run into problems not listed here. Run
+with `-v` for verbose output when reporting one, and include the `--dry-run`
+plan.
+
+### "getting decryption key for depot"
+
+Steam hands out depot decryption keys freely for released apps, but for some
+unreleased apps it only does so when the logged-in account owns the game.
+Owning it through the partner site isn't always enough. Grant the Steam
+account you logged in with a license for the app, through a Steamworks key or
+by adding it to the app's package, and run the sync again.
+
+### A channel is skipped but the build on itch.io is wrong
+
+butler skips a channel when its newest build, including one still processing,
+carries the current Steam build id as its version. If a push was interrupted
+or a build failed processing on itch.io, that build still matches and the
+sync does nothing. Run with `--force` to push it again.
+
+### Running out of disk space
+
+Without `--cache-dir`, downloads are staged in a `steam-sync` directory next
+to butler's credentials file, not in the system temp directory, and removed
+when the sync finishes. A large game needs that much free space on that
+drive. Pass `--cache-dir` to stage somewhere with room, which also makes the
+next sync faster.
+
+If a sync was killed, its staging directory may be left behind. butler
+removes leftovers older than a day on its next run. To clean up by hand,
+delete the `tmp-*` directories under:
+
+  * Linux: `~/.config/itch/steam-sync/`
+  * Mac: `~/Library/Application Support/itch/steam-sync/`
+  * Windows: `%USERPROFILE%\.config\itch\steam-sync\`
+
+If you pass `-i` to point butler at a different credentials file, the
+`steam-sync` directory sits next to that file instead.
+
+### "app ... has no branch"
+
+The error lists the branches Steam reports for the app. Branch names are
+matched exactly as Steam spells them.
+
+### "not in the list of apps your Steam publisher key controls"
+
+The publisher key belongs to a partner group that doesn't own this app. Check
+`butler steam-apps` for the list it does control, and store a key from the
+right group with `butler steam-key`.
 
 ## Command reference
 
