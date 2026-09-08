@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/itchio/butler/cmd/push"
 	"github.com/itchio/butler/comm"
@@ -117,7 +118,11 @@ func Sync(ctx *mansion.Context) error {
 		}
 		opts.Client = client
 		opts.Push = func(goCtx context.Context, dir, target, userVersion string, hidden bool) error {
-			comm.Opf("Pushing %s", target)
+			if comm.JsonEnabled() {
+				comm.Object("steamSyncPushStart", comm.JsonMessage{"target": target, "channel": channelOf(target)})
+			} else {
+				comm.Opf("Pushing %s", target)
+			}
 			return push.Do(ctx, dir, target, userVersion, true, false, false, true, false, hidden)
 		}
 	}
@@ -128,7 +133,9 @@ func Sync(ctx *mansion.Context) error {
 		return hint(err)
 	}
 	pushed := 0
+	channels := make([]comm.JsonMessage, 0, len(result.Channels))
 	for _, c := range result.Channels {
+		channels = append(channels, comm.JsonMessage{"channel": c.Name, "upToDate": c.UpToDate, "dir": c.Dir})
 		if c.UpToDate {
 			continue
 		}
@@ -140,38 +147,87 @@ func Sync(ctx *mansion.Context) error {
 	if pushed == 0 {
 		comm.Statf("Everything is up to date.")
 	}
+	// The per-push "result" events above belong to push.Do, so the sync's
+	// own summary goes out under a name of its own.
+	comm.Object("steamSyncDone", comm.JsonMessage{
+		"appId":    result.Plan.AppID,
+		"buildId":  result.Plan.BuildID,
+		"target":   result.Plan.Target,
+		"channels": channels,
+	})
 	return nil
 }
 
-// cliEvents renders sync progress the way the rest of butler does.
-type cliEvents struct{}
+func channelOf(target string) string {
+	if i := strings.LastIndex(target, ":"); i >= 0 {
+		return target[i+1:]
+	}
+	return ""
+}
+
+// cliEvents renders sync progress the way the rest of butler does. With
+// --json it emits one typed event per step instead, which is what the
+// butlerd worker path reads.
+type cliEvents struct {
+	lastProgress time.Time
+}
 
 func (cliEvents) Planned(plan *steam.SyncPlan) {
-	comm.ResultOrPrint(plan, func() { printPlan(plan) })
+	if comm.JsonEnabled() {
+		comm.Object("steamSyncPlan", comm.JsonMessage{"plan": plan})
+		return
+	}
+	printPlan(plan)
 }
 
 func (cliEvents) ChannelUpToDate(channel string) {
+	if comm.JsonEnabled() {
+		comm.Object("steamSyncChannelUpToDate", comm.JsonMessage{"channel": channel})
+		return
+	}
 	comm.Statf("%s already has this Steam build, skipping (use --force to push anyway)", channel)
 }
 
 func (cliEvents) DepotStart(dp *steam.DepotPlan, files int, totalBytes uint64) {
+	if comm.JsonEnabled() {
+		comm.Object("steamSyncDepotStart", comm.JsonMessage{"depotId": dp.ID, "files": files, "totalBytes": totalBytes})
+		return
+	}
 	comm.Opf("Downloading depot %d (%d files)", dp.ID, files)
 	comm.StartProgressWithTotalBytes(int64(totalBytes))
 }
 
-func (cliEvents) DepotProgress(dp *steam.DepotPlan, done, total uint64) {
+func (e *cliEvents) DepotProgress(dp *steam.DepotPlan, done, total uint64) {
+	if comm.JsonEnabled() {
+		// chunks land many times a second; the reader only needs a
+		// few updates per second
+		if time.Since(e.lastProgress) < 250*time.Millisecond && done < total {
+			return
+		}
+		e.lastProgress = time.Now()
+		comm.Object("steamSyncDepotProgress", comm.JsonMessage{"depotId": dp.ID, "doneBytes": done, "totalBytes": total})
+		return
+	}
 	if total > 0 {
 		comm.Progress(float64(done) / float64(total))
 	}
 }
 
 func (cliEvents) DepotDone(dp *steam.DepotPlan, st steam.DepotStats) {
+	if comm.JsonEnabled() {
+		comm.Object("steamSyncDepotDone", comm.JsonMessage{"depotId": dp.ID, "fetchedBytes": st.Fetched, "reusedBytes": st.Reused, "skippedBytes": st.Skipped})
+		return
+	}
 	comm.EndProgress()
 	comm.Statf("Depot %d: %s fetched, %s reused from previous files, %s unchanged",
 		dp.ID, united.FormatBytes(int64(st.Fetched)), united.FormatBytes(int64(st.Reused)), united.FormatBytes(int64(st.Skipped)))
 }
 
 func (cliEvents) ChannelAssembled(channel, dir string, steamworks []string) {
+	if comm.JsonEnabled() {
+		comm.Object("steamSyncChannelAssembled", comm.JsonMessage{"channel": channel, "steamworksFiles": steamworks})
+		return
+	}
 	comm.Opf("Assembled %s", channel)
 	warnSteamworks(channel, steamworks)
 }
