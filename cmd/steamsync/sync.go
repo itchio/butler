@@ -3,6 +3,7 @@ package steamsync
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,24 +29,28 @@ var syncArgs = struct {
 	force    bool
 	noPush   bool
 	hidden   bool
+	config   string
 }{}
 
 func RegisterSync(ctx *mansion.Context) {
-	cmd := ctx.App.Command("steam-sync", "Copy a Steam app's builds to itch.io, one channel per platform.").Hidden()
-	cmd.Arg("appid", "Steam app id").Required().Uint32Var(&syncArgs.appID)
-	cmd.Arg("target", "itch.io project, for example 'leafo/x-moon'. Channel names are chosen per platform, use --map to override.").Required().StringVar(&syncArgs.target)
-	cmd.Flag("branch", "Steam branch to sync").Default("public").StringVar(&syncArgs.branch)
-	cmd.Flag("password", "Password for a private Steam branch").StringVar(&syncArgs.password)
+	cmd := ctx.App.Command("steam-sync", "Copy a Steam app's builds to itch.io, one channel per platform. Give an app id and target, or --from-config to run every entry in a file.").Hidden()
+	cmd.Arg("appid", "Steam app id").Uint32Var(&syncArgs.appID)
+	cmd.Arg("target", "itch.io project, for example 'leafo/x-moon'. Channel names are chosen per platform, use --map to override.").StringVar(&syncArgs.target)
+	cmd.Flag("branch", "Steam branch to sync (default public)").StringVar(&syncArgs.branch)
+	cmd.Flag("password", "Password for a private Steam branch. Also read from "+envBranchPassword+".").StringVar(&syncArgs.password)
 	cmd.Flag("map", "Send a depot to a specific channel, as DEPOTID=CHANNEL. Repeatable.").StringsVar(&syncArgs.mappings)
 	cmd.Flag("skip", "Leave a depot out. Repeatable.").Uint32ListVar(&syncArgs.skips)
 	cmd.Flag("dry-run", "Show the plan without downloading or pushing anything").BoolVar(&syncArgs.dryRun)
 	cmd.Flag("cache-dir", "Keep downloaded depots here between syncs so the next one only fetches what changed on Steam. Without it everything is downloaded into a temporary directory and removed once the push is done.").StringVar(&syncArgs.cacheDir)
 	cmd.Flag("force", "Push even when the channel's latest build already has this Steam build id").BoolVar(&syncArgs.force)
-	cmd.Flag("no-push", "Download and assemble the channel directories, then stop. Requires --cache-dir, otherwise there would be nothing left to look at.").BoolVar(&syncArgs.noPush)
+	cmd.Flag("no-push", "Download and assemble the channel directories, then stop. Requires a cache directory, otherwise there would be nothing left to look at.").BoolVar(&syncArgs.noPush)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").BoolVar(&syncArgs.hidden)
+	cmd.Flag("from-config", "Run every entry of this sync config file instead of taking an app id and target").StringVar(&syncArgs.config)
 	registerCredFlags(cmd)
 	ctx.Register(cmd, doSync)
 }
+
+const envBranchPassword = "BUTLER_STEAM_BRANCH_PASSWORD"
 
 func doSync(ctx *mansion.Context) {
 	ctx.Must(Sync(ctx))
@@ -55,47 +60,149 @@ func Sync(ctx *mansion.Context) error {
 	goCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	spec, err := itchio.ParseSpec(syncArgs.target)
+	entries, err := resolveEntries(syncRequest{
+		AppID:    syncArgs.appID,
+		Target:   syncArgs.target,
+		Branch:   syncArgs.branch,
+		Mappings: syncArgs.mappings,
+		Skips:    syncArgs.skips,
+		CacheDir: syncArgs.cacheDir,
+		Hidden:   syncArgs.hidden,
+		Config:   syncArgs.config,
+		NoPush:   syncArgs.noPush && !syncArgs.dryRun,
+	})
 	if err != nil {
-		return errors.Wrapf(err, "parsing target '%s'", syncArgs.target)
-	}
-	if spec.Channel != "" {
-		return errors.Errorf("target '%s' names a channel, but channels are chosen per platform. Use --map DEPOTID=%s to send a depot there.", syncArgs.target, spec.Channel)
-	}
-
-	mapping := map[uint32]string{}
-	for _, m := range syncArgs.mappings {
-		id, channel, ok := strings.Cut(m, "=")
-		depotID, err := strconv.ParseUint(id, 10, 32)
-		if !ok || err != nil || channel == "" {
-			return errors.Errorf("bad --map value '%s', want DEPOTID=CHANNEL", m)
-		}
-		mapping[uint32(depotID)] = channel
-	}
-	skip := map[uint32]bool{}
-	for _, id := range syncArgs.skips {
-		skip[id] = true
-	}
-
-	if syncArgs.noPush && syncArgs.cacheDir == "" && !syncArgs.dryRun {
-		return errors.New("--no-push needs --cache-dir, since the temporary directory is removed when the command exits")
+		return err
 	}
 
 	warnUngated()
-	planOpts := steam.PlanOptions{
-		AppID:    syncArgs.appID,
-		Branch:   syncArgs.branch,
-		Password: syncArgs.password,
-		Target:   spec.Target,
-		Map:      mapping,
-		Skip:     skip,
+	var failed []string
+	for _, e := range entries {
+		if len(entries) > 1 {
+			comm.Opf("Syncing app %d to %s", e.App, e.Target)
+		}
+		if err := runEntry(ctx, goCtx, e); err != nil {
+			if len(entries) == 1 {
+				return hint(err)
+			}
+			comm.Warnf("app %d to %s: %v", e.App, e.Target, hint(err))
+			failed = append(failed, fmt.Sprintf("%d", e.App))
+		}
+	}
+	if len(failed) > 0 {
+		return errors.Errorf("%d of %d entries failed: app %s", len(failed), len(entries), strings.Join(failed, ", "))
+	}
+	return nil
+}
+
+type syncRequest struct {
+	AppID    uint32
+	Target   string
+	Branch   string
+	Mappings []string
+	Skips    []uint32
+	CacheDir string
+	Hidden   bool
+	Config   string
+	// NoPush requires every entry to have a cache directory.
+	NoPush bool
+}
+
+// The command line and the config file are never combined, so per-app
+// flags alongside --from-config are an error rather than ignored.
+func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
+	var raw []steam.SyncEntry
+	var cfg *steam.SyncConfig
+	if req.AppID == 0 && req.Config == "" {
+		return nil, errors.New("give an app id and target, or --from-config FILE")
+	}
+	if req.AppID != 0 && req.Config != "" {
+		return nil, errors.New("--from-config cannot be combined with an app id")
+	}
+	if req.AppID == 0 && (req.Target != "" || req.Branch != "" || len(req.Mappings) > 0 || len(req.Skips) > 0 || req.CacheDir != "" || req.Hidden) {
+		return nil, errors.New("per-app flags need an app id; with --from-config they come from the file")
+	}
+	if req.AppID != 0 {
+		entry := steam.SyncEntry{
+			App:      req.AppID,
+			Target:   req.Target,
+			Branch:   req.Branch, // empty means public, see BranchOrDefault
+			Hidden:   req.Hidden,
+			Skip:     req.Skips,
+			CacheDir: req.CacheDir,
+		}
+		if len(req.Mappings) > 0 {
+			entry.Map = map[string]string{}
+			for _, m := range req.Mappings {
+				id, channel, ok := strings.Cut(m, "=")
+				if _, err := strconv.ParseUint(id, 10, 32); !ok || err != nil || channel == "" {
+					return nil, errors.Errorf("bad --map value '%s', want DEPOTID=CHANNEL", m)
+				}
+				entry.Map[id] = channel
+			}
+		}
+		if entry.Target == "" {
+			return nil, errors.New("an itch.io target is required, for example 'leafo/x-moon'")
+		}
+		cfg = &steam.SyncConfig{}
+		raw = []steam.SyncEntry{entry}
+	} else {
+		var err error
+		cfg, err = steam.LoadSyncConfig(req.Config)
+		if err != nil {
+			return nil, err
+		}
+		if len(cfg.Sync) == 0 {
+			return nil, errors.Errorf("%s has no sync entries", req.Config)
+		}
+		raw = cfg.Sync
+	}
+
+	entries := make([]steam.SyncEntry, 0, len(raw))
+	for _, e := range raw {
+		e, err := validateEntry(e)
+		if err != nil {
+			return nil, errors.Wrapf(err, "app %d", e.App)
+		}
+		e = cfg.Resolve(e)
+		if req.NoPush && e.CacheDir == "" {
+			return nil, errors.Errorf("--no-push needs a cache directory for app %d, since the temporary directory is removed when the command exits", e.App)
+		}
+		entries = append(entries, e)
+	}
+	return entries, nil
+}
+
+func validateEntry(e steam.SyncEntry) (steam.SyncEntry, error) {
+	if err := e.Validate(); err != nil {
+		return e, err
+	}
+	spec, err := itchio.ParseSpec(e.Target)
+	if err != nil {
+		return e, errors.Wrapf(err, "parsing target '%s'", e.Target)
+	}
+	if spec.Channel != "" {
+		return e, errors.Errorf("target '%s' names a channel, but channels are chosen per platform. Use --map DEPOTID=%s to send a depot there.", e.Target, spec.Channel)
+	}
+	e.Target = spec.Target
+	return e, nil
+}
+
+func runEntry(ctx *mansion.Context, goCtx context.Context, entry steam.SyncEntry) error {
+	password := syncArgs.password
+	if password == "" {
+		password = os.Getenv(envBranchPassword)
+	}
+	planOpts, err := entry.PlanOptions(password)
+	if err != nil {
+		return err
 	}
 
 	if syncArgs.dryRun {
-		comm.Opf("Fetching Steam app info for %d", syncArgs.appID)
+		comm.Opf("Fetching Steam app info for %d", entry.App)
 		plan, err := steam.Plan(goCtx, store(ctx), planOpts)
 		if err != nil {
-			return hint(err)
+			return err
 		}
 		comm.ResultOrPrint(plan, func() { printPlan(plan) })
 		return nil
@@ -103,9 +210,9 @@ func Sync(ctx *mansion.Context) error {
 
 	opts := steam.SyncOptions{
 		PlanOptions: planOpts,
-		CacheDir:    syncArgs.cacheDir,
+		CacheDir:    entry.CacheDir,
 		Force:       syncArgs.force,
-		Hidden:      syncArgs.hidden,
+		Hidden:      entry.Hidden,
 		Events:      &cliEvents{},
 		Logf:        comm.Debugf,
 	}
@@ -127,10 +234,10 @@ func Sync(ctx *mansion.Context) error {
 		}
 	}
 
-	comm.Opf("Fetching Steam app info for %d", syncArgs.appID)
+	comm.Opf("Fetching Steam app info for %d", entry.App)
 	result, err := steam.Sync(goCtx, store(ctx), opts)
 	if err != nil {
-		return hint(err)
+		return err
 	}
 	pushed := 0
 	channels := make([]comm.JsonMessage, 0, len(result.Channels))
