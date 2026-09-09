@@ -80,6 +80,7 @@ func registerCommands(ctx *mansion.Context) {
 
 	steamsync.RegisterLogin(ctx)
 	steamsync.RegisterApps(ctx)
+	steamsync.RegisterInfo(ctx)
 	steamsync.RegisterSync(ctx)
 
 	dl.Register(ctx)

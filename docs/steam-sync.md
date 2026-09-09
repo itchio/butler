@@ -276,6 +276,20 @@ butler steam-sync 123456 user/game --branch playtest --password hunter2
 
 `--password` is only needed for password-protected branches.
 
+Steam has two kinds of password branch. The older kind lists an encrypted
+manifest per depot in the app info, and butler decrypts it with the
+password. The newer kind withholds the depot section entirely and is not
+supported yet: the sync fails with "has no manifest on branch". To see
+which kind a branch is, without a password or a sync:
+
+```bash
+butler steam-info 123456
+```
+
+It prints every branch and, per depot, whether each branch has a manifest,
+an encrypted one, or none. Include its output when reporting a problem with
+a private branch.
+
 Channel names don't change with the branch. If you want a beta branch to
 land in `windows-beta` rather than `windows`, use `--map` for each depot.
 
@@ -404,6 +418,13 @@ delete the `tmp-*` directories under:
 If you pass `-i` to point butler at a different credentials file, the
 `steam-sync` directory sits next to that file instead.
 
+### "has no manifest on branch"
+
+The branch exists but Steam did not include the depot's manifest for it in
+the app info. For a password branch this means the newer private-branch
+mechanism, which butler does not support yet. Run `butler steam-info APPID`
+and report the output.
+
 ### "app ... has no branch"
 
 The error lists the branches Steam reports for the app. Branch names are
@@ -422,6 +443,7 @@ butler steam-login [--password] [--user NAME] [--no-save]
 butler steam-logout
 butler steam-key [KEY]
 butler steam-apps [--owned]
+butler steam-info APPID
 butler steam-sync APPID user/game [flags]
 butler steam-sync --from-config FILE [flags]
 ```
