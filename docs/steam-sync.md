@@ -3,7 +3,16 @@
 If your game is already on Steam, `butler steam-sync` copies its builds to
 itch.io. It downloads the depots of a Steam app, groups them into one
 directory per platform, and pushes each directory to an itch.io channel with
-`butler push`. You don't need to rebuild or re-upload anything yourself.
+`butler push`. 
+
+The depot downloader supports a cache directly so that subsequent syncs can be
+downloaded as patches from Steam without having to redownload your whole build,
+and then `butler` supports patch uploads, so you only upload what has changed
+since your last sync.
+
+A config file can be written to manage your entire sync pipeline, so you can
+simply run `butler sync --from-config` periodically to keep your builds
+synchronized into itch.io.
 
 This feature is experimental. The commands don't show up in `butler --help`
 yet, and if you hit a problem, let us know.
@@ -14,14 +23,14 @@ A sync goes through these steps:
 
   1. `butler steam-login` connects a Steam account. Steam only serves depot
      content to a logged-in account.
-  2. `butler steam-key` stores a publisher Web API key. It proves which apps
-     your partner account controls. butler only syncs those.
+  2. `butler steam-key` stores a publisher Web API key. It's used to prove
+     which apps your partner account controls. butler only supports syncing
+     those.
   3. `butler steam-sync APPID user/game` maps the depots of that app to itch.io
      channels, downloads them, and pushes. Run it with `--dry-run` first to see
-     the plan without downloading anything.
-
-After that, run `butler steam-sync` again after each Steam release. Channels
-that already have the current Steam build are skipped.
+     the plan without downloading anything. Like `butler push` it will either
+     create a new channel on itch.io, or push a patch to the existing channel
+     if you've already run a sync.
 
 ## Logging in to Steam
 
@@ -30,8 +39,8 @@ butler steam-login
 ```
 
 By default this shows a QR code. Scan it with the Steam mobile app and approve
-the login there. Your password never passes through butler this way. If the
-code doesn't render in your terminal, or you'd rather type your credentials:
+the login there. Your password never passes through butler this way. If this
+doesn't work for you, or you'd rather type your credentials:
 
 ```bash
 butler steam-login --password
@@ -39,19 +48,24 @@ butler steam-login --password --user myaccount
 ```
 
 You'll be prompted for the password and, if the account has Steam Guard
-enabled, for the code or for approval in the mobile app.
+enabled, for the code or for approval in the mobile app. The username and
+password is not stored, it is only used during authentication to exchange for
+an authorization code.
 
 ### What logging in grants
 
-Steam has no scoped API for downloading a game's files, so butler logs in as
-your Steam account the same way the Steam client does. The token Steam hands
-back grants full access to that account, not just to downloads. Treat it like
-a password.
+Unfortunately, Steam has no scoped API for downloading a game's files, so
+butler logs in as your Steam account the same way the Steam client does. The
+token Steam hands back grants full access to that account, not just to
+downloads.
 
-Everything happens on your computer. butler talks to Steam directly, and the
-token is never sent to itch.io or any other server. It is saved as
-`steam_creds.json` next to butler's itch.io credentials, so the `-i` /
-`--identity` flag moves both together. Your password itself is not stored.
+> Done using this feature? Log out to delete the stored credential instead of
+> leaving it around on your system.
+
+Everything involving Steam happens locally on your computer. butler talks to
+Steam directly, and the token is never sent to itch.io or any other server. It
+is saved as `steam_creds.json` next to butler's itch.io credentials, so the
+`-i` / `--identity` flag moves both together. Your password is never stored.
 
 If you'd rather not keep a token on disk, see `--no-save` under
 [Running from CI](#running-from-ci).
@@ -108,8 +122,9 @@ Where:
 
   * `123456` is the Steam app id
   * `user/game` is the itch.io project, the same target you'd give to `butler push`
-    but without a channel. Channels are chosen per platform, see below. A
-    target with a channel such as `user/game:windows` is rejected.
+    but without a channel. The page URL, `user.itch.io/game`, works too.
+    Channels are chosen per platform, see below. A target with a channel
+    such as `user/game:windows` is rejected.
 
 A dry run prints the plan and stops:
 
@@ -145,13 +160,22 @@ Since the Steam build id is stored as the version of every itch.io build,
 syncing the same Steam build twice does nothing. Pass `--force` to push
 anyway.
 
+Because the tool downloads the entire depot to your disk before pushing with
+butler, you need to ensure you have enough disk space available. When running
+without `--cache-dir`, a temporary cache dir is created to store downloads, and
+is cleanned up after execution. If you have a larger game and intend to sync
+often, we highly recommend using `--cache-dir` to avoid redownloading your
+depos on ever sync.
+
 ### Using a config file
 
-A config file can be used to sync several apps in one run, and to keep each
-app's branch, depot overrides and cache directory with it. It is a TOML file
-with any name:
+A config file can be used to fully describe your sync process so you can simply
+run `butler steam-sync --from-config config.toml` to synchronize all the
+specified apps in a single command. The config file uses the TOML format:
 
 ```toml
+cache_dir = ".steam-sync-cache"
+
 [[sync]]
 app = 123456
 target = "user/game"
@@ -161,15 +185,23 @@ app = 234567
 target = "user/other-game"
 branch = "beta"
 skip = [234570]
-cache_dir = ".steam-sync-cache"
+cache_dir = "/mnt/big/other-game-cache"
 
 [sync.map]
 234568 = "win-64"
 ```
 
-Run `butler steam-sync --from-config path/to/file.toml`. Each entry is synced
+Run `butler steam-sync --from-config path/to/config.toml`. Each entry is synced
 in order. A failed entry is reported and the remaining entries still run; the
 exit status is non-zero if any failed.
+
+At the top level, before the first `[[sync]]`:
+
+  * `cache_dir`: keep downloads between syncs for every entry. Each app gets
+    its own subdirectory named by app id, so the example above stages app
+    123456 in `.steam-sync-cache/123456`. A relative path is relative to the
+    config file. Without it, entries that set no `cache_dir` of their own are
+    downloaded into a temporary directory and removed after the push.
 
 Each `[[sync]]` entry takes:
 
@@ -177,8 +209,9 @@ Each `[[sync]]` entry takes:
   * `branch`: default `public`
   * `skip`: depot ids to leave out
   * `map`: depot id to channel name, in a `[sync.map]` table
-  * `cache_dir`: keep downloads between syncs. A relative path is relative to
-    the config file.
+  * `cache_dir`: keep this entry's downloads between syncs, overriding the top
+    level `cache_dir`. It is used as is, with no app id subdirectory, so give
+    each entry its own. A relative path is relative to the config file.
   * `hidden`: create new channels as hidden
 
 There is no password field. A private branch's password is given with
@@ -186,7 +219,9 @@ There is no password field. A private branch's password is given with
 
 The file and the command line are not combined. `--from-config` cannot be
 given together with an app id, and with it the per-app flags (`--branch`,
-`--map`, `--skip`, `--cache-dir`, `--hidden`) are an error.
+`--map`, `--skip`, `--hidden`) are an error. `--cache-dir` is the exception:
+with `--from-config` it sets the top level `cache_dir`, taking precedence
+over one in the file, and is relative to the working directory.
 `--dry-run`, `--force` and `--no-push` apply in both cases. `--dry-run` with
 a config file prints the plan for every entry.
 
@@ -257,7 +292,9 @@ butler steam-sync 123456 user/game --cache-dir ~/steam-sync/mygame
 The directory holds one download per depot plus the assembled channel
 directories, which are hardlinked from the depot downloads so they cost no
 extra disk space. An interrupted download resumes from where it stopped on
-the next run. Use one cache directory per app.
+the next run. Use one cache directory per app. With a config file, a single
+top level `cache_dir` does this for you by giving each app a subdirectory,
+see the config file section above.
 
 To look at what would be pushed without pushing it:
 
@@ -394,7 +431,9 @@ Flags for `steam-sync`, per app (command line only):
   * `--branch NAME`: Steam branch to sync, default `public`
   * `--map DEPOTID=CHANNEL`: send a depot to a specific channel, repeatable
   * `--skip DEPOTID`: leave a depot out, repeatable
-  * `--cache-dir DIR`: keep downloads here between syncs
+  * `--cache-dir DIR`: keep downloads here between syncs. Also allowed with
+    `--from-config`, where it is the top level `cache_dir` and each app
+    stages in `DIR/<app id>`
   * `--hidden`: create new channels as hidden
 
 Flags that apply to the run, with or without a config file:
