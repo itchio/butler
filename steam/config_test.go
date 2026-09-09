@@ -55,9 +55,10 @@ target = "leafo/x-moon"
 func TestSyncConfigRejectsBadEntries(t *testing.T) {
 	dir := t.TempDir()
 	for name, body := range map[string]string{
-		"missing target": "[[sync]]\napp = 1\n",
-		"duplicate app":  "[[sync]]\napp = 1\ntarget = \"a/b\"\n[[sync]]\napp = 1\ntarget = \"a/c\"\n",
-		"bad map key":    "[[sync]]\napp = 1\ntarget = \"a/b\"\n[sync.map]\nabc = \"win\"\n",
+		"missing target":                 "[[sync]]\napp = 1\n",
+		"duplicate app":                  "[[sync]]\napp = 1\ntarget = \"a/b\"\n[[sync]]\napp = 1\ntarget = \"a/c\"\n",
+		"bad map key":                    "[[sync]]\napp = 1\ntarget = \"a/b\"\n[sync.map]\nabc = \"win\"\n",
+		"entry cache_dir same as global": "cache_dir = \"cache\"\n[[sync]]\napp = 1\ntarget = \"a/b\"\ncache_dir = \"./cache/\"\n",
 	} {
 		path := filepath.Join(dir, name+".toml")
 		os.WriteFile(path, []byte(body), 0o644)

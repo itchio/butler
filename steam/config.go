@@ -110,8 +110,19 @@ func LoadSyncConfig(path string) (*SyncConfig, error) {
 			return nil, errors.Errorf("%s: app %d appears more than once", path, e.App)
 		}
 		seen[e.App] = true
+		if e.CacheDir != "" && c.CacheDir != "" && c.abs(e.CacheDir) == c.abs(c.CacheDir) {
+			return nil, errors.Errorf("%s: app %d has the same cache_dir as the top level one; remove it to stage in a subdirectory of the shared cache", path, e.App)
+		}
 	}
 	return &c, nil
+}
+
+// abs makes a path from the file absolute, relative to the file.
+func (c *SyncConfig) abs(p string) string {
+	if !filepath.IsAbs(p) && c.dir != "" {
+		p = filepath.Join(c.dir, p)
+	}
+	return filepath.Clean(p)
 }
 
 // Resolve fills in the cache dir for an entry: its own if set, otherwise
