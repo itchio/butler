@@ -66,3 +66,47 @@ func TestSyncConfigRejectsBadEntries(t *testing.T) {
 		}
 	}
 }
+
+func TestSyncConfigGlobalCacheDir(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "steam-sync.toml")
+	os.WriteFile(path, []byte(`
+cache_dir = "cache"
+
+[[sync]]
+app = 10
+target = "leafo/a"
+
+[[sync]]
+app = 20
+target = "leafo/b"
+cache_dir = "own"
+
+[[sync]]
+app = 30
+target = "leafo/c"
+cache_dir = "/abs/own"
+`), 0o644)
+
+	c, err := LoadSyncConfig(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Find(10).CacheDir != "" {
+		t.Fatal("entries should keep their cache dir as written")
+	}
+	if got := c.Resolve(*c.Find(10)).CacheDir; got != filepath.Join(dir, "cache", "10") {
+		t.Fatalf("inherited: %q", got)
+	}
+	if got := c.Resolve(*c.Find(20)).CacheDir; got != filepath.Join(dir, "own") {
+		t.Fatalf("override: %q", got)
+	}
+	if got := c.Resolve(*c.Find(30)).CacheDir; got != filepath.Join("/abs", "own") {
+		t.Fatalf("absolute override: %q", got)
+	}
+
+	c.CacheDir = filepath.Join(dir, "elsewhere")
+	if got := c.Resolve(*c.Find(10)).CacheDir; got != filepath.Join(dir, "elsewhere", "10") {
+		t.Fatalf("absolute global: %q", got)
+	}
+}

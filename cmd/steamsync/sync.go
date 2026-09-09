@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ func RegisterSync(ctx *mansion.Context) {
 	cmd.Flag("map", "Send a depot to a specific channel, as DEPOTID=CHANNEL. Repeatable.").StringsVar(&syncArgs.mappings)
 	cmd.Flag("skip", "Leave a depot out. Repeatable.").Uint32ListVar(&syncArgs.skips)
 	cmd.Flag("dry-run", "Show the plan without downloading or pushing anything").BoolVar(&syncArgs.dryRun)
-	cmd.Flag("cache-dir", "Keep downloaded depots here between syncs so the next one only fetches what changed on Steam. Without it everything is downloaded into a temporary directory and removed once the push is done.").StringVar(&syncArgs.cacheDir)
+	cmd.Flag("cache-dir", "Keep downloaded depots here between syncs so the next one only fetches what changed on Steam. Without it everything is downloaded into a temporary directory and removed once the push is done. With --from-config each app gets its own subdirectory, unless its entry sets cache_dir.").StringVar(&syncArgs.cacheDir)
 	cmd.Flag("force", "Push even when the channel's latest build already has this Steam build id").BoolVar(&syncArgs.force)
 	cmd.Flag("no-push", "Download and assemble the channel directories, then stop. Requires a cache directory, otherwise there would be nothing left to look at.").BoolVar(&syncArgs.noPush)
 	cmd.Flag("hidden", "When pushing to a new channel, mark it as hidden so it's not immediately downloadable").BoolVar(&syncArgs.hidden)
@@ -109,7 +110,9 @@ type syncRequest struct {
 }
 
 // The command line and the config file are never combined, so per-app
-// flags alongside --from-config are an error rather than ignored.
+// flags alongside --from-config are an error rather than ignored. The
+// exception is --cache-dir, which with --from-config plays the role of the
+// file's top level cache_dir.
 func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
 	var raw []steam.SyncEntry
 	var cfg *steam.SyncConfig
@@ -119,7 +122,7 @@ func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
 	if req.AppID != 0 && req.Config != "" {
 		return nil, errors.New("--from-config cannot be combined with an app id")
 	}
-	if req.AppID == 0 && (req.Target != "" || req.Branch != "" || len(req.Mappings) > 0 || len(req.Skips) > 0 || req.CacheDir != "" || req.Hidden) {
+	if req.AppID == 0 && (req.Target != "" || req.Branch != "" || len(req.Mappings) > 0 || len(req.Skips) > 0 || req.Hidden) {
 		return nil, errors.New("per-app flags need an app id; with --from-config they come from the file")
 	}
 	if req.AppID != 0 {
@@ -154,6 +157,15 @@ func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
 		}
 		if len(cfg.Sync) == 0 {
 			return nil, errors.Errorf("%s has no sync entries", req.Config)
+		}
+		if req.CacheDir != "" {
+			// Resolve treats relative paths as relative to the config file,
+			// but a flag is relative to the working directory.
+			abs, err := filepath.Abs(req.CacheDir)
+			if err != nil {
+				return nil, err
+			}
+			cfg.CacheDir = abs
 		}
 		raw = cfg.Sync
 	}

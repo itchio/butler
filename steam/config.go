@@ -23,7 +23,8 @@ type SyncEntry struct {
 	// keys are strings, so the ids are strings here; see Mapping.
 	Map map[string]string `toml:"map,omitempty" json:"map,omitempty"`
 	// CacheDir keeps depots between syncs. A relative path is relative to
-	// the config file, see SyncConfig.Resolve.
+	// the config file, and an entry without one falls back to the config
+	// wide cache dir, see SyncConfig.Resolve.
 	CacheDir string `toml:"cache_dir,omitempty" json:"cacheDir,omitempty"`
 }
 
@@ -84,7 +85,10 @@ func (e SyncEntry) Validate() error {
 
 // SyncConfig is a sync config file.
 type SyncConfig struct {
-	Sync []SyncEntry `toml:"sync" json:"sync"`
+	// CacheDir is the cache dir for every entry that does not set its
+	// own. Each app stages in its own subdirectory named by app id.
+	CacheDir string      `toml:"cache_dir,omitempty" json:"cacheDir,omitempty"`
+	Sync     []SyncEntry `toml:"sync" json:"sync"`
 
 	// Entries keep paths as written; Resolve makes them absolute.
 	dir string
@@ -110,8 +114,13 @@ func LoadSyncConfig(path string) (*SyncConfig, error) {
 	return &c, nil
 }
 
-// Resolve makes a relative cache dir absolute, relative to the config file.
+// Resolve fills in the cache dir for an entry: its own if set, otherwise
+// <config cache dir>/<app id>. A relative path either way is relative to
+// the config file.
 func (c *SyncConfig) Resolve(e SyncEntry) SyncEntry {
+	if e.CacheDir == "" && c.CacheDir != "" {
+		e.CacheDir = filepath.Join(c.CacheDir, strconv.FormatUint(uint64(e.App), 10))
+	}
 	if e.CacheDir != "" && !filepath.IsAbs(e.CacheDir) && c.dir != "" {
 		e.CacheDir = filepath.Join(c.dir, e.CacheDir)
 	}

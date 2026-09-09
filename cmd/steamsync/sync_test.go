@@ -75,6 +75,32 @@ branch = "beta"
 		}
 	})
 
+	t.Run("cache-dir flag is the global cache dir in config mode", func(t *testing.T) {
+		global := filepath.Join(t.TempDir(), "cache")
+		entries, err := resolveEntries(syncRequest{Config: path, CacheDir: global, NoPush: true})
+		if err != nil || len(entries) != 2 {
+			t.Fatalf("%v %v", entries, err)
+		}
+		if entries[0].CacheDir != filepath.Join(dir, ".cache") {
+			t.Fatalf("entry cache dir should win: %q", entries[0].CacheDir)
+		}
+		if entries[1].CacheDir != filepath.Join(global, "20") {
+			t.Fatalf("entry should inherit the flag: %q", entries[1].CacheDir)
+		}
+	})
+
+	t.Run("cache-dir flag overrides the file's global cache dir", func(t *testing.T) {
+		withGlobal := writeConfig(t, t.TempDir(), "cache_dir = \"file-cache\"\n[[sync]]\napp = 1\ntarget = \"leafo/a\"\n")
+		global := filepath.Join(t.TempDir(), "flag-cache")
+		entries, err := resolveEntries(syncRequest{Config: withGlobal, CacheDir: global})
+		if err != nil || len(entries) != 1 {
+			t.Fatalf("%v %v", entries, err)
+		}
+		if entries[0].CacheDir != filepath.Join(global, "1") {
+			t.Fatalf("flag should override the file: %q", entries[0].CacheDir)
+		}
+	})
+
 	t.Run("command line needs a target", func(t *testing.T) {
 		if _, err := resolveEntries(syncRequest{AppID: 10}); err == nil {
 			t.Fatal("expected an error")
