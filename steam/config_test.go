@@ -58,6 +58,7 @@ func TestSyncConfigRejectsBadEntries(t *testing.T) {
 		"missing target":                 "[[sync]]\napp = 1\n",
 		"duplicate app":                  "[[sync]]\napp = 1\ntarget = \"a/b\"\n[[sync]]\napp = 1\ntarget = \"a/c\"\n",
 		"bad map key":                    "[[sync]]\napp = 1\ntarget = \"a/b\"\n[sync.map]\nabc = \"win\"\n",
+		"channel in target":              "[[sync]]\napp = 1\ntarget = \"a/b:win\"\n",
 		"entry cache_dir same as global": "cache_dir = \"cache\"\n[[sync]]\napp = 1\ntarget = \"a/b\"\ncache_dir = \"./cache/\"\n",
 	} {
 		path := filepath.Join(dir, name+".toml")
@@ -111,5 +112,25 @@ cache_dir = '`+absOwn+`'
 	c.CacheDir = filepath.Join(dir, "elsewhere")
 	if got := c.Resolve(*c.Find(10)).CacheDir; got != filepath.Join(dir, "elsewhere", "10") {
 		t.Fatalf("absolute global: %q", got)
+	}
+}
+
+func TestSyncEntryValidateNormalizesTarget(t *testing.T) {
+	for in, want := range map[string]string{
+		"leafo/x-moon":                    "leafo/x-moon",
+		"leafo.itch.io/x-moon":            "leafo/x-moon",
+		"https://leafo.itch.io/x-moon":    "leafo/x-moon",
+		"https://leafo.itch.io/x-moon/?x": "leafo/x-moon",
+	} {
+		e := SyncEntry{App: 1, Target: in}
+		if err := e.Validate(); err != nil {
+			t.Errorf("%s: %v", in, err)
+		} else if e.Target != want {
+			t.Errorf("%s: got %q, want %q", in, e.Target, want)
+		}
+	}
+	e := SyncEntry{App: 1, Target: "leafo/x-moon:win"}
+	if err := e.Validate(); err == nil {
+		t.Error("a channel in the target should be refused")
 	}
 }

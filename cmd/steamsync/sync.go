@@ -13,7 +13,6 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/steam"
-	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/united"
 	"github.com/pkg/errors"
 )
@@ -172,8 +171,7 @@ func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
 
 	entries := make([]steam.SyncEntry, 0, len(raw))
 	for _, e := range raw {
-		e, err := validateEntry(e)
-		if err != nil {
+		if err := e.Validate(); err != nil {
 			return nil, errors.Wrapf(err, "app %d", e.App)
 		}
 		e = cfg.Resolve(e)
@@ -183,21 +181,6 @@ func resolveEntries(req syncRequest) ([]steam.SyncEntry, error) {
 		entries = append(entries, e)
 	}
 	return entries, nil
-}
-
-func validateEntry(e steam.SyncEntry) (steam.SyncEntry, error) {
-	if err := e.Validate(); err != nil {
-		return e, err
-	}
-	spec, err := itchio.ParseSpec(e.Target)
-	if err != nil {
-		return e, errors.Wrapf(err, "parsing target '%s'", e.Target)
-	}
-	if spec.Channel != "" {
-		return e, errors.Errorf("target '%s' names a channel, but channels are chosen per platform. Use --map DEPOTID=%s to send a depot there.", e.Target, spec.Channel)
-	}
-	e.Target = spec.Target
-	return e, nil
 }
 
 func runEntry(ctx *mansion.Context, goCtx context.Context, entry steam.SyncEntry) error {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/BurntSushi/toml"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/pkg/errors"
 )
 
@@ -70,13 +71,23 @@ func (e SyncEntry) PlanOptions(password string) (PlanOptions, error) {
 	}, nil
 }
 
-func (e SyncEntry) Validate() error {
+// Validate checks the entry and normalizes Target to user/game form, so a
+// page URL like user.itch.io/game is accepted anywhere a target is.
+func (e *SyncEntry) Validate() error {
 	if e.App == 0 {
 		return errors.New("app is required")
 	}
 	if e.Target == "" {
 		return errors.New("target is required")
 	}
+	spec, err := itchio.ParseSpec(e.Target)
+	if err != nil {
+		return errors.Wrapf(err, "parsing target '%s'", e.Target)
+	}
+	if spec.Channel != "" {
+		return errors.Errorf("target '%s' names a channel, but channels are chosen per platform. Map a depot to '%s' instead.", e.Target, spec.Channel)
+	}
+	e.Target = spec.Target
 	if _, err := e.Mapping(); err != nil {
 		return err
 	}
