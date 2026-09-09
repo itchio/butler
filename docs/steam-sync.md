@@ -3,15 +3,15 @@
 If your game is already on Steam, `butler steam-sync` copies its builds to
 itch.io. It downloads the depots of a Steam app, groups them into one
 directory per platform, and pushes each directory to an itch.io channel with
-`butler push`. 
+`butler push`.
 
-The depot downloader supports a cache directly so that subsequent syncs can be
+The depot downloader supports a cache directory so that subsequent syncs can be
 downloaded as patches from Steam without having to redownload your whole build,
 and then `butler` supports patch uploads, so you only upload what has changed
 since your last sync.
 
 A config file can be written to manage your entire sync pipeline, so you can
-simply run `butler sync --from-config` periodically to keep your builds
+simply run `butler steam-sync --from-config` periodically to keep your builds
 synchronized into itch.io.
 
 This feature is experimental. The commands don't show up in `butler --help`
@@ -49,7 +49,7 @@ butler steam-login --password --user myaccount
 
 You'll be prompted for the password and, if the account has Steam Guard
 enabled, for the code or for approval in the mobile app. The username and
-password is not stored, it is only used during authentication to exchange for
+password are not stored, they are only used during authentication to exchange for
 an authorization code.
 
 ### What logging in grants
@@ -163,9 +163,9 @@ anyway.
 Because the tool downloads the entire depot to your disk before pushing with
 butler, you need to ensure you have enough disk space available. When running
 without `--cache-dir`, a temporary cache dir is created to store downloads, and
-is cleanned up after execution. If you have a larger game and intend to sync
+is cleaned up after execution. If you have a larger game and intend to sync
 often, we highly recommend using `--cache-dir` to avoid redownloading your
-depos on ever sync.
+depots on every sync.
 
 ### Using a config file
 
