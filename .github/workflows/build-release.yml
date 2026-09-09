@@ -119,12 +119,12 @@ jobs:
     if: inputs.deploy_linux_amd64
     runs-on: ubuntu-latest
     container:
-      image: debian:bullseye
+      image: ubuntu:20.04
     steps:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y curl git ca-certificates build-essential file
+          DEBIAN_FRONTEND=noninteractive apt-get install -y curl git ca-certificates build-essential file
           git config --global --add safe.directory '*'
 
       - name: Checkout code
@@ -157,12 +157,12 @@ jobs:
     if: inputs.deploy_linux_arm64
     runs-on: ubuntu-22.04-arm
     container:
-      image: debian:bullseye
+      image: ubuntu:20.04
     steps:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y curl git ca-certificates build-essential file
+          DEBIAN_FRONTEND=noninteractive apt-get install -y curl git ca-certificates build-essential file
           git config --global --add safe.directory '*'
 
       - name: Checkout code
