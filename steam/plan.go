@@ -119,6 +119,12 @@ var channelOS = map[string]string{
 // depots borrowed from another app, and non-English language packs are
 // left out.
 func buildPlan(goCtx context.Context, s *session.Session, app *appinfo.App, opts PlanOptions) (*SyncPlan, error) {
+	// Private branches are absent from app info until unlocked.
+	if app.Branch(opts.Branch) == nil && opts.Password != "" {
+		if err := s.UnlockBranch(goCtx, app, opts.Branch, opts.Password); err != nil {
+			return nil, errors.Wrapf(err, "unlocking branch %q", opts.Branch)
+		}
+	}
 	branch := app.Branch(opts.Branch)
 	if branch == nil {
 		var names []string

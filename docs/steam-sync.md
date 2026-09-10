@@ -274,7 +274,10 @@ butler steam-sync 123456 user/game --branch beta
 butler steam-sync 123456 user/game --branch playtest --password hunter2
 ```
 
-`--password` is only needed for password-protected branches.
+`--password` is only needed for password-protected branches. Steam hides
+newer private branches completely until the password is given, so one may
+be missing from the branch list butler shows and still sync fine with
+`--password`.
 
 Steam has two kinds of password branch. The older kind lists an encrypted
 manifest per depot in the app info, and butler decrypts it with the
@@ -428,7 +431,9 @@ and report the output.
 ### "app ... has no branch"
 
 The error lists the branches Steam reports for the app. Branch names are
-matched exactly as Steam spells them.
+matched exactly as Steam spells them. A private branch is not reported at
+all until its password is given, so if you know the branch exists, retry
+with `--password`.
 
 ### "not in the list of apps your Steam publisher key controls"
 
