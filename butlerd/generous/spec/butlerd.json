@@ -7076,7 +7076,14 @@
     {
       "name": "MacosInfo",
       "doc": "Contains information specific to native macOS executables\nor app bundles.",
-      "fields": null
+      "fields": [
+        {
+          "name": "architectures",
+          "doc": "All CPU architectures found in the binary (for universal/fat binaries)",
+          "type": "Arch[]",
+          "optional": true
+        }
+      ]
     },
     {
       "name": "LinuxInfo",
@@ -8703,6 +8710,16 @@
           "name": "Amd64",
           "doc": "64-bit",
           "value": "amd64"
+        },
+        {
+          "name": "Arm64",
+          "doc": "ARM 64-bit (Apple Silicon)",
+          "value": "arm64"
+        },
+        {
+          "name": "Universal",
+          "doc": "Universal binary (multiple architectures)",
+          "value": "universal"
         }
       ]
     },

@@ -15668,6 +15668,16 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <td><p>64-bit</p>
 </td>
 </tr>
+<tr>
+<td><code>"arm64"</code></td>
+<td><p>ARM 64-bit (Apple Silicon)</p>
+</td>
+</tr>
+<tr>
+<td><code>"universal"</code></td>
+<td><p>Universal binary (multiple architectures)</p>
+</td>
+</tr>
 </table>
 
 
@@ -15685,6 +15695,12 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>"amd64"</code></td>
+</tr>
+<tr>
+<td><code>"arm64"</code></td>
+</tr>
+<tr>
+<td><code>"universal"</code></td>
 </tr>
 </table>
 
@@ -15834,8 +15850,18 @@ or app bundles.</p>
 </p>
 
 <p>
-<span class="header">Fields</span> <em>none</em>
+<span class="header">Fields</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>architectures</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span>[]</code></td>
+<td><p><span class="tag">Optional</span> All CPU architectures found in the binary (for universal/fat binaries)</p>
+</td>
+</tr>
+</table>
 
 
 <div id="MacosInfo__TypeHint" class="tip-content">
@@ -15846,6 +15872,14 @@ or app bundles.</p>
 or app bundles.</p>
 
 </p>
+
+<table class="field-table">
+<tr>
+<td><code>architectures</code></td>
+<td><code class="typename"><span class="type">Arch</span>[]</code></td>
+</tr>
+</table>
+
 </div>
 
 ### LinuxInfo (struct)

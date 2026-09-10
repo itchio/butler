@@ -18,7 +18,7 @@ require (
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
 	github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0
-	github.com/itchio/dash v0.0.0-20260716013811-2f199733a0e5
+	github.com/itchio/dash v0.0.0-20260910203044-675d7ac733cb
 	github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4
 	github.com/itchio/fresh-steamer v0.0.0-20260909212000-87d166e40224
 	github.com/itchio/go-itchio v0.0.0-20260903231904-97b89cda676c
@@ -35,9 +35,9 @@ require (
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
 	github.com/itchio/smaug v0.0.0-20260828194311-112ad234bcf9
-	github.com/itchio/spellbook v0.0.0-20200301161431-a4bdbea6b725
+	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
 	github.com/itchio/wharf v0.0.0-20260509025649-e95738701284
-	github.com/itchio/wizardry v0.0.0-20200301161332-e8c8c4a5a488
+	github.com/itchio/wizardry v0.0.0-20260222230103-ec734b409e9c
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/mitchellh/mapstructure v1.5.0
@@ -59,7 +59,7 @@ require (
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
+	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/basgys/goxml2json v1.1.0 // indirect
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -113,5 +113,6 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	howett.net/plist v1.0.1 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
