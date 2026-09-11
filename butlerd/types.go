@@ -3258,6 +3258,15 @@ type SnoozeCaveResult struct {
 type LaunchGetTargetsParams struct {
 	// The ID of the cave to list launch targets for
 	CaveID string `json:"caveId"`
+
+	// Payload flavors the client can run with a runtime of its own, in
+	// dash's vocabulary: "love", "godot-pck", "rom:nes", "rom:gba", or
+	// "rom" for every console. Matching payloads are returned with the
+	// @@LaunchStrategyRuntime strategy, for the client to launch itself;
+	// butler never runs them. When empty, payloads are only listed when
+	// nothing else is launchable, as before.
+	// @optional
+	Runtimes []string `json:"runtimes,omitempty"`
 }
 
 func (p LaunchGetTargetsParams) Validate() error {

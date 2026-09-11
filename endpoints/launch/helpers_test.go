@@ -36,7 +36,7 @@ func TestGetTargetsForHost_NativeAllManifestActionsFail(t *testing.T) {
 		},
 	}
 
-	_, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host)
+	_, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host, nil)
 	if err == nil {
 		t.Fatalf("expected error when all native manifest actions fail")
 	}
@@ -73,7 +73,7 @@ func TestGetTargetsForHost_NonNativeAllManifestActionsFail(t *testing.T) {
 		},
 	}
 
-	targets, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host)
+	targets, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host, nil)
 	if err != nil {
 		t.Fatalf("expected no error for non-native host when all manifest actions fail, got: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestGetTargetsForHost_NativePartialManifestResolution(t *testing.T) {
 		},
 	}
 
-	targets, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host)
+	targets, err := getTargetsForHost(rc, nil, appManifest, &dash.Verdict{}, info, host, nil)
 	if err != nil {
 		t.Fatalf("expected no error when at least one native action resolves, got: %v", err)
 	}
@@ -205,5 +205,77 @@ func TestResolveSandboxOptions(t *testing.T) {
 	got = resolveSandboxOptions(nil, settingsEmptyAllowEnv, defaults)
 	if got == nil || len(got.AllowEnv) != 0 {
 		t.Errorf("expected settings' empty allowlist to shadow the default, got %+v", got)
+	}
+}
+
+func TestGetTargetsForHost_Runtimes(t *testing.T) {
+	t.Parallel()
+
+	installFolder := t.TempDir()
+	rom := make([]byte, 16+16384)
+	copy(rom, "NES\x1a")
+	if err := os.WriteFile(filepath.Join(installFolder, "game.nes"), rom, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	runtime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
+	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	info := withInstallFolderInfo{
+		installFolder: installFolder,
+		runtime:       runtime,
+	}
+	host := manager.Host{Runtime: runtime}
+
+	verdict, err := dash.Configure(installFolder, dash.ConfigureParams{Consumer: &state.Consumer{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// no runtimes: the lone payload falls back to the shell strategy, as before
+	targets, err := getTargetsForHost(rc, nil, nil, verdict, info, host, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 1 || targets[0].Strategy.Strategy != butlerd.LaunchStrategyShell {
+		t.Fatalf("expected one shell target without runtimes, got %+v", targets)
+	}
+
+	// a runtime for another system changes nothing
+	targets, err = getTargetsForHost(rc, nil, nil, verdict, info, host, []dash.Flavor{"rom:gba"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 1 || targets[0].Strategy.Strategy != butlerd.LaunchStrategyShell {
+		t.Fatalf("expected one shell target with a non-matching runtime, got %+v", targets)
+	}
+
+	for _, runtimes := range [][]dash.Flavor{{"rom:nes"}, {"rom"}} {
+		targets, err = getTargetsForHost(rc, nil, nil, verdict, info, host, runtimes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(targets) != 1 {
+			t.Fatalf("runtimes %v: expected one target, got %d", runtimes, len(targets))
+		}
+		s := targets[0].Strategy
+		if s.Strategy != butlerd.LaunchStrategyRuntime {
+			t.Fatalf("runtimes %v: expected runtime strategy, got %s", runtimes, s.Strategy)
+		}
+		if s.FullTargetPath != filepath.Join(installFolder, "game.nes") {
+			t.Fatalf("runtimes %v: expected the ROM path, got %s", runtimes, s.FullTargetPath)
+		}
+		if s.Candidate == nil || s.Candidate.Flavor != dash.FlavorROM || s.Candidate.Engine.Details["system"] != "nes" {
+			t.Fatalf("runtimes %v: candidate lacks ROM system: %+v", runtimes, s.Candidate)
+		}
+	}
+
+	// a non-native host (wine, remote) does not get the client's runtimes
+	other := manager.Host{Runtime: ox.Runtime{Platform: ox.PlatformWindows, Is64: true}}
+	targets, err = getTargetsForHost(rc, nil, nil, verdict, info, other, []dash.Flavor{"rom"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 1 || targets[0].Strategy.Strategy != butlerd.LaunchStrategyShell {
+		t.Fatalf("expected shell target for non-native host, got %+v", targets)
 	}
 }

@@ -136,6 +136,8 @@ func getUploadAndBuild(rc *butlerd.RequestContext, info withInstallFolderInfo) (
 type getTargetsParams struct {
 	info  withInstallFolderInfo
 	hosts []manager.Host
+	// payload flavors the client runs itself, see LaunchGetTargetsParams
+	runtimes []dash.Flavor
 }
 
 type getTargetsResult struct {
@@ -188,7 +190,7 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 
 	if !shouldBrowse {
 		for _, host := range params.hosts {
-			hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host)
+			hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host, params.runtimes)
 			if err != nil {
 				return nil, err
 			}
@@ -235,6 +237,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	verdict *dash.Verdict,
 	info withInstallFolderInfo,
 	host manager.Host,
+	runtimes []dash.Flavor,
 ) ([]*butlerd.LaunchTarget, error) {
 	consumer := rc.Consumer
 	consumer.Opf("Seeking launch targets for host (%s)", host)
@@ -329,14 +332,24 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 		// so use it to filter.
 		filterParams.Arch = info.runtime.Arch()
 	}
+	if nativeHost {
+		// the client's runtimes only exist on the machine it runs on
+		filterParams.Runtimes = runtimes
+	}
 
 	v2 := verdict.Filter(consumer, filterParams)
 	verdict = &v2
 
 	for _, candidate := range verdict.Candidates {
-		target, err := CandidateToLaunchTarget(consumer, info.installFolder, host, candidate)
-		if err != nil {
-			return nil, err
+		var target *butlerd.LaunchTarget
+		if matchesRuntime(candidate, filterParams.Runtimes) {
+			target = RuntimeLaunchTarget(info.installFolder, host, candidate)
+		} else {
+			var err error
+			target, err = CandidateToLaunchTarget(consumer, info.installFolder, host, candidate)
+			if err != nil {
+				return nil, err
+			}
 		}
 		targets = append(targets, target)
 	}

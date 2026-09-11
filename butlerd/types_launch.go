@@ -49,6 +49,8 @@ func (sr *StrategyResult) String() string {
 		explanation = "🗁 Will be opened in file manager"
 	case LaunchStrategyURL:
 		explanation = "🗏 Will be opened in browser, as web page"
+	case LaunchStrategyRuntime:
+		explanation = "▶ Will be run by the client with its own runtime"
 	default:
 		explanation = "(Unknown strategy)"
 	}
@@ -64,4 +66,9 @@ const (
 	LaunchStrategyHTML    LaunchStrategy = "html"
 	LaunchStrategyURL     LaunchStrategy = "url"
 	LaunchStrategyShell   LaunchStrategy = "shell"
+	// A payload (ROM, .love, Godot pack, ...) the client said it has a
+	// runtime for. FullTargetPath is the file or folder to run, and
+	// Candidate carries the flavor, engine, and version. Butler has no
+	// launcher for this strategy: the client runs it.
+	LaunchStrategyRuntime LaunchStrategy = "runtime"
 )

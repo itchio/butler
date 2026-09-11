@@ -161,6 +161,52 @@ func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, host man
 	return target, nil
 }
 
+// matchesRuntime mirrors dash's runtime matching: a payload is covered by
+// its flavor, and a ROM also by "rom:<system>".
+func matchesRuntime(candidate *dash.Candidate, runtimes []dash.Flavor) bool {
+	if !candidate.IsPayload() {
+		return false
+	}
+	system := ""
+	if candidate.Engine != nil {
+		system, _ = candidate.Engine.Details["system"].(string)
+	}
+	for _, r := range runtimes {
+		if r == candidate.Flavor {
+			return true
+		}
+		if candidate.Flavor == dash.FlavorROM && system != "" && r == dash.Flavor("rom:"+system) {
+			return true
+		}
+	}
+	return false
+}
+
+// RuntimeLaunchTarget describes a payload the client runs with its own
+// runtime. Unlike the shell fallback, the target path is the payload
+// itself, file or folder.
+func RuntimeLaunchTarget(basePath string, host manager.Host, candidate *dash.Candidate) *butlerd.LaunchTarget {
+	fullPath := filepath.Join(basePath, filepath.FromSlash(candidate.Path))
+
+	name := filepath.Base(fullPath)
+	if candidate.Size > 0 {
+		name += fmt.Sprintf(" (%s)", united.FormatBytes(candidate.Size))
+	}
+
+	return &butlerd.LaunchTarget{
+		Host: host,
+		Action: &manifest.Action{
+			Name: name,
+			Path: candidate.Path,
+		},
+		Strategy: &butlerd.StrategyResult{
+			Strategy:       butlerd.LaunchStrategyRuntime,
+			FullTargetPath: fullPath,
+			Candidate:      candidate,
+		},
+	}
+}
+
 func IsElevatedWindowsInstaller(consumer *state.Consumer, candidate *dash.Candidate, fullPath string) bool {
 	if candidate.Flavor != dash.FlavorNativeWindows {
 		return false

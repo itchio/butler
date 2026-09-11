@@ -6,6 +6,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/dash"
 )
 
 func GetTargets(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParams) (*butlerd.LaunchGetTargetsResult, error) {
@@ -24,9 +25,15 @@ func GetTargets(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParam
 		return nil, err
 	}
 
+	var runtimes []dash.Flavor
+	for _, r := range params.Runtimes {
+		runtimes = append(runtimes, dash.Flavor(r))
+	}
+
 	targetRes, err := getTargets(rc, getTargetsParams{
-		info:  info,
-		hosts: hosts,
+		info:     info,
+		hosts:    hosts,
+		runtimes: runtimes,
 	})
 	if err != nil {
 		return nil, err

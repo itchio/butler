@@ -7797,6 +7797,17 @@ transient.</p>
 <td><p>The ID of the cave to list launch targets for</p>
 </td>
 </tr>
+<tr>
+<td><code>runtimes</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Payload flavors the client can run with a runtime of its own, in
+dash&rsquo;s vocabulary: &ldquo;love&rdquo;, &ldquo;godot-pck&rdquo;, &ldquo;rom:nes&rdquo;, &ldquo;rom:gba&rdquo;, or
+&ldquo;rom&rdquo; for every console. Matching payloads are returned with the
+<code class="typename"><span class="type builtin-type">LaunchStrategyRuntime</span></code> strategy, for the client to launch itself;
+butler never runs them. When empty, payloads are only listed when
+nothing else is launchable, as before.</p>
+</td>
+</tr>
 </table>
 
 
@@ -7837,6 +7848,10 @@ transient.</p>
 <tr>
 <td><code>caveId</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>runtimes</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -11663,6 +11678,14 @@ For implicit launch targets, a minimal one will be generated.</p>
 <td><code>"shell"</code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>"runtime"</code></td>
+<td><p>A payload (ROM, .love, Godot pack, &hellip;) the client said it has a
+runtime for. FullTargetPath is the file or folder to run, and
+Candidate carries the flavor, engine, and version. Butler has no
+launcher for this strategy: the client runs it.</p>
+</td>
+</tr>
 </table>
 
 
@@ -11685,6 +11708,9 @@ For implicit launch targets, a minimal one will be generated.</p>
 </tr>
 <tr>
 <td><code>"shell"</code></td>
+</tr>
+<tr>
+<td><code>"runtime"</code></td>
 </tr>
 </table>
 

@@ -2757,6 +2757,12 @@
             "name": "caveId",
             "doc": "The ID of the cave to list launch targets for",
             "type": "string"
+          },
+          {
+            "name": "runtimes",
+            "doc": "Payload flavors the client can run with a runtime of its own, in\ndash's vocabulary: \"love\", \"godot-pck\", \"rom:nes\", \"rom:gba\", or\n\"rom\" for every console. Matching payloads are returned with the\n@@LaunchStrategyRuntime strategy, for the client to launch itself;\nbutler never runs them. When empty, payloads are only listed when\nnothing else is launchable, as before.",
+            "type": "string[]",
+            "optional": true
           }
         ]
       },
@@ -8457,6 +8463,11 @@
           "name": "Shell",
           "doc": "",
           "value": "shell"
+        },
+        {
+          "name": "Runtime",
+          "doc": "A payload (ROM, .love, Godot pack, ...) the client said it has a\nruntime for. FullTargetPath is the file or folder to run, and\nCandidate carries the flavor, engine, and version. Butler has no\nlauncher for this strategy: the client runs it.",
+          "value": "runtime"
         }
       ]
     },
