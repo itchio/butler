@@ -29,7 +29,7 @@ require (
 	github.com/itchio/lake v0.0.0-20260609175358-7830e8bc546a
 	github.com/itchio/mitch v0.0.0-20260722173825-17efffd7d69b
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
-	github.com/itchio/pelican v0.0.0-20260515051627-03ecc612cf1c
+	github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7
 	github.com/itchio/savior v0.0.0-20260819185719-dca4d72ed7e2
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
@@ -59,7 +59,6 @@ require (
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/basgys/goxml2json v1.1.0 // indirect
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
