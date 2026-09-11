@@ -10,11 +10,11 @@ import (
 
 	"github.com/itchio/butler/butlerd/horror"
 
-	"crawshaw.io/sqlite/sqlitex"
 	"github.com/google/gops/agent"
 	"github.com/google/uuid"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database"
+	"github.com/itchio/butler/database/dbpool"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/headway/state"
 
@@ -102,7 +102,12 @@ func do(ctx *mansion.Context) {
 		justCreated = true
 	}
 
-	dbPool, err := sqlitex.Open(ctx.DBPath, 0, 100)
+	dbPool, err := dbpool.Open(ctx.DBPath, dbpool.Options{
+		MaxConns: 100,
+		OnOpenError: func(err error) {
+			comm.Warnf("butlerd: could not open additional database connection: %+v", err)
+		},
+	})
 	if err != nil {
 		ctx.Must(errors.WithMessage(err, "opening DB for the first time"))
 	}
@@ -128,7 +133,7 @@ func do(ctx *mansion.Context) {
 	ctx.Must(Do(ctx, context.Background(), dbPool, secret))
 }
 
-func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *sqlitex.Pool, secret string) error {
+func Do(mansionContext *mansion.Context, ctx context.Context, dbPool *dbpool.Pool, secret string) error {
 	s := butlerd.NewServer(secret)
 	router := GetRouter(dbPool, mansionContext)
 

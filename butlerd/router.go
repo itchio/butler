@@ -22,8 +22,8 @@ import (
 	"github.com/itchio/wharf/werrors"
 
 	"crawshaw.io/sqlite"
-	"crawshaw.io/sqlite/sqlitex"
 	"github.com/helloeave/json"
+	"github.com/itchio/butler/database/dbpool"
 
 	"github.com/pkg/errors"
 )
@@ -54,7 +54,7 @@ type Router struct {
 	Handlers             map[string]RequestHandler
 	NotificationHandlers map[string]NotificationHandler
 	CancelFuncs          *CancelFuncs
-	dbPool               *sqlitex.Pool
+	dbPool               *dbpool.Pool
 	getClient            GetClientFunc
 	httpClient           *http.Client
 	httpTransport        *http.Transport
@@ -80,7 +80,7 @@ type Router struct {
 	globalConsumer *state.Consumer
 }
 
-func NewRouter(dbPool *sqlitex.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
+func NewRouter(dbPool *dbpool.Pool, getClient GetClientFunc, httpClient *http.Client, httpTransport *http.Transport) *Router {
 	backgroundContext, backgroundCancel := context.WithCancel(context.Background())
 
 	return &Router{
@@ -441,7 +441,7 @@ type RequestContext struct {
 	Params      *json.RawMessage
 	Conn        jsonrpc2.Conn
 	CancelFuncs *CancelFuncs
-	dbPool      *sqlitex.Pool
+	dbPool      *dbpool.Pool
 	Identity    string
 
 	Group    *singleflight.Group

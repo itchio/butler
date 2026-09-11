@@ -42,12 +42,12 @@ import (
 	"time"
 
 	"crawshaw.io/sqlite"
-	"crawshaw.io/sqlite/sqlitex"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/horror"
 	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/butler/cmd/daemon"
 	"github.com/itchio/butler/comm"
+	"github.com/itchio/butler/database/dbpool"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/database/models/migrations"
 	"github.com/itchio/butler/mansion"
@@ -152,7 +152,7 @@ func Do(ctx *mansion.Context) error {
 	// no SQLITE_OPEN_CREATE: this command must never produce an empty DB
 	openFlags := sqlite.SQLITE_OPEN_READWRITE | sqlite.SQLITE_OPEN_WAL |
 		sqlite.SQLITE_OPEN_URI | sqlite.SQLITE_OPEN_NOMUTEX
-	dbPool, err := sqlitex.Open(ctx.DBPath, openFlags, 4)
+	dbPool, err := dbpool.Open(ctx.DBPath, dbpool.Options{Flags: openFlags, MaxConns: 4})
 	if err != nil {
 		return errors.WithMessage(err, "opening database")
 	}
@@ -273,7 +273,7 @@ func Do(ctx *mansion.Context) error {
 	return nil
 }
 
-func resolveCave(dbPool *sqlitex.Pool) (*models.Cave, error) {
+func resolveCave(dbPool *dbpool.Pool) (*models.Cave, error) {
 	conn := dbPool.Get(context.Background())
 	defer dbPool.Put(conn)
 
@@ -311,20 +311,20 @@ func caveFreshness(c *models.Cave) time.Time {
 // no schema_version table); recover so a foreign DB yields a clean error.
 // This runs before any other model query, so once it passes the rest of
 // the Must-style model helpers are safe against missing tables.
-func getSchemaVersion(dbPool *sqlitex.Pool) (version int64, retErr error) {
+func getSchemaVersion(dbPool *dbpool.Pool) (version int64, retErr error) {
 	defer horror.RecoverInto(&retErr)
 	conn := dbPool.Get(context.Background())
 	defer dbPool.Put(conn)
 	return models.GetSchemaVersion(conn), nil
 }
 
-func hasProfile(dbPool *sqlitex.Pool) bool {
+func hasProfile(dbPool *dbpool.Pool) bool {
 	conn := dbPool.Get(context.Background())
 	defer dbPool.Put(conn)
 	return len(models.AllProfiles(conn)) > 0
 }
 
-func profileExists(dbPool *sqlitex.Pool, id int64) bool {
+func profileExists(dbPool *dbpool.Pool, id int64) bool {
 	conn := dbPool.Get(context.Background())
 	defer dbPool.Put(conn)
 	return models.ProfileByID(conn, id) != nil
