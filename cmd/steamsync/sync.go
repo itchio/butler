@@ -13,6 +13,7 @@ import (
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/butler/steam"
+	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/united"
 	"github.com/pkg/errors"
 )
@@ -219,13 +220,13 @@ func runEntry(ctx *mansion.Context, goCtx context.Context, entry steam.SyncEntry
 			return errors.Wrap(err, "authenticating with itch.io")
 		}
 		opts.Client = client
-		opts.Push = func(goCtx context.Context, dir, target, userVersion string, hidden bool) error {
+		opts.Push = func(goCtx context.Context, dir, target, userVersion string, hidden bool, metadata itchio.BuildMetadata) error {
 			if comm.JsonEnabled() {
 				comm.Object("steamSyncPushStart", comm.JsonMessage{"target": target, "channel": channelOf(target)})
 			} else {
 				comm.Opf("Pushing %s", target)
 			}
-			return push.Do(ctx, dir, target, userVersion, true, false, false, true, false, hidden)
+			return push.Do(ctx, dir, target, userVersion, true, false, false, true, false, hidden, metadata)
 		}
 	}
 

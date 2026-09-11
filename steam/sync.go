@@ -34,7 +34,8 @@ type SyncEvents interface {
 }
 
 // PushFunc uploads dir as a build of target ("user/game:channel").
-type PushFunc func(ctx context.Context, dir, target, userVersion string, hidden bool) error
+// metadata records which Steam build the files came from.
+type PushFunc func(ctx context.Context, dir, target, userVersion string, hidden bool, metadata itchio.BuildMetadata) error
 
 type SyncOptions struct {
 	PlanOptions
@@ -147,11 +148,32 @@ func Sync(ctx context.Context, s Store, opts SyncOptions) (*SyncResult, error) {
 			continue
 		}
 		target := plan.Target + ":" + c.Name
-		if err := opts.Push(ctx, dir, target, strconv.FormatUint(uint64(plan.BuildID), 10), opts.Hidden); err != nil {
+		if err := opts.Push(ctx, dir, target, strconv.FormatUint(uint64(plan.BuildID), 10), opts.Hidden, buildMetadata(plan, c)); err != nil {
 			return nil, errors.Wrapf(err, "pushing %s", target)
 		}
 	}
 	return result, nil
+}
+
+// buildMetadata is stored with the itch.io build so it can be traced
+// back to the Steam build it was copied from. The server validates the
+// shape; gids are strings because they are uint64.
+func buildMetadata(plan *SyncPlan, c *ChannelPlan) itchio.BuildMetadata {
+	depots := make([]map[string]interface{}, 0, len(c.Depots))
+	for _, dp := range c.Depots {
+		depots = append(depots, map[string]interface{}{
+			"id":  dp.ID,
+			"gid": strconv.FormatUint(dp.GID, 10),
+		})
+	}
+	return itchio.BuildMetadata{
+		"steam": map[string]interface{}{
+			"app_id":   plan.AppID,
+			"build_id": plan.BuildID,
+			"branch":   plan.Branch,
+			"depots":   depots,
+		},
+	}
 }
 
 // alreadySynced reports whether the channel's newest build, processed

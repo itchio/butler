@@ -21,7 +21,7 @@ require (
 	github.com/itchio/dash v0.0.0-20260910203044-675d7ac733cb
 	github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
-	github.com/itchio/go-itchio v0.0.0-20260903231904-97b89cda676c
+	github.com/itchio/go-itchio v0.0.0-20260911013240-96abd172c8ec
 	github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9

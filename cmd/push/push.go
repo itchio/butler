@@ -95,10 +95,11 @@ func do(ctx *mansion.Context) {
 		}
 	}
 
-	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.autoUnzip, args.hidden))
+	ctx.Must(Do(ctx, args.src, args.target, userVersion, args.fixPerms, args.dereference, args.ifChanged, args.autoWrap, args.autoUnzip, args.hidden, nil))
 }
 
-func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, autoUnzip bool, hidden bool) (retErr error) {
+// metadata, when set, is stored with the build; see itchio.BuildMetadata.
+func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion string, fixPerms bool, dereference bool, ifChanged bool, wrap bool, autoUnzip bool, hidden bool, metadata itchio.BuildMetadata) (retErr error) {
 	consumer := comm.NewStateConsumer()
 
 	if autoUnzip {
@@ -230,6 +231,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		UserVersion: userVersion,
 		Hidden:      hidden,
 		Source:      source,
+		Metadata:    metadata,
 	})
 	cancel()
 	if err != nil {
