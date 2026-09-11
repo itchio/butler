@@ -15456,6 +15456,13 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </td>
 </tr>
 <tr>
+<td><code>engine</code></td>
+<td><code class="typename"><span class="type builtin-type">EngineInfo</span></code></td>
+<td><p><span class="tag">Optional</span> Engine is what made this candidate. Set on natives when a known engine
+left its footprint next to them, and on payload flavors always.</p>
+</td>
+</tr>
+<tr>
 <td><code>metadata</code></td>
 <td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
 <td><p><span class="tag">Optional</span> Any other info.</p>
@@ -15525,6 +15532,10 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>jarInfo</code></td>
 <td><code class="typename"><span class="type">JarInfo</span></code></td>
+</tr>
+<tr>
+<td><code>engine</code></td>
+<td><code class="typename"><span class="type builtin-type">EngineInfo</span></code></td>
 </tr>
 <tr>
 <td><code>metadata</code></td>
@@ -15598,6 +15609,91 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <td><p>Microsoft installer packages</p>
 </td>
 </tr>
+<tr>
+<td><code>"godot-pck"</code></td>
+<td><p>Godot pack file, standalone or embedded in an executable</p>
+</td>
+</tr>
+<tr>
+<td><code>"gamemaker-data"</code></td>
+<td><p>GameMaker data file (data.win, game.unx, game.ios, game.droid)</p>
+</td>
+</tr>
+<tr>
+<td><code>"pico8-cart"</code></td>
+<td><p>PICO-8 cartridge (.p8, .p8.png)</p>
+</td>
+</tr>
+<tr>
+<td><code>"picotron-cart"</code></td>
+<td><p>Picotron cartridge (.p64, .p64.png)</p>
+</td>
+</tr>
+<tr>
+<td><code>"renpy"</code></td>
+<td><p>Ren&rsquo;Py project: the folder holding game/</p>
+</td>
+</tr>
+<tr>
+<td><code>"rpgmaker-mv"</code></td>
+<td><p>RPG Maker MV/MZ project: the folder holding js/ and index.html</p>
+</td>
+</tr>
+<tr>
+<td><code>"rpgmaker-xp"</code></td>
+<td><p>RPG Maker XP/VX/VX Ace project: the folder holding Game.ini</p>
+</td>
+</tr>
+<tr>
+<td><code>"rpgmaker-2k"</code></td>
+<td><p>RPG Maker <sup>2000</sup>&frasl;<sub>2003</sub> project: the folder holding RPG_RT.ldb</p>
+</td>
+</tr>
+<tr>
+<td><code>"ags"</code></td>
+<td><p>Adventure Game Studio game: the exe with appended data, or a .ags file</p>
+</td>
+</tr>
+<tr>
+<td><code>"doom-wad"</code></td>
+<td><p>Doom engine WAD or PK3</p>
+</td>
+</tr>
+<tr>
+<td><code>"swf"</code></td>
+<td><p>Flash movie, standalone or in a projector exe</p>
+</td>
+</tr>
+<tr>
+<td><code>"dos"</code></td>
+<td><p>Folder holding 16-bit DOS executables</p>
+</td>
+</tr>
+<tr>
+<td><code>"pyxel-app"</code></td>
+<td><p>Pyxel application bundle (.pyxapp)</p>
+</td>
+</tr>
+<tr>
+<td><code>"solarus-quest"</code></td>
+<td><p>Solarus quest (.solarus archive or folder holding data/quest.dat)</p>
+</td>
+</tr>
+<tr>
+<td><code>"tic80-cart"</code></td>
+<td><p>TIC-80 cartridge (.tic)</p>
+</td>
+</tr>
+<tr>
+<td><code>"openbor-pak"</code></td>
+<td><p>OpenBOR module (.pak)</p>
+</td>
+</tr>
+<tr>
+<td><code>"rom"</code></td>
+<td><p>Console ROM or disc image, system in Engine.Details[&ldquo;system&rdquo;]</p>
+</td>
+</tr>
 </table>
 
 
@@ -15640,6 +15736,57 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>"msi"</code></td>
 </tr>
+<tr>
+<td><code>"godot-pck"</code></td>
+</tr>
+<tr>
+<td><code>"gamemaker-data"</code></td>
+</tr>
+<tr>
+<td><code>"pico8-cart"</code></td>
+</tr>
+<tr>
+<td><code>"picotron-cart"</code></td>
+</tr>
+<tr>
+<td><code>"renpy"</code></td>
+</tr>
+<tr>
+<td><code>"rpgmaker-mv"</code></td>
+</tr>
+<tr>
+<td><code>"rpgmaker-xp"</code></td>
+</tr>
+<tr>
+<td><code>"rpgmaker-2k"</code></td>
+</tr>
+<tr>
+<td><code>"ags"</code></td>
+</tr>
+<tr>
+<td><code>"doom-wad"</code></td>
+</tr>
+<tr>
+<td><code>"swf"</code></td>
+</tr>
+<tr>
+<td><code>"dos"</code></td>
+</tr>
+<tr>
+<td><code>"pyxel-app"</code></td>
+</tr>
+<tr>
+<td><code>"solarus-quest"</code></td>
+</tr>
+<tr>
+<td><code>"tic80-cart"</code></td>
+</tr>
+<tr>
+<td><code>"openbor-pak"</code></td>
+</tr>
+<tr>
+<td><code>"rom"</code></td>
+</tr>
 </table>
 
 </div>
@@ -15670,7 +15817,17 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>"arm64"</code></td>
-<td><p>ARM 64-bit (Apple Silicon)</p>
+<td><p>ARM 64-bit (Apple Silicon, aarch64 handhelds)</p>
+</td>
+</tr>
+<tr>
+<td><code>"arm"</code></td>
+<td><p>ARM 32-bit (Raspberry Pi and older handhelds)</p>
+</td>
+</tr>
+<tr>
+<td><code>"riscv64"</code></td>
+<td><p>RISC-V 64-bit</p>
 </td>
 </tr>
 <tr>
@@ -15698,6 +15855,12 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>"arm64"</code></td>
+</tr>
+<tr>
+<td><code>"arm"</code></td>
+</tr>
+<tr>
+<td><code>"riscv64"</code></td>
 </tr>
 <tr>
 <td><code>"universal"</code></td>
@@ -15745,6 +15908,33 @@ or installer packages.</p>
 <td><p><span class="tag">Optional</span> Is this a .NET assembly?</p>
 </td>
 </tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
+<td><p><span class="tag">Optional</span> Machine type from the PE header</p>
+</td>
+</tr>
+<tr>
+<td><code>imports</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Imported DLLs, only filled when ConfigureParams.DeepProbe is set</p>
+</td>
+</tr>
+<tr>
+<td><code>versionProperties</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p><span class="tag">Optional</span> Strings from the VS_VERSIONINFO resource (ProductName, FileVersion,
+CompanyName, &hellip;). Only filled when ConfigureParams.DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
+<td><code>requestedExecutionLevel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> requestedExecutionLevel from the embedded manifest (&ldquo;asInvoker&rdquo;,
+&ldquo;requireAdministrator&rdquo;, &ldquo;highestAvailable&rdquo;). Only filled when
+ConfigureParams.DeepProbe is set.</p>
+</td>
+</tr>
 </table>
 
 
@@ -15773,6 +15963,22 @@ or installer packages.</p>
 <tr>
 <td><code>dotNet</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type">Arch</span></code></td>
+</tr>
+<tr>
+<td><code>imports</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>versionProperties</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+<tr>
+<td><code>requestedExecutionLevel</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -15891,8 +16097,47 @@ or app bundles.</p>
 </p>
 
 <p>
-<span class="header">Fields</span> <em>none</em>
+<span class="header">Fields</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Arch__TypeHint">Arch</span></code></td>
+<td><p><span class="tag">Optional</span> Machine type from the ELF header</p>
+</td>
+</tr>
+<tr>
+<td><code>os</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Operating system the ELF targets when it is not Linux: &ldquo;freebsd&rdquo;,
+&ldquo;openbsd&rdquo;, &ldquo;netbsd&rdquo; from the header&rsquo;s OS ABI byte, &ldquo;haiku&rdquo; from its
+imports (deep probe only). Such builds still get the linux flavor.</p>
+</td>
+</tr>
+<tr>
+<td><code>static</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when the executable has no dynamic section (no interpreter, no
+DT_NEEDED). Only meaningful when ConfigureParams.DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
+<td><code>glibcVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Highest GLIBC_x.y symbol version the executable references.
+Only filled when ConfigureParams.DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
+<td><code>imports</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Shared libraries listed in DT_NEEDED, in link order.
+Only filled when ConfigureParams.DeepProbe is set.</p>
+</td>
+</tr>
+</table>
 
 
 <div id="LinuxInfo__TypeHint" class="tip-content">
@@ -15902,6 +16147,30 @@ or app bundles.</p>
 <p>Contains information specific to native Linux executables</p>
 
 </p>
+
+<table class="field-table">
+<tr>
+<td><code>arch</code></td>
+<td><code class="typename"><span class="type">Arch</span></code></td>
+</tr>
+<tr>
+<td><code>os</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>static</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>glibcVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>imports</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+</table>
+
 </div>
 
 ### LoveInfo (struct)

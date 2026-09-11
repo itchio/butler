@@ -15,7 +15,7 @@ import (
 
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
-	"github.com/itchio/elefant"
+	"github.com/itchio/dash"
 	"github.com/itchio/headway/counter"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/headway/tracker"
@@ -141,9 +141,7 @@ func do(mc *mansion.Context) {
 			}
 			defer f.Close()
 
-			props, err := elefant.Probe(f, elefant.ProbeParams{
-				Consumer: consumer,
-			})
+			props, err := dash.ProbeELF(f)
 			if err != nil {
 				return "", err
 			}

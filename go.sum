@@ -115,14 +115,12 @@ github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151 h1:d8HqXXMFHm3E3iEPr
 github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151/go.mod h1:COxkdGM3zsZf9Uv7rC3+mu6ftr9V0xJWaPLv3KHis1Y=
 github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0 h1:Af8STO3cfg66mO2/hPXf2IfdNvUD6/quCa0dHiCZrHM=
 github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0/go.mod h1:HBEhXXrbs4t55x+UBQ5awc1izRFrOPD3Yc/3zaqFCrg=
-github.com/itchio/dash v0.0.0-20260910203044-675d7ac733cb h1:TkT4OPpO4qvX6zPXz3W3lNL6sJj9/11oAnFF2wLJVjQ=
-github.com/itchio/dash v0.0.0-20260910203044-675d7ac733cb/go.mod h1:2xzNXucVywovO/EsU7GiueQw3cljWVaPvU5y9nI8tUM=
+github.com/itchio/dash v0.0.0-20260911210201-b5fb6e454b62 h1:VXbVIAPOvMGo3KIBiDXUHux/3YsiIYAuba8rNa9OCCg=
+github.com/itchio/dash v0.0.0-20260911210201-b5fb6e454b62/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
 github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729 h1:GwwF6o+en225Wwpeey80Z+ouzgyNk7gaGvipIpeetro=
 github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697/go.mod h1:clqOV8HXYpbDC3Bzia6urYIkfgwP1FnDr/C0q8KELmo=
-github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4 h1:aIYigfaBXcHQCbLFcgDy8RfcZpnnju86HlfaPbmfM/U=
-github.com/itchio/elefant v0.0.0-20260515053942-17c52347bcf4/go.mod h1:gBj03mUWxPUnQjAU3tau8bOR7KTWDFdzfFVYMk0JYek=
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8 h1:+KYUGGFy/eNqXC+i2Y4zesINM3tOWOc4svR+9cLejA8=
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=

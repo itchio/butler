@@ -7036,6 +7036,12 @@
           "optional": true
         },
         {
+          "name": "engine",
+          "doc": "Engine is what made this candidate. Set on natives when a known engine\nleft its footprint next to them, and on payload flavors always.",
+          "type": "EngineInfo",
+          "optional": true
+        },
+        {
           "name": "metadata",
           "doc": "Any other info.",
           "type": "{ [key: string]: any }",
@@ -7070,6 +7076,30 @@
           "doc": "Is this a .NET assembly?",
           "type": "boolean",
           "optional": true
+        },
+        {
+          "name": "arch",
+          "doc": "Machine type from the PE header",
+          "type": "Arch",
+          "optional": true
+        },
+        {
+          "name": "imports",
+          "doc": "Imported DLLs, only filled when ConfigureParams.DeepProbe is set",
+          "type": "string[]",
+          "optional": true
+        },
+        {
+          "name": "versionProperties",
+          "doc": "Strings from the VS_VERSIONINFO resource (ProductName, FileVersion,\nCompanyName, ...). Only filled when ConfigureParams.DeepProbe is set.",
+          "type": "{ [key: string]: string }",
+          "optional": true
+        },
+        {
+          "name": "requestedExecutionLevel",
+          "doc": "requestedExecutionLevel from the embedded manifest (\"asInvoker\",\n\"requireAdministrator\", \"highestAvailable\"). Only filled when\nConfigureParams.DeepProbe is set.",
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -7088,7 +7118,38 @@
     {
       "name": "LinuxInfo",
       "doc": "Contains information specific to native Linux executables",
-      "fields": null
+      "fields": [
+        {
+          "name": "arch",
+          "doc": "Machine type from the ELF header",
+          "type": "Arch",
+          "optional": true
+        },
+        {
+          "name": "os",
+          "doc": "Operating system the ELF targets when it is not Linux: \"freebsd\",\n\"openbsd\", \"netbsd\" from the header's OS ABI byte, \"haiku\" from its\nimports (deep probe only). Such builds still get the linux flavor.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "static",
+          "doc": "True when the executable has no dynamic section (no interpreter, no\nDT_NEEDED). Only meaningful when ConfigureParams.DeepProbe is set.",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "glibcVersion",
+          "doc": "Highest GLIBC_x.y symbol version the executable references.\nOnly filled when ConfigureParams.DeepProbe is set.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "imports",
+          "doc": "Shared libraries listed in DT_NEEDED, in link order.\nOnly filled when ConfigureParams.DeepProbe is set.",
+          "type": "string[]",
+          "optional": true
+        }
+      ]
     },
     {
       "name": "LoveInfo",
@@ -8694,6 +8755,91 @@
           "name": "MSI",
           "doc": "Microsoft installer packages",
           "value": "msi"
+        },
+        {
+          "name": "GodotPck",
+          "doc": "Godot pack file, standalone or embedded in an executable",
+          "value": "godot-pck"
+        },
+        {
+          "name": "GameMakerData",
+          "doc": "GameMaker data file (data.win, game.unx, game.ios, game.droid)",
+          "value": "gamemaker-data"
+        },
+        {
+          "name": "Pico8Cart",
+          "doc": "PICO-8 cartridge (.p8, .p8.png)",
+          "value": "pico8-cart"
+        },
+        {
+          "name": "PicotronCart",
+          "doc": "Picotron cartridge (.p64, .p64.png)",
+          "value": "picotron-cart"
+        },
+        {
+          "name": "Renpy",
+          "doc": "Ren'Py project: the folder holding game/",
+          "value": "renpy"
+        },
+        {
+          "name": "RPGMakerMV",
+          "doc": "RPG Maker MV/MZ project: the folder holding js/ and index.html",
+          "value": "rpgmaker-mv"
+        },
+        {
+          "name": "RPGMakerXP",
+          "doc": "RPG Maker XP/VX/VX Ace project: the folder holding Game.ini",
+          "value": "rpgmaker-xp"
+        },
+        {
+          "name": "RPGMaker2k",
+          "doc": "RPG Maker 2000/2003 project: the folder holding RPG_RT.ldb",
+          "value": "rpgmaker-2k"
+        },
+        {
+          "name": "AGS",
+          "doc": "Adventure Game Studio game: the exe with appended data, or a .ags file",
+          "value": "ags"
+        },
+        {
+          "name": "DoomWad",
+          "doc": "Doom engine WAD or PK3",
+          "value": "doom-wad"
+        },
+        {
+          "name": "SWF",
+          "doc": "Flash movie, standalone or in a projector exe",
+          "value": "swf"
+        },
+        {
+          "name": "DOS",
+          "doc": "Folder holding 16-bit DOS executables",
+          "value": "dos"
+        },
+        {
+          "name": "PyxelApp",
+          "doc": "Pyxel application bundle (.pyxapp)",
+          "value": "pyxel-app"
+        },
+        {
+          "name": "SolarusQuest",
+          "doc": "Solarus quest (.solarus archive or folder holding data/quest.dat)",
+          "value": "solarus-quest"
+        },
+        {
+          "name": "TIC80Cart",
+          "doc": "TIC-80 cartridge (.tic)",
+          "value": "tic80-cart"
+        },
+        {
+          "name": "OpenBORPak",
+          "doc": "OpenBOR module (.pak)",
+          "value": "openbor-pak"
+        },
+        {
+          "name": "ROM",
+          "doc": "Console ROM or disc image, system in Engine.Details[\"system\"]",
+          "value": "rom"
         }
       ]
     },
@@ -8713,8 +8859,18 @@
         },
         {
           "name": "Arm64",
-          "doc": "ARM 64-bit (Apple Silicon)",
+          "doc": "ARM 64-bit (Apple Silicon, aarch64 handhelds)",
           "value": "arm64"
+        },
+        {
+          "name": "Arm",
+          "doc": "ARM 32-bit (Raspberry Pi and older handhelds)",
+          "value": "arm"
+        },
+        {
+          "name": "Riscv64",
+          "doc": "RISC-V 64-bit",
+          "value": "riscv64"
         },
         {
           "name": "Universal",
