@@ -43,7 +43,7 @@ flowchart LR
     butler --> headway
     butler --> arkive
     butler --> dash
-    butler --> elefant
+    butler --> fresh-steamer[fresh-steamer]
     butler --> hades
     butler --> intact
     butler --> lake
@@ -110,7 +110,7 @@ flowchart LR
     class headway,httpkit infra
     class savior,go-itchio mid
     class hush,wharf,boar high
-    class arkive,dash,elefant,hades,intact,lake,mitch,ox,pelican,screw,smaug,spellbook,wizardry,randsource leaf
+    class arkive,dash,fresh-steamer,hades,intact,lake,mitch,ox,pelican,screw,smaug,spellbook,wizardry,randsource leaf
     class kompress,dskompress,go-brotli,lzma,sevenzip-go,dmcunrar-go compression
     class libc7zip native
 
@@ -124,8 +124,8 @@ flowchart LR
     click httpkit "https://github.com/itchio/httpkit" "HTTP utilities and streaming"
     click headway "https://github.com/itchio/headway" "Progress tracking and unit formatting"
     click arkive "https://github.com/itchio/arkive" "ZIP/archive format support"
-    click dash "https://github.com/itchio/dash" "Game configuration and metadata"
-    click elefant "https://github.com/itchio/elefant" "ELF binary parser (Linux)"
+    click dash "https://github.com/itchio/dash" "Game configuration, metadata, and executable probing (ELF, PE)"
+    click fresh-steamer "https://github.com/itchio/fresh-steamer" "Steam login, app info, and depot downloads (steam-sync)"
     click hades "https://github.com/itchio/hades" "SQLite schema and queries"
     click intact "https://github.com/itchio/intact" "File integrity verification"
     click lake "https://github.com/itchio/lake" "Binary storage pools, file structure tracking"
@@ -156,8 +156,8 @@ flowchart LR
 | [httpkit](https://github.com/itchio/httpkit) | HTTP utilities and streaming |
 | [headway](https://github.com/itchio/headway) | Progress tracking and unit formatting |
 | [arkive](https://github.com/itchio/arkive) | ZIP/archive format support |
-| [dash](https://github.com/itchio/dash) | Game configuration and metadata |
-| [elefant](https://github.com/itchio/elefant) | ELF binary parser (Linux) |
+| [dash](https://github.com/itchio/dash) | Game configuration, metadata, and executable probing (ELF, PE) |
+| [fresh-steamer](https://github.com/itchio/fresh-steamer) | Steam login, app info, and depot downloads (steam-sync) |
 | [pelican](https://github.com/itchio/pelican) | PE binary parser (Windows) |
 | [lake](https://github.com/itchio/lake) | Binary storage pools, file structure tracking |
 | [intact](https://github.com/itchio/intact) | File integrity verification |
