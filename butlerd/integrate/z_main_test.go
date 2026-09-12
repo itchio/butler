@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -23,7 +26,7 @@ type IntegrateConfig struct {
 var conf IntegrateConfig
 
 var (
-	butlerPath = flag.String("butlerPath", "", "path to butler binary to test")
+	butlerPath = flag.String("butlerPath", "", "path to butler binary to test; built from the working tree when unset")
 )
 
 func TestMain(m *testing.M) {
@@ -32,16 +35,14 @@ func TestMain(m *testing.M) {
 	conf.ButlerPath = *butlerPath
 	conf.OnCI = os.Getenv("CI") != ""
 
-	if conf.ButlerPath == "" && !conf.OnCI {
-		conf.ButlerPath = "butler"
-	}
-
 	if conf.ButlerPath == "" {
 		if conf.OnCI {
 			log.Printf("Skipping integrate tests (on CI, no butler path specified)")
 			os.Exit(0)
 		}
-		must(errors.New("Refusing to run integrate tests without --butlerPath"))
+		// The tests drive the daemon as a separate process, so a binary is
+		// needed; one from PATH would silently be an older build.
+		conf.ButlerPath = buildButler()
 	}
 
 	conf.PidString = strconv.FormatInt(int64(os.Getpid()), 10)
@@ -49,6 +50,25 @@ func TestMain(m *testing.M) {
 
 	status := m.Run()
 	os.Exit(status)
+}
+
+// buildButler compiles the working tree to where `make build` puts it, the
+// repository root, and returns the binary's path. The build cache makes a
+// repeat build quick.
+func buildButler() string {
+	// tests run with the package directory as working directory
+	out, err := filepath.Abs(filepath.Join("..", "..", "butler"))
+	must(err)
+	if runtime.GOOS == "windows" {
+		out += ".exe"
+	}
+	log.Printf("Building butler from the working tree into %s", out)
+	cmd := exec.Command("go", "build", "-o", out, "github.com/itchio/butler")
+	cmd.Env = append(os.Environ(), "CGO_ENABLED=1")
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	must(errors.Wrap(cmd.Run(), "building butler for the integrate tests"))
+	return out
 }
 
 func must(err error) {
