@@ -7154,6 +7154,36 @@
           "doc": "Shared libraries listed in DT_NEEDED, in link order.\nOnly filled when ConfigureParams.DeepProbe is set.",
           "type": "string[]",
           "optional": true
+        },
+        {
+          "name": "sdl",
+          "doc": "SDL major version the executable uses, \"2\" or \"3\": imported, or\nlinked in (see SDLBundled). Only filled when DeepProbe is set.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "sdlBundled",
+          "doc": "True when SDL is linked into the executable rather than imported,\nso it only has the display backends it was built with.",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "sdlDynamicApi",
+          "doc": "True when a bundled SDL kept its dynamic API, the hook that lets a\nhost substitute its own SDL at load time (SDL_DYNAMIC_API).",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "display",
+          "doc": "Windowing and graphics libraries the executable, or the SDL it\nbundles, can load: \"x11\", \"wayland\", \"kmsdrm\", \"glfw\", \"egl\", \"gl\",\n\"gles\", \"vulkan\". From DT_NEEDED and the library names it carries\nfor dlopen. Only filled when DeepProbe is set.",
+          "type": "string[]",
+          "optional": true
+        },
+        {
+          "name": "symbols",
+          "doc": "True when the executable keeps its symbol table.\nOnly filled when DeepProbe is set.",
+          "type": "boolean",
+          "optional": true
         }
       ]
     },

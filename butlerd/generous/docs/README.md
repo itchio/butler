@@ -16163,6 +16163,43 @@ Only filled when ConfigureParams.DeepProbe is set.</p>
 Only filled when ConfigureParams.DeepProbe is set.</p>
 </td>
 </tr>
+<tr>
+<td><code>sdl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> SDL major version the executable uses, &ldquo;2&rdquo; or &ldquo;3&rdquo;: imported, or
+linked in (see SDLBundled). Only filled when DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
+<td><code>sdlBundled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when SDL is linked into the executable rather than imported,
+so it only has the display backends it was built with.</p>
+</td>
+</tr>
+<tr>
+<td><code>sdlDynamicApi</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when a bundled SDL kept its dynamic API, the hook that lets a
+host substitute its own SDL at load time (SDL_DYNAMIC_API).</p>
+</td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Windowing and graphics libraries the executable, or the SDL it
+bundles, can load: &ldquo;x11&rdquo;, &ldquo;wayland&rdquo;, &ldquo;kmsdrm&rdquo;, &ldquo;glfw&rdquo;, &ldquo;egl&rdquo;, &ldquo;gl&rdquo;,
+&ldquo;gles&rdquo;, &ldquo;vulkan&rdquo;. From DT_NEEDED and the library names it carries
+for dlopen. Only filled when DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
+<td><code>symbols</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when the executable keeps its symbol table.
+Only filled when DeepProbe is set.</p>
+</td>
+</tr>
 </table>
 
 
@@ -16194,6 +16231,26 @@ Only filled when ConfigureParams.DeepProbe is set.</p>
 <tr>
 <td><code>imports</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>sdl</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>sdlBundled</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sdlDynamicApi</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>symbols</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

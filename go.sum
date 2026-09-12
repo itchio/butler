@@ -111,8 +111,8 @@ github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151 h1:d8HqXXMFHm3E3iEPr
 github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151/go.mod h1:COxkdGM3zsZf9Uv7rC3+mu6ftr9V0xJWaPLv3KHis1Y=
 github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0 h1:Af8STO3cfg66mO2/hPXf2IfdNvUD6/quCa0dHiCZrHM=
 github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0/go.mod h1:HBEhXXrbs4t55x+UBQ5awc1izRFrOPD3Yc/3zaqFCrg=
-github.com/itchio/dash v0.0.0-20260911210201-b5fb6e454b62 h1:VXbVIAPOvMGo3KIBiDXUHux/3YsiIYAuba8rNa9OCCg=
-github.com/itchio/dash v0.0.0-20260911210201-b5fb6e454b62/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
+github.com/itchio/dash v0.0.0-20260912040611-c8264c8907eb h1:qntQN7rXuVfekk4L6aFOP4W8Pj4HVt2V0kYKO50Dkho=
+github.com/itchio/dash v0.0.0-20260912040611-c8264c8907eb/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
 github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729 h1:GwwF6o+en225Wwpeey80Z+ouzgyNk7gaGvipIpeetro=
 github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
