@@ -6,6 +6,7 @@ func (s *scope) assimilateAll() {
 	must(s.assimilate("github.com/itchio/butler/manager", "types_host.go"))
 
 	must(s.assimilate("github.com/itchio/dash", "types.go"))
+	must(s.assimilate("github.com/itchio/dash", "engine.go"))
 
 	must(s.assimilate("github.com/itchio/go-itchio", "types.go"))
 
