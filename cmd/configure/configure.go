@@ -20,6 +20,7 @@ var args = struct {
 	archFilter string
 	noFilter   bool
 	showStats  bool
+	deepProbe  bool
 }{}
 
 func Register(ctx *mansion.Context) {
@@ -30,6 +31,7 @@ func Register(ctx *mansion.Context) {
 	cmd.Flag("arch-filter", "Architecture filter").Default(runtime.GOARCH).StringVar(&args.archFilter)
 	cmd.Flag("no-filter", "Do not filter at all").BoolVar(&args.noFilter)
 	cmd.Flag("show-stats", "Show configure stats (how many files were sniffed, their extensions)").BoolVar(&args.showStats)
+	cmd.Flag("deep-probe", "Also read imports, glibc and SDL info from native executables").BoolVar(&args.deepProbe)
 	ctx.Register(cmd, do)
 }
 
@@ -40,7 +42,11 @@ type Params struct {
 	ArchFilter string
 	NoFilter   bool
 	ShowStats  bool
-	Consumer   *state.Consumer
+	// DeepProbe fills the dependency record of native candidates
+	// (imports, glibc, SDL, display libraries). Parses section tables,
+	// so it costs more than sniffing.
+	DeepProbe bool
+	Consumer  *state.Consumer
 }
 
 func do(ctx *mansion.Context) {
@@ -51,6 +57,7 @@ func do(ctx *mansion.Context) {
 		ArchFilter: args.archFilter,
 		NoFilter:   args.noFilter,
 		ShowStats:  args.showStats,
+		DeepProbe:  args.deepProbe,
 		Consumer:   comm.NewStateConsumer(),
 	})
 	ctx.Must(err)
@@ -73,9 +80,10 @@ func Do(params Params) (*dash.Verdict, error) {
 	}
 
 	verdict, err := dash.Configure(root, dash.ConfigureParams{
-		Consumer: consumer,
-		Filter:   filtering.FilterPaths,
-		Stats:    stats,
+		Consumer:  consumer,
+		Filter:    filtering.FilterPaths,
+		Stats:     stats,
+		DeepProbe: params.DeepProbe,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)

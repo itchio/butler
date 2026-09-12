@@ -7808,6 +7808,16 @@ butler never runs them. When empty, payloads are only listed when
 nothing else is launchable, as before.</p>
 </td>
 </tr>
+<tr>
+<td><code>deepProbe</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Fill the dependency record of native candidates: imports, glibc
+version, SDL version and how it is linked, display libraries
+(see LinuxInfo and WindowsInfo). Parses section tables of every
+native executable in the install folder, so it costs more than
+the default sniff; leave it off unless the client acts on it.</p>
+</td>
+</tr>
 </table>
 
 
@@ -7852,6 +7862,10 @@ transient.</p>
 <tr>
 <td><code>runtimes</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>deepProbe</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
 

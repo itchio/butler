@@ -3,10 +3,12 @@ package launch
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/itchio/butler/butlerd"
+	"github.com/itchio/butler/cmd/configure"
 	"github.com/itchio/butler/manager"
 	"github.com/itchio/dash"
 	"github.com/itchio/headway/state"
@@ -277,5 +279,39 @@ func TestGetTargetsForHost_Runtimes(t *testing.T) {
 	}
 	if len(targets) != 1 || targets[0].Strategy.Strategy != butlerd.LaunchStrategyShell {
 		t.Fatalf("expected shell target for non-native host, got %+v", targets)
+	}
+}
+
+func TestConfigure_DeepProbe(t *testing.T) {
+	t.Parallel()
+	if runtime.GOOS != "linux" {
+		t.Skip("needs a host ELF")
+	}
+	sh, err := os.ReadFile("/bin/sh")
+	if err != nil {
+		t.Skip("no /bin/sh")
+	}
+	installFolder := t.TempDir()
+	if err := os.WriteFile(filepath.Join(installFolder, "sh"), sh, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, deep := range []bool{false, true} {
+		verdict, err := configure.Do(configure.Params{
+			Path:      installFolder,
+			NoFilter:  true,
+			DeepProbe: deep,
+			Consumer:  &state.Consumer{},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(verdict.Candidates) != 1 || verdict.Candidates[0].LinuxInfo == nil {
+			t.Fatalf("deepProbe=%v: expected one linux candidate, got %+v", deep, verdict.Candidates)
+		}
+		hasImports := len(verdict.Candidates[0].LinuxInfo.Imports) > 0
+		if hasImports != deep {
+			t.Fatalf("deepProbe=%v: imports present=%v", deep, hasImports)
+		}
 	}
 }

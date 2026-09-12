@@ -2763,6 +2763,12 @@
             "doc": "Payload flavors the client can run with a runtime of its own, in\ndash's vocabulary: \"love\", \"godot-pck\", \"rom:nes\", \"rom:gba\", or\n\"rom\" for every console. Matching payloads are returned with the\n@@LaunchStrategyRuntime strategy, for the client to launch itself;\nbutler never runs them. When empty, payloads are only listed when\nnothing else is launchable, as before.",
             "type": "string[]",
             "optional": true
+          },
+          {
+            "name": "deepProbe",
+            "doc": "Fill the dependency record of native candidates: imports, glibc\nversion, SDL version and how it is linked, display libraries\n(see LinuxInfo and WindowsInfo). Parses section tables of every\nnative executable in the install folder, so it costs more than\nthe default sniff; leave it off unless the client acts on it.",
+            "type": "boolean",
+            "optional": true
           }
         ]
       },

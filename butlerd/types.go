@@ -3267,6 +3267,14 @@ type LaunchGetTargetsParams struct {
 	// nothing else is launchable, as before.
 	// @optional
 	Runtimes []string `json:"runtimes,omitempty"`
+
+	// Fill the dependency record of native candidates: imports, glibc
+	// version, SDL version and how it is linked, display libraries
+	// (see LinuxInfo and WindowsInfo). Parses section tables of every
+	// native executable in the install folder, so it costs more than
+	// the default sniff; leave it off unless the client acts on it.
+	// @optional
+	DeepProbe bool `json:"deepProbe,omitempty"`
 }
 
 func (p LaunchGetTargetsParams) Validate() error {

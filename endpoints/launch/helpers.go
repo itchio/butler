@@ -138,6 +138,8 @@ type getTargetsParams struct {
 	hosts []manager.Host
 	// payload flavors the client runs itself, see LaunchGetTargetsParams
 	runtimes []dash.Flavor
+	// fill imports, glibc, SDL and display info on native candidates
+	deepProbe bool
 }
 
 type getTargetsResult struct {
@@ -169,9 +171,10 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 	}
 
 	verdict, err := configure.Do(configure.Params{
-		Path:     installFolder,
-		NoFilter: true,
-		Consumer: consumer,
+		Path:      installFolder,
+		NoFilter:  true,
+		DeepProbe: params.deepProbe,
+		Consumer:  consumer,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
