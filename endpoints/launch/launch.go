@@ -18,6 +18,7 @@ import (
 	"github.com/itchio/butler/butlerd/messages"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/dash"
 	"github.com/itchio/hush/manifest"
 
 	"github.com/itchio/httpkit/neterr"
@@ -64,9 +65,14 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			return err
 		}
 
+		var runtimes []dash.Flavor
+		for _, r := range params.Runtimes {
+			runtimes = append(runtimes, dash.Flavor(r))
+		}
 		targetRes, err := getTargets(rc, getTargetsParams{
-			info:  info,
-			hosts: hosts,
+			info:     info,
+			hosts:    hosts,
+			runtimes: runtimes,
 		})
 		if err != nil {
 			return err

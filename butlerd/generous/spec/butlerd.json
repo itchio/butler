@@ -2842,6 +2842,12 @@
             "optional": true
           },
           {
+            "name": "runtimes",
+            "doc": "Payload flavors the client runs with a runtime of its own, as for\n@@LaunchGetTargetsParams. Matching payloads become targets with the\n@@LaunchStrategyRuntime strategy, which are launched by asking the\nclient (@@RuntimeLaunchParams). Pass the same list that produced the\ntarget being launched, or the target will not be found.",
+            "type": "string[]",
+            "optional": true
+          },
+          {
             "name": "defaults",
             "doc": "Client-supplied defaults for knobs that both the explicit params and\nthe cave's settings leave unset, typically sourced from a frontend's\nglobal preferences. Resolution order: explicit params, then cave\nsettings, then these defaults, then the manifest (for the sandbox\nopt-in). Sandbox options resolve per knob between settings and\ndefaults, but an explicit sandboxOptions param replaces both as a\nwhole.",
             "type": "LaunchDefaults",
@@ -2941,6 +2947,40 @@
             "name": "env",
             "doc": "Environment variables, to pass as `global.Itch.env`",
             "type": "{ [key: string]: string }"
+          }
+        ]
+      },
+      "result": {
+        "fields": null
+      }
+    },
+    {
+      "method": "RuntimeLaunch",
+      "doc": "Ask the client to run a payload with a runtime of its own: a ROM in\nits emulator, a LÖVE game in its LÖVE. This is how a client that\nmanages the game process itself keeps butler's bookkeeping. Sent\nduring @@LaunchParams for a @@LaunchStrategyRuntime target, after\n@@LaunchRunningNotification; the play session and the cave's play\ntime run from then until the reply.\n\nReply when the game has exited. A plain reply is a normal exit, an\nerror reply is a failure or crash and fails the launch. butler never\nsees the process, so it cannot end it: when the launch is cancelled,\nthe client ends the game itself.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "fullTargetPath",
+            "doc": "Absolute path of the payload: a file, or a folder for engines that\nrun one (a LÖVE game with its main.lua at the root).",
+            "type": "string"
+          },
+          {
+            "name": "candidate",
+            "doc": "What the payload is, as dash found it: the flavor, and for ROMs\nthe system in Engine.Details.",
+            "type": "Candidate"
+          },
+          {
+            "name": "args",
+            "doc": "Command-line arguments from the manifest action, if any",
+            "type": "string[]",
+            "optional": true
+          },
+          {
+            "name": "env",
+            "doc": "Environment variables from the manifest action, if any",
+            "type": "{ [key: string]: string }",
+            "optional": true
           }
         ]
       },
@@ -6221,6 +6261,11 @@
       "fields": null
     },
     {
+      "name": "RuntimeLaunchResult",
+      "doc": "",
+      "fields": null
+    },
+    {
       "name": "URLLaunchResult",
       "doc": "",
       "fields": null
@@ -7225,6 +7270,29 @@
           "name": "mainClass",
           "doc": "The main Java class as specified by the manifest included in the .jar (if any)",
           "type": "string",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "EngineInfo",
+      "doc": "EngineInfo describes what made a candidate and, for payloads, what runtime\nit needs.",
+      "fields": [
+        {
+          "name": "engine",
+          "doc": "",
+          "type": "Engine"
+        },
+        {
+          "name": "version",
+          "doc": "Engine version, in the engine's own notation: \"3.5.2\", \"2022.3.10f1\",\n\"11.5\". Empty when it would cost too much to find out or is not\nrecorded anywhere.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "details",
+          "doc": "Free-form engine facts. Keys are documented per detector; the ones\nshared across engines are \"confidence\" (\"ext\" when only the file name\nwas used) and \"system\" (console id for ROMs).",
+          "type": "{ [key: string]: any }",
           "optional": true
         }
       ]
@@ -8949,6 +9017,157 @@
           "name": "Archive",
           "doc": "Self-extracting installers that 7-zip knows how to extract",
           "value": "archive"
+        }
+      ]
+    },
+    {
+      "name": "Engine",
+      "doc": "Engine identifies the tool a game was made with. It is the key a consumer\nuses to pick a runtime: a native candidate carries it as extra context, a\npayload candidate carries it because the payload is nothing without it.",
+      "values": [
+        {
+          "name": "Godot",
+          "doc": "",
+          "value": "godot"
+        },
+        {
+          "name": "Unity",
+          "doc": "",
+          "value": "unity"
+        },
+        {
+          "name": "Unreal",
+          "doc": "",
+          "value": "unreal"
+        },
+        {
+          "name": "GameMaker",
+          "doc": "",
+          "value": "gamemaker"
+        },
+        {
+          "name": "Love",
+          "doc": "",
+          "value": "love"
+        },
+        {
+          "name": "Pico8",
+          "doc": "",
+          "value": "pico8"
+        },
+        {
+          "name": "Picotron",
+          "doc": "",
+          "value": "picotron"
+        },
+        {
+          "name": "Renpy",
+          "doc": "",
+          "value": "renpy"
+        },
+        {
+          "name": "RPGMaker",
+          "doc": "",
+          "value": "rpgmaker"
+        },
+        {
+          "name": "AGS",
+          "doc": "",
+          "value": "ags"
+        },
+        {
+          "name": "Doom",
+          "doc": "",
+          "value": "doom"
+        },
+        {
+          "name": "Flash",
+          "doc": "",
+          "value": "flash"
+        },
+        {
+          "name": "DOS",
+          "doc": "",
+          "value": "dos"
+        },
+        {
+          "name": "Pyxel",
+          "doc": "",
+          "value": "pyxel"
+        },
+        {
+          "name": "Solarus",
+          "doc": "",
+          "value": "solarus"
+        },
+        {
+          "name": "TIC80",
+          "doc": "",
+          "value": "tic80"
+        },
+        {
+          "name": "OpenBOR",
+          "doc": "",
+          "value": "openbor"
+        },
+        {
+          "name": "ROM",
+          "doc": "ROM images: the console lives in Details[\"system\"]",
+          "value": "rom"
+        },
+        {
+          "name": "FNA",
+          "doc": "",
+          "value": "fna"
+        },
+        {
+          "name": "MonoGame",
+          "doc": "",
+          "value": "monogame"
+        },
+        {
+          "name": "XNA",
+          "doc": "",
+          "value": "xna"
+        },
+        {
+          "name": "HashLink",
+          "doc": "",
+          "value": "hashlink"
+        },
+        {
+          "name": "Defold",
+          "doc": "",
+          "value": "defold"
+        },
+        {
+          "name": "Construct",
+          "doc": "",
+          "value": "construct"
+        },
+        {
+          "name": "Electron",
+          "doc": "",
+          "value": "electron"
+        },
+        {
+          "name": "NWJS",
+          "doc": "",
+          "value": "nwjs"
+        },
+        {
+          "name": "Python",
+          "doc": "",
+          "value": "python"
+        },
+        {
+          "name": "LibGDX",
+          "doc": "",
+          "value": "libgdx"
+        },
+        {
+          "name": "LWJGL",
+          "doc": "",
+          "value": "lwjgl"
         }
       ]
     },

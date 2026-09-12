@@ -309,6 +309,9 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 				consumer.Warnf("Could not resolve launch target for action '%s' on host %s: %v", action.Name, host, err)
 				continue
 			}
+			if nativeHost {
+				target = runtimeTargetForAction(consumer, host, target, runtimes)
+			}
 			targets = append(targets, target)
 			consumer.Logf("%s", target.Strategy.String())
 		}

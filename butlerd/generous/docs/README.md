@@ -7976,6 +7976,16 @@ refresh metadata over the network before this check.</p>
 </td>
 </tr>
 <tr>
+<td><code>runtimes</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Payload flavors the client runs with a runtime of its own, as for
+<code class="typename"><span class="type" data-tip-selector="#LaunchGetTargetsParams__TypeHint">Launch.GetTargets</span></code>. Matching payloads become targets with the
+<code class="typename"><span class="type builtin-type">LaunchStrategyRuntime</span></code> strategy, which are launched by asking the
+client (<code class="typename"><span class="type" data-tip-selector="#RuntimeLaunchParams__TypeHint">RuntimeLaunch</span></code>). Pass the same list that produced the
+target being launched, or the target will not be found.</p>
+</td>
+</tr>
+<tr>
 <td><code>defaults</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#LaunchDefaults__TypeHint">LaunchDefaults</span></code></td>
 <td><p><span class="tag">Optional</span> Client-supplied defaults for knobs that both the explicit params and
@@ -8040,6 +8050,10 @@ whole.</p>
 <tr>
 <td><code>allowedStrategies</code></td>
 <td><code class="typename"><span class="type">LaunchStrategy</span>[]</code></td>
+</tr>
+<tr>
+<td><code>runtimes</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 <tr>
 <td><code>defaults</code></td>
@@ -8392,6 +8406,110 @@ game, ideally in an embedded browser.</p>
 
 <div id="HTMLLaunchResult__TypeHint" class="tip-content">
 <p>HTMLLaunch  <a href="#/?id=htmllaunch-">(Go to definition)</a></p>
+
+</div>
+
+### RuntimeLaunch (client caller)
+
+
+<p>
+<p>Ask the client to run a payload with a runtime of its own: a ROM in
+its emulator, a LÖVE game in its LÖVE. This is how a client that
+manages the game process itself keeps butler&rsquo;s bookkeeping. Sent
+during <code class="typename"><span class="type" data-tip-selector="#LaunchParams__TypeHint">Launch</span></code> for a <code class="typename"><span class="type builtin-type">LaunchStrategyRuntime</span></code> target, after
+<code class="typename"><span class="type" data-tip-selector="#LaunchRunningNotification__TypeHint">LaunchRunning</span></code>; the play session and the cave&rsquo;s play
+time run from then until the reply.</p>
+
+<p>Reply when the game has exited. A plain reply is a normal exit, an
+error reply is a failure or crash and fails the launch. butler never
+sees the process, so it cannot end it: when the launch is cancelled,
+the client ends the game itself.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>fullTargetPath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Absolute path of the payload: a file, or a folder for engines that
+run one (a LÖVE game with its main.lua at the root).</p>
+</td>
+</tr>
+<tr>
+<td><code>candidate</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Candidate__TypeHint">Candidate</span></code></td>
+<td><p>What the payload is, as dash found it: the flavor, and for ROMs
+the system in Engine.Details.</p>
+</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Command-line arguments from the manifest action, if any</p>
+</td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p><span class="tag">Optional</span> Environment variables from the manifest action, if any</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> <em>none</em>
+</p>
+
+
+<div id="RuntimeLaunchParams__TypeHint" class="tip-content">
+<p>RuntimeLaunch (client caller) <a href="#/?id=runtimelaunch-client-caller">(Go to definition)</a></p>
+
+<p>
+<p>Ask the client to run a payload with a runtime of its own: a ROM in
+its emulator, a LÖVE game in its LÖVE. This is how a client that
+manages the game process itself keeps butler&rsquo;s bookkeeping. Sent
+during <code class="typename"><span class="type">Launch</span></code> for a <code class="typename"><span class="type builtin-type">LaunchStrategyRuntime</span></code> target, after
+<code class="typename"><span class="type">LaunchRunning</span></code>; the play session and the cave&rsquo;s play
+time run from then until the reply.</p>
+
+<p>Reply when the game has exited. A plain reply is a normal exit, an
+error reply is a failure or crash and fails the launch. butler never
+sees the process, so it cannot end it: when the launch is cancelled,
+the client ends the game itself.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>fullTargetPath</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>candidate</code></td>
+<td><code class="typename"><span class="type">Candidate</span></code></td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="RuntimeLaunchResult__TypeHint" class="tip-content">
+<p>RuntimeLaunch  <a href="#/?id=runtimelaunch-">(Go to definition)</a></p>
 
 </div>
 
@@ -15497,7 +15615,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>engine</code></td>
-<td><code class="typename"><span class="type builtin-type">EngineInfo</span></code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#EngineInfo__TypeHint">EngineInfo</span></code></td>
 <td><p><span class="tag">Optional</span> Engine is what made this candidate. Set on natives when a known engine
 left its footprint next to them, and on payload flavors always.</p>
 </td>
@@ -15575,7 +15693,7 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>engine</code></td>
-<td><code class="typename"><span class="type builtin-type">EngineInfo</span></code></td>
+<td><code class="typename"><span class="type">EngineInfo</span></code></td>
 </tr>
 <tr>
 <td><code>metadata</code></td>
@@ -16385,6 +16503,309 @@ Only filled when DeepProbe is set.</p>
 <tr>
 <td><code>mainClass</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Engine (enum)
+
+
+<p>
+<p>Engine identifies the tool a game was made with. It is the key a consumer
+uses to pick a runtime: a native candidate carries it as extra context, a
+payload candidate carries it because the payload is nothing without it.</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"godot"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"unreal"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"gamemaker"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"love"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"pico8"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"picotron"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"renpy"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"rpgmaker"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"ags"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"doom"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"dos"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"pyxel"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"solarus"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"tic80"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"openbor"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"rom"</code></td>
+<td><p>ROM images: the console lives in Details[&ldquo;system&rdquo;]</p>
+</td>
+</tr>
+<tr>
+<td><code>"fna"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"monogame"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"xna"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"hashlink"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"defold"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"construct"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"electron"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"nwjs"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"python"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"libgdx"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"lwjgl"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="Engine__TypeHint" class="tip-content">
+<p>Engine (enum) <a href="#/?id=engine-enum">(Go to definition)</a></p>
+
+<p>
+<p>Engine identifies the tool a game was made with. It is the key a consumer
+uses to pick a runtime: a native candidate carries it as extra context, a
+payload candidate carries it because the payload is nothing without it.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"godot"</code></td>
+</tr>
+<tr>
+<td><code>"unity"</code></td>
+</tr>
+<tr>
+<td><code>"unreal"</code></td>
+</tr>
+<tr>
+<td><code>"gamemaker"</code></td>
+</tr>
+<tr>
+<td><code>"love"</code></td>
+</tr>
+<tr>
+<td><code>"pico8"</code></td>
+</tr>
+<tr>
+<td><code>"picotron"</code></td>
+</tr>
+<tr>
+<td><code>"renpy"</code></td>
+</tr>
+<tr>
+<td><code>"rpgmaker"</code></td>
+</tr>
+<tr>
+<td><code>"ags"</code></td>
+</tr>
+<tr>
+<td><code>"doom"</code></td>
+</tr>
+<tr>
+<td><code>"flash"</code></td>
+</tr>
+<tr>
+<td><code>"dos"</code></td>
+</tr>
+<tr>
+<td><code>"pyxel"</code></td>
+</tr>
+<tr>
+<td><code>"solarus"</code></td>
+</tr>
+<tr>
+<td><code>"tic80"</code></td>
+</tr>
+<tr>
+<td><code>"openbor"</code></td>
+</tr>
+<tr>
+<td><code>"rom"</code></td>
+</tr>
+<tr>
+<td><code>"fna"</code></td>
+</tr>
+<tr>
+<td><code>"monogame"</code></td>
+</tr>
+<tr>
+<td><code>"xna"</code></td>
+</tr>
+<tr>
+<td><code>"hashlink"</code></td>
+</tr>
+<tr>
+<td><code>"defold"</code></td>
+</tr>
+<tr>
+<td><code>"construct"</code></td>
+</tr>
+<tr>
+<td><code>"electron"</code></td>
+</tr>
+<tr>
+<td><code>"nwjs"</code></td>
+</tr>
+<tr>
+<td><code>"python"</code></td>
+</tr>
+<tr>
+<td><code>"libgdx"</code></td>
+</tr>
+<tr>
+<td><code>"lwjgl"</code></td>
+</tr>
+</table>
+
+</div>
+
+### EngineInfo (struct)
+
+
+<p>
+<p>EngineInfo describes what made a candidate and, for payloads, what runtime
+it needs.</p>
+
+</p>
+
+<p>
+<span class="header">Fields</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>engine</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Engine__TypeHint">Engine</span></code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Engine version, in the engine&rsquo;s own notation: &ldquo;3.5.2&rdquo;, &ldquo;2022.3.10f1&rdquo;,
+&ldquo;11.5&rdquo;. Empty when it would cost too much to find out or is not
+recorded anywhere.</p>
+</td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
+<td><p><span class="tag">Optional</span> Free-form engine facts. Keys are documented per detector; the ones
+shared across engines are &ldquo;confidence&rdquo; (&ldquo;ext&rdquo; when only the file name
+was used) and &ldquo;system&rdquo; (console id for ROMs).</p>
+</td>
+</tr>
+</table>
+
+
+<div id="EngineInfo__TypeHint" class="tip-content">
+<p>EngineInfo (struct) <a href="#/?id=engineinfo-struct">(Go to definition)</a></p>
+
+<p>
+<p>EngineInfo describes what made a candidate and, for payloads, what runtime
+it needs.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>engine</code></td>
+<td><code class="typename"><span class="type">Engine</span></code></td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
 </tr>
 </table>
 

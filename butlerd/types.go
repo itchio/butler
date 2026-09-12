@@ -2,6 +2,7 @@ package butlerd
 
 import (
 	"fmt"
+	"github.com/itchio/dash"
 	"time"
 
 	"github.com/itchio/hush"
@@ -3352,6 +3353,14 @@ type LaunchParams struct {
 	// @optional
 	AllowedStrategies []LaunchStrategy `json:"allowedStrategies,omitempty"`
 
+	// Payload flavors the client runs with a runtime of its own, as for
+	// @@LaunchGetTargetsParams. Matching payloads become targets with the
+	// @@LaunchStrategyRuntime strategy, which are launched by asking the
+	// client (@@RuntimeLaunchParams). Pass the same list that produced the
+	// target being launched, or the target will not be found.
+	// @optional
+	Runtimes []string `json:"runtimes,omitempty"`
+
 	// Client-supplied defaults for knobs that both the explicit params and
 	// the cave's settings leave unset, typically sourced from a frontend's
 	// global preferences. Resolution order: explicit params, then cave
@@ -3560,6 +3569,46 @@ func (p HTMLLaunchParams) Validate() error {
 }
 
 type HTMLLaunchResult struct {
+}
+
+// Ask the client to run a payload with a runtime of its own: a ROM in
+// its emulator, a LÖVE game in its LÖVE. This is how a client that
+// manages the game process itself keeps butler's bookkeeping. Sent
+// during @@LaunchParams for a @@LaunchStrategyRuntime target, after
+// @@LaunchRunningNotification; the play session and the cave's play
+// time run from then until the reply.
+//
+// Reply when the game has exited. A plain reply is a normal exit, an
+// error reply is a failure or crash and fails the launch. butler never
+// sees the process, so it cannot end it: when the launch is cancelled,
+// the client ends the game itself.
+//
+// @category Launch
+// @caller server
+type RuntimeLaunchParams struct {
+	// Absolute path of the payload: a file, or a folder for engines that
+	// run one (a LÖVE game with its main.lua at the root).
+	FullTargetPath string `json:"fullTargetPath"`
+	// What the payload is, as dash found it: the flavor, and for ROMs
+	// the system in Engine.Details.
+	Candidate *dash.Candidate `json:"candidate"`
+
+	// Command-line arguments from the manifest action, if any
+	// @optional
+	Args []string `json:"args,omitempty"`
+	// Environment variables from the manifest action, if any
+	// @optional
+	Env map[string]string `json:"env,omitempty"`
+}
+
+func (p RuntimeLaunchParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.FullTargetPath, validation.Required),
+		validation.Field(&p.Candidate, validation.Required),
+	)
+}
+
+type RuntimeLaunchResult struct {
 }
 
 // Ask the client to perform an URL launch, ie. open an address

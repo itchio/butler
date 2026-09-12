@@ -182,6 +182,48 @@ func matchesRuntime(candidate *dash.Candidate, runtimes []dash.Flavor) bool {
 	return false
 }
 
+// runtimeTargetForAction hands a manifest action to the client when it
+// runs what the action points at: a payload file, or a folder holding
+// one. The action stays, with its name, arguments and settings; only the
+// strategy changes. Anything else is returned as it was.
+func runtimeTargetForAction(consumer *state.Consumer, host manager.Host, target *butlerd.LaunchTarget, runtimes []dash.Flavor) *butlerd.LaunchTarget {
+	if len(runtimes) == 0 || target.Strategy == nil {
+		return target
+	}
+	var basePath string
+	var candidate *dash.Candidate
+	switch target.Strategy.Strategy {
+	case butlerd.LaunchStrategyNative:
+		basePath = filepath.Dir(target.Strategy.FullTargetPath)
+		candidate = target.Strategy.Candidate
+	case butlerd.LaunchStrategyShell:
+		basePath = target.Strategy.FullTargetPath
+		verdict, err := dash.Configure(basePath, dash.ConfigureParams{
+			Consumer: consumer,
+			Filter:   filtering.FilterPaths,
+		})
+		if err != nil {
+			consumer.Warnf("Could not configure (%s): %v", basePath, err)
+			return target
+		}
+		for _, c := range verdict.Candidates {
+			if matchesRuntime(c, runtimes) {
+				candidate = c
+				break
+			}
+		}
+	default:
+		return target
+	}
+	if candidate == nil || !matchesRuntime(candidate, runtimes) {
+		return target
+	}
+	consumer.Infof("Action '%s' points at a %s payload the client runs itself", target.Action.Name, candidate.Flavor)
+	runtimeTarget := RuntimeLaunchTarget(basePath, host, candidate)
+	runtimeTarget.Action = target.Action
+	return runtimeTarget
+}
+
 // RuntimeLaunchTarget describes a payload the client runs with its own
 // runtime. Unlike the shell fallback, the target path is the payload
 // itself, file or folder.

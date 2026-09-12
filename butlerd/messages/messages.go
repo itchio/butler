@@ -3905,6 +3905,46 @@ func (r *HTMLLaunchType) Call(rc *butlerd.RequestContext, params butlerd.HTMLLau
 
 var HTMLLaunch *HTMLLaunchType
 
+// RuntimeLaunch (Request)
+
+type RuntimeLaunchType struct {}
+
+var _ RequestMessage = (*RuntimeLaunchType)(nil)
+
+func (r *RuntimeLaunchType) Method() string {
+  return "RuntimeLaunch"
+}
+
+func (r *RuntimeLaunchType) TestRegister(router router, f func(*butlerd.RequestContext, butlerd.RuntimeLaunchParams) (*butlerd.RuntimeLaunchResult, error)) {
+  router.Register("RuntimeLaunch", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.RuntimeLaunchParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for RuntimeLaunch")
+    }
+    return res, nil
+  })
+}
+
+func (r *RuntimeLaunchType) Call(rc *butlerd.RequestContext, params butlerd.RuntimeLaunchParams) (*butlerd.RuntimeLaunchResult, error) {
+  var result butlerd.RuntimeLaunchResult
+  err := rc.Call("RuntimeLaunch", params, &result)
+  return &result, err
+}
+
+var RuntimeLaunch *RuntimeLaunchType
+
 // URLLaunch (Request)
 
 type URLLaunchType struct {}
