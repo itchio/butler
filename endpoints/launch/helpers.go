@@ -182,37 +182,49 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 
 	var targets []*butlerd.LaunchTarget
 
-	shouldBrowse := false
-	if upload != nil {
-		switch upload.Type {
-		case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
-			consumer.Infof("Upload is of type (%s), forcing shell strategy", upload.Type)
-			shouldBrowse = true
-		}
-	}
+	// Content uploads (soundtracks, source code, mods...) are not meant to
+	// be run but often hold something runnable: a PICO-8 cart is source
+	// code, a Doom WAD is a mod. The folder goes first so a lone
+	// executable never launches on its own, short of a saved preference
+	// or a client that disallows the shell strategy. A manifest that
+	// fails to resolve (source code naming a build never made) must not
+	// take the folder away.
+	contentUpload := upload != nil && isContentUploadType(upload.Type)
 
-	if !shouldBrowse {
-		for _, host := range params.hosts {
-			hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host, params.runtimes)
-			if err != nil {
+	for _, host := range params.hosts {
+		hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host, params.runtimes)
+		if err != nil {
+			if !contentUpload {
 				return nil, err
 			}
-			targets = append(targets, hostTargets...)
+			consumer.Warnf("Could not resolve targets for host %s of a (%s) upload: %v", host, upload.Type, err)
+			continue
 		}
+		targets = append(targets, hostTargets...)
 	}
 
-	if len(targets) == 0 {
-		consumer.Warnf("Falling back to shell strategy")
-		targets = append(targets, &butlerd.LaunchTarget{
+	browse := func(name, icon string) *butlerd.LaunchTarget {
+		return &butlerd.LaunchTarget{
 			Action: &manifest.Action{
-				Name: info.cave.Game.Title,
+				Name: name,
+				Icon: icon,
 				Path: ".",
 			},
 			Strategy: &butlerd.StrategyResult{
 				FullTargetPath: installFolder,
 				Strategy:       butlerd.LaunchStrategyShell,
 			},
-		})
+		}
+	}
+
+	if contentUpload {
+		consumer.Infof("Upload is of type (%s), offering the folder first", upload.Type)
+		targets = append([]*butlerd.LaunchTarget{browse("Open folder", "folder-open")}, targets...)
+	}
+
+	if len(targets) == 0 {
+		consumer.Warnf("Falling back to shell strategy")
+		targets = append(targets, browse(info.cave.Game.Title, ""))
 	}
 
 	var uniqueTargets []*butlerd.LaunchTarget
@@ -361,4 +373,12 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	}
 
 	return targets, nil
+}
+
+func isContentUploadType(uploadType itchio.UploadType) bool {
+	switch uploadType {
+	case "soundtrack", "book", "video", "documentation", "mod", "audio_assets", "graphical_assets", "sourcecode":
+		return true
+	}
+	return false
 }
