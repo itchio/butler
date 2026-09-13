@@ -26,7 +26,7 @@ require (
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
 	github.com/itchio/hush v0.0.0-20260911213900-ea478eb4adef
 	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
-	github.com/itchio/lake v0.0.0-20260609175358-7830e8bc546a
+	github.com/itchio/lake v0.0.0-20260913190718-5afe53462d58
 	github.com/itchio/mitch v0.0.0-20260722173825-17efffd7d69b
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7
