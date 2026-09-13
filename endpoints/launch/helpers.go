@@ -287,11 +287,20 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 				return action, nil
 			}
 
-			if len(verdict.Candidates) != 1 {
-				consumer.Warnf("Expected 1 candidates but had (%d)", len(verdict.Candidates))
+			// an executable with an embedded payload (fused LÖVE, Godot
+			// pck, AGS data) is also reported as that payload at the same
+			// path; only the executable says which platform the action is for
+			var candidates []*dash.Candidate
+			for _, c := range verdict.Candidates {
+				if !c.IsPayload() {
+					candidates = append(candidates, c)
+				}
+			}
+			if len(candidates) != 1 {
+				consumer.Warnf("Expected 1 candidate but had (%d)", len(candidates))
 				return action, nil
 			}
-			candidate := verdict.Candidates[0]
+			candidate := candidates[0]
 			platform := flavorToPlatform(candidate.Flavor)
 			if platform != nil {
 				action.Platform = *platform
