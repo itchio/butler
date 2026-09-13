@@ -161,27 +161,6 @@ func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, host man
 	return target, nil
 }
 
-// matchesRuntime mirrors dash's runtime matching: a payload is covered by
-// its flavor, and a ROM also by "rom:<system>".
-func matchesRuntime(candidate *dash.Candidate, runtimes []dash.Flavor) bool {
-	if !candidate.IsPayload() {
-		return false
-	}
-	system := ""
-	if candidate.Engine != nil {
-		system, _ = candidate.Engine.Details["system"].(string)
-	}
-	for _, r := range runtimes {
-		if r == candidate.Flavor {
-			return true
-		}
-		if candidate.Flavor == dash.FlavorROM && system != "" && r == dash.Flavor("rom:"+system) {
-			return true
-		}
-	}
-	return false
-}
-
 // runtimeTargetForAction hands a manifest action to the client when it
 // runs what the action points at: a payload file, or a folder holding
 // one. The action stays, with its name, arguments and settings; only the
@@ -207,7 +186,7 @@ func runtimeTargetForAction(consumer *state.Consumer, host manager.Host, target 
 			return target
 		}
 		for _, c := range verdict.Candidates {
-			if matchesRuntime(c, runtimes) {
+			if dash.MatchesRuntime(c, runtimes) {
 				candidate = c
 				break
 			}
@@ -215,7 +194,7 @@ func runtimeTargetForAction(consumer *state.Consumer, host manager.Host, target 
 	default:
 		return target
 	}
-	if candidate == nil || !matchesRuntime(candidate, runtimes) {
+	if candidate == nil || !dash.MatchesRuntime(candidate, runtimes) {
 		return target
 	}
 	consumer.Infof("Action '%s' points at a %s payload the client runs itself", target.Action.Name, candidate.Flavor)

@@ -369,7 +369,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 
 	for _, candidate := range verdict.Candidates {
 		var target *butlerd.LaunchTarget
-		if matchesRuntime(candidate, filterParams.Runtimes) {
+		if dash.MatchesRuntime(candidate, filterParams.Runtimes) {
 			target = RuntimeLaunchTarget(info.installFolder, host, candidate)
 		} else {
 			var err error
