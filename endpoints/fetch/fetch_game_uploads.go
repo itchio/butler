@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/cmd/operate"
 	"github.com/itchio/butler/database/models"
@@ -14,11 +15,12 @@ import (
 func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUploadsParams) (*butlerd.FetchGameUploadsResult, error) {
 	ft := models.FetchTargetForGameUploads(params.GameID)
 	res := &butlerd.FetchGameUploadsResult{}
-	conn := rc.GetConn()
-	defer rc.PutConn(conn)
 
 	lazyfetch.Do(rc, ft, params, res, func(targets lazyfetch.Targets) {
-		access := operate.AccessForGameID(conn, params.GameID)
+		var access *operate.GameAccess
+		rc.WithConn(func(conn *sqlite.Conn) {
+			access = operate.AccessForGameID(conn, params.GameID)
+		})
 		client := rc.Client(access.APIKey)
 
 		uploadsRes, err := client.ListGameUploads(rc.Ctx, itchio.ListGameUploadsParams{
@@ -40,32 +42,35 @@ func FetchGameUploads(rc *butlerd.RequestContext, params butlerd.FetchGameUpload
 			})
 		}
 
-		// TODO: do that in transaction?
-		models.MustDelete(conn, &models.GameUpload{}, builder.And(
-			builder.Eq{"game_id": params.GameID},
-			builder.NotIn("upload_id", validUploadIDs...),
-		))
-		models.MustSave(conn, gameUploads,
+		rc.WithConn(func(conn *sqlite.Conn) {
+			// TODO: do that in transaction?
+			models.MustDelete(conn, &models.GameUpload{}, builder.And(
+				builder.Eq{"game_id": params.GameID},
+				builder.NotIn("upload_id", validUploadIDs...),
+			))
+			models.MustSave(conn, gameUploads,
+				hades.Assoc("Upload",
+					hades.Assoc("Build"),
+				),
+			)
+		})
+	})
+
+	var uploads []*itchio.Upload
+	rc.WithConn(func(conn *sqlite.Conn) {
+		var gameUploads []*models.GameUpload
+		models.MustSelect(conn, &gameUploads, builder.Eq{
+			"game_id": params.GameID,
+		}, hades.Search{}.OrderBy("position ASC"))
+		models.MustPreload(conn, gameUploads,
 			hades.Assoc("Upload",
 				hades.Assoc("Build"),
 			),
 		)
+		for _, gu := range gameUploads {
+			uploads = append(uploads, gu.Upload)
+		}
 	})
-
-	var gameUploads []*models.GameUpload
-	models.MustSelect(conn, &gameUploads, builder.Eq{
-		"game_id": params.GameID,
-	}, hades.Search{}.OrderBy("position ASC"))
-	models.MustPreload(conn, gameUploads,
-		hades.Assoc("Upload",
-			hades.Assoc("Build"),
-		),
-	)
-
-	var uploads []*itchio.Upload
-	for _, gu := range gameUploads {
-		uploads = append(uploads, gu.Upload)
-	}
 
 	if params.OnlyCompatible {
 		game := LazyFetchGame(rc, params.GameID)
