@@ -17,7 +17,6 @@ import (
 )
 
 type IntegrateConfig struct {
-	OnCI       bool
 	ButlerPath string
 	PidString  string
 	PpidString string
@@ -33,13 +32,8 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	conf.ButlerPath = *butlerPath
-	conf.OnCI = os.Getenv("CI") != ""
 
 	if conf.ButlerPath == "" {
-		if conf.OnCI {
-			log.Printf("Skipping integrate tests (on CI, no butler path specified)")
-			os.Exit(0)
-		}
 		// The tests drive the daemon as a separate process, so a binary is
 		// needed; one from PATH would silently be an older build.
 		conf.ButlerPath = buildButler()
