@@ -113,8 +113,8 @@ github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0 h1:Af8STO3cfg66mO2/hPX
 github.com/itchio/boar v0.0.0-20260819185915-4c70884ec9e0/go.mod h1:HBEhXXrbs4t55x+UBQ5awc1izRFrOPD3Yc/3zaqFCrg=
 github.com/itchio/dash v0.0.0-20260913204506-3a8e51ecf8c4 h1:SSDoveu3YNEKYQ334Y4SpswV/IisOiwJucciBaHFNmQ=
 github.com/itchio/dash v0.0.0-20260913204506-3a8e51ecf8c4/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
-github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729 h1:GwwF6o+en225Wwpeey80Z+ouzgyNk7gaGvipIpeetro=
-github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
+github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc h1:s6pwHaAe+FYht3rAJFS++vp17SizmGRK9gTpq6i5lxw=
+github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697/go.mod h1:clqOV8HXYpbDC3Bzia6urYIkfgwP1FnDr/C0q8KELmo=
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8 h1:+KYUGGFy/eNqXC+i2Y4zesINM3tOWOc4svR+9cLejA8=
@@ -126,15 +126,14 @@ github.com/itchio/go-itchio v0.0.0-20260911013240-96abd172c8ec/go.mod h1:q3pbo9h
 github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd h1:JA2vizS78G8HiFEZsI90oC7W8OzUqGymTbAk6UgPD04=
 github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
-github.com/itchio/headway v0.0.0-20200301160421-e15721f23905/go.mod h1:JpKeIqKW8xveb2juFrZ2kFR8GiMplC2H6bZ+UZHC/c0=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4 h1:vOYjkMs+aVNeHU0d6MCctyEyxn02n0l3Zw6dsU9AsEs=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4/go.mod h1:1/4tbTrV3G/Su53pnKBpa5mv3cVkLweRAq/xRnulSQI=
 github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9 h1:xSd/0N0YIsPZrLCIdRgUXSg40/OdvRoklto3KiSzCuE=
 github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9/go.mod h1:/eodDULLFn8KrWObOlT7AF5LcFi8Ff1beHXcwdLMe5g=
-github.com/itchio/hush v0.0.0-20260911213900-ea478eb4adef h1:h7JOHU+o+duMNzm0FU8yGn/wFJ81D8Io8UUyQ5/F/YM=
-github.com/itchio/hush v0.0.0-20260911213900-ea478eb4adef/go.mod h1:vx6ijMxBSPm9Ji03TXqohuJDO4kTK70zSTnd9vz9YGA=
-github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a h1:lTvuTme0PqU2gIzNK3ZPW2vaarAQ2MGNo54SycrJY48=
-github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a/go.mod h1:63w5zpLrbzfhdIWsEkVs+iyfQquaf6KNQTSpaAubtDc=
+github.com/itchio/hush v0.0.0-20260914193014-cc17411c5186 h1:O7tLjFUH4b23xJnb5UHiC14/apzIdXG4r0GsbM2CLoA=
+github.com/itchio/hush v0.0.0-20260914193014-cc17411c5186/go.mod h1:Zwizmc6LFcQV9QdWMzanuMceqgAWdfZu5TodXMwaRDE=
+github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d h1:kV/P1stWMCvoSmt+dxCY8xzQmoRSBKo3vqHM8u7OV9s=
+github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d/go.mod h1:PCWTRtTQ1PUE6lmB+jDPxgA/wS59XYw48FqiovyjZYs=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 h1:jipXtdsZClshNO8fKK8ItiVyqE9bKA09as+qjW/yjG0=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51/go.mod h1:iLS+Eq+S26jTC4pbdDH6N5XtDqrjb4IOXtjj1HCzbuk=
 github.com/itchio/lake v0.0.0-20260913190718-5afe53462d58 h1:U4x/BtzDOi8ntKIcD/nJfEkDyC1KCRfz9icyzWa5l7Q=
@@ -149,8 +148,8 @@ github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7 h1:NdPpyCZT0GK8X51V
 github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7/go.mod h1:5myIRqGAjat0gT3qiK43Cv1puZhxn9bi17+JZFpJQMo=
 github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5 h1:RWifjgxRQRPdICcmunL8C+F4T3FaXMcOH6SLXGOBEvE=
 github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5/go.mod h1:u/BSnIaqgNRxmb4E/C+laDqg2SLsYCGEAL2d1yAsl1E=
-github.com/itchio/savior v0.0.0-20260819185719-dca4d72ed7e2 h1:nq0iFXzEDdMNq3KkAdi9UrxMAUzo8iMjkyVMSXhYpBk=
-github.com/itchio/savior v0.0.0-20260819185719-dca4d72ed7e2/go.mod h1:h8CRhrfOFTMOTKDRWqLZEnC6fSTW0LVADtYs2Da/QPw=
+github.com/itchio/savior v0.0.0-20260914182353-072694f48327 h1:C6C/S+HL6PG+bMWIcOsLSGoSoveQq8efP9jEwfJU+wA=
+github.com/itchio/savior v0.0.0-20260914182353-072694f48327/go.mod h1:h8CRhrfOFTMOTKDRWqLZEnC6fSTW0LVADtYs2Da/QPw=
 github.com/itchio/screw v0.0.0-20260221011136-e674b460b040 h1:2nzurbZLgBSqNyLlIuO2iClpivQ7L5DX75kvCMqZ9e0=
 github.com/itchio/screw v0.0.0-20260221011136-e674b460b040/go.mod h1:YwbHHVRIS/rkm1kHtab0wnYLWxiJXUdvr4oOYlv1dOA=
 github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c h1:Mo6j+q53lWHsX+39KWfYudUX2fv8O0Rg1XnQBRX1aOU=
@@ -195,7 +194,6 @@ github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyua
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/natefinch/npipe v0.0.0-20160621034901-c1b8fa8bdcce h1:TqjP/BTDrwN7zP9xyXVuLsMBXYMt6LLYi55PlrIcq8U=
 github.com/natefinch/npipe v0.0.0-20160621034901-c1b8fa8bdcce/go.mod h1:ifHPsLndGGzvgzcaXUvzmt6LxKT4pJ+uzEhtnMt+f7A=
-github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nightlyone/lockfile v1.0.0 h1:RHep2cFKK4PonZJDdEl4GmkabuhbsRMgk/k3uAmxBiA=
 github.com/nightlyone/lockfile v1.0.0/go.mod h1:rywoIealpdNse2r832aiD9jRk8ErCatROs6LzC841CI=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
@@ -302,7 +300,6 @@ gopkg.in/alecthomas/kingpin.v2 v2.2.6/go.mod h1:FMv+mEhP44yOT+4EoQTLFTRgOQ1FBLks
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
-gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce h1:+JknDZhAj8YMt7GC73Ei8pv4MzjDUNPHgQWJdtMAaDU=

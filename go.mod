@@ -24,13 +24,13 @@ require (
 	github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
-	github.com/itchio/hush v0.0.0-20260911213900-ea478eb4adef
-	github.com/itchio/intact v0.0.0-20200301161822-f8c4a3336c2a
+	github.com/itchio/hush v0.0.0-20260914193014-cc17411c5186
+	github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d
 	github.com/itchio/lake v0.0.0-20260913190718-5afe53462d58
 	github.com/itchio/mitch v0.0.0-20260722173825-17efffd7d69b
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7
-	github.com/itchio/savior v0.0.0-20260819185719-dca4d72ed7e2
+	github.com/itchio/savior v0.0.0-20260914182353-072694f48327
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260201233743-2dbe441fd43c
 	github.com/itchio/smaug v0.0.0-20260828194311-112ad234bcf9
@@ -83,7 +83,7 @@ require (
 	github.com/gorilla/handlers v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/itchio/dmcunrar-go v0.0.0-20260417004436-431599c00729 // indirect
+	github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc // indirect
 	github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 // indirect
 	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
 	github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 // indirect
