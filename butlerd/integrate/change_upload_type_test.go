@@ -5,6 +5,7 @@ import (
 
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/hush/manifest"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/itchio/mitch"
@@ -63,6 +64,15 @@ func Test_ChangeUploadType(t *testing.T) {
 	bi.Logf("Changing upload type...")
 	_upload.Type = "soundtrack"
 
+	// a content upload offers the folder first, followed by whatever is
+	// still runnable inside it (README.html here), so the client is asked
+	// to pick
+	var offered []*manifest.Action
+	messages.PickManifestAction.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.PickManifestActionParams) (*butlerd.PickManifestActionResult, error) {
+		offered = params.Actions
+		return &butlerd.PickManifestActionResult{Index: 0}, nil
+	})
+
 	bi.Logf("Registering shell launch handler...")
 	hadShellLaunch := false
 	messages.ShellLaunch.TestRegister(h, func(rc *butlerd.RequestContext, params butlerd.ShellLaunchParams) (*butlerd.ShellLaunchResult, error) {
@@ -77,5 +87,9 @@ func Test_ChangeUploadType(t *testing.T) {
 		PrereqsDir: "./tmp/prereqs",
 	})
 	assert.NoError(err, "launch went fine")
+	if assert.Len(offered, 2, "offered folder and html target") {
+		assert.Equal(".", offered[0].Path, "folder offered first")
+		assert.Equal("README.html", offered[1].Path)
+	}
 	assert.True(hadShellLaunch, "had shell launch")
 }
