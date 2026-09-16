@@ -148,6 +148,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		case walkErr := <-walkErrs:
 			return errors.Wrap(walkErr, "walking directory to push")
 		case walkies := <-sourceContainerChan:
+			walkies.pool.Close()
 			log := func(line string) {
 				comm.Logf("%s", line)
 			}
@@ -226,7 +227,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	comm.Opf("Scanning launch targets...")
-	launchAnalysis := scanLaunchAnalysis(sourceContainer, sourcePool, consumer)
+	launchAnalysis := scanBuildLaunchAnalysis(buildPath, sourceContainer, consumer)
 
 	requestCtx, cancel := ctx.DefaultCtx()
 	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{

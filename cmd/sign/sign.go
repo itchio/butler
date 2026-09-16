@@ -53,9 +53,12 @@ func Do(output string, signature string, compression *pwr.CompressionSettings, f
 	if err != nil {
 		return errors.Wrap(err, "creating pool for directory to sign")
 	}
+	defer pool.Close()
 
 	if fixPerms {
-		container.FixPermissions(pool)
+		if err := container.FixPermissions(pool); err != nil {
+			return errors.Wrap(err, "fixing permissions")
+		}
 	}
 
 	signatureWriter, err := os.Create(signature)

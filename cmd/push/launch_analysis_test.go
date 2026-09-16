@@ -21,6 +21,7 @@ import (
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/headway/state"
 	"github.com/itchio/lake"
+	"github.com/itchio/lake/pools/zippool"
 	"github.com/itchio/lake/tlc"
 )
 
@@ -132,7 +133,7 @@ func TestPushSendsLaunchAnalysis(t *testing.T) {
 	}
 }
 
-func TestLaunchAnalysisLeavesUploadPoolReadable(t *testing.T) {
+func TestLaunchAnalysisUsesSeparatePool(t *testing.T) {
 	for _, zipped := range []bool{false, true} {
 		t.Run(fmt.Sprintf("zip=%v", zipped), func(t *testing.T) {
 			root := t.TempDir()
@@ -151,7 +152,7 @@ func TestLaunchAnalysisLeavesUploadPoolReadable(t *testing.T) {
 				t.Fatal(err)
 			case result := <-results:
 				defer result.pool.Close()
-				if scanLaunchAnalysis(result.container, result.pool, &state.Consumer{}) == nil {
+				if scanBuildLaunchAnalysis(src, result.container, &state.Consumer{}) == nil {
 					t.Fatal("scan failed")
 				}
 				r, err := result.pool.GetReader(0)
@@ -165,6 +166,62 @@ func TestLaunchAnalysisLeavesUploadPoolReadable(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLaunchAnalysisClosesZipSpool(t *testing.T) {
+	scratch := t.TempDir()
+	for _, key := range []string{"TMPDIR", "TMP", "TEMP"} {
+		t.Setenv(key, scratch)
+	}
+	archivePath := filepath.Join(t.TempDir(), "game.zip")
+	f, err := os.Create(archivePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	zw := zip.NewWriter(f)
+	w, err := zw.Create("index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const size = zippool.DefaultMaxMemory + 1
+	if _, err := io.CopyN(w, launchZeros{}, size); err != nil {
+		t.Fatal(err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+	container, err := tlc.WalkAny(archivePath, tlc.WalkOpts{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	report := scanBuildLaunchAnalysis(archivePath, container, &state.Consumer{})
+	if report == nil {
+		t.Fatal("scan failed")
+	}
+	var targets []dash.LaunchTarget
+	if err := json.Unmarshal(report.LaunchTargets, &targets); err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 1 || targets[0].Size != size || targets[0].Sha256 == "" {
+		t.Fatalf("unexpected report: %s", report.LaunchTargets)
+	}
+	spools, err := filepath.Glob(filepath.Join(scratch, "lake-zip-*"))
+	if err != nil || len(spools) != 0 {
+		t.Fatalf("scan left spool files: %v, %v", spools, err)
+	}
+	if err := os.Remove(archivePath); err != nil {
+		t.Fatalf("scan left the archive open: %v", err)
+	}
+}
+
+type launchZeros struct{}
+
+func (launchZeros) Read(p []byte) (int, error) {
+	clear(p)
+	return len(p), nil
 }
 
 type failingLaunchPool struct{ lake.Pool }
