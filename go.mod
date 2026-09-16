@@ -18,9 +18,9 @@ require (
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
 	github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc
-	github.com/itchio/dash v0.0.0-20260916011027-79404f92efae
+	github.com/itchio/dash v0.0.0-20260916201547-ac20a1cd5846
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
-	github.com/itchio/go-itchio v0.0.0-20260911013240-96abd172c8ec
+	github.com/itchio/go-itchio v0.0.0-20260916211931-2d07df7af6f7
 	github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
@@ -36,7 +36,7 @@ require (
 	github.com/itchio/smaug v0.0.0-20260828194311-112ad234bcf9
 	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
 	github.com/itchio/wharf v0.0.0-20260509025649-e95738701284
-	github.com/itchio/wizardry v0.0.0-20260222230103-ec734b409e9c
+	github.com/itchio/wizardry v0.0.0-20260916215147-ed4c4cf460d1
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/mitchellh/mapstructure v1.5.0

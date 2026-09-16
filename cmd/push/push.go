@@ -175,6 +175,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		sourceContainer = walkies.container
 		sourcePool = walkies.pool
 	}
+	defer sourcePool.Close()
 
 	showSingleFileWarningIfNecessary(sourceContainer)
 
@@ -224,14 +225,18 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		source = fmt.Sprintf("cli/%s", buildinfo.Version)
 	}
 
+	comm.Opf("Scanning launch targets...")
+	launchAnalysis := scanLaunchAnalysis(sourceContainer, sourcePool, consumer)
+
 	requestCtx, cancel := ctx.DefaultCtx()
 	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{
-		Target:      spec.Target,
-		Channel:     spec.Channel,
-		UserVersion: userVersion,
-		Hidden:      hidden,
-		Source:      source,
-		Metadata:    metadata,
+		Target:         spec.Target,
+		Channel:        spec.Channel,
+		UserVersion:    userVersion,
+		Hidden:         hidden,
+		Source:         source,
+		Metadata:       metadata,
+		LaunchAnalysis: launchAnalysis,
 	})
 	cancel()
 	if err != nil {
