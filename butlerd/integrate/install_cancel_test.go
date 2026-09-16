@@ -84,7 +84,9 @@ func Test_InstallCancel(t *testing.T) {
 			assert.NoError(err, "pid file exists before we graceful cancel")
 
 			gracefulCancelOnce.Do(func() {
+				h.notificationHandlersMutex.Lock()
 				delete(h.notificationHandlers, messages.Progress.Method())
+				h.notificationHandlersMutex.Unlock()
 
 				bi.Logf("Calling graceful cancel")
 				messages.InstallCancel.TestCall(rc, butlerd.InstallCancelParams{
@@ -179,9 +181,9 @@ func Test_InstallCancel(t *testing.T) {
 	bi.Logf("PID file disappeared in %s", time.Since(beforePidDisappear))
 
 	bi.Logf("Resuming after hard cancel...")
-	rc, h, _ = bi.Connect()
+	rc, h2, _ := bi.Connect()
 
-	messages.Progress.Register(h, func(params butlerd.ProgressNotification) {
+	messages.Progress.Register(h2, func(params butlerd.ProgressNotification) {
 		printProgress(params)
 	})
 
