@@ -17,8 +17,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
-	github.com/itchio/boar v0.0.0-20260914202502-5941940d9a53
-	github.com/itchio/dash v0.0.0-20260914211335-842d45307fb3
+	github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc
+	github.com/itchio/dash v0.0.0-20260916011027-79404f92efae
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
 	github.com/itchio/go-itchio v0.0.0-20260911013240-96abd172c8ec
 	github.com/itchio/hades v0.0.0-20260711210423-80ab837c55cd

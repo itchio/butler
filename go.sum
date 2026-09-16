@@ -109,10 +109,10 @@ github.com/helloeave/json v1.13.0 h1:gCsw/v7D6c+zMxfa1fAOJsc1nRcW8oBH9OzfkONQj6E
 github.com/helloeave/json v1.13.0/go.mod h1:uTHhuUsgnrpm9cc7Gi3tfIUwgf1dq/7+uLfpUFLBFEQ=
 github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151 h1:d8HqXXMFHm3E3iEPrkIwRYfN2IwW1zZs7Hg/8CpOlCg=
 github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151/go.mod h1:COxkdGM3zsZf9Uv7rC3+mu6ftr9V0xJWaPLv3KHis1Y=
-github.com/itchio/boar v0.0.0-20260914202502-5941940d9a53 h1:bpMBT4t9wtu2YfU2WlrkfRIaFloADCMcp44gi5QOP5I=
-github.com/itchio/boar v0.0.0-20260914202502-5941940d9a53/go.mod h1:enerf8AYmgYvFffp8xOEfAduXmemvW4ry+qp8Phbugw=
-github.com/itchio/dash v0.0.0-20260914211335-842d45307fb3 h1:lnof9Z5OH3kJpmIDlxLB/s2cVPrrD22yCezEvCT7QNY=
-github.com/itchio/dash v0.0.0-20260914211335-842d45307fb3/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
+github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc h1:9c4j/iqSoC6XxFYi5qtizVAwJLaiATk9r948nhlVTr8=
+github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc/go.mod h1:enerf8AYmgYvFffp8xOEfAduXmemvW4ry+qp8Phbugw=
+github.com/itchio/dash v0.0.0-20260916011027-79404f92efae h1:Rxw55jh73xnnRoTURTTLQG1kxpY5NoelQXoQBD+SwY4=
+github.com/itchio/dash v0.0.0-20260916011027-79404f92efae/go.mod h1:RdSfL2feW+hUTUc+PuZJI3QFTbY+qiKk+TBEPSRLsCQ=
 github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc h1:s6pwHaAe+FYht3rAJFS++vp17SizmGRK9gTpq6i5lxw=
 github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
