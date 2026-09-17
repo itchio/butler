@@ -211,6 +211,12 @@
             "name": "clientId",
             "doc": "The OAuth client ID used in the authorization request",
             "type": "string"
+          },
+          {
+            "name": "deviceInfo",
+            "doc": "Device information string\n",
+            "type": "string",
+            "optional": true
           }
         ]
       },
@@ -7103,6 +7109,12 @@
           "doc": "Any other info.",
           "type": "{ [key: string]: any }",
           "optional": true
+        },
+        {
+          "name": "helper",
+          "doc": "Helper names the runtime a native belongs to when it is plumbing\nshipped next to the game rather than something a player launches:\n\"renpy\" for its python and zsync, \"electron\" or \"nwjs\" for crashpad\nand sandbox processes, \"dotnet\" for createdump, \"java\" for a bundled\nJRE, \"node\" for anything under node_modules, \"unity\" and \"unreal\"\nfor their crash handlers. Filter drops helpers.",
+          "type": "string",
+          "optional": true
         }
       ]
     },
@@ -7189,8 +7201,20 @@
           "optional": true
         },
         {
+          "name": "abi",
+          "doc": "Calling convention for 32-bit ARM, from the ELF header flags:\n\"eabihf\" (hard-float, what Raspberry Pi and armhf distributions\nbuild) or \"eabi\" (soft-float). Empty for other architectures.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "interpreter",
+          "doc": "Program interpreter (PT_INTERP), such as /lib/ld-linux-armhf.so.3\nor /lib/ld-musl-aarch64.so.1. Names the C library and ABI the\nexecutable was linked against. Only filled when DeepProbe is set.",
+          "type": "string",
+          "optional": true
+        },
+        {
           "name": "static",
-          "doc": "True when the executable has no dynamic section (no interpreter, no\nDT_NEEDED). Only meaningful when ConfigureParams.DeepProbe is set.",
+          "doc": "True when the executable has no program interpreter and no DT_NEEDED\nlibraries. Only meaningful when ConfigureParams.DeepProbe is set.",
           "type": "boolean",
           "optional": true
         },
@@ -8955,6 +8979,11 @@
           "name": "ROM",
           "doc": "Console ROM or disc image, system in Engine.Details[\"system\"]",
           "value": "rom"
+        },
+        {
+          "name": "PlaydatePdx",
+          "doc": "Playdate game bundle: the folder holding pdxinfo",
+          "value": "playdate-pdx"
         }
       ]
     },
@@ -9108,6 +9137,11 @@
           "name": "OpenBOR",
           "doc": "",
           "value": "openbor"
+        },
+        {
+          "name": "Playdate",
+          "doc": "",
+          "value": "playdate"
         },
         {
           "name": "ROM",

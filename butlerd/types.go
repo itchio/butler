@@ -245,6 +245,11 @@ type ProfileLoginWithOAuthCodeParams struct {
 
 	// The OAuth client ID used in the authorization request
 	ClientID string `json:"clientId"`
+
+	// Device information string
+	//
+	// @optional
+	DeviceInfo string `json:"deviceInfo"`
 }
 
 func (p ProfileLoginWithOAuthCodeParams) Validate() error {

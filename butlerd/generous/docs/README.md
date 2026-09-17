@@ -845,6 +845,12 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 <td><p>The OAuth client ID used in the authorization request</p>
 </td>
 </tr>
+<tr>
+<td><code>deviceInfo</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Device information string</p>
+</td>
+</tr>
 </table>
 
 
@@ -894,6 +900,10 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 </tr>
 <tr>
 <td><code>clientId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>deviceInfo</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
@@ -15626,6 +15636,17 @@ left its footprint next to them, and on payload flavors always.</p>
 <td><p><span class="tag">Optional</span> Any other info.</p>
 </td>
 </tr>
+<tr>
+<td><code>helper</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Helper names the runtime a native belongs to when it is plumbing
+shipped next to the game rather than something a player launches:
+&ldquo;renpy&rdquo; for its python and zsync, &ldquo;electron&rdquo; or &ldquo;nwjs&rdquo; for crashpad
+and sandbox processes, &ldquo;dotnet&rdquo; for createdump, &ldquo;java&rdquo; for a bundled
+JRE, &ldquo;node&rdquo; for anything under node_modules, &ldquo;unity&rdquo; and &ldquo;unreal&rdquo;
+for their crash handlers. Filter drops helpers.</p>
+</td>
+</tr>
 </table>
 
 
@@ -15698,6 +15719,10 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <tr>
 <td><code>metadata</code></td>
 <td><code class="typename"><span class="type builtin-type">{ [key: string]: any }</span></code></td>
+</tr>
+<tr>
+<td><code>helper</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 </table>
 
@@ -15852,6 +15877,11 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 <td><p>Console ROM or disc image, system in Engine.Details[&ldquo;system&rdquo;]</p>
 </td>
 </tr>
+<tr>
+<td><code>"playdate-pdx"</code></td>
+<td><p>Playdate game bundle: the folder holding pdxinfo</p>
+</td>
+</tr>
 </table>
 
 
@@ -15944,6 +15974,9 @@ a native executable, a Java or Love2D bundle, an HTML index, etc.</p>
 </tr>
 <tr>
 <td><code>"rom"</code></td>
+</tr>
+<tr>
+<td><code>"playdate-pdx"</code></td>
 </tr>
 </table>
 
@@ -16275,10 +16308,26 @@ imports (deep probe only). Such builds still get the linux flavor.</p>
 </td>
 </tr>
 <tr>
+<td><code>abi</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Calling convention for 32-bit ARM, from the ELF header flags:
+&ldquo;eabihf&rdquo; (hard-float, what Raspberry Pi and armhf distributions
+build) or &ldquo;eabi&rdquo; (soft-float). Empty for other architectures.</p>
+</td>
+</tr>
+<tr>
+<td><code>interpreter</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Program interpreter (PT_INTERP), such as /lib/ld-linux-armhf.so.3
+or /lib/ld-musl-aarch64.so.1. Names the C library and ABI the
+executable was linked against. Only filled when DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
 <td><code>static</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
-<td><p><span class="tag">Optional</span> True when the executable has no dynamic section (no interpreter, no
-DT_NEEDED). Only meaningful when ConfigureParams.DeepProbe is set.</p>
+<td><p><span class="tag">Optional</span> True when the executable has no program interpreter and no DT_NEEDED
+libraries. Only meaningful when ConfigureParams.DeepProbe is set.</p>
 </td>
 </tr>
 <tr>
@@ -16350,6 +16399,14 @@ Only filled when DeepProbe is set.</p>
 </tr>
 <tr>
 <td><code>os</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>abi</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>interpreter</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
@@ -16593,6 +16650,10 @@ payload candidate carries it because the payload is nothing without it.</p>
 <td></td>
 </tr>
 <tr>
+<td><code>"playdate"</code></td>
+<td></td>
+</tr>
+<tr>
 <td><code>"rom"</code></td>
 <td><p>ROM images: the console lives in Details[&ldquo;system&rdquo;]</p>
 </td>
@@ -16705,6 +16766,9 @@ payload candidate carries it because the payload is nothing without it.</p>
 </tr>
 <tr>
 <td><code>"openbor"</code></td>
+</tr>
+<tr>
+<td><code>"playdate"</code></td>
 </tr>
 <tr>
 <td><code>"rom"</code></td>
