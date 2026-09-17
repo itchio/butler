@@ -63,6 +63,10 @@ type Router struct {
 	// credentials lives next to it rather than in the per-profile database.
 	Identity string
 
+	// The client asked for a small CPU and memory footprint, as on a
+	// battery-powered handheld.
+	LowPower bool
+
 	Group                *singleflight.Group
 	ShutdownChan         chan struct{}
 	initiateShutdownOnce sync.Once
@@ -253,6 +257,7 @@ func (r *Router) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interf
 			CancelFuncs: r.CancelFuncs,
 			dbPool:      r.dbPool,
 			Identity:    r.Identity,
+			LowPower:    r.LowPower,
 			Client:      r.getClient,
 
 			HTTPClient:    r.httpClient,
@@ -388,6 +393,7 @@ func (r *Router) doBackgroundTask(id BackgroundTaskID, bt BackgroundTask) {
 		CancelFuncs: r.CancelFuncs,
 		dbPool:      r.dbPool,
 		Identity:    r.Identity,
+		LowPower:    r.LowPower,
 		Client:      r.getClient,
 
 		HTTPClient:    r.httpClient,
@@ -443,6 +449,7 @@ type RequestContext struct {
 	CancelFuncs *CancelFuncs
 	dbPool      *dbpool.Pool
 	Identity    string
+	LowPower    bool
 
 	Group    *singleflight.Group
 	Shutdown func()

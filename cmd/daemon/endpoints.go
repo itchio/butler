@@ -30,6 +30,7 @@ func GetRouter(dbPool *dbpool.Pool, mansionContext *mansion.Context) *butlerd.Ro
 
 	mainRouter = butlerd.NewRouter(dbPool, mansionContext.NewClient, mansionContext.HTTPClient, mansionContext.HTTPTransport)
 	mainRouter.Identity = mansionContext.Identity
+	mainRouter.LowPower = args.lowPower
 
 	meta.Register(mainRouter)
 	utilities.Register(mainRouter)

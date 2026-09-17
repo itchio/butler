@@ -96,6 +96,9 @@ The flags worth knowing:
     launcher's own PID and you'll never leak orphan daemons.
   * `--log` (optional) writes every JSON-RPC request to stderr. Very useful
     while developing your client.
+  * `--low-power` (optional) favors a small CPU and memory footprint over
+    speed. Pass it on battery-powered devices such as handhelds, where butler
+    shares a few small cores with your interface and the running game.
 
 As soon as butlerd starts up it will print **one line of JSON to stdout** that
 tells you where to connect and what secret to use:
