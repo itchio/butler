@@ -8,6 +8,8 @@ import (
 )
 
 func DownloadsRetry(rc *butlerd.RequestContext, params butlerd.DownloadsRetryParams) (*butlerd.DownloadsRetryResult, error) {
+	defer models.DownloadQueueChanged.Notify()
+
 	consumer := rc.Consumer
 
 	var download *models.Download

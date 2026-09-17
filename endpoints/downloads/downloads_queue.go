@@ -14,6 +14,8 @@ import (
 )
 
 func DownloadsQueue(rc *butlerd.RequestContext, params butlerd.DownloadsQueueParams) (*butlerd.DownloadsQueueResult, error) {
+	defer models.DownloadQueueChanged.Notify()
+
 	consumer := rc.Consumer
 	conn := rc.GetConn()
 	defer rc.PutConn(conn)

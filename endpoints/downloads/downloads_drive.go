@@ -32,6 +32,13 @@ var downloadsDriveCancelID = "Downloads.Drive"
 
 const pingURL = "https://itch.io/static/ping.txt"
 
+// Endpoints signal queue changes; these are for a change that arrives some
+// other way, such as a write from outside this process.
+const (
+	idleFallback    = 60 * time.Second
+	discardFallback = 60 * time.Second
+)
+
 type Status struct {
 	Online bool
 }
@@ -65,12 +72,14 @@ poll:
 			// let's keep going
 		}
 
+		changed := models.DownloadQueueChanged.Wait()
+
 		err := cleanDiscarded(rc)
 		if err != nil {
 			consumer.Warnf("%+v", errors.WithMessage(err, "while cleaning discarded:"))
 		}
 
-		err = performOne(ctx, rc)
+		worked, err := performOne(ctx, rc)
 		if err != nil {
 			if err == butlerd.CodeNetworkDisconnected {
 				err = waitForInternet(rc, status)
@@ -82,7 +91,20 @@ poll:
 			}
 		}
 
-		time.Sleep(1 * time.Second)
+		if worked || err != nil {
+			// there may be more to do, or something to try again
+			select {
+			case <-ctx.Done():
+			case <-time.After(1 * time.Second):
+			}
+			continue
+		}
+
+		select {
+		case <-ctx.Done():
+		case <-changed:
+		case <-time.After(idleFallback):
+		}
 	}
 
 	res := &butlerd.DownloadsDriveResult{}
@@ -172,7 +194,9 @@ func cleanDiscarded(rc *butlerd.RequestContext) error {
 	return nil
 }
 
-func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
+// performOne works on the first pending download, if any. It returns
+// whether there was one.
+func performOne(parentCtx context.Context, rc *butlerd.RequestContext) (bool, error) {
 	consumer := rc.Consumer
 
 	var pendingDownloads []*models.Download
@@ -193,7 +217,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 		download.Preload(conn)
 	})
 	if download == nil {
-		return nil
+		return false, nil
 	}
 	consumer.Infof("%d pending downloads, performing for %s", len(pendingDownloads), operate.GameToString(download.Game))
 
@@ -246,11 +270,14 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	}
 	goGadgetoDiscardWatcher := func() {
 		for {
+			changed := models.DownloadQueueChanged.Wait()
+			if wasDiscarded() {
+				cancelFunc()
+				return
+			}
 			select {
-			case <-time.After(5 * time.Second):
-				if wasDiscarded() {
-					cancelFunc()
-				}
+			case <-changed:
+			case <-time.After(discardFallback):
 			case <-ctx.Done():
 				return
 			}
@@ -335,23 +362,23 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	if err != nil {
 		if wasDiscarded() {
 			// download errored, but it was already discarded, ignoring.
-			return nil
+			return true, nil
 		}
 
 		if be, ok := butlerd.AsButlerdError(err); ok {
 			switch butlerd.Code(be.RpcErrorCode()) {
 			case butlerd.CodeNetworkDisconnected:
 				// propagate so we can wait for the connection to be re-established
-				return butlerd.CodeNetworkDisconnected
+				return true, butlerd.CodeNetworkDisconnected
 			case butlerd.CodeOperationCancelled:
 				// the whole drive was probably cancelled?
-				return nil
+				return true, nil
 			case butlerd.CodeOperationAborted:
 				consumer.Warnf("Download aborted, cleaning it out.")
 				rc.WithConn(func(conn *sqlite.Conn) {
 					models.MustDelete(conn, &models.Download{}, builder.Eq{"id": download.ID})
 				})
-				return nil
+				return true, nil
 			}
 
 			code := be.RpcErrorCode()
@@ -362,10 +389,10 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			var code int64
 			var msg string
 			if neterr.IsNetworkError(err) {
-				return butlerd.CodeNetworkDisconnected
+				return true, butlerd.CodeNetworkDisconnected
 			} else if errors.Cause(err) == werrors.ErrCancelled {
 				// just cancelled, nothing to see here
-				return nil
+				return true, nil
 			} else {
 				code = int64(jsonrpc2.CodeInternalError)
 				msg = err.Error()
@@ -386,7 +413,7 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 			Download: formatDownload(download),
 		})
 
-		return nil
+		return true, nil
 	}
 
 	consumer.Infof("Download finished!")
@@ -402,5 +429,5 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) error {
 	}
 	messages.DownloadsDriveFinished.Notify(rc, finishedNotif)
 
-	return nil
+	return true, nil
 }
