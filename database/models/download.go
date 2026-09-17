@@ -103,5 +103,4 @@ func DiscardDownloadsByCaveID(conn *sqlite.Conn, caveID string) {
 		hades.Where(builder.Eq{"cave_id": caveID}),
 		builder.Eq{"discarded": true},
 	)
-	DownloadQueueChanged.Notify()
 }

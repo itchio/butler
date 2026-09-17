@@ -7,8 +7,6 @@ import (
 )
 
 func DownloadsPrioritize(rc *butlerd.RequestContext, params butlerd.DownloadsPrioritizeParams) (*butlerd.DownloadsPrioritizeResult, error) {
-	defer models.DownloadQueueChanged.Notify()
-
 	var download *models.Download
 	rc.WithConn(func(conn *sqlite.Conn) {
 		download = ValidateDownload(conn, params.DownloadID)

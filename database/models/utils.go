@@ -23,6 +23,7 @@ func HadesContext() *hades.Context {
 		}
 		Must(err)
 		Must(declareIndexes(hadesContext))
+		hadesContext.AfterWrite = afterWrite
 	}
 	return hadesContext
 }

@@ -1,12 +1,15 @@
 package models
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 // DownloadQueueChanged wakes the downloads driver when something changes
 // what it should be doing: a download queued, retried, discarded or moved
-// to the front. Whatever writes such a change calls Notify once it is
-// saved. It lives here so that code outside the downloads endpoints, such
-// as uninstalling, can reach it.
+// to the front. hades reports every write it makes to downloads, so callers
+// don't notify. Raw SQL against that table would have to call Notify
+// itself, and so would a write inside a transaction, after committing.
 var DownloadQueueChanged = &ChangeSignal{ch: make(chan struct{})}
 
 type ChangeSignal struct {
@@ -27,4 +30,11 @@ func (s *ChangeSignal) Notify() {
 	defer s.mu.Unlock()
 	close(s.ch)
 	s.ch = make(chan struct{})
+}
+
+// afterWrite is hades' AfterWrite hook.
+func afterWrite(tables []string) {
+	if slices.Contains(tables, hadesContext.TableName(&Download{})) {
+		DownloadQueueChanged.Notify()
+	}
 }

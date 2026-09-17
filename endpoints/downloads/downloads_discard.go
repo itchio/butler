@@ -9,8 +9,6 @@ import (
 )
 
 func DownloadsDiscard(rc *butlerd.RequestContext, params butlerd.DownloadsDiscardParams) (*butlerd.DownloadsDiscardResult, error) {
-	defer models.DownloadQueueChanged.Notify()
-
 	consumer := rc.Consumer
 	rc.WithConn(func(conn *sqlite.Conn) {
 		download := ValidateDownload(conn, params.DownloadID)
