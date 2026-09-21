@@ -281,7 +281,7 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		startTime := time.Now().UTC()
 		params.SessionStarted()
 
-		exitCode, err := interpretRunError(run.Run())
+		exitCode, signal, err := interpretRunError(run.Run())
 		messages.LaunchExited.Notify(params.RequestContext, butlerd.LaunchExitedNotification{})
 		if err != nil {
 			return err
@@ -301,7 +301,13 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 			}
 
 			exeName := filepath.Base(params.FullTargetPath)
-			msg := fmt.Sprintf("Exit code 0x%x (%d) for (%s)", uint32(exitCode), signedExitCode, exeName)
+			var msg string
+			if signal != 0 {
+				// A kill hotkey or a memory kill; there is no telling which.
+				msg = fmt.Sprintf("Killed by %s (%s)", signal, exeName)
+			} else {
+				msg = fmt.Sprintf("Exit code 0x%x (%d) for (%s)", uint32(exitCode), signedExitCode, exeName)
+			}
 			consumer.Warnf("%s", msg)
 
 			if runDuration.Seconds() > 10 {
@@ -483,36 +489,29 @@ func fillPeInfoIfNeeded(params launch.LauncherParams) error {
 	return nil
 }
 
-func interpretRunError(err error) (int, error) {
+// The exit code, and the signal that ended the process when one did.
+func interpretRunError(err error) (int, syscall.Signal, error) {
 	if err != nil {
 		if exitError, ok := AsExitError(err); ok {
 			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
-				return status.ExitStatus(), nil
+				var signal syscall.Signal
+				if status.Signaled() {
+					signal = status.Signal()
+				}
+				return status.ExitStatus(), signal, nil
 			}
 		}
 
-		return 127, err
+		return 127, 0, err
 	}
 
-	return 0, nil
-}
-
-type causer interface {
-	Cause() error
+	return 0, 0, nil
 }
 
 func AsExitError(err error) (*exec.ExitError, bool) {
-	if err == nil {
-		return nil, false
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
+		return exitError, true
 	}
-
-	if se, ok := err.(causer); ok {
-		return AsExitError(se.Cause())
-	}
-
-	if ee, ok := err.(*exec.ExitError); ok {
-		return ee, true
-	}
-
 	return nil, false
 }
