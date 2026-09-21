@@ -252,6 +252,12 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		FirejailParams:   l.FirejailParams(params),
 		BubblewrapParams: l.BubblewrapParams(params),
 		FujiParams:       l.FujiParams(params),
+
+		OnStart: func(pid int) {
+			messages.LaunchRunning.Notify(params.RequestContext, butlerd.LaunchRunningNotification{
+				Pid: int64(pid),
+			})
+		},
 	}
 
 	if params.Sandbox && runParams.SandboxConfig.Type == runner.SandboxTypeBubblewrap && runParams.BubblewrapParams.BinaryPath == "" {
@@ -275,7 +281,6 @@ func (l *Launcher) Do(params launch.LauncherParams) error {
 		startTime := time.Now().UTC()
 		params.SessionStarted()
 
-		messages.LaunchRunning.Notify(params.RequestContext, butlerd.LaunchRunningNotification{})
 		exitCode, err := interpretRunError(run.Run())
 		messages.LaunchExited.Notify(params.RequestContext, butlerd.LaunchExitedNotification{})
 		if err != nil {

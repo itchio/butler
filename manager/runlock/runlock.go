@@ -42,6 +42,7 @@ func New(consumer *state.Consumer, installFolder string) Lock {
 
 func (rl *lock) Lock(ctx context.Context, task string) error {
 	printed := false
+	waiting := false
 
 	isLocked := func() bool {
 		debugf := func(f string, a ...interface{}) {
@@ -99,9 +100,12 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 			return false
 		}
 
-		if !printed {
-			printed = true
-			rl.consumer.Debugf("Waiting (%s) for %s", rl.file(), task)
+		if !waiting {
+			waiting = true
+			// Info level so a client can show it: from the outside this looks
+			// like a hang.
+			rl.consumer.Infof("Waiting for another %s to finish", task)
+			rl.consumer.Debugf("Waiting on lock (%s)", rl.file())
 		}
 		return true
 	}

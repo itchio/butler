@@ -3474,7 +3474,16 @@ type LaunchResult struct {
 // sandbox is set up (if enabled), and the game is actually running.
 //
 // @category Launch
-type LaunchRunningNotification struct{}
+type LaunchRunningNotification struct {
+	// The process butler started, when it runs the game itself: the
+	// game's, or the wrapper's around it (a sandbox, or `open` for a
+	// macOS bundle). Absent for a launch butler does not run (html, url,
+	// shell, runtime). A client that must name the game to something
+	// outside butler, such as a firmware's kill hotkey, names this.
+	//
+	// @optional
+	Pid int64 `json:"pid,omitempty"`
+}
 
 // Sent during @@LaunchParams, when the game has actually exited.
 //

@@ -8089,8 +8089,22 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 </p>
 
 <p>
-<span class="header">Payload</span> <em>none</em>
+<span class="header">Payload</span> 
 </p>
+
+
+<table class="field-table">
+<tr>
+<td><code>pid</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> The process butler started, when it runs the game itself: the
+game&rsquo;s, or the wrapper&rsquo;s around it (a sandbox, or <code>open</code> for a
+macOS bundle). Absent for a launch butler does not run (html, url,
+shell, runtime). A client that must name the game to something
+outside butler, such as a firmware&rsquo;s kill hotkey, names this.</p>
+</td>
+</tr>
+</table>
 
 
 <div id="LaunchRunningNotification__TypeHint" class="tip-content">
@@ -8101,6 +8115,14 @@ sandbox is set up (if enabled), and the game is actually running.</p>
 sandbox is set up (if enabled), and the game is actually running.</p>
 
 </p>
+
+<table class="field-table">
+<tr>
+<td><code>pid</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
 </div>
 
 ### LaunchExited (notification)

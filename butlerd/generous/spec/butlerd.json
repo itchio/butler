@@ -4048,7 +4048,14 @@
       "method": "LaunchRunning",
       "doc": "Sent during @@LaunchParams, when the game is configured, prerequisites are installed\nsandbox is set up (if enabled), and the game is actually running.",
       "params": {
-        "fields": null
+        "fields": [
+          {
+            "name": "pid",
+            "doc": "The process butler started, when it runs the game itself: the\ngame's, or the wrapper's around it (a sandbox, or `open` for a\nmacOS bundle). Absent for a launch butler does not run (html, url,\nshell, runtime). A client that must name the game to something\noutside butler, such as a firmware's kill hotkey, names this.\n",
+            "type": "number",
+            "optional": true
+          }
+        ]
       }
     },
     {
