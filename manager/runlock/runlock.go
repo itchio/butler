@@ -28,6 +28,8 @@ type runlockPayload struct {
 	Task      string `json:"task"`
 	LockedAt  string `json:"lockedAt"`
 	ButlerPID int64  `json:"butlerPID"`
+	// Identity tells the process apart from a later one with the same PID.
+	Identity string `json:"identity,omitempty"`
 }
 
 func New(consumer *state.Consumer, installFolder string) Lock {
@@ -73,8 +75,22 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 				}
 			}
 
-			debugf("PID (%d) still running!", rp.ButlerPID)
 			proc.Release()
+
+			// The PID alone says a process exists, not that it's ours: after
+			// a reboot or a crash the number is handed to something else.
+			if rp.Identity != "" {
+				identity, err := processIdentity(int(rp.ButlerPID))
+				if err != nil {
+					debugf("Could not inspect PID (%d), assuming it's ours: %v", rp.ButlerPID, err)
+				} else if identity != rp.Identity {
+					debugf("PID (%d) is a different process now (%s, was %s), assuming dead", rp.ButlerPID, identity, rp.Identity)
+					rl.Unlock()
+					return false
+				}
+			}
+
+			debugf("PID (%d) still running!", rp.ButlerPID)
 		} else {
 			debugf("Didn't get a process handle, assuming dead")
 
@@ -105,10 +121,13 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 	}
 
 	rl.consumer.Debugf("Locking (%s) for %s", rl.file(), task)
+	// Best effort: without it the lock falls back to the PID alone.
+	identity, _ := processIdentity(os.Getpid())
 	return rl.write(&runlockPayload{
 		Task:      task,
 		LockedAt:  time.Now().Format(time.RFC3339Nano),
 		ButlerPID: int64(os.Getpid()),
+		Identity:  identity,
 	})
 }
 
