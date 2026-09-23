@@ -12103,6 +12103,15 @@ ie. that we can connect as, etc.</p>
 (&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
 </td>
 </tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Only include games whose scanned platforms (see Game.ScannedPlatforms)
+contain at least one of these entries (OR), e.g. &ldquo;linux-arm64&rdquo;,
+&ldquo;rom:gba&rdquo;. Games that haven&rsquo;t been scanned yet never match. An empty
+list applies no filter.</p>
+</td>
+</tr>
 </table>
 
 
@@ -12126,6 +12135,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -12191,6 +12204,15 @@ ie. that we can connect as, etc.</p>
 (&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
 </td>
 </tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Only include games whose scanned platforms (see Game.ScannedPlatforms)
+contain at least one of these entries (OR), e.g. &ldquo;linux-arm64&rdquo;,
+&ldquo;rom:gba&rdquo;. Games that haven&rsquo;t been scanned yet never match. An empty
+list applies no filter.</p>
+</td>
+</tr>
 </table>
 
 
@@ -12210,6 +12232,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -12352,6 +12378,15 @@ ie. that we can connect as, etc.</p>
 (&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
 </td>
 </tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Only include games whose scanned platforms (see Game.ScannedPlatforms)
+contain at least one of these entries (OR), e.g. &ldquo;linux-arm64&rdquo;,
+&ldquo;rom:gba&rdquo;. Games that haven&rsquo;t been scanned yet never match. An empty
+list applies no filter.</p>
+</td>
+</tr>
 </table>
 
 
@@ -12371,6 +12406,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -12404,6 +12443,15 @@ ie. that we can connect as, etc.</p>
 (&ldquo;windows&rdquo;, &ldquo;linux&rdquo;, &ldquo;osx&rdquo;), or web-playable games (&ldquo;web&rdquo;).</p>
 </td>
 </tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Only include games whose scanned platforms (see Game.ScannedPlatforms)
+contain at least one of these entries (OR), e.g. &ldquo;linux-arm64&rdquo;,
+&ldquo;rom:gba&rdquo;. Games that haven&rsquo;t been scanned yet never match. An empty
+list applies no filter.</p>
+</td>
+</tr>
 </table>
 
 
@@ -12423,6 +12471,10 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>platform</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 </table>
 
@@ -17119,6 +17171,16 @@ a tool, a comic, etc.</p>
 </td>
 </tr>
 <tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+<td><p><span class="tag">Optional</span> Exact platforms found by scanning the game&rsquo;s uploads, such as
+<code>linux-amd64</code>, <code>windows-386</code>, <code>rom:gba</code>, or a device profile id.
+Independent of Platforms, which comes from uploader-set tags.
+nil when the uploads haven&rsquo;t been scanned, empty when a scan
+found nothing.</p>
+</td>
+</tr>
+<tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#User__TypeHint">User</span></code></td>
 <td><p><span class="tag">Optional</span> The user account this game is associated to</p>
@@ -17236,6 +17298,10 @@ a tool, a comic, etc.</p>
 <tr>
 <td><code>platforms</code></td>
 <td><code class="typename"><span class="type">Platforms</span></code></td>
+</tr>
+<tr>
+<td><code>scannedPlatforms</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
@@ -17805,6 +17871,29 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 </td>
 </tr>
 <tr>
+<td><code>launchTargets</code></td>
+<td><code class="typename"><span class="type builtin-type">any</span></code></td>
+<td><p><span class="tag">Optional</span> Launch targets found by scanning the upload&rsquo;s contents, as a
+marshaled []dash.LaunchTarget kept raw so this package doesn&rsquo;t
+depend on dash. nil when the upload hasn&rsquo;t been scanned, <code>[]</code>
+when a scan found nothing. For wharf uploads this describes the
+current build.</p>
+</td>
+</tr>
+<tr>
+<td><code>launchTargetsSource</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#LaunchTargetsSource__TypeHint">LaunchTargetsSource</span></code></td>
+<td><p><span class="tag">Optional</span> Where LaunchTargets came from: &ldquo;server&rdquo; for a wharfd scan,
+&ldquo;client&rdquo; for an unverified report from the pushing butler.</p>
+</td>
+</tr>
+<tr>
+<td><code>launchTargetsScannerVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p><span class="tag">Optional</span> Identifies the client that produced a client report, e.g. &ldquo;butler/15.26.0&rdquo;</p>
+</td>
+</tr>
+<tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p><span class="tag">Optional</span> Date this upload was created at</p>
@@ -17883,12 +17972,70 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <td><code class="typename"><span class="type">Platforms</span></code></td>
 </tr>
 <tr>
+<td><code>launchTargets</code></td>
+<td><code class="typename"><span class="type builtin-type">any</span></code></td>
+</tr>
+<tr>
+<td><code>launchTargetsSource</code></td>
+<td><code class="typename"><span class="type">LaunchTargetsSource</span></code></td>
+</tr>
+<tr>
+<td><code>launchTargetsScannerVersion</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 </tr>
 <tr>
 <td><code>updatedAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### LaunchTargetsSource (enum)
+
+
+<p>
+<p>LaunchTargetsSource describes who produced an upload&rsquo;s launch targets.</p>
+
+</p>
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"server"</code></td>
+<td><p>LaunchTargetsSourceServer is a wharfd scan of the upload</p>
+</td>
+</tr>
+<tr>
+<td><code>"client"</code></td>
+<td><p>LaunchTargetsSourceClient is the report butler sent when pushing the build</p>
+</td>
+</tr>
+</table>
+
+
+<div id="LaunchTargetsSource__TypeHint" class="tip-content">
+<p>LaunchTargetsSource (enum) <a href="#/?id=launchtargetssource-enum">(Go to definition)</a></p>
+
+<p>
+<p>LaunchTargetsSource describes who produced an upload&rsquo;s launch targets.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>"server"</code></td>
+</tr>
+<tr>
+<td><code>"client"</code></td>
 </tr>
 </table>
 
