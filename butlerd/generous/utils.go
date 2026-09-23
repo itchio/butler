@@ -90,6 +90,8 @@ func typeToString(e ast.Expr) string {
 		switch name {
 		case "Time":
 			return "RFCDate"
+		case "RawMessage":
+			return "any"
 		default:
 			return name
 		}

@@ -111,6 +111,9 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 		if pc := condForPlatformFilter(params.Filters.Platform); pc != nil {
 			cond = builder.And(cond, pc)
 		}
+		if sc := condForScannedPlatformsFilter(params.Filters.ScannedPlatforms); sc != nil {
+			cond = builder.And(cond, sc)
+		}
 		if params.Filters.Installed {
 			cond = builder.And(cond, builder.NotNull{"installed_at"})
 		}

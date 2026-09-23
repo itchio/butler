@@ -624,12 +624,20 @@ type GameRecordsFilters struct {
 	// ("windows", "linux", "osx"), or web-playable games ("web").
 	// @optional
 	Platform string `json:"platform"`
+
+	// Only include games whose scanned platforms (see Game.ScannedPlatforms)
+	// contain at least one of these entries (OR), e.g. "linux-arm64",
+	// "rom:gba". Games that haven't been scanned yet never match. An empty
+	// list applies no filter.
+	// @optional
+	ScannedPlatforms []string `json:"scannedPlatforms"`
 }
 
 func (p GameRecordsFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
 		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
+		validation.Field(&p.ScannedPlatforms, validation.Each(validation.Required)),
 	)
 }
 
@@ -975,12 +983,20 @@ type CollectionGamesFilters struct {
 	// ("windows", "linux", "osx"), or web-playable games ("web").
 	// @optional
 	Platform string `json:"platform"`
+
+	// Only include games whose scanned platforms (see Game.ScannedPlatforms)
+	// contain at least one of these entries (OR), e.g. "linux-arm64",
+	// "rom:gba". Games that haven't been scanned yet never match. An empty
+	// list applies no filter.
+	// @optional
+	ScannedPlatforms []string `json:"scannedPlatforms"`
 }
 
 func (p CollectionGamesFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
 		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
+		validation.Field(&p.ScannedPlatforms, validation.Each(validation.Required)),
 	)
 }
 
@@ -1249,12 +1265,20 @@ type ProfileOwnedKeysFilters struct {
 	// ("windows", "linux", "osx"), or web-playable games ("web").
 	// @optional
 	Platform string `json:"platform"`
+
+	// Only include games whose scanned platforms (see Game.ScannedPlatforms)
+	// contain at least one of these entries (OR), e.g. "linux-arm64",
+	// "rom:gba". Games that haven't been scanned yet never match. An empty
+	// list applies no filter.
+	// @optional
+	ScannedPlatforms []string `json:"scannedPlatforms"`
 }
 
 func (p ProfileOwnedKeysFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
 		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
+		validation.Field(&p.ScannedPlatforms, validation.Each(validation.Required)),
 	)
 }
 
@@ -1422,12 +1446,20 @@ type BundleGamesFilters struct {
 	// ("windows", "linux", "osx"), or web-playable games ("web").
 	// @optional
 	Platform string `json:"platform"`
+
+	// Only include games whose scanned platforms (see Game.ScannedPlatforms)
+	// contain at least one of these entries (OR), e.g. "linux-arm64",
+	// "rom:gba". Games that haven't been scanned yet never match. An empty
+	// list applies no filter.
+	// @optional
+	ScannedPlatforms []string `json:"scannedPlatforms"`
 }
 
 func (p BundleGamesFilters) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.Classification, validation.In(GameClassificationList...)),
 		validation.Field(&p.Platform, validation.In(GamePlatformFilterList...)),
+		validation.Field(&p.ScannedPlatforms, validation.Each(validation.Required)),
 	)
 }
 

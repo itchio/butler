@@ -121,10 +121,10 @@ github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8 h1:+KYUGGFy/e
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
-github.com/itchio/go-itchio v0.0.0-20260917011404-e251772b4a27 h1:ASuDk7MDew2XKGHaeTU1cUANRbfb+yX79wguKzE7uko=
-github.com/itchio/go-itchio v0.0.0-20260917011404-e251772b4a27/go.mod h1:NzHAks+BWIpEiIBIMi+rOjhA0/rRo5xArjIMU5/+SdY=
-github.com/itchio/hades v0.0.0-20260917074053-93599d0d190a h1:t3HKY3cw/0wAiMh31bOUF37B2+c5px9cvs/OCkK+0Fo=
-github.com/itchio/hades v0.0.0-20260917074053-93599d0d190a/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
+github.com/itchio/go-itchio v0.0.0-20260923024039-25b0b20ee6b0 h1:8b2trX9PFReajyYJXX5EGAh4IsNmVEmamifawTVPjmI=
+github.com/itchio/go-itchio v0.0.0-20260923024039-25b0b20ee6b0/go.mod h1:TzTfZ3BkkpmdxgW2Xj1dqW9W/Qq/+M3tVz7vm+DoxPs=
+github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344 h1:bVS/wOL1h5tpjxZjZX2Q+mujFcz3O/DjlkpmYavFvss=
+github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4 h1:vOYjkMs+aVNeHU0d6MCctyEyxn02n0l3Zw6dsU9AsEs=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4/go.mod h1:1/4tbTrV3G/Su53pnKBpa5mv3cVkLweRAq/xRnulSQI=

@@ -424,8 +424,11 @@ func rustTypeOf(e ast.Expr) string {
 	case *ast.StarExpr:
 		return rustTypeOf(node.X)
 	case *ast.SelectorExpr:
-		if node.Sel.Name == "Time" {
+		switch node.Sel.Name {
+		case "Time":
 			return "RFCDate"
+		case "RawMessage":
+			return "Value"
 		}
 		return node.Sel.Name
 	case *ast.ArrayType:
