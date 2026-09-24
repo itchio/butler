@@ -269,6 +269,102 @@ type ProfileLoginWithOAuthCodeResult struct {
 	Cookie map[string]string `json:"cookie"`
 }
 
+// Add a new profile by signing in from another device, for a client with
+// no browser or keyboard. The server issues a code the user approves on
+// their phone: the OAuth device grant (RFC 8628) with PKCE, ending in the
+// same token exchange as @@ProfileLoginWithOAuthCodeParams.
+//
+// A @@ProfileLoginWithDeviceChallengeNotification carries the URL to show
+// as a QR code and the user code to show under it, and is sent again with
+// a new code whenever the previous one expires unanswered. Once the user
+// approves, @@ProfileLoginWithDeviceRequestDeviceInfoParams asks what to
+// tell the server about this device, then the request returns with the
+// new profile. Cancel it with @@ProfileLoginWithDeviceCancelParams.
+//
+// @name Profile.LoginWithDevice
+// @category Profile
+// @tags Cancellable
+// @caller client
+type ProfileLoginWithDeviceParams struct {
+	// ID that can be later used in @@ProfileLoginWithDeviceCancelParams
+	ID string `json:"id"`
+
+	// The OAuth client ID registered for the device grant
+	ClientID string `json:"clientId"`
+}
+
+func (p ProfileLoginWithDeviceParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+		validation.Field(&p.ClientID, validation.Required),
+	)
+}
+
+type ProfileLoginWithDeviceResult struct {
+	// Information for the new profile, now remembered
+	Profile *Profile `json:"profile"`
+
+	// Profile cookie for website
+	Cookie map[string]string `json:"cookie"`
+}
+
+// Cancel a pending @@ProfileLoginWithDeviceParams.
+//
+// @name Profile.LoginWithDevice.Cancel
+// @category Profile
+// @caller client
+type ProfileLoginWithDeviceCancelParams struct {
+	// The ID passed to @@ProfileLoginWithDeviceParams
+	ID string `json:"id"`
+}
+
+func (p ProfileLoginWithDeviceCancelParams) Validate() error {
+	return validation.ValidateStruct(&p,
+		validation.Field(&p.ID, validation.Required),
+	)
+}
+
+type ProfileLoginWithDeviceCancelResult struct {
+	DidCancel bool `json:"didCancel"`
+}
+
+// Sent during @@ProfileLoginWithDeviceParams with what to put on screen.
+// Show the URL as a link too, for people whose phone is this device.
+//
+// @name Profile.LoginWithDevice.Challenge
+// @category Profile
+type ProfileLoginWithDeviceChallengeNotification struct {
+	// The ID passed to @@ProfileLoginWithDeviceParams
+	ID string `json:"id"`
+	// Consent page URL, to be rendered as a QR code
+	URL string `json:"url"`
+	// Short code to show under it; the consent page shows the same one
+	UserCode string `json:"userCode"`
+	// Seconds until this code expires and a new one is sent
+	ExpiresIn int64 `json:"expiresIn"`
+}
+
+// Sent during @@ProfileLoginWithDeviceParams once the user has approved,
+// just before the token exchange. Answer with an empty string, or refuse
+// the request, to share nothing.
+//
+// @name Profile.LoginWithDevice.RequestDeviceInfo
+// @category Profile
+// @caller server
+type ProfileLoginWithDeviceRequestDeviceInfoParams struct {
+	// The ID passed to @@ProfileLoginWithDeviceParams
+	ID string `json:"id"`
+}
+
+func (p ProfileLoginWithDeviceRequestDeviceInfoParams) Validate() error {
+	return nil
+}
+
+type ProfileLoginWithDeviceRequestDeviceInfoResult struct {
+	// Device information string, as in @@ProfileLoginWithOAuthCodeParams
+	DeviceInfo string `json:"deviceInfo"`
+}
+
 // Ask the user to solve a captcha challenge
 // Sent during @@ProfileLoginWithPasswordParams if certain
 // conditions are met.
@@ -4009,6 +4105,11 @@ const (
 	CodePublishSteamSyncLoginDenied Code = 21003
 	// Another @@PublishSteamSyncLoginParams call is still waiting for approval.
 	CodePublishSteamSyncLoginInProgress Code = 21004
+
+	// The user pressed deny on the consent page.
+	CodeProfileLoginWithDeviceDenied Code = 22000
+	// Another @@ProfileLoginWithDeviceParams call is still waiting for approval.
+	CodeProfileLoginWithDeviceInProgress Code = 22001
 )
 
 // Publish

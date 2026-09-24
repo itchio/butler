@@ -236,6 +236,85 @@
       }
     },
     {
+      "method": "Profile.LoginWithDevice",
+      "doc": "Add a new profile by signing in from another device, for a client with\nno browser or keyboard. The server issues a code the user approves on\ntheir phone: the OAuth device grant (RFC 8628) with PKCE, ending in the\nsame token exchange as @@ProfileLoginWithOAuthCodeParams.\n\nA @@ProfileLoginWithDeviceChallengeNotification carries the URL to show\nas a QR code and the user code to show under it, and is sent again with\na new code whenever the previous one expires unanswered. Once the user\napproves, @@ProfileLoginWithDeviceRequestDeviceInfoParams asks what to\ntell the server about this device, then the request returns with the\nnew profile. Cancel it with @@ProfileLoginWithDeviceCancelParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "ID that can be later used in @@ProfileLoginWithDeviceCancelParams",
+            "type": "string"
+          },
+          {
+            "name": "clientId",
+            "doc": "The OAuth client ID registered for the device grant",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "profile",
+            "doc": "Information for the new profile, now remembered",
+            "type": "Profile"
+          },
+          {
+            "name": "cookie",
+            "doc": "Profile cookie for website",
+            "type": "{ [key: string]: string }"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Profile.LoginWithDevice.Cancel",
+      "doc": "Cancel a pending @@ProfileLoginWithDeviceParams.",
+      "caller": "client",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The ID passed to @@ProfileLoginWithDeviceParams",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "didCancel",
+            "doc": "",
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    {
+      "method": "Profile.LoginWithDevice.RequestDeviceInfo",
+      "doc": "Sent during @@ProfileLoginWithDeviceParams once the user has approved,\njust before the token exchange. Answer with an empty string, or refuse\nthe request, to share nothing.",
+      "caller": "server",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The ID passed to @@ProfileLoginWithDeviceParams",
+            "type": "string"
+          }
+        ]
+      },
+      "result": {
+        "fields": [
+          {
+            "name": "deviceInfo",
+            "doc": "Device information string, as in @@ProfileLoginWithOAuthCodeParams",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "method": "Profile.RequestCaptcha",
       "doc": "Ask the user to solve a captcha challenge\nSent during @@ProfileLoginWithPasswordParams if certain\nconditions are met.",
       "caller": "server",
@@ -3935,6 +4014,34 @@
       }
     },
     {
+      "method": "Profile.LoginWithDevice.Challenge",
+      "doc": "Sent during @@ProfileLoginWithDeviceParams with what to put on screen.\nShow the URL as a link too, for people whose phone is this device.",
+      "params": {
+        "fields": [
+          {
+            "name": "id",
+            "doc": "The ID passed to @@ProfileLoginWithDeviceParams",
+            "type": "string"
+          },
+          {
+            "name": "url",
+            "doc": "Consent page URL, to be rendered as a QR code",
+            "type": "string"
+          },
+          {
+            "name": "userCode",
+            "doc": "Short code to show under it; the consent page shows the same one",
+            "type": "string"
+          },
+          {
+            "name": "expiresIn",
+            "doc": "Seconds until this code expires and a new one is sent",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
       "method": "Progress",
       "doc": "Sent periodically during @@InstallPerformParams to inform on the current state of an install",
       "params": {
@@ -4535,6 +4642,44 @@
           "name": "cookie",
           "doc": "Profile cookie for website",
           "type": "{ [key: string]: string }"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithDeviceResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "profile",
+          "doc": "Information for the new profile, now remembered",
+          "type": "Profile"
+        },
+        {
+          "name": "cookie",
+          "doc": "Profile cookie for website",
+          "type": "{ [key: string]: string }"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithDeviceCancelResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "didCancel",
+          "doc": "",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "ProfileLoginWithDeviceRequestDeviceInfoResult",
+      "doc": "",
+      "fields": [
+        {
+          "name": "deviceInfo",
+          "doc": "Device information string, as in @@ProfileLoginWithOAuthCodeParams",
+          "type": "string"
         }
       ]
     },
@@ -8899,6 +9044,16 @@
           "name": "PublishSteamSyncLoginInProgress",
           "doc": "Another @@PublishSteamSyncLoginParams call is still waiting for approval.",
           "value": 21004
+        },
+        {
+          "name": "ProfileLoginWithDeviceDenied",
+          "doc": "The user pressed deny on the consent page.",
+          "value": 22000
+        },
+        {
+          "name": "ProfileLoginWithDeviceInProgress",
+          "doc": "Another @@ProfileLoginWithDeviceParams call is still waiting for approval.",
+          "value": 22001
         }
       ]
     },

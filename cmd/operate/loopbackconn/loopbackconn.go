@@ -74,6 +74,10 @@ func (lc *loopbackConn) Call(method string, params interface{}, result interface
 	return fmt.Errorf("No handler registered for method (%s)", method)
 }
 
+func (lc *loopbackConn) CallContext(ctx context.Context, method string, params interface{}, result interface{}) error {
+	return lc.Call(method, params, result)
+}
+
 func (lc *loopbackConn) Context() context.Context {
 	return lc.ctx
 }

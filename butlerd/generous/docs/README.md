@@ -928,6 +928,331 @@ Used by the itch.io desktop app for OAuth login flow with PKCE.</p>
 
 </div>
 
+### Profile.LoginWithDevice (client request)
+
+
+<p>
+<p>Add a new profile by signing in from another device, for a client with
+no browser or keyboard. The server issues a code the user approves on
+their phone: the OAuth device grant (RFC 8628) with PKCE, ending in the
+same token exchange as <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithOAuthCodeParams__TypeHint">Profile.LoginWithOAuthCode</span></code>.</p>
+
+<p>A <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceChallengeNotification__TypeHint">Profile.LoginWithDevice.Challenge</span></code> carries the URL to show
+as a QR code and the user code to show under it, and is sent again with
+a new code whenever the previous one expires unanswered. Once the user
+approves, <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceRequestDeviceInfoParams__TypeHint">Profile.LoginWithDevice.RequestDeviceInfo</span></code> asks what to
+tell the server about this device, then the request returns with the
+new profile. Cancel it with <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceCancelParams__TypeHint">Profile.LoginWithDevice.Cancel</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>ID that can be later used in <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceCancelParams__TypeHint">Profile.LoginWithDevice.Cancel</span></code></p>
+</td>
+</tr>
+<tr>
+<td><code>clientId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The OAuth client ID registered for the device grant</p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#Profile__TypeHint">Profile</span></code></td>
+<td><p>Information for the new profile, now remembered</p>
+</td>
+</tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+<td><p>Profile cookie for website</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithDeviceParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithDevice (client request) <a href="#/?id=profileloginwithdevice-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Add a new profile by signing in from another device, for a client with
+no browser or keyboard. The server issues a code the user approves on
+their phone: the OAuth device grant (RFC 8628) with PKCE, ending in the
+same token exchange as <code class="typename"><span class="type">Profile.LoginWithOAuthCode</span></code>.</p>
+
+<p>A <code class="typename"><span class="type">Profile.LoginWithDevice.Challenge</span></code> carries the URL to show
+as a QR code and the user code to show under it, and is sent again with
+a new code whenever the previous one expires unanswered. Once the user
+approves, <code class="typename"><span class="type">Profile.LoginWithDevice.RequestDeviceInfo</span></code> asks what to
+tell the server about this device, then the request returns with the
+new profile. Cancel it with <code class="typename"><span class="type">Profile.LoginWithDevice.Cancel</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>clientId</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileLoginWithDeviceResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithDevice  <a href="#/?id=profileloginwithdevice-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>profile</code></td>
+<td><code class="typename"><span class="type">Profile</span></code></td>
+</tr>
+<tr>
+<td><code>cookie</code></td>
+<td><code class="typename"><span class="type builtin-type">{ [key: string]: string }</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Profile.LoginWithDevice.Cancel (client request)
+
+
+<p>
+<p>Cancel a pending <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code>.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID passed to <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithDeviceCancelParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithDevice.Cancel (client request) <a href="#/?id=profileloginwithdevicecancel-client-request">(Go to definition)</a></p>
+
+<p>
+<p>Cancel a pending <code class="typename"><span class="type">Profile.LoginWithDevice</span></code>.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileLoginWithDeviceCancelResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithDeviceCancel  <a href="#/?id=profileloginwithdevicecancel-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>didCancel</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Profile.LoginWithDevice.Challenge (notification)
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code> with what to put on screen.
+Show the URL as a link too, for people whose phone is this device.</p>
+
+</p>
+
+<p>
+<span class="header">Payload</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID passed to <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code></p>
+</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Consent page URL, to be rendered as a QR code</p>
+</td>
+</tr>
+<tr>
+<td><code>userCode</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Short code to show under it; the consent page shows the same one</p>
+</td>
+</tr>
+<tr>
+<td><code>expiresIn</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p>Seconds until this code expires and a new one is sent</p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithDeviceChallengeNotification__TypeHint" class="tip-content">
+<p>Profile.LoginWithDevice.Challenge (notification) <a href="#/?id=profileloginwithdevicechallenge-notification">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type">Profile.LoginWithDevice</span></code> with what to put on screen.
+Show the URL as a link too, for people whose phone is this device.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>userCode</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>expiresIn</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### Profile.LoginWithDevice.RequestDeviceInfo (client caller)
+
+
+<p>
+<p>Sent during <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code> once the user has approved,
+just before the token exchange. Answer with an empty string, or refuse
+the request, to share nothing.</p>
+
+</p>
+
+<p>
+<span class="header">Parameters</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>The ID passed to <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code></p>
+</td>
+</tr>
+</table>
+
+
+
+<p>
+<span class="header">Result</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>deviceInfo</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+<td><p>Device information string, as in <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithOAuthCodeParams__TypeHint">Profile.LoginWithOAuthCode</span></code></p>
+</td>
+</tr>
+</table>
+
+
+<div id="ProfileLoginWithDeviceRequestDeviceInfoParams__TypeHint" class="tip-content">
+<p>Profile.LoginWithDevice.RequestDeviceInfo (client caller) <a href="#/?id=profileloginwithdevicerequestdeviceinfo-client-caller">(Go to definition)</a></p>
+
+<p>
+<p>Sent during <code class="typename"><span class="type">Profile.LoginWithDevice</span></code> once the user has approved,
+just before the token exchange. Answer with an empty string, or refuse
+the request, to share nothing.</p>
+
+</p>
+
+<table class="field-table">
+<tr>
+<td><code>id</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
+
+<div id="ProfileLoginWithDeviceRequestDeviceInfoResult__TypeHint" class="tip-content">
+<p>ProfileLoginWithDeviceRequestDeviceInfo  <a href="#/?id=profileloginwithdevicerequestdeviceinfo-">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>deviceInfo</code></td>
+<td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+</table>
+
+</div>
+
 ### Profile.RequestCaptcha (client caller)
 
 
@@ -14420,6 +14745,16 @@ Call <code class="typename"><span class="type" data-tip-selector="#PublishSteamS
 <td><p>Another <code class="typename"><span class="type" data-tip-selector="#PublishSteamSyncLoginParams__TypeHint">Publish.SteamSync.Login</span></code> call is still waiting for approval.</p>
 </td>
 </tr>
+<tr>
+<td><code>22000</code></td>
+<td><p>The user pressed deny on the consent page.</p>
+</td>
+</tr>
+<tr>
+<td><code>22001</code></td>
+<td><p>Another <code class="typename"><span class="type" data-tip-selector="#ProfileLoginWithDeviceParams__TypeHint">Profile.LoginWithDevice</span></code> call is still waiting for approval.</p>
+</td>
+</tr>
 </table>
 
 
@@ -14491,6 +14826,12 @@ Call <code class="typename"><span class="type" data-tip-selector="#PublishSteamS
 </tr>
 <tr>
 <td><code>21004</code></td>
+</tr>
+<tr>
+<td><code>22000</code></td>
+</tr>
+<tr>
+<td><code>22001</code></td>
 </tr>
 </table>
 

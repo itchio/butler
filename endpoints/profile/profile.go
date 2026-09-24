@@ -17,6 +17,8 @@ func Register(router *butlerd.Router) {
 	messages.ProfileLoginWithPassword.Register(router, LoginWithPassword)
 	messages.ProfileLoginWithAPIKey.Register(router, LoginWithAPIKey)
 	messages.ProfileLoginWithOAuthCode.Register(router, LoginWithOAuthCode)
+	messages.ProfileLoginWithDevice.Register(router, LoginWithDevice)
+	messages.ProfileLoginWithDeviceCancel.Register(router, LoginWithDeviceCancel)
 	messages.ProfileUseSavedLogin.Register(router, UseSavedLogin)
 	messages.ProfileForget.Register(router, Forget)
 	messages.ProfileDataPut.Register(router, DataPut)
@@ -188,7 +190,20 @@ func LoginWithOAuthCode(rc *butlerd.RequestContext, params butlerd.ProfileLoginW
 		return nil, errors.WithStack(err)
 	}
 
-	client := rc.Client(tokenRes.Key.Key)
+	profile, err := saveProfile(rc, tokenRes.Key.Key)
+	if err != nil {
+		return nil, err
+	}
+	res := &butlerd.ProfileLoginWithOAuthCodeResult{
+		Cookie:  tokenRes.Cookie,
+		Profile: profile,
+	}
+	return res, nil
+}
+
+// The tail of every login once an API key is in hand
+func saveProfile(rc *butlerd.RequestContext, apiKey string) (*butlerd.Profile, error) {
+	client := rc.Client(apiKey)
 
 	profileRes, err := client.GetProfile(rc.Ctx)
 	if err != nil {
@@ -197,16 +212,11 @@ func LoginWithOAuthCode(rc *butlerd.RequestContext, params butlerd.ProfileLoginW
 
 	profile := &models.Profile{
 		ID:     profileRes.User.ID,
-		APIKey: tokenRes.Key.Key,
+		APIKey: apiKey,
 	}
 	profile.UpdateFromUser(profileRes.User)
 	rc.WithConn(profile.Save)
-
-	res := &butlerd.ProfileLoginWithOAuthCodeResult{
-		Cookie:  tokenRes.Cookie,
-		Profile: formatProfile(profile),
-	}
-	return res, nil
+	return formatProfile(profile), nil
 }
 
 func UseSavedLogin(rc *butlerd.RequestContext, params butlerd.ProfileUseSavedLoginParams) (*butlerd.ProfileUseSavedLoginResult, error) {

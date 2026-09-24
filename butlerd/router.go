@@ -468,6 +468,10 @@ func (rc *RequestContext) Call(method string, params interface{}, res interface{
 	return rc.Conn.Call(method, params, res)
 }
 
+func (rc *RequestContext) CallContext(ctx context.Context, method string, params interface{}, res interface{}) error {
+	return rc.Conn.CallContext(ctx, method, params, res)
+}
+
 func (rc *RequestContext) InterceptNotification(method string, interceptor NotificationInterceptor) {
 	if rc.notificationInterceptors == nil {
 		rc.notificationInterceptors = make(map[string]NotificationInterceptor)

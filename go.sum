@@ -121,8 +121,8 @@ github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8 h1:+KYUGGFy/e
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=
 github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
-github.com/itchio/go-itchio v0.0.0-20260924065346-e62308a7e493 h1:Jp1QJX5Mre5WD1mtg0rw+hBXeNZDyzeCBfLnXnLDezE=
-github.com/itchio/go-itchio v0.0.0-20260924065346-e62308a7e493/go.mod h1:TzTfZ3BkkpmdxgW2Xj1dqW9W/Qq/+M3tVz7vm+DoxPs=
+github.com/itchio/go-itchio v0.0.0-20260924174910-9da9e84dec25 h1:L7zgRYLgmw8aOfFeiFQC2oNiNtEi8nchKRN59hZDFIc=
+github.com/itchio/go-itchio v0.0.0-20260924174910-9da9e84dec25/go.mod h1:TzTfZ3BkkpmdxgW2Xj1dqW9W/Qq/+M3tVz7vm+DoxPs=
 github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344 h1:bVS/wOL1h5tpjxZjZX2Q+mujFcz3O/DjlkpmYavFvss=
 github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
@@ -140,8 +140,8 @@ github.com/itchio/lake v0.0.0-20260916234156-ee7b9927c490 h1:drGCTtepMMMNQS9lgHj
 github.com/itchio/lake v0.0.0-20260916234156-ee7b9927c490/go.mod h1:ajw9UcYrdG4y78l4YeWZOAcHAaMx024gTOuufMer8g4=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49/go.mod h1:avNrevQMli1pYPsz1+HIHMvx95pk6O+6otbWqCZPeZI=
-github.com/itchio/mitch v0.0.0-20260722173825-17efffd7d69b h1:hfGXRbqrGL/hKMQaf5QGEQo01UoWmb+vheZcvSCv5Fc=
-github.com/itchio/mitch v0.0.0-20260722173825-17efffd7d69b/go.mod h1:dFAkABHhy9jVYW8BY7rDmrL2yC4pYO0WEO2WN4lhIOI=
+github.com/itchio/mitch v0.0.0-20260924175625-fb2c53abddae h1:9w3CQKmuEsEpqLRyGsQJc+IiIKFy6ua9uhwU7VhFS1M=
+github.com/itchio/mitch v0.0.0-20260924175625-fb2c53abddae/go.mod h1:dFAkABHhy9jVYW8BY7rDmrL2yC4pYO0WEO2WN4lhIOI=
 github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382 h1:FKGDIamOblBuLCYDxJkGEGCKZ5YG5gJvhCEXb6IcZA8=
 github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382/go.mod h1:433sW0ck7/e5u7yycn9pmuK84/askPuhm3MqtwFl9zk=
 github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7 h1:NdPpyCZT0GK8X51VLmlAWfWDxzMmfFaQL33mMRUucTA=

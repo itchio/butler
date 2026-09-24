@@ -662,6 +662,155 @@ func (r *ProfileLoginWithOAuthCodeType) TestCall(rc *butlerd.RequestContext, par
 
 var ProfileLoginWithOAuthCode *ProfileLoginWithOAuthCodeType
 
+// Profile.LoginWithDevice (Request)
+
+type ProfileLoginWithDeviceType struct {}
+
+var _ RequestMessage = (*ProfileLoginWithDeviceType)(nil)
+
+func (r *ProfileLoginWithDeviceType) Method() string {
+  return "Profile.LoginWithDevice"
+}
+
+func (r *ProfileLoginWithDeviceType) Register(router router, f func(*butlerd.RequestContext, butlerd.ProfileLoginWithDeviceParams) (*butlerd.ProfileLoginWithDeviceResult, error)) {
+  router.Register("Profile.LoginWithDevice", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileLoginWithDeviceParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.LoginWithDevice")
+    }
+    return res, nil
+  })
+}
+
+func (r *ProfileLoginWithDeviceType) TestCall(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithDeviceParams) (*butlerd.ProfileLoginWithDeviceResult, error) {
+  var result butlerd.ProfileLoginWithDeviceResult
+  err := rc.Call("Profile.LoginWithDevice", params, &result)
+  return &result, err
+}
+
+var ProfileLoginWithDevice *ProfileLoginWithDeviceType
+
+// Profile.LoginWithDevice.Cancel (Request)
+
+type ProfileLoginWithDeviceCancelType struct {}
+
+var _ RequestMessage = (*ProfileLoginWithDeviceCancelType)(nil)
+
+func (r *ProfileLoginWithDeviceCancelType) Method() string {
+  return "Profile.LoginWithDevice.Cancel"
+}
+
+func (r *ProfileLoginWithDeviceCancelType) Register(router router, f func(*butlerd.RequestContext, butlerd.ProfileLoginWithDeviceCancelParams) (*butlerd.ProfileLoginWithDeviceCancelResult, error)) {
+  router.Register("Profile.LoginWithDevice.Cancel", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileLoginWithDeviceCancelParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.LoginWithDevice.Cancel")
+    }
+    return res, nil
+  })
+}
+
+func (r *ProfileLoginWithDeviceCancelType) TestCall(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithDeviceCancelParams) (*butlerd.ProfileLoginWithDeviceCancelResult, error) {
+  var result butlerd.ProfileLoginWithDeviceCancelResult
+  err := rc.Call("Profile.LoginWithDevice.Cancel", params, &result)
+  return &result, err
+}
+
+var ProfileLoginWithDeviceCancel *ProfileLoginWithDeviceCancelType
+
+// Profile.LoginWithDevice.Challenge (Notification)
+
+type ProfileLoginWithDeviceChallengeType struct {}
+
+var _ NotificationMessage = (*ProfileLoginWithDeviceChallengeType)(nil)
+
+func (r *ProfileLoginWithDeviceChallengeType) Method() string {
+  return "Profile.LoginWithDevice.Challenge"
+}
+
+func (r *ProfileLoginWithDeviceChallengeType) Notify(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithDeviceChallengeNotification) (error) {
+  return rc.Notify("Profile.LoginWithDevice.Challenge", params)
+}
+
+func (r *ProfileLoginWithDeviceChallengeType) Register(router router, f func(butlerd.ProfileLoginWithDeviceChallengeNotification)) {
+  router.RegisterNotification("Profile.LoginWithDevice.Challenge", func (notif jsonrpc2.Notification) {
+    var params butlerd.ProfileLoginWithDeviceChallengeNotification
+    if notif.Params != nil {
+      err := json.Unmarshal(*notif.Params, &params)
+      if err != nil {
+        return
+      }
+    }
+    f(params)
+  })
+}
+
+var ProfileLoginWithDeviceChallenge *ProfileLoginWithDeviceChallengeType
+
+// Profile.LoginWithDevice.RequestDeviceInfo (Request)
+
+type ProfileLoginWithDeviceRequestDeviceInfoType struct {}
+
+var _ RequestMessage = (*ProfileLoginWithDeviceRequestDeviceInfoType)(nil)
+
+func (r *ProfileLoginWithDeviceRequestDeviceInfoType) Method() string {
+  return "Profile.LoginWithDevice.RequestDeviceInfo"
+}
+
+func (r *ProfileLoginWithDeviceRequestDeviceInfoType) TestRegister(router router, f func(*butlerd.RequestContext, butlerd.ProfileLoginWithDeviceRequestDeviceInfoParams) (*butlerd.ProfileLoginWithDeviceRequestDeviceInfoResult, error)) {
+  router.Register("Profile.LoginWithDevice.RequestDeviceInfo", func (rc *butlerd.RequestContext) (interface{}, error) {
+    var params butlerd.ProfileLoginWithDeviceRequestDeviceInfoParams
+    err := json.Unmarshal(*rc.Params, &params)
+    if err != nil {
+    	return nil, &butlerd.RpcError{Code: jsonrpc2.CodeParseError, Message: err.Error()}
+    }
+    err = params.Validate()
+    if err != nil {
+    	return nil, err
+    }
+    res, err := f(rc, params)
+    if err != nil {
+    	return nil, err
+    }
+    if res == nil {
+    	return nil, errors.New("internal error: nil result for Profile.LoginWithDevice.RequestDeviceInfo")
+    }
+    return res, nil
+  })
+}
+
+func (r *ProfileLoginWithDeviceRequestDeviceInfoType) Call(rc *butlerd.RequestContext, params butlerd.ProfileLoginWithDeviceRequestDeviceInfoParams) (*butlerd.ProfileLoginWithDeviceRequestDeviceInfoResult, error) {
+  var result butlerd.ProfileLoginWithDeviceRequestDeviceInfoResult
+  err := rc.Call("Profile.LoginWithDevice.RequestDeviceInfo", params, &result)
+  return &result, err
+}
+
+var ProfileLoginWithDeviceRequestDeviceInfo *ProfileLoginWithDeviceRequestDeviceInfoType
+
 // Profile.RequestCaptcha (Request)
 
 type ProfileRequestCaptchaType struct {}
@@ -5343,6 +5492,8 @@ func EnsureAllRequests(router *butlerd.Router) {
   if _, ok := router.Handlers["Profile.LoginWithPassword"]; !ok { panic("missing request handler for (Profile.LoginWithPassword)") }
   if _, ok := router.Handlers["Profile.LoginWithAPIKey"]; !ok { panic("missing request handler for (Profile.LoginWithAPIKey)") }
   if _, ok := router.Handlers["Profile.LoginWithOAuthCode"]; !ok { panic("missing request handler for (Profile.LoginWithOAuthCode)") }
+  if _, ok := router.Handlers["Profile.LoginWithDevice"]; !ok { panic("missing request handler for (Profile.LoginWithDevice)") }
+  if _, ok := router.Handlers["Profile.LoginWithDevice.Cancel"]; !ok { panic("missing request handler for (Profile.LoginWithDevice.Cancel)") }
   if _, ok := router.Handlers["Profile.UseSavedLogin"]; !ok { panic("missing request handler for (Profile.UseSavedLogin)") }
   if _, ok := router.Handlers["Profile.Forget"]; !ok { panic("missing request handler for (Profile.Forget)") }
   if _, ok := router.Handlers["Profile.Data.Put"]; !ok { panic("missing request handler for (Profile.Data.Put)") }
