@@ -137,10 +137,9 @@ func exchangeDeviceCode(ctx context.Context, rc *butlerd.RequestContext, params 
 
 // A client that refuses the request shares nothing
 func requestDeviceInfo(ctx context.Context, rc *butlerd.RequestContext, id string) (string, error) {
-	var res butlerd.ProfileLoginWithDeviceRequestDeviceInfoResult
-	err := rc.CallContext(ctx, messages.ProfileLoginWithDeviceRequestDeviceInfo.Method(), butlerd.ProfileLoginWithDeviceRequestDeviceInfoParams{
+	res, err := messages.ProfileLoginWithDeviceRequestDeviceInfo.Call(rc, butlerd.ProfileLoginWithDeviceRequestDeviceInfoParams{
 		ID: id,
-	}, &res)
+	})
 	if ctx.Err() != nil {
 		return "", butlerd.CodeOperationCancelled
 	}

@@ -464,12 +464,10 @@ type WithParamsFunc func() (interface{}, error)
 
 type NotificationInterceptor func(method string, params interface{}) error
 
+// Cancelling the operation (rc.Ctx) also cancels any request it has
+// out to the client
 func (rc *RequestContext) Call(method string, params interface{}, res interface{}) error {
-	return rc.Conn.Call(method, params, res)
-}
-
-func (rc *RequestContext) CallContext(ctx context.Context, method string, params interface{}, res interface{}) error {
-	return rc.Conn.CallContext(ctx, method, params, res)
+	return rc.Conn.Call(rc.Ctx, method, params, res)
 }
 
 func (rc *RequestContext) InterceptNotification(method string, interceptor NotificationInterceptor) {

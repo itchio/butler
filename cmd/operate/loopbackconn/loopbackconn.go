@@ -67,15 +67,11 @@ func (lc *loopbackConn) OnCall(method string, handler CallHandler) {
 	lc.callHandlers[method] = handler
 }
 
-func (lc *loopbackConn) Call(method string, params interface{}, result interface{}) error {
+func (lc *loopbackConn) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
 	if h, ok := lc.callHandlers[method]; ok {
 		return h(lc, method, params, result)
 	}
 	return fmt.Errorf("No handler registered for method (%s)", method)
-}
-
-func (lc *loopbackConn) CallContext(ctx context.Context, method string, params interface{}, result interface{}) error {
-	return lc.Call(method, params, result)
 }
 
 func (lc *loopbackConn) Context() context.Context {

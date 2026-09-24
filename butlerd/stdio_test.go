@@ -59,7 +59,7 @@ func Test_ServeStdio_AllowsRequestsWithoutMetaAuthenticate(t *testing.T) {
 		OK bool `json:"ok"`
 	}
 
-	err := client.Call("Ping", struct{}{}, &result)
+	err := client.Call(context.Background(), "Ping", struct{}{}, &result)
 	if err != nil {
 		t.Fatalf("calling Ping over stdio: %v", err)
 	}

@@ -63,10 +63,9 @@ const (
 type OutgoingCall func(msg Message)
 
 type Conn interface {
-	Call(method string, params interface{}, result interface{}) error
-	// Like Call, but gives up when ctx is done and forgets the pending
-	// call, so a reply that never comes leaks nothing.
-	CallContext(ctx context.Context, method string, params interface{}, result interface{}) error
+	// Gives up when ctx is done and forgets the pending call, so a reply
+	// that never comes leaks nothing.
+	Call(ctx context.Context, method string, params interface{}, result interface{}) error
 	Notify(method string, params interface{}) error
 	Context() context.Context
 	Close()
@@ -300,11 +299,7 @@ func (c *connImpl) Notify(method string, params interface{}) error {
 	return c.send(msg)
 }
 
-func (c *connImpl) Call(method string, params interface{}, result interface{}) error {
-	return c.CallContext(context.Background(), method, params, result)
-}
-
-func (c *connImpl) CallContext(ctx context.Context, method string, params interface{}, result interface{}) error {
+func (c *connImpl) Call(ctx context.Context, method string, params interface{}, result interface{}) error {
 	paramsText, err := EncodeJSON(params)
 	if err != nil {
 		return err

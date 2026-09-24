@@ -245,7 +245,7 @@ func Do(ctx *mansion.Context) error {
 	}
 
 	var res butlerd.LaunchResult
-	err = clientConn.Call("Launch", params, &res)
+	err = clientConn.Call(launchCtx, "Launch", params, &res)
 
 	if launchCtx.Err() != nil {
 		tracker.waitForTeardown()
