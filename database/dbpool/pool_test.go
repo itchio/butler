@@ -68,9 +68,9 @@ func Test_BlocksAtMaxAndHonorsContext(t *testing.T) {
 	require.NotNil(t, a)
 	require.NotNil(t, b)
 
+	start := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-	start := time.Now()
 	assert.Nil(t, p.Get(ctx), "third Get must give up when the context expires")
 	assert.GreaterOrEqual(t, time.Since(start), 50*time.Millisecond)
 
