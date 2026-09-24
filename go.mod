@@ -27,7 +27,7 @@ require (
 	github.com/itchio/hush v0.0.0-20260914200638-506e8e2c4b9c
 	github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d
 	github.com/itchio/lake v0.0.0-20260916234156-ee7b9927c490
-	github.com/itchio/mitch v0.0.0-20260924175625-fb2c53abddae
+	github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7
 	github.com/itchio/savior v0.0.0-20260914182353-072694f48327
