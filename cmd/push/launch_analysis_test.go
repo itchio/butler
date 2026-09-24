@@ -121,10 +121,16 @@ func TestPushSendsLaunchAnalysis(t *testing.T) {
 				t.Fatal(err)
 			}
 			if kind == "empty" {
+				if report.ExtractedSize != 0 {
+					t.Fatalf("empty report size: %d", report.ExtractedSize)
+				}
 				if string(report.LaunchTargets) != "[]" {
 					t.Fatalf("empty report: %s", report.LaunchTargets)
 				}
 				return
+			}
+			if report.ExtractedSize != 4 {
+				t.Fatalf("unexpected extracted size: %d", report.ExtractedSize)
 			}
 			if len(targets) != 1 || targets[0].Path != wantPath || targets[0].Size != 4 || targets[0].Sha256 != fmt.Sprintf("%x", sha256.Sum256([]byte("game"))) {
 				t.Fatalf("unexpected targets: %s", report.LaunchTargets)

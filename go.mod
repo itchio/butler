@@ -20,7 +20,7 @@ require (
 	github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc
 	github.com/itchio/dash v0.0.0-20260916225844-1b2a6ee0e426
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
-	github.com/itchio/go-itchio v0.0.0-20260923024039-25b0b20ee6b0
+	github.com/itchio/go-itchio v0.0.0-20260924065346-e62308a7e493
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9

@@ -7713,6 +7713,12 @@
           "optional": true
         },
         {
+          "name": "launchTargetsExtractedSize",
+          "doc": "Size in bytes of the extracted files the launch targets were found in",
+          "type": "number",
+          "optional": true
+        },
+        {
           "name": "createdAt",
           "doc": "Date this upload was created at",
           "type": "RFCDate",

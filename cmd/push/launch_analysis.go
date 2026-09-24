@@ -50,5 +50,6 @@ func scanLaunchAnalysis(container *tlc.Container, pool lake.Pool, consumer *stat
 		SchemaVersion:  dash.LaunchTargetsSchemaVersion,
 		ScannerVersion: "butler/" + version,
 		LaunchTargets:  data,
+		ExtractedSize:  container.Size,
 	}
 }

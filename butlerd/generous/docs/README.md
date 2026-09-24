@@ -17894,6 +17894,12 @@ current build.</p>
 </td>
 </tr>
 <tr>
+<td><code>launchTargetsExtractedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Size in bytes of the extracted files the launch targets were found in</p>
+</td>
+</tr>
+<tr>
 <td><code>createdAt</code></td>
 <td><code class="typename"><span class="type builtin-type">RFCDate</span></code></td>
 <td><p><span class="tag">Optional</span> Date this upload was created at</p>
@@ -17982,6 +17988,10 @@ with <a href="https://github.com/itchio/butler">https://github.com/itchio/butler
 <tr>
 <td><code>launchTargetsScannerVersion</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>launchTargetsExtractedSize</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 <tr>
 <td><code>createdAt</code></td>
