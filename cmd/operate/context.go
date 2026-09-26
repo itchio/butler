@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"time"
 
 	"github.com/dchest/safefile"
@@ -116,7 +117,10 @@ func (oc *OperationContext) Load(s Subcontext) {
 			TagName:          "json",
 			Result:           s.GetData(),
 			WeaklyTypedInput: true,
-			DecodeHook:       mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+				rawMessageHook,
+			),
 		})
 		if err != nil {
 			oc.consumer.Warnf("Could not load subcontext %s: while configuring decoder, %s", s.Key(), err.Error())
@@ -131,6 +135,17 @@ func (oc *OperationContext) Load(s Subcontext) {
 	}
 
 	oc.loaded[s.Key()] = struct{}{}
+}
+
+var rawMessageType = reflect.TypeOf(json.RawMessage{})
+
+// rawMessageHook re-encodes decoded JSON into json.RawMessage fields,
+// such as Upload.LaunchTargets.
+func rawMessageHook(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
+	if to != rawMessageType || from == rawMessageType {
+		return data, nil
+	}
+	return json.Marshal(data)
 }
 
 func (oc *OperationContext) Save(s Subcontext) error {
