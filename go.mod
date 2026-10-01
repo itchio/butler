@@ -18,7 +18,7 @@ require (
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
 	github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc
-	github.com/itchio/dash v0.0.0-20260916225844-1b2a6ee0e426
+	github.com/itchio/dash v0.0.0-20261001062742-8a9e10b70686
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
 	github.com/itchio/go-itchio v0.0.0-20260924174910-9da9e84dec25
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
@@ -29,14 +29,14 @@ require (
 	github.com/itchio/lake v0.0.0-20260916234156-ee7b9927c490
 	github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
-	github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7
+	github.com/itchio/pelican v0.0.0-20260929212652-db949c1f2a5a
 	github.com/itchio/savior v0.0.0-20260914182353-072694f48327
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260914192131-9ff04bb5e5ce
 	github.com/itchio/smaug v0.0.0-20260921222733-a186307fa238
 	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
 	github.com/itchio/wharf v0.0.0-20260509025649-e95738701284
-	github.com/itchio/wizardry v0.0.0-20260916215147-ed4c4cf460d1
+	github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/mitchellh/mapstructure v1.5.0

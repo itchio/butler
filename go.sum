@@ -111,8 +111,8 @@ github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151 h1:d8HqXXMFHm3E3iEPr
 github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151/go.mod h1:COxkdGM3zsZf9Uv7rC3+mu6ftr9V0xJWaPLv3KHis1Y=
 github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc h1:9c4j/iqSoC6XxFYi5qtizVAwJLaiATk9r948nhlVTr8=
 github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc/go.mod h1:enerf8AYmgYvFffp8xOEfAduXmemvW4ry+qp8Phbugw=
-github.com/itchio/dash v0.0.0-20260916225844-1b2a6ee0e426 h1:ZmTseKbpTyBLJj52RijYDjDTD3rm4ZQG09WIcTK5v0I=
-github.com/itchio/dash v0.0.0-20260916225844-1b2a6ee0e426/go.mod h1:CCjGCnjDaCTFo0VjuUyRnfchmEOluln8jlTruZipp+U=
+github.com/itchio/dash v0.0.0-20261001062742-8a9e10b70686 h1:Nvd3g9YvdtfUmK3zr0GcGIKhS1e/gi8baS2AUKvltUo=
+github.com/itchio/dash v0.0.0-20261001062742-8a9e10b70686/go.mod h1:CCjGCnjDaCTFo0VjuUyRnfchmEOluln8jlTruZipp+U=
 github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc h1:s6pwHaAe+FYht3rAJFS++vp17SizmGRK9gTpq6i5lxw=
 github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc/go.mod h1:JPXUR7Whpf+BnJwFlSjOSdll/5CpERypOxGW0wCF408=
 github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 h1:u3Q2WkrIPYlGEw4fjcImSOrkivWd6SVb0BF0Ehoih9c=
@@ -144,8 +144,8 @@ github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c h1:uKbOUOLrxH8VS/mzWG
 github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c/go.mod h1:dFAkABHhy9jVYW8BY7rDmrL2yC4pYO0WEO2WN4lhIOI=
 github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382 h1:FKGDIamOblBuLCYDxJkGEGCKZ5YG5gJvhCEXb6IcZA8=
 github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382/go.mod h1:433sW0ck7/e5u7yycn9pmuK84/askPuhm3MqtwFl9zk=
-github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7 h1:NdPpyCZT0GK8X51VLmlAWfWDxzMmfFaQL33mMRUucTA=
-github.com/itchio/pelican v0.0.0-20260911221521-7b94d473a7a7/go.mod h1:5myIRqGAjat0gT3qiK43Cv1puZhxn9bi17+JZFpJQMo=
+github.com/itchio/pelican v0.0.0-20260929212652-db949c1f2a5a h1:l+6tXdhSUT1xtihdTygiswSVB6MpX/urz0wG7DtKfhM=
+github.com/itchio/pelican v0.0.0-20260929212652-db949c1f2a5a/go.mod h1:5myIRqGAjat0gT3qiK43Cv1puZhxn9bi17+JZFpJQMo=
 github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5 h1:RWifjgxRQRPdICcmunL8C+F4T3FaXMcOH6SLXGOBEvE=
 github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5/go.mod h1:u/BSnIaqgNRxmb4E/C+laDqg2SLsYCGEAL2d1yAsl1E=
 github.com/itchio/savior v0.0.0-20260914182353-072694f48327 h1:C6C/S+HL6PG+bMWIcOsLSGoSoveQq8efP9jEwfJU+wA=
@@ -160,8 +160,8 @@ github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148 h1:4YU/DxYjdK4kwH
 github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148/go.mod h1:G9i9DpC2udPq/X9Ed3wmocGpHu06f+J/W+OtLbzuDRo=
 github.com/itchio/wharf v0.0.0-20260509025649-e95738701284 h1:3++mlRf1VCOZyRm0y3+Kp38+8+7mU2OZMLD5zozgLVk=
 github.com/itchio/wharf v0.0.0-20260509025649-e95738701284/go.mod h1:1e8MRfte3p/+QyNrh/TFRYXTnMiKNTqyUuehIORorG4=
-github.com/itchio/wizardry v0.0.0-20260916215147-ed4c4cf460d1 h1:JeMfEHlR9GpyNXVFN8sF1UL6Y11uPX2F1AgVhJfLxJU=
-github.com/itchio/wizardry v0.0.0-20260916215147-ed4c4cf460d1/go.mod h1:7Lr4TktooBnUXkxjwr1AP+pNVf/519Cr2sV2an1mJR4=
+github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500 h1:RhYsPT3CvuQepA5p6OK+0QVrNs6cLTYYVoELrfrU4WY=
+github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500/go.mod h1:7Lr4TktooBnUXkxjwr1AP+pNVf/519Cr2sV2an1mJR4=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08 h1:VlCjOBMvVsqr/L/w7k4CW8WEQog5Hj53CihNyYyvvo4=
 github.com/jgallagher/gosaca v0.0.0-20130226042358-754749770f08/go.mod h1:iU7U0LShC+6Wjkkymyl3dpCZyiDSGnY4N4DY+xt3yNg=
