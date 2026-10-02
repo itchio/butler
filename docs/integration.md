@@ -39,6 +39,16 @@ plugin for automatically installing, updating, and running butler as part of you
 
   * [View gradle-butler-plugin on Github](https://github.com/mini2Dx/gradle-butler-plugin)
 
+## Easy Itch Push (Unreal Engine 5)
+
+[Easy Itch Push](https://assets.tessermind.com/easy-itch-push/) is a free Unreal Engine 5
+editor plugin that packages your project and pushes it to itch.io with butler in one click,
+without leaving the editor. It handles butler install/upgrade, API key or login auth,
+channels and `--userversion`.
+
+* [View Easy Itch Push documentation](https://assets.tessermind.com/easy-itch-push/)
+* [Get Easy Itch Push on Fab](https://www.fab.com/listings/274e3f81-dd36-484d-a8c7-f516558561bf)
+
 ## Other resources
 
 Here's a few articles people have written about integrating butler into their release
