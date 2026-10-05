@@ -37,9 +37,10 @@ func Test_Runlock(t *testing.T) {
 	wtest.Must(t, rl1.Lock(ctx, "rl1"))
 	done("r1-lock")
 
+	unlocked := make(chan error, 1)
 	go func() {
 		time.Sleep(1000 * time.Millisecond)
-		wtest.Must(t, rl1.Unlock())
+		unlocked <- rl1.Unlock()
 	}()
 
 	rl2 := runlock.New(consumer, installFolder)
@@ -51,10 +52,12 @@ func Test_Runlock(t *testing.T) {
 	}
 	done("r2-timeout")
 
-	timeoutCtx, cancel = context.WithTimeout(ctx, 600*time.Millisecond)
+	timeoutCtx, cancel = context.WithTimeout(ctx, 2500*time.Millisecond)
 	defer cancel()
-	err = rl2.Lock(timeoutCtx, "rl2")
+	wtest.Must(t, rl2.Lock(timeoutCtx, "rl2"))
 	done("r2-lock")
+
+	wtest.Must(t, <-unlocked)
 
 	wtest.Must(t, rl2.Unlock())
 
