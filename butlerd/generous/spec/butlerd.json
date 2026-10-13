@@ -2854,6 +2854,12 @@
             "doc": "Fill the dependency record of native candidates: imports, glibc\nversion, SDL version and how it is linked, display libraries\n(see LinuxInfo and WindowsInfo). Parses section tables of every\nnative executable in the install folder, so it costs more than\nthe default sniff; leave it off unless the client acts on it.",
             "type": "boolean",
             "optional": true
+          },
+          {
+            "name": "unpackedAppImages",
+            "doc": "The client runs an AppImage from a tree unpacked next to it\n(X.AppImage.d/AppRun) rather than mounting the image. An image\nwhose tree has an AppRun is left out of the targets so the AppRun\nis listed in its place.",
+            "type": "boolean",
+            "optional": true
           }
         ]
       },
@@ -2930,6 +2936,12 @@
             "name": "runtimes",
             "doc": "Payload flavors the client runs with a runtime of its own, as for\n@@LaunchGetTargetsParams. Matching payloads become targets with the\n@@LaunchStrategyRuntime strategy, which are launched by asking the\nclient (@@RuntimeLaunchParams). Pass the same list that produced the\ntarget being launched, or the target will not be found.",
             "type": "string[]",
+            "optional": true
+          },
+          {
+            "name": "unpackedAppImages",
+            "doc": "Pass the same value that produced the target being launched, see\n@@LaunchGetTargetsParams.",
+            "type": "boolean",
             "optional": true
           },
           {
@@ -7383,6 +7395,12 @@
           "optional": true
         },
         {
+          "name": "appImage",
+          "doc": "True when the executable is an AppImage: a runtime stub with the\napplication packed behind it. The rest of this record describes\nthe stub, not the application. Running it needs FUSE unless the\nimage is unpacked first.",
+          "type": "boolean",
+          "optional": true
+        },
+        {
           "name": "interpreter",
           "doc": "Program interpreter (PT_INTERP), such as /lib/ld-linux-armhf.so.3\nor /lib/ld-musl-aarch64.so.1. Names the C library and ABI the\nexecutable was linked against. Only filled when DeepProbe is set.",
           "type": "string",
@@ -7421,6 +7439,12 @@
         {
           "name": "sdlDynamicApi",
           "doc": "True when a bundled SDL kept its dynamic API, the hook that lets a\nhost substitute its own SDL at load time (SDL_DYNAMIC_API).",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "sdlShipped",
+          "doc": "True when the SDL the executable imports ships with it, as a\nlibrary next to it or in a lib directory. Display then includes\nthat library's backends. Only filled when DeepProbe is set.",
           "type": "boolean",
           "optional": true
         },

@@ -70,9 +70,10 @@ func Launch(rc *butlerd.RequestContext, params butlerd.LaunchParams) (*butlerd.L
 			runtimes = append(runtimes, dash.Flavor(r))
 		}
 		targetRes, err := getTargets(rc, getTargetsParams{
-			info:     info,
-			hosts:    hosts,
-			runtimes: runtimes,
+			info:              info,
+			hosts:             hosts,
+			runtimes:          runtimes,
+			unpackedAppImages: params.UnpackedAppImages,
 		})
 		if err != nil {
 			return err

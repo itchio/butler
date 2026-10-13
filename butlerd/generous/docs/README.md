@@ -8153,6 +8153,15 @@ native executable in the install folder, so it costs more than
 the default sniff; leave it off unless the client acts on it.</p>
 </td>
 </tr>
+<tr>
+<td><code>unpackedAppImages</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> The client runs an AppImage from a tree unpacked next to it
+(X.AppImage.d/AppRun) rather than mounting the image. An image
+whose tree has an AppRun is left out of the targets so the AppRun
+is listed in its place.</p>
+</td>
+</tr>
 </table>
 
 
@@ -8200,6 +8209,10 @@ transient.</p>
 </tr>
 <tr>
 <td><code>deepProbe</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>unpackedAppImages</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 </table>
@@ -8321,6 +8334,13 @@ target being launched, or the target will not be found.</p>
 </td>
 </tr>
 <tr>
+<td><code>unpackedAppImages</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> Pass the same value that produced the target being launched, see
+<code class="typename"><span class="type" data-tip-selector="#LaunchGetTargetsParams__TypeHint">Launch.GetTargets</span></code>.</p>
+</td>
+</tr>
+<tr>
 <td><code>defaults</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#LaunchDefaults__TypeHint">LaunchDefaults</span></code></td>
 <td><p><span class="tag">Optional</span> Client-supplied defaults for knobs that both the explicit params and
@@ -8389,6 +8409,10 @@ whole.</p>
 <tr>
 <td><code>runtimes</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
+</tr>
+<tr>
+<td><code>unpackedAppImages</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>
 <td><code>defaults</code></td>
@@ -16731,6 +16755,15 @@ build) or &ldquo;eabi&rdquo; (soft-float). Empty for other architectures.</p>
 </td>
 </tr>
 <tr>
+<td><code>appImage</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when the executable is an AppImage: a runtime stub with the
+application packed behind it. The rest of this record describes
+the stub, not the application. Running it needs FUSE unless the
+image is unpacked first.</p>
+</td>
+</tr>
+<tr>
 <td><code>interpreter</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td><p><span class="tag">Optional</span> Program interpreter (PT_INTERP), such as /lib/ld-linux-armhf.so.3
@@ -16781,6 +16814,14 @@ host substitute its own SDL at load time (SDL_DYNAMIC_API).</p>
 </td>
 </tr>
 <tr>
+<td><code>sdlShipped</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+<td><p><span class="tag">Optional</span> True when the SDL the executable imports ships with it, as a
+library next to it or in a lib directory. Display then includes
+that library&rsquo;s backends. Only filled when DeepProbe is set.</p>
+</td>
+</tr>
+<tr>
 <td><code>display</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span>[]</code></td>
 <td><p><span class="tag">Optional</span> Windowing and graphics libraries the executable, or the SDL it
@@ -16821,6 +16862,10 @@ Only filled when DeepProbe is set.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
 <tr>
+<td><code>appImage</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
 <td><code>interpreter</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 </tr>
@@ -16846,6 +16891,10 @@ Only filled when DeepProbe is set.</p>
 </tr>
 <tr>
 <td><code>sdlDynamicApi</code></td>
+<td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
+</tr>
+<tr>
+<td><code>sdlShipped</code></td>
 <td><code class="typename"><span class="type builtin-type">boolean</span></code></td>
 </tr>
 <tr>

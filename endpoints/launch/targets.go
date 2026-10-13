@@ -31,10 +31,11 @@ func GetTargets(rc *butlerd.RequestContext, params butlerd.LaunchGetTargetsParam
 	}
 
 	targetRes, err := getTargets(rc, getTargetsParams{
-		info:      info,
-		hosts:     hosts,
-		runtimes:  runtimes,
-		deepProbe: params.DeepProbe,
+		info:              info,
+		hosts:             hosts,
+		runtimes:          runtimes,
+		deepProbe:         params.DeepProbe,
+		unpackedAppImages: params.UnpackedAppImages,
 	})
 	if err != nil {
 		return nil, err

@@ -3409,6 +3409,13 @@ type LaunchGetTargetsParams struct {
 	// the default sniff; leave it off unless the client acts on it.
 	// @optional
 	DeepProbe bool `json:"deepProbe,omitempty"`
+
+	// The client runs an AppImage from a tree unpacked next to it
+	// (X.AppImage.d/AppRun) rather than mounting the image. An image
+	// whose tree has an AppRun is left out of the targets so the AppRun
+	// is listed in its place.
+	// @optional
+	UnpackedAppImages bool `json:"unpackedAppImages,omitempty"`
 }
 
 func (p LaunchGetTargetsParams) Validate() error {
@@ -3493,6 +3500,11 @@ type LaunchParams struct {
 	// target being launched, or the target will not be found.
 	// @optional
 	Runtimes []string `json:"runtimes,omitempty"`
+
+	// Pass the same value that produced the target being launched, see
+	// @@LaunchGetTargetsParams.
+	// @optional
+	UnpackedAppImages bool `json:"unpackedAppImages,omitempty"`
 
 	// Client-supplied defaults for knobs that both the explicit params and
 	// the cave's settings leave unset, typically sourced from a frontend's

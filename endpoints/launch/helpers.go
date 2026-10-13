@@ -140,6 +140,8 @@ type getTargetsParams struct {
 	runtimes []dash.Flavor
 	// fill imports, glibc, SDL and display info on native candidates
 	deepProbe bool
+	// list an unpacked AppImage's AppRun instead of the image
+	unpackedAppImages bool
 }
 
 type getTargetsResult struct {
@@ -192,7 +194,7 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 	contentUpload := upload != nil && isContentUploadType(upload.Type)
 
 	for _, host := range params.hosts {
-		hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host, params.runtimes)
+		hostTargets, err := getTargetsForHost(rc, upload, appManifest, verdict, info, host, params.runtimes, params.unpackedAppImages)
 		if err != nil {
 			if !contentUpload {
 				return nil, err
@@ -253,6 +255,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	info withInstallFolderInfo,
 	host manager.Host,
 	runtimes []dash.Flavor,
+	unpackedAppImages bool,
 ) ([]*butlerd.LaunchTarget, error) {
 	consumer := rc.Consumer
 	consumer.Opf("Seeking launch targets for host (%s)", host)
@@ -362,6 +365,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 	if nativeHost {
 		// the client's runtimes only exist on the machine it runs on
 		filterParams.Runtimes = runtimes
+		filterParams.UnpackedAppImages = unpackedAppImages
 	}
 
 	v2 := verdict.Filter(consumer, filterParams)
