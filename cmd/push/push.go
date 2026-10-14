@@ -277,11 +277,19 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	newPatchRes := bothFiles.patchRes
 	newSignatureRes := bothFiles.signatureRes
 
-	patchWriter := uploader.NewResumableUpload(newPatchRes.File.UploadURL)
-	patchWriter.SetConsumer(consumer)
+	// assigned below, once the counters it reads exist
+	var updateProgress func()
+	var patchUploadedBytes int64
 
-	signatureWriter := uploader.NewResumableUpload(newSignatureRes.File.UploadURL)
-	signatureWriter.SetConsumer(consumer)
+	patchWriter := uploader.NewResumableUpload(ctx.Ctx(), newPatchRes.File.UploadURL,
+		uploader.WithConsumer(consumer),
+		uploader.WithProgressListener(func(count int64) {
+			patchUploadedBytes = count
+			updateProgress()
+		}))
+
+	signatureWriter := uploader.NewResumableUpload(ctx.Ctx(), newSignatureRes.File.UploadURL,
+		uploader.WithConsumer(consumer))
 
 	comm.Debugf("Launching patch & signature channels")
 
@@ -295,10 +303,9 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	var bytesPerSec float64
 	var lastUploadedBytes int64
-	var patchUploadedBytes int64
 
 	stopTicking := make(chan struct{})
-	updateProgress := func() {
+	updateProgress = func() {
 		// input bytes that aren't in output, for example:
 		//  - bytes that have been compressed away
 		//  - bytes that were in old build and were simply reused
@@ -334,11 +341,6 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 		comm.ProgressScale(float64(readBytes) / float64(sourceContainer.Size))
 	}
-
-	patchWriter.SetProgressListener(func(count int64) {
-		patchUploadedBytes = count
-		updateProgress()
-	})
 
 	go func() {
 		ticker := time.NewTicker(time.Second * time.Duration(2))

@@ -126,8 +126,8 @@ github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344/go.mod h1:0AdJ5AtSRdW
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4 h1:vOYjkMs+aVNeHU0d6MCctyEyxn02n0l3Zw6dsU9AsEs=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4/go.mod h1:1/4tbTrV3G/Su53pnKBpa5mv3cVkLweRAq/xRnulSQI=
-github.com/itchio/httpkit v0.0.0-20261014185922-adb72617054f h1:YMW1PvD7XXoMBB/A5kvWoXUAAyvlYudYMAKSsTAOBEg=
-github.com/itchio/httpkit v0.0.0-20261014185922-adb72617054f/go.mod h1:rbLr08UlPVYgoXuj3ZoCCZtWO8WtCtArM4/Eti+CXi4=
+github.com/itchio/httpkit v0.0.0-20261014203241-1452ce76013a h1:o7HIv/dtyPyD9sC8bSxEbOqZhjrkfCKPadvN/79lJik=
+github.com/itchio/httpkit v0.0.0-20261014203241-1452ce76013a/go.mod h1:rbLr08UlPVYgoXuj3ZoCCZtWO8WtCtArM4/Eti+CXi4=
 github.com/itchio/hush v0.0.0-20261014190443-8dfa626388f6 h1:K0ADUm2UCH9HLeqVqvDQGJgB9fFyJZfELCslstqKhMw=
 github.com/itchio/hush v0.0.0-20261014190443-8dfa626388f6/go.mod h1:FqxkeHtZMGuSv7ee109PFismL9Aa1eYWRq/uEcSvtZk=
 github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d h1:kV/P1stWMCvoSmt+dxCY8xzQmoRSBKo3vqHM8u7OV9s=
