@@ -239,6 +239,7 @@ func Do(params *Params) error {
 		}
 
 		targetPool := fspool.New(targetSignature.Container, params.Target)
+		defer targetPool.Close()
 
 		bwl, err := bowl.NewPoolBowl(bowl.PoolBowlParams{
 			TargetContainer: pat.GetTargetContainer(),

@@ -148,6 +148,7 @@ func Do(params Params) error {
 	})
 
 	targetPool := fspool.New(p.GetTargetContainer(), old)
+	defer targetPool.Close()
 
 	var bwl bowl.Bowl
 	if dir != "" {

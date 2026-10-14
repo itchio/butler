@@ -206,6 +206,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	if err != nil {
 		return errors.WithMessage(err, "while creating safekeeper for patch")
 	}
+	defer targetPool.Close()
 
 	stageFolder := filepath.Join(params.StagingFolder, "patch-overlay")
 
