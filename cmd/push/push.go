@@ -1,11 +1,13 @@
 package push
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/itchio/httpkit/eos"
@@ -277,18 +279,23 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	newPatchRes := bothFiles.patchRes
 	newSignatureRes := bothFiles.signatureRes
 
+	// an early return must stop both uploads, since the process may go
+	// on to push something else (steam-sync runs several in a row)
+	pushCtx, cancelPush := context.WithCancel(ctx.Ctx())
+	defer cancelPush()
+
 	// assigned below, once the counters it reads exist
 	var updateProgress func()
 	var patchUploadedBytes int64
 
-	patchWriter := uploader.NewResumableUpload(ctx.Ctx(), newPatchRes.File.UploadURL,
+	patchWriter := uploader.NewResumableUpload(pushCtx, newPatchRes.File.UploadURL,
 		uploader.WithConsumer(consumer),
 		uploader.WithProgressListener(func(count int64) {
 			patchUploadedBytes = count
 			updateProgress()
 		}))
 
-	signatureWriter := uploader.NewResumableUpload(ctx.Ctx(), newSignatureRes.File.UploadURL,
+	signatureWriter := uploader.NewResumableUpload(pushCtx, newSignatureRes.File.UploadURL,
 		uploader.WithConsumer(consumer))
 
 	comm.Debugf("Launching patch & signature channels")
@@ -305,6 +312,8 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	var lastUploadedBytes int64
 
 	stopTicking := make(chan struct{})
+	stopTicker := sync.OnceFunc(func() { close(stopTicking) })
+	defer stopTicker()
 	updateProgress = func() {
 		// input bytes that aren't in output, for example:
 		//  - bytes that have been compressed away
@@ -344,6 +353,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	go func() {
 		ticker := time.NewTicker(time.Second * time.Duration(2))
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
@@ -380,14 +390,14 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	comm.StartProgress()
 	comm.ProgressScale(0.0)
-	err = dctx.WritePatch(ctx.Ctx(), patchCounter, signatureCounter)
+	err = dctx.WritePatch(pushCtx, patchCounter, signatureCounter)
 	if err != nil {
 		return errors.Wrap(err, "computing and writing patch")
 	}
 
 	// close both files concurrently
 	{
-		errs := make(chan error)
+		errs := make(chan error, 2)
 
 		go func() {
 			errs <- patchWriter.Close()
@@ -405,12 +415,12 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		}
 	}
 
-	close(stopTicking)
+	stopTicker()
 	comm.ProgressLabel("finalizing build")
 
 	// finalize both files concurrently
 	{
-		errs := make(chan error)
+		errs := make(chan error, 2)
 
 		doFinalize := func(fileID int64, fileSize int64, done chan error) {
 			requestCtx, cancel := ctx.DefaultCtx()
