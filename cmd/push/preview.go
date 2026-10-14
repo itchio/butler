@@ -1,8 +1,6 @@
 package push
 
 import (
-	"context"
-
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/filtering"
 	"github.com/itchio/butler/mansion"
@@ -66,7 +64,7 @@ func DoPreview(ctx *mansion.Context, buildPath string, specStr string, changesOn
 		walkOpts.AutoWrap(&buildPath, consumer)
 	}
 
-	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
+	go doWalk(ctx.Ctx(), buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
@@ -128,7 +126,7 @@ func DoPreview(ctx *mansion.Context, buildPath string, specStr string, changesOn
 			return errors.Wrap(err, "getting previous build signature")
 		}
 
-		result, err = compareContainers(context.Background(), walkies.container, walkies.pool, targetSig, consumer)
+		result, err = compareContainers(ctx.Ctx(), walkies.container, walkies.pool, targetSig, consumer)
 		if err != nil {
 			return errors.Wrap(err, "comparing containers")
 		}

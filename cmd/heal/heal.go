@@ -35,14 +35,14 @@ type Params struct {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(&Params{
+	ctx.Must(Do(ctx.Ctx(), &Params{
 		Dir:        *args.dir,
 		WoundsPath: *args.wounds,
 		HealSpec:   *args.spec,
 	}))
 }
 
-func Do(params *Params) error {
+func Do(ctx context.Context, params *Params) error {
 	dir := params.Dir
 	woundsPath := params.WoundsPath
 	spec := params.HealSpec
@@ -94,18 +94,18 @@ func Do(params *Params) error {
 	comm.StartProgress()
 
 	go func() {
-		errs <- healer.Do(context.Background(), container, wounds)
+		errs <- healer.Do(ctx, container, wounds)
 	}()
 
 	wound := &pwr.Wound{}
 	for {
 		wound.Reset()
 		err = rctx.ReadMessage(wound)
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			if err == io.EOF {
-				// all good
-				break
-			}
+			return errors.Wrap(err, "reading wound")
 		}
 
 		select {
@@ -123,6 +123,10 @@ func Do(params *Params) error {
 
 	if healErr != nil {
 		return errors.WithStack(healErr)
+	}
+	// the healer returns nil when cancelled
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 
 	comm.Opf("All healed!")

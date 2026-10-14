@@ -1,7 +1,6 @@
 package elfprops
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/itchio/butler/comm"
@@ -24,7 +23,7 @@ func Register(ctx *mansion.Context) {
 func do(ctx *mansion.Context) {
 	consumer := comm.NewStateConsumer()
 
-	f, err := eos.Open(context.Background(), args.path, option.WithConsumer(consumer))
+	f, err := eos.Open(ctx.Ctx(), args.path, option.WithConsumer(consumer))
 	ctx.Must(err)
 	defer f.Close()
 

@@ -51,7 +51,7 @@ type Params struct {
 }
 
 func do(ctx *mansion.Context) {
-	verdict, err := Do(Params{
+	verdict, err := Do(ctx.Ctx(), Params{
 		Path:       args.path,
 		ShowSpell:  args.showSpell,
 		OsFilter:   args.osFilter,
@@ -68,7 +68,7 @@ func do(ctx *mansion.Context) {
 	})
 }
 
-func Do(params Params) (*dash.Verdict, error) {
+func Do(ctx context.Context, params Params) (*dash.Verdict, error) {
 	consumer := params.Consumer
 
 	root := params.Path
@@ -80,7 +80,7 @@ func Do(params Params) (*dash.Verdict, error) {
 		stats = &dash.VerdictStats{}
 	}
 
-	verdict, err := dash.Configure(context.Background(), root, dash.ConfigureParams{
+	verdict, err := dash.Configure(ctx, root, dash.ConfigureParams{
 		Consumer:  consumer,
 		Filter:    filtering.FilterPaths,
 		Stats:     stats,

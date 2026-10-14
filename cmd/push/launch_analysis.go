@@ -16,8 +16,8 @@ import (
 // scanBuildLaunchAnalysis builds the launch report push sends with
 // CreateBuild. It opens its own pool so the scan's zip spool is released
 // before the upload starts.
-func scanBuildLaunchAnalysis(buildPath string, container *tlc.Container, consumer *state.Consumer) *itchio.BuildLaunchAnalysis {
-	pool, err := pools.New(context.Background(), container, buildPath)
+func scanBuildLaunchAnalysis(ctx context.Context, buildPath string, container *tlc.Container, consumer *state.Consumer) *itchio.BuildLaunchAnalysis {
+	pool, err := pools.New(ctx, container, buildPath)
 	if err != nil {
 		consumer.Warnf("Could not open launch scan pool; continuing upload without launch analysis: %v", err)
 		return nil

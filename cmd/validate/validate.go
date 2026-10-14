@@ -48,10 +48,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func doValidate(ctx *mansion.Context) {
-	ctx.Must(Validate(comm.NewStateConsumer()))
+	ctx.Must(Validate(ctx.Ctx(), comm.NewStateConsumer()))
 }
 
-func Validate(consumer *state.Consumer) error {
+func Validate(ctx context.Context, consumer *state.Consumer) error {
 	banner := func(banner string, msg string, args ...interface{}) {
 		consumer.Infof("")
 		consumer.Infof("================== %s ==================", banner)
@@ -115,7 +115,7 @@ func Validate(consumer *state.Consumer) error {
 		consumer.Infof("")
 		consumer.Infof("Heuristics will be used to launch your project.")
 		if hasDir {
-			verdict, err := manager.Configure(consumer, dir, runtime)
+			verdict, err := manager.Configure(ctx, consumer, dir, runtime)
 			if err != nil {
 				return errors.Wrapf(err, "automatically determing launch targets for %s", dir)
 			}
@@ -243,7 +243,7 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("    Passes arguments: %s", strings.Join(action.Args, " ::: "))
 			}
 			if hasDir {
-				target, err := launch.ActionToLaunchTarget(context.Background(), consumer, host, dir, action)
+				target, err := launch.ActionToLaunchTarget(ctx, consumer, host, dir, action)
 				if err != nil {
 					showError("%s", err.Error())
 				} else {
@@ -264,7 +264,7 @@ func Validate(consumer *state.Consumer) error {
 		consumer.Statf("Validating %d prereqs...", len(appManifest.Prereqs))
 		consumer.Infof("")
 
-		regFile, err := eos.Open(context.Background(), "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(consumer))
+		regFile, err := eos.Open(ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(consumer))
 		if err != nil {
 			return errors.Wrap(err, "opening prereqs registry")
 		}

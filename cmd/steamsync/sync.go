@@ -58,7 +58,7 @@ func doSync(ctx *mansion.Context) {
 }
 
 func Sync(ctx *mansion.Context) error {
-	goCtx, cancel := context.WithCancel(context.Background())
+	goCtx, cancel := context.WithCancel(ctx.Ctx())
 	defer cancel()
 
 	entries, err := resolveEntries(syncRequest{
@@ -79,6 +79,9 @@ func Sync(ctx *mansion.Context) error {
 	warnUngated()
 	var failed []string
 	for _, e := range entries {
+		if err := goCtx.Err(); err != nil {
+			return err
+		}
 		if len(entries) > 1 {
 			comm.Opf("Syncing app %d to %s", e.App, e.Target)
 		}

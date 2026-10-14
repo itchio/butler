@@ -77,7 +77,7 @@ func do(mc *mansion.Context) {
 	consumer := comm.NewStateConsumer()
 
 	consumer.Opf("Running diagnostics...")
-	ctx := context.Background()
+	ctx := mc.Ctx()
 
 	numProblems := 0
 
@@ -135,7 +135,7 @@ func do(mc *mansion.Context) {
 				return "", err
 			}
 
-			f, err := eos.Open(context.Background(), exe)
+			f, err := eos.Open(ctx, exe)
 			if err != nil {
 				return "", err
 			}
@@ -217,7 +217,7 @@ func do(mc *mansion.Context) {
 		})
 
 		runTest("eos Copy", func() (string, error) {
-			f, err := eos.Open(context.Background(), testFileURL)
+			f, err := eos.Open(ctx, testFileURL)
 			if err != nil {
 				return "", err
 			}
@@ -242,7 +242,7 @@ func do(mc *mansion.Context) {
 				return "", err
 			}
 
-			f, err := eos.Open(context.Background(), testFileURL)
+			f, err := eos.Open(ctx, testFileURL)
 			if err != nil {
 				return "", err
 			}
@@ -262,7 +262,7 @@ func do(mc *mansion.Context) {
 			}
 			defer os.RemoveAll(d)
 
-			f, err := eos.Open(context.Background(), testFileURL)
+			f, err := eos.Open(ctx, testFileURL)
 			if err != nil {
 				return "", err
 			}

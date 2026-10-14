@@ -531,7 +531,7 @@ func (sc *scanContext) importLegacyCavePanics(legacyCave *legacyCave, files []st
 
 	runtime := ox.CurrentRuntime()
 	consumer.Opf("Configuring cave for %s", runtime)
-	verdict, err := manager.Configure(consumer, InstallFolder, runtime)
+	verdict, err := manager.Configure(rc.Ctx, consumer, InstallFolder, runtime)
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -57,7 +57,7 @@ func commitInstall(oc *OperationContext, params *CommitInstallParams) error {
 	cave := oc.cave
 	if cave != nil {
 		// TODO: pass runtime in params?
-		verdict, err := manager.Configure(consumer, params.InstallFolder, ox.CurrentRuntime())
+		verdict, err := manager.Configure(oc.Ctx(), consumer, params.InstallFolder, ox.CurrentRuntime())
 		if err != nil {
 			return errors.WithStack(err)
 		}

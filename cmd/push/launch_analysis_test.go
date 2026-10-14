@@ -153,13 +153,13 @@ func TestLaunchAnalysisUsesSeparatePool(t *testing.T) {
 			}
 			results := make(chan walkResult, 1)
 			errs := make(chan error, 1)
-			doWalk(src, results, errs, true, tlc.WalkOpts{Filter: filtering.FilterPaths})
+			doWalk(context.Background(), src, results, errs, true, tlc.WalkOpts{Filter: filtering.FilterPaths})
 			select {
 			case err := <-errs:
 				t.Fatal(err)
 			case result := <-results:
 				defer result.pool.Close()
-				if scanBuildLaunchAnalysis(src, result.container, &state.Consumer{}) == nil {
+				if scanBuildLaunchAnalysis(context.Background(), src, result.container, &state.Consumer{}) == nil {
 					t.Fatal("scan failed")
 				}
 				r, err := result.pool.GetReader(0)
@@ -204,7 +204,7 @@ func TestLaunchAnalysisClosesZipSpool(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report := scanBuildLaunchAnalysis(archivePath, container, &state.Consumer{})
+	report := scanBuildLaunchAnalysis(context.Background(), archivePath, container, &state.Consumer{})
 	if report == nil {
 		t.Fatal("scan failed")
 	}
@@ -277,7 +277,7 @@ func TestLaunchAnalysisDereferencedSymlink(t *testing.T) {
 	}
 	results := make(chan walkResult, 1)
 	errs := make(chan error, 1)
-	doWalk(root, results, errs, true, tlc.WalkOpts{Filter: filtering.FilterPaths, Dereference: true})
+	doWalk(context.Background(), root, results, errs, true, tlc.WalkOpts{Filter: filtering.FilterPaths, Dereference: true})
 	select {
 	case err := <-errs:
 		t.Fatal(err)

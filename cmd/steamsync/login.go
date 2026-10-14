@@ -43,6 +43,8 @@ func doLogin(ctx *mansion.Context) {
 }
 
 func Login(ctx *mansion.Context, usePassword bool, user string, noSave bool) error {
+	// Not ctx.Ctx(): stdin prompts can't be cancelled, so the default
+	// Ctrl-C handling must stay in place.
 	goCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -164,9 +166,6 @@ func doKey(ctx *mansion.Context) {
 }
 
 func Key(ctx *mansion.Context, key string) error {
-	goCtx, cancel := ctx.DefaultCtx()
-	defer cancel()
-
 	if key == "" {
 		comm.Logf("Create a publisher Web API key at https://partner.steamgames.com/pub/groups/ under your publisher group.")
 		var err error
@@ -178,6 +177,9 @@ func Key(ctx *mansion.Context, key string) error {
 	if key == "" {
 		return errors.New("no key given")
 	}
+
+	goCtx, cancel := ctx.DefaultCtx()
+	defer cancel()
 
 	st := store(ctx)
 	warnUngated()

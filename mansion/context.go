@@ -6,7 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/itchio/butler/buildinfo"
@@ -58,6 +61,9 @@ type Context struct {
 
 	// ClientLogger, when set, is passed to go-itchio clients for HTTP debug logging
 	ClientLogger *slog.Logger
+
+	ctx     context.Context
+	ctxOnce sync.Once
 
 	// url of the itch.io API server we're talking to
 	apiAddress string
@@ -131,8 +137,39 @@ func (ctx *Context) CompressionSettings() pwr.CompressionSettings {
 	}
 }
 
+// Ctx is cancelled by the first SIGINT or SIGTERM, after which the
+// default handling is restored so a second signal kills the process even
+// if the command ignores cancellation. Signals are only caught once Ctx
+// or DefaultCtx is first called, since daemon and launch install their
+// own handlers.
+func (ctx *Context) Ctx() context.Context {
+	ctx.ctxOnce.Do(func() {
+		var cancel context.CancelFunc
+		ctx.ctx, cancel = context.WithCancel(context.Background())
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			sig := <-sigs
+			signal.Stop(sigs)
+			comm.Warnf("Got %s, stopping (send again to force)", sig)
+			cancel()
+		}()
+	})
+	return ctx.ctx
+}
+
 func (ctx *Context) DefaultCtx() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), time.Duration(ctx.ContextTimeout)*time.Second)
+	return context.WithTimeout(ctx.Ctx(), ctx.requestTimeout())
+}
+
+// DetachedCtx is for cleanup requests that must still go out after the
+// command has been interrupted.
+func (ctx *Context) DetachedCtx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), ctx.requestTimeout())
+}
+
+func (ctx *Context) requestTimeout() time.Duration {
+	return time.Duration(ctx.ContextTimeout) * time.Second
 }
 
 func (ctx *Context) SetClientLogger(logger *slog.Logger) {

@@ -1,7 +1,6 @@
 package push
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -129,7 +128,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		walkOpts.AutoWrap(&buildPath, consumer)
 	}
 
-	go doWalk(buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
+	go doWalk(ctx.Ctx(), buildPath, sourceContainerChan, walkErrs, fixPerms, walkOpts)
 
 	spec, err := itchio.ParseSpec(specStr)
 	if err != nil {
@@ -204,7 +203,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 				return errors.Wrap(err, "getting previous build signature")
 			}
 
-			err = pwr.AssertValid(context.Background(), buildPath, sig)
+			err = pwr.AssertValid(ctx.Ctx(), buildPath, sig)
 			if err == nil {
 				comm.Statf("No changes and --if-changed used, not pushing anything")
 				pushResult(0, spec.Channel, false, true, "if-changed")
@@ -227,7 +226,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	comm.Opf("Scanning launch targets...")
-	launchAnalysis := scanBuildLaunchAnalysis(buildPath, sourceContainer, consumer)
+	launchAnalysis := scanBuildLaunchAnalysis(ctx.Ctx(), buildPath, sourceContainer, consumer)
 
 	requestCtx, cancel := ctx.DefaultCtx()
 	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{
@@ -379,7 +378,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 
 	comm.StartProgress()
 	comm.ProgressScale(0.0)
-	err = dctx.WritePatch(context.Background(), patchCounter, signatureCounter)
+	err = dctx.WritePatch(ctx.Ctx(), patchCounter, signatureCounter)
 	if err != nil {
 		return errors.Wrap(err, "computing and writing patch")
 	}
@@ -469,13 +468,12 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 // reportBuildFailure marks a build as failed on the server so it doesn't
 // get stuck in "started" state forever. Best-effort: any error from the
 // API call is logged as a warning but does not shadow the original push
-// error. We use ctx.DefaultCtx (which is rooted in context.Background)
-// so an upstream cancellation doesn't prevent the failure from being
-// reported.
+// error. It uses ctx.DetachedCtx so an interrupted push still reports
+// the failure.
 func reportBuildFailure(ctx *mansion.Context, client *itchio.Client, buildID int64, channel string, pushErr error) {
 	msg := pushErr.Error()
 
-	requestCtx, cancel := ctx.DefaultCtx()
+	requestCtx, cancel := ctx.DetachedCtx()
 	_, err := client.CreateBuildFailure(requestCtx, itchio.CreateBuildFailureParams{
 		BuildID: buildID,
 		Message: msg,
@@ -528,7 +526,7 @@ func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.C
 		FileID:  signatureFile.ID,
 	})
 
-	signatureReader, err := eos.Open(context.Background(), signatureURL, option.WithConsumer(consumer))
+	signatureReader, err := eos.Open(ctx.Ctx(), signatureURL, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.Wrap(err, "opening signature")
 	}
@@ -541,7 +539,7 @@ func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.C
 		return nil, errors.Wrap(err, "opening signature")
 	}
 
-	signature, err := pwr.ReadSignature(context.Background(), signatureSource)
+	signature, err := pwr.ReadSignature(ctx.Ctx(), signatureSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "reading signature")
 	}

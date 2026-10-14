@@ -114,7 +114,7 @@ func InstallAdopt(rc *butlerd.RequestContext, params butlerd.InstallAdoptParams)
 	}
 
 	consumer.Opf("Configuring adopted folder for %s", ox.CurrentRuntime())
-	verdict, err := manager.Configure(consumer, installFolder, ox.CurrentRuntime())
+	verdict, err := manager.Configure(rc.Ctx, consumer, installFolder, ox.CurrentRuntime())
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

@@ -1,7 +1,6 @@
 package probe
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -67,7 +66,7 @@ func Do(ctx *mansion.Context, patch string) error {
 func doPrimaryAnalysis(ctx *mansion.Context, patch string) ([]patchStat, error) {
 	consumer := comm.NewStateConsumer()
 
-	patchReader, err := eos.Open(context.Background(), patch, option.WithConsumer(consumer))
+	patchReader, err := eos.Open(ctx.Ctx(), patch, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -379,7 +378,7 @@ func doDeepAnalysis(ctx *mansion.Context, patch string, patchStats []patchStat) 
 
 	comm.Statf("Now deep-diving into %d touched files", numTouched)
 
-	patchReader, err := eos.Open(context.Background(), patch, option.WithConsumer(consumer))
+	patchReader, err := eos.Open(ctx.Ctx(), patch, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

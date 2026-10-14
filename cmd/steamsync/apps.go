@@ -56,7 +56,7 @@ func Apps(ctx *mansion.Context) error {
 }
 
 func OwnedApps(ctx *mansion.Context) error {
-	goCtx, cancel := context.WithCancel(context.Background())
+	goCtx, cancel := context.WithCancel(ctx.Ctx())
 	defer cancel()
 
 	s, err := openSession(ctx, goCtx)

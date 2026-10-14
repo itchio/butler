@@ -293,6 +293,8 @@ func (ctx *Context) AuthenticateViaOauth() (*itchio.Client, error) {
 		}()
 
 		select {
+		case <-ctx.Ctx().Done():
+			return nil, ctx.Ctx().Err()
 		case err = <-errs:
 			return nil, errors.WithStack(err)
 		case key = <-done:

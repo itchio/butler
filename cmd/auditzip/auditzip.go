@@ -35,11 +35,11 @@ func Register(ctx *mansion.Context) {
 
 func do(ctx *mansion.Context) {
 	consumer := comm.NewStateConsumer()
-	ctx.Must(Do(consumer, *args.file, *args.upstream))
+	ctx.Must(Do(ctx.Ctx(), consumer, *args.file, *args.upstream))
 }
 
-func Do(consumer *state.Consumer, file string, upstream bool) error {
-	f, err := eos.Open(context.Background(), file, option.WithConsumer(consumer))
+func Do(ctx context.Context, consumer *state.Consumer, file string, upstream bool) error {
+	f, err := eos.Open(ctx, file, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

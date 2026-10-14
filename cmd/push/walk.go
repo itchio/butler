@@ -2,6 +2,7 @@ package push
 
 import (
 	"context"
+
 	"github.com/itchio/lake"
 	"github.com/itchio/lake/pools"
 	"github.com/itchio/lake/tlc"
@@ -14,14 +15,14 @@ type walkResult struct {
 	pool      lake.Pool
 }
 
-func doWalk(path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts tlc.WalkOpts) {
-	container, err := tlc.WalkAny(context.Background(), path, walkOpts)
+func doWalk(ctx context.Context, path string, out chan walkResult, errs chan error, fixPerms bool, walkOpts tlc.WalkOpts) {
+	container, err := tlc.WalkAny(ctx, path, walkOpts)
 	if err != nil {
 		errs <- errors.WithStack(err)
 		return
 	}
 
-	pool, err := pools.New(context.Background(), container, path)
+	pool, err := pools.New(ctx, container, path)
 	if err != nil {
 		errs <- errors.WithStack(err)
 		return

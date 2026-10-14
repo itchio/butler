@@ -172,7 +172,7 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 		return nil, errors.WithStack(err)
 	}
 
-	verdict, err := configure.Do(configure.Params{
+	verdict, err := configure.Do(rc.Ctx, configure.Params{
 		Path:      installFolder,
 		NoFilter:  true,
 		DeepProbe: params.deepProbe,

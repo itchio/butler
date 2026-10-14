@@ -298,7 +298,7 @@ func TestConfigure_DeepProbe(t *testing.T) {
 	}
 
 	for _, deep := range []bool{false, true} {
-		verdict, err := configure.Do(configure.Params{
+		verdict, err := configure.Do(context.Background(), configure.Params{
 			Path:      installFolder,
 			NoFilter:  true,
 			DeepProbe: deep,

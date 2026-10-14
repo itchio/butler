@@ -53,7 +53,7 @@ func Register(ctx *mansion.Context) {
 func do(ctx *mansion.Context) {
 	params.Consumer = comm.NewStateConsumer()
 	for {
-		err := Do(params)
+		err := Do(ctx.Ctx(), params)
 		if errors.Cause(err) == patcher.ErrStop {
 			if params.SimulateRestart {
 				continue
@@ -64,7 +64,7 @@ func do(ctx *mansion.Context) {
 	}
 }
 
-func Do(params Params) error {
+func Do(ctx context.Context, params Params) error {
 	consumer := params.Consumer
 	startTime := time.Now()
 
@@ -79,7 +79,7 @@ func Do(params Params) error {
 		consumer.Opf("Patching %s (fresh)", dir)
 	}
 
-	patchSource, err := filesource.Open(context.Background(), patch, option.WithConsumer(comm.NewStateConsumer()))
+	patchSource, err := filesource.Open(ctx, patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
 		return errors.WithMessage(err, "opening patch")
 	}
@@ -118,7 +118,7 @@ func Do(params Params) error {
 	p.SetSaveConsumer(&patcherSaveConsumer{
 		shouldSave: func() bool {
 			consumer.Progress(p.Progress())
-			return time.Since(lastSaveTime) > saveInterval
+			return ctx.Err() != nil || time.Since(lastSaveTime) > saveInterval
 		},
 		save: func(c *patcher.Checkpoint) (patcher.AfterSaveAction, error) {
 			lastSaveTime = time.Now()
@@ -140,7 +140,7 @@ func Do(params Params) error {
 				return patcher.AfterSaveStop, errors.WithMessage(err, "committing checkpoint file")
 			}
 
-			if params.StopEarly || params.SimulateRestart {
+			if params.StopEarly || params.SimulateRestart || ctx.Err() != nil {
 				return patcher.AfterSaveStop, nil
 			}
 			return patcher.AfterSaveContinue, nil
@@ -177,6 +177,9 @@ func Do(params Params) error {
 		if errors.Cause(err) == patcher.ErrStop {
 			comm.EndProgress()
 			consumer.Statf("Stopped early! (@ %.2f%%)", p.Progress()*100.0)
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 			return err
 		}
 		return errors.WithMessage(err, "patching")
@@ -204,7 +207,7 @@ func Do(params Params) error {
 		united.FormatDuration(duration))
 
 	if params.Signature != "" {
-		sigSource, err := filesource.Open(context.Background(), params.Signature)
+		sigSource, err := filesource.Open(ctx, params.Signature)
 		if err != nil {
 			return err
 		}
@@ -212,7 +215,7 @@ func Do(params Params) error {
 
 		consumer.Opf("Verifying against signature...")
 
-		sigInfo, err := pwr.ReadSignature(context.Background(), sigSource)
+		sigInfo, err := pwr.ReadSignature(ctx, sigSource)
 		if err != nil {
 			return err
 		}
@@ -229,13 +232,13 @@ func Do(params Params) error {
 
 		comm.Progress(0.0)
 		comm.StartProgress()
-		err = vctx.Validate(context.Background(), outputDir, sigInfo)
+		err = vctx.Validate(ctx, outputDir, sigInfo)
 		comm.EndProgress()
 		if err != nil {
 			return err
 		}
 
-		err = pwr.AssertNoGhosts(context.Background(), outputDir, sigInfo)
+		err = pwr.AssertNoGhosts(ctx, outputDir, sigInfo)
 		if err != nil {
 			return err
 		}

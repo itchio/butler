@@ -2,7 +2,6 @@ package ls
 
 import (
 	"archive/tar"
-	"context"
 	"encoding/binary"
 	stderrors "errors"
 	"io"
@@ -48,7 +47,7 @@ func do(ctx *mansion.Context) {
 func Do(ctx *mansion.Context, inPath string) error {
 	consumer := comm.NewStateConsumer()
 
-	reader, err := eos.Open(context.Background(), inPath, option.WithConsumer(consumer))
+	reader, err := eos.Open(ctx.Ctx(), inPath, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

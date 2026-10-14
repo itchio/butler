@@ -37,19 +37,19 @@ func Register(ctx *mansion.Context) {
 
 func do(ctx *mansion.Context) {
 	compression := ctx.CompressionSettings()
-	ctx.Must(Do(*args.output, *args.signature, &compression, *args.fixPerms))
+	ctx.Must(Do(ctx.Ctx(), *args.output, *args.signature, &compression, *args.fixPerms))
 }
 
-func Do(output string, signature string, compression *pwr.CompressionSettings, fixPerms bool) error {
+func Do(ctx context.Context, output string, signature string, compression *pwr.CompressionSettings, fixPerms bool) error {
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.WalkAny(context.Background(), output, tlc.WalkOpts{Filter: filtering.FilterPaths})
+	container, err := tlc.WalkAny(ctx, output, tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, "walking directory to sign")
 	}
 
-	pool, err := pools.New(context.Background(), container, output)
+	pool, err := pools.New(ctx, container, output)
 	if err != nil {
 		return errors.Wrap(err, "creating pool for directory to sign")
 	}
@@ -81,7 +81,7 @@ func Do(output string, signature string, compression *pwr.CompressionSettings, f
 	sigWire.WriteMessage(container)
 
 	comm.StartProgress()
-	err = pwr.ComputeSignatureToWriter(context.Background(), container, pool, comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
+	err = pwr.ComputeSignatureToWriter(ctx, container, pool, comm.NewStateConsumer(), func(hash wsync.BlockHash) error {
 		return sigWire.WriteMessage(&pwr.BlockHash{
 			WeakHash:   hash.WeakHash,
 			StrongHash: hash.StrongHash,

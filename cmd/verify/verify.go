@@ -35,10 +35,10 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(args))
+	ctx.Must(Do(ctx.Ctx(), args))
 }
 
-func Do(args Args) error {
+func Do(ctx context.Context, args Args) error {
 	if args.WoundsPath == "" {
 		if args.HealPath == "" {
 			comm.Opf("Verifying %s", args.Dir)
@@ -54,7 +54,7 @@ func Do(args Args) error {
 	}
 	startTime := time.Now()
 
-	signatureReader, err := eos.Open(context.Background(), args.SignaturePath)
+	signatureReader, err := eos.Open(ctx, args.SignaturePath)
 	if err != nil {
 		return errors.Wrap(err, "opening signature file")
 	}
@@ -67,7 +67,7 @@ func Do(args Args) error {
 		return errors.WithStack(err)
 	}
 
-	signature, err := pwr.ReadSignature(context.Background(), signatureSource)
+	signature, err := pwr.ReadSignature(ctx, signatureSource)
 	if err != nil {
 		return errors.Wrap(err, "reading signature file")
 	}
@@ -80,7 +80,7 @@ func Do(args Args) error {
 
 	comm.StartProgressWithTotalBytes(signature.Container.Size)
 
-	err = vc.Validate(context.Background(), args.Dir, signature)
+	err = vc.Validate(ctx, args.Dir, signature)
 	if err != nil {
 		return errors.Wrap(err, "while validating")
 	}

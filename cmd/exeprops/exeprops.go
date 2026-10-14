@@ -1,7 +1,6 @@
 package exeprops
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/itchio/pelican"
@@ -24,7 +23,7 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	f, err := eos.Open(context.Background(), *args.path, option.WithConsumer(comm.NewStateConsumer()))
+	f, err := eos.Open(ctx.Ctx(), *args.path, option.WithConsumer(comm.NewStateConsumer()))
 	ctx.Must(err)
 	defer f.Close()
 

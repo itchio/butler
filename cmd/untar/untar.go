@@ -7,7 +7,6 @@
 package untar
 
 import (
-	"context"
 	"github.com/itchio/butler/comm"
 	"github.com/itchio/butler/mansion"
 	"github.com/itchio/wharf/archiver"
@@ -36,7 +35,7 @@ func Do(ctx *mansion.Context, file string, dir string) error {
 	}
 
 	comm.StartProgress()
-	res, err := archiver.ExtractTar(context.Background(), file, dir, settings)
+	res, err := archiver.ExtractTar(ctx.Ctx(), file, dir, settings)
 	comm.EndProgress()
 
 	if err != nil {

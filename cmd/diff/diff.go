@@ -58,10 +58,10 @@ func Register(ctx *mansion.Context) {
 func do(ctx *mansion.Context) {
 	compression := ctx.CompressionSettings()
 	params.Compression = &compression
-	ctx.Must(Do(&params))
+	ctx.Must(Do(ctx.Ctx(), &params))
 }
 
-func Do(params *Params) error {
+func Do(ctx context.Context, params *Params) error {
 	var err error
 
 	startTime := time.Now()
@@ -83,7 +83,7 @@ func Do(params *Params) error {
 
 	readAsSignature := func() error {
 		// Signature file perhaps?
-		signatureReader, err := eos.Open(context.Background(), params.Target, option.WithConsumer(comm.NewStateConsumer()))
+		signatureReader, err := eos.Open(ctx, params.Target, option.WithConsumer(comm.NewStateConsumer()))
 		if err != nil {
 			return errors.Wrap(err, "opening target")
 		}
@@ -100,7 +100,7 @@ func Do(params *Params) error {
 			return errors.Wrap(err, "opening target")
 		}
 
-		readSignature, err := pwr.ReadSignature(context.Background(), signatureSource)
+		readSignature, err := pwr.ReadSignature(ctx, signatureSource)
 		if err != nil {
 			return errors.Wrap(err, "reading target as signature")
 		}
@@ -117,7 +117,7 @@ func Do(params *Params) error {
 	if err != nil {
 		if errors.Cause(err) == wire.ErrFormat || errors.Cause(err) == io.EOF {
 			// must be a container then
-			targetSignature.Container, err = tlc.WalkAny(context.Background(), params.Target, tlc.WalkOpts{Filter: filtering.FilterPaths})
+			targetSignature.Container, err = tlc.WalkAny(ctx, params.Target, tlc.WalkOpts{Filter: filtering.FilterPaths})
 			if err != nil {
 				return err
 			}
@@ -127,12 +127,12 @@ func Do(params *Params) error {
 
 			comm.StartProgress()
 			var targetPool lake.Pool
-			targetPool, err = pools.New(context.Background(), targetSignature.Container, params.Target)
+			targetPool, err = pools.New(ctx, targetSignature.Container, params.Target)
 			if err != nil {
 				return errors.Wrap(err, "opening target as directory")
 			}
 
-			targetSignature.Hashes, err = pwr.ComputeSignature(context.Background(), targetSignature.Container, targetPool, comm.NewStateConsumer())
+			targetSignature.Hashes, err = pwr.ComputeSignature(ctx, targetSignature.Container, targetPool, comm.NewStateConsumer())
 			comm.EndProgress()
 			if err != nil {
 				return errors.Wrap(err, "computing target signature")
@@ -151,13 +151,13 @@ func Do(params *Params) error {
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(context.Background(), params.Source, tlc.WalkOpts{Filter: filtering.FilterPaths})
+	sourceContainer, err = tlc.WalkAny(ctx, params.Source, tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
 	}
 
 	var sourcePool lake.Pool
-	sourcePool, err = pools.New(context.Background(), sourceContainer, params.Source)
+	sourcePool, err = pools.New(ctx, sourceContainer, params.Source)
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
 	}
@@ -191,7 +191,7 @@ func Do(params *Params) error {
 
 	comm.Opf("Diffing %s", params.Source)
 	comm.StartProgress()
-	err = dctx.WritePatch(context.Background(), patchCounter, signatureCounter)
+	err = dctx.WritePatch(ctx, patchCounter, signatureCounter)
 	if err != nil {
 		return errors.Wrap(err, "computing and writing patch and signature")
 	}
@@ -228,7 +228,7 @@ func Do(params *Params) error {
 			return errors.Wrap(err, "reading fresh signature file")
 		}
 
-		signature, err := pwr.ReadSignature(context.Background(), signatureSource)
+		signature, err := pwr.ReadSignature(ctx, signatureSource)
 		if err != nil {
 			return errors.Wrap(err, "decoding fresh signature file")
 		}

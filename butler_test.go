@@ -121,7 +121,7 @@ func TestAllTheThings(t *testing.T) {
 
 		for lhs := range files {
 			for rhs := range files {
-				wtest.Must(t, diff.Do(&diff.Params{
+				wtest.Must(t, diff.Do(context.Background(), &diff.Params{
 					Target:      files[lhs],
 					Source:      files[rhs],
 					Patch:       patch,
@@ -143,7 +143,7 @@ func TestAllTheThings(t *testing.T) {
 		t.Logf("Signing %s\n", filepath)
 
 		sigPath := path.Join(workingDir, "signature.pwr.sig")
-		wtest.Must(t, sign.Do(filepath, sigPath, compression, false))
+		wtest.Must(t, sign.Do(context.Background(), filepath, sigPath, compression, false))
 
 		sigReader, err := eos.Open(context.Background(), sigPath)
 		wtest.Must(t, err)
@@ -183,7 +183,7 @@ func TestAllTheThings(t *testing.T) {
 
 		assert.Equal(t, octal(eperm), octal(permFor(t, path.Join(samplePerm2, "dummy1.dat"))))
 
-		wtest.Must(t, diff.Do(&diff.Params{
+		wtest.Must(t, diff.Do(context.Background(), &diff.Params{
 			Target:      samplePerm1,
 			Source:      samplePerm2,
 			Patch:       patch,
@@ -199,7 +199,7 @@ func TestAllTheThings(t *testing.T) {
 
 		staging := path.Join(workingDir, "staging")
 
-		wtest.Must(t, apply.Do(apply.Params{
+		wtest.Must(t, apply.Do(context.Background(), apply.Params{
 			Patch:      patch,
 			Old:        cave,
 			StagingDir: staging,

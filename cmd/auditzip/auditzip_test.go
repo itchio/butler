@@ -1,6 +1,7 @@
 package auditzip_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/itchio/butler/cmd/auditzip"
@@ -18,9 +19,9 @@ func TestProtoZip(t *testing.T) {
 	}
 
 	upstream := true
-	wtest.Must(t, auditzip.Do(consumer, "./testdata/proto.zip", upstream))
+	wtest.Must(t, auditzip.Do(context.Background(), consumer, "./testdata/proto.zip", upstream))
 
 	upstream = false
-	wtest.Must(t, auditzip.Do(consumer, "./testdata/proto.zip", upstream))
-	wtest.Must(t, auditzip.Do(consumer, "./testdata/proto-with-lzma.zip", upstream))
+	wtest.Must(t, auditzip.Do(context.Background(), consumer, "./testdata/proto.zip", upstream))
+	wtest.Must(t, auditzip.Do(context.Background(), consumer, "./testdata/proto-with-lzma.zip", upstream))
 }
