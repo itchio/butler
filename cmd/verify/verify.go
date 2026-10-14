@@ -54,7 +54,7 @@ func Do(args Args) error {
 	}
 	startTime := time.Now()
 
-	signatureReader, err := eos.Open(args.SignaturePath)
+	signatureReader, err := eos.Open(context.Background(), args.SignaturePath)
 	if err != nil {
 		return errors.Wrap(err, "opening signature file")
 	}

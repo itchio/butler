@@ -12,8 +12,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/efarrer/iothrottler"
-
 	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/cmd/elevate"
 	"github.com/itchio/butler/comm"
@@ -218,10 +216,8 @@ func doMain(args []string) {
 	}
 
 	if *appArgs.throttle > 0 {
-		throttle := *appArgs.throttle
-		bwKiloBytes := throttle / 8 * 1024
-		comm.Logf("Throttling to %s/s bandwidth", united.FormatBytes(bwKiloBytes))
-		timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(throttle) * iothrottler.Kbps)
+		bytesPerSecond := mansion.ThrottleBandwidth(*appArgs.throttle)
+		comm.Logf("Throttling to %s/s bandwidth", united.FormatBytes(bytesPerSecond))
 	}
 
 	if *appArgs.simulateOffline {

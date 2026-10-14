@@ -2,6 +2,7 @@ package shell
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ type launchInfo struct {
 	SelfPath   string
 }
 
-func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
+func RunSelf(ctx context.Context, params RunSelfParams) (*RunSelfResult, error) {
 	err := params.Host.Validate()
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 	if !params.Host.Runtime.Equals(ox.CurrentRuntime()) {
 		switch params.Host.Runtime.Platform {
 		case ox.PlatformWindows:
-			err := fetchWindowsButler(params, &info)
+			err := fetchWindowsButler(ctx, params, &info)
 			if err != nil {
 				return nil, err
 			}
@@ -119,7 +120,7 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 		Results: []Any{},
 	}
 
-	cmd := exec.Command(info.SelfPath, args...)
+	cmd := exec.CommandContext(ctx, info.SelfPath, args...)
 	parser := newParserWriter(consumer, res, params.OnResult)
 	cmd.Dir = info.WorkingDir
 	cmd.Stdout = parser
@@ -135,6 +136,9 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 	}
 
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		if exitError, ok := err.(*exec.ExitError); ok {
 			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
 				res.ExitCode = status.ExitStatus()
@@ -148,7 +152,7 @@ func RunSelf(params RunSelfParams) (*RunSelfResult, error) {
 	return res, nil
 }
 
-func fetchWindowsButler(params RunSelfParams, info *launchInfo) error {
+func fetchWindowsButler(ctx context.Context, params RunSelfParams, info *launchInfo) error {
 	consumer := params.Consumer
 	consumer.Debugf("Fetching butler for windows...")
 
@@ -172,7 +176,7 @@ func fetchWindowsButler(params RunSelfParams, info *launchInfo) error {
 	consumer.Debugf("Will install to: (%s)", installFolder)
 	url := fmt.Sprintf("https://broth.itch.zone/butler/%s/%s/archive/default", channel, version)
 
-	f, err := eos.Open(url, option.WithConsumer(consumer))
+	f, err := eos.Open(ctx, url, option.WithConsumer(consumer))
 	if err != nil {
 		return err
 	}

@@ -135,7 +135,7 @@ func do(mc *mansion.Context) {
 				return "", err
 			}
 
-			f, err := eos.Open(exe)
+			f, err := eos.Open(context.Background(), exe)
 			if err != nil {
 				return "", err
 			}
@@ -217,7 +217,7 @@ func do(mc *mansion.Context) {
 		})
 
 		runTest("eos Copy", func() (string, error) {
-			f, err := eos.Open(testFileURL)
+			f, err := eos.Open(context.Background(), testFileURL)
 			if err != nil {
 				return "", err
 			}
@@ -242,7 +242,7 @@ func do(mc *mansion.Context) {
 				return "", err
 			}
 
-			f, err := eos.Open(testFileURL)
+			f, err := eos.Open(context.Background(), testFileURL)
 			if err != nil {
 				return "", err
 			}
@@ -262,7 +262,7 @@ func do(mc *mansion.Context) {
 			}
 			defer os.RemoveAll(d)
 
-			f, err := eos.Open(testFileURL)
+			f, err := eos.Open(context.Background(), testFileURL)
 			if err != nil {
 				return "", err
 			}

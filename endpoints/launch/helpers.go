@@ -281,7 +281,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 				return action, nil
 			}
 
-			verdict, err := dash.Configure(actionPath, dash.ConfigureParams{
+			verdict, err := dash.Configure(rc.Ctx, actionPath, dash.ConfigureParams{
 				Consumer: consumer,
 			})
 			if err != nil {
@@ -324,7 +324,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 		actionsForHostCount = len(actions)
 
 		for _, action := range actions {
-			target, err := ActionToLaunchTarget(consumer, host, info.installFolder, action)
+			target, err := ActionToLaunchTarget(rc.Ctx, consumer, host, info.installFolder, action)
 			if err != nil {
 				failedActionCount++
 				if firstActionErr == nil {
@@ -334,7 +334,7 @@ func getTargetsForHost(rc *butlerd.RequestContext,
 				continue
 			}
 			if nativeHost {
-				target = runtimeTargetForAction(consumer, host, target, runtimes)
+				target = runtimeTargetForAction(rc.Ctx, consumer, host, target, runtimes)
 			}
 			targets = append(targets, target)
 			consumer.Logf("%s", target.Strategy.String())

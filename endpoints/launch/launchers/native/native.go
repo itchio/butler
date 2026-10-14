@@ -391,7 +391,7 @@ func (l *Launcher) FujiParams(params launch.LauncherParams) runner.FujiParams {
 			}
 			consumer.Infof("Proceeding with sandbox setup...")
 
-			res, err := shell.RunSelf(shell.RunSelfParams{
+			res, err := shell.RunSelf(params.Ctx, shell.RunSelfParams{
 				Host:       params.Host,
 				Consumer:   consumer,
 				PrereqsDir: params.PrereqsDir,
@@ -434,7 +434,7 @@ func configureTargetIfNeeded(params launch.LauncherParams) error {
 		return nil
 	}
 
-	v, err := dash.Configure(params.FullTargetPath, dash.ConfigureParams{
+	v, err := dash.Configure(params.Ctx, params.FullTargetPath, dash.ConfigureParams{
 		Consumer: params.RequestContext.Consumer,
 		Filter:   filtering.FilterPaths,
 	})

@@ -2,6 +2,7 @@ package push
 
 import (
 	"archive/zip"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -199,7 +200,7 @@ func TestLaunchAnalysisClosesZipSpool(t *testing.T) {
 	if err := f.Close(); err != nil {
 		t.Fatal(err)
 	}
-	container, err := tlc.WalkAny(archivePath, tlc.WalkOpts{})
+	container, err := tlc.WalkAny(context.Background(), archivePath, tlc.WalkOpts{})
 	if err != nil {
 		t.Fatal(err)
 	}

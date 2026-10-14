@@ -1,6 +1,7 @@
 package repack
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -89,7 +90,7 @@ func Do(params *Params) error {
 	bench := params.OutPath == ""
 	consumer := comm.NewStateConsumer()
 
-	dr, err := eos.Open(params.InPath, option.WithConsumer(consumer))
+	dr, err := eos.Open(context.Background(), params.InPath, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

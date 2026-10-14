@@ -114,7 +114,7 @@ func doForceLocal(file eos.File, oc *OperationContext, meta *MetaSubcontext, isu
 		}
 	}
 
-	ret, err := eos.Open(destPath, option.WithConsumer(consumer))
+	ret, err := eos.Open(oc.Ctx(), destPath, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -218,7 +218,7 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 
 		if prepareRes.Strategy == InstallPerformStrategyUpgrade {
 			err := upgrade(oc, meta, isub, prepareRes.ReceiptIn)
-			if err == nil || errors.Cause(err) == patcher.ErrStop {
+			if err == nil || errors.Cause(err) == patcher.ErrStop || oc.Ctx().Err() != nil {
 				return err
 			}
 

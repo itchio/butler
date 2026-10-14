@@ -60,7 +60,7 @@ func (h *handler) InstallPrereqs(tsc *TaskStateConsumer, plan *PrereqPlan) error
 	}
 	args = append(args, []string{"install-prereqs", planPath}...)
 
-	res, err := shell.RunSelf(shell.RunSelfParams{
+	res, err := shell.RunSelf(h.rc().Ctx, shell.RunSelfParams{
 		Consumer:   consumer,
 		Args:       args,
 		Host:       h.host(),

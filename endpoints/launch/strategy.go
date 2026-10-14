@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -19,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFolder string, manifestAction manifest.Action) (*butlerd.LaunchTarget, error) {
+func ActionToLaunchTarget(ctx context.Context, consumer *state.Consumer, host manager.Host, installFolder string, manifestAction manifest.Action) (*butlerd.LaunchTarget, error) {
 	if manifestAction.Platform == "" {
 		manifestAction.Platform = host.Runtime.Platform
 	}
@@ -78,7 +79,7 @@ func ActionToLaunchTarget(consumer *state.Consumer, host manager.Host, installFo
 		return target, nil
 	}
 
-	verdict, err := dash.Configure(fullPath, dash.ConfigureParams{
+	verdict, err := dash.Configure(ctx, fullPath, dash.ConfigureParams{
 		Consumer: consumer,
 		Filter:   filtering.FilterPaths,
 	})
@@ -165,7 +166,7 @@ func CandidateToLaunchTarget(consumer *state.Consumer, basePath string, host man
 // runs what the action points at: a payload file, or a folder holding
 // one. The action stays, with its name, arguments and settings; only the
 // strategy changes. Anything else is returned as it was.
-func runtimeTargetForAction(consumer *state.Consumer, host manager.Host, target *butlerd.LaunchTarget, runtimes []dash.Flavor) *butlerd.LaunchTarget {
+func runtimeTargetForAction(ctx context.Context, consumer *state.Consumer, host manager.Host, target *butlerd.LaunchTarget, runtimes []dash.Flavor) *butlerd.LaunchTarget {
 	if len(runtimes) == 0 || target.Strategy == nil {
 		return target
 	}
@@ -177,7 +178,7 @@ func runtimeTargetForAction(consumer *state.Consumer, host manager.Host, target 
 		candidate = target.Strategy.Candidate
 	case butlerd.LaunchStrategyShell:
 		basePath = target.Strategy.FullTargetPath
-		verdict, err := dash.Configure(basePath, dash.ConfigureParams{
+		verdict, err := dash.Configure(ctx, basePath, dash.ConfigureParams{
 			Consumer: consumer,
 			Filter:   filtering.FilterPaths,
 		})

@@ -139,23 +139,31 @@ func (h *handler) GetRegistry() (*redist.RedistRegistry, error) {
 
 		if needFetch || wantFetch {
 			err := func() error {
-				src, err := eos.Open("https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(h.consumer()))
+				src, err := eos.Open(h.rc().Ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(h.consumer()))
 				if err != nil {
 					return errors.Wrap(err, "opening remote registry file")
 				}
 				defer src.Close()
 
-				dst, err := os.Create(cachedRegistryPath)
+				// A download cut short must not replace a good cached
+				// registry with a partial one.
+				dst, err := os.CreateTemp(filepath.Dir(cachedRegistryPath), "info.json.*.tmp")
 				if err != nil {
 					return errors.WithMessage(err, "creating local registry cache")
 				}
+				tmpPath := dst.Name()
+				defer os.Remove(tmpPath)
 				defer dst.Close()
 
 				_, err = io.Copy(dst, src)
 				if err != nil {
 					return errors.WithMessage(err, "downloading registry")
 				}
-				return nil
+				err = dst.Close()
+				if err != nil {
+					return errors.WithMessage(err, "writing local registry cache")
+				}
+				return errors.WithMessage(os.Rename(tmpPath, cachedRegistryPath), "replacing local registry cache")
 			}()
 			if err != nil {
 				if needFetch {

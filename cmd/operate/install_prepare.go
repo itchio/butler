@@ -185,7 +185,7 @@ func InstallPrepare(oc *OperationContext, meta *MetaSubcontext, isub *InstallSub
 	installSourceURL := MakeSourceURL(client, consumer, istate.DownloadSessionID, params, installSourceFileType)
 
 	beforeOpen := time.Now()
-	file, err := eos.Open(installSourceURL, option.WithConsumer(consumer))
+	file, err := eos.Open(oc.Ctx(), installSourceURL, option.WithConsumer(consumer))
 	consumer.Infof("(opening file took %s)", time.Since(beforeOpen))
 	if err != nil {
 		return errors.WithStack(err)

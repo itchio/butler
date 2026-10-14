@@ -189,3 +189,12 @@ func (uas *UserAgentSetter) RoundTrip(req *http.Request) (*http.Response, error)
 	req.Header.Set("User-Agent", uas.Context.UserAgent())
 	return uas.OriginalTransport.RoundTrip(req)
 }
+
+// ThrottleBandwidth caps all network traffic to kilobitsPerSecond, the
+// unit of --throttle and Network.SetBandwidthThrottle, and returns the
+// cap in bytes per second. 0 lifts the cap.
+func ThrottleBandwidth(kilobitsPerSecond int64) int64 {
+	bytesPerSecond := kilobitsPerSecond * 1024 / 8
+	timeout.SetBandwidth(bytesPerSecond)
+	return bytesPerSecond
+}

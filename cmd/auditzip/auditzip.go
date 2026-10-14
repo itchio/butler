@@ -1,6 +1,7 @@
 package auditzip
 
 import (
+	"context"
 	stderrors "errors"
 	"fmt"
 	"io"
@@ -38,7 +39,7 @@ func do(ctx *mansion.Context) {
 }
 
 func Do(consumer *state.Consumer, file string, upstream bool) error {
-	f, err := eos.Open(file, option.WithConsumer(consumer))
+	f, err := eos.Open(context.Background(), file, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -145,7 +145,7 @@ func TestAllTheThings(t *testing.T) {
 		sigPath := path.Join(workingDir, "signature.pwr.sig")
 		wtest.Must(t, sign.Do(filepath, sigPath, compression, false))
 
-		sigReader, err := eos.Open(sigPath)
+		sigReader, err := eos.Open(context.Background(), sigPath)
 		wtest.Must(t, err)
 
 		sigSource := seeksource.FromFile(sigReader)

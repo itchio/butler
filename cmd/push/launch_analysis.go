@@ -1,6 +1,7 @@
 package push
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/itchio/butler/buildinfo"
@@ -16,7 +17,7 @@ import (
 // CreateBuild. It opens its own pool so the scan's zip spool is released
 // before the upload starts.
 func scanBuildLaunchAnalysis(buildPath string, container *tlc.Container, consumer *state.Consumer) *itchio.BuildLaunchAnalysis {
-	pool, err := pools.New(container, buildPath)
+	pool, err := pools.New(context.Background(), container, buildPath)
 	if err != nil {
 		consumer.Warnf("Could not open launch scan pool; continuing upload without launch analysis: %v", err)
 		return nil

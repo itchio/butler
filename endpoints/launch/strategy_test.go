@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -43,7 +44,7 @@ func TestActionToLaunchTarget_AppBundleCarriesCandidate(t *testing.T) {
 				Name: "Play",
 				Path: tt.bundleRel,
 			}
-			target, err := ActionToLaunchTarget(consumer, host, installFolder, action)
+			target, err := ActionToLaunchTarget(context.Background(), consumer, host, installFolder, action)
 			if err != nil {
 				t.Fatalf("resolving app bundle action: %v", err)
 			}
@@ -94,11 +95,11 @@ func TestRuntimeTargetForAction(t *testing.T) {
 	host := manager.Host{Runtime: ox.Runtime{Platform: ox.PlatformLinux, Is64: true}}
 	consumer := &state.Consumer{}
 	resolve := func(path string, runtimes ...dash.Flavor) *butlerd.LaunchTarget {
-		target, err := ActionToLaunchTarget(consumer, host, installFolder, manifest.Action{Name: "play", Path: path, Args: []string{"-x"}})
+		target, err := ActionToLaunchTarget(context.Background(), consumer, host, installFolder, manifest.Action{Name: "play", Path: path, Args: []string{"-x"}})
 		if err != nil {
 			t.Fatal(err)
 		}
-		return runtimeTargetForAction(consumer, host, target, runtimes)
+		return runtimeTargetForAction(context.Background(), consumer, host, target, runtimes)
 	}
 
 	// a folder with a LÖVE game inside, browsed until the client runs LÖVE

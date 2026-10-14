@@ -44,12 +44,12 @@ func Do(output string, signature string, compression *pwr.CompressionSettings, f
 	comm.Opf("Creating signature for %s", output)
 	startTime := time.Now()
 
-	container, err := tlc.WalkAny(output, tlc.WalkOpts{Filter: filtering.FilterPaths})
+	container, err := tlc.WalkAny(context.Background(), output, tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, "walking directory to sign")
 	}
 
-	pool, err := pools.New(container, output)
+	pool, err := pools.New(context.Background(), container, output)
 	if err != nil {
 		return errors.Wrap(err, "creating pool for directory to sign")
 	}

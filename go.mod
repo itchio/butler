@@ -8,7 +8,6 @@ require (
 	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
 	github.com/dchest/safefile v0.0.0-20151022103144-855e8d98f185
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
-	github.com/efarrer/iothrottler v0.0.3
 	github.com/fatih/color v1.18.0
 	github.com/fatih/structtag v1.2.0
 	github.com/go-ole/go-ole v1.3.0
@@ -17,25 +16,25 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
-	github.com/itchio/boar v0.0.0-20260916011956-fec7e71978bc
-	github.com/itchio/dash v0.0.0-20261013181639-3d1bf1af3359
+	github.com/itchio/boar v0.0.0-20261014005303-b45266ce73a4
+	github.com/itchio/dash v0.0.0-20261014004205-9eedde9ffa6f
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
-	github.com/itchio/go-itchio v0.0.0-20260924174910-9da9e84dec25
+	github.com/itchio/go-itchio v0.0.0-20261014001842-1ce9c0cb498f
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
-	github.com/itchio/httpkit v0.0.0-20260213231528-25109ada88c9
-	github.com/itchio/hush v0.0.0-20260914200638-506e8e2c4b9c
+	github.com/itchio/httpkit v0.0.0-20261014185922-adb72617054f
+	github.com/itchio/hush v0.0.0-20261014190443-8dfa626388f6
 	github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d
-	github.com/itchio/lake v0.0.0-20261012222958-69979fefd028
+	github.com/itchio/lake v0.0.0-20261014014703-e67ff2475ab7
 	github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c
 	github.com/itchio/ox v0.0.0-20260212201121-1e6be0bfd382
 	github.com/itchio/pelican v0.0.0-20260929212652-db949c1f2a5a
-	github.com/itchio/savior v0.0.0-20260914182353-072694f48327
+	github.com/itchio/savior v0.0.0-20261014002740-9a7f4832f631
 	github.com/itchio/screw v0.0.0-20260221011136-e674b460b040
 	github.com/itchio/sevenzip-go v0.0.0-20260914192131-9ff04bb5e5ce
 	github.com/itchio/smaug v0.0.0-20260921222733-a186307fa238
 	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
-	github.com/itchio/wharf v0.0.0-20261012223250-4f66ab9601d9
+	github.com/itchio/wharf v0.0.0-20261014050436-8744bb1ea628
 	github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1

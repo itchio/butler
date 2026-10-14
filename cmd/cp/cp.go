@@ -1,6 +1,7 @@
 package cp
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -67,7 +68,9 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 		err := Try(ctx, params, srcPath, destPath, resume)
 		if err != nil {
 			if intact.IsIntegrityError(err) {
-				retryCtx.Retry(err)
+				if rerr := retryCtx.Retry(context.Background(), err); rerr != nil {
+					return rerr
+				}
 				continue
 			}
 
@@ -84,7 +87,7 @@ func Do(ctx *mansion.Context, params *CopyParams, srcPath string, destPath strin
 func Try(ctx *mansion.Context, params *CopyParams, srcPath string, destPath string, resume bool) error {
 	consumer := params.Consumer
 
-	src, err := eos.Open(srcPath, option.WithConsumer(consumer))
+	src, err := eos.Open(context.Background(), srcPath, option.WithConsumer(consumer))
 	if err != nil {
 		return err
 	}

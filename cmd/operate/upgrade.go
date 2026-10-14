@@ -138,7 +138,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 		UUID:        istate.DownloadSessionID,
 	})
 
-	patchSource, err := filesource.Open(patchURL, option.WithConsumer(consumer))
+	patchSource, err := filesource.Open(oc.Ctx(), patchURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.Wrap(err, "opening remote patch")
 	}
@@ -200,7 +200,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	targetPool, err := pwr.NewSafeKeeper(pwr.SafeKeeperParams{
 		Inner: fspool.New(p.GetTargetContainer(), params.InstallFolder),
 		Open: func() (savior.SeekSource, error) {
-			return filesource.Open(parentSignatureURL, option.WithConsumer(consumer))
+			return filesource.Open(oc.Ctx(), parentSignatureURL, option.WithConsumer(consumer))
 		},
 	})
 	if err != nil {

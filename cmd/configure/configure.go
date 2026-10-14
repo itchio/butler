@@ -1,6 +1,7 @@
 package configure
 
 import (
+	"context"
 	"runtime"
 	"sort"
 	"time"
@@ -79,7 +80,7 @@ func Do(params Params) (*dash.Verdict, error) {
 		stats = &dash.VerdictStats{}
 	}
 
-	verdict, err := dash.Configure(root, dash.ConfigureParams{
+	verdict, err := dash.Configure(context.Background(), root, dash.ConfigureParams{
 		Consumer:  consumer,
 		Filter:    filtering.FilterPaths,
 		Stats:     stats,

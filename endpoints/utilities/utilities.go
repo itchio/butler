@@ -1,11 +1,12 @@
 package utilities
 
 import (
-	"github.com/efarrer/iothrottler"
 	"github.com/itchio/butler/buildinfo"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/butlerd/messages"
+	"github.com/itchio/butler/mansion"
 	"github.com/itchio/httpkit/timeout"
+	"github.com/pkg/errors"
 )
 
 func Register(router *butlerd.Router) {
@@ -32,9 +33,12 @@ func Register(router *butlerd.Router) {
 
 	messages.NetworkSetBandwidthThrottle.Register(router, func(rc *butlerd.RequestContext, params butlerd.NetworkSetBandwidthThrottleParams) (*butlerd.NetworkSetBandwidthThrottleResult, error) {
 		if params.Enabled {
-			timeout.ThrottlerPool.SetBandwidth(iothrottler.Bandwidth(params.Rate) * iothrottler.Kbps)
+			if params.Rate < 1 {
+				return nil, errors.Errorf("bandwidth throttle rate must be at least 1 kbps, got %d", params.Rate)
+			}
+			mansion.ThrottleBandwidth(params.Rate)
 		} else {
-			timeout.ThrottlerPool.SetBandwidth(iothrottler.Unlimited)
+			mansion.ThrottleBandwidth(0)
 		}
 		res := &butlerd.NetworkSetBandwidthThrottleResult{}
 		return res, nil

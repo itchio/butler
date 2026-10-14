@@ -1,6 +1,7 @@
 package unsz
 
 import (
+	"context"
 	"time"
 
 	"github.com/itchio/httpkit/eos"
@@ -57,7 +58,7 @@ func Do(ctx *mansion.Context, params *UnszParams) error {
 
 	consumer := params.Consumer
 
-	file, err := eos.Open(params.File, option.WithConsumer(consumer))
+	file, err := eos.Open(context.Background(), params.File, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

@@ -1,6 +1,8 @@
 package butlerd
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/itchio/butler/butlerd/jsonrpc2"
@@ -61,6 +63,18 @@ type causer interface {
 }
 
 func AsButlerdError(err error) (Error, bool) {
+	if ee, ok := asButlerdError(err); ok {
+		return ee, true
+	}
+	// Only when nothing more specific was found: a cancelled context can
+	// surface from any read, under any wrapping.
+	if errors.Is(err, context.Canceled) {
+		return CodeOperationCancelled, true
+	}
+	return nil, false
+}
+
+func asButlerdError(err error) (Error, bool) {
 	if err == nil {
 		return nil, false
 	}
@@ -70,7 +84,7 @@ func AsButlerdError(err error) (Error, bool) {
 	}
 
 	if se, ok := err.(causer); ok {
-		return AsButlerdError(se.Cause())
+		return asButlerdError(se.Cause())
 	}
 
 	if ee, ok := err.(Error); ok {

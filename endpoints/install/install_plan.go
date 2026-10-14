@@ -160,7 +160,7 @@ func getPlanInfo(rc *butlerd.RequestContext, conn *sqlite.Conn, upload *itchio.U
 	}
 
 	beforeOpen := time.Now()
-	file, err := eos.Open(sourceURL, option.WithConsumer(consumer))
+	file, err := eos.Open(rc.Ctx, sourceURL, option.WithConsumer(consumer))
 	consumer.Infof("(opening file took %s)", time.Since(beforeOpen))
 	if err != nil {
 		setInfoError(errors.WithStack(err))

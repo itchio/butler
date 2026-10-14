@@ -79,7 +79,7 @@ func Do(params Params) error {
 		consumer.Opf("Patching %s (fresh)", dir)
 	}
 
-	patchSource, err := filesource.Open(patch, option.WithConsumer(comm.NewStateConsumer()))
+	patchSource, err := filesource.Open(context.Background(), patch, option.WithConsumer(comm.NewStateConsumer()))
 	if err != nil {
 		return errors.WithMessage(err, "opening patch")
 	}
@@ -204,7 +204,7 @@ func Do(params Params) error {
 		united.FormatDuration(duration))
 
 	if params.Signature != "" {
-		sigSource, err := filesource.Open(params.Signature)
+		sigSource, err := filesource.Open(context.Background(), params.Signature)
 		if err != nil {
 			return err
 		}
@@ -235,7 +235,7 @@ func Do(params Params) error {
 			return err
 		}
 
-		err = pwr.AssertNoGhosts(outputDir, sigInfo)
+		err = pwr.AssertNoGhosts(context.Background(), outputDir, sigInfo)
 		if err != nil {
 			return err
 		}

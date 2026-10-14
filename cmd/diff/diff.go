@@ -83,7 +83,7 @@ func Do(params *Params) error {
 
 	readAsSignature := func() error {
 		// Signature file perhaps?
-		signatureReader, err := eos.Open(params.Target, option.WithConsumer(comm.NewStateConsumer()))
+		signatureReader, err := eos.Open(context.Background(), params.Target, option.WithConsumer(comm.NewStateConsumer()))
 		if err != nil {
 			return errors.Wrap(err, "opening target")
 		}
@@ -117,7 +117,7 @@ func Do(params *Params) error {
 	if err != nil {
 		if errors.Cause(err) == wire.ErrFormat || errors.Cause(err) == io.EOF {
 			// must be a container then
-			targetSignature.Container, err = tlc.WalkAny(params.Target, tlc.WalkOpts{Filter: filtering.FilterPaths})
+			targetSignature.Container, err = tlc.WalkAny(context.Background(), params.Target, tlc.WalkOpts{Filter: filtering.FilterPaths})
 			if err != nil {
 				return err
 			}
@@ -127,7 +127,7 @@ func Do(params *Params) error {
 
 			comm.StartProgress()
 			var targetPool lake.Pool
-			targetPool, err = pools.New(targetSignature.Container, params.Target)
+			targetPool, err = pools.New(context.Background(), targetSignature.Container, params.Target)
 			if err != nil {
 				return errors.Wrap(err, "opening target as directory")
 			}
@@ -151,13 +151,13 @@ func Do(params *Params) error {
 	startTime = time.Now()
 
 	var sourceContainer *tlc.Container
-	sourceContainer, err = tlc.WalkAny(params.Source, tlc.WalkOpts{Filter: filtering.FilterPaths})
+	sourceContainer, err = tlc.WalkAny(context.Background(), params.Source, tlc.WalkOpts{Filter: filtering.FilterPaths})
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
 	}
 
 	var sourcePool lake.Pool
-	sourcePool, err = pools.New(sourceContainer, params.Source)
+	sourcePool, err = pools.New(context.Background(), sourceContainer, params.Source)
 	if err != nil {
 		return errors.Wrap(err, "walking source as directory")
 	}

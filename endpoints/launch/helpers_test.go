@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -228,7 +229,7 @@ func TestGetTargetsForHost_Runtimes(t *testing.T) {
 	}
 	host := manager.Host{Runtime: runtime}
 
-	verdict, err := dash.Configure(installFolder, dash.ConfigureParams{Consumer: &state.Consumer{}})
+	verdict, err := dash.Configure(context.Background(), installFolder, dash.ConfigureParams{Consumer: &state.Consumer{}})
 	if err != nil {
 		t.Fatal(err)
 	}

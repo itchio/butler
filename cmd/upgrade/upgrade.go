@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,7 +91,7 @@ func applyUpgrade(ctx *mansion.Context, vinfo *mansion.VersionCheckResult) error
 	consumer.Opf("%s", archiveURL)
 
 	comm.StartProgress()
-	extractRes, err := boar.SimpleExtract(&boar.SimpleExtractParams{
+	extractRes, err := boar.SimpleExtract(context.Background(), &boar.SimpleExtractParams{
 		ArchivePath:       archiveURL,
 		DestinationFolder: updateDir,
 		Consumer:          consumer,

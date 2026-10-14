@@ -204,7 +204,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 				return errors.Wrap(err, "getting previous build signature")
 			}
 
-			err = pwr.AssertValid(buildPath, sig)
+			err = pwr.AssertValid(context.Background(), buildPath, sig)
 			if err == nil {
 				comm.Statf("No changes and --if-changed used, not pushing anything")
 				pushResult(0, spec.Channel, false, true, "if-changed")
@@ -528,7 +528,7 @@ func getSignature(ctx *mansion.Context, client *itchio.Client, consumer *state.C
 		FileID:  signatureFile.ID,
 	})
 
-	signatureReader, err := eos.Open(signatureURL, option.WithConsumer(consumer))
+	signatureReader, err := eos.Open(context.Background(), signatureURL, option.WithConsumer(consumer))
 	if err != nil {
 		return nil, errors.Wrap(err, "opening signature")
 	}

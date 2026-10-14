@@ -51,7 +51,7 @@ func heal(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext, r
 		HealPath: healSpec,
 	}
 
-	signatureFile, err := eos.Open(signatureURL, option.WithConsumer(consumer))
+	signatureFile, err := eos.Open(oc.Ctx(), signatureURL, option.WithConsumer(consumer))
 	if err != nil {
 		return errors.WithStack(err)
 	}

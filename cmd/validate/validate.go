@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -242,7 +243,7 @@ func Validate(consumer *state.Consumer) error {
 				consumer.Infof("    Passes arguments: %s", strings.Join(action.Args, " ::: "))
 			}
 			if hasDir {
-				target, err := launch.ActionToLaunchTarget(consumer, host, dir, action)
+				target, err := launch.ActionToLaunchTarget(context.Background(), consumer, host, dir, action)
 				if err != nil {
 					showError("%s", err.Error())
 				} else {
@@ -263,7 +264,7 @@ func Validate(consumer *state.Consumer) error {
 		consumer.Statf("Validating %d prereqs...", len(appManifest.Prereqs))
 		consumer.Infof("")
 
-		regFile, err := eos.Open("https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(consumer))
+		regFile, err := eos.Open(context.Background(), "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(consumer))
 		if err != nil {
 			return errors.Wrap(err, "opening prereqs registry")
 		}
