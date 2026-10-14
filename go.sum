@@ -134,8 +134,8 @@ github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d h1:kV/P1stWMCvoSmt+d
 github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d/go.mod h1:PCWTRtTQ1PUE6lmB+jDPxgA/wS59XYw48FqiovyjZYs=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 h1:jipXtdsZClshNO8fKK8ItiVyqE9bKA09as+qjW/yjG0=
 github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51/go.mod h1:iLS+Eq+S26jTC4pbdDH6N5XtDqrjb4IOXtjj1HCzbuk=
-github.com/itchio/lake v0.0.0-20261014014703-e67ff2475ab7 h1:e6mzj25GntGa/97w+1JYAkDkY1ZGdph5vI+KVMbCz14=
-github.com/itchio/lake v0.0.0-20261014014703-e67ff2475ab7/go.mod h1:ABzRyUqsKcRQxAKFp7uac7C4z4Y0C1T0uDvBoDVx77g=
+github.com/itchio/lake v0.0.0-20261014205523-683452196911 h1:iQAXDyB7+XASoMixUPB8PrKZglJ5FbpHdaqrWXnABck=
+github.com/itchio/lake v0.0.0-20261014205523-683452196911/go.mod h1:ABzRyUqsKcRQxAKFp7uac7C4z4Y0C1T0uDvBoDVx77g=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 h1:+YrBMf3rkLjkT10zIHyVE4S7ma4hqvfjl6XgnzZwS6o=
 github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49/go.mod h1:avNrevQMli1pYPsz1+HIHMvx95pk6O+6otbWqCZPeZI=
 github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c h1:uKbOUOLrxH8VS/mzWGd1SAKxg4afZkFO2BwXAA7dsOY=

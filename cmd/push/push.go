@@ -226,7 +226,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	}
 
 	comm.Opf("Scanning launch targets...")
-	launchAnalysis := scanBuildLaunchAnalysis(ctx.Ctx(), buildPath, sourceContainer, consumer)
+	launchAnalysis := scanBuildLaunchAnalysis(ctx.Ctx(), buildPath, sourceContainer, dereference, consumer)
 
 	requestCtx, cancel := ctx.DefaultCtx()
 	newBuildRes, err := client.CreateBuild(requestCtx, itchio.CreateBuildParams{

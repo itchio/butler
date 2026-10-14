@@ -159,7 +159,7 @@ func TestLaunchAnalysisUsesSeparatePool(t *testing.T) {
 				t.Fatal(err)
 			case result := <-results:
 				defer result.pool.Close()
-				if scanBuildLaunchAnalysis(context.Background(), src, result.container, &state.Consumer{}) == nil {
+				if scanBuildLaunchAnalysis(context.Background(), src, result.container, false, &state.Consumer{}) == nil {
 					t.Fatal("scan failed")
 				}
 				r, err := result.pool.GetReader(0)
@@ -204,7 +204,7 @@ func TestLaunchAnalysisClosesZipSpool(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report := scanBuildLaunchAnalysis(context.Background(), archivePath, container, &state.Consumer{})
+	report := scanBuildLaunchAnalysis(context.Background(), archivePath, container, false, &state.Consumer{})
 	if report == nil {
 		t.Fatal("scan failed")
 	}
@@ -293,6 +293,15 @@ func TestLaunchAnalysisDereferencedSymlink(t *testing.T) {
 		}
 		if len(targets) != 1 || targets[0].Path != "index.html" || targets[0].Size != 4 {
 			t.Fatalf("unexpected targets: %s", report.LaunchTargets)
+		}
+
+		// push opens its own pool for the scan; it must dereference too
+		buildReport := scanBuildLaunchAnalysis(context.Background(), root, result.container, true, &state.Consumer{})
+		if buildReport == nil {
+			t.Fatal("build scan failed")
+		}
+		if string(buildReport.LaunchTargets) != string(report.LaunchTargets) {
+			t.Fatalf("build scan targets differ: %s", buildReport.LaunchTargets)
 		}
 	}
 }
