@@ -20,12 +20,12 @@ import (
 // Fields not relevant to a given run stay zero — the caller picks what it
 // needs.
 type pushResult struct {
-	BuildID         int64                             `json:"buildId"`
-	Channel         string                            `json:"channel"`
-	Skipped         bool                              `json:"skipped"`
-	HasParent       bool                              `json:"hasParent"`
-	ParentBuildID   int64                             `json:"parentBuildId"`
-	SourceSize      int64                             `json:"sourceSize"`
+	BuildID         int64                              `json:"buildId"`
+	Channel         string                             `json:"channel"`
+	Skipped         bool                               `json:"skipped"`
+	HasParent       bool                               `json:"hasParent"`
+	ParentBuildID   int64                              `json:"parentBuildId"`
+	SourceSize      int64                              `json:"sourceSize"`
 	Comparison      *butlerd.PublishPushComparison     `json:"comparison,omitempty"`
 	TopChangedFiles butlerd.PublishPushTopChangedFiles `json:"topChangedFiles"`
 }
