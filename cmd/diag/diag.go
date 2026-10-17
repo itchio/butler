@@ -203,7 +203,7 @@ func do(mc *mansion.Context) {
 		}
 
 		runTest("go https request", func() (string, error) {
-			req, err := http.NewRequest("GET", testFileURL, nil)
+			req, err := http.NewRequestWithContext(ctx, "GET", testFileURL, nil)
 			if err != nil {
 				return "", err
 			}

@@ -31,7 +31,7 @@ func createBothFiles(ctx *mansion.Context, client *itchio.Client, buildID int64)
 		comm.Debugf("Created %s build file: %+v", buildType, buildFileRes.File)
 
 		// TODO: resumable upload session creation sounds like it belongs in an external lib, go-itchio maybe?
-		req, err := http.NewRequest("POST", buildFileRes.File.UploadURL, nil)
+		req, err := http.NewRequestWithContext(requestCtx, "POST", buildFileRes.File.UploadURL, nil)
 		if err != nil {
 			return errors.WithMessage(err, "getting resumable upload session parameters")
 		}
@@ -46,6 +46,7 @@ func createBothFiles(ctx *mansion.Context, client *itchio.Client, buildID int64)
 		if err != nil {
 			return errors.WithMessage(err, "creating resumable upload session")
 		}
+		defer gcsRes.Body.Close()
 
 		if gcsRes.StatusCode != 201 {
 			return errors.Errorf("while creating resumable upload session, got HTTP %d", gcsRes.StatusCode)

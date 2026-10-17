@@ -46,7 +46,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 
 	client := timeout.NewDefaultClient()
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx.Ctx(), "GET", url, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -96,7 +96,7 @@ func Do(ctx *mansion.Context, url string, dest string) (int64, error) {
 		// closing the old one first...
 		resp.Body.Close()
 
-		req, _ = http.NewRequest("GET", url, nil)
+		req, _ = http.NewRequestWithContext(ctx.Ctx(), "GET", url, nil)
 		req.Header.Set("User-Agent", ctx.UserAgent())
 
 		resp, err = client.Do(req)

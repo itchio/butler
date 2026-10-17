@@ -128,8 +128,11 @@ func (ctx *Context) QueryLatestVersion(variant VersionVariant) (*VersionCheckRes
 
 	c := itchio.ClientWithKey("x")
 
+	requestCtx, cancel := ctx.DefaultCtx()
+	defer cancel()
+
 	latestURL := fmt.Sprintf("%s/LATEST", ctx.UpdateBaseURL(variant))
-	req, err := http.NewRequest("GET", latestURL, nil)
+	req, err := http.NewRequestWithContext(requestCtx, "GET", latestURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +141,7 @@ func (ctx *Context) QueryLatestVersion(variant VersionVariant) (*VersionCheckRes
 	if err != nil {
 		return nil, err
 	}
+	defer latestRes.Body.Close()
 
 	if latestRes.StatusCode != 200 {
 		err = fmt.Errorf("HTTP %d: %s", latestRes.StatusCode, latestURL)

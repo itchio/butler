@@ -23,11 +23,19 @@ func Test(ctx *mansion.Context, prereqs []string) error {
 
 	baseURL := "https://broth.itch.zone/itch-redists"
 
+	requestCtx, cancel := ctx.DefaultCtx()
+	defer cancel()
+
 	infoURL := fmt.Sprintf("%s/info/LATEST/unpacked/default", baseURL)
-	res, err := http.Get(infoURL)
+	req, err := http.NewRequestWithContext(requestCtx, "GET", infoURL, nil)
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	res, err := ctx.HTTPClient.Do(req)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		return errors.Errorf("Got HTTP %d when fetching registry (%s)", res.StatusCode, infoURL)
