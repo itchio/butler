@@ -1,7 +1,6 @@
 package prereqs
 
 import (
-	"context"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -58,9 +57,7 @@ func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
 			return nil
 		}
 
-		// TODO: figure out if there's not a request context we can re-use instead
-		// how does cancellation even work in the current setup?
-		ctx := context.Background()
+		ctx := h.rc().Ctx
 		stagingFolder, err := ioutil.TempDir("", "prereqs-install-stage")
 		if err != nil {
 			return errors.Wrap(err, "creating temporary directory for prereqs installation")
