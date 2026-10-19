@@ -1,6 +1,7 @@
 package prereqs
 
 import (
+	"context"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -33,6 +34,8 @@ type TaskStateConsumer struct {
 
 func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
 	consumer := h.consumer()
+	ctx, cancel := context.WithCancel(h.rc().Ctx)
+	defer cancel()
 
 	doPrereq := func(name string) error {
 		entry, err := h.GetEntry(name)
@@ -57,7 +60,6 @@ func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
 			return nil
 		}
 
-		ctx := h.rc().Ctx
 		stagingFolder, err := ioutil.TempDir("", "prereqs-install-stage")
 		if err != nil {
 			return errors.Wrap(err, "creating temporary directory for prereqs installation")
@@ -105,6 +107,7 @@ func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
 		}
 
 		rcc := *h.rc()
+		rcc.Ctx = ctx
 		rcc.Conn = conn
 		rcc.Consumer = taskConsumer
 
@@ -148,14 +151,23 @@ func (h *handler) FetchPrereqs(tsc *TaskStateConsumer, names []string) error {
 
 	for i := 0; i < numWorkers; i++ {
 		go func() {
-			for name := range todo {
-				err := doPrereq(name)
-				if err != nil {
-					done <- errors.Wrapf(err, "handling prereq %s", name)
+			for {
+				select {
+				case name, ok := <-todo:
+					if !ok {
+						done <- nil
+						return
+					}
+					err := doPrereq(name)
+					if err != nil {
+						done <- errors.Wrapf(err, "handling prereq %s", name)
+						return
+					}
+				case <-ctx.Done():
+					done <- ctx.Err()
 					return
 				}
 			}
-			done <- nil
 		}()
 	}
 
