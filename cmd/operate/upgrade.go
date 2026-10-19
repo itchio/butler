@@ -257,6 +257,11 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 
 	os.RemoveAll(checkpointPath)
 
+	err = targetPool.Close()
+	if err != nil {
+		return errors.WithMessage(err, "while closing target pool")
+	}
+
 	err = bowl.Commit()
 	if err != nil {
 		return errors.WithMessage(err, "while committing patch")

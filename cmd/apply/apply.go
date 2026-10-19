@@ -193,6 +193,11 @@ func Do(ctx context.Context, params Params) error {
 		consumer.Statf("Before commit, staging dir is %s", united.FormatBytes(stagingDirSize))
 	}
 
+	err = targetPool.Close()
+	if err != nil {
+		return errors.WithMessage(err, "closing target pool")
+	}
+
 	consumer.Opf("Committing...")
 	err = bwl.Commit()
 	if err != nil {
