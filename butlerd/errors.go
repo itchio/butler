@@ -7,6 +7,7 @@ import (
 
 	"github.com/itchio/butler/butlerd/jsonrpc2"
 	"github.com/itchio/savior"
+	"github.com/itchio/wharf/pwr/patcher"
 )
 
 type Error interface {
@@ -79,7 +80,7 @@ func asButlerdError(err error) (Error, bool) {
 		return nil, false
 	}
 
-	if err == savior.ErrStop {
+	if err == savior.ErrStop || err == patcher.ErrStop {
 		return CodeOperationCancelled, true
 	}
 
