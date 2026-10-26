@@ -84,7 +84,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/itchio/dmcunrar-go v0.0.0-20260424162333-44c84bdd19dc // indirect
 	github.com/itchio/dskompress v0.0.0-20190702113811-5e6f499be697 // indirect
-	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
+	github.com/itchio/go-brotli v0.0.0-20261025215007-eae0c1b3416b // indirect
 	github.com/itchio/kompress v0.0.0-20200301155538-5c2eecce9e51 // indirect
 	github.com/itchio/lzma v0.0.0-20190703113020-d3e24e3e3d49 // indirect
 	github.com/itchio/randsource v0.0.0-20260216215536-1b48147d46e5 // indirect
