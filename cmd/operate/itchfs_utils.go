@@ -7,6 +7,14 @@ import (
 )
 
 func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID string, params *InstallParams, fileType string) string {
+	return makeSourceURL(client, sessionID, params, fileType, false)
+}
+
+func MakeProbeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID string, params *InstallParams, fileType string) string {
+	return makeSourceURL(client, sessionID, params, fileType, true)
+}
+
+func makeSourceURL(client *itchio.Client, sessionID string, params *InstallParams, fileType string, probe bool) string {
 	build := params.Build
 	if build != nil {
 		if fileType == "" {
@@ -18,6 +26,7 @@ func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID st
 			UUID:        sessionID,
 			Credentials: params.Access.Credentials,
 			Type:        itchio.BuildFileType(fileType),
+			Probe:       probe,
 		})
 	}
 
@@ -25,6 +34,7 @@ func MakeSourceURL(client *itchio.Client, consumer *state.Consumer, sessionID st
 		UploadID:    params.Upload.ID,
 		UUID:        sessionID,
 		Credentials: params.Access.Credentials,
+		Probe:       probe,
 	})
 }
 

@@ -119,8 +119,8 @@ github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8 h1:+KYUGGFy/e
 github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8/go.mod h1:Typn5mSwzkVeBPJz9beXrJ0KojMSA1XsDkIWnQnOs80=
 github.com/itchio/go-brotli v0.0.0-20261025215007-eae0c1b3416b h1:VTtZxRSdEY1NKBN+fEiK2/ZiUcRI5qaFQgqB2CIk5i0=
 github.com/itchio/go-brotli v0.0.0-20261025215007-eae0c1b3416b/go.mod h1:9mEFT8nN2dZ+j+0rfQAu0iTCdzChKnXElYtPEQQuTS0=
-github.com/itchio/go-itchio v0.0.0-20261014001842-1ce9c0cb498f h1:dVrveHSGCsMVttowIgm+LN8KrAz8IUrQx7zVW75RuUs=
-github.com/itchio/go-itchio v0.0.0-20261014001842-1ce9c0cb498f/go.mod h1:pEkXnQxxX0Rcmm4lMbL8gVQsA/exbD4e/1P4Vq0vZ6g=
+github.com/itchio/go-itchio v0.0.0-20261029222946-880aeca7c32b h1:C/JHgZDIKjXYS3bZivP2Bwz5u87jGqKASXKsJmqvAU8=
+github.com/itchio/go-itchio v0.0.0-20261029222946-880aeca7c32b/go.mod h1:pEkXnQxxX0Rcmm4lMbL8gVQsA/exbD4e/1P4Vq0vZ6g=
 github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344 h1:bVS/wOL1h5tpjxZjZX2Q+mujFcz3O/DjlkpmYavFvss=
 github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=

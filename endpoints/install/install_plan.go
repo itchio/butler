@@ -153,7 +153,7 @@ func getPlanInfo(rc *butlerd.RequestContext, conn *sqlite.Conn, upload *itchio.U
 		Build:  info.Build,
 		Access: access,
 	}
-	sourceURL := operate.MakeSourceURL(client, consumer, sessionID, installParams, "")
+	sourceURL := operate.MakeProbeSourceURL(client, consumer, sessionID, installParams, "")
 
 	if err := checkCancelled(rc.Ctx); err != nil {
 		return nil, err
