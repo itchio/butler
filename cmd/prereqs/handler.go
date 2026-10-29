@@ -139,7 +139,7 @@ func (h *handler) GetRegistry() (*redist.RedistRegistry, error) {
 
 		if needFetch || wantFetch {
 			err := func() error {
-				src, err := eos.Open(h.rc().Ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(h.consumer()))
+				src, err := eos.Open(h.rc().Ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked?probe=true", option.WithConsumer(h.consumer()))
 				if err != nil {
 					return errors.Wrap(err, "opening remote registry file")
 				}

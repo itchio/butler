@@ -264,7 +264,7 @@ func Validate(ctx context.Context, consumer *state.Consumer) error {
 		consumer.Statf("Validating %d prereqs...", len(appManifest.Prereqs))
 		consumer.Infof("")
 
-		regFile, err := eos.Open(ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked", option.WithConsumer(consumer))
+		regFile, err := eos.Open(ctx, "https://broth.itch.zone/itch-redists/info/LATEST/unpacked?probe=true", option.WithConsumer(consumer))
 		if err != nil {
 			return errors.Wrap(err, "opening prereqs registry")
 		}

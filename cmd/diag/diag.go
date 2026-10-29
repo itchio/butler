@@ -167,7 +167,7 @@ func do(mc *mansion.Context) {
 	}
 
 	if params.Speed {
-		testFileURL := "https://broth.itch.zone/speedtest/100mib/LATEST/archive/default"
+		testFileURL := "https://broth.itch.zone/speedtest/100mib/LATEST/archive/default?probe=true"
 
 		runTracker := func(contentLength int64, cancel context.CancelFunc, f func(t tracker.Tracker) error) (string, error) {
 			t := tracker.New(tracker.Opts{
