@@ -182,6 +182,17 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	showSingleFileWarningIfNecessary(sourceContainer)
 
 	err = sourceContainer.Validate()
+	if errors.Is(err, tlc.ErrUnsafePaths) {
+		comm.Notice("Some files can't be pushed", []string{
+			fmt.Sprintf("(%s) contains files that itch.io can't safely install on players' computers.", buildPath),
+			"",
+			"Common causes are colons in file names, Windows reserved names like CON or NUL, setuid or setgid permissions, and symlinks that point outside the folder. Rename, fix, or remove these entries, or exclude them with --ignore, then push again.",
+			"",
+			"The problems found follow.",
+		})
+		comm.Logf("%s", err)
+		return errors.Wrap(err, "refusing to push unsafe paths")
+	}
 	if err != nil {
 		comm.Notice("Validation failed", []string{
 			fmt.Sprintf("(%s) cannot be pushed, because it is invalid.", buildPath),
@@ -239,6 +250,7 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 		Source:         source,
 		Metadata:       metadata,
 		LaunchAnalysis: launchAnalysis,
+		SourceSize:     sourceContainer.Size,
 	})
 	cancel()
 	if err != nil {
