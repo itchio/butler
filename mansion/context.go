@@ -96,11 +96,7 @@ func (ctx *Context) Register(clause *kingpin.CmdClause, do DoCommand) {
 
 func (ctx *Context) Must(err error) {
 	if err != nil {
-		if ctx.Verbose || ctx.JSON {
-			comm.Dief("%+v", err)
-		} else {
-			comm.Dief("%s", err)
-		}
+		comm.DieError(err, ctx.Verbose)
 	}
 }
 

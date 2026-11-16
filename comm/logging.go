@@ -210,6 +210,20 @@ func Dief(format string, args ...interface{}) {
 	Die(fmt.Sprintf(format, args...))
 }
 
+// DieError is Die for an error. In JSON mode the error event carries only
+// the message, so clients can show it to users as is, and the stack trace
+// goes to stderr, which clients log. Otherwise verbose prints the trace.
+func DieError(err error, verbose bool) {
+	if settings.json {
+		fmt.Fprintf(os.Stderr, "%+v\n", err)
+		Die(err.Error())
+	} else if verbose {
+		Dief("%+v", err)
+	} else {
+		Dief("%s", err)
+	}
+}
+
 func Login(uri string) {
 	send("login", JsonMessage{
 		"uri": uri,

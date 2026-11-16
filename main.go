@@ -122,11 +122,7 @@ func defaultKeyPath() string {
 
 func must(err error) {
 	if err != nil {
-		if *appArgs.verbose || *appArgs.json {
-			comm.Dief("%+v", err)
-		} else {
-			comm.Dief("%v", err)
-		}
+		comm.DieError(err, *appArgs.verbose)
 	}
 }
 
