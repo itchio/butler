@@ -49,6 +49,33 @@ The format should be: `butler push /path/to/gamefiles username/game:channel`
 **Solution:** Run `butler login` and complete the authorization process through your browser
 before attempting to push.
 
+## Build fails processing: files changed during the push
+
+**Problem:** `butler push` finishes without errors, but the build then fails
+processing on itch.io. The build log contains an error like one of these:
+
+  * `applying patch (resume): expected to have 47839 hashes in signature, had 47825`
+  * `applying patch (resume): Saved/Logs/MyGame.log: too large (57 blocks, tried to look up hash 57)`
+
+butler lists the files in your folder and their sizes when the push starts, then
+reads their contents while it uploads. If a file is written to between those two
+steps, the uploaded patch no longer matches its own file list, and itch.io
+rejects the build.
+
+The usual cause is running the game or editor from the folder you're pushing.
+Unreal Engine, for example, writes logs to `Saved/Logs/` inside the packaged build
+while the game runs.
+
+**Solution:** Close the game, editor and anything else that writes to the build
+folder, then push again. Better yet, push a clean copy of your packaged build that
+nothing runs from. Folders like Unreal's `Saved/` hold local logs and settings
+that players don't need, so leave them out of the build, or exclude them with
+`--ignore` (see [Ignoring files](pushing.md#appendix-c-ignoring-files)):
+
+```
+butler push --ignore 'Saved' my-build/ user/game:windows
+```
+
 ## Project page doesn't exist
 
 **Problem:** Butler requires an existing project page on itch.io — it doesn't create one for you.
