@@ -34,7 +34,7 @@ require (
 	github.com/itchio/sevenzip-go v0.0.0-20261018052135-4aeb2247b776
 	github.com/itchio/smaug v0.0.0-20261029175628-c947b35e2c41
 	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
-	github.com/itchio/wharf v0.0.0-20261014050436-8744bb1ea628
+	github.com/itchio/wharf v0.0.0-20261116210139-c844818e4eba
 	github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1

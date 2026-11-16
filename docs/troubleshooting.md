@@ -51,7 +51,11 @@ before attempting to push.
 
 ## Build fails processing: files changed during the push
 
-**Problem:** `butler push` finishes without errors, but the build then fails
+**Problem:** `butler push` stops with an error like:
+
+  * `a file changed during the push, it was likely edited by another program: source "Saved/Logs/MyGame.log": expected 932118 bytes, read 940310 bytes`
+
+Older versions of butler finish the push without errors, but the build then fails
 processing on itch.io. The build log contains an error like one of these:
 
   * `applying patch (resume): expected to have 47839 hashes in signature, had 47825`

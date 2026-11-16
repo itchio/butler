@@ -156,8 +156,8 @@ github.com/itchio/smaug v0.0.0-20261029175628-c947b35e2c41 h1:n/dpVH62IppS00/XPQ
 github.com/itchio/smaug v0.0.0-20261029175628-c947b35e2c41/go.mod h1:cvvHbM3mtzDynJyUcb8mwpinK14Sy691ch1CV1D8jjE=
 github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148 h1:4YU/DxYjdK4kwHaOdzAdJ6J/svqEqtD8aLnQ/vWQFZE=
 github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148/go.mod h1:G9i9DpC2udPq/X9Ed3wmocGpHu06f+J/W+OtLbzuDRo=
-github.com/itchio/wharf v0.0.0-20261014050436-8744bb1ea628 h1:WpIqQh1wT0Ps9n4ezySOIjZwDQF7fA80YBaHm5rVlPk=
-github.com/itchio/wharf v0.0.0-20261014050436-8744bb1ea628/go.mod h1:Bax+LKPDFFoWSGfFEEtvZgHxSLvPz3JiWtOYiRwZQDc=
+github.com/itchio/wharf v0.0.0-20261116210139-c844818e4eba h1:jA5fvDH9YMyO+wWNOkia9oWLJ2cvuOSCLxrTHpcq89Y=
+github.com/itchio/wharf v0.0.0-20261116210139-c844818e4eba/go.mod h1:wW3IFYGrxj3CiTRn0ulCqTfNg+ZIjhYFvjpraAYy/xY=
 github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500 h1:RhYsPT3CvuQepA5p6OK+0QVrNs6cLTYYVoELrfrU4WY=
 github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500/go.mod h1:7Lr4TktooBnUXkxjwr1AP+pNVf/519Cr2sV2an1mJR4=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

@@ -392,6 +392,18 @@ func Do(ctx *mansion.Context, buildPath string, specStr string, userVersion stri
 	comm.ProgressScale(0.0)
 	err = dctx.WritePatch(pushCtx, patchCounter, signatureCounter)
 	if err != nil {
+		var changed *pwr.SourceChangedError
+		if errors.As(err, &changed) {
+			comm.EndProgress()
+			comm.Notice("Files changed during push", []string{
+				fmt.Sprintf("%s changed size while butler was pushing it, so this build can't be processed.", changed.Path),
+				"",
+				"It was likely edited during the push, for example by a game or editor writing logs to the build folder. Close anything writing to the folder and push again, or exclude files like logs with --ignore.",
+				"",
+				"For more information, see https://itch.io/docs/butler/troubleshooting.html#build-fails-processing-files-changed-during-the-push",
+			})
+			return errors.Wrap(err, "a file changed during the push, it was likely edited by another program")
+		}
 		return errors.Wrap(err, "computing and writing patch")
 	}
 
