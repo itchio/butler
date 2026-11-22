@@ -87,6 +87,7 @@ func upgrade(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcontext
 		}
 		err := applyPatch(oc, meta, isub, receiptIn, i, sp)
 		if err != nil {
+			oc.rc.EndProgress()
 			return errors.WithMessage(err, fmt.Sprintf("while applying patch %d/%d (build %d)", i, totalPatches, build.ID))
 		}
 		sp.Progress(1)
@@ -142,6 +143,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	if err != nil {
 		return errors.Wrap(err, "opening remote patch")
 	}
+	defer patchSource.Close()
 
 	consumer.Infof("Patch is %s", united.FormatBytes(patchSource.Size()))
 
