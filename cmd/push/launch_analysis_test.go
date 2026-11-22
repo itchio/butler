@@ -244,7 +244,7 @@ func TestLaunchAnalysisFailureIsOptional(t *testing.T) {
 			warned = true
 		}
 	}}
-	report := scanLaunchAnalysis(&tlc.Container{Files: []*tlc.File{{Path: "game.exe", Size: 100}}}, failingLaunchPool{}, consumer)
+	report := scanLaunchAnalysis(context.Background(), &tlc.Container{Files: []*tlc.File{{Path: "game.exe", Size: 100}}}, failingLaunchPool{}, consumer)
 	if report != nil || !warned {
 		t.Fatalf("report=%+v warned=%v", report, warned)
 	}
@@ -259,7 +259,7 @@ func TestLaunchAnalysisScannerVersion(t *testing.T) {
 		{"head", "", "butler/head"},
 	} {
 		buildinfo.Version, buildinfo.Commit = tc.version, tc.commit
-		report := scanLaunchAnalysis(&tlc.Container{}, failingLaunchPool{}, &state.Consumer{})
+		report := scanLaunchAnalysis(context.Background(), &tlc.Container{}, failingLaunchPool{}, &state.Consumer{})
 		if report == nil || report.ScannerVersion != tc.want {
 			t.Fatalf("unexpected scanner version: %+v", report)
 		}
@@ -283,7 +283,7 @@ func TestLaunchAnalysisDereferencedSymlink(t *testing.T) {
 		t.Fatal(err)
 	case result := <-results:
 		defer result.pool.Close()
-		report := scanLaunchAnalysis(result.container, result.pool, &state.Consumer{})
+		report := scanLaunchAnalysis(context.Background(), result.container, result.pool, &state.Consumer{})
 		if report == nil {
 			t.Fatal("scan failed")
 		}

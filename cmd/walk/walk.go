@@ -1,6 +1,7 @@
 package walk
 
 import (
+	"context"
 	"time"
 
 	"github.com/itchio/butler/comm"
@@ -23,13 +24,13 @@ func Register(ctx *mansion.Context) {
 }
 
 func do(ctx *mansion.Context) {
-	ctx.Must(Do(*args.dir, *args.dereference))
+	ctx.Must(Do(ctx.Ctx(), *args.dir, *args.dereference))
 }
 
-func Do(dir string, dereference bool) error {
+func Do(ctx context.Context, dir string, dereference bool) error {
 	startTime := time.Now()
 
-	container, err := tlc.WalkDir(dir, tlc.WalkOpts{
+	container, err := tlc.WalkDir(ctx, dir, tlc.WalkOpts{
 		Dereference: dereference,
 	})
 	if err != nil {

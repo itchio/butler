@@ -27,15 +27,18 @@ func scanBuildLaunchAnalysis(ctx context.Context, buildPath string, container *t
 			consumer.Warnf("Could not close launch scan pool: %v", err)
 		}
 	}()
-	return scanLaunchAnalysis(container, pool, consumer)
+	return scanLaunchAnalysis(ctx, container, pool, consumer)
 }
 
 // scanLaunchAnalysis takes the upload's container so ignored files and
 // wrapping match the build.
-func scanLaunchAnalysis(container *tlc.Container, pool lake.Pool, consumer *state.Consumer) *itchio.BuildLaunchAnalysis {
-	targets, err := dash.ScanLaunchTargetsContainer(container, pool, dash.ConfigureParams{Consumer: consumer})
+func scanLaunchAnalysis(ctx context.Context, container *tlc.Container, pool lake.Pool, consumer *state.Consumer) *itchio.BuildLaunchAnalysis {
+	targets, err := dash.ScanLaunchTargetsContainer(ctx, container, pool, dash.ConfigureParams{Consumer: consumer})
 	if err != nil {
-		consumer.Warnf("Could not scan launch targets; continuing upload without launch analysis: %v", err)
+		// an interrupted push is not continuing, and fails on its next step
+		if ctx.Err() == nil {
+			consumer.Warnf("Could not scan launch targets; continuing upload without launch analysis: %v", err)
+		}
 		return nil
 	}
 	data, err := json.Marshal(targets)

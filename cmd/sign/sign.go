@@ -56,7 +56,7 @@ func Do(ctx context.Context, output string, signature string, compression *pwr.C
 	defer pool.Close()
 
 	if fixPerms {
-		if err := container.FixPermissions(pool); err != nil {
+		if err := container.FixPermissions(ctx, pool); err != nil {
 			return errors.Wrap(err, "fixing permissions")
 		}
 	}

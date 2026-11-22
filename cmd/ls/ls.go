@@ -74,7 +74,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 		}
 		walkOpts.AutoWrap(&inPath, consumer)
 
-		container, err := tlc.WalkDir(inPath, walkOpts)
+		container, err := tlc.WalkDir(ctx.Ctx(), inPath, walkOpts)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -224,7 +224,7 @@ func Do(ctx *mansion.Context, inPath string) error {
 				ctx.Must(err)
 			}
 
-			container, err := tlc.WalkZip(zr, tlc.WalkOpts{})
+			container, err := tlc.WalkZip(ctx.Ctx(), zr, tlc.WalkOpts{})
 			ctx.Must(err)
 			container.Print(log)
 

@@ -23,7 +23,7 @@ func TestGetTargetsForHost_NativeAllManifestActionsFail(t *testing.T) {
 	installFolder := t.TempDir()
 	runtime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
 
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 	info := withInstallFolderInfo{
 		installFolder: installFolder,
 		runtime:       runtime,
@@ -55,7 +55,7 @@ func TestGetTargetsForHost_NonNativeAllManifestActionsFail(t *testing.T) {
 	nativeRuntime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
 	wineRuntime := ox.Runtime{Platform: ox.PlatformWindows, Is64: false}
 
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 	info := withInstallFolderInfo{
 		installFolder: installFolder,
 		runtime:       nativeRuntime,
@@ -91,7 +91,7 @@ func TestGetTargetsForHost_NativePartialManifestResolution(t *testing.T) {
 	installFolder := t.TempDir()
 	runtime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
 
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 	info := withInstallFolderInfo{
 		installFolder: installFolder,
 		runtime:       runtime,
@@ -222,7 +222,7 @@ func TestGetTargetsForHost_Runtimes(t *testing.T) {
 	}
 
 	runtime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 	info := withInstallFolderInfo{
 		installFolder: installFolder,
 		runtime:       runtime,
@@ -321,7 +321,7 @@ func TestGetTargetsForHost_UnpackedAppImages(t *testing.T) {
 	t.Parallel()
 
 	runtime := ox.Runtime{Platform: ox.PlatformLinux, Is64: true}
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 	info := withInstallFolderInfo{installFolder: t.TempDir(), runtime: runtime}
 	host := manager.Host{Runtime: runtime}
 	verdict := &dash.Verdict{Candidates: []*dash.Candidate{

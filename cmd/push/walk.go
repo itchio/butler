@@ -41,7 +41,7 @@ func doWalk(ctx context.Context, path string, out chan walkResult, errs chan err
 	}
 
 	if fixPerms {
-		err := result.container.FixPermissions(result.pool)
+		err := result.container.FixPermissions(ctx, result.pool)
 		if err != nil {
 			result.pool.Close()
 			errs <- errors.WithStack(err)

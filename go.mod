@@ -16,17 +16,17 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
-	github.com/itchio/boar v0.0.0-20261122030220-072365f97354
-	github.com/itchio/dash v0.0.0-20261104234003-a7fc044cdc69
+	github.com/itchio/boar v0.0.0-20261122055544-7e7bc0d84d69
+	github.com/itchio/dash v0.0.0-20261122055521-0f81debe1579
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
 	github.com/itchio/go-itchio v0.0.0-20261116220851-51030e31bd10
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20261014203241-1452ce76013a
-	github.com/itchio/hush v0.0.0-20261122030320-8bab551eb43d
+	github.com/itchio/hush v0.0.0-20261122055951-fcb794f30b16
 	github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d
-	github.com/itchio/lake v0.0.0-20261116221603-5676c62cf560
-	github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c
+	github.com/itchio/lake v0.0.0-20261122050844-c3a57f1b367d
+	github.com/itchio/mitch v0.0.0-20261122060339-83eb7ffe7124
 	github.com/itchio/ox v0.0.0-20261031062239-e0424e822ab8
 	github.com/itchio/pelican v0.0.0-20261104233745-f575d787f608
 	github.com/itchio/savior v0.0.0-20261014002740-9a7f4832f631
@@ -34,7 +34,7 @@ require (
 	github.com/itchio/sevenzip-go v0.0.0-20261018052135-4aeb2247b776
 	github.com/itchio/smaug v0.0.0-20261029175628-c947b35e2c41
 	github.com/itchio/spellbook v0.0.0-20260223022740-4f847d058148
-	github.com/itchio/wharf v0.0.0-20261116210139-c844818e4eba
+	github.com/itchio/wharf v0.0.0-20261122054954-eb60b0097874
 	github.com/itchio/wizardry v0.0.0-20261001062802-f7d4b4b74500
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/mdp/qrterminal/v3 v3.2.1

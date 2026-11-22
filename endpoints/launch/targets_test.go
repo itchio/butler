@@ -57,7 +57,7 @@ func TestFindTarget(t *testing.T) {
 func TestSettingsLaunchTarget(t *testing.T) {
 	t.Parallel()
 
-	rc := &butlerd.RequestContext{Consumer: &state.Consumer{}}
+	rc := &butlerd.RequestContext{Ctx: t.Context(), Consumer: &state.Consumer{}}
 
 	cave := &models.Cave{
 		Settings: models.JSON(`{"launchTarget":"index.html"}`),

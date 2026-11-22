@@ -152,7 +152,7 @@ func Do(ctx context.Context, params Params) error {
 
 	var bwl bowl.Bowl
 	if dir != "" {
-		bwl, err = bowl.NewFreshBowl(bowl.FreshBowlParams{
+		bwl, err = bowl.NewFreshBowl(ctx, bowl.FreshBowlParams{
 			SourceContainer: p.GetSourceContainer(),
 			TargetContainer: p.GetTargetContainer(),
 			TargetPool:      targetPool,

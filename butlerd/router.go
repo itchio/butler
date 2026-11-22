@@ -19,7 +19,6 @@ import (
 	"github.com/itchio/headway/tracker"
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/timeout"
-	"github.com/itchio/wharf/werrors"
 
 	"crawshaw.io/sqlite"
 	"github.com/helloeave/json"
@@ -338,9 +337,6 @@ func (r *Router) HandleRequest(conn jsonrpc2.Conn, req jsonrpc2.Request) (interf
 		if neterr.IsNetworkError(err) {
 			code = int64(CodeNetworkDisconnected)
 			message = CodeNetworkDisconnected.Error()
-		} else if errors.Cause(err) == werrors.ErrCancelled {
-			code = int64(CodeOperationCancelled)
-			message = CodeOperationCancelled.Error()
 		} else {
 			code = jsonrpc2.CodeInternalError
 			message = err.Error()

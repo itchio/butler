@@ -1,7 +1,6 @@
 package mkzip
 
 import (
-	"io"
 	"os"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/itchio/lake/pools/fspool"
 	"github.com/itchio/lake/pools/zipwriterpool"
 	"github.com/itchio/lake/tlc"
+	"github.com/itchio/wharf/ctxcopy"
 )
 
 var args = struct {
@@ -50,7 +50,7 @@ func do(ctx *mansion.Context) error {
 		Filter: filtering.FilterPaths,
 	}
 	walkOpts.Wrap(&args.dir)
-	container, err := tlc.WalkDir(args.dir, walkOpts)
+	container, err := tlc.WalkDir(ctx.Ctx(), args.dir, walkOpts)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func do(ctx *mansion.Context) error {
 			consumer.Progress(p)
 		}, fdst)
 
-		_, err = io.Copy(cw, fsrc)
+		_, err = ctxcopy.Do(ctx.Ctx(), cw, fsrc)
 		if err != nil {
 			return err
 		}
@@ -165,6 +165,9 @@ func do(ctx *mansion.Context) error {
 
 	numFiles := len(container.Files)
 	for i := 0; i < numFiles; i++ {
+		if err := ctx.Ctx().Err(); err != nil {
+			return err
+		}
 		err = doFile(int64(i))
 		if err != nil {
 			return err

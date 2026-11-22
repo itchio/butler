@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itchio/wharf/werrors"
-
 	"github.com/itchio/httpkit/neterr"
 	"github.com/itchio/httpkit/timeout"
 
@@ -390,9 +388,6 @@ func performOne(parentCtx context.Context, rc *butlerd.RequestContext) (bool, er
 			var msg string
 			if neterr.IsNetworkError(err) {
 				return true, butlerd.CodeNetworkDisconnected
-			} else if errors.Cause(err) == werrors.ErrCancelled {
-				// just cancelled, nothing to see here
-				return true, nil
 			} else {
 				code = int64(jsonrpc2.CodeInternalError)
 				msg = err.Error()

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/itchio/headway/state"
-	"github.com/itchio/wharf/werrors"
 )
 
 type Lock interface {
@@ -119,7 +118,7 @@ func (rl *lock) Lock(ctx context.Context, task string) error {
 					break waitLoop
 				}
 			case <-ctx.Done():
-				return werrors.ErrCancelled
+				return ctx.Err()
 			}
 		}
 	}

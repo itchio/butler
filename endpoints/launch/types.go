@@ -73,7 +73,7 @@ var ignoredInstallContainerPatterns = []string{
 func (lp *LauncherParams) GetInstallContainer() (*tlc.Container, error) {
 	if lp.installContainer == nil {
 		var err error
-		lp.installContainer, err = tlc.WalkDir(lp.InstallFolder, tlc.WalkOpts{
+		lp.installContainer, err = tlc.WalkDir(lp.Ctx, lp.InstallFolder, tlc.WalkOpts{
 			Filter: func(name string) tlc.FilterResult {
 				if filtering.FilterPaths(name) == tlc.FilterIgnore {
 					return tlc.FilterIgnore

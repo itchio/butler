@@ -197,7 +197,7 @@ func applyPatch(oc *OperationContext, meta *MetaSubcontext, isub *InstallSubcont
 	})
 
 	consumer.Debugf("Using safekeeper to selectively validate existing files")
-	targetPool, err := pwr.NewSafeKeeper(pwr.SafeKeeperParams{
+	targetPool, err := pwr.NewSafeKeeper(oc.Ctx(), pwr.SafeKeeperParams{
 		Inner: fspool.New(p.GetTargetContainer(), params.InstallFolder),
 		Open: func() (savior.SeekSource, error) {
 			return filesource.Open(oc.Ctx(), parentSignatureURL, option.WithConsumer(consumer))
