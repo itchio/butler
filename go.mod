@@ -16,14 +16,14 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
-	github.com/itchio/boar v0.0.0-20261018052339-ac828bcb2bf6
+	github.com/itchio/boar v0.0.0-20261122030220-072365f97354
 	github.com/itchio/dash v0.0.0-20261104234003-a7fc044cdc69
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
 	github.com/itchio/go-itchio v0.0.0-20261116220851-51030e31bd10
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
 	github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4
 	github.com/itchio/httpkit v0.0.0-20261014203241-1452ce76013a
-	github.com/itchio/hush v0.0.0-20261031061138-905d82ad7495
+	github.com/itchio/hush v0.0.0-20261122030320-8bab551eb43d
 	github.com/itchio/intact v0.0.0-20260226205519-5e171e94117d
 	github.com/itchio/lake v0.0.0-20261116221603-5676c62cf560
 	github.com/itchio/mitch v0.0.0-20260924182058-8d1d0a6d9f9c
