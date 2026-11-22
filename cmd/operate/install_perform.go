@@ -137,6 +137,13 @@ func doInstallPerform(oc *OperationContext, meta *MetaSubcontext) (*butlerd.Inst
 	err = doInstallPerformInner(oc, meta, isub)
 	if err != nil {
 		_ = isub.EventSink(oc).PostProblem(err)
+		// A cancel can surface as any error, like a read from a closed
+		// connection. Callers only treat it as a cancel if it says so.
+		// Errors that already carry a code, like an abort, keep it.
+		if _, coded := butlerd.AsButlerdError(err); !coded && oc.Ctx().Err() == context.Canceled {
+			oc.Consumer().Debugf("Install interrupted: %+v", err)
+			return nil, errors.WithStack(butlerd.CodeOperationCancelled)
+		}
 		return nil, err
 	}
 
@@ -193,7 +200,7 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 	consumer.Infof("    via (%s)", oc.StageFolder())
 
 	rlock := runlock.New(consumer, params.InstallFolder)
-	err := rlock.Lock(rc.Ctx, "install")
+	err := rlock.Lock(oc.Ctx(), "install")
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -323,7 +330,7 @@ func doInstallPerformInner(oc *OperationContext, meta *MetaSubcontext, isub *Ins
 			if err != nil && errors.Cause(err) == hush.ErrNeedLocal {
 				lf, localErr := doForceLocal(prepareRes.File, oc, meta, isub)
 				if localErr != nil {
-					return errors.WithStack(err)
+					return errors.WithStack(localErr)
 				}
 
 				consumer.Infof("Re-invoking manager with local file...")
