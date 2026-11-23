@@ -17,7 +17,7 @@ require (
 	github.com/helloeave/json v1.13.0
 	github.com/itchio/arkive v0.0.0-20260428180635-32e8e9c72151
 	github.com/itchio/boar v0.0.0-20261122055544-7e7bc0d84d69
-	github.com/itchio/dash v0.0.0-20261122055521-0f81debe1579
+	github.com/itchio/dash v0.0.0-20261122092159-4243d654be62
 	github.com/itchio/fresh-steamer v0.0.0-20260910204833-384b262158c8
 	github.com/itchio/go-itchio v0.0.0-20261116220851-51030e31bd10
 	github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344
