@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	itchio "github.com/itchio/go-itchio"
@@ -120,7 +121,7 @@ func FetchProfileCollections(rc *butlerd.RequestContext, params butlerd.FetchPro
 		}
 
 		if params.Search != "" {
-			cond = builder.And(cond, builder.Like{"collections.title", params.Search})
+			cond = builder.And(cond, titlesearch.Cond("collections.title", params.Search))
 			joinCollections = true
 		}
 

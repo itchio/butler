@@ -32,6 +32,11 @@ type Options struct {
 	// reaping.
 	IdleTimeout time.Duration
 
+	// OnOpen sets up every connection the pool opens, before it is handed
+	// out. The connection is closed and the open fails if it returns an
+	// error.
+	OnOpen func(conn *sqlite.Conn) error
+
 	// OnOpenError receives the error when an on-demand open fails and Get
 	// returns nil. Get has no error return, to stay compatible with sqlitex.
 	OnOpenError func(err error)
@@ -115,6 +120,7 @@ func Open(uri string, opts Options) (*Pool, error) {
 	// reported here rather than from the first request.
 	conn, err := p.open(context.Background())
 	if err != nil {
+		endLife()
 		return nil, err
 	}
 	p.idle = append(p.idle, idleConn{conn: conn, idleFrom: time.Now()})
@@ -137,7 +143,18 @@ func (p *Pool) open(ctx context.Context) (*sqlite.Conn, error) {
 		return nil, context.Canceled
 	}
 	defer func() { <-p.openSem }()
-	return sqlite.OpenConn(p.uri, p.opts.Flags)
+
+	conn, err := sqlite.OpenConn(p.uri, p.opts.Flags)
+	if err != nil {
+		return nil, err
+	}
+	if p.opts.OnOpen != nil {
+		if err := p.opts.OnOpen(conn); err != nil {
+			conn.Close()
+			return nil, err
+		}
+	}
+	return conn, nil
 }
 
 // Get returns a connection, blocking while all MaxConns are checked out.

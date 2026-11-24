@@ -50,6 +50,7 @@ import (
 	"github.com/itchio/butler/database/dbpool"
 	"github.com/itchio/butler/database/models"
 	"github.com/itchio/butler/database/models/migrations"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/butler/mansion"
 	"github.com/pkg/errors"
 )
@@ -152,7 +153,7 @@ func Do(ctx *mansion.Context) error {
 	// no SQLITE_OPEN_CREATE: this command must never produce an empty DB
 	openFlags := sqlite.SQLITE_OPEN_READWRITE | sqlite.SQLITE_OPEN_WAL |
 		sqlite.SQLITE_OPEN_URI | sqlite.SQLITE_OPEN_NOMUTEX
-	dbPool, err := dbpool.Open(ctx.DBPath, dbpool.Options{Flags: openFlags, MaxConns: 4})
+	dbPool, err := dbpool.Open(ctx.DBPath, dbpool.Options{Flags: openFlags, MaxConns: 4, OnOpen: titlesearch.Register})
 	if err != nil {
 		return errors.WithMessage(err, "opening database")
 	}

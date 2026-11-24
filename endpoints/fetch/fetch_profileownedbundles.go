@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	itchio "github.com/itchio/go-itchio"
@@ -107,7 +108,7 @@ func FetchProfileOwnedBundles(rc *butlerd.RequestContext, params butlerd.FetchPr
 		}
 
 		if params.Search != "" {
-			cond = builder.And(cond, builder.Like{"bundles.title", params.Search})
+			cond = builder.And(cond, titlesearch.Cond("bundles.title", params.Search))
 			joinBundles = true
 		}
 

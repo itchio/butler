@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/hades"
 	"xorm.io/builder"
 )
@@ -108,6 +109,9 @@ func FetchGameRecords(rc *butlerd.RequestContext, params butlerd.FetchGameRecord
 			cond = builder.And(cond, builder.Eq{"games.classification": params.Filters.Classification})
 		}
 		// every source already joins the games table
+		if params.Search != "" {
+			cond = builder.And(cond, titlesearch.Cond("games.title", params.Search))
+		}
 		if pc := condForPlatformFilter(params.Filters.Platform); pc != nil {
 			cond = builder.And(cond, pc)
 		}

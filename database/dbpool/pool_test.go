@@ -368,3 +368,25 @@ func Test_OpenWaitHonorsContext(t *testing.T) {
 	open, _ := p.Stats()
 	assert.Equal(t, 1, open, "no connection was opened for the abandoned Get")
 }
+
+func Test_OnOpenSetsUpEveryConnection(t *testing.T) {
+	p := openTestPool(t, Options{MaxConns: 3, IdleTimeout: -1, OnOpen: func(conn *sqlite.Conn) error {
+		return conn.CreateFunction("set_up", true, 0, func(ctx sqlite.Context, _ ...sqlite.Value) {
+			ctx.ResultInt(1)
+		}, nil, nil)
+	}})
+
+	for i := 0; i < 3; i++ {
+		conn := p.Get(context.Background())
+		require.NotNil(t, conn)
+		defer p.Put(conn)
+		require.NoError(t, sqlitex.ExecTransient(conn, "select set_up()", nil))
+	}
+}
+
+func Test_OpenFailsWhenOnOpenFails(t *testing.T) {
+	_, err := Open(filepath.Join(t.TempDir(), "test.db"), Options{OnOpen: func(conn *sqlite.Conn) error {
+		return fmt.Errorf("no setup")
+	}})
+	require.ErrorContains(t, err, "no setup")
+}

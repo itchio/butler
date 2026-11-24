@@ -17,6 +17,7 @@ import (
 	"github.com/itchio/butler/database"
 	"github.com/itchio/butler/database/dbpool"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/headway/state"
 
 	"github.com/itchio/butler/comm"
@@ -111,6 +112,7 @@ func do(ctx *mansion.Context) {
 
 	dbPool, err := dbpool.Open(ctx.DBPath, dbpool.Options{
 		MaxConns: 100,
+		OnOpen:   titlesearch.Register,
 		OnOpenError: func(err error) {
 			comm.Warnf("butlerd: could not open additional database connection: %+v", err)
 		},

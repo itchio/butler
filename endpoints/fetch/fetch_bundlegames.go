@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/butler/endpoints/fetch/lazyfetch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	itchio "github.com/itchio/go-itchio"
@@ -146,7 +147,7 @@ func FetchBundleGames(rc *butlerd.RequestContext, params butlerd.FetchBundleGame
 		}
 
 		if params.Search != "" {
-			cond = builder.And(cond, builder.Like{"games.title", params.Search})
+			cond = builder.And(cond, titlesearch.Cond("games.title", params.Search))
 			joinGames = true
 		}
 

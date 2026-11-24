@@ -7,6 +7,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/itchio/hades"
 	"xorm.io/builder"
@@ -48,7 +49,7 @@ func (s *localSearch) index(conn *sqlite.Conn, profileID int64) *localIndex {
 
 func (s *localSearch) search(conn *sqlite.Conn, params butlerd.SearchLocalParams) *butlerd.SearchLocalResult {
 	idx := s.index(conn, params.ProfileID)
-	q := newLocalQuery(params.Query)
+	q := titlesearch.NewQuery(params.Query)
 
 	// 0 for a kind that wasn't asked for
 	limit := func(kind butlerd.SearchLocalKind, fallback int) int {
@@ -63,13 +64,13 @@ func (s *localSearch) search(conn *sqlite.Conn, params butlerd.SearchLocalParams
 
 	return &butlerd.SearchLocalResult{
 		Games: selectRanked(conn,
-			q.rank(idx.games, limit(butlerd.SearchLocalKindGames, searchLocalGamesLimit)),
+			rank(q, idx.games, limit(butlerd.SearchLocalKindGames, searchLocalGamesLimit)),
 			func(g *itchio.Game) int64 { return g.ID }),
 		Bundles: selectRanked(conn,
-			q.rank(idx.bundles, limit(butlerd.SearchLocalKindBundles, searchLocalBundlesLimit)),
+			rank(q, idx.bundles, limit(butlerd.SearchLocalKindBundles, searchLocalBundlesLimit)),
 			func(b *itchio.Bundle) int64 { return b.ID }),
 		Collections: selectRanked(conn,
-			q.rank(idx.collections, limit(butlerd.SearchLocalKindCollections, searchLocalCollectionsLimit)),
+			rank(q, idx.collections, limit(butlerd.SearchLocalKindCollections, searchLocalCollectionsLimit)),
 			func(c *itchio.Collection) int64 { return c.ID }),
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
 	"github.com/itchio/butler/database/models"
+	"github.com/itchio/butler/database/titlesearch"
 	"github.com/itchio/butler/endpoints/fetch/pager"
 	"github.com/itchio/hades"
 	"xorm.io/builder"
@@ -93,7 +94,7 @@ func fetchCavesWithConn(conn *sqlite.Conn, params butlerd.FetchCavesParams, res 
 	}
 
 	if params.Search != "" {
-		cond = builder.And(cond, builder.Like{"games.title", params.Search})
+		cond = builder.And(cond, titlesearch.Cond("games.title", params.Search))
 		joinGames = true
 	}
 
