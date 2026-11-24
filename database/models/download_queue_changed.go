@@ -37,4 +37,7 @@ func afterWrite(tables []string) {
 	if slices.Contains(tables, hadesContext.TableName(&Download{})) {
 		DownloadQueueChanged.Notify()
 	}
+	if isLibraryWrite(tables) {
+		LibraryChanged()
+	}
 }

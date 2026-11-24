@@ -1,7 +1,7 @@
 package search
 
 import (
-	"strings"
+	"sync"
 
 	"crawshaw.io/sqlite"
 	"github.com/itchio/butler/butlerd"
@@ -17,68 +17,72 @@ const (
 	searchLocalCollectionsLimit = 3
 )
 
-func SearchLocal(rc *butlerd.RequestContext, params butlerd.SearchLocalParams) (*butlerd.SearchLocalResult, error) {
+// localSearch answers Search.Local from an in-memory index of one
+// profile's library, rebuilt when the library has changed since it was
+// built, or when another profile searches.
+type localSearch struct {
+	mu        sync.Mutex
+	profileID int64
+	idx       *localIndex
+}
+
+func (s *localSearch) SearchLocal(rc *butlerd.RequestContext, params butlerd.SearchLocalParams) (*butlerd.SearchLocalResult, error) {
 	res := &butlerd.SearchLocalResult{}
 	if params.Query == "" {
 		return res, nil
 	}
 
 	rc.WithConn(func(conn *sqlite.Conn) {
-		res.Games = searchLocalGames(conn, params.ProfileID, params.Query)
-		res.Bundles = searchLocalBundles(conn, params.ProfileID, params.Query)
-		res.Collections = searchLocalCollections(conn, params.ProfileID, params.Query)
+		res = s.search(conn, params.ProfileID, params.Query)
 	})
 
 	return res, nil
 }
 
-// relevanceSearch matches titles containing the query, ranked before the
-// limit truncates: exact matches first, then prefix matches, then other
-// substring matches. Within a tier, shorter titles rank higher (the query
-// makes up more of the title) and id breaks ties so the order is
-// deterministic.
-func relevanceSearch(query string, limit int64) (builder.Cond, hades.Search) {
-	q := strings.ToLower(query)
-	cond := builder.Like{"lower(title)", "%" + q + "%"}
-	search := hades.Search{}.OrderBy(
-		"(lower(title) = ?) desc, (lower(title) like ?) desc, length(title) asc, id asc",
-		q, q+"%",
-	).Limit(limit)
-	return cond, search
+func (s *localSearch) index(conn *sqlite.Conn, profileID int64) *localIndex {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.idx == nil || s.profileID != profileID || s.idx.generation != models.LibraryGeneration() {
+		s.idx = buildLocalIndex(conn, profileID)
+		s.profileID = profileID
+	}
+	return s.idx
 }
 
-func searchLocalGames(conn *sqlite.Conn, profileID int64, query string) []*itchio.Game {
-	var games []*itchio.Game
-	cond, search := relevanceSearch(query, searchLocalGamesLimit)
-	models.MustSelect(conn, &games,
-		builder.And(cond, models.GameInProfileLibraryCond(profileID)),
-		search,
-	)
-	return games
+func (s *localSearch) search(conn *sqlite.Conn, profileID int64, query string) *butlerd.SearchLocalResult {
+	idx := s.index(conn, profileID)
+	q := newLocalQuery(query)
+
+	res := &butlerd.SearchLocalResult{}
+	res.Games = selectRanked(conn, q.rank(idx.games, searchLocalGamesLimit),
+		func(g *itchio.Game) int64 { return g.ID })
+	res.Bundles = selectRanked(conn, q.rank(idx.bundles, searchLocalBundlesLimit),
+		func(b *itchio.Bundle) int64 { return b.ID })
+	res.Collections = selectRanked(conn, q.rank(idx.collections, searchLocalCollectionsLimit),
+		func(c *itchio.Collection) int64 { return c.ID })
+	return res
 }
 
-func searchLocalBundles(conn *sqlite.Conn, profileID int64, query string) []*itchio.Bundle {
-	var bundles []*itchio.Bundle
-	cond, search := relevanceSearch(query, searchLocalBundlesLimit)
-	models.MustSelect(conn, &bundles,
-		builder.And(cond, builder.Expr(
-			"exists (select 1 from bundle_keys where bundle_keys.bundle_id = bundles.id and bundle_keys.owner_id = ?)",
-			profileID,
-		)),
-		search,
-	)
-	return bundles
-}
+// selectRanked fetches the records with the given ids, in that order.
+func selectRanked[T any](conn *sqlite.Conn, ids []int64, id func(*T) int64) []*T {
+	if len(ids) == 0 {
+		return nil
+	}
 
-func searchLocalCollections(conn *sqlite.Conn, profileID int64, query string) []*itchio.Collection {
-	var collections []*itchio.Collection
-	cond, search := relevanceSearch(query, searchLocalCollectionsLimit)
-	models.MustSelect(conn, &collections,
-		builder.And(cond, builder.Expr(
-			"exists (select 1 from profile_collections where profile_collections.collection_id = collections.id and profile_collections.profile_id = ?)",
-			profileID,
-		)),
-		search,
-	)
-	return collections
+	var rows []*T
+	models.MustSelect(conn, &rows, builder.Eq{"id": ids}, hades.Search{})
+
+	byID := make(map[int64]*T, len(rows))
+	for _, row := range rows {
+		byID[id(row)] = row
+	}
+
+	ranked := make([]*T, 0, len(rows))
+	for _, rowID := range ids {
+		if row, ok := byID[rowID]; ok {
+			ranked = append(ranked, row)
+		}
+	}
+	return ranked
 }

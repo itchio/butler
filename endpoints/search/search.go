@@ -6,7 +6,8 @@ import (
 )
 
 func Register(router *butlerd.Router) {
-	messages.SearchLocal.Register(router, SearchLocal)
+	local := &localSearch{}
+	messages.SearchLocal.Register(router, local.SearchLocal)
 	messages.SearchGames.Register(router, SearchGames)
 	messages.SearchUsers.Register(router, SearchUsers)
 }

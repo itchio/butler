@@ -8,6 +8,7 @@ import (
 	"github.com/itchio/butler/database/models"
 	itchio "github.com/itchio/go-itchio"
 	"github.com/stretchr/testify/require"
+	"xorm.io/builder"
 )
 
 func searchLocalTestConn(t *testing.T) *sqlite.Conn {
@@ -87,41 +88,43 @@ func collectionIDs(collections []*itchio.Collection) []int64 {
 
 func Test_SearchLocalGames(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	seedSearchLocal(t, conn)
 
 	// case-insensitive
-	require.ElementsMatch(t, []int64{1}, gameIDs(searchLocalGames(conn, 1, "GROVE")))
-	require.Empty(t, searchLocalGames(conn, 1, "nothing matches this"))
+	require.ElementsMatch(t, []int64{1}, gameIDs(s.search(conn, 1, "GROVE").Games))
+	require.Empty(t, s.search(conn, 1, "nothing matches this").Games)
 }
 
 func Test_SearchLocalGamesScopedToProfile(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	seedSearchLocal(t, conn)
 
 	// owned via download key
-	require.ElementsMatch(t, []int64{1}, gameIDs(searchLocalGames(conn, 1, "grove")))
-	require.Empty(t, searchLocalGames(conn, 2, "grove"))
-	require.Empty(t, searchLocalGames(conn, 1, "celeste"))
+	require.ElementsMatch(t, []int64{1}, gameIDs(s.search(conn, 1, "grove").Games))
+	require.Empty(t, s.search(conn, 2, "grove").Games)
+	require.Empty(t, s.search(conn, 1, "celeste").Games)
 
 	// in one of the profile's collections
-	require.ElementsMatch(t, []int64{3}, gameIDs(searchLocalGames(conn, 1, "shelf")))
-	require.Empty(t, searchLocalGames(conn, 2, "shelf"))
+	require.ElementsMatch(t, []int64{3}, gameIDs(s.search(conn, 1, "shelf").Games))
+	require.Empty(t, s.search(conn, 2, "shelf").Games)
 
 	// part of an owned bundle
-	require.ElementsMatch(t, []int64{4}, gameIDs(searchLocalGames(conn, 1, "pack")))
-	require.Empty(t, searchLocalGames(conn, 2, "pack"))
+	require.ElementsMatch(t, []int64{4}, gameIDs(s.search(conn, 1, "pack").Games))
+	require.Empty(t, s.search(conn, 2, "pack").Games)
 
 	// on the profile's dashboard
-	require.ElementsMatch(t, []int64{6}, gameIDs(searchLocalGames(conn, 1, "workshop")))
-	require.Empty(t, searchLocalGames(conn, 2, "workshop"))
+	require.ElementsMatch(t, []int64{6}, gameIDs(s.search(conn, 1, "workshop").Games))
+	require.Empty(t, s.search(conn, 2, "workshop").Games)
 
 	// installs aren't profile-scoped, every profile sees them
-	require.ElementsMatch(t, []int64{5}, gameIDs(searchLocalGames(conn, 1, "cabin")))
-	require.ElementsMatch(t, []int64{5}, gameIDs(searchLocalGames(conn, 2, "cabin")))
+	require.ElementsMatch(t, []int64{5}, gameIDs(s.search(conn, 1, "cabin").Games))
+	require.ElementsMatch(t, []int64{5}, gameIDs(s.search(conn, 2, "cabin").Games))
 
 	// cached from browsing only: no profile sees it
-	require.Empty(t, searchLocalGames(conn, 1, "drifter"))
-	require.Empty(t, searchLocalGames(conn, 2, "drifter"))
+	require.Empty(t, s.search(conn, 1, "drifter").Games)
+	require.Empty(t, s.search(conn, 2, "drifter").Games)
 }
 
 // saveOwnedGame saves a game along with a download key so it's in
@@ -133,6 +136,7 @@ func saveOwnedGame(conn *sqlite.Conn, id int64, title string) {
 
 func Test_SearchLocalGamesRelevanceOrder(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	saveOwnedGame(conn, 1, "A Very Cozy Adventure") // substring, longest
 	saveOwnedGame(conn, 2, "So Cozy")               // substring
 	saveOwnedGame(conn, 3, "Cozy Grove")            // prefix
@@ -141,45 +145,113 @@ func Test_SearchLocalGamesRelevanceOrder(t *testing.T) {
 
 	// exact first, then prefixes by title length, then substrings by title
 	// length; the longest substring match falls off the limit of 4
-	require.Equal(t, []int64{4, 5, 3, 2}, gameIDs(searchLocalGames(conn, 1, "Cozy")))
+	require.Equal(t, []int64{4, 5, 3, 2}, gameIDs(s.search(conn, 1, "Cozy").Games))
 }
 
 func Test_SearchLocalGamesOrderIsDeterministic(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	// same tier, same title length: id breaks the tie
 	saveOwnedGame(conn, 9, "Cozy Web")
 	saveOwnedGame(conn, 4, "Cozy Den")
 
-	require.Equal(t, []int64{4, 9}, gameIDs(searchLocalGames(conn, 1, "cozy")))
+	require.Equal(t, []int64{4, 9}, gameIDs(s.search(conn, 1, "cozy").Games))
 }
 
 func Test_SearchLocalGamesLimit(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	for i := int64(1); i <= 10; i++ {
 		saveOwnedGame(conn, i, fmt.Sprintf("Cozy Game %d", i))
 	}
 
-	require.Len(t, searchLocalGames(conn, 1, "cozy"), searchLocalGamesLimit)
+	require.Len(t, s.search(conn, 1, "cozy").Games, searchLocalGamesLimit)
 }
 
 func Test_SearchLocalBundlesScopedToProfile(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	seedSearchLocal(t, conn)
 
-	require.ElementsMatch(t, []int64{10}, bundleIDs(searchLocalBundles(conn, 1, "cozy")))
-	require.ElementsMatch(t, []int64{20}, bundleIDs(searchLocalBundles(conn, 2, "cozy")))
+	require.ElementsMatch(t, []int64{10}, bundleIDs(s.search(conn, 1, "cozy").Bundles))
+	require.ElementsMatch(t, []int64{20}, bundleIDs(s.search(conn, 2, "cozy").Bundles))
 	// profile without any bundle keys
-	require.Empty(t, searchLocalBundles(conn, 3, "cozy"))
+	require.Empty(t, s.search(conn, 3, "cozy").Bundles)
 	// owned, but query doesn't match
-	require.Empty(t, searchLocalBundles(conn, 1, "rival"))
+	require.Empty(t, s.search(conn, 1, "rival").Bundles)
 }
 
 func Test_SearchLocalCollectionsScopedToProfile(t *testing.T) {
 	conn := searchLocalTestConn(t)
+	s := &localSearch{}
 	seedSearchLocal(t, conn)
 
-	require.ElementsMatch(t, []int64{30}, collectionIDs(searchLocalCollections(conn, 1, "cozy")))
-	require.ElementsMatch(t, []int64{40}, collectionIDs(searchLocalCollections(conn, 2, "cozy")))
-	require.Empty(t, searchLocalCollections(conn, 3, "cozy"))
-	require.Empty(t, searchLocalCollections(conn, 1, "foreign"))
+	require.ElementsMatch(t, []int64{30}, collectionIDs(s.search(conn, 1, "cozy").Collections))
+	require.ElementsMatch(t, []int64{40}, collectionIDs(s.search(conn, 2, "cozy").Collections))
+	require.Empty(t, s.search(conn, 3, "cozy").Collections)
+	require.Empty(t, s.search(conn, 1, "foreign").Collections)
+}
+
+func Test_SearchLocalIgnoresPunctuationAndAccents(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "x-moon")
+	saveOwnedGame(conn, 2, "Pokémon Tribute")
+
+	for _, query := range []string{"x moon", "xmoon", "X_Moon", "moon x", "x-mo"} {
+		require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, query).Games), query)
+	}
+	require.Equal(t, []int64{2}, gameIDs(s.search(conn, 1, "pokemon").Games))
+	require.Equal(t, []int64{2}, gameIDs(s.search(conn, 1, "TRIBUTE POKÉ").Games))
+
+}
+
+func Test_SearchLocalSymbolTitles(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "???")
+	saveOwnedGame(conn, 2, "C")
+	saveOwnedGame(conn, 3, "C++")
+
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, "??").Games))
+	// both fold to "c", the one typed out as it is comes first
+	require.Equal(t, []int64{3, 2}, gameIDs(s.search(conn, 1, "c++").Games))
+	require.Empty(t, s.search(conn, 1, "-").Games)
+}
+
+func Test_SearchLocalKeepsNonLatinMarks(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "パパ")
+	saveOwnedGame(conn, 2, "ハハ")
+
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, "パパ").Games))
+}
+
+func Test_SearchLocalSubstringStaysInsideAWord(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "The Artful Escape")
+
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, "scap").Games))
+	require.Empty(t, s.search(conn, 1, "ear").Games)
+}
+
+func Test_SearchLocalSeesLibraryChanges(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "Cozy Grove")
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, "cozy").Games))
+
+	// cached, but not in the library until the key shows up
+	models.MustSave(conn, &itchio.Game{ID: 2, Title: "Cozy Den"})
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, 1, "cozy").Games))
+	models.MustSave(conn, &itchio.DownloadKey{ID: 102, GameID: 2, OwnerID: 1})
+	require.Equal(t, []int64{2, 1}, gameIDs(s.search(conn, 1, "cozy").Games))
+
+	models.MustSave(conn, &itchio.Game{ID: 1, Title: "Snug Grove"})
+	require.Equal(t, []int64{2}, gameIDs(s.search(conn, 1, "cozy").Games))
+
+	models.MustDelete(conn, &itchio.DownloadKey{}, builder.Eq{"game_id": 2})
+	require.Empty(t, s.search(conn, 1, "cozy").Games)
 }

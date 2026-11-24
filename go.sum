@@ -121,8 +121,8 @@ github.com/itchio/go-brotli v0.0.0-20261025215007-eae0c1b3416b h1:VTtZxRSdEY1NKB
 github.com/itchio/go-brotli v0.0.0-20261025215007-eae0c1b3416b/go.mod h1:9mEFT8nN2dZ+j+0rfQAu0iTCdzChKnXElYtPEQQuTS0=
 github.com/itchio/go-itchio v0.0.0-20261116220851-51030e31bd10 h1:LVQtbGn078foa3w4X1Hd8n4dmAwCzC2bkNyrAUK+x9w=
 github.com/itchio/go-itchio v0.0.0-20261116220851-51030e31bd10/go.mod h1:pEkXnQxxX0Rcmm4lMbL8gVQsA/exbD4e/1P4Vq0vZ6g=
-github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344 h1:bVS/wOL1h5tpjxZjZX2Q+mujFcz3O/DjlkpmYavFvss=
-github.com/itchio/hades v0.0.0-20260923023924-c870c8c16344/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
+github.com/itchio/hades v0.0.0-20261124000336-baaa1545a757 h1:2PXtF2s1GK3QO9TIPCu1sCkDC5M1CKN5VoIhIDfQcAA=
+github.com/itchio/hades v0.0.0-20261124000336-baaa1545a757/go.mod h1:0AdJ5AtSRdWSqUyywmadiL/YLF9TunxPOutRzeA4IqA=
 github.com/itchio/headway v0.0.0-20190702175331-a4c65c5306de/go.mod h1:Iif+7HeesRB0PvTYf0gOIFX8lj0za0SUsWryENQYt1E=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4 h1:vOYjkMs+aVNeHU0d6MCctyEyxn02n0l3Zw6dsU9AsEs=
 github.com/itchio/headway v0.0.0-20251229214354-da882c8b5dd4/go.mod h1:1/4tbTrV3G/Su53pnKBpa5mv3cVkLweRAq/xRnulSQI=

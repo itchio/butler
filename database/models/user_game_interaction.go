@@ -38,6 +38,12 @@ func SaveUserGameInteractionSummary(conn *sqlite.Conn, userID, gameID int64, sum
 		return errors.New("SaveUserGameInteractionSummary: gameID must be non-zero")
 	}
 
+	// caves are saved in a transaction here, see LibraryGeneration
+	defer func() {
+		if retErr == nil {
+			LibraryChanged()
+		}
+	}()
 	defer sqlitex.Save(conn)(&retErr)
 
 	syncedAt := time.Now().UTC()
