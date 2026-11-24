@@ -1,6 +1,7 @@
 package search
 
 import (
+	"slices"
 	"sync"
 
 	"crawshaw.io/sqlite"
@@ -27,15 +28,10 @@ type localSearch struct {
 }
 
 func (s *localSearch) SearchLocal(rc *butlerd.RequestContext, params butlerd.SearchLocalParams) (*butlerd.SearchLocalResult, error) {
-	res := &butlerd.SearchLocalResult{}
-	if params.Query == "" {
-		return res, nil
-	}
-
+	var res *butlerd.SearchLocalResult
 	rc.WithConn(func(conn *sqlite.Conn) {
-		res = s.search(conn, params.ProfileID, params.Query)
+		res = s.search(conn, params)
 	})
-
 	return res, nil
 }
 
@@ -50,24 +46,38 @@ func (s *localSearch) index(conn *sqlite.Conn, profileID int64) *localIndex {
 	return s.idx
 }
 
-func (s *localSearch) search(conn *sqlite.Conn, profileID int64, query string) *butlerd.SearchLocalResult {
-	idx := s.index(conn, profileID)
-	q := newLocalQuery(query)
+func (s *localSearch) search(conn *sqlite.Conn, params butlerd.SearchLocalParams) *butlerd.SearchLocalResult {
+	idx := s.index(conn, params.ProfileID)
+	q := newLocalQuery(params.Query)
 
-	res := &butlerd.SearchLocalResult{}
-	res.Games = selectRanked(conn, q.rank(idx.games, searchLocalGamesLimit),
-		func(g *itchio.Game) int64 { return g.ID })
-	res.Bundles = selectRanked(conn, q.rank(idx.bundles, searchLocalBundlesLimit),
-		func(b *itchio.Bundle) int64 { return b.ID })
-	res.Collections = selectRanked(conn, q.rank(idx.collections, searchLocalCollectionsLimit),
-		func(c *itchio.Collection) int64 { return c.ID })
-	return res
+	// 0 for a kind that wasn't asked for
+	limit := func(kind butlerd.SearchLocalKind, fallback int) int {
+		if len(params.Types) > 0 && !slices.Contains(params.Types, kind) {
+			return 0
+		}
+		if params.Limit > 0 {
+			return int(params.Limit)
+		}
+		return fallback
+	}
+
+	return &butlerd.SearchLocalResult{
+		Games: selectRanked(conn,
+			q.rank(idx.games, limit(butlerd.SearchLocalKindGames, searchLocalGamesLimit)),
+			func(g *itchio.Game) int64 { return g.ID }),
+		Bundles: selectRanked(conn,
+			q.rank(idx.bundles, limit(butlerd.SearchLocalKindBundles, searchLocalBundlesLimit)),
+			func(b *itchio.Bundle) int64 { return b.ID }),
+		Collections: selectRanked(conn,
+			q.rank(idx.collections, limit(butlerd.SearchLocalKindCollections, searchLocalCollectionsLimit)),
+			func(c *itchio.Collection) int64 { return c.ID }),
+	}
 }
 
 // selectRanked fetches the records with the given ids, in that order.
 func selectRanked[T any](conn *sqlite.Conn, ids []int64, id func(*T) int64) []*T {
 	if len(ids) == 0 {
-		return nil
+		return []*T{}
 	}
 
 	var rows []*T

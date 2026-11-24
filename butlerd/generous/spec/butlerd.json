@@ -533,6 +533,18 @@
             "name": "query",
             "doc": "",
             "type": "string"
+          },
+          {
+            "name": "types",
+            "doc": "What to search for. Everything, when empty or not specified.",
+            "type": "SearchLocalKind[]",
+            "optional": true
+          },
+          {
+            "name": "limit",
+            "doc": "Maximum number of results for each of the types searched, at most\n100. When not specified: 4 games, 3 bundles and 3 collections.",
+            "type": "number",
+            "optional": true
           }
         ]
       },
@@ -540,17 +552,17 @@
         "fields": [
           {
             "name": "games",
-            "doc": "Games in the profile's library matching the query",
+            "doc": "Games in the profile's library matching the query. Empty when\ngames were not searched for.",
             "type": "Game[]"
           },
           {
             "name": "bundles",
-            "doc": "Bundles owned by the profile matching the query",
+            "doc": "Bundles owned by the profile matching the query. Empty when\nbundles were not searched for.",
             "type": "Bundle[]"
           },
           {
             "name": "collections",
-            "doc": "Collections in the profile's collection list matching the query",
+            "doc": "Collections in the profile's collection list matching the query.\nEmpty when collections were not searched for.",
             "type": "Collection[]"
           }
         ]
@@ -4788,17 +4800,17 @@
       "fields": [
         {
           "name": "games",
-          "doc": "Games in the profile's library matching the query",
+          "doc": "Games in the profile's library matching the query. Empty when\ngames were not searched for.",
           "type": "Game[]"
         },
         {
           "name": "bundles",
-          "doc": "Bundles owned by the profile matching the query",
+          "doc": "Bundles owned by the profile matching the query. Empty when\nbundles were not searched for.",
           "type": "Bundle[]"
         },
         {
           "name": "collections",
-          "doc": "Collections in the profile's collection list matching the query",
+          "doc": "Collections in the profile's collection list matching the query.\nEmpty when collections were not searched for.",
           "type": "Collection[]"
         }
       ]
@@ -8975,6 +8987,27 @@
           "name": "Runtime",
           "doc": "A payload (ROM, .love, Godot pack, ...) the client said it has a\nruntime for. FullTargetPath is the file or folder to run, and\nCandidate carries the flavor, engine, and version. Butler has no\nlauncher for this strategy: the client runs it.",
           "value": "runtime"
+        }
+      ]
+    },
+    {
+      "name": "SearchLocalKind",
+      "doc": "",
+      "values": [
+        {
+          "name": "Games",
+          "doc": "",
+          "value": "games"
+        },
+        {
+          "name": "Bundles",
+          "doc": "",
+          "value": "bundles"
+        },
+        {
+          "name": "Collections",
+          "doc": "",
+          "value": "collections"
         }
       ]
     },

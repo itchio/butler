@@ -561,23 +561,51 @@ type SearchLocalParams struct {
 	ProfileID int64 `json:"profileId"`
 
 	Query string `json:"query"`
+
+	// What to search for. Everything, when empty or not specified.
+	// @optional
+	Types []SearchLocalKind `json:"types"`
+
+	// Maximum number of results for each of the types searched, at most
+	// 100. When not specified: 4 games, 3 bundles and 3 collections.
+	// @optional
+	Limit int64 `json:"limit"`
 }
 
 func (p SearchLocalParams) Validate() error {
 	return validation.ValidateStruct(&p,
 		validation.Field(&p.ProfileID, validation.Required),
 		validation.Field(&p.Query, validation.Required),
+		validation.Field(&p.Types, validation.Each(validation.Required, validation.In(SearchLocalKindList...))),
+		validation.Field(&p.Limit, validation.Min(0), validation.Max(100)),
 	)
 }
 
+type SearchLocalKind string
+
+const (
+	SearchLocalKindGames       SearchLocalKind = "games"
+	SearchLocalKindBundles     SearchLocalKind = "bundles"
+	SearchLocalKindCollections SearchLocalKind = "collections"
+)
+
+var SearchLocalKindList = []interface{}{
+	SearchLocalKindGames,
+	SearchLocalKindBundles,
+	SearchLocalKindCollections,
+}
+
 type SearchLocalResult struct {
-	// Games in the profile's library matching the query
+	// Games in the profile's library matching the query. Empty when
+	// games were not searched for.
 	Games []*itchio.Game `json:"games"`
 
-	// Bundles owned by the profile matching the query
+	// Bundles owned by the profile matching the query. Empty when
+	// bundles were not searched for.
 	Bundles []*itchio.Bundle `json:"bundles"`
 
-	// Collections in the profile's collection list matching the query
+	// Collections in the profile's collection list matching the query.
+	// Empty when collections were not searched for.
 	Collections []*itchio.Collection `json:"collections"`
 }
 

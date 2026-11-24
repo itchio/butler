@@ -1877,6 +1877,19 @@ the profile&rsquo;s collection list.</p>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
 <td></td>
 </tr>
+<tr>
+<td><code>types</code></td>
+<td><code class="typename"><span class="type" data-tip-selector="#SearchLocalKind__TypeHint">SearchLocalKind</span>[]</code></td>
+<td><p><span class="tag">Optional</span> What to search for. Everything, when empty or not specified.</p>
+</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
+<td><p><span class="tag">Optional</span> Maximum number of results for each of the types searched, at most
+100. When not specified: 4 games, 3 bundles and 3 collections.</p>
+</td>
+</tr>
 </table>
 
 
@@ -1890,19 +1903,22 @@ the profile&rsquo;s collection list.</p>
 <tr>
 <td><code>games</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Game__TypeHint">Game</span>[]</code></td>
-<td><p>Games in the profile&rsquo;s library matching the query</p>
+<td><p>Games in the profile&rsquo;s library matching the query. Empty when
+games were not searched for.</p>
 </td>
 </tr>
 <tr>
 <td><code>bundles</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Bundle__TypeHint">Bundle</span>[]</code></td>
-<td><p>Bundles owned by the profile matching the query</p>
+<td><p>Bundles owned by the profile matching the query. Empty when
+bundles were not searched for.</p>
 </td>
 </tr>
 <tr>
 <td><code>collections</code></td>
 <td><code class="typename"><span class="type" data-tip-selector="#Collection__TypeHint">Collection</span>[]</code></td>
-<td><p>Collections in the profile&rsquo;s collection list matching the query</p>
+<td><p>Collections in the profile&rsquo;s collection list matching the query.
+Empty when collections were not searched for.</p>
 </td>
 </tr>
 </table>
@@ -1930,6 +1946,14 @@ the profile&rsquo;s collection list.</p>
 <tr>
 <td><code>query</code></td>
 <td><code class="typename"><span class="type builtin-type">string</span></code></td>
+</tr>
+<tr>
+<td><code>types</code></td>
+<td><code class="typename"><span class="type">SearchLocalKind</span>[]</code></td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td><code class="typename"><span class="type builtin-type">number</span></code></td>
 </tr>
 </table>
 
@@ -12286,6 +12310,49 @@ ie. that we can connect as, etc.</p>
 <tr>
 <td><code>user</code></td>
 <td><code class="typename"><span class="type">User</span></code></td>
+</tr>
+</table>
+
+</div>
+
+### SearchLocalKind (enum)
+
+
+
+<p>
+<span class="header">Values</span> 
+</p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"games"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"bundles"</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>"collections"</code></td>
+<td></td>
+</tr>
+</table>
+
+
+<div id="SearchLocalKind__TypeHint" class="tip-content">
+<p>SearchLocalKind (enum) <a href="#/?id=searchlocalkind-enum">(Go to definition)</a></p>
+
+
+<table class="field-table">
+<tr>
+<td><code>"games"</code></td>
+</tr>
+<tr>
+<td><code>"bundles"</code></td>
+</tr>
+<tr>
+<td><code>"collections"</code></td>
 </tr>
 </table>
 

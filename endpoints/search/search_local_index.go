@@ -188,7 +188,7 @@ func (m localMatch) better(o localMatch) bool {
 
 // rank returns the ids of the best matches for the query, best first.
 func (q localQuery) rank(entries []indexEntry, limit int) []int64 {
-	if q.key == "" {
+	if q.key == "" || limit == 0 {
 		return nil
 	}
 
