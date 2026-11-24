@@ -226,12 +226,14 @@ func Test_SearchLocalIgnoresPunctuationAndAccents(t *testing.T) {
 	s := &localSearch{}
 	saveOwnedGame(conn, 1, "x-moon")
 	saveOwnedGame(conn, 2, "Pokémon Tribute")
+	saveOwnedGame(conn, 3, "Kirby ~ Soft & Wet")
 
 	for _, query := range []string{"x moon", "xmoon", "X_Moon", "moon x", "x-mo"} {
 		require.Equal(t, []int64{1}, gameIDs(s.search(conn, localParams(1, query)).Games), query)
 	}
 	require.Equal(t, []int64{2}, gameIDs(s.search(conn, localParams(1, "pokemon")).Games))
 	require.Equal(t, []int64{2}, gameIDs(s.search(conn, localParams(1, "TRIBUTE POKÉ")).Games))
+	require.Equal(t, []int64{3}, gameIDs(s.search(conn, localParams(1, "soft and wet")).Games))
 
 }
 

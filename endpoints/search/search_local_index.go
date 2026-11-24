@@ -169,6 +169,10 @@ func newLocalQuery(query string) localQuery {
 		key:   strings.Join(words, ""),
 	}
 	for _, word := range words {
+		// typed where the title may have an &, which isn't a word there
+		if word == "and" && len(words) > 1 {
+			continue
+		}
 		q.words = append(q.words, " "+word)
 	}
 	return q
