@@ -235,6 +235,26 @@ func Test_SearchLocalIgnoresPunctuationAndAccents(t *testing.T) {
 
 }
 
+func Test_SearchLocalMidTitleAndFoldedLetters(t *testing.T) {
+	conn := searchLocalTestConn(t)
+	s := &localSearch{}
+	saveOwnedGame(conn, 1, "Super X-Moon")
+	saveOwnedGame(conn, 2, "Please Don't Starve")
+	saveOwnedGame(conn, 3, "Große Straße")
+	saveOwnedGame(conn, 4, "King's Quest to Mars")
+	saveOwnedGame(conn, 5, "Tiny Tomato Squad")
+
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, localParams(1, "xmoon")).Games))
+	require.Equal(t, []int64{1}, gameIDs(s.search(conn, localParams(1, "xmoon super")).Games))
+	require.Equal(t, []int64{2}, gameIDs(s.search(conn, localParams(1, "starve dont")).Games))
+	require.Equal(t, []int64{3}, gameIDs(s.search(conn, localParams(1, "strasse")).Games))
+
+	// the s after an apostrophe doesn't start a word
+	require.Equal(t, []int64{5}, gameIDs(s.search(conn, localParams(1, "squ")).Games))
+	// a match that needs words run together ranks below one that doesn't
+	require.Equal(t, []int64{5, 4}, gameIDs(s.search(conn, localParams(1, "tom")).Games))
+}
+
 func Test_SearchLocalSymbolTitles(t *testing.T) {
 	conn := searchLocalTestConn(t)
 	s := &localSearch{}
