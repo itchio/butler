@@ -38,6 +38,16 @@ func Test_LaunchRuntime(t *testing.T) {
 name = "play"
 path = "."
 args = ["--windowed"]
+
+[[actions]]
+name = "duplicate"
+path = "."
+args = ["--windowed"]
+
+[[actions]]
+name = "configure"
+path = "."
+args = ["--configure"]
 `)
 		ac.Entry("main.lua").String(`function love.draw() end`)
 		ac.Entry("conf.lua").String(`function love.conf(t) t.version = "11.5" end`)
@@ -72,18 +82,22 @@ args = ["--windowed"]
 		Runtimes: []string{"love"},
 	})
 	must(err)
-	require.Len(t, targetsRes.Targets, 1)
+	require.Len(t, targetsRes.Targets, 2)
 	target := targetsRes.Targets[0]
 	assert.EqualValues("play", target.Action.Name)
 	assert.EqualValues(butlerd.LaunchStrategyRuntime, target.Strategy.Strategy)
 	assert.EqualValues(dash.FlavorLove, target.Strategy.Candidate.Flavor)
+	configureTarget := targetsRes.Targets[1]
+	assert.Equal("configure", configureTarget.Action.Name)
+	assert.Equal([]string{"--configure"}, configureTarget.Action.Args)
+	assert.Equal(target.Strategy.FullTargetPath, configureTarget.Strategy.FullTargetPath)
 
 	// without the runtimes list the same action is a folder to browse
 	plainRes, err := messages.LaunchGetTargets.TestCall(rc, butlerd.LaunchGetTargetsParams{
 		CaveID: queueRes.CaveID,
 	})
 	must(err)
-	require.Len(t, plainRes.Targets, 1)
+	require.Len(t, plainRes.Targets, 2)
 	assert.EqualValues(butlerd.LaunchStrategyShell, plainRes.Targets[0].Strategy.Strategy)
 
 	// without the runtimes list the target does not exist at launch time

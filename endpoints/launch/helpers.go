@@ -1,6 +1,8 @@
 package launch
 
 import (
+	"slices"
+
 	"crawshaw.io/sqlite"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/itchio/butler/butlerd"
@@ -230,14 +232,18 @@ func getTargets(rc *butlerd.RequestContext, params getTargetsParams) (*getTarget
 	}
 
 	var uniqueTargets []*butlerd.LaunchTarget
-	fullPathsDone := make(map[string]struct{})
+	seenArgsByPath := make(map[string][][]string)
 	for _, target := range targets {
-		if _, ok := fullPathsDone[target.Strategy.FullTargetPath]; ok {
+		path := target.Strategy.FullTargetPath
+		args := target.Action.Args
+		if slices.ContainsFunc(seenArgsByPath[path], func(seen []string) bool {
+			return slices.Equal(seen, args)
+		}) {
 			consumer.Debugf("Removing duplicate target:\n%s", target.Strategy.String())
 			continue
 		}
 
-		fullPathsDone[target.Strategy.FullTargetPath] = struct{}{}
+		seenArgsByPath[path] = append(seenArgsByPath[path], args)
 		uniqueTargets = append(uniqueTargets, target)
 	}
 	targets = uniqueTargets
